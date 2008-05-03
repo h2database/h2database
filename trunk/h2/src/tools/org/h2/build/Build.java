@@ -106,6 +106,9 @@ public class Build extends BuildBase {
         download("ext/lucene-core-2.2.0.jar",
                 "http://repo1.maven.org/maven2/org/apache/lucene/lucene-core/2.2.0/lucene-core-2.2.0.jar",
                 "47b6eee2e17bd68911e7045896a1c09de0b2dda8");
+        download("ext/slf4j-api-1.5.0.jar",
+                "http://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.5.0/slf4j-api-1.5.0.jar", 
+                "b2df265d02350ecfe87b6c1773c7c4fab2b33505");
     }
     
     private String getVersion() {

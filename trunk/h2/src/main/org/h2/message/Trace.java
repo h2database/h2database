@@ -14,9 +14,7 @@ import org.h2.util.StringUtils;
  */
 public class Trace {
 
-    // TODO trace: java code generation does not always work
-
-    private TraceSystem traceSystem;
+    private TraceWriter traceWriter;
     private String module;
     private String lineSeparator;
 
@@ -38,44 +36,45 @@ public class Trace {
     public static final String SESSION = "session";
     public static final String AGGREGATE = "aggregate";
 
-    public Trace(TraceSystem traceSystem, String module) {
-        this.traceSystem = traceSystem;
+    Trace(TraceWriter traceWriter, String module) {
+        this.traceWriter = traceWriter;
         this.module = module;
         this.lineSeparator = SysProperties.LINE_SEPARATOR;
     }
 
-    public boolean info() {
-        return traceSystem.isEnabled(TraceSystem.INFO);
+    public boolean isInfoEnabled() {
+        return traceWriter.isEnabled(TraceSystem.INFO);
     }
 
-    public boolean debug() {
-        return traceSystem.isEnabled(TraceSystem.DEBUG);
+    public boolean isDebugEnabled() {
+        return traceWriter.isEnabled(TraceSystem.DEBUG);
     }
 
     public void error(String s) {
-        traceSystem.write(TraceSystem.ERROR, module, s, null);
+        traceWriter.write(TraceSystem.ERROR, module, s, null);
     }
 
     public void error(String s, Throwable t) {
-        traceSystem.write(TraceSystem.ERROR, module, s, t);
+        traceWriter.write(TraceSystem.ERROR, module, s, t);
     }
 
     public void info(String s) {
-        traceSystem.write(TraceSystem.INFO, module, s, null);
+        traceWriter.write(TraceSystem.INFO, module, s, null);
     }
 
     public void debugCode(String java) {
-        traceSystem.write(TraceSystem.DEBUG, module, lineSeparator + "/**/" + java, null);
+        traceWriter.write(TraceSystem.DEBUG, module, lineSeparator + "/**/" + java, null);
     }
 
     public void infoCode(String java) {
-        traceSystem.write(TraceSystem.INFO, module, lineSeparator + "/**/" + java, null);
+        traceWriter.write(TraceSystem.INFO, module, lineSeparator + "/**/" + java, null);
     }
 
     public void infoSQL(String sql, String params, int count, long time) {
         StringBuffer buff = new StringBuffer(sql.length() + 20);
         buff.append(lineSeparator);
-        buff.append("/*SQL ");
+        buff.append("/*SQL");
+        boolean space = false;
         if (params.length() > 0) {
             // This looks like a bug, but it is intentional:
             // If there are no parameters, the SQL statement is 
@@ -83,31 +82,37 @@ public class Trace {
             // are appended at the end of the line. Knowing the size 
             // of the statement simplifies separating the SQL statement
             // from the parameters (no need to parse).
-            buff.append("l:");
+            space = true;
+            buff.append(" l:");
             buff.append(sql.length());
         }
         if (count > 0) {
+            space = true;
             buff.append(" #:");
             buff.append(count);
         }
         if (time > 0) {
+            space = true;
             buff.append(" t:");
             buff.append(time);
+        }
+        if (!space) {
+            buff.append(' ');
         }
         buff.append("*/");
         buff.append(StringUtils.javaEncode(sql));
         buff.append(params);
         buff.append(';');
         sql = buff.toString();
-        traceSystem.write(TraceSystem.INFO, module, sql, null);
+        traceWriter.write(TraceSystem.INFO, module, sql, null);
     }
 
     public void debug(String s) {
-        traceSystem.write(TraceSystem.DEBUG, module, s, null);
+        traceWriter.write(TraceSystem.DEBUG, module, s, null);
     }
 
     public void debug(String s, Throwable t) {
-        traceSystem.write(TraceSystem.DEBUG, module, s, t);
+        traceWriter.write(TraceSystem.DEBUG, module, s, t);
     }
 
 }

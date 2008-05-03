@@ -278,7 +278,7 @@ public abstract class Prepared {
     }
 
     void trace(long startTime, int count) throws SQLException {
-        if (session.getTrace().info()) {
+        if (session.getTrace().isInfoEnabled()) {
             long time = System.currentTimeMillis() - startTime;
             String params;
             if (parameters.size() > 0) {

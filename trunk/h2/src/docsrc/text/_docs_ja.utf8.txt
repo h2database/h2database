@@ -2122,223 +2122,223 @@ GCJバージョンは、Javaバージョンほどは安定していません。G
 トレースオプションを使用する
 
 @features_1019_a
-読み取り専用データベース
+#Using Other Logging APIs
 
 @features_1020_a
-#Read Only Databases in Zip or Jar File
+読み取り専用データベース
 
 @features_1021_a
-バイナリーとテキストストレージフォーマット
+#Read Only Databases in Zip or Jar File
 
 @features_1022_a
-ディスクスペースが少ない状況での正しい取り扱い
+バイナリーとテキストストレージフォーマット
 
 @features_1023_a
-computed column / ベースインデックスの機能
+ディスクスペースが少ない状況での正しい取り扱い
 
 @features_1024_a
-多次元インデックス
+computed column / ベースインデックスの機能
 
 @features_1025_a
-パスワードを使用する
+多次元インデックス
 
 @features_1026_a
-ユーザー定義の関数とストアドプロシージャ
+パスワードを使用する
 
 @features_1027_a
-トリガー
+ユーザー定義の関数とストアドプロシージャ
 
 @features_1028_a
-データベースをコンパクトにする
+トリガー
 
 @features_1029_a
+データベースをコンパクトにする
+
+@features_1030_a
 キャッシュの設定
 
-@features_1030_h2
+@features_1031_h2
 特徴一覧
 
-@features_1031_h3
+@features_1032_h3
 主な特徴
 
-@features_1032_li
+@features_1033_li
 非常に高速なデータベースエンジン
 
-@features_1033_li
+@features_1034_li
 無料、ソースコード付き
 
-@features_1034_li
+@features_1035_li
 Javaで記載
 
-@features_1035_li
+@features_1036_li
 標準規格のSQL、JDBC APIをサポート
 
-@features_1036_li
+@features_1037_li
 エンベッドモードとサーバーモード、クラスタリングをサポート
 
-@features_1037_li
+@features_1038_li
 強力なセキュリティ機能
 
-@features_1038_li
+@features_1039_li
 試験用のネイティブバージョン (GCJ) とODBCドライバ
 
-@features_1039_h3
+@features_1040_h3
 追加された特徴
 
-@features_1040_li
+@features_1041_li
 ディスクベースデータベース、またはインメモリデータベースと、テーブル、読み取り専用データベースをサポート、テンポラリテーブル
 
-@features_1041_li
+@features_1042_li
 トランザクションをサポート (トランザクション分離の serializable (直列化))、2フェーズコミット
 
-@features_1042_li
+@features_1043_li
 複数の接続、テーブルレベルのロック
 
-@features_1043_li
+@features_1044_li
 コストベースオプティマイザ、複雑なクエリーのために遺伝的アルゴリズムを使用、zero-administration
 
-@features_1044_li
+@features_1045_li
 スクロール可能result setと更新可能result setをサポート、大きなresult set、外部結果ソート、 関数はresult setを返す
 
-@features_1045_li
+@features_1046_li
 暗号化されたデータベース (AES または XTEA), SHA-256 パスワード暗号化、暗号化関数、SSL
 
-@features_1046_h3
+@features_1047_h3
 SQLサポート
 
-@features_1047_li
+@features_1048_li
 複数のスキーマ、インフォメーションスキーマをサポート
 
-@features_1048_li
+@features_1049_li
 参照整合性 / カスケードでの外部キー制約、チェック制約
 
-@features_1049_li
+@features_1050_li
 内部結合と外部結合、サブクエリー、読み取り専用ビューとインラインビュー
 
-@features_1050_li
+@features_1051_li
 トリガーと Java関数 / ストアドプロシージャ
 
-@features_1051_li
+@features_1052_li
 多数の組み込み関数、XMLとlossless data compression (可逆圧縮) を含む
 
-@features_1052_li
+@features_1053_li
 大きなオブジェクト (BLOB/CLOB) とArrayを含む、広い範囲のデータ型
 
-@features_1053_li
+@features_1054_li
 シーケンスとautoincrement column、computed column、(関数ベースのインデックスに使用できます)
 
-@features_1054_li
+@features_1055_li
 ORDER BY, GROUP BY, HAVING, UNION, LIMIT, TOP
 
-@features_1055_li
+@features_1056_li
 Collationをサポート、users、roles
 
-@features_1056_li
+@features_1057_li
 HSQLDB、MySQLとPostgreSQLのための互換モード
 
-@features_1057_h3
+@features_1058_h3
 セキュリティの特徴
 
-@features_1058_li
+@features_1059_li
 SQLインジェクション問題の解決を含む
 
-@features_1059_li
+@features_1060_li
 SHA-256とsaltを使ってユーザーパスワードが本物であることを証明する
 
-@features_1060_li
+@features_1061_li
 ユーザーパスワードは決してプレーンテキストでネットワーク上に送信されることはない (たとえ不安定な接続を使用していたとしても)
 
-@features_1061_li
+@features_1062_li
 AES-256とXTEA暗号化アルゴリズムを使用することで、全てのデータベースファイル (データのバックアップを取るのに使用できるスクリプトファイルを含む) を暗号化できる
 
-@features_1062_li
+@features_1063_li
 リモートJDBCドライバは、SSL/TLS上のTCP/IP接続をサポート
 
-@features_1063_li
+@features_1064_li
 組み込みwebサーバーは、SSL/TLS上の接続をサポート
 
-@features_1064_li
+@features_1065_li
 Stringの代わりにchar arrayを使うことで、パスワードをデータベースに送信可能
 
-@features_1065_h3
+@features_1066_h3
 他の特徴とツール
 
-@features_1066_li
+@features_1067_li
 省スペース (1MBより小さい)、少ないメモリが必要条件
 
-@features_1067_li
+@features_1068_li
 複数のインデックスタイプ (b-tree、tree、hash、linear hash)
 
-@features_1068_li
+@features_1069_li
 多次元のインデックスをサポート
 
-@features_1069_li
+@features_1070_li
 CSV (comma separated values) ファイルサポート
 
-@features_1070_li
+@features_1071_li
 リンクテーブルと組み込み仮想 "range" テーブルのサポート
 
-@features_1071_li
+@features_1072_li
 EXPLAIN PLANをサポート、 洗練されたトレースオプション
 
-@features_1072_li
+@features_1073_li
 パフォーマンスを向上させるために、データベースの終了を遅らせるか割り込みを抑制する
 
-@features_1073_li
+@features_1074_li
 Webベースのコンソールアプリケーション (英語、ドイツ語、部分的にフランス語とスペイン語) が自動完備
 
-@features_1074_li
+@features_1075_li
 データベースはSQLスクリプトファイルを生成
 
-@features_1075_li
+@features_1076_li
 データファイルのコンテンツを移動することができるリカバリーツールを含む
 
-@features_1076_li
+@features_1077_li
 #Support for variables (for example to calculate running totals)
 
-@features_1077_li
+@features_1078_li
 prepared statementの自動再編集
 
-@features_1078_li
+@features_1079_li
 少数のデータベースファイル、バイナリー、テキストストレージ形式を使用、ディスクスペースが少ない状況での正しい取り扱い
 
-@features_1079_li
+@features_1080_li
 各レコードのためのチェックサムと、データ整合性のためのログエントリーを使用
 
-@features_1080_li
+@features_1081_li
 十分なテスト済み (高いコードカバー率、ランダムストレステスト)
 
-@features_1081_h2
+@features_1082_h2
 #Limitations
 
-@features_1082_p
+@features_1083_p
 #For the list of limitations, please have a look at the road map page at: <a href="http://groups.google.com/group/h2-database/web/roadmap">http://groups.google.com/group/h2-database/web/roadmap</a>
 
-@features_1083_h2
+@features_1084_h2
 他のデータベースエンジンと比較する
 
-@features_1084_th
+@features_1085_th
 特徴
 
-@features_1085_th
+@features_1086_th
 H2
 
-@features_1086_th
+@features_1087_th
 Derby
 
-@features_1087_th
+@features_1088_th
 HSQLDB
 
-@features_1088_th
+@features_1089_th
 MySQL
 
-@features_1089_th
+@features_1090_th
 PostgreSQL
 
-@features_1090_td
-Pure Java
-
 @features_1091_td
-対応
+Pure Java
 
 @features_1092_td
 対応
@@ -2347,16 +2347,16 @@ Pure Java
 対応
 
 @features_1094_td
-非対応
+対応
 
 @features_1095_td
 非対応
 
 @features_1096_td
-エンベッドモード (Java)
+非対応
 
 @features_1097_td
-対応
+エンベッドモード (Java)
 
 @features_1098_td
 対応
@@ -2365,112 +2365,112 @@ Pure Java
 対応
 
 @features_1100_td
-非対応
+対応
 
 @features_1101_td
 非対応
 
 @features_1102_td
-パフォーマンス (エンベッド)
+非対応
 
 @features_1103_td
-速い
+パフォーマンス (エンベッド)
 
 @features_1104_td
-遅い
-
-@features_1105_td
 速い
 
+@features_1105_td
+遅い
+
 @features_1106_td
-該当なし
+速い
 
 @features_1107_td
 該当なし
 
 @features_1108_td
-#In-Memory Mode
+該当なし
 
 @features_1109_td
-対応
+#In-Memory Mode
 
 @features_1110_td
-非対応
-
-@features_1111_td
 対応
 
-@features_1112_td
+@features_1111_td
 非対応
+
+@features_1112_td
+対応
 
 @features_1113_td
 非対応
 
 @features_1114_td
-トランザクション分離
+非対応
 
 @features_1115_td
-対応
+トランザクション分離
 
 @features_1116_td
 対応
 
 @features_1117_td
-非対応
+対応
 
 @features_1118_td
-対応
+非対応
 
 @features_1119_td
 対応
 
 @features_1120_td
-コストベースオプティマイザ
+対応
 
 @features_1121_td
-対応
+コストベースオプティマイザ
 
 @features_1122_td
 対応
 
 @features_1123_td
-非対応
+対応
 
 @features_1124_td
-対応
+非対応
 
 @features_1125_td
 対応
 
 @features_1126_td
-クラスタリング
-
-@features_1127_td
 対応
 
+@features_1127_td
+クラスタリング
+
 @features_1128_td
-非対応
+対応
 
 @features_1129_td
 非対応
 
 @features_1130_td
-対応
+非対応
 
 @features_1131_td
 対応
 
 @features_1132_td
-暗号化データベース
+対応
 
 @features_1133_td
-対応
+暗号化データベース
 
 @features_1134_td
 対応
 
 @features_1135_td
-非対応
+対応
 
 @features_1136_td
 非対応
@@ -2479,954 +2479,975 @@ Pure Java
 非対応
 
 @features_1138_td
-ODBCドライバ
-
-@features_1139_td
-対応
-
-@features_1140_td
-#Yes?
-
-@features_1141_td
 非対応
 
-@features_1142_td
+@features_1139_td
+ODBCドライバ
+
+@features_1140_td
 対応
+
+@features_1141_td
+#Yes?
+
+@features_1142_td
+非対応
 
 @features_1143_td
 対応
 
 @features_1144_td
-フルテキストサーチ
-
-@features_1145_td
 対応
 
+@features_1145_td
+フルテキストサーチ
+
 @features_1146_td
-非対応
+対応
 
 @features_1147_td
 非対応
 
 @features_1148_td
-対応
+非対応
 
 @features_1149_td
 対応
 
 @features_1150_td
-#User-Defined Datatypes
-
-@features_1151_td
 対応
 
+@features_1151_td
+#User-Defined Datatypes
+
 @features_1152_td
-非対応
+対応
 
 @features_1153_td
 非対応
 
 @features_1154_td
-対応
+非対応
 
 @features_1155_td
 対応
 
 @features_1156_td
-データベースごとのファイル
+対応
 
 @features_1157_td
-少
+データベースごとのファイル
 
 @features_1158_td
-多
-
-@features_1159_td
 少
 
-@features_1160_td
+@features_1159_td
 多
+
+@features_1160_td
+少
 
 @features_1161_td
 多
 
 @features_1162_td
-フットプリント (jar/dll size)
+多
 
 @features_1163_td
-~ 1 MB
+フットプリント (jar/dll size)
 
 @features_1164_td
-~ 2 MB
+~ 1 MB
 
 @features_1165_td
-~ 600 KB
+~ 2 MB
 
 @features_1166_td
-~ 4 MB
+~ 600 KB
 
 @features_1167_td
+~ 4 MB
+
+@features_1168_td
 ~ 6 MB
 
-@features_1168_h3
+@features_1169_h3
 DerbyとHSQLDB
 
-@features_1169_p
+@features_1170_p
 予期しない過程での終了後 (例：電源異常)、H2はユーザーの相互作用なしで安全に、自動的に回復することができます。DerbyとHSQLDBでは、いくつかの手動のステップが必要とされます ('Another instance of Derby may have already booted the database' / 'The database is already in use by another process')。
 
-@features_1170_h3
+@features_1171_h3
 DaffodilDbとOne$Db
 
-@features_1171_p
+@features_1172_p
 このデータベースの開発は止まっているようです。最後のリリースは2006年2月でした。
 
-@features_1172_h3
+@features_1173_h3
 McKoi
 
-@features_1173_p
+@features_1174_p
 このデータベースの開発は止まっているようです。最後のリリースは2004年8月でした。
 
-@features_1174_h2
+@features_1175_h2
 #H2 in Use
 
-@features_1175_p
+@features_1176_p
 #For a list of applications that work with or use H2, see: <a href="links.html">Links</a> .
 
-@features_1176_h2
+@features_1177_h2
 接続モード
 
-@features_1177_p
+@features_1178_p
 以下の接続モードがサポートされています:
 
-@features_1178_li
+@features_1179_li
 #Embedded mode (local connections using JDBC)
 
-@features_1179_li
+@features_1180_li
 #Remote mode (remote connections using JDBC or ODBC over TCP/IP)
 
-@features_1180_li
+@features_1181_li
 #Mixed mode (local and remote connections at the same time)
 
-@features_1181_h3
+@features_1182_h3
 エンベッドモード
 
-@features_1182_p
+@features_1183_p
 #In embedded mode, an application opens a database from within the same JVM using JDBC. This is the fastest and easiest connection mode. The disadvantage is that a database may only be open in one virtual machine (and class loader) at any time. As in all modes, both persistent and in-memory databases are supported. There is no limit on the number of database open concurrently, or on the number of open connections.
 
-@features_1183_h3
+@features_1184_h3
 #Remote Mode
 
-@features_1184_p
+@features_1185_p
 #When using the remote mode (sometimes called client/server mode), an application opens a database remotely using the JDBC or ODBC API. A server needs to be started within the same or another virtual machine (or on another computer). Many applications can connect to the same database at the same time. The remote mode is slower than the embedded mode, because all data is transferred over TCP/IP. As in all modes, both persistent and in-memory databases are supported. There is no limit on the number of database open concurrently, or on the number of open connections.
 
-@features_1185_h3
+@features_1186_h3
 #Mixed Mode
 
-@features_1186_p
+@features_1187_p
 #The mixed mode is a combination of the embedded and the remote mode. The main application connects to a database in embedded mode, but also starts a server so that other applications (running in different virtual machines) can concurrently access the same data.
 
-@features_1187_h2
+@features_1188_h2
 データベースURL概要
 
-@features_1188_p
+@features_1189_p
 #This database supports multiple connection modes and connection settings. This is achieved using different database URLs. Settings in the URLs are not case sensitive.
 
-@features_1189_th
+@features_1190_th
 トピック
 
-@features_1190_th
+@features_1191_th
 URLフォーマットと例
 
-@features_1191_td
+@features_1192_td
 エンベッド (ローカル) 接続
 
-@features_1192_td
+@features_1193_td
 jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;
 
-@features_1193_td
+@features_1194_td
 jdbc:h2:~/test
 
-@features_1194_td
+@features_1195_td
 jdbc:h2:file:/data/sample
 
-@features_1195_td
+@features_1196_td
 jdbc:h2:file:C:/data/sample (Windowsのみ)
 
-@features_1196_td
-インメモリ (プライベート)
-
 @features_1197_td
-jdbc:h2:mem:
+インメモリ (プライベート)
 
 @features_1198_td
-インメモリ (名付ける)
-
-@features_1199_td
-jdbc:h2:mem:&lt;databaseName&gt;
-
-@features_1200_td
-jdbc:h2:mem:test_mem
-
-@features_1201_td
-TCP/IPを使用したリモート
-
-@features_1202_td
-jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;
-
-@features_1203_td
-#jdbc:h2:tcp://localhost/~/test
-
-@features_1204_td
-#jdbc:h2:tcp://dbserv:8084/~/sample
-
-@features_1205_td
-SSL/TLSを使用したリモート
-
-@features_1206_td
-jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;
-
-@features_1207_td
-#jdbc:h2:ssl://secureserv:8085/~/sample;
-
-@features_1208_td
-暗号化ファイルの使用
-
-@features_1209_td
-jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]
-
-@features_1210_td
-#jdbc:h2:ssl://secureserv/~/testdb;CIPHER=AES
-
-@features_1211_td
-jdbc:h2:file:~/secure;CIPHER=XTEA
-
-@features_1212_td
-ファイルロックメソッド
-
-@features_1213_td
-jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}
-
-@features_1214_td
-jdbc:h2:file:~/quickAndDirty;FILE_LOCK=NO
-
-@features_1215_td
-jdbc:h2:file:~/private;CIPHER=XTEA;FILE_LOCK=SOCKET
-
-@features_1216_td
-すでに存在する場合は起動のみ
-
-@features_1217_td
-jdbc:h2:&lt;url&gt;;IFEXISTS=TRUE
-
-@features_1218_td
-jdbc:h2:file:~/sample;IFEXISTS=TRUE
-
-@features_1219_td
-VMが終了した時、データベースを終了しない
-
-@features_1220_td
-jdbc:h2:&lt;url&gt;;DB_CLOSE_ON_EXIT=FALSE
-
-@features_1221_td
-ユーザー名、及びパスワード
-
-@features_1222_td
-jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]
-
-@features_1223_td
-jdbc:h2:file:~/sample;USER=sa;PASSWORD=123
-
-@features_1224_td
-ログインデックスの修正
-
-@features_1225_td
-jdbc:h2:&lt;url&gt;;LOG=2
-
-@features_1226_td
-jdbc:h2:file:~/sample;LOG=2
-
-@features_1227_td
-デバックトレースの設定
-
-@features_1228_td
-jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;
-
-@features_1229_td
-jdbc:h2:file:~/sample;TRACE_LEVEL_FILE=3
-
-@features_1230_td
-未知の設定を無視
-
-@features_1231_td
-jdbc:h2:&lt;url&gt;;IGNORE_UNKNOWN_SETTINGS=TRUE
-
-@features_1232_td
-カスタムファイル アクセスモード
-
-@features_1233_td
-jdbc:h2:&lt;url&gt;;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws
-
-@features_1234_td
-インメモリ (プライベート)
-
-@features_1235_td
 jdbc:h2:mem:
 
-@features_1236_td
-#Database in or Zip File
+@features_1199_td
+インメモリ (名付ける)
 
-@features_1237_td
-#jdbc:h2:zip:&lt;zipFileName&gt;!/&lt;databaseName&gt;
+@features_1200_td
+jdbc:h2:mem:&lt;databaseName&gt;
 
-@features_1238_td
-#jdbc:h2:zip:~/db.zip!/test
+@features_1201_td
+jdbc:h2:mem:test_mem
 
-@features_1239_td
-他の設定の変更
+@features_1202_td
+TCP/IPを使用したリモート
 
-@features_1240_td
-jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]
+@features_1203_td
+jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;
 
-@features_1241_td
-jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3
+@features_1204_td
+#jdbc:h2:tcp://localhost/~/test
 
-@features_1242_h3
-エンベッド (ローカル) データベースに接続
+@features_1205_td
+#jdbc:h2:tcp://dbserv:8084/~/sample
 
-@features_1243_p
-#The database URL for connecting to a local database is <code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code> . The prefix <code>file:</code> is optional. If no or only a relative path is used, then the current working directory is used as a starting point. The case sensitivity of the path and database name depend on the operating system, however it is recommended to use lowercase letters only. The database name must be at least three characters long (a limitation of File.createTempFile). To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
+@features_1206_td
+SSL/TLSを使用したリモート
 
-@features_1244_h2
-メモリオンリーデータベース
+@features_1207_td
+jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;
 
-@features_1245_p
-特定の使用方法では (例: rapid prototyping、テスト、高パフォーマンスオペレーション、読み取り専用データベース)、データは持続する (変化する) 必要は全くないかもしれません。このデータベースは、データが持続しない際にメモリオンリーモードをサポートします。
+@features_1208_td
+#jdbc:h2:ssl://secureserv:8085/~/sample;
 
-@features_1246_p
-一部ケースでは、メモリオンリーデータベースへの接続はひとつの接続のみ必要とされます。これは、開かれるデータベースがプライベートだということを意味しています。このケースでは、データベースURLは <CODE>jdbc:h2:mem:</CODE> です。同じ仮想マシン内で二つの接続が開いているというのは、二つの異なった (プライベートの) データベースが開いているという意味です。
+@features_1209_td
+暗号化ファイルの使用
 
-@features_1247_p
-時々、複数の接続が同じメモリオンリーデータベースを必要とします。このケースでは、データベースのURLに名前が含まれていなければなりません。例: <code>jdbc:h2:mem:db1</code> この方法での同じデータベースのアクセスは、同じ仮想マシンとClassLoader環境内でのみ動作します。
+@features_1210_td
+jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]
 
-@features_1248_p
-TCP/IPまたは、SSL/TLSを使用して、メモリオンリーデータベースに間接的に (または、同じマシンの複数のプロセスから) 接続することも可能です。データベースURLの例: <code>jdbc:h2:tcp://localhost/mem:db1</code> (プライベートデータベースを間接的に使用することも可能です)
+@features_1211_td
+#jdbc:h2:ssl://secureserv/~/testdb;CIPHER=AES
 
-@features_1249_p
-#By default, when the last connection to a in-memory database is closed, the contents are lost. This can be disabled by adding ;DB_CLOSE_DELAY=-1 to the database URL. That means to keep the contents of an in-memory database as long as the virtual machine is alive, use jdbc:h2:mem:test;DB_CLOSE_DELAY=-1
+@features_1212_td
+jdbc:h2:file:~/secure;CIPHER=XTEA
 
-@features_1250_h2
-暗号化ファイルと共にデータベースへ接続する
+@features_1213_td
+ファイルロックメソッド
 
-@features_1251_p
-ファイルを暗号化して使用するためには、暗号化アルゴリズム ("cipher") とファイルパスワードを指定することが必要です。アルゴリズムは、接続パラメータを使用することで指定される必要があります。二つのアルゴリズムがサポートされています: XTEAとAES です。ファイルパスワードは、ユーザーパスワードの前のパスワードフィールドで指定されます。ファイルパスワードとユーザーパスワードの間に、シングルスペースを加えることが必要です; ファイルパスワードそのものにはスペースは含まれません。ファイルパスワードは (ユーザーパスワードも同様) 大文字と小文字を区別しています。こちらがパスワードの暗号化されたデータベースに接続するための例です:
+@features_1214_td
+jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}
 
-@features_1252_h2
-データベースファイルロック
+@features_1215_td
+jdbc:h2:file:~/quickAndDirty;FILE_LOCK=NO
 
-@features_1253_p
-データベースが開かれるときはいつも、データベースが使用中であると他のプロセスに合図するためにロックファイルが作成されます。もしデータベースが閉じられるか、データベースを開いたプロセスが終了するなら、ロックファイルは削除されます。
+@features_1216_td
+jdbc:h2:file:~/private;CIPHER=XTEA;FILE_LOCK=SOCKET
 
-@features_1254_p
-以下のファイルロックメソッドが提供されます:
+@features_1217_td
+すでに存在する場合は起動のみ
 
-@features_1255_li
-デフォルトメソッドは "file" で、データベースファイルを保護するために、watchdogスレッドを使用します。watchdogは、ロックファイルをそれぞれ秒単位で読み込みます。
+@features_1218_td
+jdbc:h2:&lt;url&gt;;IFEXISTS=TRUE
 
-@features_1256_li
-二つめのメソッドは "socket" で、サーバーソケットを開きます。ソケットメソッドは、ロックファイルを秒単位で読むことを必要としていません。ソケットメソッドは、データベースファイルがひとつの (いつも同じ) コンピューターのみによってアクセスされる場合にのみ使用されます。
+@features_1219_td
+jdbc:h2:file:~/sample;IFEXISTS=TRUE
 
-@features_1257_li
-ファイルロッキングなしでデータベースを開始することも可能です; このケースでは、データベースファイルを保護するのはアプリケーション次第です。
-
-@features_1258_p
-異なったファイルロックメソッドでデータベースを開くには、"FILE_LOCK" パラメータを使用します。以下のコードは "socket" ロックメソッドのデータベースを開きます:
-
-@features_1259_p
-以下のコードは、データベースにロックファイルを全く作らないよう強要させます。これは、データ破損を導く可能性のある、同じデータベースを開くことができる他のプロセスのように、安全ではないということに注意して下さい:
-
-@features_1260_p
-アルゴリズムについての詳しい情報は、進化したトピックス のファイルロックプロトコルをご覧下さい。
-
-@features_1261_h2
-すでに存在する場合のみ、データベースを開く
-
-@features_1262_p
-デフォルトでは、アプリケーションが <code>DriverManager.getConnection(url,...)</code> を呼び出し、URLで指定されたデータベースがまだ存在しない時、 新しい (空の) データベースが作成されます。ある状況では、もしすでにデータベースが存在するのであれば、新しいデータベースの作成を制限して、データベースを開くだけにした方がよいでしょう。<code>;ifexists=true</code> をURLに追加することによって可能になります。このケースでは、もしデータベースがまだ存在していなければ、接続しようとした時に例外が投げられます。接続は、データベースがすでに存在する時のみ成功します。完全なURLは次のようです:
-
-@features_1263_h2
-データベースを終了する
-
-@features_1264_h3
-データベースの遅延終了
-
-@features_1265_p
-通常、データベースへの最後の接続が閉じられた時、データベースが終了されます。一部状況では、例えば、可能ではない時に接続をつなげたままにしておくことは、アプリケーションを減速させます。SQLステートメントの SET DB_CLOSE_DELAY &lt;seconds&gt; でデータベースの自動終了を遅らせるか、または無効にすることができます。secondsには、最後の接続が閉じられた後データベースを接続したままの状態に保つため、秒数を指定します。例えば、次のステートメントはデータベースを10秒間開かれた状態に保ちます:
-
-@features_1266_p
-値の-1は、データベースは決して自動的に閉じられないということを意味します。値の0はデフォルトで、最後の接続が終了した時データベースが終了するということを意味します。この設定は永続的で、管理者のみが設定することができます。データベースのURL内で値を設定することが可能です: <code>jdbc:h2:~/test;DB_CLOSE_DELAY=10</code>
-
-@features_1267_h3
+@features_1220_td
 VMが終了した時、データベースを終了しない
 
-@features_1268_p
-デフォルトでは、データベースは最後の接続が閉じられた時に終了されます。しかし、最後の接続が決して閉じられなければ、仮想マシンが正常に終了する時にデータベースは閉じられます。これはshutdown hookを使うことによって行われます。一部状況では、データベースはこのケースで終了されてはいけません。例えば、仮想マシンが終了している時にデータベースがまだ使われている場合です (例として、シャットダウンプロセスをデータベースに保存するため)。このケースでは、データベースURLでデータベースの自動終了を無効にすることが可能です。最初の接続は (ひとつはデータベースを開始するもの) データベースURLにオプションを設定する必要があります (設定を後で変更することは不可能です)。VMが終了する時、データベースの終了を無効にするためのデータベースURLです:
+@features_1221_td
+jdbc:h2:&lt;url&gt;;DB_CLOSE_ON_EXIT=FALSE
 
-@features_1269_h2
+@features_1222_td
+ユーザー名、及びパスワード
+
+@features_1223_td
+jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]
+
+@features_1224_td
+jdbc:h2:file:~/sample;USER=sa;PASSWORD=123
+
+@features_1225_td
 ログインデックスの修正
 
-@features_1270_p
-通常、インデックスファイルの変更はパフォーマンスのために記録されません。データベースを開いた時に、インデックスファイルが破損しているか、無くなっていたら、データから作り直されます。停電、またはプログラムの異常終了のため、データベースが正しく終了されなかった時、インデックスファイルは破損されます。一部状況では、例えば、非常に大きなデータベースを使用している時 (数百MB以上)、インデックスファイルが再作成されるのにはとても時間がかかります。それらの状況では、インデックスファイルの変更を記録しておいた方がよいでしょう。そうすることによって、破損されたインデックスファイルの回復が速くなります。ログインデックスの修正を可能にするためには、jdbc:h2:~/test;LOG=2 のように、URLに LOG=2 を追加して下さい。接続する時に、この設定が指定されます。このオプションを使用する時、データベースのアップデートパフォーマンスは低下するでしょう。
+@features_1226_td
+jdbc:h2:&lt;url&gt;;LOG=2
 
-@features_1271_h3
+@features_1227_td
+jdbc:h2:file:~/sample;LOG=2
+
+@features_1228_td
+デバックトレースの設定
+
+@features_1229_td
+jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;
+
+@features_1230_td
+jdbc:h2:file:~/sample;TRACE_LEVEL_FILE=3
+
+@features_1231_td
 未知の設定を無視
 
-@features_1272_p
-データベースに接続する時、いくつかのアプリケーションが (例えば、OpenOffice.org Base) いくつかの追加パラメータを渡します。なぜそれらのパラメータが渡されるのかは知られていません。PREFERDOSLIKELINEENDS と IGNOREDRIVERPRIVILEGES はパラメータの例で、それらは、OpenOffice.orgとの互換性を改良するために単に無視されます。もしデータベースに接続する時、アプリケーションが他のパラメータを渡していたら、通常データベースは、 パラメータはサポートされていません、という例外を投げます。データベースURLに ;IGNORE_UNKNOWN_SETTINGS=TRUE を追加することで、このようなパラメータを無視することが可能です。
+@features_1232_td
+jdbc:h2:&lt;url&gt;;IGNORE_UNKNOWN_SETTINGS=TRUE
 
-@features_1273_h3
-接続が開始された時に他の設定を変更する
-
-@features_1274_p
-すでに記述された設定に加えて (暗号、ファイルロック、データベースの存在、ユーザー、パスワード)、他のデータベースの設定は、データベースURLの中で渡すことができます。<CODE>SET setting value</CODE>ステートメントを接続直後に実行するのと同じように 、<CODE>setting=value</CODE> をURLの最後に追加します。このデータベースによってサポートされている設定の一覧は、SQL文法のドキュメントをご覧下さい。
-
-@features_1275_h2
+@features_1233_td
 カスタムファイル アクセスモード
 
-@features_1276_p
-#Usually, the database opens log, data and index files with the access mode 'rw', meaning read-write (except for read only databases, where the mode 'r' is used). To open a database in read-only mode if the files are not read-only, use ACCESS_MODE_DATA=r. Also supported are 'rws' and 'rwd'. The access mode used for log files is set via ACCESS_MODE_LOG; for data and index files use ACCESS_MODE_DATA. These settings must be specified in the database URL:
+@features_1234_td
+jdbc:h2:&lt;url&gt;;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws
+
+@features_1235_td
+インメモリ (プライベート)
+
+@features_1236_td
+jdbc:h2:mem:
+
+@features_1237_td
+#Database in or Zip File
+
+@features_1238_td
+#jdbc:h2:zip:&lt;zipFileName&gt;!/&lt;databaseName&gt;
+
+@features_1239_td
+#jdbc:h2:zip:~/db.zip!/test
+
+@features_1240_td
+他の設定の変更
+
+@features_1241_td
+jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]
+
+@features_1242_td
+jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3
+
+@features_1243_h3
+エンベッド (ローカル) データベースに接続
+
+@features_1244_p
+#The database URL for connecting to a local database is <code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code> . The prefix <code>file:</code> is optional. If no or only a relative path is used, then the current working directory is used as a starting point. The case sensitivity of the path and database name depend on the operating system, however it is recommended to use lowercase letters only. The database name must be at least three characters long (a limitation of File.createTempFile). To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
+
+@features_1245_h2
+メモリオンリーデータベース
+
+@features_1246_p
+特定の使用方法では (例: rapid prototyping、テスト、高パフォーマンスオペレーション、読み取り専用データベース)、データは持続する (変化する) 必要は全くないかもしれません。このデータベースは、データが持続しない際にメモリオンリーモードをサポートします。
+
+@features_1247_p
+一部ケースでは、メモリオンリーデータベースへの接続はひとつの接続のみ必要とされます。これは、開かれるデータベースがプライベートだということを意味しています。このケースでは、データベースURLは <CODE>jdbc:h2:mem:</CODE> です。同じ仮想マシン内で二つの接続が開いているというのは、二つの異なった (プライベートの) データベースが開いているという意味です。
+
+@features_1248_p
+時々、複数の接続が同じメモリオンリーデータベースを必要とします。このケースでは、データベースのURLに名前が含まれていなければなりません。例: <code>jdbc:h2:mem:db1</code> この方法での同じデータベースのアクセスは、同じ仮想マシンとClassLoader環境内でのみ動作します。
+
+@features_1249_p
+TCP/IPまたは、SSL/TLSを使用して、メモリオンリーデータベースに間接的に (または、同じマシンの複数のプロセスから) 接続することも可能です。データベースURLの例: <code>jdbc:h2:tcp://localhost/mem:db1</code> (プライベートデータベースを間接的に使用することも可能です)
+
+@features_1250_p
+#By default, when the last connection to a in-memory database is closed, the contents are lost. This can be disabled by adding ;DB_CLOSE_DELAY=-1 to the database URL. That means to keep the contents of an in-memory database as long as the virtual machine is alive, use jdbc:h2:mem:test;DB_CLOSE_DELAY=-1
+
+@features_1251_h2
+暗号化ファイルと共にデータベースへ接続する
+
+@features_1252_p
+ファイルを暗号化して使用するためには、暗号化アルゴリズム ("cipher") とファイルパスワードを指定することが必要です。アルゴリズムは、接続パラメータを使用することで指定される必要があります。二つのアルゴリズムがサポートされています: XTEAとAES です。ファイルパスワードは、ユーザーパスワードの前のパスワードフィールドで指定されます。ファイルパスワードとユーザーパスワードの間に、シングルスペースを加えることが必要です; ファイルパスワードそのものにはスペースは含まれません。ファイルパスワードは (ユーザーパスワードも同様) 大文字と小文字を区別しています。こちらがパスワードの暗号化されたデータベースに接続するための例です:
+
+@features_1253_h2
+データベースファイルロック
+
+@features_1254_p
+データベースが開かれるときはいつも、データベースが使用中であると他のプロセスに合図するためにロックファイルが作成されます。もしデータベースが閉じられるか、データベースを開いたプロセスが終了するなら、ロックファイルは削除されます。
+
+@features_1255_p
+以下のファイルロックメソッドが提供されます:
+
+@features_1256_li
+デフォルトメソッドは "file" で、データベースファイルを保護するために、watchdogスレッドを使用します。watchdogは、ロックファイルをそれぞれ秒単位で読み込みます。
+
+@features_1257_li
+二つめのメソッドは "socket" で、サーバーソケットを開きます。ソケットメソッドは、ロックファイルを秒単位で読むことを必要としていません。ソケットメソッドは、データベースファイルがひとつの (いつも同じ) コンピューターのみによってアクセスされる場合にのみ使用されます。
+
+@features_1258_li
+ファイルロッキングなしでデータベースを開始することも可能です; このケースでは、データベースファイルを保護するのはアプリケーション次第です。
+
+@features_1259_p
+異なったファイルロックメソッドでデータベースを開くには、"FILE_LOCK" パラメータを使用します。以下のコードは "socket" ロックメソッドのデータベースを開きます:
+
+@features_1260_p
+以下のコードは、データベースにロックファイルを全く作らないよう強要させます。これは、データ破損を導く可能性のある、同じデータベースを開くことができる他のプロセスのように、安全ではないということに注意して下さい:
+
+@features_1261_p
+アルゴリズムについての詳しい情報は、進化したトピックス のファイルロックプロトコルをご覧下さい。
+
+@features_1262_h2
+すでに存在する場合のみ、データベースを開く
+
+@features_1263_p
+デフォルトでは、アプリケーションが <code>DriverManager.getConnection(url,...)</code> を呼び出し、URLで指定されたデータベースがまだ存在しない時、 新しい (空の) データベースが作成されます。ある状況では、もしすでにデータベースが存在するのであれば、新しいデータベースの作成を制限して、データベースを開くだけにした方がよいでしょう。<code>;ifexists=true</code> をURLに追加することによって可能になります。このケースでは、もしデータベースがまだ存在していなければ、接続しようとした時に例外が投げられます。接続は、データベースがすでに存在する時のみ成功します。完全なURLは次のようです:
+
+@features_1264_h2
+データベースを終了する
+
+@features_1265_h3
+データベースの遅延終了
+
+@features_1266_p
+通常、データベースへの最後の接続が閉じられた時、データベースが終了されます。一部状況では、例えば、可能ではない時に接続をつなげたままにしておくことは、アプリケーションを減速させます。SQLステートメントの SET DB_CLOSE_DELAY &lt;seconds&gt; でデータベースの自動終了を遅らせるか、または無効にすることができます。secondsには、最後の接続が閉じられた後データベースを接続したままの状態に保つため、秒数を指定します。例えば、次のステートメントはデータベースを10秒間開かれた状態に保ちます:
+
+@features_1267_p
+値の-1は、データベースは決して自動的に閉じられないということを意味します。値の0はデフォルトで、最後の接続が終了した時データベースが終了するということを意味します。この設定は永続的で、管理者のみが設定することができます。データベースのURL内で値を設定することが可能です: <code>jdbc:h2:~/test;DB_CLOSE_DELAY=10</code>
+
+@features_1268_h3
+VMが終了した時、データベースを終了しない
+
+@features_1269_p
+デフォルトでは、データベースは最後の接続が閉じられた時に終了されます。しかし、最後の接続が決して閉じられなければ、仮想マシンが正常に終了する時にデータベースは閉じられます。これはshutdown hookを使うことによって行われます。一部状況では、データベースはこのケースで終了されてはいけません。例えば、仮想マシンが終了している時にデータベースがまだ使われている場合です (例として、シャットダウンプロセスをデータベースに保存するため)。このケースでは、データベースURLでデータベースの自動終了を無効にすることが可能です。最初の接続は (ひとつはデータベースを開始するもの) データベースURLにオプションを設定する必要があります (設定を後で変更することは不可能です)。VMが終了する時、データベースの終了を無効にするためのデータベースURLです:
+
+@features_1270_h2
+ログインデックスの修正
+
+@features_1271_p
+通常、インデックスファイルの変更はパフォーマンスのために記録されません。データベースを開いた時に、インデックスファイルが破損しているか、無くなっていたら、データから作り直されます。停電、またはプログラムの異常終了のため、データベースが正しく終了されなかった時、インデックスファイルは破損されます。一部状況では、例えば、非常に大きなデータベースを使用している時 (数百MB以上)、インデックスファイルが再作成されるのにはとても時間がかかります。それらの状況では、インデックスファイルの変更を記録しておいた方がよいでしょう。そうすることによって、破損されたインデックスファイルの回復が速くなります。ログインデックスの修正を可能にするためには、jdbc:h2:~/test;LOG=2 のように、URLに LOG=2 を追加して下さい。接続する時に、この設定が指定されます。このオプションを使用する時、データベースのアップデートパフォーマンスは低下するでしょう。
+
+@features_1272_h3
+未知の設定を無視
+
+@features_1273_p
+データベースに接続する時、いくつかのアプリケーションが (例えば、OpenOffice.org Base) いくつかの追加パラメータを渡します。なぜそれらのパラメータが渡されるのかは知られていません。PREFERDOSLIKELINEENDS と IGNOREDRIVERPRIVILEGES はパラメータの例で、それらは、OpenOffice.orgとの互換性を改良するために単に無視されます。もしデータベースに接続する時、アプリケーションが他のパラメータを渡していたら、通常データベースは、 パラメータはサポートされていません、という例外を投げます。データベースURLに ;IGNORE_UNKNOWN_SETTINGS=TRUE を追加することで、このようなパラメータを無視することが可能です。
+
+@features_1274_h3
+接続が開始された時に他の設定を変更する
+
+@features_1275_p
+すでに記述された設定に加えて (暗号、ファイルロック、データベースの存在、ユーザー、パスワード)、他のデータベースの設定は、データベースURLの中で渡すことができます。<CODE>SET setting value</CODE>ステートメントを接続直後に実行するのと同じように 、<CODE>setting=value</CODE> をURLの最後に追加します。このデータベースによってサポートされている設定の一覧は、SQL文法のドキュメントをご覧下さい。
+
+@features_1276_h2
+カスタムファイル アクセスモード
 
 @features_1277_p
+#Usually, the database opens log, data and index files with the access mode 'rw', meaning read-write (except for read only databases, where the mode 'r' is used). To open a database in read-only mode if the files are not read-only, use ACCESS_MODE_DATA=r. Also supported are 'rws' and 'rwd'. The access mode used for log files is set via ACCESS_MODE_LOG; for data and index files use ACCESS_MODE_DATA. These settings must be specified in the database URL:
+
+@features_1278_p
 詳細は <a href="advanced.html#durability_problems">永続性問題</a> をご覧下さい。 多くのオペレーティングシステムでは、アクセスモード "rws" において、データがディスクに書かれていることを保証しません。
 
-@features_1278_h2
+@features_1279_h2
 複数の接続
 
-@features_1279_h3
+@features_1280_h3
 同時に複数のデータベースを開く
 
-@features_1280_p
+@features_1281_p
 アプリケーションは、同じデータベースへの複数の接続を含め、複数のデータベースを同時に開くことができます。開くデータベースの数は、利用可能なメモリによってのみ制限されています。
 
-@features_1281_h3
+@features_1282_h3
 >同じデータベースへの複数の接続: クライアント/サーバー
 
-@features_1282_p
+@features_1283_p
 異なったプロセス、またはコンピューターから同時に同じデータベースにアクセスしたい場合、クライアント/サーバー モードを使用することが必要です。このケースでは、ひとつのプロセスがサーバーとして動作し、他のプロセスは (同様に他のコンピューターに属することができます) TCP/IP (または改善されたセキュリティ用のTCP/IPの上のSSL/TLS) を通してサーバーに接続します。
 
-@features_1283_h3
+@features_1284_h3
 マルチスレッドサポート
 
-@features_1284_p
+@features_1285_p
 このデータベースは安全なマルチスレッドです。これは、アプリケーションがマルチスレッドならば、データベースへの同時アクセスに関して心配する必要がない、ということを意味しています。本質的に、同じデータベースへのほとんどのリクエストは同時に動きます。アプリケーションは、同時に同じデータベースにアクセスするマルチスレッドを使用することができますが、ひとつのスレッドが処理時間の長いクエリーを実行しているなら、他のスレッドは待つ必要があります。
 
-@features_1285_h3
+@features_1286_h3
 ロック、ロックタイムアウト、デッドロック
 
-@features_1286_p
+@features_1287_p
 データの一貫した状態をそれぞれの接続に与えるために、データベースはテーブルレベルでのロックを使用します。二種類のロックがあります: リードロック (共有ロック) とライトロック (排他ロック) です。もし、接続がテーブルから読み込みたい場合で、テーブルにライトロックがない場合に、リードロックをテーブルに追加します。もしライトロックがあれば、この接続はロックを解除するために他の接続を待ちます。接続が指定された時間までにロックを取得できなければ、ロックタイムアウトの例外が投げられます。
 
-@features_1287_p
+@features_1288_p
 通常、SELECTステートメントはリードロックを生成します。これはサブクエリーも含まれます。データを修正するステートメントはライトロックを使用します。SELECT ... FOR UPDATE ステートメントを使用して、データの修正がなくても排他的にテーブルをロックすることも可能です。COMMITとROLLBACKステートメントは全ての周知のロックを解除します。SAVEPOINTとROLLBACK TO SAVEPOINTコマンドはロックに影響を及ぼしません。ロックはオートコミットモードに変更した時、オートコミットの接続がtrueにセットされた時 (この状態がデフォルトです) にも解除され、ロックはそれぞれのステートメントの後に解除されます。これは、どのステートメントでどんな種類のロックが生成されるかの概観です:
 
-@features_1288_th
+@features_1289_th
 ロックの種類
 
-@features_1289_th
+@features_1290_th
 SQLステートメント
 
-@features_1290_td
+@features_1291_td
 Read
 
-@features_1291_td
+@features_1292_td
 SELECT * FROM TEST
 
-@features_1292_td
+@features_1293_td
 CALL SELECT MAX(ID) FROM TEST
 
-@features_1293_td
+@features_1294_td
 SCRIPT
 
-@features_1294_td
-Write
-
 @features_1295_td
-SELECT * FROM TEST WHERE 1=0 FOR UPDATE
+Write
 
 @features_1296_td
-Write
+SELECT * FROM TEST WHERE 1=0 FOR UPDATE
 
 @features_1297_td
-INSERT INTO TEST VALUES(1, 'Hello')
-
-@features_1298_td
-INSERT INTO TEST SELECT * FROM TEST
-
-@features_1299_td
-UPDATE TEST SET NAME='Hi'
-
-@features_1300_td
-DELETE FROM TEST
-
-@features_1301_td
 Write
 
+@features_1298_td
+INSERT INTO TEST VALUES(1, 'Hello')
+
+@features_1299_td
+INSERT INTO TEST SELECT * FROM TEST
+
+@features_1300_td
+UPDATE TEST SET NAME='Hi'
+
+@features_1301_td
+DELETE FROM TEST
+
 @features_1302_td
-ALTER TABLE TEST ...
+Write
 
 @features_1303_td
-CREATE INDEX ... ON TEST ...
+ALTER TABLE TEST ...
 
 @features_1304_td
+CREATE INDEX ... ON TEST ...
+
+@features_1305_td
 DROP INDEX ...
 
-@features_1305_p
+@features_1306_p
 SQLコマンド SET LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、ロックタイムアウトの例外が投げられるまでの秒数を、それぞれの接続ごとに別々に設定することができます。SQLコマンド SET DEFAULT_LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、初期のロックタイムアウト (新しい接続に使用されるタイムアウト) を設定することができます。デフォルトのロックタイムアウトは永続的です。
 
-@features_1306_h2
+@features_1307_h2
 データベースファイルレイアウト
 
-@features_1307_p
+@features_1308_p
 永続的なデータベースのために作成された多くのファイルがあります。一部のデータベースを除いて、全てのテーブルと (または) インデックスが自身のファイル内に保存されているわけではありません。その代りに、通常次のファイルのみが作成されます: データファイル、インデックスファイル、ログファイル、データベースロックファイル (データベースが使われている間のみ存在します)。それに加えて、ファイルはそれぞれの大きなオブジェクト (CLOB/BLOB) のために作成されます。各ライナーインデックスのためのファイル、大きなresult setのためのテンポラリーファイルです。データベーストレースオプションが有効の場合、トレースファイルが作成されます。次のファイルはデータベースによって作成されます:
 
-@features_1308_th
+@features_1309_th
 ファイル名
 
-@features_1309_th
+@features_1310_th
 説明
 
-@features_1310_th
+@features_1311_th
 ファイル数
 
-@features_1311_td
+@features_1312_td
 test.data.db
 
-@features_1312_td
+@features_1313_td
 データファイル
 
-@features_1313_td
+@features_1314_td
 全てのテーブルのデータを含む
 
-@features_1314_td
+@features_1315_td
 フォーマット: &lt;database&gt;.data.db
 
-@features_1315_td
-データベースごとに1ファイル
-
 @features_1316_td
-test.index.db
+データベースごとに1ファイル
 
 @features_1317_td
-インデックスファイル
+test.index.db
 
 @features_1318_td
-全ての (btree) インデックスのデータを含む
+インデックスファイル
 
 @features_1319_td
-フォーマット: &lt;database&gt;.index.db
+全ての (btree) インデックスのデータを含む
 
 @features_1320_td
-データベースごとに1ファイル
+フォーマット: &lt;database&gt;.index.db
 
 @features_1321_td
-test.0.log.db
+データベースごとに1ファイル
 
 @features_1322_td
-ログファイル
+test.0.log.db
 
 @features_1323_td
-ログファイルはリカバリーのために使われる
+ログファイル
 
 @features_1324_td
-フォーマット: &lt;database&gt;.&lt;id&gt;.log.db
+ログファイルはリカバリーのために使われる
 
 @features_1325_td
-データベースごとに0ファイル以上
+フォーマット: &lt;database&gt;.&lt;id&gt;.log.db
 
 @features_1326_td
-test.lock.db
+データベースごとに0ファイル以上
 
 @features_1327_td
-データベースロックファイル
+test.lock.db
 
 @features_1328_td
-データベースが開かれている時のみ存在
+データベースロックファイル
 
 @features_1329_td
-フォーマット: &lt;database&gt;.lock.db
+データベースが開かれている時のみ存在
 
 @features_1330_td
-データベースごとに1ファイル
+フォーマット: &lt;database&gt;.lock.db
 
 @features_1331_td
-test.trace.db
-
-@features_1332_td
-トレースファイル
-
-@features_1333_td
-トレース情報を含む
-
-@features_1334_td
-フォーマット: &lt;database&gt;.trace.db
-
-@features_1335_td
-ファイルが大きすぎる場合、&lt;database&gt;.trace.db.old に改名される
-
-@features_1336_td
 データベースごとに1ファイル
 
+@features_1332_td
+test.trace.db
+
+@features_1333_td
+トレースファイル
+
+@features_1334_td
+トレース情報を含む
+
+@features_1335_td
+フォーマット: &lt;database&gt;.trace.db
+
+@features_1336_td
+ファイルが大きすぎる場合、&lt;database&gt;.trace.db.old に改名される
+
 @features_1337_td
-test.14.15.lob.db
+データベースごとに1ファイル
 
 @features_1338_td
-大きなオブジェクト
+test.14.15.lob.db
 
 @features_1339_td
-BLOB、またはCLOBのデータを含む
+大きなオブジェクト
 
 @features_1340_td
-フォーマット: &lt;database&gt;.&lt;tableid&gt;.&lt;id&gt;.lob.db
+BLOB、またはCLOBのデータを含む
 
 @features_1341_td
-オブジェクトごとに1ファイル
+フォーマット: &lt;database&gt;.&lt;tableid&gt;.&lt;id&gt;.lob.db
 
 @features_1342_td
-test.123.temp.db
-
-@features_1343_td
-テンポラリーファイル
-
-@features_1344_td
-テンポラリーblob、または大きなresult setを含む
-
-@features_1345_td
-フォーマット: &lt;database&gt;.&lt;session id&gt;.&lt;object id&gt;.temp.db
-
-@features_1346_td
 オブジェクトごとに1ファイル
 
+@features_1343_td
+test.123.temp.db
+
+@features_1344_td
+テンポラリーファイル
+
+@features_1345_td
+テンポラリーblob、または大きなresult setを含む
+
+@features_1346_td
+フォーマット: &lt;database&gt;.&lt;session id&gt;.&lt;object id&gt;.temp.db
+
 @features_1347_td
-test.7.hash.db
+オブジェクトごとに1ファイル
 
 @features_1348_td
-ハッシュインデックスファイル
+test.7.hash.db
 
 @features_1349_td
-ライナーハッシュインデックスのデータを含む
+ハッシュインデックスファイル
 
 @features_1350_td
-フォーマット: &lt;database&gt;.&lt;object id&gt;.hash.db
+ライナーハッシュインデックスのデータを含む
 
 @features_1351_td
+フォーマット: &lt;database&gt;.&lt;object id&gt;.hash.db
+
+@features_1352_td
 ライナーハッシュインデックスごとに1ファイル
 
-@features_1352_h3
+@features_1353_h3
 データベースファイルの移動と改名
 
-@features_1353_p
+@features_1354_p
 データベースの名前と位置は、データベース名の中には保存されません。
 
-@features_1354_p
+@features_1355_p
 データベースが閉じられている間、ファイルは他のディレクトリに移動することができ、同様にファイル名を変えることもできます (全てのファイルが同じ名前で始まる必要があります)。
 
-@features_1355_p
+@features_1356_p
 ファイルにはプラットホーム固有のデータがないので、問題なく他のオペレーティングシステムに移動することができます。
 
-@features_1356_h3
+@features_1357_h3
 バックアップ
 
-@features_1357_p
+@features_1358_p
 データベースが閉じられている時、データベースファイルのバックアップをとることが可能です。インデックスファイルはバックアップをとる必要はありません。なぜなら、インデックスファイルは冗長なデータを含み、もしファイルが存在しなければ自動的に再作成されるからです。
 
-@features_1358_p
+@features_1359_p
 データベースが動作している間にバックアップデータをとるために、SQLコマンド SCRIPTを使うことができます。
 
-@features_1359_h2
+@features_1360_h2
 ログとリカバリー
 
-@features_1360_p
+@features_1361_p
 データベースでデータが修正され、それらの変更がコミットされた時はいつでも、変更はディスクに記録されます (インメモリオブジェクトを除いて)。データファイル自体への変更は通常、ディスクアクセスを最適化するために後で書かれています。もし電源異常があった場合、データファイルとインデックスファイルはアップデートされません。しかし、変更がログファイルに書かれていれば、次回データベースを開いた時に、ログファイルに書かれた変更は自動的に再び適用されます。
 
-@features_1361_p
+@features_1362_p
 インデックスファイルのアップデートはデフォルトでは記録されないことに注意して下さい。もしデータベースが開かれて、リカバリーが必要だとされたら、インデックスファイルは最初から作り替えられます。
 
-@features_1362_p
+@features_1363_p
 通常、データベースごとにたったひとつのログファイルがあります。このファイルは、データベースが正常に終了されるまで増大し、削除されます。また、ファイルが大きくなりすぎたら、データベースは別のログファイルに交換します (より大きなIDで)。CHECKPOINT コマンドを使用することによって、ログの切り替えを強制することが可能です。
 
-@features_1363_p
+@features_1364_p
 checksumのレコードが合わないために (例えば、別のアプリケーションからファイルが編集された場合) データベースファイルが破損したら、データベースをリカバリーモードで開くことができます。このケースでは、データベースのエラーは記録されますが、投げられません。データベースはスクリプトまでバックアップをとり、可能な限り早く再構築します。データベースをリカバリーモードで開くために、jdbc:h2:~/test;RECOVER=1 のように、RECOVER=1 を含むデータベースURLを使用します。この場合、インデックスは再構築され、サマリー (アロケーションテーブルのオブジェクト)は読まれないため、データベースを開くのに時間がかかります。
 
-@features_1364_h2
+@features_1365_h2
 互換性
 
-@features_1365_p
+@features_1366_p
 #All database engines behave a little bit different. Where possible, H2 supports the ANSI SQL standard, and tries to be compatible to other databases. There are still a few differences however:
 
-@features_1366_p
+@features_1367_p
 #In MySQL text columns are case insensitive by default, while in H2 they are case sensitive. However H2 supports case insensitive columns as well. To create the tables with case insensitive texts, append IGNORECASE=TRUE to the database URL (example: jdbc:h2:~/test;IGNORECASE=TRUE).
 
-@features_1367_h3
+@features_1368_h3
 互換モード
 
-@features_1368_p
+@features_1369_p
 #For certain features, this database can emulate the behavior of specific databases. Not all features or differences of those databases are implemented. Currently, this feature is mainly used for randomized comparative testing (where random statements are executed against multiple databases and the results are compared). The mode can be changed by specifying the mode in the database URL, or using the SQL statement SET MODE. To use the HSQLDB mode, you can use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</code> or the SQL statement <code>SET MODE HSQLDB</code> . Here is the list of currently supported modes and the difference to the regular mode:
 
-@features_1369_th
+@features_1370_th
 モード
 
-@features_1370_th
+@features_1371_th
 相違
 
-@features_1371_td
+@features_1372_td
 PostgreSQL
 
-@features_1372_td
+@features_1373_td
 別の値にNULLをもたらすNULL連結。通常、オペレータのうちひとつがNULLであるなら空のストリングとしてNULLを扱い、両方の値がNULLである場合にだけNULLを返します。
 
-@features_1373_td
+@features_1374_td
 MySQL
 
-@features_1374_td
+@features_1375_td
 データを挿入する時、もしカラムにNOT NULLが定義されていて、NULLが挿入されたら、0 (または空のストリング、またはtimestampカラムのための現在のtimestamp) の値が使用されます。通常、このオペレーションは許可されていないので、例外が投げられます。
 
-@features_1375_td
+@features_1376_td
 HSQLDB
 
-@features_1376_td
+@features_1377_td
 デシマルデータを変換する時、新しいスケールが現在のスケールより小さい時のみ、数字は変換されます。通常、スケールは変換されて、必要であれば 0 が追加されます。
 
-@features_1377_h2
+@features_1378_h2
 トレースオプションを使用する
 
-@features_1378_p
+@features_1379_p
 アプリケーション内の問題を見つけるために、時々、何のデータベースオペレーションがどこで実行されているかを知るのは良い方法です。このデータベースは次のトレースの特徴を提供します:
 
-@features_1379_li
+@features_1380_li
 System.out と (または) ファイルをトレースする
 
-@features_1380_li
+@features_1381_li
 トレースレベル OFF、ERROR、INFO と DEBUG をサポート
 
-@features_1381_li
+@features_1382_li
 トレースファイルの最大サイズの設定が可能
 
-@features_1382_li
+@features_1383_li
 Javaコード生成が可能
 
-@features_1383_li
+@features_1384_li
 手動でファイルを作成することによって、ランタイムでトレースが可能
 
-@features_1384_h3
+@features_1385_h3
 トレースオプション
 
-@features_1385_p
+@features_1386_p
 トレースオプションを可能にする簡単な方法は、データベースURLにトレースオプションを設定することです。二つの設定があり、ひとつは、System.out (TRACE_LEVEL_SYSTEM_OUT) トレーシングで、もうひとつはファイルトレーシング(TRACE_LEVEL_FILE)です。トレースレベルは、0 が OFF、1 が ERROR (デフォルト)、2 が INFO で 3 が DEBUGです。両方のレベルがDEBUGに設定されたデータベースURLです:
 
-@features_1386_p
+@features_1387_p
 トレースレベルは、SQLコマンド <CODE>SET TRACE_LEVEL_SYSTEM_OUT level</CODE> (System.out トレーシング) または <CODE>SET TRACE_LEVEL_FILE level</CODE> (ファイルトレーシング) を実行することによってランタイムで変更できます。例:
 
-@features_1387_h3
+@features_1388_h3
 トレースファイルの最大サイズを設定
 
-@features_1388_p
+@features_1389_p
 高いトレースレベルを使用する時、トレースファイルは早くサイズが非常に大きくなります。SQLステートメント <CODE>SET TRACE_MAX_FILE_SIZE maximumFileSizeInMB</CODE> を実行することによりファイルのサイズを制限することができます。ログファイルが制限を超えたら、ファイルは ".old" にファイル名を変えて、新しいファイルが作成されます。もしもうひとつの .oldファイルが存在する場合は、それは削除されます。デフォルトの設定は16 MBです。例:
 
-@features_1389_h3
+@features_1390_h3
 Javaコード生成
 
-@features_1390_p
+@features_1391_p
 トレースレベルをINFOかDEBUGに設定した時、同様にJavaのソースコードが生成されるので、問題はより簡単に再生されます。トレースファイルはこのようなものです:
 
-@features_1391_p
+@features_1392_p
 Javaのソースコードを得るために、 /**/ のない行を取り除く必要があります。 Windowsでの簡単な方法は:
 
-@features_1392_p
+@features_1393_p
 その後、コンパイルされる前にTrace.javaファイルを完全にする必要があります。例:
 
-@features_1393_p
+@features_1394_p
 また、トレースファイルに載せられていないため、ユーザー名とパスワードが設定されている必要があります。
 
-@features_1394_h3
+@features_1395_h3
 手動でファイルを作成し、ランタイムでトレースオプションを可能にする
 
-@features_1395_p
+@features_1396_p
 時々、アプリケーション、またはデータベースのURLを変えられない、変えたくない場合があります。このような場合に、ランタイムであっても (データベースの接続が開かれている間) トレースモードを可能にできる方法がまだあります。必要なことは、データベースファイルが保存されているディレクトリに特別なファイルを作るだけです。データベースエンジンは、このファイルが存在する場合に (ステートメントが実行されている間のみ) 4秒ごとにチェックしています。このファイル名は、データベース名 プラス ".trace.db.start" です。この特徴はデータベースが暗号化されている場合は無効になります。
 
-@features_1396_p
+@features_1397_p
 例: データベース名が "test"の場合、 トレーシングを開始するファイルは "test.trace.db.start"です。データベースエンジンは、このファイルを見つけた時、ファイルを削除しようとします。スタートファイルを使用することでトレースが可能になるなら、トレースレベルはデータベースに対して永続的ではなく、トレースはデータベースに接続する以前のレベルに戻されます。しかし、スタートファイルが読み取り専用なら、データベースエンジンはファイルを削除することができず、接続するときはいつもトレースモードになります。
 
-@features_1397_h2
-読み取り専用データベース
+@features_1398_h2
+#Using Other Logging APIs
 
-@features_1398_p
-データベースファイルが読み取り専用なら、同様にデータベースも読み取り専用です。このデータベースで新しいテーブルを作成したり、データを追加したり変更したりすることはできません。SELECTステートメントのみ許可されています。読み取り専用データベースを作成するには、データベースを終了してログファイルを小さくします。ログファイルを削除してはいけません。そして、オペレーティングシステムを使用してデータベースファイルを読み取り専用にします。これでデータベースを開くと、読み取り専用になっています。アプリケーションが、データベースが読み取り専用であることを判断する方法は二つあります: Connection.isReadOnly() を呼ぶか、SQLステートメント CALL READONLY() を実行します。
+@features_1399_p
+#By default, this database uses its own native 'trace' facility. This facility is called 'trace' and not 'log' within this database to avoid confusion with the transaction log. Trace messages can be written to both file and System.out. In most cases, this is sufficient, however sometimes it is better to use the same facility as the application, for example Log4j. To do that, this database support SLF4J.
 
-@features_1399_h2
-#Read Only Databases in Zip or Jar File
-
-@features_1400_p
-#To create a read-only database in a zip, first create a regular persistent database, and then create a backup. If you are using a database named 'test', an easy way to do that is using the Backup tool or the BACKUP SQL statement:
+@features_1400_a
+#SLF4J
 
 @features_1401_p
-#The database must not have pending changes, that means you need to close all connections to the database, open one single connection, and then execute the statement. Afterwards, you can log out, and directly open the database in the zip file using the following database URL:
+#is a simple facade for various logging APIs and allows to plug in the desired implementation at deployment time. SLF4J supports implementations such as Logback, Log4j, Jakarta Commons Logging (JCL), JDK 1.4 logging, x4juli, and Simple Log.
 
 @features_1402_p
-#Databases in a zip file are read-only. The performance for some queries will be slower than when using a regular database, because random access in zip files is not supported (only streaming). How much this affects the performance depends on the queries and the data. The database is not read in memory; so large databases are supported as well. The same indexes are used than when using a regular database.
+#To enable SLF4J, set the file trace level to 4 in the database URL:
 
-@features_1403_h2
-バイナリーとテキストストレージフォーマット
+@features_1403_p
+#Changing the log mechanism is not possible after the database is open, that means executing the SQL statement SET TRACE_LEVEL_FILE 4 when the database is already open will not have the desired effect. To use SLF4J, all required jar files need to be in the classpath. If it does not work, check in the file &lt;database&gt;.trace.db for error messages.
 
-@features_1404_p
-このデータベースエンジンは、バイナリーとテキストストレージフォーマットの両方をサポートしています。バイナリーはより高速ですが、テキストストレージフォーマットは同様に役立つ場合があります。例えば、データベースエンジンをデバッグする場合です。データベースがすでに存在するなら、ストレージフォーマットは自動的に推奨されます。新しいデータベースはデフォルトでバイナリーストレージフォーマットで作られます。テキストストレージフォーマットで新しいデータベースを作成するには、データベースURLに、パラメータ STORAGE=TEXT が含まれていなければなりません。例: jdbc:h2:~/test;STORAGE=TEXT
+@features_1404_h2
+読み取り専用データベース
 
-@features_1405_h2
-ディスクスペースが少ない状況での正しい取り扱い
+@features_1405_p
+データベースファイルが読み取り専用なら、同様にデータベースも読み取り専用です。このデータベースで新しいテーブルを作成したり、データを追加したり変更したりすることはできません。SELECTステートメントのみ許可されています。読み取り専用データベースを作成するには、データベースを終了してログファイルを小さくします。ログファイルを削除してはいけません。そして、オペレーティングシステムを使用してデータベースファイルを読み取り専用にします。これでデータベースを開くと、読み取り専用になっています。アプリケーションが、データベースが読み取り専用であることを判断する方法は二つあります: Connection.isReadOnly() を呼ぶか、SQLステートメント CALL READONLY() を実行します。
 
-@features_1406_p
-データベースは、利用可能なディスクスペースが少なくなっている状況に対処することができます。データベースを開始する時はいつも、"emergency space" ファイルが作られ (サイズは 1 MB)、利用可能なスペースがもうない場合には、ファイルは小さくなります。利用可能なスペースが 128 KB以下になった場合、データベースは特別な読み取り専用モードになり、全ての書き込み操作はもはや許可されません: この時点から全ての書き込み操作は、"No disk space available" を例外に投げます。通常のオペレーションモードに戻るためには、最初にデータベースへの全ての接続を終了し、スペースを空ける必要があります。
+@features_1406_h2
+#Read Only Databases in Zip or Jar File
 
 @features_1407_p
-早くからディスクスペースの少ない状況を把握するために、データベースイベントリスナーをインストールすることは可能です (ディスクスペースが 1MB のみ利用可能な時)。SQLステートメント SET DATABASE_EVENT_LISTENER を使用します。フォームのURLを使用して、接続時にリスナーを設定することが可能です jdbc:h2:~/test;DATABASE_EVENT_LISTENER='com.acme.DbListener' (クラス名の周りの引用文は必要です)。APIのDatabaseEventListenerもご覧下さい。
+#To create a read-only database in a zip, first create a regular persistent database, and then create a backup. If you are using a database named 'test', an easy way to do that is using the Backup tool or the BACKUP SQL statement:
 
-@features_1408_h3
-破損したデータベースを開く
+@features_1408_p
+#The database must not have pending changes, that means you need to close all connections to the database, open one single connection, and then execute the statement. Afterwards, you can log out, and directly open the database in the zip file using the following database URL:
 
 @features_1409_p
-boot info (始動時に実行されるSQLスクリプト) が破損しているため、データベースを開くことができない場合、データベースイベントリスナーを指定することでデータベースを開くことができます。例外は記録されますが、データベースの開始は続行します。
+#Databases in a zip file are read-only. The performance for some queries will be slower than when using a regular database, because random access in zip files is not supported (only streaming). How much this affects the performance depends on the queries and the data. The database is not read in memory; so large databases are supported as well. The same indexes are used than when using a regular database.
 
 @features_1410_h2
-computed column / ベースインデックスの機能
+バイナリーとテキストストレージフォーマット
 
 @features_1411_p
-インデックスの機能は、このデータベースによって直接サポートはされていませんが、computed columnsを使用することによって、簡単にエミュレートすることができます。例えば、カラムのupper-caseバージョンのインデックスが必要なら、原形のカラムのupper-caseバージョンのcomputed columnを作成し、このカラムにインデックスをつけます:
+このデータベースエンジンは、バイナリーとテキストストレージフォーマットの両方をサポートしています。バイナリーはより高速ですが、テキストストレージフォーマットは同様に役立つ場合があります。例えば、データベースエンジンをデバッグする場合です。データベースがすでに存在するなら、ストレージフォーマットは自動的に推奨されます。新しいデータベースはデフォルトでバイナリーストレージフォーマットで作られます。テキストストレージフォーマットで新しいデータベースを作成するには、データベースURLに、パラメータ STORAGE=TEXT が含まれていなければなりません。例: jdbc:h2:~/test;STORAGE=TEXT
 
-@features_1412_p
-値は生成されているので、データを挿入する時、カラムのupper-caseバージョンのための値を指定する必要はありません (許可されていません)。 しかし、テーブルを呼ぶ時、このカラムを使用することはできます。:
+@features_1412_h2
+ディスクスペースが少ない状況での正しい取り扱い
 
-@features_1413_h2
-多次元インデックス
+@features_1413_p
+データベースは、利用可能なディスクスペースが少なくなっている状況に対処することができます。データベースを開始する時はいつも、"emergency space" ファイルが作られ (サイズは 1 MB)、利用可能なスペースがもうない場合には、ファイルは小さくなります。利用可能なスペースが 128 KB以下になった場合、データベースは特別な読み取り専用モードになり、全ての書き込み操作はもはや許可されません: この時点から全ての書き込み操作は、"No disk space available" を例外に投げます。通常のオペレーションモードに戻るためには、最初にデータベースへの全ての接続を終了し、スペースを空ける必要があります。
 
 @features_1414_p
-効率的な多次元の (空間的) 領域のクエリーを実行するためにツールを提供します。このデータベースは専門的な空間的インデックス (R-Tree またはより小さいもの) をサポートしていません。代わりに、B-Treeインデックスが使われています。それぞれのレコードに対して、多次元のキーは、単数範囲 (スカラー) の値に変換 (位置づけ) されます。この値は、space-filling curve (空間充填曲線) で位置を指定します。
+早くからディスクスペースの少ない状況を把握するために、データベースイベントリスナーをインストールすることは可能です (ディスクスペースが 1MB のみ利用可能な時)。SQLステートメント SET DATABASE_EVENT_LISTENER を使用します。フォームのURLを使用して、接続時にリスナーを設定することが可能です jdbc:h2:~/test;DATABASE_EVENT_LISTENER='com.acme.DbListener' (クラス名の周りの引用文は必要です)。APIのDatabaseEventListenerもご覧下さい。
 
-@features_1415_p
-現在、Z-order (N-order または Morton-order とも呼ばれています) が使用されています; Hilbert curveも使用できますが、実装はより複雑です。多次元の値を変換するアルゴリズムは、bit-interleavingと呼ばれています。B-Treeインデックス (通常は computed columnを使用します)を使用することで、スカラーの値はインデックスをつけられます。
+@features_1415_h3
+破損したデータベースを開く
 
 @features_1416_p
-最初のカラムにインデックスを使用する上で、メソッドは徹底的なパフォーマンスの改良をもたらすことができます。データと次元の数によりますが、改良は通常、factor 5よりも高いものです。指定された多次元の範囲から、ツールはSQLクエリーを生成します。使用されたメソッドは、データベースに依存しておらず、ツールは簡単に他のデータベースに移植することができます。ツールの使用方法の例は、TestMultiDimension.java で提供されているサンプルコードをご覧下さい。
+boot info (始動時に実行されるSQLスクリプト) が破損しているため、データベースを開くことができない場合、データベースイベントリスナーを指定することでデータベースを開くことができます。例外は記録されますが、データベースの開始は続行します。
 
 @features_1417_h2
-パスワードを使用する
+computed column / ベースインデックスの機能
 
-@features_1418_h3
-安全なパスワードを使用する
+@features_1418_p
+インデックスの機能は、このデータベースによって直接サポートはされていませんが、computed columnsを使用することによって、簡単にエミュレートすることができます。例えば、カラムのupper-caseバージョンのインデックスが必要なら、原形のカラムのupper-caseバージョンのcomputed columnを作成し、このカラムにインデックスをつけます:
 
 @features_1419_p
-弱いパスワードは、暗号化やセキュリティプロトコルに取るに足らず、解読されてしまうことを覚えておいて下さい。辞書で見つけられるようなパスワードは使用しないでください。また、数字を付け足してもそのようなパスワードは安全にはなりません。良いパスワードを作る方法は、覚えやすい、文章の最初の文字を使う、大文字と小文字を使う、特別な文字が含まれているものを作る、です。例:
+値は生成されているので、データを挿入する時、カラムのupper-caseバージョンのための値を指定する必要はありません (許可されていません)。 しかし、テーブルを呼ぶ時、このカラムを使用することはできます。:
 
-@features_1420_p
-i'sE2rtPiUKtT (もしトリックを知っていれば、このパスワードは覚えやすいものです)
+@features_1420_h2
+多次元インデックス
 
-@features_1421_h3
-パスワード: Stringの代わりにChar Arraysを使用する
+@features_1421_p
+効率的な多次元の (空間的) 領域のクエリーを実行するためにツールを提供します。このデータベースは専門的な空間的インデックス (R-Tree またはより小さいもの) をサポートしていません。代わりに、B-Treeインデックスが使われています。それぞれのレコードに対して、多次元のキーは、単数範囲 (スカラー) の値に変換 (位置づけ) されます。この値は、space-filling curve (空間充填曲線) で位置を指定します。
 
 @features_1422_p
-Java Stringは不変のオブジェクトであり、アプリケーションによって安全に壊されることはできません。Stringの作成後、Stringは少なくともガベージコレクションになるまで、コンピューターのメインメモリ内にとどまるでしょう。ガベージコレクションはアプリケーションによって制御されず、ガベージコレクションであっても、データはまだメモリにとどまっているでしょう。パスワードが含まれるメモリの一部をディスクと取り換えることも可能でしょう (十分でないメインメモリも使用可能のため)。
+現在、Z-order (N-order または Morton-order とも呼ばれています) が使用されています; Hilbert curveも使用できますが、実装はより複雑です。多次元の値を変換するアルゴリズムは、bit-interleavingと呼ばれています。B-Treeインデックス (通常は computed columnを使用します)を使用することで、スカラーの値はインデックスをつけられます。
 
 @features_1423_p
-アタッカーはオペレーティングシステムのスワップファイルにアクセスするでしょう。したがって、パスワードを保存するために、Stringの代わりにchar arrayを使用するのは良い方法です。char arrayは使用後クリアにされるので (0で埋められます)、パスワードはスワップファイルに保存されません。
+最初のカラムにインデックスを使用する上で、メソッドは徹底的なパフォーマンスの改良をもたらすことができます。データと次元の数によりますが、改良は通常、factor 5よりも高いものです。指定された多次元の範囲から、ツールはSQLクエリーを生成します。使用されたメソッドは、データベースに依存しておらず、ツールは簡単に他のデータベースに移植することができます。ツールの使用方法の例は、TestMultiDimension.java で提供されているサンプルコードをご覧下さい。
 
-@features_1424_p
-このデータベースは、ユーザーパスワードとファイルパスワードを認証するために、Stringの代わりにchar arrayを使用することをサポートしています。次のコードはこのように使用されます:
+@features_1424_h2
+パスワードを使用する
 
-@features_1425_p
-このサンプルでは、パスワードはアプリケーションでのハードコードで、もちろん安全ではありません。しかし、Java Swingはchar arrayを使用してパスワードを得る方法をサポートしています (JPasswordField)。
+@features_1425_h3
+安全なパスワードを使用する
 
-@features_1426_h3
-ユーザー名 と (または) パスワードをURLで認証する
+@features_1426_p
+弱いパスワードは、暗号化やセキュリティプロトコルに取るに足らず、解読されてしまうことを覚えておいて下さい。辞書で見つけられるようなパスワードは使用しないでください。また、数字を付け足してもそのようなパスワードは安全にはなりません。良いパスワードを作る方法は、覚えやすい、文章の最初の文字を使う、大文字と小文字を使う、特別な文字が含まれているものを作る、です。例:
 
 @features_1427_p
-ユーザー名を <code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test", "sa", "123");</code> のように切り離されたパラメータとして認証する代わりに、URLそのもので <code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");</code> ユーザー名 (と (または) パスワード)を提供することができます。URL内の設定は、切り離されたパラメータとして認証させる設定より優先されます。
+i'sE2rtPiUKtT (もしトリックを知っていれば、このパスワードは覚えやすいものです)
 
-@features_1428_h2
-ユーザー定義の関数とストアドプロシージャ
+@features_1428_h3
+パスワード: Stringの代わりにChar Arraysを使用する
 
 @features_1429_p
-組み込み関数に加えて、このデータベースはユーザー定義のJava関数をサポートしています。同様に、このデータベースではJava関数はストアドプロシージャとして使用されています。関数は、使用される前に宣言 (登録) されていなければなりません。static Javaメソッドのみサポートされています; クラスとメソッドの両方が public である必要があります。Javaメソッドの例:
+Java Stringは不変のオブジェクトであり、アプリケーションによって安全に壊されることはできません。Stringの作成後、Stringは少なくともガベージコレクションになるまで、コンピューターのメインメモリ内にとどまるでしょう。ガベージコレクションはアプリケーションによって制御されず、ガベージコレクションであっても、データはまだメモリにとどまっているでしょう。パスワードが含まれるメモリの一部をディスクと取り換えることも可能でしょう (十分でないメインメモリも使用可能のため)。
 
 @features_1430_p
-Java関数は、CREATE ALIAS と呼ばれるデータベースに登録されていなければなりません:
+アタッカーはオペレーティングシステムのスワップファイルにアクセスするでしょう。したがって、パスワードを保存するために、Stringの代わりにchar arrayを使用するのは良い方法です。char arrayは使用後クリアにされるので (0で埋められます)、パスワードはスワップファイルに保存されません。
 
 @features_1431_p
-完全なサンプルアプリケーションは src/test/org/h2/samples/Function.java をご覧下さい。
+このデータベースは、ユーザーパスワードとファイルパスワードを認証するために、Stringの代わりにchar arrayを使用することをサポートしています。次のコードはこのように使用されます:
 
-@features_1432_h3
-データタイプマッピング関数
+@features_1432_p
+このサンプルでは、パスワードはアプリケーションでのハードコードで、もちろん安全ではありません。しかし、Java Swingはchar arrayを使用してパスワードを得る方法をサポートしています (JPasswordField)。
 
-@features_1433_p
-"int" のような non-nullable (NULL可能ではない) パラメータを受け入れる関数は、パラメータのうちひとつがNULLであるなら呼ばれないでしょう。このケースでは、NULLの値は結果として使用されます。このケースで関数を呼び出したいのなら、"int" の代わりに "java.lang.Integer" を使用する必要があります。
+@features_1433_h3
+ユーザー名 と (または) パスワードをURLで認証する
 
-@features_1434_h3
-接続を必要とする関数
+@features_1434_p
+ユーザー名を <code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test", "sa", "123");</code> のように切り離されたパラメータとして認証する代わりに、URLそのもので <code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");</code> ユーザー名 (と (または) パスワード)を提供することができます。URL内の設定は、切り離されたパラメータとして認証させる設定より優先されます。
 
-@features_1435_p
-もしJava関数の最初のパラメータが java.sql.Connection なら、データベースへの接続は与えられています。返す前にこの接続を閉じる必要はありません。
+@features_1435_h2
+ユーザー定義の関数とストアドプロシージャ
 
-@features_1436_h3
-例外を投げる関数
+@features_1436_p
+組み込み関数に加えて、このデータベースはユーザー定義のJava関数をサポートしています。同様に、このデータベースではJava関数はストアドプロシージャとして使用されています。関数は、使用される前に宣言 (登録) されていなければなりません。static Javaメソッドのみサポートされています; クラスとメソッドの両方が public である必要があります。Javaメソッドの例:
 
 @features_1437_p
+Java関数は、CREATE ALIAS と呼ばれるデータベースに登録されていなければなりません:
+
+@features_1438_p
+完全なサンプルアプリケーションは src/test/org/h2/samples/Function.java をご覧下さい。
+
+@features_1439_h3
+データタイプマッピング関数
+
+@features_1440_p
+"int" のような non-nullable (NULL可能ではない) パラメータを受け入れる関数は、パラメータのうちひとつがNULLであるなら呼ばれないでしょう。このケースでは、NULLの値は結果として使用されます。このケースで関数を呼び出したいのなら、"int" の代わりに "java.lang.Integer" を使用する必要があります。
+
+@features_1441_h3
+接続を必要とする関数
+
+@features_1442_p
+もしJava関数の最初のパラメータが java.sql.Connection なら、データベースへの接続は与えられています。返す前にこの接続を閉じる必要はありません。
+
+@features_1443_h3
+例外を投げる関数
+
+@features_1444_p
 関数が例外を投げたら、現在のステートメントはロールバックされ、例外はアプリケーションに投げられます。
 
-@features_1438_h3
+@features_1445_h3
 Result Setを返す関数
 
-@features_1439_p
+@features_1446_p
 関数はresult setを返します。このような関数はCALLステートメントと一緒に呼ばれます:
 
-@features_1440_h3
+@features_1447_h3
 SimpleResultSetを使用する
 
-@features_1441_p
+@features_1448_p
 result setを返す関数は、SimpleResultSetツールを使用して最初からこのresult setを作成することができます:
 
-@features_1442_h3
+@features_1449_h3
 関数をテーブルとして使用する
 
-@features_1443_p
+@features_1450_p
 result setを返す関数はテーブルのようになれます。しかし、このケースでは関数は少なくとも二回は呼ばれます: 最初はカラム名を集めるために構文解析している間です (コンパイル時に未知のところでパラメータはNULLに設定)。そして、データを取得するためにステートメントを実行している間です (これが結合なら繰り返されます)。関数がカラム一覧を取得するためだけに呼ばれたのなら、関数を認証する接続URLは jdbc:columnlist:connection です。そうでなければ、接続URLは jdbc:default:connection です。
 
-@features_1444_h2
+@features_1451_h2
 トリガー
 
-@features_1445_p
+@features_1452_p
 このデータベースは、行が更新、挿入、または削除された前後に呼ばれるJavaトリガーをサポートしています。トリガーは複雑な一貫性チェックか、データベース内の関連したデータをアップデートするのに使用されます。マテリアライズドビューをシミュレートするためにトリガーを使用することも可能です。完全なサンプルアプリケーションは src/test/org/h2/samples/TriggerSample.java をご覧下さい。Javaトリガーは、インターフェイス org.h2.api.Trigger を実装しなければなりません:
 
-@features_1446_p
+@features_1453_p
 他のテーブルのクエリーかデータのアップデートに接続を使用することができます。トリガーはその時データベースで定義されている必要があります:
 
-@features_1447_p
+@features_1454_p
 トリガーはSQL Exceptionを投げることによって、変更を禁止させることができます。
 
-@features_1448_h2
+@features_1455_h2
 データベースをコンパクトにする
 
-@features_1449_p
+@features_1456_p
 データベースファイルの空のスペースは自動的に再利用されます。インデックスを再構築するもっとも簡単な方法は、データベースが閉じられている間に .index.db ファイルを削除します。しかし、一部状況では (例えば、データベースの多数のデータを削除した後)、データベースのサイズを縮小したい場合があります (データベースをコンパクトにする)。そのためのサンプルです:
 
-@features_1450_p
+@features_1457_p
 サンプルアプリケーション org.h2.samples.Compact もご覧下さい。データベースのバックアップを作るのと、スクリプトからデータベースを再構築するのにSCRIPT / RUNSCRIPT コマンドを使用することができます。
 
-@features_1451_h2
+@features_1458_h2
 キャッシュの設定
 
-@features_1452_p
+@features_1459_p
 データベースは最も頻繁に使われるデータやインデックスページをメインメモリに保存します。キャッシュに使用されるメモリ量を CACHE_SIZE 設定を使用して変更することができます。この設定は、データベース接続URL (jdbc:h2:~/test;CACHE_SIZE=131072) か、ランタイムにSET CACHE_SIZE を使用してサイズを変更できます。
 
-@features_1453_p
+@features_1460_p
 このデータベースは二つのcache page replacement algorithms (キャッシュページ置換アルゴリズム) をサポートしています: LRU (デフォルト) と2Qです。LRUは、キャッシュがいっぱいになったら、頻繁に使用されていないページをキャッシュから削除します。2Qアルゴリズムは少し複雑で、基本的に二つのクエリーが使用されます。2Qアルゴリズムはテーブルスキャンに、より抵抗がありますが、LRUと比較してオーバーヘッドは少し高めです。キャッシュアルゴリズム 2Qを使用するためには、フォームのデータベースURL  jdbc:h2:~/test;CACHE_TYPE=TQ を使用します。キャッシュアルゴリズムは、一度データベースが開かれたら変更することはできません。
 
-@features_1454_p
+@features_1461_p
 読んだり書いたりしたページや、現在使用されているキャッシュアルゴリズムの情報を得るためには、SELECT * FROM INFORMATION_SCHEMA.SETTINGS を呼びます。データとインデックスファイルに読み書きしたページ数が書かれています。
 
 @frame_1000_p
@@ -6013,1056 +6034,1053 @@ SQLコマンドがコマンドエリアに表示されます。
 #Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
 
 @roadmap_1029_li
-#Pluggable tracing system
-
-@roadmap_1030_li
 #Full outer joins
 
-@roadmap_1031_li
+@roadmap_1030_li
 #Procedural language / script language (Javascript)
 
-@roadmap_1032_li
+@roadmap_1031_li
 #Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 
-@roadmap_1033_li
+@roadmap_1032_li
 #Clustering: recovery needs to becomes fully automatic. Global write lock feature.
 
-@roadmap_1034_li
+@roadmap_1033_li
 #Option for Java functions: constant/isDeterministic to allow early evaluation when all parameters are constant
 
-@roadmap_1035_li
+@roadmap_1034_li
 #Support function overloading as in Java (multiple functions with the same name, but different parameter count or data types)
 
-@roadmap_1036_li
+@roadmap_1035_li
 #Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
 
-@roadmap_1037_li
+@roadmap_1036_li
 #Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
 
-@roadmap_1038_li
+@roadmap_1037_li
 #System table / function: cache usage
 
-@roadmap_1039_li
+@roadmap_1038_li
 #Add a migration guide (list differences between databases)
 
-@roadmap_1040_li
+@roadmap_1039_li
 #Optimization: automatic index creation suggestion using the trace file?
 
-@roadmap_1041_li
+@roadmap_1040_li
 #Compression performance: don't allocate buffers, compress / expand in to out buffer
 
-@roadmap_1042_li
+@roadmap_1041_li
 #Connection pool manager
 
-@roadmap_1043_li
+@roadmap_1042_li
 #Implement Statement.cancel for server connections
 
-@roadmap_1044_li
+@roadmap_1043_li
 #Start / stop server with database URL
 
-@roadmap_1045_li
+@roadmap_1044_li
 #Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
 
-@roadmap_1046_li
+@roadmap_1045_li
 #Rebuild index functionality (other than delete the index file)
 
-@roadmap_1047_li
+@roadmap_1046_li
 #Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory)
 
-@roadmap_1048_li
+@roadmap_1047_li
 #Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA)
 
-@roadmap_1049_li
+@roadmap_1048_li
 #Feature: a setting to delete the the log or not (for backup)
 
-@roadmap_1050_li
+@roadmap_1049_li
 #Test with Sun ASPE1_4; JEE Sun AS PE1.4
 
-@roadmap_1051_li
+@roadmap_1050_li
 #Test performance again with SQL Server, Oracle, DB2
 
-@roadmap_1052_li
+@roadmap_1051_li
 #Test with dbmonster (http://dbmonster.kernelpanic.pl/)
 
-@roadmap_1053_li
+@roadmap_1052_li
 #Test with dbcopy (http://dbcopyplugin.sourceforge.net)
 
-@roadmap_1054_li
+@roadmap_1053_li
 #Find a tool to view a text file >100 MB, with find, page up and down (like less)
 
-@roadmap_1055_li
+@roadmap_1054_li
 #Implement, test, document XAConnection and so on
 
-@roadmap_1056_li
+@roadmap_1055_li
 #Web site: meta keywords, description, get rid of frame set
 
-@roadmap_1057_li
+@roadmap_1056_li
 #Pluggable data type (for compression, validation, conversion, encryption)
 
-@roadmap_1058_li
+@roadmap_1057_li
 #CHECK: find out what makes CHECK=TRUE slow, move to CHECK2
 
-@roadmap_1059_li
+@roadmap_1058_li
 #Improve recovery: improve code for log recovery problems (less try/catch)
 
-@roadmap_1060_li
+@roadmap_1059_li
 #Log linear hash index changes, fast open / close
 
-@roadmap_1061_li
+@roadmap_1060_li
 #Index usage for (ID, NAME)=(1, 'Hi'); document
 
-@roadmap_1062_li
+@roadmap_1061_li
 #Suggestion: include jetty as Servlet Container (like LAMP)
 
-@roadmap_1063_li
+@roadmap_1062_li
 #Trace shipping to server
 
-@roadmap_1064_li
+@roadmap_1063_li
 #Performance / server mode: use UDP optionally?
 
-@roadmap_1065_li
+@roadmap_1064_li
 #Version check: docs / web console (using javascript), and maybe in the library (using TCP/IP)
 
-@roadmap_1066_li
+@roadmap_1065_li
 #Web server classloader: override findResource / getResourceFrom
 
-@roadmap_1067_li
+@roadmap_1066_li
 #Cost for embedded temporary view is calculated wrong, if result is constant
 
-@roadmap_1068_li
+@roadmap_1067_li
 #Comparison: pluggable sort order: natural sort
 
-@roadmap_1069_li
+@roadmap_1068_li
 #Count index range query (count(*) where id between 10 and 20)
 
-@roadmap_1070_li
+@roadmap_1069_li
 #Eclipse plugin
 
-@roadmap_1071_li
+@roadmap_1070_li
 #Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait]
 
-@roadmap_1072_li
+@roadmap_1071_li
 #iReport to support H2
 
-@roadmap_1073_li
+@roadmap_1072_li
 #Implement missing JDBC API (CallableStatement,...)
 
-@roadmap_1074_li
+@roadmap_1073_li
 #Compression of the cache
 
-@roadmap_1075_li
+@roadmap_1074_li
 #Run H2 Console inside servlet (pass-through servlet of fix the JSP / app)
 
-@roadmap_1076_li
+@roadmap_1075_li
 #Include SMPT (mail) server (at least client) (alert on cluster failure, low disk space,...)
 
-@roadmap_1077_li
+@roadmap_1076_li
 #Drop with restrict (currently cascade is the default)
 
-@roadmap_1078_li
+@roadmap_1077_li
 #JSON parser and functions
 
-@roadmap_1079_li
+@roadmap_1078_li
 #Automatic collection of statistics (auto ANALYZE)
 
-@roadmap_1080_li
+@roadmap_1079_li
 #Server: client ping from time to time (to avoid timeout - is timeout a problem?)
 
-@roadmap_1081_li
+@roadmap_1080_li
 #Copy database: Tool with config GUI and batch mode, extensible (example: compare)
 
-@roadmap_1082_li
+@roadmap_1081_li
 #Document, implement tool for long running transactions using user-defined compensation statements
 
-@roadmap_1083_li
+@roadmap_1082_li
 #Support SET TABLE DUAL READONLY
 
-@roadmap_1084_li
+@roadmap_1083_li
 #Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files
 
-@roadmap_1085_li
+@roadmap_1084_li
 #Don't write stack traces for common exceptions like duplicate key to the log by default
 
-@roadmap_1086_li
+@roadmap_1085_li
 #Setting for MAX_QUERY_TIME (default no limit?)
 
-@roadmap_1087_li
+@roadmap_1086_li
 #GCJ: what is the state now?
 
-@roadmap_1088_li
+@roadmap_1087_li
 #Use Janino to convert Java to C++
 
-@roadmap_1089_li
+@roadmap_1088_li
 #Reduce disk space usage (Derby uses less disk space?)
 
-@roadmap_1090_li
+@roadmap_1089_li
 #Events for: Database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
 
-@roadmap_1091_li
+@roadmap_1090_li
 #Optimization: Log compression
 
-@roadmap_1092_li
+@roadmap_1091_li
 #Support standard INFORMATION_SCHEMA tables, as defined in http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt; specially KEY_COLUMN_USAGE (http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif)
 
-@roadmap_1093_li
+@roadmap_1092_li
 #Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: Division by zero
 
-@roadmap_1094_li
+@roadmap_1093_li
 #Functional tables should accept parameters from other tables (see FunctionMultiReturn) SELECT * FROM TEST T, P2C(T.A, T.R)
 
-@roadmap_1095_li
+@roadmap_1094_li
 #Custom class loader to reload functions on demand
 
-@roadmap_1096_li
+@roadmap_1095_li
 #Test http://mysql-je.sourceforge.net/
 
-@roadmap_1097_li
+@roadmap_1096_li
 #Close all files when closing the database (including LOB files that are open on the client side)
 
-@roadmap_1098_li
+@roadmap_1097_li
 #Test Connection Pool http://jakarta.apache.org/commons/dbcp
 
-@roadmap_1099_li
+@roadmap_1098_li
 #Profiler option or profiling tool to find long running and often repeated queries (using DatabaseEventListener API)
 
-@roadmap_1100_li
+@roadmap_1099_li
 #Allow custom settings (@PATH for RUNSCRIPT for example)
 
-@roadmap_1101_li
+@roadmap_1100_li
 #EXE file: maybe use http://jsmooth.sourceforge.net
 
-@roadmap_1102_li
+@roadmap_1101_li
 #Automatically delete the index file if opening it fails
 
-@roadmap_1103_li
+@roadmap_1102_li
 #Performance: Automatically build in-memory indexes if the whole table is in memory
 
-@roadmap_1104_li
+@roadmap_1103_li
 #H2 Console: The webclient could support more features like phpMyAdmin.
 
-@roadmap_1105_li
+@roadmap_1104_li
 #The HELP information schema can be directly exposed in the Console
 
-@roadmap_1106_li
+@roadmap_1105_li
 #Maybe use the 0x1234 notation for binary fields, see MS SQL Server
 
-@roadmap_1107_li
+@roadmap_1106_li
 #Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html, http://philip.greenspun.com/sql/trees.html
 
-@roadmap_1108_li
+@roadmap_1107_li
 #SQL 2003 (http://www.wiscorp.com/sql_2003_standard.zip)
 
-@roadmap_1109_li
+@roadmap_1108_li
 #http://www.jpackage.org
 
-@roadmap_1110_li
+@roadmap_1109_li
 #Version column (number/sequence and timestamp based)
 
-@roadmap_1111_li
+@roadmap_1110_li
 #Optimize getGeneratedKey: send last identity after each execute (server).
 
-@roadmap_1112_li
+@roadmap_1111_li
 #Date: default date is '1970-01-01' (is it 1900-01-01 in the standard / other databases?)
 
-@roadmap_1113_li
+@roadmap_1112_li
 #Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID);
 
-@roadmap_1114_li
+@roadmap_1113_li
 #Max memory rows / max undo log size: use block count / row size not row count
 
-@roadmap_1115_li
+@roadmap_1114_li
 #Index summary is only written if log=2; maybe write it also when log=1 and everything is fine (and no in doubt transactions)
 
-@roadmap_1116_li
+@roadmap_1115_li
 #Support 123L syntax as in Java; example: SELECT (2000000000*2)
 
-@roadmap_1117_li
+@roadmap_1116_li
 #Implement point-in-time recovery
 
-@roadmap_1118_li
+@roadmap_1117_li
 #Memory database: add a feature to keep named database open until 'shutdown'
 
-@roadmap_1119_li
+@roadmap_1118_li
 #Use the directory of the first script as the default directory for any scripts run inside that script
 
-@roadmap_1120_li
+@roadmap_1119_li
 #Include the version name in the jar file name
 
-@roadmap_1121_li
+@roadmap_1120_li
 #Optimize ID=? OR ID=?: convert to IN(...)
 
-@roadmap_1122_li
+@roadmap_1121_li
 #LIKE: improved version for larger texts (currently using naive search)
 
-@roadmap_1123_li
+@roadmap_1122_li
 #Auto-reconnect on lost connection to server (even if the server was re-started) except if autocommit was off and there was pending transaction
 
-@roadmap_1124_li
+@roadmap_1123_li
 #The Script tool should work with other databases as well
 
-@roadmap_1125_li
+@roadmap_1124_li
 #Automatically convert to the next 'higher' data type whenever there is an overflow.
 
-@roadmap_1126_li
+@roadmap_1125_li
 #Throw an exception when the application calls getInt on a Long (optional)
 
-@roadmap_1127_li
+@roadmap_1126_li
 #Default date format for input and output (local date constants)
 
-@roadmap_1128_li
+@roadmap_1127_li
 #Cache collation keys for performance
 
-@roadmap_1129_li
+@roadmap_1128_li
 #ValueInt.convertToString and so on (remove Value.convertTo)
 
-@roadmap_1130_li
+@roadmap_1129_li
 #Support custom Collators
 
-@roadmap_1131_li
+@roadmap_1130_li
 #Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery)
 
-@roadmap_1132_li
+@roadmap_1131_li
 #Clustering: Reads should be randomly distributed or to a designated database on RAM
 
-@roadmap_1133_li
+@roadmap_1132_li
 #Clustering: When a database is back alive, automatically synchronize with the master
 
-@roadmap_1134_li
+@roadmap_1133_li
 #Standalone tool to get relevant system properties and add it to the trace output.
 
-@roadmap_1135_li
+@roadmap_1134_li
 #Support mixed clustering mode (one embedded, the other server mode)
 
-@roadmap_1136_li
+@roadmap_1135_li
 #Support 'call proc(1=value)' (PostgreSQL, Oracle)
 
-@roadmap_1137_li
+@roadmap_1136_li
 #HSQLDB compatibility: "INSERT INTO TEST(name) VALUES(?); SELECT IDENTITY()"
 
-@roadmap_1138_li
+@roadmap_1137_li
 #Shutdown lock (shutdown can only start if there are no logins pending, and logins are delayed until shutdown ends)
 
-@roadmap_1139_li
+@roadmap_1138_li
 #Automatically delete the index file if opening it fails
 
-@roadmap_1140_li
+@roadmap_1139_li
 #DbAdapters http://incubator.apache.org/cayenne/
 
-@roadmap_1141_li
+@roadmap_1140_li
 #JAMon (proxy jdbc driver)
 
-@roadmap_1142_li
+@roadmap_1141_li
 #Console: Allow setting Null value; Alternative display format two column (for copy and paste as well)
 
-@roadmap_1143_li
+@roadmap_1142_li
 #Console: Improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?)
 
-@roadmap_1144_li
+@roadmap_1143_li
 #Console: Autocomplete Ctrl+Space inserts template
 
-@roadmap_1145_li
+@roadmap_1144_li
 #Google Code http://code.google.com/p/h2database/issues/list#
 
-@roadmap_1146_li
+@roadmap_1145_li
 #Simplify translation ('Donate a translation')
 
-@roadmap_1147_li
+@roadmap_1146_li
 #Option to encrypt .trace.db file
 
-@roadmap_1148_li
+@roadmap_1147_li
 #Write Behind Cache on SATA leads to data corruption See also http://sr5tech.com/write_back_cache_experiments.htm and http://www.jasonbrome.com/blog/archives/2004/04/03/writecache_enabled.html
 
-@roadmap_1149_li
+@roadmap_1148_li
 #Functions with unknown return or parameter data types: serialize / deserialize
 
-@roadmap_1150_li
+@roadmap_1149_li
 #Test if idle TCP connections are closed, and how to disable that
 
-@roadmap_1151_li
+@roadmap_1150_li
 #Try using a factory for Row, Value[] (faster?), http://javolution.org/, alternative ObjectArray / IntArray
 
-@roadmap_1152_li
+@roadmap_1151_li
 #Auto-Update feature for database, .jar file
 
-@roadmap_1153_li
+@roadmap_1152_li
 #ResultSet SimpleResultSet.readFromURL(String url): id varchar, state varchar, released timestamp
 
-@roadmap_1154_li
+@roadmap_1153_li
 #RANK() and DENSE_RANK(), Partition using OVER()
 
-@roadmap_1155_li
+@roadmap_1154_li
 #ROW_NUMBER (not the same as ROWNUM)
 
-@roadmap_1156_li
+@roadmap_1155_li
 #Partial indexing (see PostgreSQL)
 
-@roadmap_1157_li
+@roadmap_1156_li
 #BUILD should fail if ant test fails
 
-@roadmap_1158_li
+@roadmap_1157_li
 #http://rubyforge.org/projects/hypersonic/
 
-@roadmap_1159_li
+@roadmap_1158_li
 #DbVisualizer profile for H2
 
-@roadmap_1160_li
+@roadmap_1159_li
 #Add comparator (x === y) : (x = y or (x is null and y is null))
 
-@roadmap_1161_li
+@roadmap_1160_li
 #Try to create trace file even for read only databases
 
-@roadmap_1162_li
+@roadmap_1161_li
 #Add a sample application that runs the H2 unit test and writes the result to a file (so it can be included in the user app)
 
-@roadmap_1163_li
+@roadmap_1162_li
 #Count on a column that can not be null would be optimized to COUNT(*)
 
-@roadmap_1164_li
+@roadmap_1163_li
 #Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility)
 
-@roadmap_1165_li
+@roadmap_1164_li
 #Backup tool should work with other databases as well
 
-@roadmap_1166_li
+@roadmap_1165_li
 #Console: -ifExists doesn't work for the console. Add a flag to disable other dbs
 
-@roadmap_1167_li
+@roadmap_1166_li
 #Maybe use Fowler Noll Vo hash function
 
-@roadmap_1168_li
+@roadmap_1167_li
 #Improved full text search (supports LOBs, reader / tokenizer / filter).
 
-@roadmap_1169_li
+@roadmap_1168_li
 #Performance: Update in-place
 
-@roadmap_1170_li
+@roadmap_1169_li
 #Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess)
 
-@roadmap_1171_li
+@roadmap_1170_li
 #Java static code analysis: http://pmd.sourceforge.net/
 
-@roadmap_1172_li
+@roadmap_1171_li
 #Java static code analysis: http://www.eclipse.org/tptp/
 
-@roadmap_1173_li
+@roadmap_1172_li
 #Compatibility for CREATE SCHEMA AUTHORIZATION
 
-@roadmap_1174_li
+@roadmap_1173_li
 #Implement Clob / Blob truncate and the remaining functionality
 
-@roadmap_1175_li
+@roadmap_1174_li
 #Maybe close LOBs after closing connection
 
-@roadmap_1176_li
+@roadmap_1175_li
 #Tree join functionality
 
-@roadmap_1177_li
+@roadmap_1176_li
 #Support alter table add column if table has views defined
 
-@roadmap_1178_li
+@roadmap_1177_li
 #Add multiple columns at the same time with ALTER TABLE .. ADD .. ADD ..
 
-@roadmap_1179_li
+@roadmap_1178_li
 #Support trigger on the tables information_schema.tables and ...columns
 
-@roadmap_1180_li
+@roadmap_1179_li
 #Add H2 to Gem (Ruby install system)
 
-@roadmap_1181_li
+@roadmap_1180_li
 #API for functions / user tables
 
-@roadmap_1182_li
+@roadmap_1181_li
 #Order conditions inside AND / OR to optimize the performance
 
-@roadmap_1183_li
+@roadmap_1182_li
 #Support linked JCR tables
 
-@roadmap_1184_li
+@roadmap_1183_li
 #Make sure H2 is supported by Execute Query: http://executequery.org/
 
-@roadmap_1185_li
+@roadmap_1184_li
 #Read InputStream when executing, as late as possible (maybe only embedded mode). Problem with re-execute.
 
-@roadmap_1186_li
+@roadmap_1185_li
 #Full text search: min word length; store word positions
 
-@roadmap_1187_li
+@roadmap_1186_li
 #FTP Server: Implement a client to send / receive files to server (dir, get, put)
 
-@roadmap_1188_li
+@roadmap_1187_li
 #FTP Server: Implement SFTP / FTPS
 
-@roadmap_1189_li
+@roadmap_1188_li
 #Add an option to the SCRIPT command to generate only portable / standard SQL
 
-@roadmap_1190_li
+@roadmap_1189_li
 #Test Dezign for Databases (http://www.datanamic.com)
 
-@roadmap_1191_li
+@roadmap_1190_li
 #Fast library for parsing / formatting: http://javolution.org/
 
-@roadmap_1192_li
+@roadmap_1191_li
 #Updatable Views (simple cases first)
 
-@roadmap_1193_li
+@roadmap_1192_li
 #Improve create index performance
 
-@roadmap_1194_li
+@roadmap_1193_li
 #Support ARRAY data type
 
-@roadmap_1195_li
+@roadmap_1194_li
 #Implement more JDBC 4.0 features
 
-@roadmap_1196_li
+@roadmap_1195_li
 #H2 Console: implement a servlet to allow simple web app integration
 
-@roadmap_1197_li
+@roadmap_1196_li
 #Support TRANSFORM / PIVOT as in MS Access
 
-@roadmap_1198_li
+@roadmap_1197_li
 #SELECT * FROM (VALUES (...), (...), ....) AS alias(f1, ...)
 
-@roadmap_1199_li
+@roadmap_1198_li
 #Support updatable views with join on primary keys (to extend a table)
 
-@roadmap_1200_li
+@roadmap_1199_li
 #Public interface for functions (not public static)
 
-@roadmap_1201_li
+@roadmap_1200_li
 #Autocomplete: if I type the name of a table that does not exist (should say: syntax not supported)
 
-@roadmap_1202_li
+@roadmap_1201_li
 #Autocomplete: schema support: "Other Grammar","Table Expression","{[schemaName.]tableName | (select)} [[AS] newTableAlias]
 
-@roadmap_1203_li
+@roadmap_1202_li
 #Functions: options readonly, deterministic (pure, always return the same value)
 
-@roadmap_1204_li
+@roadmap_1203_li
 #Document FTP server, including -ftpTask option to execute / kill remote processes
 
-@roadmap_1205_li
+@roadmap_1204_li
 #Eliminate undo log records if stored on disk (just one pointer per block, not per record)
 
-@roadmap_1206_li
+@roadmap_1205_li
 #Feature matrix like in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a> .
 
-@roadmap_1207_li
+@roadmap_1206_li
 #Updatable result set on table without primary key or unique index
 
-@roadmap_1208_li
+@roadmap_1207_li
 #Use LinkedList instead of ArrayList where applicable
 
-@roadmap_1209_li
+@roadmap_1208_li
 #Optimization: (A=B AND B=C) > (A=B AND B=C AND A=C)
 
-@roadmap_1210_li
+@roadmap_1209_li
 #Support % operator (modulo)
 
-@roadmap_1211_li
+@roadmap_1210_li
 #Large subqueries: close them when the main query is closed, not earlier (so result can be reused)
 
-@roadmap_1212_li
+@roadmap_1211_li
 #Support 1+'2'=3, '1'+'2'='12' (MS SQL Server compatibility)
 
-@roadmap_1213_li
+@roadmap_1212_li
 #Support nested transactions
 
-@roadmap_1214_li
+@roadmap_1213_li
 #Add a benchmark for big databases, and one for many users
 
-@roadmap_1215_li
+@roadmap_1214_li
 #Compression in the result set (repeating values in the same column)
 
-@roadmap_1216_li
+@roadmap_1215_li
 #Improve command line consistency (+/- options, or true false options)
 
-@roadmap_1217_li
+@roadmap_1216_li
 #Allow to use the catalog name in statements: [[catalog.]schema.]object
 
-@roadmap_1218_li
+@roadmap_1217_li
 #Support curtimestamp (like curtime, curdate)
 
-@roadmap_1219_li
+@roadmap_1218_li
 #Support ANALYZE {TABLE|INDEX} tableName COMPUTE|ESTIMATE|DELETE STATISTICS ptnOption options
 
-@roadmap_1220_li
+@roadmap_1219_li
 #Support Sequoia (Continuent.org)
 
-@roadmap_1221_li
+@roadmap_1220_li
 #Dynamic length numbers / special methods for DataPage.writeByte / writeShort / Ronni Nielsen
 
-@roadmap_1222_li
+@roadmap_1221_li
 #Pluggable ThreadPool, (AvalonDB / deebee / Paul Hammant)
 
-@roadmap_1223_li
+@roadmap_1222_li
 #Recursive Queries (see details)
 
-@roadmap_1224_li
+@roadmap_1223_li
 #Use index on boolean flag (see details)
 
-@roadmap_1225_li
+@roadmap_1224_li
 #Add build for embedded database only
 
-@roadmap_1226_li
+@roadmap_1225_li
 #Release locks (shared or exclusive) on demand
 
-@roadmap_1227_li
+@roadmap_1226_li
 #Support catalog names
 
-@roadmap_1228_li
+@roadmap_1227_li
 #Add object id to metadata tables
 
-@roadmap_1229_li
+@roadmap_1228_li
 #Support OUTER UNION
 
-@roadmap_1230_li
+@roadmap_1229_li
 #Support Parameterized Views (similar to CSVREAD, but using just SQL for the definition)
 
-@roadmap_1231_li
+@roadmap_1230_li
 #Implement a command line SQL utility similar to HenPlus: http://henplus.sourceforge.net
 
-@roadmap_1232_li
+@roadmap_1231_li
 #A way (JDBC driver) to map an URL (jdbc:h2map:c1) to a connection object
 
-@roadmap_1233_li
+@roadmap_1232_li
 #Build script for the embedded functionality only (h2embedded.jar)
 
-@roadmap_1234_li
+@roadmap_1233_li
 #Option for SCRIPT to only process one or a set of tables, and append to a file
 
-@roadmap_1235_li
+@roadmap_1234_li
 #Support using a unique index for IS NULL (including linked tables)
 
-@roadmap_1236_li
+@roadmap_1235_li
 #Support linked tables to the current database
 
-@roadmap_1237_li
+@roadmap_1236_li
 #Support dynamic linked schema (automatically adding/updating/removing tables)
 
-@roadmap_1238_li
+@roadmap_1237_li
 #Compatibility with Derby: VALUES(1), (2); SELECT * FROM (VALUES (1), (2)) AS myTable(c1)
 
-@roadmap_1239_li
+@roadmap_1238_li
 #Compatibility: # is the start of a single line comment (MySQL) but date quote (Access). Mode specific
 
-@roadmap_1240_li
+@roadmap_1239_li
 #Run benchmarks with JDK 1.5, JDK 1.6, java -server
 
-@roadmap_1241_li
+@roadmap_1240_li
 #Optimizations: Faster hash function for strings, byte arrays, big decimal
 
-@roadmap_1242_li
+@roadmap_1241_li
 #DatabaseEventListener: callback for all operations (including expected time, RUNSCRIPT) and cancel functionality
 
-@roadmap_1243_li
+@roadmap_1242_li
 #H2 Console / large result sets: use 'streaming' instead of building the page in-memory
 
-@roadmap_1244_li
+@roadmap_1243_li
 #Benchmark: add a graph to show how databases scale (performance/database size)
 
-@roadmap_1245_li
+@roadmap_1244_li
 #Implement a SQLData interface to map your data over to a custom object
 
-@roadmap_1246_li
+@roadmap_1245_li
 #Extend H2 Console to run tools (show command line as well)
 
-@roadmap_1247_li
+@roadmap_1246_li
 #Make DDL (Data Definition) operations transactional
 
-@roadmap_1248_li
+@roadmap_1247_li
 #Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
 
-@roadmap_1249_li
+@roadmap_1248_li
 #Support multiple directories (on different hard drives) for the same database
 
-@roadmap_1250_li
+@roadmap_1249_li
 #Server protocol: use challenge response authentication, but client sends hash(user+password) encrypted with response
 
-@roadmap_1251_li
+@roadmap_1250_li
 #Support EXEC[UTE] (doesn't return a result set, compatible to MS SQL Server)
 
-@roadmap_1252_li
+@roadmap_1251_li
 #GROUP BY and DISTINCT: support large groups (buffer to disk), do not keep large sets in memory
 
-@roadmap_1253_li
+@roadmap_1252_li
 #Support native XML data type
 
-@roadmap_1254_li
+@roadmap_1253_li
 #Support triggers with a string property or option: SpringTrigger, OSGITrigger
 
-@roadmap_1255_li
+@roadmap_1254_li
 #Clustering: adding a node should be very fast and without interrupting clients (very short lock)
 
-@roadmap_1256_li
+@roadmap_1255_li
 #Support materialized views (using triggers)
 
-@roadmap_1257_li
+@roadmap_1256_li
 #Store dates in local time zone (portability of database files)
 
-@roadmap_1258_li
+@roadmap_1257_li
 #Ability to resize the cache array when resizing the cache
 
-@roadmap_1259_li
+@roadmap_1258_li
 #Automatic conversion from WHERE X>10 AND X>20 to X>20
 
-@roadmap_1260_li
+@roadmap_1259_li
 #Time based cache writing (one second after writing the log)
 
-@roadmap_1261_li
+@roadmap_1260_li
 #Check state of H2 driver for DDLUtils: https://issues.apache.org/jira/browse/DDLUTILS-185
 
-@roadmap_1262_li
+@roadmap_1261_li
 #Index usage for REGEXP LIKE.
 
-@roadmap_1263_li
+@roadmap_1262_li
 #Add a role DBA (like ADMIN).
 
-@roadmap_1264_li
+@roadmap_1263_li
 #Better support multiple processors for in-memory databases.
 
-@roadmap_1265_li
+@roadmap_1264_li
 #Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
 
-@roadmap_1266_li
+@roadmap_1265_li
 #Implement INSTEAD OF trigger.
 
-@roadmap_1267_li
+@roadmap_1266_li
 #Access rights: Finer grained access control (grant access for specific functions)
 
-@roadmap_1268_li
+@roadmap_1267_li
 #Support N'text'
 
-@roadmap_1269_li
+@roadmap_1268_li
 #Support SCOPE_IDENTITY() to avoid problems when inserting rows in a trigger
 
-@roadmap_1270_li
+@roadmap_1269_li
 #Set a connection read only (Connection.setReadOnly)
 
-@roadmap_1271_li
+@roadmap_1270_li
 #In MySQL mode, for AUTO_INCREMENT columns, don't set the primary key
 
-@roadmap_1272_li
+@roadmap_1271_li
 #Use JDK 1.4 file locking to create the lock file (but not yet by default); writing a system property to detect concurrent access from the same VM (different classloaders).
 
-@roadmap_1273_li
+@roadmap_1272_li
 #Read-only sessions (Connection.setReadOnly)
 
-@roadmap_1274_li
+@roadmap_1273_li
 #Support compatibility for jdbc:hsqldb:res:
 
-@roadmap_1275_li
+@roadmap_1274_li
 #In the MySQL and PostgreSQL, use lower case identifiers by default (DatabaseMetaData.storesLowerCaseIdentifiers = true)
 
-@roadmap_1276_li
+@roadmap_1275_li
 #Provide a simple, lightweight O/R mapping tool
 
-@roadmap_1277_li
+@roadmap_1276_li
 #Provide an Java SQL builder with standard and H2 syntax
 
-@roadmap_1278_li
+@roadmap_1277_li
 #Trace: write OS, file system, JVM,... when opening the database
 
-@roadmap_1279_li
+@roadmap_1278_li
 #Trace: write dangerous operations (set log 0,...) in every case (including when opening the database)
 
-@roadmap_1280_li
+@roadmap_1279_li
 #Support indexes for views (probably requires materialized views)
 
-@roadmap_1281_li
+@roadmap_1280_li
 #Linked tables that point to the same database should share the connection
 
-@roadmap_1282_li
+@roadmap_1281_li
 #Document SET SEARCH_PATH, BEGIN, EXECUTE, parameters
 
-@roadmap_1283_li
+@roadmap_1282_li
 #Complete Javadocs for ErrorCode messages and add to docs
 
-@roadmap_1284_li
+@roadmap_1283_li
 #Browser: use Desktop.isDesktopSupported and browse when using JDK 1.6
 
-@roadmap_1285_li
+@roadmap_1284_li
 #Document org.h2.samples.MixedMode
 
-@roadmap_1286_li
+@roadmap_1285_li
 #Server: use one listener (detect if the request comes from an PG or TCP client)
 
-@roadmap_1287_li
+@roadmap_1286_li
 #Store dates as 'local'. Existing files use GMT. Use escape syntax for compatibility.
 
-@roadmap_1288_li
+@roadmap_1287_li
 #Support data type INTERVAL
 
-@roadmap_1289_li
+@roadmap_1288_li
 #NATURAL JOIN: MySQL and PostgreSQL don't repeat columns when using SELECT * ...
 
-@roadmap_1290_li
+@roadmap_1289_li
 #Optimize SELECT MIN(ID), MAX(ID), COUNT(*) FROM TEST WHERE ID BETWEEN 100 AND 200
 
-@roadmap_1291_li
+@roadmap_1290_li
 #Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER
 
-@roadmap_1292_li
+@roadmap_1291_li
 #Support setQueryTimeout (using System.currentTimeMillis in a loop; not using a thread)
 
-@roadmap_1293_li
+@roadmap_1292_li
 #Sequence: PostgreSQL compatibility (rename, create) (http://www.postgresql.org/docs/8.2/static/sql-altersequence.html)
 
-@roadmap_1294_li
+@roadmap_1293_li
 #DISTINCT: Support large result sets by sorting on all columns (additionally) and then removing duplicates.
 
-@roadmap_1295_li
+@roadmap_1294_li
 #Add replicating file system
 
-@roadmap_1296_li
+@roadmap_1295_li
 #File system that writes to two file systems (for replication)
 
-@roadmap_1297_li
+@roadmap_1296_li
 #File system with a background writer thread; test if this is faster
 
-@roadmap_1298_li
+@roadmap_1297_li
 #FTP access to a database (.csv for a table, a directory for a schema, a file for a lob, a script.sql file).
 
-@roadmap_1299_li
+@roadmap_1298_li
 #LIMIT and OFFSET for GROUP_CONCAT
 
-@roadmap_1300_li
+@roadmap_1299_li
 #Support triggers for INFORMATION_SCHEMA tables (to better support PostgreSQL catalog: rebuild after creating new tables)
 
-@roadmap_1301_li
+@roadmap_1300_li
 #Better document the source code
 
-@roadmap_1302_li
+@roadmap_1301_li
 #Support select * from dual a left join dual b on b.x=(select max(x) from dual)
 
-@roadmap_1303_li
+@roadmap_1302_li
 #Optimization: don't lock when the database is read-only
 
-@roadmap_1304_li
+@roadmap_1303_li
 #Integrate spatial functions from http://geosysin.iict.ch/irstv-trac/wiki/H2spatial/Download
 
-@roadmap_1305_li
+@roadmap_1304_li
 #Support COSH, SINH, and TANH functions
 
-@roadmap_1306_li
+@roadmap_1305_li
 #Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
 
-@roadmap_1307_li
+@roadmap_1306_li
 #Improve documentation of access rights
 
-@roadmap_1308_li
+@roadmap_1307_li
 #Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others)
 
-@roadmap_1309_li
+@roadmap_1308_li
 #Command line option for the H2 Console and TCP configuration (.h2.server.properties and .h2.keystore)
 
-@roadmap_1310_li
+@roadmap_1309_li
 #Automatically switch the source code to the right platform before compiling
 
-@roadmap_1311_li
+@roadmap_1310_li
 #Support a schema name for Java functions
 
-@roadmap_1312_li
+@roadmap_1311_li
 #Remember the domain of a column
 
-@roadmap_1313_li
+@roadmap_1312_li
 #Support Jackcess (MS Access databases)
 
-@roadmap_1314_li
+@roadmap_1313_li
 #Optimize truncate and drop table (currently all pages are overwritten)
 
-@roadmap_1315_li
+@roadmap_1314_li
 #Built-in methods to write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World')
 
-@roadmap_1316_li
+@roadmap_1315_li
 #Change package name in version 2.0: org.h2database
 
-@roadmap_1317_li
+@roadmap_1316_li
 #MVCC: support transactionally consistent backups using SCRIPT
 
-@roadmap_1318_li
+@roadmap_1317_li
 #Improve time to open large databases (see mail 'init time for distributed setup')
 
-@roadmap_1319_li
+@roadmap_1318_li
 #Use ARRAY for fulltext search return value, at least internally in the native implementation (and as an option for the user)
 
-@roadmap_1320_li
+@roadmap_1319_li
 #Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 
-@roadmap_1321_li
+@roadmap_1320_li
 #Java 1.5 tool: JdbcUtils.closeSilently(s1, s2,...)
 
-@roadmap_1322_li
+@roadmap_1321_li
 #Document how to use IKVM
 
-@roadmap_1323_li
+@roadmap_1322_li
 #Javadoc: document design patterns used
 
-@roadmap_1324_li
+@roadmap_1323_li
 #Update Wikipedia
 
-@roadmap_1325_li
+@roadmap_1324_li
 #Try https://hudson.dev.java.net/
 
-@roadmap_1326_li
+@roadmap_1325_li
 #Don't create @~ of not translated
 
-@roadmap_1327_li
+@roadmap_1326_li
 #Triggers for metadata tables; use for PostgreSQL catalog
 
-@roadmap_1328_li
+@roadmap_1327_li
 #Does the FTP server has problems with multithreading?
 
-@roadmap_1329_li
+@roadmap_1328_li
 #Write an article about SQLInjection (h2\src\docsrc\html\images\SQLInjection.txt)
 
-@roadmap_1330_li
+@roadmap_1329_li
 #Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
 
-@roadmap_1331_li
+@roadmap_1330_li
 #Send SQL Injection solution proposal to PostgreSQL, MySQL, Derby, HSQLDB,...
 
-@roadmap_1332_li
+@roadmap_1331_li
 #Improve LOB in directories performance
 
-@roadmap_1333_li
+@roadmap_1332_li
 #Web site design: http://www.igniterealtime.org/projects/openfire/index.jsp
 
-@roadmap_1334_li
+@roadmap_1333_li
 #HSQLDB compatibility: Openfire server uses: CREATE SCHEMA PUBLIC AUTHORIZATION DBA;  CREATE USER SA PASSWORD ""; GRANT DBA TO SA; SET SCHEMA PUBLIC
 
-@roadmap_1335_li
+@roadmap_1334_li
 #Web site: Rename Performance to Comparison [/Compatibility],  move Comparison to Other Database Engines to Comparison,  move Products that Work with H2 to Comparison,  move Performance Tuning to Advanced Topics
 
-@roadmap_1336_li
+@roadmap_1335_li
 #Translation: use ${.} in help.csv
 
-@roadmap_1337_li
+@roadmap_1336_li
 #Translated .pdf
 
-@roadmap_1338_li
+@roadmap_1337_li
 #Cluster: hot deploy (adding a node on runtime)
 
-@roadmap_1339_li
+@roadmap_1338_li
 #Test with PostgreSQL  Version 8.2
 
-@roadmap_1340_li
+@roadmap_1339_li
 #Submit again to http://www.docjar.com/
 
-@roadmap_1341_li
+@roadmap_1340_li
 #Website: Don't use frames.
 
-@roadmap_1342_li
+@roadmap_1341_li
 #Try again with Lobo browser (pure Java)
 
-@roadmap_1343_li
+@roadmap_1342_li
 #Recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...), and things should go into the .trace.db file
 
-@roadmap_1344_li
+@roadmap_1343_li
 #RECOVER=2 to backup the database, run recovery, open the database
 
-@roadmap_1345_li
+@roadmap_1344_li
 #Recovery should work with encrypted databases
 
-@roadmap_1346_li
+@roadmap_1345_li
 #Integrate tools in H2 Console
 
-@roadmap_1347_li
+@roadmap_1346_li
 #Corruption: new error code, add help
 
-@roadmap_1348_li
+@roadmap_1347_li
 #Space reuse: after init, scan all storages and free those that don't belong to a live database object
 
-@roadmap_1349_li
+@roadmap_1348_li
 #SysProperties: change everything to H2_...
 
-@roadmap_1350_li
+@roadmap_1349_li
 #Use FilterIn / FilterOut putStream?
 
-@roadmap_1351_li
+@roadmap_1350_li
 #Access rights: add missing features (users should be 'owner' of objects; missing rights for sequences; dropping objects)
 
-@roadmap_1352_li
+@roadmap_1351_li
 #Support NOCACHE table option (Oracle)
 
-@roadmap_1353_li
+@roadmap_1352_li
 #Use ant 'get' to download dependencies
 
-@roadmap_1354_li
+@roadmap_1353_li
 #Index usage for UPDATE ... WHERE .. IN (SELECT...)
 
-@roadmap_1355_li
+@roadmap_1354_li
 #The RunScript tool should support interactive mode (reading from system in). Password using a second thread.
 
-@roadmap_1356_li
+@roadmap_1355_li
 #Add regular javadocs to the homepage.
 
-@roadmap_1357_li
+@roadmap_1356_li
 #The database should be kept open for a longer time when using the server mode.
 
-@roadmap_1358_li
+@roadmap_1357_li
 #Javadocs: for each tool, add a copy &amp; paste sample in the class level.
 
-@roadmap_1359_li
+@roadmap_1358_li
 #Add google site search to web page.
 
-@roadmap_1360_li
+@roadmap_1359_li
 #Javadocs: add @author tags.
 
-@roadmap_1361_li
+@roadmap_1360_li
 #SET LOG_SYSTEM {NATIVE|LOG4J|COMMONS|DRIVER_MANAGER}
 
-@roadmap_1362_li
+@roadmap_1361_li
 #Fluent API for tools: Server.createTcpServer().setPort(9081).setPassword(password).start();
 
-@roadmap_1363_li
+@roadmap_1362_li
 #MySQL compatibility: real SQL statements for SHOW TABLES, DESCRIBE TEST (then remove from Shell)
 
-@roadmap_1364_li
+@roadmap_1363_li
 #Use a default delay of 1 second before closing a database.
 
-@roadmap_1365_li
+@roadmap_1364_li
 #Maven: upload source code and javadocs as well.
 
-@roadmap_1366_li
+@roadmap_1365_li
 #Write (log) to system table before adding to internal data structures.
 
-@roadmap_1367_li
+@roadmap_1366_li
 #Support very large deletes and updates.
 
-@roadmap_1368_li
+@roadmap_1367_li
 #Doclet (javadocs): constructors are not listed.
 
-@roadmap_1369_li
+@roadmap_1368_li
 #Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup).
 
-@roadmap_1370_li
+@roadmap_1369_li
 #Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object);
 
-@roadmap_1371_li
+@roadmap_1370_li
 #MVCC should not be memory bound (uncommitted data is kept in memory in the delta index; maybe using a regular btree index solves the problem).
 
-@roadmap_1372_li
+@roadmap_1371_li
 #Support CREATE TEMPORARY LINKED TABLE.
 
-@roadmap_1373_li
+@roadmap_1372_li
 #MySQL compatibility: SELECT @variable := x FROM SYSTEM_RANGE(1, 50);
 
-@roadmap_1374_li
+@roadmap_1373_li
 #Oracle compatibility: support NLS_DATE_FORMAT.
 
-@roadmap_1375_li
+@roadmap_1374_li
 #Support flashback queries as in Oracle.
 
-@roadmap_1376_li
+@roadmap_1375_li
 #Import / Export of fixed with text files.
 
-@roadmap_1377_h2
+@roadmap_1376_h2
 #Not Planned
 
-@roadmap_1378_li
+@roadmap_1377_li
 #HSQLDB (did) support this: select id i from test where i>0 (other databases don't). Supporting it may break compatibility.
 
-@roadmap_1379_li
+@roadmap_1378_li
 #String.intern (so that Strings can be compared with ==) will not be used because some VMs have problems when used extensively.
 
 @search_1000_b
@@ -7862,14 +7880,431 @@ Javaアプリケーション内からインデックスを呼び出すことも�
 @~changelog_1261_li
 #The version number is now major.minor.micro where micro is the build number. Not all version are public, so there may be gaps in the micro. The minor changes when there is a file format change.
 
+@~features_1030_h2
+特徴一覧
+
+@~features_1031_h3
+主な特徴
+
+@~features_1032_li
+非常に高速なデータベースエンジン
+
+@~features_1039_h3
+追加された特徴
+
+@~features_1040_li
+ディスクベースデータベース、またはインメモリデータベースと、テーブル、読み取り専用データベースをサポート、テンポラリテーブル
+
+@~features_1046_h3
+SQLサポート
+
+@~features_1047_li
+複数のスキーマ、インフォメーションスキーマをサポート
+
+@~features_1057_h3
+セキュリティの特徴
+
+@~features_1058_li
+SQLインジェクション問題の解決を含む
+
+@~features_1065_h3
+他の特徴とツール
+
+@~features_1066_li
+省スペース (1MBより小さい)、少ないメモリが必要条件
+
+@~features_1081_h2
+#Limitations
+
+@~features_1082_p
+#For the list of limitations, please have a look at the road map page at: <a href="http://groups.google.com/group/h2-database/web/roadmap">http://groups.google.com/group/h2-database/web/roadmap</a>
+
+@~features_1083_h2
+他のデータベースエンジンと比較する
+
+@~features_1084_th
+特徴
+
+@~features_1090_td
+Pure Java
+
+@~features_1168_h3
+DerbyとHSQLDB
+
+@~features_1169_p
+予期しない過程での終了後 (例：電源異常)、H2はユーザーの相互作用なしで安全に、自動的に回復することができます。DerbyとHSQLDBでは、いくつかの手動のステップが必要とされます ('Another instance of Derby may have already booted the database' / 'The database is already in use by another process')。
+
+@~features_1170_h3
+DaffodilDbとOne$Db
+
+@~features_1171_p
+このデータベースの開発は止まっているようです。最後のリリースは2006年2月でした。
+
+@~features_1172_h3
+McKoi
+
+@~features_1173_p
+このデータベースの開発は止まっているようです。最後のリリースは2004年8月でした。
+
+@~features_1174_h2
+#H2 in Use
+
+@~features_1175_p
+#For a list of applications that work with or use H2, see: <a href="links.html">Links</a> .
+
+@~features_1176_h2
+接続モード
+
+@~features_1177_p
+以下の接続モードがサポートされています:
+
+@~features_1178_li
+#Embedded mode (local connections using JDBC)
+
+@~features_1181_h3
+エンベッドモード
+
+@~features_1182_p
+#In embedded mode, an application opens a database from within the same JVM using JDBC. This is the fastest and easiest connection mode. The disadvantage is that a database may only be open in one virtual machine (and class loader) at any time. As in all modes, both persistent and in-memory databases are supported. There is no limit on the number of database open concurrently, or on the number of open connections.
+
+@~features_1183_h3
+#Remote Mode
+
+@~features_1184_p
+#When using the remote mode (sometimes called client/server mode), an application opens a database remotely using the JDBC or ODBC API. A server needs to be started within the same or another virtual machine (or on another computer). Many applications can connect to the same database at the same time. The remote mode is slower than the embedded mode, because all data is transferred over TCP/IP. As in all modes, both persistent and in-memory databases are supported. There is no limit on the number of database open concurrently, or on the number of open connections.
+
+@~features_1185_h3
+#Mixed Mode
+
+@~features_1186_p
+#The mixed mode is a combination of the embedded and the remote mode. The main application connects to a database in embedded mode, but also starts a server so that other applications (running in different virtual machines) can concurrently access the same data.
+
+@~features_1187_h2
+データベースURL概要
+
+@~features_1188_p
+#This database supports multiple connection modes and connection settings. This is achieved using different database URLs. Settings in the URLs are not case sensitive.
+
+@~features_1189_th
+トピック
+
+@~features_1191_td
+エンベッド (ローカル) 接続
+
+@~features_1242_h3
+エンベッド (ローカル) データベースに接続
+
+@~features_1243_p
+#The database URL for connecting to a local database is <code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code> . The prefix <code>file:</code> is optional. If no or only a relative path is used, then the current working directory is used as a starting point. The case sensitivity of the path and database name depend on the operating system, however it is recommended to use lowercase letters only. The database name must be at least three characters long (a limitation of File.createTempFile). To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
+
+@~features_1244_h2
+メモリオンリーデータベース
+
+@~features_1245_p
+特定の使用方法では (例: rapid prototyping、テスト、高パフォーマンスオペレーション、読み取り専用データベース)、データは持続する (変化する) 必要は全くないかもしれません。このデータベースは、データが持続しない際にメモリオンリーモードをサポートします。
+
+@~features_1250_h2
+暗号化ファイルと共にデータベースへ接続する
+
+@~features_1251_p
+ファイルを暗号化して使用するためには、暗号化アルゴリズム ("cipher") とファイルパスワードを指定することが必要です。アルゴリズムは、接続パラメータを使用することで指定される必要があります。二つのアルゴリズムがサポートされています: XTEAとAES です。ファイルパスワードは、ユーザーパスワードの前のパスワードフィールドで指定されます。ファイルパスワードとユーザーパスワードの間に、シングルスペースを加えることが必要です; ファイルパスワードそのものにはスペースは含まれません。ファイルパスワードは (ユーザーパスワードも同様) 大文字と小文字を区別しています。こちらがパスワードの暗号化されたデータベースに接続するための例です:
+
+@~features_1252_h2
+データベースファイルロック
+
+@~features_1253_p
+データベースが開かれるときはいつも、データベースが使用中であると他のプロセスに合図するためにロックファイルが作成されます。もしデータベースが閉じられるか、データベースを開いたプロセスが終了するなら、ロックファイルは削除されます。
+
+@~features_1255_li
+デフォルトメソッドは "file" で、データベースファイルを保護するために、watchdogスレッドを使用します。watchdogは、ロックファイルをそれぞれ秒単位で読み込みます。
+
+@~features_1258_p
+異なったファイルロックメソッドでデータベースを開くには、"FILE_LOCK" パラメータを使用します。以下のコードは "socket" ロックメソッドのデータベースを開きます:
+
+@~features_1261_h2
+すでに存在する場合のみ、データベースを開く
+
+@~features_1262_p
+デフォルトでは、アプリケーションが <code>DriverManager.getConnection(url,...)</code> を呼び出し、URLで指定されたデータベースがまだ存在しない時、 新しい (空の) データベースが作成されます。ある状況では、もしすでにデータベースが存在するのであれば、新しいデータベースの作成を制限して、データベースを開くだけにした方がよいでしょう。<code>;ifexists=true</code> をURLに追加することによって可能になります。このケースでは、もしデータベースがまだ存在していなければ、接続しようとした時に例外が投げられます。接続は、データベースがすでに存在する時のみ成功します。完全なURLは次のようです:
+
+@~features_1263_h2
+データベースを終了する
+
+@~features_1264_h3
+データベースの遅延終了
+
+@~features_1265_p
+通常、データベースへの最後の接続が閉じられた時、データベースが終了されます。一部状況では、例えば、可能ではない時に接続をつなげたままにしておくことは、アプリケーションを減速させます。SQLステートメントの SET DB_CLOSE_DELAY &lt;seconds&gt; でデータベースの自動終了を遅らせるか、または無効にすることができます。secondsには、最後の接続が閉じられた後データベースを接続したままの状態に保つため、秒数を指定します。例えば、次のステートメントはデータベースを10秒間開かれた状態に保ちます:
+
+@~features_1267_h3
+VMが終了した時、データベースを終了しない
+
+@~features_1268_p
+デフォルトでは、データベースは最後の接続が閉じられた時に終了されます。しかし、最後の接続が決して閉じられなければ、仮想マシンが正常に終了する時にデータベースは閉じられます。これはshutdown hookを使うことによって行われます。一部状況では、データベースはこのケースで終了されてはいけません。例えば、仮想マシンが終了している時にデータベースがまだ使われている場合です (例として、シャットダウンプロセスをデータベースに保存するため)。このケースでは、データベースURLでデータベースの自動終了を無効にすることが可能です。最初の接続は (ひとつはデータベースを開始するもの) データベースURLにオプションを設定する必要があります (設定を後で変更することは不可能です)。VMが終了する時、データベースの終了を無効にするためのデータベースURLです:
+
+@~features_1269_h2
+ログインデックスの修正
+
+@~features_1270_p
+通常、インデックスファイルの変更はパフォーマンスのために記録されません。データベースを開いた時に、インデックスファイルが破損しているか、無くなっていたら、データから作り直されます。停電、またはプログラムの異常終了のため、データベースが正しく終了されなかった時、インデックスファイルは破損されます。一部状況では、例えば、非常に大きなデータベースを使用している時 (数百MB以上)、インデックスファイルが再作成されるのにはとても時間がかかります。それらの状況では、インデックスファイルの変更を記録しておいた方がよいでしょう。そうすることによって、破損されたインデックスファイルの回復が速くなります。ログインデックスの修正を可能にするためには、jdbc:h2:~/test;LOG=2 のように、URLに LOG=2 を追加して下さい。接続する時に、この設定が指定されます。このオプションを使用する時、データベースのアップデートパフォーマンスは低下するでしょう。
+
+@~features_1271_h3
+未知の設定を無視
+
+@~features_1272_p
+データベースに接続する時、いくつかのアプリケーションが (例えば、OpenOffice.org Base) いくつかの追加パラメータを渡します。なぜそれらのパラメータが渡されるのかは知られていません。PREFERDOSLIKELINEENDS と IGNOREDRIVERPRIVILEGES はパラメータの例で、それらは、OpenOffice.orgとの互換性を改良するために単に無視されます。もしデータベースに接続する時、アプリケーションが他のパラメータを渡していたら、通常データベースは、 パラメータはサポートされていません、という例外を投げます。データベースURLに ;IGNORE_UNKNOWN_SETTINGS=TRUE を追加することで、このようなパラメータを無視することが可能です。
+
+@~features_1273_h3
+接続が開始された時に他の設定を変更する
+
+@~features_1274_p
+すでに記述された設定に加えて (暗号、ファイルロック、データベースの存在、ユーザー、パスワード)、他のデータベースの設定は、データベースURLの中で渡すことができます。<CODE>SET setting value</CODE>ステートメントを接続直後に実行するのと同じように 、<CODE>setting=value</CODE> をURLの最後に追加します。このデータベースによってサポートされている設定の一覧は、SQL文法のドキュメントをご覧下さい。
+
+@~features_1275_h2
+カスタムファイル アクセスモード
+
+@~features_1276_p
+#Usually, the database opens log, data and index files with the access mode 'rw', meaning read-write (except for read only databases, where the mode 'r' is used). To open a database in read-only mode if the files are not read-only, use ACCESS_MODE_DATA=r. Also supported are 'rws' and 'rwd'. The access mode used for log files is set via ACCESS_MODE_LOG; for data and index files use ACCESS_MODE_DATA. These settings must be specified in the database URL:
+
+@~features_1278_h2
+複数の接続
+
+@~features_1279_h3
+同時に複数のデータベースを開く
+
+@~features_1280_p
+アプリケーションは、同じデータベースへの複数の接続を含め、複数のデータベースを同時に開くことができます。開くデータベースの数は、利用可能なメモリによってのみ制限されています。
+
+@~features_1281_h3
+>同じデータベースへの複数の接続: クライアント/サーバー
+
+@~features_1282_p
+異なったプロセス、またはコンピューターから同時に同じデータベースにアクセスしたい場合、クライアント/サーバー モードを使用することが必要です。このケースでは、ひとつのプロセスがサーバーとして動作し、他のプロセスは (同様に他のコンピューターに属することができます) TCP/IP (または改善されたセキュリティ用のTCP/IPの上のSSL/TLS) を通してサーバーに接続します。
+
+@~features_1283_h3
+マルチスレッドサポート
+
+@~features_1284_p
+このデータベースは安全なマルチスレッドです。これは、アプリケーションがマルチスレッドならば、データベースへの同時アクセスに関して心配する必要がない、ということを意味しています。本質的に、同じデータベースへのほとんどのリクエストは同時に動きます。アプリケーションは、同時に同じデータベースにアクセスするマルチスレッドを使用することができますが、ひとつのスレッドが処理時間の長いクエリーを実行しているなら、他のスレッドは待つ必要があります。
+
+@~features_1285_h3
+ロック、ロックタイムアウト、デッドロック
+
+@~features_1286_p
+データの一貫した状態をそれぞれの接続に与えるために、データベースはテーブルレベルでのロックを使用します。二種類のロックがあります: リードロック (共有ロック) とライトロック (排他ロック) です。もし、接続がテーブルから読み込みたい場合で、テーブルにライトロックがない場合に、リードロックをテーブルに追加します。もしライトロックがあれば、この接続はロックを解除するために他の接続を待ちます。接続が指定された時間までにロックを取得できなければ、ロックタイムアウトの例外が投げられます。
+
+@~features_1288_th
+ロックの種類
+
+@~features_1290_td
+Read
+
+@~features_1305_p
+SQLコマンド SET LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、ロックタイムアウトの例外が投げられるまでの秒数を、それぞれの接続ごとに別々に設定することができます。SQLコマンド SET DEFAULT_LOCK_TIMEOUT &lt;milliseconds&gt; を使用して、初期のロックタイムアウト (新しい接続に使用されるタイムアウト) を設定することができます。デフォルトのロックタイムアウトは永続的です。
+
+@~features_1306_h2
+データベースファイルレイアウト
+
+@~features_1307_p
+永続的なデータベースのために作成された多くのファイルがあります。一部のデータベースを除いて、全てのテーブルと (または) インデックスが自身のファイル内に保存されているわけではありません。その代りに、通常次のファイルのみが作成されます: データファイル、インデックスファイル、ログファイル、データベースロックファイル (データベースが使われている間のみ存在します)。それに加えて、ファイルはそれぞれの大きなオブジェクト (CLOB/BLOB) のために作成されます。各ライナーインデックスのためのファイル、大きなresult setのためのテンポラリーファイルです。データベーストレースオプションが有効の場合、トレースファイルが作成されます。次のファイルはデータベースによって作成されます:
+
+@~features_1308_th
+ファイル名
+
+@~features_1311_td
+test.data.db
+
+@~features_1352_h3
+データベースファイルの移動と改名
+
+@~features_1353_p
+データベースの名前と位置は、データベース名の中には保存されません。
+
+@~features_1356_h3
+バックアップ
+
+@~features_1357_p
+データベースが閉じられている時、データベースファイルのバックアップをとることが可能です。インデックスファイルはバックアップをとる必要はありません。なぜなら、インデックスファイルは冗長なデータを含み、もしファイルが存在しなければ自動的に再作成されるからです。
+
+@~features_1359_h2
+ログとリカバリー
+
+@~features_1360_p
+データベースでデータが修正され、それらの変更がコミットされた時はいつでも、変更はディスクに記録されます (インメモリオブジェクトを除いて)。データファイル自体への変更は通常、ディスクアクセスを最適化するために後で書かれています。もし電源異常があった場合、データファイルとインデックスファイルはアップデートされません。しかし、変更がログファイルに書かれていれば、次回データベースを開いた時に、ログファイルに書かれた変更は自動的に再び適用されます。
+
+@~features_1364_h2
+互換性
+
+@~features_1365_p
+#All database engines behave a little bit different. Where possible, H2 supports the ANSI SQL standard, and tries to be compatible to other databases. There are still a few differences however:
+
+@~features_1367_h3
+互換モード
+
+@~features_1368_p
+#For certain features, this database can emulate the behavior of specific databases. Not all features or differences of those databases are implemented. Currently, this feature is mainly used for randomized comparative testing (where random statements are executed against multiple databases and the results are compared). The mode can be changed by specifying the mode in the database URL, or using the SQL statement SET MODE. To use the HSQLDB mode, you can use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</code> or the SQL statement <code>SET MODE HSQLDB</code> . Here is the list of currently supported modes and the difference to the regular mode:
+
+@~features_1369_th
+モード
+
+@~features_1371_td
+PostgreSQL
+
+@~features_1377_h2
+トレースオプションを使用する
+
+@~features_1378_p
+アプリケーション内の問題を見つけるために、時々、何のデータベースオペレーションがどこで実行されているかを知るのは良い方法です。このデータベースは次のトレースの特徴を提供します:
+
+@~features_1379_li
+System.out と (または) ファイルをトレースする
+
+@~features_1384_h3
+トレースオプション
+
+@~features_1385_p
+トレースオプションを可能にする簡単な方法は、データベースURLにトレースオプションを設定することです。二つの設定があり、ひとつは、System.out (TRACE_LEVEL_SYSTEM_OUT) トレーシングで、もうひとつはファイルトレーシング(TRACE_LEVEL_FILE)です。トレースレベルは、0 が OFF、1 が ERROR (デフォルト)、2 が INFO で 3 が DEBUGです。両方のレベルがDEBUGに設定されたデータベースURLです:
+
+@~features_1387_h3
+トレースファイルの最大サイズを設定
+
+@~features_1388_p
+高いトレースレベルを使用する時、トレースファイルは早くサイズが非常に大きくなります。SQLステートメント <CODE>SET TRACE_MAX_FILE_SIZE maximumFileSizeInMB</CODE> を実行することによりファイルのサイズを制限することができます。ログファイルが制限を超えたら、ファイルは ".old" にファイル名を変えて、新しいファイルが作成されます。もしもうひとつの .oldファイルが存在する場合は、それは削除されます。デフォルトの設定は16 MBです。例:
+
+@~features_1389_h3
+Javaコード生成
+
+@~features_1390_p
+トレースレベルをINFOかDEBUGに設定した時、同様にJavaのソースコードが生成されるので、問題はより簡単に再生されます。トレースファイルはこのようなものです:
+
+@~features_1394_h3
+手動でファイルを作成し、ランタイムでトレースオプションを可能にする
+
+@~features_1395_p
+時々、アプリケーション、またはデータベースのURLを変えられない、変えたくない場合があります。このような場合に、ランタイムであっても (データベースの接続が開かれている間) トレースモードを可能にできる方法がまだあります。必要なことは、データベースファイルが保存されているディレクトリに特別なファイルを作るだけです。データベースエンジンは、このファイルが存在する場合に (ステートメントが実行されている間のみ) 4秒ごとにチェックしています。このファイル名は、データベース名 プラス ".trace.db.start" です。この特徴はデータベースが暗号化されている場合は無効になります。
+
+@~features_1397_h2
+読み取り専用データベース
+
+@~features_1398_p
+データベースファイルが読み取り専用なら、同様にデータベースも読み取り専用です。このデータベースで新しいテーブルを作成したり、データを追加したり変更したりすることはできません。SELECTステートメントのみ許可されています。読み取り専用データベースを作成するには、データベースを終了してログファイルを小さくします。ログファイルを削除してはいけません。そして、オペレーティングシステムを使用してデータベースファイルを読み取り専用にします。これでデータベースを開くと、読み取り専用になっています。アプリケーションが、データベースが読み取り専用であることを判断する方法は二つあります: Connection.isReadOnly() を呼ぶか、SQLステートメント CALL READONLY() を実行します。
+
+@~features_1399_h2
+#Read Only Databases in Zip or Jar File
+
+@~features_1400_p
+#To create a read-only database in a zip, first create a regular persistent database, and then create a backup. If you are using a database named 'test', an easy way to do that is using the Backup tool or the BACKUP SQL statement:
+
+@~features_1403_h2
+バイナリーとテキストストレージフォーマット
+
+@~features_1404_p
+このデータベースエンジンは、バイナリーとテキストストレージフォーマットの両方をサポートしています。バイナリーはより高速ですが、テキストストレージフォーマットは同様に役立つ場合があります。例えば、データベースエンジンをデバッグする場合です。データベースがすでに存在するなら、ストレージフォーマットは自動的に推奨されます。新しいデータベースはデフォルトでバイナリーストレージフォーマットで作られます。テキストストレージフォーマットで新しいデータベースを作成するには、データベースURLに、パラメータ STORAGE=TEXT が含まれていなければなりません。例: jdbc:h2:~/test;STORAGE=TEXT
+
+@~features_1405_h2
+ディスクスペースが少ない状況での正しい取り扱い
+
+@~features_1406_p
+データベースは、利用可能なディスクスペースが少なくなっている状況に対処することができます。データベースを開始する時はいつも、"emergency space" ファイルが作られ (サイズは 1 MB)、利用可能なスペースがもうない場合には、ファイルは小さくなります。利用可能なスペースが 128 KB以下になった場合、データベースは特別な読み取り専用モードになり、全ての書き込み操作はもはや許可されません: この時点から全ての書き込み操作は、"No disk space available" を例外に投げます。通常のオペレーションモードに戻るためには、最初にデータベースへの全ての接続を終了し、スペースを空ける必要があります。
+
+@~features_1408_h3
+破損したデータベースを開く
+
+@~features_1412_p
+値は生成されているので、データを挿入する時、カラムのupper-caseバージョンのための値を指定する必要はありません (許可されていません)。 しかし、テーブルを呼ぶ時、このカラムを使用することはできます。:
+
+@~features_1413_h2
+多次元インデックス
+
+@~features_1415_p
+現在、Z-order (N-order または Morton-order とも呼ばれています) が使用されています; Hilbert curveも使用できますが、実装はより複雑です。多次元の値を変換するアルゴリズムは、bit-interleavingと呼ばれています。B-Treeインデックス (通常は computed columnを使用します)を使用することで、スカラーの値はインデックスをつけられます。
+
+@~features_1418_h3
+安全なパスワードを使用する
+
+@~features_1420_p
+i'sE2rtPiUKtT (もしトリックを知っていれば、このパスワードは覚えやすいものです)
+
+@~features_1421_h3
+パスワード: Stringの代わりにChar Arraysを使用する
+
+@~features_1424_p
+このデータベースは、ユーザーパスワードとファイルパスワードを認証するために、Stringの代わりにchar arrayを使用することをサポートしています。次のコードはこのように使用されます:
+
+@~features_1425_p
+このサンプルでは、パスワードはアプリケーションでのハードコードで、もちろん安全ではありません。しかし、Java Swingはchar arrayを使用してパスワードを得る方法をサポートしています (JPasswordField)。
+
+@~features_1426_h3
+ユーザー名 と (または) パスワードをURLで認証する
+
+@~features_1428_h2
+ユーザー定義の関数とストアドプロシージャ
+
+@~features_1432_h3
+データタイプマッピング関数
+
+@~features_1433_p
+"int" のような non-nullable (NULL可能ではない) パラメータを受け入れる関数は、パラメータのうちひとつがNULLであるなら呼ばれないでしょう。このケースでは、NULLの値は結果として使用されます。このケースで関数を呼び出したいのなら、"int" の代わりに "java.lang.Integer" を使用する必要があります。
+
+@~features_1434_h3
+接続を必要とする関数
+
+@~features_1435_p
+もしJava関数の最初のパラメータが java.sql.Connection なら、データベースへの接続は与えられています。返す前にこの接続を閉じる必要はありません。
+
+@~features_1436_h3
+例外を投げる関数
+
+@~features_1438_h3
+Result Setを返す関数
+
+@~features_1439_p
+関数はresult setを返します。このような関数はCALLステートメントと一緒に呼ばれます:
+
+@~features_1440_h3
+SimpleResultSetを使用する
+
+@~features_1441_p
+result setを返す関数は、SimpleResultSetツールを使用して最初からこのresult setを作成することができます:
+
+@~features_1442_h3
+関数をテーブルとして使用する
+
+@~features_1443_p
+result setを返す関数はテーブルのようになれます。しかし、このケースでは関数は少なくとも二回は呼ばれます: 最初はカラム名を集めるために構文解析している間です (コンパイル時に未知のところでパラメータはNULLに設定)。そして、データを取得するためにステートメントを実行している間です (これが結合なら繰り返されます)。関数がカラム一覧を取得するためだけに呼ばれたのなら、関数を認証する接続URLは jdbc:columnlist:connection です。そうでなければ、接続URLは jdbc:default:connection です。
+
+@~features_1444_h2
+トリガー
+
+@~features_1445_p
+このデータベースは、行が更新、挿入、または削除された前後に呼ばれるJavaトリガーをサポートしています。トリガーは複雑な一貫性チェックか、データベース内の関連したデータをアップデートするのに使用されます。マテリアライズドビューをシミュレートするためにトリガーを使用することも可能です。完全なサンプルアプリケーションは src/test/org/h2/samples/TriggerSample.java をご覧下さい。Javaトリガーは、インターフェイス org.h2.api.Trigger を実装しなければなりません:
+
+@~features_1447_p
+トリガーはSQL Exceptionを投げることによって、変更を禁止させることができます。
+
+@~features_1448_h2
+データベースをコンパクトにする
+
+@~features_1449_p
+データベースファイルの空のスペースは自動的に再利用されます。インデックスを再構築するもっとも簡単な方法は、データベースが閉じられている間に .index.db ファイルを削除します。しかし、一部状況では (例えば、データベースの多数のデータを削除した後)、データベースのサイズを縮小したい場合があります (データベースをコンパクトにする)。そのためのサンプルです:
+
 @~roadmap_1025_li
 #Document server mode, embedded mode, web app mode, dual mode (server+embedded)
 
 @~roadmap_1027_h2
 #Priority 2
 
+@~roadmap_1376_li
+#Import / Export of fixed with text files.
+
+@~roadmap_1377_h2
+#Not Planned
+
 @~roadmap_1377_li
 #Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object);
+
+@~roadmap_1379_li
+#String.intern (so that Strings can be compared with ==) will not be used because some VMs have problems when used extensively.
 
 @~roadmap_1380_li
 #MySQL compatibility: SELECT @variable := x FROM SYSTEM_RANGE(1, 50);

@@ -34,7 +34,7 @@
 		</delete>
 	</target>
 
-	<target name="compile" depends="switchSourceAuto, resources, downloadServletJar, downloadLuceneJar">
+	<target name="compile" depends="switchSourceAuto, resources, download">
 		<javac destdir="bin" debug="true" debuglevel="lines,source" >
 			<classpath location="ext/servlet-api-2.4.jar" />
 		    <classpath location="ext/lucene-core-2.2.0.jar" />
@@ -60,20 +60,24 @@
 		<javac srcdir="bin" destdir="bin" debug="true" debuglevel="lines,source" includes="org/h2/**"/>
     </target>
     
-    <target name="downloadServletJar" depends="init" unless="servlet.jar.present">
+    <target name="download" depends="init" unless="ext.present">
         <get dest="ext/servlet-api-2.4.jar"
             src="http://repo1.maven.org/maven2/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar" />
-    </target>
-
-    <target name="downloadLuceneJar" depends="init" unless="lucene.jar.present">
         <get dest="ext/lucene-core-2.2.0.jar"
             src="http://repo1.maven.org/maven2/org/apache/lucene/lucene-core/2.2.0/lucene-core-2.2.0.jar" />
+        <get dest="ext/slf4j-api-1.5.0.jar"
+            src="http://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.5.0/slf4j-api-1.5.0.jar" />
     </target>
 
 	<target name="init">
 		<mkdir dir="ext"/>
-		<available file="ext/servlet-api-2.4.jar" property="servlet.jar.present"/>
-		<available file="ext/lucene-core-2.2.0.jar" property="lucene.jar.present"/>
+	    <condition property="ext.present">
+			<and>
+	  			<available file="ext/servlet-api-2.4.jar"/>
+	  			<available file="ext/lucene-core-2.2.0.jar"/>
+	  			<available file="ext/slf4j-api-1.5.0.jar"/>
+			</and>
+		</condition>	    
 	</target>
 
 	<target name="jar" depends="compile, manifest">

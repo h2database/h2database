@@ -252,7 +252,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //## Java 1.4 begin ##
     public int prepare(Xid xid) throws XAException {
-        if (debug()) {
+        if (isDebugEnabled()) {
             debugCode("prepare("+quoteXid(xid)+");");
         }
         checkOpen();
@@ -283,7 +283,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //## Java 1.4 begin ##
     public void forget(Xid xid) throws XAException {
-        if (debug()) {
+        if (isDebugEnabled()) {
             debugCode("forget("+quoteXid(xid)+");");
         }
     }
@@ -296,7 +296,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //## Java 1.4 begin ##
     public void rollback(Xid xid) throws XAException {
-        if (debug()) {
+        if (isDebugEnabled()) {
             debugCode("rollback("+quoteXid(xid)+");");
         }
         try {
@@ -317,7 +317,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //## Java 1.4 begin ##
     public void end(Xid xid, int flags) throws XAException {
-        if (debug()) {
+        if (isDebugEnabled()) {
             debugCode("end("+quoteXid(xid)+", "+quoteFlags(flags)+");");
         }
         // TODO transaction end: implement this method
@@ -339,7 +339,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //## Java 1.4 begin ##
     public void start(Xid xid, int flags) throws XAException {
-        if (debug()) {
+        if (isDebugEnabled()) {
             debugCode("start("+quoteXid(xid)+", "+quoteFlags(flags)+");");
         }
         if (flags == TMRESUME) {
@@ -367,7 +367,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      */
 //## Java 1.4 begin ##
     public void commit(Xid xid, boolean onePhase) throws XAException {
-        if (debug()) {
+        if (isDebugEnabled()) {
             debugCode("commit("+quoteXid(xid)+", "+onePhase+");");
         }
         Statement stat = null;
@@ -437,7 +437,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
     }
 
     private XAException convertException(SQLException e) {
-        if (debug()) {
+        if (isDebugEnabled()) {
             getTrace().debug("throw XAException("+e.getMessage()+");");
         }
         return new XAException(e.getMessage());

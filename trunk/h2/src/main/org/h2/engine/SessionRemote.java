@@ -371,7 +371,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
      * @param id the id of the operation
      */
     public void traceOperation(String operation, int id) {
-        if (trace.debug()) {
+        if (trace.isDebugEnabled()) {
             trace.debug(operation + " " + id);
         }
     }

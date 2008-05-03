@@ -60,12 +60,12 @@ public class TraceObject {
         return ID[type]++;
     }
 
-    protected boolean debug() {
-        return trace.debug();
+    protected boolean isDebugEnabled() {
+        return trace.isDebugEnabled();
     }
 
-    protected boolean info() {
-        return trace.info();
+    protected boolean isInfoEnabled() {
+        return trace.isInfoEnabled();
     }
 
     protected Trace getTrace() {
@@ -73,31 +73,31 @@ public class TraceObject {
     }
 
     protected void debugCodeAssign(String className, int type, int id, String value) {
-        if (trace.debug()) {
+        if (trace.isDebugEnabled()) {
             trace.debugCode(className + " " + PREFIX[type] + id + " = " + getTraceObjectName() + "." + value + ";");
         }
     }
 
     protected void debugCodeCall(String text) {
-        if (trace.debug()) {
+        if (trace.isDebugEnabled()) {
             trace.debugCode(getTraceObjectName() + "." + text + "();");
         }
     }
 
     protected void debugCodeCall(String text, long param) {
-        if (trace.debug()) {
+        if (trace.isDebugEnabled()) {
             trace.debugCode(getTraceObjectName() + "." + text + "(" + param + ");");
         }
     }
 
     protected void debugCodeCall(String text, String param) {
-        if (trace.debug()) {
+        if (trace.isDebugEnabled()) {
             trace.debugCode(getTraceObjectName() + "." + text + "(" + quote(param) + ");");
         }
     }
 
     protected void debugCode(String text) {
-        if (trace.debug()) {
+        if (trace.isDebugEnabled()) {
             trace.debugCode(getTraceObjectName() + "." + text);
         }
     }

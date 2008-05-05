@@ -78,7 +78,7 @@ public class TraceSystem implements TraceWriter {
         }
     }
 
-    public Trace getTrace(String module) {
+    public synchronized Trace getTrace(String module) {
         Trace t = (Trace) traces.get(module);
         if (t == null) {
             t = new Trace(writer, module);

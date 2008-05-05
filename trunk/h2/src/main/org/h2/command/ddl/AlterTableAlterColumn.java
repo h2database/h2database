@@ -7,6 +7,7 @@
 package org.h2.command.ddl;
 
 import java.sql.SQLException;
+
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
@@ -23,6 +24,7 @@ import org.h2.result.LocalResult;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
+import org.h2.schema.TriggerObject;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableData;
@@ -244,6 +246,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         execute(newTable.getCreateSQL(), true);
         newTable = (TableData) newTable.getSchema().getTableOrView(session, newTable.getName());
         ObjectArray children = table.getChildren();
+        ObjectArray triggers = new ObjectArray();
         for (int i = 0; i < children.size(); i++) {
             DbObject child = (DbObject) children.get(i);
             if (child instanceof Sequence) {
@@ -273,7 +276,11 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 sql = child.getCreateSQLForCopy(newTable, quotedName);
             }
             if (sql != null) {
-                execute(sql, true);
+                if (child instanceof TriggerObject) {
+                    triggers.add(sql);
+                } else {
+                    execute(sql, true);
+                }
             }
         }
         StringBuffer columnList = new StringBuffer();
@@ -331,6 +338,10 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 table.removeSequence(session, seq);
                 columns[i].setSequence(null);
             }
+        }
+        for (int i = 0; i < triggers.size(); i++) {
+            sql = (String) triggers.get(i);
+            execute(sql, true);
         }
         execute("DROP TABLE " + table.getSQL(), true);
         db.renameSchemaObject(session, newTable, tableName);

@@ -25,8 +25,38 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
 
     public void test() throws Exception {
         deleteDb("trigger");
+        testTriggerAlterTable();
         testTriggers();
         testConstraints();
+    }
+    
+    public static class Test implements Trigger {
+
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
+            conn.createStatement().execute("call seq.nextval");
+        }
+
+        public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before,
+                int type) throws SQLException {
+        }
+    }
+    
+    private void testTriggerAlterTable() throws Exception {
+        Connection conn = getConnection("trigger");
+        Statement stat = conn.createStatement();
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("create sequence seq");
+        stat.execute("create table test(id int primary key)");
+        checkSingleValue(stat, "call seq.nextval", 1);
+        conn.setAutoCommit(false);
+        stat.execute("create trigger test_upd before insert on test call \"" + Test.class.getName() + "\"");
+        stat.execute("insert into test values(1)");
+        checkSingleValue(stat, "call seq.nextval", 3);
+        stat.execute("alter table test add column name varchar");
+        checkSingleValue(stat, "call seq.nextval", 4);
+        stat.execute("drop sequence seq");
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testConstraints() throws Exception {

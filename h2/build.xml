@@ -38,6 +38,7 @@
 		<javac destdir="bin" debug="true" debuglevel="lines,source" >
 			<classpath location="ext/servlet-api-2.4.jar" />
 		    <classpath location="ext/lucene-core-2.2.0.jar" />
+		    <classpath location="ext/slf4j-api-1.5.0.jar" />
 		    <src path="src/main"/>
 	       	<src path="src/test"/>
 	       	<src path="src/tools"/>

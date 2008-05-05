@@ -849,12 +849,8 @@ e.printStackTrace();
                         schema.add(meta);
                         if (meta.getObjectType() == DbObject.TABLE_OR_VIEW) {
                             String sql = data[3].getString();
-                            int end = sql.indexOf('(');
-                            if (end >= 0) {
-                                int start = sql.lastIndexOf(' ', end);
-                                String name = sql.substring(start, end).trim();
-                                tableMap.put(ObjectUtils.getInteger(meta.getId()), name);
-                            }
+                            String name = extractTableOrViewName(sql);
+                            tableMap.put(ObjectUtils.getInteger(meta.getId()), name);
                         }
                     } catch (Throwable t) {
                         writeError(writer, t);
@@ -888,6 +884,37 @@ e.printStackTrace();
             closeSilently(store);
         }
     }
+    
+    private String extractTableOrViewName(String sql) {
+        int indexTable = sql.indexOf(" TABLE ");
+        int indexView = sql.indexOf(" VIEW ");
+        if (indexTable > 0 && indexView > 0) {
+            if (indexTable < indexView) {
+                indexView = -1;
+            } else {
+                indexTable = -1;
+            }
+        } 
+        if (indexView > 0) {
+            sql = sql.substring(indexView + " VIEW ".length());
+        } else if (indexTable > 0) {
+            sql = sql.substring(indexTable + " TABLE ".length());
+        } else {
+            return "UNKNOWN";
+        }
+        boolean ignore = false;
+        for (int i = 0; i < sql.length(); i++) {
+            char ch = sql.charAt(i);
+            if (ch == '\"') {
+                ignore = !ignore;
+            } else if (!ignore && (ch <= ' ' || ch == '(')) {
+                sql = sql.substring(0, i);
+                return sql;
+            }
+        }
+        return "UNKNOWN";
+    }
+
 
     private void closeSilently(FileStore store) {
         if (store != null) {

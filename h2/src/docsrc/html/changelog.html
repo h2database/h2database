@@ -17,7 +17,22 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>-
+<li>Some databases could not be opened when appending 
+        ;RECOVER=1 to the database URL.
+</li><li>The Japanese translation of the error messages and the H2 Console 
+        has been completed by Masahiro Ikemoto (Arizona Design Inc.)
+</li><li>Updates made to updatable rows are now visible within the same result set. 
+        DatabaseMetaData.ownUpdatesAreVisible now returns true.
+</li><li>ParameterMetaData now returns the correct data 
+        for INSERT and UPDATE statements.
+</li><li>H2 Shell: DESCRIBE now supports an schema name.
+</li><li>A subset of the PostgreSQL 'dollar quoting' feature is now supported.
+</li><li>SLF4J is now supported by using adding TRACE_LEVEL_FILE=4
+        to the database URL.
+</li><li>The recovery tool did not work if the table name contained spaces
+        or if there was a comment on the table.
+</li><li>Triggers are no longer executed when executing an changing the table
+        structure (ALTER TABLE).
 </li></ul>
 
 <h2>Version 1.0.71 (2008-04-25)</h2>

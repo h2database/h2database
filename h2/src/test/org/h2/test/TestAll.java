@@ -160,10 +160,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-test and document log_level_file=4
-
-deactivate triggers during alter table (during re-creating a table)
-
 improve javadocs
 
 upload jazoon 
@@ -215,18 +211,6 @@ Add where required // TODO: change in version 1.1
 http://www.w3schools.com/sql/
 
 History:
-    Some databases could not be opened when appending 
-        ;RECOVER=1 to the database URL.
-    The Japanese translation of the error messages and the H2 Console 
-        has been completed by Masahiro Ikemoto (Arizona Design Inc.)
-    Updates made to updatable rows are now visible within the same result set. 
-        DatabaseMetaData.ownUpdatesAreVisible now returns true.
-    ParameterMetaData now returns the correct data 
-        for INSERT and UPDATE statements.
-    H2 Shell: DESCRIBE now supports an schema name.
-    A subset of the PostgreSQL 'dollar quoting' feature is now supported.
-    SLF4J is now supported by using adding TRACE_LEVEL_FILE=4
-        to the database URL.
 
 Roadmap:
 

@@ -185,8 +185,8 @@ public class Parser {
     private ObjectArray indexedParameterList;
 
     public Parser(Session session) {
-        this.session = session;
         database = session.getDatabase();
+        this.session = session;
     }
 
     /**

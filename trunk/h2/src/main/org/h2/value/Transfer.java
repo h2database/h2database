@@ -17,6 +17,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.math.BigDecimal;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -34,6 +35,7 @@ import org.h2.message.TraceSystem;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ExactUTF8InputStreamReader;
 import org.h2.util.IOUtils;
+import org.h2.util.NetUtils;
 import org.h2.util.StringCache;
 
 /**
@@ -49,6 +51,7 @@ public class Transfer {
     protected Socket socket;
     protected DataInputStream in;
     protected DataOutputStream out;
+    private boolean ssl;
 
     public Transfer(SessionInterface session) {
         this.session = session;
@@ -411,6 +414,20 @@ public class Transfer {
 
     public void setSession(SessionInterface session) {
         this.session = session;
+    }
+
+    public void setSSL(boolean ssl) {
+        this.ssl = ssl;
+    }
+
+    public Transfer openNewConnection() throws IOException {
+        InetAddress address = socket.getInetAddress();
+        int port = socket.getPort();
+        Socket socket = NetUtils.createSocket(address, port, ssl);
+        Transfer trans = new Transfer(null);
+        trans.setSocket(socket);
+        trans.setSSL(ssl);
+        return trans;
     }
 
 }

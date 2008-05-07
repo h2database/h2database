@@ -162,6 +162,10 @@ java org.h2.test.TestAll timer
 
 improve javadocs
 
+Shell / JDK 1.6: use java.io.Console
+
+</li><li>Implement Statement.cancel for server connections
+
 upload jazoon 
 
 test case for out of memory (try to corrupt the database using out of memory)
@@ -211,6 +215,8 @@ Add where required // TODO: change in version 1.1
 http://www.w3schools.com/sql/
 
 History:
+    Statements can now be cancelled remotely 
+        (when using remote connections).
 
 Roadmap:
 
@@ -412,7 +418,6 @@ Roadmap:
      * Run all tests with the current settings.
      */
     private void test() throws Exception {
-        
         System.out.println();
         System.out.println("Test big:"+big+" net:"+networked+" cipher:"+cipher+" memory:"+memory+" log:"+logMode+" diskResult:"+diskResult + " mvcc:" + mvcc + " deleteIndex:" + deleteIndex);
         beforeTest();

@@ -23,6 +23,7 @@ import org.h2.message.TraceSystem;
 import org.h2.result.ResultInterface;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
+import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.ObjectArray;
@@ -51,6 +52,8 @@ public class SessionRemote implements SessionInterface, DataHandler {
     public static final int CHANGE_ID = 9;
     public static final int COMMAND_GET_META_DATA = 10;
     public static final int SESSION_PREPARE_READ_PARAMS = 11;
+    public static final int SESSION_SET_ID = 12;
+    public static final int SESSION_CANCEL_STATEMENT = 13;
 
     public static final int STATUS_ERROR = 0;
     public static final int STATUS_OK = 1;
@@ -68,12 +71,14 @@ public class SessionRemote implements SessionInterface, DataHandler {
     private String cipher;
     private byte[] fileEncryptionKey;
     private Object lobSyncObject = new Object();
+    private String sessionId;
     private int clientVersion = Constants.TCP_DRIVER_VERSION_5; 
 
     private Transfer initTransfer(ConnectionInfo ci, String db, String server) throws IOException, SQLException {
         Socket socket = NetUtils.createSocket(server, Constants.DEFAULT_SERVER_PORT, ci.isSSL());
         Transfer trans = new Transfer(this);
         trans.setSocket(socket);
+        trans.setSSL(ci.isSSL());
         trans.init();
         trans.writeInt(clientVersion);
         trans.writeString(db);
@@ -95,6 +100,34 @@ public class SessionRemote implements SessionInterface, DataHandler {
         }
         autoCommit = true;
         return trans;
+    }
+    
+    public void cancel() {
+        // this method is called when closing the connection
+        // the statement that is currently running is not cancelled in this case
+        // however Statement.cancel is supported
+    }
+
+    public void cancelStatement(int id) {
+        for (int i = 0; i < transferList.size(); i++) {
+            Transfer transfer = (Transfer) transferList.get(i);
+            try {
+                Transfer trans = transfer.openNewConnection();
+                trans.init();
+                trans.writeInt(clientVersion);
+                if (clientVersion >= Constants.TCP_DRIVER_VERSION_6) {
+                    trans.writeInt(clientVersion);
+                }
+                trans.writeString(null);
+                trans.writeString(null);
+                trans.writeString(sessionId);
+                trans.writeInt(SessionRemote.SESSION_CANCEL_STATEMENT);
+                trans.writeInt(id);
+                trans.close();
+            } catch (IOException e) {
+                trace.debug("Could not cancel statement", e);
+            }
+        }
     }
 
     private void switchOffAutoCommitIfCluster() throws SQLException {
@@ -255,6 +288,23 @@ public class SessionRemote implements SessionInterface, DataHandler {
         } catch (Exception e) {
             trace.error("Error trying to upgrade client version", e);
             // ignore
+        }
+        if (clientVersion >= Constants.TCP_DRIVER_VERSION_6) {
+            sessionId = ByteUtils.convertBytesToString(RandomUtils.getSecureBytes(32));
+            synchronized (this) {
+                for (int i = 0; i < transferList.size(); i++) {
+                    Transfer transfer = (Transfer) transferList.get(i);
+                    try {
+                        traceOperation("SESSION_SET_ID", 0);
+                        transfer.writeInt(SessionRemote.SESSION_SET_ID);
+                        transfer.writeString(sessionId);
+                        done(transfer);
+                    } catch (Exception e) {
+                        trace.error("sessionSetId", e);
+                    }
+                }
+            }
+            
         }
     }
 
@@ -452,11 +502,6 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     public Object getLobSyncObject() {
         return lobSyncObject;
-    }
-
-    public void cancel() {
-        // TODO open another remote connection and cancel this session 
-        // using a unique id (like PostgreSQL)
     }
 
     public boolean getLobFilesInDirectories() {

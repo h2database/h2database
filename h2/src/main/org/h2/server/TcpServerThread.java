@@ -28,6 +28,7 @@ import org.h2.result.LocalResult;
 import org.h2.result.ResultColumn;
 import org.h2.util.ObjectArray;
 import org.h2.util.SmallMap;
+import org.h2.util.StringUtils;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 
@@ -44,6 +45,7 @@ public class TcpServerThread implements Runnable {
     private SmallMap cache = new SmallMap(SysProperties.SERVER_CACHED_OBJECTS);
     private int id;
     private int clientVersion;
+    private String sessionId;
 
     public TcpServerThread(Socket socket, TcpServer server, int id) {
         this.server = server;
@@ -76,6 +78,15 @@ public class TcpServerThread implements Runnable {
                 }
                 String db = transfer.readString();
                 String originalURL = transfer.readString();
+                if (db == null && originalURL == null) {
+                    String sessionId = transfer.readString();
+                    int command = transfer.readInt();
+                    stop = true;
+                    if (command == SessionRemote.SESSION_CANCEL_STATEMENT) {
+                        int statementId = transfer.readInt();
+                        server.cancelStatement(sessionId, statementId);
+                    }
+                }
                 String baseDir = server.getBaseDir();
                 if (baseDir == null) {
                     baseDir = SysProperties.getBaseDir();
@@ -317,6 +328,11 @@ public class TcpServerThread implements Runnable {
             cache.addObject(newId, obj);
             break;
         }
+        case SessionRemote.SESSION_SET_ID: {
+            sessionId = transfer.readString();
+            transfer.writeInt(SessionRemote.STATUS_OK).flush();
+            break;
+        }
         default:
             trace("Unknown operation: " + operation);
             closeSession();
@@ -342,6 +358,13 @@ public class TcpServerThread implements Runnable {
 
     public Thread getThread() {
         return thread;
+    }
+
+    public void cancelStatement(String sessionId, int statementId) throws SQLException {
+        if (StringUtils.equals(sessionId, this.sessionId)) {
+            Command cmd = (Command) cache.getObject(statementId, false);
+            cmd.cancel();
+        }
     }
 
 }

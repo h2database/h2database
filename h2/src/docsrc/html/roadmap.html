@@ -57,7 +57,7 @@ Roadmap
 </li><li>Procedural language / script language (Javascript)
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
-</li><li>Option for Java functions: constant/isDeterministic to allow early evaluation when all parameters are constant
+</li><li>Option for Java functions: constant/isDeterministic/readonly/pure (always return the same value) to allow early evaluation when all parameters are constant
 </li><li>Support function overloading as in Java (multiple functions with the same name, but different parameter count or data types)
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
 </li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
@@ -65,8 +65,6 @@ Roadmap
 </li><li>Add a migration guide (list differences between databases)
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer
-</li><li>Connection pool manager
-</li><li>Implement Statement.cancel for server connections
 </li><li>Start / stop server with database URL
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
 </li><li>Rebuild index functionality (other than delete the index file)
@@ -79,16 +77,15 @@ Roadmap
 </li><li>Test with dbcopy (http://dbcopyplugin.sourceforge.net)
 </li><li>Find a tool to view a text file >100 MB, with find, page up and down (like less)
 </li><li>Implement, test, document XAConnection and so on
-</li><li>Web site: meta keywords, description, get rid of frame set
+</li><li>Web site: get rid of frame set
 </li><li>Pluggable data type (for compression, validation, conversion, encryption)
 </li><li>CHECK: find out what makes CHECK=TRUE slow, move to CHECK2
 </li><li>Improve recovery: improve code for log recovery problems (less try/catch)
-</li><li>Log linear hash index changes, fast open / close
 </li><li>Index usage for (ID, NAME)=(1, 'Hi'); document
-</li><li>Suggestion: include jetty as Servlet Container (like LAMP)
+</li><li>Suggestion: include Jetty as Servlet Container (like LAMP)
 </li><li>Trace shipping to server
 </li><li>Performance / server mode: use UDP optionally?
-</li><li>Version check: docs / web console (using javascript), and maybe in the library (using TCP/IP)
+</li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP)
 </li><li>Web server classloader: override findResource / getResourceFrom
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant
 </li><li>Comparison: pluggable sort order: natural sort
@@ -98,7 +95,6 @@ Roadmap
 </li><li>iReport to support H2
 </li><li>Implement missing JDBC API (CallableStatement,...)
 </li><li>Compression of the cache
-</li><li>Run H2 Console inside servlet (pass-through servlet of fix the JSP / app)
 </li><li>Include SMPT (mail) server (at least client) (alert on cluster failure, low disk space,...)
 </li><li>Drop with restrict (currently cascade is the default)
 </li><li>JSON parser and functions
@@ -109,7 +105,6 @@ Roadmap
 </li><li>Support SET TABLE DUAL READONLY
 </li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files
 </li><li>Don't write stack traces for common exceptions like duplicate key to the log by default
-</li><li>Setting for MAX_QUERY_TIME (default no limit?)
 </li><li>GCJ: what is the state now?
 </li><li>Use Janino to convert Java to C++
 </li><li>Reduce disk space usage (Derby uses less disk space?)
@@ -121,11 +116,7 @@ Roadmap
 </li><li>Custom class loader to reload functions on demand
 </li><li>Test http://mysql-je.sourceforge.net/
 </li><li>Close all files when closing the database (including LOB files that are open on the client side)
-</li><li>Test Connection Pool http://jakarta.apache.org/commons/dbcp
-</li><li>Profiler option or profiling tool to find long running and often repeated queries (using DatabaseEventListener API)
-</li><li>Allow custom settings (@PATH for RUNSCRIPT for example)
 </li><li>EXE file: maybe use http://jsmooth.sourceforge.net
-</li><li>Automatically delete the index file if opening it fails
 </li><li>Performance: Automatically build in-memory indexes if the whole table is in memory
 </li><li>H2 Console: The webclient could support more features like phpMyAdmin.
 </li><li>The HELP information schema can be directly exposed in the Console
@@ -138,11 +129,8 @@ Roadmap
 </li><li>Date: default date is '1970-01-01' (is it 1900-01-01 in the standard / other databases?)
 </li><li>Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID);
 </li><li>Max memory rows / max undo log size: use block count / row size not row count
-</li><li>Index summary is only written if log=2; maybe write it also when log=1 and everything is fine (and no in doubt transactions)
 </li><li>Support 123L syntax as in Java; example: SELECT (2000000000*2)
 </li><li>Implement point-in-time recovery
-</li><li>Memory database: add a feature to keep named database open until 'shutdown'
-</li><li>Use the directory of the first script as the default directory for any scripts run inside that script
 </li><li>Include the version name in the jar file name
 </li><li>Optimize ID=? OR ID=?: convert to IN(...)
 </li><li>LIKE: improved version for larger texts (currently using naive search)
@@ -151,7 +139,6 @@ Roadmap
 </li><li>Automatically convert to the next 'higher' data type whenever there is an overflow.
 </li><li>Throw an exception when the application calls getInt on a Long (optional)
 </li><li>Default date format for input and output (local date constants)
-</li><li>Cache collation keys for performance
 </li><li>ValueInt.convertToString and so on (remove Value.convertTo)
 </li><li>Support custom Collators
 </li><li>Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery)
@@ -160,15 +147,9 @@ Roadmap
 </li><li>Standalone tool to get relevant system properties and add it to the trace output.
 </li><li>Support mixed clustering mode (one embedded, the other server mode)
 </li><li>Support 'call proc(1=value)' (PostgreSQL, Oracle)
-</li><li>HSQLDB compatibility: "INSERT INTO TEST(name) VALUES(?); SELECT IDENTITY()"
-</li><li>Shutdown lock (shutdown can only start if there are no logins pending, and logins are delayed until shutdown ends)
-</li><li>Automatically delete the index file if opening it fails
-</li><li>DbAdapters http://incubator.apache.org/cayenne/
 </li><li>JAMon (proxy jdbc driver)
-</li><li>Console: Allow setting Null value; Alternative display format two column (for copy and paste as well)
 </li><li>Console: Improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?)
 </li><li>Console: Autocomplete Ctrl+Space inserts template
-</li><li>Google Code http://code.google.com/p/h2database/issues/list#
 </li><li>Simplify translation ('Donate a translation')
 </li><li>Option to encrypt .trace.db file
 </li><li>Write Behind Cache on SATA leads to data corruption See also http://sr5tech.com/write_back_cache_experiments.htm and http://www.jasonbrome.com/blog/archives/2004/04/03/writecache_enabled.html
@@ -180,7 +161,7 @@ Roadmap
 </li><li>RANK() and DENSE_RANK(), Partition using OVER()
 </li><li>ROW_NUMBER (not the same as ROWNUM)
 </li><li>Partial indexing (see PostgreSQL)
-</li><li>BUILD should fail if ant test fails
+</li><li>The build should fail if the test fails
 </li><li>http://rubyforge.org/projects/hypersonic/
 </li><li>DbVisualizer profile for H2
 </li><li>Add comparator (x === y) : (x = y or (x is null and y is null))
@@ -190,7 +171,6 @@ Roadmap
 </li><li>Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility)
 </li><li>Backup tool should work with other databases as well
 </li><li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs
-</li><li>Maybe use Fowler Noll Vo hash function
 </li><li>Improved full text search (supports LOBs, reader / tokenizer / filter).
 </li><li>Performance: Update in-place
 </li><li>Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess)
@@ -219,44 +199,32 @@ Roadmap
 </li><li>Improve create index performance
 </li><li>Support ARRAY data type
 </li><li>Implement more JDBC 4.0 features
-</li><li>H2 Console: implement a servlet to allow simple web app integration
 </li><li>Support TRANSFORM / PIVOT as in MS Access
 </li><li>SELECT * FROM (VALUES (...), (...), ....) AS alias(f1, ...)
 </li><li>Support updatable views with join on primary keys (to extend a table)
 </li><li>Public interface for functions (not public static)
 </li><li>Autocomplete: if I type the name of a table that does not exist (should say: syntax not supported)
-</li><li>Autocomplete: schema support: "Other Grammar","Table Expression","{[schemaName.]tableName | (select)} [[AS] newTableAlias]
-</li><li>Functions: options readonly, deterministic (pure, always return the same value)
 </li><li>Document FTP server, including -ftpTask option to execute / kill remote processes
 </li><li>Eliminate undo log records if stored on disk (just one pointer per block, not per record)
 </li><li>Feature matrix like in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
 </li><li>Updatable result set on table without primary key or unique index
 </li><li>Use LinkedList instead of ArrayList where applicable
-</li><li>Optimization: (A=B AND B=C) > (A=B AND B=C AND A=C)
 </li><li>Support % operator (modulo)
-</li><li>Large subqueries: close them when the main query is closed, not earlier (so result can be reused)
 </li><li>Support 1+'2'=3, '1'+'2'='12' (MS SQL Server compatibility)
 </li><li>Support nested transactions
 </li><li>Add a benchmark for big databases, and one for many users
 </li><li>Compression in the result set (repeating values in the same column)
-</li><li>Improve command line consistency (+/- options, or true false options)
-</li><li>Allow to use the catalog name in statements: [[catalog.]schema.]object
 </li><li>Support curtimestamp (like curtime, curdate)
 </li><li>Support ANALYZE {TABLE|INDEX} tableName COMPUTE|ESTIMATE|DELETE STATISTICS ptnOption options
 </li><li>Support Sequoia (Continuent.org)
 </li><li>Dynamic length numbers / special methods for DataPage.writeByte / writeShort / Ronni Nielsen
 </li><li>Pluggable ThreadPool, (AvalonDB / deebee / Paul Hammant)
 </li><li>Recursive Queries (see details)
-</li><li>Use index on boolean flag (see details)
-</li><li>Add build for embedded database only
+</li><li>Add GUI to build a custom version (embedded, fulltext,...)
 </li><li>Release locks (shared or exclusive) on demand
-</li><li>Support catalog names
-</li><li>Add object id to metadata tables
 </li><li>Support OUTER UNION
 </li><li>Support Parameterized Views (similar to CSVREAD, but using just SQL for the definition)
-</li><li>Implement a command line SQL utility similar to HenPlus: http://henplus.sourceforge.net
 </li><li>A way (JDBC driver) to map an URL (jdbc:h2map:c1) to a connection object
-</li><li>Build script for the embedded functionality only (h2embedded.jar)
 </li><li>Option for SCRIPT to only process one or a set of tables, and append to a file
 </li><li>Support using a unique index for IS NULL (including linked tables)
 </li><li>Support linked tables to the current database
@@ -269,7 +237,6 @@ Roadmap
 </li><li>H2 Console / large result sets: use 'streaming' instead of building the page in-memory
 </li><li>Benchmark: add a graph to show how databases scale (performance/database size)
 </li><li>Implement a SQLData interface to map your data over to a custom object
-</li><li>Extend H2 Console to run tools (show command line as well)
 </li><li>Make DDL (Data Definition) operations transactional
 </li><li>Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
 </li><li>Support multiple directories (on different hard drives) for the same database

@@ -493,10 +493,9 @@ public class JdbcStatement extends TraceObject implements Statement {
     }
 
     /**
-     * [Partially supported] Cancels a currently running statement.
+     * Cancels a currently running statement.
      * This method must be called from within another
      * thread than the execute method.
-     * This method is not supported in the server mode.
      *
      * @throws SQLException if this object is closed
      */

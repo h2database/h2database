@@ -385,4 +385,14 @@ public class TcpServer implements Service {
         }
     }
 
+    public void cancelStatement(String sessionId, int statementId) throws SQLException {
+        ArrayList list = new ArrayList(running);
+        for (int i = 0; i < list.size(); i++) {
+            TcpServerThread c = (TcpServerThread) list.get(i);
+            if (c != null) {
+                c.cancelStatement(sessionId, statementId);
+            }
+        }
+    }
+
 }

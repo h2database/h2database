@@ -34,6 +34,11 @@ public class Parameter extends Expression implements ParameterInterface {
     public String getSQL() {
         return "?" + (index + 1);
     }
+    
+    public void setValue(Value v, boolean closeOld) {
+        // don't need to close the old value as temporary files are anyway removed
+        this.value = v;
+    }
 
     public void setValue(Value v) {
         this.value = v;

@@ -33,6 +33,7 @@ public class TestPreparedStatement extends TestBase {
 
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testLobTempFiles(conn);
         testExecuteErrorTwice(conn);
         testTempView(conn);
         testInsertFunction(conn);
@@ -60,6 +61,48 @@ public class TestPreparedStatement extends TestBase {
         testParameterMetaData(conn);
         conn.close();
     }
+    
+    private void testLobTempFiles(Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB)");
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
+        for (int i = 0; i < 5; i++) {
+            prep.setInt(1, i);
+            if (i % 2 == 0) {
+                prep.setCharacterStream(2, new StringReader(getString(i)), -1);
+            }
+            prep.execute();
+        }
+        ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
+        int check = 0;
+        for (int i = 0; i < 5; i++) {
+            check(rs.next());
+            if (i % 2 == 0) {
+                check = i;
+            }
+            check(getString(check), rs.getString(2));
+        }
+        checkFalse(rs.next());
+        stat.execute("DELETE FROM TEST");
+        for (int i = 0; i < 3; i++) {
+            prep.setInt(1, i);
+            prep.setCharacterStream(2, new StringReader(getString(i)), -1);
+            prep.addBatch();
+        }
+        prep.executeBatch();
+        rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
+        for (int i = 0; i < 3; i++) {
+            check(rs.next());
+            check(getString(i), rs.getString(2));
+        }
+        checkFalse(rs.next());
+        stat.execute("DROP TABLE TEST");
+    }
+    
+    private String getString(int i) {
+        return new String(new char[100000]).replace('\0', (char) ('0' + i));
+    }
+
 
     private void testExecuteErrorTwice(Connection conn) throws Exception {
         PreparedStatement prep = conn.prepareStatement("CREATE TABLE BAD AS SELECT A");

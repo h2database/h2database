@@ -77,30 +77,104 @@ package org.h2.engine;
  */
 public class Constants {
 
+    /**
+     * The build id is incremented for each public release.
+     */
     public static final int BUILD_ID = 72;
-    private static final String BUILD = "2008-04-30";
-
-    public static final boolean ALLOW_EMPTY_BTREE_PAGES = true;
-    public static final int ALLOW_LITERALS_NONE = 0;
-    public static final int ALLOW_LITERALS_NUMBERS = 1;
-    public static final int ALLOW_LITERALS_ALL = 2;
-    public static final boolean AUTO_CONVERT_LOB_TO_FILES = true;
-
-    public static final int VERSION_MAJOR = 1;
-    public static final int VERSION_MINOR = 0;
     
+    /**
+     * The build date is updated for each public release.
+     */
+    private static final String BUILD_DATE = "2008-04-30";
+
+    /**
+     * The major version of this product.
+     */
+    public static final int VERSION_MAJOR = 1;
+    
+    /**
+     * The minor version of this product.
+     */
+    public static final int VERSION_MINOR = 0;
+
+    /**
+     * If empty b-tree pages are allowed. This is supported for backward
+     * compatibility.
+     */
+    public static final boolean ALLOW_EMPTY_BTREE_PAGES = true;
+    
+    /**
+     * Constant meaning no literals are allowed in SQL statements.
+     */
+    public static final int ALLOW_LITERALS_NONE = 0;
+    
+    /**
+     * Constant meaning only numbers are allowed in SQL statements (but no
+     * texts).
+     */
+    public static final int ALLOW_LITERALS_NUMBERS = 1;
+    
+    /**
+     * Constant meaning both numbers and text is allowed in SQL statements.
+     */
+    public static final int ALLOW_LITERALS_ALL = 2;
+    
+    /**
+     * Automatically convert large LOB objects to files even if they have been
+     * set using setBytes.
+     */
+    public static final boolean AUTO_CONVERT_LOB_TO_FILES = true;
+    
+    /**
+     * The version of this product, consisting of major version, minor version, and build id.
+     */
     public static final String VERSION = VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID;
 
+    /**
+     * The 'word size' of a file (the minimum allocation size).
+     */
     public static final int FILE_BLOCK_SIZE = 16;
+    
+    /**
+     * The file header used for text files.
+     */
     public static final String MAGIC_FILE_HEADER_TEXT = "-- H2 0.5/T --      ".substring(0, FILE_BLOCK_SIZE - 1) + "\n";
+    
+    /**
+     * The file header used for binary files.
+     */
     public static final String MAGIC_FILE_HEADER = "-- H2 0.5/B --      ".substring(0, FILE_BLOCK_SIZE - 1) + "\n";
-    public static final int TCP_DRIVER_VERSION_5 = 5;
-    public static final int TCP_DRIVER_VERSION_6 = 6;
+    
+    /**
+     * The TCP protocol version number 5. This protocol is used by the TCP
+     * server and remote JDBC client.
+     */
+    public static final int TCP_PROTOCOL_VERSION_5 = 5;
+    
+    /**
+     * The TCP protocol version number 6. This protocol is used by the TCP
+     * server and remote JDBC client.
+     */
+    public static final int TCP_PROTOCOL_VERSION_6 = 6;
+    
+    /**
+     * The major version number of the supported JDBC API.
+     */
     public static final int VERSION_JDBC_MAJOR = 3;
+
+    /**
+     * The minor version number of the supported JDBC API.
+     */
     public static final int VERSION_JDBC_MINOR = 0;
 
+    /**
+     * Get the complete version number of this database, consisting of 
+     * the major version, the minor version, the build id, and the build date.
+     * 
+     * @return the complete version
+     */
     public static String getFullVersion() {
-        return VERSION+ " (" + BUILD + ")";
+        return VERSION+ " (" + BUILD_DATE + ")";
     }
 
     public static final int DEFAULT_SERVER_PORT = 9092; // this is also in the docs

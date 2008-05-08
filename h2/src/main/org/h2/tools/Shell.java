@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -291,6 +292,16 @@ public class Shell {
     }
 
     private String readPassword() throws IOException {
+        try {
+            Method getConsole = System.class.getMethod("console", new Class[0]);
+            Object console = getConsole.invoke(null, null);
+            Method readPassword = console.getClass().getMethod("readPassword", new Class[0]);
+            System.out.print("Password  ");
+            char[] password = (char[]) readPassword.invoke(console, null);
+            return password == null ? null : new String(password);
+        } catch (Throwable t) {
+            // ignore, use the default solution
+        }
         class PasswordHider extends Thread {
             volatile boolean stop;
             public void run() {

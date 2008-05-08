@@ -560,7 +560,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             commit();
             setLockMode = prepareCommand("SET LOCK_MODE ?", setLockMode);
-            ((ParameterInterface) setLockMode.getParameters().get(0)).setValue(ValueInt.get(lockMode));
+            ((ParameterInterface) setLockMode.getParameters().get(0)).setValue(ValueInt.get(lockMode), false);
             setLockMode.executeUpdate();
         } catch (Throwable e) {
             throw logAndConvert(e);
@@ -574,7 +574,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         try {
             commit();
             setQueryTimeout = prepareCommand("SET QUERY_TIMEOUT ?", setQueryTimeout);
-            ((ParameterInterface) setQueryTimeout.getParameters().get(0)).setValue(ValueInt.get(seconds * 1000));
+            ((ParameterInterface) setQueryTimeout.getParameters().get(0)).setValue(ValueInt.get(seconds * 1000), false);
             setQueryTimeout.executeUpdate();
         } catch (Throwable e) {
             throw logAndConvert(e);
@@ -587,7 +587,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     public int getQueryTimeout() throws SQLException {
         try {
             getQueryTimeout = prepareCommand("SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?", getQueryTimeout);
-            ((ParameterInterface) getQueryTimeout.getParameters().get(0)).setValue(ValueString.get("QUERY_TIMEOUT"));
+            ((ParameterInterface) getQueryTimeout.getParameters().get(0)).setValue(ValueString.get("QUERY_TIMEOUT"), false);
             ResultInterface result = getQueryTimeout.executeQuery(0, false);
             result.next();
             int queryTimeout = result.currentRow()[0].getInt();

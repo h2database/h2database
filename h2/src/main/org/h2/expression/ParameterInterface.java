@@ -19,8 +19,9 @@ public interface ParameterInterface {
      * Set the value of the parameter.
      *
      * @param value the new value
+     * @param closeOld if the old value (if one is set) should be closed
      */
-    void setValue(Value value);
+    void setValue(Value value, boolean closeOld) throws SQLException;
 
     /**
      * Get the value of the parameter if set.

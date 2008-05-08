@@ -86,8 +86,12 @@ public class JdbcUtils {
      */
     public static Connection getConnection(String driver, String url, String user, String password) throws SQLException {
         Properties prop = new Properties();
-        prop.setProperty("user", user);
-        prop.setProperty("password", password);
+        if (user != null) {
+            prop.setProperty("user", user);
+        }
+        if (password != null) {
+            prop.setProperty("password", password);
+        }
         return getConnection(driver, url, prop);
     }
 

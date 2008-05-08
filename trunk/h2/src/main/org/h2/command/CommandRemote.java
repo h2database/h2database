@@ -20,6 +20,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.ResultRemote;
 import org.h2.util.ObjectArray;
 import org.h2.value.Transfer;
+import org.h2.value.Value;
 
 /**
  * Represents the client-side part of a SQL statement.
@@ -53,7 +54,7 @@ public class CommandRemote implements CommandInterface {
     private void prepare(SessionRemote session, boolean createParams) throws SQLException {
         id = session.getNextId();
         paramCount = 0;
-        boolean readParams = session.getClientVersion() >= Constants.TCP_DRIVER_VERSION_6;
+        boolean readParams = session.getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_6;
         for (int i = 0; i < transferList.size(); i++) {
             try {
                 Transfer transfer = (Transfer) transferList.get(i);
@@ -227,13 +228,24 @@ public class CommandRemote implements CommandInterface {
                     session.traceOperation("COMMAND_CLOSE", id);
                     transfer.writeInt(SessionRemote.COMMAND_CLOSE).writeInt(id);
                 } catch (IOException e) {
-                    // TODO cluster: do we need to to handle io exception on
-                    // close?
                     trace.error("close", e);
                 }
             }
             session = null;
         }
+        int len = parameters.size();
+        try {
+            for (int i = 0; i < len; i++) {
+                ParameterInterface p = (ParameterInterface) parameters.get(i);
+                Value v = p.getParamValue();
+                if (v != null) {
+                    v.close();
+                }
+            }
+        } catch (SQLException e) {
+            trace.error("close", e);
+        }
+        parameters.clear();
     }
 
     /**

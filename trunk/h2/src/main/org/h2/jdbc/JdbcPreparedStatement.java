@@ -188,7 +188,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             ObjectArray parameters = command.getParameters();
             for (int i = 0; i < parameters.size(); i++) {
                 ParameterInterface param = (ParameterInterface) parameters.get(i);
-                param.setValue(null);
+                // can only delete old temp files if they are not in the batch
+                param.setValue(null, batchParameters == null);
             }
         } catch (Throwable e) {
             throw logAndConvert(e);
@@ -1004,6 +1005,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void close() throws SQLException {
         try {
             super.close();
+            batchParameters = null;
             if (command != null) {
                 command.close();
                 command = null;
@@ -1035,7 +1037,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 for (int j = 0; j < set.length; j++) {
                     Value value = set[j];
                     ParameterInterface param = (ParameterInterface) parameters.get(j);
-                    param.setValue(value);
+                    param.setValue(value, false);
                 }
                 try {
                     result[i] = executeUpdateInternal();
@@ -1222,7 +1224,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw Message.getInvalidValueException("" + (parameterIndex + 1), "parameterIndex");
         }
         ParameterInterface param = (ParameterInterface) parameters.get(parameterIndex);
-        param.setValue(value);
+        // can only delete old temp files if they are not in the batch
+        param.setValue(value, batchParameters == null);
     }
 
     /**

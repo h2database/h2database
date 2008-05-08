@@ -312,7 +312,15 @@ public abstract class TestBase {
                     break;
                 }
             }
-            error("string a: " + a + " (" + a.length() + ") b: " + b + " (" + b.length() + ")");
+            int al = a.length();
+            int bl = b.length();
+            if (al > 100) {
+                a = a.substring(0, 100);
+            }
+            if (bl > 100) {
+                b = b.substring(0, 100);
+            }
+            error("string a: " + a + " (" + al + ") b: " + b + " (" + bl + ")");
         }
     }
 

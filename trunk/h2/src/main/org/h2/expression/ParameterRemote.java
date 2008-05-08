@@ -31,8 +31,11 @@ public class ParameterRemote implements ParameterInterface {
         this.index = index;
     }
 
-    public void setValue(Value value) {
-        this.value = value;
+    public void setValue(Value newValue, boolean closeOld) throws SQLException {
+        if (closeOld && value != null) {
+            value.close();
+        }
+        value = newValue;
     }
 
     public Value getParamValue() {

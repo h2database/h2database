@@ -249,7 +249,6 @@ Roadmap
 </li><li>Support materialized views (using triggers)
 </li><li>Store dates in local time zone (portability of database files)
 </li><li>Ability to resize the cache array when resizing the cache
-</li><li>Automatic conversion from WHERE X>10 AND X>20 to X>20
 </li><li>Time based cache writing (one second after writing the log)
 </li><li>Check state of H2 driver for DDLUtils: https://issues.apache.org/jira/browse/DDLUTILS-185
 </li><li>Index usage for REGEXP LIKE.
@@ -263,30 +262,24 @@ Roadmap
 </li><li>Set a connection read only (Connection.setReadOnly)
 </li><li>In MySQL mode, for AUTO_INCREMENT columns, don't set the primary key
 </li><li>Use JDK 1.4 file locking to create the lock file (but not yet by default); writing a system property to detect concurrent access from the same VM (different classloaders).
-</li><li>Read-only sessions (Connection.setReadOnly)
 </li><li>Support compatibility for jdbc:hsqldb:res:
 </li><li>In the MySQL and PostgreSQL, use lower case identifiers by default (DatabaseMetaData.storesLowerCaseIdentifiers = true)
 </li><li>Provide a simple, lightweight O/R mapping tool
 </li><li>Provide an Java SQL builder with standard and H2 syntax
 </li><li>Trace: write OS, file system, JVM,... when opening the database
-</li><li>Trace: write dangerous operations (set log 0,...) in every case (including when opening the database)
 </li><li>Support indexes for views (probably requires materialized views)
 </li><li>Linked tables that point to the same database should share the connection
 </li><li>Document SET SEARCH_PATH, BEGIN, EXECUTE, parameters
-</li><li>Complete Javadocs for ErrorCode messages and add to docs
 </li><li>Browser: use Desktop.isDesktopSupported and browse when using JDK 1.6
-</li><li>Document org.h2.samples.MixedMode
 </li><li>Server: use one listener (detect if the request comes from an PG or TCP client)
 </li><li>Store dates as 'local'. Existing files use GMT. Use escape syntax for compatibility.
 </li><li>Support data type INTERVAL
 </li><li>NATURAL JOIN: MySQL and PostgreSQL don't repeat columns when using SELECT * ...
 </li><li>Optimize SELECT MIN(ID), MAX(ID), COUNT(*) FROM TEST WHERE ID BETWEEN 100 AND 200
 </li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER
-</li><li>Support setQueryTimeout (using System.currentTimeMillis in a loop; not using a thread)
 </li><li>Sequence: PostgreSQL compatibility (rename, create) (http://www.postgresql.org/docs/8.2/static/sql-altersequence.html)
 </li><li>DISTINCT: Support large result sets by sorting on all columns (additionally) and then removing duplicates.
-</li><li>Add replicating file system
-</li><li>File system that writes to two file systems (for replication)
+</li><li>File system that writes to two file systems (replicating file system)
 </li><li>File system with a background writer thread; test if this is faster
 </li><li>FTP access to a database (.csv for a table, a directory for a schema, a file for a lob, a script.sql file).
 </li><li>LIMIT and OFFSET for GROUP_CONCAT
@@ -299,12 +292,10 @@ Roadmap
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
 </li><li>Improve documentation of access rights
 </li><li>Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others)
-</li><li>Command line option for the H2 Console and TCP configuration (.h2.server.properties and .h2.keystore)
-</li><li>Automatically switch the source code to the right platform before compiling
+</li><li>Command line option for the H2 Console and TCP configuration (which .h2.server.properties and .h2.keystore to use)
 </li><li>Support a schema name for Java functions
 </li><li>Remember the domain of a column
 </li><li>Support Jackcess (MS Access databases)
-</li><li>Optimize truncate and drop table (currently all pages are overwritten)
 </li><li>Built-in methods to write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World')
 </li><li>Change package name in version 2.0: org.h2database
 </li><li>MVCC: support transactionally consistent backups using SCRIPT
@@ -312,16 +303,14 @@ Roadmap
 </li><li>Use ARRAY for fulltext search return value, at least internally in the native implementation (and as an option for the user)
 </li><li>Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 </li><li>Java 1.5 tool: JdbcUtils.closeSilently(s1, s2,...)
-</li><li>Document how to use IKVM
 </li><li>Javadoc: document design patterns used
 </li><li>Update Wikipedia
-</li><li>Try https://hudson.dev.java.net/
 </li><li>Don't create @~ of not translated
 </li><li>Triggers for metadata tables; use for PostgreSQL catalog
 </li><li>Does the FTP server has problems with multithreading?
 </li><li>Write an article about SQLInjection (h2\src\docsrc\html\images\SQLInjection.txt)
 </li><li>Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
-</li><li>Send SQL Injection solution proposal to PostgreSQL, MySQL, Derby, HSQLDB,...
+</li><li>Send SQL Injection solution proposal to MySQL, Derby, HSQLDB,...
 </li><li>Improve LOB in directories performance
 </li><li>Web site design: http://www.igniterealtime.org/projects/openfire/index.jsp
 </li><li>HSQLDB compatibility: Openfire server uses: CREATE SCHEMA PUBLIC AUTHORIZATION DBA;
@@ -333,29 +322,24 @@ Roadmap
 </li><li>Translation: use ${.} in help.csv
 </li><li>Translated .pdf
 </li><li>Cluster: hot deploy (adding a node on runtime)
-</li><li>Test with PostgreSQL  Version 8.2
+</li><li>Test with PostgreSQL Version 8.2
 </li><li>Submit again to http://www.docjar.com/
 </li><li>Website: Don't use frames.
 </li><li>Try again with Lobo browser (pure Java)
 </li><li>Recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...), and things should go into the .trace.db file
 </li><li>RECOVER=2 to backup the database, run recovery, open the database
 </li><li>Recovery should work with encrypted databases
-</li><li>Integrate tools in H2 Console
 </li><li>Corruption: new error code, add help
 </li><li>Space reuse: after init, scan all storages and free those that don't belong to a live database object
 </li><li>SysProperties: change everything to H2_...
 </li><li>Use FilterIn / FilterOut putStream?
 </li><li>Access rights: add missing features (users should be 'owner' of objects; missing rights for sequences; dropping objects)
 </li><li>Support NOCACHE table option (Oracle)
-</li><li>Use ant 'get' to download dependencies
 </li><li>Index usage for UPDATE ... WHERE .. IN (SELECT...)
-</li><li>The RunScript tool should support interactive mode (reading from system in). Password using a second thread.
-</li><li>Add regular javadocs to the homepage.
+</li><li>Add regular javadocs (using the default doclet, but another css) to the homepage.
 </li><li>The database should be kept open for a longer time when using the server mode.
 </li><li>Javadocs: for each tool, add a copy &amp; paste sample in the class level.
-</li><li>Add google site search to web page.
 </li><li>Javadocs: add @author tags.
-</li><li>SET LOG_SYSTEM {NATIVE|LOG4J|COMMONS|DRIVER_MANAGER}
 </li><li>Fluent API for tools: Server.createTcpServer().setPort(9081).setPassword(password).start();
 </li><li>MySQL compatibility: real SQL statements for SHOW TABLES, DESCRIBE TEST (then remove from Shell)
 </li><li>Use a default delay of 1 second before closing a database.

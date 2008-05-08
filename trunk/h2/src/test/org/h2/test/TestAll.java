@@ -160,11 +160,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+
 improve javadocs
-
-Shell / JDK 1.6: use java.io.Console
-
-</li><li>Implement Statement.cancel for server connections
 
 upload jazoon 
 
@@ -215,13 +212,20 @@ Add where required // TODO: change in version 1.1
 http://www.w3schools.com/sql/
 
 History:
+    When setting BLOB or CLOB values larger than 65 KB using 
+        a remote connection, temporary files were kept on the client
+        longer than required (until the connection was closed or the 
+        object is garbage collected). Now they are removed as soon
+        as the PreparedStatement is closed, or when the value is
+        overwritten.
     Statements can now be cancelled remotely 
         (when using remote connections).
+    The Shell tool now uses java.io.Console to read the password
+        when using JDK 1.6
 
 Roadmap:
 
 */
-        
         if (args.length > 0) {
             if ("crash".equals(args[0])) {
                 test.endless = true;

@@ -69,12 +69,12 @@ public class TcpServerThread implements Runnable {
                 if (!server.allow(transfer.getSocket())) {
                     throw Message.getSQLException(ErrorCode.REMOTE_CONNECTION_NOT_ALLOWED);
                 }
-                if (clientVersion == Constants.TCP_DRIVER_VERSION_6) {
+                if (clientVersion == Constants.TCP_PROTOCOL_VERSION_6) {
                     // version 6 and newer: read max version (currently not used)
                     transfer.readInt();
-                } else if (clientVersion != Constants.TCP_DRIVER_VERSION_5) {
+                } else if (clientVersion != Constants.TCP_PROTOCOL_VERSION_5) {
                     throw Message.getSQLException(ErrorCode.DRIVER_VERSION_ERROR_2, new String[] { "" + clientVersion,
-                            "" + Constants.TCP_DRIVER_VERSION_5 });
+                            "" + Constants.TCP_PROTOCOL_VERSION_5 });
                 }
                 String db = transfer.readString();
                 String originalURL = transfer.readString();
@@ -110,9 +110,9 @@ public class TcpServerThread implements Runnable {
                 session = engine.getSession(ci);
                 transfer.setSession(session);
                 transfer.writeInt(SessionRemote.STATUS_OK);
-                if (clientVersion >= Constants.TCP_DRIVER_VERSION_6) {
+                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_6) {
                     // version 6: reply what version to use
-                    transfer.writeInt(Constants.TCP_DRIVER_VERSION_6);
+                    transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
                 }
                 transfer.flush();
                 server.addConnection(id, originalURL, ci.getUserName());

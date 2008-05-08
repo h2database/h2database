@@ -72,7 +72,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
     private byte[] fileEncryptionKey;
     private Object lobSyncObject = new Object();
     private String sessionId;
-    private int clientVersion = Constants.TCP_DRIVER_VERSION_5; 
+    private int clientVersion = Constants.TCP_PROTOCOL_VERSION_5; 
 
     private Transfer initTransfer(ConnectionInfo ci, String db, String server) throws IOException, SQLException {
         Socket socket = NetUtils.createSocket(server, Constants.DEFAULT_SERVER_PORT, ci.isSSL());
@@ -108,14 +108,23 @@ public class SessionRemote implements SessionInterface, DataHandler {
         // however Statement.cancel is supported
     }
 
+    /**
+     * Cancel the statement with the given id.
+     * 
+     * @param id the statement id
+     */
     public void cancelStatement(int id) {
+        if (clientVersion <= Constants.TCP_PROTOCOL_VERSION_5) {
+            // older servers don't support this feature
+            return;
+        }
         for (int i = 0; i < transferList.size(); i++) {
             Transfer transfer = (Transfer) transferList.get(i);
             try {
                 Transfer trans = transfer.openNewConnection();
                 trans.init();
                 trans.writeInt(clientVersion);
-                if (clientVersion >= Constants.TCP_DRIVER_VERSION_6) {
+                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_6) {
                     trans.writeInt(clientVersion);
                 }
                 trans.writeString(null);
@@ -275,13 +284,13 @@ public class SessionRemote implements SessionInterface, DataHandler {
             // not required when sending TCP_DRIVER_VERSION_6
             CommandInterface command = prepareCommand("SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?", 1);
             ParameterInterface param = (ParameterInterface) command.getParameters().get(0);
-            param.setValue(ValueString.get("info.BUILD_ID"));
+            param.setValue(ValueString.get("info.BUILD_ID"), false);
             ResultInterface result = command.executeQuery(1, false);
             if (result.next()) {
                 Value[] v = result.currentRow();
                 String version = v[0].getString();
                 if (version.compareTo("71") > 0) {
-                    clientVersion = Constants.TCP_DRIVER_VERSION_6;
+                    clientVersion = Constants.TCP_PROTOCOL_VERSION_6;
                 }
             }
             result.close();
@@ -289,7 +298,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
             trace.error("Error trying to upgrade client version", e);
             // ignore
         }
-        if (clientVersion >= Constants.TCP_DRIVER_VERSION_6) {
+        if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_6) {
             sessionId = ByteUtils.convertBytesToString(RandomUtils.getSecureBytes(32));
             synchronized (this) {
                 for (int i = 0; i < transferList.size(); i++) {

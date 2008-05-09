@@ -64,14 +64,25 @@ public class ParameterRemote implements ParameterInterface {
         return nullable;
     }
 
-    public void read(Transfer transfer) throws IOException {
+    /**
+     * Write the parameter meta data from the transfer object.
+     * 
+     * @param transfer the transfer object
+     */
+    public void readMetaData(Transfer transfer) throws IOException {
         dataType = transfer.readInt();
         precision = transfer.readLong();
         scale = transfer.readInt();
         nullable = transfer.readInt();
     }
     
-    public static void write(Transfer transfer, ParameterInterface p) throws IOException {
+    /**
+     * Write the parameter meta data to the transfer object.
+     * 
+     * @param transfer the transfer object
+     * @param p the parameter
+     */
+    public static void writeMetaData(Transfer transfer, ParameterInterface p) throws IOException {
         transfer.writeInt(p.getType());
         transfer.writeLong(p.getPrecision());
         transfer.writeInt(p.getScale());

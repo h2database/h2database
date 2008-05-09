@@ -22,7 +22,37 @@ import org.h2.value.ValueString;
  * A mathematical expression, or string concatenation.
  */
 public class Operation extends Expression {
-    public static final int CONCAT = 0, PLUS = 1, MINUS = 2, MULTIPLY = 3, DIVIDE = 4, NEGATE = 5;
+    
+    /**
+     * This operation represents a string concatenation as in 'Hello' || 'World'.
+     */
+    public static final int CONCAT = 0;
+    
+    /**
+     * This operation represents an addition as in 1 + 2.
+     */
+    public static final int PLUS = 1;
+    
+    /**
+     * This operation represents a subtraction as in 2 - 1.
+     */
+    public static final int MINUS = 2;
+    
+    /**
+     * This operation represents a multiplication as in 2 * 3.
+     */
+    public static final int MULTIPLY = 3;
+    
+    /**
+     * This operation represents a division as in 4 * 2.
+     */
+    public static final int DIVIDE = 4;
+    
+    /**
+     * This operation represents a negation as in - ID.
+     */
+    public static final int NEGATE = 5;
+    
     private int opType;
     private Expression left, right;
     private int dataType;

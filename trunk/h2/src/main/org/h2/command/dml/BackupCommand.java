@@ -89,7 +89,7 @@ public class BackupCommand extends Prepared {
                     ArrayList fileList = FileLister.getDatabaseFiles(dir, name, true);
                     for (int i = 0; i < fileList.size(); i++) {
                         fn = (String) fileList.get(i);
-                        if (fn.endsWith(Constants.SUFFIX_HASH_FILE) || fn.endsWith(Constants.SUFFIX_LOB_FILE)) {
+                        if (fn.endsWith(Constants.SUFFIX_LOB_FILE)) {
                             backupFile(out, base, fn);
                         }
                     }

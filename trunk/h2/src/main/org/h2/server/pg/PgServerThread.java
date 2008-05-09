@@ -197,7 +197,7 @@ public class PgServerThread implements Runnable {
                 ci.setOriginalURL("jdbc:h2:" + databaseName + ";MODE=PostgreSQL");
                 ci.setUserName(userName);
                 ci.setProperty("PASSWORD", password);
-                ci.readPasswords();
+                ci.convertPasswords();
                 conn = new JdbcConnection(ci, false);
                 // can not do this because when called inside
                 // DriverManager.getConnection, a deadlock occurs

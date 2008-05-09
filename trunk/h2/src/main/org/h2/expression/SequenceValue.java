@@ -42,10 +42,6 @@ public class SequenceValue extends Expression {
         // nothing to do
     }
 
-    public void checkMapped() {
-        // nothing to do
-    }
-
     public Expression optimize(Session session) {
         return this;
     }

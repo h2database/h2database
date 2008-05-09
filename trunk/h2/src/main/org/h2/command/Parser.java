@@ -3072,8 +3072,10 @@ public class Parser {
             Expression defaultExpression = readExpression();
             column.setDefaultExpression(session, defaultExpression);
         } else if (readIf("GENERATED")) {
-            read("BY");
-            read("DEFAULT");
+            if (!readIf("ALWAYS")) {
+                read("BY");
+                read("DEFAULT");
+            }
             read("AS");
             read("IDENTITY");
             long start = 1, increment = 1;

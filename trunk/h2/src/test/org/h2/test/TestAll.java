@@ -160,7 +160,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-
 improve javadocs
 
 upload jazoon 
@@ -222,6 +221,8 @@ History:
         (when using remote connections).
     The Shell tool now uses java.io.Console to read the password
         when using JDK 1.6
+    When using read-only databases and setting LOG=2, an exception
+        was written to the trace file when closing the database. Fixed.
 
 Roadmap:
 

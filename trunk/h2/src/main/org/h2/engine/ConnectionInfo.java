@@ -33,6 +33,10 @@ public class ConnectionInfo {
     private String user;
     private byte[] filePasswordHash;
     private byte[] userPasswordHash;
+
+    /**
+     * The database name
+     */
     private String name;
     private boolean remote;
     private boolean ssl;
@@ -57,21 +61,32 @@ public class ConnectionInfo {
         }
     }
 
+    /**
+     * Create a connection info object.
+     * 
+     * @param name the database name (including tags)
+     */
     public ConnectionInfo(String name) {
         this.name = name;
         parseName();
     }
 
-    public ConnectionInfo(String u, Properties info) throws SQLException {
-        this.originalURL = u;
-        if (!u.startsWith(Constants.START_URL)) {
-            throw Message.getInvalidValueException(u, "url");
+    /**
+     * Create a connection info object.
+     * 
+     * @param url the database URL (must start with jdbc:h2:)
+     * @param info the connection properties
+     */
+    public ConnectionInfo(String url, Properties info) throws SQLException {
+        this.originalURL = url;
+        if (!url.startsWith(Constants.START_URL)) {
+            throw Message.getInvalidValueException(url, "url");
         }
-        this.url = u;
+        this.url = url;
         readProperties(info);
         readSettingsFromURL();
         setUserName(removeProperty("USER", ""));
-        readPasswords();
+        convertPasswords();
         name = url.substring(Constants.START_URL.length());
         parseName();
     }
@@ -100,19 +115,12 @@ public class ConnectionInfo {
         }
     }
 
-    public String getDatabaseName() {
-        if (remote) {
-            if (ssl) {
-                return "ssl:" + name;
-            } else {
-                return "tcp:" + name;
-            }
-        } else if (persistent) {
-            return "file:" + name;
-        }
-        return name;
-    }
-
+    /**
+     * Set the base directory of persistent databases, unless the database is in
+     * the user home folder (~).
+     * 
+     * @param dir the new base directory
+     */
     public void setBaseDir(String dir) {
         if (persistent) {
             if (!name.startsWith("~")) {
@@ -121,15 +129,30 @@ public class ConnectionInfo {
         }
     }
 
+    /**
+     * Check if this is a remote connection.
+     * 
+     * @return true if it is
+     */
     public boolean isRemote() {
         return remote;
     }
 
-    public boolean isPersistent() {
+    /**
+     * Check if the referenced database is persistent.
+     * 
+     * @return true if it is
+     */
+    boolean isPersistent() {
         return persistent;
     }
 
-    public boolean isUnnamed() {
+    /**
+     * Check if the referenced database is an unnamed in-memory database.
+     * 
+     * @return true if it is
+     */
+    boolean isUnnamedInMemory() {
         return unnamed;
     }
 
@@ -196,7 +219,11 @@ public class ConnectionInfo {
         }
     }
 
-    public void readPasswords() throws SQLException {
+    /**
+     * Split the password property into file password and user password if
+     * necessary, and convert them to the internal hash format.
+     */
+    public void convertPasswords() throws SQLException {
         char[] password = removePassword();
         SHA256 sha = new SHA256();
         if (getProperty("CIPHER", null) != null) {
@@ -222,12 +249,26 @@ public class ConnectionInfo {
         userPasswordHash = sha.getKeyPasswordHash(user, password);
     }
 
-    public boolean removeProperty(String key, boolean defaultValue) {
+    /**
+     * Remove a boolean property if it is set and return the value.
+     * 
+     * @param key the property name
+     * @param defaultValue the default value
+     * @return the value
+     */
+    boolean removeProperty(String key, boolean defaultValue) {
         String x = removeProperty(key, null);
         return x == null ? defaultValue : Boolean.valueOf(x).booleanValue();
     }
 
-    public String removeProperty(String key, String defaultValue) {
+    /**
+     * Remove a String property if it is set and return the value.
+     * 
+     * @param key the property name
+     * @param defaultValue the default value
+     * @return the value
+     */    
+    String removeProperty(String key, String defaultValue) {
         if (SysProperties.CHECK && !KNOWN_SETTINGS.contains(key)) {
             throw Message.getInternalError(key);
         }
@@ -235,7 +276,12 @@ public class ConnectionInfo {
         return x == null ? defaultValue : x.toString();
     }
 
-    public String getName() throws SQLException {
+    /**
+     * Get the unique and normalized database name (excluding settings).
+     * 
+     * @return the database name
+     */
+    String getName() throws SQLException {
         if (persistent) {
             String n = FileUtils.normalize(name + Constants.SUFFIX_DATA_FILE);
             n = n.substring(0, n.length() - Constants.SUFFIX_DATA_FILE.length());
@@ -244,25 +290,51 @@ public class ConnectionInfo {
         return name;
     }
 
-    public byte[] getFilePasswordHash() {
+    /**
+     * Get the file password hash if it is set.
+     * 
+     * @return the password hash or null
+     */
+    byte[] getFilePasswordHash() {
         return filePasswordHash;
     }
 
+    /**
+     * Get the name of the user.
+     * 
+     * @return the user name
+     */
     public String getUserName() {
         return user;
     }
 
-    public byte[] getUserPasswordHash() {
+    /**
+     * Get the user password hash.
+     * 
+     * @return the password hash
+     */
+    byte[] getUserPasswordHash() {
         return userPasswordHash;
     }
 
-    public String[] getKeys() {
+    /**
+     * Get the property keys.
+     * 
+     * @return the property keys
+     */
+    String[] getKeys() {
         String[] keys = new String[prop.size()];
         prop.keySet().toArray(keys);
         return keys;
     }
 
-    public String getProperty(String key) {
+    /**
+     * Get the value of the given property.
+     * 
+     * @param key the property key
+     * @return the value as a String
+     */
+    String getProperty(String key) {
         Object value = prop.get(key);
         if (value == null || !(value instanceof String)) {
             return null;
@@ -270,7 +342,14 @@ public class ConnectionInfo {
         return value.toString();
     }
 
-    public String getProperty(String key, String defaultValue) {
+    /**
+     * Get the value of the given property.
+     * 
+     * @param key the property key
+     * @param defaultValue the default value
+     * @return the value as a String
+     */
+    String getProperty(String key, String defaultValue) {
         if (SysProperties.CHECK && !KNOWN_SETTINGS.contains(key)) {
             throw Message.getInternalError(key);
         }
@@ -278,13 +357,27 @@ public class ConnectionInfo {
         return s == null ? defaultValue : s;
     }
 
-    public String getProperty(int setting, String defaultValue) {
+    /**
+     * Get the value of the given property.
+     * 
+     * @param setting the setting id
+     * @param defaultValue the default value
+     * @return the value as a String
+     */
+    String getProperty(int setting, String defaultValue) {
         String key = SetTypes.getTypeName(setting);
         String s = getProperty(key);
         return s == null ? defaultValue : s;
     }
 
-    public int getIntProperty(int setting, int defaultValue) {
+    /**
+     * Get the value of the given property.
+     * 
+     * @param setting the setting id
+     * @param defaultValue the default value
+     * @return the value as an integer
+     */
+    int getIntProperty(int setting, int defaultValue) {
         String key = SetTypes.getTypeName(setting);
         String s = getProperty(key, null);
         try {
@@ -294,24 +387,49 @@ public class ConnectionInfo {
         }
     }
 
-    public boolean isSSL() {
+    /**
+     * Check if this is a remote connection with SSL enabled.
+     * 
+     * @return true if it is
+     */
+    boolean isSSL() {
         return ssl;
     }
 
+    /**
+     * Overwrite the user name. The user name is case-insensitive and stored in
+     * uppercase. English conversion is used.
+     * 
+     * @param name the user name
+     */
     public void setUserName(String name) {
-        // TODO document: the user name is case-insensitive (stored uppercase)
-        // and english conversion is used
         this.user = StringUtils.toUpperEnglish(name);
     }
 
-    public void setUserPasswordHash(byte[] bs) {
-        this.userPasswordHash = bs;
+    /**
+     * Set the user password hash.
+     * 
+     * @param hash the new hash value
+     */
+    public void setUserPasswordHash(byte[] hash) {
+        this.userPasswordHash = hash;
     }
 
-    public void setFilePasswordHash(byte[] bs) {
-        this.filePasswordHash = bs;
+    /**
+     * Set the file password hash.
+     * 
+     * @param hash the new hash value
+     */
+    public void setFilePasswordHash(byte[] hash) {
+        this.filePasswordHash = hash;
     }
 
+    /**
+     * Overwrite a property.
+     * 
+     * @param key the property name
+     * @param value the value
+     */
     public void setProperty(String key, String value) {
         // value is null if the value is an object
         if (value != null) {
@@ -319,18 +437,38 @@ public class ConnectionInfo {
         }
     }
 
+    /**
+     * Get the database URL.
+     * 
+     * @return the URL
+     */
     public String getURL() {
         return url;
     }
 
+    /**
+     * Get the complete original database URL.
+     * 
+     * @return the database URL
+     */
     public String getOriginalURL() {
         return originalURL;
     }
 
+    /**
+     * Set the original database URL.
+     * 
+     * @param url the database url
+     */
     public void setOriginalURL(String url) {
         originalURL = url;
     }
 
+    /**
+     * Check if this database URL references a text based database explicitly.
+     * 
+     * @return true if the storage has been set to text
+     */
     boolean getTextStorage() throws SQLException {
         String storage = removeProperty("STORAGE", "BINARY");
         if ("BINARY".equalsIgnoreCase(storage)) {
@@ -342,7 +480,12 @@ public class ConnectionInfo {
         }
     }
 
-    public SQLException getFormatException() {
+    /**
+     * Generate an URL format exception.
+     * 
+     * @return the exception
+     */
+    SQLException getFormatException() {
         String format = Constants.URL_FORMAT;
         return Message.getSQLException(ErrorCode.URL_FORMAT_ERROR_2, new String[] { format, url });
     }

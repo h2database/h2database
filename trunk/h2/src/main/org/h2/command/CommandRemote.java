@@ -74,7 +74,7 @@ public class CommandRemote implements CommandInterface {
                     for (int j = 0; j < paramCount; j++) {
                         if (readParams) {
                             ParameterRemote p = new ParameterRemote(j);
-                            p.read(transfer);
+                            p.readMetaData(transfer);
                             parameters.add(p);
                         } else {
                             parameters.add(new ParameterRemote(j));

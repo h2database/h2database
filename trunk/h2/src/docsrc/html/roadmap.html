@@ -323,7 +323,6 @@ Roadmap
 </li><li>Translated .pdf
 </li><li>Cluster: hot deploy (adding a node on runtime)
 </li><li>Test with PostgreSQL Version 8.2
-</li><li>Submit again to http://www.docjar.com/
 </li><li>Website: Don't use frames.
 </li><li>Try again with Lobo browser (pure Java)
 </li><li>Recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...), and things should go into the .trace.db file
@@ -356,6 +355,9 @@ Roadmap
 </li><li>Support flashback queries as in Oracle.
 </li><li>Import / Export of fixed with text files.
 </li><li>Support for OUT parameters in user-defined procedures.
+</li><li>Support getGeneratedKeys to return multiple rows when used with batch updates. 
+    This is supported by MySQL, but not Derby. Both PostgreSQL and HSQLDB don't support getGeneratedKeys. 
+    Also support it when using INSERT ... SELECT. 
 </li></ul>
 
 <h2>Not Planned</h2>

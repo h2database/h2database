@@ -294,10 +294,10 @@ public class Shell {
     private String readPassword() throws IOException {
         try {
             Method getConsole = System.class.getMethod("console", new Class[0]);
-            Object console = getConsole.invoke(null, null);
+            Object console = getConsole.invoke(null, (Object[]) null);
             Method readPassword = console.getClass().getMethod("readPassword", new Class[0]);
             System.out.print("Password  ");
-            char[] password = (char[]) readPassword.invoke(console, null);
+            char[] password = (char[]) readPassword.invoke(console, (Object[]) null);
             return password == null ? null : new String(password);
         } catch (Throwable t) {
             // ignore, use the default solution

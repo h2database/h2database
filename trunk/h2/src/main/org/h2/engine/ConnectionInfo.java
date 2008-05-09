@@ -74,15 +74,15 @@ public class ConnectionInfo {
     /**
      * Create a connection info object.
      * 
-     * @param url the database URL (must start with jdbc:h2:)
+     * @param u the database URL (must start with jdbc:h2:)
      * @param info the connection properties
      */
-    public ConnectionInfo(String url, Properties info) throws SQLException {
-        this.originalURL = url;
-        if (!url.startsWith(Constants.START_URL)) {
-            throw Message.getInvalidValueException(url, "url");
+    public ConnectionInfo(String u, Properties info) throws SQLException {
+        this.originalURL = u;
+        if (!u.startsWith(Constants.START_URL)) {
+            throw Message.getInvalidValueException(u, "url");
         }
-        this.url = url;
+        this.url = u;
         readProperties(info);
         readSettingsFromURL();
         setUserName(removeProperty("USER", ""));

@@ -58,8 +58,6 @@ public class FileLister {
                 ok = true;
             } else if (f.endsWith(Constants.SUFFIX_LOG_FILE)) {
                 ok = true;
-            } else if (f.endsWith(Constants.SUFFIX_HASH_FILE)) {
-                ok = true;
             } else if (f.endsWith(Constants.SUFFIX_LOBS_DIRECTORY)) {
                 files.addAll(getDatabaseFiles(f, null, all));
                 ok = true;

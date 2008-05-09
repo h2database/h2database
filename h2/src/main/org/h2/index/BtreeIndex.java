@@ -146,14 +146,16 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         lastChange = 0;
         if (storage != null) {
             storage.flushFile();
-            deletePage(session, head);
-            // if we log index changes now, then the index is consistent
-            // if we don't log index changes, then the index is only consistent
-            // if there are no in doubt transactions
-            if (database.getLogIndexChanges() || !database.getLog().containsInDoubtTransactions()) {
-                head.setConsistent(true);
+            if (!database.getReadOnly()) {
+                deletePage(session, head);
+                // if we log index changes now, then the index is consistent
+                // if we don't log index changes, then the index is only consistent
+                // if there are no in doubt transactions
+                if (database.getLogIndexChanges() || !database.getLog().containsInDoubtTransactions()) {
+                    head.setConsistent(true);
+                }
+                flushHead(session);
             }
-            flushHead(session);
         }
     }
 

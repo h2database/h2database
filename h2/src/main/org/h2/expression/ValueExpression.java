@@ -23,14 +23,29 @@ import org.h2.value.ValueNull;
 public class ValueExpression extends Expression {
     private Value value;
 
+    /**
+     * The expression represents ValueNull.INSTANCE.
+     */
     public static final ValueExpression NULL = new ValueExpression(ValueNull.INSTANCE);
+    
+    /**
+     * This special expression represents the default value. It is used for
+     * UPDATE statements of the form SET COLUMN = DEFAULT. The value is
+     * ValueNull.INSTANCE, but should never be accessed.
+     */
     public static final ValueExpression DEFAULT = new ValueExpression(ValueNull.INSTANCE);
 
-    public static ValueExpression get(Value v) {
-        if (v == ValueNull.INSTANCE) {
+    /**
+     * Create a new expression with the given value.
+     * 
+     * @param value the value
+     * @return the expression
+     */
+    public static ValueExpression get(Value value) {
+        if (value == ValueNull.INSTANCE) {
             return ValueExpression.NULL;
         }
-        return new ValueExpression(v);
+        return new ValueExpression(value);
     }
 
     private ValueExpression(Value value) {

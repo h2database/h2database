@@ -215,7 +215,7 @@ public class TcpServerThread implements Runnable {
             if (operation == SessionRemote.SESSION_PREPARE_READ_PARAMS) {
                 for (int i = 0; i < paramCount; i++) {
                     Parameter p = (Parameter) params.get(i);
-                    ParameterRemote.write(transfer, p);
+                    ParameterRemote.writeMetaData(transfer, p);
                 }
             }
             transfer.flush();

@@ -44,7 +44,7 @@ public class Engine {
         // if it is required to call it twice
         String name = ci.getName();
         Database database;
-        if (ci.isUnnamed()) {
+        if (ci.isUnnamedInMemory()) {
             database = null;
         } else {
             database = (Database) databases.get(name);
@@ -65,7 +65,7 @@ public class Engine {
                 user.setUserPasswordHash(ci.getUserPasswordHash());
                 database.setMasterUser(user);
             }
-            if (!ci.isUnnamed()) {
+            if (!ci.isUnnamedInMemory()) {
                 databases.put(name, database);
             }
             database.opened();

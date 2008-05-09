@@ -93,10 +93,22 @@ public class Comment extends DbObjectBase {
         throw Message.getInternalError();
     }
 
+    /**
+     * Get the comment key name for the given database object. This key name is
+     * used internally to associate the comment to the object.
+     * 
+     * @param obj the object
+     * @return the key name
+     */
     public static String getKey(DbObject obj) {
         return getTypeName(obj.getType()) + " " + obj.getSQL();
     }
 
+    /**
+     * Set the comment text.
+     * 
+     * @param comment the text
+     */
     public void setCommentText(String comment) {
         this.commentText = comment;
     }

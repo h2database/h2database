@@ -68,6 +68,12 @@ public class TableFunction extends Function implements FunctionCall {
         return distinct ? "TABLE_DISTINCT" : "TABLE";
     }
 
+    /**
+     * Get the row count of the table.
+     * 
+     * @param session the session
+     * @return the row count
+     */
     public int getRowCount(Session session) throws SQLException {
         int len = columnList.length;
         int rowCount = 0;

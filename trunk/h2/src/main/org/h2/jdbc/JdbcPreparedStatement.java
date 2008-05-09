@@ -1298,7 +1298,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 /*## Java 1.6 begin ##
     public void setNClob(int parameterIndex, NClob x) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("setNClob("+parameterIndex+", x);");
             }
             checkClosed();

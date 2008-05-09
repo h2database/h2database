@@ -3144,7 +3144,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 /*## Java 1.6 begin ##
     public void updateNClob(int columnIndex, NClob x) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("updateNClob("+columnIndex+", x);");
             }
             throw Message.getUnsupportedException();
@@ -3160,7 +3160,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 /*## Java 1.6 begin ##
     public void updateNClob(int columnIndex, Reader x) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("updateNClob("+columnIndex+", x);");
             }
             throw Message.getUnsupportedException();
@@ -3177,7 +3177,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateNClob(int columnIndex, Reader x, long length) 
             throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("updateNClob("+columnIndex+", x, " + length + "L);");
             }
             throw Message.getUnsupportedException();
@@ -3194,7 +3194,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateNClob(String columnName, Reader x) 
             throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("updateNClob("+quote(columnName)+", x);");
             }
             throw Message.getUnsupportedException();
@@ -3211,7 +3211,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void updateNClob(String columnName, Reader x, long length) 
             throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("updateNClob("+quote(columnName)+", x, " + length+"L);");
             }
             throw Message.getUnsupportedException();
@@ -3227,7 +3227,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 /*## Java 1.6 begin ##
     public void updateNClob(String columnName, NClob x) throws SQLException {
         try {
-            if (debug()) {
+            if (isDebugEnabled()) {
                 debugCode("updateNClob("+quote(columnName)+", x);");
             }
             throw Message.getUnsupportedException();

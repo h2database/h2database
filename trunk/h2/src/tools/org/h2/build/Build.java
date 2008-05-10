@@ -112,7 +112,7 @@ public class Build extends BuildBase {
 
             files = getFiles("src/installer").keep("*.bat");
             files.addAll(getFiles("src/installer").keep("*.sh"));
-            copy("temp", files, "src/installer");
+            copy("bin", files, "src/installer");
     
             files = getFiles("src/test").
                 exclude("*.java").

@@ -175,15 +175,14 @@ public class BuildBase {
                 out.print(" " + args[i]);
             }
             out.println();
-            Process p;
             String[] cmdArray = new String[1 + (args == null ? 0 : args.length)];
             cmdArray[0] = command;
             if (args != null) {
                 System.arraycopy(args, 0, cmdArray, 1, args.length);
             }
-            p = Runtime.getRuntime().exec(cmdArray);
-            copy(p.getInputStream(), out);
-            copy(p.getErrorStream(), out);
+            Process p = Runtime.getRuntime().exec(cmdArray);
+            copyInThread(p.getInputStream(), out);
+            copyInThread(p.getErrorStream(), out);
             p.waitFor();
             return p.exitValue();
         } catch (Exception e) {
@@ -191,14 +190,22 @@ public class BuildBase {
         }
     }
     
-    private void copy(InputStream in, OutputStream out) throws IOException {
-        while (true) {
-            int x = in.read();
-            if (x < 0) {
-                return;
+    private void copyInThread(final InputStream in, final OutputStream out) {
+        new Thread() {
+            public void run() {
+                try {
+                    while (true) {
+                        int x = in.read();
+                        if (x < 0) {
+                            return;
+                        }
+                        out.write(x);
+                    }
+                } catch (Exception e) {
+                    throw new Error("Error: " + e, e);
+                }
             }
-            out.write(x);
-        }
+        } .start();
     }
     
     /**

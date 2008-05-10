@@ -162,6 +162,8 @@ java org.h2.test.TestAll timer
 
 improve javadocs
 
+write complete page right after checkpoint
+
 upload jazoon 
 
 test case for out of memory (try to corrupt the database using out of memory)

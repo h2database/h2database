@@ -37,7 +37,7 @@ package org.h2.engine;
  * - Use latest versions of other dbs (Derby 10.4.1.3; 
  *      PostgreSQL 8.3.1; MySQL 5.0.51)
  * - Change version(s) in performance.html
- * - Run 'ant benchmark' (with JDK 1.4 currently)
+ * - Run 'build benchmark' (with JDK 1.4 currently)
  * - Copy the benchmark results and update the performance page and diagram
  *
  * - Documentation: if there are new files, add them to MergeDocs

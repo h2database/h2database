@@ -32,16 +32,24 @@ public class Build extends BuildBase {
         download("ext/derby-10.4.1.3.jar",
                 "http://repo1.maven.org/maven2/org/apache/derby/derby/10.4.1.3/derby-10.4.1.3.jar",
                 "01c19aaea2e971203f410c5263214a890f340342");
-        download("ext/postgresql-8.3-603.jdbc4.jar",
-                "http://repo1.maven.org/maven2/postgresql/postgresql/8.3-603.jdbc4/postgresql-8.3-603.jdbc4.jar", 
-                "c1545d956cc2013e8623f7cbc4de320be80ac646");
+        download("ext/derbyclient-10.4.1.3.jar",
+                "http://repo1.maven.org/maven2/org/apache/derby/derbyclient/10.4.1.3/derbyclient-10.4.1.3.jar",
+                "14e97efccae4d622dfcc65bf1f042588c7bd4cb3");
+        download("ext/derbynet-10.4.1.3.jar",
+                "http://repo1.maven.org/maven2/org/apache/derby/derbynet/10.4.1.3/derbynet-10.4.1.3.jar",
+                "cdf87901e6dfa25c7bc7fa509731bbca04b46191");
+        download("ext/postgresql-8.3-603.jdbc3.jar",
+                "http://repo1.maven.org/maven2/postgresql/postgresql/8.3-603.jdbc3/postgresql-8.3-603.jdbc3.jar", 
+                "33d531c3c53055ddcbea3d88bfa093466ffef924");
         download("ext/mysql-connector-java-5.1.6.jar",
                 "http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.6/mysql-connector-java-5.1.6.jar", 
                 "380ef5226de2c85ff3b38cbfefeea881c5fce09d");
         String cp = "bin" + File.pathSeparator + "bin/h2.jar" + File.pathSeparator +
         "ext/hsqldb-1.8.0.7.jar" + File.pathSeparator +
         "ext/derby-10.4.1.3.jar" + File.pathSeparator +
-        "ext/postgresql-8.3-603.jdbc4.jar" + File.pathSeparator +
+        "ext/derbyclient-10.4.1.3.jar" + File.pathSeparator +
+        "ext/derbynet-10.4.1.3.jar" + File.pathSeparator +
+        "ext/postgresql-8.3-603.jdbc3.jar" + File.pathSeparator +
         "ext/mysql-connector-java-5.1.6.jar";
         exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-init", "-db", "1"});
         exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "2"});

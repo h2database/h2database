@@ -148,16 +148,17 @@ public class BuildBase {
     
     /**
      * Execute a script in a separate process.
-     * 
-     * @param commandAndArgs the script name (for example mvn or ant) and the arguments
-
+     * In Windows, the batch file with this name (.bat) is run.
+     *
+     * @param script the program to run
+     * @param args the command line parameters
      * @return the exit value
      */
-    protected int execScript(String command, String[] args) {
+    protected int execScript(String script, String[] args) {
         if (isWindows()) {
-            command = command + ".bat";
+            script = script + ".bat";
         }
-        return exec(command, args);
+        return exec(script, args);
     }
 
     /**

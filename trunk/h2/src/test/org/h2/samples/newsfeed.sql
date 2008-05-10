@@ -13,6 +13,50 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(42,
+'New version available: 1.0.72 (2008-05-10)', '2008-05-10 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>SLF4J is now supported by using adding TRACE_LEVEL_FILE=4
+        to the database URL.
+</li><li>A subset of the PostgreSQL 'dollar quoting' feature is now supported.
+</li><li>Updates made to updatable rows are now visible within the same result set. 
+        DatabaseMetaData.ownUpdatesAreVisible now returns true.
+</li><li>ParameterMetaData now returns the correct data 
+        for INSERT and UPDATE statements.
+</li><li>Shell tool: DESCRIBE now supports an schema name.
+</li><li>The Shell tool now uses java.io.Console to read the password
+        when using JDK 1.6
+</li><li>The Japanese translation of the error messages and the H2 Console 
+        has been completed by Masahiro Ikemoto (Arizona Design Inc.)
+</li><li>Statements can now be cancelled remotely 
+        (when using remote connections).
+</li><li>Triggers are no longer executed when executing an changing the table
+        structure (ALTER TABLE).
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Some databases could not be opened when appending 
+        ;RECOVER=1 to the database URL.
+</li><li>The recovery tool did not work if the table name contained spaces
+        or if there was a comment on the table.
+</li><li>When setting BLOB or CLOB values larger than 65 KB using 
+        a remote connection, temporary files were kept on the client
+        longer than required (until the connection was closed or the 
+        object is garbage collected). Now they are removed as soon
+        as the PreparedStatement is closed, or when the value is
+        overwritten.
+</li><li>When using read-only databases and setting LOG=2, an exception
+        was written to the trace file when closing the database. Fixed.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(41,
 'New version available: 1.0.71 (2008-04-25)', '2008-04-25 12:00:00',
 'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.

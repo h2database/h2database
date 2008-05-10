@@ -1,27 +1,6 @@
 <project name="h2" default="all" basedir=".">
 
-	<!-- jar files required by the benchmark -->
-	<path id="benchmark.drivers.path">
-		<pathelement location="bin"/>
-		<pathelement path="data/java"/>
-		<fileset dir="benchmark.drivers.dir">
-			<include name="**/*.jar"/>
-		</fileset>
-	</path>
-
 	<target name="all" depends="jar">
-	</target>
-
-	<target name="benchmark" depends="compile">
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-init -db 1"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-db 2"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-db 3 -out pe.html"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-init -db 4"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-db 5"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-db 6"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-db 7"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-db 8"/></java>
-		<java fork="true" classname="org.h2.test.bench.TestPerformance" classpathref="benchmark.drivers.path" maxmemory="128m"><arg line="-db 9 -out ps.html"/></java>
 	</target>
 
 	<target name="clean" depends="init">

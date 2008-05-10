@@ -84,7 +84,7 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    private static final String BUILD_DATE = "2008-04-30";
+    private static final String BUILD_DATE = "2008-05-10";
 
     /**
      * The TCP protocol version number 5. This protocol is used by the TCP

@@ -149,12 +149,15 @@ public class BuildBase {
     /**
      * Execute a script in a separate process.
      * 
-     * @param script the script name (for example mvn or ant)
-     * @param args the command line parameters
+     * @param commandAndArgs the script name (for example mvn or ant) and the arguments
+
      * @return the exit value
      */
-    protected int execScript(String script, String args) {
-        return exec(script + (isWindows() ? ".bat " : " ") + args, null);
+    protected int execScript(String command, String[] args) {
+        if (isWindows()) {
+            command = command + ".bat";
+        }
+        return exec(command, args);
     }
 
     /**
@@ -168,16 +171,16 @@ public class BuildBase {
         try {
             out.print(command);
             for (int i = 0; args != null && i < args.length; i++) {
-                out.print(" ");
-                out.print(args[i]);
+                out.print(" " + args[i]);
             }
             out.println();
             Process p;
-            if (args == null) {
-                p = Runtime.getRuntime().exec(command);
-            } else {
-                p = Runtime.getRuntime().exec(command, args);
+            String[] cmdArray = new String[1 + (args == null ? 0 : args.length)];
+            cmdArray[0] = command;
+            if (args != null) {
+                System.arraycopy(args, 0, cmdArray, 1, args.length);
             }
+            p = Runtime.getRuntime().exec(cmdArray);
             copy(p.getInputStream(), out);
             copy(p.getErrorStream(), out);
             p.waitFor();

@@ -211,18 +211,6 @@ Add where required // TODO: change in version 1.1
 http://www.w3schools.com/sql/
 
 History:
-    When setting BLOB or CLOB values larger than 65 KB using 
-        a remote connection, temporary files were kept on the client
-        longer than required (until the connection was closed or the 
-        object is garbage collected). Now they are removed as soon
-        as the PreparedStatement is closed, or when the value is
-        overwritten.
-    Statements can now be cancelled remotely 
-        (when using remote connections).
-    The Shell tool now uses java.io.Console to read the password
-        when using JDK 1.6
-    When using read-only databases and setting LOG=2, an exception
-        was written to the trace file when closing the database. Fixed.
 
 Roadmap:
 

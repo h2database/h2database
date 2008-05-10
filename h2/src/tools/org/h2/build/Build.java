@@ -25,6 +25,34 @@ public class Build extends BuildBase {
         docs();
     }
     
+    public void benchmark() {
+        download("ext/hsqldb-1.8.0.7.jar",
+                "http://repo1.maven.org/maven2/hsqldb/hsqldb/1.8.0.7/hsqldb-1.8.0.7.jar",
+                "20554954120b3cc9f08804524ec90113a73f3015");
+        download("ext/derby-10.4.1.3.jar",
+                "http://repo1.maven.org/maven2/org/apache/derby/derby/10.4.1.3/derby-10.4.1.3.jar",
+                "01c19aaea2e971203f410c5263214a890f340342");
+        download("ext/postgresql-8.3-603.jdbc4.jar",
+                "http://repo1.maven.org/maven2/postgresql/postgresql/8.3-603.jdbc4/postgresql-8.3-603.jdbc4.jar", 
+                "c1545d956cc2013e8623f7cbc4de320be80ac646");
+        download("ext/mysql-connector-java-5.1.6.jar",
+                "http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.6/mysql-connector-java-5.1.6.jar", 
+                "380ef5226de2c85ff3b38cbfefeea881c5fce09d");
+        String cp = "bin" + File.pathSeparator + "bin/h2.jar" + File.pathSeparator +
+        "ext/hsqldb-1.8.0.7.jar" + File.pathSeparator +
+        "ext/derby-10.4.1.3.jar" + File.pathSeparator +
+        "ext/postgresql-8.3-603.jdbc4.jar" + File.pathSeparator +
+        "ext/mysql-connector-java-5.1.6.jar";
+        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-init", "-db", "1"});
+        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "2"});
+        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "3", "-out", "pe.html"});
+        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-init", "-db", "4"});
+        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "5"});
+        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "6"});
+        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "7"});
+        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "8", "-out", "ps.html"});
+    }
+    
     public void clean() {
         delete("temp");
         delete("docs");
@@ -212,14 +240,15 @@ public class Build extends BuildBase {
         String pom = new String(readFile(new File("src/installer/pom.xml")));
         pom = replaceAll(pom, "@version@", getVersion());
         writeFile(new File("bin/pom.xml"), pom.getBytes());
-        execScript("mvn", "deploy:deploy-file " + 
-                    "-Dfile=bin/h2.jar " +
-                    "-Durl=file:///data/h2database/m2-repo " +
-                    "-Dpackaging=jar " +
-                    "-Dversion=" + getVersion() + " " +
-                    "-DpomFile=bin/pom.xml " + 
-                    "-DartifactId=h2 " + 
-                    "-DgroupId=com.h2database");
+        execScript("mvn", new String[] { 
+                "deploy:deploy-file", 
+                "-Dfile=bin/h2.jar",
+                "-Durl=file:///data/h2database/m2-repo", 
+                "-Dpackaging=jar", 
+                "-Dversion=" + getVersion(),
+                "-DpomFile=bin/pom.xml", 
+                "-DartifactId=h2", 
+                "-DgroupId=com.h2database" });
     }
 
     public void mavenInstallLocal() {
@@ -227,13 +256,14 @@ public class Build extends BuildBase {
         String pom = new String(readFile(new File("src/installer/pom.xml")));
         pom = replaceAll(pom, "@version@", "1.0-SNAPSHOT");
         writeFile(new File("bin/pom.xml"), pom.getBytes());
-        execScript("mvn", "install:install-file " + 
-                    "-Dversion=1.0-SNAPSHOT " + 
-                    "-Dfile=bin/h2.jar " + 
-                    "-Dpackaging=jar " +
-                    "-DpomFile=bin/pom.xml " + 
-                    "-DartifactId=h2 " +
-                    "-DgroupId=com.h2database");
+        execScript("mvn", new String[] { 
+                "install:install-file", 
+                "-Dversion=1.0-SNAPSHOT", 
+                "-Dfile=bin/h2.jar",
+                "-Dpackaging=jar", 
+                "-DpomFile=bin/pom.xml", 
+                "-DartifactId=h2", 
+                "-DgroupId=com.h2database" });
     }
     
     private void resources(boolean clientOnly) {

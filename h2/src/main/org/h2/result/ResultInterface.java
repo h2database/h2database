@@ -144,17 +144,4 @@ public interface ResultInterface {
      */
     int getNullable(int i);
 
-    /**
-     * Check if this result is in fact an update count.
-     *
-     * @return if it is an update count
-     */
-    boolean isUpdateCount();
-
-    /**
-     * Get the update count for this result.
-     *
-     * @return the update count
-     */
-    int getUpdateCount();
 }

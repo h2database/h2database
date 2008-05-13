@@ -133,11 +133,6 @@ public class WebServer implements Service {
         return data;
     }
 
-    String getTextFile(String file) throws IOException {
-        byte[] bytes = getFile(file);
-        return new String(bytes);
-    }
-
     synchronized void remove(WebThread t) {
         running.remove(t);
     }

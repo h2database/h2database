@@ -2696,7 +2696,7 @@ CSVREAD(fileNameString [, columnNamesString [, charsetString [, fieldSeparatorSt
 [, escapeCharacterString [, nullString]]]]]]): resultSet
 ","
 Returns the result set of reading the CSV (comma separated values) file.
-If the column names are specified (a comma separated list of column names),
+If the column names are specified (a list of column names separated with the fieldSeparator),
 those are used they are read from the file, otherwise (or if they are set to NULL) the first line
 of the file is interpreted as the column names.
 The default charset is the default value for this system, and the default field separator is a comma.
@@ -2705,7 +2705,9 @@ This function can be used like a table: SELECT * FROM CSVREAD(...).
 Instead of a file, an URL may be used, for example jar:file:///c:/temp/example.zip!/org/example/nested.zip.
 Admin rights are required to execute this command.
 ","
-CALL CSVREAD('test.csv')
+CALL CSVREAD('test.csv');
+-- Read a file containing the columns ID, NAME with UTF-8 encoding and the pipe (|) as field separator
+CALL CSVREAD('test2.csv', 'ID|NAME', 'UTF-8', '|');
 "
 
 "Functions (System)","CSVWRITE","
@@ -2720,7 +2722,9 @@ The default line separator is the default value for this system ('line.separator
 The returned value is the number or rows written.
 Admin rights are required to execute this command.
 ","
-CALL CSVWRITE('test.csv', 'SELECT * FROM TEST')
+CALL CSVWRITE('test.csv', 'SELECT * FROM TEST');
+-- Write a file with UTF-8 encoding and the pipe (|) as field separator
+CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'UTF-8', '|');
 "
 
 "Functions (System)","DATABASE","
@@ -2728,7 +2732,7 @@ DATABASE(): string
 ","
 Returns the name of the database.
 ","
-DATABASE()
+CALL DATABASE();
 "
 
 "Functions (System)","DATABASE_PATH","
@@ -2737,7 +2741,7 @@ DATABASE_PATH(): string
 Returns the directory of the database files and the database name, if it is file based.
 Returns NULL otherwise.
 ","
-DATABASE_PATH()
+CALL DATABASE_PATH();
 "
 
 "Functions (System)","FILE_READ","
@@ -2759,7 +2763,7 @@ GREATEST(aValue, bValue [,...]): value
 ","
 Returns the largest value that is not NULL, or NULL if all values are NULL.
 ","
-GREATEST(A, B, C)
+CALL GREATEST(1, 2, 3);
 "
 
 "Functions (System)","IDENTITY","
@@ -2767,7 +2771,7 @@ IDENTITY(): long
 ","
 Returns the last inserted identity value for this session.
 ","
-IDENTITY()
+CALL IDENTITY();
 "
 
 "Functions (System)","IFNULL","
@@ -2775,7 +2779,7 @@ IFNULL(aValue, bValue): value
 ","
 Returns the value of 'a' if it is not null, otherwise 'b'.
 ","
-IFNULL(A, B)
+CALL IFNULL(NULL, '');
 "
 
 "Functions (System)","LEAST","
@@ -2783,7 +2787,7 @@ LEAST(aValue, bValue [,...]): value
 ","
 Returns the smallest value that is not NULL, or NULL if all values are NULL.
 ","
-LEAST(A, B, C)
+CALL LEAST(1, 2, 3);
 "
 
 "Functions (System)","LOCK_MODE","
@@ -2791,7 +2795,7 @@ LOCK_MODE(): int
 ","
 Returns the current lock mode. See SET LOCK_MODE.
 ","
-LOCK_MODE()
+CALL LOCK_MODE();
 "
 
 "Functions (System)","LOCK_TIMEOUT","

@@ -250,10 +250,6 @@ public class IOUtils {
         return new ByteArrayInputStream(StringUtils.utf8Encode(s));
     }
 
-    public static InputStream getInputStream(Reader x) throws SQLException {
-        return x == null ? null : new ReaderInputStream(x);
-    }
-
     public static Reader getReader(String s) {
         return s == null ? null : new StringReader(s);
     }

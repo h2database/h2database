@@ -97,10 +97,6 @@ public class JavaFunction extends Expression implements FunctionCall {
         }
     }
 
-    public FunctionAlias getFunctionAlias() {
-        return functionAlias;
-    }
-
     public String getName() {
         return functionAlias.getName();
     }
@@ -119,7 +115,7 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        switch(visitor.type) {
+        switch(visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
             // TODO optimization: some functions are deterministic, but we don't
             // know (no setting for that)

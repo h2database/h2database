@@ -177,10 +177,6 @@ public class TableView extends Table {
         return false;
     }
 
-    public void removeIndex(String indexName) throws SQLException {
-        throw Message.getUnsupportedException();
-    }
-
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             int headPos, String comment) throws SQLException {
         throw Message.getUnsupportedException();
@@ -251,10 +247,6 @@ public class TableView extends Table {
 
     public ObjectArray getIndexes() {
         return null;
-    }
-
-    public ObjectArray getTables() {
-        return tables;
     }
 
     public void recompile(Session session) throws SQLException {

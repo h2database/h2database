@@ -293,15 +293,6 @@ public class TreeIndex extends BaseIndex {
         }
     }
 
-    public int getLookupCost(int rowCount) {
-        for (int i = 0, j = 1;; i++) {
-            j += j;
-            if (j >= rowCount) {
-                return i;
-            }
-        }
-    }
-
     public double getCost(Session session, int[] masks) throws SQLException {
         return getCostRangeIndex(masks, tableData.getRowCount(session));
     }

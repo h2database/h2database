@@ -66,10 +66,6 @@ public class Wildcard extends Expression {
         throw Message.getInternalError();
     }
 
-    public String getSchema() {
-        return schema;
-    }
-
     public String getTableAlias() {
         return table;
     }

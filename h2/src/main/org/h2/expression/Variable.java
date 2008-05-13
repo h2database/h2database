@@ -58,7 +58,7 @@ public class Variable extends Expression {
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        switch(visitor.type) {
+        switch(visitor.getType()) {
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
             return true;
         case ExpressionVisitor.DETERMINISTIC:
@@ -78,7 +78,7 @@ public class Variable extends Expression {
         case ExpressionVisitor.GET_DEPENDENCIES:
             return true;
         default:
-            throw Message.getInternalError("type="+visitor.type);
+            throw Message.getInternalError("type="+visitor.getType());
         }
     }
 

@@ -132,15 +132,6 @@ public class LinkedIndex extends BaseIndex {
         }
     }
 
-    public int getLookupCost(int rowCount) {
-        for (int i = 0, j = 1;; i++) {
-            j *= 10;
-            if (j > rowCount) {
-                return i + 1;
-            }
-        }
-    }
-
     public double getCost(Session session, int[] masks) throws SQLException {
         return 100 + getCostRangeIndex(masks, rowCount + Constants.COST_ROW_OFFSET);
     }

@@ -410,8 +410,4 @@ public class AlterTableAddConstraint extends SchemaCommand {
         this.primaryKeyHash = b;
     }
 
-    public boolean getPrimaryKeyHash() {
-        return primaryKeyHash;
-    }
-
 }

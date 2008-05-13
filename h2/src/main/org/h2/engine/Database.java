@@ -128,7 +128,6 @@ public class Database implements DataHandler {
     private int lockMode = SysProperties.DEFAULT_LOCK_MODE;
     private boolean logIndexChanges;
     private int logLevel = 1;
-    private int cacheSize;
     private int maxLengthInplaceLob = Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
     private long biggestFileSize;
     private int allowLiterals = Constants.DEFAULT_ALLOW_LITERALS;
@@ -1244,10 +1243,6 @@ public class Database implements DataHandler {
         return new ObjectArray(users.values());
     }
     
-    public int getCacheSize() {
-        return cacheSize;
-    }
-    
     public String getCacheType() {
         return cacheType;
     }
@@ -1576,7 +1571,6 @@ public class Database implements DataHandler {
             fileData.getCache().setMaxSize(kb);
             int valueIndex = kb <= 32 ? kb : (kb >>> SysProperties.CACHE_SIZE_INDEX_SHIFT);
             fileIndex.getCache().setMaxSize(valueIndex);
-            cacheSize = kb;
         }
     }
 
@@ -1831,10 +1825,6 @@ public class Database implements DataHandler {
      */
     public boolean isClosing() {
         return closing;
-    }
-
-    public int getWriteDelay() {
-        return writeDelay;
     }
 
     public void setMaxLengthInplaceLob(int value) {

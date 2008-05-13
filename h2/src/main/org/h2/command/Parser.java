@@ -170,7 +170,8 @@ public class Parser {
     private String currentToken;
     private boolean currentTokenQuoted;
     private Value currentValue;
-    private String sqlCommand, originalSQL;
+    private String sqlCommand;
+    private String originalSQL;
     private char[] sqlCommandChars;
     private int lastParseIndex;
     private int parseIndex;
@@ -2648,10 +2649,6 @@ public class Parser {
         checkLiterals(false);
         currentValue = ValueDecimal.get(bd);
         currentTokenType = VALUE;
-    }
-
-    public String getOriginalSQL() {
-        return originalSQL;
     }
 
     public Session getSession() {

@@ -68,29 +68,6 @@ public class TableFunction extends Function implements FunctionCall {
         return distinct ? "TABLE_DISTINCT" : "TABLE";
     }
 
-    /**
-     * Get the row count of the table.
-     * 
-     * @param session the session
-     * @return the row count
-     */
-    public int getRowCount(Session session) throws SQLException {
-        int len = columnList.length;
-        int rowCount = 0;
-        for (int i = 0; i < len; i++) {
-            Expression expr = args[i];
-            if (expr.isConstant()) {
-                Value v = expr.getValue(session);
-                if (v != ValueNull.INSTANCE) {
-                    ValueArray array = (ValueArray) v.convertTo(Value.ARRAY);
-                    Value[] l = array.getList();
-                    rowCount = Math.max(rowCount, l.length);
-                }
-            }
-        }
-        return rowCount;
-    }
-
     public ValueResultSet getValueForColumnList(Session session, Expression[] nullArgs) throws SQLException {
         return getTable(session, args, true, false);
     }

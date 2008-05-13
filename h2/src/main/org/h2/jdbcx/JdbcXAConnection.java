@@ -237,7 +237,6 @@ implements XAConnection, XAResource, JdbcConnectionListener
             list.toArray(result);
             return result;
         } catch (SQLException e) {
-            getTrace().debug("throw XAException.XAER_RMERR", e);
            throw new XAException(XAException.XAER_RMERR);
         } finally {
             JdbcUtils.closeSilently(stat);
@@ -257,7 +256,6 @@ implements XAConnection, XAResource, JdbcConnectionListener
         }
         checkOpen();
         if (!currentTransaction.equals(xid)) {
-            getTrace().debug("throw XAException.XAER_INVAL");
             throw new XAException(XAException.XAER_INVAL);
         }
         Statement stat = null;
@@ -270,7 +268,6 @@ implements XAConnection, XAResource, JdbcConnectionListener
         } finally {
             JdbcUtils.closeSilently(stat);
         }
-        getTrace().debug("return XA_OK");
         return XA_OK;
     }
 //## Java 1.4 end ##
@@ -304,7 +301,6 @@ implements XAConnection, XAResource, JdbcConnectionListener
         } catch (SQLException e) {
             throw convertException(e);
         }
-        getTrace().debug("rolled back");
         currentTransaction = null;
     }
 //## Java 1.4 end ##
@@ -325,7 +321,6 @@ implements XAConnection, XAResource, JdbcConnectionListener
             return;
         }
         if (!currentTransaction.equals(xid)) {
-            getTrace().debug("throw XAException.XAER_OUTSIDE");
             throw new XAException(XAException.XAER_OUTSIDE);
         }
     }
@@ -346,7 +341,6 @@ implements XAConnection, XAResource, JdbcConnectionListener
             return;
         }
         if (currentTransaction != null) {
-            getTrace().debug("throw XAException.XAER_NOTA");
             throw new XAException(XAException.XAER_NOTA);
         }
         try {
@@ -354,7 +348,6 @@ implements XAConnection, XAResource, JdbcConnectionListener
         } catch (SQLException e) {
             throw convertException(e);
         }
-        getTrace().debug("currentTransaction=xid");
         currentTransaction = xid;
     }
 //## Java 1.4 end ##
@@ -383,7 +376,6 @@ implements XAConnection, XAResource, JdbcConnectionListener
         } finally {
             JdbcUtils.closeSilently(stat);
         }
-        getTrace().debug("committed");
         currentTransaction = null;
     }
 //## Java 1.4 end ##
@@ -437,10 +429,9 @@ implements XAConnection, XAResource, JdbcConnectionListener
     }
 
     private XAException convertException(SQLException e) {
-        if (isDebugEnabled()) {
-            getTrace().debug("throw XAException("+e.getMessage()+");");
-        }
-        return new XAException(e.getMessage());
+        XAException xa = new XAException(e.getMessage());
+        xa.initCause(e);
+        return xa;
     }
 
     private String quoteXid(Xid xid) {
@@ -494,7 +485,6 @@ implements XAConnection, XAResource, JdbcConnectionListener
 
     private void checkOpen() throws XAException {
         if (conn == null) {
-            getTrace().debug("conn==null");
             throw new XAException(XAException.XAER_RMERR);
         }
     }

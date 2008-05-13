@@ -142,9 +142,5 @@ public class IndexCondition {
     public boolean isEvaluatable() {
         return expression.isEverything(ExpressionVisitor.EVALUATABLE);
     }
-    
-    public Expression getExpression() {
-        return expression;
-    }
 
 }

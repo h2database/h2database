@@ -490,405 +490,414 @@ PGプロトコルサポートの制限
 #Using H2 in Microsoft .NET
 
 @advanced_1163_p
-#The database can be used from Microsoft .NET even without using Java, by using IKVM.NET:
+#The database can be used from Microsoft .NET even without using Java, by using IKVM.NET. You can access a H2 database on .NET using the JDBC API, or using the ADO.NET interface.
 
-@advanced_1164_li
-#Install the .NET Framework from <a href="http://www.microsoft.com">Microsoft</a> .  Mono has not yet been tested.
+@advanced_1164_h3
+#Using the ADO.NET API on .NET
 
-@advanced_1165_li
-#Install <a href="http://www.ikvm.net">IKVM.NET</a> .
+@advanced_1165_p
+#An implementation of the ADO.NET interface is available in the open source project <a href="http://code.google.com/p/h2sharp">H2Sharp</a> .
 
-@advanced_1166_li
-#Copy the h2.jar file to ikvm/bin
+@advanced_1166_h3
+#Using the JDBC API on .NET
 
 @advanced_1167_li
-#Run the H2 Console using: <code>ikvm -jar h2.jar</code>
+#Install the .NET Framework from <a href="http://www.microsoft.com">Microsoft</a> .  Mono has not yet been tested.
 
 @advanced_1168_li
-#Convert the H2 Console to an .exe file using: <code>ikvmc -target:winexe h2.jar</code> .  You may ignore the warnings.
+#Install <a href="http://www.ikvm.net">IKVM.NET</a> .
 
 @advanced_1169_li
+#Copy the h2.jar file to ikvm/bin
+
+@advanced_1170_li
+#Run the H2 Console using: <code>ikvm -jar h2.jar</code>
+
+@advanced_1171_li
+#Convert the H2 Console to an .exe file using: <code>ikvmc -target:winexe h2.jar</code> .  You may ignore the warnings.
+
+@advanced_1172_li
 #Create a .dll file using (change the version accordingly): <code>ikvmc.exe -target:library -version:1.0.69.0 h2.jar</code>
 
-@advanced_1170_p
+@advanced_1173_p
 #If you want your C# application use H2, you need to add the h2.dll and the IKVM.OpenJDK.ClassLibrary.dll to your C# solution. Here some sample code:
 
-@advanced_1171_h2
+@advanced_1174_h2
 ACID
 
-@advanced_1172_p
+@advanced_1175_p
 データベースの世界では、ACIDとは以下を表しています:
 
-@advanced_1173_li
+@advanced_1176_li
 Atomicity (原子性) : トランザクションはアトミックでなければならず、全てのタスクが実行されたか、実行されないかの どちらかであるという意味です。
 
-@advanced_1174_li
+@advanced_1177_li
 Consistency (一貫性) : 全てのオペレーションは定義された制約に従わなくてはいけません。
 
-@advanced_1175_li
+@advanced_1178_li
 Isolation (独立性 / 分離性) : トランザクションはそれぞれ独立 (隔離) されていなくてはなりません。
 
-@advanced_1176_li
+@advanced_1179_li
 Durability (永続性) : コミットされたトランザクションは失われません。
 
-@advanced_1177_h3
+@advanced_1180_h3
 Atomicity (原子性)
 
-@advanced_1178_p
+@advanced_1181_p
 このデータベースでのトランザクションは常にアトミックです。
 
-@advanced_1179_h3
+@advanced_1182_h3
 Consistency (一貫性)
 
-@advanced_1180_p
+@advanced_1183_p
 このデータベースは常に一貫性のある状態です。 参照整合性のルールは常に実行されます。
 
-@advanced_1181_h3
+@advanced_1184_h3
 Isolation (独立性 / 分離性)
 
-@advanced_1182_p
+@advanced_1185_p
 H2は、他の多くのデータベースシステムと同様に、デフォルトの分離レベルは "read committed" です。これはより良いパフォーマンスを提供しますが、トランザクションは完全に分離されていないということも意味します。H2はトランザクション分離レベル "serializable"、"read committed"、"read uncommitted" をサポートしています。
 
-@advanced_1183_h3
+@advanced_1186_h3
 Durability (永続性)
 
-@advanced_1184_p
+@advanced_1187_p
 このデータベースは、全てのコミットされたトランザクションが電源異常に耐えられるということを保証しません。全てのデータベースが電源異常の状況において、一部トランザクションが失われるということをテストは示しています (詳細は下記をご覧下さい)。トランザクションが失われることを容認できない場面では、ノートパソコン、またはUPS (無停電電源装置) を使用します。永続性がハードウェア異常の起こり得る全ての可能性に対して必要とされるのであれば、H2クラスタリングモードのようなクラスタリングが使用されるべきです。
 
-@advanced_1185_h2
+@advanced_1188_h2
 永続性問題
 
-@advanced_1186_p
+@advanced_1189_p
 完全な永続性とは、全てのコミットされたトランザクションは電源異常に耐えられる、ということを意味します。 いくつかのデータベースは、永続性を保証すると主張していますが、このような主張は誤っています。 永続性テストはH2、HSQLDB、PostgreSQL、Derbyに対して実行されました。これらの全てのデータベースは、 時々コミットされたトランザクションを失います。このテストはH2ダウンロードに含まれています。 org.h2.test.poweroff.Test をご覧下さい。
 
-@advanced_1187_h3
+@advanced_1190_h3
 永続性を実現する (しない) 方法
 
-@advanced_1188_p
+@advanced_1191_p
 失われなかったコミット済みトランザクションは、最初に思うよりもより複雑だということを理解して下さい。 完全な永続性を保障するためには、データベースは、コミットの呼び出しが返ってくる前に ログレコードがハードドライブ上にあることを確実にしなければなりません。 これを行うために、データベースは異なったメソッドを使用します。ひとつは "同期書き込み" ファイルアクセスモードを使用することです。Javaでは、RandomAccessFile はモード "rws" と "rwd" を サポートしています:
 
-@advanced_1189_li
+@advanced_1192_li
 rwd: それぞれのファイル内容の更新は、元になるストレージデバイスと同時に書き込まれます。
 
-@advanced_1190_li
+@advanced_1193_li
 rws: rwdに加えて、それぞれのメタデータの更新は同時に書き込まれます。
 
-@advanced_1191_p
+@advanced_1194_p
 この特徴はDerbyで使用されています。それらのモードのうちのひとつは、テスト (org.h2.test.poweroff.TestWrite) において、毎秒およそ5万件の書き込み操作を実現します。オペレーティングシステムのライトバッファーが無効の時でさえも、 書き込み速度は毎秒およそ5万件です。この特徴はディスクを交換させるというものではありません。 なぜなら、全てのバッファーをフラッシュするのではないからです。テストはファイル内の同じバイトを何度も更新しました。 もしハードドライブがこの速度での書き込みが可能なら、ディスクは少なくても毎秒5万回転か、 または300万 RPM (revolutions per minute 回転毎分) を行う必要があります。 そのようなハードドライブは存在しません。テストで使用されたハードドライブは、およそ7200 RPM、または 毎秒120回転です。これがオーバーヘッドなので、最大書き込み速度はこれより低くなくてはなりません。
 
-@advanced_1192_p
+@advanced_1195_p
 バッファーは fsync 関数を呼ぶことによってフラッシュされます。Javaでこれを行う二つの方法があります:
 
-@advanced_1193_li
+@advanced_1196_li
 FileDescriptor.sync() ドキュメンテーションには、これは強制的に全てのシステムバッファーに基本となる デバイスとの同期を取らせる、と書かれています。このFileDescriptorに関連するバッファーのインメモリでの 変更コピーが全て物理メディアに書かれた後、Syncは返ることになっています。
 
-@advanced_1194_li
+@advanced_1197_li
 FileChannel.force() (JDK 1.4 以来) このメソッドは、強制的にこのチャネルのファイルの更新は それを含むストレージデバイスに書き込まれることを行います。
 
-@advanced_1195_p
+@advanced_1198_p
 #By default, MySQL calls fsync for each commit. When using one of those methods, only around 60 write operations per second can be achieved, which is consistent with the RPM rate of the hard drive used. Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(), data is not always persisted to the hard drive, because most hard drives do not obey fsync(): see <a href="http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252">Your Hard Drive Lies to You</a> . In Mac OS X, fsync does not flush hard drive buffers. See <a href="http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a> . So the situation is confusing, and tests prove there is a problem.
 
-@advanced_1196_p
+@advanced_1199_p
 ハードドライブバッファーを懸命にフラッシュしようと試みると、パフォーマンスは非常に悪いものになります。 最初に、ハードドライブは実際には全てのバッファーをフラッシュしているということを確かめることが必要です。 テストは信頼性ある方法でこれが行われていないことを示しています。その結果、トランザクションの最大数は毎秒およそ60件です。 これらの理由により、H2のデフォルト性質はコミットされたトランザクションの書き込みを遅らせることです。
 
-@advanced_1197_p
+@advanced_1200_p
 H2では、電源異常の後、1秒以上のコミットされたトランザクションが失われます。 この性質を変更するためには。 SET WRITE_DELAY と CHECKPOINT SYNC を使用します。 多くの他のデータベースも同様に遅延コミットをサポートしています。パフォーマンス比較では、 遅延コミットは、サポートする全てのデータベースによって使用されました。
 
-@advanced_1198_h3
+@advanced_1201_h3
 永続性テストを実行する
 
-@advanced_1199_p
+@advanced_1202_p
 このデータベースと他のデータベースの、永続性 / 非永続性テストを行うために、 パッケージ内 org.h2.test.poweroff のテストアプリケーションを使用することができます。 ネットワーク接続の二つのコンピューターがこのテストを実行するのに必要です。 ひとつのコンピューターは、他のコンピューター上でテストアプリケーションが実行されている間 (電源は切られています) ただ聞いています。リスナーアプリケーションのコンピューターは TCP/IP ポートを開き、 次の接続のために聞きます。二つ目のコンピューターは最初リスナーに接続し、データベースを作成して レコードの挿入を開始します。この接続は "autocommit" に設定されます。それぞれのレコード挿入後のコミットが 自動的に行われるという意味です。その後、テストコンピューターはこのレコードの挿入に成功したということを リスナーに通知します。リスナーコンピューターは10秒ごとに最後に挿入されたレコードを表示します。 電源を手動でOFFにしてコンピューターを再起動し、アプリケーションを再び実行します。 多くのケースで、リスナーコンピューターが知る全てのレコードを含むデータベースはないということがわかります。 詳細は、リスナーのソースコードとテストアプリケーションを参照して下さい。
 
-@advanced_1200_h2
+@advanced_1203_h2
 リカバーツールを使用する
 
-@advanced_1201_p
+@advanced_1204_p
 リカバーツールはデータベースが破損している場合においても、 データファイルのコンテンツを復元するために使用されます。現段階では、ログファイルのコンテンツ、 または大きなオブジェクト (CLOB または BLOB) は復元しません。 このツールを実行するには、このコマンドラインをタイプして下さい:
 
-@advanced_1202_p
+@advanced_1205_p
 現在のディレクトリのそれぞれのデータベースのために、テキストファイルが作られます。 このファイルには、データベースのスキーマを再び作成するために、行挿入ステートメント (データのための) と data definition (DDL) ステートメントを含んでいます。このファイルは、行挿入ステートメントが 正しいテーブル名を保持していないため、直接実行するこはできません。そのため、 ファイルは実行する前に手動で前処理を行う必要があります。
 
-@advanced_1203_h2
+@advanced_1206_h2
 ファイルロックプロトコル
 
-@advanced_1204_p
+@advanced_1207_p
 データベースが開かれるときはいつも、データベースが使用中であると他のプロセスに合図するためにロックファイルが作成されます。もしデータベースが閉じられるか、データベースを開いたプロセスが終了するなら、ロックファイルは削除されます。
 
-@advanced_1205_p
+@advanced_1208_p
 特別なケースでは (例えば、停電のためプロセスが正常に終了されなかった場合)、 ロックファイルは作られたプロセスによって削除されません。これは、ロックファイルの存在は、 ファイルロックのための安全なプロトコルではない、ということを意味しています。 しかし、このソフトウェアはデータベースファイルを守るため、challenge-responseプロトコルを使用します。 セキュリティ (同じデータベースファイルは、同時に二つのプロセスによって開かれてはいけない) と シンプリシティー (ロックファイルはユーザーによって手動で削除される必要がない) の両方を備えるために 二つのメソッド (アルゴリズム) が実行されます。二つのメソッドは、"Fileメソッド" と "Socketメソッド" です。
 
-@advanced_1206_h3
+@advanced_1209_h3
 ファイルロックメソッド "File"
 
-@advanced_1207_p
+@advanced_1210_p
 データベースファイルロックのデフォルトメソッドは "Fileメソッド" です。アルゴリズム:
 
-@advanced_1208_li
+@advanced_1211_li
 ロックファイルが存在しない時は、作成されます (アトミックオペレーション File.createNewFile を使用する)。 その時、プロセスは少し (20ms) 待機し、再びファイルをチェックします。 もしファイルがこの間に変更されたら、オペレーションは中止されます。 ロックファイルを作成したすぐ後にプロセスがロックファイルを削除する時、 これはレースコンディションから保護し、三番目のプロセスはファイルを再び作成します。 二つのライターしか存在しなければ、これは起こりません。
 
-@advanced_1209_li
+@advanced_1212_li
 もしファイルが作成されたら、ロックメソッド ("file") でランダムな番号が一緒に挿入されます。 その後、ファイルが他のスレッド/ プロセスによって削除、または 修正された時、定期的にチェックする (デフォルトでは毎秒1回) watchdogスレッドは開始されます。 これが起きる時はいつも、ファイルは古いデータに上書きされます。システムが非常に混み合っている時でさえも、 非検出の状態で処理できないロックファイルを変更するために、watchdogスレッドは最優先に実行します。 しかし、watchdogスレッドはほとんどの時間待機しているため、非常に小さなリソース (CPU time) を使用します。 また、watchdogはハードディスクから読み取りのみ行い、書き込みはしません。
 
-@advanced_1210_li
+@advanced_1213_li
 もしロックファイルが存在し、20ms内に変更されたら、プロセスは数回 (10回以上) 待機します。 まだ変更されていたら、例外が投げられます (データベースはロックされます)。 多数の並列ライターで競合している状態を排除するためにこれが行われます。 その後、ファイルは新しいバージョンに上書きされます。 そして、スレッドは2秒間待機します。もしファイルを保護するwatchdogスレッドが存在したら、 変更は上書きし、このプロセスはデータベースをロックするために機能しなくなります。 しかし、もしwatchdogスレッドが存在しなければ、ロックファイルはこのスレッドによって 書かれたままの状態です。このケースでは、ファイルは削除され、自動的にまた作成されます。 watchdogスレッドはこのケースでは起動され、ファイルはロックされます。
 
-@advanced_1211_p
+@advanced_1214_p
 このアルゴリズムは100以上の並列スレッドでテストされました。いくつかのケースでは、 データベースをロックしようとする多数の並列スレッドが存在する時、それらはしばらくお互いをブロックします (それらのうちどれかがファイルをロックすることができないことを意味します)。 しかし、ファイルは同時に二つのスレッドによってロックされることは決してありません。 しかし、多数の並列スレッド / プロセスを使用することは一般的な使用ケースではありません。 通常、データベースを開くことができなかったり、(速い)ループのやり直しができなかったりした場合、 アプリケーションはユーザーにエラーを投げるべきです。
 
-@advanced_1212_h3
+@advanced_1215_h3
 ファイルロックメソッド "Socket"
 
-@advanced_1213_p
+@advanced_1216_p
 実行される二つ目のロックメカニズムがありますが、 デフォルトでは使用不可です。アルゴリズムは:
 
-@advanced_1214_li
+@advanced_1217_li
 ロックファイルが存在しない時は、作成されます。その時、サーバーソケットは定義されたポートで開かれ、 開かれた状態を保ちます。開かれたデータベースのプロセスのポートとIPアドレスはロックファイルの中に書かれています。
 
-@advanced_1215_li
+@advanced_1218_li
 もしロックファイルが存在し、ロックメソッドが "file" なら、ソフトウェアは "file" メソッドにスイッチします。
 
-@advanced_1216_li
+@advanced_1219_li
 もしロックファイルが存在し、ロックメソッドが "socket" なら、プロセスはポートが使用されているかチェックします。 最初のプロセスがまだ実行されていたら、ポートは使用されていれ、このプロセスは例外を投げます (database is in use)。 最初のプロセスが失われたら (例えば、停電または、仮想マシンの異常終了のため)、ポートは解除されます。 新しいプロセスはロックファイルを削除し、再び起動します。
 
-@advanced_1217_p
+@advanced_1220_p
 このメソッドは、活発に毎秒同じファイルをポーリングする (読み込む) watchdogスレッドを必要としていません。 このメソッドの問題は、ファイルがネットワークシェアに保存されたら、二つのプロセスは (異なるコンピューターで実行中の)、 TCP/IP接続を直接保持していなければ、同じデータベースファイルを開くことができます。
 
-@advanced_1218_h2
+@advanced_1221_h2
 SQLインジェクションに対する防御
 
-@advanced_1219_h3
+@advanced_1222_h3
 SQLインジェクションとは
 
-@advanced_1220_p
+@advanced_1223_p
 このデータベースエンジンは "SQLインジェクション" として知られる セキュリティ脆弱性の解決策を備えています。 これは、SQLインジェクションの意味とは何か、 についての短い説明です。いくつかのアプリケーションは、エンベッドユーザーがこのように入力する SQLステートメントを構築します:
 
-@advanced_1221_p
+@advanced_1224_p
 このメカニズムがアプリケーションのどこかで使用され、ユーザー入力が正しくないフィルター処理、 またはエンベッドなら、ユーザーはパスワード: ' OR ''=' のような (この例の場合) 特別に作られた入力を使用することによって、SQLの機能、またはステートメントに入り込むことが可能です。 このケースでは、ステートメントはこのようになります:
 
-@advanced_1222_p
+@advanced_1225_p
 データベースに保存されたパスワードが何であっても、これは常に正しいものになります。 SQLインジェクションについての詳細は、用語集とリンク をご覧下さい。
 
-@advanced_1223_h3
+@advanced_1226_h3
 リテラルを無効にする
 
-@advanced_1224_p
+@advanced_1227_p
 ユーザー入力が直接SQLステートメントに組み込まれなければ、 SQLインジェクションは不可能です。上記の問題の簡単な解決方法は、PreparedStatementを使用することです:
 
-@advanced_1225_p
+@advanced_1228_p
 このデータベースは、ユーザー入力をデータベースに通す時、パラメータの使用を強制する方法を提供しています。 SQLステートメントの組み込まれたリテラルを無効にすることでこれを実行します。 次のステートメントを実行します:
 
-@advanced_1226_p
+@advanced_1229_p
 #Afterwards, SQL statements with text and number literals are not allowed any more. That means, SQL statement of the form WHERE NAME='abc' or WHERE CustomerId=10 will fail. It is still possible to use PreparedStatements and parameters as described above. Also, it is still possible to generate SQL statements dynamically, and use the Statement API, as long as the SQL statements do not include literals. There is also a second mode where number literals are allowed: SET ALLOW_LITERALS NUMBERS. To allow all literals, execute SET ALLOW_LITERALS ALL (this is the default setting). Literals can only be enabled or disabled by an administrator.
 
-@advanced_1227_h3
+@advanced_1230_h3
 定数を使用する
 
-@advanced_1228_p
+@advanced_1231_p
 リテラルを無効にするということは、ハードコード化された "定数" リテラルを無効にする、 ということも意味します。このデータベースは、CREATE CONSTANT コマンドを使用して定数を定義することをサポートしています。 定数はリテラルが有効であるときのみ定義することができますが、リテラルが無効の時でも使用することができます。 カラム名の名前の衝突を避けるために、定数は他のスキーマで定義できます:
 
-@advanced_1229_p
+@advanced_1232_p
 リテラルが有効の時でも、クエリーやビューの中でハードコード化された数値リテラル、 またはテキストリテラルの代わりに、定数を使用する方がより良いでしょう。With 定数では、タイプミスはコンパイル時に発見され、ソースコードは理解、変更しやすくなります。
 
-@advanced_1230_h3
+@advanced_1233_h3
 ZERO() 関数を使用する
 
-@advanced_1231_p
+@advanced_1234_p
 組み込み関数 ZERO() がすでにあるため、 数値 0 のための定数を作る必要はありません:
 
-@advanced_1232_h2
+@advanced_1235_h2
 #Restricting Class Loading and Usage
 
-@advanced_1233_p
+@advanced_1236_p
 #By default there is no restriction on loading classes and executing Java code for admins. That means an admin may call system functions such as System.setProperty by executing:
 
-@advanced_1234_p
+@advanced_1237_p
 #To restrict users (including admins) from loading classes and executing code, the list of allowed classes can be set in the system property h2.allowedClasses in the form of a comma separated list of classes or patterns (items ending with '*'). By default all classes are allowed. Example:
 
-@advanced_1235_p
+@advanced_1238_p
 #This mechanism is used for all user classes, including database event listeners, trigger classes, user-defined functions, user-defined aggregate functions, and JDBC driver classes (with the exception of the H2 driver) when using the H2 Console.
 
-@advanced_1236_h2
+@advanced_1239_h2
 セキュリティプロトコル
 
-@advanced_1237_p
+@advanced_1240_p
 次の文章は、このデータベースで使用されている セキュリティプロトコルのドキュメントです。これらの記述は非常に専門的で、 根本的なセキュリティの基本をすでに知っているセキュリティ専門家のみを対象としています。
 
-@advanced_1238_h3
+@advanced_1241_h3
 ユーザーパスワードの暗号化
 
-@advanced_1239_p
+@advanced_1242_p
 ユーザーがデータベースに接続しようとする時、ユーザー名の組み合わせ、@、パスワードは SHA-256 を使用してハッシュ化され、このハッシュ値はデータベースに送信されます。 この手順は、クライアントとサーバー間の転送をアタッカーが聞ける (非暗号化できる) のであれば、 再使用する値からのアタッカーを試みることはありません。しかし、パスワードはクライアントとサーバー間で 暗号化されていない接続を使用している時でさえも、プレーンテキストで送信されることはありません これはもしユーザーが、異なる場面で同じパスワードを再利用しても、このパスワードはある程度まで保護されます。 詳細は"RFC 2617 - HTTP Authentication: Basic and Digest Access Authentication" もご覧下さい。
 
-@advanced_1240_p
+@advanced_1243_p
 新しいデータベース、またはユーザーが作られた時、暗号化された安全なランダムの 新しいsalt値が生成されます。salt値のサイズは 64 bit です。 ランダムなsaltを使用することによって、多数の異なった (通常、使用された) パスワードのハッシュ値を アタッカーに再計算されるリスクが軽減します。
 
-@advanced_1241_p
+@advanced_1244_p
 ユーザーパスワードのハッシュ値の組み合わせと (上記をご覧下さい) saltは SHA-256を使用してハッシュ化されます。 結果の値はデータベースに保存されます。ユーザーがデータベースに接続しようとする時、 データベースは、保存されたsalt値のユーザーパスワードのハッシュ値と計算されたハッシュ値を結合します。 他の製品は複数の反復 (ハッシュ値を繰り返しハッシュする) を使用していますが、 この製品ではサービス攻撃の拒絶 (アタッカーが偽のパスワードで接続しようとするところや、 サーバーがそれぞれのパスワードのハッシュ値を計算するのに長い時間費やすところ) のリスクを軽減するのに これは使用しません。理由は: もしアタッカーがハッシュ化されたパスワードにアクセスしたら、 プレーンテキストのデータにもアクセスできるため、パスワードはもはや必要ではなくなってしまいます。 もしデータが、保存されている他のコンピューターによって保護されていて、遠隔のみであるなら、 反復回数は全く必要とされません。
 
-@advanced_1242_h3
+@advanced_1245_h3
 ファイル暗号化
 
-@advanced_1243_p
+@advanced_1246_p
 データベースファイルは二つの異なるアルゴリズムを使用して、暗号化されます: AES-128 と XTEA です (32 ラウンドを使用)。 XTEAをサポートする理由はパフォーマンス (XTEAはAESのおよそ二倍の速さです) と、AESが突然壊れた場合、代わりとなるアルゴリズムを 持っているからです。
 
-@advanced_1244_p
+@advanced_1247_p
 ユーザーが暗号化されたデータベースに接続しようとした時、"file" という単語と、@と、 ファイルパスワードの組み合わせは、SHA-256を使用してハッシュ化されます。 このハッシュ値はサーバーに送信されます。
 
-@advanced_1245_p
+@advanced_1248_p
 新しいデータベースファイルが作られた時、暗号化された安全なランダムの新しいsalt値が生成されます。 このsaltのサイズは 64 bitです。ファイルパスワードのハッシュとsalt値の組み合わせは、 SHA-256を使用して1024回ハッシュ化されます。反復の理由は、アタッカーが通常のパスワードの ハッシュ値を計算するよりも困難にするためです。
 
-@advanced_1246_p
+@advanced_1249_p
 ハッシュ値の結果は、ブロック暗号アルゴリズム (AES-128、または 32ラウンドのXTEA) のためのキーとして 使用されます。その時、初期化ベクター (IV) キーは、再びSHA-256を使用してキーをハッシュ化することによって 計算されます。IVはアタッカーに知らないということを確認して下さい。秘密のIVを使用する理由は、 ウォーターマークアタック (電子透かし攻撃) を防御するためです。
 
-@advanced_1247_p
+@advanced_1250_p
 データのブロックを保存する前に (それぞれのブロックは 8 バイト長)、次のオペレーションを 実行します: 最初に、IVはIVキー (同じblock cipher algorithmを使用して) でブロックナンバーを 暗号化することによって計算されます。このIVはXORを使用してプレーンテキストと併用されます。 結果データはAES-128、またはXTEAアルゴリズムを使用して暗号化されます。
 
-@advanced_1248_p
+@advanced_1251_p
 復号化の時、オペレーションは反対に行われます。最初に、ブロックはキーを使用して復号化され、 その時、IVはXORを使用して復号化テキストと併用されます。
 
-@advanced_1249_p
+@advanced_1252_p
 その結果、オペレーションのブロック暗号モードはCBT (Cipher-block chaining) ですが、 それぞれの連鎖はたったひとつのブロック長です。ECB (Electronic codebook) モードに優る利点は、 データのパターンが明らかにされない点で、複数のブロックCBCに優る利点は、 はじき出された暗号テキストビットは次のブロックではじき出されたプレーンテキストビットに伝播されないという点です。
 
-@advanced_1250_p
+@advanced_1253_p
 データベース暗号化は、使用されていない間は (盗まれたノートパソコン等) 安全なデータベースだということを 意味します。これは、データベースが使用されている間に、アタッカーがファイルにアクセスしたというケースを 意味するのではありません。アタッカーが書き込みアクセスをした時、例えば、 彼はファイルの一部を古いバージョンに置き換え、データをこのように操ります。
 
-@advanced_1251_p
+@advanced_1254_p
 ファイル暗号化はデータベースエンジンのパフォーマンスを低速にします。非暗号化モードと比較すると、 データベースオペレーションは、XTEAを使用する時はおよそ2.2倍長くかかり、 AESを使用する時は2.5倍長くかかります (エンベッドモード)。
 
-@advanced_1252_h3
+@advanced_1255_h3
 #Wrong Password Delay
 
-@advanced_1253_p
+@advanced_1256_p
 #To protect against remote brute force password attacks, the delay after each unsuccessful login gets double as long. Use the system properties h2.delayWrongPasswordMin and h2.delayWrongPasswordMax to change the minimum (the default is 250 milliseconds) or maximum delay (the default is 4000 milliseconds, or 4 seconds). The delay only applies for those using the wrong password. Normally there is no delay for a user that knows the correct password, with one exception: after using the wrong password, there is a delay of up (randomly distributed) the same delay as for a wrong password. This is to protect against parallel brute force attacks, so that an attacker needs to wait for the whole delay. Delays are synchronized. This is also required to protect against parallel attacks.
 
-@advanced_1254_h3
+@advanced_1257_h3
 SSL/TLS 接続
 
-@advanced_1255_p
+@advanced_1258_p
 遠隔SSL/TLS接続は、Java Secure Socket Extension (SSLServerSocket / SSLSocket) の使用をサポートしています。デフォルトでは、匿名のSSLは使用可能です。デフォルトの暗号化パッケージソフトは SSL_DH_anon_WITH_RC4_128_MD5 です。
 
-@advanced_1256_p
+@advanced_1259_p
 #To use your own keystore, set the system properties <code>javax.net.ssl.keyStore</code> and <code>javax.net.ssl.keyStorePassword</code> before starting the H2 server and client. See also <a href="http://java.sun.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#CustomizingStores">Customizing the Default Key and Trust Stores, Store Types, and Store Passwords</a> for more information.
 
-@advanced_1257_p
+@advanced_1260_p
 #To disable anonymous SSL, set the system property <code>h2.enableAnonymousSSL</code> to false.
 
-@advanced_1258_h3
+@advanced_1261_h3
 HTTPS 接続
 
-@advanced_1259_p
+@advanced_1262_p
 webサーバーは、SSLServerSocketを使用したHTTP と HTTPS接続をサポートします。 簡単に開始できるように、デフォルトの自己認証された証明書がありますが、 カスタム証明書も同様にサポートされています。
 
-@advanced_1260_h2
+@advanced_1263_h2
 汎用一意識別子 (UUID)
 
-@advanced_1261_p
+@advanced_1264_p
 このデータベースはUUIDをサポートしています。 また、暗号化強力疑似乱数ジェネレーターを使用して新しいUUIDを作成する関数をサポートしています。 同じ値をもつ二つの無作為なUUIDが存在する可能性は、確率論を使用して計算されることができます。 "Birthday Paradox" もご覧下さい。標準化された無作為に生成されたUUIDは、122の無作為なビットを保持しています。 4ビットはバージョン(無作為に生成されたUUID) に、2ビットはバリアント (Leach-Salz) に使用されます。 このデータベースは組み込み関数 RANDOM_UUID() を使用してこのようなUUIDを生成することをサポートしています。 ここに、値の数字が生成された後、二つの 同一のUUIDが生じる可能性を見積もる小さなプログラムがあります:
 
-@advanced_1262_p
+@advanced_1265_p
 いくつかの値は:
 
-@advanced_1263_p
+@advanced_1266_p
 人の隕石に衝突するという年に一度の危険性は、170億に一回と見積もられ、それは、確率がおよそ 0.000'000'000'06 だということを意味しています。
 
-@advanced_1264_h2
+@advanced_1267_h2
 システムプロパティから読み込まれた設定
 
-@advanced_1265_p
+@advanced_1268_p
 いくつかのデータベースの設定は、-DpropertyName=value を使用してコマンドラインで設定することができます。 通常、これらの設定は手動で変更することは必要とされていません。設定は大文字と小文字を区別しています。 例:
 
-@advanced_1266_p
+@advanced_1269_p
 #The current value of the settings can be read in the table INFORMATION_SCHEMA.SETTINGS.
 
-@advanced_1267_p
+@advanced_1270_p
 #For a complete list of settings, see <a href="../javadoc/org/h2/constant/SysProperties.html">SysProperties</a> .
 
-@advanced_1268_h2
+@advanced_1271_h2
 #Setting the Server Bind Address
 
-@advanced_1269_p
+@advanced_1272_p
 #Usually server sockets accept connections on any/all local addresses. This may be a problem on multi-homed hosts. To bind only to one address, use the system property h2.bindAddress. This setting is used for both regular server sockets and for SSL server sockets. IPv4 and IPv6 address formats are supported.
 
-@advanced_1270_h2
+@advanced_1273_h2
 用語集とリンク
 
-@advanced_1271_th
+@advanced_1274_th
 用語
 
-@advanced_1272_th
+@advanced_1275_th
 説明
 
-@advanced_1273_td
+@advanced_1276_td
 AES-128
 
-@advanced_1274_td
+@advanced_1277_td
 ブロック暗号化アルゴリズム。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
 
-@advanced_1275_td
+@advanced_1278_td
 Birthday Paradox
 
-@advanced_1276_td
+@advanced_1279_td
 部屋にいる二人が同じ誕生日の可能性が期待された以上に高いということを説明する。 また、有効なランダムに生成されたUUID。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
 
-@advanced_1277_td
+@advanced_1280_td
 Digest
 
-@advanced_1278_td
+@advanced_1281_td
 パスワードを保護するプロトコル (データは保護しません)。こちらもご覧下さい:<a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
 
-@advanced_1279_td
+@advanced_1282_td
 GCJ
 
-@advanced_1280_td
+@advanced_1283_td
 JavaのGNUコンパイラー<a href="http://gcc.gnu.org/java/">http://gcc.gnu.org/java/</a> and <a href="http://nativej.mtsystems.ch">http://nativej.mtsystems.ch/ (not free any more)</a>
 
-@advanced_1281_td
+@advanced_1284_td
 HTTPS
 
-@advanced_1282_td
+@advanced_1285_td
 セキュリティをHTTP接続に提供するプロトコル。こちらもご覧下さい: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
 
-@advanced_1283_td
+@advanced_1286_td
 Modes of Operation
 
-@advanced_1284_a
+@advanced_1287_a
 Wikipedia: Block cipher modes of operation
 
-@advanced_1285_td
+@advanced_1288_td
 Salt
 
-@advanced_1286_td
+@advanced_1289_td
 パスワードのセキュリティを増大する乱数。こちらもご覧下さい: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
 
-@advanced_1287_td
+@advanced_1290_td
 SHA-256
 
-@advanced_1288_td
+@advanced_1291_td
 暗号化の一方方向のハッシュ関数。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
 
-@advanced_1289_td
+@advanced_1292_td
 SQLインジェクション
 
-@advanced_1290_td
+@advanced_1293_td
 組み込みのユーザー入力でアプリケーションがSQLステートメントを生成するセキュリティ脆弱性 こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
 
-@advanced_1291_td
+@advanced_1294_td
 Watermark Attack (透かし攻撃)
 
-@advanced_1292_td
+@advanced_1295_td
 復号化することなくあるデータの存在を証明できる、ある暗号化プログラムのセキュリティ問題。 詳細は、インターネットで "watermark attack cryptoloop" を検索して下さい。
 
-@advanced_1293_td
+@advanced_1296_td
 SSL/TLS
 
-@advanced_1294_td
+@advanced_1297_td
 Secure Sockets Layer / Transport Layer Security。こちらもご覧下さい: <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
 
-@advanced_1295_td
+@advanced_1298_td
 XTEA
 
-@advanced_1296_td
+@advanced_1299_td
 ブロック暗号化アルゴリズム。こちらもご覧下さい: <a href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
 
 @build_1000_h1
@@ -4201,381 +4210,387 @@ Sourceファイル
 #Extensions
 
 @links_1005_a
-#Spatial capabilities
+#H2Sharp
 
-@links_1006_h2
-#Blogs
+@links_1006_p
+#ADO.NET interface for the H2 database engine.
 
 @links_1007_a
-#H2 Database - Performance Tracing (2008-04-30)
+#Spatial capabilities
 
-@links_1008_a
-#Testing your JDBC data access layer with DBUnit and H2 (2007-09-18)
+@links_1008_h2
+#Blogs
 
 @links_1009_a
-#Open Source Databases Comparison (2007-09-11)
+#H2 Database - Performance Tracing (2008-04-30)
 
 @links_1010_a
-#The Codist: The Open Source Frameworks I Use (2007-07-23)
+#Testing your JDBC data access layer with DBUnit and H2 (2007-09-18)
 
 @links_1011_a
-#The Codist:  SQL Injections: How Not To Get Stuck (2007-05-08)
+#Open Source Databases Comparison (2007-09-11)
 
 @links_1012_a
-#One Man Band: (Helma + H2) == "to easy" (2007-03-11)
+#The Codist: The Open Source Frameworks I Use (2007-07-23)
 
 @links_1013_a
-#David Coldrick's Weblog: New Version of H2 Database Released (2007-01-06)
+#The Codist:  SQL Injections: How Not To Get Stuck (2007-05-08)
 
 @links_1014_a
-#The Codist: Write Your Own Database, Again (2006-11-13)
+#One Man Band: (Helma + H2) == "to easy" (2007-03-11)
 
-@links_1015_h2
-#Project Pages
+@links_1015_a
+#David Coldrick's Weblog: New Version of H2 Database Released (2007-01-06)
 
 @links_1016_a
-#Ohloh
+#The Codist: Write Your Own Database, Again (2006-11-13)
 
-@links_1017_a
-#Freshmeat Project Page
+@links_1017_h2
+#Project Pages
 
 @links_1018_a
-#Wikipedia
+#Ohloh
 
 @links_1019_a
-#OSZone
+#Freshmeat Project Page
 
 @links_1020_a
-#Java Source Net
+#Wikipedia
 
 @links_1021_a
-#Linux Package Manager
+#OSZone
 
-@links_1022_h2
-#Products and Projects
+@links_1022_a
+#Java Source Net
 
 @links_1023_a
-#Apache Cayenne
+#Linux Package Manager
 
-@links_1024_p
-#Open source persistence framework providing object-relational mapping (ORM) and remoting services.
+@links_1024_h2
+#Products and Projects
 
 @links_1025_a
-#Apache Jackrabbit
+#Apache Cayenne
 
 @links_1026_p
-#Open source implementation of the Java Content Repository API (JCR).
+#Open source persistence framework providing object-relational mapping (ORM) and remoting services.
 
 @links_1027_a
-#Apache OpenJPA
+#Apache Jackrabbit
 
 @links_1028_p
-#Open source implementation of the Java Persistence API (JPA).
+#Open source implementation of the Java Content Repository API (JCR).
 
 @links_1029_a
-#AppFuse
+#Apache OpenJPA
 
 @links_1030_p
-#Helps building web applications.
+#Open source implementation of the Java Persistence API (JPA).
 
 @links_1031_a
-#Blojsom
+#AppFuse
 
 @links_1032_p
-#Java-based multi-blog, multi-user software package (Mac OS X Weblog Server).
+#Helps building web applications.
 
 @links_1033_a
-#Bookmarks Portlet
+#Blojsom
 
 @links_1034_p
-#JSR 168 compliant bookmarks management portlet application.
+#Java-based multi-blog, multi-user software package (Mac OS X Weblog Server).
 
 @links_1035_a
-#Claros inTouch
+#Bookmarks Portlet
 
 @links_1036_p
-#Ajax communication suite with mail, addresses, notes, IM, and rss reader.
+#JSR 168 compliant bookmarks management portlet application.
 
 @links_1037_a
-#CrashPlan PRO Server
+#Claros inTouch
 
 @links_1038_p
-#Easy and cross platform backup solution for business and service providers.
+#Ajax communication suite with mail, addresses, notes, IM, and rss reader.
 
 @links_1039_a
-#DB Solo
+#CrashPlan PRO Server
 
 @links_1040_p
-#SQL query tool.
+#Easy and cross platform backup solution for business and service providers.
 
 @links_1041_a
-#DbVisualizer
+#DB Solo
 
 @links_1042_p
-#Database tool.
+#SQL query tool.
 
 @links_1043_a
-#Execute Query
+#DbVisualizer
 
 @links_1044_p
-#Database utility written in Java.
+#Database tool.
 
 @links_1045_a
-#Flux
+#Execute Query
 
 @links_1046_p
-#Java job scheduler, file transfer, workflow, and BPM.
+#Database utility written in Java.
 
 @links_1047_a
-#Golden T Studios
+#Flux
 
 @links_1048_p
-#Fun-to-play games with a simple interface.
+#Java job scheduler, file transfer, workflow, and BPM.
 
 @links_1049_a
-#Group Session
+#Golden T Studios
 
 @links_1050_p
-#Open source web groupware.
+#Fun-to-play games with a simple interface.
 
 @links_1051_a
-#HA-JDBC
+#Group Session
 
 @links_1052_p
-#High-Availability JDBC: A JDBC proxy that provides light-weight, transparent, fault tolerant clustering capability to any underlying JDBC driver.
+#Open source web groupware.
 
 @links_1053_a
-#HenPlus
+#HA-JDBC
 
 @links_1054_p
-#HenPlus is a SQL shell written in Java.
+#High-Availability JDBC: A JDBC proxy that provides light-weight, transparent, fault tolerant clustering capability to any underlying JDBC driver.
 
 @links_1055_a
-#Hibernate
+#HenPlus
 
 @links_1056_p
-#Relational persistence for idiomatic Java (O-R mapping tool).
+#HenPlus is a SQL shell written in Java.
 
 @links_1057_a
-#Hibicius
+#Hibernate
 
 @links_1058_p
-#Online Banking Client for the HBCI protocol.
+#Relational persistence for idiomatic Java (O-R mapping tool).
 
 @links_1059_a
-#H2 Spatial
+#Hibicius
 
 @links_1060_p
-#A project to add spatial functions to H2 database.
+#Online Banking Client for the HBCI protocol.
 
 @links_1061_a
-#JAMWiki
+#H2 Spatial
 
 @links_1062_p
-#Java-based Wiki engine.
+#A project to add spatial functions to H2 database.
 
 @links_1063_a
-#Jala
+#JAMWiki
 
 @links_1064_p
-#Open source collection of JavaScript modules.
+#Java-based Wiki engine.
 
 @links_1065_a
-#JavaPlayer
+#Jala
 
 @links_1066_p
-#Pure Java MP3 player.
+#Open source collection of JavaScript modules.
 
 @links_1067_a
-#JMatter
+#JavaPlayer
 
 @links_1068_p
-#Framework for constructing workgroup business applications based on the Naked Objects Architectural Pattern.
+#Pure Java MP3 player.
 
 @links_1069_a
-#JPOX
+#JMatter
 
 @links_1070_p
-#Java persistent objects.
+#Framework for constructing workgroup business applications based on the Naked Objects Architectural Pattern.
 
 @links_1071_a
-#Liftweb
+#JPOX
 
 @links_1072_p
-#A Scala-based, secure, developer friendly web framework.
+#Java persistent objects.
 
 @links_1073_a
-#LiquiBase
+#Liftweb
 
 @links_1074_p
-#A tool to manage database changes and refactorings.
+#A Scala-based, secure, developer friendly web framework.
 
 @links_1075_a
-#Luntbuild
+#LiquiBase
 
 @links_1076_p
-#Build automation and management tool.
+#A tool to manage database changes and refactorings.
 
 @links_1077_a
-#MiniConnectionPoolManager
+#Luntbuild
 
 @links_1078_p
-#A lightweight standalone JDBC connection pool manager.
+#Build automation and management tool.
 
 @links_1079_a
-#Mr. Persister
+#MiniConnectionPoolManager
 
 @links_1080_p
-#Simple, small and fast object relational mapping.
+#A lightweight standalone JDBC connection pool manager.
 
 @links_1081_a
-#Myna Application Server
+#Mr. Persister
 
 @links_1082_p
-#Java web app that provides dynamic web content and Java libraries access from JavaScript.
+#Simple, small and fast object relational mapping.
 
 @links_1083_a
-#MyTunesRss
+#Myna Application Server
 
 @links_1084_p
-#MyTunesRSS lets you listen to your music wherever you are.
+#Java web app that provides dynamic web content and Java libraries access from JavaScript.
 
 @links_1085_a
-#NCGC CurveFit
+#MyTunesRss
 
 @links_1086_p
-#From: NIH Chemical Genomics Center, National Institutes of Health, USA. An open source application in the life sciences research field. This application handles chemical structures and biological responses of thousands of compounds with the potential to handle million+ compounds. It utilizes an embedded H2 database to enable flexible query/retrieval of all data including advanced chemical substructure and similarity searching. The application highlights an automated curve fitting and classification algorithm that outperforms commercial packages in the field. Commercial alternatives are typically small desktop software that handle a few dose response curves at a time. A couple of commercial packages that do handle several thousand curves are very expensive tools (&gt;60k USD) that require manual curation of analysis by the user; require a license to Oracle; lack advanced query/retrieval; and the ability to handle chemical structures.
+#MyTunesRSS lets you listen to your music wherever you are.
 
 @links_1087_a
-#Orion
+#NCGC CurveFit
 
 @links_1088_p
-#J2EE Application Server.
+#From: NIH Chemical Genomics Center, National Institutes of Health, USA. An open source application in the life sciences research field. This application handles chemical structures and biological responses of thousands of compounds with the potential to handle million+ compounds. It utilizes an embedded H2 database to enable flexible query/retrieval of all data including advanced chemical substructure and similarity searching. The application highlights an automated curve fitting and classification algorithm that outperforms commercial packages in the field. Commercial alternatives are typically small desktop software that handle a few dose response curves at a time. A couple of commercial packages that do handle several thousand curves are very expensive tools (&gt;60k USD) that require manual curation of analysis by the user; require a license to Oracle; lack advanced query/retrieval; and the ability to handle chemical structures.
 
 @links_1089_a
-#P5H2
+#Orion
 
 @links_1090_p
-#A library for the <a href="http://www.processing.org">Processing</a> programming language and environment.
+#J2EE Application Server.
 
 @links_1091_a
-#Phase-6
+#P5H2
 
 @links_1092_p
-#A computer based learning software.
+#A library for the <a href="http://www.processing.org">Processing</a> programming language and environment.
 
 @links_1093_a
-#Pickle
+#Phase-6
 
 @links_1094_p
-#Pickle is a Java library containing classes for persistence, concurrency, and logging.
+#A computer based learning software.
 
 @links_1095_a
-#PolePosition
+#Pickle
 
 @links_1096_p
-#Open source database benchmark.
+#Pickle is a Java library containing classes for persistence, concurrency, and logging.
 
 @links_1097_a
-#Scriptella
+#PolePosition
 
 @links_1098_p
-#ETL (Extract-Transform-Load) and script execution tool.
+#Open source database benchmark.
 
 @links_1099_a
-#Sesar
+#Scriptella
 
 @links_1100_p
-#Dependency Injection Container with Aspect Oriented Programming.
+#ETL (Extract-Transform-Load) and script execution tool.
 
 @links_1101_a
-#SemmleCode
+#Sesar
 
 @links_1102_p
-#Eclipse plugin to help you improve software quality.
+#Dependency Injection Container with Aspect Oriented Programming.
 
 @links_1103_a
-#Shellbook
+#SemmleCode
 
 @links_1104_p
-#Desktop publishing application.
+#Eclipse plugin to help you improve software quality.
 
 @links_1105_a
-#Signsoft intelliBO
+#Shellbook
 
 @links_1106_p
-#Persistence middleware supporting the JDO specification.
+#Desktop publishing application.
 
 @links_1107_a
-#SmartFoxServer
+#Signsoft intelliBO
 
 @links_1108_p
-#Platform for developing multiuser applications and games with Macromedia Flash.
+#Persistence middleware supporting the JDO specification.
 
 @links_1109_a
-#SQL Developer
+#SmartFoxServer
 
 @links_1110_p
-#Universal Database Frontend.
+#Platform for developing multiuser applications and games with Macromedia Flash.
 
 @links_1111_a
-#SQL Workbench/J
+#SQL Developer
 
 @links_1112_p
-#Free DBMS-independent SQL tool.
+#Universal Database Frontend.
 
 @links_1113_a
-#SQuirreL SQL Client
+#SQL Workbench/J
 
 @links_1114_p
-#Graphical tool to view the structure of a database, browse the data, issue SQL commands etc.
+#Free DBMS-independent SQL tool.
 
 @links_1115_a
-#SQuirreL DB Copy Plugin
+#SQuirreL SQL Client
 
 @links_1116_p
-#Tool to copy data from one database to another.
+#Graphical tool to view the structure of a database, browse the data, issue SQL commands etc.
 
 @links_1117_a
-#StorYBook
+#SQuirreL DB Copy Plugin
 
 @links_1118_p
-#A summary-based tool for novelist and script writers. It helps to keep the overview over the various traces a story has.
+#Tool to copy data from one database to another.
 
 @links_1119_a
-#StreamCruncher
+#StorYBook
 
 @links_1120_p
-#Event (stream) processing kernel.
+#A summary-based tool for novelist and script writers. It helps to keep the overview over the various traces a story has.
 
 @links_1121_a
-#Tamava
+#StreamCruncher
 
 @links_1122_p
-#Newsgroups Reader.
+#Event (stream) processing kernel.
 
 @links_1123_a
-#Tune Backup
+#Tamava
 
 @links_1124_p
-#Easy-to-use backup solution for your iTunes library.
+#Newsgroups Reader.
 
 @links_1125_a
-#Web of Web
+#Tune Backup
 
 @links_1126_p
-#Collaborative and realtime interactive media platform for the web.
+#Easy-to-use backup solution for your iTunes library.
 
 @links_1127_a
-#Werkzeugkasten
+#Web of Web
 
 @links_1128_p
-#Minimum Java Toolset.
+#Collaborative and realtime interactive media platform for the web.
 
 @links_1129_a
-#Volunteer database
+#Werkzeugkasten
 
 @links_1130_p
+#Minimum Java Toolset.
+
+@links_1131_a
+#Volunteer database
+
+@links_1132_p
 #A database front end to register volunteers, partnership and donation for a Non Profit organization.
 
 @mainWeb_1000_h1
@@ -7361,342 +7376,894 @@ TCPサーバーは他の過程から終了することができます。 コマ�
 @tutorial_1088_p
 この機能はサーバー上の System.exit を呼んでいます。この機能は、データベースが次回起動された時のリカバリーを回避するため、データベースへの全ての接続が切断された後に呼ばれます。リモートサーバーを終了するには、サーバー上でリモート接続が可能である必要があります。
 
-@tutorial_1089_h3
-サーバーの制限
-
-@tutorial_1090_p
-現在、サーバーやクラスターモードを使用する時にいくつかの制限があります:
-
-@tutorial_1091_li
-Statement.cancel() はエンベッドモードのみサポートされています。接続はサーバー、またはクラスターモードで1度にひとつのオペレーションで実行され、 このオペレーションが終了するまで接続は遮断されます。
-
-@tutorial_1092_h2
+@tutorial_1089_h2
 Hibernateを使用する
 
-@tutorial_1093_p
+@tutorial_1090_p
 このデータベースはHibernate version 3.1 と以降の新しいバージョンをサポートしています。 HSQLDB Dialect、または H2 Dialectは src/tools/org/h2/tools/hibernate/H2Dialect.txt ファイル内で使用可能です。 H2 dialectは Hibernateのより新しいバージョンに含まれています。H2 dialectが含まれていないバージョンでは、 src\org\hibernate\dialect (Hibernate 3.1の場合) フォルダ内のファイルをコピーし、 H2Dialect.java にファイル名を変更し、 Hibernateを再びコンパイルします。
 
-@tutorial_1094_h2
+@tutorial_1091_h2
 Webアプリケーションで データベースを使用する
 
-@tutorial_1095_p
+@tutorial_1092_p
 Webアプリケーション内からデータベースに接続するには様々な方法があります。 以下はTomcatかJBossを使用の場合のいくつかの例です。
 
-@tutorial_1096_h3
+@tutorial_1093_h3
 エンベッドモード
 
-@tutorial_1097_p
+@tutorial_1094_p
 (現在)最も簡単なソリューションはエンベッドモードでデータベースを使用することです。 それは、アプリケーションが起動する時や (良いソリューションは Servletリスナーを使用します。下記参照)、セッションが起動する時、アプリケーションにおける接続が開始するということを意味します。データベースは、セッションやアプリケーションが同じ過程で実行している限り、多様なセッションやアプリケーションから同時に接続されることが可能です。 多くのServletコンテナは (例； Tomcat) ただひとつのプロセスで利用されるので、問題はありません。 (Tomcatをクラスターモードで起動している場合を除いて)。 Tomcatはマルチスレッドとマルチクラスローダーを使用しています。もし複数のアプリケーションが同じデータベースに同時にアクセスする場合、データベースjarをshared/lib、またはserver/libディレクトリに置く必要があります。 webアプリケーションが起動した時にデータベースを開き、webアプリケーションが終了した時にデータベースを閉じるのが良い方法です。もし複数のアプリケーションを使用する場合、そのうちひとつのアプリケーションをこのように動作することが必要です。アプリケーションでは、セッションごとにひとつの接続を使うか、リクエスト(アクション)ごとにひとつの接続を使うという概念があります。これらの接続はできる限り、使用後に終了させます(しかし、終了させなくても悪くはありません)。
 
-@tutorial_1098_h3
+@tutorial_1095_h3
 サーバーモード
 
-@tutorial_1099_p
+@tutorial_1096_p
 サーバーモードは類似していますが、他のプロセスでサーバーを起動させることを許可しています。
 
-@tutorial_1100_h3
+@tutorial_1097_h3
 データベースの起動と終了にServletリスナーを使用する
 
-@tutorial_1101_p
+@tutorial_1098_p
 以下を web.xmlファイルに追記して下さい。 (context-paramとfilterの間):
 
-@tutorial_1102_p
+@tutorial_1099_p
 データベースへのアクセス方法についての詳細は、DbStarter.javaコードをご覧下さい。
 
-@tutorial_1103_h2
+@tutorial_1100_h2
 CSV (Comma Separated Values) サポート
 
-@tutorial_1104_p
+@tutorial_1101_p
 データベースにCSVREADとCSVWRITEの関数を使用することで、 CSVファイルサポートを使用することができ、スタンドアロンツールとしてデータベースの外でCSVライブラリを使用することができます。
 
-@tutorial_1105_h3
+@tutorial_1102_h3
 データベース内からCSVファイルに書き込む
 
-@tutorial_1106_p
+@tutorial_1103_p
 クエリからCSVファイルを作成するのに、組込み関数 CSVWRITEを使用することができます。例:
 
-@tutorial_1107_h3
+@tutorial_1104_h3
 データベース内からCSVファイルを読み込む
 
-@tutorial_1108_p
+@tutorial_1105_p
 CSVREAD関数を使用してCSVファイルを読み込むことができます。 例:
 
-@tutorial_1109_h3
+@tutorial_1106_h3
 JavaアプリケーションからCSVファイルに書き込む
 
-@tutorial_1110_p
+@tutorial_1107_p
 データベースを全く使用しなくても、JavaアプリケーションでCSVツールを使用することができます。 例:
 
-@tutorial_1111_h3
+@tutorial_1108_h3
 JavaアプリケーションからCSVファイルを読み込む
 
-@tutorial_1112_p
+@tutorial_1109_p
 データベースを開かなくてもCSVファイルを読み込むことができます。 例:
 
-@tutorial_1113_h2
+@tutorial_1110_h2
 アップグレード、 バックアップ、修復
 
-@tutorial_1114_h3
+@tutorial_1111_h3
 データベースのアップグレー
 
-@tutorial_1115_p
+@tutorial_1112_p
 あるバージョンのデータベースエンジンを次のバージョンにアップグレードする際の推奨する方法は、 古いエンジンを使って(SQLスクリプトのフォームでの)データベースのバックアップを作成し、新しいエンジンを使ってSQLスクリプトを実行します。
 
-@tutorial_1116_h3
+@tutorial_1113_h3
 バックアップ
 
-@tutorial_1117_p
+@tutorial_1114_p
 異なった方法のデータベースのバックアップがあります。例えば、データベースファイルをコピーすることが可能です。しかしながら、この方法はデータベースが使用されている間は推奨しません。データベースは人が判読しやすく、極めて大きいというわけではありません。データベースバックアップの推奨する方法は、圧縮したSQLスクリプトを作成することです。この方法は、バックアップツールを使用することで可能です:
 
-@tutorial_1118_p
+@tutorial_1115_p
 オプションについての情報は、SQLコマンドスクリプトをご覧下さい。バックアップは遠隔で行えますが、ファイルはサーバー側に作られます。サーバーからファイルを取るのに、ビルトインFTPサーバーを使用することができます。データベースのバックアップを作るのに、SQLコマンドスクリプトを 使用することもできます。
 
-@tutorial_1119_h3
+@tutorial_1116_h3
 修復
 
-@tutorial_1120_p
+@tutorial_1117_p
 SQLスクリプトファイルからデータベースを修復するには、RunScriptツールを使用する必要があります:
 
-@tutorial_1121_p
+@tutorial_1118_p
 オプションについての情報は、SQLコマンド RUNSCRIPTをご覧下さい。修復は遠隔で行えますが、サーバー側にファイルが存在する必要があります。サーバーからファイルをコピーするのに、ビルトインFTPサーバーを使用することができます。SQLスクリプトを実行するために、 SQLコマンド RUNSCRIPTを使用することができます。SQLスクリプトファイルには、RUNSCRIPTコマンドのフォーム内に他のスクリプトファイルのリファレンスが含まれています。しかしながら、サーバーモードを使用している時、リファレンススクリプトファイルはサーバー側で利用可能であることが必要です。
 
-@tutorial_1122_h3
+@tutorial_1119_h3
 オンラインバックアップ
 
-@tutorial_1123_p
+@tutorial_1120_p
 BACKUP SQLステートメントとバックアップツールの両方が全てのデータベースファイルをzipファイル形式で作成します。しかし、このファイルのコンテンツは人間が解読可能なものではありません。SCRIPTステートメントを除いて、BACKUPステートメントはデータベースオブジェクトをロックしないため、他のユーザーをブロックしません。結果として、バックアップは一貫性のあるトランザクションです:
 
-@tutorial_1124_p
+@tutorial_1121_p
 バックアップツール (org.h2.tools.Backup) はオンラインバックアップを作成するために利用されません; このプログラムが実行されている間、データベースは使用されてはいけません。
 
-@tutorial_1125_h2
+@tutorial_1122_h2
 #Command Line Tools
 
-@tutorial_1126_p
+@tutorial_1123_p
 #This database comes with a number of command line tools. To get more information about a tool, start it with the parameter '-?', for example:
 
-@tutorial_1127_p
+@tutorial_1124_p
 #The command line tools are:
 
-@tutorial_1128_b
+@tutorial_1125_b
 バックアップ
 
-@tutorial_1129_li
+@tutorial_1126_li
 #creates a backup of a database.
 
-@tutorial_1130_b
+@tutorial_1127_b
 #ChangePassword
 
-@tutorial_1131_li
+@tutorial_1128_li
 #allows changing the file password of a database.
 
-@tutorial_1132_b
+@tutorial_1129_b
 #Console
 
-@tutorial_1133_li
+@tutorial_1130_li
 #starts the browser based H2 Console.
 
-@tutorial_1134_b
+@tutorial_1131_b
 #ConvertTraceFile
 
-@tutorial_1135_li
+@tutorial_1132_li
 #converts a .trace.db file to a Java application and SQL script.
 
-@tutorial_1136_b
+@tutorial_1133_b
 #CreateCluster
 
-@tutorial_1137_li
+@tutorial_1134_li
 #creates a cluster from a standalone database.
 
-@tutorial_1138_b
+@tutorial_1135_b
 #DeleteDbFiles
 
-@tutorial_1139_li
+@tutorial_1136_li
 #deletes all files belonging to a database.
 
-@tutorial_1140_b
+@tutorial_1137_b
 #Script
 
-@tutorial_1141_li
+@tutorial_1138_li
 #allows converting a database to a SQL script for backup or migration.
 
-@tutorial_1142_b
+@tutorial_1139_b
 #Recover
 
-@tutorial_1143_li
+@tutorial_1140_li
 #helps recovering a corrupted database.
 
-@tutorial_1144_b
+@tutorial_1141_b
 #Restore
 
-@tutorial_1145_li
+@tutorial_1142_li
 #restores a backup of a database.
 
-@tutorial_1146_b
+@tutorial_1143_b
 #RunScript
 
-@tutorial_1147_li
+@tutorial_1144_li
 #runs a SQL script against a database.
 
-@tutorial_1148_b
+@tutorial_1145_b
 Server
 
-@tutorial_1149_li
+@tutorial_1146_li
 #is used in the server mode to start a H2 server.
 
-@tutorial_1150_b
+@tutorial_1147_b
 #Shell
 
-@tutorial_1151_li
+@tutorial_1148_li
 #is a command line database tool.
 
-@tutorial_1152_p
+@tutorial_1149_p
 #The tools can also be called from an application by calling the main or another public methods. For details, see the Javadoc documentation.
 
-@tutorial_1153_h2
+@tutorial_1150_h2
 OpenOffice Baseを使用する
 
-@tutorial_1154_p
+@tutorial_1151_p
 OpenOffice.org Base はJDBC API上のデータベースアクセスをサポートしています。 OpenOffice Baseを使ってH2データベースに接続するためには、最初にOpenOfficeにJDBCドライバを追加する必要があります。H2データベースに接続する手順:
 
-@tutorial_1155_li
+@tutorial_1152_li
 #Start OpenOffice Writer, go to [Tools], [Options]
 
-@tutorial_1156_li
+@tutorial_1153_li
 #Make sure you have selected a Java runtime environment in OpenOffice.org / Java
 
-@tutorial_1157_li
+@tutorial_1154_li
 #Click [Class Path...], [Add Archive...]
 
-@tutorial_1158_li
+@tutorial_1155_li
 #Select your h2.jar (location is up to you, could be wherever you choose)
 
-@tutorial_1159_li
+@tutorial_1156_li
 #Click [OK] (as much as needed), stop OpenOffice (including the Quickstarter)
 
-@tutorial_1160_li
+@tutorial_1157_li
 OpenOffice Base を起動する
 
-@tutorial_1161_li
+@tutorial_1158_li
 存在するデータベースに接続し、JDBCを選択し、[Next] をクリックする
 
-@tutorial_1162_li
+@tutorial_1159_li
 #Example datasource URL: jdbc:h2:~/test
 
-@tutorial_1163_li
+@tutorial_1160_li
 JDBCドライバクラス: org.h2.Driver
 
-@tutorial_1164_p
+@tutorial_1161_p
 #Now you can access the database stored in the current users home directory.
 
-@tutorial_1165_p
+@tutorial_1162_p
 #To use H2 in NeoOffice (OpenOffice without X11):
 
-@tutorial_1166_li
+@tutorial_1163_li
 #In NeoOffice, go to [NeoOffice], [Preferences]
 
-@tutorial_1167_li
+@tutorial_1164_li
 #Look for the page under [NeoOffice], [Java]
 
-@tutorial_1168_li
+@tutorial_1165_li
 #Click [Classpath], [Add Archive...]
 
-@tutorial_1169_li
+@tutorial_1166_li
 #Select your h2.jar (location is up to you, could be wherever you choose)
 
-@tutorial_1170_li
+@tutorial_1167_li
 #Click [OK] (as much as needed), restart NeoOffice.
 
-@tutorial_1171_p
+@tutorial_1168_p
 #Now, when creating a new database using the "Database Wizard":
 
-@tutorial_1172_li
+@tutorial_1169_li
 #Select "connect to existing database" and the type "jdbc". Click next.
 
-@tutorial_1173_li
+@tutorial_1170_li
 #Enter your h2 database URL. The normal behavior of H2 is that a new db is created if it doesn't exist.
 
-@tutorial_1174_li
+@tutorial_1171_li
 #Next step - up to you... you can just click finish and start working.
 
-@tutorial_1175_p
+@tutorial_1172_p
 #Another solution to use H2 in NeoOffice is:
 
-@tutorial_1176_li
+@tutorial_1173_li
 #Package the h2 jar within an extension package
 
-@tutorial_1177_li
+@tutorial_1174_li
 #Install it as a Java extension in NeoOffice
 
-@tutorial_1178_p
+@tutorial_1175_p
 #This can be done by create it using the NetBeans OpenOffice plugin. See also <a href="http://wiki.services.openoffice.org/wiki/Extensions_development_java">Extensions Development</a> .
 
-@tutorial_1179_h2
+@tutorial_1176_h2
 Java Web Start / JNLP
 
-@tutorial_1180_p
+@tutorial_1177_p
 Java Web Start / JNLP (Java Network Launch Protocol) を使用している時、パーミッションタグは.jnlp ファイルに設定され、application.jarファイルは署名されていなければなりません。そうでなければ、ファイルシステムに書き込もうとした時、次の例外が発生するでしょう: java.security.AccessControlException: access denied (java.io.FilePermission ... read) パーミッションタグの例:
 
-@tutorial_1181_h2
+@tutorial_1178_h2
 #Using a Connection Pool
 
-@tutorial_1182_p
+@tutorial_1179_p
 #For many databases, opening a connection is slow, and it is a good idea to use a connection pool to re-use connections. For H2 however opening a connection usually is fast if the database is already open. Using a connection pool for H2 actually slows down the process a bit, except if file encryption is used (in this case opening a connection is about half as fast as using a connection pool). A simple connection pool is included in H2. It is based on the <a href="http://www.source-code.biz/snippets/java/8.htm">Mini Connection Pool Manager</a> from Christian d'Heureuse. There are other, more complex connection pools available, for example <a href="http://jakarta.apache.org/commons/dbcp/">DBCP</a> . The build-in connection pool is used as follows:
 
-@tutorial_1183_h2
+@tutorial_1180_h2
 フルテキストサーチ
 
-@tutorial_1184_p
+@tutorial_1181_p
 H2はLuceneフルテキストサーチとnativeフルテキストサーチの実装をサポートしています。
 
-@tutorial_1185_h3
+@tutorial_1182_h3
 Nativeフルテキストサーチを使用する
 
-@tutorial_1186_p
+@tutorial_1183_p
 初期化するには、次を呼び出します:
 
-@tutorial_1187_p
+@tutorial_1184_p
 #You need to initialize it in each database where you want to use it. Afterwards, you can create a full text index for a table using:
 
-@tutorial_1188_p
+@tutorial_1185_p
 PUBLICはスキーマ、TESTはテーブル名です。カラム名のリスト (分離されたカラム) はオプションです。このケースでは、全てのカラムがインデックスです。インデックスはリードタイムに更新されます。インデックスを検索するには、次のクエリーを使用します:
 
-@tutorial_1189_p
+@tutorial_1186_p
 Javaアプリケーション内からインデックスを呼び出すことも可能です:
 
-@tutorial_1190_h3
+@tutorial_1187_h3
 Luceneフルテキストサーチを使用する
 
-@tutorial_1191_p
+@tutorial_1188_p
 #To use the Lucene full text search, you need the Lucene library in the classpath. How his is done depends on the application; if you use the H2 Console, you can add the Lucene jar file to the environment variables H2DRIVERS or CLASSPATH. To initialize the Lucene full text search in a database, call:
 
-@tutorial_1192_p
+@tutorial_1189_p
 #You need to initialize it in each database where you want to use it. Afterwards, you can create a full text index for a table using:
 
-@tutorial_1193_p
+@tutorial_1190_p
 PUBLICはスキーマ、TESTはテーブル名です。カラム名のリスト (分離されたカラム) はオプションです。このケースでは、全てのカラムがインデックスです。インデックスはリードタイムに更新されます。インデックスを検索するには、次のクエリーを使用します:
 
-@tutorial_1194_p
+@tutorial_1191_p
 Javaアプリケーション内からインデックスを呼び出すことも可能です:
 
-@tutorial_1195_h2
+@tutorial_1192_h2
 #User-Defined Variables
 
-@tutorial_1196_p
+@tutorial_1193_p
 #This database supports user-defined variables. Variables start with @ and can be used wherever expressions or parameters are used. Variables not persisted and session scoped, that means only visible for the session where they are defined. A value is usually assigned using the SET command:
 
-@tutorial_1197_p
+@tutorial_1194_p
 #It is also possible to change a value using the SET() method. This is useful in queries:
 
-@tutorial_1198_p
+@tutorial_1195_p
 #Variables that are not set evaluate to NULL. The data type of a user-defined variable is the data type of the value assigned to it, that means it is not necessary (or possible) to declare variable names before using them. There are no restrictions on the assigned values; large objects (LOBs) are supported as well.
 
-@tutorial_1199_h2
+@tutorial_1196_h2
 #Date and Time
 
-@tutorial_1200_p
+@tutorial_1197_p
 #Date, time and timestamp values support ISO 8601 formatting, including time zone:
 
-@tutorial_1201_p
+@tutorial_1198_p
+#If the time zone is not set, the value is parsed using the current time zone setting of the system. Date and time information is stored in H2 database files in GMT (Greenwich Mean Time). If the database is opened using another system time zone, the date and time will change accordingly. If you want to move a database from one time zone to the other and don't want this to happen, you need to create a SQL script file using the SCRIPT command or Script tool, and then load the database using the RUNSCRIPT command or the RunScript tool in the new time zone.
+
+@~advanced_1164_li
+#Install the .NET Framework from <a href="http://www.microsoft.com">Microsoft</a> .  Mono has not yet been tested.
+
+@~advanced_1165_li
+#Install <a href="http://www.ikvm.net">IKVM.NET</a> .
+
+@~advanced_1166_li
+#Copy the h2.jar file to ikvm/bin
+
+@~advanced_1170_p
+#If you want your C# application use H2, you need to add the h2.dll and the IKVM.OpenJDK.ClassLibrary.dll to your C# solution. Here some sample code:
+
+@~advanced_1171_h2
+ACID
+
+@~advanced_1172_p
+データベースの世界では、ACIDとは以下を表しています:
+
+@~advanced_1173_li
+Atomicity (原子性) : トランザクションはアトミックでなければならず、全てのタスクが実行されたか、実行されないかの どちらかであるという意味です。
+
+@~advanced_1174_li
+Consistency (一貫性) : 全てのオペレーションは定義された制約に従わなくてはいけません。
+
+@~advanced_1175_li
+Isolation (独立性 / 分離性) : トランザクションはそれぞれ独立 (隔離) されていなくてはなりません。
+
+@~advanced_1177_h3
+Atomicity (原子性)
+
+@~advanced_1178_p
+このデータベースでのトランザクションは常にアトミックです。
+
+@~advanced_1179_h3
+Consistency (一貫性)
+
+@~advanced_1180_p
+このデータベースは常に一貫性のある状態です。 参照整合性のルールは常に実行されます。
+
+@~advanced_1181_h3
+Isolation (独立性 / 分離性)
+
+@~advanced_1182_p
+H2は、他の多くのデータベースシステムと同様に、デフォルトの分離レベルは "read committed" です。これはより良いパフォーマンスを提供しますが、トランザクションは完全に分離されていないということも意味します。H2はトランザクション分離レベル "serializable"、"read committed"、"read uncommitted" をサポートしています。
+
+@~advanced_1183_h3
+Durability (永続性)
+
+@~advanced_1184_p
+このデータベースは、全てのコミットされたトランザクションが電源異常に耐えられるということを保証しません。全てのデータベースが電源異常の状況において、一部トランザクションが失われるということをテストは示しています (詳細は下記をご覧下さい)。トランザクションが失われることを容認できない場面では、ノートパソコン、またはUPS (無停電電源装置) を使用します。永続性がハードウェア異常の起こり得る全ての可能性に対して必要とされるのであれば、H2クラスタリングモードのようなクラスタリングが使用されるべきです。
+
+@~advanced_1185_h2
+永続性問題
+
+@~advanced_1186_p
+完全な永続性とは、全てのコミットされたトランザクションは電源異常に耐えられる、ということを意味します。 いくつかのデータベースは、永続性を保証すると主張していますが、このような主張は誤っています。 永続性テストはH2、HSQLDB、PostgreSQL、Derbyに対して実行されました。これらの全てのデータベースは、 時々コミットされたトランザクションを失います。このテストはH2ダウンロードに含まれています。 org.h2.test.poweroff.Test をご覧下さい。
+
+@~advanced_1187_h3
+永続性を実現する (しない) 方法
+
+@~advanced_1188_p
+失われなかったコミット済みトランザクションは、最初に思うよりもより複雑だということを理解して下さい。 完全な永続性を保障するためには、データベースは、コミットの呼び出しが返ってくる前に ログレコードがハードドライブ上にあることを確実にしなければなりません。 これを行うために、データベースは異なったメソッドを使用します。ひとつは "同期書き込み" ファイルアクセスモードを使用することです。Javaでは、RandomAccessFile はモード "rws" と "rwd" を サポートしています:
+
+@~advanced_1189_li
+rwd: それぞれのファイル内容の更新は、元になるストレージデバイスと同時に書き込まれます。
+
+@~advanced_1190_li
+rws: rwdに加えて、それぞれのメタデータの更新は同時に書き込まれます。
+
+@~advanced_1192_p
+バッファーは fsync 関数を呼ぶことによってフラッシュされます。Javaでこれを行う二つの方法があります:
+
+@~advanced_1194_li
+FileChannel.force() (JDK 1.4 以来) このメソッドは、強制的にこのチャネルのファイルの更新は それを含むストレージデバイスに書き込まれることを行います。
+
+@~advanced_1196_p
+ハードドライブバッファーを懸命にフラッシュしようと試みると、パフォーマンスは非常に悪いものになります。 最初に、ハードドライブは実際には全てのバッファーをフラッシュしているということを確かめることが必要です。 テストは信頼性ある方法でこれが行われていないことを示しています。その結果、トランザクションの最大数は毎秒およそ60件です。 これらの理由により、H2のデフォルト性質はコミットされたトランザクションの書き込みを遅らせることです。
+
+@~advanced_1197_p
+H2では、電源異常の後、1秒以上のコミットされたトランザクションが失われます。 この性質を変更するためには。 SET WRITE_DELAY と CHECKPOINT SYNC を使用します。 多くの他のデータベースも同様に遅延コミットをサポートしています。パフォーマンス比較では、 遅延コミットは、サポートする全てのデータベースによって使用されました。
+
+@~advanced_1198_h3
+永続性テストを実行する
+
+@~advanced_1200_h2
+リカバーツールを使用する
+
+@~advanced_1201_p
+リカバーツールはデータベースが破損している場合においても、 データファイルのコンテンツを復元するために使用されます。現段階では、ログファイルのコンテンツ、 または大きなオブジェクト (CLOB または BLOB) は復元しません。 このツールを実行するには、このコマンドラインをタイプして下さい:
+
+@~advanced_1206_h3
+ファイルロックメソッド "File"
+
+@~advanced_1208_li
+ロックファイルが存在しない時は、作成されます (アトミックオペレーション File.createNewFile を使用する)。 その時、プロセスは少し (20ms) 待機し、再びファイルをチェックします。 もしファイルがこの間に変更されたら、オペレーションは中止されます。 ロックファイルを作成したすぐ後にプロセスがロックファイルを削除する時、 これはレースコンディションから保護し、三番目のプロセスはファイルを再び作成します。 二つのライターしか存在しなければ、これは起こりません。
+
+@~advanced_1209_li
+もしファイルが作成されたら、ロックメソッド ("file") でランダムな番号が一緒に挿入されます。 その後、ファイルが他のスレッド/ プロセスによって削除、または 修正された時、定期的にチェックする (デフォルトでは毎秒1回) watchdogスレッドは開始されます。 これが起きる時はいつも、ファイルは古いデータに上書きされます。システムが非常に混み合っている時でさえも、 非検出の状態で処理できないロックファイルを変更するために、watchdogスレッドは最優先に実行します。 しかし、watchdogスレッドはほとんどの時間待機しているため、非常に小さなリソース (CPU time) を使用します。 また、watchdogはハードディスクから読み取りのみ行い、書き込みはしません。
+
+@~advanced_1210_li
+もしロックファイルが存在し、20ms内に変更されたら、プロセスは数回 (10回以上) 待機します。 まだ変更されていたら、例外が投げられます (データベースはロックされます)。 多数の並列ライターで競合している状態を排除するためにこれが行われます。 その後、ファイルは新しいバージョンに上書きされます。 そして、スレッドは2秒間待機します。もしファイルを保護するwatchdogスレッドが存在したら、 変更は上書きし、このプロセスはデータベースをロックするために機能しなくなります。 しかし、もしwatchdogスレッドが存在しなければ、ロックファイルはこのスレッドによって 書かれたままの状態です。このケースでは、ファイルは削除され、自動的にまた作成されます。 watchdogスレッドはこのケースでは起動され、ファイルはロックされます。
+
+@~advanced_1211_p
+このアルゴリズムは100以上の並列スレッドでテストされました。いくつかのケースでは、 データベースをロックしようとする多数の並列スレッドが存在する時、それらはしばらくお互いをブロックします (それらのうちどれかがファイルをロックすることができないことを意味します)。 しかし、ファイルは同時に二つのスレッドによってロックされることは決してありません。 しかし、多数の並列スレッド / プロセスを使用することは一般的な使用ケースではありません。 通常、データベースを開くことができなかったり、(速い)ループのやり直しができなかったりした場合、 アプリケーションはユーザーにエラーを投げるべきです。
+
+@~advanced_1212_h3
+ファイルロックメソッド "Socket"
+
+@~advanced_1213_p
+実行される二つ目のロックメカニズムがありますが、 デフォルトでは使用不可です。アルゴリズムは:
+
+@~advanced_1214_li
+ロックファイルが存在しない時は、作成されます。その時、サーバーソケットは定義されたポートで開かれ、 開かれた状態を保ちます。開かれたデータベースのプロセスのポートとIPアドレスはロックファイルの中に書かれています。
+
+@~advanced_1215_li
+もしロックファイルが存在し、ロックメソッドが "file" なら、ソフトウェアは "file" メソッドにスイッチします。
+
+@~advanced_1216_li
+もしロックファイルが存在し、ロックメソッドが "socket" なら、プロセスはポートが使用されているかチェックします。 最初のプロセスがまだ実行されていたら、ポートは使用されていれ、このプロセスは例外を投げます (database is in use)。 最初のプロセスが失われたら (例えば、停電または、仮想マシンの異常終了のため)、ポートは解除されます。 新しいプロセスはロックファイルを削除し、再び起動します。
+
+@~advanced_1217_p
+このメソッドは、活発に毎秒同じファイルをポーリングする (読み込む) watchdogスレッドを必要としていません。 このメソッドの問題は、ファイルがネットワークシェアに保存されたら、二つのプロセスは (異なるコンピューターで実行中の)、 TCP/IP接続を直接保持していなければ、同じデータベースファイルを開くことができます。
+
+@~advanced_1218_h2
+SQLインジェクションに対する防御
+
+@~advanced_1219_h3
+SQLインジェクションとは
+
+@~advanced_1221_p
+このメカニズムがアプリケーションのどこかで使用され、ユーザー入力が正しくないフィルター処理、 またはエンベッドなら、ユーザーはパスワード: ' OR ''=' のような (この例の場合) 特別に作られた入力を使用することによって、SQLの機能、またはステートメントに入り込むことが可能です。 このケースでは、ステートメントはこのようになります:
+
+@~advanced_1222_p
+データベースに保存されたパスワードが何であっても、これは常に正しいものになります。 SQLインジェクションについての詳細は、用語集とリンク をご覧下さい。
+
+@~advanced_1223_h3
+リテラルを無効にする
+
+@~advanced_1226_p
+#Afterwards, SQL statements with text and number literals are not allowed any more. That means, SQL statement of the form WHERE NAME='abc' or WHERE CustomerId=10 will fail. It is still possible to use PreparedStatements and parameters as described above. Also, it is still possible to generate SQL statements dynamically, and use the Statement API, as long as the SQL statements do not include literals. There is also a second mode where number literals are allowed: SET ALLOW_LITERALS NUMBERS. To allow all literals, execute SET ALLOW_LITERALS ALL (this is the default setting). Literals can only be enabled or disabled by an administrator.
+
+@~advanced_1227_h3
+定数を使用する
+
+@~advanced_1232_h2
+#Restricting Class Loading and Usage
+
+@~advanced_1233_p
+#By default there is no restriction on loading classes and executing Java code for admins. That means an admin may call system functions such as System.setProperty by executing:
+
+@~advanced_1235_p
+#This mechanism is used for all user classes, including database event listeners, trigger classes, user-defined functions, user-defined aggregate functions, and JDBC driver classes (with the exception of the H2 driver) when using the H2 Console.
+
+@~advanced_1236_h2
+セキュリティプロトコル
+
+@~advanced_1238_h3
+ユーザーパスワードの暗号化
+
+@~advanced_1239_p
+ユーザーがデータベースに接続しようとする時、ユーザー名の組み合わせ、@、パスワードは SHA-256 を使用してハッシュ化され、このハッシュ値はデータベースに送信されます。 この手順は、クライアントとサーバー間の転送をアタッカーが聞ける (非暗号化できる) のであれば、 再使用する値からのアタッカーを試みることはありません。しかし、パスワードはクライアントとサーバー間で 暗号化されていない接続を使用している時でさえも、プレーンテキストで送信されることはありません これはもしユーザーが、異なる場面で同じパスワードを再利用しても、このパスワードはある程度まで保護されます。 詳細は"RFC 2617 - HTTP Authentication: Basic and Digest Access Authentication" もご覧下さい。
+
+@~advanced_1241_p
+ユーザーパスワードのハッシュ値の組み合わせと (上記をご覧下さい) saltは SHA-256を使用してハッシュ化されます。 結果の値はデータベースに保存されます。ユーザーがデータベースに接続しようとする時、 データベースは、保存されたsalt値のユーザーパスワードのハッシュ値と計算されたハッシュ値を結合します。 他の製品は複数の反復 (ハッシュ値を繰り返しハッシュする) を使用していますが、 この製品ではサービス攻撃の拒絶 (アタッカーが偽のパスワードで接続しようとするところや、 サーバーがそれぞれのパスワードのハッシュ値を計算するのに長い時間費やすところ) のリスクを軽減するのに これは使用しません。理由は: もしアタッカーがハッシュ化されたパスワードにアクセスしたら、 プレーンテキストのデータにもアクセスできるため、パスワードはもはや必要ではなくなってしまいます。 もしデータが、保存されている他のコンピューターによって保護されていて、遠隔のみであるなら、 反復回数は全く必要とされません。
+
+@~advanced_1242_h3
+ファイル暗号化
+
+@~advanced_1245_p
+新しいデータベースファイルが作られた時、暗号化された安全なランダムの新しいsalt値が生成されます。 このsaltのサイズは 64 bitです。ファイルパスワードのハッシュとsalt値の組み合わせは、 SHA-256を使用して1024回ハッシュ化されます。反復の理由は、アタッカーが通常のパスワードの ハッシュ値を計算するよりも困難にするためです。
+
+@~advanced_1252_h3
+#Wrong Password Delay
+
+@~advanced_1254_h3
+SSL/TLS 接続
+
+@~advanced_1255_p
+遠隔SSL/TLS接続は、Java Secure Socket Extension (SSLServerSocket / SSLSocket) の使用をサポートしています。デフォルトでは、匿名のSSLは使用可能です。デフォルトの暗号化パッケージソフトは SSL_DH_anon_WITH_RC4_128_MD5 です。
+
+@~advanced_1257_p
+#To disable anonymous SSL, set the system property <code>h2.enableAnonymousSSL</code> to false.
+
+@~advanced_1258_h3
+HTTPS 接続
+
+@~advanced_1260_h2
+汎用一意識別子 (UUID)
+
+@~advanced_1261_p
+このデータベースはUUIDをサポートしています。 また、暗号化強力疑似乱数ジェネレーターを使用して新しいUUIDを作成する関数をサポートしています。 同じ値をもつ二つの無作為なUUIDが存在する可能性は、確率論を使用して計算されることができます。 "Birthday Paradox" もご覧下さい。標準化された無作為に生成されたUUIDは、122の無作為なビットを保持しています。 4ビットはバージョン(無作為に生成されたUUID) に、2ビットはバリアント (Leach-Salz) に使用されます。 このデータベースは組み込み関数 RANDOM_UUID() を使用してこのようなUUIDを生成することをサポートしています。 ここに、値の数字が生成された後、二つの 同一のUUIDが生じる可能性を見積もる小さなプログラムがあります:
+
+@~advanced_1263_p
+人の隕石に衝突するという年に一度の危険性は、170億に一回と見積もられ、それは、確率がおよそ 0.000'000'000'06 だということを意味しています。
+
+@~advanced_1264_h2
+システムプロパティから読み込まれた設定
+
+@~advanced_1267_p
+#For a complete list of settings, see <a href="../javadoc/org/h2/constant/SysProperties.html">SysProperties</a> .
+
+@~advanced_1268_h2
+#Setting the Server Bind Address
+
+@~advanced_1270_h2
+用語集とリンク
+
+@~advanced_1271_th
+用語
+
+@~advanced_1272_th
+説明
+
+@~advanced_1273_td
+AES-128
+
+@~advanced_1274_td
+ブロック暗号化アルゴリズム。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
+
+@~advanced_1275_td
+Birthday Paradox
+
+@~advanced_1284_a
+Wikipedia: Block cipher modes of operation
+
+@~advanced_1287_td
+SHA-256
+
+@~changelog_1003_li
+#The Japanese translation of the error messages and the H2 Console   has been completed by Masahiro Ikemoto (Arizona Design Inc.)
+
+@~changelog_1011_h2
+#Version 1.0.71 (2008-04-25)
+
+@~changelog_1023_li
+#The autocomplete in the H2 Console has been improved a bit.
+
+@~changelog_1041_h2
+#Version 1.0.69 (2008-03-29)
+
+@~changelog_1047_li
+#ALTER TABLE or CREATE TABLE now support parameters for the password field.
+
+@~changelog_1058_h2
+#Version 1.0.68 (2008-03-18)
+
+@~changelog_1064_li
+#When using encrypted databases, and using the wrong file password,  the log file was renamed if the database was not already open. Fixed.
+
+@~changelog_1082_h2
+#Version 1.0.67 (2008-02-22)
+
+@~changelog_1088_li
+#When using multiple connections, empty space was reused too early sometimes. This could corrupt the database when recovering.
+
+@~changelog_1105_h2
+#Version 1.0.66 (2008-02-02)
+
+@~changelog_1111_li
+#Better support for IKVM (www.ikvm.net): the H2 Console now opens a browser window.
+
+@~changelog_1122_h2
+#Version 1.0.65 (2008-01-18)
+
+@~changelog_1128_li
+#The Ukrainian translation has been improved.
+
+@~changelog_1145_h2
+#Version 1.0.64 (2007-12-27)
+
+@~changelog_1151_li
+#The MVCC mode did not work well with in-memory databases. Fixed.
+
+@~changelog_1171_h2
+#Version 1.0.63 (2007-12-02)
+
+@~changelog_1177_li
+#Performance optimization for IN(...) and IN(SELECT...), currently disabled by default. To enable, use java -Dh2.optimizeInJoin=true
+
+@~changelog_1182_h2
+#Version 1.0.62 (2007-11-25)
+
+@~changelog_1188_li
+#Duplicate column names were not detected when renaming columns. Fixed.
+
+@~changelog_1201_h2
+#Version 1.0.61 (2007-11-10)
+
+@~changelog_1207_li
+#Math operations using unknown data types (for example -? and ?+?) are now interpreted as decimal.
+
+@~changelog_1216_h2
+#Version 1.0.60 (2007-10-20)
+
+@~changelog_1222_li
+#New Italian translation from PierPaolo Ucchino. Thanks a lot!
+
+@~changelog_1228_h2
+#Version 1.0.59 (2007-10-03)
+
+@~changelog_1234_li
+#When the database was closed while logging was disabled (LOG 0), re-opening the database was slow. Fixed.
+
+@~changelog_1244_h2
+#Version 1.0.58 (2007-09-15)
+
+@~changelog_1250_li
+#Maven 2: new version are now automatically synced with the central repositories.
+
+@~changelog_1269_h2
+#Version 1.0.57 (2007-08-25)
+
+@~changelog_1275_li
+#Disabling / enabling referential integrity for a table can now be used inside a transaction.
+
+@~links_1006_h2
+#Blogs
+
+@~links_1008_a
+#Testing your JDBC data access layer with DBUnit and H2 (2007-09-18)
+
+@~links_1015_h2
+#Project Pages
+
+@~links_1017_a
+#Freshmeat Project Page
+
+@~links_1022_h2
+#Products and Projects
+
+@~links_1024_p
+#Open source persistence framework providing object-relational mapping (ORM) and remoting services.
+
+@~tutorial_1089_h3
+サーバーの制限
+
+@~tutorial_1091_li
+Statement.cancel() はエンベッドモードのみサポートされています。接続はサーバー、またはクラスターモードで1度にひとつのオペレーションで実行され、 このオペレーションが終了するまで接続は遮断されます。
+
+@~tutorial_1092_h2
+Hibernateを使用する
+
+@~tutorial_1093_p
+このデータベースはHibernate version 3.1 と以降の新しいバージョンをサポートしています。 HSQLDB Dialect、または H2 Dialectは src/tools/org/h2/tools/hibernate/H2Dialect.txt ファイル内で使用可能です。 H2 dialectは Hibernateのより新しいバージョンに含まれています。H2 dialectが含まれていないバージョンでは、 src\org\hibernate\dialect (Hibernate 3.1の場合) フォルダ内のファイルをコピーし、 H2Dialect.java にファイル名を変更し、 Hibernateを再びコンパイルします。
+
+@~tutorial_1094_h2
+Webアプリケーションで データベースを使用する
+
+@~tutorial_1095_p
+Webアプリケーション内からデータベースに接続するには様々な方法があります。 以下はTomcatかJBossを使用の場合のいくつかの例です。
+
+@~tutorial_1096_h3
+エンベッドモード
+
+@~tutorial_1097_p
+(現在)最も簡単なソリューションはエンベッドモードでデータベースを使用することです。 それは、アプリケーションが起動する時や (良いソリューションは Servletリスナーを使用します。下記参照)、セッションが起動する時、アプリケーションにおける接続が開始するということを意味します。データベースは、セッションやアプリケーションが同じ過程で実行している限り、多様なセッションやアプリケーションから同時に接続されることが可能です。 多くのServletコンテナは (例； Tomcat) ただひとつのプロセスで利用されるので、問題はありません。 (Tomcatをクラスターモードで起動している場合を除いて)。 Tomcatはマルチスレッドとマルチクラスローダーを使用しています。もし複数のアプリケーションが同じデータベースに同時にアクセスする場合、データベースjarをshared/lib、またはserver/libディレクトリに置く必要があります。 webアプリケーションが起動した時にデータベースを開き、webアプリケーションが終了した時にデータベースを閉じるのが良い方法です。もし複数のアプリケーションを使用する場合、そのうちひとつのアプリケーションをこのように動作することが必要です。アプリケーションでは、セッションごとにひとつの接続を使うか、リクエスト(アクション)ごとにひとつの接続を使うという概念があります。これらの接続はできる限り、使用後に終了させます(しかし、終了させなくても悪くはありません)。
+
+@~tutorial_1098_h3
+サーバーモード
+
+@~tutorial_1100_h3
+データベースの起動と終了にServletリスナーを使用する
+
+@~tutorial_1102_p
+データベースへのアクセス方法についての詳細は、DbStarter.javaコードをご覧下さい。
+
+@~tutorial_1103_h2
+CSV (Comma Separated Values) サポート
+
+@~tutorial_1104_p
+データベースにCSVREADとCSVWRITEの関数を使用することで、 CSVファイルサポートを使用することができ、スタンドアロンツールとしてデータベースの外でCSVライブラリを使用することができます。
+
+@~tutorial_1105_h3
+データベース内からCSVファイルに書き込む
+
+@~tutorial_1106_p
+クエリからCSVファイルを作成するのに、組込み関数 CSVWRITEを使用することができます。例:
+
+@~tutorial_1107_h3
+データベース内からCSVファイルを読み込む
+
+@~tutorial_1108_p
+CSVREAD関数を使用してCSVファイルを読み込むことができます。 例:
+
+@~tutorial_1109_h3
+JavaアプリケーションからCSVファイルに書き込む
+
+@~tutorial_1110_p
+データベースを全く使用しなくても、JavaアプリケーションでCSVツールを使用することができます。 例:
+
+@~tutorial_1113_h2
+アップグレード、 バックアップ、修復
+
+@~tutorial_1114_h3
+データベースのアップグレー
+
+@~tutorial_1122_h3
+オンラインバックアップ
+
+@~tutorial_1125_h2
+#Command Line Tools
+
+@~tutorial_1126_p
+#This database comes with a number of command line tools. To get more information about a tool, start it with the parameter '-?', for example:
+
+@~tutorial_1127_p
+#The command line tools are:
+
+@~tutorial_1128_b
+バックアップ
+
+@~tutorial_1129_li
+#creates a backup of a database.
+
+@~tutorial_1130_b
+#ChangePassword
+
+@~tutorial_1131_li
+#allows changing the file password of a database.
+
+@~tutorial_1132_b
+#Console
+
+@~tutorial_1133_li
+#starts the browser based H2 Console.
+
+@~tutorial_1134_b
+#ConvertTraceFile
+
+@~tutorial_1135_li
+#converts a .trace.db file to a Java application and SQL script.
+
+@~tutorial_1136_b
+#CreateCluster
+
+@~tutorial_1137_li
+#creates a cluster from a standalone database.
+
+@~tutorial_1138_b
+#DeleteDbFiles
+
+@~tutorial_1139_li
+#deletes all files belonging to a database.
+
+@~tutorial_1140_b
+#Script
+
+@~tutorial_1141_li
+#allows converting a database to a SQL script for backup or migration.
+
+@~tutorial_1142_b
+#Recover
+
+@~tutorial_1143_li
+#helps recovering a corrupted database.
+
+@~tutorial_1144_b
+#Restore
+
+@~tutorial_1145_li
+#restores a backup of a database.
+
+@~tutorial_1146_b
+#RunScript
+
+@~tutorial_1147_li
+#runs a SQL script against a database.
+
+@~tutorial_1148_b
+Server
+
+@~tutorial_1149_li
+#is used in the server mode to start a H2 server.
+
+@~tutorial_1150_b
+#Shell
+
+@~tutorial_1151_li
+#is a command line database tool.
+
+@~tutorial_1152_p
+#The tools can also be called from an application by calling the main or another public methods. For details, see the Javadoc documentation.
+
+@~tutorial_1153_h2
+OpenOffice Baseを使用する
+
+@~tutorial_1154_p
+OpenOffice.org Base はJDBC API上のデータベースアクセスをサポートしています。 OpenOffice Baseを使ってH2データベースに接続するためには、最初にOpenOfficeにJDBCドライバを追加する必要があります。H2データベースに接続する手順:
+
+@~tutorial_1161_li
+存在するデータベースに接続し、JDBCを選択し、[Next] をクリックする
+
+@~tutorial_1162_li
+#Example datasource URL: jdbc:h2:~/test
+
+@~tutorial_1164_p
+#Now you can access the database stored in the current users home directory.
+
+@~tutorial_1165_p
+#To use H2 in NeoOffice (OpenOffice without X11):
+
+@~tutorial_1168_li
+#Click [Classpath], [Add Archive...]
+
+@~tutorial_1171_p
+#Now, when creating a new database using the "Database Wizard":
+
+@~tutorial_1172_li
+#Select "connect to existing database" and the type "jdbc". Click next.
+
+@~tutorial_1176_li
+#Package the h2 jar within an extension package
+
+@~tutorial_1177_li
+#Install it as a Java extension in NeoOffice
+
+@~tutorial_1178_p
+#This can be done by create it using the NetBeans OpenOffice plugin. See also <a href="http://wiki.services.openoffice.org/wiki/Extensions_development_java">Extensions Development</a> .
+
+@~tutorial_1179_h2
+Java Web Start / JNLP
+
+@~tutorial_1180_p
+Java Web Start / JNLP (Java Network Launch Protocol) を使用している時、パーミッションタグは.jnlp ファイルに設定され、application.jarファイルは署名されていなければなりません。そうでなければ、ファイルシステムに書き込もうとした時、次の例外が発生するでしょう: java.security.AccessControlException: access denied (java.io.FilePermission ... read) パーミッションタグの例:
+
+@~tutorial_1181_h2
+#Using a Connection Pool
+
+@~tutorial_1182_p
+#For many databases, opening a connection is slow, and it is a good idea to use a connection pool to re-use connections. For H2 however opening a connection usually is fast if the database is already open. Using a connection pool for H2 actually slows down the process a bit, except if file encryption is used (in this case opening a connection is about half as fast as using a connection pool). A simple connection pool is included in H2. It is based on the <a href="http://www.source-code.biz/snippets/java/8.htm">Mini Connection Pool Manager</a> from Christian d'Heureuse. There are other, more complex connection pools available, for example <a href="http://jakarta.apache.org/commons/dbcp/">DBCP</a> . The build-in connection pool is used as follows:
+
+@~tutorial_1183_h2
+フルテキストサーチ
+
+@~tutorial_1185_h3
+Nativeフルテキストサーチを使用する
+
+@~tutorial_1187_p
+#You need to initialize it in each database where you want to use it. Afterwards, you can create a full text index for a table using:
+
+@~tutorial_1190_h3
+Luceneフルテキストサーチを使用する
+
+@~tutorial_1192_p
+#You need to initialize it in each database where you want to use it. Afterwards, you can create a full text index for a table using:
+
+@~tutorial_1195_h2
+#User-Defined Variables
+
+@~tutorial_1196_p
+#This database supports user-defined variables. Variables start with @ and can be used wherever expressions or parameters are used. Variables not persisted and session scoped, that means only visible for the session where they are defined. A value is usually assigned using the SET command:
+
+@~tutorial_1199_h2
+#Date and Time
+
+@~tutorial_1200_p
+#Date, time and timestamp values support ISO 8601 formatting, including time zone:
+
+@~tutorial_1201_p
 #If the time zone is not set, the value is parsed using the current time zone setting of the system. Date and time information is stored in H2 database files in GMT (Greenwich Mean Time). If the database is opened using another system time zone, the date and time will change accordingly. If you want to move a database from one time zone to the other and don't want this to happen, you need to create a SQL script file using the SCRIPT command or Script tool, and then load the database using the RUNSCRIPT command or the RunScript tool in the new time zone.
 

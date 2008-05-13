@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 
+import org.h2.dev.util.ReaderInputStream;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 
@@ -22,7 +23,7 @@ public class TestReader extends TestBase {
     public void test() throws Exception {
         String s = "\u00ef\u00f6\u00fc";
         StringReader r = new StringReader(s);
-        InputStream in = IOUtils.getInputStream(r);
+        InputStream in = new ReaderInputStream(r);
         byte[] buff = IOUtils.readBytesAndClose(in, 0);
         InputStream in2 = new ByteArrayInputStream(buff);
         Reader r2 = IOUtils.getReader(in2);

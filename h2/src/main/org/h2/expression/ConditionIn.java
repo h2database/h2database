@@ -104,7 +104,7 @@ public class ConditionIn extends Condition {
         if (SysProperties.OPTIMIZE_IN) {
             int dataType = left.getType();
             ExpressionVisitor independent = ExpressionVisitor.get(ExpressionVisitor.INDEPENDENT);
-            independent.queryLevel = queryLevel;
+            independent.setQueryLevel(queryLevel);
             if (areAllValues(independent)) {
                 if (left instanceof ExpressionColumn) {
                     Column column = ((ExpressionColumn) left).getColumn();

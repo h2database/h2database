@@ -43,8 +43,6 @@ public class LocalResult implements ResultInterface {
     private int offset, limit;
     private ResultExternal disk;
     private int diskOffset;
-    private boolean isUpdateCount;
-    private int updateCount;
     private boolean distinct;
     private boolean closed;
 
@@ -82,16 +80,27 @@ public class LocalResult implements ResultInterface {
         return cols;
     }
 
-    public LocalResult(int updateCount) {
-        this.isUpdateCount = true;
-        this.updateCount = updateCount;
+    public LocalResult() {
+    }
+    
+    public LocalResult(Session session, Expression[] expressions, int visibleColumnCount) {
+        this.session = session;
+        if (session == null) {
+            this.maxMemoryRows = Integer.MAX_VALUE;
+        } else {
+            this.maxMemoryRows = session.getDatabase().getMaxMemoryRows();
+        }
+        rows = new ObjectArray();
+        this.visibleColumnCount = visibleColumnCount;
+        rowId = -1;
+        this.expressions = expressions;
     }
 
     public LocalResult createShallowCopy(Session session) {
         if (disk == null && (rows == null || rows.size() < rowCount)) {
             return null;
         }
-        LocalResult copy = new LocalResult(0);
+        LocalResult copy = new LocalResult();
         copy.maxMemoryRows = this.maxMemoryRows;
         copy.session = session;
         copy.visibleColumnCount = this.visibleColumnCount;
@@ -107,17 +116,7 @@ public class LocalResult implements ResultInterface {
         copy.limit = 0;
         copy.disk = this.disk;
         copy.diskOffset = this.diskOffset;
-        copy.isUpdateCount = this.isUpdateCount;
-        copy.updateCount = this.updateCount;
         return copy;
-    }
-
-    public boolean isUpdateCount() {
-        return isUpdateCount;
-    }
-
-    public int getUpdateCount() {
-        return updateCount;
     }
 
     public LocalResult(Session session, ObjectArray expressionList, int visibleColumnCount) {
@@ -128,19 +127,6 @@ public class LocalResult implements ResultInterface {
         Expression[] expressions = new Expression[expressionList.size()];
         expressionList.toArray(expressions);
         return expressions;
-    }
-
-    public LocalResult(Session session, Expression[] expressions, int visibleColumnCount) {
-        this.session = session;
-        if (session == null) {
-            this.maxMemoryRows = Integer.MAX_VALUE;
-        } else {
-            this.maxMemoryRows = session.getDatabase().getMaxMemoryRows();
-        }
-        rows = new ObjectArray();
-        this.visibleColumnCount = visibleColumnCount;
-        rowId = -1;
-        this.expressions = expressions;
     }
 
     public void setSortOrder(SortOrder sort) {

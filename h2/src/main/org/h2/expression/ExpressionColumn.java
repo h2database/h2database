@@ -230,19 +230,19 @@ public class ExpressionColumn extends Expression {
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        switch (visitor.type) {
+        switch (visitor.getType()) {
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
             return false;
         case ExpressionVisitor.READONLY:
         case ExpressionVisitor.DETERMINISTIC:
             return true;
         case ExpressionVisitor.INDEPENDENT:
-            return this.queryLevel < visitor.queryLevel;
+            return this.queryLevel < visitor.getQueryLevel();
         case ExpressionVisitor.EVALUATABLE:
             // if the current value is known (evaluatable set)
             // or if this columns belongs to a 'higher level' query and is
             // therefore just a parameter
-            return evaluatable || visitor.queryLevel < this.queryLevel;
+            return evaluatable || visitor.getQueryLevel() < this.queryLevel;
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
             visitor.addDataModificationId(column.getTable().getMaxDataModificationId());
             return true;
@@ -252,7 +252,7 @@ public class ExpressionColumn extends Expression {
             visitor.addDependency(column.getTable());
             return true;
         default:
-            throw Message.getInternalError("type=" + visitor.type);
+            throw Message.getInternalError("type=" + visitor.getType());
         }
     }
 

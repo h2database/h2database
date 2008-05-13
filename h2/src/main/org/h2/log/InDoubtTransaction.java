@@ -62,14 +62,6 @@ public class InDoubtTransaction {
         }
     }
 
-    public int getPos() {
-        return pos;
-    }
-
-    public int getSessionId() {
-        return sessionId;
-    }
-
     public String getTransaction() {
         return transaction;
     }

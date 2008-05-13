@@ -23,7 +23,15 @@ import org.h2.value.ValueNull;
  */
 public class ConditionAndOr extends Condition {
 
-    public static final int AND = 0, OR = 1;
+    /**
+     * The AND condition type as in ID=1 AND NAME='Hello'.
+     */
+    public static final int AND = 0;
+
+    /**
+     * The OR condition type as in ID=1 OR NAME='Hello'.
+     */
+    public static final int OR = 1;
 
     private final int andOrType;
     private Expression left, right;
@@ -241,6 +249,13 @@ public class ConditionAndOr extends Condition {
         return this;
     }
 
+    /**
+     * Get the left or the right sub-expression of this condition.
+     * 
+     * @param left true to get the left sub-expression, false to get the right
+     *            sub-expression.
+     * @return the sub-expression
+     */
     public Expression getExpression(boolean left) {
         return left ? this.left : right;
     }

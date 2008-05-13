@@ -100,20 +100,6 @@ public class TcpServer implements Service {
         SERVERS.put("" + port, this);
     }
 
-    /**
-     * Get the list of ports of all running TCP server.
-     *
-     * @return the list of ports
-     */
-    public static int[] getAllServerPorts() {
-        Object[] servers = SERVERS.keySet().toArray();
-        int[] ports = new int[servers.length];
-        for (int i = 0; i < servers.length; i++) {
-            ports[i] = Integer.parseInt(servers[i].toString());
-        }
-        return ports;
-    }
-
     synchronized void addConnection(int id, String url, String user) {
         try {
             managementDbAdd.setInt(1, id);
@@ -280,6 +266,14 @@ public class TcpServer implements Service {
         }
     }
 
+    /**
+     * Stop a running server. This method is called via reflection from the
+     * STOP_SERVER function.
+     * 
+     * @param port the port where the server runs
+     * @param password the password
+     * @param shutdownMode the shutdown mode, SHUTDOWN_NORMAL or SHUTDOWN_FORCE.
+     */
     public static void stopServer(int port, String password, int shutdownMode) {
         TcpServer server = (TcpServer) SERVERS.get("" + port);
         if (server == null) {

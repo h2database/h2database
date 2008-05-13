@@ -32,10 +32,6 @@ public class SimpleRowValue implements SearchRow {
         return version;
     }
     
-    public void setVersion(int version) {
-        this.version = version;
-    }
-
     public int getColumnCount() {
         return virtualColumnCount;
     }

@@ -160,6 +160,19 @@ java org.h2.test.TestAll timer
 
 /*
 
+-- Wildcard schema bug:
+create schema a;
+create table a.x(ax int);
+create schema b;
+create table b.x(bx int);
+select * from a.x, b.x;
+
+in help.csv, use complete examples for functions; add a test case
+
+upload and test javadoc/index.html
+
+Test Bnf.COMBINE_KEYWORDS
+
 improve javadocs
 
 write complete page right after checkpoint

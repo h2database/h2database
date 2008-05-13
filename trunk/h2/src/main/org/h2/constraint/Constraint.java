@@ -105,14 +105,6 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable 
     public abstract boolean isBefore();
 
     /**
-     * Get a short description of the constraint. This includes the constraint
-     * name (if set), and the constraint expression.
-     * 
-     * @return the description
-     */
-    public abstract String getShortDescription();
-
-    /**
      * Check the existing data. This method is called if the constraint is added
      * after data has been inserted into the table.
      * 

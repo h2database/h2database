@@ -25,12 +25,50 @@ import org.h2.value.ValueNull;
  */
 public class Comparison extends Condition {
 
-    public static final int EQUAL = 0, BIGGER_EQUAL = 1, BIGGER = 2, SMALLER_EQUAL = 3, SMALLER = 4, NOT_EQUAL = 5,
-            IS_NULL = 6, IS_NOT_NULL = 7;
+    /**
+     * The comparison type meaning = as in ID=1.
+     */
+    public static final int EQUAL = 0;
+    
+    /**
+     * The comparison type meaning &gt;= as in ID&gt;=1.
+     */
+    public static final int BIGGER_EQUAL = 1;
+    
+    /**
+     * The comparison type meaning &gt; as in ID&gt;1.
+     */
+    public static final int BIGGER = 2;
 
-    // TODO refactor: comparison: a comparison is never 'false'; the constant is
-    // used only for index conditions
+    /**
+     * The comparison type meaning &lt;= as in ID&lt;=1.
+     */
+    public static final int SMALLER_EQUAL = 3;
+    
+    /**
+     * The comparison type meaning &lt; as in ID&lt;1.
+     */
+    public static final int SMALLER = 4;
+    
+    /**
+     * The comparison type meaning &lt;&gt; as in ID&lt;&gt;1.
+     */
+    public static final int NOT_EQUAL = 5;
+    
+    /**
+     * The comparison type meaning IS NULL as in NAME IS NULL.
+     */
+    public static final int IS_NULL = 6;
+    
+    /**
+     * The comparison type meaning IS NOT NULL as in NAME IS NOT NULL.
+     */
+    public static final int IS_NOT_NULL = 7;
 
+    /**
+     * This is a pseudo comparison type that is only used for index conditions.
+     * It means the comparison will always yield FALSE. Example: 1=0.
+     */
     public static final int FALSE = 8;
 
     private final Database database;
@@ -277,11 +315,15 @@ public class Comparison extends Condition {
             return;
         }
         if (l == null) {
-            if (!left.isEverything(ExpressionVisitor.getNotFromResolver(filter))) {
+            ExpressionVisitor visitor = ExpressionVisitor.get(ExpressionVisitor.NOT_FROM_RESOLVER);
+            visitor.setResolver(filter);
+            if (!left.isEverything(visitor)) {
                 return;
             }
         } else if (r == null) {
-            if (!right.isEverything(ExpressionVisitor.getNotFromResolver(filter))) {
+            ExpressionVisitor visitor = ExpressionVisitor.get(ExpressionVisitor.NOT_FROM_RESOLVER);
+            visitor.setResolver(filter);
+            if (!right.isEverything(visitor)) {
                 return;
             }
         } else {
@@ -355,7 +397,7 @@ public class Comparison extends Condition {
         return left.getCost() + (right == null ? 0 : right.getCost()) + 1;
     }
 
-    public Comparison getAdditional(Session session, Comparison other) {
+    Comparison getAdditional(Session session, Comparison other) {
         if (compareType == other.compareType && compareType == EQUAL) {
             boolean lc = left.isConstant(), rc = right.isConstant();
             boolean l2c = other.left.isConstant(), r2c = other.right.isConstant();
@@ -377,6 +419,13 @@ public class Comparison extends Condition {
         return null;
     }
 
+    /**
+     * Get the left or the right sub-expression of this condition.
+     * 
+     * @param left true to get the left sub-expression, false to get the right
+     *            sub-expression.
+     * @return the sub-expression
+     */
     public Expression getExpression(boolean left) {
         return left ? this.left : right;
     }

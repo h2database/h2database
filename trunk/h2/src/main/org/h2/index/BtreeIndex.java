@@ -242,15 +242,6 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         }
     }
 
-    public int getLookupCost(int rowCount) {
-        for (int i = 0, j = 1;; i++) {
-            j *= BtreePage.BLOCKS_PER_PAGE;
-            if (j > rowCount) {
-                return (i + 1);
-            }
-        }
-    }
-
     public double getCost(Session session, int[] masks) throws SQLException {
         return 10 * getCostRangeIndex(masks, tableData.getRowCount(session));
     }

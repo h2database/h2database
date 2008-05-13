@@ -427,10 +427,6 @@ public class Aggregate extends Expression {
         }
     }
 
-    public int getAggregateType() {
-        return type;
-    }
-
     private Index getColumnIndex(boolean first) {
         if (on instanceof ExpressionColumn) {
             ExpressionColumn col = (ExpressionColumn) on;
@@ -446,10 +442,10 @@ public class Aggregate extends Expression {
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        if (visitor.type == ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL) {
+        if (visitor.getType() == ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL) {
             switch (type) {
             case COUNT_ALL:
-                return visitor.table.canGetRowCount();
+                return visitor.getTable().canGetRowCount();
             case MIN:
             case MAX:
                 if (!SysProperties.OPTIMIZE_MIN_MAX) {

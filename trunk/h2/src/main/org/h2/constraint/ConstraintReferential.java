@@ -168,6 +168,13 @@ public class ConstraintReferential extends Constraint {
         return buff.toString();
     }
 
+
+    /**
+     * Get a short description of the constraint. This includes the constraint
+     * name (if set), and the constraint expression.
+     * 
+     * @return the description
+     */
     public String getShortDescription() {
         StringBuffer buff = new StringBuffer();
         buff.append(getName());

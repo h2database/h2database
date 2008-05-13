@@ -76,22 +76,6 @@ public class ConstraintUnique extends Constraint {
         }
     }
 
-    public String getShortDescription() {
-        StringBuffer buff = new StringBuffer();
-        buff.append(getName());
-        buff.append(": ");
-        buff.append(getTypeName());
-        buff.append('(');
-        for (int i = 0; i < columns.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(Parser.quoteIdentifier(columns[i].column.getName()));
-        }
-        buff.append(")");
-        return buff.toString();
-    }
-
     public String getCreateSQLWithoutIndexes() {
         return getCreateSQLForCopy(table, getSQL(), false);
     }

@@ -243,12 +243,26 @@ public class PgServer implements Service {
         }
     }
 
+    /**
+     * Get the name of the current schema.
+     * This method is called by the database.
+     * 
+     * @param conn the connection
+     * @return the schema name
+     */
     public static String getCurrentSchema(Connection conn) throws SQLException {
         ResultSet rs = conn.createStatement().executeQuery("call schema()");
         rs.next();
         return rs.getString(1);
     }
 
+    /**
+     * Get the name of this encoding code.
+     * This method is called by the database.
+     * 
+     * @param code the encoding code
+     * @return the encoding name
+     */
     public static String getEncodingName(int code) throws SQLException {
         switch (code) {
         case 0:
@@ -262,14 +276,34 @@ public class PgServer implements Service {
         }
     }
 
+    /**
+     * Get the version. This method must return PostgreSQL to keep some clients
+     * happy. This method is called by the database.
+     * 
+     * @return the server name and version
+     */
     public static String getVersion() {
         return "PostgreSQL 8.1.4  server protocol using H2 " + Constants.getFullVersion();
     }
 
+    /**
+     * Get the current system time.
+     * This method is called by the database.
+     * 
+     * @return the current system time
+     */
     public static Timestamp getStartTime() {
         return new Timestamp(System.currentTimeMillis());
     }
 
+    /**
+     * Get the user name for this id.
+     * This method is called by the database.
+     * 
+     * @param conn the connection
+     * @param id the user id
+     * @return the user name
+     */
     public static String getUserById(Connection conn, int id) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("SELECT NAME FROM INFORMATION_SCHEMA.USERS WHERE ID=?");
         prep.setInt(1, id);
@@ -280,14 +314,38 @@ public class PgServer implements Service {
         return null;
     }
 
+    /**
+     * Check if the this session has the given database privilege.
+     * This method is called by the database.
+     * 
+     * @param id the session id
+     * @param privilege the privilege to check
+     * @return true
+     */
     public static boolean hasDatabasePrivilege(int id, String privilege) {
         return true;
     }
 
+    /**
+     * Check if the current session has access to this table.
+     * This method is called by the database.
+     * 
+     * @param table the table name
+     * @param privilege the privilege to check
+     * @return true
+     */
     public static boolean hasTablePrivilege(String table, String privilege) {
         return true;
     }
 
+    /**
+     * Get the current transaction id.
+     * This method is called by the database.
+     * 
+     * @param table the table name
+     * @param id the id
+     * @return 1
+     */
     public static int getCurrentTid(String table, String id) {
         return 1;
     }

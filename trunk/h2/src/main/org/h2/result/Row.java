@@ -40,11 +40,6 @@ public class Row extends Record implements SearchRow {
         this.version = version;
     }
 
-    public Row(Row old) {
-        this.data = old.data;
-        this.memory = old.memory;
-    }
-
     public Value getValue(int i) {
         return data[i];
     }

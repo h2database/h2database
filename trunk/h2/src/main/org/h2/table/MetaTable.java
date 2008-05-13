@@ -1279,10 +1279,6 @@ public class MetaTable extends Table {
         throw Message.getUnsupportedException();
     }
 
-    public void removeIndex(String indexName) throws SQLException {
-        throw Message.getUnsupportedException();
-    }
-
     public void removeChildrenAndResources(Session session) throws SQLException {
         throw Message.getUnsupportedException();
     }

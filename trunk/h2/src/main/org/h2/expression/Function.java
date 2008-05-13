@@ -323,10 +323,23 @@ public class Function extends Expression implements FunctionCall {
         addFunction(name, type, parameterCount, dataType, false, true);
     }
 
+    /**
+     * Get the function info object for this function, or null if there is no
+     * such function.
+     * 
+     * @param name the function name
+     */
     public static FunctionInfo getFunctionInfo(String name) {
         return (FunctionInfo) FUNCTIONS.get(name);
     }
 
+    /**
+     * Get an instance of the given function for this database.
+     * 
+     * @param database the database
+     * @param name the function name
+     * @return the function object
+     */
     public static Function getFunction(Database database, String name) throws SQLException {
         FunctionInfo info = getFunctionInfo(name);
         if (info == null) {
@@ -351,6 +364,12 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
+    /**
+     * Set the parameter expression at the given index.
+     * 
+     * @param index the index (0, 1,...)
+     * @param param the expression
+     */
     public void setParameter(int index, Expression param) throws SQLException {
         if (varArgs != null) {
             varArgs.add(param);
@@ -786,7 +805,7 @@ public class Function extends Expression implements FunctionCall {
         return false;
     }
 
-    public Value getValueWithArgs(Session session, Expression[] args) throws SQLException {
+    private Value getValueWithArgs(Session session, Expression[] args) throws SQLException {
         if (info.nullIfParameterIsNull) {
             for (int i = 0; i < args.length; i++) {
                 if (getNullOrValue(session, args, i) == ValueNull.INSTANCE) {
@@ -1490,6 +1509,12 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
+    /**
+     * This method is called after all the parameters have been set.
+     * It checks if the parameter count is correct.
+     *
+     * @throws SQLException if the parameter count is incorrect.
+     */
     public void doneWithParameters() throws SQLException {
         if (info.parameterCount == VAR_ARGS) {
             int len = varArgs.size();
@@ -1837,7 +1862,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        if (visitor.type == ExpressionVisitor.DETERMINISTIC && !info.isDeterministic) {
+        if (visitor.getType() == ExpressionVisitor.DETERMINISTIC && !info.isDeterministic) {
             return false;
         }
         for (int i = 0; i < args.length; i++) {

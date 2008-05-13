@@ -138,7 +138,7 @@ public class FunctionTable extends Table {
         function.optimize(session);
         Value v = function.getValue(session);
         if (v == ValueNull.INSTANCE) {
-            return new LocalResult(0);
+            return new LocalResult();
         } else {
             ValueResultSet value = (ValueResultSet) v;
             ResultSet rs = value.getResultSet();

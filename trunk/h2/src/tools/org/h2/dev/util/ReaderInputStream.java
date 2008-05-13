@@ -4,7 +4,7 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.util;
+package org.h2.dev.util;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;

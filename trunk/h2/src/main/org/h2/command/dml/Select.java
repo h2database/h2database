@@ -693,7 +693,7 @@ public class Select extends Query {
         if (isGroupQuery && groupIndex == null && havingIndex < 0 && filters.size() == 1) {
             if (condition == null) {
                 ExpressionVisitor optimizable = ExpressionVisitor.get(ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL);
-                optimizable.table = ((TableFilter) filters.get(0)).getTable();
+                optimizable.setTable(((TableFilter) filters.get(0)).getTable());
                 isQuickAggregateQuery = isEverything(optimizable);
             }
         }
@@ -995,7 +995,7 @@ public class Select extends Query {
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        switch(visitor.type) {
+        switch(visitor.getType()) {
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID: {
             for (int i = 0; i < filters.size(); i++) {
                 TableFilter f = (TableFilter) filters.get(i);
@@ -1020,7 +1020,7 @@ public class Select extends Query {
             break;
         }
         }
-        visitor.queryLevel(1);
+        visitor.incrementQueryLevel(1);
         boolean result = true;
         for (int i = 0; i < expressions.size(); i++) {
             Expression e = (Expression) expressions.get(i);
@@ -1035,7 +1035,7 @@ public class Select extends Query {
         if (result && having != null && !having.isEverything(visitor)) {
             result = false;
         }
-        visitor.queryLevel(-1);
+        visitor.incrementQueryLevel(-1);
         return result;
     }
 

@@ -524,7 +524,7 @@ public class Column {
     }
 
     boolean isEverything(ExpressionVisitor visitor) {
-        if (visitor.type == ExpressionVisitor.GET_DEPENDENCIES) {
+        if (visitor.getType() == ExpressionVisitor.GET_DEPENDENCIES) {
             if (sequence != null) {
                 visitor.getDependencies().add(sequence);
             }

@@ -62,9 +62,6 @@ public class DataType {
     public boolean hidden;
     public int memory;
 
-    // for operations that include different types, convert both to the higher order
-    public int order;
-
     // JDK 1.3 compatibility: Types.BOOLEAN
     public static final int TYPE_BOOLEAN = 16;
 
@@ -274,10 +271,6 @@ public class DataType {
             }
             types.add(dt);
         }
-    }
-
-    public static String getJdbcString(int type) {
-        return typesByValueType[type].jdbc;
     }
 
     private static DataType createDecimal(int maxPrecision, int defaultPrecision, int defaultScale, int defaultDisplaySize, boolean needsPrecisionAndScale, boolean autoInc) {

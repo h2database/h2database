@@ -607,14 +607,6 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    public Column[] getColumns(String[] columnNames) throws SQLException {
-        Column[] cols = new Column[columnNames.length];
-        for (int i = 0; i < cols.length; i++) {
-            cols[i] = getColumn(columnNames[i]);
-        }
-        return cols;
-    }
-
     public boolean getGlobalTemporary() {
         return false;
     }

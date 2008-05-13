@@ -33,7 +33,6 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     protected IndexColumn[] indexColumns;
     protected Column[] columns;
     protected int[] columnIds;
-    protected boolean[] descending;
     protected Table table;
     protected IndexType indexType;
     protected long rowCount;

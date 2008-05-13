@@ -68,10 +68,6 @@ public class TraceObject {
         return trace.isInfoEnabled();
     }
 
-    protected Trace getTrace() {
-        return trace;
-    }
-
     protected void debugCodeAssign(String className, int type, int id, String value) {
         if (trace.isDebugEnabled()) {
             trace.debugCode(className + " " + PREFIX[type] + id + " = " + getTraceObjectName() + "." + value + ";");

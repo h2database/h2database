@@ -487,8 +487,17 @@ Therefore the ODBC driver should not be used where security is important.
 <br /><a name="microsoft_dot_net"></a>
 <h2>Using H2 in Microsoft .NET</h2>
 <p>
-The database can be used from Microsoft .NET even without using Java, by using IKVM.NET:
+The database can be used from Microsoft .NET even without using Java, by using IKVM.NET.
+You can access a H2 database on .NET using the JDBC API, or using the ADO.NET interface.
 </p>
+
+<h3>Using the ADO.NET API on .NET</h3>
+<p>
+An implementation of the ADO.NET interface is available in the open source project
+<a href="http://code.google.com/p/h2sharp">H2Sharp</a>.
+</p>
+
+<h3>Using the JDBC API on .NET</h3>
 <ul><li>Install the .NET Framework from <a href="http://www.microsoft.com">Microsoft</a>.
     Mono has not yet been tested.
 </li><li>Install <a href="http://www.ikvm.net">IKVM.NET</a>.

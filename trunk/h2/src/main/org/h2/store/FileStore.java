@@ -114,11 +114,6 @@ public class FileStore {
         }
     }
 
-    protected FileStore(DataHandler handler, byte[] magic) {
-        this.handler = handler;
-        this.magic = magic;
-    }
-
     protected byte[] generateSalt() {
         return magic;
     }

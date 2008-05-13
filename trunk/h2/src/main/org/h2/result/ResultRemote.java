@@ -34,14 +34,6 @@ public class ResultRemote implements ResultInterface {
     private ObjectArray result;
     private ObjectArray lobValues;
 
-    public boolean isUpdateCount() {
-        return false;
-    }
-
-    public int getUpdateCount() {
-        return 0;
-    }
-
     public ResultRemote(SessionRemote session, Transfer transfer, int id, int columnCount, int fetchSize)
             throws IOException, SQLException {
         this.session = session;

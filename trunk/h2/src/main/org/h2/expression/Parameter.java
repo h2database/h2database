@@ -128,7 +128,7 @@ public class Parameter extends Expression implements ParameterInterface {
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        switch(visitor.type) {
+        switch(visitor.getType()) {
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
             return true;
         case ExpressionVisitor.DETERMINISTIC:
@@ -147,7 +147,7 @@ public class Parameter extends Expression implements ParameterInterface {
         case ExpressionVisitor.GET_DEPENDENCIES:
             return true;
         default:
-            throw Message.getInternalError("type="+visitor.type);
+            throw Message.getInternalError("type="+visitor.getType());
         }
     }
 

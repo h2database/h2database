@@ -52,14 +52,6 @@ public class CreateIndex extends SchemaCommand {
         this.indexColumns = columns;
     }
 
-    public boolean getPrimaryKey() {
-        return primaryKey;
-    }
-
-    public IndexColumn[] getIndexColumns() {
-        return indexColumns;
-    }
-
     public int update() throws SQLException {
         // TODO cancel: may support for index creation
         session.commit(true);
@@ -109,10 +101,6 @@ public class CreateIndex extends SchemaCommand {
 
     public void setHash(boolean b) {
         this.hash = b;
-    }
-
-    public boolean getHash() {
-        return hash;
     }
 
     public void setComment(String comment) {

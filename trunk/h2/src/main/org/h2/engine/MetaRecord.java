@@ -35,6 +35,13 @@ public class MetaRecord {
         objectType = r.getValue(2).getInt();
         sql = r.getValue(3).getString();
     }
+    
+    MetaRecord(DbObject obj) {
+        id = obj.getId();
+        objectType = obj.getType();
+        headPos = obj.getHeadPos();
+        sql = obj.getCreateSQL();
+    }
 
     /**
      * Sort the list of meta records by 'create order'.
@@ -56,18 +63,11 @@ public class MetaRecord {
         });
     }
 
-    public void setRecord(SearchRow r) {
+    void setRecord(SearchRow r) {
         r.setValue(0, ValueInt.get(id));
         r.setValue(1, ValueInt.get(headPos));
         r.setValue(2, ValueInt.get(objectType));
         r.setValue(3, ValueString.get(sql));
-    }
-
-    public MetaRecord(DbObject obj) {
-        id = obj.getId();
-        objectType = obj.getType();
-        headPos = obj.getHeadPos();
-        sql = obj.getCreateSQL();
     }
 
     void execute(Database db, Session systemSession, DatabaseEventListener listener) throws SQLException {
@@ -88,36 +88,16 @@ public class MetaRecord {
         }
     }
 
-    public int getHeadPos() {
-        return headPos;
-    }
-
-    public void setHeadPos(int headPos) {
-        this.headPos = headPos;
-    }
-
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public int getObjectType() {
         return objectType;
     }
 
-    public void setObjectType(int objectType) {
-        this.objectType = objectType;
-    }
-
     public String getSQL() {
         return sql;
-    }
-
-    public void setSql(String sql) {
-        this.sql = sql;
     }
 
 }

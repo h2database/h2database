@@ -29,8 +29,6 @@ import org.h2.util.StringUtils;
  */
 public class Bnf {
 
-    static final boolean COMBINE_KEYWORDS = false;
-
     private static final String SEPARATORS = " [](){}|.,\r\n<>:-+*/=<\">!'$";
     private static final long MAX_PARSE_TIME = 100;
 

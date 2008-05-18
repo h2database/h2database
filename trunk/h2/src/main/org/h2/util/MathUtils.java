@@ -66,7 +66,7 @@ public class MathUtils {
     public static BigDecimal setScale(BigDecimal bd, int scale) throws SQLException {
         if (scale > Constants.BIG_DECIMAL_SCALE_MAX) {
             throw Message.getInvalidValueException("" + scale, "scale");
-        } else if (scale < 0) {
+        } else if (scale < -Constants.BIG_DECIMAL_SCALE_MAX) {
             throw Message.getInvalidValueException("" + scale, "scale");
         }
         return bd.setScale(scale, BigDecimal.ROUND_HALF_UP);

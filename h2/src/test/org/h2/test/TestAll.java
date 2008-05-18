@@ -160,6 +160,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+create table test(d number(1, -84));
+
 MySQL:
 CREATE TABLE user (
  id int(25) NOT NULL auto_increment,
@@ -250,6 +252,8 @@ http://www.w3schools.com/sql/
 History:
 
 Roadmap:
+    Negative scale values for DECIMAL or NUMBER columns are not supported
+        in regular tables and in linked tables.
 
 */
         if (args.length > 0) {

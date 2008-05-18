@@ -3201,7 +3201,7 @@ public class Parser {
                 readIf("CHAR");
                 if (dataType.supportsScale) {
                     if (readIf(",")) {
-                        scale = getPositiveInt();
+                        scale = getInt();
                         original += ", " + scale;
                     } else {
                         scale = 0;

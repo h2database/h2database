@@ -46,6 +46,9 @@ public class StringUtils {
     }
 
     public static String quoteStringSQL(String s) {
+        if (s == null) {
+            return "NULL";
+        }
         StringBuffer buff = new StringBuffer(s.length() + 2);
         buff.append('\'');
         for (int i = 0; i < s.length(); i++) {

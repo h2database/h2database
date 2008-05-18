@@ -42,12 +42,64 @@ import org.h2.value.ValueString;
  * Implements the integrated aggregate functions, such as COUNT, MAX, SUM.
  */
 public class Aggregate extends Expression {
-    // TODO incompatibility to hsqldb: aggregates: hsqldb uses automatic data
-    // type for sum if value is too big,
-    // h2 uses the same type as the data
-    public static final int COUNT_ALL = 0, COUNT = 1, SUM = 2, MIN = 3, MAX = 4, AVG = 5;
-    public static final int GROUP_CONCAT = 6, STDDEV_POP = 7, STDDEV_SAMP = 8;
-    public static final int VAR_POP = 9, VAR_SAMP = 10, SOME = 11, EVERY = 12, SELECTIVITY = 13;
+    
+    /**
+     * The aggregate type for COUNT(*).
+     */
+    public static final int COUNT_ALL = 0;
+    
+    /**
+     * The aggregate type for COUNT(expression).
+     */
+    public static final int COUNT = 1;
+    
+    /**
+     * The aggregate type for SUM(expression).
+     */
+    public static final int SUM = 2;
+    
+    /**
+     * The aggregate type for MIN(expression).
+     */
+    public static final int MIN = 3;
+
+    /**
+     * The aggregate type for MAX(expression).
+     */
+    public static final int MAX = 4;
+    
+    /**
+     * The aggregate type for AVG(expression).
+     */
+    public static final int AVG = 5;
+    
+    /**
+     * The aggregate type for GROUP_CONCAT(...).
+     */
+    public static final int GROUP_CONCAT = 6;
+    
+    /**
+     * The aggregate type for STDDEV_POP(expression).
+     */
+    public static final int STDDEV_POP = 7;
+    
+    /**
+     * The aggregate type for STDDEV_SAMP(expression).
+     */
+    public static final int STDDEV_SAMP = 8;
+    
+    /**
+     * The aggregate type for VAR_POP(expression).
+     */
+    public static final int VAR_POP = 9;
+    
+    /**
+     * The aggregate type for VAR_SAMP(expression).
+     */
+    public static final int VAR_SAMP = 10;
+    public static final int SOME = 11;
+    public static final int EVERY = 12;
+    public static final int SELECTIVITY = 13;
 
     private final Database database;
     private final int type;
@@ -97,6 +149,13 @@ public class Aggregate extends Expression {
         AGGREGATES.put(name, ObjectUtils.getInteger(type));
     }
 
+    /**
+     * Get the aggregate type for this name, or -1 if no aggregate has been
+     * found.
+     * 
+     * @param name the aggregate function name
+     * @return -1 if no aggregate function has been found, or the aggregate type
+     */
     public static int getAggregateType(String name) {
         Integer type = (Integer) AGGREGATES.get(name);
         return type == null ? -1 : type.intValue();

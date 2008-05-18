@@ -555,6 +555,7 @@ public class Select extends Query {
             if (!expr.isWildcard()) {
                 continue;
             }
+            String schemaName = expr.getSchemaName();
             String tableAlias = expr.getTableAlias();
             if (tableAlias == null) {
                 int temp = i;
@@ -570,8 +571,10 @@ public class Select extends Query {
                 for (int j = 0; j < filters.size(); j++) {
                     TableFilter f = (TableFilter) filters.get(j);
                     if (tableAlias.equals(f.getTableAlias())) {
-                        filter = f;
-                        break;
+                        if (schemaName == null || schemaName.equals(f.getSchemaName())) {
+                            filter = f;
+                            break;
+                        }
                     }
                 }
                 if (filter == null) {

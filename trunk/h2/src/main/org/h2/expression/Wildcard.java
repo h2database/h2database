@@ -69,6 +69,10 @@ public class Wildcard extends Expression {
     public String getTableAlias() {
         return table;
     }
+    
+    public String getSchemaName() {
+        return schema;
+    }
 
     public String getSQL() {
         if (table == null) {

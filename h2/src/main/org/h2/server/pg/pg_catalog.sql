@@ -31,6 +31,7 @@ create table pg_catalog.pg_type(
     typname varchar_ignorecase, 
     typnamespace int, 
     typlen int, 
+    typtype varchar,
     typbasetype int);
     
 insert into pg_catalog.pg_type
@@ -39,6 +40,7 @@ select
     cast(type_name as varchar_ignorecase) typname,
     (select oid from pg_catalog.pg_namespace where nspname = 'pg_catalog') typnamespace,
     -1 typlen,
+    'c' typtype,
     0 typbasetype
 from information_schema.type_info
 where pos = 0;
@@ -48,6 +50,7 @@ merge into pg_catalog.pg_type values(
     'name',
     (select oid from pg_catalog.pg_namespace where nspname = 'pg_catalog'),
     -1,
+    'c',
     0
 );
 merge into pg_catalog.pg_type values(
@@ -55,6 +58,7 @@ merge into pg_catalog.pg_type values(
     'null',
     (select oid from pg_catalog.pg_namespace where nspname = 'pg_catalog'),
     -1,
+    'c',
     0
 );
 

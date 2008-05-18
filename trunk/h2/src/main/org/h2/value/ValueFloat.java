@@ -58,6 +58,14 @@ public class ValueFloat extends Value {
     }
 
     public String getSQL() {
+        if (value == Float.POSITIVE_INFINITY) {
+            return "POWER(0, -1)";
+        } else if (value == Float.NEGATIVE_INFINITY) {
+            return "(-POWER(0, -1))";
+        } else if (value != value) {
+            // NaN
+            return "SQRT(-1)";
+        }
         return getString();
     }
 
@@ -67,10 +75,7 @@ public class ValueFloat extends Value {
 
     protected int compareSecure(Value o, CompareMode mode) {
         ValueFloat v = (ValueFloat) o;
-        if (value == v.value) {
-            return 0;
-        }
-        return value > v.value ? 1 : -1;
+        return Float.compare(value, v.value);
     }
 
     public int getSignum() {
@@ -121,7 +126,10 @@ public class ValueFloat extends Value {
     }
 
     public boolean equals(Object other) {
-        return other instanceof ValueFloat && value == ((ValueFloat) other).value;
+        if (!(other instanceof ValueFloat)) {
+            return false;
+        }
+        return compareSecure((ValueFloat) other, null) == 0;
     }
 
 }

@@ -58,6 +58,14 @@ public class ValueDouble extends Value {
     }
 
     public String getSQL() {
+        if (value == Double.POSITIVE_INFINITY) {
+            return "POWER(0, -1)";
+        } else if (value == Double.NEGATIVE_INFINITY) {
+            return "(-POWER(0, -1))";
+        } else if (value != value) {
+            // NaN
+            return "SQRT(-1)";
+        }
         return getString();
     }
 
@@ -67,10 +75,7 @@ public class ValueDouble extends Value {
 
     protected int compareSecure(Value o, CompareMode mode) {
         ValueDouble v = (ValueDouble) o;
-        if (value == v.value) {
-            return 0;
-        }
-        return value > v.value ? 1 : -1;
+        return Double.compare(value, v.value);
     }
 
     public int getSignum() {
@@ -121,7 +126,10 @@ public class ValueDouble extends Value {
     }
 
     public boolean equals(Object other) {
-        return other instanceof ValueDouble && value == ((ValueDouble) other).value;
+        if (!(other instanceof ValueDouble)) {
+            return false;
+        }
+        return compareSecure((ValueDouble) other, null) == 0;
     }
 
 }

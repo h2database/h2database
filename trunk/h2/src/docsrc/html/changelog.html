@@ -17,7 +17,15 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>-
+<li>Infinite numbers in SQL script are listed as POWER(0, -1)), negative 
+        infinite as (-POWER(0, -1)), and NaN (not a number) as SQRT(-1).
+</li><li>Comparison did not work correctly when using the special
+        double and float value 'NaN' (not a number).
+</li><li>SET QUERY_TIMEOUT and Statement.setQueryTimeout no longer commits 
+        a transaction. The same applies to SET @VARIABLE, SET LOCK_TIMEOUT, 
+        SET TRACE_LEVEL_*, SET THROTTLE, and SET PATH.
+</li><li>ParameterMetaData now also returns the right data type for most 
+        conditions, as in WHERE ID=?.
 </li></ul>
 
 <h2>Version 1.0.72 (2008-05-10)</h2>

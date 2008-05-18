@@ -24,9 +24,31 @@ import org.h2.test.TestBase;
 public class TestTransaction extends TestBase {
 
     public void test() throws Exception {
+        testSetTransaction();
         testReferential();
         testSavepoint();
         testIsolation();
+    }
+
+    private void testSetTransaction() throws Exception {
+        deleteDb("transaction");
+        Connection conn = getConnection("transaction");
+        conn.setAutoCommit(false);
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        stat.execute("insert into test values(1)");
+        stat.execute("set @x = 1");
+        conn.commit();
+        checkSingleValue(stat, "select id from test", 1);
+        checkSingleValue(stat, "call @x", 1);
+
+        stat.execute("update test set id=2");
+        stat.execute("set @x = 2");
+        conn.rollback();
+        checkSingleValue(stat, "select id from test", 1);
+        checkSingleValue(stat, "call @x", 2);
+
+        conn.close();
     }
 
     private void testReferential() throws Exception {

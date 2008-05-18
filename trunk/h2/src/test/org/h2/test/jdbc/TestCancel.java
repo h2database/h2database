@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.sql.Statement;
 
 import org.h2.constant.ErrorCode;
@@ -53,6 +54,7 @@ public class TestCancel extends TestBase {
     }
 
     public void test() throws Exception {
+        testQueryTimeoutInTransaction();
         testReset();
         testMaxQueryTimeout();
         testQueryTimeout();
@@ -73,6 +75,21 @@ public class TestCancel extends TestBase {
         }
         stat.execute("set query_timeout 0");
         stat.execute("select count(*) from system_range(1, 1000), system_range(1, 1000)");
+        conn.close();
+    }
+    
+    private void testQueryTimeoutInTransaction() throws Exception {
+        deleteDb("cancel");
+        Connection conn = getConnection("cancel");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT)");
+        conn.setAutoCommit(false);
+        stat.execute("INSERT INTO TEST VALUES(1)");
+        Savepoint sp = conn.setSavepoint();
+        stat.execute("INSERT INTO TEST VALUES(2)");
+        stat.setQueryTimeout(1);
+        conn.rollback(sp);
+        conn.commit();
         conn.close();
     }
 

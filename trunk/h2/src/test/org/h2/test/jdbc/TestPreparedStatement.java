@@ -415,6 +415,10 @@ public class TestPreparedStatement extends TestBase {
         checkParameter(prep2, 1, "java.lang.Integer", 4, "INTEGER", 10, 0);
         checkParameter(prep2, 2, "java.lang.String", 12, "VARCHAR", 255, 0);
         checkParameter(prep2, 3, "java.math.BigDecimal", 3, "DECIMAL", 10, 2);
+        PreparedStatement prep3 = conn.prepareStatement("SELECT * FROM TEST3 WHERE ID=? AND NAME LIKE ? AND ?>DATA");
+        checkParameter(prep3, 1, "java.lang.Integer", 4, "INTEGER", 10, 0);
+        checkParameter(prep3, 2, "java.lang.String", 12, "VARCHAR", 0, 0);
+        checkParameter(prep3, 3, "java.math.BigDecimal", 3, "DECIMAL", 10, 2);
         stat.execute("DROP TABLE TEST3");
     }
 

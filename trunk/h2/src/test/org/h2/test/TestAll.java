@@ -160,18 +160,40 @@ java org.h2.test.TestAll timer
 
 /*
 
--- Wildcard schema bug:
-create schema a;
-create table a.x(ax int);
-create schema b;
-create table b.x(bx int);
-select * from a.x, b.x;
+MySQL:
+CREATE TABLE user (
+ id int(25) NOT NULL auto_increment,
+ name varchar(25) NOT NULL,
+ PRIMARY KEY  (id,name)
+)
+
+I've created a linked table to an oracle database, and tried:
+create table person as select * from ora_person
+This gives me:
+Invalid value -127 for parameter scale [90008-71] 90008/90008
+Doing a column-by-column select, I get the exception when I try to
+create table as select one of the NUMBER fields with unspecified
+lengths.
+Here's a simpler example:
+create table t as select sysadmin from ora_person;
+(sysadmin is a NUMBER column)
+This works:
+create table t as select cast(sysadmin as int) sysadmin from
+ora_person
+But, it's clunky.  Is this something that can be fixed in a future
+version?
+
+download PostgreSQL docs
+
+BIT_AND, BIT_OR, BIT_XOR
+SOME, EVERY: HSQLDB compatibility
+add tests for SOME, EVERY (SOME is used in Parser.java 
+for something else; test this; maybe use BOOL_AND / BOOL_OR)
+document SOME, EVERY
 
 in help.csv, use complete examples for functions; add a test case
 
 upload and test javadoc/index.html
-
-Test Bnf.COMBINE_KEYWORDS
 
 improve javadocs
 

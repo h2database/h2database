@@ -7,6 +7,9 @@
 package org.h2.test.unit;
 
 import org.h2.test.TestBase;
+import org.h2.value.Value;
+import org.h2.value.ValueDouble;
+import org.h2.value.ValueFloat;
 import org.h2.value.ValueUuid;
 
 /**
@@ -16,6 +19,32 @@ public class TestValue extends TestBase {
 
     public void test() throws Exception {
         testUUID();
+        testDouble(false);
+        testDouble(true);
+    }
+    
+    private void testDouble(boolean useFloat) throws Exception {
+        double[] d = new double[]{
+                Double.NEGATIVE_INFINITY,
+                -1,
+                0,
+                1,
+                Double.POSITIVE_INFINITY,
+                Double.NaN
+        };
+        Value[] values = new Value[d.length];
+        for (int i = 0; i < d.length; i++) {
+            Value v = useFloat ? (Value) ValueFloat.get((float) d[i]) : (Value) ValueDouble.get(d[i]);
+            values[i] = v;
+            check(values[i].compareTypeSave(values[i], null) == 0);
+            check(v.equals(v));
+            check(i < 2 ? -1 : i > 2 ? 1 : 0, v.getSignum());
+        }
+        for (int i = 0; i < d.length - 1; i++) {
+            check(values[i].compareTypeSave(values[i+1], null) < 0);
+            check(values[i + 1].compareTypeSave(values[i], null) > 0);
+            check(!values[i].equals(values[i+1]));
+        }        
     }
 
     private void testUUID() throws Exception {

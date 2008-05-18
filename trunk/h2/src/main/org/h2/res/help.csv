@@ -736,6 +736,7 @@ SAVEPOINT HALF_DONE
 SET @variableName [=] expression
 ","
 Updates a user-defined variable.
+This command does not commit a transaction, and rollback does not affect it.
 ","
 SET @TOTAL=0
 "
@@ -922,6 +923,7 @@ SET LOCK_TIMEOUT int
 ","
 Sets the lock timeout (in milliseconds) for the current session.
 The default value for this setting is 1000 (one second).
+This command does not commit a transaction, and rollback does not affect it.
 This setting can be appended to the database URL: jdbc:h2:test;LOCK_TIMEOUT=10000
 ","
 SET LOCK_TIMEOUT 1000
@@ -1051,6 +1053,7 @@ Set the query timeout of the current session to the given value.
 The timeout is in milliseconds. All kinds of statements will
 throw an exception if they take longer than the given value.
 The default timeout is 0, meaning no timeout.
+This command does not commit a transaction, and rollback does not affect it.
 ","
 SET QUERY_TIMEOUT 10000
 "
@@ -1091,6 +1094,7 @@ SET SCHEMA schemaName
 Changes the default schema of the current connection.
 The default schema is used in statements where no schema is set explicitly.
 The default schema for new connections is PUBLIC.
+This command does not commit a transaction, and rollback does not affect it.
 This setting can be appended to the database URL: jdbc:h2:test;SCHEMA=ABC
 ","
 SET SCHEMA INFORMATION_SCHEMA
@@ -1102,6 +1106,7 @@ SET THROTTLE int
 Sets the throttle for the current connection.
 The value is the number of milliseconds delay after each 50 ms.
 The default value is 0 (throttling disabled).
+This command does not commit a transaction, and rollback does not affect it.
 This setting can be appended to the database URL: jdbc:h2:test;THROTTLE=50
 ","
 SET THROTTLE 200
@@ -1114,6 +1119,7 @@ Sets the trace level for file the file or system out stream.
 Levels are: 0=off, 1=error, 2=info, 3=debug.
 This setting is not persistent.
 Admin rights are required to execute this command.
+This command does not commit a transaction, and rollback does not affect it.
 This setting can be appended to the database URL: jdbc:h2:test;TRACE_LEVEL_SYSTEM_OUT=3
 To use SLF4J, append ;TRACE_LEVEL_FILE=4 to the database URL when opening the database.
 ","

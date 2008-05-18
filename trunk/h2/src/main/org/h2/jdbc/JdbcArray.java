@@ -31,7 +31,7 @@ public class JdbcArray extends TraceObject implements Array {
     /**
      * INTERNAL
      */
-    public JdbcArray(SessionInterface session, JdbcConnection conn, Value value, int id) {
+    JdbcArray(SessionInterface session, JdbcConnection conn, Value value, int id) {
         setTrace(session.getTrace(), TraceObject.ARRAY, id);
         this.conn = conn;
         this.value = value;

@@ -32,13 +32,13 @@ public class JdbcStatement extends TraceObject implements Statement {
     protected SessionInterface session;
     protected JdbcResultSet resultSet;
     protected int maxRows;
-    protected boolean escapeProcessing = true;
     protected int fetchSize = SysProperties.SERVER_RESULT_SET_FETCH_SIZE;
     protected int updateCount;
-    private CommandInterface executingCommand;
-    private ObjectArray batchCommands;
     protected int resultSetType;
     protected boolean closedByResultSet;
+    private CommandInterface executingCommand;
+    private ObjectArray batchCommands;
+    private boolean escapeProcessing = true;
 
     /**
      * Executes a query (select statement) and returns the result set.
@@ -538,7 +538,9 @@ public class JdbcStatement extends TraceObject implements Statement {
     /**
      * Sets the current query timeout in seconds. Calling this method will
      * commit an open transaction, even if the value is the same as before.
-     * Changing the value will affect all statements of this connection.
+     * Changing the value will affect all statements of this connection. This
+     * method does not commit a transaction, and rolling back a transaction does
+     * not affect this setting.
      * 
      * @param seconds the timeout in seconds - 0 means no timeout, values
      *            smaller 0 will throw an exception

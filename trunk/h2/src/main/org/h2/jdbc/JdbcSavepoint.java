@@ -28,7 +28,7 @@ implements Savepoint
 //## Java 1.4 end ##
 {
 
-    static final String SYSTEM_SAVEPOINT_PREFIX = "SYSTEM_SAVEPOINT_";
+    private static final String SYSTEM_SAVEPOINT_PREFIX = "SYSTEM_SAVEPOINT_";
 
     private int savepointId;
     private String name;

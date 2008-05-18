@@ -128,7 +128,7 @@ public class Comparison extends Condition {
         function.doneWithParameters();
         return function.optimize(session);
     }
-
+    
     public Expression optimize(Session session) throws SQLException {
         left = left.optimize(session);
         if (right == null) {
@@ -136,10 +136,18 @@ public class Comparison extends Condition {
         } else {
             right = right.optimize(session);
             try {
-                if (left instanceof ExpressionColumn && right.isConstant()) {
-                    right = getCast(right, left.getType(), left.getPrecision(), left.getScale(), left.getDisplaySize(), session);
-                } else if (right instanceof ExpressionColumn && left.isConstant()) {
-                    left = getCast(left, right.getType(), right.getPrecision(), right.getScale(), right.getDisplaySize(), session);
+                if (left instanceof ExpressionColumn) {
+                    if (right.isConstant()) {
+                        right = getCast(right, left.getType(), left.getPrecision(), left.getScale(), left.getDisplaySize(), session);
+                    } else if (right instanceof Parameter) {
+                        ((Parameter) right).setColumn(((ExpressionColumn) left).getColumn());
+                    }
+                } else if (right instanceof ExpressionColumn) {
+                    if (left.isConstant()) {
+                        left = getCast(left, right.getType(), right.getPrecision(), right.getScale(), right.getDisplaySize(), session);
+                    } else if (left instanceof Parameter) {
+                        ((Parameter) left).setColumn(((ExpressionColumn) right).getColumn());
+                    }
                 }
             } catch (SQLException e) {
                 int code = e.getErrorCode();

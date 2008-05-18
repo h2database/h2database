@@ -51,6 +51,17 @@ public class Set extends Prepared {
     }
 
     public boolean isTransactional() {
+        switch (type) {
+        case SetTypes.VARIABLE:
+        case SetTypes.QUERY_TIMEOUT:
+        case SetTypes.LOCK_TIMEOUT:
+        case SetTypes.TRACE_LEVEL_SYSTEM_OUT:
+        case SetTypes.TRACE_LEVEL_FILE:
+        case SetTypes.THROTTLE:
+        case SetTypes.SCHEMA:
+        case SetTypes.SCHEMA_SEARCH_PATH:
+            return true;
+        }
         return false;
     }
 
@@ -59,50 +70,14 @@ public class Set extends Prepared {
         Database database = session.getDatabase();
         String name = SetTypes.getTypeName(type);
         switch (type) {
-        case SetTypes.MAX_LOG_SIZE:
+        case SetTypes.ALLOW_LITERALS: {
             session.getUser().checkAdmin();
-            session.getDatabase().setMaxLogSize((long) getIntValue() * 1024 * 1024);
-            addOrUpdateSetting(name, null, getIntValue());
-            break;
-        case SetTypes.LOCK_TIMEOUT:
-            session.setLockTimeout(getIntValue());
-            break;
-        case SetTypes.LOCK_MODE:
-            session.getUser().checkAdmin();
-            database.setLockMode(getIntValue());
-            addOrUpdateSetting(name, null, getIntValue());
-            break;
-        case SetTypes.DEFAULT_LOCK_TIMEOUT:
-            session.getUser().checkAdmin();
-            addOrUpdateSetting(name, null, getIntValue());
-            break;
-        case SetTypes.DEFAULT_TABLE_TYPE:
-            session.getUser().checkAdmin();
-            addOrUpdateSetting(name, null, getIntValue());
-            break;
-        case SetTypes.TRACE_LEVEL_SYSTEM_OUT:
-            session.getUser().checkAdmin();
-            if (getCurrentObjectId() == 0) {
-                // don't set the property when opening the database
-                // this is for compatibility with older versions, because
-                // this setting was persistent
-                database.getTraceSystem().setLevelSystemOut(getIntValue());
+            int value = getIntValue();
+            if (value < 0 || value > 2) {
+                throw Message.getInvalidValueException("" + getIntValue(), "ALLOW_LITERALS");
             }
-            break;
-        case SetTypes.TRACE_LEVEL_FILE:
-            session.getUser().checkAdmin();
-            if (getCurrentObjectId() == 0) {
-                // don't set the property when opening the database
-                // this is for compatibility with older versions, because
-                // this setting was persistent
-                database.getTraceSystem().setLevelFile(getIntValue());
-            }
-            break;
-        case SetTypes.TRACE_MAX_FILE_SIZE: {
-            session.getUser().checkAdmin();
-            int size = getIntValue() * 1024 * 1024;
-            database.getTraceSystem().setMaxFileSize(size);
-            addOrUpdateSetting(name, null, getIntValue());
+            database.setAllowLiterals(value);
+            addOrUpdateSetting(name, null, value);
             break;
         }
         case SetTypes.CACHE_SIZE:
@@ -110,14 +85,12 @@ public class Set extends Prepared {
             database.setCacheSize(getIntValue());
             addOrUpdateSetting(name, null, getIntValue());
             break;
-        case SetTypes.MODE:
+        case SetTypes.CLUSTER: {
             session.getUser().checkAdmin();
-            Mode mode = Mode.getInstance(stringValue);
-            if (mode == null) {
-                throw Message.getSQLException(ErrorCode.UNKNOWN_MODE_1, stringValue);
-            }
-            database.setMode(mode);
+            database.setCluster(StringUtils.quoteStringSQL(stringValue));
+            addOrUpdateSetting(name, StringUtils.quoteStringSQL(stringValue), 0);
             break;
+        }
         case SetTypes.COLLATION: {
             session.getUser().checkAdmin();
             ObjectArray array = database.getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
@@ -150,145 +123,11 @@ public class Set extends Prepared {
             database.setCompareMode(compareMode);
             break;
         }
-        case SetTypes.IGNORECASE:
-            session.getUser().checkAdmin();
-            session.getDatabase().setIgnoreCase(getIntValue() == 1);
-            addOrUpdateSetting(name, null, getIntValue());
-            break;
-        case SetTypes.CLUSTER: {
-            session.getUser().checkAdmin();
-            database.setCluster(StringUtils.quoteStringSQL(stringValue));
-            addOrUpdateSetting(name, StringUtils.quoteStringSQL(stringValue), 0);
-            break;
-        }
-        case SetTypes.WRITE_DELAY: {
-            session.getUser().checkAdmin();
-            database.setWriteDelay(getIntValue());
-            addOrUpdateSetting(name, null, getIntValue());
-            break;
-        }
-        case SetTypes.DATABASE_EVENT_LISTENER: {
-            session.getUser().checkAdmin();
-            database.setEventListenerClass(stringValue);
-            break;
-        }
-        case SetTypes.MAX_MEMORY_ROWS: {
-            session.getUser().checkAdmin();
-            database.setMaxMemoryRows(getIntValue());
-            addOrUpdateSetting(name, null, getIntValue());
-            break;
-        }
-        case SetTypes.MULTI_THREADED: {
-            session.getUser().checkAdmin();
-            database.setMultiThreaded(getIntValue() == 1);
-            break;
-        }
-        case SetTypes.DB_CLOSE_DELAY: {
-            session.getUser().checkAdmin();
-            database.setCloseDelay(getIntValue());
-            addOrUpdateSetting(name, null, getIntValue());
-            break;
-        }
-        case SetTypes.LOG: {
-            int value = getIntValue();
-            if (value < 0 || value > 2) {
-                throw Message.getInvalidValueException("" + getIntValue(), "LOG");
-            }
-            if (value == 0) {
-                session.getUser().checkAdmin();
-            }
-            database.setLog(value);
-            break;
-        }
-        case SetTypes.THROTTLE: {
-            if (getIntValue() < 0) {
-                throw Message.getInvalidValueException("" + getIntValue(), "THROTTLE");
-            }
-            session.setThrottle(getIntValue());
-            break;
-        }
-        case SetTypes.MAX_MEMORY_UNDO: {
-            if (getIntValue() < 0) {
-                throw Message.getInvalidValueException("" + getIntValue(), "MAX_MEMORY_UNDO");
-            }
-            session.getUser().checkAdmin();
-            database.setMaxMemoryUndo(getIntValue());
-            addOrUpdateSetting(name, null, getIntValue());
-            break;
-        }
-        case SetTypes.MAX_LENGTH_INPLACE_LOB: {
-            if (getIntValue() < 0) {
-                throw Message.getInvalidValueException("" + getIntValue(), "MAX_LENGTH_INPLACE_LOB");
-            }
-            session.getUser().checkAdmin();
-            database.setMaxLengthInplaceLob(getIntValue());
-            addOrUpdateSetting(name, null, getIntValue());
-            break;
-        }
         case SetTypes.COMPRESS_LOB: {
             session.getUser().checkAdmin();
             int algo = CompressTool.getInstance().getCompressAlgorithm(stringValue);
             database.setLobCompressionAlgorithm(algo == Compressor.NO ? null : stringValue);
             addOrUpdateSetting(name, stringValue, 0);
-            break;
-        }
-        case SetTypes.ALLOW_LITERALS: {
-            session.getUser().checkAdmin();
-            int value = getIntValue();
-            if (value < 0 || value > 2) {
-                throw Message.getInvalidValueException("" + getIntValue(), "ALLOW_LITERALS");
-            }
-            database.setAllowLiterals(value);
-            addOrUpdateSetting(name, null, value);
-            break;
-        }
-        case SetTypes.SCHEMA: {
-            Schema schema = database.getSchema(stringValue);
-            session.setCurrentSchema(schema);
-            break;
-        }
-        case SetTypes.OPTIMIZE_REUSE_RESULTS: {
-            session.getUser().checkAdmin();
-            database.setOptimizeReuseResults(getIntValue() != 0);
-            break;
-        }
-        case SetTypes.SCHEMA_SEARCH_PATH: {
-            session.setSchemaSearchPath(stringValueList);
-            break;
-        }
-        case SetTypes.UNDO_LOG: {
-            int value = getIntValue();
-            if (value < 0 || value > 1) {
-                throw Message.getInvalidValueException("" + getIntValue(), "UNDO_LOG");
-            }
-            session.setUndoLogEnabled(value == 1);
-            break;
-        }
-        case SetTypes.REFERENTIAL_INTEGRITY: {
-            session.getUser().checkAdmin();
-            int value = getIntValue();
-            if (value < 0 || value > 1) {
-                throw Message.getInvalidValueException("" + getIntValue(), "REFERENTIAL_INTEGRITY");
-            }
-            database.setReferentialIntegrity(value == 1);
-            break;
-        }
-        case SetTypes.MVCC: {
-            if (database.isMultiVersion() != (getIntValue() == 1)) {
-                throw Message.getSQLException(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, "MVCC");
-            }
-            break;
-        }
-        case SetTypes.MAX_OPERATION_MEMORY: {
-            session.getUser().checkAdmin();
-            int value = getIntValue();
-            database.setMaxOperationMemory(value);
-            break;
-        }
-        case SetTypes.EXCLUSIVE: {
-            session.getUser().checkAdmin();
-            int value = getIntValue();
-            database.setExclusiveSession(value == 1 ? session : null);
             break;
         }
         case SetTypes.CREATE_BUILD: {
@@ -301,14 +140,186 @@ public class Set extends Prepared {
             }
             break;
         }
-        case SetTypes.VARIABLE: {
-            Expression expr = expression.optimize(session);
-            session.setVariable(stringValue, expr.getValue(session));
+        case SetTypes.DATABASE_EVENT_LISTENER: {
+            session.getUser().checkAdmin();
+            database.setEventListenerClass(stringValue);
+            break;
+        }
+        case SetTypes.DB_CLOSE_DELAY: {
+            session.getUser().checkAdmin();
+            database.setCloseDelay(getIntValue());
+            addOrUpdateSetting(name, null, getIntValue());
+            break;
+        }
+        case SetTypes.DEFAULT_LOCK_TIMEOUT:
+            session.getUser().checkAdmin();
+            addOrUpdateSetting(name, null, getIntValue());
+            break;
+        case SetTypes.DEFAULT_TABLE_TYPE:
+            session.getUser().checkAdmin();
+            addOrUpdateSetting(name, null, getIntValue());
+            break;
+        case SetTypes.EXCLUSIVE: {
+            session.getUser().checkAdmin();
+            int value = getIntValue();
+            database.setExclusiveSession(value == 1 ? session : null);
+            break;
+        }
+        case SetTypes.IGNORECASE:
+            session.getUser().checkAdmin();
+            database.setIgnoreCase(getIntValue() == 1);
+            addOrUpdateSetting(name, null, getIntValue());
+            break;
+        case SetTypes.LOCK_MODE:
+            session.getUser().checkAdmin();
+            database.setLockMode(getIntValue());
+            addOrUpdateSetting(name, null, getIntValue());
+            break;
+        case SetTypes.LOCK_TIMEOUT:
+            session.setLockTimeout(getIntValue());
+            break;
+        case SetTypes.LOG: {
+            int value = getIntValue();
+            if (value < 0 || value > 2) {
+                throw Message.getInvalidValueException("" + getIntValue(), "LOG");
+            }
+            if (value == 0) {
+                session.getUser().checkAdmin();
+            }
+            database.setLog(value);
+            break;
+        }        
+        case SetTypes.MAX_LENGTH_INPLACE_LOB: {
+            if (getIntValue() < 0) {
+                throw Message.getInvalidValueException("" + getIntValue(), "MAX_LENGTH_INPLACE_LOB");
+            }
+            session.getUser().checkAdmin();
+            database.setMaxLengthInplaceLob(getIntValue());
+            addOrUpdateSetting(name, null, getIntValue());
+            break;
+        }
+        case SetTypes.MAX_LOG_SIZE:
+            session.getUser().checkAdmin();
+            database.setMaxLogSize((long) getIntValue() * 1024 * 1024);
+            addOrUpdateSetting(name, null, getIntValue());
+            break;
+        case SetTypes.MAX_MEMORY_ROWS: {
+            session.getUser().checkAdmin();
+            database.setMaxMemoryRows(getIntValue());
+            addOrUpdateSetting(name, null, getIntValue());
+            break;
+        }
+        case SetTypes.MAX_MEMORY_UNDO: {
+            if (getIntValue() < 0) {
+                throw Message.getInvalidValueException("" + getIntValue(), "MAX_MEMORY_UNDO");
+            }
+            session.getUser().checkAdmin();
+            database.setMaxMemoryUndo(getIntValue());
+            addOrUpdateSetting(name, null, getIntValue());
+            break;
+        }
+        case SetTypes.MAX_OPERATION_MEMORY: {
+            session.getUser().checkAdmin();
+            int value = getIntValue();
+            database.setMaxOperationMemory(value);
+            break;
+        }
+        case SetTypes.MODE:
+            session.getUser().checkAdmin();
+            Mode mode = Mode.getInstance(stringValue);
+            if (mode == null) {
+                throw Message.getSQLException(ErrorCode.UNKNOWN_MODE_1, stringValue);
+            }
+            database.setMode(mode);
+            break;
+        case SetTypes.MULTI_THREADED: {
+            session.getUser().checkAdmin();
+            database.setMultiThreaded(getIntValue() == 1);
+            break;
+        }
+        case SetTypes.MVCC: {
+            if (database.isMultiVersion() != (getIntValue() == 1)) {
+                throw Message.getSQLException(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, "MVCC");
+            }
+            break;
+        }
+        case SetTypes.OPTIMIZE_REUSE_RESULTS: {
+            session.getUser().checkAdmin();
+            database.setOptimizeReuseResults(getIntValue() != 0);
             break;
         }
         case SetTypes.QUERY_TIMEOUT: {
             int value = getIntValue();
             session.setQueryTimeout(value);
+            break;
+        }
+        case SetTypes.REFERENTIAL_INTEGRITY: {
+            session.getUser().checkAdmin();
+            int value = getIntValue();
+            if (value < 0 || value > 1) {
+                throw Message.getInvalidValueException("" + getIntValue(), "REFERENTIAL_INTEGRITY");
+            }
+            database.setReferentialIntegrity(value == 1);
+            break;
+        }
+        case SetTypes.SCHEMA: {
+            Schema schema = database.getSchema(stringValue);
+            session.setCurrentSchema(schema);
+            break;
+        }
+        case SetTypes.SCHEMA_SEARCH_PATH: {
+            session.setSchemaSearchPath(stringValueList);
+            break;
+        }
+        case SetTypes.TRACE_LEVEL_FILE:
+            session.getUser().checkAdmin();
+            if (getCurrentObjectId() == 0) {
+                // don't set the property when opening the database
+                // this is for compatibility with older versions, because
+                // this setting was persistent
+                database.getTraceSystem().setLevelFile(getIntValue());
+            }
+            break;
+        case SetTypes.TRACE_LEVEL_SYSTEM_OUT:
+            session.getUser().checkAdmin();
+            if (getCurrentObjectId() == 0) {
+                // don't set the property when opening the database
+                // this is for compatibility with older versions, because
+                // this setting was persistent
+                database.getTraceSystem().setLevelSystemOut(getIntValue());
+            }
+            break;
+        case SetTypes.TRACE_MAX_FILE_SIZE: {
+            session.getUser().checkAdmin();
+            int size = getIntValue() * 1024 * 1024;
+            database.getTraceSystem().setMaxFileSize(size);
+            addOrUpdateSetting(name, null, getIntValue());
+            break;
+        }
+        case SetTypes.THROTTLE: {
+            if (getIntValue() < 0) {
+                throw Message.getInvalidValueException("" + getIntValue(), "THROTTLE");
+            }
+            session.setThrottle(getIntValue());
+            break;
+        }
+        case SetTypes.UNDO_LOG: {
+            int value = getIntValue();
+            if (value < 0 || value > 1) {
+                throw Message.getInvalidValueException("" + getIntValue(), "UNDO_LOG");
+            }
+            session.setUndoLogEnabled(value == 1);
+            break;
+        }
+        case SetTypes.VARIABLE: {
+            Expression expr = expression.optimize(session);
+            session.setVariable(stringValue, expr.getValue(session));
+            break;
+        }
+        case SetTypes.WRITE_DELAY: {
+            session.getUser().checkAdmin();
+            database.setWriteDelay(getIntValue());
+            addOrUpdateSetting(name, null, getIntValue());
             break;
         }
         default:

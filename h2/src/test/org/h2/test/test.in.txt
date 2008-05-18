@@ -1,4 +1,53 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+CREATE MEMORY TABLE TEST(ID INT, D DOUBLE, F FLOAT);
+> ok
+
+insert into test values(0, POWER(0, -1), POWER(0, -1)), (1, -POWER(0, -1), -POWER(0, -1)), (2, SQRT(-1), SQRT(-1));
+> update count: 3
+
+select * from test order by id;
+> ID D         F
+> -- --------- ---------
+> 0  Infinity  Infinity
+> 1  -Infinity -Infinity
+> 2  NaN       NaN
+> rows (ordered): 3
+
+script nopasswords nosettings;
+> SCRIPT
+> -----------------------------------------------------------------------------------------------------------------------------------------
+> -- 3 = SELECT COUNT(*) FROM PUBLIC.TEST;
+> CREATE MEMORY TABLE PUBLIC.TEST(     ID INT,     D DOUBLE,     F FLOAT );
+> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> INSERT INTO PUBLIC.TEST(ID, D, F) VALUES (0, POWER(0, -1), POWER(0, -1)), (1, (-POWER(0, -1)), (-POWER(0, -1))), (2, SQRT(-1), SQRT(-1));
+> rows: 4
+
+DROP TABLE TEST;
+> ok
+
+create schema a;
+> ok
+
+create table a.x(ax int);
+> ok
+
+create schema b;
+> ok
+
+create table b.x(bx int);
+> ok
+
+select * from a.x, b.x;
+> AX BX
+> -- --
+> rows: 0
+
+drop schema a;
+> ok
+
+drop schema b;
+> ok
+
 create table t1 (id int primary key);
 > ok
 
@@ -5353,8 +5402,8 @@ SELECT * FROM V_UNION WHERE ID=1;
 
 EXPLAIN SELECT * FROM V_UNION WHERE ID=1;
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT V_UNION.ID, V_UNION.NAME, V_UNION.CLASS FROM PUBLIC.V_UNION /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = CAST(?1 AS INTEGER) ++/ WHERE CHILDREN.ID = CAST(?1 AS INTEGER)) UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = CAST(?1 AS INTEGER) ++/ WHERE CHILDREN.ID = CAST(?1 AS INTEGER)): ID = 1 */ WHERE ID = 1
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_UNION.ID, V_UNION.NAME, V_UNION.CLASS FROM PUBLIC.V_UNION /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1) UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1): ID = 1 */ WHERE ID = 1
 > rows: 1
 
 CREATE VIEW V_EXCEPT AS SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE ID=2;
@@ -5368,8 +5417,8 @@ SELECT * FROM V_EXCEPT WHERE ID=1;
 
 EXPLAIN SELECT * FROM V_EXCEPT WHERE ID=1;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT V_EXCEPT.ID, V_EXCEPT.NAME, V_EXCEPT.CLASS FROM PUBLIC.V_EXCEPT /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = CAST(?1 AS INTEGER) ++/ WHERE CHILDREN.ID = CAST(?1 AS INTEGER)) EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = 2 ++/ WHERE ID = 2): ID = 1 */ WHERE ID = 1
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_EXCEPT.ID, V_EXCEPT.NAME, V_EXCEPT.CLASS FROM PUBLIC.V_EXCEPT /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1) EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = 2 ++/ WHERE ID = 2): ID = 1 */ WHERE ID = 1
 > rows: 1
 
 CREATE VIEW V_INTERSECT AS SELECT ID, NAME FROM CHILDREN INTERSECT SELECT * FROM CLASSES;
@@ -5382,8 +5431,8 @@ SELECT * FROM V_INTERSECT WHERE ID=1;
 
 EXPLAIN SELECT * FROM V_INTERSECT WHERE ID=1;
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT V_INTERSECT.ID, V_INTERSECT.NAME FROM PUBLIC.V_INTERSECT /* (SELECT ID, NAME FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = CAST(?1 AS INTEGER) ++/ WHERE ID = CAST(?1 AS INTEGER)) INTERSECT (SELECT CLASSES.ID, CLASSES.NAME FROM PUBLIC.CLASSES /++ PUBLIC.PRIMARY_KEY_5: ID = CAST(?1 AS INTEGER) ++/ WHERE CLASSES.ID = CAST(?1 AS INTEGER)): ID = 1 */ WHERE ID = 1
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_INTERSECT.ID, V_INTERSECT.NAME FROM PUBLIC.V_INTERSECT /* (SELECT ID, NAME FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE ID = ?1) INTERSECT (SELECT CLASSES.ID, CLASSES.NAME FROM PUBLIC.CLASSES /++ PUBLIC.PRIMARY_KEY_5: ID = ?1 ++/ WHERE CLASSES.ID = ?1): ID = 1 */ WHERE ID = 1
 > rows: 1
 
 DROP VIEW V_UNION;

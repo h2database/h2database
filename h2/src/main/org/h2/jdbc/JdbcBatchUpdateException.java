@@ -21,7 +21,7 @@ public class JdbcBatchUpdateException extends BatchUpdateException {
     /**
      * INTERNAL
      */
-    public JdbcBatchUpdateException(SQLException next, int[] updateCounts) {
+    JdbcBatchUpdateException(SQLException next, int[] updateCounts) {
         super(next.getMessage(), next.getSQLState(), next.getErrorCode(), updateCounts);
     }
 

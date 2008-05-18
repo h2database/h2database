@@ -70,6 +70,12 @@ public class ExpressionVisitor {
     private ColumnResolver resolver;
     private HashSet dependencies;
 
+    /**
+     * Create a new visitor object with the given type.
+     * 
+     * @param type the visitor type
+     * @return the new visitor
+     */
     public static ExpressionVisitor get(int type) {
         return new ExpressionVisitor(type);
     }

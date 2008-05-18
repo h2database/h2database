@@ -52,24 +52,6 @@ public class RuleList implements Rule {
         } else {
             list.add(next);
         }
-        if (!or && Bnf.COMBINE_KEYWORDS) {
-            for (int i = 0; i < list.size() - 1; i++) {
-                Rule r1 = (Rule) list.get(i);
-                Rule r2 = (Rule) list.get(i + 1);
-                if (!(r1 instanceof RuleElement) || !(r2 instanceof RuleElement)) {
-                    continue;
-                }
-                RuleElement re1 = (RuleElement) r1;
-                RuleElement re2 = (RuleElement) r2;
-                if (!re1.isKeyword() || !re2.isKeyword()) {
-                    continue;
-                }
-                re1 = re1.merge(re2);
-                list.set(i, re1);
-                list.remove(i + 1);
-                i--;
-            }
-        }
         this.or = or;
     }
 

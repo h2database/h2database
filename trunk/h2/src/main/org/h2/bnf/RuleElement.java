@@ -129,8 +129,4 @@ public class RuleElement implements Rule {
         link.addNextTokenList(sentence);
     }
 
-    boolean isKeyword() {
-        return keyword;
-    }
-
 }

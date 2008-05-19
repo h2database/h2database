@@ -329,7 +329,7 @@ public class TreeIndex extends BaseIndex {
         return x;
     }
     
-    public TreeNode previous(TreeNode x) {
+    TreeNode previous(TreeNode x) {
         if (x == null) {
             return null;
         }

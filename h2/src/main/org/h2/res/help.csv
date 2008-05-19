@@ -1761,6 +1761,25 @@ Aggregates are only allowed in select statements.
 ","
 AVG(X)
 "
+
+"Functions (Aggregate)","BOOL_AND","
+BOOL_AND(boolean): boolean
+","
+Returns true if all expressions are true.
+Aggregates are only allowed in select statements.
+","
+BOOL_AND(ID>10)
+"
+
+"Functions (Aggregate)","BOOL_OR","
+BOOL_OR(boolean): boolean
+","
+Returns true if any expression is true.
+Aggregates are only allowed in select statements.
+","
+BOOL_OR(NAME LIKE 'W%')
+"
+
 "Functions (Aggregate)","COUNT","
 COUNT(*) | COUNT([DISTINCT] expression): int
 ","
@@ -1769,6 +1788,7 @@ Aggregates are only allowed in select statements.
 ","
 COUNT(*)
 "
+
 "Functions (Aggregate)","GROUP_CONCAT","
 GROUP_CONCAT([DISTINCT] string [ORDER BY {expression [ASC|DESC]}[,...]] [SEPARATOR expression]): string
 ","
@@ -1777,6 +1797,7 @@ Aggregates are only allowed in select statements.
 ","
 GROUP_CONCAT(NAME ORDER BY ID SEPARATOR ', ')
 "
+
 "Functions (Aggregate)","MAX","
 MAX(value): value
 ","
@@ -1785,6 +1806,7 @@ Aggregates are only allowed in select statements.
 ","
 MAX(NAME)
 "
+
 "Functions (Aggregate)","MIN","
 MIN(value): value
 ","
@@ -1793,6 +1815,7 @@ Aggregates are only allowed in select statements.
 ","
 MIN(NAME)
 "
+
 "Functions (Aggregate)","SUM","
 SUM([DISTINCT] {int | long | decimal | double}): value
 ","
@@ -1801,6 +1824,7 @@ Aggregates are only allowed in select statements.
 ","
 SUM(X)
 "
+
 "Functions (Aggregate)","SELECTIVITY","
 SELECTIVITY(value): int
 ","
@@ -1812,6 +1836,7 @@ Aggregates are only allowed in select statements.
 ","
 SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<100000
 "
+
 "Functions (Aggregate)","STDDEV_POP","
 STDDEV_POP([DISTINCT] double): double
 ","
@@ -1820,6 +1845,7 @@ Aggregates are only allowed in select statements.
 ","
 STDDEV_POP(X)
 "
+
 "Functions (Aggregate)","STDDEV_SAMP","
 STDDEV_SAMP([DISTINCT] double): double
 ","
@@ -1828,6 +1854,7 @@ Aggregates are only allowed in select statements.
 ","
 STDDEV(X)
 "
+
 "Functions (Aggregate)","VAR_POP","
 VAR_POP([DISTINCT] double): double
 ","
@@ -1836,6 +1863,7 @@ Aggregates are only allowed in select statements.
 ","
 VAR_POP(X)
 "
+
 "Functions (Aggregate)","VAR_SAMP","
 VAR_SAMP([DISTINCT] double): double
 ","

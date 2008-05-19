@@ -53,16 +53,34 @@ public class IndexCondition {
     private Expression expression;
     private int compareType;
 
+    /**
+     * Create an index condition with the given parameters.
+     * 
+     * @param compareType the comparison type
+     * @param column the column
+     * @param expression the expression
+     */
     public IndexCondition(int compareType, ExpressionColumn column, Expression expression) {
         this.compareType = compareType;
         this.column = column == null ? null : column.getColumn();
         this.expression = expression;
     }
 
+    /**
+     * Get the current value of the expression.
+     * 
+     * @param session the session
+     * @return the value
+     */
     public Value getCurrentValue(Session session) throws SQLException {
         return expression.getValue(session);
     }
 
+    /**
+     * Get the SQL snippet of this comparison.
+     * 
+     * @return the SQL snippet
+     */
     public String getSQL() {
         if (compareType == Comparison.FALSE) {
             return "FALSE";
@@ -92,6 +110,11 @@ public class IndexCondition {
         return buff.toString();
     }
 
+    /**
+     * Get the comparison bit mask.
+     * 
+     * @return the mask
+     */
     public int getMask() {
         switch (compareType) {
         case Comparison.FALSE:
@@ -109,10 +132,21 @@ public class IndexCondition {
         }
     }
 
+    /**
+     * Check if the result is always false.
+     * 
+     * @return true if the result will always be false
+     */
     public boolean isAlwaysFalse() {
         return compareType == Comparison.FALSE;
     }
 
+    /**
+     * Check if this index condition is of the type column larger or equal to
+     * value.
+     * 
+     * @return true if this is a start condition
+     */
     public boolean isStart() {
         switch (compareType) {
         case Comparison.EQUAL:
@@ -124,6 +158,12 @@ public class IndexCondition {
         }
     }
 
+    /**
+     * Check if this index condition is of the type column smaller or equal to
+     * value.
+     * 
+     * @return true if this is a end condition
+     */
     public boolean isEnd() {
         switch (compareType) {
         case Comparison.EQUAL:
@@ -135,10 +175,20 @@ public class IndexCondition {
         }
     }
 
+    /**
+     * Get the referenced column.
+     * 
+     * @return the column
+     */
     public Column getColumn() {
         return column;
     }
 
+    /**
+     * Check if the expression can be evaluated.
+     * 
+     * @return true if it can be evaluated
+     */
     public boolean isEvaluatable() {
         return expression.isEverything(ExpressionVisitor.EVALUATABLE);
     }

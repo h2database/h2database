@@ -160,38 +160,7 @@ java org.h2.test.TestAll timer
 
 /*
 
-create table test(d number(1, -84));
-
-MySQL:
-CREATE TABLE user (
- id int(25) NOT NULL auto_increment,
- name varchar(25) NOT NULL,
- PRIMARY KEY  (id,name)
-)
-
-I've created a linked table to an oracle database, and tried:
-create table person as select * from ora_person
-This gives me:
-Invalid value -127 for parameter scale [90008-71] 90008/90008
-Doing a column-by-column select, I get the exception when I try to
-create table as select one of the NUMBER fields with unspecified
-lengths.
-Here's a simpler example:
-create table t as select sysadmin from ora_person;
-(sysadmin is a NUMBER column)
-This works:
-create table t as select cast(sysadmin as int) sysadmin from
-ora_person
-But, it's clunky.  Is this something that can be fixed in a future
-version?
-
 download PostgreSQL docs
-
-BIT_AND, BIT_OR, BIT_XOR
-SOME, EVERY: HSQLDB compatibility
-add tests for SOME, EVERY (SOME is used in Parser.java 
-for something else; test this; maybe use BOOL_AND / BOOL_OR)
-document SOME, EVERY
 
 in help.csv, use complete examples for functions; add a test case
 
@@ -199,7 +168,7 @@ upload and test javadoc/index.html
 
 improve javadocs
 
-write complete page right after checkpoint
+option to write complete page right after checkpoint
 
 upload jazoon 
 
@@ -254,6 +223,10 @@ History:
 Roadmap:
     Negative scale values for DECIMAL or NUMBER columns are not supported
         in regular tables and in linked tables.
+    MySQL compatibility: auto_increment column are no longer automatically 
+        converted to primary key columns.
+    PostgreSQL compatibility: support for BOOL_OR and BOOL_AND 
+        aggregate functions.
 
 */
         if (args.length > 0) {

@@ -92,6 +92,13 @@ public class ScanIndex extends BaseIndex {
         }
     }
 
+    /**
+     * Get the row at the given position.
+     * 
+     * @param session the session
+     * @param key the position
+     * @return the row
+     */
     public Row getRow(Session session, int key) throws SQLException {
         if (storage != null) {
             return (Row) storage.getRecord(session, key);

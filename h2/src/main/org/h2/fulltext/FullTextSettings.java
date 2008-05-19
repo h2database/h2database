@@ -36,7 +36,7 @@ public class FullTextSettings {
         return ignoreList;
     }
 
-    public HashMap getWordList() {
+    HashMap getWordList() {
         return words;
     }
 
@@ -48,7 +48,7 @@ public class FullTextSettings {
         indexes.put(ObjectUtils.getLong(index.id), index);
     }
 
-    public String convertWord(String word) {
+    String convertWord(String word) {
         // TODO this is locale specific, document
         word = word.toUpperCase();
         if (ignoreList.contains(word)) {
@@ -79,19 +79,19 @@ public class FullTextSettings {
         return path;
     }
 
-    public PreparedStatement getPrepSelectMapByWordId() {
+    PreparedStatement getPrepSelectMapByWordId() {
         return prepSelectMapByWordId;
     }
 
-    public void setPrepSelectMapByWordId(PreparedStatement prepSelectMapByWordId) {
+    void setPrepSelectMapByWordId(PreparedStatement prepSelectMapByWordId) {
         this.prepSelectMapByWordId = prepSelectMapByWordId;
     }
 
-    public PreparedStatement getPrepSelectRowById() {
+    PreparedStatement getPrepSelectRowById() {
         return prepSelectRowById;
     }
 
-    public void setPrepSelectRowById(PreparedStatement prepSelectRowById) {
+    void setPrepSelectRowById(PreparedStatement prepSelectRowById) {
         this.prepSelectRowById = prepSelectRowById;
     }
 

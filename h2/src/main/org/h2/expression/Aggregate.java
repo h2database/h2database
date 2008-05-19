@@ -97,8 +97,20 @@ public class Aggregate extends Expression {
      * The aggregate type for VAR_SAMP(expression).
      */
     public static final int VAR_SAMP = 10;
-    public static final int SOME = 11;
-    public static final int EVERY = 12;
+    
+    /**
+     * The aggregate type for BOOL_OR(expression).
+     */
+    public static final int BOOL_OR = 11;
+    
+    /**
+     * The aggregate type for BOOL_AND(expression).
+     */
+    public static final int BOOL_AND = 12;
+    
+    /**
+     * The aggregate type for SELECTIVITY(expression).
+     */
     public static final int SELECTIVITY = 13;
 
     private final Database database;
@@ -116,6 +128,15 @@ public class Aggregate extends Expression {
 
     private static final HashMap AGGREGATES = new HashMap();
 
+    /**
+     * Create a new aggregate object.
+     * 
+     * @param database the database
+     * @param type the aggregate type
+     * @param on the aggregated expression
+     * @param select the select statement
+     * @param distinct if distinct is used
+     */
     public Aggregate(Database database, int type, Expression on, Select select, boolean distinct) {
         this.database = database;
         this.type = type;
@@ -140,8 +161,12 @@ public class Aggregate extends Expression {
         addAggregate("VAR_SAMP", VAR_SAMP);
         addAggregate("VAR", VAR_SAMP);
         addAggregate("VARIANCE", VAR_SAMP);
-        addAggregate("SOME", SOME);
-        addAggregate("EVERY", EVERY);
+        addAggregate("BOOL_OR", BOOL_OR);
+        // HSQLDB compatibility, but conflicts with >EVERY(...)
+        addAggregate("SOME", BOOL_OR);
+        addAggregate("BOOL_AND", BOOL_AND);
+        // HSQLDB compatibility, but conflicts with >SOME(...)
+        addAggregate("EVERY", BOOL_AND);
         addAggregate("SELECTIVITY", SELECTIVITY);
     }
 
@@ -161,10 +186,20 @@ public class Aggregate extends Expression {
         return type == null ? -1 : type.intValue();
     }
 
+    /**
+     * Set the order for GROUP_CONCAT.
+     * 
+     * @param orderBy the order by list
+     */
     public void setOrder(ObjectArray orderBy) {
         this.orderList = orderBy;
     }
 
+    /**
+     * Set the separator for GROUP_CONCAT.
+     * 
+     * @param separator the separator expression
+     */
     public void setSeparator(Expression separator) {
         this.separator = separator;
     }
@@ -371,8 +406,8 @@ public class Aggregate extends Expression {
             displaySize = ValueDouble.DISPLAY_SIZE;
             scale = 0;
             break;
-        case EVERY:
-        case SOME:
+        case BOOL_AND:
+        case BOOL_OR:
             dataType = Value.BOOLEAN;
             precision = ValueBoolean.PRECISION;
             displaySize = ValueBoolean.DISPLAY_SIZE;
@@ -470,11 +505,11 @@ public class Aggregate extends Expression {
         case VAR_SAMP:
             text = "VAR_SAMP";
             break;
-        case EVERY:
-            text = "EVERY";
+        case BOOL_AND:
+            text = "BOOL_AND";
             break;
-        case SOME:
-            text = "SOME";
+        case BOOL_OR:
+            text = "BOOL_OR";
             break;
         default:
             throw Message.getInternalError("type=" + type);

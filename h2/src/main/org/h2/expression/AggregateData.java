@@ -108,7 +108,7 @@ public class AggregateData {
             }
             break;
         }
-        case Aggregate.EVERY:
+        case Aggregate.BOOL_AND:
             v = v.convertTo(Value.BOOLEAN);
             if (value == null) {
                 value = v;
@@ -116,7 +116,7 @@ public class AggregateData {
                 value = ValueBoolean.get(value.getBoolean().booleanValue() && v.getBoolean().booleanValue());
             }
             break;
-        case Aggregate.SOME:
+        case Aggregate.BOOL_OR:
             v = v.convertTo(Value.BOOLEAN);
             if (value == null) {
                 value = v;
@@ -160,8 +160,8 @@ public class AggregateData {
         case Aggregate.SUM:
         case Aggregate.MIN:
         case Aggregate.MAX:
-        case Aggregate.SOME:
-        case Aggregate.EVERY:
+        case Aggregate.BOOL_OR:
+        case Aggregate.BOOL_AND:
             v = value;
             break;
         case Aggregate.AVG:

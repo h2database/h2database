@@ -31,11 +31,11 @@ public class BtreeHead extends Record {
         consistent = s.readInt() == 1;
     }
 
-    public boolean getConsistent() {
+    boolean getConsistent() {
         return consistent;
     }
 
-    public void setConsistent(boolean b) {
+    void setConsistent(boolean b) {
         this.consistent = b;
     }
 

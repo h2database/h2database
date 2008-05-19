@@ -31,15 +31,32 @@ import org.h2.util.SortedProperties;
 
 /**
  * The file lock is used to lock a database so that only one process can write
- * to it. Usually a .lock.db file is used, but locking by creating a socket is
- * supported as well.
+ * to it. It uses a cooperative locking protocol. Usually a .lock.db file is
+ * used, but locking by creating a socket is supported as well.
  */
 public class FileLock {
+    
+    /**
+     * This locking method means no locking is used at all.
+     */
+    public static final int LOCK_NO = 0;
 
-    public static final int LOCK_NO = 0, LOCK_FILE = 1, LOCK_SOCKET = 2;
+    /**
+     * This locking method means the cooperative file locking protocol should be
+     * used.
+     */
+    public static final int LOCK_FILE = 1;
+
+    /**
+     * This locking method means a socket is created on the given machine.
+     */
+    public static final int LOCK_SOCKET = 2;
 
     // TODO lock: maybe not so secure! what if tread does not have chance to run?
     // TODO lock: implement locking method using java 1.4 FileLock
+    // TODO log / messages: use translatable messages
+    // private java.nio.channels.FileLock fileLock;
+    
     private static final String MAGIC = "FileLock";
     private static final String FILE = "file", SOCKET = "socket";
     private static final int RANDOM_BYTES = 16;
@@ -56,13 +73,25 @@ public class FileLock {
     private boolean locked;
     private Trace trace;
 
-    // private java.nio.channels.FileLock fileLock;
-
+    /**
+     * Create a new file locking object.
+     * 
+     * @param traceSystem the trace system to use
+     * @param sleep the number of milliseconds to sleep
+     */
     public FileLock(TraceSystem traceSystem,  int sleep) {
         this.trace = traceSystem.getTrace(Trace.FILE_LOCK);
         this.sleep = sleep;
     }
 
+    /**
+     * Lock the file if possible. A file may only be locked once.
+     * 
+     * @param fileName the name of the properties file to use
+     * @param allowSocket if the socket locking protocol should be used if
+     *            possible
+     * @throws SQLException if locking was not successful
+     */
     public synchronized void lock(String fileName, boolean allowSocket) throws SQLException {
         this.fs = FileSystem.getInstance(fileName);
         this.fileName = fileName;
@@ -76,24 +105,11 @@ public class FileLock {
         }
         locked = true;
     }
-
-    protected void finalize() {
-        if (!SysProperties.runFinalize) {
-            return;
-        }
-        if (locked) {
-            unlock();
-        }
-    }
-
-//    void kill() {
-//        socket = null;
-//        file = null;
-//        locked = false;
-//        trace("killed", null);
-//    }
-
-    // TODO log / messages: use translatable messages!
+    
+    /**
+     * Unlock the file. The watchdog thread is stopped. This method does nothing
+     * if the file is already unlocked.
+     */
     public synchronized void unlock() {
         if (!locked) {
             return;
@@ -115,7 +131,26 @@ public class FileLock {
         locked = false;
     }
 
-    void save() throws SQLException {
+    /**
+     * This finalizer unlocks the file if necessary.
+     */
+    protected void finalize() {
+        if (!SysProperties.runFinalize) {
+            return;
+        }
+        if (locked) {
+            unlock();
+        }
+    }
+
+//    void kill() {
+//        socket = null;
+//        file = null;
+//        locked = false;
+//        trace("killed", null);
+//    }
+
+    private void save() throws SQLException {
         try {
             OutputStream out = fs.openFileOutputStream(fileName, false);
             try {
@@ -317,6 +352,13 @@ public class FileLock {
         return Message.getSQLException(ErrorCode.DATABASE_ALREADY_OPEN_1, reason);
     }
 
+    /**
+     * Get the file locking method type given a method name.
+     * 
+     * @param method the method name
+     * @return the method type
+     * @throws SQLException if the method name is unknown
+     */
     public static int getFileLockMethod(String method) throws SQLException {
         if (method == null || method.equalsIgnoreCase("FILE")) {
             return FileLock.LOCK_FILE;

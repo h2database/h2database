@@ -138,7 +138,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         storage.addRecord(session, p, Storage.ALLOCATE_POS);
     }
 
-    public BtreePage getPage(Session session, int i) throws SQLException {
+    BtreePage getPage(Session session, int i) throws SQLException {
         return (BtreePage) storage.getRecord(session, i);
     }
 
@@ -280,7 +280,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         return rows;
     }
 
-    public Row getRow(Session session, int pos) throws SQLException {
+    Row getRow(Session session, int pos) throws SQLException {
         return tableData.getRow(session, pos);
     }
 
@@ -316,7 +316,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         return needRebuild;
     }
 
-    public int getRecordOverhead() {
+    int getRecordOverhead() {
         return storage.getRecordOverhead();
     }
 

@@ -193,6 +193,14 @@ public class LinkedIndex extends BaseIndex {
         }
     }
 
+    /**
+     * Update a row using a UPDATE statement. This method is to be called if the
+     * emit updates option is enabled.
+     * 
+     * @param session the session
+     * @param oldRow the old data
+     * @param newRow the new data
+     */
     public void update(Session session, Row oldRow, Row newRow) throws SQLException {
         StringBuffer buff = new StringBuffer("UPDATE ");
         buff.append(targetTableName).append(" SET ");

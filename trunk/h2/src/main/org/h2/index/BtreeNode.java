@@ -60,7 +60,7 @@ public class BtreeNode extends BtreePage {
         this.pageData = pageData;
     }
 
-    protected SearchRow getData(int i) throws SQLException {
+    SearchRow getData(int i) throws SQLException {
         SearchRow r = (SearchRow) pageData.get(i);
         if (r == null) {
             int p = pageChildren.get(i + 1);

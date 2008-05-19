@@ -538,4 +538,8 @@ public class Column {
         return true;
     }
 
+    public boolean getPrimaryKey() {
+        return primaryKey;
+    }
+
 }

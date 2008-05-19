@@ -3049,6 +3049,7 @@ public class Parser {
             column = new Column(columnName, Value.LONG);
             column.setOriginalSQL("IDENTITY");
             parseAutoIncrement(column);
+            column.setPrimaryKey(true);
         } else {
             column = parseColumn(columnName);
         }
@@ -3087,6 +3088,7 @@ public class Parser {
                 }
                 read(")");
             }
+            column.setPrimaryKey(true);
             column.setAutoIncrement(true, start, increment);
         }
         if (readIf("NOT")) {
@@ -3095,8 +3097,14 @@ public class Parser {
         } else {
             readIf("NULL");
         }
-        if (readIf("AUTO_INCREMENT") || readIf("IDENTITY")) {
+        if (readIf("AUTO_INCREMENT")) {
             parseAutoIncrement(column);
+            if (readIf("NOT")) {
+                read("NULL");
+            }
+        } else if (readIf("IDENTITY")) {
+            parseAutoIncrement(column);
+            column.setPrimaryKey(true);
             if (readIf("NOT")) {
                 read("NULL");
             }
@@ -4409,7 +4417,8 @@ public class Parser {
                     } else {
                         String columnName = readColumnIdentifier();
                         Column column = parseColumnForTable(columnName);
-                        if (column.getAutoIncrement()) {
+                        if (column.getAutoIncrement() && column.getPrimaryKey()) {
+                            column.setPrimaryKey(false);
                             IndexColumn[] cols = new IndexColumn[]{new IndexColumn()};
                             cols[0].columnName = column.getName();
                             AlterTableAddConstraint pk = new AlterTableAddConstraint(session, schema);

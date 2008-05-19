@@ -669,7 +669,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             throws SQLException {
         // index reading is very slow for oracle (2 seconds per index), so don't
         // do it
-        ResultSet rs = meta.getIndexInfo(null, schema, table, false, false);
+        ResultSet rs = meta.getIndexInfo(null, schema, table, false, true);
         HashMap indexMap = new HashMap();
         while (rs.next()) {
             String name = rs.getString("INDEX_NAME");

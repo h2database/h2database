@@ -182,7 +182,7 @@ public class TableLink extends Table {
             addIndex(list, IndexType.createPrimaryKey(false, false));
         }
         try {
-            rs = meta.getIndexInfo(null, null, originalTable, false, false);
+            rs = meta.getIndexInfo(null, null, originalTable, false, true);
         } catch (SQLException e) {
             // Oracle throws an exception if the table is not found or is a
             // SYNONYM

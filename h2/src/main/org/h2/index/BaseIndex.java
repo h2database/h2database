@@ -38,7 +38,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     protected long rowCount;
     protected boolean isMultiVersion;
 
-    public void initBaseIndex(Table table, int id, String name, IndexColumn[] indexColumns, IndexType indexType) {
+    void initBaseIndex(Table table, int id, String name, IndexColumn[] indexColumns, IndexType indexType) {
         initSchemaObjectBase(table.getSchema(), id, name, Trace.INDEX);
         this.indexType = indexType;
         this.table = table;
@@ -342,7 +342,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     public void commit(int operation, Row row) throws SQLException {
     }
     
-    public void setMultiVersion(boolean multiVersion) {
+    void setMultiVersion(boolean multiVersion) {
         this.isMultiVersion = multiVersion;
     }
 

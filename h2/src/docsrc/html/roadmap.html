@@ -61,6 +61,7 @@ Roadmap
 </li><li>Support function overloading as in Java (multiple functions with the same name, but different parameter count or data types)
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
 </li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
+</li><li>Linked tables that point to the same database should share the connection ([SHARED])
 </li><li>System table / function: cache usage
 </li><li>Add a migration guide (list differences between databases)
 </li><li>Optimization: automatic index creation suggestion using the trace file?
@@ -268,7 +269,6 @@ Roadmap
 </li><li>Provide an Java SQL builder with standard and H2 syntax
 </li><li>Trace: write OS, file system, JVM,... when opening the database
 </li><li>Support indexes for views (probably requires materialized views)
-</li><li>Linked tables that point to the same database should share the connection
 </li><li>Document SET SEARCH_PATH, BEGIN, EXECUTE, parameters
 </li><li>Browser: use Desktop.isDesktopSupported and browse when using JDK 1.6
 </li><li>Server: use one listener (detect if the request comes from an PG or TCP client)

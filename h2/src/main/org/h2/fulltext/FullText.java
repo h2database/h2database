@@ -439,11 +439,12 @@ public class FullText implements Trigger {
         case Types.CHAR:
         case Types.VARCHAR:
             return data.toString();
+        case Types.CLOB:
+            int test;
         case Types.VARBINARY:
         case Types.LONGVARBINARY:
         case Types.BINARY:
         case Types.JAVA_OBJECT:
-        case Types.CLOB:
         case Types.OTHER:
         case Types.BLOB:
         case Types.STRUCT:
@@ -486,8 +487,9 @@ public class FullText implements Trigger {
         case Types.LONGVARBINARY:
         case Types.BINARY:
             return quoteBinary((byte[]) data);
-        case Types.JAVA_OBJECT:
         case Types.CLOB:
+            int test;
+        case Types.JAVA_OBJECT:
         case Types.OTHER:
         case Types.BLOB:
         case Types.STRUCT:

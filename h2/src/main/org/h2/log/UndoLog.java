@@ -30,11 +30,21 @@ public class UndoLog {
     private DataPage rowBuff;
     private int memoryUndo;
 
+    /**
+     * Create a new undo log for the given session.
+     * 
+     * @param session the session
+     */
     public UndoLog(Session session) {
         this.session = session;
         this.database = session.getDatabase();
     }
 
+    /**
+     * Get the number of active rows in this undo log.
+     * 
+     * @return the number of rows
+     */
     public int size() {
         if (SysProperties.CHECK && memoryUndo > records.size()) {
             throw Message.getInternalError();
@@ -42,6 +52,10 @@ public class UndoLog {
         return records.size();
     }
 
+    /**
+     * Clear the undo log. This method is called after the transaction is
+     * committed.
+     */
     public void clear() {
         records.clear();
         memoryUndo = 0;
@@ -52,6 +66,11 @@ public class UndoLog {
         }
     }
 
+    /**
+     * Get the last record and remove it from the list of operations.
+     * 
+     * @return the last record
+     */
     public UndoLogRecord getAndRemoveLast() throws SQLException {
         int i = records.size() - 1;
         UndoLogRecord entry = (UndoLogRecord) records.get(i);
@@ -77,6 +96,11 @@ public class UndoLog {
         return entry;
     }
 
+    /**
+     * Append an undo log entry to the log.
+     * 
+     * @param entry the entry
+     */
     public void add(UndoLogRecord entry) throws SQLException {
         records.add(entry);
         if (!entry.isStored()) {

@@ -16,7 +16,7 @@ public class SessionState {
     int lastCommitPos;
     InDoubtTransaction inDoubtTransaction;
 
-    public boolean isCommitted(int logId, int pos) {
+    boolean isCommitted(int logId, int pos) {
         if (logId != lastCommitLog) {
             return lastCommitLog > logId;
         }

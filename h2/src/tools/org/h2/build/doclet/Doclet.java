@@ -375,29 +375,28 @@ public class Doclet {
     
     private boolean doesOverride(MethodDoc method) {
         ClassDoc clazz = method.containingClass();
-        ClassDoc[] ifs = clazz.interfaces();
-        int pc = method.parameters().length;
-        String name = method.name();
-        for (int i = 0;; i++) {
-            ClassDoc c;
-            if (i < ifs.length) {
-                c = ifs[i];
-            } else {
-                clazz = clazz.superclass();
-                if (clazz == null) {
-                    break;
-                }
-                c = clazz;
-            }
-            MethodDoc[] ms = c.methods();
+        int parameterCount = method.parameters().length;
+        return foundMethod(clazz, false, method.name(), parameterCount);
+    }
+    
+    private boolean foundMethod(ClassDoc clazz, boolean include, String methodName, int parameterCount) {
+        if (include) {
+            MethodDoc[] ms = clazz.methods();
             for (int j = 0; j < ms.length; j++) {
                 MethodDoc m = ms[j];
-                if (m.name().equals(name) && m.parameters().length == pc) {
+                if (m.name().equals(methodName) && m.parameters().length == parameterCount) {
                     return true;
                 }
             }
         }
-        return false;
+        ClassDoc[] ifs = clazz.interfaces();
+        for (int i = 0; i < ifs.length; i++) {
+            if (foundMethod(ifs[i], true, methodName, parameterCount)) {
+                return true;
+            }
+        }
+        clazz = clazz.superclass();
+        return clazz != null && foundMethod(clazz, true, methodName, parameterCount);
     }
 
     private static String getFirstSentence(Tag[] tags) {

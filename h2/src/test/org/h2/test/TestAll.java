@@ -160,17 +160,22 @@ java org.h2.test.TestAll timer
 
 /*
 
+jazoon 
+
+support CLOB in fulltext index
+
+upload and test javadoc/index.html
+
+test clob fulltext index (lucene and native).
+
 download PostgreSQL docs
 
 in help.csv, use complete examples for functions; add a test case
 
-upload and test javadoc/index.html
 
 improve javadocs
 
 option to write complete page right after checkpoint
-
-upload jazoon 
 
 test case for out of memory (try to corrupt the database using out of memory)
 
@@ -227,6 +232,7 @@ Roadmap:
         converted to primary key columns.
     PostgreSQL compatibility: support for BOOL_OR and BOOL_AND 
         aggregate functions.
+    The fulltext search did not support CLOB data types. Fixed.
 
 */
         if (args.length > 0) {

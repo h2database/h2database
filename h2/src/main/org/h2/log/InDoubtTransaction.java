@@ -15,7 +15,21 @@ import org.h2.message.Message;
  */
 public class InDoubtTransaction {
 
-    public static final int IN_DOUBT = 0, COMMIT = 1, ROLLBACK = 2;
+    /**
+     * The transaction state meaning this transaction is not committed yet, but
+     * also not rolled back (in-doubt).
+     */
+    public static final int IN_DOUBT = 0;
+    
+    /**
+     * The transaction state meaning this transaction is committed.
+     */
+    public static final int COMMIT = 1;
+    
+    /**
+     * The transaction state meaning this transaction is rolled back.
+     */
+    public static final int ROLLBACK = 2;
 
     // TODO 2-phase-commit: document sql statements and metadata table
 
@@ -26,7 +40,7 @@ public class InDoubtTransaction {
     private int blocks;
     private int state;
 
-    public InDoubtTransaction(LogFile log, int sessionId, int pos, String transaction, int blocks) {
+    InDoubtTransaction(LogFile log, int sessionId, int pos, String transaction, int blocks) {
         this.log = log;
         this.sessionId = sessionId;
         this.pos = pos;
@@ -35,6 +49,12 @@ public class InDoubtTransaction {
         this.state = IN_DOUBT;
     }
 
+    /**
+     * Change the state of this transaction.
+     * This will also update the log file.
+     * 
+     * @param state the new state
+     */
     public void setState(int state) throws SQLException {
         switch(state) {
         case COMMIT:
@@ -49,6 +69,11 @@ public class InDoubtTransaction {
         this.state = state;
     }
 
+    /**
+     * Get the state of this transaction as a text.
+     * 
+     * @return the transaction state text
+     */
     public String getState() {
         switch(state) {
         case IN_DOUBT:
@@ -62,6 +87,11 @@ public class InDoubtTransaction {
         }
     }
 
+    /**
+     * Get the name of the transaction.
+     * 
+     * @return the transaction name
+     */
     public String getTransaction() {
         return transaction;
     }

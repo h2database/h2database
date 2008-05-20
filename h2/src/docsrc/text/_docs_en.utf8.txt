@@ -26,876 +26,885 @@ Two Phase Commit
 Compatibility
 
 @advanced_1009_a
-Run as Windows Service
+Standards Compliance
 
 @advanced_1010_a
-ODBC Driver
-
-@advanced_1011_a
-Using H2 in Microsoft .NET
-
-@advanced_1012_a
-ACID
-
-@advanced_1013_a
-Durability Problems
-
-@advanced_1014_a
-Using the Recover Tool
-
-@advanced_1015_a
-File Locking Protocols
-
-@advanced_1016_a
-Protection against SQL Injection
-
-@advanced_1017_a
-Restricting Class Loading and Usage
-
-@advanced_1018_a
-Security Protocols
-
-@advanced_1019_a
-Universally Unique Identifiers (UUID)
-
-@advanced_1020_a
-Settings Read from System Properties
-
-@advanced_1021_a
-Setting the Server Bind Address
-
-@advanced_1022_a
-Glossary and Links
-
-@advanced_1023_h2
-Result Sets
-
-@advanced_1024_h3
-Limiting the Number of Rows
-
-@advanced_1025_p
-Before the result is returned to the application, all rows are read by the database. Server side cursors are not supported currently. If only the first few rows are interesting for the application, then the result set size should be limited to improve the performance. This can be done using LIMIT in a query (example: SELECT * FROM TEST LIMIT 100), or by using Statement.setMaxRows(max).
-
-@advanced_1026_h3
-Large Result Sets and External Sorting
-
-@advanced_1027_p
-For result set larger than 1000 rows, the result is buffered to disk. If ORDER BY is used, the sorting is done using an external sort algorithm. In this case, each block of rows is sorted using quick sort, then written to disk; when reading the data, the blocks are merged together.
-
-@advanced_1028_h2
-Large Objects
-
-@advanced_1029_h3
-Storing and Reading Large Objects
-
-@advanced_1030_p
-If it is possible that the objects don't fit into memory, then the data type CLOB (for textual data) or BLOB (for binary data) should be used. For these data types, the objects are not fully read into memory, by using streams. To store a BLOB, use PreparedStatement.setBinaryStream. To store a CLOB, use PreparedStatement.setCharacterStream. To read a BLOB, use ResultSet.getBinaryStream, and to read a CLOB, use ResultSet.getCharacterStream. If the client/server mode is used, the BLOB and CLOB data is fully read into memory when accessed. In this case, the size of a BLOB or CLOB is limited by the memory.
-
-@advanced_1031_h2
-Linked Tables
-
-@advanced_1032_p
-This database supports linked tables, which means tables that don't exist in the current database but are just links to another database. To create such a link, use the CREATE LINKED TABLE statement:
-
-@advanced_1033_p
-It is then possible to access the table in the usual way. There is a restriction when inserting data to this table: When inserting or updating rows into the table, NULL and values that are not set in the insert statement are both inserted as NULL. This may not have the desired effect if a default value in the target table is other than NULL.
-
-@advanced_1034_p
-For each linked table a new connection is opened. This can be a problem for some databases when using many linked tables. For Oracle XE, the maximum number of connection can be increased. Oracle XE needs to be restarted after changing these values:
-
-@advanced_1035_h2
-Transaction Isolation
-
-@advanced_1036_p
-This database supports the following transaction isolation levels:
-
-@advanced_1037_b
-Read Committed
-
-@advanced_1038_li
-This is the default level.  Read locks are released immediately.  Higher concurrency is possible when using this level.
-
-@advanced_1039_li
-To enable, execute the SQL statement    'SET LOCK_MODE 3'
-
-@advanced_1040_li
-or append ;LOCK_MODE=3 to the database URL: jdbc:h2:~/test;LOCK_MODE=3
-
-@advanced_1041_b
-Serializable
-
-@advanced_1042_li
-To enable, execute the SQL statement    'SET LOCK_MODE 1'
-
-@advanced_1043_li
-or append ;LOCK_MODE=1 to the database URL: jdbc:h2:~/test;LOCK_MODE=1
-
-@advanced_1044_b
-Read Uncommitted
-
-@advanced_1045_li
-This level means that transaction isolation is disabled.
-
-@advanced_1046_li
-To enable, execute the SQL statement    'SET LOCK_MODE 0'
-
-@advanced_1047_li
-or append ;LOCK_MODE=0 to the database URL: jdbc:h2:~/test;LOCK_MODE=0
-
-@advanced_1048_p
-When using the isolation level 'serializable', dirty reads, non-repeatable reads, and phantom reads are prohibited.
-
-@advanced_1049_b
-Dirty Reads
-
-@advanced_1050_li
-Means a connection can read uncommitted changes made by another connection.
-
-@advanced_1051_li
-Possible with: read uncommitted
-
-@advanced_1052_b
-Non-Repeatable Reads
-
-@advanced_1053_li
-A connection reads a row, another connection changes a row and commits,  and the first connection re-reads the same row and gets the new result.
-
-@advanced_1054_li
-Possible with: read uncommitted, read committed
-
-@advanced_1055_b
-Phantom Reads
-
-@advanced_1056_li
-A connection reads a set of rows using a condition, another connection  inserts a row that falls in this condition and commits, then the first connection  re-reads using the same condition and gets the new row.
-
-@advanced_1057_li
-Possible with: read uncommitted, read committed
-
-@advanced_1058_h3
-Table Level Locking
-
-@advanced_1059_p
-The database allows multiple concurrent connections to the same database. To make sure all connections only see consistent data, table level locking is used by default. This mechanism does not allow high concurrency, but is very fast. Shared locks and exclusive locks are supported. Before reading from a table, the database tries to add a shared lock to the table (this is only possible if there is no exclusive lock on the object by another connection). If the shared lock is added successfully, the table can be read. It is allowed that other connections also have a shared lock on the same object. If a connection wants to write to a table (update or delete a row), an exclusive lock is required. To get the exclusive lock, other connection must not have any locks on the object. After the connection commits, all locks are released. This database keeps all locks in memory.
-
-@advanced_1060_h3
-Lock Timeout
-
-@advanced_1061_p
-If a connection cannot get a lock on an object, the connection waits for some amount of time (the lock timeout). During this time, hopefully the connection holding the lock commits and it is then possible to get the lock. If this is not possible because the other connection does not release the lock for some time, the unsuccessful connection will get a lock timeout exception. The lock timeout can be set individually for each connection.
-
-@advanced_1062_h2
-Multi-Version Concurrency Control (MVCC)
-
-@advanced_1063_p
-The MVCC feature allows higher concurrency than using (table level or row level) locks. When using MVCC in this database, delete, insert and update operations will only issue a shared lock on the table. An exclusive lock is still used when adding or removing columns, when dropping the table, and when using SELECT ... FOR UPDATE. Connections only 'see' committed data, and own changes. That means, if connection A updates a row but doesn't commit this change yet, connection B will see the old value. Only when the change is committed, the new value is visible by other connections (read committed). If multiple connections concurrently try to update the same row, this database fails fast: a concurrent update exception is thrown.
-
-@advanced_1064_p
-To use the MVCC feature, append MVCC=TRUE to the database URL:
-
-@advanced_1065_p
-The MVCC feature is not fully tested yet.
-
-@advanced_1066_h2
-Clustering / High Availability
-
-@advanced_1067_p
-This database supports a simple clustering / high availability mechanism. The architecture is: two database servers run on two different computers, and on both computers is a copy of the same database. If both servers run, each database operation is executed on both computers. If one server fails (power, hardware or network failure), the other server can still continue to work. From this point on, the operations will be executed only on one server until the other server is back up.
-
-@advanced_1068_p
-Clustering can only be used in the server mode (the embedded mode does not support clustering). It is possible to restore the cluster without stopping the server, however it is critical that no other application is changing the data in the first database while the second database is restored, so restoring the cluster is currently a manual process.
-
-@advanced_1069_p
-To initialize the cluster, use the following steps:
-
-@advanced_1070_li
-Create a database
-
-@advanced_1071_li
-Use the CreateCluster tool to copy the database to another location and initialize the clustering.  Afterwards, you have two databases containing the same data.
-
-@advanced_1072_li
-Start two servers (one for each copy of the database)
-
-@advanced_1073_li
-You are now ready to connect to the databases with the client application(s)
-
-@advanced_1074_h3
-Using the CreateCluster Tool
-
-@advanced_1075_p
-To understand how clustering works, please try out the following example. In this example, the two databases reside on the same computer, but usually, the databases will be on different servers.
-
-@advanced_1076_li
-Create two directories: server1 and server2.  Each directory will simulate a directory on a computer.
-
-@advanced_1077_li
-Start a TCP server pointing to the first directory.  You can do this using the command line:
-
-@advanced_1078_li
-Start a second TCP server pointing to the second directory.  This will simulate a server running on a second (redundant) computer.  You can do this using the command line:
-
-@advanced_1079_li
-Use the CreateCluster tool to initialize clustering.  This will automatically create a new, empty database if it does not exist.  Run the tool on the command line:
-
-@advanced_1080_li
-You can now connect to the databases using an application or the H2 Console using the JDBC URL jdbc:h2:tcp://localhost:9101,localhost:9102/~/test
-
-@advanced_1081_li
-If you stop a server (by killing the process), you will notice that the other machine continues to work, and therefore the database is still accessible.
-
-@advanced_1082_li
-To restore the cluster, you first need to delete the database that failed, then restart the server that was stopped, and re-run the CreateCluster tool.
-
-@advanced_1083_h3
-Clustering Algorithm and Limitations
-
-@advanced_1084_p
-Read-only queries are only executed against the first cluster node, but all other statements are executed against all nodes. There is currently no load balancing made to avoid problems with transactions. The following functions may yield different results on different cluster nodes and must be executed with care: RANDOM_UUID(), SECURE_RAND(), SESSION_ID(), MEMORY_FREE(), MEMORY_USED(), CSVREAD(), CSVWRITE(), RAND() [when not using a seed]. Those functions should not be used directly in modifying statements (for example INSERT, UPDATE, or MERGE). However, they can be used in read-only statements and the result can then be used for modifying statements.
-
-@advanced_1085_h2
-Two Phase Commit
-
-@advanced_1086_p
-The two phase commit protocol is supported. 2-phase-commit works as follows:
-
-@advanced_1087_li
-Autocommit needs to be switched off
-
-@advanced_1088_li
-A transaction is started, for example by inserting a row
-
-@advanced_1089_li
-The transaction is marked 'prepared' by executing the SQL statement <code>PREPARE COMMIT transactionName</code>
-
-@advanced_1090_li
-The transaction can now be committed or rolled back
-
-@advanced_1091_li
-If a problem occurs before the transaction was successfully committed or rolled back  (for example because a network problem occurred), the transaction is in the state 'in-doubt'
-
-@advanced_1092_li
-When re-connecting to the database, the in-doubt transactions can be listed  with <code>SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT</code>
-
-@advanced_1093_li
-Each transaction in this list must now be committed or rolled back by executing <code>COMMIT TRANSACTION transactionName</code> or <code>ROLLBACK TRANSACTION transactionName</code>
-
-@advanced_1094_li
-The database needs to be closed and re-opened to apply the changes
-
-@advanced_1095_h2
-Compatibility
-
-@advanced_1096_p
-This database is (up to a certain point) compatible to other databases such as HSQLDB, MySQL and PostgreSQL. There are certain areas where H2 is incompatible.
-
-@advanced_1097_h3
-Transaction Commit when Autocommit is On
-
-@advanced_1098_p
-At this time, this database engine commits a transaction (if autocommit is switched on) just before returning the result. For a query, this means the transaction is committed even before the application scans through the result set, and before the result set is closed. Other database engines may commit the transaction in this case when the result set is closed.
-
-@advanced_1099_h3
-Keywords / Reserved Words
-
-@advanced_1100_p
-There is a list of keywords that can't be used as identifiers (table names, column names and so on), unless they are quoted (surrounded with double quotes). The list is currently:
-
-@advanced_1101_p
-CURRENT_TIMESTAMP, CURRENT_TIME, CURRENT_DATE, CROSS, DISTINCT, EXCEPT, EXISTS, FROM, FOR, FALSE, FULL, GROUP, HAVING, INNER, INTERSECT, IS, JOIN, LIKE, MINUS, NATURAL, NOT, NULL, ON, ORDER, PRIMARY, ROWNUM, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP, TODAY, TRUE, UNION, WHERE
-
-@advanced_1102_p
-Certain words of this list are keywords because they are functions that can be used without '()' for compatibility, for example CURRENT_TIMESTAMP.
-
-@advanced_1103_h2
 Run as Windows Service
 
-@advanced_1104_p
-Using a native wrapper / adapter, Java applications can be run as a Windows Service. There are various tools available to do that. The Java Service Wrapper from Tanuki Software, Inc. ( <a href="http://wrapper.tanukisoftware.org">http://wrapper.tanukisoftware.org</a> ) is included in the installation. Batch files are provided to install, start, stop and uninstall the H2 Database Engine Service. This service contains the TCP Server and the H2 Console web application. The batch files are located in the directory H2/service.
-
-@advanced_1105_h3
-Install the Service
-
-@advanced_1106_p
-The service needs to be registered as a Windows Service first. To do that, double click on 1_install_service.bat. If successful, a command prompt window will pop up and disappear immediately. If not, a message will appear.
-
-@advanced_1107_h3
-Start the Service
-
-@advanced_1108_p
-You can start the H2 Database Engine Service using the service manager of Windows, or by double clicking on 2_start_service.bat. Please note that the batch file does not print an error message if the service is not installed.
-
-@advanced_1109_h3
-Connect to the H2 Console
-
-@advanced_1110_p
-After installing and starting the service, you can connect to the H2 Console application using a browser. Double clicking on 3_start_browser.bat to do that. The default port (8082) is hard coded in the batch file.
-
-@advanced_1111_h3
-Stop the Service
-
-@advanced_1112_p
-To stop the service, double click on 4_stop_service.bat. Please note that the batch file does not print an error message if the service is not installed or started.
-
-@advanced_1113_h3
-Uninstall the Service
-
-@advanced_1114_p
-To uninstall the service, double click on 5_uninstall_service.bat. If successful, a command prompt window will pop up and disappear immediately. If not, a message will appear.
-
-@advanced_1115_h2
+@advanced_1011_a
 ODBC Driver
 
-@advanced_1116_p
-This database does not come with its own ODBC driver at this time, but it supports the PostgreSQL network protocol. Therefore, the PostgreSQL ODBC driver can be used. Support for the PostgreSQL network protocol is quite new and should be viewed as experimental. It should not be used for production applications.
-
-@advanced_1117_p
-At this time, the PostgreSQL ODBC driver does not work on 64 bit versions of Windows. For more information, see: <a href="http://svr5.postgresql.org/pgsql-odbc/2005-09/msg00127.php">ODBC Driver on Windows 64 bit</a>
-
-@advanced_1118_h3
-ODBC Installation
-
-@advanced_1119_p
-First, the ODBC driver must be installed. Any recent PostgreSQL ODBC driver should work, however version 8.2.4 or newer is recommended. The Windows version of the PostgreSQL ODBC driver is available at <a href="http://www.postgresql.org/ftp/odbc/versions/msi">http://www.postgresql.org/ftp/odbc/versions/msi</a> .
-
-@advanced_1120_h3
-Starting the Server
-
-@advanced_1121_p
-After installing the ODBC driver, start the H2 Server using the command line:
-
-@advanced_1122_p
-The PG Server (PG for PostgreSQL protocol) is started as well. By default, databases are stored in the current working directory where the server is started. Use -baseDir to save databases in another directory, for example the user home directory:
-
-@advanced_1123_p
-The PG server can be started and stopped from within a Java application as follows:
-
-@advanced_1124_p
-By default, only connections from localhost are allowed. To allow remote connections, use <code>-pgAllowOthers true</code> when starting the server.
-
-@advanced_1125_h3
-ODBC Configuration
-
-@advanced_1126_p
-After installing the driver, a new Data Source must be added. In Windows, run <code>odbcad32.exe</code> to open the Data Source Administrator. Then click on 'Add...' and select the PostgreSQL Unicode driver. Then click 'Finish'. You will be able to change the connection properties:
-
-@advanced_1127_th
-Property
-
-@advanced_1128_th
-Example
-
-@advanced_1129_th
-Remarks
-
-@advanced_1130_td
-Data Source
-
-@advanced_1131_td
-H2 Test
-
-@advanced_1132_td
-The name of the ODBC Data Source
-
-@advanced_1133_td
-Database
-
-@advanced_1134_td
-test
-
-@advanced_1135_td
-The database name. Only simple names are supported at this time;
-
-@advanced_1136_td
-relative or absolute path are not supported in the database name.
-
-@advanced_1137_td
-By default, the database is stored in the current working directory
-
-@advanced_1138_td
-where the Server is started except when the -baseDir setting is used.
-
-@advanced_1139_td
-The name must be at least 3 characters.
-
-@advanced_1140_td
-Server
-
-@advanced_1141_td
-localhost
-
-@advanced_1142_td
-The server name or IP address.
-
-@advanced_1143_td
-By default, only remote connections are allowed
-
-@advanced_1144_td
-User Name
-
-@advanced_1145_td
-sa
-
-@advanced_1146_td
-The database user name.
-
-@advanced_1147_td
-SSL Mode
-
-@advanced_1148_td
-disabled
-
-@advanced_1149_td
-At this time, SSL is not supported.
-
-@advanced_1150_td
-Port
-
-@advanced_1151_td
-5435
-
-@advanced_1152_td
-The port where the PG Server is listening.
-
-@advanced_1153_td
-Password
-
-@advanced_1154_td
-sa
-
-@advanced_1155_td
-The database password.
-
-@advanced_1156_p
-Afterwards, you may use this data source.
-
-@advanced_1157_h3
-PG Protocol Support Limitations
-
-@advanced_1158_p
-At this time, only a subset of the PostgreSQL network protocol is implemented. Also, there may be compatibility problems on the SQL level, with the catalog, or with text encoding. Problems are fixed as they are found. Currently, statements can not be cancelled when using the PG protocol.
-
-@advanced_1159_p
-PostgreSQL ODBC Driver Setup requires a database password; that means it is not possible to connect to H2 databases without password. This is a limitation of the ODBC driver.
-
-@advanced_1160_h3
-Security Considerations
-
-@advanced_1161_p
-Currently, the PG Server does not support challenge response or encrypt passwords. This may be a problem if an attacker can listen to the data transferred between the ODBC driver and the server, because the password is readable to the attacker. Also, it is currently not possible to use encrypted SSL connections. Therefore the ODBC driver should not be used where security is important.
-
-@advanced_1162_h2
+@advanced_1012_a
 Using H2 in Microsoft .NET
 
-@advanced_1163_p
-The database can be used from Microsoft .NET even without using Java, by using IKVM.NET. You can access a H2 database on .NET using the JDBC API, or using the ADO.NET interface.
-
-@advanced_1164_h3
-Using the ADO.NET API on .NET
-
-@advanced_1165_p
-An implementation of the ADO.NET interface is available in the open source project <a href="http://code.google.com/p/h2sharp">H2Sharp</a> .
-
-@advanced_1166_h3
-Using the JDBC API on .NET
-
-@advanced_1167_li
-Install the .NET Framework from <a href="http://www.microsoft.com">Microsoft</a> .  Mono has not yet been tested.
-
-@advanced_1168_li
-Install <a href="http://www.ikvm.net">IKVM.NET</a> .
-
-@advanced_1169_li
-Copy the h2.jar file to ikvm/bin
-
-@advanced_1170_li
-Run the H2 Console using: <code>ikvm -jar h2.jar</code>
-
-@advanced_1171_li
-Convert the H2 Console to an .exe file using: <code>ikvmc -target:winexe h2.jar</code> .  You may ignore the warnings.
-
-@advanced_1172_li
-Create a .dll file using (change the version accordingly): <code>ikvmc.exe -target:library -version:1.0.69.0 h2.jar</code>
-
-@advanced_1173_p
-If you want your C# application use H2, you need to add the h2.dll and the IKVM.OpenJDK.ClassLibrary.dll to your C# solution. Here some sample code:
-
-@advanced_1174_h2
+@advanced_1013_a
 ACID
 
-@advanced_1175_p
-In the database world, ACID stands for:
-
-@advanced_1176_li
-Atomicity: Transactions must be atomic, meaning either all tasks are performed or none.
-
-@advanced_1177_li
-Consistency: All operations must comply with the defined constraints.
-
-@advanced_1178_li
-Isolation: Transactions must be isolated from each other.
-
-@advanced_1179_li
-Durability: Committed transaction will not be lost.
-
-@advanced_1180_h3
-Atomicity
-
-@advanced_1181_p
-Transactions in this database are always atomic.
-
-@advanced_1182_h3
-Consistency
-
-@advanced_1183_p
-This database is always in a consistent state. Referential integrity rules are always enforced.
-
-@advanced_1184_h3
-Isolation
-
-@advanced_1185_p
-For H2, as with most other database systems, the default isolation level is 'read committed'. This provides better performance, but also means that transactions are not completely isolated. H2 supports the transaction isolation levels 'serializable', 'read committed', and 'read uncommitted'.
-
-@advanced_1186_h3
-Durability
-
-@advanced_1187_p
-This database does not guarantee that all committed transactions survive a power failure. Tests show that all databases sometimes lose transactions on power failure (for details, see below). Where losing transactions is not acceptable, a laptop or UPS (uninterruptible power supply) should be used. If durability is required for all possible cases of hardware failure, clustering should be used, such as the H2 clustering mode.
-
-@advanced_1188_h2
+@advanced_1014_a
 Durability Problems
 
-@advanced_1189_p
-Complete durability means all committed transaction survive a power failure. Some databases claim they can guarantee durability, but such claims are wrong. A durability test was run against H2, HSQLDB, PostgreSQL, and Derby. All of those databases sometimes lose committed transactions. The test is included in the H2 download, see org.h2.test.poweroff.Test.
-
-@advanced_1190_h3
-Ways to (Not) Achieve Durability
-
-@advanced_1191_p
-Making sure that committed transactions are not lost is more complicated than it seems first. To guarantee complete durability, a database must ensure that the log record is on the hard drive before the commit call returns. To do that, databases use different methods. One is to use the 'synchronous write' file access mode. In Java, RandomAccessFile supports the modes "rws" and "rwd":
-
-@advanced_1192_li
-rwd: Every update to the file's content is written synchronously to the underlying storage device.
-
-@advanced_1193_li
-rws: In addition to rwd, every update to the metadata is written synchronously.
-
-@advanced_1194_p
-This feature is used by Derby. A test (org.h2.test.poweroff.TestWrite) with one of those modes achieves around 50 thousand write operations per second. Even when the operating system write buffer is disabled, the write rate is around 50 thousand operations per second. This feature does not force changes to disk because it does not flush all buffers. The test updates the same byte in the file again and again. If the hard drive was able to write at this rate, then the disk would need to make at least 50 thousand revolutions per second, or 3 million RPM (revolutions per minute). There are no such hard drives. The hard drive used for the test is about 7200 RPM, or about 120 revolutions per second. There is an overhead, so the maximum write rate must be lower than that.
-
-@advanced_1195_p
-Calling fsync flushes the buffers. There are two ways to do that in Java:
-
-@advanced_1196_li
-FileDescriptor.sync(). The documentation says that this forces all system buffers to synchronize with the underlying device. Sync is supposed to return after all in-memory modified copies of buffers associated with this FileDescriptor have been written to the physical medium.
-
-@advanced_1197_li
-FileChannel.force() (since JDK 1.4). This method is supposed to force any updates to this channel's file to be written to the storage device that contains it.
-
-@advanced_1198_p
-By default, MySQL calls fsync for each commit. When using one of those methods, only around 60 write operations per second can be achieved, which is consistent with the RPM rate of the hard drive used. Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(), data is not always persisted to the hard drive, because most hard drives do not obey fsync(): see <a href="http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252">Your Hard Drive Lies to You</a> . In Mac OS X, fsync does not flush hard drive buffers. See <a href="http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a> . So the situation is confusing, and tests prove there is a problem.
-
-@advanced_1199_p
-Trying to flush hard drive buffers hard, and if you do the performance is very bad. First you need to make sure that the hard drive actually flushes all buffers. Tests show that this can not be done in a reliable way. Then the maximum number of transactions is around 60 per second. Because of those reasons, the default behavior of H2 is to delay writing committed transactions.
-
-@advanced_1200_p
-In H2, after a power failure, a bit more than one second of committed transactions may be lost. To change the behavior, use SET WRITE_DELAY and CHECKPOINT SYNC. Most other databases support commit delay as well. In the performance comparison, commit delay was used for all databases that support it.
-
-@advanced_1201_h3
-Running the Durability Test
-
-@advanced_1202_p
-To test the durability / non-durability of this and other databases, you can use the test application in the package org.h2.test.poweroff. Two computers with network connection are required to run this test. One computer just listens, while the test application is run (and power is cut) on the other computer. The computer with the listener application opens a TCP/IP port and listens for an incoming connection. The second computer first connects to the listener, and then created the databases and starts inserting records. The connection is set to 'autocommit', which means after each inserted record a commit is performed automatically. Afterwards, the test computer notifies the listener that this record was inserted successfully. The listener computer displays the last inserted record number every 10 seconds. Now, switch off the power manually, then restart the computer, and run the application again. You will find out that in most cases, none of the databases contains all the records that the listener computer knows about. For details, please consult the source code of the listener and test application.
-
-@advanced_1203_h2
+@advanced_1015_a
 Using the Recover Tool
 
-@advanced_1204_p
-The recover tool can be used to extract the contents of a data file, even if the database is corrupted. At this time, it does not extract the content of the log file or large objects (CLOB or BLOB). To run the tool, type on the command line:
-
-@advanced_1205_p
-For each database in the current directory, a text file will be created. This file contains raw insert statement (for the data) and data definition (DDL) statement to recreate the schema of the database. This file cannot be executed directly, as the raw insert statements don't have the correct table names, so the file needs to be pre-processed manually before executing.
-
-@advanced_1206_h2
+@advanced_1016_a
 File Locking Protocols
 
-@advanced_1207_p
-Whenever a database is opened, a lock file is created to signal other processes that the database is in use. If database is closed, or if the process that opened the database terminates, this lock file is deleted.
-
-@advanced_1208_p
-In special cases (if the process did not terminate normally, for example because there was a blackout), the lock file is not deleted by the process that created it. That means the existence of the lock file is not a safe protocol for file locking. However, this software uses a challenge-response protocol to protect the database files. There are two methods (algorithms) implemented to provide both security (that is, the same database files cannot be opened by two processes at the same time) and simplicity (that is, the lock file does not need to be deleted manually by the user). The two methods are 'file method' and 'socket methods'.
-
-@advanced_1209_h3
-File Locking Method 'File'
-
-@advanced_1210_p
-The default method for database file locking is the 'File Method'. The algorithm is:
-
-@advanced_1211_li
-When the lock file does not exist, it is created (using the atomic operation File.createNewFile). Then, the process waits a little bit (20ms) and checks the file again. If the file was changed during this time, the operation is aborted. This protects against a race condition when a process deletes the lock file just after one create it, and a third process creates the file again. It does not occur if there are only two writers.
-
-@advanced_1212_li
-If the file can be created, a random number is inserted together with the locking method ('file'). Afterwards, a watchdog thread is started that checks regularly (every second once by default) if the file was deleted or modified by another (challenger) thread / process. Whenever that occurs, the file is overwritten with the old data. The watchdog thread runs with high priority so that a change to the lock file does not get through undetected even if the system is very busy. However, the watchdog thread does use very little resources (CPU time), because it waits most of the time. Also, the watchdog only reads from the hard disk and does not write to it.
-
-@advanced_1213_li
-If the lock file exists, and it was modified in the 20 ms, the process waits for some time (up to 10 times). If it was still changed, an exception is thrown (database is locked). This is done to eliminate race conditions with many concurrent writers. Afterwards, the file is overwritten with a new version (challenge). After that, the thread waits for 2 seconds. If there is a watchdog thread protecting the file, he will overwrite the change and this process will fail to lock the database. However, if there is no watchdog thread, the lock file will still be as written by this thread. In this case, the file is deleted and atomically created again. The watchdog thread is started in this case and the file is locked.
-
-@advanced_1214_p
-This algorithm is tested with over 100 concurrent threads. In some cases, when there are many concurrent threads trying to lock the database, they block each other (meaning the file cannot be locked by any of them) for some time. However, the file never gets locked by two threads at the same time. However using that many concurrent threads / processes is not the common use case. Generally, an application should throw an error to the user if it cannot open a database, and not try again in a (fast) loop.
-
-@advanced_1215_h3
-File Locking Method 'Socket'
-
-@advanced_1216_p
-There is a second locking mechanism implemented, but disabled by default. The algorithm is:
-
-@advanced_1217_li
-If the lock file does not exist, it is created. Then a server socket is opened on a defined port, and kept open. The port and IP address of the process that opened the database is written into the lock file.
-
-@advanced_1218_li
-If the lock file exists, and the lock method is 'file', then the software switches to the 'file' method.
-
-@advanced_1219_li
-If the lock file exists, and the lock method is 'socket', then the process checks if the port is in use. If the original process is still running, the port is in use and this process throws an exception (database is in use). If the original process died (for example due to a blackout, or abnormal termination of the virtual machine), then the port was released. The new process deletes the lock file and starts again.
-
-@advanced_1220_p
-This method does not require a watchdog thread actively polling (reading) the same file every second. The problem with this method is, if the file is stored on a network share, two processes (running on different computers) could still open the same database files, if they do not have a direct TCP/IP connection.
-
-@advanced_1221_h2
+@advanced_1017_a
 Protection against SQL Injection
 
-@advanced_1222_h3
-What is SQL Injection
-
-@advanced_1223_p
-This database engine provides a solution for the security vulnerability known as 'SQL Injection'. Here is a short description of what SQL injection means. Some applications build SQL statements with embedded user input such as:
-
-@advanced_1224_p
-If this mechanism is used anywhere in the application, and user input is not correctly filtered or encoded, it is possible for a user to inject SQL functionality or statements by using specially built input such as (in this example) this password: ' OR ''='. In this case the statement becomes:
-
-@advanced_1225_p
-Which is always true no matter what the password stored in the database is. For more information about SQL Injection, see Glossary and Links.
-
-@advanced_1226_h3
-Disabling Literals
-
-@advanced_1227_p
-SQL Injection is not possible if user input is not directly embedded in SQL statements. A simple solution for the problem above is to use a PreparedStatement:
-
-@advanced_1228_p
-This database provides a way to enforce usage of parameters when passing user input to the database. This is done by disabling embedded literals in SQL statements. To do this, execute the statement:
-
-@advanced_1229_p
-Afterwards, SQL statements with text and number literals are not allowed any more. That means, SQL statement of the form WHERE NAME='abc' or WHERE CustomerId=10 will fail. It is still possible to use PreparedStatements and parameters as described above. Also, it is still possible to generate SQL statements dynamically, and use the Statement API, as long as the SQL statements do not include literals. There is also a second mode where number literals are allowed: SET ALLOW_LITERALS NUMBERS. To allow all literals, execute SET ALLOW_LITERALS ALL (this is the default setting). Literals can only be enabled or disabled by an administrator.
-
-@advanced_1230_h3
-Using Constants
-
-@advanced_1231_p
-Disabling literals also means disabling hard-coded 'constant' literals. This database supports defining constants using the CREATE CONSTANT command. Constants can be defined only when literals are enabled, but used even when literals are disabled. To avoid name clashes with column names, constants can be defined in other schemas:
-
-@advanced_1232_p
-Even when literals are enabled, it is better to use constants instead of hard-coded number or text literals in queries or views. With constants, typos are found at compile time, the source code is easier to understand and change.
-
-@advanced_1233_h3
-Using the ZERO() Function
-
-@advanced_1234_p
-It is not required to create a constant for the number 0 as there is already a built-in function ZERO():
-
-@advanced_1235_h2
+@advanced_1018_a
 Restricting Class Loading and Usage
 
-@advanced_1236_p
-By default there is no restriction on loading classes and executing Java code for admins. That means an admin may call system functions such as System.setProperty by executing:
-
-@advanced_1237_p
-To restrict users (including admins) from loading classes and executing code, the list of allowed classes can be set in the system property h2.allowedClasses in the form of a comma separated list of classes or patterns (items ending with '*'). By default all classes are allowed. Example:
-
-@advanced_1238_p
-This mechanism is used for all user classes, including database event listeners, trigger classes, user-defined functions, user-defined aggregate functions, and JDBC driver classes (with the exception of the H2 driver) when using the H2 Console.
-
-@advanced_1239_h2
+@advanced_1019_a
 Security Protocols
 
-@advanced_1240_p
-The following paragraphs document the security protocols used in this database. These descriptions are very technical and only intended for security experts that already know the underlying security primitives.
-
-@advanced_1241_h3
-User Password Encryption
-
-@advanced_1242_p
-When a user tries to connect to a database, the combination of user name, @, and password hashed using SHA-256, and this hash value is transmitted to the database. This step does not try to an attacker from re-using the value if he is able to listen to the (unencrypted) transmission between the client and the server. But, the passwords are never transmitted as plain text, even when using an unencrypted connection between client and server. That means if a user reuses the same password for different things, this password is still protected up to some point. See also 'RFC 2617 - HTTP Authentication: Basic and Digest Access Authentication' for more information.
-
-@advanced_1243_p
-When a new database or user is created, a new cryptographically secure random salt value is generated. The size of the salt is 64 bit. Using the random salt reduces the risk of an attacker pre-calculating hash values for many different (commonly used) passwords.
-
-@advanced_1244_p
-The combination of user-password hash value (see above) and salt is hashed using SHA-256. The resulting value is stored in the database. When a user tries to connect to the database, the database combines user-password hash value with the stored salt value and calculated the hash value. Other products use multiple iterations (hash the hash value again and again), but this is not done in this product to reduce the risk of denial of service attacks (where the attacker tries to connect with bogus passwords, and the server spends a lot of time calculating the hash value for each password). The reasoning is: if the attacker has access to the hashed passwords, he also has access to the data in plain text, and therefore does not need the password any more. If the data is protected by storing it on another computer and only remotely, then the iteration count is not required at all.
-
-@advanced_1245_h3
-File Encryption
-
-@advanced_1246_p
-The database files can be encrypted using two different algorithms: AES-128 and XTEA (using 32 rounds). The reasons for supporting XTEA is performance (XTEA is about twice as fast as AES) and to have an alternative algorithm if AES is suddenly broken.
-
-@advanced_1247_p
-When a user tries to connect to an encrypted database, the combination of the word 'file', @, and the file password is hashed using SHA-256. This hash value is transmitted to the server.
-
-@advanced_1248_p
-When a new database file is created, a new cryptographically secure random salt value is generated. The size of the salt is 64 bit. The combination of the file password hash and the salt value is hashed 1024 times using SHA-256. The reason for the iteration is to make it harder for an attacker to calculate hash values for common passwords.
-
-@advanced_1249_p
-The resulting hash value is used as the key for the block cipher algorithm (AES-128 or XTEA with 32 rounds). Then, an initialization vector (IV) key is calculated by hashing the key again using SHA-256. This is to make sure the IV is unknown to the attacker. The reason for using a secret IV is to protect against watermark attacks.
-
-@advanced_1250_p
-Before saving a block of data (each block is 8 bytes long), the following operations are executed: First, the IV is calculated by encrypting the block number with the IV key (using the same block cipher algorithm). This IV is combined with the plain text using XOR. The resulting data is encrypted using the AES-128 or XTEA algorithm.
-
-@advanced_1251_p
-When decrypting, the operation is done in reverse. First, the block is decrypted using the key, and then the IV is calculated combined with the decrypted text using XOR.
-
-@advanced_1252_p
-Therefore, the block cipher mode of operation is CBC (Cipher-block chaining), but each chain is only one block long. The advantage over the ECB (Electronic codebook) mode is that patterns in the data are not revealed, and the advantage over multi block CBC is that flipped cipher text bits are not propagated to flipped plaintext bits in the next block.
-
-@advanced_1253_p
-Database encryption is meant for securing the database while it is not in use (stolen laptop and so on). It is not meant for cases where the attacker has access to files while the database is in use. When he has write access, he can for example replace pieces of files with pieces of older versions and manipulate data like this.
-
-@advanced_1254_p
-File encryption slows down the performance of the database engine. Compared to unencrypted mode, database operations take about 2.2 times longer when using XTEA, and 2.5 times longer using AES (embedded mode).
-
-@advanced_1255_h3
-Wrong Password Delay
-
-@advanced_1256_p
-To protect against remote brute force password attacks, the delay after each unsuccessful login gets double as long. Use the system properties h2.delayWrongPasswordMin and h2.delayWrongPasswordMax to change the minimum (the default is 250 milliseconds) or maximum delay (the default is 4000 milliseconds, or 4 seconds). The delay only applies for those using the wrong password. Normally there is no delay for a user that knows the correct password, with one exception: after using the wrong password, there is a delay of up (randomly distributed) the same delay as for a wrong password. This is to protect against parallel brute force attacks, so that an attacker needs to wait for the whole delay. Delays are synchronized. This is also required to protect against parallel attacks.
-
-@advanced_1257_h3
-SSL/TLS Connections
-
-@advanced_1258_p
-Remote SSL/TLS connections are supported using the Java Secure Socket Extension (SSLServerSocket / SSLSocket). By default, anonymous SSL is enabled. The default cipher suite is <code>SSL_DH_anon_WITH_RC4_128_MD5</code> .
-
-@advanced_1259_p
-To use your own keystore, set the system properties <code>javax.net.ssl.keyStore</code> and <code>javax.net.ssl.keyStorePassword</code> before starting the H2 server and client. See also <a href="http://java.sun.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#CustomizingStores">Customizing the Default Key and Trust Stores, Store Types, and Store Passwords</a> for more information.
-
-@advanced_1260_p
-To disable anonymous SSL, set the system property <code>h2.enableAnonymousSSL</code> to false.
-
-@advanced_1261_h3
-HTTPS Connections
-
-@advanced_1262_p
-The web server supports HTTP and HTTPS connections using SSLServerSocket. There is a default self-certified certificate to support an easy starting point, but custom certificates are supported as well.
-
-@advanced_1263_h2
+@advanced_1020_a
 Universally Unique Identifiers (UUID)
 
-@advanced_1264_p
-This database supports the UUIDs. Also supported is a function to create new UUIDs using a cryptographically strong pseudo random number generator. With random UUIDs, the chance of two having the same value can be calculated using the probability theory. See also 'Birthday Paradox'. Standardized randomly generated UUIDs have 122 random bits. 4 bits are used for the version (Randomly generated UUID), and 2 bits for the variant (Leach-Salz). This database supports generating such UUIDs using the built-in function RANDOM_UUID(). Here is a small program to estimate the probability of having two identical UUIDs after generating a number of values:
-
-@advanced_1265_p
-Some values are:
-
-@advanced_1266_p
-To help non-mathematicians understand what those numbers mean, here a comparison: One's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion, that means the probability is about 0.000'000'000'06.
-
-@advanced_1267_h2
+@advanced_1021_a
 Settings Read from System Properties
 
-@advanced_1268_p
-Some settings of the database can be set on the command line using -DpropertyName=value. It is usually not required to change those settings manually. The settings are case sensitive. Example:
-
-@advanced_1269_p
-The current value of the settings can be read in the table INFORMATION_SCHEMA.SETTINGS.
-
-@advanced_1270_p
-For a complete list of settings, see <a href="../javadoc/org/h2/constant/SysProperties.html">SysProperties</a> .
-
-@advanced_1271_h2
+@advanced_1022_a
 Setting the Server Bind Address
 
-@advanced_1272_p
-Usually server sockets accept connections on any/all local addresses. This may be a problem on multi-homed hosts. To bind only to one address, use the system property h2.bindAddress. This setting is used for both regular server sockets and for SSL server sockets. IPv4 and IPv6 address formats are supported.
-
-@advanced_1273_h2
+@advanced_1023_a
 Glossary and Links
 
-@advanced_1274_th
+@advanced_1024_h2
+Result Sets
+
+@advanced_1025_h3
+Limiting the Number of Rows
+
+@advanced_1026_p
+Before the result is returned to the application, all rows are read by the database. Server side cursors are not supported currently. If only the first few rows are interesting for the application, then the result set size should be limited to improve the performance. This can be done using LIMIT in a query (example: SELECT * FROM TEST LIMIT 100), or by using Statement.setMaxRows(max).
+
+@advanced_1027_h3
+Large Result Sets and External Sorting
+
+@advanced_1028_p
+For result set larger than 1000 rows, the result is buffered to disk. If ORDER BY is used, the sorting is done using an external sort algorithm. In this case, each block of rows is sorted using quick sort, then written to disk; when reading the data, the blocks are merged together.
+
+@advanced_1029_h2
+Large Objects
+
+@advanced_1030_h3
+Storing and Reading Large Objects
+
+@advanced_1031_p
+If it is possible that the objects don't fit into memory, then the data type CLOB (for textual data) or BLOB (for binary data) should be used. For these data types, the objects are not fully read into memory, by using streams. To store a BLOB, use PreparedStatement.setBinaryStream. To store a CLOB, use PreparedStatement.setCharacterStream. To read a BLOB, use ResultSet.getBinaryStream, and to read a CLOB, use ResultSet.getCharacterStream. If the client/server mode is used, the BLOB and CLOB data is fully read into memory when accessed. In this case, the size of a BLOB or CLOB is limited by the memory.
+
+@advanced_1032_h2
+Linked Tables
+
+@advanced_1033_p
+This database supports linked tables, which means tables that don't exist in the current database but are just links to another database. To create such a link, use the CREATE LINKED TABLE statement:
+
+@advanced_1034_p
+It is then possible to access the table in the usual way. There is a restriction when inserting data to this table: When inserting or updating rows into the table, NULL and values that are not set in the insert statement are both inserted as NULL. This may not have the desired effect if a default value in the target table is other than NULL.
+
+@advanced_1035_p
+For each linked table a new connection is opened. This can be a problem for some databases when using many linked tables. For Oracle XE, the maximum number of connection can be increased. Oracle XE needs to be restarted after changing these values:
+
+@advanced_1036_h2
+Transaction Isolation
+
+@advanced_1037_p
+This database supports the following transaction isolation levels:
+
+@advanced_1038_b
+Read Committed
+
+@advanced_1039_li
+This is the default level.  Read locks are released immediately.  Higher concurrency is possible when using this level.
+
+@advanced_1040_li
+To enable, execute the SQL statement    'SET LOCK_MODE 3'
+
+@advanced_1041_li
+or append ;LOCK_MODE=3 to the database URL: jdbc:h2:~/test;LOCK_MODE=3
+
+@advanced_1042_b
+Serializable
+
+@advanced_1043_li
+To enable, execute the SQL statement    'SET LOCK_MODE 1'
+
+@advanced_1044_li
+or append ;LOCK_MODE=1 to the database URL: jdbc:h2:~/test;LOCK_MODE=1
+
+@advanced_1045_b
+Read Uncommitted
+
+@advanced_1046_li
+This level means that transaction isolation is disabled.
+
+@advanced_1047_li
+To enable, execute the SQL statement    'SET LOCK_MODE 0'
+
+@advanced_1048_li
+or append ;LOCK_MODE=0 to the database URL: jdbc:h2:~/test;LOCK_MODE=0
+
+@advanced_1049_p
+When using the isolation level 'serializable', dirty reads, non-repeatable reads, and phantom reads are prohibited.
+
+@advanced_1050_b
+Dirty Reads
+
+@advanced_1051_li
+Means a connection can read uncommitted changes made by another connection.
+
+@advanced_1052_li
+Possible with: read uncommitted
+
+@advanced_1053_b
+Non-Repeatable Reads
+
+@advanced_1054_li
+A connection reads a row, another connection changes a row and commits,  and the first connection re-reads the same row and gets the new result.
+
+@advanced_1055_li
+Possible with: read uncommitted, read committed
+
+@advanced_1056_b
+Phantom Reads
+
+@advanced_1057_li
+A connection reads a set of rows using a condition, another connection  inserts a row that falls in this condition and commits, then the first connection  re-reads using the same condition and gets the new row.
+
+@advanced_1058_li
+Possible with: read uncommitted, read committed
+
+@advanced_1059_h3
+Table Level Locking
+
+@advanced_1060_p
+The database allows multiple concurrent connections to the same database. To make sure all connections only see consistent data, table level locking is used by default. This mechanism does not allow high concurrency, but is very fast. Shared locks and exclusive locks are supported. Before reading from a table, the database tries to add a shared lock to the table (this is only possible if there is no exclusive lock on the object by another connection). If the shared lock is added successfully, the table can be read. It is allowed that other connections also have a shared lock on the same object. If a connection wants to write to a table (update or delete a row), an exclusive lock is required. To get the exclusive lock, other connection must not have any locks on the object. After the connection commits, all locks are released. This database keeps all locks in memory.
+
+@advanced_1061_h3
+Lock Timeout
+
+@advanced_1062_p
+If a connection cannot get a lock on an object, the connection waits for some amount of time (the lock timeout). During this time, hopefully the connection holding the lock commits and it is then possible to get the lock. If this is not possible because the other connection does not release the lock for some time, the unsuccessful connection will get a lock timeout exception. The lock timeout can be set individually for each connection.
+
+@advanced_1063_h2
+Multi-Version Concurrency Control (MVCC)
+
+@advanced_1064_p
+The MVCC feature allows higher concurrency than using (table level or row level) locks. When using MVCC in this database, delete, insert and update operations will only issue a shared lock on the table. An exclusive lock is still used when adding or removing columns, when dropping the table, and when using SELECT ... FOR UPDATE. Connections only 'see' committed data, and own changes. That means, if connection A updates a row but doesn't commit this change yet, connection B will see the old value. Only when the change is committed, the new value is visible by other connections (read committed). If multiple connections concurrently try to update the same row, this database fails fast: a concurrent update exception is thrown.
+
+@advanced_1065_p
+To use the MVCC feature, append MVCC=TRUE to the database URL:
+
+@advanced_1066_p
+The MVCC feature is not fully tested yet.
+
+@advanced_1067_h2
+Clustering / High Availability
+
+@advanced_1068_p
+This database supports a simple clustering / high availability mechanism. The architecture is: two database servers run on two different computers, and on both computers is a copy of the same database. If both servers run, each database operation is executed on both computers. If one server fails (power, hardware or network failure), the other server can still continue to work. From this point on, the operations will be executed only on one server until the other server is back up.
+
+@advanced_1069_p
+Clustering can only be used in the server mode (the embedded mode does not support clustering). It is possible to restore the cluster without stopping the server, however it is critical that no other application is changing the data in the first database while the second database is restored, so restoring the cluster is currently a manual process.
+
+@advanced_1070_p
+To initialize the cluster, use the following steps:
+
+@advanced_1071_li
+Create a database
+
+@advanced_1072_li
+Use the CreateCluster tool to copy the database to another location and initialize the clustering.  Afterwards, you have two databases containing the same data.
+
+@advanced_1073_li
+Start two servers (one for each copy of the database)
+
+@advanced_1074_li
+You are now ready to connect to the databases with the client application(s)
+
+@advanced_1075_h3
+Using the CreateCluster Tool
+
+@advanced_1076_p
+To understand how clustering works, please try out the following example. In this example, the two databases reside on the same computer, but usually, the databases will be on different servers.
+
+@advanced_1077_li
+Create two directories: server1 and server2.  Each directory will simulate a directory on a computer.
+
+@advanced_1078_li
+Start a TCP server pointing to the first directory.  You can do this using the command line:
+
+@advanced_1079_li
+Start a second TCP server pointing to the second directory.  This will simulate a server running on a second (redundant) computer.  You can do this using the command line:
+
+@advanced_1080_li
+Use the CreateCluster tool to initialize clustering.  This will automatically create a new, empty database if it does not exist.  Run the tool on the command line:
+
+@advanced_1081_li
+You can now connect to the databases using an application or the H2 Console using the JDBC URL jdbc:h2:tcp://localhost:9101,localhost:9102/~/test
+
+@advanced_1082_li
+If you stop a server (by killing the process), you will notice that the other machine continues to work, and therefore the database is still accessible.
+
+@advanced_1083_li
+To restore the cluster, you first need to delete the database that failed, then restart the server that was stopped, and re-run the CreateCluster tool.
+
+@advanced_1084_h3
+Clustering Algorithm and Limitations
+
+@advanced_1085_p
+Read-only queries are only executed against the first cluster node, but all other statements are executed against all nodes. There is currently no load balancing made to avoid problems with transactions. The following functions may yield different results on different cluster nodes and must be executed with care: RANDOM_UUID(), SECURE_RAND(), SESSION_ID(), MEMORY_FREE(), MEMORY_USED(), CSVREAD(), CSVWRITE(), RAND() [when not using a seed]. Those functions should not be used directly in modifying statements (for example INSERT, UPDATE, or MERGE). However, they can be used in read-only statements and the result can then be used for modifying statements.
+
+@advanced_1086_h2
+Two Phase Commit
+
+@advanced_1087_p
+The two phase commit protocol is supported. 2-phase-commit works as follows:
+
+@advanced_1088_li
+Autocommit needs to be switched off
+
+@advanced_1089_li
+A transaction is started, for example by inserting a row
+
+@advanced_1090_li
+The transaction is marked 'prepared' by executing the SQL statement <code>PREPARE COMMIT transactionName</code>
+
+@advanced_1091_li
+The transaction can now be committed or rolled back
+
+@advanced_1092_li
+If a problem occurs before the transaction was successfully committed or rolled back  (for example because a network problem occurred), the transaction is in the state 'in-doubt'
+
+@advanced_1093_li
+When re-connecting to the database, the in-doubt transactions can be listed  with <code>SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT</code>
+
+@advanced_1094_li
+Each transaction in this list must now be committed or rolled back by executing <code>COMMIT TRANSACTION transactionName</code> or <code>ROLLBACK TRANSACTION transactionName</code>
+
+@advanced_1095_li
+The database needs to be closed and re-opened to apply the changes
+
+@advanced_1096_h2
+Compatibility
+
+@advanced_1097_p
+This database is (up to a certain point) compatible to other databases such as HSQLDB, MySQL and PostgreSQL. There are certain areas where H2 is incompatible.
+
+@advanced_1098_h3
+Transaction Commit when Autocommit is On
+
+@advanced_1099_p
+At this time, this database engine commits a transaction (if autocommit is switched on) just before returning the result. For a query, this means the transaction is committed even before the application scans through the result set, and before the result set is closed. Other database engines may commit the transaction in this case when the result set is closed.
+
+@advanced_1100_h3
+Keywords / Reserved Words
+
+@advanced_1101_p
+There is a list of keywords that can't be used as identifiers (table names, column names and so on), unless they are quoted (surrounded with double quotes). The list is currently:
+
+@advanced_1102_p
+CURRENT_TIMESTAMP, CURRENT_TIME, CURRENT_DATE, CROSS, DISTINCT, EXCEPT, EXISTS, FROM, FOR, FALSE, FULL, GROUP, HAVING, INNER, INTERSECT, IS, JOIN, LIKE, MINUS, NATURAL, NOT, NULL, ON, ORDER, PRIMARY, ROWNUM, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP, TODAY, TRUE, UNION, WHERE
+
+@advanced_1103_p
+Certain words of this list are keywords because they are functions that can be used without '()' for compatibility, for example CURRENT_TIMESTAMP.
+
+@advanced_1104_h2
+Standards Compliance
+
+@advanced_1105_p
+This database tries to be as much standard compliant as possible. For the SQL language, ANSI/ISO is the main standard. There are several versions that refer to the release date: SQL-92, SQL:1999, and SQL:2003. Unfortunately, the standard documentation is not freely available. Another problem is that important features are not standardized. Whenever this is the case, this database tries to be compatible to other databases.
+
+@advanced_1106_h2
+Run as Windows Service
+
+@advanced_1107_p
+Using a native wrapper / adapter, Java applications can be run as a Windows Service. There are various tools available to do that. The Java Service Wrapper from Tanuki Software, Inc. ( <a href="http://wrapper.tanukisoftware.org">http://wrapper.tanukisoftware.org</a> ) is included in the installation. Batch files are provided to install, start, stop and uninstall the H2 Database Engine Service. This service contains the TCP Server and the H2 Console web application. The batch files are located in the directory H2/service.
+
+@advanced_1108_h3
+Install the Service
+
+@advanced_1109_p
+The service needs to be registered as a Windows Service first. To do that, double click on 1_install_service.bat. If successful, a command prompt window will pop up and disappear immediately. If not, a message will appear.
+
+@advanced_1110_h3
+Start the Service
+
+@advanced_1111_p
+You can start the H2 Database Engine Service using the service manager of Windows, or by double clicking on 2_start_service.bat. Please note that the batch file does not print an error message if the service is not installed.
+
+@advanced_1112_h3
+Connect to the H2 Console
+
+@advanced_1113_p
+After installing and starting the service, you can connect to the H2 Console application using a browser. Double clicking on 3_start_browser.bat to do that. The default port (8082) is hard coded in the batch file.
+
+@advanced_1114_h3
+Stop the Service
+
+@advanced_1115_p
+To stop the service, double click on 4_stop_service.bat. Please note that the batch file does not print an error message if the service is not installed or started.
+
+@advanced_1116_h3
+Uninstall the Service
+
+@advanced_1117_p
+To uninstall the service, double click on 5_uninstall_service.bat. If successful, a command prompt window will pop up and disappear immediately. If not, a message will appear.
+
+@advanced_1118_h2
+ODBC Driver
+
+@advanced_1119_p
+This database does not come with its own ODBC driver at this time, but it supports the PostgreSQL network protocol. Therefore, the PostgreSQL ODBC driver can be used. Support for the PostgreSQL network protocol is quite new and should be viewed as experimental. It should not be used for production applications.
+
+@advanced_1120_p
+At this time, the PostgreSQL ODBC driver does not work on 64 bit versions of Windows. For more information, see: <a href="http://svr5.postgresql.org/pgsql-odbc/2005-09/msg00127.php">ODBC Driver on Windows 64 bit</a>
+
+@advanced_1121_h3
+ODBC Installation
+
+@advanced_1122_p
+First, the ODBC driver must be installed. Any recent PostgreSQL ODBC driver should work, however version 8.2.4 or newer is recommended. The Windows version of the PostgreSQL ODBC driver is available at <a href="http://www.postgresql.org/ftp/odbc/versions/msi">http://www.postgresql.org/ftp/odbc/versions/msi</a> .
+
+@advanced_1123_h3
+Starting the Server
+
+@advanced_1124_p
+After installing the ODBC driver, start the H2 Server using the command line:
+
+@advanced_1125_p
+The PG Server (PG for PostgreSQL protocol) is started as well. By default, databases are stored in the current working directory where the server is started. Use -baseDir to save databases in another directory, for example the user home directory:
+
+@advanced_1126_p
+The PG server can be started and stopped from within a Java application as follows:
+
+@advanced_1127_p
+By default, only connections from localhost are allowed. To allow remote connections, use <code>-pgAllowOthers true</code> when starting the server.
+
+@advanced_1128_h3
+ODBC Configuration
+
+@advanced_1129_p
+After installing the driver, a new Data Source must be added. In Windows, run <code>odbcad32.exe</code> to open the Data Source Administrator. Then click on 'Add...' and select the PostgreSQL Unicode driver. Then click 'Finish'. You will be able to change the connection properties:
+
+@advanced_1130_th
+Property
+
+@advanced_1131_th
+Example
+
+@advanced_1132_th
+Remarks
+
+@advanced_1133_td
+Data Source
+
+@advanced_1134_td
+H2 Test
+
+@advanced_1135_td
+The name of the ODBC Data Source
+
+@advanced_1136_td
+Database
+
+@advanced_1137_td
+test
+
+@advanced_1138_td
+The database name. Only simple names are supported at this time;
+
+@advanced_1139_td
+relative or absolute path are not supported in the database name.
+
+@advanced_1140_td
+By default, the database is stored in the current working directory
+
+@advanced_1141_td
+where the Server is started except when the -baseDir setting is used.
+
+@advanced_1142_td
+The name must be at least 3 characters.
+
+@advanced_1143_td
+Server
+
+@advanced_1144_td
+localhost
+
+@advanced_1145_td
+The server name or IP address.
+
+@advanced_1146_td
+By default, only remote connections are allowed
+
+@advanced_1147_td
+User Name
+
+@advanced_1148_td
+sa
+
+@advanced_1149_td
+The database user name.
+
+@advanced_1150_td
+SSL Mode
+
+@advanced_1151_td
+disabled
+
+@advanced_1152_td
+At this time, SSL is not supported.
+
+@advanced_1153_td
+Port
+
+@advanced_1154_td
+5435
+
+@advanced_1155_td
+The port where the PG Server is listening.
+
+@advanced_1156_td
+Password
+
+@advanced_1157_td
+sa
+
+@advanced_1158_td
+The database password.
+
+@advanced_1159_p
+Afterwards, you may use this data source.
+
+@advanced_1160_h3
+PG Protocol Support Limitations
+
+@advanced_1161_p
+At this time, only a subset of the PostgreSQL network protocol is implemented. Also, there may be compatibility problems on the SQL level, with the catalog, or with text encoding. Problems are fixed as they are found. Currently, statements can not be cancelled when using the PG protocol.
+
+@advanced_1162_p
+PostgreSQL ODBC Driver Setup requires a database password; that means it is not possible to connect to H2 databases without password. This is a limitation of the ODBC driver.
+
+@advanced_1163_h3
+Security Considerations
+
+@advanced_1164_p
+Currently, the PG Server does not support challenge response or encrypt passwords. This may be a problem if an attacker can listen to the data transferred between the ODBC driver and the server, because the password is readable to the attacker. Also, it is currently not possible to use encrypted SSL connections. Therefore the ODBC driver should not be used where security is important.
+
+@advanced_1165_h2
+Using H2 in Microsoft .NET
+
+@advanced_1166_p
+The database can be used from Microsoft .NET even without using Java, by using IKVM.NET. You can access a H2 database on .NET using the JDBC API, or using the ADO.NET interface.
+
+@advanced_1167_h3
+Using the ADO.NET API on .NET
+
+@advanced_1168_p
+An implementation of the ADO.NET interface is available in the open source project <a href="http://code.google.com/p/h2sharp">H2Sharp</a> .
+
+@advanced_1169_h3
+Using the JDBC API on .NET
+
+@advanced_1170_li
+Install the .NET Framework from <a href="http://www.microsoft.com">Microsoft</a> .  Mono has not yet been tested.
+
+@advanced_1171_li
+Install <a href="http://www.ikvm.net">IKVM.NET</a> .
+
+@advanced_1172_li
+Copy the h2.jar file to ikvm/bin
+
+@advanced_1173_li
+Run the H2 Console using: <code>ikvm -jar h2.jar</code>
+
+@advanced_1174_li
+Convert the H2 Console to an .exe file using: <code>ikvmc -target:winexe h2.jar</code> .  You may ignore the warnings.
+
+@advanced_1175_li
+Create a .dll file using (change the version accordingly): <code>ikvmc.exe -target:library -version:1.0.69.0 h2.jar</code>
+
+@advanced_1176_p
+If you want your C# application use H2, you need to add the h2.dll and the IKVM.OpenJDK.ClassLibrary.dll to your C# solution. Here some sample code:
+
+@advanced_1177_h2
+ACID
+
+@advanced_1178_p
+In the database world, ACID stands for:
+
+@advanced_1179_li
+Atomicity: Transactions must be atomic, meaning either all tasks are performed or none.
+
+@advanced_1180_li
+Consistency: All operations must comply with the defined constraints.
+
+@advanced_1181_li
+Isolation: Transactions must be isolated from each other.
+
+@advanced_1182_li
+Durability: Committed transaction will not be lost.
+
+@advanced_1183_h3
+Atomicity
+
+@advanced_1184_p
+Transactions in this database are always atomic.
+
+@advanced_1185_h3
+Consistency
+
+@advanced_1186_p
+This database is always in a consistent state. Referential integrity rules are always enforced.
+
+@advanced_1187_h3
+Isolation
+
+@advanced_1188_p
+For H2, as with most other database systems, the default isolation level is 'read committed'. This provides better performance, but also means that transactions are not completely isolated. H2 supports the transaction isolation levels 'serializable', 'read committed', and 'read uncommitted'.
+
+@advanced_1189_h3
+Durability
+
+@advanced_1190_p
+This database does not guarantee that all committed transactions survive a power failure. Tests show that all databases sometimes lose transactions on power failure (for details, see below). Where losing transactions is not acceptable, a laptop or UPS (uninterruptible power supply) should be used. If durability is required for all possible cases of hardware failure, clustering should be used, such as the H2 clustering mode.
+
+@advanced_1191_h2
+Durability Problems
+
+@advanced_1192_p
+Complete durability means all committed transaction survive a power failure. Some databases claim they can guarantee durability, but such claims are wrong. A durability test was run against H2, HSQLDB, PostgreSQL, and Derby. All of those databases sometimes lose committed transactions. The test is included in the H2 download, see org.h2.test.poweroff.Test.
+
+@advanced_1193_h3
+Ways to (Not) Achieve Durability
+
+@advanced_1194_p
+Making sure that committed transactions are not lost is more complicated than it seems first. To guarantee complete durability, a database must ensure that the log record is on the hard drive before the commit call returns. To do that, databases use different methods. One is to use the 'synchronous write' file access mode. In Java, RandomAccessFile supports the modes "rws" and "rwd":
+
+@advanced_1195_li
+rwd: Every update to the file's content is written synchronously to the underlying storage device.
+
+@advanced_1196_li
+rws: In addition to rwd, every update to the metadata is written synchronously.
+
+@advanced_1197_p
+This feature is used by Derby. A test (org.h2.test.poweroff.TestWrite) with one of those modes achieves around 50 thousand write operations per second. Even when the operating system write buffer is disabled, the write rate is around 50 thousand operations per second. This feature does not force changes to disk because it does not flush all buffers. The test updates the same byte in the file again and again. If the hard drive was able to write at this rate, then the disk would need to make at least 50 thousand revolutions per second, or 3 million RPM (revolutions per minute). There are no such hard drives. The hard drive used for the test is about 7200 RPM, or about 120 revolutions per second. There is an overhead, so the maximum write rate must be lower than that.
+
+@advanced_1198_p
+Calling fsync flushes the buffers. There are two ways to do that in Java:
+
+@advanced_1199_li
+FileDescriptor.sync(). The documentation says that this forces all system buffers to synchronize with the underlying device. Sync is supposed to return after all in-memory modified copies of buffers associated with this FileDescriptor have been written to the physical medium.
+
+@advanced_1200_li
+FileChannel.force() (since JDK 1.4). This method is supposed to force any updates to this channel's file to be written to the storage device that contains it.
+
+@advanced_1201_p
+By default, MySQL calls fsync for each commit. When using one of those methods, only around 60 write operations per second can be achieved, which is consistent with the RPM rate of the hard drive used. Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(), data is not always persisted to the hard drive, because most hard drives do not obey fsync(): see <a href="http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252">Your Hard Drive Lies to You</a> . In Mac OS X, fsync does not flush hard drive buffers. See <a href="http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a> . So the situation is confusing, and tests prove there is a problem.
+
+@advanced_1202_p
+Trying to flush hard drive buffers hard, and if you do the performance is very bad. First you need to make sure that the hard drive actually flushes all buffers. Tests show that this can not be done in a reliable way. Then the maximum number of transactions is around 60 per second. Because of those reasons, the default behavior of H2 is to delay writing committed transactions.
+
+@advanced_1203_p
+In H2, after a power failure, a bit more than one second of committed transactions may be lost. To change the behavior, use SET WRITE_DELAY and CHECKPOINT SYNC. Most other databases support commit delay as well. In the performance comparison, commit delay was used for all databases that support it.
+
+@advanced_1204_h3
+Running the Durability Test
+
+@advanced_1205_p
+To test the durability / non-durability of this and other databases, you can use the test application in the package org.h2.test.poweroff. Two computers with network connection are required to run this test. One computer just listens, while the test application is run (and power is cut) on the other computer. The computer with the listener application opens a TCP/IP port and listens for an incoming connection. The second computer first connects to the listener, and then created the databases and starts inserting records. The connection is set to 'autocommit', which means after each inserted record a commit is performed automatically. Afterwards, the test computer notifies the listener that this record was inserted successfully. The listener computer displays the last inserted record number every 10 seconds. Now, switch off the power manually, then restart the computer, and run the application again. You will find out that in most cases, none of the databases contains all the records that the listener computer knows about. For details, please consult the source code of the listener and test application.
+
+@advanced_1206_h2
+Using the Recover Tool
+
+@advanced_1207_p
+The recover tool can be used to extract the contents of a data file, even if the database is corrupted. At this time, it does not extract the content of the log file or large objects (CLOB or BLOB). To run the tool, type on the command line:
+
+@advanced_1208_p
+For each database in the current directory, a text file will be created. This file contains raw insert statement (for the data) and data definition (DDL) statement to recreate the schema of the database. This file cannot be executed directly, as the raw insert statements don't have the correct table names, so the file needs to be pre-processed manually before executing.
+
+@advanced_1209_h2
+File Locking Protocols
+
+@advanced_1210_p
+Whenever a database is opened, a lock file is created to signal other processes that the database is in use. If database is closed, or if the process that opened the database terminates, this lock file is deleted.
+
+@advanced_1211_p
+In special cases (if the process did not terminate normally, for example because there was a blackout), the lock file is not deleted by the process that created it. That means the existence of the lock file is not a safe protocol for file locking. However, this software uses a challenge-response protocol to protect the database files. There are two methods (algorithms) implemented to provide both security (that is, the same database files cannot be opened by two processes at the same time) and simplicity (that is, the lock file does not need to be deleted manually by the user). The two methods are 'file method' and 'socket methods'.
+
+@advanced_1212_h3
+File Locking Method 'File'
+
+@advanced_1213_p
+The default method for database file locking is the 'File Method'. The algorithm is:
+
+@advanced_1214_li
+When the lock file does not exist, it is created (using the atomic operation File.createNewFile). Then, the process waits a little bit (20ms) and checks the file again. If the file was changed during this time, the operation is aborted. This protects against a race condition when a process deletes the lock file just after one create it, and a third process creates the file again. It does not occur if there are only two writers.
+
+@advanced_1215_li
+If the file can be created, a random number is inserted together with the locking method ('file'). Afterwards, a watchdog thread is started that checks regularly (every second once by default) if the file was deleted or modified by another (challenger) thread / process. Whenever that occurs, the file is overwritten with the old data. The watchdog thread runs with high priority so that a change to the lock file does not get through undetected even if the system is very busy. However, the watchdog thread does use very little resources (CPU time), because it waits most of the time. Also, the watchdog only reads from the hard disk and does not write to it.
+
+@advanced_1216_li
+If the lock file exists, and it was modified in the 20 ms, the process waits for some time (up to 10 times). If it was still changed, an exception is thrown (database is locked). This is done to eliminate race conditions with many concurrent writers. Afterwards, the file is overwritten with a new version (challenge). After that, the thread waits for 2 seconds. If there is a watchdog thread protecting the file, he will overwrite the change and this process will fail to lock the database. However, if there is no watchdog thread, the lock file will still be as written by this thread. In this case, the file is deleted and atomically created again. The watchdog thread is started in this case and the file is locked.
+
+@advanced_1217_p
+This algorithm is tested with over 100 concurrent threads. In some cases, when there are many concurrent threads trying to lock the database, they block each other (meaning the file cannot be locked by any of them) for some time. However, the file never gets locked by two threads at the same time. However using that many concurrent threads / processes is not the common use case. Generally, an application should throw an error to the user if it cannot open a database, and not try again in a (fast) loop.
+
+@advanced_1218_h3
+File Locking Method 'Socket'
+
+@advanced_1219_p
+There is a second locking mechanism implemented, but disabled by default. The algorithm is:
+
+@advanced_1220_li
+If the lock file does not exist, it is created. Then a server socket is opened on a defined port, and kept open. The port and IP address of the process that opened the database is written into the lock file.
+
+@advanced_1221_li
+If the lock file exists, and the lock method is 'file', then the software switches to the 'file' method.
+
+@advanced_1222_li
+If the lock file exists, and the lock method is 'socket', then the process checks if the port is in use. If the original process is still running, the port is in use and this process throws an exception (database is in use). If the original process died (for example due to a blackout, or abnormal termination of the virtual machine), then the port was released. The new process deletes the lock file and starts again.
+
+@advanced_1223_p
+This method does not require a watchdog thread actively polling (reading) the same file every second. The problem with this method is, if the file is stored on a network share, two processes (running on different computers) could still open the same database files, if they do not have a direct TCP/IP connection.
+
+@advanced_1224_h2
+Protection against SQL Injection
+
+@advanced_1225_h3
+What is SQL Injection
+
+@advanced_1226_p
+This database engine provides a solution for the security vulnerability known as 'SQL Injection'. Here is a short description of what SQL injection means. Some applications build SQL statements with embedded user input such as:
+
+@advanced_1227_p
+If this mechanism is used anywhere in the application, and user input is not correctly filtered or encoded, it is possible for a user to inject SQL functionality or statements by using specially built input such as (in this example) this password: ' OR ''='. In this case the statement becomes:
+
+@advanced_1228_p
+Which is always true no matter what the password stored in the database is. For more information about SQL Injection, see Glossary and Links.
+
+@advanced_1229_h3
+Disabling Literals
+
+@advanced_1230_p
+SQL Injection is not possible if user input is not directly embedded in SQL statements. A simple solution for the problem above is to use a PreparedStatement:
+
+@advanced_1231_p
+This database provides a way to enforce usage of parameters when passing user input to the database. This is done by disabling embedded literals in SQL statements. To do this, execute the statement:
+
+@advanced_1232_p
+Afterwards, SQL statements with text and number literals are not allowed any more. That means, SQL statement of the form WHERE NAME='abc' or WHERE CustomerId=10 will fail. It is still possible to use PreparedStatements and parameters as described above. Also, it is still possible to generate SQL statements dynamically, and use the Statement API, as long as the SQL statements do not include literals. There is also a second mode where number literals are allowed: SET ALLOW_LITERALS NUMBERS. To allow all literals, execute SET ALLOW_LITERALS ALL (this is the default setting). Literals can only be enabled or disabled by an administrator.
+
+@advanced_1233_h3
+Using Constants
+
+@advanced_1234_p
+Disabling literals also means disabling hard-coded 'constant' literals. This database supports defining constants using the CREATE CONSTANT command. Constants can be defined only when literals are enabled, but used even when literals are disabled. To avoid name clashes with column names, constants can be defined in other schemas:
+
+@advanced_1235_p
+Even when literals are enabled, it is better to use constants instead of hard-coded number or text literals in queries or views. With constants, typos are found at compile time, the source code is easier to understand and change.
+
+@advanced_1236_h3
+Using the ZERO() Function
+
+@advanced_1237_p
+It is not required to create a constant for the number 0 as there is already a built-in function ZERO():
+
+@advanced_1238_h2
+Restricting Class Loading and Usage
+
+@advanced_1239_p
+By default there is no restriction on loading classes and executing Java code for admins. That means an admin may call system functions such as System.setProperty by executing:
+
+@advanced_1240_p
+To restrict users (including admins) from loading classes and executing code, the list of allowed classes can be set in the system property h2.allowedClasses in the form of a comma separated list of classes or patterns (items ending with '*'). By default all classes are allowed. Example:
+
+@advanced_1241_p
+This mechanism is used for all user classes, including database event listeners, trigger classes, user-defined functions, user-defined aggregate functions, and JDBC driver classes (with the exception of the H2 driver) when using the H2 Console.
+
+@advanced_1242_h2
+Security Protocols
+
+@advanced_1243_p
+The following paragraphs document the security protocols used in this database. These descriptions are very technical and only intended for security experts that already know the underlying security primitives.
+
+@advanced_1244_h3
+User Password Encryption
+
+@advanced_1245_p
+When a user tries to connect to a database, the combination of user name, @, and password hashed using SHA-256, and this hash value is transmitted to the database. This step does not try to an attacker from re-using the value if he is able to listen to the (unencrypted) transmission between the client and the server. But, the passwords are never transmitted as plain text, even when using an unencrypted connection between client and server. That means if a user reuses the same password for different things, this password is still protected up to some point. See also 'RFC 2617 - HTTP Authentication: Basic and Digest Access Authentication' for more information.
+
+@advanced_1246_p
+When a new database or user is created, a new cryptographically secure random salt value is generated. The size of the salt is 64 bit. Using the random salt reduces the risk of an attacker pre-calculating hash values for many different (commonly used) passwords.
+
+@advanced_1247_p
+The combination of user-password hash value (see above) and salt is hashed using SHA-256. The resulting value is stored in the database. When a user tries to connect to the database, the database combines user-password hash value with the stored salt value and calculated the hash value. Other products use multiple iterations (hash the hash value again and again), but this is not done in this product to reduce the risk of denial of service attacks (where the attacker tries to connect with bogus passwords, and the server spends a lot of time calculating the hash value for each password). The reasoning is: if the attacker has access to the hashed passwords, he also has access to the data in plain text, and therefore does not need the password any more. If the data is protected by storing it on another computer and only remotely, then the iteration count is not required at all.
+
+@advanced_1248_h3
+File Encryption
+
+@advanced_1249_p
+The database files can be encrypted using two different algorithms: AES-128 and XTEA (using 32 rounds). The reasons for supporting XTEA is performance (XTEA is about twice as fast as AES) and to have an alternative algorithm if AES is suddenly broken.
+
+@advanced_1250_p
+When a user tries to connect to an encrypted database, the combination of the word 'file', @, and the file password is hashed using SHA-256. This hash value is transmitted to the server.
+
+@advanced_1251_p
+When a new database file is created, a new cryptographically secure random salt value is generated. The size of the salt is 64 bit. The combination of the file password hash and the salt value is hashed 1024 times using SHA-256. The reason for the iteration is to make it harder for an attacker to calculate hash values for common passwords.
+
+@advanced_1252_p
+The resulting hash value is used as the key for the block cipher algorithm (AES-128 or XTEA with 32 rounds). Then, an initialization vector (IV) key is calculated by hashing the key again using SHA-256. This is to make sure the IV is unknown to the attacker. The reason for using a secret IV is to protect against watermark attacks.
+
+@advanced_1253_p
+Before saving a block of data (each block is 8 bytes long), the following operations are executed: First, the IV is calculated by encrypting the block number with the IV key (using the same block cipher algorithm). This IV is combined with the plain text using XOR. The resulting data is encrypted using the AES-128 or XTEA algorithm.
+
+@advanced_1254_p
+When decrypting, the operation is done in reverse. First, the block is decrypted using the key, and then the IV is calculated combined with the decrypted text using XOR.
+
+@advanced_1255_p
+Therefore, the block cipher mode of operation is CBC (Cipher-block chaining), but each chain is only one block long. The advantage over the ECB (Electronic codebook) mode is that patterns in the data are not revealed, and the advantage over multi block CBC is that flipped cipher text bits are not propagated to flipped plaintext bits in the next block.
+
+@advanced_1256_p
+Database encryption is meant for securing the database while it is not in use (stolen laptop and so on). It is not meant for cases where the attacker has access to files while the database is in use. When he has write access, he can for example replace pieces of files with pieces of older versions and manipulate data like this.
+
+@advanced_1257_p
+File encryption slows down the performance of the database engine. Compared to unencrypted mode, database operations take about 2.2 times longer when using XTEA, and 2.5 times longer using AES (embedded mode).
+
+@advanced_1258_h3
+Wrong Password Delay
+
+@advanced_1259_p
+To protect against remote brute force password attacks, the delay after each unsuccessful login gets double as long. Use the system properties h2.delayWrongPasswordMin and h2.delayWrongPasswordMax to change the minimum (the default is 250 milliseconds) or maximum delay (the default is 4000 milliseconds, or 4 seconds). The delay only applies for those using the wrong password. Normally there is no delay for a user that knows the correct password, with one exception: after using the wrong password, there is a delay of up (randomly distributed) the same delay as for a wrong password. This is to protect against parallel brute force attacks, so that an attacker needs to wait for the whole delay. Delays are synchronized. This is also required to protect against parallel attacks.
+
+@advanced_1260_h3
+SSL/TLS Connections
+
+@advanced_1261_p
+Remote SSL/TLS connections are supported using the Java Secure Socket Extension (SSLServerSocket / SSLSocket). By default, anonymous SSL is enabled. The default cipher suite is <code>SSL_DH_anon_WITH_RC4_128_MD5</code> .
+
+@advanced_1262_p
+To use your own keystore, set the system properties <code>javax.net.ssl.keyStore</code> and <code>javax.net.ssl.keyStorePassword</code> before starting the H2 server and client. See also <a href="http://java.sun.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#CustomizingStores">Customizing the Default Key and Trust Stores, Store Types, and Store Passwords</a> for more information.
+
+@advanced_1263_p
+To disable anonymous SSL, set the system property <code>h2.enableAnonymousSSL</code> to false.
+
+@advanced_1264_h3
+HTTPS Connections
+
+@advanced_1265_p
+The web server supports HTTP and HTTPS connections using SSLServerSocket. There is a default self-certified certificate to support an easy starting point, but custom certificates are supported as well.
+
+@advanced_1266_h2
+Universally Unique Identifiers (UUID)
+
+@advanced_1267_p
+This database supports the UUIDs. Also supported is a function to create new UUIDs using a cryptographically strong pseudo random number generator. With random UUIDs, the chance of two having the same value can be calculated using the probability theory. See also 'Birthday Paradox'. Standardized randomly generated UUIDs have 122 random bits. 4 bits are used for the version (Randomly generated UUID), and 2 bits for the variant (Leach-Salz). This database supports generating such UUIDs using the built-in function RANDOM_UUID(). Here is a small program to estimate the probability of having two identical UUIDs after generating a number of values:
+
+@advanced_1268_p
+Some values are:
+
+@advanced_1269_p
+To help non-mathematicians understand what those numbers mean, here a comparison: One's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion, that means the probability is about 0.000'000'000'06.
+
+@advanced_1270_h2
+Settings Read from System Properties
+
+@advanced_1271_p
+Some settings of the database can be set on the command line using -DpropertyName=value. It is usually not required to change those settings manually. The settings are case sensitive. Example:
+
+@advanced_1272_p
+The current value of the settings can be read in the table INFORMATION_SCHEMA.SETTINGS.
+
+@advanced_1273_p
+For a complete list of settings, see <a href="../javadoc/org/h2/constant/SysProperties.html">SysProperties</a> .
+
+@advanced_1274_h2
+Setting the Server Bind Address
+
+@advanced_1275_p
+Usually server sockets accept connections on any/all local addresses. This may be a problem on multi-homed hosts. To bind only to one address, use the system property h2.bindAddress. This setting is used for both regular server sockets and for SSL server sockets. IPv4 and IPv6 address formats are supported.
+
+@advanced_1276_h2
+Glossary and Links
+
+@advanced_1277_th
 Term
 
-@advanced_1275_th
+@advanced_1278_th
 Description
 
-@advanced_1276_td
+@advanced_1279_td
 AES-128
 
-@advanced_1277_td
+@advanced_1280_td
 A block encryption algorithm. See also: <a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
 
-@advanced_1278_td
+@advanced_1281_td
 Birthday Paradox
 
-@advanced_1279_td
+@advanced_1282_td
 Describes the higher than expected probability that two persons in a room have the same birthday.  Also valid for randomly generated UUIDs. See also: <a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
 
-@advanced_1280_td
+@advanced_1283_td
 Digest
 
-@advanced_1281_td
+@advanced_1284_td
 Protocol to protect a password (but not to protect data). See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
 
-@advanced_1282_td
+@advanced_1285_td
 GCJ
 
-@advanced_1283_td
+@advanced_1286_td
 GNU Compiler for Java. <a href="http://gcc.gnu.org/java/">http://gcc.gnu.org/java/</a> and <a href="http://nativej.mtsystems.ch">http://nativej.mtsystems.ch/ (not free any more)</a>
 
-@advanced_1284_td
+@advanced_1287_td
 HTTPS
 
-@advanced_1285_td
+@advanced_1288_td
 A protocol to provide security to HTTP connections. See also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
 
-@advanced_1286_td
+@advanced_1289_td
 Modes of Operation
 
-@advanced_1287_a
+@advanced_1290_a
 Wikipedia: Block cipher modes of operation
 
-@advanced_1288_td
+@advanced_1291_td
 Salt
 
-@advanced_1289_td
+@advanced_1292_td
 Random number to increase the security of passwords.  See also: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
 
-@advanced_1290_td
+@advanced_1293_td
 SHA-256
 
-@advanced_1291_td
+@advanced_1294_td
 A cryptographic one-way hash function.  See also: <a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
 
-@advanced_1292_td
+@advanced_1295_td
 SQL Injection
 
-@advanced_1293_td
+@advanced_1296_td
 A security vulnerability where an application generates SQL statements with embedded user input.  See also: <a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
 
-@advanced_1294_td
+@advanced_1297_td
 Watermark Attack
 
-@advanced_1295_td
+@advanced_1298_td
 Security problem of certain encryption programs where the existence of certain  data can be proven without decrypting.  For more information, search in the internet for 'watermark attack cryptoloop'
 
-@advanced_1296_td
+@advanced_1299_td
 SSL/TLS
 
-@advanced_1297_td
+@advanced_1300_td
 Secure Sockets Layer / Transport Layer Security.  See also: <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
 
-@advanced_1298_td
+@advanced_1301_td
 XTEA
 
-@advanced_1299_td
+@advanced_1302_td
 A block encryption algorithm.  See also: <a href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
 
 @build_1000_h1
@@ -1049,7 +1058,7 @@ SLF4J is now supported by using adding TRACE_LEVEL_FILE=4   to the database URL.
 The recovery tool did not work if the table name contained spaces   or if there was a comment on the table.
 
 @changelog_1015_li
-Triggers are no longer executed when executing an changing the table   structure (ALTER TABLE).
+Triggers are no longer executed when changing the table   structure (ALTER TABLE).
 
 @changelog_1016_li
 When setting BLOB or CLOB values larger than 65 KB using   a remote connection, temporary files were kept on the client   longer than required (until the connection was closed or the   object is garbage collected). Now they are removed as soon   as the PreparedStatement is closed, or when the value is   overwritten.
@@ -3814,6 +3823,9 @@ William Gilbert, USA
 @history_1034_li
 Antonio Dieguez, Chile
 
+@history_1035_a
+Ontology Works, USA
+
 @installation_1000_h1
 Installation
 
@@ -6323,628 +6335,628 @@ Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
 Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
 
 @roadmap_1037_li
-System table / function: cache usage
+Linked tables that point to the same database should share the connection ([SHARED])
 
 @roadmap_1038_li
-Add a migration guide (list differences between databases)
+System table / function: cache usage
 
 @roadmap_1039_li
-Optimization: automatic index creation suggestion using the trace file?
+Add a migration guide (list differences between databases)
 
 @roadmap_1040_li
-Compression performance: don't allocate buffers, compress / expand in to out buffer
+Optimization: automatic index creation suggestion using the trace file?
 
 @roadmap_1041_li
-Start / stop server with database URL
+Compression performance: don't allocate buffers, compress / expand in to out buffer
 
 @roadmap_1042_li
-Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
+Start / stop server with database URL
 
 @roadmap_1043_li
-Rebuild index functionality (other than delete the index file)
+Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
 
 @roadmap_1044_li
-Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory)
+Rebuild index functionality (other than delete the index file)
 
 @roadmap_1045_li
-Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA)
+Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory)
 
 @roadmap_1046_li
-Feature: a setting to delete the the log or not (for backup)
+Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA)
 
 @roadmap_1047_li
-Test with Sun ASPE1_4; JEE Sun AS PE1.4
+Feature: a setting to delete the the log or not (for backup)
 
 @roadmap_1048_li
-Test performance again with SQL Server, Oracle, DB2
+Test with Sun ASPE1_4; JEE Sun AS PE1.4
 
 @roadmap_1049_li
-Test with dbmonster (http://dbmonster.kernelpanic.pl/)
+Test performance again with SQL Server, Oracle, DB2
 
 @roadmap_1050_li
-Test with dbcopy (http://dbcopyplugin.sourceforge.net)
+Test with dbmonster (http://dbmonster.kernelpanic.pl/)
 
 @roadmap_1051_li
-Find a tool to view a text file >100 MB, with find, page up and down (like less)
+Test with dbcopy (http://dbcopyplugin.sourceforge.net)
 
 @roadmap_1052_li
-Implement, test, document XAConnection and so on
+Find a tool to view a text file >100 MB, with find, page up and down (like less)
 
 @roadmap_1053_li
-Web site: get rid of frame set
+Implement, test, document XAConnection and so on
 
 @roadmap_1054_li
-Pluggable data type (for compression, validation, conversion, encryption)
+Web site: get rid of frame set
 
 @roadmap_1055_li
-CHECK: find out what makes CHECK=TRUE slow, move to CHECK2
+Pluggable data type (for compression, validation, conversion, encryption)
 
 @roadmap_1056_li
-Improve recovery: improve code for log recovery problems (less try/catch)
+CHECK: find out what makes CHECK=TRUE slow, move to CHECK2
 
 @roadmap_1057_li
-Index usage for (ID, NAME)=(1, 'Hi'); document
+Improve recovery: improve code for log recovery problems (less try/catch)
 
 @roadmap_1058_li
-Suggestion: include Jetty as Servlet Container (like LAMP)
+Index usage for (ID, NAME)=(1, 'Hi'); document
 
 @roadmap_1059_li
-Trace shipping to server
+Suggestion: include Jetty as Servlet Container (like LAMP)
 
 @roadmap_1060_li
-Performance / server mode: use UDP optionally?
+Trace shipping to server
 
 @roadmap_1061_li
-Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP)
+Performance / server mode: use UDP optionally?
 
 @roadmap_1062_li
-Web server classloader: override findResource / getResourceFrom
+Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP)
 
 @roadmap_1063_li
-Cost for embedded temporary view is calculated wrong, if result is constant
+Web server classloader: override findResource / getResourceFrom
 
 @roadmap_1064_li
-Comparison: pluggable sort order: natural sort
+Cost for embedded temporary view is calculated wrong, if result is constant
 
 @roadmap_1065_li
-Count index range query (count(*) where id between 10 and 20)
+Comparison: pluggable sort order: natural sort
 
 @roadmap_1066_li
-Eclipse plugin
+Count index range query (count(*) where id between 10 and 20)
 
 @roadmap_1067_li
-Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait]
+Eclipse plugin
 
 @roadmap_1068_li
-iReport to support H2
+Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait]
 
 @roadmap_1069_li
-Implement missing JDBC API (CallableStatement,...)
+iReport to support H2
 
 @roadmap_1070_li
-Compression of the cache
+Implement missing JDBC API (CallableStatement,...)
 
 @roadmap_1071_li
-Include SMPT (mail) server (at least client) (alert on cluster failure, low disk space,...)
+Compression of the cache
 
 @roadmap_1072_li
-Drop with restrict (currently cascade is the default)
+Include SMPT (mail) server (at least client) (alert on cluster failure, low disk space,...)
 
 @roadmap_1073_li
-JSON parser and functions
+Drop with restrict (currently cascade is the default)
 
 @roadmap_1074_li
-Automatic collection of statistics (auto ANALYZE)
+JSON parser and functions
 
 @roadmap_1075_li
-Server: client ping from time to time (to avoid timeout - is timeout a problem?)
+Automatic collection of statistics (auto ANALYZE)
 
 @roadmap_1076_li
-Copy database: Tool with config GUI and batch mode, extensible (example: compare)
+Server: client ping from time to time (to avoid timeout - is timeout a problem?)
 
 @roadmap_1077_li
-Document, implement tool for long running transactions using user-defined compensation statements
+Copy database: Tool with config GUI and batch mode, extensible (example: compare)
 
 @roadmap_1078_li
-Support SET TABLE DUAL READONLY
+Document, implement tool for long running transactions using user-defined compensation statements
 
 @roadmap_1079_li
-Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files
+Support SET TABLE DUAL READONLY
 
 @roadmap_1080_li
-Don't write stack traces for common exceptions like duplicate key to the log by default
+Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files
 
 @roadmap_1081_li
-GCJ: what is the state now?
+Don't write stack traces for common exceptions like duplicate key to the log by default
 
 @roadmap_1082_li
-Use Janino to convert Java to C++
+GCJ: what is the state now?
 
 @roadmap_1083_li
-Reduce disk space usage (Derby uses less disk space?)
+Use Janino to convert Java to C++
 
 @roadmap_1084_li
-Events for: Database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
+Reduce disk space usage (Derby uses less disk space?)
 
 @roadmap_1085_li
-Optimization: Log compression
+Events for: Database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
 
 @roadmap_1086_li
-Support standard INFORMATION_SCHEMA tables, as defined in http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt; specially KEY_COLUMN_USAGE (http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif)
+Optimization: Log compression
 
 @roadmap_1087_li
-Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: Division by zero
+Support standard INFORMATION_SCHEMA tables, as defined in http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt; specially KEY_COLUMN_USAGE (http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif)
 
 @roadmap_1088_li
-Functional tables should accept parameters from other tables (see FunctionMultiReturn) SELECT * FROM TEST T, P2C(T.A, T.R)
+Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: Division by zero
 
 @roadmap_1089_li
-Custom class loader to reload functions on demand
+Functional tables should accept parameters from other tables (see FunctionMultiReturn) SELECT * FROM TEST T, P2C(T.A, T.R)
 
 @roadmap_1090_li
-Test http://mysql-je.sourceforge.net/
+Custom class loader to reload functions on demand
 
 @roadmap_1091_li
-Close all files when closing the database (including LOB files that are open on the client side)
+Test http://mysql-je.sourceforge.net/
 
 @roadmap_1092_li
-EXE file: maybe use http://jsmooth.sourceforge.net
+Close all files when closing the database (including LOB files that are open on the client side)
 
 @roadmap_1093_li
-Performance: Automatically build in-memory indexes if the whole table is in memory
+EXE file: maybe use http://jsmooth.sourceforge.net
 
 @roadmap_1094_li
-H2 Console: The webclient could support more features like phpMyAdmin.
+Performance: Automatically build in-memory indexes if the whole table is in memory
 
 @roadmap_1095_li
-The HELP information schema can be directly exposed in the Console
+H2 Console: The webclient could support more features like phpMyAdmin.
 
 @roadmap_1096_li
-Maybe use the 0x1234 notation for binary fields, see MS SQL Server
+The HELP information schema can be directly exposed in the Console
 
 @roadmap_1097_li
-Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html, http://philip.greenspun.com/sql/trees.html
+Maybe use the 0x1234 notation for binary fields, see MS SQL Server
 
 @roadmap_1098_li
-SQL 2003 (http://www.wiscorp.com/sql_2003_standard.zip)
+Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html, http://philip.greenspun.com/sql/trees.html
 
 @roadmap_1099_li
-http://www.jpackage.org
+SQL 2003 (http://www.wiscorp.com/sql_2003_standard.zip)
 
 @roadmap_1100_li
-Version column (number/sequence and timestamp based)
+http://www.jpackage.org
 
 @roadmap_1101_li
-Optimize getGeneratedKey: send last identity after each execute (server).
+Version column (number/sequence and timestamp based)
 
 @roadmap_1102_li
-Date: default date is '1970-01-01' (is it 1900-01-01 in the standard / other databases?)
+Optimize getGeneratedKey: send last identity after each execute (server).
 
 @roadmap_1103_li
-Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID);
+Date: default date is '1970-01-01' (is it 1900-01-01 in the standard / other databases?)
 
 @roadmap_1104_li
-Max memory rows / max undo log size: use block count / row size not row count
+Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID);
 
 @roadmap_1105_li
-Support 123L syntax as in Java; example: SELECT (2000000000*2)
+Max memory rows / max undo log size: use block count / row size not row count
 
 @roadmap_1106_li
-Implement point-in-time recovery
+Support 123L syntax as in Java; example: SELECT (2000000000*2)
 
 @roadmap_1107_li
-Include the version name in the jar file name
+Implement point-in-time recovery
 
 @roadmap_1108_li
-Optimize ID=? OR ID=?: convert to IN(...)
+Include the version name in the jar file name
 
 @roadmap_1109_li
-LIKE: improved version for larger texts (currently using naive search)
+Optimize ID=? OR ID=?: convert to IN(...)
 
 @roadmap_1110_li
-Auto-reconnect on lost connection to server (even if the server was re-started) except if autocommit was off and there was pending transaction
+LIKE: improved version for larger texts (currently using naive search)
 
 @roadmap_1111_li
-The Script tool should work with other databases as well
+Auto-reconnect on lost connection to server (even if the server was re-started) except if autocommit was off and there was pending transaction
 
 @roadmap_1112_li
-Automatically convert to the next 'higher' data type whenever there is an overflow.
+The Script tool should work with other databases as well
 
 @roadmap_1113_li
-Throw an exception when the application calls getInt on a Long (optional)
+Automatically convert to the next 'higher' data type whenever there is an overflow.
 
 @roadmap_1114_li
-Default date format for input and output (local date constants)
+Throw an exception when the application calls getInt on a Long (optional)
 
 @roadmap_1115_li
-ValueInt.convertToString and so on (remove Value.convertTo)
+Default date format for input and output (local date constants)
 
 @roadmap_1116_li
-Support custom Collators
+ValueInt.convertToString and so on (remove Value.convertTo)
 
 @roadmap_1117_li
-Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery)
+Support custom Collators
 
 @roadmap_1118_li
-Clustering: Reads should be randomly distributed or to a designated database on RAM
+Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery)
 
 @roadmap_1119_li
-Clustering: When a database is back alive, automatically synchronize with the master
+Clustering: Reads should be randomly distributed or to a designated database on RAM
 
 @roadmap_1120_li
-Standalone tool to get relevant system properties and add it to the trace output.
+Clustering: When a database is back alive, automatically synchronize with the master
 
 @roadmap_1121_li
-Support mixed clustering mode (one embedded, the other server mode)
+Standalone tool to get relevant system properties and add it to the trace output.
 
 @roadmap_1122_li
-Support 'call proc(1=value)' (PostgreSQL, Oracle)
+Support mixed clustering mode (one embedded, the other server mode)
 
 @roadmap_1123_li
-JAMon (proxy jdbc driver)
+Support 'call proc(1=value)' (PostgreSQL, Oracle)
 
 @roadmap_1124_li
-Console: Improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?)
+JAMon (proxy jdbc driver)
 
 @roadmap_1125_li
-Console: Autocomplete Ctrl+Space inserts template
+Console: Improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?)
 
 @roadmap_1126_li
-Simplify translation ('Donate a translation')
+Console: Autocomplete Ctrl+Space inserts template
 
 @roadmap_1127_li
-Option to encrypt .trace.db file
+Simplify translation ('Donate a translation')
 
 @roadmap_1128_li
-Write Behind Cache on SATA leads to data corruption See also http://sr5tech.com/write_back_cache_experiments.htm and http://www.jasonbrome.com/blog/archives/2004/04/03/writecache_enabled.html
+Option to encrypt .trace.db file
 
 @roadmap_1129_li
-Functions with unknown return or parameter data types: serialize / deserialize
+Write Behind Cache on SATA leads to data corruption See also http://sr5tech.com/write_back_cache_experiments.htm and http://www.jasonbrome.com/blog/archives/2004/04/03/writecache_enabled.html
 
 @roadmap_1130_li
-Test if idle TCP connections are closed, and how to disable that
+Functions with unknown return or parameter data types: serialize / deserialize
 
 @roadmap_1131_li
-Try using a factory for Row, Value[] (faster?), http://javolution.org/, alternative ObjectArray / IntArray
+Test if idle TCP connections are closed, and how to disable that
 
 @roadmap_1132_li
-Auto-Update feature for database, .jar file
+Try using a factory for Row, Value[] (faster?), http://javolution.org/, alternative ObjectArray / IntArray
 
 @roadmap_1133_li
-ResultSet SimpleResultSet.readFromURL(String url): id varchar, state varchar, released timestamp
+Auto-Update feature for database, .jar file
 
 @roadmap_1134_li
-RANK() and DENSE_RANK(), Partition using OVER()
+ResultSet SimpleResultSet.readFromURL(String url): id varchar, state varchar, released timestamp
 
 @roadmap_1135_li
-ROW_NUMBER (not the same as ROWNUM)
+RANK() and DENSE_RANK(), Partition using OVER()
 
 @roadmap_1136_li
-Partial indexing (see PostgreSQL)
+ROW_NUMBER (not the same as ROWNUM)
 
 @roadmap_1137_li
-The build should fail if the test fails
+Partial indexing (see PostgreSQL)
 
 @roadmap_1138_li
-http://rubyforge.org/projects/hypersonic/
+The build should fail if the test fails
 
 @roadmap_1139_li
-DbVisualizer profile for H2
+http://rubyforge.org/projects/hypersonic/
 
 @roadmap_1140_li
-Add comparator (x === y) : (x = y or (x is null and y is null))
+DbVisualizer profile for H2
 
 @roadmap_1141_li
-Try to create trace file even for read only databases
+Add comparator (x === y) : (x = y or (x is null and y is null))
 
 @roadmap_1142_li
-Add a sample application that runs the H2 unit test and writes the result to a file (so it can be included in the user app)
+Try to create trace file even for read only databases
 
 @roadmap_1143_li
-Count on a column that can not be null would be optimized to COUNT(*)
+Add a sample application that runs the H2 unit test and writes the result to a file (so it can be included in the user app)
 
 @roadmap_1144_li
-Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility)
+Count on a column that can not be null would be optimized to COUNT(*)
 
 @roadmap_1145_li
-Backup tool should work with other databases as well
+Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility)
 
 @roadmap_1146_li
-Console: -ifExists doesn't work for the console. Add a flag to disable other dbs
+Backup tool should work with other databases as well
 
 @roadmap_1147_li
-Improved full text search (supports LOBs, reader / tokenizer / filter).
+Console: -ifExists doesn't work for the console. Add a flag to disable other dbs
 
 @roadmap_1148_li
-Performance: Update in-place
+Improved full text search (supports LOBs, reader / tokenizer / filter).
 
 @roadmap_1149_li
-Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess)
+Performance: Update in-place
 
 @roadmap_1150_li
-Java static code analysis: http://pmd.sourceforge.net/
+Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess)
 
 @roadmap_1151_li
-Java static code analysis: http://www.eclipse.org/tptp/
+Java static code analysis: http://pmd.sourceforge.net/
 
 @roadmap_1152_li
-Compatibility for CREATE SCHEMA AUTHORIZATION
+Java static code analysis: http://www.eclipse.org/tptp/
 
 @roadmap_1153_li
-Implement Clob / Blob truncate and the remaining functionality
+Compatibility for CREATE SCHEMA AUTHORIZATION
 
 @roadmap_1154_li
-Maybe close LOBs after closing connection
+Implement Clob / Blob truncate and the remaining functionality
 
 @roadmap_1155_li
-Tree join functionality
+Maybe close LOBs after closing connection
 
 @roadmap_1156_li
-Support alter table add column if table has views defined
+Tree join functionality
 
 @roadmap_1157_li
-Add multiple columns at the same time with ALTER TABLE .. ADD .. ADD ..
+Support alter table add column if table has views defined
 
 @roadmap_1158_li
-Support trigger on the tables information_schema.tables and ...columns
+Add multiple columns at the same time with ALTER TABLE .. ADD .. ADD ..
 
 @roadmap_1159_li
-Add H2 to Gem (Ruby install system)
+Support trigger on the tables information_schema.tables and ...columns
 
 @roadmap_1160_li
-API for functions / user tables
+Add H2 to Gem (Ruby install system)
 
 @roadmap_1161_li
-Order conditions inside AND / OR to optimize the performance
+API for functions / user tables
 
 @roadmap_1162_li
-Support linked JCR tables
+Order conditions inside AND / OR to optimize the performance
 
 @roadmap_1163_li
-Make sure H2 is supported by Execute Query: http://executequery.org/
+Support linked JCR tables
 
 @roadmap_1164_li
-Read InputStream when executing, as late as possible (maybe only embedded mode). Problem with re-execute.
+Make sure H2 is supported by Execute Query: http://executequery.org/
 
 @roadmap_1165_li
-Full text search: min word length; store word positions
+Read InputStream when executing, as late as possible (maybe only embedded mode). Problem with re-execute.
 
 @roadmap_1166_li
-FTP Server: Implement a client to send / receive files to server (dir, get, put)
+Full text search: min word length; store word positions
 
 @roadmap_1167_li
-FTP Server: Implement SFTP / FTPS
+FTP Server: Implement a client to send / receive files to server (dir, get, put)
 
 @roadmap_1168_li
-Add an option to the SCRIPT command to generate only portable / standard SQL
+FTP Server: Implement SFTP / FTPS
 
 @roadmap_1169_li
-Test Dezign for Databases (http://www.datanamic.com)
+Add an option to the SCRIPT command to generate only portable / standard SQL
 
 @roadmap_1170_li
-Fast library for parsing / formatting: http://javolution.org/
+Test Dezign for Databases (http://www.datanamic.com)
 
 @roadmap_1171_li
-Updatable Views (simple cases first)
+Fast library for parsing / formatting: http://javolution.org/
 
 @roadmap_1172_li
-Improve create index performance
+Updatable Views (simple cases first)
 
 @roadmap_1173_li
-Support ARRAY data type
+Improve create index performance
 
 @roadmap_1174_li
-Implement more JDBC 4.0 features
+Support ARRAY data type
 
 @roadmap_1175_li
-Support TRANSFORM / PIVOT as in MS Access
+Implement more JDBC 4.0 features
 
 @roadmap_1176_li
-SELECT * FROM (VALUES (...), (...), ....) AS alias(f1, ...)
+Support TRANSFORM / PIVOT as in MS Access
 
 @roadmap_1177_li
-Support updatable views with join on primary keys (to extend a table)
+SELECT * FROM (VALUES (...), (...), ....) AS alias(f1, ...)
 
 @roadmap_1178_li
-Public interface for functions (not public static)
+Support updatable views with join on primary keys (to extend a table)
 
 @roadmap_1179_li
-Autocomplete: if I type the name of a table that does not exist (should say: syntax not supported)
+Public interface for functions (not public static)
 
 @roadmap_1180_li
-Document FTP server, including -ftpTask option to execute / kill remote processes
+Autocomplete: if I type the name of a table that does not exist (should say: syntax not supported)
 
 @roadmap_1181_li
-Eliminate undo log records if stored on disk (just one pointer per block, not per record)
+Document FTP server, including -ftpTask option to execute / kill remote processes
 
 @roadmap_1182_li
-Feature matrix like in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a> .
+Eliminate undo log records if stored on disk (just one pointer per block, not per record)
 
 @roadmap_1183_li
-Updatable result set on table without primary key or unique index
+Feature matrix like in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a> .
 
 @roadmap_1184_li
-Use LinkedList instead of ArrayList where applicable
+Updatable result set on table without primary key or unique index
 
 @roadmap_1185_li
-Support % operator (modulo)
+Use LinkedList instead of ArrayList where applicable
 
 @roadmap_1186_li
-Support 1+'2'=3, '1'+'2'='12' (MS SQL Server compatibility)
+Support % operator (modulo)
 
 @roadmap_1187_li
-Support nested transactions
+Support 1+'2'=3, '1'+'2'='12' (MS SQL Server compatibility)
 
 @roadmap_1188_li
-Add a benchmark for big databases, and one for many users
+Support nested transactions
 
 @roadmap_1189_li
-Compression in the result set (repeating values in the same column)
+Add a benchmark for big databases, and one for many users
 
 @roadmap_1190_li
-Support curtimestamp (like curtime, curdate)
+Compression in the result set (repeating values in the same column)
 
 @roadmap_1191_li
-Support ANALYZE {TABLE|INDEX} tableName COMPUTE|ESTIMATE|DELETE STATISTICS ptnOption options
+Support curtimestamp (like curtime, curdate)
 
 @roadmap_1192_li
-Support Sequoia (Continuent.org)
+Support ANALYZE {TABLE|INDEX} tableName COMPUTE|ESTIMATE|DELETE STATISTICS ptnOption options
 
 @roadmap_1193_li
-Dynamic length numbers / special methods for DataPage.writeByte / writeShort / Ronni Nielsen
+Support Sequoia (Continuent.org)
 
 @roadmap_1194_li
-Pluggable ThreadPool, (AvalonDB / deebee / Paul Hammant)
+Dynamic length numbers / special methods for DataPage.writeByte / writeShort / Ronni Nielsen
 
 @roadmap_1195_li
-Recursive Queries (see details)
+Pluggable ThreadPool, (AvalonDB / deebee / Paul Hammant)
 
 @roadmap_1196_li
-Add GUI to build a custom version (embedded, fulltext,...)
+Recursive Queries (see details)
 
 @roadmap_1197_li
-Release locks (shared or exclusive) on demand
+Add GUI to build a custom version (embedded, fulltext,...)
 
 @roadmap_1198_li
-Support OUTER UNION
+Release locks (shared or exclusive) on demand
 
 @roadmap_1199_li
-Support Parameterized Views (similar to CSVREAD, but using just SQL for the definition)
+Support OUTER UNION
 
 @roadmap_1200_li
-A way (JDBC driver) to map an URL (jdbc:h2map:c1) to a connection object
+Support Parameterized Views (similar to CSVREAD, but using just SQL for the definition)
 
 @roadmap_1201_li
-Option for SCRIPT to only process one or a set of tables, and append to a file
+A way (JDBC driver) to map an URL (jdbc:h2map:c1) to a connection object
 
 @roadmap_1202_li
-Support using a unique index for IS NULL (including linked tables)
+Option for SCRIPT to only process one or a set of tables, and append to a file
 
 @roadmap_1203_li
-Support linked tables to the current database
+Support using a unique index for IS NULL (including linked tables)
 
 @roadmap_1204_li
-Support dynamic linked schema (automatically adding/updating/removing tables)
+Support linked tables to the current database
 
 @roadmap_1205_li
-Compatibility with Derby: VALUES(1), (2); SELECT * FROM (VALUES (1), (2)) AS myTable(c1)
+Support dynamic linked schema (automatically adding/updating/removing tables)
 
 @roadmap_1206_li
-Compatibility: # is the start of a single line comment (MySQL) but date quote (Access). Mode specific
+Compatibility with Derby: VALUES(1), (2); SELECT * FROM (VALUES (1), (2)) AS myTable(c1)
 
 @roadmap_1207_li
-Run benchmarks with JDK 1.5, JDK 1.6, java -server
+Compatibility: # is the start of a single line comment (MySQL) but date quote (Access). Mode specific
 
 @roadmap_1208_li
-Optimizations: Faster hash function for strings, byte arrays, big decimal
+Run benchmarks with JDK 1.5, JDK 1.6, java -server
 
 @roadmap_1209_li
-DatabaseEventListener: callback for all operations (including expected time, RUNSCRIPT) and cancel functionality
+Optimizations: Faster hash function for strings, byte arrays, big decimal
 
 @roadmap_1210_li
-H2 Console / large result sets: use 'streaming' instead of building the page in-memory
+DatabaseEventListener: callback for all operations (including expected time, RUNSCRIPT) and cancel functionality
 
 @roadmap_1211_li
-Benchmark: add a graph to show how databases scale (performance/database size)
+H2 Console / large result sets: use 'streaming' instead of building the page in-memory
 
 @roadmap_1212_li
-Implement a SQLData interface to map your data over to a custom object
+Benchmark: add a graph to show how databases scale (performance/database size)
 
 @roadmap_1213_li
-Make DDL (Data Definition) operations transactional
+Implement a SQLData interface to map your data over to a custom object
 
 @roadmap_1214_li
-Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
+Make DDL (Data Definition) operations transactional
 
 @roadmap_1215_li
-Support multiple directories (on different hard drives) for the same database
+Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
 
 @roadmap_1216_li
-Server protocol: use challenge response authentication, but client sends hash(user+password) encrypted with response
+Support multiple directories (on different hard drives) for the same database
 
 @roadmap_1217_li
-Support EXEC[UTE] (doesn't return a result set, compatible to MS SQL Server)
+Server protocol: use challenge response authentication, but client sends hash(user+password) encrypted with response
 
 @roadmap_1218_li
-GROUP BY and DISTINCT: support large groups (buffer to disk), do not keep large sets in memory
+Support EXEC[UTE] (doesn't return a result set, compatible to MS SQL Server)
 
 @roadmap_1219_li
-Support native XML data type
+GROUP BY and DISTINCT: support large groups (buffer to disk), do not keep large sets in memory
 
 @roadmap_1220_li
-Support triggers with a string property or option: SpringTrigger, OSGITrigger
+Support native XML data type
 
 @roadmap_1221_li
-Clustering: adding a node should be very fast and without interrupting clients (very short lock)
+Support triggers with a string property or option: SpringTrigger, OSGITrigger
 
 @roadmap_1222_li
-Support materialized views (using triggers)
+Clustering: adding a node should be very fast and without interrupting clients (very short lock)
 
 @roadmap_1223_li
-Store dates in local time zone (portability of database files)
+Support materialized views (using triggers)
 
 @roadmap_1224_li
-Ability to resize the cache array when resizing the cache
+Store dates in local time zone (portability of database files)
 
 @roadmap_1225_li
-Time based cache writing (one second after writing the log)
+Ability to resize the cache array when resizing the cache
 
 @roadmap_1226_li
-Check state of H2 driver for DDLUtils: https://issues.apache.org/jira/browse/DDLUTILS-185
+Time based cache writing (one second after writing the log)
 
 @roadmap_1227_li
-Index usage for REGEXP LIKE.
+Check state of H2 driver for DDLUtils: https://issues.apache.org/jira/browse/DDLUTILS-185
 
 @roadmap_1228_li
-Add a role DBA (like ADMIN).
+Index usage for REGEXP LIKE.
 
 @roadmap_1229_li
-Better support multiple processors for in-memory databases.
+Add a role DBA (like ADMIN).
 
 @roadmap_1230_li
-Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
+Better support multiple processors for in-memory databases.
 
 @roadmap_1231_li
-Implement INSTEAD OF trigger.
+Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
 
 @roadmap_1232_li
-Access rights: Finer grained access control (grant access for specific functions)
+Implement INSTEAD OF trigger.
 
 @roadmap_1233_li
-Support N'text'
+Access rights: Finer grained access control (grant access for specific functions)
 
 @roadmap_1234_li
-Support SCOPE_IDENTITY() to avoid problems when inserting rows in a trigger
+Support N'text'
 
 @roadmap_1235_li
-Set a connection read only (Connection.setReadOnly)
+Support SCOPE_IDENTITY() to avoid problems when inserting rows in a trigger
 
 @roadmap_1236_li
-In MySQL mode, for AUTO_INCREMENT columns, don't set the primary key
+Set a connection read only (Connection.setReadOnly)
 
 @roadmap_1237_li
-Use JDK 1.4 file locking to create the lock file (but not yet by default); writing a system property to detect concurrent access from the same VM (different classloaders).
+In MySQL mode, for AUTO_INCREMENT columns, don't set the primary key
 
 @roadmap_1238_li
-Support compatibility for jdbc:hsqldb:res:
+Use JDK 1.4 file locking to create the lock file (but not yet by default); writing a system property to detect concurrent access from the same VM (different classloaders).
 
 @roadmap_1239_li
-In the MySQL and PostgreSQL, use lower case identifiers by default (DatabaseMetaData.storesLowerCaseIdentifiers = true)
+Support compatibility for jdbc:hsqldb:res:
 
 @roadmap_1240_li
-Provide a simple, lightweight O/R mapping tool
+In the MySQL and PostgreSQL, use lower case identifiers by default (DatabaseMetaData.storesLowerCaseIdentifiers = true)
 
 @roadmap_1241_li
-Provide an Java SQL builder with standard and H2 syntax
+Provide a simple, lightweight O/R mapping tool
 
 @roadmap_1242_li
-Trace: write OS, file system, JVM,... when opening the database
+Provide an Java SQL builder with standard and H2 syntax
 
 @roadmap_1243_li
-Support indexes for views (probably requires materialized views)
+Trace: write OS, file system, JVM,... when opening the database
 
 @roadmap_1244_li
-Linked tables that point to the same database should share the connection
+Support indexes for views (probably requires materialized views)
 
 @roadmap_1245_li
 Document SET SEARCH_PATH, BEGIN, EXECUTE, parameters

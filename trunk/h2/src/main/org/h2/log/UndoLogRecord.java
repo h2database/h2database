@@ -26,7 +26,17 @@ import org.h2.value.Value;
  * An entry in a undo log.
  */
 public class UndoLogRecord {
-    public static final short INSERT = 0, DELETE = 1;
+    
+    /**
+     * Operation type meaning the row was inserted.
+     */
+    public static final short INSERT = 0;
+    
+    /**
+     * Operation type meaning the row was deleted.
+     */
+    public static final short DELETE = 1;
+    
     private static final int IN_MEMORY = 0, STORED = 1, IN_MEMORY_READ_POS = 2;
     private Table table;
     private Row row;
@@ -34,14 +44,13 @@ public class UndoLogRecord {
     private short state;
     private int filePos;
 
-    public boolean isStored() {
-        return state == STORED;
-    }
-
-    public boolean canStore() {
-        return table.getUniqueIndex() != null;
-    }
-
+    /**
+     * Create a new undo log record
+     * 
+     * @param table the table
+     * @param op the operation type
+     * @param row the row that was deleted or inserted
+     */
     public UndoLogRecord(Table table, short op, Row row) {
         this.table = table;
         this.row = row;
@@ -49,6 +58,20 @@ public class UndoLogRecord {
         this.state = IN_MEMORY;
     }
 
+    boolean isStored() {
+        return state == STORED;
+    }
+
+    boolean canStore() {
+        return table.getUniqueIndex() != null;
+    }
+
+    /**
+     * Un-do the operation. If the row was inserted before, it is deleted now,
+     * and vice versa.
+     * 
+     * @param session the session
+     */
     public void undo(Session session) throws SQLException {
         switch (operation) {
         case INSERT:
@@ -97,7 +120,7 @@ public class UndoLogRecord {
         }
     }
 
-    public void save(DataPage buff, FileStore file) throws SQLException {
+    void save(DataPage buff, FileStore file) throws SQLException {
         buff.reset();
         buff.writeInt(0);
         buff.writeInt(operation);
@@ -114,11 +137,11 @@ public class UndoLogRecord {
         state = STORED;
     }
 
-    public void seek(FileStore file) throws SQLException {
+    void seek(FileStore file) throws SQLException {
         file.seek(filePos * Constants.FILE_BLOCK_SIZE);
     }
 
-    public void load(DataPage buff, FileStore file, Session session) throws SQLException {
+    void load(DataPage buff, FileStore file, Session session) throws SQLException {
         int min = Constants.FILE_BLOCK_SIZE;
         seek(file);
         buff.reset();
@@ -144,10 +167,19 @@ public class UndoLogRecord {
         state = IN_MEMORY_READ_POS;
     }
 
+    /**
+     * Get the table.
+     * 
+     * @return the table
+     */
     public Table getTable() {
         return table;
     }
 
+    /**
+     * This method is called after the operation was committed.
+     * It commits the change to the indexes.
+     */
     public void commit() throws SQLException {
         ObjectArray list = table.getIndexes();
         for (int i = 0; i < list.size(); i++) {
@@ -155,7 +187,12 @@ public class UndoLogRecord {
             index.commit(operation, row);
         }
     }
-
+    
+    /**
+     * Get the row that was deleted or inserted.
+     * 
+     * @return the row
+     */
     public Row getRow() {
         return row;
     }

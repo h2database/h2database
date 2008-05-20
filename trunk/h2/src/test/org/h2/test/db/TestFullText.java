@@ -23,12 +23,16 @@ public class TestFullText extends TestBase {
         if (config.memory) {
             return;
         }
-        test(false);
+        test(false, "VARCHAR");
+        int test;
+        test(false, "VARCHAR");
         testPerformance(false);
         String luceneFullTextClassName = "org.h2.fulltext.FullTextLucene";
         try {
             Class.forName(luceneFullTextClassName);
-            test(true);
+            test(true, "VARCHAR");
+            int test2;
+            test(true, "VARCHAR");
             testPerformance(true);
         } catch (ClassNotFoundException e) {
             println("Class not found, not tested: " + luceneFullTextClassName);
@@ -80,7 +84,7 @@ public class TestFullText extends TestBase {
         conn.close();
     }
 
-    private void test(boolean lucene) throws Exception {
+    private void test(boolean lucene, String dataType) throws Exception {
         deleteDb("fullText");
         Connection conn = getConnection("fullText");
         String prefix = lucene ? "FTL_" : "FT_";
@@ -89,7 +93,7 @@ public class TestFullText extends TestBase {
         stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "INIT FOR \"org.h2.fulltext." + className + ".init\"");
         stat.execute("CALL " + prefix + "INIT()");
         stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME " + dataType + ")");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello World')");
         stat.execute("CALL " + prefix + "CREATE_INDEX('PUBLIC', 'TEST', NULL)");
         ResultSet rs;

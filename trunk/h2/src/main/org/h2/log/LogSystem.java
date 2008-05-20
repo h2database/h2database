@@ -31,6 +31,9 @@ import org.h2.util.ObjectUtils;
  */
 public class LogSystem {
 
+    /**
+     * This special log position means that the log entry has been written.
+     */
     public static final int LOG_WRITTEN = -1;
 
     private Database database;
@@ -53,6 +56,15 @@ public class LogSystem {
     private boolean closed;
     private String accessMode;
 
+    /**
+     * Create new transaction log object. This will not open or create files
+     * yet.
+     * 
+     * @param database the database
+     * @param fileNamePrefix the name of the database file
+     * @param readOnly if the log should be opened in read-only mode
+     * @param accessMode the file access mode (r, rw, rws, rwd)
+     */
     public LogSystem(Database database, String fileNamePrefix, boolean readOnly, String accessMode) throws SQLException {
         this.database = database;
         this.readOnly = readOnly;
@@ -65,14 +77,29 @@ public class LogSystem {
         rowBuff = DataPage.create(database, Constants.DEFAULT_DATA_PAGE_SIZE);
     }
 
+    /**
+     * Set the maximum log file size in megabytes.
+     * 
+     * @param maxSize the new maximum log file size
+     */
     public void setMaxLogSize(long maxSize) {
         this.maxLogSize = maxSize;
     }
 
+    /**
+     * Get the maximum log file size.
+     * 
+     * @return the maximum size
+     */
     public long getMaxLogSize() {
         return maxLogSize;
     }
 
+    /**
+     * Check if there are any in-doubt transactions.
+     * 
+     * @return true if there are
+     */
     public boolean containsInDoubtTransactions() {
         return inDoubtTransactions != null && inDoubtTransactions.size() > 0;
     }
@@ -132,6 +159,9 @@ public class LogSystem {
         }
     }
 
+    /**
+     * Close all log files.
+     */
     public void close() throws SQLException {
         if (database == null) {
             return;
@@ -191,13 +221,17 @@ public class LogSystem {
         undo.add(record);
     }
 
-    public boolean recover() throws SQLException {
+    /**
+     * Roll back any uncommitted transactions if required, and apply committed
+     * changed to the data files.
+     */
+    public void recover() throws SQLException {
         if (database == null) {
-            return false;
+            return;
         }
         synchronized (database) {
             if (closed) {
-                return false;
+                return;
             }
             undo = new ObjectArray();
             for (int i = 0; i < activeLogs.size(); i++) {
@@ -232,7 +266,7 @@ public class LogSystem {
             if (!readOnly && fileChanged && !containsInDoubtTransactions()) {
                 checkpoint();
             }
-            return fileChanged;
+            return;
         }
     }
 
@@ -240,6 +274,9 @@ public class LogSystem {
         l.close(deleteOldLogFilesAutomatically && keepFiles == 0);
     }
 
+    /**
+     * Open all existing transaction log files and create a new one if required.
+     */
     public void open() throws SQLException {
         String path = FileUtils.getParent(fileNamePrefix);
         String[] list = FileUtils.listFiles(path);
@@ -330,6 +367,11 @@ public class LogSystem {
         state.inDoubtTransaction = new InDoubtTransaction(log, sessionId, pos, transaction, blocks);
     }
 
+    /**
+     * Get the list of in-doubt transactions.
+     * 
+     * @return the list
+     */
     public ObjectArray getInDoubtTransactions() {
         return inDoubtTransactions;
     }
@@ -338,6 +380,12 @@ public class LogSystem {
         sessions.remove(ObjectUtils.getInteger(sessionId));
     }
 
+    /**
+     * Prepare a transaction.
+     * 
+     * @param session the session
+     * @param transaction the name of the transaction
+     */
     public void prepareCommit(Session session, String transaction) throws SQLException {
         if (database == null || readOnly) {
             return;
@@ -350,6 +398,11 @@ public class LogSystem {
         }
     }
 
+    /**
+     * Commit the current transaction of the given session.
+     * 
+     * @param session the session
+     */
     public void commit(Session session) throws SQLException {
         if (database == null || readOnly) {
             return;
@@ -363,6 +416,9 @@ public class LogSystem {
         }
     }
 
+    /**
+     * Flush all pending changes to the transaction log files.
+     */
     public void flush() throws SQLException {
         if (database == null || readOnly) {
             return;
@@ -404,6 +460,13 @@ public class LogSystem {
         }
     }
 
+    /**
+     * Add an log entry to the last transaction log file.
+     * 
+     * @param session the session
+     * @param file the file
+     * @param record the record to log
+     */
     public void add(Session session, DiskFile file, Record record) throws SQLException {
         if (database == null) {
             return;
@@ -428,6 +491,10 @@ public class LogSystem {
         }
     }
 
+    /**
+     * Flush all data to the transaction log files as well as to the data files
+     * and and switch log files.
+     */
     public void checkpoint() throws SQLException {
         if (readOnly || database == null) {
             return;
@@ -444,6 +511,11 @@ public class LogSystem {
         }
     }
 
+    /**
+     * Get all active log files.
+     * 
+     * @return the list of log files
+     */
     public ObjectArray getActiveLogFiles() {
         synchronized (database) {
             ObjectArray list = new ObjectArray();
@@ -483,14 +555,27 @@ public class LogSystem {
         return rowBuff;
     }
 
+    /**
+     * Enable or disable-flush-on-each-commit.
+     * 
+     * @param b the new value
+     */
     public void setFlushOnEachCommit(boolean b) {
         flushOnEachCommit = b;
     }
 
+    /**
+     * Check if flush-on-each-commit is enabled.
+     * 
+     * @return true if it is
+     */
     boolean getFlushOnEachCommit() {
         return flushOnEachCommit;
     }
 
+    /**
+     * Flush the transaction log file and sync the data to disk.
+     */
     public void sync() throws SQLException {
         if (database == null || readOnly) {
             return;
@@ -503,6 +588,11 @@ public class LogSystem {
         }
     }
 
+    /**
+     * Enable or disable the transaction log
+     * 
+     * @param disabled true if the log should be switched off
+     */
     public void setDisabled(boolean disabled) {
         this.disabled = disabled;
     }
@@ -512,10 +602,18 @@ public class LogSystem {
         file.addRedoLog(storage, recordId, blockCount, rec);
     }
 
+    /**
+     * Write a log entry meaning the index summary is invalid.
+     */
     public void invalidateIndexSummary() throws SQLException {
         currentLog.addSummary(false, null);
     }
 
+    /**
+     * Increment or decrement the flag to keep (not delete) old log files.
+     * 
+     * @param incrementDecrement (1 to increment, -1 to decrement)
+     */
     public synchronized void updateKeepFiles(int incrementDecrement) {
         keepFiles += incrementDecrement;
     }

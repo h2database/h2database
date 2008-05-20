@@ -55,9 +55,21 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
     private int headPos;
     private long lastChange;
 
+    /**
+     * Create a new b tree index with the given properties. If the index does
+     * not yet exist, a new empty one is created.
+     * 
+     * @param session the session
+     * @param table the base table
+     * @param id the object id
+     * @param indexName the name of the index
+     * @param columns the indexed columns
+     * @param indexType the index type
+     * @param headPos the position of the index header page, or Index.EMPTY_HEAD
+     *            for a new index
+     */
     public BtreeIndex(Session session, TableData table, int id, String indexName, IndexColumn[] columns,
             IndexType indexType, int headPos) throws SQLException {
-        // TODO we need to log index data
         initBaseIndex(table, id, indexName, columns, indexType);
         this.tableData = table;
         Database db = table.getDatabase();
@@ -142,6 +154,11 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         return (BtreePage) storage.getRecord(session, i);
     }
 
+    /**
+     * Write all changed paged to disk and mark the index as valid.
+     * 
+     * @param session the session
+     */
     public void flush(Session session) throws SQLException {
         lastChange = 0;
         if (storage != null) {
@@ -320,6 +337,11 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         return storage.getRecordOverhead();
     }
 
+    /**
+     * Get the last change time or 0 if the index has not been changed.
+     * 
+     * @return the last change time or 0
+     */
     public long getLastChange() {
         return lastChange;
     }

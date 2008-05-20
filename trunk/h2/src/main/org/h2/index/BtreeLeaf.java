@@ -55,7 +55,7 @@ public class BtreeLeaf extends BtreePage {
         this.pageData = pageData;
     }
 
-    public int add(Row newRow, Session session) throws SQLException {
+    int add(Row newRow, Session session) throws SQLException {
         int l = 0, r = pageData.size();
         while (l < r) {
             int i = (l + r) >>> 1;
@@ -88,7 +88,7 @@ public class BtreeLeaf extends BtreePage {
         return splitPoint;
     }
 
-    public SearchRow remove(Session session, Row oldRow) throws SQLException {
+    SearchRow remove(Session session, Row oldRow) throws SQLException {
         int l = 0, r = pageData.size();
         if (r == 0) {
             if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
@@ -134,7 +134,7 @@ public class BtreeLeaf extends BtreePage {
         throw Message.getSQLException(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL());
     }
 
-    public BtreePage split(Session session, int splitPoint) throws SQLException {
+    BtreePage split(Session session, int splitPoint) throws SQLException {
         ObjectArray data = new ObjectArray();
         int max = pageData.size();
         for (int i = splitPoint; i < max; i++) {
@@ -148,7 +148,7 @@ public class BtreeLeaf extends BtreePage {
         return n2;
     }
 
-    public boolean findFirst(BtreeCursor cursor, SearchRow compare, boolean bigger) throws SQLException {
+    boolean findFirst(BtreeCursor cursor, SearchRow compare, boolean bigger) throws SQLException {
         int l = 0, r = pageData.size();
         if (r == 0 && !Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
             throw Message.getInternalError("Empty btree page");
@@ -172,7 +172,7 @@ public class BtreeLeaf extends BtreePage {
         return true;
     }
 
-    public void next(BtreeCursor cursor, int i) throws SQLException {
+    void next(BtreeCursor cursor, int i) throws SQLException {
         i++;
         if (i < pageData.size()) {
             SearchRow r = (SearchRow) pageData.get(i);
@@ -184,7 +184,7 @@ public class BtreeLeaf extends BtreePage {
         nextUpper(cursor);
     }
     
-    public void previous(BtreeCursor cursor, int i) throws SQLException {
+    void previous(BtreeCursor cursor, int i) throws SQLException {
         i--;
         if (i >= 0) {
             SearchRow r = (SearchRow) pageData.get(i);
@@ -196,7 +196,7 @@ public class BtreeLeaf extends BtreePage {
         previousUpper(cursor);
     }
 
-    public void first(BtreeCursor cursor) throws SQLException {
+    void first(BtreeCursor cursor) throws SQLException {
         if (pageData.size() == 0) {
             if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
                 throw Message.getInternalError("Empty btree page");
@@ -209,7 +209,7 @@ public class BtreeLeaf extends BtreePage {
         cursor.setCurrentRow(row);
     }
     
-    public void last(BtreeCursor cursor) throws SQLException {
+    void last(BtreeCursor cursor) throws SQLException {
         int last = pageData.size() - 1;
         if (last < 0) {
             if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
@@ -284,7 +284,7 @@ public class BtreeLeaf extends BtreePage {
         }
     }
 
-    public int getRealByteCount() throws SQLException {
+    int getRealByteCount() throws SQLException {
         if (cachedRealByteCount > 0) {
             return cachedRealByteCount;
         }

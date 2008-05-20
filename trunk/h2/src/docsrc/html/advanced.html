@@ -30,6 +30,8 @@ Advanced Topics
     Two Phase Commit</a><br />
 <a href="#compatibility">
     Compatibility</a><br />
+<a href="#standards_compliance">
+    Standards Compliance</a><br />
 <a href="#windows_service">
     Run as Windows Service</a><br />
 <a href="#odbc_driver">
@@ -336,6 +338,15 @@ ON, ORDER, PRIMARY, ROWNUM, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP, TODAY, TRUE,
 </p><p>
 Certain words of this list are keywords because they are functions that can be used without '()' for compatibility,
 for example CURRENT_TIMESTAMP.
+</p>
+
+<br /><a name="standards_compliance"></a>
+<h2>Standards Compliance</h2>
+<p>
+This database tries to be as much standard compliant as possible. For the SQL language, ANSI/ISO is the main 
+standard. There are several versions that refer to the release date: SQL-92, SQL:1999, and SQL:2003.
+Unfortunately, the standard documentation is not freely available. Another problem is that important features 
+are not standardized. Whenever this is the case, this database tries to be compatible to other databases.
 </p>
 
 <br /><a name="windows_service"></a>

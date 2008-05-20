@@ -51,8 +51,12 @@ import org.h2.util.ObjectArray;
  */
 public class LogFile {
 
-    private static final int BUFFER_SIZE = 8 * 1024;
+    /**
+     * The size of the smallest possible transaction log entry in bytes.
+     */
     public static final int BLOCK_SIZE = 16;
+    
+    private static final int BUFFER_SIZE = 8 * 1024;
 
     private LogSystem logSystem;
     private Database database;
@@ -113,11 +117,16 @@ public class LogFile {
         return new LogFile(log, id, fileNamePrefix);
     }
 
+    /**
+     * Get the name of this transaction log file.
+     * 
+     * @return the file name
+     */
     public String getFileName() {
         return fileNamePrefix + "." + id + Constants.SUFFIX_LOG_FILE;
     }
 
-    public int getId() {
+    int getId() {
         return id;
     }
 
@@ -325,7 +334,7 @@ public class LogFile {
         return true;
     }
 
-    public void redoAllGoEnd() throws SQLException {
+    void redoAllGoEnd() throws SQLException {
         boolean readOnly = logSystem.getDatabase().getReadOnly();
         long length = file.length();
         if (length <= FileStore.HEADER_LENGTH) {
@@ -521,11 +530,11 @@ public class LogFile {
         return pos;
     }
 
-    public long getFileSize() throws SQLException {
+    long getFileSize() throws SQLException {
         return file.getFilePointer();
     }
 
-    public void sync() {
+    void sync() {
         if (file != null) {
             file.sync();
         }

@@ -55,7 +55,7 @@ public class FtpControl extends Thread {
                 reply(421, "Too many users");
             } else {
                 reply(220, SERVER_NAME);
-                // TODO need option to configure the serverIpAddress
+                // TODO need option to configure the serverIpAddress?
                 serverIpAddress = control.getLocalAddress().getHostAddress().replace('.', ',');
                 BufferedReader input = new BufferedReader(new InputStreamReader(control.getInputStream()));
                 while (!stop) {
@@ -134,7 +134,9 @@ public class FtpControl extends Thread {
             }
         }
         if (!replied) {
-            listener.onUnsupportedCommand(event);
+            if (listener != null) {
+                listener.onUnsupportedCommand(event);
+            }
             reply(506, "Invalid command");
         }
         if (listener != null) {

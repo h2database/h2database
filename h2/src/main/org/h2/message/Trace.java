@@ -14,26 +14,89 @@ import org.h2.util.StringUtils;
  */
 public class Trace {
 
+    /**
+     * The trace module name for commands.
+     */
+    public static final String COMMAND = "command";
+    
+    /**
+     * The trace module name for constraints.
+     */
+    public static final String CONSTRAINT = "constraint";
+    
+    /**
+     * The trace module name for databases.
+     */
+    public static final String DATABASE = "database";
+    
+    /**
+     * The trace module name for functions.
+     */
+    public static final String FUNCTION = "function";
+    
+    /**
+     * The trace module name for file locks.
+     */
+    public static final String FILE_LOCK = "fileLock";
+    
+    /**
+     * The trace module name for indexes.
+     */
+    public static final String INDEX = "index";
+    
+    /**
+     * The trace module name for the JDBC API.
+     */
+    public static final String JDBC = "jdbc";
+    
+    /**
+     * The trace module name for locks.
+     */
+    public static final String LOCK = "lock";
+    
+    /**
+     * The trace module name for the transaction log.
+     */
+    public static final String LOG = "log";
+
+    /**
+     * The trace module name for schemas.
+     */
+    public static final String SCHEMA = "schema";
+    
+    /**
+     * The trace module name for sessions.
+     */
+    public static final String SESSION = "session";
+    
+    /**
+     * The trace module name for sequences.
+     */
+    public static final String SEQUENCE = "sequence";
+    
+    /**
+     * The trace module name for settings.
+     */
+    public static final String SETTING = "setting";
+    
+    /**
+     * The trace module name for tables.
+     */
+    public static final String TABLE = "table";
+    
+    /**
+     * The trace module name for triggers.
+     */
+    public static final String TRIGGER = "trigger";
+    
+    /**
+     * The trace module name for users.
+     */
+    public static final String USER = "user";
+
     private TraceWriter traceWriter;
     private String module;
     private String lineSeparator;
-
-    public static final String LOCK = "lock";
-    public static final String SETTING = "setting";
-    public static final String COMMAND = "command";
-    public static final String INDEX = "index";
-    public static final String SEQUENCE = "sequence";
-    public static final String CONSTRAINT = "constraint";
-    public static final String USER = "user";
-    public static final String TRIGGER = "trigger";
-    public static final String FUNCTION = "function";
-    public static final String JDBC = "jdbc";
-    public static final String FILE_LOCK = "fileLock";
-    public static final String TABLE = "table";
-    public static final String LOG = "log";
-    public static final String SCHEMA = "schema";
-    public static final String DATABASE = "database";
-    public static final String SESSION = "session";
 
     Trace(TraceWriter traceWriter, String module) {
         this.traceWriter = traceWriter;
@@ -41,36 +104,80 @@ public class Trace {
         this.lineSeparator = SysProperties.LINE_SEPARATOR;
     }
 
+    /**
+     * Check if the trace level is equal or higher than INFO.
+     * 
+     * @return true if it is
+     */
     public boolean isInfoEnabled() {
         return traceWriter.isEnabled(TraceSystem.INFO);
     }
 
+    /**
+     * Check if the trace level is equal or higher than DEBUG.
+     * 
+     * @return true if it is
+     */
     public boolean isDebugEnabled() {
         return traceWriter.isEnabled(TraceSystem.DEBUG);
     }
 
+    /**
+     * Write a message with trace level ERROR to the trace system.
+     * 
+     * @param s the message
+     */
     public void error(String s) {
         traceWriter.write(TraceSystem.ERROR, module, s, null);
     }
 
+    /**
+     * Write a message with trace level ERROR to the trace system.
+     * 
+     * @param s the message
+     * @param t the exception
+     */
     public void error(String s, Throwable t) {
         traceWriter.write(TraceSystem.ERROR, module, s, t);
     }
 
+    /**
+     * Write a message with trace level INFO to the trace system.
+     * 
+     * @param s the message
+     */
     public void info(String s) {
         traceWriter.write(TraceSystem.INFO, module, s, null);
     }
 
+    /**
+     * Write Java source code with trace level DEBUG to the trace system.
+     * 
+     * @param java the source cod
+     */
     public void debugCode(String java) {
         traceWriter.write(TraceSystem.DEBUG, module, lineSeparator + "/**/" + java, null);
     }
 
+    /**
+     * Write Java source code with trace level INFO to the trace system.
+     * 
+     * @param java the source cod
+     */
     public void infoCode(String java) {
         traceWriter.write(TraceSystem.INFO, module, lineSeparator + "/**/" + java, null);
     }
 
+    /**
+     * Write a SQL statement with trace level INFO to the trace system.
+     * 
+     * @param sql the SQL statement
+     * @param params the parameters used, in the for {1:...}
+     * @param count the update count
+     * @param time the time it took to run the statement in ms
+     */
     public void infoSQL(String sql, String params, int count, long time) {
-        StringBuffer buff = new StringBuffer(sql.length() + 20);
+        StringBuffer buff = new StringBuffer(sql.length() + params.length() + 20);
         buff.append(lineSeparator);
         buff.append("/*SQL");
         boolean space = false;
@@ -106,10 +213,21 @@ public class Trace {
         traceWriter.write(TraceSystem.INFO, module, sql, null);
     }
 
+    /**
+     * Write a message with trace level DEBUG to the trace system.
+     * 
+     * @param s the message
+     */
     public void debug(String s) {
         traceWriter.write(TraceSystem.DEBUG, module, s, null);
     }
 
+    /**
+     * Write a message with trace level DEBUG to the trace system.
+     * 
+     * @param s the message
+     * @param t the exception
+     */
     public void debug(String s, Throwable t) {
         traceWriter.write(TraceSystem.DEBUG, module, s, t);
     }

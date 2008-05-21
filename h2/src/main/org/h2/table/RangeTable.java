@@ -9,6 +9,7 @@ package org.h2.table;
 import java.sql.SQLException;
 
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.RangeIndex;
@@ -25,9 +26,10 @@ import org.h2.value.Value;
 public class RangeTable extends Table {
 
     public static final String NAME = "SYSTEM_RANGE";
-    private final long min, max;
-
-    public RangeTable(Schema schema, long min, long max) throws SQLException {
+    private Expression min, max;
+    private boolean optimized;
+    
+    public RangeTable(Schema schema, Expression min, Expression max) throws SQLException {
         super(schema, 0, NAME, true);
         Column[] cols = new Column[]{
                 new Column("X", Value.LONG)
@@ -46,7 +48,7 @@ public class RangeTable extends Table {
     }
 
     public String getSQL() {
-        return NAME + "(" + min + ", " + max + ")";
+        return NAME + "(" + min.getSQL() + ", " + max.getSQL() + ")";
     }
 
     public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
@@ -91,7 +93,7 @@ public class RangeTable extends Table {
     }
 
     public long getRowCount(Session session) throws SQLException {
-        return max - min;
+        return getMax(session) - getMin(session);
     }
 
     public String getTableType() {
@@ -99,7 +101,25 @@ public class RangeTable extends Table {
     }
 
     public Index getScanIndex(Session session) throws SQLException {
-        return new RangeIndex(this, IndexColumn.wrap(columns), min, max);
+        return new RangeIndex(this, IndexColumn.wrap(columns));
+    }
+    
+    public long getMin(Session s) throws SQLException {
+        optimize(s);
+        return min.getValue(s).getLong();
+    }
+
+    public long getMax(Session s) throws SQLException {
+        optimize(s);
+        return max.getValue(s).getLong();
+    }
+    
+    private void optimize(Session s) throws SQLException {
+        if (!optimized) {
+            min = min.optimize(s);
+            max = max.optimize(s);
+            optimized = true;
+        }
     }
 
     public ObjectArray getIndexes() {

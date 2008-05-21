@@ -6,6 +6,8 @@
  */
 package org.h2.fulltext;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -29,8 +31,10 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ValueExpression;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.message.Message;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ByteUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.ObjectUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
@@ -440,7 +444,11 @@ public class FullText implements Trigger {
         case Types.VARCHAR:
             return data.toString();
         case Types.CLOB:
-            int test;
+            try {
+                return IOUtils.readStringAndClose((Reader) data, -1);
+            } catch (IOException e) {
+                throw Message.convert(e);
+            }
         case Types.VARBINARY:
         case Types.LONGVARBINARY:
         case Types.BINARY:
@@ -488,7 +496,6 @@ public class FullText implements Trigger {
         case Types.BINARY:
             return quoteBinary((byte[]) data);
         case Types.CLOB:
-            int test;
         case Types.JAVA_OBJECT:
         case Types.OTHER:
         case Types.BLOB:
@@ -503,7 +510,7 @@ public class FullText implements Trigger {
             return "";
         }
     }
-
+    
     private static void addWords(FullTextSettings setting, HashSet set, String text) {
         StringTokenizer tokenizer = new StringTokenizer(text, " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]");
         while (tokenizer.hasMoreTokens()) {

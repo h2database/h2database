@@ -138,6 +138,7 @@ import org.h2.value.ValueBytes;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueLong;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
@@ -858,7 +859,6 @@ public class Parser {
     private TableFilter readTableFilter(boolean fromOuter) throws SQLException {
         Table table;
         String alias = null;
-        Schema mainSchema = database.getSchema(Constants.SCHEMA_MAIN);
         if (readIf("(")) {
             if (isToken("SELECT") || isToken("FROM")) {
                 int start = lastParseIndex;
@@ -893,10 +893,11 @@ public class Parser {
         } else {
             String tableName = readIdentifierWithSchema(null);
             if (readIf("(")) {
+                Schema mainSchema = database.getSchema(Constants.SCHEMA_MAIN);
                 if (tableName.equals(RangeTable.NAME)) {
-                    long min = readLong();
+                    Expression min = readExpression();
                     read(",");
-                    long max = readLong();
+                    Expression max = readExpression();
                     read(")");
                     table = new RangeTable(mainSchema, min, max);
                 } else {
@@ -907,7 +908,7 @@ public class Parser {
                     table = new FunctionTable(mainSchema, session, (FunctionCall) func);
                 }
             } else if ("DUAL".equals(tableName)) {
-                table = new RangeTable(mainSchema, 1, 1);
+                table = getDualTable();
             } else {
                 table = readTableOrView(tableName);
             }
@@ -1497,8 +1498,7 @@ public class Parser {
             if (!readIf("FROM")) {
                 // select without FROM: convert to SELECT ... FROM
                 // SYSTEM_RANGE(1,1)
-                Schema main = database.findSchema(Constants.SCHEMA_MAIN);
-                Table dual = new RangeTable(main, 1, 1);
+                Table dual = getDualTable();
                 TableFilter filter = new TableFilter(session, dual, null, rightsChecked, currentSelect);
                 command.addTableFilter(filter, true);
             } else {
@@ -1532,6 +1532,12 @@ public class Parser {
         currentSelect = oldSelect;
         setSQL(command, "SELECT", start);
         return command;
+    }
+    
+    private Table getDualTable() throws SQLException {
+        Schema main = database.findSchema(Constants.SCHEMA_MAIN);
+        Expression one = ValueExpression.get(ValueLong.get(1));
+        return new RangeTable(main, one, one);
     }
 
     private void setSQL(Prepared command, String start, int startIndex) {

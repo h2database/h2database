@@ -22,6 +22,7 @@ import org.h2.util.JdbcUtils;
 public class TestListener extends TestBase implements DatabaseEventListener {
 
     private long last, start;
+    private int lastState = -1;
     private String url;
 
     public TestListener() {
@@ -60,10 +61,14 @@ public class TestListener extends TestBase implements DatabaseEventListener {
 
     public void setProgress(int state, String name, int current, int max) {
         long time = System.currentTimeMillis();
-        if (time < last + 1000) {
+        if (state == lastState && time < last + 1000) {
             return;
         }
+        if (name.length() > 30) {
+            name = "..." + name.substring(name.length() - 30);
+        }
         last = time;
+        lastState = state;
         String stateName;
         switch (state) {
         case STATE_SCAN_FILE:

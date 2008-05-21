@@ -359,6 +359,8 @@ Roadmap
     This is supported by MySQL, but not Derby. Both PostgreSQL and HSQLDB don't support getGeneratedKeys. 
     Also support it when using INSERT ... SELECT. 
 </li><li>HSQLDB compatibility: automatic data type for SUM if value is the value is too big (by default use the same type as the data).
+</li><li>Support hints for the optimizer (which index to use).
+</li><li>Improve the optimizer to select the right index for special cases: where id between 2 and 4 and booleanColumn
 </li></ul>
 
 <h2>Not Planned</h2>

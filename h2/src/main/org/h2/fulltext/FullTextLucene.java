@@ -8,6 +8,7 @@ package org.h2.fulltext;
 
 //## Java 1.4 begin ##
 import java.io.IOException;
+import java.io.Reader;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -36,9 +37,11 @@ import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.expression.ExpressionColumn;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.message.Message;
 import org.h2.store.fs.FileSystem;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ByteUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 //## Java 1.4 end ##
 
@@ -426,7 +429,11 @@ implements Trigger
         case Types.VARCHAR:
             return data.toString();
         case Types.CLOB:
-            int todo;
+            try {
+                return IOUtils.readStringAndClose((Reader) data, -1);
+            } catch (IOException e) {
+                throw Message.convert(e);
+            }
         case Types.VARBINARY:
         case Types.LONGVARBINARY:
         case Types.BINARY:
@@ -473,7 +480,6 @@ implements Trigger
         case Types.BINARY:
             return quoteBinary((byte[]) data);
         case Types.CLOB:
-            int test;
         case Types.JAVA_OBJECT:
         case Types.OTHER:
         case Types.BLOB:

@@ -24,15 +24,13 @@ public class TestFullText extends TestBase {
             return;
         }
         test(false, "VARCHAR");
-        int test;
-        test(false, "VARCHAR");
+        test(false, "CLOB");
         testPerformance(false);
         String luceneFullTextClassName = "org.h2.fulltext.FullTextLucene";
         try {
             Class.forName(luceneFullTextClassName);
             test(true, "VARCHAR");
-            int test2;
-            test(true, "VARCHAR");
+            test(true, "CLOB");
             testPerformance(true);
         } catch (ClassNotFoundException e) {
             println("Class not found, not tested: " + luceneFullTextClassName);

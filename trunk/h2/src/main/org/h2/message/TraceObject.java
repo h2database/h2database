@@ -24,11 +24,11 @@ import org.h2.util.StringUtils;
  * The base class for objects that can print trace information about themselves.
  */
 public class TraceObject {
-    public static final int CALLABLE_STATEMENT = 0, CONNECTION = 1, DATABASE_META_DATA = 2,
+    protected static final int CALLABLE_STATEMENT = 0, CONNECTION = 1, DATABASE_META_DATA = 2,
         PREPARED_STATEMENT = 3, RESULT_SET = 4, RESULT_SET_META_DATA = 5,
         SAVEPOINT = 6, SQL_EXCEPTION = 7, STATEMENT = 8, BLOB = 9, CLOB = 10,
         PARAMETER_META_DATA = 11;
-    public static final int DATA_SOURCE = 12, XA_DATA_SOURCE = 13, XID = 14, ARRAY = 15;
+    protected static final int DATA_SOURCE = 12, XA_DATA_SOURCE = 13, XID = 14, ARRAY = 15;
 
     private static final int LAST = ARRAY + 1;
     private Trace trace;
@@ -37,7 +37,8 @@ public class TraceObject {
         "call", "conn", "dbMeta", "prep", "rs", "rsMeta", "sp", "ex", "stat", "blob", "clob", "pMeta",
         "ds", "xads", "xid", "ar"
     };
-    private int type, id;
+    private int type;
+    private int id;
 
     protected void setTrace(Trace trace, int type, int id) {
         this.trace = trace;

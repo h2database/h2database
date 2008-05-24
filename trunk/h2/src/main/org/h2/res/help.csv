@@ -407,9 +407,11 @@ Usually, for update statements, the old rows are deleted first
 and then the new rows inserted. It is possible to emit update
 statements (however this is not possible on rollback), however
 in this case multi-row unique key updates may not always work.
+If a query is used instead of the original table name, the table is read only.
 The current user owner must have admin rights.
 ","
-CREATE LINKED TABLE LINK('org.h2.Driver', 'jdbc:h2:test', 'sa', '', 'TEST')
+CREATE LINKED TABLE LINK('org.h2.Driver', 'jdbc:h2:test2', 'sa', 'sa', 'TEST');
+CREATE LINKED TABLE LINK('', 'jdbc:h2:test2', 'sa', 'sa', '(SELECT * FROM TEST WHERE ID>0)');
 "
 
 "Commands (DDL)","CREATE ROLE","
@@ -1684,7 +1686,7 @@ VARCHAR2 | NVARCHAR | NVARCHAR2 | VARCHAR_CASESENSITIVE}
 Unicode String. Use two single quotes ('') to create a quote.
 There is no maximum precision. The maximum size is the memory available.
 The precision is a size constraint; only the actual data is persisted.
-For large text data CLOB should be used.
+For large text data CLOB should be used; see there for details.
 See also java.lang.String.
 ","
 VARCHAR(255)
@@ -1695,7 +1697,7 @@ VARCHAR_IGNORECASE [( precisionInt )]
 ","
 Same as VARCHAR, but not case sensitive when comparing. Stored in mixed case.
 There is no maximum precision. The maximum size is the memory available.
-For large text data CLOB should be used.
+For large text data CLOB should be used; see there for details.
 ","
 VARCHAR_IGNORECASE
 "
@@ -1708,7 +1710,7 @@ This type is supported for compatibility with other databases and older applicat
 The difference to VARCHAR is that trailing spaces are ignored and not persisted.
 Unicode String. Use two single quotes ('') to create a quote.
 There is no maximum precision. The maximum size is the memory available.
-For large text data CLOB should be used.
+For large text data CLOB should be used; see there for details.
 ","
 CHAR(10)
 "
@@ -1717,7 +1719,7 @@ CHAR(10)
 {BLOB | TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID}
 [( precisionInt )]
 ","
-Like BINARY, but intended for very large values.
+Like BINARY, but intended for very large values such as files or images.
 Unlike when using BINARY, large objects are not kept fully in-memory.
 Use PreparedStatement.setBinaryStream to store values.
 ","
@@ -1728,8 +1730,13 @@ BLOB
 {CLOB | TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT | NCLOB}
 [( precisionInt )]
 ","
-Like VARCHAR, but intended for very large values.
-Unlike when using VARCHAR, large objects are not kept fully in-memory.
+CLOB is like VARCHAR, but intended for very large values.
+Unlike when using VARCHAR, large CLOB objects are not kept fully in-memory.
+CLOB should be used for documents and texts with arbitrary size such as 
+XML or HTML documents, text files, or memo fields of unlimited size.
+VARCHAR should be used for text with relatively short average size (for example 
+shorter than 200 characters). Short CLOBs are stored inline, but there is an 
+overhead compared to VARCHAR. 
 Use PreparedStatement.setCharacterStream to store values.
 ","
 CLOB

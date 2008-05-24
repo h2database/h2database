@@ -77,9 +77,8 @@ public class Wildcard extends Expression {
     public String getSQL() {
         if (table == null) {
             return "*";
-        } else {
-            return StringUtils.quoteIdentifier(table) + ".*";
         }
+        return StringUtils.quoteIdentifier(table) + ".*";
     }
 
     public void updateAggregate(Session session) {

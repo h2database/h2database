@@ -53,7 +53,8 @@ public class UserDataType extends DbObjectBase {
         database.removeMeta(session, getId());
     }
 
-    public void checkRename() throws SQLException {
+    public void checkRename() {
+        // ok
     }
 
     public void setColumn(Column column) {

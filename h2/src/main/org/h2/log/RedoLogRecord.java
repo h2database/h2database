@@ -23,8 +23,7 @@ public class RedoLogRecord {
         // estimated memory size in bytes ((5 variables+myself) * 4 bytes each)
         if (data == null) {
             return 24;
-        } else {
-            return 28 + data.length;
         }
+        return 28 + data.length;
     }
 }

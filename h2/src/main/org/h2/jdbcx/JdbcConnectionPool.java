@@ -88,6 +88,7 @@ public class JdbcConnectionPool implements DataSource {
         try {
             logWriter = dataSource.getLogWriter();
         } catch (SQLException e) {
+            // ignore
         }
     }
     
@@ -130,7 +131,7 @@ public class JdbcConnectionPool implements DataSource {
      * 
      * @param seconds the maximum timeout
      */
-    public synchronized void setLoginTimeout(int seconds) throws SQLException {
+    public synchronized void setLoginTimeout(int seconds) {
         this.timeout = seconds;
     }
     
@@ -205,7 +206,7 @@ public class JdbcConnectionPool implements DataSource {
         return conn;
     }
 
-    private synchronized void recycleConnection(PooledConnection pc) {
+    synchronized void recycleConnection(PooledConnection pc) {
         if (isDisposed) {
             disposeConnection(pc);
             return;
@@ -230,7 +231,7 @@ public class JdbcConnectionPool implements DataSource {
         }
     }
 
-    private synchronized void disposeConnection(PooledConnection pc) {
+    synchronized void disposeConnection(PooledConnection pc) {
         if (activeConnections <= 0) {
             throw new AssertionError();
         }
@@ -248,10 +249,11 @@ public class JdbcConnectionPool implements DataSource {
                 logWriter.println(s);
             }
         } catch (Exception e) {
+            // ignore
         }
     }
 
-    private class PoolConnectionEventListener implements ConnectionEventListener {
+    class PoolConnectionEventListener implements ConnectionEventListener {
         public void connectionClosed(ConnectionEvent event) {
             PooledConnection pc = (PooledConnection) event.getSource();
             pc.removeConnectionEventListener(this);
@@ -280,21 +282,21 @@ public class JdbcConnectionPool implements DataSource {
     /**
      * INTERNAL
      */
-    public Connection getConnection(String username, String password) throws SQLException {
+    public Connection getConnection(String username, String password) {
         throw new UnsupportedOperationException();
     }
 
     /**
      * INTERNAL
      */
-    public PrintWriter getLogWriter() throws SQLException {
+    public PrintWriter getLogWriter() {
         return logWriter;
     }
 
     /**
      * INTERNAL
      */    
-    public void setLogWriter(PrintWriter logWriter) throws SQLException {
+    public void setLogWriter(PrintWriter logWriter) {
         this.logWriter = logWriter;
     }
 

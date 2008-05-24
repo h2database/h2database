@@ -117,7 +117,7 @@ public class FtpControl extends Thread {
                     reply(230, "Ok");
                     readonly = false;
                     connected = true;
-                } else if (server.checkUserPasswordReadOnly(userName, param)) {
+                } else if (server.checkUserPasswordReadOnly(userName)) {
                     reply(230, "Ok, readonly");
                     readonly = true;
                     connected = true;
@@ -353,7 +353,7 @@ public class FtpControl extends Thread {
         }
     }
 
-    void processMakeDir(String param) throws IOException {
+    void processMakeDir(String param) {
         String fileName = getFileName(param);
         boolean ok = false;
         if (!readonly) {
@@ -370,7 +370,7 @@ public class FtpControl extends Thread {
         }
     }
 
-    void processRemoveDir(String param) throws IOException {
+    void processRemoveDir(String param) {
         String fileName = getFileName(param);
         if (!readonly && fs.exists(fileName) && fs.isDirectory(fileName) && fs.tryDelete(fileName)) {
             reply(250, "Ok");
@@ -405,7 +405,7 @@ public class FtpControl extends Thread {
         reply(226, "Done");
     }
 
-    private void reply(int code, String message) throws IOException {
+    private void reply(int code, String message) {
         server.trace(code + " " + message);
         output.print(code + " " + message + "\r\n");
         output.flush();

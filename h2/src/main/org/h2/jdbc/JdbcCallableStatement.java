@@ -458,9 +458,11 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported]
      */
+/*## Java 1.6 begin ##
     public void setAsciiStream(String parameterName, InputStream x, long length) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
@@ -634,16 +636,20 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported]
      */
+/*## Java 1.6 begin ##
     public void setNString(String parameterName, String value) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
+/*## Java 1.6 begin ##
     public void setNCharacterStream(String parameterName, Reader value, long length) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
@@ -657,23 +663,29 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported]
      */
+/*## Java 1.6 begin ##
     public void setClob(String parameterName, Reader reader, long length) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
+/*## Java 1.6 begin ##
     public void setBlob(String parameterName, InputStream inputStream, long length) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
+/*## Java 1.6 begin ##
     public void setNClob(String parameterName, Reader reader, long length) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
@@ -724,65 +736,83 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported]
      */
+/*## Java 1.6 begin ##
     public String getNString(int parameterIndex) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
+/*## Java 1.6 begin ##
     public String getNString(String parameterName) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
+/*## Java 1.6 begin ##
     public Reader getNCharacterStream(int parameterIndex) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
+/*## Java 1.6 begin ##
     public Reader getNCharacterStream(String parameterName) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
+/*## Java 1.6 begin ##
     public Reader getCharacterStream(int parameterIndex) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
+/*## Java 1.6 begin ##
     public Reader getCharacterStream(String parameterName) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
+/*## Java 1.6 begin ##
     public void setBlob(String parameterName, Blob x) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
      */
+/*## Java 1.6 begin ##
     public void setClob(String parameterName, Clob x) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
-     */    
+     */
+/*## Java 1.6 begin ##
     public void setAsciiStream(String parameterName, InputStream x) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
@@ -793,58 +823,74 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
 
     /**
      * [Not supported]
-     */    
+     */
+/*## Java 1.6 begin ##
     public void setBinaryStream(String parameterName, InputStream x) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
-     */    
+     */
+/*## Java 1.6 begin ##
     public void setBinaryStream(String parameterName, InputStream x, long length) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
-     */    
+     */
+/*## Java 1.6 begin ##
     public void setBlob(String parameterName, InputStream x) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
-     */    
+     */
+/*## Java 1.6 begin ##
     public void setCharacterStream(String parameterName, Reader x) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
-     */    
+     */
+/*## Java 1.6 begin ##
     public void setCharacterStream(String parameterName, Reader x, long length) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
-     */    
+     */
+/*## Java 1.6 begin ##
     public void setClob(String parameterName, Reader x) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
-     */    
+     */
+/*## Java 1.6 begin ##
     public void setNCharacterStream(String parameterName, Reader x) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported]
-     */    
+     */
+/*## Java 1.6 begin ##
     public void setNClob(String parameterName, Reader x) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
 }

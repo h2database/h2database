@@ -72,7 +72,8 @@ public class Role extends RightOwner {
         invalidate();
     }
 
-    public void checkRename() throws SQLException {
+    public void checkRename() {
+        // ok
     }
 
 }

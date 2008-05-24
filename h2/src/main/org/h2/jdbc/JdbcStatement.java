@@ -642,7 +642,7 @@ public class JdbcStatement extends TraceObject implements Statement {
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getGeneratedKeys()");
             }
             checkClosed();
-            ResultInterface result = conn.getGeneratedKeys(this, id);
+            ResultInterface result = conn.getGeneratedKeys();
             ResultSet rs = new JdbcResultSet(session, conn, this, result, id, false, true);
             return rs;
         } catch (Throwable e) {
@@ -882,7 +882,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * Returns whether this object is poolable.
      * @return false
      */
-    public boolean isPoolable() throws SQLException {
+    public boolean isPoolable() {
         debugCodeCall("isPoolable");
         return false;
     }
@@ -893,7 +893,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @param poolable the requested value
      */
-    public void setPoolable(boolean poolable) throws SQLException {
+    public void setPoolable(boolean poolable) {
         if (isDebugEnabled()) {
             debugCode("setPoolable("+poolable+");");
         }

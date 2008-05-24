@@ -30,6 +30,7 @@ public class FullTextSettings {
     private PreparedStatement prepSelectRowById;
 
     private FullTextSettings() {
+        // don't allow construction
     }
 
     HashSet getIgnoreList() {

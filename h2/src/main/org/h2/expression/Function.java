@@ -335,12 +335,13 @@ public class Function extends Expression implements FunctionCall {
 
     /**
      * Get an instance of the given function for this database.
+     * If no function with this name is found, null is returned.
      * 
      * @param database the database
      * @param name the function name
-     * @return the function object
+     * @return the function object or null
      */
-    public static Function getFunction(Database database, String name) throws SQLException {
+    public static Function getFunction(Database database, String name) {
         FunctionInfo info = getFunctionInfo(name);
         if (info == null) {
             return null;
@@ -796,10 +797,9 @@ public class Function extends Expression implements FunctionCall {
                 Command c = s.getCurrentCommand();
                 if (c == null) {
                     return false;
-                } else {
-                    c.cancel();
-                    return true;
                 }
+                c.cancel();
+                return true;
             }
         }
         return false;
@@ -1101,7 +1101,7 @@ public class Function extends Expression implements FunctionCall {
         return database.getSchema(schemaName).getSequence(sequenceName);
     }
 
-    private int length(Value v) throws SQLException {
+    private int length(Value v) {
         switch (v.getType()) {
         case Value.BLOB:
         case Value.CLOB:
@@ -1305,10 +1305,9 @@ public class Function extends Expression implements FunctionCall {
         if (start < 0) {
             int i = s.length() + start;
             return s.lastIndexOf(search, i) + 1;
-        } else {
-            int i = (start == 0) ? 0 : start - 1;
-            return s.indexOf(search, i) + 1;
         }
+        int i = (start == 0) ? 0 : start - 1;
+        return s.indexOf(search, i) + 1;
     }
 
     private static String right(String s, int count) {

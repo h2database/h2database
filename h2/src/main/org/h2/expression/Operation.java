@@ -105,15 +105,13 @@ public class Operation extends Expression {
             if (l == ValueNull.INSTANCE) {
                 if (mode.nullConcatIsNull) {
                     return ValueNull.INSTANCE;
-                } else {
-                    return r;
                 }
+                return r;
             } else if (r == ValueNull.INSTANCE) {
                 if (mode.nullConcatIsNull) {
                     return ValueNull.INSTANCE;
-                } else {
-                    return l;
                 }
+                return l;
             }
             String s1 = l.getString(), s2 = r.getString();
             StringBuffer buff = new StringBuffer(s1.length() + s2.length());

@@ -88,7 +88,7 @@ public class DbContents {
         return list;
     }
 
-    private String getDefaultSchemaName(DatabaseMetaData meta) throws SQLException {
+    private String getDefaultSchemaName(DatabaseMetaData meta) {
         String defaultSchemaName = "";
         try {
             if (isOracle) {
@@ -121,9 +121,8 @@ public class DbContents {
         }
         if (isH2) {
             return Parser.quoteIdentifier(identifier);
-        } else {
-            return StringUtils.toUpperEnglish(identifier);
         }
+        return StringUtils.toUpperEnglish(identifier);
     }
 
 }

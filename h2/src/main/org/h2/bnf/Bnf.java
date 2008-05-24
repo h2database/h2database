@@ -138,11 +138,11 @@ public class Bnf {
      * Get the HTML documentation for a given syntax.
      * 
      * @param rule the rule (topic)
-     * @param syntax the BNF syntax
+     * @param bnf the BNF syntax
      * @return the HTML formatted text
      */
-    public String getSyntaxHtml(String rule, String syntax) {
-        StringTokenizer tokenizer = new StringTokenizer(syntax, SEPARATORS, true);
+    public String getSyntaxHtml(String rule, String bnf) {
+        StringTokenizer tokenizer = new StringTokenizer(bnf, SEPARATORS, true);
         StringBuffer buff = new StringBuffer();
         while (tokenizer.hasMoreTokens()) {
             String s = tokenizer.nextToken();
@@ -209,11 +209,7 @@ public class Bnf {
         } else if (firstChar == '[') {
             read();
             Rule r2 = parseOr();
-            boolean repeat = false;
-            if (r2.last() instanceof RuleRepeat) {
-                repeat = true;
-            }
-            r = new RuleOptional(r2, repeat);
+            r = new RuleOptional(r2);
             if (firstChar != ']') {
                 throw new Error("expected ], got " + currentToken + " syntax:" + syntax);
             }

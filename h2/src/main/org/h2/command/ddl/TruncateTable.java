@@ -34,11 +34,10 @@ public class TruncateTable extends DefineCommand {
         session.commit(true);
         if (!table.canTruncate()) {
             throw Message.getSQLException(ErrorCode.CANNOT_TRUNCATE_1, table.getSQL());
-        } else {
-            session.getUser().checkRight(table, Right.DELETE);
-            table.lock(session, true, true);
-            table.truncate(session);
         }
+        session.getUser().checkRight(table, Right.DELETE);
+        table.lock(session, true, true);
+        table.truncate(session);
         return 0;
     }
 

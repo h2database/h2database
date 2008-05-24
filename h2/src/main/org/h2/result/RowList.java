@@ -25,8 +25,9 @@ import org.h2.value.ValueLob;
  * automatically.
  */
 public class RowList {
+    
     private final Session session;
-    private ObjectArray list = new ObjectArray();
+    private final ObjectArray list = new ObjectArray();
     private int size;
     private int index, listIndex;
     private FileStore file;
@@ -36,6 +37,7 @@ public class RowList {
     private int memory, maxMemory;
     private boolean written;
     private boolean readUncached;
+    
     
     public RowList(Session session) {
         this.session = session;

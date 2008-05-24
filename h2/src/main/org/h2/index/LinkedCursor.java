@@ -38,7 +38,7 @@ public class LinkedCursor implements Cursor {
         return current;
     }
 
-    public SearchRow getSearchRow() throws SQLException {
+    public SearchRow getSearchRow() {
         return current;
     }
 

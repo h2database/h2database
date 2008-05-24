@@ -51,21 +51,21 @@ public class CommandRemote implements CommandInterface {
         this.fetchSize = fetchSize;
     }
 
-    private void prepare(SessionRemote session, boolean createParams) throws SQLException {
-        id = session.getNextId();
+    private void prepare(SessionRemote s, boolean createParams) throws SQLException {
+        id = s.getNextId();
         paramCount = 0;
-        boolean readParams = session.getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_6;
+        boolean readParams = s.getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_6;
         for (int i = 0; i < transferList.size(); i++) {
             try {
                 Transfer transfer = (Transfer) transferList.get(i);
                 if (readParams && createParams) {
-                    session.traceOperation("SESSION_PREPARE_READ_PARAMS", id);
+                    s.traceOperation("SESSION_PREPARE_READ_PARAMS", id);
                     transfer.writeInt(SessionRemote.SESSION_PREPARE_READ_PARAMS).writeInt(id).writeString(sql);
                 } else {
-                    session.traceOperation("SESSION_PREPARE", id);
+                    s.traceOperation("SESSION_PREPARE", id);
                     transfer.writeInt(SessionRemote.SESSION_PREPARE).writeInt(id).writeString(sql);
                 }
-                session.done(transfer);
+                s.done(transfer);
                 isQuery = transfer.readBoolean();
                 readonly = transfer.readBoolean();
                 paramCount = transfer.readInt();
@@ -82,7 +82,7 @@ public class CommandRemote implements CommandInterface {
                     }
                 }
             } catch (IOException e) {
-                session.removeServer(i--);
+                s.removeServer(i--);
             }
         }
     }

@@ -140,7 +140,7 @@ public class Right extends DbObjectBase {
         invalidate();
     }
 
-    public void checkRename() throws SQLException {
+    public void checkRename() {
         throw Message.getInternalError();
     }
 

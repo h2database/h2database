@@ -6,8 +6,6 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
-
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -27,7 +25,7 @@ public class Rownum extends Expression {
         this.prepared = prepared;
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         return ValueInt.get(prepared.getCurrentRowNumber());
     }
 
@@ -35,14 +33,16 @@ public class Rownum extends Expression {
         return Value.INT;
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
+        // nothing to do        
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         return this;
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
+        // nothing to do        
     }
 
     public int getScale() {
@@ -61,7 +61,8 @@ public class Rownum extends Expression {
         return "ROWNUM()";
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
+        // nothing to do
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {

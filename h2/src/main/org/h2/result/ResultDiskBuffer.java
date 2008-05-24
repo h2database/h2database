@@ -37,7 +37,7 @@ class ResultDiskBuffer implements ResultExternal {
      * Represents a virtual disk tape for the merge sort algorithm.
      * Each virtual disk tape is a region of the temp file.
      */
-    private static class ResultDiskTape {
+    static class ResultDiskTape {
         long start, end, pos;
         ObjectArray buffer = new ObjectArray();
     }
@@ -210,7 +210,7 @@ class ResultDiskBuffer implements ResultExternal {
         throw Message.getInternalError();
     }
 
-    public boolean contains(Value[] values) throws SQLException {
+    public boolean contains(Value[] values) {
         throw Message.getInternalError();
     }
     

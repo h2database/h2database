@@ -48,9 +48,8 @@ implements Savepoint
     static String getName(String name, int id) {
         if (name != null) {
             return StringUtils.quoteJavaString(name);
-        } else {
-            return SYSTEM_SAVEPOINT_PREFIX + id;
         }
+        return SYSTEM_SAVEPOINT_PREFIX + id;
     }
 
     void rollback() throws SQLException {

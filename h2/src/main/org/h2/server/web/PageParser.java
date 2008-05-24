@@ -173,9 +173,8 @@ public class PageParser {
                 return "?" + item + "?";
             }
             return map.get(sub);
-        } else {
-            return settings.get(item);
         }
+        return settings.get(item);
     }
 
     private void append(String s) {
@@ -261,9 +260,8 @@ public class PageParser {
                     convertSpace = true;
                 }
                 continue;
-            } else {
-                convertSpace = false;
-            }
+            } 
+            convertSpace = false;
             switch (c) {
             case '$':
                 // so that ${ } in the text is interpreted correctly

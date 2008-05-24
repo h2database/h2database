@@ -170,9 +170,8 @@ public class Engine {
             if (!StringUtils.equals(clusterSession, clusterDb)) {
                 if (clusterDb.equals(Constants.CLUSTERING_DISABLED)) {
                     throw Message.getSQLException(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE);
-                } else {
-                    throw Message.getSQLException(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, clusterDb);
                 }
+                throw Message.getSQLException(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, clusterDb);
             }
         }
     }

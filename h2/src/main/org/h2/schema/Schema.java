@@ -114,7 +114,8 @@ public class Schema extends DbObjectBase {
         invalidate();
     }
 
-    public void checkRename() throws SQLException {
+    public void checkRename() {
+        // ok
     }
 
     public User getOwner() {
@@ -140,7 +141,7 @@ public class Schema extends DbObjectBase {
         }
     }
 
-    public void add(SchemaObject obj) throws SQLException {
+    public void add(SchemaObject obj) {
         if (SysProperties.CHECK && obj.getSchema() != this) {
             throw Message.getInternalError("wrong schema");
         }
@@ -263,7 +264,7 @@ public class Schema extends DbObjectBase {
         return constraint;
     }
 
-    public Constant getConstant(Session session, String constantName) throws SQLException {
+    public Constant getConstant(String constantName) throws SQLException {
         Constant constant = (Constant) constants.get(constantName);
         if (constant == null) {
             throw Message.getSQLException(ErrorCode.CONSTANT_NOT_FOUND_1, constantName);
@@ -284,7 +285,7 @@ public class Schema extends DbObjectBase {
         return new ObjectArray(map.values());
     }
 
-    public void remove(Session session, SchemaObject obj) throws SQLException {
+    public void remove(SchemaObject obj) {
         String objName = obj.getName();
         HashMap map = getMap(obj.getType());
         if (SysProperties.CHECK && !map.containsKey(objName)) {

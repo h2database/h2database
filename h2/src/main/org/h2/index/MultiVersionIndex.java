@@ -34,7 +34,7 @@ public class MultiVersionIndex implements Index {
     private final Object sync;
     private final Column firstColumn;
 
-    public MultiVersionIndex(Index base, TableData table) throws SQLException {
+    public MultiVersionIndex(Index base, TableData table) {
         this.base = base;
         this.table = table;
         IndexType deltaIndexType = IndexType.createNonUnique(false);
@@ -70,7 +70,7 @@ public class MultiVersionIndex implements Index {
         }
     }
 
-    public Cursor findNext(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public Cursor findNext(Session session, SearchRow first, SearchRow last) {
         throw Message.getInternalError();
     }
 
@@ -95,24 +95,23 @@ public class MultiVersionIndex implements Index {
                 }
             }
             return cursor;
-        } else {
-            Cursor baseCursor = base.findFirstOrLast(session, false);
-            Cursor deltaCursor = delta.findFirstOrLast(session, false);
-            MultiVersionCursor cursor = new MultiVersionCursor(session, this, baseCursor, deltaCursor, sync);
-            cursor.loadCurrent();
-            // TODO optimization: this loops through NULL elements
-            while (cursor.previous()) {
-                SearchRow row = cursor.getSearchRow();
-                if (row == null) {
-                    break;
-                }
-                Value v = row.getValue(firstColumn.getColumnId());
-                if (v != ValueNull.INSTANCE) {
-                    return cursor;
-                }
+        }
+        Cursor baseCursor = base.findFirstOrLast(session, false);
+        Cursor deltaCursor = delta.findFirstOrLast(session, false);
+        MultiVersionCursor cursor = new MultiVersionCursor(session, this, baseCursor, deltaCursor, sync);
+        cursor.loadCurrent();
+        // TODO optimization: this loops through NULL elements
+        while (cursor.previous()) {
+            SearchRow row = cursor.getSearchRow();
+            if (row == null) {
+                break;
             }
-            return cursor;
-        }        
+            Value v = row.getValue(firstColumn.getColumnId());
+            if (v != ValueNull.INSTANCE) {
+                return cursor;
+            }
+        }
+        return cursor;
     }
 
     public double getCost(Session session, int[] masks) throws SQLException {

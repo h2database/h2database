@@ -71,9 +71,8 @@ public class ConstraintUnique extends Constraint {
     private String getTypeName() {
         if (primaryKey) {
             return "PRIMARY KEY";
-        } else {
-            return "UNIQUE";
         }
+        return "UNIQUE";
     }
 
     public String getCreateSQLWithoutIndexes() {
@@ -141,7 +140,7 @@ public class ConstraintUnique extends Constraint {
         return true;
     }
 
-    public void checkExistingData(Session session) throws SQLException {
+    public void checkExistingData(Session session) {
         // no need to check: when creating the unique index any problems are found
     }
 

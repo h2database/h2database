@@ -158,7 +158,7 @@ public class FtpServer implements Service {
         return userName.equals(this.writeUserName) && password.equals(this.writePassword);
     }
 
-    public boolean checkUserPasswordReadOnly(String userName, String param) {
+    public boolean checkUserPasswordReadOnly(String userName) {
         return userName.equals(this.readUserName);
     }
 

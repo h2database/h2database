@@ -6,8 +6,6 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
-
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -34,7 +32,7 @@ public class RangeCursor implements Cursor {
         return currentRow;
     }
 
-    public SearchRow getSearchRow() throws SQLException {
+    public SearchRow getSearchRow() {
         return currentRow;
     }
 
@@ -42,7 +40,7 @@ public class RangeCursor implements Cursor {
         throw Message.getInternalError();
     }
 
-    public boolean next() throws SQLException {
+    public boolean next() {
         if (beforeFirst) {
             beforeFirst = false;
             current = min;

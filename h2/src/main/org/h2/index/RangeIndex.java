@@ -21,14 +21,15 @@ import org.h2.table.RangeTable;
  */
 public class RangeIndex extends BaseIndex {
 
-    private RangeTable table;
+    private RangeTable rangeTable;
 
     public RangeIndex(RangeTable table, IndexColumn[] columns) {
         initBaseIndex(table, 0, "RANGE_INDEX", columns, IndexType.createNonUnique(true));
-        this.table = table;
+        this.rangeTable = table;
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
+        // nothing to do
     }
 
     public void add(Session session, Row row) throws SQLException {
@@ -40,14 +41,14 @@ public class RangeIndex extends BaseIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        long min = table.getMin(session);
-        long max = table.getMax(session);
+        long min = rangeTable.getMin(session);
+        long max = rangeTable.getMax(session);
         long start = Math.max(min, first == null ? min : first.getValue(0).getLong());
         long end = Math.min(max, last == null ? max : last.getValue(0).getLong());
         return new RangeCursor(start, end);
     }
 
-    public double getCost(Session session, int[] masks) throws SQLException {
+    public double getCost(Session session, int[] masks) {
         return 1;
     }
 
@@ -76,7 +77,7 @@ public class RangeIndex extends BaseIndex {
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        long pos = first ? table.getMin(session) : table.getMax(session);
+        long pos = first ? rangeTable.getMin(session) : rangeTable.getMax(session);
         return new RangeCursor(pos, pos);
     }
 

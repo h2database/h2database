@@ -88,8 +88,20 @@ public class Session implements SessionInterface {
     private boolean commitOrRollbackDisabled;
 
     public Session() {
+        // nothing to do
     }
     
+    Session(Database database, User user, int id) {
+        this.database = database;
+        this.undoLog = new UndoLog(this);
+        this.user = user;
+        this.id = id;
+        this.logSystem = database.getLog();
+        Setting setting = database.findSetting(SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
+        this.lockTimeout = setting == null ? Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
+        this.currentSchemaName = Constants.SCHEMA_MAIN;
+    }
+
     public boolean setCommitOrRollbackDisabled(boolean x) {
         boolean old = commitOrRollbackDisabled;
         commitOrRollbackDisabled = x;
@@ -226,17 +238,6 @@ public class Session implements SessionInterface {
 
     public SessionInterface createSession(ConnectionInfo ci) throws SQLException {
         return Engine.getInstance().getSession(ci);
-    }
-
-    Session(Database database, User user, int id) {
-        this.database = database;
-        this.undoLog = new UndoLog(this);
-        this.user = user;
-        this.id = id;
-        this.logSystem = database.getLog();
-        Setting setting = database.findSetting(SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
-        this.lockTimeout = setting == null ? Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
-        this.currentSchemaName = Constants.SCHEMA_MAIN;
     }
 
     public CommandInterface prepareCommand(String sql, int fetchSize) throws SQLException {
@@ -495,7 +496,7 @@ public class Session implements SessionInterface {
         }
     }
 
-    private void unlockAll() throws SQLException {
+    private void unlockAll() {
         if (SysProperties.CHECK) {
             if (undoLog.size() > 0) {
                 throw Message.getInternalError();
@@ -752,7 +753,7 @@ public class Session implements SessionInterface {
      * @param columnList if the url should be 'jdbc:columnlist:connection'
      * @return the internal connection
      */
-    public JdbcConnection createConnection(boolean columnList) throws SQLException {
+    public JdbcConnection createConnection(boolean columnList) {
         String url;
         if (columnList) {
             url = Constants.CONN_URL_COLUMNLIST;

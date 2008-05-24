@@ -6,8 +6,6 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.engine.Session;
 
 /**
@@ -22,7 +20,7 @@ public class DeallocateProcedure extends DefineCommand {
         super(session);
     }
 
-    public int update() throws SQLException {
+    public int update() {
         session.removeProcedure(procedureName);
         return 0;
     }

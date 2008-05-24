@@ -44,7 +44,7 @@ public class SetComment extends DefineCommand {
         }
         switch (objectType) {
         case DbObject.CONSTANT:
-            object = db.getSchema(schemaName).getConstant(session, objectName);
+            object = db.getSchema(schemaName).getConstant(objectName);
             break;
         case DbObject.CONSTRAINT:
             object = db.getSchema(schemaName).getConstraint(objectName);

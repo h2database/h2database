@@ -71,7 +71,7 @@ public abstract class BtreePage extends Record {
         return (SearchRow) pageData.get(i);
     }
 
-    public int getByteCount(DataPage dummy) throws SQLException {
+    public int getByteCount(DataPage dummy) {
         return DiskFile.BLOCK_SIZE * BLOCKS_PER_PAGE;
     }
 

@@ -276,9 +276,8 @@ public class Database implements DataHandler {
     public static byte[] getMagic(boolean textStorage) {
         if (textStorage) {
             return Constants.MAGIC_FILE_HEADER_TEXT.getBytes();
-        } else {
-            return Constants.MAGIC_FILE_HEADER.getBytes();
         }
+        return Constants.MAGIC_FILE_HEADER.getBytes();
     }
 
     public byte[] getMagic() {
@@ -969,7 +968,7 @@ public class Database implements DataHandler {
      * 
      * @param session the session
      */
-    public synchronized void removeSession(Session session) throws SQLException {
+    public synchronized void removeSession(Session session) {
         if (session != null) {
             if (exclusiveSession == session) {
                 exclusiveSession = null;
@@ -1130,7 +1129,7 @@ public class Database implements DataHandler {
         }
     }
 
-    private void closeFiles() throws SQLException {
+    private void closeFiles() {
         try {
             if (fileData != null) {
                 fileData.close();
@@ -1266,9 +1265,8 @@ public class Database implements DataHandler {
     public String getDatabasePath() {
         if (persistent) {
             return FileUtils.getAbsolutePath(databaseName);
-        } else {
-            return null;
         }
+        return null;
     }
 
     public String getShortName() {
@@ -1529,7 +1527,7 @@ public class Database implements DataHandler {
         if (comment != null) {
             removeDatabaseObject(session, comment);
         }
-        obj.getSchema().remove(session, obj);
+        obj.getSchema().remove(obj);
         String invalid;
         if (SysProperties.OPTIMIZE_DROP_DEPENDENCIES) {
             invalid = getDependentObject(obj);
@@ -1813,9 +1811,8 @@ public class Database implements DataHandler {
         SQLException e = Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
         if (!recovery) {
             throw e;
-        } else {
-            traceSystem.getTrace(Trace.DATABASE).error("recover", e);
         }
+        traceSystem.getTrace(Trace.DATABASE).error("recover", e);
     }
 
     /**
@@ -1952,7 +1949,7 @@ public class Database implements DataHandler {
      * Called after the database has been opened and initialized. This method
      * notifies the event listener if one has been set.
      */
-    public void opened() throws SQLException {
+    public void opened() {
         if (eventListener != null) {
             eventListener.opened();
         }

@@ -66,7 +66,8 @@ public class ViewIndex extends BaseIndex {
         return planSQL;
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
+        // nothing to do
     }
 
     public void add(Session session, Row row) throws SQLException {
@@ -77,7 +78,7 @@ public class ViewIndex extends BaseIndex {
         throw Message.getUnsupportedException();
     }
 
-    private static class CostElement {
+    static class CostElement {
         long evaluatedAt;
         double cost;
     }

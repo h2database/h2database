@@ -21,7 +21,6 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.Socket;
 import java.security.SecureClassLoader;
 import java.sql.Connection;
@@ -79,18 +78,19 @@ import org.h2.util.Tool;
  * This class is used by the H2 Console.
  */
 class WebThread extends Thread implements DatabaseEventListener {
-    private WebServer server;
-    private WebSession session;
-    private Properties attributes;
-    private Socket socket;
 
+    WebSession session;
+    OutputStream output;
+    String mimeType;
+    long listenerLastEvent;
+    int listenerLastState;
+    Socket socket;
+    WebServer server;
+    
+    private Properties attributes;
     private InputStream input;
-    private OutputStream output;
     private String ifModifiedSince;
-    private String mimeType;
     private boolean cache;
-    private int listenerLastState;
-    private long listenerLastEvent;
     private boolean stop;
 
     // TODO web: support online data editing like http://numsum.com/
@@ -106,7 +106,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         this.attributes = attributes;
     }
 
-    public void stopNow() {
+    void stopNow() {
         this.stop = true;
     }
 
@@ -120,7 +120,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         return requestedFile;
     }
 
-    public String processRequest(String file, String hostAddr) {
+    String processRequest(String file, String hostAddr) {
         int index = file.lastIndexOf('.');
         String suffix;
         if (index >= 0) {
@@ -153,10 +153,10 @@ class WebThread extends Thread implements DatabaseEventListener {
             cache = false;
             mimeType = "text/html";
             file = "error.jsp";
-            server.trace("unknown mime type, file " + file);
+            trace("Unknown mime type, file " + file);
         }
-        server.trace("mimeType=" + mimeType);
-        server.trace(file);
+        trace("mimeType=" + mimeType);
+        trace(file);
         if (file.endsWith(".do")) {
             file = process(file);
         }
@@ -188,13 +188,13 @@ class WebThread extends Thread implements DatabaseEventListener {
         }
     }
 
-    public boolean process() throws IOException, SQLException {
+    private boolean process() throws IOException, SQLException {
         boolean keepAlive = false;
         String head = readHeaderLine();
         if (head.startsWith("GET ") || head.startsWith("POST ")) {
             int begin = head.indexOf('/'), end = head.lastIndexOf(' ');
             String file = head.substring(begin + 1, end).trim();
-            server.trace(head + ": " + file);
+            trace(head + ": " + file);
             file = getAllowedFile(file);
             attributes = new Properties();
             int paramIndex = file.indexOf("?");
@@ -245,7 +245,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 }
             }
             message += "\n";
-            server.trace(message);
+            trace(message);
             output.write(message.getBytes());
             if (bytes != null) {
                 output.write(bytes);
@@ -303,8 +303,8 @@ class WebThread extends Thread implements DatabaseEventListener {
         }
     }
 
-    private void parseAttributes(String s) throws SQLException {
-        server.trace("data=" + s);
+    private void parseAttributes(String s) {
+        trace("data=" + s);
         while (s != null) {
             int idx = s.indexOf('=');
             if (idx >= 0) {
@@ -327,12 +327,12 @@ class WebThread extends Thread implements DatabaseEventListener {
                 break;
             }
         }
-        server.trace(attributes.toString());
+        trace(attributes.toString());
     }
 
-    private boolean parseHeader() throws IOException, SQLException {
+    private boolean parseHeader() throws IOException {
         boolean keepAlive = false;
-        server.trace("parseHeader");
+        trace("parseHeader");
         int len = 0;
         ifModifiedSince = null;
         while (true) {
@@ -340,7 +340,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             if (line == null) {
                 break;
             }
-            server.trace(" " + line);
+            trace(" " + line);
             String lower = StringUtils.toLowerEnglish(line);
             if (lower.startsWith("if-modified-since")) {
                 ifModifiedSince = line.substring(line.indexOf(':') + 1).trim();
@@ -351,7 +351,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 }
             } else if (lower.startsWith("content-length")) {
                 len = Integer.parseInt(line.substring(line.indexOf(':') + 1).trim());
-                server.trace("len=" + len);
+                trace("len=" + len);
             } else if (lower.startsWith("accept-language")) {
                 if (session != null) {
                     Locale locale = session.locale;
@@ -396,7 +396,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     }
 
     String process(String file) {
-        server.trace("process " + file);
+        trace("process " + file);
         while (file.endsWith(".do")) {
             if ("login.do".equals(file)) {
                 file = login();
@@ -432,7 +432,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 file = "error.jsp";
             }
         }
-        server.trace("return " + file);
+        trace("return " + file);
         return file;
     }
 
@@ -465,7 +465,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                     result = "1#(Newline)#\n" + result;
                 }
             } else {
-                sql = lastSql == null ? "" : lastSql;
+                sql = lastSql;
                 while (sql.length() > 0 && sql.charAt(0) <= ' ') {
                     sql = sql.substring(1);
                 }
@@ -540,7 +540,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             server.setSSL(Boolean.valueOf((String) attributes.get("ssl")).booleanValue());
             server.saveSettings();
         } catch (Exception e) {
-            server.trace(e.toString());
+            trace(e.toString());
         }
         return admin();
     }
@@ -638,7 +638,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     }
 
     private int addColumns(DbTableOrView table, StringBuffer buff, int treeIndex, boolean showColumnTypes,
-            StringBuffer columnsBuffer) throws SQLException {
+            StringBuffer columnsBuffer) {
         DbColumn[] columns = table.columns;
         for (int i = 0; columns != null && i < columns.length; i++) {
             DbColumn column = columns[i];
@@ -659,7 +659,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         return treeIndex;
     }
 
-    private static class IndexInfo {
+    static class IndexInfo {
         String name;
         String type;
         String columns;
@@ -986,12 +986,11 @@ class WebThread extends Thread implements DatabaseEventListener {
         }
     }
 
-    private String getLoginError(Exception e, boolean isH2) {
+    String getLoginError(Exception e, boolean isH2) {
         if (e instanceof JdbcSQLException && ((JdbcSQLException) e).getErrorCode() == ErrorCode.CLASS_NOT_FOUND_1) {
             return "${text.login.driverNotFound}<br />" + getStackTrace(0, e, isH2);
-        } else {
-            return getStackTrace(0, e, isH2);
         }
+        return getStackTrace(0, e, isH2);
     }
 
     private String login() {
@@ -1023,8 +1022,8 @@ class WebThread extends Thread implements DatabaseEventListener {
             }
         }
         class LoginTask implements Runnable, DatabaseEventListener {
-            private PrintWriter writer;
-            private SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+            private final PrintWriter writer;
+            private final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 
             LoginTask() throws IOException {
                 String message = "HTTP/1.1 200 OK\n";
@@ -1043,7 +1042,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 log("Closing database");
             }
 
-            public void diskSpaceIsLow(long stillAvailable) throws SQLException {
+            public void diskSpaceIsLow(long stillAvailable) {
                 log("Disk space is low; still available: " + stillAvailable);
             }
 
@@ -1151,7 +1150,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 conn.close();
             }
         } catch (Exception e) {
-            server.trace(e.toString());
+            trace(e.toString());
         }
         return "index.do";
     }
@@ -1227,7 +1226,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         private byte[] data;
         private Class clazz;
 
-        DynamicClassLoader(String name, byte[] data) throws MalformedURLException {
+        DynamicClassLoader(String name, byte[] data) {
             super(DynamicClassLoader.class.getClassLoader());
             this.name = name;
             this.data = data;
@@ -1247,6 +1246,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             try {
                 return findSystemClass(className);
             } catch (Exception e) {
+                // ignore
             }
             return super.findClass(className);
         }
@@ -1976,7 +1976,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         return buff.toString();
     }
 
-    private String settingSave() {
+    String settingSave() {
         ConnectionInfo info = new ConnectionInfo();
         info.name = attributes.getProperty("name", "");
         info.driver = attributes.getProperty("driver", "");
@@ -2026,36 +2026,36 @@ class WebThread extends Thread implements DatabaseEventListener {
         return NetUtils.isLoopbackAddress(socket);
     }
 
-    public String getMimeType() {
+    String getMimeType() {
         return mimeType;
     }
 
-    public boolean getCache() {
+    boolean getCache() {
         return cache;
     }
 
-    public WebSession getSession() {
+    WebSession getSession() {
         return session;
     }
 
     public void closingDatabase() {
-        log("Closing database");
+        trace("Closing database");
     }
 
-    public void diskSpaceIsLow(long stillAvailable) throws SQLException {
-        log("Disk space is low; still available: " + stillAvailable);
+    public void diskSpaceIsLow(long stillAvailable) {
+        trace("Disk space is low; still available: " + stillAvailable);
     }
 
     public void exceptionThrown(SQLException e, String sql) {
-        log("Exception: " + e.toString() + " SQL: " + sql);
+        trace("Exception: " + e.toString() + " SQL: " + sql);
     }
 
     public void init(String url) {
-        log("Init: " + url);
+        trace("Init: " + url);
     }
 
     public void opened() {
-        log("Database was opened");
+        trace("Database was opened");
     }
 
     public void setProgress(int state, String name, int x, int max) {
@@ -2070,24 +2070,24 @@ class WebThread extends Thread implements DatabaseEventListener {
         }
         switch (state) {
         case DatabaseEventListener.STATE_BACKUP_FILE:
-            log("Backing up " + name + " " + (100L * x / max) + "%");
+            trace("Backing up " + name + " " + (100L * x / max) + "%");
             break;
         case DatabaseEventListener.STATE_CREATE_INDEX:
-            log("Creating index " + name + " " + (100L * x / max) + "%");
+            trace("Creating index " + name + " " + (100L * x / max) + "%");
             break;
         case DatabaseEventListener.STATE_RECOVER:
-            log("Recovering " + name + " " + (100L * x / max) + "%");
+            trace("Recovering " + name + " " + (100L * x / max) + "%");
             break;
         case DatabaseEventListener.STATE_SCAN_FILE:
-            log("Scanning file " + name + " " + (100L * x / max) + "%");
+            trace("Scanning file " + name + " " + (100L * x / max) + "%");
             break;
         default:
-            log("Unknown state: " + state);
+            trace("Unknown state: " + state);
         }
     }
 
-    private void log(String s) {
-        // System.out.println(s);
+    private void trace(String s) {
+        server.trace(s);
     }
 
 }

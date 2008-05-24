@@ -34,13 +34,13 @@ public class DropTable extends SchemaCommand {
     /**
      * Chain another drop table statement to this statement.
      * 
-     * @param next the statement to add
+     * @param drop the statement to add
      */
-    public void addNextDropTable(DropTable next) {
-        if (this.next == null) {
-            this.next = next;
+    public void addNextDropTable(DropTable drop) {
+        if (next == null) {
+            next = drop;
         } else {
-            this.next.addNextDropTable(next);
+            next.addNextDropTable(drop);
         }
     }
 

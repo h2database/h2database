@@ -15,7 +15,7 @@ public class RuleOptional implements Rule {
     private Rule rule;
     private boolean mapSet;
 
-    RuleOptional(Rule rule, boolean repeat) {
+    RuleOptional(Rule rule) {
         this.rule = rule;
     }
     
@@ -30,9 +30,8 @@ public class RuleOptional implements Rule {
     public String random(Bnf config, int level) {
         if (level > 10 ? config.getRandom().nextInt(level) == 1 : config.getRandom().nextInt(4) == 1) {
             return rule.random(config, level + 1);
-        } else {
-            return "";
         }
+        return "";
     }
 
     public Rule last() {

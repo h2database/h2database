@@ -301,12 +301,11 @@ public class LogFile {
         case 'T':
             if (undo) {
                 throw Message.getInternalError("cannot undo truncate");
-            } else {
-                logSystem.addRedoLog(storage, recordId, blockCount, null);
-                storage.setRecordCount(0);
-                storage.getDiskFile().setPageOwner(recordId / DiskFile.BLOCKS_PER_PAGE, -1);
-                logSystem.setLastCommitForSession(sessionId, id, pos);
             }
+            logSystem.addRedoLog(storage, recordId, blockCount, null);
+            storage.setRecordCount(0);
+            storage.getDiskFile().setPageOwner(recordId / DiskFile.BLOCKS_PER_PAGE, -1);
+            logSystem.setLastCommitForSession(sessionId, id, pos);
             break;
         case 'I':
             if (undo) {

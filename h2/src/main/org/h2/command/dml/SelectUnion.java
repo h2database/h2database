@@ -71,7 +71,7 @@ public class SelectUnion extends Query {
         this.unionType = type;
     }
 
-    public void setRight(Query select) throws SQLException {
+    public void setRight(Query select) {
         right = select;
     }
 

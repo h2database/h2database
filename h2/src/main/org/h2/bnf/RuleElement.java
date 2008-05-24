@@ -96,19 +96,18 @@ public class RuleElement implements Rule {
                 return true;
             }
             return false;
-        } else {
-            if (!link.matchRemove(sentence)) {
-                return false;
-            }
-            if (name != null && !name.startsWith("@") && (link.name() == null || !link.name().startsWith("@"))) {
-                query = sentence.query;
-                while (query.length() > 0 && Character.isWhitespace(query.charAt(0))) {
-                    query = query.substring(1);
-                }
-                sentence.setQuery(query);
-            }
-            return true;
         }
+        if (!link.matchRemove(sentence)) {
+            return false;
+        }
+        if (name != null && !name.startsWith("@") && (link.name() == null || !link.name().startsWith("@"))) {
+            query = sentence.query;
+            while (query.length() > 0 && Character.isWhitespace(query.charAt(0))) {
+                query = query.substring(1);
+            }
+            sentence.setQuery(query);
+        }
+        return true;
     }
 
     public void addNextTokenList(Sentence sentence) {

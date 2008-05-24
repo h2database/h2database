@@ -192,9 +192,8 @@ public class TraceObject {
             if (e instanceof SQLException) {
                 trace.error("SQLException", e);
                 return (SQLException) e;
-            } else {
-                trace.error("Uncaught Exception", e);
             }
+            trace.error("Uncaught Exception", e);
         }
         return Message.convert(e);
     }

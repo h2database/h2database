@@ -163,21 +163,19 @@ public class BtreeNode extends BtreePage {
             }
             index.updatePage(session, this);
             return first;
-        } else {
-            // the child still exists, but the first element has changed
-            if (at == 0) {
-                // no change in this page, but there is a new first row for this
-                // subtree
-                return first;
-            } else {
-                // the first row of another child has changed - need to update
-                index.deletePage(session, this);
-                pageData.set(at - 1, first);
-                index.updatePage(session, this);
-                // but then the first row of this subtree didn't change
-                return null;
-            }
         }
+        // the child still exists, but the first element has changed
+        if (at == 0) {
+            // no change in this page, but there is a new first row for this
+            // subtree
+            return first;
+        }
+        // the first row of another child has changed - need to update
+        index.deletePage(session, this);
+        pageData.set(at - 1, first);
+        index.updatePage(session, this);
+        // but then the first row of this subtree didn't change
+        return null;
     }
 
     BtreePage split(Session session, int splitPoint) throws SQLException {

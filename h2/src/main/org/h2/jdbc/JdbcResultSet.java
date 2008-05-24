@@ -2374,9 +2374,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             int rowId = result.getRowId();
             if (rowId >= result.getRowCount()) {
                 return 0;
-            } else {
-                return rowId + 1;
             }
+            return rowId + 1;
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
@@ -2611,10 +2610,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             checkClosed();
             if (result.getRowId() < 0) {
                 return nextRow();
-            } else {
-                resetResult();
-                return nextRow();
             }
+            resetResult();
+            return nextRow();
         } catch (Throwable e) {
             throw logAndConvert(e);
         }

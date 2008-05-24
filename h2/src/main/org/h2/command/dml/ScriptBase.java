@@ -175,7 +175,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         return null;
     }
 
-    public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
+    public FileStore openFile(String name, String mode, boolean mustExist) {
         return null;
     }
 
@@ -199,7 +199,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         session.getDatabase().handleInvalidChecksum();
     }
 
-    public int compareTypeSave(Value a, Value b) throws SQLException {
+    public int compareTypeSave(Value a, Value b) {
         throw Message.getInternalError();
     }
 

@@ -231,16 +231,15 @@ public class PgServer implements Service {
                 return rs.getString(1);
             }
             return null;
-        } else {
-            PreparedStatement prep = conn.prepareStatement("select column_name from information_schema.indexes where id=? and ordinal_position=?");
-            prep.setInt(1, indexId);
-            prep.setInt(2, ordinalPosition.intValue());
-            ResultSet rs = prep.executeQuery();
-            if (rs.next()) {
-                return rs.getString(1);
-            }
-            return null;
         }
+        PreparedStatement prep = conn.prepareStatement("select column_name from information_schema.indexes where id=? and ordinal_position=?");
+        prep.setInt(1, indexId);
+        prep.setInt(2, ordinalPosition.intValue());
+        ResultSet rs = prep.executeQuery();
+        if (rs.next()) {
+            return rs.getString(1);
+        }
+        return null;
     }
 
     /**
@@ -263,7 +262,7 @@ public class PgServer implements Service {
      * @param code the encoding code
      * @return the encoding name
      */
-    public static String getEncodingName(int code) throws SQLException {
+    public static String getEncodingName(int code) {
         switch (code) {
         case 0:
             return "SQL_ASCII";

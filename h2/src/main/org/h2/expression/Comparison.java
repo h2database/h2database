@@ -268,7 +268,7 @@ public class Comparison extends Condition {
         }
     }
 
-    private int getNotCompareType(int type) {
+    private int getNotCompareType() {
         switch (compareType) {
         case EQUAL:
             return NOT_EQUAL;
@@ -292,7 +292,7 @@ public class Comparison extends Condition {
     }
 
     public Expression getNotIfPossible(Session session) {
-        int type = getNotCompareType(compareType);
+        int type = getNotCompareType();
         return new Comparison(session, type, left, right);
     }
 

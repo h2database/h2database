@@ -29,13 +29,13 @@ public class FtpData extends Thread {
     private boolean active;
     private int port;
 
-    public FtpData(FtpServer server, InetAddress address, ServerSocket serverSocket) throws IOException {
+    public FtpData(FtpServer server, InetAddress address, ServerSocket serverSocket) {
         this.server = server;
         this.address = address;
         this.serverSocket = serverSocket;
     }
 
-    public FtpData(FtpServer server, InetAddress address, int port) throws IOException {
+    public FtpData(FtpServer server, InetAddress address, int port) {
         this.server = server;
         this.address = address;
         this.port = port;

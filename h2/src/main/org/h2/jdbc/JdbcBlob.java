@@ -239,7 +239,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     /**
      * Release all resources of this object.
      */
-    public void free() throws SQLException {
+    public void free() {
         debugCodeCall("free");
         value = null;
     }

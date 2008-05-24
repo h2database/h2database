@@ -422,7 +422,7 @@ public class Select extends Query {
         return null;
     }
 
-    private void queryDistinct(int columnCount, LocalResult result, long limitRows) throws SQLException {
+    private void queryDistinct(LocalResult result, long limitRows) throws SQLException {
         if (limitRows != 0 && offset != null) {
             // limitRows must be long, otherwise we get an int overflow 
             // if limitRows is at or near Integer.MAX_VALUE
@@ -533,7 +533,7 @@ public class Select extends Query {
                 queryGroup(columnCount, result);
             }
         } else if (isDistinctQuery) {
-            queryDistinct(columnCount, result, limitRows);
+            queryDistinct(result, limitRows);
         } else {
             queryFlat(columnCount, result, limitRows);
         }
@@ -1055,10 +1055,9 @@ public class Select extends Query {
         Expression expr = (Expression) expressions.get(0);
         if (expr instanceof Alias) {
             return expr.getAlias();
-        } else {
-            expr = new Alias(expr,  session.getNextTempViewName() + "_X");
-            expressions.set(0, expr);
         }
+        expr = new Alias(expr,  session.getNextTempViewName() + "_X");
+        expressions.set(0, expr);
         return expr.getAlias();
     }
 

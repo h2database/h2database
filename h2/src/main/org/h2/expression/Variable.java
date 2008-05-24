@@ -6,8 +6,6 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
-
 import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -52,7 +50,7 @@ public class Variable extends Expression {
         return lastValue.getType();
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         lastValue = session.getVariable(name);
         return lastValue;
     }
@@ -82,17 +80,20 @@ public class Variable extends Expression {
         }
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
+        // nothing to do
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         return this;
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean value) {
+        // nothing to do
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
+        // nothing to do
     }
 
     public String getName() {

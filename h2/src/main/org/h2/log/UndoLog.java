@@ -21,7 +21,6 @@ import org.h2.util.ObjectArray;
  * Each session keeps a undo log if rollback is required.
  */
 public class UndoLog {
-    private Session session;
     private Database database;
     // TODO undo log entry: a chain would probably be faster 
     //  and use less memory than an array
@@ -36,7 +35,6 @@ public class UndoLog {
      * @param session the session
      */
     public UndoLog(Session session) {
-        this.session = session;
         this.database = session.getDatabase();
     }
 
@@ -80,7 +78,7 @@ public class UndoLog {
             for (int j = start; j <= i; j++) {
                 UndoLogRecord e = (UndoLogRecord) records.get(j);
                 if (e.isStored()) {
-                    e.load(rowBuff, file, session);
+                    e.load(rowBuff, file);
                     memoryUndo++;
                     if (first == null) {
                         first = e;

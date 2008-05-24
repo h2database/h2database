@@ -74,6 +74,15 @@ public class SessionRemote implements SessionInterface, DataHandler {
     private String sessionId;
     private int clientVersion = Constants.TCP_PROTOCOL_VERSION_5; 
 
+    public SessionRemote() {
+        // nothing to do
+    }
+    
+    private SessionRemote(ConnectionInfo ci) throws SQLException {
+        this.connectionInfo = ci;
+        connect();
+    }
+
     private Transfer initTransfer(ConnectionInfo ci, String db, String server) throws IOException, SQLException {
         Socket socket = NetUtils.createSocket(server, Constants.DEFAULT_SERVER_PORT, ci.isSSL());
         Transfer trans = new Transfer(this);
@@ -176,7 +185,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
         }
     }
 
-    private String getTraceFilePrefix(String dbName) throws SQLException {
+    private String getTraceFilePrefix(String dbName) {
         String dir = SysProperties.CLIENT_TRACE_DIRECTORY;
         StringBuffer buff = new StringBuffer();
         buff.append(dir);
@@ -191,9 +200,6 @@ public class SessionRemote implements SessionInterface, DataHandler {
         return buff.toString();
     }
 
-    public SessionRemote() {
-    }
-
     public int getPowerOffCount() {
         return 0;
     }
@@ -204,11 +210,6 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     public SessionInterface createSession(ConnectionInfo ci) throws SQLException {
         return new SessionRemote(ci);
-    }
-
-    private SessionRemote(ConnectionInfo ci) throws SQLException {
-        this.connectionInfo = ci;
-        connect();
     }
 
     private void connect() throws SQLException {
@@ -403,8 +404,8 @@ public class SessionRemote implements SessionInterface, DataHandler {
             String message = transfer.readString();
             String sql = transfer.readString();
             int errorCode = transfer.readInt();
-            String trace = transfer.readString();
-            throw new JdbcSQLException(message, sql, sqlstate, errorCode, null, trace);
+            String stackTrace = transfer.readString();
+            throw new JdbcSQLException(message, sql, sqlstate, errorCode, null, stackTrace);
         } else if (status == STATUS_CLOSED) {
             transferList = null;
         }
@@ -439,13 +440,15 @@ public class SessionRemote implements SessionInterface, DataHandler {
         return objectId++;
     }
 
-    public void checkPowerOff() throws SQLException {
+    public void checkPowerOff() {
+        // ok
     }
 
-    public void checkWritingAllowed() throws SQLException {
+    public void checkWritingAllowed() {
+        // ok
     }
 
-    public int compareTypeSave(Value a, Value b) throws SQLException {
+    public int compareTypeSave(Value a, Value b) {
         throw Message.getInternalError();
     }
 
@@ -457,7 +460,8 @@ public class SessionRemote implements SessionInterface, DataHandler {
         }
     }
 
-    public void freeUpDiskSpace() throws SQLException {
+    public void freeUpDiskSpace() {
+        // nothing to do
     }
 
     public int getChecksum(byte[] data, int start, int end) {

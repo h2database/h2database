@@ -57,7 +57,7 @@ public class BtreeCursor implements Cursor {
         return t;
     }
 
-    void setCurrentRow(SearchRow searchRow) throws SQLException {
+    void setCurrentRow(SearchRow searchRow) {
         this.currentSearchRow = searchRow;
         currentRow = null;
     }
@@ -69,7 +69,7 @@ public class BtreeCursor implements Cursor {
         return currentRow;
     }
 
-    public SearchRow getSearchRow() throws SQLException {
+    public SearchRow getSearchRow() {
         return currentSearchRow;
     }
 

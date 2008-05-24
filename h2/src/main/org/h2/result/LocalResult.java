@@ -81,6 +81,7 @@ public class LocalResult implements ResultInterface {
     }
 
     public LocalResult() {
+        // nothing to do
     }
     
     public LocalResult(Session session, Expression[] expressions, int visibleColumnCount) {
@@ -158,9 +159,8 @@ public class LocalResult implements ResultInterface {
         if (distinctRows != null) {
             ValueArray array = ValueArray.get(values);
             return distinctRows.get(array) != null;
-        } else {
-            return disk.contains(values);
         }
+        return disk.contains(values);
     }
 
     public void reset() throws SQLException {
@@ -206,7 +206,7 @@ public class LocalResult implements ResultInterface {
                 distinctRows.put(array, values);
                 rowCount = distinctRows.size();
                 if (rowCount > SysProperties.MAX_MEMORY_ROWS_DISTINCT && session.getDatabase().isPersistent()) {
-                    disk = new ResultTempTable(session, sort, values.length);
+                    disk = new ResultTempTable(session, sort);
                     disk.addRows(distinctRows.values());
                     distinctRows = null;
                 }

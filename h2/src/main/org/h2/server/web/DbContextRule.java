@@ -68,6 +68,7 @@ public class DbContextRule implements Rule {
     }
 
     public void setLinks(HashMap ruleMap) {
+        // nothing to do
     }
 
     public void addNextTokenList(Sentence sentence) {
@@ -301,7 +302,7 @@ public class DbContextRule implements Rule {
             s = matchTableAlias(sentence, false);
             break;
         case COLUMN_ALIAS:
-            s = matchColumnAlias(sentence, false);
+            s = matchColumnAlias(sentence);
             break;
         case COLUMN:
             s = matchColumn(sentence);
@@ -311,10 +312,9 @@ public class DbContextRule implements Rule {
         }
         if (s == null) {
             return false;
-        } else {
-            sentence.setQuery(s);
-            return true;
         }
+        sentence.setQuery(s);
+        return true;
     }
     
     public String matchSchema(Sentence sentence) {
@@ -375,7 +375,7 @@ public class DbContextRule implements Rule {
         return query;
     }
 
-    public String matchColumnAlias(Sentence sentence, boolean add) {
+    private String matchColumnAlias(Sentence sentence) {
         String query = sentence.query;
         String up = sentence.queryUpper;
         int i = 0;
@@ -428,29 +428,28 @@ public class DbContextRule implements Rule {
             }
             query = query.substring(alias.length());
             return query;
-        } else {
-            HashSet tables = sentence.getTables();
-            if (tables != null) {
-                String best = null;
-                for (Iterator it = tables.iterator(); it.hasNext();) {
-                    DbTableOrView table = (DbTableOrView) it.next();
-                    String tableName = StringUtils.toUpperEnglish(table.name);
-                //DbTableOrView[] tables = contents.defaultSchema.tables;
-                //for(int i=0; i<tables.length; i++) {
-                //    DbTableOrView table = tables[i];
-                //    String tableName = StringUtils.toUpperEnglish(table.name);
-                    if (alias.startsWith(tableName) && (best == null || tableName.length() > best.length())) {
-                        sentence.setLastMatchedTable(table);
-                        best = tableName;
-                    }
-                }
-                if (best != null) {
-                    query = query.substring(best.length());
-                    return query;
+        }
+        HashSet tables = sentence.getTables();
+        if (tables != null) {
+            String best = null;
+            for (Iterator it = tables.iterator(); it.hasNext();) {
+                DbTableOrView table = (DbTableOrView) it.next();
+                String tableName = StringUtils.toUpperEnglish(table.name);
+            //DbTableOrView[] tables = contents.defaultSchema.tables;
+            //for(int i=0; i<tables.length; i++) {
+            //    DbTableOrView table = tables[i];
+            //    String tableName = StringUtils.toUpperEnglish(table.name);
+                if (alias.startsWith(tableName) && (best == null || tableName.length() > best.length())) {
+                    sentence.setLastMatchedTable(table);
+                    best = tableName;
                 }
             }
-            return null;
+            if (best != null) {
+                query = query.substring(best.length());
+                return query;
+            }
         }
+        return null;
     }
 
     public String matchColumn(Sentence sentence) {

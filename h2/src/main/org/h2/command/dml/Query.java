@@ -199,7 +199,7 @@ public abstract class Query extends Prepared {
         return true;
     }
 
-    public final Value[] getParameterValues() throws SQLException {
+    public final Value[] getParameterValues() {
         ObjectArray list = getParameters();
         if (list == null) {
             list = new ObjectArray();

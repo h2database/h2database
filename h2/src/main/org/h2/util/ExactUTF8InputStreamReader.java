@@ -22,7 +22,8 @@ public class ExactUTF8InputStreamReader extends Reader {
         this.in = in;
     }
 
-    public void close() throws IOException {
+    public void close() {
+        // nothing to do
     }
 
     public int read(char[] chars, int off, int len) throws IOException {

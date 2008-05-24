@@ -69,7 +69,8 @@ public class TestMultiNews extends TestMultiThread {
         }
     }
 
-    void begin() throws SQLException {
+    void begin() {
+        // nothing to do
     }
 
     void end() throws SQLException {
@@ -77,6 +78,7 @@ public class TestMultiNews extends TestMultiThread {
     }
 
     void finalTest() throws Exception {
+        // nothing to do
     }
 
     void first() throws SQLException {

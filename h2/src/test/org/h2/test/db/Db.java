@@ -130,7 +130,7 @@ public class Db {
         }
     }
 
-    private static Error convert(Exception e) {
+    static Error convert(Exception e) {
         return new Error("Error: " + e.toString(), e);
     }
 

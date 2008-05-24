@@ -53,9 +53,9 @@ ActionListener, MouseListener,
 ShutdownHandler {
 
 //## AWT begin ##
+    Frame frame;
     private Font font;
     private Image icon16, icon24;
-    private Frame frame;
     private Button startBrowser;
 //## AWT end ##
     private static final int EXIT_ERROR = 1;
@@ -156,7 +156,7 @@ ShutdownHandler {
         stopAll();
     }
 
-    private void stopAll() {
+    void stopAll() {
         if (web != null && web.isRunning(false)) {
             web.stop();
             web = null;
@@ -365,6 +365,7 @@ ShutdownHandler {
      */
 //## AWT begin ##
     public void mouseEntered(MouseEvent e) {
+        // nothing to do
     }
 //## AWT end ##
 
@@ -373,6 +374,7 @@ ShutdownHandler {
      */
 //## AWT begin ##
     public void mouseExited(MouseEvent e) {
+        // nothing to do
     }
 //## AWT end ##
 
@@ -381,6 +383,7 @@ ShutdownHandler {
      */
 //## AWT begin ##
     public void mousePressed(MouseEvent e) {
+        // nothing to do
     }
 //## AWT end ##
 
@@ -389,6 +392,7 @@ ShutdownHandler {
      */
 //## AWT begin ##
     public void mouseReleased(MouseEvent e) {
+        // nothing to do
     }
 //## AWT end ##
 

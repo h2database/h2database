@@ -32,9 +32,9 @@ import org.h2.util.JdbcUtils;
  */
 public class Shell {
 
+    PrintStream out = System.out;
     private Connection conn;
     private Statement stat;
-    private PrintStream out = System.out;
     private boolean listMode;
     private int maxColumnSize = 100;
     private char boxVertical = '|'; // windows: '\u00b3';
@@ -250,14 +250,16 @@ public class Shell {
         try {
             Properties prop = FileUtils.loadProperties(propertiesFileName);
             String data = null;
+            boolean found = false;
             for (int i = 0;; i++) {
                 String d = prop.getProperty(String.valueOf(i));
                 if (d == null) {
                     break;
                 }
+                found = true;
                 data = d;
             }
-            if (data != null) {
+            if (found) {
                 ConnectionInfo info = new ConnectionInfo(data);
                 url = info.url;
                 user = info.user;
@@ -310,6 +312,7 @@ public class Shell {
                     try {
                         Thread.sleep(10);
                     } catch (InterruptedException e) {
+                        // ignore
                     }
                 }
             }
@@ -341,7 +344,7 @@ public class Shell {
         return line;
     }
     
-    private void execute(String sql, boolean listMode) throws SQLException {
+    private void execute(String sql, boolean listMode) {
         long time = System.currentTimeMillis();
         boolean result;
         try {

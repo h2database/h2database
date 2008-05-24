@@ -37,7 +37,7 @@ public class ValueBoolean extends Value {
         return value.booleanValue() ? "TRUE" : "FALSE";
     }
 
-    public Value negate() throws SQLException {
+    public Value negate() {
         return value.booleanValue() ? FALSE : TRUE;
     }
 

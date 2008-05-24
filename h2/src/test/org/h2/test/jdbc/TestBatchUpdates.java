@@ -67,7 +67,14 @@ public class TestBatchUpdates extends TestBase {
         conn.close();
     }
 
-    public static int updatePrices(String s, double f) {
+    /**
+     * This method is called by the database.
+     * 
+     * @param message the message (currently not used)
+     * @param f the float
+     * @return the float converted to an int
+     */
+    public static int updatePrices(String message, double f) {
         return (int) f;
     }
 

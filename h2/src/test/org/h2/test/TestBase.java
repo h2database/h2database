@@ -54,7 +54,12 @@ public abstract class TestBase {
         return this;
     }
 
-    public void testCase(int i) throws Exception {
+    /**
+     * Run a test case using the given seed value.
+     * 
+     * @param seed the random seed value
+     */
+    public void testCase(int seed) throws Exception {
         // do nothing
     }
 
@@ -84,7 +89,7 @@ public abstract class TestBase {
         return "123";
     }
 
-    private void deleteIndexFiles(String name) throws SQLException {
+    private void deleteIndexFiles(String name) {
         if (name.indexOf(";") > 0) {
             name = name.substring(0, name.indexOf(';'));
         }
@@ -94,7 +99,7 @@ public abstract class TestBase {
         }
     }
 
-    protected String getURL(String name, boolean admin) throws SQLException {
+    protected String getURL(String name, boolean admin) {
         String url;
         if (name.startsWith("jdbc:")) {
             return name;
@@ -203,7 +208,7 @@ public abstract class TestBase {
 
     public void printTimeMemory(String s, long time) {
         if (config.big) {
-            println(getMemoryUsed() + " MB: " + s);
+            println(getMemoryUsed() + " MB: " + s + " ms: " + time);
         }
     }
 

@@ -176,27 +176,27 @@ class Parser {
             } catch (SQLException e) {
                 throw new Error(e);
             }
-            return new Arg(player, String.class, s);
+            return new Arg(String.class, s);
         } else if (tokenType == NUMBER) {
             String number = readToken().toLowerCase();
             if (number.endsWith("f")) {
                 Float v = new Float(Float.parseFloat(number));
-                return new Arg(player, float.class, v);
+                return new Arg(float.class, v);
             } else if (number.endsWith("d") || number.indexOf("e") >= 0 || number.indexOf(".") >= 0) {
                 Double v = new Double(Double.parseDouble(number));
-                return new Arg(player, double.class, v);
+                return new Arg(double.class, v);
             } else if (number.endsWith("L") || number.endsWith("l")) {
                 Long v = new Long(Long.parseLong(number.substring(0, number.length() - 1)));
-                return new Arg(player, long.class, v);
+                return new Arg(long.class, v);
             } else {
                 Integer v = new Integer(Integer.parseInt(number));
-                return new Arg(player, int.class, v);
+                return new Arg(int.class, v);
             }
         } else if (tokenType == NAME) {
             if (readIf("true")) {
-                return new Arg(player, boolean.class, Boolean.TRUE);
+                return new Arg(boolean.class, Boolean.TRUE);
             } else if (readIf("false")) {
-                return new Arg(player, boolean.class, Boolean.FALSE);
+                return new Arg(boolean.class, Boolean.FALSE);
             } else if (readIf("null")) {
                 throw new Error(
                         "Null: class not specified. Example: (java.lang.String)null");
@@ -212,12 +212,12 @@ class Parser {
                     read("}");
                     String[] list = new String[values.size()];
                     values.toArray(list);
-                    return new Arg(player, String[].class, list);
+                    return new Arg(String[].class, list);
                 } else if (readIf("BigDecimal")) {
                     read("(");
                     BigDecimal value = new BigDecimal((String) parseValue().getValue());
                     read(")");
-                    return new Arg(player, BigDecimal.class, value);
+                    return new Arg(BigDecimal.class, value);
                 } else {
                     throw new Error("Unsupported constructor: " + readToken());
                 }
@@ -225,7 +225,7 @@ class Parser {
             String name = readToken();
             Object obj = player.getObject(name);
             if (obj != null) {
-                return new Arg(player, obj.getClass(), obj);
+                return new Arg(obj.getClass(), obj);
             }
             read(".");
             Statement outer = stat;
@@ -238,7 +238,7 @@ class Parser {
             read("short");
             read(")");
             String number = readToken();
-            return new Arg(player, short.class, new Short(Short.parseShort(number)));
+            return new Arg(short.class, new Short(Short.parseShort(number)));
         } else {
             throw new Error("Value expected, got: " + readToken() + " in "
                     + line);

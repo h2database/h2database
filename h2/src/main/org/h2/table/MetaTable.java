@@ -500,7 +500,7 @@ public class MetaTable extends Table {
         throw Message.getUnsupportedException();
     }
 
-    public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
+    public void lock(Session session, boolean exclusive, boolean force) {
         // nothing to do
     }
 
@@ -1283,7 +1283,7 @@ public class MetaTable extends Table {
         throw Message.getUnsupportedException();
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
         // nothing to do
     }
 
@@ -1383,7 +1383,7 @@ public class MetaTable extends Table {
         return Table.SYSTEM_TABLE;
     }
 
-    public Index getScanIndex(Session session) throws SQLException {
+    public Index getScanIndex(Session session) {
         return new MetaIndex(this, IndexColumn.wrap(columns), true);
     }
 

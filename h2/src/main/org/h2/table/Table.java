@@ -294,7 +294,13 @@ public abstract class Table extends SchemaObjectBase {
         columnMap.put(newName, column);
     }
 
-    public boolean isLockExclusive(Session s) {
+    /**
+     * Check if the table is exclusively locked by this session.
+     * 
+     * @param session the session
+     * @return true if it is
+     */
+    public boolean isLockExclusive(Session session) {
         return false;
     }
 
@@ -382,9 +388,8 @@ public abstract class Table extends SchemaObjectBase {
     public SearchRow getTemplateSimpleRow(boolean singleColumn) {
         if (singleColumn) {
             return new SimpleRowValue(columns.length);
-        } else {
-            return new SimpleRow(new Value[columns.length]);
         }
+        return new SimpleRow(new Value[columns.length]);
     }
 
     public Row getNullRow() {
@@ -440,7 +445,7 @@ public abstract class Table extends SchemaObjectBase {
         return item;
     }
 
-    public Index findPrimaryKey() throws SQLException {
+    public Index findPrimaryKey() {
         ObjectArray indexes = getIndexes();
         for (int i = 0; indexes != null && i < indexes.size(); i++) {
             Index idx = (Index) indexes.get(i);
@@ -509,11 +514,17 @@ public abstract class Table extends SchemaObjectBase {
         remove(constraints, constraint);
     }
 
+    /**
+     * Remove a sequence from the table. Sequences are used as identity columns.
+     * 
+     * @param session the session
+     * @param sequence the sequence to remove
+     */
     public void removeSequence(Session session, Sequence sequence) {
         remove(sequences, sequence);
     }
 
-    public void removeTrigger(Session session, TriggerObject trigger) {
+    public void removeTrigger(TriggerObject trigger) {
         remove(triggers, trigger);
     }
 
@@ -630,6 +641,14 @@ public abstract class Table extends SchemaObjectBase {
         return checkForeignKeyConstraints;
     }
 
+    /**
+     * Get the index that has the given column as the first element.
+     * This method returns null if no matching index is found.
+     * 
+     * @param column the column
+     * @param first if the min value should be returned
+     * @return the index or null
+     */
     public Index getIndexForColumn(Column column, boolean first) {
         ObjectArray indexes = getIndexes();
         for (int i = 1; indexes != null && i < indexes.size(); i++) {

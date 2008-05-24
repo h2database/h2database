@@ -22,10 +22,10 @@ public class MergeDocs {
     String baseDir = "docs/html";
 
     public static void main(String[] args) throws Exception {
-        new MergeDocs().run(args);
+        new MergeDocs().run();
     }
 
-    private void run(String[] args) throws Exception {
+    private void run() throws Exception {
         // the order of pages is important here
         String[] pages = { "quickstart.html", "installation.html", "tutorial.html", "features.html",
                 "performance.html", "advanced.html", "grammar.html", "functions.html", "datatypes.html", "build.html",

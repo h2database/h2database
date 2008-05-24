@@ -118,22 +118,26 @@ public class TestXA extends TestBase {
                 try {
                     stat1.executeUpdate("DROP TABLE xatest1");
                 } catch (SQLException e) {
+                    // ignore
                 }
                 trace("stmt2.executeUpdate(\"DROP TABLE xatest2\")");
                 try {
                     stat2.executeUpdate("DROP TABLE xatest2");
                 } catch (SQLException e) {
+                    // ignore
                 }
             } else {
                 trace("stmt1.executeUpdate(\"DROP TABLE xatest\")");
                 try {
                     stat1.executeUpdate("DROP TABLE xatest");
                 } catch (SQLException e) {
+                    // ignore
                 }
                 trace("stmt2.executeUpdate(\"DROP TABLE xatest\")");
                 try {
                     stat2.executeUpdate("DROP TABLE xatest");
                 } catch (SQLException e) {
+                    // ignore
                 }
             }
 
@@ -238,7 +242,7 @@ public class TestXA extends TestBase {
         }
     }
 
-    private XADataSource createXADatasource(boolean useOneDatabase, String url) throws SQLException {
+    private XADataSource createXADatasource(boolean useOneDatabase, String url) {
         JdbcDataSource ds = new JdbcDataSource();
         ds.setPassword("");
         ds.setUser("sa");

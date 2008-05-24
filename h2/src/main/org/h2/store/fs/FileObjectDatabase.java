@@ -28,15 +28,15 @@ public class FileObjectDatabase implements FileObject {
         this.changed = changed;
     }
 
-    public void close() throws IOException {
+    public void close() {
         sync();
     }
 
-    public long getFilePointer() throws IOException {
+    public long getFilePointer() {
         return pos;
     }
 
-    public long length() throws IOException {
+    public long length() {
         return length;
     }
 
@@ -48,11 +48,11 @@ public class FileObjectDatabase implements FileObject {
         pos += len;
     }
 
-    public void seek(long pos) throws IOException {
+    public void seek(long pos) {
         this.pos = (int) pos;
     }
 
-    public void setFileLength(long newLength) throws IOException {
+    public void setFileLength(long newLength) {
         this.length = (int) newLength;
         if (length != data.length) {
             byte[] n = new byte[length];
@@ -63,14 +63,14 @@ public class FileObjectDatabase implements FileObject {
         pos = Math.min(pos, length);
     }
 
-    public void sync() throws IOException {
+    public void sync() {
         if (changed) {
             db.write(fileName, data, length);
             changed = false;
         }
     }
 
-    public void write(byte[] b, int off, int len) throws IOException {
+    public void write(byte[] b, int off, int len) {
         if (pos + len > data.length) {
             int newLen = Math.max(data.length * 2, pos + len);
             byte[] n = new byte[newLen];

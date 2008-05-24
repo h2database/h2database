@@ -73,19 +73,4 @@ public class Function {
         return rs;
     }
 
-    public static ResultSet getMatrix(Connection conn, Integer id) throws SQLException {
-        SimpleResultSet rs = new SimpleResultSet();
-        rs.addColumn("X", Types.INTEGER, 10, 0);
-        rs.addColumn("Y", Types.INTEGER, 10, 0);
-        if (id == null) {
-            return rs;
-        }
-        for (int x = 0; x < id.intValue(); x++) {
-            for (int y = 0; y < id.intValue(); y++) {
-                rs.addRow(new Object[] { new Integer(x), new Integer(y) });
-            }
-        }
-        return rs;
-    }
-
 }

@@ -26,7 +26,7 @@ public class TestSynth extends TestBase {
     private DbState db = new DbState(this);
     private ArrayList databases;
     private ArrayList commands;
-    private RandomGen random = new RandomGen(this);
+    private RandomGen random = new RandomGen();
     private boolean showError, showLog;
     private boolean stopImmediately;
     private int mode;
@@ -34,9 +34,6 @@ public class TestSynth extends TestBase {
 
     public boolean is(int isType) {
         return mode == isType;
-    }
-
-    public TestSynth() {
     }
 
     public RandomGen random() {
@@ -190,9 +187,8 @@ public class TestSynth extends TestBase {
             if (original.compareTo(copy) != 0) {
                 if (showError) {
                     throw new Error("Results don't match: original (0): \r\n" + original + "\r\n" + "other:\r\n" + copy);
-                } else {
-                    throw new Error("Results don't match");
                 }
+                throw new Error("Results don't match");
             }
         }
     }
@@ -267,13 +263,13 @@ public class TestSynth extends TestBase {
         return this;
     }
 
-    public void testCase(int i) throws Exception {
+    public void testCase(int seed) throws Exception {
         String old = baseDir;
         baseDir = TestBase.getTestDir("synth");
         deleteDb(baseDir, DIR + "/synth");
         try {
-            printTime("TestSynth " + i);
-            testRun(i);
+            printTime("TestSynth " + seed);
+            testRun(seed);
         } catch (Error e) {
             TestBase.logError("error", e);
             System.exit(0);

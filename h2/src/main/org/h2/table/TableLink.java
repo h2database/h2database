@@ -256,7 +256,7 @@ public class TableLink extends Table {
         throw Message.getUnsupportedException();
     }
 
-    public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
+    public void lock(Session session, boolean exclusive, boolean force) {
         // nothing to do
     }
 
@@ -315,7 +315,8 @@ public class TableLink extends Table {
         // nothing to do
     }
 
-    public void checkRename() throws SQLException {
+    public void checkRename() {
+        // ok
     }
 
     public void checkSupportAlter() throws SQLException {

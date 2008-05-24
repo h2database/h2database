@@ -288,10 +288,16 @@ public abstract class Value {
         return new ByteArrayInputStream(getBytesNoCopy());
     }
 
-    public Reader getReader() throws SQLException {
+    public Reader getReader() {
         return IOUtils.getReader(getString());
     }
 
+    /**
+     * Add a value and return the result.
+     * 
+     * @param v the value to add
+     * @return the result
+     */
     public Value add(Value v) throws SQLException {
         throw Message.getUnsupportedException();
     }
@@ -304,14 +310,32 @@ public abstract class Value {
         throw Message.getUnsupportedException();
     }
 
+    /**
+     * Subtract a value and return the result.
+     * 
+     * @param v the value to subtract
+     * @return the result
+     */
     public Value subtract(Value v) throws SQLException {
         throw Message.getUnsupportedException();
     }
 
+    /**
+     * Divide by a value and return the result.
+     * 
+     * @param v the value to divide by
+     * @return the result
+     */
     public Value divide(Value v) throws SQLException {
         throw Message.getUnsupportedException();
     }
 
+    /**
+     * Multiply with a value and return the result.
+     * 
+     * @param v the value to multiply with
+     * @return the result
+     */
     public Value multiply(Value v) throws SQLException {
         throw Message.getUnsupportedException();
     }
@@ -656,10 +680,23 @@ public abstract class Value {
         return 0;
     }
 
+    /**
+     * Convert the scale.
+     * 
+     * @param onlyToSmallerScale if the scale should not reduced
+     * @param targetScale the requested scale
+     * @return the value
+     */
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) throws SQLException {
         return this;
     }
 
+    /**
+     * Convert the precision to the requested value.
+     * 
+     * @param precision the new precision
+     * @return the new value
+     */
     public Value convertPrecision(long precision) throws SQLException {
         return this;
     }
@@ -692,9 +729,8 @@ public abstract class Value {
         }
         if (Constants.CONVERT_TO_LONG_ROUND) {
             return Math.round(x);
-        } else {
-            return (long) x;
         }
+        return (long) x;
     }
 
     private long convertToLong(BigDecimal x) throws SQLException {
@@ -703,11 +739,17 @@ public abstract class Value {
         }
         if (Constants.CONVERT_TO_LONG_ROUND) {
             return x.setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
-        } else {
-            return x.longValue();
         }
+        return x.longValue();
     }
 
+    /**
+     * Link a large value to a given table.
+     * 
+     * @param handler the data handler
+     * @param tableId the table to link to
+     * @return the new value or itself
+     */
     public Value link(DataHandler handler, int tableId) throws SQLException {
         return this;
     }
@@ -717,6 +759,7 @@ public abstract class Value {
     }
 
     public void unlink() throws SQLException {
+        // nothing to do
     }
 
     public boolean isFileBased() {
@@ -724,6 +767,7 @@ public abstract class Value {
     }
 
     public void close() throws SQLException {
+        // nothing to do
     }
 
     public boolean checkPrecision(long precision) {

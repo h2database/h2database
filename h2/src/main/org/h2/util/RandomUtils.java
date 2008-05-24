@@ -22,9 +22,9 @@ import java.util.Random;
  */
 public class RandomUtils {
 
-    private static SecureRandom secureRandom;
+    static SecureRandom secureRandom;
+    static volatile boolean seeded;
     private static Random random  = new Random();
-    private static volatile boolean seeded;
 
     private static synchronized SecureRandom getSecureRandom() {
         if (secureRandom != null) {
@@ -165,7 +165,7 @@ public class RandomUtils {
         return random.nextInt(max);
     }
 
-    private static void warn(String s, Throwable t) {
+    static void warn(String s, Throwable t) {
         // not a fatal problem, but maybe reduced security
         System.out.println("RandomUtils warning: " + s);
         if (t != null) {

@@ -160,6 +160,18 @@ java org.h2.test.TestAll timer
 
 /*
 
+
+Hi,
+
+There is no hard limit, it depends on the use case. I will update the CLOB documentation as follows:
+
+CLOB is like VARCHAR, but intended for very large values. Unlike when using VARCHAR, large CLOB objects are not kept fully in-memory. CLOB should be used for documents and texts with arbitrary size such as XML or HTML documents, text files, or memo fields of unlimited size. VARCHAR should be used for text with relatively short average size (for example shorter than 200 characters). Short CLOBs are stored inline, but there is an 
+overhead compared to VARCHAR. Use PreparedStatement.setCharacterStream to store values.
+
+Regards,
+Thomas
+
+
 jazoon 
 
 upload and test javadoc/index.html
@@ -229,6 +241,8 @@ Roadmap:
         aggregate functions.
     The fulltext search did not support CLOB data types. Fixed.
     The table SYSTEM_RANGE now supports expressions and parameters.
+    If the drive with the database files was disconnected or unmounted while writing,
+        sometimes a stack overflow exception was thrown instead of a IO exception.
 
 */
         if (args.length > 0) {

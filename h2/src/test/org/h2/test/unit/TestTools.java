@@ -407,7 +407,7 @@ public class TestTools extends TestBase {
     private void testServer() throws Exception {
         Connection conn;
         deleteDb("test");
-        Server server = Server.createTcpServer(new String[] { "-baseDir", baseDir, "-tcpPort", "9192" }).start();
+        Server server = Server.createTcpServer(new String[] { "-baseDir", baseDir, "-tcpPort", "9192", "-tcpAllowOthers" }).start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         conn.close();
         server.stop();

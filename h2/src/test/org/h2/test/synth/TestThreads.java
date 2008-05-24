@@ -21,6 +21,7 @@ import org.h2.test.TestBase;
 public class TestThreads extends TestBase implements Runnable {
 
     public TestThreads() {
+        // nothing to do
     }
 
     public void test() throws Exception {

@@ -68,6 +68,7 @@ public class Server implements Runnable, ShutdownHandler {
     }
 
     public Server() {
+        // nothing to do
     }
 
     /**
@@ -226,11 +227,13 @@ public class Server implements Runnable, ShutdownHandler {
                 } else if ("-ftpWritePassword".equals(arg)) {
                     i++;
                 } else if ("-ftpTask".equals(arg)) {
+                    // no parameters
                 } else {
                     showUsage(arg, out);
                     return EXIT_ERROR;
                 }
             } else if ("-trace".equals(arg)) {
+                // no parameters
             } else if ("-log".equals(arg) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
                 i++;
             } else if ("-ifExists".equals(arg)) {

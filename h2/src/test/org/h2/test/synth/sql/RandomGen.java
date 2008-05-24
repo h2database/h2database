@@ -17,10 +17,7 @@ import java.util.Random;
 public class RandomGen {
     private Random random = new Random();
 
-    // private TestSynth config;
-
-    public RandomGen(TestSynth config) {
-        // this.config = config;
+    public RandomGen() {
         random.setSeed(12);
     }
 

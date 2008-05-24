@@ -29,6 +29,7 @@ public class ValueNull extends Value {
     public static final int DISPLAY_SIZE = 4; // null
 
     private ValueNull() {
+        // don't allow construction
     }
 
     public String getSQL() {
@@ -43,63 +44,63 @@ public class ValueNull extends Value {
         return null;
     }
 
-    public Boolean getBoolean() throws SQLException {
+    public Boolean getBoolean() {
         return null;
     }
 
-    public Date getDate() throws SQLException {
+    public Date getDate() {
         return null;
     }
 
-    public Time getTime() throws SQLException {
+    public Time getTime() {
         return null;
     }
 
-    public Timestamp getTimestamp() throws SQLException {
+    public Timestamp getTimestamp() {
         return null;
     }
 
-    public byte[] getBytes() throws SQLException {
+    public byte[] getBytes() {
         return null;
     }
 
-    public byte getByte() throws SQLException {
+    public byte getByte() {
         return 0;
     }
 
-    public short getShort() throws SQLException {
+    public short getShort() {
         return 0;
     }
 
-    public BigDecimal getBigDecimal() throws SQLException {
+    public BigDecimal getBigDecimal() {
         return null;
     }
 
-    public double getDouble() throws SQLException {
+    public double getDouble() {
         return 0.0;
     }
 
-    public float getFloat() throws SQLException {
+    public float getFloat() {
         return 0.0F;
     }
 
-    public int getInt() throws SQLException {
+    public int getInt() {
         return 0;
     }
 
-    public long getLong() throws SQLException {
+    public long getLong() {
         return 0;
     }
 
-    public InputStream getInputStream() throws SQLException {
+    public InputStream getInputStream() {
         return null;
     }
 
-    public Reader getReader() throws SQLException {
+    public Reader getReader() {
         return null;
     }
 
-    public Value convertTo(int type) throws SQLException {
+    public Value convertTo(int type) {
         return this;
     }
 

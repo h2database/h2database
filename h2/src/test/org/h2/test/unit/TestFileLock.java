@@ -27,6 +27,7 @@ public class TestFileLock extends TestBase implements Runnable {
     private static volatile boolean stop;
 
     public TestFileLock() {
+        // nothing to do
     }
 
     public void test() throws Exception {

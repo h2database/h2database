@@ -51,13 +51,16 @@ public class RangeTable extends Table {
         return NAME + "(" + min.getSQL() + ", " + max.getSQL() + ")";
     }
 
-    public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
+    public void lock(Session session, boolean exclusive, boolean force) {
+        // nothing to do
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
+        // nothing to do
     }
 
     public void unlock(Session s) {
+        // nothing to do
     }
 
     public boolean isLockedExclusively() {
@@ -100,7 +103,7 @@ public class RangeTable extends Table {
         throw Message.getInternalError();
     }
 
-    public Index getScanIndex(Session session) throws SQLException {
+    public Index getScanIndex(Session session) {
         return new RangeIndex(this, IndexColumn.wrap(columns));
     }
     

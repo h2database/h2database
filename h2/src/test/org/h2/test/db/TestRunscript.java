@@ -94,7 +94,8 @@ public class TestRunscript extends TestBase implements Trigger {
         }
     }
 
-    public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
+    public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
+        // nothing to do
     }
 
 }

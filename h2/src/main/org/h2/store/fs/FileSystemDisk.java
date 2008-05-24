@@ -39,6 +39,7 @@ public class FileSystemDisk extends FileSystem {
     }
 
     protected FileSystemDisk() {
+        // nothing to do
     }
 
     public long length(String fileName) {
@@ -100,7 +101,7 @@ public class FileSystemDisk extends FileSystem {
         }
     }
 
-    public boolean createNewFile(String fileName) throws SQLException {
+    public boolean createNewFile(String fileName) {
         fileName = translateFileName(fileName);
         File file = new File(fileName);
         for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {

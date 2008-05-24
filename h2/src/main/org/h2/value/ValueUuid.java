@@ -115,9 +115,8 @@ public class ValueUuid extends Value {
         ValueUuid v = (ValueUuid) o;
         if (high == v.high) {
             return (low == v.low) ? 0 : (low > v.low ? 1 : -1);
-        } else {
-            return high > v.high ? 1 : -1;
         }
+        return high > v.high ? 1 : -1;
     }
 
     public boolean equals(Object other) {

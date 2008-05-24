@@ -314,14 +314,14 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private PrintWriter getWriter(String fileName, String suffix) throws IOException, SQLException {
+    private PrintWriter getWriter(String fileName, String suffix) throws SQLException {
         fileName = fileName.substring(0, fileName.length() - 3);
         String outputFile = fileName + suffix;
         trace("Created file: " + outputFile);
         return new PrintWriter(new BufferedWriter(FileUtils.openFileWriter(outputFile, false)));
     }
 
-    private void writeDataError(PrintWriter writer, String error, byte[] data, int dumpBlocks) throws IOException {
+    private void writeDataError(PrintWriter writer, String error, byte[] data, int dumpBlocks) {
         writer.println("-- ERROR: " + error + " block:" + block + " blockCount:" + blockCount + " storageId:"
                 + storageId + " recordLength: " + recordLength + " valueId:" + valueId);
         StringBuffer sb = new StringBuffer();
@@ -390,49 +390,41 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void writeLogRecord(PrintWriter writer, DataPage s) {
+        recordLength = s.readInt();
+        if (recordLength <= 0) {
+            writeDataError(writer, "recordLength<0", s.getBytes(), blockCount);
+            return;
+        }
+        Value[] data;
         try {
-            recordLength = s.readInt();
-            if (recordLength <= 0) {
-                writeDataError(writer, "recordLength<0", s.getBytes(), blockCount);
-                return;
-            }
-            Value[] data;
+            data = new Value[recordLength];
+        } catch (OutOfMemoryError e) {
+            writeDataError(writer, "out of memory", s.getBytes(), blockCount);
+            return;
+        }
+        StringBuffer sb = new StringBuffer();
+        sb.append("//     data: ");
+        for (valueId = 0; valueId < recordLength; valueId++) {
             try {
-                data = new Value[recordLength];
+                Value v = s.readValue();
+                data[valueId] = v;
+                if (valueId > 0) {
+                    sb.append(", ");
+                }
+                sb.append(getSQL(v));
+            } catch (Exception e) {
+                if (trace) {
+                    traceError("log data", e);
+                }
+                writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
+                continue;
             } catch (OutOfMemoryError e) {
                 writeDataError(writer, "out of memory", s.getBytes(), blockCount);
-                return;
-            }
-            StringBuffer sb = new StringBuffer();
-            sb.append("//     data: ");
-            for (valueId = 0; valueId < recordLength; valueId++) {
-                try {
-                    Value v = s.readValue();
-                    data[valueId] = v;
-                    if (valueId > 0) {
-                        sb.append(", ");
-                    }
-                    sb.append(getSQL(v));
-                } catch (Exception e) {
-                    if (trace) {
-                        traceError("log data", e);
-                    }
-                    writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
-                    continue;
-                } catch (OutOfMemoryError e) {
-                    writeDataError(writer, "out of memory", s.getBytes(), blockCount);
-                    continue;
-                }
-            }
-            writer.println(sb.toString());
-            writer.flush();
-        } catch (IOException e) {
-            try {
-                writeDataError(writer, "error: " + e.toString(), s.getBytes(), blockCount);
-            } catch (IOException e2) {
-                writeError(writer, e);
+                continue;
             }
         }
+        writer.println(sb.toString());
+        writer.flush();
     }
 
     private String getSQL(Value v) {
@@ -443,9 +435,8 @@ public class Recover extends Tool implements DataHandler {
                 String file = lob.getFileName();
                 if (lob.getType() == Value.BLOB) {
                     return "READ_BLOB('" + file + ".txt')";
-                } else {
-                    return "READ_CLOB('" + file + ".txt')";
                 }
+                return "READ_CLOB('" + file + ".txt')";
             }
         }
         return v.getSQL();
@@ -456,7 +447,7 @@ public class Recover extends Tool implements DataHandler {
         lobFilesInDirectories = FileUtils.exists(databaseName + Constants.SUFFIX_LOBS_DIRECTORY);
     }
 
-    private void dumpLog(String fileName) throws SQLException {
+    private void dumpLog(String fileName) {
         PrintWriter writer = null;
         FileStore store = null;
         try {
@@ -516,52 +507,51 @@ public class Recover extends Tool implements DataHandler {
                 if (blocks == 0) {
                     writer.println("// [" + pos + "] blocks: " + blocks + " (end)");
                     break;
+                }
+                char type = (char) s.readByte();
+                int sessionId = s.readInt();
+                if (type == 'P') {
+                    String transaction = s.readString();
+                    writer.println("//   prepared session:" + sessionId + " tx:" + transaction);
+                } else if (type == 'C') {
+                    writer.println("//   commit session:" + sessionId);
                 } else {
-                    char type = (char) s.readByte();
-                    int sessionId = s.readInt();
-                    if (type == 'P') {
-                        String transaction = s.readString();
-                        writer.println("//   prepared session:" + sessionId + " tx:" + transaction);
-                    } else if (type == 'C') {
-                        writer.println("//   commit session:" + sessionId);
-                    } else {
-                        int storageId = s.readInt();
-                        int recId = s.readInt();
-                        int blockCount = s.readInt();
-                        if (type != 'T') {
-                            s.readDataPageNoSize();
+                    int storageId = s.readInt();
+                    int recId = s.readInt();
+                    int blockCount = s.readInt();
+                    if (type != 'T') {
+                        s.readDataPageNoSize();
+                    }
+                    switch (type) {
+                    case 'S': {
+                        char fileType = (char) s.readByte();
+                        int sumLength = s.readInt();
+                        byte[] summary = new byte[sumLength];
+                        if (sumLength > 0) {
+                            s.read(summary, 0, sumLength);
                         }
-                        switch (type) {
-                        case 'S': {
-                            char fileType = (char) s.readByte();
-                            int sumLength = s.readInt();
-                            byte[] summary = new byte[sumLength];
-                            if (sumLength > 0) {
-                                s.read(summary, 0, sumLength);
-                            }
-                            writer.println("//   summary session:"+sessionId+" fileType:" + fileType + " sumLength:" + sumLength);
-                            dumpSummary(writer, summary);
-                            break;
+                        writer.println("//   summary session:"+sessionId+" fileType:" + fileType + " sumLength:" + sumLength);
+                        dumpSummary(writer, summary);
+                        break;
+                    }
+                    case 'T':
+                        writer.println("//   truncate session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
+                        break;
+                    case 'I':
+                        writer.println("//   insert session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
+                        if (storageId >= 0) {
+                            writeLogRecord(writer, s);
                         }
-                        case 'T':
-                            writer.println("//   truncate session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
-                            break;
-                        case 'I':
-                            writer.println("//   insert session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
-                            if (storageId >= 0) {
-                                writeLogRecord(writer, s);
-                            }
-                            break;
-                        case 'D':
-                            writer.println("//   delete session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
-                            if (storageId >= 0) {
-                                writeLogRecord(writer, s);
-                            }
-                            break;
-                        default:
-                            writer.println("//   type?:"+type+" session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
-                            break;
+                        break;
+                    case 'D':
+                        writer.println("//   delete session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
+                        if (storageId >= 0) {
+                            writeLogRecord(writer, s);
                         }
+                        break;
+                    default:
+                        writer.println("//   type?:"+type+" session:"+sessionId+" storage:" + storageId + " pos:" + recId + " blockCount:"+blockCount);
+                        break;
                     }
                 }
             }
@@ -574,7 +564,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpSummary(PrintWriter writer, byte[] summary) throws SQLException {
+    private void dumpSummary(PrintWriter writer, byte[] summary) {
         if (summary == null || summary.length == 0) {
             writer.println("//     summary is empty");
             return;
@@ -617,7 +607,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpIndex(String fileName) throws SQLException {
+    private void dumpIndex(String fileName) {
         PrintWriter writer = null;
         FileStore store = null;
         try {
@@ -695,7 +685,7 @@ e.printStackTrace();
         }
     }
 
-    private void dumpData(String fileName) throws SQLException {
+    private void dumpData(String fileName) {
         setDatabaseName(fileName.substring(0, fileName.length() - Constants.SUFFIX_DATA_FILE.length()));
         try {
             textStorage = Database.isTextStorage(fileName, false);
@@ -763,15 +753,14 @@ e.printStackTrace();
                         writeDataError(writer, "wrong blockCount", s.getBytes(), 1);
                         blockCount = 1;
                         continue;
-                    } else {
-                        try {
-                            store.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
-                        } catch (Throwable e) {
-                            writeDataError(writer, "eof", s.getBytes(), 1);
-                            blockCount = 1;
-                            store = FileStore.open(null, fileName, "r", magic);
-                            continue;
-                        }
+                    }
+                    try {
+                        store.readFully(s.getBytes(), blockSize, blockCount * blockSize - blockSize);
+                    } catch (Throwable e) {
+                        writeDataError(writer, "eof", s.getBytes(), 1);
+                        blockCount = 1;
+                        store = FileStore.open(null, fileName, "r", magic);
+                        continue;
                     }
                 }
                 try {
@@ -965,19 +954,22 @@ e.printStackTrace();
     /**
      * INTERNAL
      */
-    public void checkPowerOff() throws SQLException {
+    public void checkPowerOff() {
+        // nothing to do
     }
 
     /**
      * INTERNAL
      */
-    public void checkWritingAllowed() throws SQLException {
+    public void checkWritingAllowed() {
+        // nothing to do
     }
 
     /**
      * INTERNAL
      */
-    public void freeUpDiskSpace() throws SQLException {
+    public void freeUpDiskSpace() {
+        // nothing to do
     }
 
     /**
@@ -990,7 +982,7 @@ e.printStackTrace();
     /**
      * INTERNAL
      */
-    public int compareTypeSave(Value a, Value b) throws SQLException {
+    public int compareTypeSave(Value a, Value b) {
         throw Message.getInternalError();
     }
 
@@ -1011,7 +1003,7 @@ e.printStackTrace();
     /**
      * INTERNAL
      */
-    public String createTempFile() throws SQLException {
+    public String createTempFile() {
         throw Message.getInternalError();
     }
 

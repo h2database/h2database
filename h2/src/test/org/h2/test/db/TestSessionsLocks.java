@@ -113,8 +113,6 @@ public class TestSessionsLocks extends TestBase {
                 }
                 check(done[0]);
                 break;
-            } else {
-                // no statement is executing yet
             }
         }
         conn2.close();

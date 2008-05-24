@@ -143,10 +143,12 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         thread.join();
     }
 
-    public void diskSpaceIsLow(long stillAvailable) throws SQLException {
+    public void diskSpaceIsLow(long stillAvailable) {
+        // do nothing
     }
 
     public void exceptionThrown(SQLException e, String sql) {
+        // do nothing
     }
 
     public void setProgress(int state, String name, int x, int max) {
@@ -161,6 +163,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
     }
 
     public void closingDatabase() {
+        // do nothing
     }
 
     private void testCommitRollback() throws Exception {
@@ -203,9 +206,11 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
     }
 
     public void init(String url) {
+        // do nothing
     }
 
     public void opened() {
+        // do nothing
     }
 
 }

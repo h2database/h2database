@@ -118,6 +118,11 @@ public class FileStore {
         return magic;
     }
 
+    /**
+     * Initialize the key using the given salt.
+     * 
+     * @param salt the salt
+     */
     protected void initKey(byte[] salt) {
         // do nothing
     }
@@ -298,7 +303,7 @@ public class FileStore {
             }
             fileLength = newLength;
         } catch (IOException e) {
-            if (freeUpDiskSpace()) {
+            if (newLength > fileLength && freeUpDiskSpace()) {
                 try {
                     file.setFileLength(newLength);
                 } catch (IOException e2) {

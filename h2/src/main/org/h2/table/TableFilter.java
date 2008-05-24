@@ -103,10 +103,9 @@ public class TableFilter implements ColumnResolver {
                     if (condition.isAlwaysFalse()) {
                         masks = null;
                         break;
-                    } else {
-                        int id = condition.getColumn().getColumnId();
-                        masks[id] |= condition.getMask();
                     }
+                    int id = condition.getColumn().getColumnId();
+                    masks[id] |= condition.getMask();
                 }
             }
             item = table.getBestPlanItem(session, masks);

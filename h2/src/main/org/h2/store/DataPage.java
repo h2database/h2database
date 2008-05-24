@@ -157,17 +157,15 @@ public abstract class DataPage {
     public static DataPage create(DataHandler handler, int capacity) {
         if (handler.getTextStorage()) {
             return new DataPageText(handler, new byte[capacity]);
-        } else {
-            return new DataPageBinary(handler, new byte[capacity]);
         }
+        return new DataPageBinary(handler, new byte[capacity]);
     }
 
     public static DataPage create(DataHandler handler, byte[] buff) {
         if (handler.getTextStorage()) {
             return new DataPageText(handler, buff);
-        } else {
-            return new DataPageBinary(handler, buff);
         }
+        return new DataPageBinary(handler, buff);
     }
 
     protected DataPage(DataHandler handler, byte[] data) {
@@ -215,7 +213,7 @@ public abstract class DataPage {
 
     public void write(byte[] buff, int off, int len) {
         checkCapacity(len);
-        System.arraycopy(buff, 0, data, pos, len);
+        System.arraycopy(buff, off, data, pos, len);
         pos += len;
     }
 
@@ -474,24 +472,23 @@ public abstract class DataPage {
                 byte[] small = new byte[smallLen];
                 read(small, 0, smallLen);
                 return ValueLob.createSmallLob(dataType, small);
-            } else {
-                int tableId = readInt();
-                int objectId = readInt();
-                long precision = 0;
-                boolean compression = false;
-                // -1: historical (didn't store precision)
-                // -2: regular
-                // -3: regular, but not linked (in this case: including file name)
-                if (smallLen == -2 || smallLen == -3) {
-                    precision = readLong();
-                    compression = readByte() == 1;
-                }
-                ValueLob lob = ValueLob.open(dataType, handler, tableId, objectId, precision, compression);
-                if (smallLen == -3) {
-                    lob.setFileName(readString(), false);
-                }
-                return lob;
             }
+            int tableId = readInt();
+            int objectId = readInt();
+            long precision = 0;
+            boolean compression = false;
+            // -1: historical (didn't store precision)
+            // -2: regular
+            // -3: regular, but not linked (in this case: including file name)
+            if (smallLen == -2 || smallLen == -3) {
+                precision = readLong();
+                compression = readByte() == 1;
+            }
+            ValueLob lob = ValueLob.open(dataType, handler, tableId, objectId, precision, compression);
+            if (smallLen == -3) {
+                lob.setFileName(readString(), false);
+            }
+            return lob;
         }
         case Value.ARRAY: {
             int len = readInt();

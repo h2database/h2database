@@ -352,6 +352,7 @@ public class BuildBase {
     
     private void addFiles(List list, File file) {
         if (file.getName().startsWith(".svn")) {
+            // ignore
         } else if (file.isDirectory()) {
             File[] files = file.listFiles();
             for (int i = 0; i < files.length; i++) {
@@ -362,7 +363,7 @@ public class BuildBase {
         }
     }
     
-    private static FileList filterFiles(FileList files, boolean keep, String pattern) {
+    static FileList filterFiles(FileList files, boolean keep, String pattern) {
         boolean start = false;
         if (pattern.endsWith("*")) {
             pattern = pattern.substring(0, pattern.length() - 1);
@@ -437,7 +438,7 @@ public class BuildBase {
         }
     }
     
-    private String getSuffix(String fileName) {
+    String getSuffix(String fileName) {
         int idx = fileName.lastIndexOf('.');
         return idx < 0 ? "" : fileName.substring(idx);
     }

@@ -36,20 +36,19 @@ public class FileUtils {
             long length = file.length();
             if (newLength < length) {
                 throw e;
-            } else {
-                long pos = file.getFilePointer();
-                file.seek(length);
-                long remaining = newLength - length;
-                int maxSize = 1024 * 1024;
-                int block = (int) Math.min(remaining, maxSize);
-                byte[] buffer = new byte[block];
-                while (remaining > 0) {
-                    int write = (int) Math.min(remaining, maxSize);
-                    file.write(buffer, 0, write);
-                    remaining -= write;
-                }
-                file.seek(pos);
             }
+            long pos = file.getFilePointer();
+            file.seek(length);
+            long remaining = newLength - length;
+            int maxSize = 1024 * 1024;
+            int block = (int) Math.min(remaining, maxSize);
+            byte[] buffer = new byte[block];
+            while (remaining > 0) {
+                int write = (int) Math.min(remaining, maxSize);
+                file.write(buffer, 0, write);
+                remaining -= write;
+            }
+            file.seek(pos);
         }
     }
 
@@ -137,7 +136,7 @@ public class FileUtils {
      * @return the name of the created file
      */
     public static String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir)
-            throws IOException, SQLException {
+            throws IOException {
         return FileSystem.getInstance(prefix).createTempFile(prefix, suffix, deleteOnExit, inTempDir);
     }
 

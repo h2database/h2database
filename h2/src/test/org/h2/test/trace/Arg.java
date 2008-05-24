@@ -33,7 +33,7 @@ class Arg {
     private Object obj;
     private Statement stat;
 
-    Arg(Player player, Class clazz, Object obj) {
+    Arg(Class clazz, Object obj) {
         this.clazz = clazz;
         this.obj = obj;
     }
@@ -45,9 +45,8 @@ class Arg {
     public String toString() {
         if (stat != null) {
             return stat.toString();
-        } else {
-            return quote(clazz, getValue());
         }
+        return quote(clazz, getValue());
     }
 
     void execute() throws Exception {

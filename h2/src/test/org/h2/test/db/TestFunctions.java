@@ -70,19 +70,20 @@ public class TestFunctions extends TestBase {
 
         private ArrayList list = new ArrayList();
 
-        public void add(Object value) throws SQLException {
+        public void add(Object value) {
             list.add(value.toString());
         }
 
-        public Object getResult() throws SQLException {
+        public Object getResult() {
             return list.get(list.size() / 2);
         }
 
-        public int getType(int[] inputType) throws SQLException {
+        public int getType(int[] inputType) {
             return Types.VARCHAR;
         }
 
-        public void init(Connection conn) throws SQLException {
+        public void init(Connection conn) {
+            // nothing to do
         }
 
     }
@@ -240,6 +241,7 @@ public class TestFunctions extends TestBase {
         stat.execute("INSERT INTO TEST_BLOB VALUES(1, 'edd1f011edd1f011edd1f011')");
         rs = stat.executeQuery("SELECT blob2stream(VALUE) FROM TEST_BLOB");
         while (rs.next()) {
+            // ignore
         }
         rs.close();
         rs = stat.executeQuery("SELECT stream2stream(VALUE) FROM TEST_BLOB");
@@ -272,7 +274,7 @@ public class TestFunctions extends TestBase {
         return bufferedInStream;
     }
 
-    public static BufferedInputStream stream2stream(InputStream value) throws SQLException {
+    public static BufferedInputStream stream2stream(InputStream value) {
         if (value == null) {
             return null;
         }

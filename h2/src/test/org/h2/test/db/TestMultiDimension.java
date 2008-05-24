@@ -56,6 +56,7 @@ public class TestMultiDimension extends TestBase {
                         try {
                             Thread.sleep(10);
                         } catch (Exception e) {
+                            // ignore
                         }
                     }
                     prep.setInt(1, x);

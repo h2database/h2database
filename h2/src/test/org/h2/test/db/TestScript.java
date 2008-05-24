@@ -80,9 +80,8 @@ public class TestScript extends TestBase {
         out.close();
         if (errors.length() > 0) {
             throw new Exception("errors:\n" + errors.toString());
-        } else {
-            new File(outFile).delete();
         }
+        new File(outFile).delete();
     }
 
     private String readLine() throws IOException {

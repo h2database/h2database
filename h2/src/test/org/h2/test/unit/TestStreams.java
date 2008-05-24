@@ -79,9 +79,8 @@ public class TestStreams extends TestBase {
                     int l = decompress.read(test, j, size);
                     if (l < 0) {
                         break;
-                    } else {
-                        j += l;
                     }
+                    j += l;
                 }
             }
             check(buffer, test);

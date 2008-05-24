@@ -7,7 +7,6 @@
 package org.h2.test.unit;
 
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -22,7 +21,6 @@ import javax.servlet.RequestDispatcher;
 import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletException;
 
 import org.h2.server.web.DbStarter;
 import org.h2.test.TestBase;
@@ -37,7 +35,7 @@ public class TestServlet extends TestBase {
      * Minimum ServletContext implementation.
      * Most methods are not implemented.
      */
-    private static class TestServletContext implements ServletContext {
+    static class TestServletContext implements ServletContext {
 
         private Properties initParams = new Properties();
         private HashMap attributes = new HashMap();
@@ -50,7 +48,7 @@ public class TestServlet extends TestBase {
             return attributes.get(key);
         }
 
-        private void setInitParameter(String key, String value) {
+        void setInitParameter(String key, String value) {
             initParams.setProperty(key, value);
         }
 
@@ -94,7 +92,7 @@ public class TestServlet extends TestBase {
             throw new UnsupportedOperationException();
         }
 
-        public URL getResource(String string) throws MalformedURLException {
+        public URL getResource(String string) {
             throw new UnsupportedOperationException();
         }
 
@@ -110,7 +108,7 @@ public class TestServlet extends TestBase {
             throw new UnsupportedOperationException();
         }
 
-        public Servlet getServlet(String string) throws ServletException {
+        public Servlet getServlet(String string) {
             throw new UnsupportedOperationException();
         }
 

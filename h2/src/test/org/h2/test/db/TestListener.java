@@ -51,7 +51,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
 
     }
 
-    public void diskSpaceIsLow(long stillAvailable) throws SQLException {
+    public void diskSpaceIsLow(long stillAvailable) {
         printTime("diskSpaceIsLow stillAvailable=" + stillAvailable);
     }
 
@@ -87,6 +87,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         try {
             Thread.sleep(1);
         } catch (InterruptedException e) {
+            // ignore
         }
         printTime("state: " + stateName + " " + (100 * current / max) + " " + (time - start));
     }

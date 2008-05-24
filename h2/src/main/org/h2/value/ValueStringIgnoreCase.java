@@ -61,9 +61,8 @@ public class ValueStringIgnoreCase extends ValueStringBase {
         // (it would still be 'equal', but we don't like to store it)
         if (cache.value.equals(s)) {
             return cache;
-        } else {
-            return obj;
         }
+        return obj;
     }
 
     public Value convertPrecision(long precision) {

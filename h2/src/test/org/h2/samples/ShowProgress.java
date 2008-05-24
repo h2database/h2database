@@ -63,6 +63,7 @@ public class ShowProgress implements DatabaseEventListener {
             try {
                 stat.execute("INSERT INTO TEST VALUES(-1, 'Test' || SPACE(100))");
             } catch (SQLException e) {
+                // ignore
             }
         } else {
             conn.close();
@@ -82,7 +83,7 @@ public class ShowProgress implements DatabaseEventListener {
      *
      * @param stillAvailable the number of bytes still available
      */
-    public void diskSpaceIsLow(long stillAvailable) throws SQLException {
+    public void diskSpaceIsLow(long stillAvailable) {
         System.out.println("diskSpaceIsLow stillAvailable="+stillAvailable);
     }
 
@@ -126,6 +127,7 @@ public class ShowProgress implements DatabaseEventListener {
         try {
             Thread.sleep(1);
         } catch (InterruptedException e) {
+            // ignore
         }
         System.out.println("State: " + stateName + " " + (100 * current / max) + "% (" + current + " of " + max + ") "
                 + (time - start) + " ms");
@@ -151,6 +153,7 @@ public class ShowProgress implements DatabaseEventListener {
      * This method is called when the database is open.
      */
     public void opened() {
+        // do nothing
     }
 
 }

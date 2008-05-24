@@ -57,6 +57,13 @@ public class FileLock {
     // TODO log / messages: use translatable messages
     // private java.nio.channels.FileLock fileLock;
     
+    volatile String fileName;
+    volatile ServerSocket socket;
+    FileSystem fs;
+    int sleep;
+    Trace trace;
+    long lastWrite;
+
     private static final String MAGIC = "FileLock";
     private static final String FILE = "file", SOCKET = "socket";
     private static final int RANDOM_BYTES = 16;
@@ -64,14 +71,8 @@ public class FileLock {
     private static final int TIME_GRANULARITY = 2000;
 
     private String method, ipAddress;
-    private  int sleep;
-    private long lastWrite;
     private Properties properties;
-    private FileSystem fs;
-    private volatile String fileName;
-    private volatile ServerSocket socket;
     private boolean locked;
-    private Trace trace;
 
     /**
      * Create a new file locking object.
@@ -150,7 +151,7 @@ public class FileLock {
 //        trace("killed", null);
 //    }
 
-    private void save() throws SQLException {
+    void save() throws SQLException {
         try {
             OutputStream out = fs.openFileOutputStream(fileName, false);
             try {

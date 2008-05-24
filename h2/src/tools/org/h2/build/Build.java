@@ -289,9 +289,6 @@ public class Build extends BuildBase {
         java("org.h2.build.doc.SpellChecker", null);
     }
     
-    public void test() {
-    }
-    
     public void zip() {
         FileList files = getFiles("../h2").keep("../h2/build.*");
         files.addAll(getFiles("../h2/bin").keep("../h2/bin/h2.*"));

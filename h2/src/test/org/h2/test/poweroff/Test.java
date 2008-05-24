@@ -37,6 +37,7 @@ public class Test {
     PreparedStatement prep;
 
     private Test() {
+        // nothing to do
     }
 
     private Test(String driver, String url, String user, String password, boolean writeDelay0) {

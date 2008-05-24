@@ -83,10 +83,9 @@ class DbConnection implements DbInterface {
         log("(getConnection to " + url + ");");
         if (driver == null) {
             return config.getConnection("synth");
-        } else {
-            Class.forName(driver);
-            return DriverManager.getConnection(url, user, password);
         }
+        Class.forName(driver);
+        return DriverManager.getConnection(url, user, password);
     }
 
     public void disconnect() throws SQLException {

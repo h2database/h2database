@@ -33,7 +33,9 @@ public class TestConnectionPool extends TestBase {
                 try {
                     while (!stop[0]) {
                         Connection conn = man.getConnection();
-                        checkSmaller(man.getActiveConnections(), len + 1);
+                        if (man.getActiveConnections() >= len + 1) {
+                            throw new Exception("a: " + man.getActiveConnections()  + " is not smaller than b: " + len + 1);
+                        }                        
                         Statement stat = conn.createStatement();
                         stat.execute("SELECT 1 FROM DUAL");
                         conn.close();

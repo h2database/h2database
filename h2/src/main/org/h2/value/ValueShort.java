@@ -38,9 +38,8 @@ public class ValueShort extends Value {
     private ValueShort checkRange(int value) throws SQLException {
         if (value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
             throw Message.getSQLException(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.SHORT).name);
-        } else {
-            return ValueShort.get((short) value);
         }
+        return ValueShort.get((short) value);
     }
 
     public int getSignum() {

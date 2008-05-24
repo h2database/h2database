@@ -16,7 +16,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.sql.SQLException;
 
 import org.h2.engine.Constants;
 import org.h2.util.IOUtils;
@@ -36,16 +35,17 @@ public class FtpClient {
     private InputStream inData;
     private OutputStream outData;
 
-    public static FtpClient open(String url) throws SQLException, IOException {
+    public static FtpClient open(String url) throws IOException {
         FtpClient client = new FtpClient();
         client.connect(url);
         return client;
     }
 
     private FtpClient() {
+        // don't allow construction
     }
 
-    private void connect(String url) throws SQLException, IOException {
+    private void connect(String url) throws IOException {
         socket = NetUtils.createSocket(url, 21, false);
         InputStream in = socket.getInputStream();
         OutputStream out = socket.getOutputStream();
@@ -72,7 +72,7 @@ public class FtpClient {
         }
     }
 
-    private void send(String command) throws IOException {
+    private void send(String command) {
         writer.println(command);
         writer.flush();
     }
@@ -156,7 +156,7 @@ public class FtpClient {
         return buff.toString();
     }
 
-    private void passive() throws IOException, SQLException {
+    private void passive() throws IOException {
         send("PASV");
         readCode(227);
         int first = message.indexOf('(') + 1;
@@ -184,7 +184,7 @@ public class FtpClient {
         readCode(250);
     }
 
-    public void retrieve(String fileName, OutputStream out, long restartAt) throws IOException, SQLException {
+    public void retrieve(String fileName, OutputStream out, long restartAt) throws IOException {
         passive();
         if (restartAt > 0) {
             send("REST " + restartAt);
@@ -207,7 +207,7 @@ public class FtpClient {
         return size;
     }
 
-    public void store(String fileName, InputStream in) throws IOException, SQLException {
+    public void store(String fileName, InputStream in) throws IOException {
         passive();
         send("STOR " + fileName);
         readCode(150);
@@ -215,7 +215,7 @@ public class FtpClient {
         readCode(226);
     }
 
-    public String nameList(String dir) throws IOException, SQLException {
+    public String nameList(String dir) throws IOException {
         passive();
         send("NLST " + dir);
         readCode(150);
@@ -226,7 +226,7 @@ public class FtpClient {
         return new String(data);
     }
 
-    public String list(String dir) throws IOException, SQLException {
+    public String list(String dir) throws IOException {
         passive();
         send("LIST " + dir);
         readCode(150);

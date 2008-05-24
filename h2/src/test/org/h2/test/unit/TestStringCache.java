@@ -32,9 +32,9 @@ public class TestStringCache extends TestBase {
 
     }
 
+    volatile boolean stop;
     private Random random = new Random(1);
     private String[] some = new String[] { null, "", "ABC", "this is a medium sized string", "1", "2" };
-    private volatile boolean stop;
     private boolean returnNew;
     private boolean useIntern;
 
@@ -56,14 +56,13 @@ public class TestStringCache extends TestBase {
                 s = new String(s);
             }
             return s;
-        } else {
-            int len = random.nextBoolean() ? random.nextInt(1000) : random.nextInt(10);
-            StringBuffer buff = new StringBuffer(len);
-            for (int i = 0; i < len; i++) {
-                buff.append(random.nextInt(0xfff));
-            }
-            return buff.toString();
         }
+        int len = random.nextBoolean() ? random.nextInt(1000) : random.nextInt(10);
+        StringBuffer buff = new StringBuffer(len);
+        for (int i = 0; i < len; i++) {
+            buff.append(random.nextInt(0xfff));
+        }
+        return buff.toString();
     }
 
     void testString() {

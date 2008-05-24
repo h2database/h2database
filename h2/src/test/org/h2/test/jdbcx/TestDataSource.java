@@ -59,9 +59,11 @@ public class TestDataSource extends TestBase {
         XAConnection xaConn = ds.getXAConnection();
         xaConn.addConnectionEventListener(new ConnectionEventListener() {
             public void connectionClosed(ConnectionEvent event) {
+                // nothing to do
             }
 
             public void connectionErrorOccurred(ConnectionEvent event) {
+                // nothing to do
             }
         });
         XAResource res = xaConn.getXAResource();

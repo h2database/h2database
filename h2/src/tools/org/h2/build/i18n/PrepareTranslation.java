@@ -47,10 +47,10 @@ public class PrepareTranslation {
     private static final String[] EXCLUDE = { "datatypes.html", "functions.html", "grammar.html" };
 
     public static void main(String[] args) throws Exception {
-        new PrepareTranslation().run(args);
+        new PrepareTranslation().run();
     }
 
-    private void run(String[] args) throws Exception {
+    private void run() throws Exception {
         String baseDir = "src/docsrc/textbase";
         prepare(baseDir, "src/main/org/h2/res");
         prepare(baseDir, "src/main/org/h2/server/web/res");
@@ -62,7 +62,7 @@ public class PrepareTranslation {
                 "src/docsrc/text/_docs_ja.properties");
 
         // create the .jsp files and extract the text in the main language
-        extractFromHtml("src/docsrc/html", "src/docsrc/text", MAIN_LANGUAGE);
+        extractFromHtml("src/docsrc/html", "src/docsrc/text");
 
         // add missing translations and create a new baseline
         prepare(baseDir, "src/docsrc/text");
@@ -170,7 +170,7 @@ public class PrepareTranslation {
         return false;
     }
 
-    private static void extractFromHtml(String dir, String target, String language) throws Exception {
+    private static void extractFromHtml(String dir, String target) throws Exception {
         File[] list = new File(dir).listFiles();
         for (int i = 0; i < list.length; i++) {
             File f = list[i];
@@ -213,25 +213,22 @@ public class PrepareTranslation {
                 if (!Character.isWhitespace(s.charAt(i))) {
                     if (i == 0) {
                         return "";
-                    } else {
-                        return s.substring(0, i);
                     }
+                    return s.substring(0, i);
                 }
             }
             return s;
-        } else {
-            for (int i = s.length() - 1; i >= 0; i--) {
-                if (!Character.isWhitespace(s.charAt(i))) {
-                    if (i == s.length() - 1) {
-                        return "";
-                    } else {
-                        return s.substring(i + 1, s.length());
-                    }
-                }
-            }
-            // if all spaces, return an empty string to avoid duplicate spaces
-            return "";
         }
+        for (int i = s.length() - 1; i >= 0; i--) {
+            if (!Character.isWhitespace(s.charAt(i))) {
+                if (i == s.length() - 1) {
+                    return "";
+                }
+                return s.substring(i + 1, s.length());
+            }
+        }
+        // if all spaces, return an empty string to avoid duplicate spaces
+        return "";
     }
 
     private static String extract(String documentName, File f, String target) throws Exception {

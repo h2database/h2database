@@ -97,10 +97,12 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         return DriverManager.getConnection(url, "sa", "");
     }
 
-    public void diskSpaceIsLow(long stillAvailable) throws SQLException {
+    public void diskSpaceIsLow(long stillAvailable) {
+        // nothing to do
     }
 
     public void exceptionThrown(SQLException e, String sql) {
+        // nothing to do
     }
 
     public void closingDatabase() {
@@ -116,12 +118,15 @@ public class TestExit extends TestBase implements DatabaseEventListener {
     }
 
     public void setProgress(int state, String name, int x, int max) {
+        // nothing to do
     }
 
     public void init(String url) {
+        // nothing to do
     }
 
     public void opened() {
+        // nothing to do
     }
 
 }

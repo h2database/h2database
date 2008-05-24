@@ -137,6 +137,7 @@ public class Player {
             try {
                 return Class.forName(IMPORTED_PACKAGES[i] + className);
             } catch (ClassNotFoundException e) {
+                // ignore
             }
         }
         throw new Error("Class not found: " + className);

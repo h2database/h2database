@@ -172,12 +172,15 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
     }
 
     public void closingDatabase() {
+        // nothing to do
     }
 
     public void init(String url) {
+        // nothing to do
     }
 
     public void opened() {
+        // nothing to do
     }
 
 }

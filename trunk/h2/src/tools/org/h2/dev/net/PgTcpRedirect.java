@@ -82,7 +82,9 @@ public class PgTcpRedirect {
         }
 
         private void println(String s) {
-            // System.out.println(s);
+            if (false) {
+                System.out.println(s);
+            }
         }
 
         private boolean processClient(InputStream inStream, OutputStream outStream) throws IOException {
@@ -491,9 +493,6 @@ public class PgTcpRedirect {
                 OutputStream out = write.getOutputStream();
                 InputStream in = read.getInputStream();
                 while (true) {
-                    if (client) {
-                    } else {
-                    }
                     boolean more;
                     if (client) {
                         more = processClient(in, out);
@@ -507,10 +506,12 @@ public class PgTcpRedirect {
                 try {
                     read.close();
                 } catch (IOException e) {
+                    // ignore
                 }
                 try {
                     write.close();
                 } catch (IOException e) {
+                    // ignore
                 }
             } catch (Throwable e) {
                 e.printStackTrace();
@@ -518,16 +519,18 @@ public class PgTcpRedirect {
         }
     }
 
-    private synchronized void printData(byte[] buffer, int len) {
-        // System.out.print(" ");
-        // for(int i=0; i<len; i++) {
-        // int c = buffer[i] & 255;
-        // if(c >= ' ' && c <= 127 && c != '[' & c != ']') {
-        // System.out.print((char)c);
-        // } else {
-        // System.out.print("[" + Integer.toHexString(c) + "]");
-        // }
-        // }
-        // System.out.println();
+    synchronized void printData(byte[] buffer, int len) {
+        if (false) {
+            System.out.print(" ");
+            for (int i = 0; i < len; i++) {
+                int c = buffer[i] & 255;
+                if (c >= ' ' && c <= 127 && c != '[' & c != ']') {
+                    System.out.print((char) c);
+                } else {
+                    System.out.print("[" + Integer.toHexString(c) + "]");
+                }
+            }
+            System.out.println();
+        }
     }
 }

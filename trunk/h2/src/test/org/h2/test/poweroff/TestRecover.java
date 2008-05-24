@@ -56,10 +56,10 @@ public class TestRecover {
     private static final String DRIVER = System.getProperty("test.driver", "org.h2.Driver");
 
     public static void main(String[] args) throws Exception {
-        new TestRecover().runTest(args);
+        new TestRecover().runTest();
     }
 
-    private void runTest(String[] args) throws Exception {
+    private void runTest() throws Exception {
         System.out.println("backup...");
         new File(TEST_DIRECTORY).mkdirs();
         File backup = backup(TEST_DIRECTORY, BACKUP_DIRECTORY, "data", 10, NODE);

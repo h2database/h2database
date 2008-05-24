@@ -37,7 +37,8 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         }
 
         public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before,
-                int type) throws SQLException {
+                int type) {
+            // nothing to do
         }
     }
     
@@ -148,7 +149,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
 
     private String triggerName;
 
-    public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
+    public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
         if (mustNotCallTrigger) {
             throw new Error("must not be called now");
         }
@@ -195,7 +196,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         }        
     }
 
-    public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) throws SQLException {
+    public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {
         this.triggerName = triggerName;
         if (!"TEST".equals(tableName)) {
             throw new Error("supposed to be TEST");

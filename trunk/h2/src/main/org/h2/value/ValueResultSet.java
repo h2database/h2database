@@ -25,7 +25,7 @@ public class ValueResultSet extends Value {
         this.result = rs;
     }
 
-    public static ValueResultSet get(ResultSet rs) throws SQLException {
+    public static ValueResultSet get(ResultSet rs) {
         ValueResultSet val = new ValueResultSet(rs);
         return val;
     }

@@ -155,7 +155,7 @@ public class Doclet {
             if (text == null || text.trim().length() == 0) {
                 addError("Undocumented field (" + clazz.name() + ".java:" + field.position().line() + ") " + name);
             }
-            if (text.startsWith("INTERNAL")) {
+            if (text != null && text.startsWith("INTERNAL")) {
                 continue;
             }
             if (fieldId == 0) {
@@ -291,9 +291,7 @@ public class Doclet {
                 writer.println(" = " + constant);
             }
             writer.println("</span></h4>");
-            if (text != null) {
-                writer.println("<div class=\"item\">" + formatText(text) + "</div>");
-            }
+            writer.println("<div class=\"item\">" + formatText(text) + "</div>");
             writer.println("<hr />");
         }
 

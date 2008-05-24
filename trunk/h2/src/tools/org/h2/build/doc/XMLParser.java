@@ -292,9 +292,8 @@ public class XMLParser {
                         back();
                         noValue = true;
                         break;
-                    } else {
-                        error("=");
                     }
+                    error("=");
                 }
             }
             if (localNameStart == start) {
@@ -383,6 +382,13 @@ public class XMLParser {
         return attributeValues[index * 3 + 2];
     }
 
+    /**
+     * Get the value of this attribute.
+     * 
+     * @param namespaceURI the namespace URI (currently ignored)
+     * @param localName the attribute name
+     * @return the value or null
+     */
     public String getAttributeValue(String namespaceURI, String localName) {
         int len = getAttributeCount();
         for (int i = 0; i < len; i++) {

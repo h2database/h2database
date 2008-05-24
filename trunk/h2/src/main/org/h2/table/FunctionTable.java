@@ -64,13 +64,16 @@ public class FunctionTable extends Table {
         setColumns(cols);
     }
 
-    public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
+    public void lock(Session session, boolean exclusive, boolean force) {
+        // nothing to do
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
+        // nothing to do
     }
 
     public void unlock(Session s) {
+        // nothing to do
     }
 
     public boolean isLockedExclusively() {
@@ -106,8 +109,8 @@ public class FunctionTable extends Table {
         throw Message.getInternalError();
     }
 
-    public Index getScanIndex(Session session) throws SQLException {
-        return new FunctionIndex(this, IndexColumn.wrap(columns), function);
+    public Index getScanIndex(Session session) {
+        return new FunctionIndex(this, IndexColumn.wrap(columns));
     }
 
     public ObjectArray getIndexes() {
@@ -118,7 +121,7 @@ public class FunctionTable extends Table {
         return false;
     }
 
-    public long getRowCount(Session session) throws SQLException {
+    public long getRowCount(Session session) {
         throw Message.getInternalError();
     }
 
@@ -139,11 +142,10 @@ public class FunctionTable extends Table {
         Value v = function.getValue(session);
         if (v == ValueNull.INSTANCE) {
             return new LocalResult();
-        } else {
-            ValueResultSet value = (ValueResultSet) v;
-            ResultSet rs = value.getResultSet();
-            return LocalResult.read(session,  rs, 0);
         }
+        ValueResultSet value = (ValueResultSet) v;
+        ResultSet rs = value.getResultSet();
+        return LocalResult.read(session,  rs, 0);
     }
 
     public long getMaxDataModificationId() {

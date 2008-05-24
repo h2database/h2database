@@ -319,8 +319,8 @@ public class TableData extends Table implements RecordReader {
         rowCount = 0;
     }
 
-    public boolean isLockExclusive(Session s) {
-        return lockExclusive == s;
+    public boolean isLockExclusive(Session session) {
+        return lockExclusive == session;
     }
 
     public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
@@ -503,10 +503,12 @@ public class TableData extends Table implements RecordReader {
         invalidate();
     }
 
-    public void checkRename() throws SQLException {
+    public void checkRename() {
+        // ok
     }
 
-    public void checkSupportAlter() throws SQLException {
+    public void checkSupportAlter() {
+        // ok
     }
 
     public boolean canTruncate() {

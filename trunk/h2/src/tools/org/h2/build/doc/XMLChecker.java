@@ -144,7 +144,9 @@ public class XMLChecker {
             } else if (event == XMLParser.CHARACTERS) {
                 // lastElement = parser.getText();
             } else if (event == XMLParser.DTD) {
+                // ignore
             } else if (event == XMLParser.COMMENT) {
+                // ignore
             } else {
                 int eventType = parser.getEventType();
                 throw new Exception("Unexpected event " + eventType + " at " + parser.getRemaining());

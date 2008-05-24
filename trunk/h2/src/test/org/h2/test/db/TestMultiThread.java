@@ -27,6 +27,7 @@ public class TestMultiThread extends TestBase implements Runnable {
     private Statement stat;
 
     public TestMultiThread() {
+        // nothing to do
     }
 
     private TestMultiThread(TestAll config, TestMultiThread parent) throws Exception {

@@ -208,9 +208,8 @@ public class StringUtils {
     public static String quoteJavaString(String s) {
         if (s == null) {
             return "null";
-        } else {
-            return "\"" + javaEncode(s) + "\"";
         }
+        return "\"" + javaEncode(s) + "\"";
     }
 
     public static byte[] utf8Encode(String s) throws SQLException {
@@ -274,17 +273,15 @@ public class StringUtils {
     public static String enclose(String s) {
         if (s.startsWith("(")) {
             return s;
-        } else {
-            return "(" + s + ")";
         }
+        return "(" + s + ")";
     }
 
     public static String unEnclose(String s) {
         if (s.startsWith("(") && s.endsWith(")")) {
             return s.substring(1, s.length() - 1);
-        } else {
-            return s;
         }
+        return s;
     }
 
     public static String urlEncode(String s) {
@@ -309,7 +306,7 @@ public class StringUtils {
 //        }
     }
 
-    public static String urlDecode(String encoded) throws SQLException {
+    public static String urlDecode(String encoded) {
         byte[] buff = new byte[encoded.length()];
         int j = 0;
         for (int i = 0; i < encoded.length(); i++) {
@@ -453,12 +450,11 @@ public class StringUtils {
         String start = attributes == null ? name : name + attributes;
         if (content == null) {
             return "<" + start + "/>\n";
-        } else {
-            if (content.indexOf('\n') >= 0) {
-                content = "\n" + indent(content);
-            }
-            return "<" + start + ">" + content + "</" + name + ">\n";
         }
+        if (content.indexOf('\n') >= 0) {
+            content = "\n" + indent(content);
+        }
+        return "<" + start + ">" + content + "</" + name + ">\n";
     }
 
     /**
@@ -514,9 +510,8 @@ public class StringUtils {
         // otherwise the data must not contain '-' as the first/last character
         if (data.indexOf('\n') >= 0) {
             return "<!--\n" + indent(data) + "-->\n";
-        } else {
-            return "<!-- " + data + " -->\n";
         }
+        return "<!-- " + data + " -->\n";
     }
 
     /**

@@ -46,6 +46,7 @@ public abstract class Record extends CacheObject {
      * The method may read data and change the file pointer.
      */
     public void prepareWrite() throws SQLException {
+        // nothing to do
     }
 
     public boolean isEmpty() {

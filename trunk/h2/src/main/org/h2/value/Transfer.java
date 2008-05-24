@@ -271,6 +271,7 @@ public class Transfer {
             // so construct an output stream that will ignore this chained flush call
             java.io.OutputStream out2 = new java.io.FilterOutputStream(out) {
                 public void flush() {
+                    // do nothing
                 }
             };
             Writer writer = new BufferedWriter(new OutputStreamWriter(out2, Constants.UTF8));

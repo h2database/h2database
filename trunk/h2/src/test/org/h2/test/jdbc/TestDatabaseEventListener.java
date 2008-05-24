@@ -75,13 +75,16 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         calledClosingDatabase = true;
     }
 
-    public void diskSpaceIsLow(long stillAvailable) throws SQLException {
+    public void diskSpaceIsLow(long stillAvailable) {
+        // nothing to do
     }
 
     public void exceptionThrown(SQLException e, String sql) {
+        // nothing to do
     }
 
     public void init(String url) {
+        // nothing to do
     }
 
     public void opened() {

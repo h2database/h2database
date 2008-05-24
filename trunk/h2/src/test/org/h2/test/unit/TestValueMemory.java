@@ -173,21 +173,24 @@ public class TestValueMemory extends TestBase implements DataHandler {
         return 0;
     }
 
-    public void checkPowerOff() throws SQLException {
+    public void checkPowerOff() {
+        // nothing to do
     }
 
-    public void checkWritingAllowed() throws SQLException {
+    public void checkWritingAllowed() {
+        // nothing to do
     }
 
-    public int compareTypeSave(Value a, Value b) throws SQLException {
+    public int compareTypeSave(Value a, Value b) {
         return 0;
     }
 
-    public String createTempFile() throws SQLException {
+    public String createTempFile() {
         return baseDir + "/valueMemory/data";
     }
 
-    public void freeUpDiskSpace() throws SQLException {
+    public void freeUpDiskSpace() {
+        // nothing to do
     }
 
     public int getChecksum(byte[] data, int start, int end) {
@@ -214,7 +217,8 @@ public class TestValueMemory extends TestBase implements DataHandler {
         return false;
     }
 
-    public void handleInvalidChecksum() throws SQLException {
+    public void handleInvalidChecksum() {
+        // nothing to do
     }
 
     public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {

@@ -41,6 +41,7 @@ public class BenchB implements Bench, Runnable {
     private Random random;
 
     public BenchB() {
+        // nothing to do
     }
 
     public void init(Database db, int size) throws Exception {

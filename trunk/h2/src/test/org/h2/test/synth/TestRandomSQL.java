@@ -35,7 +35,7 @@ public class TestRandomSQL extends TestBase {
 
     private void processException(String sql, SQLException e) {
         if (e.getSQLState().equals("HY000")) {
-            TestBase.logError("new TestRandomSQL().init(test).testCase(" + seed + ");  // FAIL: " + e.toString(), e);
+            TestBase.logError("new TestRandomSQL().init(test).testCase(" + seed + ");  // FAIL: " + e.toString() + " sql: " + sql, e);
             if (exitOnError) {
                 System.exit(0);
             }
@@ -45,9 +45,8 @@ public class TestRandomSQL extends TestBase {
     private String getDatabaseName() {
         if (config.big) {
             return "dataRandomSQL/randomSql" + dbId;
-        } else {
-            return "memFS:/randomSql" + dbId;
         }
+        return "memFS:/randomSql" + dbId;
         // return "dataRandomSQL/randomSql" + dbId+";TRACE_LEVEL_FILE=3";
     }
 

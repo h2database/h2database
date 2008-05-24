@@ -694,9 +694,8 @@ public class DataType {
         } else {
             if (Constants.SERIALIZE_JAVA_OBJECTS) {
                 return ValueJavaObject.getNoCopy(ObjectUtils.serialize(x));
-            } else {
-                throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, x.getClass().getName());
             }
+            throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, x.getClass().getName());
         }
     }
 

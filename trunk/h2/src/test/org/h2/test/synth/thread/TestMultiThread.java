@@ -19,7 +19,7 @@ abstract class TestMultiThread extends Thread {
     TestMulti base;
     Random random = new Random();
 
-    TestMultiThread(TestMulti base) throws SQLException {
+    TestMultiThread(TestMulti base) {
         this.base = base;
     }
 

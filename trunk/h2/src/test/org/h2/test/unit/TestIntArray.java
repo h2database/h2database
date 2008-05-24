@@ -104,9 +104,8 @@ public class TestIntArray extends TestBase {
             }
             if (array[i] == value) {
                 return array;
-            } else {
-                return add(array, i, value);
             }
+            return add(array, i, value);
         }
         return add(array, value);
     }

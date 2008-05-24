@@ -132,9 +132,8 @@ public class HtmlConverter {
             if (repl == null) {
                 buff.append("???" + key + "???");
                 continue;
-            } else {
-                buff.append(repl.charValue());
             }
+            buff.append(repl.charValue());
             i = idx;
         }
         return buff.toString();

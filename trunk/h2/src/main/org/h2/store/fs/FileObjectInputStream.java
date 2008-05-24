@@ -37,9 +37,8 @@ public class FileObjectInputStream extends InputStream {
         if (file.getFilePointer() + len < file.length()) {
             file.readFully(b, off, len);
             return len;
-        } else {
-            return super.read(b, off, len);
         }
+        return super.read(b, off, len);
     }
 
     public void close() throws IOException {

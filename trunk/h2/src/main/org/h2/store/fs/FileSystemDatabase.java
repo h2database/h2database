@@ -189,7 +189,7 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public void createDirs(String fileName) throws SQLException {
+    public void createDirs(String fileName) {
         fileName = translateFileName(fileName);
         try {
             String[] path = StringUtils.arraySplit(fileName, '/', false);
@@ -249,7 +249,7 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public synchronized void delete(String fileName) throws SQLException {
+    public synchronized void delete(String fileName) {
         try {
             long id = getId(fileName, false);
             PreparedStatement prep = prepare("DELETE FROM FILES WHERE ID=?");
@@ -283,7 +283,7 @@ public class FileSystemDatabase extends FileSystem {
         return fileName;
     }
 
-    public String getFileName(String fileName) throws SQLException {
+    public String getFileName(String fileName) {
         fileName = translateFileName(fileName);
         String[] path = StringUtils.arraySplit(fileName, '/', false);
         return path[path.length - 1];
@@ -342,7 +342,7 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public synchronized String[] listFiles(String path) throws SQLException {
+    public synchronized String[] listFiles(String path) {
         try {
             String name = path;
             if (!name.endsWith("/")) {
@@ -364,7 +364,7 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public String normalize(String fileName) throws SQLException {
+    public String normalize(String fileName) {
         return fileName;
     }
 
@@ -384,9 +384,8 @@ public class FileSystemDatabase extends FileSystem {
                 IOUtils.copyAndClose(in, out);
                 byte[] data = out.toByteArray();
                 return new FileObjectDatabase(this, fileName, data, false);
-            } else {
-                return new FileObjectDatabase(this, fileName, new byte[0], true);
             }
+            return new FileObjectDatabase(this, fileName, new byte[0], true);
         } catch (SQLException e) {
             throw convert(e);
         }
@@ -400,7 +399,7 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public synchronized void rename(String oldName, String newName) throws SQLException {
+    public synchronized void rename(String oldName, String newName) {
         try {
             long parentOld = getId(oldName, true);
             long parentNew = getId(newName, true);
@@ -421,15 +420,11 @@ public class FileSystemDatabase extends FileSystem {
     }
 
     public boolean tryDelete(String fileName) {
-        try {
-            delete(fileName);
-        } catch (SQLException e) {
-            return false;
-        }
+        delete(fileName);
         return true;
     }
 
-    synchronized void write(String fileName, byte[] b, int len) throws IOException {
+    synchronized void write(String fileName, byte[] b, int len) {
         try {
             long id = getId(fileName, false);
             if (id >= 0) {

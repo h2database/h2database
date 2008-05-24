@@ -30,13 +30,14 @@ public class FileSystemMemory extends FileSystem {
     }
 
     private FileSystemMemory() {
+        // don't allow construction
     }
 
     public long length(String fileName) {
         return getMemoryFile(fileName).length();
     }
 
-    public void rename(String oldName, String newName) throws SQLException {
+    public void rename(String oldName, String newName) {
         oldName = normalize(oldName);
         newName = normalize(newName);
         FileObjectMemory f = getMemoryFile(oldName);
@@ -47,7 +48,7 @@ public class FileSystemMemory extends FileSystem {
         }
     }
 
-    public boolean createNewFile(String fileName) throws SQLException {
+    public boolean createNewFile(String fileName) {
         if (exists(fileName)) {
             return false;
         }
@@ -63,7 +64,7 @@ public class FileSystemMemory extends FileSystem {
         }
     }
 
-    public void delete(String fileName) throws SQLException {
+    public void delete(String fileName) {
         fileName = normalize(fileName);
         synchronized (MEMORY_FILES) {
             MEMORY_FILES.remove(fileName);
@@ -78,7 +79,7 @@ public class FileSystemMemory extends FileSystem {
         return true;
     }
 
-    public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
+    public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir) {
         name += ".";
         for (int i = 0;; i++) {
             String n = name + Math.abs(RandomUtils.getSecureLong()) + suffix;
@@ -90,7 +91,7 @@ public class FileSystemMemory extends FileSystem {
         }
     }
 
-    public String[] listFiles(String path) throws SQLException {
+    public String[] listFiles(String path) {
         synchronized (MEMORY_FILES) {
             String[] list = new String[MEMORY_FILES.size()];
             FileObjectMemory[] l = new FileObjectMemory[MEMORY_FILES.size()];
@@ -161,11 +162,11 @@ public class FileSystemMemory extends FileSystem {
         }
     }
 
-    public void createDirs(String fileName) throws SQLException {
+    public void createDirs(String fileName) {
         // TODO directories are not really supported
     }
 
-    public String getFileName(String name) throws SQLException {
+    public String getFileName(String name) {
         // TODO directories are not supported
         return name;
     }
@@ -186,13 +187,13 @@ public class FileSystemMemory extends FileSystem {
         }
     }
 
-    public InputStream openFileInputStream(String fileName) throws IOException {
+    public InputStream openFileInputStream(String fileName) {
         FileObjectMemory obj = getMemoryFile(fileName);
         obj.seek(0);
         return new FileObjectInputStream(obj);
     }
 
-    public FileObject openFileObject(String fileName, String mode) throws IOException {
+    public FileObject openFileObject(String fileName, String mode) {
         FileObjectMemory obj = getMemoryFile(fileName);
         obj.seek(0);
         return obj;

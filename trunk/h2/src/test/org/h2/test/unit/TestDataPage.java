@@ -96,7 +96,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         return null;
     }
 
-    public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
+    public FileStore openFile(String name, String mode, boolean mustExist) {
         return null;
     }
 
@@ -104,13 +104,16 @@ public class TestDataPage extends TestBase implements DataHandler {
         return end - start;
     }
 
-    public void checkPowerOff() throws SQLException {
+    public void checkPowerOff() {
+        // nothing to do
     }
 
-    public void checkWritingAllowed() throws SQLException {
+    public void checkWritingAllowed() {
+        // ok
     }
 
-    public void freeUpDiskSpace() throws SQLException {
+    public void freeUpDiskSpace() {
+        // nothing to do
     }
 
     public void handleInvalidChecksum() throws SQLException {

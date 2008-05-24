@@ -22,7 +22,7 @@ public class TempFileDeleter {
     private static final ReferenceQueue QUEUE = new ReferenceQueue();
     private static final HashMap REF_MAP = new HashMap();
     
-    private static class TempFile {
+    static class TempFile {
         String fileName;
         long lastModified;
     }

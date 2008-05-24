@@ -48,6 +48,7 @@ public class CompressTool {
     }    
     
     private CompressTool() {
+        // don't allow construction
     }
     
     /**

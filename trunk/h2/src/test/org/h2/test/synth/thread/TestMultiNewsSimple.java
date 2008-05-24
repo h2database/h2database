@@ -41,7 +41,8 @@ public class TestMultiNewsSimple extends TestMultiThread {
         conn.close();
     }
 
-    void begin() throws SQLException {
+    void begin() {
+        // nothing to do
     }
 
     void end() throws SQLException {
@@ -79,7 +80,7 @@ public class TestMultiNewsSimple extends TestMultiThread {
         }
     }
 
-    void finalTest() throws SQLException {
+    void finalTest() {
         // TODO Auto-generated method stub
 
     }

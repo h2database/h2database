@@ -58,6 +58,10 @@ public class Csv implements SimpleRowSource {
     private int back;
     private boolean endOfLine, endOfFile;
 
+    private Csv() {
+        // don't allow construction
+    }
+    
     /**
      * Get a new object of this class.
      *
@@ -97,15 +101,12 @@ public class Csv implements SimpleRowSource {
     /**
      * Writes the result set to a file in the CSV format.
      *
-     * @param writer
-     *            the writer
-     * @param rs
-     *            the result set
+     * @param writer the writer
+     * @param rs the result set
      * @return the number of rows written
-     * @throws SQLException,
-     *             IOException
+     * @throws IOException
      */
-    public int write(Writer writer, ResultSet rs) throws SQLException, IOException {
+    public int write(Writer writer, ResultSet rs) throws SQLException {
         this.writer = writer;
         return writeResultSet(rs);
     }
@@ -113,12 +114,9 @@ public class Csv implements SimpleRowSource {
     /**
      * Writes the result set to a file in the CSV format.
      *
-     * @param fileName
-     *            the name of the csv file
-     * @param rs
-     *            the result set
-     * @param charset
-     *            the charset or null to use UTF-8
+     * @param fileName the name of the csv file
+     * @param rs the result set
+     * @param charset the charset or null to use UTF-8
      * @return the number of rows written
      * @throws SQLException
      */
@@ -216,9 +214,6 @@ public class Csv implements SimpleRowSource {
             }
             columnNames[i] = x;
         }
-    }
-
-    private Csv() {
     }
 
     private void init(String fileName, String charset) {

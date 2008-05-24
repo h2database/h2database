@@ -160,17 +160,20 @@ public class TableView extends Table {
         return buff.toString();
     }
 
-    public void checkRename() throws SQLException {
+    public void checkRename() {
+        // ok
     }
 
-    public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
+    public void lock(Session session, boolean exclusive, boolean force) {
         // exclusive lock means: the view will be dropped
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
+        // nothing to do
     }
 
     public void unlock(Session s) {
+        // nothing to do
     }
 
     public boolean isLockedExclusively() {

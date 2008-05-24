@@ -34,14 +34,15 @@ public class FileObjectZip implements FileObject {
         length = entry.getSize();
     }
 
-    public void close() throws IOException {
+    public void close() {
+        // nothing to do
     }
 
-    public long getFilePointer() throws IOException {
+    public long getFilePointer() {
         return pos;
     }
 
-    public long length() throws IOException {
+    public long length() {
         return length;
     }
 
@@ -68,7 +69,7 @@ public class FileObjectZip implements FileObject {
         inPos += len;
     }
 
-    public void seek(long pos) throws IOException {
+    public void seek(long pos) {
         this.pos = pos;
     }
 
@@ -76,7 +77,8 @@ public class FileObjectZip implements FileObject {
         throw new IOException("File is read-only");
     }
 
-    public void sync() throws IOException {
+    public void sync() {
+        // nothing to do
     }
 
     public void write(byte[] b, int off, int len) throws IOException {

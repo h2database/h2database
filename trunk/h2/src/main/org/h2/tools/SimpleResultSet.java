@@ -60,7 +60,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     private SimpleRowSource source;
     private ArrayList columns = new ArrayList();
 
-    private static class Column {
+    static class Column {
         String name;
         int sqlType;
         int precision;
@@ -75,7 +75,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         
         private Object[] value;
         
-        private SimpleArray(Object[] value) {
+        SimpleArray(Object[] value) {
             this.value = value;
         }
 
@@ -84,7 +84,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
          * 
          * @return the object array
          */
-        public Object getArray() throws SQLException {
+        public Object getArray() {
             return value;
         }
 
@@ -114,7 +114,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
          * 
          * @return Types.NULL
          */
-        public int getBaseType() throws SQLException {
+        public int getBaseType() {
             return Types.NULL;
         }
 
@@ -123,7 +123,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
          * 
          * @return "NULL"
          */
-        public String getBaseTypeName() throws SQLException {
+        public String getBaseTypeName() {
             return "NULL";
         }
 
@@ -158,7 +158,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         /**
          * INTERNAL 
          */
-        public void free() throws SQLException {
+        public void free() {
+            // nothing to do
         }
 
     }
@@ -221,7 +222,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return CONCUR_READ_ONLY
      */
-    public int getConcurrency() throws SQLException {
+    public int getConcurrency() {
         return ResultSet.CONCUR_READ_ONLY;
     }
 
@@ -230,7 +231,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return FETCH_FORWARD
      */
-    public int getFetchDirection() throws SQLException {
+    public int getFetchDirection() {
         return ResultSet.FETCH_FORWARD;
     }
 
@@ -239,7 +240,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return 0
      */
-    public int getFetchSize() throws SQLException {
+    public int getFetchSize() {
         return 0;
     }
 
@@ -248,7 +249,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return 0
      */
-    public int getRow() throws SQLException {
+    public int getRow() {
         return rowId + 1;
     }
 
@@ -257,14 +258,14 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return TYPE_FORWARD_ONLY
      */
-    public int getType() throws SQLException {
+    public int getType() {
         return ResultSet.TYPE_FORWARD_ONLY;
     }
 
     /**
      * Closes the result set and releases the resources.
      */
-    public void close() throws SQLException {
+    public void close() {
         currentRow = null;
         rows = null;
         columns = null;
@@ -316,7 +317,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return true if the last column accessed was null
      */
-    public boolean wasNull() throws SQLException {
+    public boolean wasNull() {
         return wasNull;
     }
 
@@ -556,7 +557,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return this
      */
-    public ResultSetMetaData getMetaData() throws SQLException {
+    public ResultSetMetaData getMetaData() {
         return this;
     }
 
@@ -565,7 +566,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return null
      */
-    public SQLWarning getWarnings() throws SQLException {
+    public SQLWarning getWarnings() {
         return null;
     }
 
@@ -574,7 +575,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return null
      */
-    public Statement getStatement() throws SQLException {
+    public Statement getStatement() {
         return null;
     }
 
@@ -676,7 +677,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return the column count
      */
-    public int getColumnCount() throws SQLException {
+    public int getColumnCount() {
         return columns.size();
     }
 
@@ -685,7 +686,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return 15
      */
-    public int getColumnDisplaySize(int columnIndex) throws SQLException {
+    public int getColumnDisplaySize(int columnIndex) {
         return 15;
     }
 
@@ -721,7 +722,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return columnNullableUnknown
      */
-    public int isNullable(int columnIndex) throws SQLException {
+    public int isNullable(int columnIndex) {
         return ResultSetMetaData.columnNullableUnknown;
     }
 
@@ -730,7 +731,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return false
      */
-    public boolean isAutoIncrement(int columnIndex) throws SQLException {
+    public boolean isAutoIncrement(int columnIndex) {
         return false;
     }
 
@@ -739,7 +740,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return true
      */
-    public boolean isCaseSensitive(int columnIndex) throws SQLException {
+    public boolean isCaseSensitive(int columnIndex) {
         return true;
     }
 
@@ -748,7 +749,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return false
      */
-    public boolean isCurrency(int columnIndex) throws SQLException {
+    public boolean isCurrency(int columnIndex) {
         return false;
     }
 
@@ -757,7 +758,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return false
      */
-    public boolean isDefinitelyWritable(int columnIndex) throws SQLException {
+    public boolean isDefinitelyWritable(int columnIndex) {
         return false;
     }
 
@@ -766,7 +767,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return true
      */
-    public boolean isReadOnly(int columnIndex) throws SQLException {
+    public boolean isReadOnly(int columnIndex) {
         return true;
     }
 
@@ -775,7 +776,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return true
      */
-    public boolean isSearchable(int columnIndex) throws SQLException {
+    public boolean isSearchable(int columnIndex) {
         return true;
     }
 
@@ -784,7 +785,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return true
      */
-    public boolean isSigned(int columnIndex) throws SQLException {
+    public boolean isSigned(int columnIndex) {
         return true;
     }
 
@@ -793,7 +794,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return false
      */
-    public boolean isWritable(int columnIndex) throws SQLException {
+    public boolean isWritable(int columnIndex) {
         return false;
     }
 
@@ -802,7 +803,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return null
      */
-    public String getCatalogName(int columnIndex) throws SQLException {
+    public String getCatalogName(int columnIndex) {
         return null;
     }
 
@@ -811,7 +812,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return null
      */
-    public String getColumnClassName(int columnIndex) throws SQLException {
+    public String getColumnClassName(int columnIndex) {
         return null;
     }
 
@@ -838,7 +839,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return null
      */
-    public String getColumnTypeName(int columnIndex) throws SQLException {
+    public String getColumnTypeName(int columnIndex) {
         return null;
     }
 
@@ -847,7 +848,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return null
      */
-    public String getSchemaName(int columnIndex) throws SQLException {
+    public String getSchemaName(int columnIndex) {
         return null;
     }
 
@@ -856,7 +857,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return null
      */
-    public String getTableName(int columnIndex) throws SQLException {
+    public String getTableName(int columnIndex) {
         return null;
     }
 
@@ -865,7 +866,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /** 
      * INTERNAL 
      */
-    public void clearWarnings() throws SQLException {
+    public void clearWarnings() {
+        // nothing to do
     }
 
     /** 
@@ -1095,21 +1097,21 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /** 
      * INTERNAL 
      */
-    public InputStream getAsciiStream(int columnIndex) throws SQLException {
+    public InputStream getAsciiStream(int columnIndex) {
         return null;
     }
 
     /** 
      * INTERNAL 
      */
-    public InputStream getBinaryStream(int columnIndex) throws SQLException {
+    public InputStream getBinaryStream(int columnIndex) {
         return null;
     }
 
     /** 
      * @deprecated INTERNAL 
      */
-    public InputStream getUnicodeStream(int columnIndex) throws SQLException {
+    public InputStream getUnicodeStream(int columnIndex) {
         return null;
     }
 
@@ -1535,7 +1537,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 
     // --- private -----------------------------
 
-    private static SQLException getUnsupportedException() {
+    static SQLException getUnsupportedException() {
         return new SQLException("Feature not supported", "HYC00");
     }
 
@@ -1613,23 +1615,27 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @return true if the result set was closed
      */
-    public boolean isClosed() throws SQLException {
+    public boolean isClosed() {
         return rows == null;
     }
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateNString(int columnIndex, String nString) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateNString(String columnName, String nString) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
@@ -1722,30 +1728,38 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public Reader getNCharacterStream(int columnIndex) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public Reader getNCharacterStream(String columnName) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateNCharacterStream(int columnIndex, Reader x, int length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateNCharacterStream(String columnName, Reader x, int length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
@@ -1768,197 +1782,253 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateAsciiStream(int columnIndex, InputStream x) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateAsciiStream(String columnName, InputStream x) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateAsciiStream(int columnIndex, InputStream x, long length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateAsciiStream(String columnName, InputStream x, long length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateBinaryStream(int columnName, InputStream x) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateBinaryStream(String columnName, InputStream x) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateBinaryStream(int columnIndex, InputStream x, long length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateBinaryStream(String columnName, InputStream x, long length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateBlob(int columnIndex, InputStream x) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateBlob(String columnName, InputStream x) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateBlob(int columnIndex, InputStream x, long length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateBlob(String columnName, InputStream x, long length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateCharacterStream(int columnIndex, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateCharacterStream(String columnName, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateCharacterStream(String columnName, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateClob(int columnIndex, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateClob(String columnName, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateClob(int columnIndex, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateClob(String columnName, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateNCharacterStream(int columnIndex, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateNCharacterStream(String columnName, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateNCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateNCharacterStream(String columnName, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateNClob(int columnIndex, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateNClob(String columnName, Reader x) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateNClob(int columnIndex, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /** 
      * INTERNAL 
      */
+/*## Java 1.6 begin ##
     public void updateNClob(String columnName, Reader x, long length) throws SQLException {
         throw getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
 }

@@ -96,7 +96,7 @@ public class FileObjectMemory implements FileObject {
         data[i] = out;
     }
 
-    private static void compress(byte[][] data, int i) {
+    static void compress(byte[][] data, int i) {
         byte[] d = data[i];
         synchronized (LZF) {
             int len = LZF.compress(d, BLOCK_SIZE, BUFFER, 0);
@@ -220,7 +220,8 @@ public class FileObjectMemory implements FileObject {
         pos = 0;
     }
 
-    public void sync() throws IOException {
+    public void sync() {
+        // nothing to do
     }
 
     public void setName(String name) {

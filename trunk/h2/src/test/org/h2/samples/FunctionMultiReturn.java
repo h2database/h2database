@@ -105,7 +105,7 @@ public class FunctionMultiReturn {
      * @param alpha the angle
      * @return an array two values: x and y
      */
-    public static Object[] polar2CartesianArray(Double r, Double alpha) throws SQLException {
+    public static Object[] polar2CartesianArray(Double r, Double alpha) {
         double x = r.doubleValue() * Math.cos(alpha.doubleValue());
         double y = r.doubleValue() * Math.sin(alpha.doubleValue());
         return new Object[]{new Double(x), new Double(y)};

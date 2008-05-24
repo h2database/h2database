@@ -29,7 +29,7 @@ public class ConvertTraceFile extends Tool {
     private HashMap stats = new HashMap();
     private long timeTotal;
     
-    private static class Stat implements Comparable {
+    static class Stat implements Comparable {
         String sql;
         int executeCount;
         long time;

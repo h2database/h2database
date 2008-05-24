@@ -33,6 +33,7 @@ class OutputCatcher extends Thread {
                 try {
                     list.wait(wait);
                 } catch (InterruptedException e) {
+                    // ignore
                 }
                 long time = System.currentTimeMillis() - start;
                 if (time >= wait) {

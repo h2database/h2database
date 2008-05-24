@@ -634,7 +634,7 @@ public class DiskFile implements CacheWriter {
         }
     }
 
-    void uncommittedDelete(Session session) throws SQLException {
+    void uncommittedDelete(Session session) {
         if (session != null && logChanges && SysProperties.REUSE_SPACE_QUICKLY) {
             int deleteId = session.getLastUncommittedDelete();
             if (deleteId == 0 || deleteId < nextDeleteId) {

@@ -48,7 +48,7 @@ public class TestCrashAPI extends TestBase {
             ParameterMetaData.class, Clob.class, Blob.class, Array.class, CallableStatement.class };
     private ArrayList objects = new ArrayList();
     private HashMap classMethods = new HashMap();
-    private RandomGen random = new RandomGen(null);
+    private RandomGen random = new RandomGen();
     private ArrayList statements = new ArrayList();
     private int openCount;
     private long callCount;
@@ -147,7 +147,7 @@ public class TestCrashAPI extends TestBase {
         printTime("seed: " + seed);
         callCount = 0;
         openCount = 0;
-        random = new RandomGen(null);
+        random = new RandomGen();
         random.setSeed(seed);
         Connection c1 = getConnection(seed, true);
         Connection conn = null;
@@ -238,7 +238,7 @@ public class TestCrashAPI extends TestBase {
         Class[] paramClasses = m.getParameterTypes();
         Object[] params = new Object[paramClasses.length];
         for (int i = 0; i < params.length; i++) {
-            params[i] = getRandomParam(id, paramClasses[i]);
+            params[i] = getRandomParam(paramClasses[i]);
         }
         Object result = null;
         try {
@@ -287,7 +287,7 @@ public class TestCrashAPI extends TestBase {
         }
     }
 
-    private Object getRandomParam(int id, Class type) {
+    private Object getRandomParam(Class type) {
         if (type == int.class) {
             return new Integer(random.getRandomInt());
         } else if (type == byte.class) {
@@ -305,14 +305,13 @@ public class TestCrashAPI extends TestBase {
         } else if (type == String.class) {
             if (random.getInt(10) == 0) {
                 return null;
-            } else {
-                int randomId = random.getInt(statements.size());
-                String sql = (String) statements.get(randomId);
-                if (random.getInt(10) == 0) {
-                    sql = random.modify(sql);
-                }
-                return sql;
             }
+            int randomId = random.getInt(statements.size());
+            String sql = (String) statements.get(randomId);
+            if (random.getInt(10) == 0) {
+                sql = random.modify(sql);
+            }
+            return sql;
         } else if (type == int[].class) {
             // TODO test with 'shared' arrays (make sure database creates a
             // copy)

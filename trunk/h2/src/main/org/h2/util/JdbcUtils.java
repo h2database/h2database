@@ -112,9 +112,8 @@ public class JdbcUtils {
                     String password = prop.getProperty("password");
                     if (StringUtils.isNullOrEmpty(user) && StringUtils.isNullOrEmpty(password)) {
                         return ds.getConnection();
-                    } else {
-                        return ds.getConnection(user, password);
                     }
+                    return ds.getConnection(user, password);
                  } catch (InstantiationException e) {
                      throw Message.convert(e);
                  } catch (IllegalAccessException e) {

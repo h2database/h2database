@@ -54,9 +54,8 @@ public class NetUtils {
         if (ssl) {
             SecureSocketFactory f = SecureSocketFactory.getInstance();
             return f.createSocket(address, port);
-        } else {
-            return new Socket(address, port);
         }
+        return new Socket(address, port);
     }
 
     public static ServerSocket createServerSocket(int port, boolean ssl) throws SQLException {
@@ -92,14 +91,12 @@ public class NetUtils {
             if (ssl) {
                 SecureSocketFactory f = SecureSocketFactory.getInstance();
                 return f.createServerSocket(port);
-            } else {
-                InetAddress bindAddress = getBindAddress();
-                if (bindAddress == null) {
-                    return new ServerSocket(port);
-                } else {
-                    return new ServerSocket(port, 0, bindAddress);
-                }
             }
+            InetAddress bindAddress = getBindAddress();
+            if (bindAddress == null) {
+                return new ServerSocket(port);
+            }
+            return new ServerSocket(port, 0, bindAddress);
         } catch (BindException be) {
             throw Message.getSQLException(ErrorCode.EXCEPTION_OPENING_PORT_2,
                     new String[] { "" + port, be.toString() }, be);

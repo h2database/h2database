@@ -41,8 +41,7 @@ public class TestTwoPhaseCommit extends TestBase {
         rs.next();
         check(rs.getInt(1), 1);
         check(rs.getString(2), "Hello");
-        if (rolledBack) {
-        } else {
+        if (!rolledBack) {
             rs.next();
             check(rs.getInt(1), 2);
             check(rs.getString(2), "World");

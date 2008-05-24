@@ -27,7 +27,7 @@ public class TestSimpleIndex extends TestBase {
     public void test() throws Exception {
         deleteDb("simpleIndex");
         conn = getConnection("simpleIndex");
-        random = new RandomGen(null);
+        random = new RandomGen();
         stat = conn.createStatement();
         for (int i = 0; i < 10000; i++) {
             testIndex(i);
@@ -54,7 +54,7 @@ public class TestSimpleIndex extends TestBase {
         execute("CREATE " + unique + "INDEX D ON TEST_DI(" + cols + ")");
         for (int i = 0; i < 100; i++) {
             println("i=" + i);
-            testRows(i);
+            testRows();
         }
         execute("DROP INDEX M");
         execute("DROP INDEX D");
@@ -64,7 +64,7 @@ public class TestSimpleIndex extends TestBase {
         execute("DROP TABLE TEST_DI");
     }
 
-    private void testRows(int id) throws Exception {
+    private void testRows() throws Exception {
         String a = randomValue(), b = randomValue(), c = randomValue();
         String data = a + "/" + b + "/" + c;
         String sql = "VALUES(" + a + ", " + b + ", " + c + ", '" + data + "')";

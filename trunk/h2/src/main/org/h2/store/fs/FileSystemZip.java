@@ -27,6 +27,7 @@ public class FileSystemZip extends FileSystem {
     private static final FileSystemZip INSTANCE = new FileSystemZip();
 
     private FileSystemZip() {
+        // don't allow construction
     }
 
     public static FileSystemZip getInstance() {
@@ -41,7 +42,7 @@ public class FileSystemZip extends FileSystem {
         throw Message.getUnsupportedException();
     }
 
-    public void createDirs(String fileName) throws SQLException {
+    public void createDirs(String fileName) {
         // ignore
     }
 
@@ -85,7 +86,7 @@ public class FileSystemZip extends FileSystem {
         return fileName;
     }
 
-    public String getFileName(String name) throws SQLException {
+    public String getFileName(String name) {
         name = getEntryName(name);
         if (name.endsWith("/")) {
             name = name.substring(0, name.length() - 1);
@@ -189,7 +190,7 @@ public class FileSystemZip extends FileSystem {
         }
     }
 
-    public String normalize(String fileName) throws SQLException {
+    public String normalize(String fileName) {
         return fileName;
     }
 

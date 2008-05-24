@@ -24,6 +24,7 @@ public class MultiDimension {
     private static MultiDimension instance = new MultiDimension();
 
     private MultiDimension() {
+        // don't allow construction
     }
 
     /**

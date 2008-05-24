@@ -36,8 +36,8 @@ import org.h2.util.StringUtils;
 public class PropertiesToUTF8 {
 
     public static void main(String[] args) throws Exception {
-        convert("bin/org/h2/res", ".");
-        convert("bin/org/h2/server/web/res", ".");
+        convert("bin/org/h2/res");
+        convert("bin/org/h2/server/web/res");
     }
 
     static void propertiesToTextUTF8(String source, String target) throws Exception {
@@ -66,6 +66,7 @@ public class PropertiesToUTF8 {
         Properties prop = new SortedProperties();
         StringBuffer buff = new StringBuffer();
         String key = null;
+        boolean found = false;
         while (true) {
             String line = reader.readLine();
             if (line == null) {
@@ -80,6 +81,7 @@ public class PropertiesToUTF8 {
                     prop.setProperty(key, buff.toString());
                     buff.setLength(0);
                 }
+                found = true;
                 key = line.substring(1);
             } else {
                 if (buff.length() > 0) {
@@ -88,13 +90,13 @@ public class PropertiesToUTF8 {
                 buff.append(line);
             }
         }
-        if (key != null) {
+        if (found) {
             prop.setProperty(key, buff.toString());
         }
         storeProperties(prop, target);
     }
 
-    private static void convert(String source, String target) throws Exception {
+    private static void convert(String source) throws Exception {
         File[] list = new File(source).listFiles();
         for (int i = 0; list != null && i < list.length; i++) {
             File f = list[i];

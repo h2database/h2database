@@ -77,7 +77,7 @@ public class ValueLob extends Value {
         return copy;
     }
 
-    private ValueLob(int type, byte[] small) throws SQLException {
+    private ValueLob(int type, byte[] small) {
         this.type = type;
         this.small = small;
         if (small != null) {
@@ -89,7 +89,7 @@ public class ValueLob extends Value {
         }
     }
 
-    public static ValueLob createSmallLob(int type, byte[] small) throws SQLException {
+    public static ValueLob createSmallLob(int type, byte[] small) {
         return new ValueLob(type, small);
     }
 
@@ -100,9 +100,8 @@ public class ValueLob extends Value {
         if (handler.getLobFilesInDirectories()) {
             String table = tableId < 0 ? ".temp" : ".t" + tableId;
             return getFileNamePrefix(handler.getDatabasePath(), objectId) + table + Constants.SUFFIX_LOB_FILE;
-        } else {
-            return handler.getDatabasePath() + "." + tableId + "." + objectId + Constants.SUFFIX_LOB_FILE;
         }
+        return handler.getDatabasePath() + "." + tableId + "." + objectId + Constants.SUFFIX_LOB_FILE;
     }
 
     /**
@@ -250,23 +249,22 @@ public class ValueLob extends Value {
                 objectId += fileId;
                 invalidateFileList(handler, dir);
                 break;
+            }
+            if (objectId > Integer.MAX_VALUE / SysProperties.LOB_FILES_PER_DIRECTORY) {
+                // this directory path is full: start from zero
+                // (this can happen only theoretically, 
+                // for example if the random number generator is broken)
+                objectId = 0;
             } else {
-                if (objectId > Integer.MAX_VALUE / SysProperties.LOB_FILES_PER_DIRECTORY) {
-                    // this directory path is full: start from zero
-                    // (this can happen only theoretically, 
-                    // for example if the random number generator is broken)
-                    objectId = 0;
-                } else {
-                    // calculate the directory
-                    // start with 1 (otherwise we don't know the number of directories)
-                    // it doesn't really matter what directory is used, it might as well be random
-                    // (but that would generate more directories):
-                    // int dirId = RandomUtils.nextInt(
-                    //         SysProperties.LOB_FILES_PER_DIRECTORY - 1) + 1;
-                    int dirId = (dirCounter++ / (SysProperties.LOB_FILES_PER_DIRECTORY - 1)) + 1;
-                    objectId = objectId * SysProperties.LOB_FILES_PER_DIRECTORY;
-                    objectId += dirId * SysProperties.LOB_FILES_PER_DIRECTORY;
-                }
+                // calculate the directory
+                // start with 1 (otherwise we don't know the number of directories)
+                // it doesn't really matter what directory is used, it might as well be random
+                // (but that would generate more directories):
+                // int dirId = RandomUtils.nextInt(
+                //         SysProperties.LOB_FILES_PER_DIRECTORY - 1) + 1;
+                int dirId = (dirCounter++ / (SysProperties.LOB_FILES_PER_DIRECTORY - 1)) + 1;
+                objectId = objectId * SysProperties.LOB_FILES_PER_DIRECTORY;
+                objectId += dirId * SysProperties.LOB_FILES_PER_DIRECTORY;
             }
         }
         return objectId;
@@ -321,7 +319,7 @@ public class ValueLob extends Value {
         }
     }
 
-    private FileStoreOutputStream initLarge(DataHandler handler) throws IOException, SQLException {
+    private FileStoreOutputStream initLarge(DataHandler handler) throws SQLException {
         this.handler = handler;
         this.tableId = 0;
         this.linked = false;
@@ -482,15 +480,14 @@ public class ValueLob extends Value {
                     return StringUtils.utf8Decode(small);
                 }
                 return IOUtils.readStringAndClose(getReader(), len);
-            } else {
-                byte[] buff;
-                if (small != null) {
-                    buff = small;
-                } else {
-                    buff = IOUtils.readBytesAndClose(getInputStream(), len);
-                }
-                return ByteUtils.convertBytesToString(buff);
             }
+            byte[] buff;
+            if (small != null) {
+                buff = small;
+            } else {
+                buff = IOUtils.readBytesAndClose(getInputStream(), len);
+            }
+            return ByteUtils.convertBytesToString(buff);
         } catch (IOException e) {
             throw Message.convertToInternal(Message.convertIOException(e, fileName));
         } catch (SQLException e) {
@@ -534,21 +531,19 @@ public class ValueLob extends Value {
         if (type == Value.CLOB) {
             int c = getString().compareTo(v.getString());
             return c == 0 ? 0 : (c < 0 ? -1 : 1);
-        } else {
-            byte[] v2 = v.getBytesNoCopy();
-            return ByteUtils.compareNotNull(getBytes(), v2);
         }
+        byte[] v2 = v.getBytesNoCopy();
+        return ByteUtils.compareNotNull(getBytes(), v2);
     }
 
     public Object getObject() {
         if (type == Value.CLOB) {
             return getReader();
-        } else {
-            try {
-                return getInputStream();
-            } catch (SQLException e) {
-                throw Message.convertToInternal(e);
-            }
+        }
+        try {
+            return getInputStream();
+        } catch (SQLException e) {
+            throw Message.convertToInternal(e);
         }
     }
 
@@ -589,11 +584,10 @@ public class ValueLob extends Value {
             if (type == Value.CLOB) {
                 s = getString();
                 return StringUtils.quoteStringSQL(s);
-            } else {
-                byte[] buff = getBytes();
-                s = ByteUtils.convertBytesToString(buff);
-                return "X'" + s + "'";
             }
+            byte[] buff = getBytes();
+            s = ByteUtils.convertBytesToString(buff);
+            return "X'" + s + "'";
         } catch (SQLException e) {
             throw Message.convertToInternal(e);
         }
@@ -602,9 +596,8 @@ public class ValueLob extends Value {
     public String toString() {
         if (small == null) {
             return getClass().getName() + " file: " + fileName + " type: " + type + " precision: " + precision;
-        } else {
-            return getSQL();
         }
+        return getSQL();
     }
 
     public byte[] getSmall() {

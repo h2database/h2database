@@ -6,7 +6,6 @@
  */
 package org.h2.test.synth.sql;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 /**
@@ -24,44 +23,44 @@ public class DbState implements DbInterface {
         this.config = config;
     }
 
-    public void reset() throws SQLException {
+    public void reset() {
         tables = new ArrayList();
         indexes = new ArrayList();
     }
 
-    public void connect() throws SQLException {
+    public void connect() {
         connected = true;
     }
 
-    public void disconnect() throws SQLException {
+    public void disconnect() {
         connected = false;
     }
 
-    public void createTable(Table table) throws SQLException {
+    public void createTable(Table table) {
         tables.add(table);
     }
 
-    public void dropTable(Table table) throws SQLException {
+    public void dropTable(Table table) {
         tables.remove(table);
     }
 
-    public void createIndex(Index index) throws SQLException {
+    public void createIndex(Index index) {
         indexes.add(index);
     }
 
-    public void dropIndex(Index index) throws SQLException {
+    public void dropIndex(Index index) {
         indexes.remove(index);
     }
 
-    public Result insert(Table table, Column[] c, Value[] v) throws SQLException {
+    public Result insert(Table table, Column[] c, Value[] v) {
         return null;
     }
 
-    public Result select(String sql) throws SQLException {
+    public Result select(String sql) {
         return null;
     }
 
-    public Result delete(Table table, String condition) throws SQLException {
+    public Result delete(Table table, String condition) {
         return null;
     }
 
@@ -69,14 +68,16 @@ public class DbState implements DbInterface {
         return null;
     }
 
-    public void setAutoCommit(boolean b) throws SQLException {
+    public void setAutoCommit(boolean b) {
         autoCommit = b;
     }
 
-    public void commit() throws SQLException {
+    public void commit() {
+        // nothing to do
     }
 
-    public void rollback() throws SQLException {
+    public void rollback() {
+        // nothing to do
     }
 
     public Table randomTable() {
@@ -87,7 +88,8 @@ public class DbState implements DbInterface {
         return (Table) tables.get(i);
     }
 
-    public void end() throws SQLException {
+    public void end() {
+        // nothing to do
     }
 
 }

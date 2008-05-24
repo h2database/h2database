@@ -63,9 +63,8 @@ public class ValueInt extends Value {
     private ValueInt checkRange(long value) throws SQLException {
         if (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE) {
             throw Message.getSQLException(ErrorCode.OVERFLOW_FOR_TYPE_1, DataType.getDataType(Value.INT).name);
-        } else {
-            return ValueInt.get((int) value);
         }
+        return ValueInt.get((int) value);
     }
 
     public int getSignum() {

@@ -6,8 +6,6 @@
  */
 package org.h2.value;
 
-import java.sql.SQLException;
-
 import org.h2.constant.SysProperties;
 import org.h2.util.MathUtils;
 import org.h2.util.StringCache;
@@ -23,7 +21,7 @@ public class ValueStringFixed extends ValueStringBase {
         super(value);
     }
 
-    protected int compareSecure(Value o, CompareMode mode) throws SQLException {
+    protected int compareSecure(Value o, CompareMode mode) {
         // compatibility: the other object could be ValueString
         ValueStringBase v = (ValueStringBase) o;
         return mode.compareString(value, v.value, false);

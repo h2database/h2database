@@ -118,7 +118,7 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable 
         this.setTemporary(table.getTemporary());
     }
 
-    public void checkRename() throws SQLException {
+    public void checkRename() {
         // ok
     }
 

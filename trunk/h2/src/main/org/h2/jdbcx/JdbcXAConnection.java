@@ -73,7 +73,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * @return itself
      */
 //## Java 1.4 begin ##
-    public XAResource getXAResource() throws SQLException {
+    public XAResource getXAResource() {
         debugCodeCall("getXAResource");
         return this;
     }
@@ -177,7 +177,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * @return 0
      */
 //## Java 1.4 begin ##
-    public int getTransactionTimeout() throws XAException {
+    public int getTransactionTimeout() {
         debugCodeCall("getTransactionTimeout");
         return 0;
     }
@@ -190,7 +190,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * @return false
      */
 //## Java 1.4 begin ##
-    public boolean setTransactionTimeout(int seconds) throws XAException {
+    public boolean setTransactionTimeout(int seconds) {
         debugCodeCall("setTransactionTimeout", seconds);
         return false;
     }
@@ -203,7 +203,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * @return true if this is the same object
      */
 //## Java 1.4 begin ##
-    public boolean isSameRM(XAResource xares) throws XAException {
+    public boolean isSameRM(XAResource xares) {
         debugCode("isSameRM(xares);");
         return xares == this;
     }
@@ -279,7 +279,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * @param xid the transaction id
      */
 //## Java 1.4 begin ##
-    public void forget(Xid xid) throws XAException {
+    public void forget(Xid xid) {
         if (isDebugEnabled()) {
             debugCode("forget("+quoteXid(xid)+");");
         }

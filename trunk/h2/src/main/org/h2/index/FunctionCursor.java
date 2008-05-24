@@ -29,7 +29,7 @@ public class FunctionCursor implements Cursor {
         return row;
     }
 
-    public SearchRow getSearchRow() throws SQLException {
+    public SearchRow getSearchRow() {
         return row;
     }
 

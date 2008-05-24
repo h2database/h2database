@@ -53,11 +53,10 @@ public class ScanCursor implements Cursor {
                         delta = null;
                         row = null;
                         continue;
-                    } else {
-                        row = (Row) delta.next();
-                        if (!row.getDeleted() || row.getSessionId() == session.getId()) {
-                            continue;
-                        }
+                    }
+                    row = (Row) delta.next();
+                    if (!row.getDeleted() || row.getSessionId() == session.getId()) {
+                        continue;
                     }
                 } else {
                     row = scan.getNextRow(session, row);

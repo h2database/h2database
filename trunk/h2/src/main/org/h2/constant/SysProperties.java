@@ -462,6 +462,7 @@ public class SysProperties {
             try {
                 return Boolean.valueOf(s).booleanValue();
             } catch (NumberFormatException e) {
+                // ignore
             }
         }
         return defaultValue;
@@ -493,6 +494,7 @@ public class SysProperties {
             try {
                 return Integer.decode(s).intValue();
             } catch (NumberFormatException e) {
+                // ignore
             }
         }
         return defaultValue;

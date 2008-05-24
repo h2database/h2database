@@ -75,7 +75,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         super(session, schema);
     }
 
-    private String generateConstraintName(DbObject obj, int id) throws SQLException {
+    private String generateConstraintName(DbObject obj) {
         if (constraintName == null) {
             constraintName = getSchema().getUniqueConstraintName(obj);
         }
@@ -141,7 +141,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             index.getIndexType().setBelongsToConstraint(true);
             int constraintId = getObjectId(true, true);
-            String name = generateConstraintName(table, constraintId);
+            String name = generateConstraintName(table);
             ConstraintUnique pk = new ConstraintUnique(getSchema(), constraintId, name, table, true);
             pk.setColumns(indexColumns);
             pk.setIndex(index, true);
@@ -162,7 +162,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 }
             }
             int id = getObjectId(true, true);
-            String name = generateConstraintName(table, id);
+            String name = generateConstraintName(table);
             ConstraintUnique unique = new ConstraintUnique(getSchema(), id, name, table, false);
             unique.setColumns(indexColumns);
             unique.setIndex(index, isOwner);
@@ -171,7 +171,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         }
         case CHECK: {
             int id = getObjectId(true, true);
-            String name = generateConstraintName(table, id);
+            String name = generateConstraintName(table);
             ConstraintCheck check = new ConstraintCheck(getSchema(), id, name, table);
             TableFilter filter = new TableFilter(session, table, null, false, null);
             checkExpression.mapColumns(filter, 0);
@@ -223,7 +223,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 }
             }
             int id = getObjectId(true, true);
-            String name = generateConstraintName(table, id);
+            String name = generateConstraintName(table);
             ConstraintReferential ref = new ConstraintReferential(getSchema(), id, name, table);
             ref.setColumns(indexColumns);
             ref.setIndex(index, isOwner);

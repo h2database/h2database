@@ -55,7 +55,7 @@ public class AlterSequence extends SchemaCommand {
         this.start = start;
     }
 
-    public void setIncrement(Expression increment) throws SQLException {
+    public void setIncrement(Expression increment) {
         this.increment = increment;
     }
 

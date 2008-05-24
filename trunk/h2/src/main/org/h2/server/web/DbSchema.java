@@ -23,7 +23,7 @@ public class DbSchema {
     DbTableOrView[] tables;
     public boolean isDefault;
 
-    DbSchema(DbContents contents, String name, boolean isDefault) throws SQLException {
+    DbSchema(DbContents contents, String name, boolean isDefault) {
         this.contents = contents;
         this.name = name;
         this.quotedName =  contents.quoteIdentifier(name);

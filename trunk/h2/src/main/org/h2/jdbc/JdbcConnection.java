@@ -113,7 +113,6 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCodeAssign("Statement", TraceObject.STATEMENT, id, "createStatement(" + resultSetType + ", " + resultSetConcurrency + ")");
             }
             checkClosed();
-            checkTypeAndConcurrency(resultSetType, resultSetConcurrency);
             return new JdbcStatement(session, this, resultSetType, id, false);
         } catch (Throwable e) {
             throw logAndConvert(e);
@@ -137,7 +136,6 @@ public class JdbcConnection extends TraceObject implements Connection {
                         "createStatement(" + resultSetType + ", " + resultSetConcurrency + ", " + resultSetHoldability + ")");
             }
             checkClosed();
-            checkTypeAndConcurrency(resultSetType, resultSetConcurrency);
             checkHoldability(resultSetHoldability);
             return new JdbcStatement(session, this, resultSetType, id, false);
         } catch (Throwable e) {
@@ -519,7 +517,6 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCodeAssign("PreparedStatement", TraceObject.PREPARED_STATEMENT, id, "prepareStatement(" + quote(sql) + ", " + resultSetType + ", " + resultSetConcurrency + ")");
             }
             checkClosed();
-            checkTypeAndConcurrency(resultSetType, resultSetConcurrency);
             sql = translateSQL(sql);
             return new JdbcPreparedStatement(session, this, sql, resultSetType, id, false);
         } catch (Throwable e) {
@@ -593,10 +590,9 @@ public class JdbcConnection extends TraceObject implements Connection {
             result.close();
             if (queryTimeout == 0) {
                 return 0;
-            } else {
-                // round to the next second, otherwise 999 millis would return 0 seconds
-                return (queryTimeout + 999) / 1000;
             }
+            // round to the next second, otherwise 999 millis would return 0 seconds
+            return (queryTimeout + 999) / 1000;
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
@@ -743,7 +739,6 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCodeAssign("CallableStatement", TraceObject.CALLABLE_STATEMENT, id, "prepareCall(" + quote(sql) + ", " + resultSetType + ", " + resultSetConcurrency + ")");
             }
             checkClosed();
-            checkTypeAndConcurrency(resultSetType, resultSetConcurrency);
             sql = translateSQL(sql);
             return new JdbcCallableStatement(session, this, sql, resultSetType, id);
         } catch (Throwable e) {
@@ -770,7 +765,6 @@ public class JdbcConnection extends TraceObject implements Connection {
                         + resultSetHoldability + ")");
             }
             checkClosed();
-            checkTypeAndConcurrency(resultSetType, resultSetConcurrency);
             checkHoldability(resultSetHoldability);
             sql = translateSQL(sql);
             return new JdbcCallableStatement(session, this, sql, resultSetType, id);
@@ -881,7 +875,6 @@ public class JdbcConnection extends TraceObject implements Connection {
                         + resultSetHoldability + ")");
             }
             checkClosed();
-            checkTypeAndConcurrency(resultSetType, resultSetConcurrency);
             checkHoldability(resultSetHoldability);
             sql = translateSQL(sql);
             return new JdbcPreparedStatement(session, this, sql, resultSetType, id, false);
@@ -965,6 +958,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             if (ci.isRemote()) {
                 session = new SessionRemote().createSession(ci);
             } else {
+                // create the session using reflection, so that the JDBC layer can be compiled without it
                 SessionInterface si = (SessionInterface) ClassUtils.loadSystemClass("org.h2.engine.Session").newInstance();
                 if (useBaseDir) {
                     String baseDir = SysProperties.getBaseDir();
@@ -993,7 +987,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     /**
      * INTERNAL
      */
-    public JdbcConnection(SessionInterface session, String user, String url) throws SQLException {
+    public JdbcConnection(SessionInterface session, String user, String url) {
         isInternal = true;
         this.session = session;
         trace = session.getTrace();
@@ -1209,18 +1203,6 @@ public class JdbcConnection extends TraceObject implements Connection {
         return sql.regionMatches(true, start, other, 0, other.length());
     }
 
-    private void checkTypeAndConcurrency(int resultSetType, int resultSetConcurrency) throws SQLException {
-        // TODO compatibility / correctness: OpenOffice uses TYPE_SCROLL_SENSITIVE
-//        if (resultSetType == ResultSet.TYPE_SCROLL_SENSITIVE) {
-//            throw Message.getInvalidValueException(
-//                "" + resultSetType, "resultSetType");
-//        }
-//        if (resultSetConcurrency != ResultSet.CONCUR_READ_ONLY) {
-//            throw Message.getInvalidValueException(
-//                "" + resultSetConcurrency, "resultSetConcurrency");
-//        }
-    }
-
     private void checkHoldability(int resultSetHoldability) throws SQLException {
         // TODO compatibility / correctness: DBPool uses 
         // ResultSet.HOLD_CURSORS_OVER_COMMIT
@@ -1296,7 +1278,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         executingStatement = stat;
     }
 
-    ResultInterface getGeneratedKeys(JdbcStatement statement, int id) throws SQLException {
+    ResultInterface getGeneratedKeys() throws SQLException {
         getGeneratedKeys = prepareCommand("CALL IDENTITY()", getGeneratedKeys);
         return getGeneratedKeys.executeQuery(0, false);
      }
@@ -1432,9 +1414,11 @@ public class JdbcConnection extends TraceObject implements Connection {
     /**
      * [Not supported] Set a client property.
      */
+/*## Java 1.6 begin ##
     public String getClientInfo(String name) throws SQLException {
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Return an object of this class if possible.

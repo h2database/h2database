@@ -58,6 +58,7 @@ public class WebServlet extends HttpServlet {
     }
 
     public void destroy() {
+        // nothing to do
     }
 
     private boolean allow(HttpServletRequest req) {
@@ -126,9 +127,8 @@ public class WebServlet extends HttpServlet {
         if (cache && server.getStartDateTime().equals(ifModifiedSince)) {
             resp.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
             return;
-        } else {
-            bytes = server.getFile(file);
         }
+        bytes = server.getFile(file);
         if (bytes == null) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             try {

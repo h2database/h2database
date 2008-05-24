@@ -77,7 +77,7 @@ public class SecureSocketFactory {
         return socket;
     }
 
-    public ServerSocket createServerSocket(int port) throws IOException, SQLException {
+    public ServerSocket createServerSocket(int port) throws IOException {
         ServerSocket socket = null;
 //## Java 1.4 begin ##
         setKeystore();
@@ -107,7 +107,7 @@ public class SecureSocketFactory {
     private static byte[] getKeyStoreBytes(KeyStore store, String password) throws IOException {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         try {
-            store.store(bout, KEYSTORE_PASSWORD.toCharArray());
+            store.store(bout, password.toCharArray());
         } catch (Exception e) {
             throw Message.convertToIOException(e);
         }

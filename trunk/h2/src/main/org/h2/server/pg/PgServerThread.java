@@ -84,7 +84,6 @@ public class PgServerThread implements Runnable {
         } catch (EOFException e) {
             // more or less normal disconnect
         } catch (Exception e) {
-            error("process", e);
             server.traceError(e);
         } finally {
             server.trace("Disconnect");
@@ -120,12 +119,6 @@ public class PgServerThread implements Runnable {
         dataIn.readFully(buff);
     }
 
-    private void error(String message, Exception e) {
-        if (e != null) {
-            server.traceError(e);
-        }
-    }
-
     private void process() throws IOException {
         int x;
         if (initDone) {
@@ -150,7 +143,6 @@ public class PgServerThread implements Runnable {
                 server.trace("CancelRequest (not supported)");
                 server.trace(" pid: " + readInt());
                 server.trace(" key: " + readInt());
-                error("CancelRequest", null);
             } else if (version == 80877103) {
                 server.trace("SSLRequest");
                 out.write('N');
@@ -277,23 +269,25 @@ public class PgServerThread implements Runnable {
                 Prepared p = (Prepared) prepared.get(name);
                 if (p == null) {
                     sendErrorResponse("Prepared not found: " + name);
+                } else {
+                    prep = p.prep;
+                    sendParameterDescription(p);
                 }
-                prep = p.prep;
-                sendParameterDescription(p);
             } else if (type == 'P') {
                 Portal p = (Portal) portals.get(name);
                 if (p == null) {
                     sendErrorResponse("Portal not found: " + name);
-                }
-                prep = p.prep;
-                try {
-                    ResultSetMetaData meta = prep.getMetaData();
-                    sendRowDescription(meta);
-                } catch (SQLException e) {
-                    sendErrorResponse(e);
+                } else {
+                    prep = p.prep;
+                    try {
+                        ResultSetMetaData meta = prep.getMetaData();
+                        sendRowDescription(meta);
+                    } catch (SQLException e) {
+                        sendErrorResponse(e);
+                    }
                 }
             } else {
-                error("expected S or P, got " + type, null);
+                server.trace("expected S or P, got " + type);
                 sendErrorResponse("expected S or P");
             }
             break;
@@ -318,7 +312,7 @@ public class PgServerThread implements Runnable {
                         ResultSetMetaData meta = rs.getMetaData();
                         sendRowDescription(meta);
                         while (rs.next()) {
-                            sendDataRow(p.resultColumnFormat, rs);
+                            sendDataRow(rs);
                         }
                         sendCommandComplete(p.sql, 0);
                     } catch (SQLException e) {
@@ -356,7 +350,7 @@ public class PgServerThread implements Runnable {
                         ResultSetMetaData meta = rs.getMetaData();
                         sendRowDescription(meta);
                         while (rs.next()) {
-                            sendDataRow(null, rs);
+                            sendDataRow(rs);
                         }
                         sendCommandComplete(s, 0);
                     } else {
@@ -377,14 +371,14 @@ public class PgServerThread implements Runnable {
             break;
         }
         default:
-            error("Unsupported: " + x + " (" + (char) x + ")", null);
+            server.trace("Unsupported: " + x + " (" + (char) x + ")");
             break;
         }
     }
 
     private void checkType(int type) {
         if (types.contains(ObjectUtils.getInteger(type))) {
-            error("Unsupported type: " + type, null);
+            server.trace("Unsupported type: " + type);
         }
     }
 
@@ -418,14 +412,14 @@ public class PgServerThread implements Runnable {
         } else if (sql.startsWith("BEGIN")) {
             tag = "BEGIN";
         } else {
-            error("check command tag: " + sql, null);
+            server.trace("Check command tag: " + sql);
             tag = "UPDATE " + updateCount;
         }
         writeString(tag);
         sendMessage();
     }
 
-    private void sendDataRow(int[] formatCodes, ResultSet rs) throws IOException {
+    private void sendDataRow(ResultSet rs) throws IOException {
         try {
             int columns = rs.getMetaData().getColumnCount();
             String[] values = new String[columns];
@@ -465,11 +459,11 @@ public class PgServerThread implements Runnable {
             if (text) {
                 s = new String(d2, getEncoding());
             } else {
-                server.traceError(new SQLException("Binary format not supported"));
+                server.trace("Binary format not supported");
                 s = new String(d2, getEncoding());
             }
         } catch (Exception e) {
-            error("conversion error", e);
+            server.traceError(e);
             s = null;
         }
         // if(server.getLog()) {
@@ -479,7 +473,7 @@ public class PgServerThread implements Runnable {
     }
 
     private void sendErrorResponse(SQLException e) throws IOException {
-        error("SQLException", e);
+        server.traceError(e);
         startMessage('E');
         write('S');
         writeString("ERROR");
@@ -545,7 +539,7 @@ public class PgServerThread implements Runnable {
                     writeShort(0); // attribute number of the column
                     writeInt(types[i]); // data type
                     writeShort(getTypeSize(types[i], precision[i])); // pg_type.typlen
-                    writeInt(getModifier(types[i])); // pg_attribute.atttypmod
+                    writeInt(-1); // pg_attribute.atttypmod
                     writeShort(0); // text
                 }
                 sendMessage();
@@ -564,12 +558,8 @@ public class PgServerThread implements Runnable {
         }
     }
 
-    private int getModifier(int type) {
-        return -1;
-    }
-
     private void sendErrorResponse(String message) throws IOException {
-        error("Exception: " + message, null);
+        server.trace("Exception: " + message);
         startMessage('E');
         write('S');
         writeString("ERROR");
@@ -753,14 +743,14 @@ public class PgServerThread implements Runnable {
         this.processId = id;
     }
 
-    private static class Prepared {
+    static class Prepared {
         String name;
         String sql;
         PreparedStatement prep;
         int[] paramType;
     }
 
-    private static class Portal {
+    static class Portal {
         String name;
         String sql;
         int[] resultColumnFormat;

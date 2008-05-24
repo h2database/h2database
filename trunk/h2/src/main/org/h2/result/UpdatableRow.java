@@ -22,21 +22,29 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * An updatable row is a link from a ResultSet to a row in the database.
  * This class is used for updatable result sets.
+ * An updatable row provides functions to update the current row in a result set.
  */
 public class UpdatableRow {
 
-    private SessionInterface session;
-    private Connection conn;
-    private DatabaseMetaData meta;
-    private ResultInterface result;
-    private int columnCount;
+    private final SessionInterface session;
+    private final Connection conn;
+    private final DatabaseMetaData meta;
+    private final ResultInterface result;
+    private final int columnCount;
     private String schemaName;
     private String tableName;
     private ObjectArray key;
     private boolean isUpdatable;
 
+    /**
+     * Construct a new object that is linked to the result set. The constructor
+     * reads the database meta data to find out if the result set is updatable.
+     * 
+     * @param conn the database connection
+     * @param result the result
+     * @param session the session
+     */
     public UpdatableRow(Connection conn, ResultInterface result, SessionInterface session) throws SQLException {
         this.conn = conn;
         this.meta = conn.getMetaData();
@@ -79,6 +87,11 @@ public class UpdatableRow {
         isUpdatable = true;
     }
 
+    /**
+     * Check if this result set is updatable.
+     * 
+     * @return true if it is
+     */
     public boolean isUpdatable() {
         return isUpdatable;
     }
@@ -143,6 +156,11 @@ public class UpdatableRow {
 //        return rs.getInt(1) == 0;
 //    }
 
+    /**
+     * Re-reads a row from the database and updates the values in the array.
+     * 
+     * @param row the values
+     */
     public void refreshRow(Value[] row) throws SQLException {
         Value[] newRow = readRow(row);
         for (int i = 0; i < columnCount; i++) {
@@ -179,6 +197,12 @@ public class UpdatableRow {
         return newRow;
     }
 
+    /**
+     * Delete the given row in the database.
+     * 
+     * @param current the row
+     * @throws SQLException if this row has already been deleted
+     */
     public void deleteRow(Value[] current) throws SQLException {
         StringBuffer buff = new StringBuffer();
         buff.append("DELETE FROM ");
@@ -193,6 +217,13 @@ public class UpdatableRow {
         }
     }
 
+    /**
+     * Update a row in the database.
+     * 
+     * @param current the old row
+     * @param updateRow the new row
+     * @throws SQLException if the row has been deleted
+     */
     public void updateRow(Value[] current, Value[] updateRow) throws SQLException {
         StringBuffer buff = new StringBuffer();
         buff.append("UPDATE ");
@@ -220,6 +251,12 @@ public class UpdatableRow {
         }
     }
 
+    /**
+     * Insert a new row into the database.
+     * 
+     * @param row the new row
+     * @throws SQLException if the row could not be inserted
+     */
     public void insertRow(Value[] row) throws SQLException {
         StringBuffer buff = new StringBuffer();
         buff.append("INSERT INTO ");

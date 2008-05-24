@@ -181,7 +181,7 @@ public class Parser {
     private Select currentSelect;
     private ObjectArray parameters;
     private String schemaName;
-    private ObjectArray expected;
+    private ObjectArray expectedList;
     private boolean rightsChecked;
     private boolean recompileAlways;
     private ObjectArray indexedParameterList;
@@ -274,9 +274,9 @@ public class Parser {
     private Prepared parse(String sql, boolean withExpectedList) throws SQLException {
         initialize(sql);
         if (withExpectedList) {
-            expected = new ObjectArray();
+            expectedList = new ObjectArray();
         } else {
-            expected = null;
+            expectedList = null;
         }
         parameters = new ObjectArray();
         currentSelect = null;
@@ -464,18 +464,17 @@ public class Parser {
     }
 
     private SQLException getSyntaxError() {
-        if (expected == null || expected.size() == 0) {
+        if (expectedList == null || expectedList.size() == 0) {
             return Message.getSyntaxError(sqlCommand, parseIndex);
-        } else {
-            StringBuffer buff = new StringBuffer();
-            for (int i = 0; i < expected.size(); i++) {
-                if (i > 0) {
-                    buff.append(", ");
-                }
-                buff.append(expected.get(i));
-            }
-            return Message.getSyntaxError(sqlCommand, parseIndex, buff.toString());
         }
+        StringBuffer buff = new StringBuffer();
+        for (int i = 0; i < expectedList.size(); i++) {
+            if (i > 0) {
+                buff.append(", ");
+            }
+            buff.append(expectedList.get(i));
+        }
+        return Message.getSyntaxError(sqlCommand, parseIndex, buff.toString());
     }
 
     private Prepared parseBackup() throws SQLException {
@@ -606,20 +605,20 @@ public class Parser {
             tableAlias = columnName;
             columnName = readColumnIdentifier();
             if (readIf(".")) {
-                String schemaName = tableAlias;
+                String schema = tableAlias;
                 tableAlias = columnName;
                 columnName = readColumnIdentifier();
                 if (readIf(".")) {
-                    String catalogName = schemaName;
-                    schemaName = tableAlias;
+                    String catalogName = schema;
+                    schema = tableAlias;
                     tableAlias = columnName;
                     columnName = readColumnIdentifier();
                     if (!catalogName.equals(database.getShortName())) {
                         throw Message.getSQLException(ErrorCode.DATABASE_NOT_FOUND_1, catalogName);
                     }
                 }
-                if (!schemaName.equals(filter.getTable().getSchema().getName())) {
-                    throw Message.getSQLException(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
+                if (!schema.equals(filter.getTable().getSchema().getName())) {
+                    throw Message.getSQLException(ErrorCode.SCHEMA_NOT_FOUND_1, schema);
                 }
             }
             if (!tableAlias.equals(filter.getTableAlias())) {
@@ -721,8 +720,6 @@ public class Parser {
                     read("LAST");
                     column.sortType |= SortOrder.NULLS_LAST;
                 }
-            } else {
-
             }
         } while (readIf(","));
         read(")");
@@ -1973,23 +1970,23 @@ public class Parser {
         return function;
     }
 
-    private Expression readWildcardOrSequenceValue(String schemaName, String objectName) throws SQLException {
+    private Expression readWildcardOrSequenceValue(String schema, String objectName) throws SQLException {
         if (readIf("*")) {
-            return new Wildcard(schemaName, objectName);
+            return new Wildcard(schema, objectName);
         }
-        if (schemaName == null) {
-            schemaName = session.getCurrentSchemaName();
+        if (schema == null) {
+            schema = session.getCurrentSchemaName();
         }
         if (readIf("NEXTVAL")) {
-            Sequence sequence = database.getSchema(schemaName).findSequence(objectName);
+            Sequence sequence = database.getSchema(schema).findSequence(objectName);
             if (sequence != null) {
                 return new SequenceValue(sequence);
             }
         } else if (readIf("CURRVAL")) {
-            Sequence sequence = database.getSchema(schemaName).findSequence(objectName);
+            Sequence sequence = database.getSchema(schema).findSequence(objectName);
             if (sequence != null) {
                 Function function = Function.getFunction(database, "CURRVAL");
-                function.setParameter(0, ValueExpression.get(ValueString.get(schemaName)));
+                function.setParameter(0, ValueExpression.get(ValueString.get(schema)));
                 function.setParameter(1, ValueExpression.get(ValueString.get(objectName)));
                 function.doneWithParameters();
                 return function;
@@ -2005,28 +2002,28 @@ public class Parser {
         }
         String name = readColumnIdentifier();
         if (readIf(".")) {
-            String schemaName = objectName;
+            String schema = objectName;
             objectName = name;
-            expr = readWildcardOrSequenceValue(schemaName, objectName);
+            expr = readWildcardOrSequenceValue(schema, objectName);
             if (expr != null) {
                 return expr;
             }
             name = readColumnIdentifier();
             if (readIf(".")) {
-                String databaseName = schemaName;
+                String databaseName = schema;
                 if (!database.getShortName().equals(databaseName)) {
                     throw Message.getSQLException(ErrorCode.DATABASE_NOT_FOUND_1, databaseName);
                 }
-                schemaName = objectName;
+                schema = objectName;
                 objectName = name;
-                expr = readWildcardOrSequenceValue(schemaName, objectName);
+                expr = readWildcardOrSequenceValue(schema, objectName);
                 if (expr != null) {
                     return expr;
                 }
                 name = readColumnIdentifier();
-                return new ExpressionColumn(database, schemaName, objectName, name);
+                return new ExpressionColumn(database, schema, objectName, name);
             }
-            return new ExpressionColumn(database, schemaName, objectName, name);
+            return new ExpressionColumn(database, schema, objectName, name);
         }
         return new ExpressionColumn(database, null, objectName, name);
     }
@@ -2417,15 +2414,15 @@ public class Parser {
     }
 
     private void addExpected(String token) {
-        if (expected != null) {
-            expected.add(token);
+        if (expectedList != null) {
+            expectedList.add(token);
         }
     }
 
     private void read() throws SQLException {
         currentTokenQuoted = false;
-        if (expected != null) {
-            expected.clear();
+        if (expectedList != null) {
+            expectedList.clear();
         }
         int[] types = characterTypes;
         lastParseIndex = parseIndex;
@@ -3177,14 +3174,13 @@ public class Parser {
             UserDataType userDataType = database.findUserDataType(original);
             if (userDataType == null) {
                 throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, currentToken);
-            } else {
-                templateColumn = userDataType.getColumn();
-                dataType = DataType.getDataType(templateColumn.getType());
-                original = templateColumn.getOriginalSQL();
-                precision = templateColumn.getPrecision();
-                displaySize = templateColumn.getDisplaySize();
-                scale = templateColumn.getScale();
             }
+            templateColumn = userDataType.getColumn();
+            dataType = DataType.getDataType(templateColumn.getType());
+            original = templateColumn.getOriginalSQL();
+            precision = templateColumn.getPrecision();
+            displaySize = templateColumn.getDisplaySize();
+            scale = templateColumn.getScale();
         }
         if (database.getIgnoreCase() && dataType.type == Value.STRING && !"VARCHAR_CASESENSITIVE".equals(original)) {
             original = "VARCHAR_IGNORECASE";
@@ -3952,15 +3948,14 @@ public class Parser {
                 currentToken = SetTypes.getTypeName(SetTypes.MAX_LOG_SIZE);
             }
             int type = SetTypes.getType(currentToken);
-            if (type >= 0) {
-                read();
-                readIfEqualOrTo();
-                Set command = new Set(session, type);
-                command.setExpression(readExpression());
-                return command;
-            } else {
+            if (type < 0) {
                 throw getSyntaxError();
             }
+            read();
+            readIfEqualOrTo();
+            Set command = new Set(session, type);
+            command.setExpression(readExpression());
+            return command;
         }
     }
 
@@ -4246,10 +4241,9 @@ public class Parser {
             read("SET");
             if (readIf("NULL")) {
                 return ConstraintReferential.SET_NULL;
-            } else {
-                read("DEFAULT");
-                return ConstraintReferential.SET_DEFAULT;
             }
+            read("DEFAULT");
+            return ConstraintReferential.SET_DEFAULT;
         }
     }
 

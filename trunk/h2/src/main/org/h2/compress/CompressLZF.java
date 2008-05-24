@@ -40,6 +40,7 @@ package org.h2.compress;
 public class CompressLZF implements Compressor {
 
     public void setOptions(String options) {
+        // nothing to do
     }
 
     public int getAlgorithm() {

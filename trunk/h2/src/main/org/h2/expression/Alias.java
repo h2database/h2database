@@ -96,17 +96,15 @@ public class Alias extends Expression {
     public String getTableName() {
         if (SysProperties.ALIAS_COLUMN_NAME) {
             return expr.getTableName();
-        } else {
-            return super.getTableName();
         }
+        return super.getTableName();
     }
 
     public String getColumnName() {
         if (SysProperties.ALIAS_COLUMN_NAME) {
             return expr.getColumnName();
-        } else {
-            return super.getColumnName();
         }
+        return super.getColumnName();
     }
 
 }

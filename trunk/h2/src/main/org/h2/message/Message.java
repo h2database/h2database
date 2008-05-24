@@ -207,11 +207,10 @@ public class Message {
                 j.setSQL(sql);
             }
             return j;
-        } else {
-            return new JdbcSQLException(e.getMessage(), sql,
-                    e.getSQLState(),
-                    e.getErrorCode(), e, null);
         }
+        return new JdbcSQLException(e.getMessage(), sql,
+                e.getSQLState(),
+                e.getErrorCode(), e, null);
     }
 
     /**
@@ -249,9 +248,8 @@ public class Message {
     public static SQLException convertIOException(IOException e, String message) {
         if (message == null) {
             return getSQLException(ErrorCode.IO_EXCEPTION_1, new String[]{e.toString()}, e);
-        } else {
-            return getSQLException(ErrorCode.IO_EXCEPTION_2, new String[]{e.toString(), message}, e);
         }
+        return getSQLException(ErrorCode.IO_EXCEPTION_2, new String[]{e.toString(), message}, e);
     }
 
     /**

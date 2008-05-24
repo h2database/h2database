@@ -208,7 +208,7 @@ public class JdbcClob extends TraceObject implements Clob
     /**
      * Release all resources of this object.
      */
-    public void free() throws SQLException {
+    public void free() {
         debugCodeCall("free");
         value = null;
     }

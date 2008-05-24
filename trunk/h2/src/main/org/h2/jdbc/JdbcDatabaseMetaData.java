@@ -2563,7 +2563,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Gets the major version of the supported JDBC API.
      * @return the major version
      */
-    public int getJDBCMajorVersion() throws SQLException {
+    public int getJDBCMajorVersion() {
         debugCodeCall("getJDBCMajorVersion");
         return Constants.VERSION_JDBC_MAJOR;
     }
@@ -2572,7 +2572,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Gets the minor version of the supported JDBC API.
      * @return the minor version
      */
-    public int getJDBCMinorVersion() throws SQLException {
+    public int getJDBCMinorVersion() {
         debugCodeCall("getJDBCMinorVersion");
         return Constants.VERSION_JDBC_MINOR;
     }
@@ -2644,16 +2644,18 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * [Not supported] Gets the list of schemas.
      */
+/*## Java 1.6 begin ##
     public ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException {
         debugCodeCall("getSchemas");
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * Returns whether the database supports calling functions using the call syntax.
      * @return true
      */
-    public boolean supportsStoredFunctionsUsingCallSyntax() throws SQLException {
+    public boolean supportsStoredFunctionsUsingCallSyntax() {
         debugCodeCall("supportsStoredFunctionsUsingCallSyntax");
         return true;
     }
@@ -2662,7 +2664,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Returns whether an exception while auto commit is on closes all result sets.
      * @return false
      */
-    public boolean autoCommitFailureClosesAllResultSets() throws SQLException {
+    public boolean autoCommitFailureClosesAllResultSets() {
         debugCodeCall("autoCommitFailureClosesAllResultSets");
         return false;
     }
@@ -2698,18 +2700,22 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * [Not supported] Gets the list of function columns.
      */
+/*## Java 1.6 begin ##
     public ResultSet getFunctionColumns(String catalog, String schemaPattern, String functionNamePattern, String columnNamePattern) throws SQLException {
         debugCodeCall("getFunctionColumns");
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Gets the list of functions.
      */
-    public ResultSet getFunctions(String arg0, String arg1, String arg2) throws SQLException {
+/*## Java 1.6 begin ##
+    public ResultSet getFunctions(String catalog, String schemaPattern, String functionNamePattern) throws SQLException {
         debugCodeCall("getFunctions");
         throw Message.getUnsupportedException();
     }
+## Java 1.6 end ##*/
 
     /**
      * INTERNAL

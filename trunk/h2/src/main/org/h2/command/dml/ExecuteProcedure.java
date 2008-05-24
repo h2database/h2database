@@ -39,7 +39,7 @@ public class ExecuteProcedure extends Prepared {
      * @param index the index (0 based)
      * @param expr the expression
      */
-    public void setExpression(int index, Expression expr) throws SQLException {
+    public void setExpression(int index, Expression expr) {
         expressions.add(index, expr);
     }
 

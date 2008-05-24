@@ -36,7 +36,7 @@ public class JavaAggregate extends Expression {
     private int dataType;
     private Connection userConnection;
 
-    public JavaAggregate(UserAggregate userAggregate, Expression[] args, Select select) throws SQLException {
+    public JavaAggregate(UserAggregate userAggregate, Expression[] args, Select select) {
         this.userAggregate = userAggregate;
         this.args = args;
         this.select = select;
@@ -143,9 +143,8 @@ public class JavaAggregate extends Expression {
         Object obj = agg.getResult();
         if (obj == null) {
             return ValueNull.INSTANCE;
-        } else {
-            return DataType.convertToValue(session, obj, dataType);
         }
+        return DataType.convertToValue(session, obj, dataType);
     }
 
     public void updateAggregate(Session session) throws SQLException {

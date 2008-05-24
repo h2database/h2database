@@ -293,8 +293,7 @@ public abstract class Prepared {
                     Expression e = (Expression) parameters.get(i);
                     Value v = e.getValue(session);
                     try {
-                        String sql = v.getSQL();
-                        buff.append(sql);
+                        buff.append(v.getSQL());
                     } catch (Exception t) {
                         buff.append("? /*");
                         buff.append(StringUtils.quoteJavaString(t.getMessage()));

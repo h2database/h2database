@@ -44,16 +44,15 @@ public class Parameter extends Expression implements ParameterInterface {
         this.value = v;
     }
 
-    public Value getParamValue() throws SQLException {
+    public Value getParamValue() {
         if (value == null) {
             // to allow parameters in function tables
             return ValueNull.INSTANCE;
-        } else {
-            return value;
         }
+        return value;
     }
 
-    public Value getValue(Session session) throws SQLException {
+    public Value getValue(Session session) {
         return getParamValue();
     }
 

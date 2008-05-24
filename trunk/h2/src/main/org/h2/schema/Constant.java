@@ -55,7 +55,8 @@ public class Constant extends SchemaObjectBase {
         invalidate();
     }
 
-    public void checkRename() throws SQLException {
+    public void checkRename() {
+        // ok
     }
 
     public void setValue(Value value) {

@@ -105,6 +105,7 @@ public class RuleFixed implements Rule {
     }
 
     public void setLinks(HashMap ruleMap) {
+        // nothing to do
     }
 
     public boolean matchRemove(Sentence sentence) {

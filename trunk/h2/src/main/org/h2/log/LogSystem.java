@@ -65,7 +65,7 @@ public class LogSystem {
      * @param readOnly if the log should be opened in read-only mode
      * @param accessMode the file access mode (r, rw, rws, rwd)
      */
-    public LogSystem(Database database, String fileNamePrefix, boolean readOnly, String accessMode) throws SQLException {
+    public LogSystem(Database database, String fileNamePrefix, boolean readOnly, String accessMode) {
         this.database = database;
         this.readOnly = readOnly;
         this.accessMode = accessMode;
@@ -315,7 +315,7 @@ public class LogSystem {
         closed = false;
     }
 
-    Storage getStorageForRecovery(int id) throws SQLException {
+    Storage getStorageForRecovery(int id) {
         boolean dataFile;
         if (id < 0) {
             dataFile = false;

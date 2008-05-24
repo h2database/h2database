@@ -204,7 +204,7 @@ public class Aggregate extends Expression {
         this.separator = separator;
     }
 
-    private SortOrder initOrder(Session session) throws SQLException {
+    private SortOrder initOrder(Session session) {
         int[] index = new int[orderList.size()];
         int[] sortType = new int[orderList.size()];
         for (int i = 0; i < orderList.size(); i++) {
@@ -292,13 +292,13 @@ public class Aggregate extends Expression {
             }
             if (orderList != null) {
                 try {
-                    // TODO refactor: don't use built in comparator
+                    final SortOrder sortOrder = sort;
                     list.sort(new Comparator() {
                         public int compare(Object o1, Object o2) {
                             try {
                                 Value[] a1 = ((ValueArray) o1).getList();
                                 Value[] a2 = ((ValueArray) o2).getList();
-                                return sort.compare(a1, a2);
+                                return sortOrder.compare(a1, a2);
                             } catch (SQLException e) {
                                 throw Message.convertToInternal(e);
                             }
@@ -516,9 +516,8 @@ public class Aggregate extends Expression {
         }
         if (distinct) {
             return text + "(DISTINCT " + on.getSQL() + ")";
-        } else {
-            return text + StringUtils.enclose(on.getSQL());
         }
+        return text + StringUtils.enclose(on.getSQL());
     }
 
     private Index getColumnIndex(boolean first) {

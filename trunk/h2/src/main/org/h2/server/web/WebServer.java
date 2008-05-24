@@ -337,15 +337,15 @@ public class WebServer implements Service {
         }
     }
 
-    public void traceError(Exception e) {
+    void traceError(Exception e) {
         e.printStackTrace();
     }
 
-    public boolean supportsLanguage(String language) {
+    boolean supportsLanguage(String language) {
         return languages.contains(language);
     }
 
-    public void readTranslations(WebSession session, String language) {
+    void readTranslations(WebSession session, String language) {
         Properties text = new Properties();
         try {
             trace("translation: "+language);
@@ -366,11 +366,11 @@ public class WebServer implements Service {
         session.put("text", new HashMap(text));
     }
 
-    public String[][] getLanguageArray() {
+    String[][] getLanguageArray() {
         return LANGUAGES;
     }
 
-    public ArrayList getSessions() {
+    ArrayList getSessions() {
         ArrayList list = new ArrayList(sessions.values());
         for (int i = 0; i < list.size(); i++) {
             WebSession s = (WebSession) list.get(i);
@@ -548,7 +548,7 @@ public class WebServer implements Service {
         this.shutdownHandler = shutdownHandler;
     }
 
-    public boolean getAllowScript() {
+    boolean getAllowScript() {
         return allowScript;
     }
 

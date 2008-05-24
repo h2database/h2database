@@ -224,7 +224,7 @@ public class JdbcArray extends TraceObject implements Array {
     /**
      * Release all resources of this object.
      */
-    public void free() throws SQLException {
+    public void free() {
         debugCodeCall("free");
         value = null;
     }

@@ -6,8 +6,6 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
-
 import org.h2.store.DataPage;
 import org.h2.store.Record;
 
@@ -26,7 +24,7 @@ public class BtreeHead extends Record {
         // nothing to do
     }
 
-    public BtreeHead(DataPage s) throws SQLException {
+    public BtreeHead(DataPage s) {
         rootPosition = s.readInt();
         consistent = s.readInt() == 1;
     }
@@ -39,11 +37,11 @@ public class BtreeHead extends Record {
         this.consistent = b;
     }
 
-    public int getByteCount(DataPage dummy) throws SQLException {
+    public int getByteCount(DataPage dummy) {
         return 1 + dummy.getIntLen();
     }
 
-    public void write(DataPage buff) throws SQLException {
+    public void write(DataPage buff) {
         buff.writeByte((byte) 'H');
         buff.writeInt(rootPosition);
         buff.writeInt(consistent ? 1 : 0);

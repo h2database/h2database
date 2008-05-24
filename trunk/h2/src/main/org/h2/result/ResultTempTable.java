@@ -34,7 +34,7 @@ public class ResultTempTable implements ResultExternal {
     private Index index;
     private Cursor cursor;
     
-    public ResultTempTable(Session session, SortOrder sort, int columnCount) throws SQLException {
+    public ResultTempTable(Session session, SortOrder sort) throws SQLException {
         this.session = session;
         this.sort = sort;
         Schema schema = session.getDatabase().getSchema(Constants.SCHEMA_MAIN);
@@ -104,7 +104,8 @@ public class ResultTempTable implements ResultExternal {
         }
     }
 
-    public void done() throws SQLException {
+    public void done() {
+        // nothing to do
     }
 
     public Value[] next() throws SQLException {

@@ -6,8 +6,6 @@
  */
 package org.h2.command.ddl;
 
-import java.sql.SQLException;
-
 import org.h2.engine.Session;
 import org.h2.schema.Schema;
 
@@ -34,7 +32,7 @@ public abstract class SchemaCommand extends DefineCommand {
      *
      * @return the schema
      */
-    protected Schema getSchema() throws SQLException {
+    protected Schema getSchema() {
         return schema;
     }
 

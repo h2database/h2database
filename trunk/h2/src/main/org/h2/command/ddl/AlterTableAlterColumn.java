@@ -134,7 +134,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         case DEFAULT: {
             oldColumn.setSequence(null);
             oldColumn.setDefaultExpression(session, defaultExpression);
-            removeSequence(session, sequence);
+            removeSequence(sequence);
             db.update(session, table);
             break;
         }
@@ -183,13 +183,13 @@ public class AlterTableAlterColumn extends SchemaCommand {
         return 0;
     }
 
-    private void convertToIdentityIfRequired(Column c) throws SQLException {
+    private void convertToIdentityIfRequired(Column c) {
         if (c.getAutoIncrement()) {
             c.setOriginalSQL("IDENTITY");
         }
     }
 
-    private void removeSequence(Session session, Sequence sequence) throws SQLException {
+    private void removeSequence(Sequence sequence) throws SQLException {
         if (sequence != null) {
             table.removeSequence(session, sequence);
             sequence.setBelongsToTable(false);
@@ -362,7 +362,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void unlinkSequences(Table table) throws SQLException {
+    private void unlinkSequences(Table table) {
         Column[] columns = table.getColumns();
         for (int i = 0; i < columns.length; i++) {
             // if we don't do that, the sequence is dropped when the table is

@@ -8,13 +8,11 @@ package org.h2.jdbcx;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
 
-//## Java 1.4 begin ##
-import java.io.Serializable;
-import javax.naming.NamingException;
 import javax.naming.Reference;
 import javax.naming.Referenceable;
 import javax.naming.StringRefAddr;
@@ -23,7 +21,6 @@ import javax.sql.DataSource;
 import javax.sql.PooledConnection;
 import javax.sql.XAConnection;
 import javax.sql.XADataSource;
-//## Java 1.4 end ##
 
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceObject;
@@ -107,7 +104,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      *
      * @return the timeout in seconds
      */
-    public int getLoginTimeout() throws SQLException {
+    public int getLoginTimeout() {
         debugCodeCall("getLoginTimeout");
         return loginTimeout;
     }
@@ -119,7 +116,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      *
      * @param timeout the timeout in seconds
      */
-    public void setLoginTimeout(int timeout) throws SQLException {
+    public void setLoginTimeout(int timeout) {
         debugCodeCall("setLoginTimeout", timeout);
         this.loginTimeout = timeout;
     }
@@ -129,7 +126,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      *
      * @return the log writer
      */
-    public PrintWriter getLogWriter() throws SQLException {
+    public PrintWriter getLogWriter() {
         debugCodeCall("getLogWriter");
         return logWriter;
     }
@@ -140,7 +137,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      *
      * @param out the log writer
      */
-    public void setLogWriter(PrintWriter out) throws SQLException {
+    public void setLogWriter(PrintWriter out) {
         debugCodeCall("setLogWriter(out)");
         logWriter = out;
     }
@@ -246,7 +243,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      * @return the new reference
      */
 //## Java 1.4 begin ##
-    public Reference getReference() throws NamingException {
+    public Reference getReference() {
         debugCodeCall("getReference");
         String factoryClassName = JdbcDataSourceFactory.class.getName();
         Reference ref = new Reference(getClass().getName(), factoryClassName, null);

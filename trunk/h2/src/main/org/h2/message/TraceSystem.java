@@ -352,6 +352,7 @@ public class TraceSystem implements TraceWriter {
     }
 
     public void setName(String name) {
+        // nothing to do (the file name is aleady set)
     }
 
 }

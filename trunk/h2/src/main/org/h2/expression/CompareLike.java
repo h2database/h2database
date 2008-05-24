@@ -111,7 +111,7 @@ public class CompareLike extends Condition {
         return this;
     }
 
-    private char getEscapeChar(Value e) throws SQLException {
+    private char getEscapeChar(Value e) {
         if (e == null) {
             return Constants.DEFAULT_ESCAPE_CHAR;
         }

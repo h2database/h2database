@@ -40,7 +40,8 @@ public class LinkedIndex extends BaseIndex {
         return null;
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
+        // nothing to do
     }
 
     private boolean isNull(Value v) {
@@ -132,14 +133,16 @@ public class LinkedIndex extends BaseIndex {
         }
     }
 
-    public double getCost(Session session, int[] masks) throws SQLException {
+    public double getCost(Session session, int[] masks) {
         return 100 + getCostRangeIndex(masks, rowCount + Constants.COST_ROW_OFFSET);
     }
 
-    public void remove(Session session) throws SQLException {
+    public void remove(Session session) {
+        // nothing to do
     }
 
-    public void truncate(Session session) throws SQLException {
+    public void truncate(Session session) {
+        // nothing to do
     }
 
     public void checkRename() throws SQLException {

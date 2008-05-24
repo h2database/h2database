@@ -89,7 +89,7 @@ public class Comment extends DbObjectBase {
         database.removeMeta(session, getId());
     }
 
-    public void checkRename() throws SQLException {
+    public void checkRename() {
         throw Message.getInternalError();
     }
 

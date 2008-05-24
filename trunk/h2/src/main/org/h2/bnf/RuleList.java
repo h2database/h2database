@@ -66,13 +66,12 @@ public class RuleList implements Rule {
             }
             int idx = config.getRandom().nextInt(list.size());
             return get(idx).random(config, level + 1);
-        } else {
-            StringBuffer buff = new StringBuffer();
-            for (int i = 0; i < list.size(); i++) {
-                buff.append(get(i).random(config, level+1));
-            }
-            return buff.toString();
         }
+        StringBuffer buff = new StringBuffer();
+        for (int i = 0; i < list.size(); i++) {
+            buff.append(get(i).random(config, level+1));
+        }
+        return buff.toString();
     }
 
     private Rule get(int idx) {
@@ -108,15 +107,14 @@ public class RuleList implements Rule {
                 }
             }
             return false;
-        } else {
-            for (int i = 0; i < list.size(); i++) {
-                Rule r = get(i);
-                if (!r.matchRemove(sentence)) {
-                    return false;
-                }
-            }
-            return true;
         }
+        for (int i = 0; i < list.size(); i++) {
+            Rule r = get(i);
+            if (!r.matchRemove(sentence)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void addNextTokenList(Sentence sentence) {

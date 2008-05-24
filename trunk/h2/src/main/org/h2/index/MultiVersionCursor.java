@@ -29,7 +29,7 @@ public class MultiVersionCursor implements Cursor {
     private boolean needNewDelta, needNewBase;
     private boolean reverse;
 
-    MultiVersionCursor(Session session, MultiVersionIndex index, Cursor base, Cursor delta, Object sync) throws SQLException {
+    MultiVersionCursor(Session session, MultiVersionIndex index, Cursor base, Cursor delta, Object sync) {
         this.session = session;
         this.index = index;
         this.baseCursor = base;
@@ -114,11 +114,10 @@ public class MultiVersionCursor implements Cursor {
                     if (baseRow == null) {
                         end = true;
                         return false;
-                    } else {
-                        onBase = true;
-                        needNewBase = true;
-                        return true;
                     }
+                    onBase = true;
+                    needNewBase = true;
+                    return true;
                 }
                 int sessionId = deltaRow.getSessionId();
                 boolean isThisSession = sessionId == session.getId();
@@ -132,12 +131,11 @@ public class MultiVersionCursor implements Cursor {
                         if (isThisSession) {
                             end = true;
                             return false;
-                        } else {
-                            // the row was deleted by another session: return it
-                            onBase = false;
-                            needNewDelta = true;
-                            return true;
                         }
+                        // the row was deleted by another session: return it
+                        onBase = false;
+                        needNewDelta = true;
+                        return true;
                     }
                     throw Message.getInternalError();
                 }
@@ -153,21 +151,19 @@ public class MultiVersionCursor implements Cursor {
                     if (isDeleted) {
                         if (isThisSession) {
                             throw Message.getInternalError();
-                        } else {
-                            // another session updated the row
                         }
+                        // another session updated the row
                     } else {
                         if (isThisSession) {
                             onBase = false;
                             needNewBase = true;
                             needNewDelta = true;
                             return true;
-                        } else {
-                            // another session inserted the row: ignore
-                            needNewBase = true;
-                            needNewDelta = true;
-                            continue;
                         }
+                        // another session inserted the row: ignore
+                        needNewBase = true;
+                        needNewDelta = true;
+                        continue;
                     }
                 }
                 if (compare > 0) {

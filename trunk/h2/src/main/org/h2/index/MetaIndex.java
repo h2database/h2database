@@ -30,7 +30,7 @@ public class MetaIndex extends BaseIndex {
         this.scan = scan;
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
         // nothing to do
     }
 
@@ -47,7 +47,7 @@ public class MetaIndex extends BaseIndex {
         return new MetaCursor(rows);
     }
 
-    public double getCost(Session session, int[] masks) throws SQLException {
+    public double getCost(Session session, int[] masks) {
         if (scan) {
             return 10000;
         }

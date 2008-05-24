@@ -18,6 +18,7 @@ public class ConnectionInfo {
     int lastAccess;
 
     ConnectionInfo() {
+        // nothing to do
     }
 
     public ConnectionInfo(String data) {

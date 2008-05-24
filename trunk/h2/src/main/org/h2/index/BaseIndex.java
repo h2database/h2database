@@ -182,7 +182,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @param rowCount the number of rows in the index
      * @return the calculated cost
      */
-    public long getCostRangeIndex(int[] masks, long rowCount) throws SQLException {
+    public long getCostRangeIndex(int[] masks, long rowCount) {
         rowCount += Constants.COST_ROW_OFFSET;
         long cost = rowCount;
         long rows = rowCount;
@@ -339,7 +339,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return table;
     }
 
-    public void commit(int operation, Row row) throws SQLException {
+    public void commit(int operation, Row row) {
+        // nothing to do
     }
     
     void setMultiVersion(boolean multiVersion) {

@@ -250,16 +250,15 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
             BtreeCursor cursor = new BtreeCursor(session, this, last);
             root.first(cursor);
             return cursor;
-        } else {
-            BtreeCursor cursor = new BtreeCursor(session, this, last);
-            if (getRowCount(session) == 0 || !root.findFirst(cursor, first, bigger)) {
-                cursor.setCurrentRow(null);
-            }
-            return cursor;
         }
+        BtreeCursor cursor = new BtreeCursor(session, this, last);
+        if (getRowCount(session) == 0 || !root.findFirst(cursor, first, bigger)) {
+            cursor.setCurrentRow(null);
+        }
+        return cursor;
     }
 
-    public double getCost(Session session, int[] masks) throws SQLException {
+    public double getCost(Session session, int[] masks) {
         return 10 * getCostRangeIndex(masks, tableData.getRowCount(session));
     }
 
@@ -325,7 +324,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         rowCount = 0;
     }
 
-    public void checkRename() throws SQLException {
+    public void checkRename() {
         // ok
     }
 
@@ -362,23 +361,22 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
                 }
             }
             return cursor;
-        } else {
-            BtreePage root = getRoot(session);
-            BtreeCursor cursor = new BtreeCursor(session, this, null);
-            root.last(cursor);
-            // TODO optimization: this loops through NULL elements
-            do {
-                SearchRow row = cursor.getSearchRow();
-                if (row == null) {
-                    break;
-                }
-                Value v = row.getValue(columnIds[0]);
-                if (v != ValueNull.INSTANCE) {
-                    return cursor;
-                }
-            } while (cursor.previous());
-            return cursor;
         }
+        BtreePage root = getRoot(session);
+        BtreeCursor cursor = new BtreeCursor(session, this, null);
+        root.last(cursor);
+        // TODO optimization: this loops through NULL elements
+        do {
+            SearchRow row = cursor.getSearchRow();
+            if (row == null) {
+                break;
+            }
+            Value v = row.getValue(columnIds[0]);
+            if (v != ValueNull.INSTANCE) {
+                return cursor;
+            }
+        } while (cursor.previous());
+        return cursor;
     }
 
 }

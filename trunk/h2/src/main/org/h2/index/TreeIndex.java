@@ -31,7 +31,7 @@ public class TreeIndex extends BaseIndex {
         tableData = table;
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
         root = null;
     }
 
@@ -189,7 +189,7 @@ public class TreeIndex extends BaseIndex {
                 x.left = d.left;
             }
 
-            if (SysProperties.CHECK && (x.right == null || x == null)) {
+            if (SysProperties.CHECK && x.right == null) {
                 throw Message.getInternalError("tree corrupted");
             }
             x.right.parent = x;
@@ -287,21 +287,20 @@ public class TreeIndex extends BaseIndex {
                 x = n;
             }
             return new TreeCursor(this, x, null, last);
-        } else {
-            TreeNode x = findFirstNode(first, false);
-            return new TreeCursor(this, x, first, last);
         }
+        TreeNode x = findFirstNode(first, false);
+        return new TreeCursor(this, x, first, last);
     }
 
-    public double getCost(Session session, int[] masks) throws SQLException {
+    public double getCost(Session session, int[] masks) {
         return getCostRangeIndex(masks, tableData.getRowCount(session));
     }
 
-    public void remove(Session session) throws SQLException {
+    public void remove(Session session) {
         truncate(session);
     }
 
-    public void truncate(Session session) throws SQLException {
+    public void truncate(Session session) {
         root = null;
         rowCount = 0;
     }
@@ -352,7 +351,8 @@ public class TreeIndex extends BaseIndex {
         return x;
     }    
 
-    public void checkRename() throws SQLException {
+    public void checkRename() {
+        // nothing to do
     }
 
     public boolean needRebuild() {
@@ -375,32 +375,31 @@ public class TreeIndex extends BaseIndex {
                 }
             }
             return cursor;
-        } else {
-            TreeNode x = root, n;
-            while (x != null) {
-                n = x.right;
-                if (n == null) {
-                    break;
-                }
-                x = n;
+        }
+        TreeNode x = root, n;
+        while (x != null) {
+            n = x.right;
+            if (n == null) {
+                break;
             }
-            TreeCursor cursor = new TreeCursor(this, x, null, null);
-            if (x == null) {
-                return cursor;
-            }
-            // TODO optimization: this loops through NULL elements
-            do {
-                SearchRow row = cursor.getSearchRow();
-                if (row == null) {
-                    break;
-                }
-                Value v = row.getValue(columnIds[0]);
-                if (v != ValueNull.INSTANCE) {
-                    return cursor;
-                }
-            } while (cursor.previous());
+            x = n;
+        }
+        TreeCursor cursor = new TreeCursor(this, x, null, null);
+        if (x == null) {
             return cursor;
         }
+        // TODO optimization: this loops through NULL elements
+        do {
+            SearchRow row = cursor.getSearchRow();
+            if (row == null) {
+                break;
+            }
+            Value v = row.getValue(columnIds[0]);
+            if (v != ValueNull.INSTANCE) {
+                return cursor;
+            }
+        } while (cursor.previous());
+        return cursor;
     }
 
 }

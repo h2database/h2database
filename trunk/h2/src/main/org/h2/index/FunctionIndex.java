@@ -9,7 +9,6 @@ package org.h2.index;
 import java.sql.SQLException;
 
 import org.h2.engine.Session;
-import org.h2.expression.FunctionCall;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.result.Row;
@@ -26,12 +25,13 @@ public class FunctionIndex extends BaseIndex {
     private FunctionTable functionTable;
     private LocalResult result;
 
-    public FunctionIndex(FunctionTable functionTable, IndexColumn[] columns, FunctionCall function) {
+    public FunctionIndex(FunctionTable functionTable, IndexColumn[] columns) {
         initBaseIndex(functionTable, 0, null, columns, IndexType.createNonUnique(true));
         this.functionTable = functionTable;
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
+        // nothing to do
     }
 
     public void add(Session session, Row row) throws SQLException {

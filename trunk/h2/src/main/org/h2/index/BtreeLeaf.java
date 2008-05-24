@@ -117,13 +117,11 @@ public class BtreeLeaf extends BtreePage {
                 if (i > 0) {
                     // the first row didn't change
                     return null;
-                } else {
-                    if (pageData.size() == 0) {
-                        return null;
-                    } else {
-                        return getData(0);
-                    }
                 }
+                if (pageData.size() == 0) {
+                    return null;
+                }
+                return getData(0);
             }
             if (comp > 0) {
                 r = i;
@@ -278,16 +276,14 @@ public class BtreeLeaf extends BtreePage {
             return;
         }
         DataPage dummy = index.getDatabase().getDataPage();
-        cachedRealByteCount += getRowSize(dummy, row) + dummy.getIntLen();
+        int diff = getRowSize(dummy, row) + dummy.getIntLen();
+        cachedRealByteCount += add ? diff : -diff;
         if (cachedRealByteCount + index.getRecordOverhead() >= DiskFile.BLOCK_SIZE * BLOCKS_PER_PAGE) {
             cachedRealByteCount = 0;
         }
     }
 
     int getRealByteCount() throws SQLException {
-        if (cachedRealByteCount > 0) {
-            return cachedRealByteCount;
-        }
         DataPage dummy = index.getDatabase().getDataPage();
         int len = pageData.size();
         int size = 2 + dummy.getIntLen() * (len + 1);
@@ -300,7 +296,7 @@ public class BtreeLeaf extends BtreePage {
         return size;
     }
 
-    SearchRow getFirst(Session session) throws SQLException {
+    SearchRow getFirst(Session session) {
         if (pageData.size() == 0) {
             if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
                 throw Message.getInternalError("Empty btree page");

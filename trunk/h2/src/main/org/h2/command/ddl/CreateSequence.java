@@ -62,9 +62,8 @@ public class CreateSequence extends SchemaCommand {
     private long getLong(Expression expr, long defaultValue) throws SQLException {
         if (expr == null) {
             return defaultValue;
-        } else {
-            return expr.optimize(session).getValue(session).getLong();
         }
+        return expr.optimize(session).getValue(session).getLong();
     }
 
     public void setStartWith(Expression start) {

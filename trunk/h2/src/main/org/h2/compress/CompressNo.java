@@ -18,6 +18,7 @@ public class CompressNo implements Compressor {
     }
 
     public void setOptions(String options) {
+        // nothing to do
     }
 
     public int compress(byte[] in, int inLen, byte[] out, int outPos) {

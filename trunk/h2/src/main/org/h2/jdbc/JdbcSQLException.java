@@ -20,7 +20,7 @@ public class JdbcSQLException extends SQLException {
     private static final long serialVersionUID = -8200821788226954151L;
     private final String originalMessage;
     private final Throwable cause;
-    private final String trace;
+    private final String stackTrace;
     private String message;
     private String sql;
 
@@ -31,12 +31,12 @@ public class JdbcSQLException extends SQLException {
      * @param state the SQL state
      * @param cause the exception that was the reason for this exception
      */
-    public JdbcSQLException(String message, String sql, String state, int errorCode, Throwable cause, String trace) {
+    public JdbcSQLException(String message, String sql, String state, int errorCode, Throwable cause, String stackTrace) {
         super(message, state, errorCode);
         this.originalMessage = message;
         this.sql = sql;
         this.cause = cause;
-        this.trace = trace;
+        this.stackTrace = stackTrace;
         buildMessage();
 //## Java 1.4 begin ##
         initCause(cause);
@@ -167,11 +167,10 @@ public class JdbcSQLException extends SQLException {
      * @return the string representation
      */
     public String toString() {
-        if (trace == null) {
+        if (stackTrace == null) {
             return super.toString();
-        } else {
-            return trace;
         }
+        return stackTrace;
     }
 
 }

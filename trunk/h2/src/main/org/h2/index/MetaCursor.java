@@ -6,8 +6,6 @@
  */
 package org.h2.index;
 
-import java.sql.SQLException;
-
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -31,7 +29,7 @@ public class MetaCursor implements Cursor {
         return current;
     }
 
-    public SearchRow getSearchRow() throws SQLException {
+    public SearchRow getSearchRow() {
         return current;
     }
 
@@ -39,7 +37,7 @@ public class MetaCursor implements Cursor {
         throw Message.getInternalError();
     }
 
-    public boolean next() throws SQLException {
+    public boolean next() {
         current =  (Row) (index >= rows.size() ? null : rows.get(index++));
         return current != null;
     }

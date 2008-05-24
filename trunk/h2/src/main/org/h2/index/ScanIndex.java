@@ -42,7 +42,7 @@ public class ScanIndex extends BaseIndex {
     private HashMap sessionRowCount;
     private HashSet delta;
 
-    public ScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType) throws SQLException {
+    public ScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType) {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
         if (database.isMultiVersion()) {
             sessionRowCount = new HashMap();
@@ -86,7 +86,7 @@ public class ScanIndex extends BaseIndex {
         return null;
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
         if (storage != null) {
             storage = null;
         }
@@ -149,7 +149,7 @@ public class ScanIndex extends BaseIndex {
         rowCount++;
     }
 
-    public void commit(int operation, Row row) throws SQLException {
+    public void commit(int operation, Row row) {
         if (database.isMultiVersion()) {
             if (delta != null) {
                 delta.remove(row);
@@ -202,11 +202,11 @@ public class ScanIndex extends BaseIndex {
         rowCount--;
     }
 
-    public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public Cursor find(Session session, SearchRow first, SearchRow last) {
         return new ScanCursor(session, this, database.isMultiVersion());
     }
 
-    public double getCost(Session session, int[] masks) throws SQLException {
+    public double getCost(Session session, int[] masks) {
         long cost = tableData.getRowCount(session) + Constants.COST_ROW_OFFSET;
         if (storage != null) {
             cost *= 10;

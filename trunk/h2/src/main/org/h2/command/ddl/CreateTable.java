@@ -194,7 +194,7 @@ public class CreateTable extends SchemaCommand {
         return 0;
     }
 
-    private void generateColumnFromQuery() throws SQLException {
+    private void generateColumnFromQuery() {
         int columnCount = asQuery.getColumnCount();
         ObjectArray expressions = asQuery.getExpressions();
         for (int i = 0; i < columnCount; i++) {

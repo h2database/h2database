@@ -68,11 +68,11 @@ public class AlterUser extends DefineCommand {
         this.admin = admin;
     }
 
-    public void setSalt(Expression e) throws SQLException {
+    public void setSalt(Expression e) {
         salt = e;
     }
 
-    public void setHash(Expression e) throws SQLException {
+    public void setHash(Expression e) {
         hash = e;
     }
 

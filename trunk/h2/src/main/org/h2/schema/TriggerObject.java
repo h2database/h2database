@@ -93,7 +93,7 @@ public class TriggerObject extends SchemaObjectBase {
         }
     }
 
-    private Object[] convertToObjectList(Row row) throws SQLException {
+    private Object[] convertToObjectList(Row row) {
         if (row == null) {
             return null;
         }
@@ -255,7 +255,7 @@ public class TriggerObject extends SchemaObjectBase {
     }
 
     public void removeChildrenAndResources(Session session) throws SQLException {
-        table.removeTrigger(session, this);
+        table.removeTrigger(this);
         database.removeMeta(session, getId());
         table = null;
         triggerClassName = null;

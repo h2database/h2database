@@ -120,7 +120,7 @@ public class BackupCommand extends Prepared {
         out.closeEntry();
     }
 
-    private void backupFile(ZipOutputStream out, String base, String fn) throws SQLException, IOException {
+    private void backupFile(ZipOutputStream out, String base, String fn) throws IOException {
         String f = FileUtils.getAbsolutePath(fn);
         base = FileUtils.getAbsolutePath(base);
         if (!f.startsWith(base)) {

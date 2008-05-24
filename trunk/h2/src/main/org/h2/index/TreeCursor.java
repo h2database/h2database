@@ -60,7 +60,7 @@ public class TreeCursor implements Cursor {
         return node != null;
     }
     
-    public boolean previous() throws SQLException {
+    public boolean previous() {
         node = tree.previous(node);
         return node != null;
     }

@@ -48,11 +48,11 @@ public class HashIndex extends BaseIndex {
         // nothing to do
     }
 
-    public void truncate(Session session) throws SQLException {
+    public void truncate(Session session) {
         reset();
     }
 
-    public void remove(Session session) throws SQLException {
+    public void remove(Session session) {
         // nothing to do
     }
 
@@ -136,7 +136,7 @@ public class HashIndex extends BaseIndex {
         return 2;
     }
 
-    public void checkRename() throws SQLException {
+    public void checkRename() {
         // ok
     }
 

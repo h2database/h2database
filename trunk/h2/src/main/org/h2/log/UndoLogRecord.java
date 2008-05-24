@@ -141,7 +141,7 @@ public class UndoLogRecord {
         file.seek(filePos * Constants.FILE_BLOCK_SIZE);
     }
 
-    void load(DataPage buff, FileStore file, Session session) throws SQLException {
+    void load(DataPage buff, FileStore file) throws SQLException {
         int min = Constants.FILE_BLOCK_SIZE;
         seek(file);
         buff.reset();

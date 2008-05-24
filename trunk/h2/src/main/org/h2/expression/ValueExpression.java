@@ -6,8 +6,6 @@
  */
 package org.h2.expression;
 
-import java.sql.SQLException;
-
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
 import org.h2.message.Message;
@@ -73,10 +71,11 @@ public class ValueExpression extends Expression {
         return new Comparison(session, Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(false)));
     }
 
-    public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
+    public void mapColumns(ColumnResolver resolver, int level) {
+        // nothing to do        
     }
 
-    public Expression optimize(Session session) throws SQLException {
+    public Expression optimize(Session session) {
         return this;
     }
 
@@ -89,6 +88,7 @@ public class ValueExpression extends Expression {
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
+        // nothing to do        
     }
 
     public int getScale() {
@@ -106,12 +106,12 @@ public class ValueExpression extends Expression {
     public String getSQL() {
         if (this == DEFAULT) {
             return "DEFAULT";
-        } else {
-            return value.getSQL();
         }
+        return value.getSQL();
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session session) {
+        // nothing to do
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {

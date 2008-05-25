@@ -167,7 +167,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         try {
             input = new BufferedInputStream(socket.getInputStream());
             output = new BufferedOutputStream(socket.getOutputStream());
-            while (true) {
+            while (!stop) {
                 if (!process()) {
                     break;
                 }
@@ -592,6 +592,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     }
 
     private String adminShutdown() {
+        stopNow();
         server.shutdown();
         return "admin.jsp";
     }

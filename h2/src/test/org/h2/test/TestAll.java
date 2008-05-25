@@ -160,18 +160,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-
-Hi,
-
-There is no hard limit, it depends on the use case. I will update the CLOB documentation as follows:
-
-CLOB is like VARCHAR, but intended for very large values. Unlike when using VARCHAR, large CLOB objects are not kept fully in-memory. CLOB should be used for documents and texts with arbitrary size such as XML or HTML documents, text files, or memo fields of unlimited size. VARCHAR should be used for text with relatively short average size (for example shorter than 200 characters). Short CLOBs are stored inline, but there is an 
-overhead compared to VARCHAR. Use PreparedStatement.setCharacterStream to store values.
-
-Regards,
-Thomas
-
-
 jazoon 
 
 upload and test javadoc/index.html
@@ -233,7 +221,7 @@ http://www.w3schools.com/sql/
 History:
 
 Roadmap:
-    Negative scale values for DECIMAL or NUMBER columns are not supported
+    Negative scale values for DECIMAL or NUMBER columns are now supported
         in regular tables and in linked tables.
     MySQL compatibility: auto_increment column are no longer automatically 
         converted to primary key columns.
@@ -243,6 +231,8 @@ Roadmap:
     The table SYSTEM_RANGE now supports expressions and parameters.
     If the drive with the database files was disconnected or unmounted while writing,
         sometimes a stack overflow exception was thrown instead of a IO exception.
+    The H2 Console could not be shut down from within the tool if the 
+        browser supports keepAlive (most browsers do).
 
 */
         if (args.length > 0) {

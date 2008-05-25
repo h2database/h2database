@@ -54,10 +54,12 @@ Roadmap
 </li><li>Support function overloading as in Java (multiple functions with the same name, but different parameter count or data types).
 </li><li>Linked tables that point to the same database should share the connection ([SHARED CONNECTION]). Serialize access to the connection.
 </li><li>Linked tables should support a schema name: CREATE LINKED TABLE ... (... [schemaName, ] originalTableString) - DB2: SET SCHEMA after connecting
+</li><li>Option to shutdown all the running servers (on the same VM).
 </li><li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
 </li><li>Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
-</li><li>Full outer joins
 </li><li>Procedural language / script language (Javascript)
+</li><li>Full outer joins
+</li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
 </li><li>Option for Java functions: constant/isDeterministic/readonly/pure (always return the same value) to allow early evaluation when all parameters are constant
@@ -305,7 +307,6 @@ Roadmap
 </li><li>Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 </li><li>Java 1.5 tool: JdbcUtils.closeSilently(s1, s2,...)
 </li><li>Javadoc: document design patterns used
-</li><li>Update Wikipedia
 </li><li>Don't create @~ of not translated
 </li><li>Triggers for metadata tables; use for PostgreSQL catalog
 </li><li>Does the FTP server has problems with multithreading?
@@ -360,10 +361,11 @@ Roadmap
     This is supported by MySQL, but not Derby. Both PostgreSQL and HSQLDB don't support getGeneratedKeys. 
     Also support it when using INSERT ... SELECT. 
 </li><li>HSQLDB compatibility: automatic data type for SUM if value is the value is too big (by default use the same type as the data).
-</li><li>Support hints for the optimizer (which index to use).
 </li><li>Improve the optimizer to select the right index for special cases: where id between 2 and 4 and booleanColumn
 </li><li>H2 Console: new option 'Open a browser when starting the H2 Console'.
 </li><li>Enable warning for 'Local variable declaration hides another field or variable'.
+</li><li>Linked tables: make hidden columns available (Oracle: rowid and ora_rowscn columns).
+</li><li>Support merge join.
 </li></ul>
 
 <h2>Not Planned</h2>

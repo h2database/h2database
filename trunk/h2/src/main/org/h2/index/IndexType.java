@@ -125,9 +125,9 @@ public class IndexType {
     }
     
     /**
-     * Get the SQL snipped to create such an index.
+     * Get the SQL snippet to create such an index.
      * 
-     * @return the SQL snipped
+     * @return the SQL snippet
      */
     public String getSQL() {
         StringBuffer buff = new StringBuffer();

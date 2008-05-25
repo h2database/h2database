@@ -4553,7 +4553,7 @@ public class Parser {
      * 
      * @param sql the code snippet
      * @return the expression object
-     * @throws SQLException if the code snipped could not be parsed
+     * @throws SQLException if the code snippet could not be parsed
      */
     public Expression parseExpression(String sql) throws SQLException {
         parameters = new ObjectArray();

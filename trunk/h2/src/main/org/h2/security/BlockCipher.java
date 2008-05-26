@@ -11,8 +11,8 @@ package org.h2.security;
  */
 public interface BlockCipher {
 
-    /*
-     * Blocks sizes are always multiples of this number
+    /**
+     * Blocks sizes are always multiples of this number.
      */
     int ALIGN = 16;
 

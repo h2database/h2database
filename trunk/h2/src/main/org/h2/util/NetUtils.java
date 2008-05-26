@@ -26,6 +26,13 @@ public class NetUtils {
 
     private static InetAddress bindAddress;
 
+    /**
+     * Create a loopback socket (a socket that is connected to localhost) on this port.
+     * 
+     * @param port the port
+     * @param ssl if SSL should be used
+     * @return the socket
+     */
     public static Socket createLoopbackSocket(int port, boolean ssl) throws IOException {
         InetAddress address = getBindAddress();
         if (address == null) {
@@ -34,6 +41,14 @@ public class NetUtils {
         return createSocket(address.getHostAddress(), port, ssl);
     }
 
+    /**
+     * Create a client socket that is connected to the given address and port.
+     * 
+     * @param server to connect to (including an optional port)
+     * @param defaultPort the default port (if not specified in the server address)
+     * @param ssl if SSL should be used
+     * @return the socket
+     */
     public static Socket createSocket(String server, int defaultPort, boolean ssl) throws IOException {
         int port = defaultPort;
         // IPv6: RFC 2732 format is '[a:b:c:d:e:f:g:h]' or
@@ -50,14 +65,29 @@ public class NetUtils {
         return createSocket(address, port, ssl);
     }
 
+    /**
+     * Create a client socket that is connected to the given address and port.
+     * 
+     * @param address the address to connect to
+     * @param port the port
+     * @param ssl if SSL should be used
+     * @return the socket
+     */
     public static Socket createSocket(InetAddress address, int port, boolean ssl) throws IOException {
         if (ssl) {
-            SecureSocketFactory f = SecureSocketFactory.getInstance();
-            return f.createSocket(address, port);
+            return SecureSocketFactory.createSocket(address, port);
         }
         return new Socket(address, port);
     }
 
+    /**
+     * Create a server socket. The system property h2.bindAddress is used if
+     * set.
+     * 
+     * @param port the port to listen on
+     * @param ssl if SSL should be used
+     * @return the server socket
+     */
     public static ServerSocket createServerSocket(int port, boolean ssl) throws SQLException {
         try {
             return createServerSocketTry(port, ssl);
@@ -73,7 +103,7 @@ public class NetUtils {
      *
      * @return the bind address
      */
-    public static InetAddress getBindAddress() throws UnknownHostException {
+    private static InetAddress getBindAddress() throws UnknownHostException {
         String host = SysProperties.BIND_ADDRESS;
         if (host == null || host.length() == 0) {
             return null;
@@ -88,11 +118,10 @@ public class NetUtils {
 
     private static ServerSocket createServerSocketTry(int port, boolean ssl) throws SQLException {
         try {
-            if (ssl) {
-                SecureSocketFactory f = SecureSocketFactory.getInstance();
-                return f.createServerSocket(port);
-            }
             InetAddress bindAddress = getBindAddress();
+            if (ssl) {
+                return SecureSocketFactory.createServerSocket(port, bindAddress);
+            }
             if (bindAddress == null) {
                 return new ServerSocket(port);
             }
@@ -105,6 +134,12 @@ public class NetUtils {
         }
     }
 
+    /**
+     * Check if a socket is connected to localhost.
+     * 
+     * @param socket the socket
+     * @return true if it is
+     */
     public static boolean isLoopbackAddress(Socket socket) {
         boolean result = true;
         //## Java 1.4 begin ##
@@ -113,6 +148,12 @@ public class NetUtils {
         return result;
     }
 
+    /**
+     * Close a server socket and ignore any exceptions.
+     * 
+     * @param socket the socket
+     * @return null
+     */
     public static ServerSocket closeSilently(ServerSocket socket) {
         if (socket != null) {
             try {
@@ -124,6 +165,11 @@ public class NetUtils {
         return null;
     }
 
+    /**
+     * Get the local host address as a string.
+     * 
+     * @return the local host address
+     */
     public static String getLocalAddress() {
         InetAddress bind = null;
         try {

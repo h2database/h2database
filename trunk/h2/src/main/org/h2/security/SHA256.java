@@ -15,13 +15,35 @@ public class SHA256 {
 
     // TODO maybe implement WHIRLPOOL
 
+    /**
+     * Calculate the hash code by using the given salt. The salt is appended
+     * after the data before the hash code is calculated. After generating the
+     * hash code, the data and all internal buffers are nulled out to avoid
+     * keeping insecure data in memory longer than required (and possibly
+     * swapped to disk).
+     * 
+     * @param data the data to hash
+     * @param salt the salt to use
+     * @return the hash code
+     */
     public byte[] getHashWithSalt(byte[] data, byte[] salt) {
         byte[] buff = new byte[data.length + salt.length];
         System.arraycopy(data, 0, buff, 0, data.length);
         System.arraycopy(salt, 0, buff, data.length, salt.length);
-        return getHash(buff);
+        return getHash(buff, true);
     }
 
+    /**
+     * Calculate the hash of a password by prepending the user name and a '@'
+     * character. Both the user name and the password are encoded to a byte
+     * array using UTF-16. After generating the hash code, the password array
+     * and all internal buffers are nulled out to avoid keeping the plain text
+     * password in memory longer than required (and possibly swapped to disk).
+     * 
+     * @param userName the user name
+     * @param the password
+     * @return the hash code
+     */    
     public byte[] getKeyPasswordHash(String userName, char[] password) {
         String user = userName + "@";
         byte[] buff = new byte[2 * (user.length() + password.length)];
@@ -37,11 +59,13 @@ public class SHA256 {
             buff[n++] = (byte) (c);
         }
         Arrays.fill(password, (char) 0);
-        return getHash(buff);
+        return getHash(buff, true);
     }
 
-    // The first 32 bits of the fractional parts of the cube roots of the first
-    // sixty-four prime numbers
+    /**
+     * The first 32 bits of the fractional parts of the cube roots of the first
+     * sixty-four prime numbers.
+     */
     private static final int[] K = { 0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
             0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98,
             0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe,
@@ -56,12 +80,21 @@ public class SHA256 {
             0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814,
             0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2 };
 
-
-    public byte[] getHash(byte[] data) {
+    /**
+     * Calculate the hash code for the given data.
+     * 
+     * @param data the data to hash
+     * @param nullData if the data should be nulled after calculating the hash code
+     * @return the hash code
+     */
+    public byte[] getHash(byte[] data, boolean nullData) {
         int byteLen = data.length;
         int intLen = ((byteLen + 9 + 63) / 64) * 16;
         byte[] bytes = new byte[intLen * 4];
         System.arraycopy(data, 0, bytes, 0, byteLen);
+        if (nullData) {
+            Arrays.fill(data, (byte) 0);
+        }
         bytes[byteLen] = (byte) 0x80;
         int[] buff = new int[intLen];
         for (int i = 0, j = 0; j < intLen; i += 4, j++) {
@@ -72,7 +105,6 @@ public class SHA256 {
         int[] w = new int[64];
         int[] hh = new int[] { 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
                 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19 };
-
         for (int block = 0; block < intLen; block += 16) {
             for (int i = 0; i < 16; i++) {
                 w[i] = buff[block + i];

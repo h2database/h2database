@@ -53,10 +53,10 @@ public class SecureFileStore extends FileStore {
         SHA256 sha = new SHA256();
         key = sha.getHashWithSalt(key, salt);
         for (int i = 0; i < keyIterations; i++) {
-            key = sha.getHash(key);
+            key = sha.getHash(key, true);
         }
         cipher.setKey(key);
-        key = sha.getHash(key);
+        key = sha.getHash(key, true);
         cipherForInitVector.setKey(key);
     }
 

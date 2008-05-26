@@ -13,7 +13,6 @@ import java.util.HashSet;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.DbObjectBase;
@@ -43,21 +42,36 @@ public class Schema extends DbObjectBase {
     private HashMap constraints = new HashMap();
     private HashMap constants = new HashMap();
 
-    /*
-     * Set of returned unique names that are not yet stored
-     * (to avoid returning the same unique name twice when multiple threads
-     * concurrently create objects).
+    /**
+     * The set of returned unique names that are not yet stored. It is used to
+     * avoid returning the same unique name twice when multiple threads
+     * concurrently create objects.
      */
     private HashSet temporaryUniqueNames = new HashSet();
 
+    /**
+     * Create a new schema object.
+     * 
+     * @param database the database
+     * @param id the object id
+     * @param schemaName the schema name
+     * @param owner the owner of the schema
+     * @param system if this is a system schema (such a schema can not be
+     *            dropped)
+     */
     public Schema(Database database, int id, String schemaName, User owner, boolean system) {
         initDbObjectBase(database, id, schemaName, Trace.SCHEMA);
         this.owner = owner;
         this.system = system;
     }
 
+    /**
+     * Check if this schema can be dropped. System schemas can not be dropped.
+     * 
+     * @return true if it can be dropped
+     */
     public boolean canDrop() {
-        return !getName().equals(Constants.SCHEMA_INFORMATION) && !getName().equals(Constants.SCHEMA_MAIN);
+        return !system;
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
@@ -118,6 +132,11 @@ public class Schema extends DbObjectBase {
         // ok
     }
 
+    /**
+     * Get the owner of this schema.
+     * 
+     * @return the owner
+     */
     public User getOwner() {
         return owner;
     }
@@ -141,6 +160,11 @@ public class Schema extends DbObjectBase {
         }
     }
 
+    /**
+     * Add an object to this schema.
+     * 
+     * @param obj the object to add
+     */
     public void add(SchemaObject obj) {
         if (SysProperties.CHECK && obj.getSchema() != this) {
             throw Message.getInternalError("wrong schema");
@@ -154,6 +178,12 @@ public class Schema extends DbObjectBase {
         freeUniqueName(name);
     }
 
+    /**
+     * Rename an object.
+     * 
+     * @param obj the object to rename
+     * @param newName the new name
+     */
     public void rename(SchemaObject obj, String newName) throws SQLException {
         int type = obj.getType();
         HashMap map = getMap(type);
@@ -165,6 +195,7 @@ public class Schema extends DbObjectBase {
                 throw Message.getInternalError("object already exists: " + newName);
             }
         }
+        obj.checkRename();
         map.remove(obj.getName());
         freeUniqueName(obj.getName());
         obj.rename(newName);
@@ -172,6 +203,15 @@ public class Schema extends DbObjectBase {
         freeUniqueName(newName);
     }
 
+    /**
+     * Try to find a table or view with this name. This method returns null if
+     * no object with this name exists. Local temporary tables are also
+     * returned.
+     * 
+     * @param session the session
+     * @param name the object name
+     * @return the object or null
+     */
     public Table findTableOrView(Session session, String name) {
         Table table = (Table) tablesAndViews.get(name);
         if (table == null && session != null) {
@@ -180,26 +220,66 @@ public class Schema extends DbObjectBase {
         return table;
     }
 
+    /**
+     * Try to find an index with this name. This method returns null if
+     * no object with this name exists.
+     * 
+     * @param name the object name
+     * @return the object or null
+     */
     public Index findIndex(String name) {
         return (Index) indexes.get(name);
     }
 
+    /**
+     * Try to find a trigger with this name. This method returns null if
+     * no object with this name exists.
+     * 
+     * @param name the object name
+     * @return the object or null
+     */
     public TriggerObject findTrigger(String name) {
         return (TriggerObject) triggers.get(name);
     }
 
+    /**
+     * Try to find a sequence with this name. This method returns null if
+     * no object with this name exists.
+     * 
+     * @param name the object name
+     * @return the object or null
+     */
     public Sequence findSequence(String sequenceName) {
         return (Sequence) sequences.get(sequenceName);
     }
 
+    /**
+     * Try to find a constraint with this name. This method returns null if no
+     * object with this name exists.
+     * 
+     * @param name the object name
+     * @return the object or null
+     */
     public Constraint findConstraint(String constraintName) {
         return (Constraint) constraints.get(constraintName);
     }
 
+    /**
+     * Try to find a user defined constant with this name. This method returns
+     * null if no object with this name exists.
+     * 
+     * @param name the object name
+     * @return the object or null
+     */
     public Constant findConstant(String constantName) {
         return (Constant) constants.get(constantName);
     }
 
+    /**
+     * Release a unique object name.
+     * 
+     * @param name the object name
+     */
     public void freeUniqueName(String name) {
         if (name != null) {
             temporaryUniqueNames.remove(name);
@@ -229,14 +309,36 @@ public class Schema extends DbObjectBase {
         return name;
     }
 
-    public String getUniqueConstraintName(DbObject obj) {
-        return getUniqueName(obj, constraints, "CONSTRAINT_");
+    /**
+     * Create a unique constraint name.
+     * 
+     * @param table the constraint table
+     * @return the unique name
+     */
+    public String getUniqueConstraintName(Table table) {
+        return getUniqueName(table, constraints, "CONSTRAINT_");
     }
 
-    public String getUniqueIndexName(DbObject obj, String prefix) {
-        return getUniqueName(obj, indexes, prefix);
+    /**
+     * Create a unique index name.
+     * 
+     * @param table the indexed table
+     * @param prefix the index name prefix
+     * @return the unique name
+     */
+    public String getUniqueIndexName(Table table, String prefix) {
+        return getUniqueName(table, indexes, prefix);
     }
 
+    /**
+     * Get the table or view with the given name.
+     * Local temporary tables are also returned.
+     * 
+     * @param session the session
+     * @param name the table or view name
+     * @return the table or view
+     * @throws SQLException if no such object exists
+     */
     public Table getTableOrView(Session session, String name) throws SQLException {
         Table table = (Table) tablesAndViews.get(name);
         if (table == null && session != null) {
@@ -248,6 +350,13 @@ public class Schema extends DbObjectBase {
         return table;
     }
 
+    /**
+     * Get the index with the given name.
+     * 
+     * @param name the index name
+     * @return the index
+     * @throws SQLException if no such object exists
+     */
     public Index getIndex(String name) throws SQLException {
         Index index = (Index) indexes.get(name);
         if (index == null) {
@@ -256,6 +365,13 @@ public class Schema extends DbObjectBase {
         return index;
     }
 
+    /**
+     * Get the constraint with the given name.
+     * 
+     * @param name the constraint name
+     * @return the constraint
+     * @throws SQLException if no such object exists
+     */
     public Constraint getConstraint(String name) throws SQLException {
         Constraint constraint = (Constraint) constraints.get(name);
         if (constraint == null) {
@@ -264,6 +380,13 @@ public class Schema extends DbObjectBase {
         return constraint;
     }
 
+    /**
+     * Get the user defined constant with the given name.
+     * 
+     * @param name the constant name
+     * @return the constant
+     * @throws SQLException if no such object exists
+     */
     public Constant getConstant(String constantName) throws SQLException {
         Constant constant = (Constant) constants.get(constantName);
         if (constant == null) {
@@ -272,6 +395,13 @@ public class Schema extends DbObjectBase {
         return constant;
     }
 
+    /**
+     * Get the sequence with the given name.
+     * 
+     * @param name the sequence name
+     * @return the sequence
+     * @throws SQLException if no such object exists
+     */
     public Sequence getSequence(String sequenceName) throws SQLException {
         Sequence sequence = (Sequence) sequences.get(sequenceName);
         if (sequence == null) {
@@ -280,11 +410,22 @@ public class Schema extends DbObjectBase {
         return sequence;
     }
 
+    /**
+     * Get all objects of the given type.
+     * 
+     * @param type the object type
+     * @return a  (possible empty) list of all objects
+     */
     public ObjectArray getAll(int type) {
         HashMap map = getMap(type);
         return new ObjectArray(map.values());
     }
 
+    /**
+     * Remove an object from this schema.
+     * 
+     * @param obj the object to remove
+     */
     public void remove(SchemaObject obj) {
         String objName = obj.getName();
         HashMap map = getMap(obj.getType());
@@ -296,7 +437,7 @@ public class Schema extends DbObjectBase {
     }
 
     /**
-     * Add a {@link TableData} to the schema.
+     * Add a table to the schema.
      * 
      * @param tableName the table name
      * @param id the object id
@@ -311,7 +452,7 @@ public class Schema extends DbObjectBase {
     }
 
     /**
-     * Add a {@link TableLink} to the schema.
+     * Add a linked table to the schema.
      * 
      * @param id the object id
      * @param tableName the table name of the alias

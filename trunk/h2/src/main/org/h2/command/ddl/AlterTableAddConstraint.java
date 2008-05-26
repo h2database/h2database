@@ -16,7 +16,6 @@ import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
-import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -75,9 +74,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
         super(session, schema);
     }
 
-    private String generateConstraintName(DbObject obj) {
+    private String generateConstraintName(Table table) {
         if (constraintName == null) {
-            constraintName = getSchema().getUniqueConstraintName(obj);
+            constraintName = getSchema().getUniqueConstraintName(table);
         }
         return constraintName;
     }

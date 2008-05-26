@@ -34,7 +34,6 @@ import org.h2.message.Message;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.NetUtils;
 
 /**
  * A factory to create encrypted sockets. To generate new keystore, use the
@@ -42,26 +41,24 @@ import org.h2.util.NetUtils;
  */
 public class SecureSocketFactory {
 
+    /**
+     * The default password to use for the .h2.keystore file
+     */
+    public static final String KEYSTORE_PASSWORD = "h2pass";
+
     private static final String KEYSTORE = ".h2.keystore";
     private static final String KEYSTORE_KEY = "javax.net.ssl.keyStore";
     private static final String KEYSTORE_PASSWORD_KEY = "javax.net.ssl.keyStorePassword";
-    public static final String KEYSTORE_PASSWORD = "h2pass";
-
-    private static SecureSocketFactory factory;
     private static final String ANONYMOUS_CIPHER_SUITE = "SSL_DH_anon_WITH_RC4_128_MD5";
 
-    private static void setFactory(SecureSocketFactory f) {
-        factory = f;
-    }
-
-    public static SecureSocketFactory getInstance() {
-        if (factory == null) {
-            setFactory(new SecureSocketFactory());
-        }
-        return factory;
-    }
-
-    public Socket createSocket(InetAddress address, int port) throws IOException {
+    /**
+     * Create a secure client socket that is connected to the given address and port.
+     * 
+     * @param address the address to connect to
+     * @param port the port
+     * @return the socket
+     */
+    public static Socket createSocket(InetAddress address, int port) throws IOException {
         Socket socket = null;
 //## Java 1.4 begin ##
         setKeystore();
@@ -77,13 +74,19 @@ public class SecureSocketFactory {
         return socket;
     }
 
-    public ServerSocket createServerSocket(int port) throws IOException {
+    /**
+     * Create a secure server socket. If a bind address is specified, the socket is only bound to this address.
+     * 
+     * @param port the port to listen on
+     * @param bindAddress the address to bind to, or null to bind to all addresses
+     * @return the server socket
+     */
+    public static ServerSocket createServerSocket(int port, InetAddress bindAddress) throws IOException {
         ServerSocket socket = null;
 //## Java 1.4 begin ##
         setKeystore();
         ServerSocketFactory f = SSLServerSocketFactory.getDefault();
         SSLServerSocket secureSocket;
-        InetAddress bindAddress = NetUtils.getBindAddress();
         if (bindAddress == null) {
             secureSocket = (SSLServerSocket) f.createServerSocket(port);
         } else {
@@ -113,7 +116,16 @@ public class SecureSocketFactory {
         }
         return bout.toByteArray();
     }
-
+//## Java 1.4 end ##
+    
+    
+    /**
+     * Get the keystore object using the given password.
+     * 
+     * @param password the keystore password
+     * @return the keystore
+     */
+//## Java 1.4 begin ##
     public static KeyStore getKeyStore(String password) throws IOException {
         try {
             // The following source code can be re-generated 
@@ -145,7 +157,7 @@ public class SecureSocketFactory {
         }
     }
 
-    private void setKeystore() throws IOException {
+    private static void setKeystore() throws IOException {
         Properties p = System.getProperties();
         if (p.getProperty(KEYSTORE_KEY) == null) {
             String fileName = FileUtils.getFileInUserHome(KEYSTORE);
@@ -176,7 +188,7 @@ public class SecureSocketFactory {
         }
     }
 
-    private String[] addAnonymous(String[] list) {
+    private static String[] addAnonymous(String[] list) {
         String[] newList = new String[list.length + 1];
         System.arraycopy(list, 0, newList, 1, list.length);
         newList[0] = ANONYMOUS_CIPHER_SUITE;

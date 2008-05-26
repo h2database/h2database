@@ -10,10 +10,10 @@ import java.sql.SQLException;
 
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.result.LocalResult;
 import org.h2.table.Column;
-import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueString;
 
@@ -44,10 +44,11 @@ public class ExplainPlan extends Prepared {
 
     public LocalResult query(int maxrows) throws SQLException {
         // TODO rights: are rights required for explain?
-        ObjectArray expressions = new ObjectArray();
         Column column = new Column("PLAN", Value.STRING);
         ExpressionColumn expr = new ExpressionColumn(session.getDatabase(), column);
-        expressions.add(expr);
+        Expression[] expressions = new Expression[] {
+            expr
+        };
         result = new LocalResult(session, expressions, 1);
         if (maxrows >= 0) {
             String plan = command.getPlanSQL();

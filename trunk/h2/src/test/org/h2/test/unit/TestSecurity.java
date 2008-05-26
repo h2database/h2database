@@ -6,9 +6,9 @@
  */
 package org.h2.test.unit;
 
-import org.h2.security.AES;
+import org.h2.security.BlockCipher;
+import org.h2.security.CipherFactory;
 import org.h2.security.SHA256;
-import org.h2.security.XTEA;
 import org.h2.test.TestBase;
 import org.h2.util.ByteUtils;
 
@@ -28,8 +28,11 @@ public class TestSecurity extends TestBase {
         testOneSHA(sha);
     }
 
-    private String getHashString(SHA256 sha, byte[] data) {
-        byte[] result = sha.getHash(data);
+    private String getHashString(SHA256 sha, byte[] data) throws Exception {
+        byte[] result = sha.getHash(data, true);
+        if (data.length > 0) {
+            check(data[0], 0);
+        }
         return ByteUtils.convertBytesToString(result);
     }
     
@@ -63,21 +66,21 @@ public class TestSecurity extends TestBase {
     
     void checkSHA256(String message, String expected) throws Exception {
         SHA256 sha = new SHA256();
-        String hash = ByteUtils.convertBytesToString(sha.getHash(message.getBytes())).toUpperCase();
+        String hash = ByteUtils.convertBytesToString(sha.getHash(message.getBytes(), true)).toUpperCase();
         check(expected, hash);
     }
 
     public void testXTEA() throws Exception {
         byte[] test = new byte[4096];
-        XTEA xtea = new XTEA();
+        BlockCipher xtea = CipherFactory.getBlockCipher("XTEA");
         xtea.setKey("abcdefghijklmnop".getBytes());
         for (int i = 0; i < 10; i++) {
-            xtea.decryptBlock(test, test, 0);
+            xtea.decrypt(test, 0, test.length);
         }
     }
 
     private void testAES() throws Exception {
-        AES test = new AES();
+        BlockCipher test = CipherFactory.getBlockCipher("AES");
         test.setKey(ByteUtils.convertStringToBytes("000102030405060708090A0B0C0D0E0F"));
 
         byte[] in = new byte[128];

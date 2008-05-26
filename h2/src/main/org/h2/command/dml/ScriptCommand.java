@@ -34,6 +34,7 @@ import org.h2.engine.Setting;
 import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
 import org.h2.engine.UserDataType;
+import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
@@ -114,9 +115,9 @@ public class ScriptCommand extends ScriptBase {
     }
 
     private LocalResult createResult() {
-        ObjectArray cols = new ObjectArray();
-        cols.add(new ExpressionColumn(session.getDatabase(), new Column("SCRIPT", Value.STRING)));
-        return new LocalResult(session, cols, 1);
+        Expression[] expressions = new Expression[] { new ExpressionColumn(session.getDatabase(), new Column("SCRIPT",
+                Value.STRING)) };
+        return new LocalResult(session, expressions, 1);
     }
 
     public LocalResult query(int maxrows) throws SQLException {

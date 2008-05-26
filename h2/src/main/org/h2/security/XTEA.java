@@ -21,6 +21,10 @@ public class XTEA implements BlockCipher {
     private static final int DELTA = 0x9E3779B9;
     private int k0, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11, k12, k13, k14, k15;
     private int k16, k17, k18, k19, k20, k21, k22, k23, k24, k25, k26, k27, k28, k29, k30, k31;
+    
+    XTEA() {
+        // do nothing
+    }
 
     public void setKey(byte[] b) {
         int[] key = new int[4];
@@ -57,7 +61,7 @@ public class XTEA implements BlockCipher {
         }
     }
 
-    public void encryptBlock(byte[] in, byte[] out, int off) {
+    private void encryptBlock(byte[] in, byte[] out, int off) {
         int y = (in[off] << 24) | ((in[off+1] & 255) << 16) | ((in[off+2] & 255) << 8) | (in[off+3] & 255);
         int z = (in[off+4] << 24) | ((in[off+5] & 255) << 16) | ((in[off+6] & 255) << 8) | (in[off+7] & 255);
         y += (((z << 4) ^ (z >>> 5)) + z) ^ k0; z += (((y >>> 5) ^ (y << 4)) + y) ^ k1;
@@ -80,7 +84,7 @@ public class XTEA implements BlockCipher {
         out[off+4] = (byte) (z >> 24); out[off+5] = (byte) (z >> 16); out[off+6] = (byte) (z >> 8); out[off+7] = (byte) z;
     }
 
-    public void decryptBlock(byte[] in, byte[] out, int off) {
+    private void decryptBlock(byte[] in, byte[] out, int off) {
         int y = (in[off] << 24) | ((in[off+1] & 255) << 16) | ((in[off+2] & 255) << 8) | (in[off+3] & 255);
         int z = (in[off+4] << 24) | ((in[off+5] & 255) << 16) | ((in[off+6] & 255) << 8) | (in[off+7] & 255);
         z -= (((y >>> 5) ^ (y << 4)) + y) ^ k31; y -= (((z << 4) ^ (z >>> 5)) + z) ^ k30;

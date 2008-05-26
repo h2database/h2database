@@ -25,6 +25,11 @@ public class ResultColumn {
     boolean autoIncrement;
     int nullable;
 
+    /**
+     * Read an object from the given transfer object.
+     * 
+     * @param in the object from where to read the data
+     */
     ResultColumn(Transfer in) throws IOException {
         alias = in.readString();
         schemaName = in.readString();
@@ -38,6 +43,13 @@ public class ResultColumn {
         nullable = in.readInt();
     }
 
+    /**
+     * Write a result column to the given output.
+     * 
+     * @param out the object to where to write the data
+     * @param result the result
+     * @param i the column index
+     */
     public static void writeColumn(Transfer out, ResultInterface result, int i) throws IOException {
         out.writeString(result.getAlias(i));
         out.writeString(result.getSchemaName(i));

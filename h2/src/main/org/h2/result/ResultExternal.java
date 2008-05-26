@@ -17,20 +17,58 @@ import org.h2.value.Value;
  */
 public interface ResultExternal {
 
+    /**
+     * Reset the current position of this object.
+     */
     void reset() throws SQLException;
 
+    /**
+     * Get the next row from the result.
+     * 
+     * @return the next row or null
+     */
     Value[] next() throws SQLException;
 
+    /**
+     * Add a number of rows to the result.
+     * 
+     * @param rows the list of rows to add
+     */
     void addRows(ObjectArray rows) throws SQLException;
 
+    /**
+     * This method is called after all rows have been added.
+     */
     void done() throws SQLException;
 
+    /**
+     * Close this object and delete the temporary file.
+     */
     void close();
 
+    /**
+     * Remove the row with the given values from this object if such a row
+     * exists.
+     * 
+     * @param values the row
+     * @return the new row count
+     */
     int removeRow(Value[] values) throws SQLException;
 
+    /**
+     * Check if the given row exists in this object.
+     * 
+     * @param values the row
+     * @return true if it exists
+     */
     boolean contains(Value[] values) throws SQLException;
 
+    /**
+     * Add a row to this object.
+     * 
+     * @param values the row to add
+     * @return the new number of rows in this object
+     */
     int addRow(Value[] values) throws SQLException;
 
 }

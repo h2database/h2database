@@ -1,4 +1,12 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+alter table information_schema.help rename to information_schema.help2;
+> exception
+
+help abc;
+> ID SECTION TOPIC SYNTAX TEXT EXAMPLE
+> -- ------- ----- ------ ---- -------
+> rows: 0
+
 CREATE TABLE test (id int(25) NOT NULL auto_increment, name varchar NOT NULL, PRIMARY KEY  (id,name));
 > ok
 

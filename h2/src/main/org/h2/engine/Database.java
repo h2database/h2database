@@ -1356,6 +1356,7 @@ public class Database implements DataHandler {
                 throw Message.getInternalError("object already exists: " + newName);
             }
         }
+        obj.checkRename();
         int id = obj.getId();
         removeMeta(session, id);
         map.remove(obj.getName());

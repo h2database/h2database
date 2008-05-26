@@ -1141,7 +1141,7 @@ public class Function extends Expression implements FunctionCall {
     private byte[] getHash(String algorithm, byte[] bytes, int iterations) throws SQLException {
         SHA256 hash = CipherFactory.getHash(algorithm);
         for (int i = 0; i < iterations; i++) {
-            bytes = hash.getHash(bytes);
+            bytes = hash.getHash(bytes, false);
         }
         return bytes;
     }

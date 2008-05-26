@@ -20,7 +20,12 @@ import org.h2.table.Table;
  * CREATE SEQUENCE
  */
 public class Sequence extends SchemaObjectBase {
+    
+    /**
+     * The default cache size for sequences.
+     */
     public static final int DEFAULT_CACHE_SIZE = 32;
+    
     private long value = 1;
     private long valueWithMargin;
     private long increment = 1;
@@ -83,6 +88,12 @@ public class Sequence extends SchemaObjectBase {
         return buff.toString();
     }
 
+    /**
+     * Get the next value for this sequence.
+     * 
+     * @param session the session
+     * @return the next value
+     */
     public synchronized long getNext(Session session) throws SQLException {
         if ((increment > 0 && value >= valueWithMargin) || (increment < 0 && value <= valueWithMargin)) {
             valueWithMargin += increment * cacheSize;
@@ -93,6 +104,11 @@ public class Sequence extends SchemaObjectBase {
         return v;
     }
 
+    /**
+     * Flush the current value, including the margin, to disk.
+     * 
+     * @param session the session
+     */
     public synchronized void flush(Session session) throws SQLException {
         Session sysSession = database.getSystemSession();
         if (session == null || !database.isSysTableLocked()) {
@@ -118,6 +134,9 @@ public class Sequence extends SchemaObjectBase {
         }
     }
 
+    /**
+     * Flush the current value to disk and close this object.
+     */
     public void close() throws SQLException {
         valueWithMargin = value;
         flush(null);

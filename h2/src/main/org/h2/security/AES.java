@@ -28,6 +28,10 @@ public class AES implements BlockCipher {
     private static final int[] RT3 = new int[256];
     private int[] encKey = new int[44];
     private int[] decKey = new int[44];
+    
+    AES() {
+        // do nothing
+    }
 
     private static int rot8(int x) {
         return (x >>> 8) | (x << 24);
@@ -117,12 +121,12 @@ public class AES implements BlockCipher {
         decKey[d++] = encKey[e++];
     }
 
-    public void encrypt(byte[] buff, int off, int len) {
+    public void encrypt(byte[] bytes, int off, int len) {
         if (SysProperties.CHECK && (len % ALIGN != 0)) {
             throw Message.getInternalError("unaligned len " + len);
         }
         for (int i = off; i < off + len; i += 16) {
-            encryptBlock(buff, buff, i);
+            encryptBlock(bytes, bytes, i);
         }
     }
 

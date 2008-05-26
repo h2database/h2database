@@ -160,11 +160,12 @@ java org.h2.test.TestAll timer
 
 /*
 
+http://patir.rubyforge.org/rutema/index.html
+Rutema is a test execution and management tool for heterogeneous development environments written in Ruby. 
+
 jazoon 
 
 upload and test javadoc/index.html
-
-download PostgreSQL docs
 
 in help.csv, use complete examples for functions; add a test case
 
@@ -233,6 +234,9 @@ Roadmap:
         sometimes a stack overflow exception was thrown instead of a IO exception.
     The H2 Console could not be shut down from within the tool if the 
         browser supports keepAlive (most browsers do).
+    If the password was passed as a char array, it was kept in an internal buffer
+        longer than required. Theoretically the password could have been stolen
+        if the main memory was swapped to disk before the garbage collection was run.
 
 */
         if (args.length > 0) {

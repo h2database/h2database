@@ -38,7 +38,11 @@ public class RowList {
     private boolean written;
     private boolean readUncached;
     
-    
+    /**
+     * Construct a new row list for this session.
+     * 
+     * @param session the session
+     */
     public RowList(Session session) {
         this.session = session;
         if (SysProperties.DEFAULT_MAX_OPERATION_MEMORY > 0 && session.getDatabase().isPersistent()) {
@@ -114,6 +118,12 @@ public class RowList {
         file.write(buff.getBytes(), 0, buff.length());
     }
     
+    
+    /**
+     * Add a row to the list.
+     * 
+     * @param r the row to add
+     */
     public void add(Row r) throws SQLException {
         list.add(r);
         memory += r.getMemorySize();
@@ -123,6 +133,9 @@ public class RowList {
         size++;
     }
     
+    /**
+     * Remove all rows from the list.
+     */
     public void reset() throws SQLException {
         index = 0;
         if (file != null) {
@@ -136,6 +149,11 @@ public class RowList {
         }
     }
     
+    /**
+     * Check if there are more rows in this list.
+     * 
+     * @return true it there are more rows
+     */
     public boolean hasNext() {
         return index < size;
     }
@@ -182,6 +200,11 @@ public class RowList {
         return row;
     }
 
+    /**
+     * Get the next row from the list.
+     * 
+     * @return the next row
+     */
     public Row next() throws SQLException {
         Row r;
         if (file == null) {
@@ -214,14 +237,25 @@ public class RowList {
         return r;
     }
     
+    /**
+     * Get the number of rows in this list.
+     * 
+     * @return the number of rows
+     */
     public int size() {
         return size;
     }
     
+    /**
+     * Do not use the cache.
+     */
     public void invalidateCache() {
         readUncached = true;
     }
     
+    /**
+     * Close the result list and delete the temporary file.
+     */
     public void close() {
         if (file != null) {
             file.closeAndDeleteSilently();

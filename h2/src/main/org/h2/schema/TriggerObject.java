@@ -28,6 +28,9 @@ import org.h2.value.Value;
  */
 public class TriggerObject extends SchemaObjectBase {
 
+    /**
+     * The default queue size.
+     */
     public static final int DEFAULT_QUEUE_SIZE = 1024;
 
     private boolean before;
@@ -65,6 +68,14 @@ public class TriggerObject extends SchemaObjectBase {
         }
     }
 
+    /**
+     * Set the trigger class name and load the class if possible.
+     * 
+     * @param session the session
+     * @param triggerClassName the name of the trigger class
+     * @param force whether exceptions (due to missing class or access rights)
+     *            should be ignored
+     */
     public void setTriggerClassName(Session session, String triggerClassName, boolean force) throws SQLException {
         this.triggerClassName = triggerClassName;
         try {
@@ -76,6 +87,14 @@ public class TriggerObject extends SchemaObjectBase {
         }
     }
 
+    /**
+     * Call the trigger class if required. This method does nothing if the
+     * trigger is not defined for the given action. This method is called before
+     * or after any rows have been processed, once for each statement.
+     * 
+     * @param session the session
+     * @param beforeAction if this method is called before applying the changes
+     */
     public void fire(Session session, boolean beforeAction) throws SQLException {
         if (rowBased || before != beforeAction) {
             return;
@@ -106,7 +125,10 @@ public class TriggerObject extends SchemaObjectBase {
     }
 
     /**
-     * Call the fire method of the user-defined trigger class.
+     * Call the fire method of the user-defined trigger class if required. This
+     * method does nothing if the trigger is not defined for the given action.
+     * This method is called before or after a row is processed, possibly many
+     * times for each statement.
      * 
      * @param session the session
      * @param oldRow the old row
@@ -172,6 +194,11 @@ public class TriggerObject extends SchemaObjectBase {
         }
     }
 
+    /**
+     * Set the trigger type.
+     * 
+     * @param typeMask the type
+     */
     public void setTypeMask(int typeMask) {
         this.typeMask = typeMask;
     }
@@ -267,14 +294,29 @@ public class TriggerObject extends SchemaObjectBase {
         // nothing to do
     }
 
+    /**
+     * Get the table of this trigger.
+     * 
+     * @return the table
+     */
     public Table getTable() {
         return table;
     }
 
+    /**
+     * Check if this is a before trigger.
+     * 
+     * @return true if it is
+     */
     public boolean getBefore() {
         return before;
     }
 
+    /**
+     * Get the trigger class name
+     * 
+     * @return the class name
+     */
     public String getTriggerClassName() {
         return triggerClassName;
     }

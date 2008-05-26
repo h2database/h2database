@@ -56,6 +56,12 @@ public class User extends RightOwner {
         this.passwordHash = hash;
     }
 
+    /**
+     * Set the user name password hash. A random salt is generated as well.
+     * The parameter is nulled out after use.
+     * 
+     * @param userPasswordHash the user name password hash
+     */
     public void setUserPasswordHash(byte[] userPasswordHash) {
         if (userPasswordHash != null) {
             salt = RandomUtils.getSecureBytes(Constants.SALT_LEN);

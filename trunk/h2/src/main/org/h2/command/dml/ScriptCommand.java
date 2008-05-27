@@ -65,6 +65,7 @@ import org.h2.value.ValueString;
  */
 public class ScriptCommand extends ScriptBase {
 
+    private static final String TEMP_LOB_FILENAME = "system_temp_lob.db";
     private boolean passwords;
     private boolean data;
     private boolean settings;
@@ -76,7 +77,6 @@ public class ScriptCommand extends ScriptBase {
     private boolean tempLobTableCreated;
     private int nextLobId;
     private int lobBlockSize = Constants.IO_BUFFER_SIZE;
-    private static final String TEMP_LOB_FILENAME = "system_temp_lob.db";
 
     public ScriptCommand(Session session) {
         super(session);

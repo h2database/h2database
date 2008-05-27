@@ -447,8 +447,9 @@ implements Trigger
         case Types.DATALINK:
         case Types.DISTINCT:
             throw new SQLException("FULLTEXT", "Unsupported column data type: " + type);
+        default:
+            return "";
         }
-        return "";
     }
 
     private String quoteSQL(Object data, int type) throws SQLException {
@@ -490,8 +491,9 @@ implements Trigger
         case Types.DATALINK:
         case Types.DISTINCT:
             throw new SQLException("FULLTEXT", "Unsupported key data type: " + type);
+        default:
+            return "";
         }
-        return "";
     }
 
     private void insert(Object[] row) throws SQLException {

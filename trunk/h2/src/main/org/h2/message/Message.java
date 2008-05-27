@@ -61,6 +61,10 @@ public class Message {
             TraceSystem.traceThrowable(e);
         }
     }
+    
+    private Message() {
+        // utility class
+    }
 
     /**
      * Gets the SQL exception object for a specific error code.

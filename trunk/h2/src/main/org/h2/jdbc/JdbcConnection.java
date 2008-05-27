@@ -60,7 +60,8 @@ public class JdbcConnection extends TraceObject implements Connection {
     private String url;
     private String user;
 
-    private int holdability = 1; // ResultSet.HOLD_CURSORS_OVER_COMMIT
+    // ResultSet.HOLD_CURSORS_OVER_COMMIT
+    private int holdability = 1; 
 
     private SessionInterface session;
     private CommandInterface commit, rollback;
@@ -78,6 +79,62 @@ public class JdbcConnection extends TraceObject implements Connection {
     private boolean isInternal;
     private String catalog;
     private Statement executingStatement;
+
+    /**
+     * INTERNAL
+     */
+    public JdbcConnection(String url, Properties info) throws SQLException {
+        this(new ConnectionInfo(url, info), true);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public JdbcConnection(ConnectionInfo ci, boolean useBaseDir) throws SQLException {
+        try {
+            checkJavaVersion();
+            if (ci.isRemote()) {
+                session = new SessionRemote().createSession(ci);
+            } else {
+                // create the session using reflection, 
+                // so that the JDBC layer can be compiled without it
+                SessionInterface si = (SessionInterface) ClassUtils.loadSystemClass("org.h2.engine.Session").newInstance();
+                if (useBaseDir) {
+                    String baseDir = SysProperties.getBaseDir();
+                    if (baseDir != null) {
+                        ci.setBaseDir(baseDir);
+                    }
+                }
+                session = si.createSession(ci);
+            }
+            trace = session.getTrace();
+            int id = getNextId(TraceObject.CONNECTION);
+            setTrace(trace, TraceObject.CONNECTION, id);
+            this.user = ci.getUserName();
+            if (isInfoEnabled()) {
+                trace.infoCode("Connection " + getTraceObjectName()
+                        + " = DriverManager.getConnection(" + quote(ci.getOriginalURL())
+                        + ", " + quote(user) + ", \"\")");
+            }
+            this.url = ci.getURL();
+            openStackTrace = new Exception("Stack Trace");
+        } catch (Throwable e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * INTERNAL
+     */
+    public JdbcConnection(SessionInterface session, String user, String url) {
+        isInternal = true;
+        this.session = session;
+        trace = session.getTrace();
+        int id = getNextId(TraceObject.CONNECTION);
+        setTrace(trace, TraceObject.CONNECTION, id);
+        this.user = user;
+        this.url = url;
+    }
 
     /**
      * Creates a new statement.
@@ -941,61 +998,6 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     // =============================================================
-
-    /**
-     * INTERNAL
-     */
-    public JdbcConnection(String url, Properties info) throws SQLException {
-        this(new ConnectionInfo(url, info), true);
-    }
-
-    /**
-     * INTERNAL
-     */
-    public JdbcConnection(ConnectionInfo ci, boolean useBaseDir) throws SQLException {
-        try {
-            checkJavaVersion();
-            if (ci.isRemote()) {
-                session = new SessionRemote().createSession(ci);
-            } else {
-                // create the session using reflection, so that the JDBC layer can be compiled without it
-                SessionInterface si = (SessionInterface) ClassUtils.loadSystemClass("org.h2.engine.Session").newInstance();
-                if (useBaseDir) {
-                    String baseDir = SysProperties.getBaseDir();
-                    if (baseDir != null) {
-                        ci.setBaseDir(baseDir);
-                    }
-                }
-                session = si.createSession(ci);
-            }
-            trace = session.getTrace();
-            int id = getNextId(TraceObject.CONNECTION);
-            setTrace(trace, TraceObject.CONNECTION, id);
-            this.user = ci.getUserName();
-            if (isInfoEnabled()) {
-                trace.infoCode("Connection " + getTraceObjectName()
-                        + " = DriverManager.getConnection(" + quote(ci.getOriginalURL())
-                        + ", " + quote(user) + ", \"\")");
-            }
-            this.url = ci.getURL();
-            openStackTrace = new Exception("Stack Trace");
-        } catch (Throwable e) {
-            throw logAndConvert(e);
-        }
-    }
-
-    /**
-     * INTERNAL
-     */
-    public JdbcConnection(SessionInterface session, String user, String url) {
-        isInternal = true;
-        this.session = session;
-        trace = session.getTrace();
-        int id = getNextId(TraceObject.CONNECTION);
-        setTrace(trace, TraceObject.CONNECTION, id);
-        this.user = user;
-        this.url = url;
-    }
 
     private void checkJavaVersion() throws SQLException {
         try {

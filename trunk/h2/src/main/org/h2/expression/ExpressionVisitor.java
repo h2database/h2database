@@ -70,6 +70,10 @@ public class ExpressionVisitor {
     private ColumnResolver resolver;
     private HashSet dependencies;
 
+    private ExpressionVisitor(int type) {
+        this.type = type;
+    }
+
     /**
      * Create a new visitor object with the given type.
      * 
@@ -80,10 +84,6 @@ public class ExpressionVisitor {
         return new ExpressionVisitor(type);
     }
     
-    private ExpressionVisitor(int type) {
-        this.type = type;
-    }
-
     /**
      * Add a new dependency to the set of dependencies.
      * This is used for GET_DEPENDENCIES visitors.

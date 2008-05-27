@@ -42,6 +42,10 @@ public class Bnf {
     private Rule lastRepeat;
     private ArrayList statements;
     private String currentTopic;
+    
+    Bnf() {
+        random.setSeed(1);
+    }
 
     /**
      * Create an instance using the grammar specified in the CSV file.
@@ -57,10 +61,6 @@ public class Bnf {
         }
         bnf.parse(csv);
         return bnf;
-    }
-
-    Bnf() {
-        random.setSeed(1);
     }
 
     void addFixedRule(String name, int fixedType) {

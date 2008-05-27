@@ -77,16 +77,6 @@ package org.h2.engine;
 public class Constants {
 
     /**
-     * The build id is incremented for each public release.
-     */
-    public static final int BUILD_ID = 72;
-    
-    /**
-     * The build date is updated for each public release.
-     */
-    private static final String BUILD_DATE = "2008-05-10";
-
-    /**
      * The TCP protocol version number 5. This protocol is used by the TCP
      * server and remote JDBC client.
      */
@@ -532,12 +522,6 @@ public class Constants {
     public static final String UTF8 = "UTF8";
     
     /**
-     * The version of this product, consisting of major version, minor version,
-     * and build id.
-     */
-    public static final String VERSION = VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID;
-    
-    /**
      * The major version number of the supported JDBC API.
      */
     public static final int VERSION_JDBC_MAJOR = 3;
@@ -560,13 +544,37 @@ public class Constants {
     public static final int VIEW_INDEX_CACHE_SIZE = 64;
     
     /**
+     * The build id is incremented for each public release.
+     */
+    public static final int BUILD_ID = 72;
+    
+    /**
+     * The build date is updated for each public release.
+     */
+    private static final String BUILD_DATE = "2008-05-10";
+
+    private Constants() {
+        // utility class
+    }
+    
+    /**
+     * Get the version of this product, consisting of major version, minor version,
+     * and build id.
+     * 
+     * @return the version number
+     */
+    public static String getVersion() {
+        return VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID;
+    }
+
+    /**
      * Get the complete version number of this database, consisting of 
      * the major version, the minor version, the build id, and the build date.
      * 
      * @return the complete version
      */
     public static String getFullVersion() {
-        return VERSION+ " (" + BUILD_DATE + ")";
+        return getVersion() + " (" + BUILD_DATE + ")";
     }
 
 }

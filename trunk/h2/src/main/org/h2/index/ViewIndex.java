@@ -78,6 +78,9 @@ public class ViewIndex extends BaseIndex {
         throw Message.getUnsupportedException();
     }
 
+    /**
+     * A calculated cost value.
+     */
     static class CostElement {
         long evaluatedAt;
         double cost;

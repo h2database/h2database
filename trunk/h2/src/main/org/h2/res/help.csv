@@ -1735,7 +1735,7 @@ Unlike when using VARCHAR, large CLOB objects are not kept fully in-memory.
 CLOB should be used for documents and texts with arbitrary size such as 
 XML or HTML documents, text files, or memo fields of unlimited size.
 VARCHAR should be used for text with relatively short average size (for example 
-shorter than 200 characters). Short CLOBs are stored inline, but there is an 
+shorter than 200 characters). Short CLOB values are stored inline, but there is an 
 overhead compared to VARCHAR. 
 Use PreparedStatement.setCharacterStream to store values.
 ","

@@ -47,6 +47,9 @@ import org.h2.value.ValueNull;
  */
 public class Session implements SessionInterface {
 
+    private static int nextSerialId;
+
+    private int serialId = nextSerialId++;
     private User user;
     private int id;
     private Database database;
@@ -72,8 +75,6 @@ public class Session implements SessionInterface {
     private HashMap unlinkMap;
     private int tempViewIndex;
     private HashMap procedures;
-    private static int nextSerialId;
-    private int serialId = nextSerialId++;
     private boolean undoLogEnabled = true;
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;

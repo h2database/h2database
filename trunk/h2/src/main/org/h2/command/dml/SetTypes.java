@@ -233,6 +233,10 @@ public class SetTypes {
         setType(VARIABLE, "@");
         setType(QUERY_TIMEOUT, "QUERY_TIMEOUT");
     }
+    
+    private SetTypes() {
+        // utility class
+    }
 
     private static void setType(int type, String name) {
         while (types.size() <= type) {

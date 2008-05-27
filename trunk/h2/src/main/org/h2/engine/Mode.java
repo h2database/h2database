@@ -20,6 +20,8 @@ public class Mode {
      * The name of the default mode.
      */
     public static final String REGULAR = "REGULAR";
+    
+    private static final HashMap MODES = new HashMap();
 
     public boolean nullConcatIsNull;
     public boolean convertInsertNullToZero;
@@ -29,8 +31,6 @@ public class Mode {
     public boolean indexDefinitionInCreateTable;
     public boolean systemColumns;
     public boolean squareBracketQuotedNames;
-
-    private static final HashMap MODES = new HashMap();
 
     private String name;
 
@@ -61,13 +61,13 @@ public class Mode {
         add(mode);
 
     }
+    
+    private Mode(String name) {
+        this.name = name;
+    }
 
     private static void add(Mode mode) {
         MODES.put(StringUtils.toUpperEnglish(mode.name), mode);
-    }
-
-    private Mode(String name) {
-        this.name = name;
     }
 
     /**

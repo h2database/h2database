@@ -123,6 +123,7 @@ public class JavaFunction extends Expression implements FunctionCall {
         case ExpressionVisitor.GET_DEPENDENCIES:
             visitor.addDependency(functionAlias);
             break;
+        default:
         }
         for (int i = 0; i < args.length; i++) {
             Expression e = args[i];

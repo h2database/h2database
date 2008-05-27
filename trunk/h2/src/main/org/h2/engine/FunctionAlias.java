@@ -142,7 +142,8 @@ public class FunctionAlias extends DbObjectBase {
 
     public synchronized void removeChildrenAndResources(Session session) throws SQLException {
         database.removeMeta(session, getId());
-        className = methodName = null;
+        className = null;
+        methodName = null;
         javaMethod = null;
         invalidate();
     }

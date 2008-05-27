@@ -32,6 +32,13 @@ implements ParameterMetaData
     private int paramCount;
     private ObjectArray parameters;
 
+    JdbcParameterMetaData(SessionInterface session, JdbcPreparedStatement prep, CommandInterface command, int id) {
+        setTrace(session.getTrace(), TraceObject.PARAMETER_META_DATA, id);
+        this.prep = prep;
+        this.parameters = command.getParameters();
+        this.paramCount = parameters.size();
+    }
+
     /**
      * Returns the number of parameters.
      *
@@ -194,13 +201,6 @@ implements ParameterMetaData
         } catch (Throwable e) {
             throw logAndConvert(e);
         }
-    }
-
-    JdbcParameterMetaData(SessionInterface session, JdbcPreparedStatement prep, CommandInterface command, int id) {
-        setTrace(session.getTrace(), TraceObject.PARAMETER_META_DATA, id);
-        this.prep = prep;
-        this.parameters = command.getParameters();
-        this.paramCount = parameters.size();
     }
 
     private ParameterInterface getParameter(int param) throws SQLException {

@@ -153,7 +153,7 @@ public class Trace {
     /**
      * Write Java source code with trace level DEBUG to the trace system.
      * 
-     * @param java the source cod
+     * @param java the source code
      */
     public void debugCode(String java) {
         traceWriter.write(TraceSystem.DEBUG, module, lineSeparator + "/**/" + java, null);
@@ -162,7 +162,7 @@ public class Trace {
     /**
      * Write Java source code with trace level INFO to the trace system.
      * 
-     * @param java the source cod
+     * @param java the source code
      */
     public void infoCode(String java) {
         traceWriter.write(TraceSystem.INFO, module, lineSeparator + "/**/" + java, null);

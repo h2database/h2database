@@ -456,6 +456,10 @@ public class SysProperties {
 
     private static String baseDir = getStringSetting("h2.baseDir", null);
 
+    private SysProperties() {
+        // utility class
+    }
+    
     private static boolean getBooleanSetting(String name, boolean defaultValue) {
         String s = getProperty(name);
         if (s != null) {

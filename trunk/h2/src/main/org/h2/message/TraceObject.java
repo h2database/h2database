@@ -29,14 +29,14 @@ public class TraceObject {
         SAVEPOINT = 6, SQL_EXCEPTION = 7, STATEMENT = 8, BLOB = 9, CLOB = 10,
         PARAMETER_META_DATA = 11;
     protected static final int DATA_SOURCE = 12, XA_DATA_SOURCE = 13, XID = 14, ARRAY = 15;
-
     private static final int LAST = ARRAY + 1;
-    private Trace trace;
     private static final int[] ID = new int[LAST];
     private static final String[] PREFIX = {
         "call", "conn", "dbMeta", "prep", "rs", "rsMeta", "sp", "ex", "stat", "blob", "clob", "pMeta",
         "ds", "xads", "xid", "ar"
     };
+    
+    private Trace trace;
     private int type;
     private int id;
 

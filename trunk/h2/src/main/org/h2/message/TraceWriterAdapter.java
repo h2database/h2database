@@ -39,8 +39,9 @@ public class TraceWriterAdapter implements TraceWriter {
             return logger.isInfoEnabled();
         case TraceSystem.ERROR:
             return logger.isErrorEnabled();
+        default:
+            return false;
         }
-        return false;
     }
 
     public void write(int level, String module, String s, Throwable t) {
@@ -60,6 +61,7 @@ public class TraceWriterAdapter implements TraceWriter {
             case TraceSystem.ERROR:
                 logger.error(s, t);
                 break;
+            default:
             }
         }
     }

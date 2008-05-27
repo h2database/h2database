@@ -40,6 +40,14 @@ public class JdbcStatement extends TraceObject implements Statement {
     private ObjectArray batchCommands;
     private boolean escapeProcessing = true;
 
+    JdbcStatement(SessionInterface session, JdbcConnection conn, int resultSetType, int id, boolean closeWithResultSet) {
+        setTrace(session.getTrace(), TraceObject.STATEMENT, id);
+        this.session = session;
+        this.conn = conn;
+        this.resultSetType = resultSetType;
+        this.closedByResultSet = closeWithResultSet;
+    }
+
     /**
      * Executes a query (select statement) and returns the result set.
      * If another result set exists for this statement, this will be closed
@@ -812,14 +820,6 @@ public class JdbcStatement extends TraceObject implements Statement {
 //## Java 1.4 end ##
 
     // =============================================================
-
-    JdbcStatement(SessionInterface session, JdbcConnection conn, int resultSetType, int id, boolean closeWithResultSet) {
-        setTrace(session.getTrace(), TraceObject.STATEMENT, id);
-        this.session = session;
-        this.conn = conn;
-        this.resultSetType = resultSetType;
-        this.closedByResultSet = closeWithResultSet;
-    }
 
     void checkClosed() throws SQLException {
         if (conn == null) {

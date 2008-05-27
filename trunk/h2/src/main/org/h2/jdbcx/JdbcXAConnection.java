@@ -43,6 +43,8 @@ implements XAConnection, XAResource, JdbcConnectionListener
 {
 
 //## Java 1.4 begin ##
+    private static int nextTransactionId;
+    
     private JdbcDataSourceFactory factory;
     private String url, user, password;
     private JdbcConnection connSentinel;
@@ -50,7 +52,6 @@ implements XAConnection, XAResource, JdbcConnectionListener
     private ArrayList listeners = new ArrayList();
     private Xid currentTransaction;
     private int currentTransactionId;
-    private static int nextTransactionId;
 
     static {
         org.h2.Driver.load();

@@ -61,6 +61,7 @@ public class Set extends Prepared {
         case SetTypes.SCHEMA:
         case SetTypes.SCHEMA_SEARCH_PATH:
             return true;
+        default:
         }
         return false;
     }

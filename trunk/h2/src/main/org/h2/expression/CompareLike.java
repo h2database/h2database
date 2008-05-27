@@ -28,7 +28,9 @@ import org.h2.value.ValueString;
  * Pattern matching comparison expression: WHERE NAME LIKE ?
  */
 public class CompareLike extends Condition {
-
+    
+    private static final int MATCH = 0, ONE = 1, ANY = 2;
+    
     private final CompareMode compareMode;
     private final boolean regexp;
     private Expression left;
@@ -41,7 +43,6 @@ public class CompareLike extends Condition {
     private Pattern patternRegexp;
     private int[] types;
     private int patternLength;
-    private static final int MATCH = 0, ONE = 1, ANY = 2;
     private boolean ignoreCase;
 
     public CompareLike(CompareMode compareMode, Expression left, Expression right, Expression escape, boolean regexp) {

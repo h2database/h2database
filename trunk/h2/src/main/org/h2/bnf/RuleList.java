@@ -18,6 +18,21 @@ public class RuleList implements Rule {
     private ArrayList list;
     private boolean mapSet;
     
+    RuleList(Rule first, Rule next, boolean or) {
+        list = new ArrayList();
+        if (first instanceof RuleList && ((RuleList) first).or == or) {
+            list.addAll(((RuleList) first).list);
+        } else {
+            list.add(first);
+        }
+        if (next instanceof RuleList && ((RuleList) next).or == or) {
+            list.addAll(((RuleList) next).list);
+        } else {
+            list.add(next);
+        }
+        this.or = or;
+    }
+    
     public String toString() {
         StringBuffer buff = new StringBuffer();
         if (or) {
@@ -40,21 +55,6 @@ public class RuleList implements Rule {
         return buff.toString();
     }
 
-    RuleList(Rule first, Rule next, boolean or) {
-        list = new ArrayList();
-        if (first instanceof RuleList && ((RuleList) first).or == or) {
-            list.addAll(((RuleList) first).list);
-        } else {
-            list.add(first);
-        }
-        if (next instanceof RuleList && ((RuleList) next).or == or) {
-            list.addAll(((RuleList) next).list);
-        } else {
-            list.add(next);
-        }
-        this.or = or;
-    }
-
     public String random(Bnf config, int level) {
         if (or) {
             if (level > 10) {
@@ -75,7 +75,7 @@ public class RuleList implements Rule {
     }
 
     private Rule get(int idx) {
-        return ((Rule) list.get(idx));
+        return (Rule) list.get(idx);
     }
 
     public String name() {

@@ -60,6 +60,9 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     private SimpleRowSource source;
     private ArrayList columns = new ArrayList();
 
+    /**
+     * This class holds the data of a result column.
+     */
     static class Column {
         String name;
         int sqlType;
@@ -1623,7 +1626,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateNString(int columnIndex, String nString) throws SQLException {
+    public void updateNString(int columnIndex, String nString) 
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1632,7 +1636,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateNString(String columnName, String nString) throws SQLException {
+    public void updateNString(String columnName, String nString) 
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1641,7 +1646,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateNClob(int columnIndex, NClob nClob) throws SQLException {
+    public void updateNClob(int columnIndex, NClob nClob) 
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1650,7 +1656,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateNClob(String columnName, NClob nClob) throws SQLException {
+    public void updateNClob(String columnName, NClob nClob) 
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1738,7 +1745,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public Reader getNCharacterStream(String columnName) throws SQLException {
+    public Reader getNCharacterStream(String columnName) 
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1747,7 +1755,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateNCharacterStream(int columnIndex, Reader x, int length) throws SQLException {
+    public void updateNCharacterStream(int columnIndex, Reader x, int length) 
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1756,7 +1765,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateNCharacterStream(String columnName, Reader x, int length) throws SQLException {
+    public void updateNCharacterStream(String columnName, Reader x, int length) 
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1783,7 +1793,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateAsciiStream(int columnIndex, InputStream x) throws SQLException {
+    public void updateAsciiStream(int columnIndex, InputStream x) 
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1792,7 +1803,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateAsciiStream(String columnName, InputStream x) throws SQLException {
+    public void updateAsciiStream(String columnName, InputStream x) 
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1801,7 +1813,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateAsciiStream(int columnIndex, InputStream x, long length) throws SQLException {
+    public void updateAsciiStream(int columnIndex, InputStream x, long length)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1810,7 +1823,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateAsciiStream(String columnName, InputStream x, long length) throws SQLException {
+    public void updateAsciiStream(String columnName, InputStream x, long length)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1819,7 +1833,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateBinaryStream(int columnName, InputStream x) throws SQLException {
+    public void updateBinaryStream(int columnName, InputStream x)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1828,7 +1843,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateBinaryStream(String columnName, InputStream x) throws SQLException {
+    public void updateBinaryStream(String columnName, InputStream x)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1837,7 +1853,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateBinaryStream(int columnIndex, InputStream x, long length) throws SQLException {
+    public void updateBinaryStream(int columnIndex, InputStream x, long length)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1846,7 +1863,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateBinaryStream(String columnName, InputStream x, long length) throws SQLException {
+    public void updateBinaryStream(String columnName, InputStream x, long length)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1873,7 +1891,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateBlob(int columnIndex, InputStream x, long length) throws SQLException {
+    public void updateBlob(int columnIndex, InputStream x, long length)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1882,7 +1901,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateBlob(String columnName, InputStream x, long length) throws SQLException {
+    public void updateBlob(String columnName, InputStream x, long length)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1891,7 +1911,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateCharacterStream(int columnIndex, Reader x) throws SQLException {
+    public void updateCharacterStream(int columnIndex, Reader x)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1900,7 +1921,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateCharacterStream(String columnName, Reader x) throws SQLException {
+    public void updateCharacterStream(String columnName, Reader x)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1909,7 +1931,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
+    public void updateCharacterStream(int columnIndex, Reader x, long length)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1918,7 +1941,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateCharacterStream(String columnName, Reader x, long length) throws SQLException {
+    public void updateCharacterStream(String columnName, Reader x, long length)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1945,7 +1969,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateClob(int columnIndex, Reader x, long length) throws SQLException {
+    public void updateClob(int columnIndex, Reader x, long length)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1954,7 +1979,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateClob(String columnName, Reader x, long length) throws SQLException {
+    public void updateClob(String columnName, Reader x, long length)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1963,7 +1989,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateNCharacterStream(int columnIndex, Reader x) throws SQLException {
+    public void updateNCharacterStream(int columnIndex, Reader x)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1972,7 +1999,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateNCharacterStream(String columnName, Reader x) throws SQLException {
+    public void updateNCharacterStream(String columnName, Reader x)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1981,7 +2009,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateNCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
+    public void updateNCharacterStream(int columnIndex, Reader x, long length)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -1990,7 +2019,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateNCharacterStream(String columnName, Reader x, long length) throws SQLException {
+    public void updateNCharacterStream(String columnName, Reader x, long length)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -2017,7 +2047,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateNClob(int columnIndex, Reader x, long length) throws SQLException {
+    public void updateNClob(int columnIndex, Reader x, long length)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -2026,7 +2057,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL 
      */
 /*## Java 1.6 begin ##
-    public void updateNClob(String columnName, Reader x, long length) throws SQLException {
+    public void updateNClob(String columnName, Reader x, long length)
+            throws SQLException {
         throw getUnsupportedException();
     }
 ## Java 1.6 end ##*/

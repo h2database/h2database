@@ -6,12 +6,12 @@
  */
 package org.h2.store.fs;
 
-/**
- * Allows to write to a file object like an output stream.
- */
 import java.io.IOException;
 import java.io.OutputStream;
 
+/**
+ * Allows to write to a file object like an output stream.
+ */
 public class FileObjectOutputStream extends OutputStream {
 
     private FileObject file;

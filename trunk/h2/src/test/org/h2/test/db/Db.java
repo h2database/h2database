@@ -30,6 +30,15 @@ public class Db {
     private Statement stat;
     private HashMap prepared = new HashMap();
 
+    private Db(Connection conn) {
+        try {
+            this.conn = conn;
+            stat = conn.createStatement();
+        } catch (Exception e) {
+            throw convert(e);
+        }
+    }
+
     public static Db open(String url, String user, String password) {
         try {
             JdbcDriverUtils.load(url);
@@ -68,15 +77,9 @@ public class Db {
         }
     }
 
-    private Db(Connection conn) {
-        try {
-            this.conn = conn;
-            stat = conn.createStatement();
-        } catch (Exception e) {
-            throw convert(e);
-        }
-    }
-
+    /**
+     * This class represents a prepared statement.
+     */
     public class Prepared {
         private PreparedStatement prep;
         private int index;

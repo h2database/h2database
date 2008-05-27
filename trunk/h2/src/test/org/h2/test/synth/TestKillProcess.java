@@ -20,6 +20,11 @@ import org.h2.test.unit.SelfDestructor;
  * Test application for {@link TestKill}.
  */
 public class TestKillProcess {
+    
+    private TestKillProcess() {
+        // utility class
+    }
+    
     public static void main(String[] args) throws Exception {
         SelfDestructor.startCountdown(60);
         try {

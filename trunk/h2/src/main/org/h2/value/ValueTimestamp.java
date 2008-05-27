@@ -22,10 +22,10 @@ import org.h2.util.MathUtils;
  */
 public class ValueTimestamp extends Value {
     public static final int PRECISION = 23;
-    public static final int DISPLAY_SIZE = 23; // 2001-01-01 23:59:59.000
+    // "2001-01-01 23:59:59.000".length()
+    public static final int DISPLAY_SIZE = 23; 
     public static final int DEFAULT_SCALE = 10;
-    private final Timestamp value;
-    
+
     /**
      * This is used to find out if a date is possibly BC. Because of time zone
      * issues (the date is time zone specific), the second day is used. That
@@ -33,6 +33,8 @@ public class ValueTimestamp extends Value {
      */
     static final long YEAR_ONE = java.sql.Date.valueOf("0001-01-02").getTime();
 
+    private final Timestamp value;
+    
     private ValueTimestamp(Timestamp value) {
         this.value = value;
     }

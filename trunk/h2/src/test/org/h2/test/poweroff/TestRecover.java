@@ -37,9 +37,15 @@ import org.h2.util.IOUtils;
  */
 public class TestRecover {
 
-    private Random random;
     private static final String NODE = System.getProperty("test.node", "");
     private static final String DIR = System.getProperty("test.dir", "/temp/db");
+
+    private static final String TEST_DIRECTORY = DIR + "/data" + NODE;
+    private static final String BACKUP_DIRECTORY = DIR + "/last";
+    private static final String URL = System.getProperty("test.url", "jdbc:h2:" + TEST_DIRECTORY + "/test;MAX_LOG_SIZE=2");
+    private static final String DRIVER = System.getProperty("test.driver", "org.h2.Driver");
+
+    private Random random;
 
     // private static final String DIR = 
     //     System.getProperty("test.dir", "/temp/derby");
@@ -49,11 +55,6 @@ public class TestRecover {
     // private static final String DRIVER = 
     //     System.getProperty("test.driver", 
     //         "org.apache.derby.jdbc.EmbeddedDriver");
-
-    private static final String TEST_DIRECTORY = DIR + "/data" + NODE;
-    private static final String BACKUP_DIRECTORY = DIR + "/last";
-    private static final String URL = System.getProperty("test.url", "jdbc:h2:" + TEST_DIRECTORY + "/test;MAX_LOG_SIZE=2");
-    private static final String DRIVER = System.getProperty("test.driver", "org.h2.Driver");
 
     public static void main(String[] args) throws Exception {
         new TestRecover().runTest();

@@ -26,8 +26,13 @@ public class NetUtils {
 
     private static InetAddress bindAddress;
 
+    private NetUtils() {
+        // utility class
+    }
+
     /**
-     * Create a loopback socket (a socket that is connected to localhost) on this port.
+     * Create a loopback socket (a socket that is connected to localhost) on
+     * this port.
      * 
      * @param port the port
      * @param ssl if SSL should be used
@@ -45,7 +50,8 @@ public class NetUtils {
      * Create a client socket that is connected to the given address and port.
      * 
      * @param server to connect to (including an optional port)
-     * @param defaultPort the default port (if not specified in the server address)
+     * @param defaultPort the default port (if not specified in the server
+     *            address)
      * @param ssl if SSL should be used
      * @return the socket
      */

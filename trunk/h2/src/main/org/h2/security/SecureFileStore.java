@@ -117,7 +117,7 @@ public class SecureFileStore extends FileStore {
         byte[] iv = bufferForInitVector;
         while (len > 0) {
             for (int i = 0; i < Constants.FILE_BLOCK_SIZE; i += 8) {
-                long block = ((pos + i) >>> 3);
+                long block = (pos + i) >>> 3;
                 iv[i] = (byte) (block >> 56);
                 iv[i + 1] = (byte) (block >> 48);
                 iv[i + 2] = (byte) (block >> 40);

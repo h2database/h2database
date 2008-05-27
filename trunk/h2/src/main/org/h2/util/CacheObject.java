@@ -17,12 +17,13 @@ import org.h2.store.DiskFile;
  */
 public abstract class CacheObject {
 
+    public CacheObject previous, next, chained;
+    public int cacheQueue;
+    
     /**
      * The number of blocks occupied by this object.
      */
     protected int blockCount;
-    public CacheObject previous, next, chained;
-    public int cacheQueue;
     private int pos;
     private boolean changed;
 

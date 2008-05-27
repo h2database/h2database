@@ -22,17 +22,17 @@ import org.h2.value.ValueString;
  */
 public class TestOverflow extends TestBase {
 
+    private ArrayList values;
+    private int type;
+    private BigInteger min, max;
+    private boolean successExpected;
+
     public void test() throws Exception {
         test(Value.BYTE, Byte.MIN_VALUE, Byte.MAX_VALUE);
         test(Value.INT, Integer.MIN_VALUE, Integer.MAX_VALUE);
         test(Value.LONG, Long.MIN_VALUE, Long.MAX_VALUE);
         test(Value.SHORT, Short.MIN_VALUE, Short.MAX_VALUE);
     }
-
-    private ArrayList values;
-    private int type;
-    private BigInteger min, max;
-    private boolean successExpected;
 
     private void test(int type, long min, long max) throws Exception {
         values = new ArrayList();

@@ -23,10 +23,11 @@ import org.h2.test.unit.SelfDestructor;
  */
 public class TestKill extends TestBase {
 
+    private static final String DIR = TestBase.getTestDir("kill");
+    
     Connection conn;
     int accounts = 10;
     Random random = new Random(1);
-    private static final String DIR = TestBase.getTestDir("kill");
 
     public void test() throws Exception {
         String connect = "";

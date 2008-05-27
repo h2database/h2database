@@ -660,6 +660,9 @@ class WebThread extends Thread implements DatabaseEventListener {
         return treeIndex;
     }
 
+    /**
+     * This class represents index information for the GUI.
+     */
     static class IndexInfo {
         String name;
         String type;
@@ -1022,6 +1025,10 @@ class WebThread extends Thread implements DatabaseEventListener {
                 return "login.jsp";
             }
         }
+        
+        /**
+         * This class is used for the asynchronous login.
+         */
         class LoginTask implements Runnable, DatabaseEventListener {
             private final PrintWriter writer;
             private final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
@@ -1221,6 +1228,9 @@ class WebThread extends Thread implements DatabaseEventListener {
         return "result.jsp";
     }
 
+    /**
+     * This class allows to load Java code dynamically.
+     */
     static class DynamicClassLoader extends SecureClassLoader {
 
         private String name;

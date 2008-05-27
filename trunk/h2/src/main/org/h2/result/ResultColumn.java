@@ -62,4 +62,5 @@ public class ResultColumn {
         out.writeBoolean(result.isAutoIncrement(i));
         out.writeInt(result.getNullable(i));
     }
+    
 }

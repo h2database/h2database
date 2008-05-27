@@ -28,7 +28,9 @@ import org.h2.util.FileUtils;
 public class TestKillRestartMulti extends TestBase {
 
     private String driver = "org.h2.Driver";
-    private String url = null, user = "sa", password = "sa";
+    private String url;
+    private String user = "sa";
+    private String password = "sa";
     private ArrayList connections = new ArrayList();
     private ArrayList tables = new ArrayList();
     private int openCount;

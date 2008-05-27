@@ -36,10 +36,27 @@ import org.h2.util.NetUtils;
  */
 public class FtpServer implements Service {
 
+    /**
+     * The default root directory name used by the FTP server.
+     */
     public static final String DEFAULT_ROOT = "ftp";
+    
+    /**
+     * The default user name that is allowed to read data.
+     */
     public static final String DEFAULT_READ = "guest";
+    
+    /**
+     * The default user name that is allowed to read and write data.
+     */
     public static final String DEFAULT_WRITE = "sa";
+    
+    /**
+     * The default password of the user that is allowed to read and write data.
+     */
     public static final String DEFAULT_WRITE_PASSWORD = "sa";
+
+    static final String TASK_SUFFIX = ".task";
 
     private ServerSocket serverSocket;
     private int port = Constants.DEFAULT_FTP_PORT;
@@ -58,7 +75,6 @@ public class FtpServer implements Service {
     private FileSystem fs;
     private boolean trace;
     private boolean allowTask;
-    static final String TASK_SUFFIX = ".task";
 
     private FtpEventListener eventListener;
 
@@ -85,7 +101,7 @@ public class FtpServer implements Service {
         }
     }
 
-    public ServerSocket createDataSocket() throws SQLException {
+    ServerSocket createDataSocket() throws SQLException {
         ServerSocket dataSocket = NetUtils.createServerSocket(0, false);
         return dataSocket;
     }
@@ -154,11 +170,11 @@ public class FtpServer implements Service {
         return buff.toString();
     }
 
-    public boolean checkUserPassword(String userName, String password) {
+    boolean checkUserPassword(String userName, String password) {
         return userName.equals(this.writeUserName) && password.equals(this.writePassword);
     }
 
-    public boolean checkUserPasswordReadOnly(String userName) {
+    boolean checkUserPasswordReadOnly(String userName) {
         return userName.equals(this.readUserName);
     }
 
@@ -246,7 +262,7 @@ public class FtpServer implements Service {
         }
     }
 
-    public boolean getAllowTask() {
+    boolean getAllowTask() {
         return allowTask;
     }
 
@@ -270,6 +286,9 @@ public class FtpServer implements Service {
         tasks.put(path, p);
     }
 
+    /**
+     * This class re-directs an input stream to a file.
+     */
     private static class StreamRedirect extends Thread {
         private InputStream in;
         private OutputStream out;
@@ -328,7 +347,7 @@ public class FtpServer implements Service {
      *
      * @return the file system
      */
-    public FileSystem getFileSystem() {
+    FileSystem getFileSystem() {
         return fs;
     }
 
@@ -346,7 +365,7 @@ public class FtpServer implements Service {
      *
      * @return the event listener, or null if non is registered
      */
-    public FtpEventListener getEventListener() {
+    FtpEventListener getEventListener() {
         return eventListener;
     }
 

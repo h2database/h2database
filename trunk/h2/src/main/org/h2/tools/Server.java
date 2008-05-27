@@ -27,10 +27,23 @@ import org.h2.util.StartBrowser;
  */
 public class Server implements Runnable, ShutdownHandler {
 
-    private Service service;
     private static final int EXIT_ERROR = 1;
+    private Service service;
     private Server web, tcp, pg, ftp;
     private ShutdownHandler shutdownHandler;
+    
+    public Server() {
+        // nothing to do
+    }
+    
+    private Server(Service service, String[] args) throws SQLException {
+        this.service = service;
+        try {
+            service.init(args);
+        } catch (Exception e) {
+            throw Message.convert(e);
+        }
+    }
 
     private void showUsage(String a, PrintStream out) {
         if (a != null) {
@@ -65,10 +78,6 @@ public class Server implements Runnable, ShutdownHandler {
         out.println("-ifExists             Only existing databases may be opened; for all servers");
         out.println("-trace                Print additional trace information; for all servers");
         out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
-    }
-
-    public Server() {
-        // nothing to do
     }
 
     /**
@@ -516,15 +525,6 @@ public class Server implements Runnable, ShutdownHandler {
      */
     public String getURL() {
         return service.getURL();
-    }
-
-    private Server(Service service, String[] args) throws SQLException {
-        this.service = service;
-        try {
-            service.init(args);
-        } catch (Exception e) {
-            throw Message.convert(e);
-        }
     }
 
     /**

@@ -36,6 +36,9 @@ public class TestXA extends TestBase {
         testXA(false);
     }
 
+    /**
+     * A simple Xid implementation.
+     */
     public static class MyXid implements Xid {
         private byte[] branchQualifier = new byte[1];
         private byte[] globalTransactionId = new byte[1];

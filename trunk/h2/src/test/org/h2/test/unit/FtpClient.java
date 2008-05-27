@@ -35,14 +35,14 @@ public class FtpClient {
     private InputStream inData;
     private OutputStream outData;
 
+    private FtpClient() {
+        // don't allow construction
+    }
+
     public static FtpClient open(String url) throws IOException {
         FtpClient client = new FtpClient();
         client.connect(url);
         return client;
-    }
-
-    private FtpClient() {
-        // don't allow construction
     }
 
     private void connect(String url) throws IOException {

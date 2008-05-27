@@ -13,10 +13,11 @@ import java.util.HashMap;
  * Represents a statement.
  */
 class Command {
-    TestSynth config;
     static final int CONNECT = 0, RESET = 1, DISCONNECT = 2, CREATE_TABLE = 3, INSERT = 4, DROP_TABLE = 5, SELECT = 6,
             DELETE = 7, UPDATE = 8, COMMIT = 9, ROLLBACK = 10, AUTOCOMMIT_ON = 11, AUTOCOMMIT_OFF = 12,
             CREATE_INDEX = 13, DROP_INDEX = 14, END = 15;
+    TestSynth config;
+    String[] selectList;
     private int type;
     private Table table;
     private HashMap tables;
@@ -26,9 +27,42 @@ class Command {
     private String condition;
     private int nextAlias;
     private String order;
-    String[] selectList;
     private String join = "";
     private Result result;
+    
+        private Command(TestSynth config, int type) {
+        this.config = config;
+        this.type = type;
+    }
+
+    private Command(TestSynth config, int type, Table table) {
+        this.config = config;
+        this.type = type;
+        this.table = table;
+    }
+
+    private Command(TestSynth config, int type, Table table, String alias) {
+        this.config = config;
+        this.type = type;
+        this.table = table;
+        this.tables = new HashMap();
+        this.tables.put(alias, table);
+    }
+
+    private Command(TestSynth config, int type, Index index) {
+        this.config = config;
+        this.type = type;
+        this.index = index;
+    }
+
+    Command(int type, String alias, Table table) {
+        this.type = type;
+        if (alias == null) {
+            alias = table.getName();
+        }
+        addSubqueryTable(alias, table);
+        this.table = table;
+    }
 
     static Command getDropTable(TestSynth config, Table table) {
         return new Command(config, Command.DROP_TABLE, table);
@@ -137,40 +171,6 @@ class Command {
         Command command = new Command(config, Command.INSERT, table);
         command.prepareInsert();
         return command;
-    }
-
-    private Command(TestSynth config, int type) {
-        this.config = config;
-        this.type = type;
-    }
-
-    private Command(TestSynth config, int type, Table table) {
-        this.config = config;
-        this.type = type;
-        this.table = table;
-    }
-
-    private Command(TestSynth config, int type, Table table, String alias) {
-        this.config = config;
-        this.type = type;
-        this.table = table;
-        this.tables = new HashMap();
-        this.tables.put(alias, table);
-    }
-
-    private Command(TestSynth config, int type, Index index) {
-        this.config = config;
-        this.type = type;
-        this.index = index;
-    }
-
-    Command(int type, String alias, Table table) {
-        this.type = type;
-        if (alias == null) {
-            alias = table.getName();
-        }
-        addSubqueryTable(alias, table);
-        this.table = table;
     }
 
     void addSubqueryTable(String alias, Table t) {

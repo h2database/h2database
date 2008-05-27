@@ -47,8 +47,8 @@ public class Player {
     // TODO support Map
     // TODO support SQLXML
 
-    private boolean trace;
     private static final String[] IMPORTED_PACKAGES = { "", "java.lang.", "java.sql.", "javax.sql." };
+    private boolean trace;
     private HashMap objects = new HashMap();
 
     /**

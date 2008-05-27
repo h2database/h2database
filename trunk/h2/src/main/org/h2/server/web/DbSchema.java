@@ -16,12 +16,12 @@ import java.util.ArrayList;
  * This class is used by the H2 Console.
  */
 public class DbSchema {
+    
     DbContents contents;
     String name;
     String quotedName;
-
     DbTableOrView[] tables;
-    public boolean isDefault;
+    boolean isDefault;
 
     DbSchema(DbContents contents, String name, boolean isDefault) {
         this.contents = contents;
@@ -30,7 +30,7 @@ public class DbSchema {
         this.isDefault = isDefault;
     }
 
-    public void readTables(DatabaseMetaData meta, String[] tableTypes) throws SQLException {
+    void readTables(DatabaseMetaData meta, String[] tableTypes) throws SQLException {
         ResultSet rs = meta.getTables(null, name, null, tableTypes);
         ArrayList list = new ArrayList();
         while (rs.next()) {

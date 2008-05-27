@@ -23,6 +23,14 @@ public class FileObjectMemory implements FileObject {
     private static final int BLOCK_SIZE_SHIFT = 16;
     private static final int BLOCK_SIZE = 1 << BLOCK_SIZE_SHIFT;
     private static final int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
+    private static final CompressLZF LZF = new CompressLZF();
+    private static final byte[] BUFFER = new byte[BLOCK_SIZE * 2];
+    private static final byte[] COMPRESSED_BLOCK;
+    
+//## Java 1.4 begin ##
+    private static final Cache COMPRESS_LATER = new Cache(CACHE_SIZE);
+//## Java 1.4 end ##
+    
     private String name;
     private final boolean compress;
     private long length;
@@ -30,10 +38,9 @@ public class FileObjectMemory implements FileObject {
     private byte[][] data;
     private long lastModified;
     
-    private static final CompressLZF LZF = new CompressLZF();
-    private static final byte[] BUFFER = new byte[BLOCK_SIZE * 2];
-    private static final byte[] COMPRESSED_BLOCK;
-    
+    /**
+     * This small cache compresses the data if an element leaves the cache.
+     */
 //## Java 1.4 begin ##
     static class Cache extends LinkedHashMap {
         private static final long serialVersionUID = 5549197956072850355L;
@@ -53,6 +60,9 @@ public class FileObjectMemory implements FileObject {
         }
     }
 
+    /**
+     * Represents a compressed item.
+     */
     static class CompressItem {
         byte[][] data;
         int l;
@@ -69,9 +79,14 @@ public class FileObjectMemory implements FileObject {
             return false;
         }
     }
-    private static final Cache COMPRESS_LATER = new Cache(CACHE_SIZE);
 //## Java 1.4 end ##
     
+    public FileObjectMemory(String name, boolean compress) {
+        this.name = name;
+        this.compress = compress;
+        data = new byte[0][];
+        touch();
+    }
     
     private static void compressLater(byte[][] data, int l) {
 //## Java 1.4 begin ##
@@ -113,13 +128,6 @@ public class FileObjectMemory implements FileObject {
         int len = LZF.compress(n, BLOCK_SIZE, BUFFER, 0);
         COMPRESSED_BLOCK = new byte[len];
         System.arraycopy(BUFFER, 0, COMPRESSED_BLOCK, 0, len);
-    }
-    
-    public FileObjectMemory(String name, boolean compress) {
-        this.name = name;
-        this.compress = compress;
-        data = new byte[0][];
-        touch();
     }
     
     private void touch() {

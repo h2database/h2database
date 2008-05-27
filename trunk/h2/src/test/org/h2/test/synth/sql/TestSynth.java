@@ -22,6 +22,7 @@ public class TestSynth extends TestBase {
     //  TODO hsqldb: call mod(1) should return invalid parameter count
 
     static final int H2 = 0, H2_MEM = 1, HSQLDB = 2, MYSQL = 3, POSTGRESQL = 4;
+    private static final String DIR = "synth";
 
     private DbState db = new DbState(this);
     private ArrayList databases;
@@ -30,7 +31,6 @@ public class TestSynth extends TestBase {
     private boolean showError, showLog;
     private boolean stopImmediately;
     private int mode;
-    private static final String DIR = "synth";
 
     public boolean is(int isType) {
         return mode == isType;

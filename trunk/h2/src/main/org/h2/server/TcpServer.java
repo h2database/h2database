@@ -51,6 +51,8 @@ public class TcpServer implements Service {
     private static final int SHUTDOWN_NORMAL = 0;
     private static final int SHUTDOWN_FORCE = 1;
 
+    private static final Map SERVERS = Collections.synchronizedMap(new HashMap());
+
     private int port;
     private boolean trace;
     private boolean ssl;
@@ -65,7 +67,6 @@ public class TcpServer implements Service {
     private PreparedStatement managementDbAdd;
     private PreparedStatement managementDbRemove;
     private String managementPassword = "";
-    private static final Map SERVERS = Collections.synchronizedMap(new HashMap());
     private Thread listenerThread;
     private int nextThreadId;
 

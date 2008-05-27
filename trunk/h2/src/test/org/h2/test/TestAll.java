@@ -148,10 +148,15 @@ java org.h2.test.TestAll timer
 
     public boolean traceTest, stopOnError;
     public boolean jdk14 = true;
-
-    private Server server;
     public boolean cache2Q;
 
+    private Server server;
+
+    /**
+     * Run all tests.
+     * 
+     * @param args the command line arguments
+     */
     public static void main(String[] args) throws Exception {
         SelfDestructor.startCountdown(6 * 60);
         long time = System.currentTimeMillis();
@@ -160,8 +165,17 @@ java org.h2.test.TestAll timer
 
 /*
 
-http://patir.rubyforge.org/rutema/index.html
-Rutema is a test execution and management tool for heterogeneous development environments written in Ruby. 
+not tested:
+ResultTempTable
+HashIndex
+HashCursor
+Shell
+ExecuteProcedure
+PreparedProcedure
+Procedure
+DeallocateProcedure
+
+create an mbean for each database? server? (jconsole)
 
 jazoon 
 
@@ -222,21 +236,6 @@ http://www.w3schools.com/sql/
 History:
 
 Roadmap:
-    Negative scale values for DECIMAL or NUMBER columns are now supported
-        in regular tables and in linked tables.
-    MySQL compatibility: auto_increment column are no longer automatically 
-        converted to primary key columns.
-    PostgreSQL compatibility: support for BOOL_OR and BOOL_AND 
-        aggregate functions.
-    The fulltext search did not support CLOB data types. Fixed.
-    The table SYSTEM_RANGE now supports expressions and parameters.
-    If the drive with the database files was disconnected or unmounted while writing,
-        sometimes a stack overflow exception was thrown instead of a IO exception.
-    The H2 Console could not be shut down from within the tool if the 
-        browser supports keepAlive (most browsers do).
-    If the password was passed as a char array, it was kept in an internal buffer
-        longer than required. Theoretically the password could have been stolen
-        if the main memory was swapped to disk before the garbage collection was run.
 
 */
         if (args.length > 0) {

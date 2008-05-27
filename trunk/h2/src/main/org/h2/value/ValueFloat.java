@@ -18,13 +18,15 @@ import org.h2.util.ObjectUtils;
  */
 public class ValueFloat extends Value {
     public static final int PRECISION = 7;
-    public static final int DISPLAY_SIZE = 15; // -1.12345676E-20
+    // "-1.12345676E-20".length()
+    public static final int DISPLAY_SIZE = 15; 
 
-    private final float value;
     private static final float FLOAT_ZERO = 0.0F;
     private static final float FLOAT_ONE = 1.0F;
     private static final ValueFloat ZERO = new ValueFloat(FLOAT_ZERO);
     private static final ValueFloat ONE = new ValueFloat(FLOAT_ONE);
+
+    private final float value;
 
     private ValueFloat(float value) {
         this.value = value;

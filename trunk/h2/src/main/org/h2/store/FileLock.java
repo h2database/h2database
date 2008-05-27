@@ -51,6 +51,12 @@ public class FileLock {
      * This locking method means a socket is created on the given machine.
      */
     public static final int LOCK_SOCKET = 2;
+    
+    private static final String MAGIC = "FileLock";
+    private static final String FILE = "file", SOCKET = "socket";
+    private static final int RANDOM_BYTES = 16;
+    private static final int SLEEP_GAP = 25;
+    private static final int TIME_GRANULARITY = 2000;
 
     // TODO lock: maybe not so secure! what if tread does not have chance to run?
     // TODO lock: implement locking method using java 1.4 FileLock
@@ -63,12 +69,6 @@ public class FileLock {
     int sleep;
     Trace trace;
     long lastWrite;
-
-    private static final String MAGIC = "FileLock";
-    private static final String FILE = "file", SOCKET = "socket";
-    private static final int RANDOM_BYTES = 16;
-    private static final int SLEEP_GAP = 25;
-    private static final int TIME_GRANULARITY = 2000;
 
     private String method, ipAddress;
     private Properties properties;

@@ -211,6 +211,7 @@ public class TestJoin extends TestBase {
                 case 4:
                     buff.append("<>");
                     break;
+                default:
                 }
             } else {
                 buff.append("=");

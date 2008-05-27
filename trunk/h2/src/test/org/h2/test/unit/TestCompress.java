@@ -21,7 +21,7 @@ public class TestCompress extends TestBase {
             for (int i = 0; i < 100; i++) {
                 test(i);
             }
-            for (int i = 100; i < 10000; i += (i + i + 1)) {
+            for (int i = 100; i < 10000; i += i + i + 1) {
                 test(i);
             }
         } else {
@@ -57,6 +57,7 @@ public class TestCompress extends TestBase {
                 }
                 break;
             }
+            default:
             }
             if (r.nextInt(2) < 1) {
                 for (int x = 0; x < len; x++) {

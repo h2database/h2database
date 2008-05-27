@@ -73,6 +73,7 @@ public class TestIntArray extends TestBase {
             case 8:
                 check(array.size(), test.length);
                 break;
+            default:
             }
             check(array.size(), test.length);
             for (int j = 0; j < test.length; j++) {

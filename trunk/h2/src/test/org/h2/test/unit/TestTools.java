@@ -34,7 +34,6 @@ import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.h2.tools.Server;
 import org.h2.util.FileUtils;
-import org.h2.util.Resources;
 
 /**
  * Tests the database tools.
@@ -54,7 +53,6 @@ public class TestTools extends TestBase {
         testRemove();
         testConvertTraceFile();
         testManagementDb();
-        testResourceGenerator();
         testChangePassword();
         testServer();
         testScriptRunscript();
@@ -379,10 +377,6 @@ public class TestTools extends TestBase {
         checkFalse(rs.next());
         conn.close();
         DeleteDbFiles.main(new String[] { "-dir", baseDir, "-db", "utils", "-quiet" });
-    }
-
-    private void testResourceGenerator() throws Exception {
-        Resources.main(new String[] { "." });
     }
 
     private void testChangePassword() throws Exception {

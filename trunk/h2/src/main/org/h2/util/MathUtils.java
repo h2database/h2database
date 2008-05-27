@@ -16,6 +16,11 @@ import org.h2.message.Message;
  * This is a utility class with mathematical helper functions.
  */
 public class MathUtils {
+    
+    private MathUtils() {
+        // utility class
+    }
+    
     // with blockSizePowerOf2 8: 0 > 0; 1..8 > 8, 9..16 > 16, ...
     public static int roundUp(int x, int blockSizePowerOf2) {
         return (x + blockSizePowerOf2 - 1) & (-blockSizePowerOf2);

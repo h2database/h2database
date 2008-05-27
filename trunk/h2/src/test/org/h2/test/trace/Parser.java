@@ -39,16 +39,16 @@ class Parser {
     private int tokenType;
     private int pos;
 
-    static Statement parseStatement(Player player, String line) {
-        Parser p = new Parser(player, line);
-        p.parseStatement();
-        return p.stat;
-    }
-
     private Parser(Player player, String line) {
         this.player = player;
         this.line = line;
         read();
+    }
+
+    static Statement parseStatement(Player player, String line) {
+        Parser p = new Parser(player, line);
+        p.parseStatement();
+        return p.stat;
     }
 
     private Statement parseStatement() {

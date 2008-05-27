@@ -41,6 +41,28 @@ public class FileStore {
     private boolean synchronousMode;
     private String mode;
     
+    protected FileStore(DataHandler handler, String name, String mode, byte[] magic) throws SQLException {
+        FileSystem fs = FileSystem.getInstance(name);
+        this.handler = handler;
+        this.name = name;
+        this.magic = magic;
+        this.mode = mode;
+        try {
+            fs.createDirs(name);
+            if (fs.exists(name) && !fs.canWrite(name)) {
+                mode = "r";
+                this.mode = mode;
+            }
+            file = fs.openFileObject(name, mode);
+            if (mode.length() > 2) {
+                synchronousMode = true;
+            }
+            fileLength = file.length();
+        } catch (IOException e) {
+            throw Message.convertIOException(e, "name: " + name + " mode: " + mode);
+        }
+    }
+
     /**
      * Open a non encrypted file store with the given settings.
      * 
@@ -90,28 +112,6 @@ public class FileStore {
             store = new SecureFileStore(handler, name, mode, magic, cipher, key, keyIterations);
         }
         return store;
-    }
-
-    protected FileStore(DataHandler handler, String name, String mode, byte[] magic) throws SQLException {
-        FileSystem fs = FileSystem.getInstance(name);
-        this.handler = handler;
-        this.name = name;
-        this.magic = magic;
-        this.mode = mode;
-        try {
-            fs.createDirs(name);
-            if (fs.exists(name) && !fs.canWrite(name)) {
-                mode = "r";
-                this.mode = mode;
-            }
-            file = fs.openFileObject(name, mode);
-            if (mode.length() > 2) {
-                synchronousMode = true;
-            }
-            fileLength = file.length();
-        } catch (IOException e) {
-            throw Message.convertIOException(e, "name: " + name + " mode: " + mode);
-        }
     }
 
     protected byte[] generateSalt() {

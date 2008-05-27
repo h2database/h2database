@@ -28,6 +28,10 @@ public class TestConnectionPool extends TestBase {
         final int len = getSize(4, 20);
         final JdbcConnectionPool man = getConnectionPool(len - 2);
         final boolean[] stop = new boolean[1];
+        
+        /**
+         * This class gets and returns connections from the pool.
+         */
         class TestRunner implements Runnable {
             public void run() {
                 try {

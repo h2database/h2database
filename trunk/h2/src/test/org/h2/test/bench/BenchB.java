@@ -43,6 +43,23 @@ public class BenchB implements Bench, Runnable {
     public BenchB() {
         // nothing to do
     }
+    
+    private BenchB(BenchB master, int seed) throws Exception {
+        this.master = master;
+        random = new Random(seed);
+        conn = master.db.getConnection();
+        conn.setAutoCommit(false);
+        updateAccount = conn.prepareStatement(
+                "UPDATE ACCOUNTS SET ABALANCE=ABALANCE+? WHERE AID=?");
+        selectAccount = conn.prepareStatement(
+                "SELECT ABALANCE FROM ACCOUNTS WHERE AID=?");
+        updateTeller = conn.prepareStatement(
+                "UPDATE TELLERS SET TBALANCE=TBALANCE+? WHERE TID=?");
+        updateBranch = conn.prepareStatement(
+                "UPDATE BRANCHES SET BBALANCE=BBALANCE+? WHERE BID=?");
+        insertHistory = conn.prepareStatement(
+                "INSERT INTO HISTORY(TID, BID, AID, DELTA) VALUES(?, ?, ?, ?)");
+    }
 
     public void init(Database db, int size) throws Exception {
         this.db = db;
@@ -103,23 +120,6 @@ public class BenchB implements Bench, Runnable {
 //        db.openConnection();
 //        db.closeConnection();
 //        db.end();
-    }
-
-    private BenchB(BenchB master, int seed) throws Exception {
-        this.master = master;
-        random = new Random(seed);
-        conn = master.db.getConnection();
-        conn.setAutoCommit(false);
-        updateAccount = conn.prepareStatement(
-                "UPDATE ACCOUNTS SET ABALANCE=ABALANCE+? WHERE AID=?");
-        selectAccount = conn.prepareStatement(
-                "SELECT ABALANCE FROM ACCOUNTS WHERE AID=?");
-        updateTeller = conn.prepareStatement(
-                "UPDATE TELLERS SET TBALANCE=TBALANCE+? WHERE TID=?");
-        updateBranch = conn.prepareStatement(
-                "UPDATE BRANCHES SET BBALANCE=BBALANCE+? WHERE BID=?");
-        insertHistory = conn.prepareStatement(
-                "INSERT INTO HISTORY(TID, BID, AID, DELTA) VALUES(?, ?, ?, ?)");
     }
 
     public void run() {

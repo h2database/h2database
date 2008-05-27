@@ -43,6 +43,10 @@ public class ClassUtils {
         ALLOWED_CLASS_NAME_PREFIXES = new String[prefixes.size()];
         prefixes.toArray(ALLOWED_CLASS_NAME_PREFIXES);
     }
+    
+    private ClassUtils() {
+        // utility class
+    }
 
     public static Class loadSystemClass(String className) throws ClassNotFoundException {
         return Class.forName(className);

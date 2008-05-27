@@ -19,21 +19,28 @@ import org.h2.util.ObjectUtils;
  */
 public class ValueInt extends Value {
     public static final int PRECISION = 10;
-    public static final int DISPLAY_SIZE = 11; // -2147483648
+    // "-2147483648".length()
+    public static final int DISPLAY_SIZE = 11; 
 
-    private final int value;
     private static final int STATIC_SIZE = 100;
-    private static final int DYNAMIC_SIZE = 256; // must be a power of 2
-    // TODO check performance of final static!
+    // must be a power of 2
+    private static final int DYNAMIC_SIZE = 256;
+    // TODO check performance of final static
     private static ValueInt[] staticCache;
     private static ValueInt[] dynamicCache;
 
+    private final int value;
+    
     static {
         staticCache = new ValueInt[STATIC_SIZE];
         dynamicCache = new ValueInt[DYNAMIC_SIZE];
         for (int i = 0; i < STATIC_SIZE; i++) {
             staticCache[i] = new ValueInt(i);
         }
+    }
+    
+    private ValueInt(int value) {
+        this.value = value;
     }
 
     public static ValueInt get(int i) {
@@ -46,10 +53,6 @@ public class ValueInt extends Value {
             dynamicCache[i & DYNAMIC_SIZE - 1] = v;
         }
         return v;
-    }
-
-    private ValueInt(int value) {
-        this.value = value;
     }
 
     public Value add(Value v) throws SQLException {

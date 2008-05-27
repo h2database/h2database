@@ -246,7 +246,7 @@ public class Schema extends DbObjectBase {
      * Try to find a sequence with this name. This method returns null if
      * no object with this name exists.
      * 
-     * @param name the object name
+     * @param sequenceName the object name
      * @return the object or null
      */
     public Sequence findSequence(String sequenceName) {
@@ -257,7 +257,7 @@ public class Schema extends DbObjectBase {
      * Try to find a constraint with this name. This method returns null if no
      * object with this name exists.
      * 
-     * @param name the object name
+     * @param constraintName the object name
      * @return the object or null
      */
     public Constraint findConstraint(String constraintName) {
@@ -268,7 +268,7 @@ public class Schema extends DbObjectBase {
      * Try to find a user defined constant with this name. This method returns
      * null if no object with this name exists.
      * 
-     * @param name the object name
+     * @param constantName the object name
      * @return the object or null
      */
     public Constant findConstant(String constantName) {
@@ -383,7 +383,7 @@ public class Schema extends DbObjectBase {
     /**
      * Get the user defined constant with the given name.
      * 
-     * @param name the constant name
+     * @param constantName the constant name
      * @return the constant
      * @throws SQLException if no such object exists
      */
@@ -398,7 +398,7 @@ public class Schema extends DbObjectBase {
     /**
      * Get the sequence with the given name.
      * 
-     * @param name the sequence name
+     * @param sequenceName the sequence name
      * @return the sequence
      * @throws SQLException if no such object exists
      */

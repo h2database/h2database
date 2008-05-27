@@ -40,6 +40,11 @@ import org.h2.value.ValueUuid;
  * This class represents a column in a table.
  */
 public class Column {
+    
+    // must be equal to ResultSetMetaData columnNoNulls, columnNullable,
+    // columnNullableUnknown
+    public static final int NOT_NULLABLE = 0, NULLABLE = 1, NULLABLE_UNKNOWN = 2;
+
     private final int type;
     private final long precision;
     private final int scale;
@@ -64,14 +69,24 @@ public class Column {
     private String comment;
     private boolean primaryKey;
 
-    // must be equal to ResultSetMetaData columnNoNulls, columnNullable,
-    // columnNullableUnknown
-    public static final int NOT_NULLABLE = 0, NULLABLE = 1, NULLABLE_UNKNOWN = 2;
-
     public Column(String name, int type) {
         this(name, type, -1, -1, -1);
     }
     
+    public Column(String name, int type, long precision, int scale, int displaySize) {
+        this.name = name;
+        this.type = type;
+        if (precision == -1 && scale == -1 && displaySize == -1) {
+            DataType dt = DataType.getDataType(type);
+            precision = dt.defaultPrecision;
+            scale = dt.defaultScale;
+            displaySize = dt.defaultDisplaySize;
+        }
+        this.precision = precision;
+        this.scale = scale;
+        this.displaySize = displaySize;
+    }
+
     public boolean equals(Object o) {
         if (o == this) {
             return true;
@@ -92,20 +107,6 @@ public class Column {
         return table.getId() ^ name.hashCode();
     }
 
-    public Column(String name, int type, long precision, int scale, int displaySize) {
-        this.name = name;
-        this.type = type;
-        if (precision == -1 && scale == -1 && displaySize == -1) {
-            DataType dt = DataType.getDataType(type);
-            precision = dt.defaultPrecision;
-            scale = dt.defaultScale;
-            displaySize = dt.defaultDisplaySize;
-        }
-        this.precision = precision;
-        this.scale = scale;
-        this.displaySize = displaySize;
-    }
-
     public Column getClone() {
         Column newColumn = new Column(name, type, precision, scale, displaySize);
         // table is not set
@@ -123,11 +124,11 @@ public class Column {
         return newColumn;
     }
 
-    public boolean getComputed() {
+    boolean getComputed() {
         return isComputed;
     }
 
-    public Value computeValue(Session session, Row row) throws SQLException {
+    Value computeValue(Session session, Row row) throws SQLException {
         synchronized (this) {
             computeTableFilter.setSession(session);
             computeTableFilter.set(row);
@@ -494,19 +495,19 @@ public class Column {
         return expr;
     }
 
-    public String getDefaultSQL() {
+    String getDefaultSQL() {
         return defaultExpression == null ? null : defaultExpression.getSQL();
     }
 
-    public int getPrecisionAsInt() {
+    int getPrecisionAsInt() {
         return MathUtils.convertLongToInt(precision);
     }
 
-    public DataType getDataType() {
+    DataType getDataType() {
         return DataType.getDataType(type);
     }
 
-    public String getCheckConstraintSQL(Session session, String name) throws SQLException {
+    String getCheckConstraintSQL(Session session, String name) throws SQLException {
         Expression constraint = getCheckConstraint(session, name);
         return constraint == null ? "" : constraint.getSQL();
     }
@@ -515,7 +516,7 @@ public class Column {
         this.comment = comment;
     }
 
-    public String getComment() {
+    String getComment() {
         return comment;
     }
 

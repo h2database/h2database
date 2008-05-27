@@ -17,6 +17,10 @@ import org.h2.message.Message;
 public class ByteUtils {
 
     private static final char[] HEX = "0123456789abcdef".toCharArray();
+    
+    private ByteUtils() {
+        // utility class
+    }
 
     public static int readInt(byte[] buff, int pos) {
         return (buff[pos++] << 24) + ((buff[pos++] & 0xff) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos++] & 0xff);

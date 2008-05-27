@@ -19,6 +19,10 @@ import org.h2.message.Message;
  * Utility class for object creation and serialization.
  */
 public class ObjectUtils {
+    
+    private ObjectUtils() {
+        // utility class
+    }
 
     public static Integer getInteger(int x) {
 /*## Java 1.5 begin ##
@@ -26,7 +30,8 @@ public class ObjectUtils {
             return Integer.valueOf(x);
         }
 ## Java 1.5 end ##*/
-        return new Integer(x); // NOPMD
+        // NOPMD
+        return new Integer(x); 
     }
 
     public static Character getCharacter(char x) {
@@ -44,7 +49,8 @@ public class ObjectUtils {
             return Long.valueOf(x);
         }
 ## Java 1.5 end ##*/
-        return new Long(x); // NOPMD
+        // NOPMD
+        return new Long(x); 
     }
 
     public static Short getShort(short x) {
@@ -53,7 +59,8 @@ public class ObjectUtils {
             return Short.valueOf(x);
         }
 ## Java 1.5 end ##*/
-        return new Short(x); // NOPMD
+        // NOPMD
+        return new Short(x); 
     }
 
     public static Byte getByte(byte x) {
@@ -62,7 +69,8 @@ public class ObjectUtils {
             return Byte.valueOf(x);
         }
 ## Java 1.5 end ##*/
-        return new Byte(x); // NOPMD
+        // NOPMD
+        return new Byte(x); 
     }
 
     public static Float getFloat(float x) {

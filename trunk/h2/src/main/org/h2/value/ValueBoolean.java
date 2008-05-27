@@ -14,12 +14,13 @@ import java.sql.SQLException;
  */
 public class ValueBoolean extends Value {
     public static final int PRECISION = 1;
-    public static final int DISPLAY_SIZE = 5; // false
-
-    private final Boolean value;
-
+    // "FALSE".length()
+    public static final int DISPLAY_SIZE = 5;
+    
     private static final ValueBoolean TRUE = new ValueBoolean(true);
     private static final ValueBoolean FALSE = new ValueBoolean(false);
+
+    private final Boolean value;
 
     private ValueBoolean(boolean value) {
         this.value = Boolean.valueOf(""+value);

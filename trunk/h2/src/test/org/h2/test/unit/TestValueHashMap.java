@@ -83,6 +83,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
                     check(((Value) a1.get(j)).compareEqual((Value) a2.get(j)));
                 }
                 break;
+            default:
             }
         }
     }

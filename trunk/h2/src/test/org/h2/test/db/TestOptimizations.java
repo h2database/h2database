@@ -306,7 +306,9 @@ public class TestOptimizations extends TestBase {
                 check(minDb, min);
                 check(maxDb, max);
                 check(countDb, count);
+                break;
             }
+            default:
             }
         }
         conn.close();

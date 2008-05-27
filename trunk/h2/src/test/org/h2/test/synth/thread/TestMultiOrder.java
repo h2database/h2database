@@ -19,13 +19,14 @@ import java.util.Random;
  */
 public class TestMultiOrder extends TestMultiThread {
 
-    Connection conn;
-    PreparedStatement insertLine;
-    private static final String[] ITEMS = new String[] { "Apples", "Oranges", "Bananas", "Coffee" };
-
     static int customerCount;
     static int orderCount;
     static int orderLineCount;
+
+    private static final String[] ITEMS = new String[] { "Apples", "Oranges", "Bananas", "Coffee" };
+
+    Connection conn;
+    PreparedStatement insertLine;
 
     TestMultiOrder(TestMulti base) throws SQLException {
         super(base);

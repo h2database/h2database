@@ -13,7 +13,7 @@ import java.sql.SQLException;
  * database URL.
  */
 public class JdbcDriverUtils {
-
+    
     private static final String[] DRIVERS = {
         "jdbc:h2:", "org.h2.Driver",
         "jdbc:Cache:", "com.intersys.jdbc.CacheDriver",
@@ -42,6 +42,10 @@ public class JdbcDriverUtils {
         "jdbc:teradata:", "com.ncr.teradata.TeraDriver",
     };
     
+    private JdbcDriverUtils() {
+        // utility class
+    }
+
     public static String getDriver(String url) {
         for (int i = 0; i < DRIVERS.length; i += 2) {
             String prefix = DRIVERS[i];

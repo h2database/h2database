@@ -70,6 +70,11 @@ public abstract class Table extends SchemaObjectBase {
     private boolean onCommitDrop, onCommitTruncate;
     private Row nullRow;
 
+    Table(Schema schema, int id, String name, boolean persistent) {
+        initSchemaObjectBase(schema, id, name, Trace.TABLE);
+        this.persistent = persistent;
+    }
+
     /**
      * Lock the table for the given session.
      * This method waits until the lock is granted.
@@ -206,11 +211,6 @@ public abstract class Table extends SchemaObjectBase {
      */
     public abstract long getRowCount(Session session) throws SQLException;
 
-    public Table(Schema schema, int id, String name, boolean persistent) {
-        initSchemaObjectBase(schema, id, name, Trace.TABLE);
-        this.persistent = persistent;
-    }
-
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw Message.getInternalError();
     }
@@ -300,7 +300,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @return true if it is
      */
-    public boolean isLockExclusive(Session session) {
+    boolean isLockExclusive(Session session) {
         return false;
     }
 
@@ -392,7 +392,7 @@ public abstract class Table extends SchemaObjectBase {
         return new SimpleRow(new Value[columns.length]);
     }
 
-    public Row getNullRow() {
+    Row getNullRow() {
         synchronized (this) {
             if (nullRow == null) {
                 nullRow = new Row(new Value[columns.length], 0);
@@ -506,7 +506,7 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    public void removeView(TableView view) {
+    void removeView(TableView view) {
         remove(views, view);
     }
 
@@ -679,7 +679,7 @@ public abstract class Table extends SchemaObjectBase {
         this.onCommitTruncate = onCommitTruncate;
     }
 
-    public boolean isClustered() {
+    boolean isClustered() {
         return false;
     }
 

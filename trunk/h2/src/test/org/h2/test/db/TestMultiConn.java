@@ -19,6 +19,8 @@ import org.h2.test.TestBase;
  */
 public class TestMultiConn extends TestBase implements DatabaseEventListener {
 
+    private static int wait;
+    
     public void test() throws Exception {
         testConcurrentShutdownQuery();
         testCommitRollback();
@@ -26,8 +28,6 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         testThreeThreads();
     }
 
-    private static int wait;
-    
     private void testConcurrentShutdownQuery() throws Exception {
         Connection conn1 = getConnection("multiConn");
         Connection conn2 = getConnection("multiConn");

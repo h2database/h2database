@@ -27,6 +27,10 @@ import org.h2.store.fs.FileSystem;
  * This utility class supports basic operations on files
  */
 public class FileUtils {
+    
+    private FileUtils() {
+        // utility class
+    }
 
     public static void setLength(RandomAccessFile file, long newLength) throws IOException {
         try {

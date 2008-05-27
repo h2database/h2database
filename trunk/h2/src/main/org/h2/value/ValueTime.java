@@ -17,7 +17,8 @@ import org.h2.util.DateTimeUtils;
  */
 public class ValueTime extends Value {
     public static final int PRECISION = 6;
-    public static final int DISPLAY_SIZE = 8; // 10:00:00
+    // "10:00:00".length()
+    public static final int DISPLAY_SIZE = 8; 
 
     private final Time value;
 

@@ -16,6 +16,11 @@ import org.h2.build.code.SwitchSource;
  */
 public class Build extends BuildBase {
 
+    /**
+     * Run the build.
+     * 
+     * @params args the command line arguments
+     */
     public static void main(String[] args) {
         new Build().run(args);
     }
@@ -149,7 +154,7 @@ public class Build extends BuildBase {
     }
     
     private String getVersion() {
-        return getStaticField("org.h2.engine.Constants", "VERSION");
+        return getStaticValue("org.h2.engine.Constants", "getVersion");
     }
     
     public void jar() {

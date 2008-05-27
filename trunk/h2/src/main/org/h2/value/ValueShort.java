@@ -18,8 +18,10 @@ import org.h2.util.ObjectUtils;
  * Implementation of the SMALLINT data type.
  */
 public class ValueShort extends Value {
+    
     public static final int PRECISION = 5;
-    public static final int DISPLAY_SIZE = 6; // -32768
+    // "-32768".length()
+    public static final int DISPLAY_SIZE = 6; 
 
     private final short value;
 

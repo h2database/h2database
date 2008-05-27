@@ -31,11 +31,7 @@ public class TestXid implements Xid {
         nf.setGroupingUsed(false);
         NF = nf;
     }
-
-    public static void main(String[] args) {
-        new TestXid();
-    }
-
+    
     public TestXid() {
         this(1);
     }
@@ -86,6 +82,10 @@ public class TestXid implements Xid {
         for (int i = 0; i < ba.length; i++) {
             fBranchQualifier[i] = ba[i];
         }
+    }
+
+    public static void main(String[] args) {
+        new TestXid();
     }
 
     public int getFormatId() {

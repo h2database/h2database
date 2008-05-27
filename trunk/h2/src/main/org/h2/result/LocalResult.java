@@ -45,6 +45,44 @@ public class LocalResult implements ResultInterface {
     private int diskOffset;
     private boolean distinct;
     private boolean closed;
+    
+    /**
+     * Construct a local result object.
+     */
+    public LocalResult() {
+        // nothing to do
+    }
+    
+    /**
+     * Construct a local result object.
+     * 
+     * @param session the session
+     * @param expressions the expression array
+     * @param visibleColumnCount the number of visible columns
+     */
+    public LocalResult(Session session, Expression[] expressions, int visibleColumnCount) {
+        this.session = session;
+        if (session == null) {
+            this.maxMemoryRows = Integer.MAX_VALUE;
+        } else {
+            this.maxMemoryRows = session.getDatabase().getMaxMemoryRows();
+        }
+        rows = new ObjectArray();
+        this.visibleColumnCount = visibleColumnCount;
+        rowId = -1;
+        this.expressions = expressions;
+    }
+    
+    /**
+     * Construct a local result object.
+     * 
+     * @param session the session
+     * @param expressionList the expression list
+     * @param visibleColumnCount the number of visible columns
+     */
+    public LocalResult(Session session, ObjectArray expressionList, int visibleColumnCount) {
+        this(session, getList(expressionList), visibleColumnCount);
+    }
 
     /**
      * Construct a local result set by reading all data from a regular result set.
@@ -87,47 +125,10 @@ public class LocalResult implements ResultInterface {
         }
         return cols;
     }
-
-    /**
-     * Construct a local result object.
-     */
-    public LocalResult() {
-        // nothing to do
-    }
     
     /**
-     * Construct a local result object.
-     * 
-     * @param session the session
-     * @param expressions the expression array
-     * @param the number of visible columns
-     */
-    public LocalResult(Session session, Expression[] expressions, int visibleColumnCount) {
-        this.session = session;
-        if (session == null) {
-            this.maxMemoryRows = Integer.MAX_VALUE;
-        } else {
-            this.maxMemoryRows = session.getDatabase().getMaxMemoryRows();
-        }
-        rows = new ObjectArray();
-        this.visibleColumnCount = visibleColumnCount;
-        rowId = -1;
-        this.expressions = expressions;
-    }
-    
-    /**
-     * Construct a local result object.
-     * 
-     * @param session the session
-     * @param expressions the expression list
-     * @param the number of visible columns
-     */
-    public LocalResult(Session session, ObjectArray expressionList, int visibleColumnCount) {
-        this(session, getList(expressionList), visibleColumnCount);
-    }
-
-    /**
-     * Create a shallow copy of the result set. The data and a temporary table (if there is any) is not copied.
+     * Create a shallow copy of the result set. The data and a temporary table
+     * (if there is any) is not copied.
      * 
      * @param session the session
      * @return the copy

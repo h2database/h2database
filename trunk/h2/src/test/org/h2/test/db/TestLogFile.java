@@ -21,8 +21,8 @@ import org.h2.test.TestBase;
  */
 public class TestLogFile extends TestBase {
 
-    private Connection conn;
     private static final int MAX_LOG_SIZE = 1;
+    private Connection conn;
 
     private long reconnect(int maxFiles) throws Exception {
         if (conn != null) {
@@ -50,7 +50,8 @@ public class TestLogFile extends TestBase {
         try {
             reconnect(0);
             insert();
-            int maxFiles = 3; // data, index, log
+            // data, index, log
+            int maxFiles = 3; 
             for (int i = 0; i < 3; i++) {
                 long length = reconnect(maxFiles);
                 insert();

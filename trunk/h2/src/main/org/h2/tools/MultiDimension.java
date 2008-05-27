@@ -216,7 +216,7 @@ public class MultiDimension {
     private long getMorton2(int x, int y) {
         long z = 0;
         for (int i = 0; i < 32; i++) {
-            z |= (x & (1L << i)) << (i);
+            z |= (x & (1L << i)) << i;
             z |= (y & (1L << i)) << (i + 1);
         }
         return z;
@@ -226,7 +226,7 @@ public class MultiDimension {
         int size = 1;
         for (int i = 0; i < len; i++) {
             int diff = max[i] - min[i];
-            size *= (diff + 1);
+            size *= diff + 1;
         }
         return size;
     }
@@ -240,7 +240,7 @@ public class MultiDimension {
             }
         });
         int minGap = 10;
-        for (;; minGap += (minGap / 2)) {
+        for (;; minGap += minGap / 2) {
             for (int i = 0; i < list.size() - 1; i++) {
                 long[] current = (long[]) list.get(i);
                 long[] next = (long[]) list.get(i + 1);
@@ -272,7 +272,7 @@ public class MultiDimension {
             if (diff < 0) {
                 throw new Error("Stop");
             }
-            size *= (diff + 1);
+            size *= diff + 1;
             if (size < 0) {
                 throw new Error("Stop");
             }

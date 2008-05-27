@@ -88,6 +88,13 @@ public class WebServer implements Service {
         // this will be listed on top for new installations
         "Generic H2 (Embedded)|org.h2.Driver|jdbc:h2:~/test|sa",
     };
+    
+    private static int ticker;
+    
+    /**
+     * The session timeout is 30 min.
+     */
+    private static final long SESSION_TIMEOUT = 30 * 60 * 1000; 
 
     /*
     String[] list = Locale.getISOLanguages();
@@ -102,14 +109,12 @@ public class WebServer implements Service {
 
     // private URLClassLoader urlClassLoader;
     private String driverList;
-    private static int ticker;
     private int port;
     private boolean allowOthers;
     private Set running = Collections.synchronizedSet(new HashSet());
     private boolean ssl;
     private HashMap connInfoMap = new HashMap();
 
-    private static final long SESSION_TIMEOUT = 30 * 60 * 1000; // timeout is 30 min
     private long lastTimeoutCheck;
     private HashMap sessions = new HashMap();
     private HashSet languages = new HashSet();

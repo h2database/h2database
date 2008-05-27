@@ -15,6 +15,10 @@ import org.h2.message.Message;
  * A factory to create new block cipher objects.
  */
 public class CipherFactory {
+    
+    private CipherFactory() {
+        // utility class
+    }
 
     /**
      * Get a new block cipher object for the given algorithm.

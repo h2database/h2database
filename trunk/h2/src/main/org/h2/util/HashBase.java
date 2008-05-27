@@ -13,6 +13,8 @@ import java.sql.SQLException;
  */
 public abstract class HashBase {
 
+    private static final int MAX_LOAD = 90;
+
     /**
      * The bit mask to get the index from the hash code.
      */
@@ -44,7 +46,10 @@ public abstract class HashBase {
     protected boolean zeroKey;
 
     private int maxSize, minSize, maxDeleted;
-    private static final int MAX_LOAD = 90;
+
+    public HashBase() {
+        reset(2);
+    }
 
     /**
      * Increase the size of the underlying table and re-distribute the elements.
@@ -52,10 +57,6 @@ public abstract class HashBase {
      * @param newLevel the new level
      */
     protected abstract void rehash(int newLevel) throws SQLException;
-
-    public HashBase() {
-        reset(2);
-    }
 
     public int size() {
         return size + (zeroKey ? 1 : 0);

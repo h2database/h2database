@@ -30,7 +30,7 @@ public class DbTableOrView {
         quotedName = schema.contents.quoteIdentifier(name);
     }
 
-    public void readColumns(DatabaseMetaData meta) throws SQLException {
+    void readColumns(DatabaseMetaData meta) throws SQLException {
         ResultSet rs = meta.getColumns(null, schema.name, name, null);
         ArrayList list = new ArrayList();
         while (rs.next()) {

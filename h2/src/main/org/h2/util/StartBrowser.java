@@ -14,6 +14,10 @@ import org.h2.constant.SysProperties;
  * This tool starts the browser with a specific URL.
  */
 public class StartBrowser {
+    
+    private StartBrowser() {
+        // utility class
+    }
 
     public static void openURL(String url) {
         String osName = SysProperties.getStringSetting("os.name", "linux").toLowerCase();

@@ -22,6 +22,8 @@ import org.h2.test.TestBase;
 public class TestTriggersConstraints extends TestBase implements Trigger {
 
     private static boolean mustNotCallTrigger;
+    
+    private String triggerName;
 
     public void test() throws Exception {
         deleteDb("trigger");
@@ -30,6 +32,9 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         testConstraints();
     }
     
+    /**
+     * A test trigger implementation.
+     */
     public static class Test implements Trigger {
 
         public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
@@ -146,8 +151,6 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             error("set should be empty: " + set);
         }
     }
-
-    private String triggerName;
 
     public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
         if (mustNotCallTrigger) {

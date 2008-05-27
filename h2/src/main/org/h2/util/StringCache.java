@@ -16,8 +16,13 @@ import org.h2.constant.SysProperties;
  * The effect is similar to calling String.intern(), but faster.
  */
 public class StringCache {
+    
     private static final boolean ENABLED = true;
     private static SoftReference softCache = new SoftReference(null);
+    
+    private StringCache() {
+        // utility class
+    }
 
     // testing: cacheHit / miss are public!
     // public static int cacheHit = 0, cacheMiss = 0;
@@ -105,7 +110,8 @@ public class StringCache {
         }
         // create a new object that is not shared 
         // (to avoid out of memory if it is a substring of a big String)
-        s = new String(s); // NOPMD
+        // NOPMD
+        s = new String(s); 
         cache[index] = s;
         return s;
     }

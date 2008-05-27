@@ -18,15 +18,15 @@ import java.util.Random;
  */
 public class BenchA implements Bench {
 
+    private static final String FILLER = "abcdefghijklmnopqrstuvwxyz";
+    private static final int DELTA = 10000;
+
     private Database db;
 
     private int branches;
     private int tellers;
     private int accounts;
     private int size;
-
-    private static final String FILLER = "abcdefghijklmnopqrstuvwxyz";
-    private static final int DELTA = 10000;
 
     public void init(Database db, int size) throws Exception {
         this.db = db;

@@ -14,6 +14,14 @@ import java.io.Reader;
  * Helper class for the java file parser.
  */
 public class Tokenizer {
+    
+    public static final int TYPE_EOF = -1;
+    public static final int TYPE_WORD = -2;
+    private static final int TYPE_NOTHING = -3;
+    private static final byte WHITESPACE = 1;
+    private static final byte ALPHA = 4;
+    private static final byte QUOTE = 8;
+
     private StringBuffer buffer;
 
     private Reader reader;
@@ -23,14 +31,8 @@ public class Tokenizer {
     private int line = 1;
 
     private byte[] charTypes = new byte[256];
-    private static final byte WHITESPACE = 1;
-    private static final byte ALPHA = 4;
-    private static final byte QUOTE = 8;
 
     private int type = TYPE_NOTHING;
-    public static final int TYPE_EOF = -1;
-    public static final int TYPE_WORD = -2;
-    private static final int TYPE_NOTHING = -3;
     private String value;
 
     private Tokenizer() {
@@ -164,7 +166,8 @@ public class Tokenizer {
                     && peekChar != '\r') {
                 if (peekChar == '\\') {
                     c = read();
-                    int first = c; // to allow \377, but not \477
+                    // to allow \377, but not \477
+                    int first = c; 
                     if (c >= '0' && c <= '7') {
                         c = c - '0';
                         int c2 = read();

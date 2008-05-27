@@ -39,6 +39,13 @@ public class ValueLob extends Value {
     // and a getpart function (to get it in pieces) and make sure a file is created!
 
     public static final int TABLE_ID_SESSION = -1;
+    
+    /**
+     * This counter is used to calculate the next directory to store lobs.
+     * It is better than using a random number because less directories are created.
+     */
+    private static int dirCounter;
+
 
     private final int type;
     private long precision;
@@ -52,12 +59,6 @@ public class ValueLob extends Value {
     private boolean compression;
     private FileStore tempFile;
 
-    /**
-     * This counter is used to calculate the next directory to store lobs.
-     * It is better than using a random number because less directories are created.
-     */
-    private static int dirCounter;
-
     private ValueLob(int type, DataHandler handler, String fileName, int tableId, int objectId, boolean linked,
             long precision, boolean compression) {
         this.type = type;
@@ -70,13 +71,6 @@ public class ValueLob extends Value {
         this.compression = compression;
     }
 
-    private static ValueLob copy(ValueLob lob) {
-        ValueLob copy = new ValueLob(lob.type, lob.handler, lob.fileName, lob.tableId, lob.objectId, lob.linked, lob.precision, lob.compression);
-        copy.small = lob.small;
-        copy.hash = lob.hash;
-        return copy;
-    }
-
     private ValueLob(int type, byte[] small) {
         this.type = type;
         this.small = small;
@@ -87,6 +81,13 @@ public class ValueLob extends Value {
                 this.precision = getString().length();
             }
         }
+    }
+
+    private static ValueLob copy(ValueLob lob) {
+        ValueLob copy = new ValueLob(lob.type, lob.handler, lob.fileName, lob.tableId, lob.objectId, lob.linked, lob.precision, lob.compression);
+        copy.small = lob.small;
+        copy.hash = lob.hash;
+        return copy;
     }
 
     public static ValueLob createSmallLob(int type, byte[] small) {

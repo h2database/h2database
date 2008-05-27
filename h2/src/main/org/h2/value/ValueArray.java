@@ -19,12 +19,12 @@ public class ValueArray extends Value {
     private final Value[] values;
     private int hash;
 
-    public static ValueArray get(Value[] list) {
-        return new ValueArray(list);
-    }
-
     private ValueArray(Value[] list) {
         this.values = list;
+    }
+
+    public static ValueArray get(Value[] list) {
+        return new ValueArray(list);
     }
 
     public int hashCode() {

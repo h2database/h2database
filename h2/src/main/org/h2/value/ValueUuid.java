@@ -37,8 +37,10 @@ public class ValueUuid extends Value {
     public static ValueUuid getNewRandom() {
         long high = RandomUtils.getSecureLong();
         long low = RandomUtils.getSecureLong();
-        high = (high & (~0xf000L)) | 0x4000L; // version 4 (random)
-        low = (low & 0x3fffffffffffffffL) | 0x8000000000000000L; // variant (Leach-Salz)
+        // version 4 (random)
+        high = (high & (~0xf000L)) | 0x4000L; 
+        // variant (Leach-Salz)
+        low = (low & 0x3fffffffffffffffL) | 0x8000000000000000L; 
         return new ValueUuid(high, low);
     }
 

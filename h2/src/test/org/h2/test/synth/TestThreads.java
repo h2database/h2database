@@ -20,8 +20,26 @@ import org.h2.test.TestBase;
  */
 public class TestThreads extends TestBase implements Runnable {
 
+    private static final int INSERT = 0, UPDATE = 1, DELETE = 2;
+    private static final int SELECT_ONE = 3, SELECT_ALL = 4, CHECKPOINT = 5, RECONNECT = 6;
+    private static final int OP_TYPES = RECONNECT + 1;
+
+    private int maxId = 1;
+
+    private volatile boolean stop;
+    private TestThreads master;
+    private int type;
+    private String table;
+    private Random random = new Random();
+
     public TestThreads() {
         // nothing to do
+    }
+    
+    TestThreads(TestThreads master, int type, String table) {
+        this.master = master;
+        this.type = type;
+        this.table = table;
     }
 
     public void test() throws Exception {
@@ -78,30 +96,12 @@ public class TestThreads extends TestBase implements Runnable {
         }
     }
 
-    private int maxId = 1;
-
-    private volatile boolean stop;
-    private TestThreads master;
-    private int type;
-    private String table;
-    private Random random = new Random();
-
-    private static final int INSERT = 0, UPDATE = 1, DELETE = 2;
-    private static final int SELECT_ONE = 3, SELECT_ALL = 4, CHECKPOINT = 5, RECONNECT = 6;
-    private static final int OP_TYPES = RECONNECT + 1;
-
     private int getMaxId() {
         return maxId;
     }
 
     private synchronized int incrementMaxId() {
         return maxId++;
-    }
-
-    TestThreads(TestThreads master, int type, String table) {
-        this.master = master;
-        this.type = type;
-        this.table = table;
     }
 
     private String getRandomTable() {
@@ -147,6 +147,7 @@ public class TestThreads extends TestBase implements Runnable {
                     conn.close();
                     conn = master.getConnection("threads");
                     break;
+                default:
                 }
             }
             conn.close();

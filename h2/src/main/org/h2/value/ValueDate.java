@@ -19,7 +19,8 @@ import org.h2.util.DateTimeUtils;
  */
 public class ValueDate extends Value {
     public static final int PRECISION = 8;
-    public static final int DISPLAY_SIZE = 10; // 2000-01-02
+    // "2000-01-02".length()
+    public static final int DISPLAY_SIZE = 10;
 
     private final Date value;
 

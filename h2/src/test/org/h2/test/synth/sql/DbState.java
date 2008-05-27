@@ -13,11 +13,11 @@ import java.util.ArrayList;
  */
 public class DbState implements DbInterface {
 
+    boolean connected;
+    boolean autoCommit;
     private TestSynth config;
     private ArrayList tables = new ArrayList();
     private ArrayList indexes = new ArrayList();
-    boolean connected;
-    boolean autoCommit;
 
     DbState(TestSynth config) {
         this.config = config;

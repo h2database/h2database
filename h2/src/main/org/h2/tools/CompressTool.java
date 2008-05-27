@@ -37,6 +37,10 @@ public class CompressTool {
     private static byte[] buffer;
     private static final int MAX_BUFFER_SIZE = 64 * 1024 * 1024;
     
+    private CompressTool() {
+        // don't allow construction
+    }
+    
     private static byte[] getBuffer(int min) {
         if (min > MAX_BUFFER_SIZE) {
             return new byte[min];
@@ -46,10 +50,6 @@ public class CompressTool {
         }
         return buffer;
     }    
-    
-    private CompressTool() {
-        // don't allow construction
-    }
     
     /**
      * Get the singleton.

@@ -34,7 +34,8 @@ import org.h2.util.NetUtils;
  */
 public class PgServer implements Service {
 
-    public static final int DEFAULT_PORT = 5435; // also in the docs
+    // also in the docs
+    public static final int DEFAULT_PORT = 5435; 
 
     private int port = PgServer.DEFAULT_PORT;
     private boolean stop;
@@ -189,7 +190,7 @@ public class PgServer implements Service {
         }
     }
 
-    public String getBaseDir() {
+    String getBaseDir() {
         return baseDir;
     }
 
@@ -205,7 +206,7 @@ public class PgServer implements Service {
         return "H2 PG Server";
     }
 
-    public boolean getIfExists() {
+    boolean getIfExists() {
         return ifExists;
     }
 

@@ -13,11 +13,11 @@ import org.h2.index.Index;
  * using it.
  */
 public class PlanItem {
-    public double cost;
+    double cost;
     private Index index;
     private PlanItem joinPlan;
 
-    public void setIndex(Index index) {
+    void setIndex(Index index) {
         this.index = index;
     }
 
@@ -25,11 +25,11 @@ public class PlanItem {
         return index;
     }
 
-    public PlanItem getJoinPlan() {
+    PlanItem getJoinPlan() {
         return joinPlan;
     }
 
-    public void setJoinPlan(PlanItem joinPlan) {
+    void setJoinPlan(PlanItem joinPlan) {
         this.joinPlan = joinPlan;
     }
 

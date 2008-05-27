@@ -92,7 +92,7 @@ public class Plan {
             }
         }
         if (invalidPlan) {
-            cost = 1. / 0.; // Infinity
+            cost = Double.POSITIVE_INFINITY; 
         }
         for (int i = 0; i < allFilters.length; i++) {
             setEvaluatable(allFilters[i], false);

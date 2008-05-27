@@ -59,18 +59,20 @@ import org.h2.util.ObjectUtils;
 public class DiskFile implements CacheWriter {
 
     /**
+     * The size of a page in blocks.
+     * Each page contains blocks from the same storage.
+     */
+    public static final int BLOCK_PAGE_PAGE_SHIFT = 6;
+
+    public static final int BLOCKS_PER_PAGE = 1 << BLOCK_PAGE_PAGE_SHIFT;
+    public static final int OFFSET = FileStore.HEADER_LENGTH;
+
+    /**
      * The size of a block in bytes.
      * A block is the minimum row size.
      */
     public static final int BLOCK_SIZE = 128;
 
-    /**
-     * The size of a page in blocks.
-     * Each page contains blocks from the same storage.
-     */
-    static final int BLOCK_PAGE_PAGE_SHIFT = 6;
-    public static final int BLOCKS_PER_PAGE = 1 << BLOCK_PAGE_PAGE_SHIFT;
-    public static final int OFFSET = FileStore.HEADER_LENGTH;
     static final int FREE_PAGE = -1;
     // TODO storage: header should probably be 4 KB or so 
     // (to match block size of operating system)
@@ -474,7 +476,8 @@ public class DiskFile implements CacheWriter {
                 byte[] buff = rowBuff.getBytes();
                 file.readFully(buff, 0, BLOCK_SIZE);
                 DataPage s = DataPage.create(database, buff);
-                s.readInt(); // blockCount
+                // blockCount
+                s.readInt(); 
                 int id = s.readInt();
                 if (id != storageId) {
                     return null;

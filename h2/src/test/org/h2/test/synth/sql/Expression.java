@@ -19,6 +19,13 @@ public class Expression {
     private TestSynth config;
     private Command command;
 
+    private Expression(TestSynth config, Command command, boolean isCondition) {
+        this.config = config;
+        this.isCondition = isCondition;
+        this.command = command;
+        sql = "";
+    }
+
     public static String[] getRandomSelectList(TestSynth config, Command command) {
         if (config.random().getBoolean(30)) {
             return new String[] { "*" };
@@ -99,13 +106,6 @@ public class Expression {
 
     public String getSQL() {
         return sql.trim().length() == 0 ? null : sql.trim();
-    }
-
-    private Expression(TestSynth config, Command command, boolean isCondition) {
-        this.config = config;
-        this.isCondition = isCondition;
-        this.command = command;
-        sql = "";
     }
 
     private boolean is(int percent) {
@@ -283,6 +283,7 @@ public class Expression {
             case Types.CLOB:
             case Types.DATE:
                 break;
+            default:
             }
         }
     }

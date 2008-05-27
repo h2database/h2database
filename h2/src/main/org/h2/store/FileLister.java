@@ -17,6 +17,10 @@ import org.h2.util.FileUtils;
  */
 public class FileLister {
 
+    private FileLister() {
+        // utility class
+    }
+    
     /**
      * Extract the name of the database from a given file name.
      * Only files ending with .data.db are considered, all others return null.

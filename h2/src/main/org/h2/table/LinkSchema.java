@@ -20,6 +20,10 @@ import org.h2.util.StringUtils;
  * A utility class to create table links for a whole schema.
  */
 public class LinkSchema {
+
+    private LinkSchema() {
+        // utility class
+    }
     
     /**
      * Link all tables of a schema to the database.

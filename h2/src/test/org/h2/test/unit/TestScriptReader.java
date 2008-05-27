@@ -142,7 +142,9 @@ public class TestScriptReader extends TestBase {
                     }
                     buff.append("$$");
                 }
+                break;
             }
+            default:
             }
         }
         return buff.toString();

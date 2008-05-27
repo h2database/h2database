@@ -31,42 +31,12 @@ import org.h2.util.StringUtils;
  */
 public class FileSystemDatabase extends FileSystem {
 
+    private static final HashMap INSTANCES = new HashMap();
     private Connection conn;
     private String url;
-    private static final HashMap INSTANCES = new HashMap();
     private HashMap preparedMap = new HashMap();
     private boolean log;
-
-    public static synchronized FileSystem getInstance(String url) {
-        int idx = url.indexOf('/');
-        if (idx > 0) {
-            url = url.substring(0, idx);
-        }
-        FileSystemDatabase fs = (FileSystemDatabase) INSTANCES.get(url);
-        if (fs != null) {
-            return fs;
-        }
-        Connection conn;
-        try {
-            if (url.startsWith("jdbc:h2:")) {
-                // avoid using DriverManager if possible
-                conn = Driver.load().connect(url, new Properties());
-            } else {
-                conn = JdbcUtils.getConnection(null, url, new Properties());
-            }
-            boolean log = url.toUpperCase().indexOf("TRACE_") >= 0;
-            fs = new FileSystemDatabase(url, conn, log);
-            INSTANCES.put(url, fs);
-            return fs;
-        } catch (SQLException e) {
-            throw Message.convertToInternal(e);
-        }
-    }
-
-    public void close() {
-        JdbcUtils.closeSilently(conn);
-    }
-
+    
     private FileSystemDatabase(String url, Connection conn, boolean log) throws SQLException {
         this.url = url;
         this.conn = conn;
@@ -97,6 +67,36 @@ public class FileSystemDatabase extends FileSystem {
                         + lastModified);
             }
         }
+    }
+
+    public static synchronized FileSystem getInstance(String url) {
+        int idx = url.indexOf('/');
+        if (idx > 0) {
+            url = url.substring(0, idx);
+        }
+        FileSystemDatabase fs = (FileSystemDatabase) INSTANCES.get(url);
+        if (fs != null) {
+            return fs;
+        }
+        Connection conn;
+        try {
+            if (url.startsWith("jdbc:h2:")) {
+                // avoid using DriverManager if possible
+                conn = Driver.load().connect(url, new Properties());
+            } else {
+                conn = JdbcUtils.getConnection(null, url, new Properties());
+            }
+            boolean log = url.toUpperCase().indexOf("TRACE_") >= 0;
+            fs = new FileSystemDatabase(url, conn, log);
+            INSTANCES.put(url, fs);
+            return fs;
+        } catch (SQLException e) {
+            throw Message.convertToInternal(e);
+        }
+    }
+
+    public void close() {
+        JdbcUtils.closeSilently(conn);
     }
 
     private void commit() {

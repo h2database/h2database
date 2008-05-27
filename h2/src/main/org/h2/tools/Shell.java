@@ -37,7 +37,8 @@ public class Shell {
     private Statement stat;
     private boolean listMode;
     private int maxColumnSize = 100;
-    private char boxVertical = '|'; // windows: '\u00b3';
+    // Windows: '\u00b3';
+    private char boxVertical = '|'; 
     
     /**
      * The command line interface for this tool. The options must be split into
@@ -304,6 +305,10 @@ public class Shell {
         } catch (Throwable t) {
             // ignore, use the default solution
         }
+        /**
+         * This thread hides the password by repeatedly printing 
+         * backspace, backspace, &gt;, &lt;.
+         */
         class PasswordHider extends Thread {
             volatile boolean stop;
             public void run() {

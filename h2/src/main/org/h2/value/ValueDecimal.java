@@ -19,20 +19,21 @@ import org.h2.util.MathUtils;
  * Implementation of the DECIMAL data type.
  */
 public class ValueDecimal extends Value {
-    // TODO doc: document differences for BigDecimal 1.5 <> 1.4
-    private final BigDecimal value;
-    private String valueString;
-    private int precision;
+    
+    public static final int DEFAULT_PRECISION = 65535;
+    public static final int DEFAULT_SCALE = 32767;
+    public static final int DEFAULT_DISPLAY_SIZE = 65535;
+    private static final int DIVIDE_SCALE_ADD = 25;
 
     private static final BigDecimal DEC_ZERO = new BigDecimal("0");
     private static final BigDecimal DEC_ONE = new BigDecimal("1");
     private static final ValueDecimal ZERO = new ValueDecimal(DEC_ZERO);
     private static final ValueDecimal ONE = new ValueDecimal(DEC_ONE);
 
-    public static final int DEFAULT_PRECISION = 65535;
-    public static final int DEFAULT_SCALE = 32767;
-    public static final int DEFAULT_DISPLAY_SIZE = 65535;
-    private static final int DIVIDE_SCALE_ADD = 25;
+    // TODO doc: document differences for BigDecimal 1.5 <> 1.4
+    private final BigDecimal value;
+    private String valueString;
+    private int precision;
 
     private ValueDecimal(BigDecimal value) {
         if (value == null) {
@@ -180,7 +181,8 @@ public class ValueDecimal extends Value {
     }
 
     public int getDisplaySize() {
-        return MathUtils.convertLongToInt(getPrecision() + 2); // - .
+        // add 2 characters for '-' and '.'
+        return MathUtils.convertLongToInt(getPrecision() + 2);
     }
 
     public boolean equals(Object other) {

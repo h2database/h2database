@@ -51,6 +51,10 @@ public class SecureSocketFactory {
     private static final String KEYSTORE_PASSWORD_KEY = "javax.net.ssl.keyStorePassword";
     private static final String ANONYMOUS_CIPHER_SUITE = "SSL_DH_anon_WITH_RC4_128_MD5";
 
+    private SecureSocketFactory() {
+        // utility class
+    }
+
     /**
      * Create a secure client socket that is connected to the given address and port.
      * 
@@ -75,10 +79,12 @@ public class SecureSocketFactory {
     }
 
     /**
-     * Create a secure server socket. If a bind address is specified, the socket is only bound to this address.
+     * Create a secure server socket. If a bind address is specified, the socket
+     * is only bound to this address.
      * 
      * @param port the port to listen on
-     * @param bindAddress the address to bind to, or null to bind to all addresses
+     * @param bindAddress the address to bind to, or null to bind to all
+     *            addresses
      * @return the server socket
      */
     public static ServerSocket createServerSocket(int port, InetAddress bindAddress) throws IOException {

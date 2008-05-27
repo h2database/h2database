@@ -251,6 +251,7 @@ public class TestLob extends TestBase {
                     sp = null;
                 }
                 break;
+            default:
             }
             ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
             while (rs.next()) {
@@ -677,7 +678,7 @@ public class TestLob extends TestBase {
 
         time = System.currentTimeMillis();
         prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
-        for (int i = 0; i < len; i += (i + i + 1)) {
+        for (int i = 0; i < len; i += i + i + 1) {
             prep.setInt(1, i);
             int size = i * i;
             if (clob) {

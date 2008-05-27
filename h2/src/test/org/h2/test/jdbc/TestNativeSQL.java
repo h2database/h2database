@@ -19,6 +19,40 @@ import org.h2.test.TestBase;
  */
 public class TestNativeSQL extends TestBase {
     
+    static final String[] PAIRS = new String[] { 
+            "CREATE TABLE TEST(ID INT PRIMARY KEY)",
+            "CREATE TABLE TEST(ID INT PRIMARY KEY)", 
+            
+            "INSERT INTO TEST VALUES(1)", "INSERT INTO TEST VALUES(1)",
+            "SELECT '{nothing}' FROM TEST", "SELECT '{nothing}' FROM TEST",
+
+            "SELECT '{fn ABS(1)}' FROM TEST", "SELECT '{fn ABS(1)}' FROM TEST",
+
+            "SELECT {d '2001-01-01'} FROM TEST", "SELECT    '2001-01-01'  FROM TEST",
+
+            "SELECT {t '20:00:00'} FROM TEST", "SELECT    '20:00:00'  FROM TEST",
+
+            "SELECT {ts '2001-01-01 20:00:00'} FROM TEST", "SELECT     '2001-01-01 20:00:00'  FROM TEST",
+
+            "SELECT {fn CONCAT('{fn x}','{oj}')} FROM TEST", "SELECT     CONCAT('{fn x}','{oj}')  FROM TEST",
+
+            "SELECT * FROM {oj TEST T1 LEFT OUTER JOIN TEST T2 ON T1.ID=T2.ID}",
+            "SELECT * FROM     TEST T1 LEFT OUTER JOIN TEST T2 ON T1.ID=T2.ID ",
+
+            "SELECT * FROM TEST WHERE '{' LIKE '{{' {escape '{'}",
+            "SELECT * FROM TEST WHERE '{' LIKE '{{'  escape '{' ",
+
+            "SELECT * FROM TEST WHERE '}' LIKE '}}' {escape '}'}",
+            "SELECT * FROM TEST WHERE '}' LIKE '}}'  escape '}' ",
+
+            "{call TEST('}')}", " call TEST('}') ",
+
+            "{?= call TEST('}')}", "    call TEST('}') ",
+
+            "{? = call TEST('}')}", "     call TEST('}') ",
+
+            "{{{{this is a bug}", null, };
+
     Connection conn;
 
     public void test() throws Exception {
@@ -146,6 +180,7 @@ public class TestNativeSQL extends TestBase {
                         buff.append(s.charAt(random.nextInt(s.length())));
                     }
                     break;
+                default:
                 }
             }
             String sql = buff.toString();
@@ -195,40 +230,6 @@ public class TestNativeSQL extends TestBase {
         }
         checkFalse(conn.isClosed());
     }
-
-    static final String[] PAIRS = new String[] { 
-            "CREATE TABLE TEST(ID INT PRIMARY KEY)",
-            "CREATE TABLE TEST(ID INT PRIMARY KEY)", 
-            
-            "INSERT INTO TEST VALUES(1)", "INSERT INTO TEST VALUES(1)",
-            "SELECT '{nothing}' FROM TEST", "SELECT '{nothing}' FROM TEST",
-
-            "SELECT '{fn ABS(1)}' FROM TEST", "SELECT '{fn ABS(1)}' FROM TEST",
-
-            "SELECT {d '2001-01-01'} FROM TEST", "SELECT    '2001-01-01'  FROM TEST",
-
-            "SELECT {t '20:00:00'} FROM TEST", "SELECT    '20:00:00'  FROM TEST",
-
-            "SELECT {ts '2001-01-01 20:00:00'} FROM TEST", "SELECT     '2001-01-01 20:00:00'  FROM TEST",
-
-            "SELECT {fn CONCAT('{fn x}','{oj}')} FROM TEST", "SELECT     CONCAT('{fn x}','{oj}')  FROM TEST",
-
-            "SELECT * FROM {oj TEST T1 LEFT OUTER JOIN TEST T2 ON T1.ID=T2.ID}",
-            "SELECT * FROM     TEST T1 LEFT OUTER JOIN TEST T2 ON T1.ID=T2.ID ",
-
-            "SELECT * FROM TEST WHERE '{' LIKE '{{' {escape '{'}",
-            "SELECT * FROM TEST WHERE '{' LIKE '{{'  escape '{' ",
-
-            "SELECT * FROM TEST WHERE '}' LIKE '}}' {escape '}'}",
-            "SELECT * FROM TEST WHERE '}' LIKE '}}'  escape '}' ",
-
-            "{call TEST('}')}", " call TEST('}') ",
-
-            "{?= call TEST('}')}", "    call TEST('}') ",
-
-            "{? = call TEST('}')}", "     call TEST('}') ",
-
-            "{{{{this is a bug}", null, };
 
     void test(Connection conn, String original, String expected) throws Exception {
         trace("original: <" + original + ">");

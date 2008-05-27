@@ -326,7 +326,7 @@ public class Recover extends Tool implements DataHandler {
                 + storageId + " recordLength: " + recordLength + " valueId:" + valueId);
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
-            int x = (data[i] & 0xff);
+            int x = data[i] & 0xff;
             if (x >= ' ' && x < 128) {
                 sb.append((char) x);
             } else {
@@ -336,7 +336,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("-- dump: " + sb.toString());
         sb = new StringBuffer();
         for (int i = 0; i < dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
-            int x = (data[i] & 0xff);
+            int x = data[i] & 0xff;
             sb.append(' ');
             if (x < 16) {
                 sb.append('0');

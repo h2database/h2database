@@ -25,12 +25,12 @@ public class FileSystemMemory extends FileSystem {
     private static final FileSystemMemory INSTANCE = new FileSystemMemory();
     private static final HashMap MEMORY_FILES = new HashMap();
 
-    public static FileSystemMemory getInstance() {
-        return INSTANCE;
-    }
-
     private FileSystemMemory() {
         // don't allow construction
+    }
+
+    public static FileSystemMemory getInstance() {
+        return INSTANCE;
     }
 
     public long length(String fileName) {

@@ -11,10 +11,10 @@ package org.h2.util;
  */
 public class BitField {
 
-    private long[] data = new long[10];
     private static final int ADDRESS_BITS = 6;
     private static final int BITS = 64;
     private static final int ADDRESS_MASK = BITS - 1;
+    private long[] data = new long[10];
 
     public int getLastSetBit() {
         int i = (data.length << ADDRESS_BITS) - 1;

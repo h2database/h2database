@@ -25,13 +25,16 @@ public class TestZloty extends TestBase {
         testModifyBytes();
     }
 
+    /**
+     * This class overrides BigDecimal and implements some strange comparison method.
+     */
     private static class ZlotyBigDecimal extends BigDecimal {
 
+        private static final long serialVersionUID = -8004563653683501484L;
+        
         public ZlotyBigDecimal(String s) {
             super(s);
         }
-
-        private static final long serialVersionUID = -8004563653683501484L;
 
         public int compareTo(BigDecimal bd) {
             return -super.compareTo(bd);

@@ -26,7 +26,7 @@ public class SingleColumnResolver implements ColumnResolver {
         return null;
     }
 
-    public void setValue(Value value) {
+    void setValue(Value value) {
         this.value = value;
     }
 

@@ -16,6 +16,11 @@ import org.h2.value.DataType;
  * A column of a table.
  */
 class Column {
+    
+    private static final int[] TYPES = { Types.INTEGER, Types.VARCHAR, Types.DECIMAL, Types.DATE, Types.TIME,
+            Types.TIMESTAMP, DataType.TYPE_BOOLEAN, Types.BINARY, Types.VARBINARY, Types.CLOB, Types.BLOB,
+            Types.DOUBLE, Types.BIGINT, Types.TIMESTAMP, Types.BIT, };
+    
     private TestSynth config;
     private String name;
     private int type;
@@ -24,10 +29,6 @@ class Column {
     private boolean isNullable;
     private boolean isPrimaryKey;
     // TODO test isAutoincrement;
-
-    private static final int[] TYPES = { Types.INTEGER, Types.VARCHAR, Types.DECIMAL, Types.DATE, Types.TIME,
-            Types.TIMESTAMP, DataType.TYPE_BOOLEAN, Types.BINARY, Types.VARBINARY, Types.CLOB, Types.BLOB,
-            Types.DOUBLE, Types.BIGINT, Types.TIMESTAMP, Types.BIT, };
 
     Column(TestSynth config) {
         this.config = config;

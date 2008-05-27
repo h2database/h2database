@@ -669,147 +669,37 @@ public class TestMetaData extends TestBase {
         trace("getColumns - using wildcards");
         rs = meta.getColumns(null, null, "___", "B%");
         testResultSetOrdered(rs, new String[][] {
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "B", "" + Types.INTEGER, "INTEGER", "10" /*
-                                                                                                     * ,
-                                                                                                     * null,
-                                                                                                     * "0",
-                                                                                                     * "10", "" +
-                                                                                                     * DatabaseMetaData.columnNoNulls,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * "1",
-                                                                                                     * "NO"
-                                                                                                     */},
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "B", "" + Types.INTEGER, "INTEGER", "10" /*
-                                                                                                     * ,
-                                                                                                     * null,
-                                                                                                     * "0",
-                                                                                                     * "10", "" +
-                                                                                                     * DatabaseMetaData.columnNoNulls,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * "1",
-                                                                                                     * "NO"
-                                                                                                     */}, });
+                { catalog, Constants.SCHEMA_MAIN, "TX2", "B", "" + Types.INTEGER, "INTEGER", "10"},
+                { catalog, Constants.SCHEMA_MAIN, "T_2", "B", "" + Types.INTEGER, "INTEGER", "10"}, });
         trace("getColumns - using wildcards");
         rs = meta.getColumns(null, null, "_\\__", "%");
         testResultSetOrdered(rs, new String[][] {
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "B", "" + Types.INTEGER, "INTEGER", "10" /*
-                                                                                                     * ,
-                                                                                                     * null,
-                                                                                                     * "0",
-                                                                                                     * "10", "" +
-                                                                                                     * DatabaseMetaData.columnNoNulls,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * "1",
-                                                                                                     * "NO"
-                                                                                                     */},
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "A", "" + Types.VARCHAR, "VARCHAR", "6" /*
-                                                                                                     * ,
-                                                                                                     * null,
-                                                                                                     * "0",
-                                                                                                     * "10", "" +
-                                                                                                     * DatabaseMetaData.columnNoNulls,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * "2",
-                                                                                                     * "NO"
-                                                                                                     */},
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "C", "" + Types.INTEGER, "INTEGER", "10" /*
-                                                                                                     * ,
-                                                                                                     * null,
-                                                                                                     * "0",
-                                                                                                     * "10", "" +
-                                                                                                     * DatabaseMetaData.columnNoNulls,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * null,
-                                                                                                     * "3",
-                                                                                                     * "NO"
-                                                                                                     */}, });
+                { catalog, Constants.SCHEMA_MAIN, "T_2", "B", "" + Types.INTEGER, "INTEGER", "10"},
+                { catalog, Constants.SCHEMA_MAIN, "T_2", "A", "" + Types.VARCHAR, "VARCHAR", "6"},
+                { catalog, Constants.SCHEMA_MAIN, "T_2", "C", "" + Types.INTEGER, "INTEGER", "10"}, });
         trace("getIndexInfo");
         stat.executeUpdate("CREATE UNIQUE INDEX A_INDEX ON TX2(B,C,A)");
         stat.executeUpdate("CREATE INDEX B_INDEX ON TX2(A,B,C)");
         rs = meta.getIndexInfo(null, null, "TX2", false, false);
         testResultSetOrdered(rs, new String[][] {
                 { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "A_INDEX",
-                        "" + DatabaseMetaData.tableIndexOther, "1", "B", "A" /*
-                                                                                 * ,
-                                                                                 * null,
-                                                                                 * null,
-                                                                                 * null
-                                                                                 */},
+                        "" + DatabaseMetaData.tableIndexOther, "1", "B", "A" },
                 { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "A_INDEX",
-                        "" + DatabaseMetaData.tableIndexOther, "2", "C", "A" /*
-                                                                                 * ,
-                                                                                 * null,
-                                                                                 * null,
-                                                                                 * null
-                                                                                 */},
+                        "" + DatabaseMetaData.tableIndexOther, "2", "C", "A"},
                 { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "A_INDEX",
-                        "" + DatabaseMetaData.tableIndexOther, "3", "A", "A" /*
-                                                                                 * ,
-                                                                                 * null,
-                                                                                 * null,
-                                                                                 * null
-                                                                                 */},
+                        "" + DatabaseMetaData.tableIndexOther, "3", "A", "A"},
                 { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_14",
-                        "" + DatabaseMetaData.tableIndexOther, "1", "C", "A" /*
-                                                                                 * ,
-                                                                                 * null,
-                                                                                 * null,
-                                                                                 * null
-                                                                                 */},
+                        "" + DatabaseMetaData.tableIndexOther, "1", "C", "A"},
                 { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_14",
-                        "" + DatabaseMetaData.tableIndexOther, "2", "A", "A" /*
-                                                                                 * ,
-                                                                                 * null,
-                                                                                 * null,
-                                                                                 * null
-                                                                                 */},
+                        "" + DatabaseMetaData.tableIndexOther, "2", "A", "A" },
                 { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_14",
-                        "" + DatabaseMetaData.tableIndexOther, "3", "B", "A"/*
-                                                                             * ,
-                                                                             * null,
-                                                                             * null,
-                                                                             * null
-                                                                             */},
+                        "" + DatabaseMetaData.tableIndexOther, "3", "B", "A"},
                 { catalog, Constants.SCHEMA_MAIN, "TX2", "TRUE", catalog, "B_INDEX",
-                        "" + DatabaseMetaData.tableIndexOther, "1", "A", "A" /*
-                                                                                 * ,
-                                                                                 * null,
-                                                                                 * null,
-                                                                                 * null
-                                                                                 */},
+                        "" + DatabaseMetaData.tableIndexOther, "1", "A", "A" },
                 { catalog, Constants.SCHEMA_MAIN, "TX2", "TRUE", catalog, "B_INDEX",
-                        "" + DatabaseMetaData.tableIndexOther, "2", "B", "A" /*
-                                                                                 * ,
-                                                                                 * null,
-                                                                                 * null,
-                                                                                 * null
-                                                                                 */},
+                        "" + DatabaseMetaData.tableIndexOther, "2", "B", "A" },
                 { catalog, Constants.SCHEMA_MAIN, "TX2", "TRUE", catalog, "B_INDEX",
-                        "" + DatabaseMetaData.tableIndexOther, "3", "C", "A" /*
-                                                                                 * ,
-                                                                                 * null,
-                                                                                 * null,
-                                                                                 * null
-                                                                                 */}, });
+                        "" + DatabaseMetaData.tableIndexOther, "3", "C", "A" }, });
         trace("getPrimaryKeys");
         rs = meta.getPrimaryKeys(null, null, "T_2");
         testResultSetOrdered(rs, new String[][] {

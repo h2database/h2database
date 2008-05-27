@@ -102,11 +102,16 @@ public class TestMultiNews extends TestMultiThread {
                 buff.append(' ');
             }
             String comment = buff.toString();
-            prep.setInt(1, i); // FID
-            prep.setString(2, comment); // COMMENTS
-            prep.setString(3, PREFIX_URL + i); // LINK
-            prep.setInt(4, 0); // STATE
-            prep.setString(5, PREFIX_URL + i); // VALUE
+            // FID
+            prep.setInt(1, i); 
+            // COMMENTS
+            prep.setString(2, comment); 
+            // LINK
+            prep.setString(3, PREFIX_URL + i); 
+            // STATE
+            prep.setInt(4, 0); 
+            // VALUE
+            prep.setString(5, PREFIX_URL + i); 
             prep.execute();
             prep2.setString(1, comment);
             prep2.execute();

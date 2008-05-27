@@ -63,8 +63,10 @@ public class TestLinkedTable extends TestBase {
         sa.execute("CREATE TABLE S.BAD (X NUMBER)");
         sb.execute("CALL LINK_SCHEMA('G', '', 'jdbc:h2:mem:one', 'sa', 'sa', 'PUBLIC'); ");
         sb.execute("CALL LINK_SCHEMA('B', '', 'jdbc:h2:mem:one', 'sa', 'sa', 'S'); ");
-        sb.executeQuery("SELECT * FROM G.GOOD");  //OK
-        sb.executeQuery("SELECT * FROM B.BAD");  // FAILED
+        // OK
+        sb.executeQuery("SELECT * FROM G.GOOD");
+        // FAILED
+        sb.executeQuery("SELECT * FROM B.BAD");
         ca.close();
         cb.close();
     }

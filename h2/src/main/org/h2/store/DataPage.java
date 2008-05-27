@@ -61,6 +61,11 @@ public abstract class DataPage {
      */
     protected int pos;
 
+    protected DataPage(DataHandler handler, byte[] data) {
+        this.handler = handler;
+        this.data = data;
+    }
+
     /**
      * Calculate the checksum and write.
      *
@@ -166,11 +171,6 @@ public abstract class DataPage {
             return new DataPageText(handler, buff);
         }
         return new DataPageBinary(handler, buff);
-    }
-
-    protected DataPage(DataHandler handler, byte[] data) {
-        this.handler = handler;
-        this.data = data;
     }
 
     public void checkCapacity(int plus) {
@@ -417,7 +417,7 @@ public abstract class DataPage {
         if (dataType == '-') {
             return ValueNull.INSTANCE;
         }
-        dataType = (dataType - 'a');
+        dataType = dataType - 'a';
         switch (dataType) {
         case Value.BOOLEAN:
             return ValueBoolean.get(readInt() == 1);

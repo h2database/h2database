@@ -265,7 +265,8 @@ public class TestUpdatableResultSet extends TestBase {
         check(rs.getLong(12) == Long.MAX_VALUE);
         check(((Integer) rs.getObject(13)).intValue(), 10);
         check(rs.getShort(14) == Short.MIN_VALUE);
-        check(rs.getString(15), "\u00ef\u00f6\u00fc"); // auml ouml uuml
+        // auml ouml uuml
+        check(rs.getString(15), "\u00ef\u00f6\u00fc");
         check(rs.getBytes(16), new byte[] { (byte) 0xab, 0x12 });
 
         checkFalse(rs.next());
@@ -359,7 +360,7 @@ public class TestUpdatableResultSet extends TestBase {
         checkState(rs, true, false, false, rows == 0);
         for (int i = 0; i < rows; i++) {
             rs.next();
-            checkState(rs, rows == 0, i == 0, i == rows - 1, (rows == 0 || i == rows));
+            checkState(rs, rows == 0, i == 0, i == rows - 1, rows == 0 || i == rows);
         }
         try {
             rs.beforeFirst();

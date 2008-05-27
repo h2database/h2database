@@ -22,6 +22,13 @@ public class TempFileDeleter {
     private static final ReferenceQueue QUEUE = new ReferenceQueue();
     private static final HashMap REF_MAP = new HashMap();
     
+    private TempFileDeleter() {
+        // utility class
+    }
+    
+    /**
+     * Contains information about a file.
+     */
     static class TempFile {
         String fileName;
         long lastModified;

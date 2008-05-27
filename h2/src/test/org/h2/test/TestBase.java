@@ -31,19 +31,18 @@ import org.h2.tools.DeleteDbFiles;
  */
 public abstract class TestBase {
 
-    // private static final String BASE_TEST_DIR = 
-    // System.getProperty("java.io.tmpdir") + "/h2";
-    private static final String BASE_TEST_DIR = "data";
-    
-    public static String getTestDir(String name) {
-        return BASE_TEST_DIR + "/test" + name;
-    }
-    
     protected static String baseDir = getTestDir("");
+    private static final String BASE_TEST_DIR = "data";
 
     protected TestAll config;
     private long start;
 
+    // private static final String BASE_TEST_DIR = 
+    // System.getProperty("java.io.tmpdir") + "/h2";
+    public static String getTestDir(String name) {
+        return BASE_TEST_DIR + "/test" + name;
+    }
+    
     protected void startServerIfRequired() throws SQLException {
         config.beforeTest();
     }

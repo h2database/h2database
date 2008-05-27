@@ -247,6 +247,7 @@ public class TestFileSystem extends TestBase {
                 check(f.length(), ra.length());
                 break;
             }
+            default:
             }
         }
         f.close();

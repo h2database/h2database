@@ -20,6 +20,10 @@ import org.h2.test.TestBase;
  * A new process is started.
  */
 public class TestExit extends TestBase implements DatabaseEventListener {
+    
+    public static Connection conn;
+
+    static final int OPEN_WITH_CLOSE_ON_EXIT = 1, OPEN_WITHOUT_CLOSE_ON_EXIT = 2;
 
     public void test() throws Exception {
         if (config.codeCoverage || config.networked) {
@@ -60,10 +64,6 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         }
     }
 
-    static final int OPEN_WITH_CLOSE_ON_EXIT = 1, OPEN_WITHOUT_CLOSE_ON_EXIT = 2;
-
-    public static Connection conn;
-
     public static void main(String[] args) throws Exception {
         SelfDestructor.startCountdown(60);
         if (args.length == 0) {
@@ -86,6 +86,7 @@ public class TestExit extends TestBase implements DatabaseEventListener {
             url = "jdbc:h2:" + baseDir + "/exit;database_event_listener='" + getClass().getName()
                     + "';db_close_on_exit=false";
             break;
+        default:
         }
         conn = open(url);
         Connection conn2 = open(url);

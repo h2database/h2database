@@ -224,7 +224,24 @@ public class BuildBase {
             throw new Error("Can not read field " + className + "." + fieldName, e);
         }
     }
-    
+
+    /**
+     * Read a final static field in a class using reflection.
+     * 
+     * @param className the name of the class
+     * @param fieldName the field name
+     * @return the value as a string
+     */
+    protected String getStaticValue(String className, String methodName) {
+        try {
+            Class clazz = Class.forName(className);
+            Method method = clazz.getMethod(methodName, new Class[0]);
+            return method.invoke(null, new Object[0]).toString();
+        } catch (Exception e) {
+            throw new Error("Can not read value " + className + "." + methodName + "()", e);
+        }
+    }
+
     /**
      * Copy files to the specified target directory.
      * 

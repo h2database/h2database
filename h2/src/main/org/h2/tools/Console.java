@@ -52,13 +52,14 @@ ActionListener, MouseListener,
 //## AWT end ##
 ShutdownHandler {
 
+    private static final int EXIT_ERROR = 1;
+
 //## AWT begin ##
     Frame frame;
     private Font font;
     private Image icon16, icon24;
     private Button startBrowser;
 //## AWT end ##
-    private static final int EXIT_ERROR = 1;
     private Server web, tcp, pg;
     private boolean isWindows;
 

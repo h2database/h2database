@@ -41,7 +41,7 @@ public class FtpControl extends Thread {
     private boolean replied;
     private long restart;
 
-    public FtpControl(Socket control, FtpServer server, boolean stop) {
+    FtpControl(Socket control, FtpServer server, boolean stop) {
         this.server = server;
         this.fs = server.getFileSystem();
         this.control = control;
@@ -277,8 +277,9 @@ public class FtpControl extends Thread {
                     }
                     restart = 0;
                 } else {
-                    processList(param, true); // Firefox compatibility (still
-                                                // not good)
+                    // Firefox compatibility 
+                    // (still not good)
+                    processList(param, true); 
                     // reply(426, "Not a file");
                 }
             } else if ("RMD".equals(command)) {

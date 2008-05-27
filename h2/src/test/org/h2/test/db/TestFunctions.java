@@ -66,6 +66,9 @@ public class TestFunctions extends TestBase {
         conn.close();
     }
 
+    /**
+     * This median implementation keeps all objects in memory.
+     */
     public static class MedianString implements AggregateFunction {
 
         private ArrayList list = new ArrayList();

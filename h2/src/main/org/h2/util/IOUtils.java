@@ -31,6 +31,10 @@ import org.h2.message.Message;
 public class IOUtils {
 
     private static final int BUFFER_BLOCK_SIZE = 4 * 1024;
+    
+    private IOUtils() {
+        // utility class
+    }
 
     public static void closeSilently(OutputStream out) {
         if (out != null) {

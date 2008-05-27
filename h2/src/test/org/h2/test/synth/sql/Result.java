@@ -21,13 +21,15 @@ import org.h2.test.TestBase;
  */
 class Result implements Comparable {
     static final int SUCCESS = 0, BOOLEAN = 1, INT = 2, EXCEPTION = 3, RESULT_SET = 4;
+    
+    String sql;
+
     private int type;
     private boolean bool;
     private int intValue;
     private SQLException exception;
     private ArrayList rows;
     private ArrayList header;
-    String sql;
 
     Result(String sql) {
         this.sql = sql;
@@ -144,6 +146,7 @@ class Result implements Comparable {
         case RESULT_SET:
             System.out.println("> rs " + rows.size());
             break;
+        default:
         }
         System.out.println();
     }

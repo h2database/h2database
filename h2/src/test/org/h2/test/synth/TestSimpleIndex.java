@@ -99,23 +99,23 @@ public class TestSimpleIndex extends TestBase {
             switch (random.getInt(10)) {
             case 0:
                 buff.append("<");
-                buff.append((random.getInt(100) - 50));
+                buff.append(random.getInt(100) - 50);
                 break;
             case 1:
                 buff.append("<=");
-                buff.append((random.getInt(100) - 50));
+                buff.append(random.getInt(100) - 50);
                 break;
             case 2:
                 buff.append(">");
-                buff.append((random.getInt(100) - 50));
+                buff.append(random.getInt(100) - 50);
                 break;
             case 3:
                 buff.append(">=");
-                buff.append((random.getInt(100) - 50));
+                buff.append(random.getInt(100) - 50);
                 break;
             case 4:
                 buff.append("<>");
-                buff.append((random.getInt(100) - 50));
+                buff.append(random.getInt(100) - 50);
                 break;
             case 5:
                 buff.append(" IS NULL");
@@ -125,7 +125,7 @@ public class TestSimpleIndex extends TestBase {
                 break;
             default:
                 buff.append("=");
-                buff.append((random.getInt(100) - 50));
+                buff.append(random.getInt(100) - 50);
             }
         }
         String where = buff.toString();

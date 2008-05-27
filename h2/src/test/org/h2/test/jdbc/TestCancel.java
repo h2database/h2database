@@ -24,6 +24,9 @@ public class TestCancel extends TestBase {
     
     private static int lastVisited;
 
+    /**
+     * This thread cancels a statement after some time.
+     */
     class CancelThread extends Thread {
         private Statement cancel;
         private int wait;

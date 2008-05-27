@@ -17,11 +17,11 @@ import java.net.Socket;
  */
 public class Listener implements Runnable {
 
+    volatile int maxValue;
+
     public static void main(String[] args) throws Exception {
         new Listener().test(args);
     }
-
-    volatile int maxValue;
 
     void test(String[] args) throws Exception {
         int port = 9099;

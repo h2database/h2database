@@ -86,7 +86,7 @@ public class TestSQLInjection extends TestBase {
     boolean checkPasswordInsecure(String pwd) throws SQLException {
         String sql = "SELECT * FROM USERS WHERE PASSWORD='" + pwd + "'";
         ResultSet rs = conn.createStatement().executeQuery(sql);
-        return (rs.next());
+        return rs.next();
     }
 
     boolean checkPasswordSecure(String pwd) throws Exception {
@@ -94,7 +94,7 @@ public class TestSQLInjection extends TestBase {
         PreparedStatement prep = conn.prepareStatement(sql);
         prep.setString(1, pwd);
         ResultSet rs = prep.executeQuery();
-        return (rs.next());
+        return rs.next();
     }
 
     private void reconnect(String name) throws Exception {

@@ -36,6 +36,13 @@ import org.h2.util.StringUtils;
  * and can convert between Java objects and Values.
  */
 public class DataType {
+    
+    // JDK 1.3 compatibility: Types.BOOLEAN
+    public static final int TYPE_BOOLEAN = 16;
+
+    // JDK 1.3 compatibility: Types.DATALINK
+    public static final int TYPE_DATALINK = 70;
+
     private static ObjectArray types = new ObjectArray();
     private static HashMap typesByName = new HashMap();
     private static DataType[] typesByValueType = new DataType[Value.TYPE_COUNT];
@@ -61,12 +68,6 @@ public class DataType {
     public int defaultDisplaySize;
     public boolean hidden;
     public int memory;
-
-    // JDK 1.3 compatibility: Types.BOOLEAN
-    public static final int TYPE_BOOLEAN = 16;
-
-    // JDK 1.3 compatibility: Types.DATALINK
-    public static final int TYPE_DATALINK = 70;
 
     static {
         //## Java 1.4 begin ##
@@ -466,44 +467,61 @@ public class DataType {
     public static String getTypeClassName(int type) {
         switch(type) {
         case Value.BOOLEAN:
-            return Boolean.class.getName(); //  "java.lang.Boolean";
+            // "java.lang.Boolean";
+            return Boolean.class.getName(); 
         case Value.BYTE:
-            return Byte.class.getName(); // "java.lang.Byte";
+            // "java.lang.Byte";
+            return Byte.class.getName(); 
         case Value.SHORT:
-            return Short.class.getName(); // "java.lang.Short";
+            // "java.lang.Short";
+            return Short.class.getName(); 
         case Value.INT:
-            return Integer.class.getName(); // "java.lang.Integer";
+            // "java.lang.Integer";
+            return Integer.class.getName(); 
         case Value.LONG:
-            return Long.class.getName(); // "java.lang.Long";
+            // "java.lang.Long";
+            return Long.class.getName(); 
         case Value.DECIMAL:
-            return BigDecimal.class.getName(); // "java.math.BigDecimal";
+            // "java.math.BigDecimal";
+            return BigDecimal.class.getName(); 
         case Value.TIME:
-            return Time.class.getName(); // "java.sql.Time";
+            // "java.sql.Time";
+            return Time.class.getName(); 
         case Value.DATE:
-            return Date.class.getName(); // "java.sql.Date";
+            // "java.sql.Date";
+            return Date.class.getName(); 
         case Value.TIMESTAMP:
-            return Timestamp.class.getName(); // "java.sql.Timestamp";
+            // "java.sql.Timestamp";
+            return Timestamp.class.getName(); 
         case Value.BYTES:
         case Value.UUID:
-            return byte[].class.getName(); // "[B", not "byte[]";
+            // "[B", not "byte[]";
+            return byte[].class.getName(); 
         case Value.STRING:
         case Value.STRING_IGNORECASE:
         case Value.STRING_FIXED:
-            return String.class.getName(); // "java.lang.String";
+            // "java.lang.String";
+            return String.class.getName(); 
         case Value.BLOB:
-            return java.sql.Blob.class.getName(); // "java.sql.Blob";
+            // "java.sql.Blob";
+            return java.sql.Blob.class.getName(); 
         case Value.CLOB:
-            return java.sql.Clob.class.getName(); // "java.sql.Clob";
+            // "java.sql.Clob";
+            return java.sql.Clob.class.getName(); 
         case Value.DOUBLE:
-            return Double.class.getName(); // "java.lang.Double";
+            // "java.lang.Double";
+            return Double.class.getName(); 
         case Value.FLOAT:
-            return Float.class.getName(); // "java.lang.Float";
+            // "java.lang.Float";
+            return Float.class.getName(); 
         case Value.NULL:
             return null;
         case Value.JAVA_OBJECT:
-            return Object.class.getName(); // "java.lang.Object";
+            // "java.lang.Object";
+            return Object.class.getName(); 
         case Value.UNKNOWN:
-            return Object.class.getName(); // anything
+            // anything
+            return Object.class.getName(); 
         case Value.ARRAY:
             return Array.class.getName();
         case Value.RESULT_SET:

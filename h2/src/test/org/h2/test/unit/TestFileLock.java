@@ -18,16 +18,24 @@ import org.h2.test.TestBase;
  */
 public class TestFileLock extends TestBase implements Runnable {
 
-    int wait;
     static final int KILL = 5;
     static final String FILE = baseDir + "/test.lock";
-
-    private boolean allowSockets;
     private static volatile int locks;
     private static volatile boolean stop;
 
+    TestBase base;
+
+    int wait;
+
+    private boolean allowSockets;
+
     public TestFileLock() {
         // nothing to do
+    }
+
+    TestFileLock(TestBase base, boolean allowSockets) {
+        this.base = base;
+        this.allowSockets = allowSockets;
     }
 
     public void test() throws Exception {
@@ -53,13 +61,6 @@ public class TestFileLock extends TestBase implements Runnable {
             threads[i].join();
         }
         check(locks, 0);
-    }
-
-    TestBase base;
-
-    TestFileLock(TestBase base, boolean allowSockets) {
-        this.base = base;
-        this.allowSockets = allowSockets;
     }
 
     public void run() {

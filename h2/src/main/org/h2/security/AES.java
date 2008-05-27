@@ -42,7 +42,7 @@ public class AES implements BlockCipher {
     }
 
     private static int mul(int[] pow, int[] log, int x, int y) {
-        return ((x != 0 && y != 0) ? pow[(log[x] + log[y]) % 255] : 0);
+        return (x != 0 && y != 0) ? pow[(log[x] + log[y]) % 255] : 0;
     }
 
     static {

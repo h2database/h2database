@@ -26,6 +26,10 @@ import org.h2.value.ValueTimestamp;
 public class DateTimeUtils {
     
     private static final Calendar CALENDAR = Calendar.getInstance();
+    
+    private DateTimeUtils() {
+        // utility class
+    }
 
     public static Timestamp convertTimestampToCalendar(Timestamp x, Calendar calendar) throws SQLException {
         if (x != null) {
@@ -235,7 +239,8 @@ public class DateTimeUtils {
         } else {
             c.set(Calendar.YEAR, year);
         }
-        c.set(Calendar.MONTH, month - 1); // january is 0
+        // january is 0
+        c.set(Calendar.MONTH, month - 1); 
         c.set(Calendar.DAY_OF_MONTH, day);
         c.set(Calendar.HOUR_OF_DAY, hour);
         c.set(Calendar.MINUTE, minute);

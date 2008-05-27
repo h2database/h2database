@@ -18,13 +18,15 @@ import org.h2.util.ObjectUtils;
  */
 public class ValueDouble extends Value {
     public static final int PRECISION = 17;
-    public static final int DISPLAY_SIZE = 24; // -3.3333333333333334E-100
+    // "-3.3333333333333334E-100".length()
+    public static final int DISPLAY_SIZE = 24; 
 
-    private final double value;
     private static final double DOUBLE_ZERO = 0.0;
     private static final double DOUBLE_ONE = 1.0;
     private static final ValueDouble ZERO = new ValueDouble(DOUBLE_ZERO);
     private static final ValueDouble ONE = new ValueDouble(DOUBLE_ONE);
+    
+    private final double value;
 
     private ValueDouble(double value) {
         this.value = value;

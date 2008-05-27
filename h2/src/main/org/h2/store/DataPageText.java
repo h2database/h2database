@@ -95,7 +95,7 @@ public class DataPageText extends DataPage {
                 len++;
                 break;
             default:
-                int ch = (c & 0xffff);
+                int ch = c & 0xffff;
                 if ((ch >= ' ') && (ch <= 0xff)) {
                     // 0
                 } else {
@@ -195,7 +195,7 @@ public class DataPageText extends DataPage {
                 data[pos++] = '\\';
                 break;
             default:
-                int ch = (c & 0xffff);
+                int ch = c & 0xffff;
                 if ((ch >= ' ') && (ch <= 0xff)) {
                     data[pos++] = (byte) ch;
                 } else {

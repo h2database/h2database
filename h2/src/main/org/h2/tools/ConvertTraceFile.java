@@ -29,6 +29,9 @@ public class ConvertTraceFile extends Tool {
     private HashMap stats = new HashMap();
     private long timeTotal;
     
+    /**
+     * This class holds statistics about a SQL statement.
+     */
     static class Stat implements Comparable {
         String sql;
         int executeCount;

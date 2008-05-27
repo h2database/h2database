@@ -78,6 +78,7 @@ public class TestTimer extends TestBase {
                     start = time;
                 }
                 break;
+            default:
             }
         }
     }

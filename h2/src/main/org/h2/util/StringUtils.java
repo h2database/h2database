@@ -25,6 +25,10 @@ import org.h2.message.Message;
  * A few String utility functions.
  */
 public class StringUtils {
+    
+    private StringUtils() {
+        // utility class
+    }
 
     public static boolean equals(String a, String b) {
         if (a == null) {
@@ -101,7 +105,7 @@ public class StringUtils {
                 buff.append("\\\\");
                 break;
             default:
-                int ch = (c & 0xffff);
+                int ch = c & 0xffff;
                 if (ch >= ' ' && (ch < 0x80)) {
                     buff.append(c);
                 // not supported in properties files

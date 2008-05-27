@@ -47,10 +47,11 @@ public class Transfer {
     private static final int BUFFER_SIZE = 16 * 1024;
     private static final int LOB_MAGIC = 0x1234;
 
-    private SessionInterface session;
     protected Socket socket;
     protected DataInputStream in;
     protected DataOutputStream out;
+
+    private SessionInterface session;
     private boolean ssl;
 
     public Transfer(SessionInterface session) {

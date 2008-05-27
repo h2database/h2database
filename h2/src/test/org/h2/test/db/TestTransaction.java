@@ -128,6 +128,7 @@ public class TestTransaction extends TestBase {
                 count[0] = countCommitted[0];
                 count[1] = countCommitted[1];
                 break;
+            default:
             }
             checkTableCount(stat, "TEST0", count[0]);
             checkTableCount(stat, "TEST1", count[1]);

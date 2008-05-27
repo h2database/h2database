@@ -24,12 +24,16 @@ import org.h2.message.TraceSystem;
  * This class is used by the H2 Console.
  */
 public class WebSession {
+    
+    private static final int MAX_HISTORY = 1000;
+    
     long lastAccess;
     HashMap map = new HashMap();
     Locale locale;
     WebServer server;
+    Statement executingStatement;
+    ResultSet result;
 
-    private static final int MAX_HISTORY = 1000;
     private ArrayList commandHistory = new ArrayList();
 
     private Connection conn;
@@ -42,29 +46,27 @@ public class WebSession {
     private DbContextRule aliasRule;
     private DbContextRule columnAliasRule;
     private Bnf bnf;
-    Statement executingStatement;
-    ResultSet result;
 
     WebSession(WebServer server) {
         this.server = server;
     }
 
-    public void put(String key, Object value) {
+    void put(String key, Object value) {
         map.put(key, value);
     }
 
-    public Object get(String key) {
+    Object get(String key) {
         if ("sessions".equals(key)) {
             return server.getSessions();
         }
         return map.get(key);
     }
 
-    public void remove(String key) {
+    void remove(String key) {
         map.remove(key);
     }
 
-    public Bnf getBnf() {
+    Bnf getBnf() {
         return bnf;
     }
 
@@ -129,7 +131,7 @@ public class WebSession {
         return commandHistory;
     }
 
-    public HashMap getInfo() {
+    HashMap getInfo() {
         HashMap m = new HashMap();
         m.putAll(map);
         m.put("lastAccess", new Timestamp(lastAccess).toString());
@@ -162,7 +164,7 @@ public class WebSession {
         return conn;
     }
 
-    public DbContents getContents() {
+    DbContents getContents() {
         return contents;
     }
 

@@ -21,12 +21,7 @@ public class PageParser {
     private Map settings;
     private int len;
     private StringBuffer result;
-
-    public static String parse(WebServer server, String page, Map settings) {
-        PageParser block = new PageParser(server, page, settings, 0);
-        return block.parse();
-    }
-
+    
     private PageParser(WebServer server, String page, Map settings, int pos) {
         this.server = server;
         this.page = page;
@@ -34,6 +29,11 @@ public class PageParser {
         this.len = page.length();
         this.settings = settings;
         result = new StringBuffer(len);
+    }
+
+    public static String parse(WebServer server, String page, Map settings) {
+        PageParser block = new PageParser(server, page, settings, 0);
+        return block.parse();
     }
 
     private void setError(int i) {
@@ -52,7 +52,7 @@ public class PageParser {
         return block.result.toString();
     }
 
-    public String parse() {
+    private String parse() {
         try {
             parseAll();
             if (pos != len) {
@@ -225,7 +225,7 @@ public class PageParser {
      * @param s the data
      * @return the escaped html text
      */
-    public static String escapeHtmlData(String s) {
+    static String escapeHtmlData(String s) {
         return escapeHtml(s, false);
     }
 
@@ -303,7 +303,7 @@ public class PageParser {
         return buff.toString();
     }
 
-    public static String escapeJavaScript(String s) {
+    static String escapeJavaScript(String s) {
         if (s == null) {
             return null;
         }

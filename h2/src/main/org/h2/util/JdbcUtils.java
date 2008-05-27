@@ -24,6 +24,10 @@ import org.h2.message.Message;
  * This is a utility class with JDBC helper functions.
  */
 public class JdbcUtils {
+    
+    private JdbcUtils() {
+        // utility class
+    }
 
     public static void closeSilently(Statement stat) {
         if (stat != null) {

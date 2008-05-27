@@ -32,14 +32,14 @@ public class FileSystemDisk extends FileSystem {
     private static final FileSystemDisk INSTANCE = new FileSystemDisk();
     // TODO detection of 'case in sensitive filesystem' 
     // could maybe implemented using some other means
-    private static final boolean IS_FILE_SYSTEM_CASE_INSENSITIVE = (File.separatorChar == '\\');
-
-    public static FileSystemDisk getInstance() {
-        return INSTANCE;
-    }
+    private static final boolean IS_FILE_SYSTEM_CASE_INSENSITIVE = File.separatorChar == '\\';
 
     protected FileSystemDisk() {
         // nothing to do
+    }
+
+    public static FileSystemDisk getInstance() {
+        return INSTANCE;
     }
 
     public long length(String fileName) {

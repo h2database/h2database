@@ -17,17 +17,17 @@ import java.sql.SQLException;
  */
 public class TestMultiNewsSimple extends TestMultiThread {
 
-    Connection conn;
-
     static int newsCount = 10000;
 
-    static int getNewsCount() {
-        return newsCount;
-    }
+    Connection conn;
 
     TestMultiNewsSimple(TestMulti base) throws SQLException {
         super(base);
         conn = base.getConnection();
+    }
+
+    static int getNewsCount() {
+        return newsCount;
     }
 
     void first() throws SQLException {

@@ -29,13 +29,13 @@ public class FtpData extends Thread {
     private boolean active;
     private int port;
 
-    public FtpData(FtpServer server, InetAddress address, ServerSocket serverSocket) {
+    FtpData(FtpServer server, InetAddress address, ServerSocket serverSocket) {
         this.server = server;
         this.address = address;
         this.serverSocket = serverSocket;
     }
 
-    public FtpData(FtpServer server, InetAddress address, int port) {
+    FtpData(FtpServer server, InetAddress address, int port) {
         this.server = server;
         this.address = address;
         this.port = port;
@@ -79,12 +79,12 @@ public class FtpData extends Thread {
         server.trace("connected");
     }
 
-    public void close() {
+    void close() {
         serverSocket = null;
         socket = null;
     }
 
-    public synchronized void receive(FileSystem fs, String fileName) throws IOException, SQLException {
+    synchronized void receive(FileSystem fs, String fileName) throws IOException, SQLException {
         connect();
         try {
             InputStream in = socket.getInputStream();
@@ -97,7 +97,7 @@ public class FtpData extends Thread {
         server.trace("closed");
     }
 
-    public synchronized void send(FileSystem fs, String fileName, long skip) throws IOException {
+    synchronized void send(FileSystem fs, String fileName, long skip) throws IOException {
         connect();
         try {
             OutputStream out = socket.getOutputStream();
@@ -111,7 +111,7 @@ public class FtpData extends Thread {
         server.trace("closed");
     }
 
-    public synchronized void send(byte[] data) throws IOException {
+    synchronized void send(byte[] data) throws IOException {
         connect();
         try {
             OutputStream out = socket.getOutputStream();

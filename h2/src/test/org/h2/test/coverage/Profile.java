@@ -24,14 +24,37 @@ public class Profile extends Thread {
     public static final boolean TRACE = false;
     public static final Profile MAIN = new Profile();
     public static int current;
-    private BufferedWriter trace;
+    static int top = 15;
+    
     public int[] count;
     public int[] time;
     boolean stop;
     int maxIndex;
     int lastIndex;
     long lastTime;
-    static int top = 15;
+    
+    private BufferedWriter trace;
+    
+    Profile() {
+        FileReader reader = null;
+        try {
+            reader = new FileReader("profile.txt");
+            LineNumberReader r = new LineNumberReader(reader);
+            while (r.readLine() != null) {
+                // nothing - just count lines
+            }
+            maxIndex = r.getLineNumber();
+            count = new int[maxIndex];
+            time = new int[maxIndex];
+            lastTime = System.currentTimeMillis();
+            Runtime.getRuntime().addShutdownHook(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        } finally {
+            closeSilently(reader);
+        }
+    }
 
     static {
         try {
@@ -76,27 +99,6 @@ public class Profile extends Thread {
             MAIN.listTop("MOST TIME USED", MAIN.time, top);
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    Profile() {
-        FileReader reader = null;
-        try {
-            reader = new FileReader("profile.txt");
-            LineNumberReader r = new LineNumberReader(reader);
-            while (r.readLine() != null) {
-                // nothing - just count lines
-            }
-            maxIndex = r.getLineNumber();
-            count = new int[maxIndex];
-            time = new int[maxIndex];
-            lastTime = System.currentTimeMillis();
-            Runtime.getRuntime().addShutdownHook(this);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        } finally {
-            closeSilently(reader);
         }
     }
 
@@ -177,7 +179,7 @@ public class Profile extends Thread {
                     }
                 }
             }
-            int percent = (100 * unvisited / maxIndex);
+            int percent = 100 * unvisited / maxIndex;
             print("Not covered: " + percent + " % " + " (" + unvisited + " of " + maxIndex + "; throw="
                     + unvisitedThrow + ")");
         } finally {
@@ -230,7 +232,7 @@ public class Profile extends Thread {
                     list[i] = k;
                     for (int j = 0; j < max; j++) {
                         if (index[j] == i) {
-                            int percent = (100 * k / total);
+                            int percent = 100 * k / total;
                             text[j] = k + " " + percent + "%: " + line;
                         }
                     }

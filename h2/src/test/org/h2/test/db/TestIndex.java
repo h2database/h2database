@@ -24,17 +24,9 @@ public class TestIndex extends TestBase {
     Statement stat;
     Random random = new Random();
 
-    private void reconnect() throws Exception {
-        if (conn != null) {
-            conn.close();
-            conn = null;
-        }
-        conn = getConnection("index");
-        stat = conn.createStatement();
-    }
-
     public void test() throws Exception {
         testDescIndex();
+        testHashIndex();
 
         if (config.networked && config.big) {
             return;
@@ -76,6 +68,55 @@ public class TestIndex extends TestBase {
         testMultiColumnHashIndex();
 
         conn.close();
+    }
+    
+    private void testHashIndex() throws Exception {
+        reconnect();
+        stat.execute("create table testA(id int primary key, name varchar)");
+        stat.execute("create table testB(id int primary key hash, name varchar)");
+        int len = getSize(1000, 10000);
+        stat.execute("insert into testA select x, 'Hello' from system_range(1, " + len + ")");
+        stat.execute("insert into testB select x, 'Hello' from system_range(1, " + len + ")");
+        Random random = new Random(1);
+        for (int i = 0; i < len; i++) {
+            int x = random.nextInt(len);
+            String sql = "";
+            switch(random.nextInt(3)) {
+            case 0:
+                sql = "delete from testA where id = " + x;
+                break;
+            case 1:
+                sql = "update testA set name = " + random.nextInt(100) + " where id = " + x;
+                break;
+            case 2:
+                sql = "select name from testA where id = " + x;
+                break;
+            default:
+            }
+            boolean result = stat.execute(sql);
+            if (result) {
+                ResultSet rs = stat.getResultSet();
+                String s1 = rs.next() ? rs.getString(1) : null;
+                rs = stat.executeQuery(sql.replace('A', 'B'));
+                String s2 = rs.next() ? rs.getString(1) : null;
+                check(s1, s2);
+            } else {
+                int count1 = stat.getUpdateCount();
+                int count2 = stat.executeUpdate(sql.replace('A', 'B'));
+                check(count1, count2);
+            }
+        }
+        stat.execute("drop table testA, testB");
+        conn.close();
+    }
+
+    private void reconnect() throws Exception {
+        if (conn != null) {
+            conn.close();
+            conn = null;
+        }
+        conn = getConnection("index");
+        stat = conn.createStatement();
     }
 
     void testDescIndex() throws Exception {
@@ -241,7 +282,7 @@ public class TestIndex extends TestBase {
             log(stat, "SELECT * FROM TEST");
             check(2, getValue(stat, "SELECT COUNT(*) FROM TEST WHERE A=" + (len - a - 1)));
             check((len - a) * 2, getValue(stat, "SELECT COUNT(*) FROM TEST"));
-            prep.setInt(1, (len - a - 1));
+            prep.setInt(1, len - a - 1);
             prep.execute();
         }
         check(0, getValue(stat, "SELECT COUNT(*) FROM TEST"));

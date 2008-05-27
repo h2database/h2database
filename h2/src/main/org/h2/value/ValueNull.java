@@ -26,7 +26,8 @@ public class ValueNull extends Value {
     public static final ValueNull DELETED = new ValueNull();
 
     public static final int PRECISION = 1;
-    public static final int DISPLAY_SIZE = 4; // null
+    // "null".length()
+    public static final int DISPLAY_SIZE = 4;
 
     private ValueNull() {
         // don't allow construction

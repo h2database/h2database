@@ -20,6 +20,11 @@ import java.sql.Statement;
  * It also tests databases.
  */
 public class TestWrite {
+    
+    private TestWrite() {
+        // utility class
+    }
+    
     public static void main(String[] args) throws Exception {
         testFile("rw", false);
         testFile("rwd", false);

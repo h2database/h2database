@@ -41,7 +41,11 @@ public class TableFilter implements ColumnResolver {
     private IndexColumn[] indexColumns;
     private Cursor cursor;
     private int scanCount;
-    private boolean used; // used in the plan
+    
+    /**
+     * Indicates that this filter is used in the plan.
+     */
+    private boolean used; 
 
     // conditions that can be used for direct index lookup (start or end)
     private final ObjectArray indexConditions = new ObjectArray();
@@ -428,7 +432,7 @@ public class TableFilter implements ColumnResolver {
         return buff.toString();
     }
 
-    public void removeUnusableIndexConditions() {
+    void removeUnusableIndexConditions() {
         for (int i = 0; i < indexConditions.size(); i++) {
             IndexCondition cond = (IndexCondition) indexConditions.get(i);
             if (!cond.isEvaluatable()) {
@@ -464,7 +468,7 @@ public class TableFilter implements ColumnResolver {
         return used;
     }
 
-    public void setSession(Session session) {
+    void setSession(Session session) {
         this.session = session;
     }
 
@@ -495,7 +499,7 @@ public class TableFilter implements ColumnResolver {
         }
     }
 
-    public void optimizeFullCondition(boolean fromOuterJoin) {
+    void optimizeFullCondition(boolean fromOuterJoin) {
         if (fullCondition != null) {
             fullCondition.addFilterConditions(this, fromOuterJoin || outerJoin);
             if (join != null) {

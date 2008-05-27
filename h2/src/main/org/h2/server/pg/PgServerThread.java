@@ -535,12 +535,18 @@ public class PgServerThread implements Runnable {
                 writeShort(columns);
                 for (int i = 0; i < columns; i++) {
                     writeString(names[i].toLowerCase());
-                    writeInt(0); // object ID
-                    writeShort(0); // attribute number of the column
-                    writeInt(types[i]); // data type
-                    writeShort(getTypeSize(types[i], precision[i])); // pg_type.typlen
-                    writeInt(-1); // pg_attribute.atttypmod
-                    writeShort(0); // text
+                    // object ID
+                    writeInt(0); 
+                    // attribute number of the column
+                    writeShort(0); 
+                    // data type
+                    writeInt(types[i]); 
+                    // pg_type.typlen
+                    writeShort(getTypeSize(types[i], precision[i])); 
+                    // pg_attribute.atttypmod
+                    writeInt(-1); 
+                    // text
+                    writeShort(0); 
                 }
                 sendMessage();
             }
@@ -564,7 +570,8 @@ public class PgServerThread implements Runnable {
         write('S');
         writeString("ERROR");
         write('C');
-        writeString("08P01"); // PROTOCOL VIOLATION
+        // PROTOCOL VIOLATION
+        writeString("08P01"); 
         write('M');
         writeString(message);
         sendMessage();
@@ -624,7 +631,7 @@ public class PgServerThread implements Runnable {
         }
     }
 
-    public void close() {
+    void close() {
         try {
             stop = true;
             JdbcUtils.closeSilently(conn);
@@ -658,7 +665,8 @@ public class PgServerThread implements Runnable {
         sendParameterStatus("server_version", "8.1.4");
         sendParameterStatus("session_authorization", userName);
         sendParameterStatus("standard_conforming_strings", "off");
-        sendParameterStatus("TimeZone", "CET"); // TODO
+        // TODO PostgreSQL TimeZone
+        sendParameterStatus("TimeZone", "CET"); 
         sendBackendKeyData();
         sendReadyForQuery();
     }
@@ -668,12 +676,15 @@ public class PgServerThread implements Runnable {
         char c;
         try {
             if (conn.getAutoCommit()) {
-                c = 'I'; // idle
+                // idle                
+                c = 'I';
             } else {
-                c = 'T'; // in a transaction block
+                // in a transaction block
+                c = 'T'; 
             }
         } catch (SQLException e) {
-            c = 'E'; // failed transaction block
+            // failed transaction block
+            c = 'E'; 
         }
         write((byte) c);
         sendMessage();
@@ -731,18 +742,21 @@ public class PgServerThread implements Runnable {
         sendMessage();
     }
 
-    public void setThread(Thread thread) {
+    void setThread(Thread thread) {
         this.thread = thread;
     }
 
-    public Thread getThread() {
+    Thread getThread() {
         return thread;
     }
 
-    public void setProcessId(int id) {
+    void setProcessId(int id) {
         this.processId = id;
     }
 
+    /**
+     * Represents a PostgreSQL Prepared object.
+     */
     static class Prepared {
         String name;
         String sql;
@@ -750,6 +764,9 @@ public class PgServerThread implements Runnable {
         int[] paramType;
     }
 
+    /**
+     * Represents a PostgreSQL Portal object.
+     */
     static class Portal {
         String name;
         String sql;

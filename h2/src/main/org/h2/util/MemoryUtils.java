@@ -14,6 +14,10 @@ public class MemoryUtils {
     private static long lastGC;
     private static final int GC_DELAY = 50;
     private static final int MAX_GC = 8;
+    
+    private MemoryUtils() {
+        // utility class
+    }
 
     /**
      * Get the used memory in KB.

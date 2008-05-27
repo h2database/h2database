@@ -20,14 +20,15 @@ import org.h2.util.ObjectUtils;
  */
 public class ValueLong extends Value {
 
-    private final long value;
-
     public static final int PRECISION = 19;
-    public static final int DISPLAY_SIZE = 20; // -9223372036854775808
+    // "-9223372036854775808".length()
+    public static final int DISPLAY_SIZE = 20; 
     private static final int STATIC_SIZE = 10;
     private static ValueLong[] cache;
     private static final BigInteger MIN = new BigInteger("" + Long.MIN_VALUE);
     private static final BigInteger MAX = new BigInteger("" + Long.MAX_VALUE);
+    
+    private final long value;
 
     static {
         cache = new ValueLong[STATIC_SIZE];

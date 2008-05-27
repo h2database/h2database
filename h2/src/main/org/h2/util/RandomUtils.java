@@ -25,6 +25,10 @@ public class RandomUtils {
     static SecureRandom secureRandom;
     static volatile boolean seeded;
     private static Random random  = new Random();
+    
+    private RandomUtils() {
+        // utility class
+    }
 
     private static synchronized SecureRandom getSecureRandom() {
         if (secureRandom != null) {

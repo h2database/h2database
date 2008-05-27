@@ -30,17 +30,19 @@ import org.h2.util.IOUtils;
  */
 public abstract class TestHalt extends TestBase {
 
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
     protected static final int OP_INSERT = 1, OP_DELETE = 2, OP_UPDATE = 4, OP_SELECT = 8;
     protected static final int FLAG_NO_DELAY = 1, FLAG_LOBS = 2;
+    static final String DIR = TestBase.getTestDir("halt");
+    private static final String DATABASE_NAME = "halt";
+    private static final String TRACE_FILE_NAME = "haltTrace.trace.db";
+
     protected int operations, flags, value;
     protected Connection conn;
     protected Random random = new Random();
+
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
     private int errorId;
     private int sequenceId;
-    private static final String DATABASE_NAME = "halt";
-    static final String DIR = TestBase.getTestDir("halt");
-    private static final String TRACE_FILE_NAME = "haltTrace.trace.db";
 
     abstract void testInit() throws Exception;
 

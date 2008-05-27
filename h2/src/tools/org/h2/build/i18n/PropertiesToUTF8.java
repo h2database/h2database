@@ -34,6 +34,10 @@ import org.h2.util.StringUtils;
  * a properties file and vice versa.
  */
 public class PropertiesToUTF8 {
+    
+    private PropertiesToUTF8() {
+        // utility class
+    }
 
     public static void main(String[] args) throws Exception {
         convert("bin/org/h2/res");

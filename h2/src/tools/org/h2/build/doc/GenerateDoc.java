@@ -30,15 +30,15 @@ import org.h2.util.StringUtils;
  */
 public class GenerateDoc {
 
-    public static void main(String[] args) throws Exception {
-        new GenerateDoc().run(args);
-    }
-
     String inDir = "src/docsrc/html";
     String outDir = "docs/html";
     Connection conn;
     HashMap session = new HashMap();
     Bnf bnf;
+
+    public static void main(String[] args) throws Exception {
+        new GenerateDoc().run(args);
+    }
 
     void run(String[] args) throws Exception {
         for (int i = 0; i < args.length; i++) {

@@ -24,19 +24,21 @@ import org.h2.build.BuildBase;
  */
 public class SpellChecker {
 
-    private HashSet dictionary = new HashSet();
-    private HashSet used = new HashSet();
-    private HashMap unknown = new HashMap();
-    private boolean debug;
-    private boolean printDictionary = false;
-    private boolean addToDictionary;
     private static final String[] SUFFIX = new String[] { "html", "java", "sql", "txt", "xml", "jsp", "css", "bat",
             "csv", "xml", "js", "Driver", "properties", "task", "MF", "sh", "" };
     private static final String[] IGNORE = new String[] { "dev", "nsi", "gif", "png", "odg", "ico", "sxd", "zip",
             "bz2", "rc", "layout", "res", "dll", "jar", "svg" };
     private static final String PREFIX_IGNORE = "abc";
     private static final String IGNORE_FILE = "mainWeb.html";
+    
+    private HashSet dictionary = new HashSet();
+    private HashSet used = new HashSet();
+    private HashMap unknown = new HashMap();
+    private boolean debug;
+    private boolean printDictionary;
+    private boolean addToDictionary;
     private int errorCount;
+    private int contextCount;
 
     public static void main(String[] args) throws IOException {
         String dir = "src";
@@ -220,6 +222,10 @@ public class SpellChecker {
         if (token.length() < 3) {
             return;
         }
+        if (contextCount > 0) {
+            // System.out.println(token);
+            contextCount--;
+        }
         while (true) {
             char last = token.charAt(token.length() - 1);
             if (!Character.isDigit(last)) {
@@ -258,6 +264,7 @@ public class SpellChecker {
         Integer value = (Integer) map.get(key);
         value = new Integer(value == null ? 0 : value.intValue() + 1);
         map.put(key, value);
+        contextCount = 10;
     }
 
 }

@@ -29,6 +29,10 @@ import org.h2.util.ByteUtils;
  * in the function SecureSocketFactory.getKeyStore as specified
  */
 public class SecureKeyStoreBuilder {
+    
+    private SecureKeyStoreBuilder() {
+        // utility class
+    }
 
     public static void main(String[] a) throws Exception {
         String password = SecureSocketFactory.KEYSTORE_PASSWORD;

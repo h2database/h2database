@@ -33,8 +33,10 @@ public class PgTcpRedirect {
         // http://developer.postgresql.org/pgdocs/postgres/protocol.html
         // int portServer = 9083, portClient = 9084;
         // int portServer = 3306, portClient = 3307;
-        // int portServer = 5435, portClient = 5433; // H2 PgServer
-        int portServer = 5432, portClient = 5433; // PostgreSQL
+        // H2 PgServer
+        // int portServer = 5435, portClient = 5433; 
+        // PostgreSQL
+        int portServer = 5432, portClient = 5433; 
 
         for (int i = 0; i < args.length; i++) {
             if ("-client".equals(args[i])) {
@@ -54,13 +56,15 @@ public class PgTcpRedirect {
         }
     }
 
+    /**
+     * This is the working thread of the TCP redirector.
+     */
     private class TcpRedirectThread implements Runnable {
 
+        private static final int STATE_INIT_CLIENT = 0, STATE_REGULAR = 1;
         private Socket read, write;
         private int state;
         private boolean client;
-
-        private static final int STATE_INIT_CLIENT = 0, STATE_REGULAR = 1;
 
         TcpRedirectThread(Socket read, Socket write, boolean client) {
             this.read = read;

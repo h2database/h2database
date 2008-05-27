@@ -27,13 +27,13 @@ public class LinkChecker {
     private static final String[] IGNORE_MISSING_LINKS_TO = new String[]{
         "SysProperties", "ErrorCode"
     };
+    
+    private HashMap targets = new HashMap();
+    private HashMap links = new HashMap();
 
     public static void main(String[] args) throws Exception {
         new LinkChecker().run(args);
     }
-
-    private HashMap targets = new HashMap();
-    private HashMap links = new HashMap();
 
     private void run(String[] args) throws Exception {
         String dir = "docs";

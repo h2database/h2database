@@ -19,8 +19,6 @@ import org.h2.value.ValueNull;
  * An expression representing a constant value.
  */
 public class ValueExpression extends Expression {
-    private Value value;
-
     /**
      * The expression represents ValueNull.INSTANCE.
      */
@@ -33,6 +31,12 @@ public class ValueExpression extends Expression {
      */
     public static final ValueExpression DEFAULT = new ValueExpression(ValueNull.INSTANCE);
 
+    private Value value;
+
+    private ValueExpression(Value value) {
+        this.value = value;
+    }
+
     /**
      * Create a new expression with the given value.
      * 
@@ -44,10 +48,6 @@ public class ValueExpression extends Expression {
             return ValueExpression.NULL;
         }
         return new ValueExpression(value);
-    }
-
-    private ValueExpression(Value value) {
-        this.value = value;
     }
 
     public Value getValue(Session session) {

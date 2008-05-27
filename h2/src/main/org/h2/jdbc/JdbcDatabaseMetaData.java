@@ -29,6 +29,11 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     private JdbcConnection conn;
 
+    JdbcDatabaseMetaData(JdbcConnection conn, Trace trace, int id) {
+        setTrace(trace, TraceObject.DATABASE_META_DATA, id);
+        this.conn = conn;
+    }
+
     /**
      * Returns the major version of this driver.
      *
@@ -299,7 +304,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "ORDINAL_POSITION, "
                     + "COLUMN_NAME, "
                     + "ASC_OR_DESC, "
-                    + "CARDINALITY, " // TODO meta data for number of unique values in an index
+                    // TODO meta data for number of unique values in an index
+                    + "CARDINALITY, " 
                     + "PAGES, "
                     + "FILTER_CONDITION, "
                     + "SORT_TYPE "
@@ -848,8 +854,10 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "AND C.TABLE_NAME = ? "
                     + "AND I.PRIMARY_KEY = TRUE "
                     + "ORDER BY SCOPE");
-            prep.setInt(1, DatabaseMetaData.bestRowSession); // SCOPE
-            prep.setInt(2, DatabaseMetaData.bestRowNotPseudo); // PSEUDO_COLUMN
+            // SCOPE
+            prep.setInt(1, DatabaseMetaData.bestRowSession); 
+            // PSEUDO_COLUMN
+            prep.setInt(2, DatabaseMetaData.bestRowNotPseudo); 
             prep.setString(3, getCatalogPattern(catalog));
             prep.setString(4, getSchemaPattern(schema));
             prep.setString(5, tableName);
@@ -2608,11 +2616,6 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     // =============================================================
 
-    JdbcDatabaseMetaData(JdbcConnection conn, Trace trace, int id) {
-        setTrace(trace, TraceObject.DATABASE_META_DATA, id);
-        this.conn = conn;
-    }
-
     private void checkClosed() throws SQLException {
         conn.checkClosed();
     }
@@ -2645,7 +2648,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * [Not supported] Gets the list of schemas.
      */
 /*## Java 1.6 begin ##
-    public ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException {
+    public ResultSet getSchemas(String catalog, String schemaPattern)
+            throws SQLException {
         debugCodeCall("getSchemas");
         throw Message.getUnsupportedException();
     }
@@ -2701,7 +2705,9 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * [Not supported] Gets the list of function columns.
      */
 /*## Java 1.6 begin ##
-    public ResultSet getFunctionColumns(String catalog, String schemaPattern, String functionNamePattern, String columnNamePattern) throws SQLException {
+    public ResultSet getFunctionColumns(String catalog, String schemaPattern, 
+            String functionNamePattern, String columnNamePattern) 
+            throws SQLException {
         debugCodeCall("getFunctionColumns");
         throw Message.getUnsupportedException();
     }
@@ -2711,7 +2717,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * [Not supported] Gets the list of functions.
      */
 /*## Java 1.6 begin ##
-    public ResultSet getFunctions(String catalog, String schemaPattern, String functionNamePattern) throws SQLException {
+    public ResultSet getFunctions(String catalog, String schemaPattern, 
+            String functionNamePattern) throws SQLException {
         debugCodeCall("getFunctions");
         throw Message.getUnsupportedException();
     }

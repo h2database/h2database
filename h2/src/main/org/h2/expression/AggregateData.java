@@ -146,7 +146,7 @@ public class AggregateData {
                 s = 0;
             } else {
                 sum += distinctValues.size();
-                sum = (100 * sum / count);
+                sum = 100 * sum / count;
                 s = (int) sum;
                 s = s <= 0 ? 1 : s > 100 ? 100 : s;
             }

@@ -37,6 +37,11 @@ import org.h2.message.TraceObject;
  */
 public class JdbcCallableStatement extends JdbcPreparedStatement implements CallableStatement {
 
+    JdbcCallableStatement(SessionInterface session, JdbcConnection conn, String sql, int resultSetType, int id) throws SQLException {
+        super(session, conn, sql, resultSetType, id, false);
+        setTrace(session.getTrace(), TraceObject.CALLABLE_STATEMENT, id);
+    }
+
     /**
      * [Not supported]
      */
@@ -459,7 +464,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public void setAsciiStream(String parameterName, InputStream x, long length) throws SQLException {
+    public void setAsciiStream(String parameterName, InputStream x, long length)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -601,11 +607,6 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
 
 // =============================================================
 
-    JdbcCallableStatement(SessionInterface session, JdbcConnection conn, String sql, int resultSetType, int id) throws SQLException {
-        super(session, conn, sql, resultSetType, id, false);
-        setTrace(session.getTrace(), TraceObject.CALLABLE_STATEMENT, id);
-    }
-
     /**
      * [Not supported]
      */
@@ -646,7 +647,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public void setNCharacterStream(String parameterName, Reader value, long length) throws SQLException {
+    public void setNCharacterStream(String parameterName, Reader value, long length)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -655,7 +657,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public void setNClob(String parameterName, NClob value) throws SQLException {
+    public void setNClob(String parameterName, NClob value)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -664,7 +667,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public void setClob(String parameterName, Reader reader, long length) throws SQLException {
+    public void setClob(String parameterName, Reader reader, long length)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -673,7 +677,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public void setBlob(String parameterName, InputStream inputStream, long length) throws SQLException {
+    public void setBlob(String parameterName, InputStream inputStream, long length)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -682,7 +687,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public void setNClob(String parameterName, Reader reader, long length) throws SQLException {
+    public void setNClob(String parameterName, Reader reader, long length)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -755,7 +761,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public Reader getNCharacterStream(int parameterIndex) throws SQLException {
+    public Reader getNCharacterStream(int parameterIndex)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -764,7 +771,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public Reader getNCharacterStream(String parameterName) throws SQLException {
+    public Reader getNCharacterStream(String parameterName)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -782,7 +790,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public Reader getCharacterStream(String parameterName) throws SQLException {
+    public Reader getCharacterStream(String parameterName)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -809,7 +818,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public void setAsciiStream(String parameterName, InputStream x) throws SQLException {
+    public void setAsciiStream(String parameterName, InputStream x)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -825,7 +835,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public void setBinaryStream(String parameterName, InputStream x) throws SQLException {
+    public void setBinaryStream(String parameterName, InputStream x)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -834,7 +845,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public void setBinaryStream(String parameterName, InputStream x, long length) throws SQLException {
+    public void setBinaryStream(String parameterName, InputStream x, long length)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -843,7 +855,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public void setBlob(String parameterName, InputStream x) throws SQLException {
+    public void setBlob(String parameterName, InputStream x)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -852,7 +865,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public void setCharacterStream(String parameterName, Reader x) throws SQLException {
+    public void setCharacterStream(String parameterName, Reader x)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -861,7 +875,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public void setCharacterStream(String parameterName, Reader x, long length) throws SQLException {
+    public void setCharacterStream(String parameterName, Reader x, long length)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
@@ -879,7 +894,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported]
      */
 /*## Java 1.6 begin ##
-    public void setNCharacterStream(String parameterName, Reader x) throws SQLException {
+    public void setNCharacterStream(String parameterName, Reader x)
+            throws SQLException {
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/

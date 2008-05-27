@@ -58,7 +58,7 @@ public class User extends RightOwner {
 
     /**
      * Set the user name password hash. A random salt is generated as well.
-     * The parameter is nulled out after use.
+     * The parameter is filled with zeros after use.
      * 
      * @param userPasswordHash the user name password hash
      */

@@ -432,9 +432,12 @@ public class LogFile {
         buff.writeInt(0);
         buff.writeByte((byte) 'S');
         buff.writeInt(0);
-        buff.writeInt(0); // storageId
-        buff.writeInt(0); // recordId
-        buff.writeInt(0); // blockCount
+        // storageId
+        buff.writeInt(0); 
+        // recordId
+        buff.writeInt(0); 
+        // blockCount
+        buff.writeInt(0); 
         buff.writeByte((byte) (dataFile ? 'D' : 'I'));
         if (summary == null) {
             buff.writeInt(0);

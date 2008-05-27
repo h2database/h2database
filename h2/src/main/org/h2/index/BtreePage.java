@@ -34,6 +34,10 @@ public abstract class BtreePage extends Record {
     protected BtreeIndex index;
     protected ObjectArray pageData;
     protected boolean root;
+    
+    BtreePage(BtreeIndex index) {
+        this.index = index;
+    }
 
     /**
      * Add a row to the index.
@@ -62,10 +66,6 @@ public abstract class BtreePage extends Record {
     abstract void first(BtreeCursor cursor) throws SQLException;
     abstract void last(BtreeCursor cursor) throws SQLException;
     abstract int getRealByteCount() throws SQLException;
-
-    BtreePage(BtreeIndex index) {
-        this.index = index;
-    }
 
     SearchRow getData(int i) throws SQLException {
         return (SearchRow) pageData.get(i);

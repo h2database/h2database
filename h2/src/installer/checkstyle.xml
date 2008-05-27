@@ -69,7 +69,19 @@
             <property name="severity" value="ignore"/>
         </module>
         <module name="UpperEll"/>
+        <module name="JavadocType"/>
+        <module name="EmptyForInitializerPad"/>
+        <module name="CovariantEquals"/>
+        <module name="DefaultComesLast"/>
+        <module name="DeclarationOrder"/>
+        <module name="ExplicitInitialization"/>
+        <module name="FallThrough"/>
+        <module name="IllegalThrows"/>
+        <module name="SuperClone"/>
+        <module name="UnnecessaryParentheses"/>
+        <module name="TrailingComment"/>
     </module>
     <module name="NewlineAtEndOfFile"/>
     <module name="Translation"/>
+    <module name="PackageHtml"/>
 </module>

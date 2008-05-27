@@ -74,7 +74,9 @@ import org.h2.value.ValueLob;
  * @since 2004-04-15 22:49
  */
 public class Database implements DataHandler {
-
+    
+    private static int initialPowerOffCount;
+    
     private final boolean persistent;
     private final String databaseName;
     private final String databaseShortName;
@@ -95,7 +97,7 @@ public class Database implements DataHandler {
     private Session exclusiveSession;
     private final BitField objectIds = new BitField();
     private final Object lobSyncObject = new Object();
-
+    
     private boolean textStorage;
     private Schema mainSchema;
     private Schema infoSchema;
@@ -132,7 +134,6 @@ public class Database implements DataHandler {
     private long biggestFileSize;
     private int allowLiterals = Constants.DEFAULT_ALLOW_LITERALS;
 
-    private static int initialPowerOffCount;
     private int powerOffCount = initialPowerOffCount;
     private int closeDelay;
     private DatabaseCloser delayedCloser;
@@ -1481,6 +1482,7 @@ public class Database implements DataHandler {
         case DbObject.TRIGGER:
         case DbObject.USER:
             return null;
+        default:
         }
         ObjectArray list = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
         HashSet set = new HashSet();

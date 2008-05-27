@@ -1022,6 +1022,7 @@ public class Select extends Query {
             }
             break;
         }
+        default:
         }
         visitor.incrementQueryLevel(1);
         boolean result = true;

@@ -112,6 +112,8 @@ public class Aggregate extends Expression {
      * The aggregate type for SELECTIVITY(expression).
      */
     public static final int SELECTIVITY = 13;
+    
+    private static final HashMap AGGREGATES = new HashMap();
 
     private final Database database;
     private final int type;
@@ -125,8 +127,6 @@ public class Aggregate extends Expression {
     private int dataType, scale;
     private long precision;
     private int displaySize;
-
-    private static final HashMap AGGREGATES = new HashMap();
 
     /**
      * Create a new aggregate object.

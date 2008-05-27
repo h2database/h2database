@@ -38,6 +38,14 @@ package org.h2.compress;
  * LZF is optimized for speed.
  */
 public class CompressLZF implements Compressor {
+    
+    private static final int HASH_SIZE = 1 << 14;
+    private static final int[] EMPTY = new int[HASH_SIZE];
+    private static final int MAX_LITERAL = 1 << 5;
+    private static final int MAX_OFF = 1 << 13;
+    private static final int MAX_REF = (1 << 8) + (1 << 3);
+    
+    private int[] hashTab;
 
     public void setOptions(String options) {
         // nothing to do
@@ -46,11 +54,6 @@ public class CompressLZF implements Compressor {
     public int getAlgorithm() {
         return Compressor.LZF;
     }
-
-    private static final int HASH_SIZE = (1 << 14);
-    private static final int MAX_LITERAL = (1 << 5);
-    private static final int MAX_OFF = (1 << 13);
-    private static final int MAX_REF = ((1 << 8) + (1 << 3));
 
     int first(byte[] in, int inPos) {
         return (in[inPos] << 8) + (in[inPos + 1] & 255);
@@ -65,15 +68,12 @@ public class CompressLZF implements Compressor {
         return ((h * 184117) >> 9) & (HASH_SIZE - 1);
     }
 
-    private int[] hashTab;
-    private static int[] empty = new int[HASH_SIZE];
-
     public int compress(byte[] in, int inLen, byte[] out, int outPos) {
         int inPos = 0;
         if (hashTab == null) {
             hashTab = new int[HASH_SIZE];
         } else {
-            System.arraycopy(empty, 0, hashTab, 0, HASH_SIZE);
+            System.arraycopy(EMPTY, 0, hashTab, 0, HASH_SIZE);
         }
         int literals = 0;
         int hash = first(in, inPos);

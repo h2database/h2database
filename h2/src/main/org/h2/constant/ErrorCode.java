@@ -1785,6 +1785,10 @@ public class ErrorCode {
     public static final int CAN_ONLY_ASSIGN_TO_VARIABLE_1 = 90137;
 
     // next is 90108
+    
+    private ErrorCode() {
+        // utility class
+    }
 
     /**
      * INTERNAL

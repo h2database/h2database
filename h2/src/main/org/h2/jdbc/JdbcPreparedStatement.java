@@ -66,6 +66,12 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     private CommandInterface command;
     private ObjectArray batchParameters;
 
+    JdbcPreparedStatement(SessionInterface session, JdbcConnection conn, String sql, int resultSetType, int id, boolean closeWithResultSet) throws SQLException {
+        super(session, conn, resultSetType, id, closeWithResultSet);
+        setTrace(session.getTrace(), TraceObject.PREPARED_STATEMENT, id);
+        command = conn.prepareCommand(sql, fetchSize);
+    }
+
     /**
      * Executes a query (select statement) and returns the result set. If
      * another result set exists for this statement, this will be closed (even
@@ -1209,12 +1215,6 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 //## Java 1.4 end ##
 
     // =============================================================
-
-    JdbcPreparedStatement(SessionInterface session, JdbcConnection conn, String sql, int resultSetType, int id, boolean closeWithResultSet) throws SQLException {
-        super(session, conn, resultSetType, id, closeWithResultSet);
-        setTrace(session.getTrace(), TraceObject.PREPARED_STATEMENT, id);
-        command = conn.prepareCommand(sql, fetchSize);
-    }
 
     private void setParameter(int parameterIndex, Value value) throws SQLException {
         checkClosed();

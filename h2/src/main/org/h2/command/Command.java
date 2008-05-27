@@ -45,6 +45,12 @@ public abstract class Command implements CommandInterface {
     private volatile boolean cancel;
 
     private final String sql;
+    
+    public Command(Parser parser, String sql) {
+        this.session = parser.getSession();
+        this.sql = sql;
+        trace = session.getDatabase().getTrace(Trace.COMMAND);
+    }
 
     /**
      * Check if this command is transactional.
@@ -81,12 +87,6 @@ public abstract class Command implements CommandInterface {
      * @return an empty result set
      */
     public abstract LocalResult queryMeta() throws SQLException;
-
-    public Command(Parser parser, String sql) {
-        this.session = parser.getSession();
-        this.sql = sql;
-        trace = session.getDatabase().getTrace(Trace.COMMAND);
-    }
 
     /**
      * Execute an updating statement, if this is possible.

@@ -35,7 +35,8 @@ public class MultiVersionCursor implements Cursor {
         this.baseCursor = base;
         this.deltaCursor = delta;
         this.sync = sync;
-        needNewDelta = needNewBase = true;
+        needNewDelta = true;
+        needNewBase = true;
     }
     
     void loadCurrent() throws SQLException {

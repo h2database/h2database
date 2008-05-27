@@ -105,8 +105,9 @@ public class Function extends Expression implements FunctionCall {
     private static final SimpleDateFormat FORMAT_MONTHNAME = new SimpleDateFormat("MMMM", Locale.ENGLISH);
     private static final char[] SOUNDEX_INDEX = new char[128];
 
-    private FunctionInfo info;
     protected Expression[] args;
+    
+    private FunctionInfo info;
     private ObjectArray varArgs;
     private int dataType, scale;
     private long precision;
@@ -189,8 +190,8 @@ public class Function extends Expression implements FunctionCall {
         addFunction("CHAR", CHAR, 1, Value.STRING);
         addFunction("CHR", CHAR, 1, Value.STRING);
         addFunction("CHAR_LENGTH", CHAR_LENGTH, 1, Value.INT);
-        addFunction("CHARACTER_LENGTH", CHAR_LENGTH, 1, Value.INT); // same as
-                                                                    // CHAR_LENGTH
+        // same as CHAR_LENGTH
+        addFunction("CHARACTER_LENGTH", CHAR_LENGTH, 1, Value.INT); 
         addFunctionWithNull("CONCAT", CONCAT, VAR_ARGS, Value.STRING);
         addFunction("DIFFERENCE", DIFFERENCE, 2, Value.INT);
         addFunction("HEXTORAW", HEXTORAW, 1, Value.STRING);
@@ -198,9 +199,10 @@ public class Function extends Expression implements FunctionCall {
         addFunction("LCASE", LCASE, 1, Value.STRING);
         addFunction("LEFT", LEFT, 2, Value.STRING);
         addFunction("LENGTH", LENGTH, 1, Value.INT);
-        addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INT); // 2 or 3 arguments
-        addFunction("POSITION", LOCATE, 2, Value.INT); // same as LOCATE with 2
-                                                        // arguments
+        // 2 or 3 arguments
+        addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INT); 
+        // same as LOCATE with 2 arguments
+        addFunction("POSITION", LOCATE, 2, Value.INT); 
         addFunction("INSTR", INSTR, VAR_ARGS, Value.INT);
         addFunction("LTRIM", LTRIM, VAR_ARGS, Value.STRING);
         addFunction("OCTET_LENGTH", OCTET_LENGTH, 1, Value.INT);
@@ -298,6 +300,16 @@ public class Function extends Expression implements FunctionCall {
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
         addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT, VAR_ARGS, Value.RESULT_SET);
     }
+    
+    protected Function(Database database, FunctionInfo info) {
+        this.database = database;
+        this.info = info;
+        if (info.parameterCount == VAR_ARGS) {
+            varArgs = new ObjectArray();
+        } else {
+            args = new Expression[info.parameterCount];
+        }
+    }
 
     private static void addFunction(String name, int type, int parameterCount, int dataType,
             boolean nullIfParameterIsNull, boolean isDeterm) {
@@ -352,16 +364,6 @@ public class Function extends Expression implements FunctionCall {
             return new TableFunction(database, info);
         default:
             return new Function(database, info);
-        }
-    }
-
-    protected Function(Database database, FunctionInfo info) {
-        this.database = database;
-        this.info = info;
-        if (info.parameterCount == VAR_ARGS) {
-            varArgs = new ObjectArray();
-        } else {
-            args = new Expression[info.parameterCount];
         }
     }
 
@@ -1747,9 +1749,11 @@ public class Function extends Expression implements FunctionCall {
             break;
         case DAYNAME:
         case MONTHNAME:
-            precision = 20; // day and month names may be long in some languages
+            // day and month names may be long in some languages
+            precision = 20; 
             displaySize = (int) precision;
             break;
+        default:
         }
     }
 

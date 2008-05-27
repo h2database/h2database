@@ -54,6 +54,12 @@ public class Optimizer {
     private double cost;
     private Random random;
     
+    Optimizer(TableFilter[] filters, Expression condition, Session session) {
+        this.filters = filters;
+        this.condition = condition;
+        this.session = session;
+    }
+    
     private int getMaxBruteForceFilters(int filterCount) {
         int i = 0, j = filterCount, total = filterCount;
         while (j > 0 && total < MAX_BRUTE_FORCE) {
@@ -62,12 +68,6 @@ public class Optimizer {
             i++;
         }
         return i;
-    }
-    
-    Optimizer(TableFilter[] filters, Expression condition, Session session) {
-        this.filters = filters;
-        this.condition = condition;
-        this.session = session;
     }
     
     private void calculateBestPlan() throws SQLException {

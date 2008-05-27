@@ -19,13 +19,29 @@ Change Log
 <ul>
 <li>Infinite numbers in SQL script are listed as POWER(0, -1)), negative 
         infinite as (-POWER(0, -1)), and NaN (not a number) as SQRT(-1).
-</li><li>Comparison did not work correctly when using the special
-        double and float value 'NaN' (not a number).
+</li><li>The special double and float values 'NaN' (not a number) did not work 
+        correctly when sorting or comparing.
 </li><li>SET QUERY_TIMEOUT and Statement.setQueryTimeout no longer commits 
         a transaction. The same applies to SET @VARIABLE, SET LOCK_TIMEOUT, 
         SET TRACE_LEVEL_*, SET THROTTLE, and SET PATH.
 </li><li>ParameterMetaData now also returns the right data type for most 
         conditions, as in WHERE ID=?.
+</li><li>Negative scale values for DECIMAL or NUMBER columns are now supported
+        in regular tables and in linked tables.
+</li><li>MySQL compatibility: auto_increment column are no longer automatically 
+        converted to primary key columns.
+</li><li>PostgreSQL compatibility: support for BOOL_OR and BOOL_AND 
+        aggregate functions.
+</li><li>The fulltext search did not support CLOB data types. Fixed.
+</li><li>The table SYSTEM_RANGE now supports expressions and parameters.
+</li><li>If the drive with the database files was disconnected or unmounted 
+        while writing, sometimes a stack overflow exception was thrown 
+        instead of a IO exception.
+</li><li>The H2 Console could not be shut down from within the tool if the 
+        browser supports keepAlive (most browsers do).
+</li><li>If the password was passed as a char array, it was kept in an internal buffer
+        longer than required. Theoretically the password could have been stolen
+        if the main memory was swapped to disk before the garbage collection was run.
 </li></ul>
 
 <h2>Version 1.0.72 (2008-05-10)</h2>

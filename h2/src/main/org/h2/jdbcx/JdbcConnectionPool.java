@@ -73,6 +73,15 @@ public class JdbcConnectionPool implements DataSource {
     private int activeConnections;
     private boolean isDisposed;
 
+    private JdbcConnectionPool(ConnectionPoolDataSource dataSource) {
+        this.dataSource = dataSource;
+        try {
+            logWriter = dataSource.getLogWriter();
+        } catch (SQLException e) {
+            // ignore
+        }
+    }
+    
     /**
      * Constructs a new connection pool.
      * 
@@ -81,15 +90,6 @@ public class JdbcConnectionPool implements DataSource {
      */
     public static JdbcConnectionPool create(ConnectionPoolDataSource dataSource) {
         return new JdbcConnectionPool(dataSource);
-    }
-    
-    private JdbcConnectionPool(ConnectionPoolDataSource dataSource) {
-        this.dataSource = dataSource;
-        try {
-            logWriter = dataSource.getLogWriter();
-        } catch (SQLException e) {
-            // ignore
-        }
     }
     
     /**
@@ -253,6 +253,10 @@ public class JdbcConnectionPool implements DataSource {
         }
     }
 
+    /**
+     * This event listener informs the connection pool that about closed and
+     * broken connections.
+     */
     class PoolConnectionEventListener implements ConnectionEventListener {
         public void connectionClosed(ConnectionEvent event) {
             PooledConnection pc = (PooledConnection) event.getSource();

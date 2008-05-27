@@ -56,6 +56,16 @@ public abstract class Prepared {
     private Command command;
     private int objectId;
     private int currentRowNumber;
+    
+    /**
+     * Create a new object.
+     *
+     * @param session the session
+     */
+    public Prepared(Session session) {
+        this.session = session;
+        modificationMetaId = session.getDatabase().getModificationMetaId();
+    }
 
     /**
      * Check if this command is transactional.
@@ -79,16 +89,6 @@ public abstract class Prepared {
      */
     public boolean isReadOnly() {
         return false;
-    }
-
-    /**
-     * Create a new object.
-     *
-     * @param session the session
-     */
-    public Prepared(Session session) {
-        this.session = session;
-        modificationMetaId = session.getDatabase().getModificationMetaId();
     }
 
     /**

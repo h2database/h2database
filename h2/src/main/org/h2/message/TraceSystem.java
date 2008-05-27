@@ -74,6 +74,8 @@ public class TraceSystem implements TraceWriter {
     private static final int DEFAULT_MAX_FILE_SIZE = 64 * 1024 * 1024;
     
     private static final int CHECK_FILE_TIME = 4000;
+    private static final int CHECK_SIZE_EACH_WRITES = 128;
+    
     private int levelSystemOut = DEFAULT_TRACE_LEVEL_SYSTEM_OUT;
     private int levelFile = DEFAULT_TRACE_LEVEL_FILE;
     private int maxFileSize = DEFAULT_MAX_FILE_SIZE;
@@ -83,7 +85,6 @@ public class TraceSystem implements TraceWriter {
     private SimpleDateFormat dateFormat;
     private Writer fileWriter;
     private PrintWriter printWriter;
-    private static final int CHECK_SIZE_EACH_WRITES = 128;
     private int checkSize;
     private boolean closed;
     private boolean manualEnabling = true;
@@ -352,7 +353,7 @@ public class TraceSystem implements TraceWriter {
     }
 
     public void setName(String name) {
-        // nothing to do (the file name is aleady set)
+        // nothing to do (the file name is already set)
     }
 
 }

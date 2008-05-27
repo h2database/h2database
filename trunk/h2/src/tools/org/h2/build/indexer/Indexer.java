@@ -26,6 +26,9 @@ import org.h2.util.StringUtils;
  */
 public class Indexer {
 
+    private static final int MIN_WORD_SIZE = 3;
+    private static final int MAX_RELATIONS = 20;
+
     ArrayList pages = new ArrayList();
     HashMap words = new HashMap();
     HashSet noIndex = new HashSet();
@@ -36,9 +39,6 @@ public class Indexer {
     Page page;
     boolean title;
     boolean heading;
-
-    private static final int MIN_WORD_SIZE = 3;
-    private static final int MAX_RELATIONS = 20;
 
     public static void main(String[] args) throws Exception {
         new Indexer().run(args);

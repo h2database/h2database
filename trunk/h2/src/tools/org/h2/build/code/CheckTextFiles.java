@@ -18,24 +18,27 @@ import org.h2.util.ByteUtils;
  * removes trailing spaces.
  */
 public class CheckTextFiles {
-    public static void main(String[] args) throws Exception {
-        new CheckTextFiles().run();
-    }
+    
+    // must contain "+" otherwise this here counts as well
+    private static final String COPYRIGHT = "Copyright 2004-2008 " + "H2 Group.";
+    private static final String LICENSE = "Multiple-Licensed " + "under the H2 License";
 
-    String[] suffixCheck = new String[] { "html", "jsp", "js", "css", "bat", "nsi", 
+    private static final String[] SUFFIX_CHECK = new String[] { "html", "jsp", "js", "css", "bat", "nsi", 
             "java", "txt", "properties", "sql", "xml", "csv", "Driver" };
-    String[] suffixIgnore = new String[] { "gif", "png", "odg", "ico", "sxd", 
+    private static final String[] SUFFIX_IGNORE = new String[] { "gif", "png", "odg", "ico", "sxd", 
             "layout", "res", "win", "jar", "task", "svg", "MF", "sh" };
+    
     boolean failOnError;
     boolean allowTab, allowCR = true, allowTrailingSpaces = true;
     int spacesPerTab = 4;
     boolean autoFix = true;
     boolean useCRLF = true;
-    // must contain "+" otherwise this here counts as well
-    static final String COPYRIGHT = "Copyright 2004-2008 " + "H2 Group.";
-    static final String LICENSE = "Multiple-Licensed " + "under the H2 License";
     String[] suffixIgnoreLicense = new String[] { "bat", "nsi", "txt", "properties", "xml", "java.sql.Driver", "task", "sh" };
     boolean hasError;
+
+    public static void main(String[] args) throws Exception {
+        new CheckTextFiles().run();
+    }
 
     void run() throws Exception {
         String baseDir = "src";
@@ -62,8 +65,8 @@ public class CheckTextFiles {
                 suffix = name.substring(lastDot + 1);
             }
             boolean check = false, ignore = false;
-            for (int i = 0; i < suffixCheck.length; i++) {
-                if (suffix.equals(suffixCheck[i])) {
+            for (int i = 0; i < SUFFIX_CHECK.length; i++) {
+                if (suffix.equals(SUFFIX_CHECK[i])) {
                     check = true;
                 }
             }
@@ -77,8 +80,8 @@ public class CheckTextFiles {
                 check = false;
                 ignore = true;
             }
-            for (int i = 0; i < suffixIgnore.length; i++) {
-                if (suffix.equals(suffixIgnore[i])) {
+            for (int i = 0; i < SUFFIX_IGNORE.length; i++) {
+                if (suffix.equals(SUFFIX_IGNORE[i])) {
                     ignore = true;
                 }
             }

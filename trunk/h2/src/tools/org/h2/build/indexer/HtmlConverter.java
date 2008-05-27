@@ -13,6 +13,7 @@ import java.util.HashMap;
  * character and vice versa.
  */
 public class HtmlConverter {
+    
     private static HashMap charMap = new HashMap();
     private static HashMap codeMap = new HashMap();
 
@@ -48,6 +49,10 @@ public class HtmlConverter {
             "rlm:8207", "ndash:8211", "mdash:8212", "lsquo:8216", "rsquo:8217", "sbquo:8218", "ldquo:8220",
             "rdquo:8221", "bdquo:8222", "dagger:8224", "Dagger:8225", "hellip:8230", "permil:8240", "lsaquo:8249",
             "rsaquo:8250" };
+
+    private HtmlConverter() {
+        // utility class
+    }
 
     static {
         for (int i = 0; i < CHARS.length; i++) {

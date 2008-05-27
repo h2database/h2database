@@ -12,9 +12,13 @@ import java.util.Random;
  * This class converts binary to base64 and vice versa.
  */
 public class Base64 {
-
+    
     private static final byte[] CODE = new byte[64];
     private static final byte[] REV = new byte[256];
+    
+    private Base64() {
+        // utility class
+    }
 
     static {
         for (int i = 'A'; i <= 'Z'; i++) {

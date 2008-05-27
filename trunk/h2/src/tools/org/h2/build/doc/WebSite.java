@@ -23,14 +23,14 @@ import org.h2.util.StringUtils;
  */
 public class WebSite {
 
-    String sourceDir = "docs";
-    String targetDir = "dataWeb";
-    
     private static final String ANALYTICS_TAG = "<!-- analytics -->";
     private static final String ANALYTICS_SCRIPT = 
         "<script src=\"http://www.google-analytics.com/ga.js\" type=\"text/javascript\"></script>\n" +
         "<script type=\"text/javascript\">var pageTracker=_gat._getTracker(\"UA-2351060-1\");pageTracker._initData();pageTracker._trackPageview();</script>";
-
+    
+    String sourceDir = "docs";
+    String targetDir = "dataWeb";
+    
     public static void main(String[] args) throws Exception {
         new WebSite().run();
     }

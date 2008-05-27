@@ -17,8 +17,8 @@ import java.io.RandomAccessFile;
  */
 public class CheckJavadoc {
 
-    private int errorCount;
     private static final int MAX_COMMENT_LINE_SIZE = 80;
+    private int errorCount;
 
     public static void main(String[] args) throws Exception {
         new CheckJavadoc().run();

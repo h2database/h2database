@@ -105,6 +105,7 @@ import org.h2.test.unit.TestRecovery;
 import org.h2.test.unit.TestSampleApps;
 import org.h2.test.unit.TestScriptReader;
 import org.h2.test.unit.TestSecurity;
+import org.h2.test.unit.TestShell;
 import org.h2.test.unit.TestStreams;
 import org.h2.test.unit.TestStringCache;
 import org.h2.test.unit.TestStringUtils;
@@ -162,24 +163,19 @@ java org.h2.test.TestAll timer
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
         test.printSystem();
+        System.setProperty("h2.maxMemoryRowsDistinct", "128");
 
 /*
 
 not tested:
-ResultTempTable
-HashIndex
-HashCursor
-Shell
-ExecuteProcedure
-PreparedProcedure
-Procedure
-DeallocateProcedure
+PreparedProcedure PREPARE <name>(column,...) AS ...
+Procedure 
+DeallocateProcedure DEALLOCATE [PLAN] <name>
+ExecuteProcedure EXECUTE <name>[([p[,...])]
 
 create an mbean for each database? server? (jconsole)
 
 jazoon 
-
-upload and test javadoc/index.html
 
 in help.csv, use complete examples for functions; add a test case
 
@@ -539,6 +535,7 @@ Roadmap:
         new TestScriptReader().runTest(this);
         runTest("org.h2.test.unit.TestServlet");
         new TestSecurity().runTest(this);
+        new TestShell().runTest(this);
         new TestStreams().runTest(this);
         new TestStringCache().runTest(this);
         new TestStringUtils().runTest(this);

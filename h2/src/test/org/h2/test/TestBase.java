@@ -351,7 +351,13 @@ public abstract class TestBase {
             error(result + " does not contain: " + contains);
         }
     }
-
+    
+    protected void checkStartsWith(String text, String expectedStart) throws Exception {
+        if (!text.startsWith(expectedStart)) {
+            error(text + " does not start with: " + expectedStart);
+        }
+    }
+    
     protected void check(double a, double b) throws Exception {
         if (a != b) {
             error("double a: " + a + " b: " + b);

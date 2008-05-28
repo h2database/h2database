@@ -226,10 +226,10 @@ public class BuildBase {
     }
 
     /**
-     * Read a final static field in a class using reflection.
+     * Reads the value from a static method of a class using reflection.
      * 
      * @param className the name of the class
-     * @param fieldName the field name
+     * @param methodName the field name
      * @return the value as a string
      */
     protected String getStaticValue(String className, String methodName) {
@@ -371,9 +371,10 @@ public class BuildBase {
         if (file.getName().startsWith(".svn")) {
             // ignore
         } else if (file.isDirectory()) {
-            File[] files = file.listFiles();
-            for (int i = 0; i < files.length; i++) {
-                addFiles(list, files[i]);
+            String[] fileNames = file.list();
+            String path = file.getPath();
+            for (int i = 0; i < fileNames.length; i++) {
+                addFiles(list, new File(path, fileNames[i]));
             }
         } else {
             list.add(file);
@@ -628,16 +629,17 @@ public class BuildBase {
         delete(new File(dir));
     }
     
-    private void delete(File f) {
-        if (f.exists()) {
-            if (f.isDirectory()) {
-                File[] list = f.listFiles();
-                for (int i = 0; i < list.length; i++) {
-                    delete(list[i]);
+    private void delete(File file) {
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                String[] fileNames = file.list();
+                String path = file.getPath();
+                for (int i = 0; i < fileNames.length; i++) {
+                    delete(new File(path, fileNames[i]));
                 }
             }
-            if (!f.delete()) {
-                throw new Error("Can not delete " + f.getPath());
+            if (!file.delete()) {
+                throw new Error("Can not delete " + file.getPath());
             }
         }
     }

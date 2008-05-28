@@ -8,6 +8,7 @@ package org.h2.tools;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
@@ -33,12 +34,15 @@ import org.h2.util.JdbcUtils;
 public class Shell {
 
     PrintStream out = System.out;
+    PrintStream err = System.err;
+    private InputStream in = System.in;
     private Connection conn;
     private Statement stat;
     private boolean listMode;
     private int maxColumnSize = 100;
     // Windows: '\u00b3';
     private char boxVertical = '|'; 
+    private BufferedReader reader;
     
     /**
      * The command line interface for this tool. The options must be split into
@@ -61,16 +65,35 @@ public class Shell {
     }
     
     private void showUsage() {
-        out.println("An interactive command line database tool.");
-        out.println("java "+getClass().getName() + "\n" +
+        println("An interactive command line database tool.");
+        println("java "+getClass().getName() + "\n" +
                 " [-url <url>]       The database URL\n" +
                 " [-user <user>]     The user name\n" +
                 " [-password <pwd>]  The password\n" +
                 " [-driver <class>]  The JDBC driver class to use (not required in most cases)");
-        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
+        println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
     
-    private void run(String[] args) throws SQLException {
+    /**
+     * Redirects the input and output. By default, System.in, out and err are
+     * used.
+     * 
+     * @param in the input stream to use
+     * @param out the output stream to use
+     * @param err the output error stream to use
+     */
+    public void setStreams(InputStream in, PrintStream out, PrintStream err) {
+        this.in = in;
+        this.out = out;
+        this.err = err;
+    }
+    
+    /**
+     * Run the shell tool with the given command line settings.
+     * 
+     * @param args the command line settings
+     */
+    public void run(String[] args) throws SQLException {
         String url = null;
         String user = "";
         String password = "";
@@ -85,7 +108,7 @@ public class Shell {
                 String driver = args[++i];
                 ClassUtils.loadUserClass(driver);
             } else {
-                out.println("Unsupported option: " + args[i]);
+                println("Unsupported option: " + args[i]);
                 showUsage();
                 return;
             }
@@ -99,24 +122,25 @@ public class Shell {
     }
     
     private void showHelp() {
-        out.println("Commands are case insensitive; SQL statements end with ';'");
-        out.println("help or ?      Display this help");
-        out.println("list           Toggle result list mode");
-        out.println("maxwidth       Set maximum column width (default is 100)");
-        out.println("show           List all tables");
-        out.println("describe       Describe a table");
-        out.println("quit or exit   Close the connection and exit");
-        out.println();
+        println("Commands are case insensitive; SQL statements end with ';'");
+        println("help or ?      Display this help");
+        println("list           Toggle result list mode");
+        println("maxwidth       Set maximum column width (default is 100)");
+        println("show           List all tables");
+        println("describe       Describe a table");
+        println("quit or exit   Close the connection and exit");
+        println("");
     }
 
     private void promptLoop() {
-        out.println();
-        out.println("Welcome to H2 Shell " + Constants.getFullVersion());
-        out.println("Exit with Ctrl+C");
+        println("");
+        println("Welcome to H2 Shell " + Constants.getFullVersion());
+        println("Exit with Ctrl+C");
         if (conn != null) {
             showHelp();
         }
         String statement = null;
+        reader = new BufferedReader(new InputStreamReader(in));
         while (true) {
             try {
                 if (conn == null) {
@@ -124,9 +148,9 @@ public class Shell {
                     showHelp();
                 }
                 if (statement == null) {
-                    out.print("sql> ");
+                    print("sql> ");
                 } else {
-                    out.print("...> ");
+                    print("...> ");
                 }
                 String line = readLine();
                 if (line == null) {
@@ -147,11 +171,11 @@ public class Shell {
                     showHelp();
                 } else if ("LIST".equals(upper)) {
                     listMode = !listMode;
-                    out.println("Result list mode is now " + (listMode ? "on" : "off"));
+                    println("Result list mode is now " + (listMode ? "on" : "off"));
                 } else if (upper.startsWith("DESCRIBE")) {
                     String tableName = upper.substring("DESCRIBE".length()).trim();
                     if (tableName.length() == 0) {
-                        out.println("Usage: describe [<schema name>.]<table name>");
+                        println("Usage: describe [<schema name>.]<table name>");
                     } else {
                         String schemaName = null;
                         int dot = tableName.indexOf('.');
@@ -181,8 +205,8 @@ public class Shell {
                             rs = prep.executeQuery();
                             printResult(rs, false);
                         } catch (SQLException e) {
-                            out.println("Exception: " + e.toString());
-                            e.printStackTrace();
+                            println("Exception: " + e.toString());
+                            e.printStackTrace(err);
                         } finally {
                             JdbcUtils.closeSilently(rs);
                             JdbcUtils.closeSilently(prep);
@@ -196,8 +220,8 @@ public class Shell {
                                 "FROM INFORMATION_SCHEMA.TABLES ORDER BY TABLE_SCHEMA, TABLE_NAME");
                         printResult(rs, false);
                     } catch (SQLException e) {
-                        out.println("Exception: " + e.toString());
-                        e.printStackTrace();
+                        println("Exception: " + e.toString());
+                        e.printStackTrace(err);
                     } finally {
                         JdbcUtils.closeSilently(rs);
                     }
@@ -206,9 +230,9 @@ public class Shell {
                     try {
                         maxColumnSize = Integer.parseInt(upper);
                     } catch (Exception e) {
-                        out.println("Usage: maxwidth <integer value>");
+                        println("Usage: maxwidth <integer value>");
                     }
-                    out.println("Maximum column width is now " + maxColumnSize);
+                    println("Maximum column width is now " + maxColumnSize);
                 } else {
                     if (statement == null) {
                         statement = line;
@@ -221,24 +245,24 @@ public class Shell {
                     }
                 }
             } catch (SQLException e) {
-                out.println("SQL Exception: " + e.getMessage());
+                println("SQL Exception: " + e.getMessage());
                 statement = null;
             } catch (IOException e) {
-                out.println(e.getMessage());
+                println(e.getMessage());
                 break;
             } catch (Exception e) {
-                out.println("Exception: " + e.toString());
-                e.printStackTrace();
+                println("Exception: " + e.toString());
+                e.printStackTrace(err);
                 break;
             }
         }
         if (conn != null) {
             try {
                 conn.close();
-                out.println("Connection closed");
+                println("Connection closed");
             } catch (SQLException e) {
-                out.println("SQL Exception:");
-                e.printStackTrace();
+                println("SQL Exception: " + e.getMessage());
+                e.printStackTrace(err);
             }
         }
     }
@@ -269,29 +293,39 @@ public class Shell {
         } catch (IOException e) {
             // ignore
         }
-        out.println("[Enter]   " + url);
-        out.print("URL       ");
+        println("[Enter]   " + url);
+        print("URL       ");
         url = readLine(url);
         if (driver == null) {
             driver = JdbcDriverUtils.getDriver(url);
         }
         if (driver != null) {
-            out.println("[Enter]   " + driver);
+            println("[Enter]   " + driver);
         }
-        out.print("Driver    ");
+        print("Driver    ");
         driver = readLine(driver);
-        out.println("[Enter]   " + user);
-        out.print("User      ");
+        println("[Enter]   " + user);
+        print("User      ");
         user = readLine(user);
-        out.println("[Enter]   Hide");
-        out.print("Password  ");
+        println("[Enter]   Hide");
+        print("Password  ");
         String password = readLine();
         if (password.length() == 0) {
             password = readPassword();
         }
         conn = JdbcUtils.getConnection(driver, url, user, password);
         stat = conn.createStatement();
-        out.println("Connected");
+        println("Connected");
+    }
+    
+    private void print(String s) {
+        out.print(s);
+        out.flush();
+    }
+    
+    private void println(String s) {
+        out.println(s);
+        out.flush();
     }
 
     private String readPassword() throws IOException {
@@ -299,7 +333,7 @@ public class Shell {
             Method getConsole = System.class.getMethod("console", new Class[0]);
             Object console = getConsole.invoke(null, (Object[]) null);
             Method readPassword = console.getClass().getMethod("readPassword", new Class[0]);
-            System.out.print("Password  ");
+            print("Password  ");
             char[] password = (char[]) readPassword.invoke(console, (Object[]) null);
             return password == null ? null : new String(password);
         } catch (Throwable t) {
@@ -324,7 +358,7 @@ public class Shell {
         }
         PasswordHider thread = new PasswordHider();
         thread.start();
-        out.print("Password  > ");
+        print("Password  > ");
         String p = readLine();
         thread.stop = true;
         try {
@@ -332,7 +366,7 @@ public class Shell {
         } catch (InterruptedException e) {
             // ignore
         }
-        out.print("\b\b");
+        print("\b\b");
         return p;
     }
     
@@ -342,7 +376,7 @@ public class Shell {
     }
 
     private String readLine() throws IOException {
-        String line = new BufferedReader(new InputStreamReader(System.in)).readLine();
+        String line = reader.readLine();
         if (line == null) {
             throw new IOException("Aborted");
         }
@@ -355,7 +389,7 @@ public class Shell {
         try {
             result = stat.execute(sql);
         } catch (SQLException e) {
-            out.println("Error: " + e.toString());
+            println("Error: " + e.toString());
             return;
         }
         ResultSet rs = null;
@@ -364,15 +398,15 @@ public class Shell {
                 rs = stat.getResultSet();
                 int rowCount = printResult(rs, listMode);
                 time = System.currentTimeMillis() - time;
-                out.println("(" + rowCount + (rowCount == 1 ? " row, " : " rows, ") + time + " ms)");
+                println("(" + rowCount + (rowCount == 1 ? " row, " : " rows, ") + time + " ms)");
             } else {
                 int updateCount = stat.getUpdateCount();
                 time = System.currentTimeMillis() - time;
-                out.println("(Update count: " + updateCount + ", " + time + " ms)");
+                println("(Update count: " + updateCount + ", " + time + " ms)");
             }
         } catch (SQLException e) {
-            out.println("Error: " + e.toString());
-            e.printStackTrace();
+            println("Error: " + e.toString());
+            e.printStackTrace(err);
         } finally {
             JdbcUtils.closeSilently(rs);
         }
@@ -414,7 +448,7 @@ public class Shell {
                     }
                 }
             }
-            out.println(buff.toString());
+            println(buff.toString());
         }
         int rowCount = 0;
         while (rs.next()) {
@@ -422,7 +456,7 @@ public class Shell {
             buff.setLength(0);
             if (listMode) {
                 if (rowCount > 1) {
-                    out.println();
+                    println("");
                 }
                 for (int i = 0; i < len; i++) {
                     if (i > 0) {
@@ -457,7 +491,7 @@ public class Shell {
                     }
                 }
             }
-            out.println(buff.toString());
+            println(buff.toString());
         }
         if (rowCount == 0 && listMode) {
             for (int i = 0; i < len; i++) {
@@ -465,7 +499,7 @@ public class Shell {
                 buff.append(label);
                 buff.append('\n');
             }
-            out.println(buff.toString());
+            println(buff.toString());
         }
         return rowCount;
     }

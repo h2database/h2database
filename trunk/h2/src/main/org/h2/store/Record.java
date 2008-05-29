@@ -49,6 +49,11 @@ public abstract class Record extends CacheObject {
         // nothing to do
     }
 
+    /**
+     * Check if this record is empty.
+     * 
+     * @return false
+     */
     public boolean isEmpty() {
         return false;
     }
@@ -65,6 +70,9 @@ public abstract class Record extends CacheObject {
         return sessionId;
     }
 
+    /**
+     * This record has been committed. The session id is reset.
+     */
     public void commit() {
         this.sessionId = 0;
     }
@@ -81,11 +89,23 @@ public abstract class Record extends CacheObject {
         return storageId;
     }
 
+    /**
+     * Set the last log file and position where this record needs to be written.
+     * 
+     * @param log the log file id
+     * @param pos the position in the log file
+     */
     public void setLastLog(int log, int pos) {
         lastLog = log;
         lastPos = pos;
     }
 
+    /**
+     * Set the last log file and position where this record was written.
+     * 
+     * @param log the log file id
+     * @param pos the position in the log file
+     */
     public void setLogWritten(int log, int pos) {
         if (log < lastLog) {
             return;
@@ -107,6 +127,11 @@ public abstract class Record extends CacheObject {
         return true;
     }
 
+    /**
+     * Check if this record has been written to the log file.
+     * 
+     * @return true if it is
+     */
     public boolean isLogWritten() {
         return lastLog == LogSystem.LOG_WRITTEN;
     }

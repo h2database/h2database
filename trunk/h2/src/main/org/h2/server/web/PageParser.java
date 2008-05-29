@@ -15,15 +15,13 @@ import java.util.Map;
  * This class is used by the H2 Console.
  */
 public class PageParser {
-    private WebServer server;
     private String page;
     private int pos;
     private Map settings;
     private int len;
     private StringBuffer result;
     
-    private PageParser(WebServer server, String page, Map settings, int pos) {
-        this.server = server;
+    private PageParser(String page, Map settings, int pos) {
         this.page = page;
         this.pos = pos;
         this.len = page.length();
@@ -31,9 +29,16 @@ public class PageParser {
         result = new StringBuffer(len);
     }
 
-    public static String parse(WebServer server, String page, Map settings) {
-        PageParser block = new PageParser(server, page, settings, 0);
-        return block.parse();
+    /**
+     * Replace the tags in the HTML page with the given settings.
+     * 
+     * @param page the HTML page
+     * @param settings the settings
+     * @return the converted page
+     */
+    public static String parse(String page, Map settings) {
+        PageParser block = new PageParser(page, settings, 0);
+        return block.replaceTags();
     }
 
     private void setError(int i) {
@@ -43,7 +48,7 @@ public class PageParser {
     }
 
     private String parseBlockUntil(String end) throws Exception {
-        PageParser block = new PageParser(server, page, settings, pos);
+        PageParser block = new PageParser(page, settings, pos);
         block.parseAll();
         if (!block.readIf(end)) {
             throw new Exception();
@@ -52,7 +57,7 @@ public class PageParser {
         return block.result.toString();
     }
 
-    private String parse() {
+    private String replaceTags() {
         try {
             parseAll();
             if (pos != len) {
@@ -151,7 +156,7 @@ public class PageParser {
                     String item = p.substring(i, j).trim();
                     i = j;
                     String s = (String) get(item);
-                    append(s);
+                    replaceTags(s);
                 } else {
                     buff.append(c);
                 }
@@ -177,9 +182,9 @@ public class PageParser {
         return settings.get(item);
     }
 
-    private void append(String s) {
+    private void replaceTags(String s) {
         if (s != null) {
-            result.append(PageParser.parse(server, s, settings));
+            result.append(PageParser.parse(s, settings));
         }
     }
 
@@ -194,7 +199,7 @@ public class PageParser {
         int end = pos;
         read("\"");
         String s = page.substring(start, end);
-        return PageParser.parse(server, s, settings);
+        return PageParser.parse(s, settings);
     }
 
     private void skipSpaces() {

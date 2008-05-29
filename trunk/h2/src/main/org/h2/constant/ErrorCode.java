@@ -1093,24 +1093,14 @@ public class ErrorCode {
     public static final int ROLES_AND_RIGHT_CANNOT_BE_MIXED = 90072;
 
     /**
-     * The error with code <code>90073</code> is thrown when
-     * trying to revoke a right that does not or no longer exist.
-     * Example:
-     * <pre>
-     * CREATE USER TEST_USER PASSWORD 'abc';
-     * REVOKE SELECT ON TEST FROM TEST_USER;
-     * </pre>
-     */
-    public static final int RIGHT_NOT_FOUND = 90073;
-
-    /**
      * The error with code <code>90074</code> is thrown when
      * trying to grant a role that has already been granted.
      * Example:
      * <pre>
-     * CREATE ROLE TEST_ROLE;
-     * GRANT TEST_ROLE TO SA;
-     * GRANT TEST_ROLE TO SA;
+     * CREATE ROLE TEST_A;
+     * CREATE ROLE TEST_B;
+     * GRANT TEST_A TO TEST_B;
+     * GRANT TEST_B TO TEST_A;
      * </pre>
      */
     public static final int ROLE_ALREADY_GRANTED_1 = 90074;
@@ -1784,7 +1774,7 @@ public class ErrorCode {
      */
     public static final int CAN_ONLY_ASSIGN_TO_VARIABLE_1 = 90137;
 
-    // next is 90108
+    // next is 90073, 90108
     
     private ErrorCode() {
         // utility class

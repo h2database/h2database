@@ -672,7 +672,7 @@ public class Database implements DataHandler {
             for (int i = 0; i < storages.size(); i++) {
                 Storage storage = (Storage) storages.get(i);
                 if (storage != null && storage.getRecordReader() == null) {
-                    storage.delete(session);
+                    storage.truncate(session);
                 }
             }
         }

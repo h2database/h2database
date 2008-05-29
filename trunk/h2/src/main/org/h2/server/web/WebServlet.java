@@ -139,7 +139,7 @@ public class WebServlet extends HttpServlet {
         } else {
             if (session != null && file.endsWith(".jsp")) {
                 String page = StringUtils.utf8Decode(bytes);
-                page = PageParser.parse(server, page, session.map);
+                page = PageParser.parse(page, session.map);
                 try {
                     bytes = StringUtils.utf8Encode(page);
                 } catch (SQLException e) {

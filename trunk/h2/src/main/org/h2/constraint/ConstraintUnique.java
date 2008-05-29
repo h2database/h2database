@@ -143,5 +143,9 @@ public class ConstraintUnique extends Constraint {
     public void checkExistingData(Session session) {
         // no need to check: when creating the unique index any problems are found
     }
+    
+    public Index getUniqueIndex() {
+        return index;
+    }
 
 }

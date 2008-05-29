@@ -666,5 +666,9 @@ public class ConstraintReferential extends Constraint {
                     getShortDescription());
         }
     }
+    
+    public Index getUniqueIndex() {
+        return refIndex;
+    }
 
 }

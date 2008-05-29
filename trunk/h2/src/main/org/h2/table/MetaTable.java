@@ -375,6 +375,7 @@ public class MetaTable extends Table {
                     "TABLE_CATALOG",
                     "TABLE_SCHEMA",
                     "TABLE_NAME",
+                    "UNIQUE_INDEX_NAME",
                     "CHECK_EXPRESSION",
                     "COLUMN_LIST",
                     "REMARKS",
@@ -1276,6 +1277,11 @@ public class MetaTable extends Table {
                 String checkExpression = null;
                 IndexColumn[] columns = null;
                 Table table = constraint.getTable();
+                Index index = constraint.getUniqueIndex();
+                String uniqueIndexName = null;
+                if (index != null) {
+                    uniqueIndexName = index.getName();
+                }
                 String tableName = identifier(table.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
@@ -1313,6 +1319,8 @@ public class MetaTable extends Table {
                         identifier(table.getSchema().getName()), 
                         // TABLE_NAME
                         tableName, 
+                        // UNIQUE_INDEX_NAME
+                        uniqueIndexName, 
                         // CHECK_EXPRESSION
                         checkExpression, 
                         // COLUMN_LIST

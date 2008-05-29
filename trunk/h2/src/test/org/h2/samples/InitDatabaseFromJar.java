@@ -21,6 +21,11 @@ import org.h2.tools.RunScript;
  */
 public class InitDatabaseFromJar {
 
+    /**
+     * This method is called when executing this sample application.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
         new InitDatabaseFromJar().createScript();
         new InitDatabaseFromJar().initDb();

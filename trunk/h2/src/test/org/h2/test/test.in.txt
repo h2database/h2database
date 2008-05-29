@@ -1,4 +1,60 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+CREATE ROLE TEST_A;
+> ok
+
+GRANT TEST_A TO TEST_A;
+> exception
+
+CREATE ROLE TEST_B;
+> ok
+
+GRANT TEST_A TO TEST_B;
+> ok
+
+GRANT TEST_B TO TEST_A;
+> exception
+
+DROP ROLE TEST_A;
+> ok
+
+DROP ROLE TEST_B;
+> ok
+
+CREATE ROLE PUBLIC2;
+> ok
+
+GRANT PUBLIC2 TO SA;
+> ok
+
+GRANT PUBLIC2 TO SA;
+> ok
+
+REVOKE PUBLIC2 FROM SA;
+> ok
+
+REVOKE PUBLIC2 FROM SA;
+> ok
+
+DROP ROLE PUBLIC2;
+> ok
+
+create table test(id int primary key, lastname varchar, firstname varchar, parent int references(id));
+> ok
+
+alter table test add constraint name unique (lastname, firstname);
+> ok
+
+SELECT CONSTRAINT_NAME, UNIQUE_INDEX_NAME, COLUMN_LIST FROM INFORMATION_SCHEMA.CONSTRAINTS ;
+> CONSTRAINT_NAME UNIQUE_INDEX_NAME COLUMN_LIST
+> --------------- ----------------- ------------------
+> CONSTRAINT_2    PRIMARY_KEY_2     ID
+> CONSTRAINT_27   PRIMARY_KEY_2     PARENT
+> NAME            NAME_INDEX_2      LASTNAME,FIRSTNAME
+> rows: 3
+
+drop table test;
+> ok
+
 alter table information_schema.help rename to information_schema.help2;
 > exception
 

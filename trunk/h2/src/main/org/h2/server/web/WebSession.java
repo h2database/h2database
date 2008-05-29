@@ -30,9 +30,9 @@ public class WebSession {
     long lastAccess;
     HashMap map = new HashMap();
     Locale locale;
-    WebServer server;
     Statement executingStatement;
     ResultSet result;
+    private WebServer server;
 
     private ArrayList commandHistory = new ArrayList();
 

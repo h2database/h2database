@@ -47,7 +47,7 @@ public class TcpServerThread implements Runnable {
     private int clientVersion;
     private String sessionId;
 
-    public TcpServerThread(Socket socket, TcpServer server, int id) {
+    TcpServerThread(Socket socket, TcpServer server, int id) {
         this.server = server;
         this.id = id;
         transfer = new Transfer(null);
@@ -151,7 +151,7 @@ public class TcpServerThread implements Runnable {
         }
     }
 
-    public void close() {
+    void close() {
         try {
             stop = true;
             closeSession();
@@ -352,15 +352,15 @@ public class TcpServerThread implements Runnable {
         }
     }
 
-    public void setThread(Thread thread) {
+    void setThread(Thread thread) {
         this.thread = thread;
     }
 
-    public Thread getThread() {
+    Thread getThread() {
         return thread;
     }
 
-    public void cancelStatement(String sessionId, int statementId) throws SQLException {
+    void cancelStatement(String sessionId, int statementId) throws SQLException {
         if (StringUtils.equals(sessionId, this.sessionId)) {
             Command cmd = (Command) cache.getObject(statementId, false);
             cmd.cancel();

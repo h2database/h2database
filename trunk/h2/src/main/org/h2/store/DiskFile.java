@@ -59,21 +59,25 @@ import org.h2.util.ObjectUtils;
 public class DiskFile implements CacheWriter {
 
     /**
+     * The number of bits to shift to divide a position to get the page number.
+     */
+    public static final int BLOCK_PAGE_PAGE_SHIFT = 6;
+    
+    /**
      * The size of a page in blocks.
      * Each page contains blocks from the same storage.
      */
-    public static final int BLOCK_PAGE_PAGE_SHIFT = 6;
-
     public static final int BLOCKS_PER_PAGE = 1 << BLOCK_PAGE_PAGE_SHIFT;
-    public static final int OFFSET = FileStore.HEADER_LENGTH;
-
+    
     /**
      * The size of a block in bytes.
      * A block is the minimum row size.
      */
     public static final int BLOCK_SIZE = 128;
 
-    static final int FREE_PAGE = -1;
+    private static final int OFFSET = FileStore.HEADER_LENGTH;
+    private static final int FREE_PAGE = -1;
+    
     // TODO storage: header should probably be 4 KB or so 
     // (to match block size of operating system)
     private Database database;
@@ -98,6 +102,16 @@ public class DiskFile implements CacheWriter {
     private String mode;
     private int nextDeleteId = 1;
 
+    /**
+     * Create a new disk file.
+     * 
+     * @param database the database
+     * @param fileName the file name
+     * @param mode the file opening mode ("r", "rw", "rws", "rwd")
+     * @param dataFile if this is the data file
+     * @param logChanges if changes should be logged
+     * @param cacheSize the number of cache entries
+     */
     public DiskFile(Database database, String fileName, String mode, boolean dataFile, boolean logChanges, int cacheSize) throws SQLException {
         reset();
         this.database = database;
@@ -150,10 +164,6 @@ public class DiskFile implements CacheWriter {
         while (pages >= pageOwners.size()) {
             pageOwners.add(FREE_PAGE);
         }
-    }
-
-    int getBlockCount() {
-        return fileBlockCount;
     }
 
     private void create() throws SQLException {
@@ -539,7 +549,7 @@ public class DiskFile implements CacheWriter {
                 throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
             }
             blockCount = getPage(blockCount + BLOCKS_PER_PAGE - 1) * BLOCKS_PER_PAGE;
-            int lastPage = getPage(getBlockCount());
+            int lastPage = getPage(fileBlockCount);
             int pageCount = getPage(blockCount);
             int pos = -1;
             boolean found = false;
@@ -557,7 +567,7 @@ public class DiskFile implements CacheWriter {
                 }
             }
             if (!found) {
-                int max = getBlockCount();
+                int max = fileBlockCount;
                 pos = MathUtils.roundUp(max, BLOCKS_PER_PAGE);
                 if (rowBuff instanceof DataPageText) {
                     if (pos > max) {
@@ -611,7 +621,7 @@ public class DiskFile implements CacheWriter {
         }
     }
 
-    void reuseSpace() throws SQLException {
+    private void reuseSpace() throws SQLException {
         if (SysProperties.REUSE_SPACE_QUICKLY) {
             if (potentiallyFreePages.size() >= SysProperties.REUSE_SPACE_AFTER) {
                 Session[] sessions = database.getSessions(true);
@@ -791,7 +801,7 @@ public class DiskFile implements CacheWriter {
         }
     }
 
-    void writeDirectDeleted(int recordId, int blockCount) throws SQLException {
+    private void writeDirectDeleted(int recordId, int blockCount) throws SQLException {
         synchronized (database) {
             go(recordId);
             for (int i = 0; i < blockCount; i++) {
@@ -801,7 +811,7 @@ public class DiskFile implements CacheWriter {
         }
     }
 
-    void writeDirect(Storage storage, int pos, byte[] data, int offset) throws SQLException {
+    private void writeDirect(Storage storage, int pos, byte[] data, int offset) throws SQLException {
         synchronized (database) {
             go(pos);
             file.write(data, offset, BLOCK_SIZE);

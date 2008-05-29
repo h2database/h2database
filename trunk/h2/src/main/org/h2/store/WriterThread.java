@@ -50,6 +50,11 @@ public class WriterThread extends Thread {
         this.writeDelay = writeDelay;
     }
 
+    /**
+     * Change the write delay
+     * 
+     * @param writeDelay the new write delay
+     */
     public void setWriteDelay(int writeDelay) {
         LogSystem log = getLog();
         this.writeDelay = writeDelay;
@@ -61,6 +66,13 @@ public class WriterThread extends Thread {
         }
     }
 
+    /**
+     * Create and start a new writer thread for the given database.
+     * 
+     * @param database the database
+     * @param writeDelay the delay
+     * @return the writer thread object
+     */
     public static WriterThread create(Database database, int writeDelay) {
         WriterThread thread = new WriterThread(database, writeDelay);
         thread.setName("H2 Log Writer " + database.getShortName());
@@ -155,11 +167,21 @@ public class WriterThread extends Thread {
         databaseRef = null;
     }
 
+    /**
+     * Stop the thread. This method is called when closing the database. Old log
+     * files are deleted as well.
+     */
     public void stopThread() throws SQLException {
         stop = true;
         deleteLogFileLater(null);
     }
 
+    /**
+     * Delete the following log file later on. If there is already a file to be
+     * deleted, that one will be deleted immediately.
+     * 
+     * @param fileName the name of the file to delete
+     */
     public synchronized void deleteLogFileLater(String fileName) throws SQLException {
         if (oldLogFile != null) {
             FileUtils.delete(oldLogFile);

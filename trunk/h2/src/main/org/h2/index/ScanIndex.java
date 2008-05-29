@@ -61,7 +61,7 @@ public class ScanIndex extends BaseIndex {
     public void remove(Session session) throws SQLException {
         truncate(session);
         if (storage != null) {
-            storage.delete(session);
+            storage.truncate(session);
         }
     }
 

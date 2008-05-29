@@ -434,7 +434,7 @@ public class WebServer implements Service {
         return FileUtils.getFileInUserHome(Constants.SERVER_PROPERTIES_FILE);
     }
 
-    Properties loadProperties() {
+    private Properties loadProperties() {
         String fileName = getPropertiesFileName();
         try {
             return FileUtils.loadProperties(fileName);
@@ -481,7 +481,7 @@ public class WebServer implements Service {
         return settings;
     }
 
-    void sortConnectionInfo(ArrayList list) {
+    private void sortConnectionInfo(ArrayList list) {
         for (int i = 1, j; i < list.size(); i++) {
             ConnectionInfo t = (ConnectionInfo) list.get(i);
             for (j = i - 1; j >= 0 && (((ConnectionInfo) list.get(j)).lastAccess < t.lastAccess); j--) {

@@ -59,6 +59,11 @@ public class DbStarter implements ServletContextListener {
         return value == null ? defaultValue : value;
     }
 
+    /**
+     * Get the connection.
+     * 
+     * @return the connection
+     */
     public Connection getConnection() {
         return conn;
     }

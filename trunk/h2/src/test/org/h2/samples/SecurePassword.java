@@ -19,6 +19,11 @@ import java.util.Properties;
  */
 public class SecurePassword {
 
+    /**
+     * This method is called when executing this sample application.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] argv) throws Exception {
 
         Class.forName("org.h2.Driver");

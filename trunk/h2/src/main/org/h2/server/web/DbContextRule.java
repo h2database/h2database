@@ -30,8 +30,8 @@ public class DbContextRule implements Rule {
     static final int COLUMN_ALIAS = 4, SCHEMA = 5;
     private static final boolean SUGGEST_TABLE_ALIAS = false;
     
-    DbContents contents;
-    int type;
+    private DbContents contents;
+    private int type;
 
     DbContextRule(DbContents contents, int type) {
         this.contents = contents;
@@ -319,7 +319,7 @@ public class DbContextRule implements Rule {
         return true;
     }
     
-    public String matchSchema(Sentence sentence) {
+    private String matchSchema(Sentence sentence) {
         String query = sentence.query;
         String up = sentence.queryUpper;
         DbSchema[] schemas = contents.schemas;
@@ -346,7 +346,7 @@ public class DbContextRule implements Rule {
         return query;
     }
 
-    public String matchTable(Sentence sentence) {
+    private String matchTable(Sentence sentence) {
         String query = sentence.query;
         String up = sentence.queryUpper;
         DbSchema schema = sentence.getLastMatchedSchema();
@@ -400,7 +400,7 @@ public class DbContextRule implements Rule {
         return query.substring(alias.length());
     }
 
-    public String matchTableAlias(Sentence sentence, boolean add) {
+    private String matchTableAlias(Sentence sentence, boolean add) {
         String query = sentence.query;
         String up = sentence.queryUpper;
         int i = 0;
@@ -454,7 +454,7 @@ public class DbContextRule implements Rule {
         return null;
     }
 
-    public String matchColumn(Sentence sentence) {
+    private String matchColumn(Sentence sentence) {
         String query = sentence.query;
         String up = sentence.queryUpper;
         HashSet set = sentence.getTables();

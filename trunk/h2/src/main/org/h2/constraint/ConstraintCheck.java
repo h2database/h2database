@@ -139,4 +139,8 @@ public class ConstraintCheck extends Constraint {
         }
     }
 
+    public Index getUniqueIndex() {
+        return null;
+    }
+
 }

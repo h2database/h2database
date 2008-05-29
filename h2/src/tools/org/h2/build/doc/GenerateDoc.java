@@ -99,7 +99,7 @@ public class GenerateDoc {
         byte[] bytes = IOUtils.readBytesAndClose(in, 0);
         if (fileName.endsWith(".html")) {
             String page = new String(bytes);
-            page = PageParser.parse(null, page, session);
+            page = PageParser.parse(page, session);
             bytes = page.getBytes();
         }
         out.write(bytes);

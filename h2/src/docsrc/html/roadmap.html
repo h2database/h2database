@@ -53,11 +53,12 @@ Roadmap
 <li>Automatic mode: jdbc:h2:auto: (embedded mode if possible, if not use server mode). Keep the server running until all have disconnected.
 </li><li>Support function overloading as in Java (multiple functions with the same name, but different parameter count or data types).
 </li><li>Linked tables that point to the same database should share the connection ([SHARED CONNECTION]). Serialize access to the connection.
+</li><li>Procedural language / script language (Javascript)
 </li><li>Linked tables should support a schema name: CREATE LINKED TABLE ... (... [schemaName, ] originalTableString) - DB2: SET SCHEMA after connecting
 </li><li>Option to shutdown all the running servers (on the same VM).
 </li><li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
+</li><li>H2 Console: new option 'Open a browser when starting the H2 Console'.
 </li><li>Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
-</li><li>Procedural language / script language (Javascript)
 </li><li>Full outer joins
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
@@ -362,7 +363,6 @@ Roadmap
     Also support it when using INSERT ... SELECT. 
 </li><li>HSQLDB compatibility: automatic data type for SUM if value is the value is too big (by default use the same type as the data).
 </li><li>Improve the optimizer to select the right index for special cases: where id between 2 and 4 and booleanColumn
-</li><li>H2 Console: new option 'Open a browser when starting the H2 Console'.
 </li><li>Enable warning for 'Local variable declaration hides another field or variable'.
 </li><li>Linked tables: make hidden columns available (Oracle: rowid and ora_rowscn columns).
 </li><li>Support merge join.

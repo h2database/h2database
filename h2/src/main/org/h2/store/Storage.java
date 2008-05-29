@@ -34,6 +34,10 @@ import org.h2.util.MathUtils;
  */
 public class Storage {
 
+    /**
+     * This value is used to indicate that the position is not yet known, and
+     * space needs to be allocated.
+     */
     public static final int ALLOCATE_POS = -1;
     private static final int FREE_LIST_SIZE = Math.max(1024, DiskFile.BLOCKS_PER_PAGE * 4);
     private DiskFile file;
@@ -46,6 +50,14 @@ public class Storage {
     private DataPage dummy;
     private int pageCheckIndex;
 
+    /**
+     * Create a new storage object for this file.
+     * 
+     * @param database the database
+     * @param file the file
+     * @param reader the reader that can parse records
+     * @param id the storage id
+     */
     public Storage(Database database, DiskFile file, RecordReader reader, int id) {
         this.database = database;
         this.file = file;
@@ -54,6 +66,11 @@ public class Storage {
         dummy = DataPage.create(database, 0);
     }
 
+    /**
+     * Get the record parser for this storage.
+     * 
+     * @return the record parser
+     */
     public RecordReader getRecordReader() {
         return reader;
     }
@@ -62,10 +79,24 @@ public class Storage {
         recordCount++;
     }
 
+    /**
+     * Read a record from the file or cache.
+     * 
+     * @param session the session
+     * @param pos the position of the record
+     * @return the record
+     */
     public Record getRecord(Session session, int pos) throws SQLException {
         return file.getRecord(session, pos, reader, id);
     }
 
+    /**
+     * Read a record if it is stored at that location.
+     * 
+     * @param session the session
+     * @param pos the position where it is stored
+     * @return the record or null
+     */
     public Record getRecordIfStored(Session session, int pos) throws SQLException {
         return file.getRecordIfStored(session, pos, reader, id);
     }
@@ -119,11 +150,24 @@ public class Storage {
         }
     }
 
+    /**
+     * Update an existing record.
+     * 
+     * @param session the session
+     * @param record the record
+     */
     public void updateRecord(Session session, Record record) throws SQLException {
         record.setDeleted(false);
         file.updateRecord(session, record);
     }
 
+    /**
+     * Add or update a record in the file.
+     * 
+     * @param session the session
+     * @param record the record
+     * @param pos the position (use ALLOCATE_POS to add a new record)
+     */
     public void addRecord(Session session, Record record, int pos) throws SQLException {
         record.setStorageId(id);
         int size = file.getRecordOverhead() + record.getByteCount(dummy);
@@ -142,6 +186,12 @@ public class Storage {
         file.addRecord(session, record);
     }
 
+    /**
+     * Remove a record.
+     * 
+     * @param session the session
+     * @param pos where the record is stored
+     */
     public void removeRecord(Session session, int pos) throws SQLException {
         checkOnePage();
         Record record = getRecord(session, pos);
@@ -168,7 +218,7 @@ public class Storage {
         }
     }
 
-    public int allocate(int blockCount) throws SQLException {
+    private int allocate(int blockCount) throws SQLException {
         if (freeList.size() > 0) {
             synchronized (database) {
                 BitField used = file.getUsed();
@@ -202,10 +252,6 @@ public class Storage {
         }
     }
 
-    public void delete(Session session) throws SQLException {
-        truncate(session);
-    }
-
     //    private int allocateBest(int start, int blocks) {
     //        while (true) {
     //            int p = getLastUsedPlusOne(start, blocks);
@@ -219,24 +265,49 @@ public class Storage {
     //        return start;
     //    }
 
+    /**
+     * Get the unique storage id.
+     * 
+     * @return the id
+     */
     public int getId() {
         return id;
     }
 
+    /**
+     * Get the number of records in this storage.
+     * 
+     * @return the number of records
+     */
     public int getRecordCount() {
         return recordCount;
     }
 
+    /**
+     * Delete all records from this storage.
+     * 
+     * @param session the session
+     */
     public void truncate(Session session) throws SQLException {
         freeList = new IntArray();
         recordCount = 0;
         file.truncateStorage(session, this, pages);
     }
 
+    /**
+     * Set the record parser for this storage.
+     * 
+     * @param reader the record parser
+     */
     public void setReader(RecordReader reader) {
         this.reader = reader;
     }
 
+    /**
+     * Write this record now.
+     * 
+     * @param rec the record to write
+     */
     public void flushRecord(Record rec) throws SQLException {
         file.writeBack(rec);
     }
@@ -245,6 +316,11 @@ public class Storage {
         file.flush();
     }
 
+    /**
+     * Get the overhead to store a record (header data) in number of bytes.
+     * 
+     * @return the overhead
+     */
     public int getRecordOverhead() {
         return file.getRecordOverhead();
     }
@@ -253,6 +329,11 @@ public class Storage {
         return file;
     }
 
+    /**
+     * Update the record count.
+     * 
+     * @param recordCount the new record count
+     */
     public void setRecordCount(int recordCount) {
         this.recordCount = recordCount;
     }

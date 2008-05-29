@@ -70,7 +70,7 @@ public class FileStoreInputStream extends InputStream {
         return read == 0 ? -1 : read;
     }
 
-    public int readBlock(byte[] buff, int off, int len) throws IOException {
+    private int readBlock(byte[] buff, int off, int len) throws IOException {
         fillBuffer();
         if (endOfFile) {
             return -1;

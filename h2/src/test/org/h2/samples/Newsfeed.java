@@ -25,6 +25,11 @@ import org.h2.util.StringUtils;
  */
 public class Newsfeed {
 
+    /**
+     * This method is called when executing this sample application.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
         String targetDir = args.length == 0 ? "." : args[0];
         Class.forName("org.h2.Driver");

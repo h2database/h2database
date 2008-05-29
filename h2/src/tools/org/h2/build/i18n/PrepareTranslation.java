@@ -136,7 +136,7 @@ public class PrepareTranslation {
             // remove '.jsp'
             name = name.substring(0, name.length() - 4);
             String template = IOUtils.readStringAndClose(new FileReader(templateDir + "/" + name + ".jsp"), -1);
-            String html = PageParser.parse(null, template, prop);
+            String html = PageParser.parse(template, prop);
             html = StringUtils.replaceAll(html, "lang=\"" + MAIN_LANGUAGE + "\"", "lang=\"" + language + "\"");
             for (int j = 0; j < fileNames.size(); j++) {
                 String n = (String) fileNames.get(j);

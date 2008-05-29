@@ -234,7 +234,7 @@ public class StringUtils {
         }
     }
 
-    public static String utf8Decode(byte[] bytes, int offset, int length) {
+    private static String utf8Decode(byte[] bytes, int offset, int length) {
         try {
             return new String(bytes, offset, length, Constants.UTF8);
         } catch (UnsupportedEncodingException e) {
@@ -466,7 +466,7 @@ public class StringUtils {
      * @param s the string
      * @return the indented string
      */
-    public static String indent(String s) {
+    private static String indent(String s) {
         return indent(s, 4);
     }
 
@@ -476,7 +476,7 @@ public class StringUtils {
      * @param spaces the number of spaces
      * @return the indented string
      */
-    public static String indent(String s, int spaces) {
+    private static String indent(String s, int spaces) {
         StringBuffer buff = new StringBuffer(s.length() + spaces);
         for (int i = 0; i < s.length();) {
             for (int j = 0; j < spaces; j++) {

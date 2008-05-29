@@ -22,6 +22,11 @@ import org.h2.tools.RunScript;
  */
 public class Compact {
 
+    /**
+     * This method is called when executing this sample application.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
         DeleteDbFiles.execute("data", "test", true);
         Class.forName("org.h2.Driver");

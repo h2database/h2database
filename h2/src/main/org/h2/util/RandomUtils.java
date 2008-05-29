@@ -146,6 +146,11 @@ public class RandomUtils {
         }
     }
 
+    /**
+     * Get a cryptographically secure pseudo random long value.
+     * 
+     * @return the random long value
+     */
     public static long getSecureLong() {
         SecureRandom sr = getSecureRandom();
         synchronized (sr) {
@@ -153,6 +158,12 @@ public class RandomUtils {
         }
     }
 
+    /**
+     * Get a number of cryptographically secure pseudo random bytes.
+     * 
+     * @param len the number of bytes
+     * @return the random bytes
+     */
     public static byte[] getSecureBytes(int len) {
         if (len <= 0) {
             len = 1;
@@ -165,8 +176,14 @@ public class RandomUtils {
         return buff;
     }
 
-    public static int nextInt(int max) {
-        return random.nextInt(max);
+    /**
+     * Get a cryptographically secure pseudo random int value between 0 (including and the given value (excluding).
+     * 
+     * @param lower the value returned will be lower than this value
+     * @return the random long value
+     */
+    public static int nextInt(int lower) {
+        return random.nextInt(lower);
     }
 
     static void warn(String s, Throwable t) {

@@ -19,6 +19,11 @@ import org.h2.tools.Server;
  */
 public class MixedMode {
 
+    /**
+     * This method is called when executing this sample application.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
 
         // start the server, allows to access the database remotely

@@ -26,6 +26,11 @@ public class SQLInjection {
     private Connection conn;
     private Statement stat;
 
+    /**
+     * This method is called when executing this sample application.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
         new SQLInjection().run("org.h2.Driver",
                 "jdbc:h2:test", "sa", "sa");

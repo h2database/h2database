@@ -47,7 +47,11 @@ public class TcpServer implements Service {
     // TODO better exception message if the port is already in use, maybe
     // automatically use the next free port?
 
+    /**
+     * The default port to use for the TCP server.
+     */
     public static final int DEFAULT_PORT = 9092;
+    
     private static final int SHUTDOWN_NORMAL = 0;
     private static final int SHUTDOWN_FORCE = 1;
 
@@ -329,10 +333,17 @@ public class TcpServer implements Service {
         return "H2 TCP Server";
     }
 
-    public boolean getIfExists() {
+    boolean getIfExists() {
         return ifExists;
     }
 
+    /**
+     * Stop the TCP server with the given URL. 
+     * 
+     * @param url the database URL
+     * @param password the password
+     * @param force if the server should be stopped immediately
+     */
     public static synchronized void shutdown(String url, String password, boolean force) throws SQLException {
         int port = Constants.DEFAULT_SERVER_PORT;
         int idx = url.indexOf(':', "jdbc:h2:".length());
@@ -380,7 +391,7 @@ public class TcpServer implements Service {
         }
     }
 
-    public void cancelStatement(String sessionId, int statementId) throws SQLException {
+    void cancelStatement(String sessionId, int statementId) throws SQLException {
         ArrayList list = new ArrayList(running);
         for (int i = 0; i < list.size(); i++) {
             TcpServerThread c = (TcpServerThread) list.get(i);

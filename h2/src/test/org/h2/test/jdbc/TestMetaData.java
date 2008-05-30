@@ -32,6 +32,7 @@ public class TestMetaData extends TestBase {
         deleteDb("metaData");
         conn = getConnection("metaData");
 
+        testColumnMetaData();
         testColumnPrecision();
         testColumnDefault();
         testCrossReferences();
@@ -193,6 +194,14 @@ public class TestMetaData extends TestBase {
         conn.close();
         testTempTable();
 
+    }
+
+    private void testColumnMetaData() throws Exception {
+        String statement = "select substring('Hello',0,1)";
+        ResultSet rs = conn.prepareStatement(statement).executeQuery();
+        rs.next();
+        int type = rs.getMetaData().getColumnType(1);
+        check(Types.VARCHAR, type);
     }
 
     private void testColumnPrecision() throws Exception {

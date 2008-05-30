@@ -1630,7 +1630,6 @@ class WebThread extends Thread implements DatabaseEventListener {
                 generatedKeys = true;
                 sql = sql.substring("@GENERATED".length()).trim();
             } else if (sql.startsWith("@LOOP")) {
-                metadata = true;
                 sql = sql.substring("@LOOP".length()).trim();
                 int idx = sql.indexOf(' ');
                 int count = MathUtils.decodeInt(sql.substring(0, idx));

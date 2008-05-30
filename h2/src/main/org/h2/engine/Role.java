@@ -33,11 +33,26 @@ public class Role extends RightOwner {
         return null;
     }
 
-    public String getCreateSQL() {
+    /**
+     * Get the CREATE SQL statement for this object.
+     * 
+     * @param ifNotExists true if IF NOT EXISTS should be used
+     * @return the SQL statement
+     */
+    public String getCreateSQL(boolean ifNotExists) {
         if (system) {
             return null;
         }
-        return "CREATE ROLE " + getSQL();
+        StringBuffer buff = new StringBuffer("CREATE ROLE ");
+        if (ifNotExists) {
+            buff.append("IF NOT EXISTS ");
+        }
+        buff.append(getSQL());
+        return buff.toString();
+    }
+
+    public String getCreateSQL() {
+        return getCreateSQL(false);
     }
 
     public int getType() {

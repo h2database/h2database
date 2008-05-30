@@ -25,6 +25,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.ObjectArray;
+import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
@@ -284,14 +285,8 @@ public abstract class Query extends Prepared {
                             String tb = c2.getSQL(); 
                             // getTableAlias();
                             found = col.equals(c2.getColumnName());
-                            if (ta == null || tb == null) {
-                                if (ta != tb) {
-                                    found = false;
-                                }
-                            } else {
-                                if (!ta.equals(tb)) {
-                                    found = false;
-                                }
+                            if (!StringUtils.equals(ta, tb)) {
+                                found = false;
                             }
                         }
                     }

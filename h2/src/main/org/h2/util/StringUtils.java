@@ -381,7 +381,13 @@ public class StringUtils {
     }
 
     /**
-     * Formats a date using a format string
+     * Formats a date using a format string.
+     * 
+     * @param date the date to format
+     * @param format the format string
+     * @param locale the locale
+     * @param timeZone the timezone
+     * @return the formatted date
      */
     public static String formatDateTime(Date date, String format, String locale, String timeZone) throws SQLException {
         SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
@@ -391,7 +397,13 @@ public class StringUtils {
     }
 
     /**
-     * Parses a date using a format string
+     * Parses a date using a format string.
+     * 
+     * @param date the date to parse
+     * @param format the parsing format
+     * @param locale the locale
+     * @param timeZone the timeZone
+     * @return the parsed date
      */
     public static Date parseDateTime(String date, String format, String locale, String timeZone) throws SQLException {
         SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);

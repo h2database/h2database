@@ -46,7 +46,10 @@ public class TraceObject {
         this.id = id;
     }
 
-    protected int getTraceId() {
+    /**
+     * INTERNAL
+     */
+    public int getTraceId() {
         return id;
     }
 
@@ -171,7 +174,7 @@ public class TraceObject {
         return buff.toString();
     }
 
-    protected SQLException logAndConvert(Throwable e) {
+    protected SQLException logAndConvert(Exception e) {
         if (SysProperties.LOG_ALL_ERRORS) {
             synchronized (TraceObject.class) {
                 // e.printStackTrace();

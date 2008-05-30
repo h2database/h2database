@@ -14,7 +14,6 @@ import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
@@ -25,8 +24,8 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.ObjectUtils;
 import org.h2.util.ObjectArray;
+import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -115,7 +114,6 @@ public class Aggregate extends Expression {
     
     private static final HashMap AGGREGATES = new HashMap();
 
-    private final Database database;
     private final int type;
     private final Select select;
     private final boolean distinct;
@@ -131,14 +129,12 @@ public class Aggregate extends Expression {
     /**
      * Create a new aggregate object.
      * 
-     * @param database the database
      * @param type the aggregate type
      * @param on the aggregated expression
      * @param select the select statement
      * @param distinct if distinct is used
      */
-    public Aggregate(Database database, int type, Expression on, Select select, boolean distinct) {
-        this.database = database;
+    public Aggregate(int type, Expression on, Select select, boolean distinct) {
         this.type = type;
         this.on = on;
         this.select = select;
@@ -210,8 +206,8 @@ public class Aggregate extends Expression {
         for (int i = 0; i < orderList.size(); i++) {
             SelectOrderBy o = (SelectOrderBy) orderList.get(i);
             index[i] = i + 1;
-            int type = o.descending ? SortOrder.DESCENDING : SortOrder.ASCENDING;
-            sortType[i] = type;
+            int order = o.descending ? SortOrder.DESCENDING : SortOrder.ASCENDING;
+            sortType[i] = order;
         }
         return new SortOrder(session.getDatabase(), index, sortType);
     }
@@ -246,7 +242,7 @@ public class Aggregate extends Expression {
                 }
             }
         }
-        data.add(database, distinct, v);
+        data.add(session.getDatabase(), distinct, v);
     }
 
     public Value getValue(Session session) throws SQLException {
@@ -284,7 +280,7 @@ public class Aggregate extends Expression {
         if (data == null) {
             data = new AggregateData(type);
         }
-        Value v = data.getValue(database, distinct);
+        Value v = data.getValue(session.getDatabase(), distinct);
         if (type == GROUP_CONCAT) {
             ObjectArray list = data.getList();
             if (list == null || list.size() == 0) {
@@ -304,7 +300,7 @@ public class Aggregate extends Expression {
                             }
                         }
                     });
-                } catch (Error e) {
+                } catch (Exception e) {
                     throw Message.convert(e);
                 }
             }
@@ -445,34 +441,37 @@ public class Aggregate extends Expression {
     public int getDisplaySize() {
         return displaySize;
     }
+    
+    private String getSQLGroupConcat() {
+        StringBuffer buff = new StringBuffer();
+        buff.append("GROUP_CONCAT(");
+        buff.append(on.getSQL());
+        if (orderList != null) {
+            buff.append(" ORDER BY ");
+            for (int i = 0; i < orderList.size(); i++) {
+                SelectOrderBy o = (SelectOrderBy) orderList.get(i);
+                if (i > 0) {
+                    buff.append(", ");
+                }
+                buff.append(o.expression.getSQL());
+                if (o.descending) {
+                    buff.append(" DESC");
+                }
+            }
+        }
+        if (separator != null) {
+            buff.append(" SEPARATOR ");
+            buff.append(separator.getSQL());
+        }
+        buff.append(")");
+        return buff.toString();
+    }
 
     public String getSQL() {
         String text;
         switch (type) {
-        case GROUP_CONCAT: {
-            StringBuffer buff = new StringBuffer();
-            buff.append("GROUP_CONCAT(");
-            buff.append(on.getSQL());
-            if (orderList != null) {
-                buff.append(" ORDER BY ");
-                for (int i = 0; i < orderList.size(); i++) {
-                    SelectOrderBy o = (SelectOrderBy) orderList.get(i);
-                    if (i > 0) {
-                        buff.append(", ");
-                    }
-                    buff.append(o.expression.getSQL());
-                    if (o.descending) {
-                        buff.append(" DESC");
-                    }
-                }
-            }
-            if (separator != null) {
-                buff.append(" SEPARATOR ");
-                buff.append(separator.getSQL());
-            }
-            buff.append(")");
-            return buff.toString();
-        }
+        case GROUP_CONCAT:
+            return getSQLGroupConcat();
         case COUNT_ALL:
             return "COUNT(*)";
         case COUNT:

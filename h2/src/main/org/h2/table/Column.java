@@ -6,6 +6,7 @@
  */
 package org.h2.table;
 
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -41,9 +42,20 @@ import org.h2.value.ValueUuid;
  */
 public class Column {
     
-    // must be equal to ResultSetMetaData columnNoNulls, columnNullable,
-    // columnNullableUnknown
-    public static final int NOT_NULLABLE = 0, NULLABLE = 1, NULLABLE_UNKNOWN = 2;
+    /**
+     * This column is not nullable.
+     */
+    public static final int NOT_NULLABLE = ResultSetMetaData.columnNoNulls;
+    
+    /**
+     * This column is nullable.
+     */
+    public static final int NULLABLE = ResultSetMetaData.columnNullable;
+    
+    /**
+     * It is not know whether this column is nullable.
+     */
+    public static final int NULLABLE_UNKNOWN = ResultSetMetaData.columnNullableUnknown;
 
     private final int type;
     private final long precision;

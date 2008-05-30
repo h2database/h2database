@@ -136,7 +136,7 @@ public class TcpServer implements Service {
         }
     }
 
-    public void init(String[] args) throws Exception {
+    public void init(String[] args) {
         port = DEFAULT_PORT;
         for (int i = 0; i < args.length; i++) {
             String a = args[i];

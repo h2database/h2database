@@ -119,7 +119,8 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable 
     public abstract void checkExistingData(Session session) throws SQLException;
     
     /**
-     * Get the unique index used to enforce this constraint, or null if no index is used.
+     * Get the unique index used to enforce this constraint, or null if no index
+     * is used.
      * 
      * @return the index
      */

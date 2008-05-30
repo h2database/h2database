@@ -11,7 +11,7 @@ import org.h2.result.Row;
 /**
  * Represents a index node of a tree index.
  */
-public class TreeNode {
+class TreeNode {
     int balance;
     TreeNode left, right, parent;
     Row row;

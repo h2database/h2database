@@ -812,7 +812,7 @@ public class Select extends Query {
 
     public String getPlanSQL() {
         if (topTableFilter == null) {
-            return sql;
+            return sqlStatement;
         }
         StringBuffer buff = new StringBuffer();
         Expression[] exprList = new Expression[expressions.size()];

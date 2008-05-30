@@ -95,9 +95,9 @@ public class CompareLike extends Condition {
             if (e == ValueNull.INSTANCE) {
                 return ValueExpression.NULL;
             }
-            String pattern = r.getString();
-            initPattern(pattern, getEscapeChar(e));
-            if ("%".equals(pattern)) {
+            String p = r.getString();
+            initPattern(p, getEscapeChar(e));
+            if ("%".equals(p)) {
                 // optimization for X LIKE '%': convert to X IS NOT NULL
                 return new Comparison(session, Comparison.IS_NOT_NULL, left, null).optimize(session);
             }
@@ -206,12 +206,12 @@ public class CompareLike extends Condition {
             if (r == ValueNull.INSTANCE) {
                 return r;
             }
-            String pattern = r.getString();
+            String p = r.getString();
             Value e = escape == null ? null : escape.getValue(session);
             if (e == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
-            initPattern(pattern, getEscapeChar(e));
+            initPattern(p, getEscapeChar(e));
         }
         String value = l.getString();
         boolean result;

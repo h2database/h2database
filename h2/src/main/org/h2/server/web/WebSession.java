@@ -23,7 +23,7 @@ import org.h2.message.TraceSystem;
  * The web session keeps all data of a user session.
  * This class is used by the H2 Console.
  */
-public class WebSession {
+class WebSession {
     
     private static final int MAX_HISTORY = 1000;
     

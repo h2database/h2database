@@ -214,7 +214,7 @@ public class Database implements DataHandler {
                     // applets may not do that - ignore
                 }
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             if (traceSystem != null) {
                 traceSystem.getTrace(Trace.DATABASE).error("opening " + databaseName, e);
                 traceSystem.close();
@@ -518,7 +518,7 @@ public class Database implements DataHandler {
             fileData.init();
             try {
                 fileIndex.init();
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 if (recovery) {
                     traceSystem.getTrace(Trace.DATABASE).error("opening index", e);
                     ArrayList list = new ArrayList(storageMap.values());
@@ -637,7 +637,7 @@ public class Database implements DataHandler {
                     if (view.getInvalid()) {
                         try {
                             view.recompile(session);
-                        } catch (Throwable e) {
+                        } catch (SQLException e) {
                             // ignore
                         }
                         if (!view.getInvalid()) {

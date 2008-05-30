@@ -6,7 +6,6 @@
  */
 package org.h2.engine;
 
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -114,11 +113,10 @@ public abstract class RightOwner extends DbObjectBase {
     /**
      * Grant a role to this object.
      * 
-     * @param session the session
      * @param role the role
      * @param right the right to grant
      */
-    public void grantRole(Session session, Role role, Right right) {
+    public void grantRole(Role role, Right right) {
         if (grantedRoles == null) {
             grantedRoles = new HashMap();
         }
@@ -128,11 +126,10 @@ public abstract class RightOwner extends DbObjectBase {
     /**
      * Remove the right for the given role.
      * 
-     * @param session the session
      * @param role the role to revoke
      * @throws SQLException if the right has not been granted
      */
-    public void revokeRole(Session session, Role role) throws SQLException {
+    public void revokeRole(Role role) {
         if (grantedRoles == null) {
             return;
         }

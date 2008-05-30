@@ -232,7 +232,7 @@ public class Storage {
                     } else {
                         if (isFreeAndMine(px, blockCount)) {
                             int pos = px;
-                            freeList.remove(i--);
+                            freeList.remove(i);
                             file.setUsed(pos, blockCount);
                             return pos;
                         }

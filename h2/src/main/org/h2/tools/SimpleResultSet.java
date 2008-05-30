@@ -212,6 +212,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Add a new row to the result set.
      *
      * @param row the row as an array of objects
+     * @throws SQLException
      */
     public void addRow(Object[] row) throws SQLException {
         if (rows == null) {
@@ -283,6 +284,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Moves the cursor to the next row of the result set.
      *
      * @return true if successful, false if there are no more rows
+     * @throws SQLException
      */
     public boolean next() throws SQLException {
         if (source != null) {
@@ -328,6 +330,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a byte.
      *
      * @return the value
+     * @throws SQLException
      */
     public byte getByte(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
@@ -341,6 +344,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as an double.
      *
      * @return the value
+     * @throws SQLException
      */
     public double getDouble(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
@@ -354,6 +358,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a float.
      *
      * @return the value
+     * @throws SQLException
      */
     public float getFloat(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
@@ -367,6 +372,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as an int.
      *
      * @return the value
+     * @throws SQLException
      */
     public int getInt(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
@@ -380,6 +386,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a long.
      *
      * @return the value
+     * @throws SQLException
      */
     public long getLong(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
@@ -393,6 +400,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a short.
      *
      * @return the value
+     * @throws SQLException
      */
     public short getShort(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
@@ -406,6 +414,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a boolean.
      *
      * @return the value
+     * @throws SQLException
      */
     public boolean getBoolean(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
@@ -419,6 +428,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a byte array.
      *
      * @return the value
+     * @throws SQLException
      */
     public byte[] getBytes(int columnIndex) throws SQLException {
         return (byte[]) get(columnIndex);
@@ -428,6 +438,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as an Object.
      *
      * @return the value
+     * @throws SQLException
      */
     public Object getObject(int columnIndex) throws SQLException {
         return get(columnIndex);
@@ -437,6 +448,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a String.
      *
      * @return the value
+     * @throws SQLException
      */
     public String getString(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
@@ -447,6 +459,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a byte.
      *
      * @return the value
+     * @throws SQLException
      */
     public byte getByte(String columnName) throws SQLException {
         return getByte(findColumn(columnName));
@@ -456,6 +469,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a double.
      *
      * @return the value
+     * @throws SQLException
      */
     public double getDouble(String columnName) throws SQLException {
         return getDouble(findColumn(columnName));
@@ -465,6 +479,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a float.
      *
      * @return the value
+     * @throws SQLException
      */
     public float getFloat(String columnName) throws SQLException {
         return getFloat(findColumn(columnName));
@@ -492,6 +507,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as an int.
      *
      * @return the value
+     * @throws SQLException
      */
     public int getInt(String columnName) throws SQLException {
         return getInt(findColumn(columnName));
@@ -501,6 +517,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a long.
      *
      * @return the value
+     * @throws SQLException
      */
     public long getLong(String columnName) throws SQLException {
         return getLong(findColumn(columnName));
@@ -510,6 +527,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a short.
      *
      * @return the value
+     * @throws SQLException
      */
     public short getShort(String columnName) throws SQLException {
         return getShort(findColumn(columnName));
@@ -519,6 +537,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a boolean.
      *
      * @return the value
+     * @throws SQLException
      */
     public boolean getBoolean(String columnName) throws SQLException {
         return getBoolean(findColumn(columnName));
@@ -528,6 +547,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a byte array.
      *
      * @return the value
+     * @throws SQLException
      */
     public byte[] getBytes(String columnName) throws SQLException {
         return getBytes(findColumn(columnName));
@@ -537,6 +557,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a java.math.BigDecimal.
      *
      * @return the value
+     * @throws SQLException
      */
     public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
@@ -550,6 +571,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as an java.sql.Date.
      *
      * @return the value
+     * @throws SQLException
      */
     public Date getDate(int columnIndex) throws SQLException {
         return (Date) get(columnIndex);
@@ -586,6 +608,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as an java.sql.Time.
      *
      * @return the value
+     * @throws SQLException
      */
     public Time getTime(int columnIndex) throws SQLException {
         return (Time) get(columnIndex);
@@ -595,6 +618,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as an java.sql.Timestamp.
      *
      * @return the value
+     * @throws SQLException
      */
     public Timestamp getTimestamp(int columnIndex) throws SQLException {
         return (Timestamp) get(columnIndex);
@@ -604,6 +628,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a java.sql.Array.
      *
      * @return the value
+     * @throws SQLException
      */
     public Array getArray(int columnIndex) throws SQLException {
         return new SimpleArray((Object[]) get(columnIndex));
@@ -613,6 +638,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as an Object.
      *
      * @return the value
+     * @throws SQLException
      */
     public Object getObject(String columnName) throws SQLException {
         return getObject(findColumn(columnName));
@@ -622,6 +648,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a String.
      *
      * @return the value
+     * @throws SQLException
      */
     public String getString(String columnName) throws SQLException {
         return getString(findColumn(columnName));
@@ -631,6 +658,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a java.math.BigDecimal.
      *
      * @return the value
+     * @throws SQLException
      */
     public BigDecimal getBigDecimal(String columnName) throws SQLException {
         return getBigDecimal(findColumn(columnName));
@@ -640,6 +668,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a java.sql.Date.
      *
      * @return the value
+     * @throws SQLException
      */
     public Date getDate(String columnName) throws SQLException {
         return getDate(findColumn(columnName));
@@ -649,6 +678,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a java.sql.Time.
      *
      * @return the value
+     * @throws SQLException
      */
     public Time getTime(String columnName) throws SQLException {
         return getTime(findColumn(columnName));
@@ -658,6 +688,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a java.sql.Timestamp.
      *
      * @return the value
+     * @throws SQLException
      */
     public Timestamp getTimestamp(String columnName) throws SQLException {
         return getTimestamp(findColumn(columnName));
@@ -667,6 +698,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the value as a java.sql.Array.
      *
      * @return the value
+     * @throws SQLException
      */
     public Array getArray(String columnName) throws SQLException {
         return getArray(findColumn(columnName));
@@ -697,6 +729,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the SQL type.
      *
      * @return the SQL type
+     * @throws SQLException
      */
     public int getColumnType(int columnIndex) throws SQLException {
         return getColumn(columnIndex - 1).sqlType;
@@ -706,6 +739,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the precision.
      *
      * @return the precision
+     * @throws SQLException
      */
     public int getPrecision(int columnIndex) throws SQLException {
         return getColumn(columnIndex - 1).precision;
@@ -715,6 +749,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the scale.
      *
      * @return the scale
+     * @throws SQLException
      */
     public int getScale(int columnIndex) throws SQLException {
         return getColumn(columnIndex - 1).scale;
@@ -823,6 +858,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the column name.
      *
      * @return the column name
+     * @throws SQLException
      */
     public String getColumnLabel(int columnIndex) throws SQLException {
         return getColumn(columnIndex - 1).name;
@@ -832,6 +868,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * Returns the column name.
      *
      * @return the column name
+     * @throws SQLException
      */
     public String getColumnName(int columnIndex) throws SQLException {
         return getColumnLabel(columnIndex);

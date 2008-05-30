@@ -33,7 +33,7 @@ public abstract class Prepared {
     /**
      * The SQL string.
      */
-    protected String sql;
+    protected String sqlStatement;
 
     /**
      * The position of the head record (used for indexes).
@@ -202,7 +202,7 @@ public abstract class Prepared {
      * @param sql the SQL statement
      */
     public void setSQL(String sql) {
-        this.sql = sql;
+        this.sqlStatement = sql;
     }
 
     /**
@@ -211,7 +211,7 @@ public abstract class Prepared {
      * @return the SQL statement
      */
     public String getSQL() {
-        return sql;
+        return sqlStatement;
     }
     
     protected int getCurrentObjectId() {
@@ -305,7 +305,7 @@ public abstract class Prepared {
             } else {
                 params = "";
             }
-            session.getTrace().infoSQL(sql, params, count, time);
+            session.getTrace().infoSQL(sqlStatement, params, count, time);
         }
     }
 
@@ -343,7 +343,7 @@ public abstract class Prepared {
      * @return the SQL statement
      */
     public String toString() {
-        return sql;
+        return sqlStatement;
     }
 
 }

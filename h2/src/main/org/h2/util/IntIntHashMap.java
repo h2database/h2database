@@ -99,7 +99,6 @@ public class IntIntHashMap extends HashBase {
                 return;
             }
             index = (index + plus++) & mask;
-            k = keys[index];
         } while(plus <= len);
         // not found
     }

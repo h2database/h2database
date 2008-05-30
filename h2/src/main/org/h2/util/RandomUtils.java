@@ -177,7 +177,8 @@ public class RandomUtils {
     }
 
     /**
-     * Get a cryptographically secure pseudo random int value between 0 (including and the given value (excluding).
+     * Get a cryptographically secure pseudo random int value between 0
+     * (including and the given value (excluding).
      * 
      * @param lower the value returned will be lower than this value
      * @return the random long value

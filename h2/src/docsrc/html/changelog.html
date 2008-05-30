@@ -17,23 +17,29 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>Infinite numbers in SQL script are listed as POWER(0, -1)), negative 
-        infinite as (-POWER(0, -1)), and NaN (not a number) as SQRT(-1).
-</li><li>The special double and float values 'NaN' (not a number) did not work 
-        correctly when sorting or comparing.
+<li>ParameterMetaData now also returns the right data type for most 
+        conditions, as in WHERE ID=?.
+</li><li>The table SYSTEM_RANGE now supports expressions and parameters.
+</li><li>New column INFORMATION_SCHEMA.CONSTRAINTS.UNIQUE_INDEX_NAME 
+        that contains the name of the unique index used to enforce this 
+        constraint, if there is such an index.
 </li><li>SET QUERY_TIMEOUT and Statement.setQueryTimeout no longer commits 
         a transaction. The same applies to SET @VARIABLE, SET LOCK_TIMEOUT, 
         SET TRACE_LEVEL_*, SET THROTTLE, and SET PATH.
-</li><li>ParameterMetaData now also returns the right data type for most 
-        conditions, as in WHERE ID=?.
-</li><li>Negative scale values for DECIMAL or NUMBER columns are now supported
-        in regular tables and in linked tables.
+</li><li>The SCRIPT command does now emit IF NOT EXISTS for CREATE ROLE.
 </li><li>MySQL compatibility: auto_increment column are no longer automatically 
         converted to primary key columns.
 </li><li>PostgreSQL compatibility: support for BOOL_OR and BOOL_AND 
         aggregate functions.
-</li><li>The fulltext search did not support CLOB data types. Fixed.
-</li><li>The table SYSTEM_RANGE now supports expressions and parameters.
+</li><li>Negative scale values for DECIMAL or NUMBER columns are now supported
+        in regular tables and in linked tables.
+</li><li>A role or right can now be granted or revoked multiple times without
+        getting an exception.
+</li><li>Infinite numbers in SQL script are listed as POWER(0, -1)), negative 
+        infinite as (-POWER(0, -1)), and NaN (not a number) as SQRT(-1).
+</li><li>The special double and float values 'NaN' (not a number) did not work 
+        correctly when sorting or comparing.
+</li><li>The fulltext search did not support CLOB data types.
 </li><li>If the drive with the database files was disconnected or unmounted 
         while writing, sometimes a stack overflow exception was thrown 
         instead of a IO exception.

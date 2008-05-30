@@ -201,8 +201,8 @@ public class MultiVersionIndex implements Index {
         return base.getCreateSQL();
     }
 
-    public String getCreateSQLForCopy(Table table, String quotedName) {
-        return base.getCreateSQLForCopy(table, quotedName);
+    public String getCreateSQLForCopy(Table forTable, String quotedName) {
+        return base.getCreateSQLForCopy(forTable, quotedName);
     }
 
     public String getDropSQL() {

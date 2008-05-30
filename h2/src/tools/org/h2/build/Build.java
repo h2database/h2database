@@ -129,6 +129,7 @@ public class Build extends BuildBase {
     public void docs() {
         javadoc();
         copy("docs", getFiles("src/docsrc/index.html"), "src/docsrc");
+        java("org.h2.build.doc.XMLChecker", null);
         java("org.h2.build.code.CheckJavadoc", null);
         java("org.h2.build.code.CheckTextFiles", null);
         java("org.h2.build.doc.GenerateDoc", null);

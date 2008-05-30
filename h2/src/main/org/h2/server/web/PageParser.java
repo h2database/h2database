@@ -6,6 +6,7 @@
  */
 package org.h2.server.web;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,11 +48,11 @@ public class PageParser {
         result = new StringBuffer(s);
     }
 
-    private String parseBlockUntil(String end) throws Exception {
+    private String parseBlockUntil(String end) throws ParseException {
         PageParser block = new PageParser(page, settings, pos);
         block.parseAll();
         if (!block.readIf(end)) {
-            throw new Exception();
+            throw new ParseException(page, block.pos);
         }
         pos = block.pos;
         return block.result.toString();
@@ -63,14 +64,14 @@ public class PageParser {
             if (pos != len) {
                 setError(pos);
             }
-        } catch (Exception e) {
+        } catch (ParseException e) {
             // TODO log error
             setError(pos);
         }
         return result.toString();
     }
 
-    private void parseAll() throws Exception {
+    private void parseAll() throws ParseException {
         StringBuffer buff = result;
         String p = page;
         int i = pos;
@@ -78,22 +79,6 @@ public class PageParser {
             char c = p.charAt(i);
             switch (c) {
             case '<': {
-//                if (p.charAt(i + 1) == '%') {
-//                    // TODO <%@include %>: never used
-//                    if (p.charAt(i + 2) == '@') {
-//                        i += 3;
-//                        pos = i;
-//                        read("include");
-//                        String file = readParam("file");
-//                        read("%>");
-//                        String s = server.getTextFile(file);
-//                        append(s);
-//                        i = pos;
-//                    } else {
-//                        buff.append(c);
-//                    }
-//                    break;
-//                } else 
                 if (p.charAt(i + 3) == ':' && p.charAt(i + 1) == '/') {
                     // end tag
                     pos = i;
@@ -163,6 +148,7 @@ public class PageParser {
                 break;
             default:
                 buff.append(c);
+                break;
             }
         }
         pos = i;
@@ -188,7 +174,7 @@ public class PageParser {
         }
     }
 
-    private String readParam(String name) throws Exception {
+    private String readParam(String name) throws ParseException {
         read(name);
         read("=");
         read("\"");
@@ -208,9 +194,9 @@ public class PageParser {
         }
     }
 
-    private void read(String s) throws Exception {
+    private void read(String s) throws ParseException {
         if (!readIf(s)) {
-            throw new Exception();
+            throw new ParseException(s, pos);
         }
     }
 
@@ -303,6 +289,7 @@ public class PageParser {
                 } else {
                     buff.append(c);
                 }
+                break;
             }
         }
         return buff.toString();
@@ -339,6 +326,7 @@ public class PageParser {
                 break;
             default:
                 buff.append(c);
+                break;
             }
         }
         return buff.toString();

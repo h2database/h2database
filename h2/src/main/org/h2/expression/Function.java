@@ -340,6 +340,7 @@ public class Function extends Expression implements FunctionCall {
      * such function.
      * 
      * @param name the function name
+     * @return the function info
      */
     public static FunctionInfo getFunctionInfo(String name) {
         return (FunctionInfo) FUNCTIONS.get(name);

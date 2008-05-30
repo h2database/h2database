@@ -167,10 +167,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-grant select on test to sa;
-
-
-
 C:\download\Data Concurrency and Consistency.pdf
 
 detect deadlock alarm
@@ -181,23 +177,9 @@ Procedure
 DeallocateProcedure DEALLOCATE [PLAN] <name>
 ExecuteProcedure EXECUTE <name>[([p[,...])]
 
-> DROP TABLE IF EXISTS TEST;
-> CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
-> INSERT INTO TEST VALUES(1, 'Hello');
-> INSERT INTO TEST VALUES(2, 'World');
-> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
-> CREATE USER IF NOT EXISTS SERGEY PASSWORD '' ;
-> CREATE ROLE IF NOT EXISTS MANAGER;
-> GRANT MANAGER TO SERGEY;
-> GRANT SELECT ON PUBLIC.TEST TO MANAGER;
->
-> SCRIPT DROP TO 'SCRIPT_ERROR.SQL';
-> RUNSCRIPT FROM 'SCRIPT_ERROR.SQL';
-Ignore errors if role already granted? What do other dbs do?
-Maybe add a REVOKE before the GRANT?
-
-Concurrent update in table test: another transaction has updated or deleted the same row
-when exactly does it occur in other databases (PostgreSQL, Oracle)?
+Concurrent update in table test: another transaction has updated or 
+deleted the same row when exactly does it occur in other databases 
+(PostgreSQL, Oracle)?
 
 create an mbean for each database? server? (jconsole)
 
@@ -261,6 +243,7 @@ History:
         constraint, if there is such an index.
     It is now possible to grant or revoke a role to a user multiple times without
         getting an exception.
+    The SCRIPT command does now emit IF NOT EXISTS for CREATE ROLE.
 
 Roadmap:
 

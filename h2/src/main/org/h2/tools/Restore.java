@@ -58,7 +58,6 @@ public class Restore extends Tool {
         String zipFileName = "backup.zip";
         String dir = ".";
         String db = null;
-        boolean quiet = false;
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg.equals("-dir")) {
@@ -68,7 +67,7 @@ public class Restore extends Tool {
             } else if (arg.equals("-db")) {
                 db = args[++i];
             } else if (arg.equals("-quiet")) {
-                quiet = true;
+                // ignore
             } else if (arg.equals("-help") || arg.equals("-?")) {
                 showUsage();
                 return;
@@ -78,7 +77,7 @@ public class Restore extends Tool {
                 return;
             }
         }
-        process(zipFileName, dir, db, quiet);
+        process(zipFileName, dir, db);
     }
 
     private static String getOriginalDbName(String fileName, String db) throws IOException {
@@ -131,7 +130,7 @@ public class Restore extends Tool {
      * @throws SQLException
      */
     public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
-        new Restore().process(zipFileName, directory, db, quiet);
+        new Restore().process(zipFileName, directory, db);
     }
     
     /**
@@ -143,7 +142,7 @@ public class Restore extends Tool {
      * @param quiet don't print progress information
      * @throws SQLException
      */
-    private void process(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
+    private void process(String zipFileName, String directory, String db) throws SQLException {
         InputStream in = null;
         try {
             if (!FileUtils.exists(zipFileName)) {

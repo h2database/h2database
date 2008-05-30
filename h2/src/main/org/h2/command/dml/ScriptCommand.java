@@ -154,7 +154,7 @@ public class ScriptCommand extends ScriptBase {
             ObjectArray roles = db.getAllRoles();
             for (int i = 0; i < roles.size(); i++) {
                 Role role = (Role) roles.get(i);
-                add(role.getCreateSQL(), false);
+                add(role.getCreateSQL(true), false);
             }
             ObjectArray schemas = db.getAllSchemas();
             for (int i = 0; i < schemas.size(); i++) {

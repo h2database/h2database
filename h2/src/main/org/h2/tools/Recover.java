@@ -622,7 +622,7 @@ public class Recover extends Tool implements DataHandler {
             int blocks = (int) (length / blockSize);
             blockCount = 1;
             int[] pageOwners = new int[blocks / DiskFile.BLOCKS_PER_PAGE];
-            for (int block = 0; block < blocks; block += blockCount) {
+            for (block = 0; block < blocks; block += blockCount) {
                 store.seek(offset + (long) block * blockSize);
                 byte[] buff = new byte[blockSize];
                 DataPage s = DataPage.create(this, buff);
@@ -678,7 +678,7 @@ public class Recover extends Tool implements DataHandler {
             writer.close();
         } catch (Throwable e) {
             writeError(writer, e);
-e.printStackTrace();            
+            e.printStackTrace();
         } finally {
             IOUtils.closeSilently(writer);
             closeSilently(store);
@@ -718,7 +718,7 @@ e.printStackTrace();
             int blocks = (int) (length / blockSize);
             blockCount = 1;
             int[] pageOwners = new int[blocks / DiskFile.BLOCKS_PER_PAGE];
-            for (int block = 0; block < blocks; block += blockCount) {
+            for (block = 0; block < blocks; block += blockCount) {
                 store.seek(offset + (long) block * blockSize);
                 byte[] buff = new byte[blockSize];
                 DataPage s = DataPage.create(this, buff);
@@ -908,7 +908,6 @@ e.printStackTrace();
     private void closeSilently(FileStore store) {
         if (store != null) {
             store.closeSilently();
-            store = null;
         }
     }
 

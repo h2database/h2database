@@ -349,8 +349,6 @@ public class FtpControl extends Thread {
                 processRemoveDir(param);
             }
             break;
-        default:
-            break;
         }
     }
 

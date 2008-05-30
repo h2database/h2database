@@ -1006,7 +1006,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             Class clazz = java.sql.Savepoint.class;
             clazz.getClass();
             //## Java 1.4 end ##
-        } catch (Exception e) {
+        } catch (NoClassDefFoundError e) {
             throw Message.getSQLException(ErrorCode.UNSUPPORTED_JAVA_VERSION);
         }
     }

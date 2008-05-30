@@ -49,7 +49,7 @@ implements ParameterMetaData
             debugCodeCall("getParameterCount");
             checkClosed();
             return paramCount;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -67,7 +67,7 @@ implements ParameterMetaData
             debugCodeCall("getParameterMode", param);
             getParameter(param);
             return parameterModeIn;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -89,7 +89,7 @@ implements ParameterMetaData
                 type = Value.STRING;
             }
             return DataType.getDataType(type).sqlType;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -106,7 +106,7 @@ implements ParameterMetaData
             debugCodeCall("getPrecision", param);
             ParameterInterface p = getParameter(param);
             return MathUtils.convertLongToInt(p.getPrecision());
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -123,7 +123,7 @@ implements ParameterMetaData
             debugCodeCall("getScale", param);
             ParameterInterface p = getParameter(param);
             return p.getScale();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -139,7 +139,7 @@ implements ParameterMetaData
         try {
             debugCodeCall("isNullable", param);
             return getParameter(param).getNullable();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -156,7 +156,7 @@ implements ParameterMetaData
             debugCodeCall("isSigned", param);
             getParameter(param);
             return true;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -177,7 +177,7 @@ implements ParameterMetaData
                 type = Value.STRING;
             }
             return DataType.getTypeClassName(type);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -198,7 +198,7 @@ implements ParameterMetaData
                 type = Value.STRING;
             }
             return DataType.getDataType(type).name;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }

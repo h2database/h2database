@@ -75,7 +75,7 @@ implements Savepoint
                 throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_NAMED);
             }
             return savepointId;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -92,7 +92,7 @@ implements Savepoint
                 throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_UNNAMED);
             }
             return name;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }

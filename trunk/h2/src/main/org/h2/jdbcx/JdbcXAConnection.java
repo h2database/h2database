@@ -19,10 +19,10 @@ import javax.sql.XAConnection;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.util.ByteUtils;
 import org.h2.util.JdbcConnectionListener;
 import org.h2.util.JdbcUtils;
-import org.h2.jdbc.JdbcConnection;
 //## Java 1.4 end ##
 
 import org.h2.message.TraceObject;
@@ -83,6 +83,8 @@ implements XAConnection, XAResource, JdbcConnectionListener
     /**
      * Close the physical connection.
      * This method is usually called by the connection pool.
+     * 
+     * @throws SQLException
      */
 //## Java 1.4 begin ##
     public void close() throws SQLException {
@@ -102,6 +104,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * pool when there are no more connections in the pool.
      * 
      * @return the connection
+     * @throws SQLException
      */
 //## Java 1.4 begin ##
     public Connection getConnection() throws SQLException {
@@ -217,6 +220,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * @param flag TMSTARTRSCAN, TMENDRSCAN, or TMNOFLAGS. If no other flags are set,
      *  TMNOFLAGS must be used.
      *  @return zero or more Xid objects
+     * @throws XAException
      */
 //## Java 1.4 begin ##
     public Xid[] recover(int flag) throws XAException {
@@ -249,6 +253,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * Prepare a transaction.
      *
      * @param xid the transaction id
+     * @throws XAException     
      */
 //## Java 1.4 begin ##
     public int prepare(Xid xid) throws XAException {
@@ -291,6 +296,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * Roll back a transaction.
      *
      * @param xid the transaction id
+     * @throws XAException
      */
 //## Java 1.4 begin ##
     public void rollback(Xid xid) throws XAException {
@@ -311,6 +317,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      *
      * @param xid the transaction id
      * @param flags TMSUCCESS, TMFAIL, or TMSUSPEND
+     * @throws XAException
      */
 //## Java 1.4 begin ##
     public void end(Xid xid, int flags) throws XAException {
@@ -332,6 +339,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      *
      * @param xid the transaction id
      * @param flags TMNOFLAGS, TMJOIN, or TMRESUME
+     * @throws XAException
      */
 //## Java 1.4 begin ##
     public void start(Xid xid, int flags) throws XAException {
@@ -358,6 +366,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      *
      * @param xid the transaction id
      * @param onePhase use a one-phase protocol if true
+     * @throws XAException
      */
 //## Java 1.4 begin ##
     public void commit(Xid xid, boolean onePhase) throws XAException {

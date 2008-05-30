@@ -42,13 +42,14 @@ public class JdbcArray extends TraceObject implements Array {
      * This method always returns an Object[].
      *
      * @return the Object array
+     * @throws SQLException
      */
     public Object getArray() throws SQLException {
         try {
             debugCodeCall("getArray");
             checkClosed();
             return get();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -59,6 +60,7 @@ public class JdbcArray extends TraceObject implements Array {
      *
      * @param map is ignored. Only empty or null maps are supported
      * @return the Object array
+     * @throws SQLException
      */
     public Object getArray(Map map) throws SQLException {
         try {
@@ -66,7 +68,7 @@ public class JdbcArray extends TraceObject implements Array {
             checkMap(map);
             checkClosed();
             return get();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -79,13 +81,14 @@ public class JdbcArray extends TraceObject implements Array {
      * @param index the start index of the subset (starting with 1)
      * @param count the maximum number of values
      * @return the Object array
+     * @throws SQLException
      */
     public Object getArray(long index, int count) throws SQLException {
         try {
             debugCode("getArray(" + index + ", " + count + ");");
             checkClosed();
             return get(index, count);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -99,6 +102,7 @@ public class JdbcArray extends TraceObject implements Array {
      * @param count the maximum number of values
      * @param map is ignored. Only empty or null maps are supported
      * @return the Object array
+     * @throws SQLException
      */
     public Object getArray(long index, int count, Map map) throws SQLException {
         try {
@@ -106,7 +110,7 @@ public class JdbcArray extends TraceObject implements Array {
             checkClosed();
             checkMap(map);
             return get(index, count);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -116,13 +120,14 @@ public class JdbcArray extends TraceObject implements Array {
      * arrays and therefore there is no base type.
      * 
      * @return Types.NULL
+     * @throws SQLException
      */
     public int getBaseType() throws SQLException {
         try {
             debugCodeCall("getBaseType");
             checkClosed();
             return Types.NULL;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -132,13 +137,14 @@ public class JdbcArray extends TraceObject implements Array {
      * type arrays and therefore there is no base type.
      * 
      * @return "NULL"
+     * @throws SQLException
      */
     public String getBaseTypeName() throws SQLException {
         try {
             debugCodeCall("getBaseTypeName");
             checkClosed();
             return "NULL";
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -149,13 +155,14 @@ public class JdbcArray extends TraceObject implements Array {
      * (starting with 1) and the second column the value.
      * 
      * @return the result set
+     * @throws SQLException
      */
     public ResultSet getResultSet() throws SQLException {
         try {
             debugCodeCall("getResultSet");
             checkClosed();
             return getResultSet(get(), 0);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -166,6 +173,7 @@ public class JdbcArray extends TraceObject implements Array {
      * 
      * @param map is ignored. Only empty or null maps are supported
      * @return the result set
+     * @throws SQLException
      */
     public ResultSet getResultSet(Map map) throws SQLException {
         try {
@@ -173,7 +181,7 @@ public class JdbcArray extends TraceObject implements Array {
             checkClosed();
             checkMap(map);
             return getResultSet(get(), 0);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -187,13 +195,14 @@ public class JdbcArray extends TraceObject implements Array {
      * @param index the start index of the subset (starting with 1)
      * @param count the maximum number of values
      * @return the result set
+     * @throws SQLException
      */
     public ResultSet getResultSet(long index, int count) throws SQLException {
         try {
             debugCode("getResultSet("+index+", " + count+");");
             checkClosed();
             return getResultSet(get(index, count), index);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -209,6 +218,7 @@ public class JdbcArray extends TraceObject implements Array {
      * @param count the maximum number of values
      * @param map is ignored. Only empty or null maps are supported
      * @return the result set
+     * @throws SQLException
      */
     public ResultSet getResultSet(long index, int count, Map map) throws SQLException {
         try {
@@ -216,7 +226,7 @@ public class JdbcArray extends TraceObject implements Array {
             checkClosed();
             checkMap(map);
             return getResultSet(get(index, count), index);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }

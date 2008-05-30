@@ -27,7 +27,6 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Map;
 
-import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
 import org.h2.message.TraceObject;
 
@@ -37,8 +36,9 @@ import org.h2.message.TraceObject;
  */
 public class JdbcCallableStatement extends JdbcPreparedStatement implements CallableStatement {
 
-    JdbcCallableStatement(SessionInterface session, JdbcConnection conn, String sql, int resultSetType, int id) throws SQLException {
-        super(session, conn, sql, resultSetType, id, false);
+    JdbcCallableStatement(JdbcConnection conn, String sql, int resultSetType, int id) 
+            throws SQLException {
+        super(conn, sql, resultSetType, id, false);
         setTrace(session.getTrace(), TraceObject.CALLABLE_STATEMENT, id);
     }
 

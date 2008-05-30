@@ -55,7 +55,7 @@ public class Driver implements java.sql.Driver {
                 return null;
             }
             return new JdbcConnection(url, info);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw Message.convert(e);
         }
     }

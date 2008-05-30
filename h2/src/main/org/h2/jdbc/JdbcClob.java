@@ -76,7 +76,7 @@ public class JdbcClob extends TraceObject implements Clob
             } finally {
                 in.close();
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -100,7 +100,7 @@ public class JdbcClob extends TraceObject implements Clob
             checkClosed();
             String s = value.getString();
             return IOUtils.getInputStream(s);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -123,7 +123,7 @@ public class JdbcClob extends TraceObject implements Clob
             debugCodeCall("getCharacterStream");
             checkClosed();
             return value.getReader();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -168,7 +168,7 @@ public class JdbcClob extends TraceObject implements Clob
                 reader.close();
             }
             return buff.toString();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }

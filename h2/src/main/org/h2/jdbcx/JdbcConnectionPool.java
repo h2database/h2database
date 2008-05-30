@@ -26,9 +26,9 @@ import java.sql.SQLException;
 import java.util.Stack;
 
 import javax.sql.ConnectionEvent;
-import javax.sql.DataSource;
 import javax.sql.ConnectionEventListener;
 import javax.sql.ConnectionPoolDataSource;
+import javax.sql.DataSource;
 import javax.sql.PooledConnection;
 
 /*## Java 1.6 begin ##

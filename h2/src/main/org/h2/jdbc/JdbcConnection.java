@@ -118,7 +118,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             this.url = ci.getURL();
             openStackTrace = new Exception("Stack Trace");
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -149,8 +149,8 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCodeAssign("Statement", TraceObject.STATEMENT, id, "createStatement()");
             }
             checkClosed();
-            return new JdbcStatement(session, this, ResultSet.TYPE_FORWARD_ONLY, id, false);
-        } catch (Throwable e) {
+            return new JdbcStatement(this, ResultSet.TYPE_FORWARD_ONLY, id, false);
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -170,8 +170,8 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCodeAssign("Statement", TraceObject.STATEMENT, id, "createStatement(" + resultSetType + ", " + resultSetConcurrency + ")");
             }
             checkClosed();
-            return new JdbcStatement(session, this, resultSetType, id, false);
-        } catch (Throwable e) {
+            return new JdbcStatement(this, resultSetType, id, false);
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -194,8 +194,8 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             checkClosed();
             checkHoldability(resultSetHoldability);
-            return new JdbcStatement(session, this, resultSetType, id, false);
-        } catch (Throwable e) {
+            return new JdbcStatement(this, resultSetType, id, false);
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -215,8 +215,8 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             checkClosed();
             sql = translateSQL(sql);
-            return new JdbcPreparedStatement(session, this, sql, ResultSet.TYPE_FORWARD_ONLY, id, false);
-        } catch (Throwable e) {
+            return new JdbcPreparedStatement(this, sql, ResultSet.TYPE_FORWARD_ONLY, id, false);
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -229,8 +229,8 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             checkClosed();
             sql = translateSQL(sql);
-            return new JdbcPreparedStatement(session, this, sql, ResultSet.TYPE_FORWARD_ONLY, id, true);
-        } catch (Throwable e) {
+            return new JdbcPreparedStatement(this, sql, ResultSet.TYPE_FORWARD_ONLY, id, true);
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -250,7 +250,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             checkClosed();
             return new JdbcDatabaseMetaData(this, trace, id);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -322,7 +322,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                     session = null;
                 }
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -356,7 +356,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 setAutoCommitFalse = prepareCommand("SET AUTOCOMMIT FALSE", setAutoCommitFalse);
                 setAutoCommitFalse.executeUpdate();
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -373,7 +373,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             checkClosed();
             debugCodeCall("getAutoCommit");
             return getInternalAutoCommit();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -400,7 +400,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             checkClosed();
             commit = prepareCommand("COMMIT", commit);
             commit.executeUpdate();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -417,7 +417,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeCall("rollback");
             checkClosed();
             rollbackInternal();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -431,7 +431,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         try {
             debugCodeCall("isClosed");
             return session == null || session.isClosed();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -448,7 +448,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeCall("nativeSQL", sql);
             checkClosed();
             return translateSQL(sql);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -467,7 +467,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCode("setReadOnly(" + readOnly + ");");
             }
             checkClosed();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -488,7 +488,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             result.next();
             boolean readOnly = result.currentRow()[0].getBoolean().booleanValue();
             return readOnly;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -503,7 +503,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         try {
             debugCodeCall("setCatalog", catalog);
             checkClosed();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -526,7 +526,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 cat.close();
             }
             return catalog;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -541,7 +541,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeCall("getWarnings");
             checkClosed();
             return null;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -553,7 +553,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         try {
             debugCodeCall("clearWarnings");
             checkClosed();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -575,8 +575,8 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             checkClosed();
             sql = translateSQL(sql);
-            return new JdbcPreparedStatement(session, this, sql, resultSetType, id, false);
-        } catch (Throwable e) {
+            return new JdbcPreparedStatement(this, sql, resultSetType, id, false);
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -616,7 +616,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             setLockMode = prepareCommand("SET LOCK_MODE ?", setLockMode);
             ((ParameterInterface) setLockMode.getParameters().get(0)).setValue(ValueInt.get(lockMode), false);
             setLockMode.executeUpdate();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -629,7 +629,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             setQueryTimeout = prepareCommand("SET QUERY_TIMEOUT ?", setQueryTimeout);
             ((ParameterInterface) setQueryTimeout.getParameters().get(0)).setValue(ValueInt.get(seconds * 1000), false);
             setQueryTimeout.executeUpdate();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -650,7 +650,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             // round to the next second, otherwise 999 millis would return 0 seconds
             return (queryTimeout + 999) / 1000;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
 
@@ -687,7 +687,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 throw Message.getInternalError("lockMode:" + lockMode);
             }
             return transactionIsolationLevel;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -708,7 +708,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             checkClosed();
             checkHoldability(holdability);
             this.holdability = holdability;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -724,7 +724,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeCall("getHoldability");
             checkClosed();
             return holdability;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -741,7 +741,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeCall("getTypeMap");
             checkClosed();
             return null;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -754,7 +754,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         try {
             debugCode("setTypeMap(" + quoteMap(map) + ");");
             checkMap(map);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -774,8 +774,8 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             checkClosed();
             sql = translateSQL(sql);
-            return new JdbcCallableStatement(session, this, sql, ResultSet.TYPE_FORWARD_ONLY, id);
-        } catch (Throwable e) {
+            return new JdbcCallableStatement(this, sql, ResultSet.TYPE_FORWARD_ONLY, id);
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -797,8 +797,8 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             checkClosed();
             sql = translateSQL(sql);
-            return new JdbcCallableStatement(session, this, sql, resultSetType, id);
-        } catch (Throwable e) {
+            return new JdbcCallableStatement(this, sql, resultSetType, id);
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -824,8 +824,8 @@ public class JdbcConnection extends TraceObject implements Connection {
             checkClosed();
             checkHoldability(resultSetHoldability);
             sql = translateSQL(sql);
-            return new JdbcCallableStatement(session, this, sql, resultSetType, id);
-        } catch (Throwable e) {
+            return new JdbcCallableStatement(this, sql, resultSetType, id);
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -848,7 +848,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             JdbcSavepoint savepoint = new JdbcSavepoint(this, savepointId, null, trace, id);
             savepointId++;
             return savepoint;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -871,7 +871,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             set.executeUpdate();
             JdbcSavepoint savepoint = new JdbcSavepoint(this, 0, name, trace, id);
             return savepoint;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -887,7 +887,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCode("rollback(" + sp.getTraceObjectName() + ");");
             checkClosed();
             sp.rollback();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -902,7 +902,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCode("releaseSavepoint(savepoint);");
             checkClosed();
             convertSavepoint(savepoint).release();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -934,8 +934,8 @@ public class JdbcConnection extends TraceObject implements Connection {
             checkClosed();
             checkHoldability(resultSetHoldability);
             sql = translateSQL(sql);
-            return new JdbcPreparedStatement(session, this, sql, resultSetType, id, false);
-        } catch (Throwable e) {
+            return new JdbcPreparedStatement(this, sql, resultSetType, id, false);
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -954,7 +954,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCode("prepareStatement(" + quote(sql) + ", " + autoGeneratedKeys + ");");
             }
             return prepareStatement(sql);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -973,7 +973,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCode("prepareStatement(" + quote(sql) + ", " + quoteIntArray(columnIndexes) + ");");
             }
             return prepareStatement(sql);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -992,7 +992,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCode("prepareStatement(" + quote(sql) + ", " + quoteArray(columnNames) + ");");
             }
             return prepareStatement(sql);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -1006,7 +1006,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             Class clazz = java.sql.Savepoint.class;
             clazz.getClass();
             //## Java 1.4 end ##
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw Message.getSQLException(ErrorCode.UNSUPPORTED_JAVA_VERSION);
         }
     }
@@ -1297,7 +1297,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             checkClosed();
             ValueLob v = ValueLob.createSmallLob(Value.CLOB, new byte[0]);
             return new JdbcClob(session, this, v, id);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -1314,7 +1314,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             checkClosed();
             ValueLob v = ValueLob.createSmallLob(Value.BLOB, new byte[0]);
             return new JdbcBlob(session, this, v, id);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -1332,7 +1332,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             checkClosed();
             ValueLob v = ValueLob.createSmallLob(Value.CLOB, new byte[0]);
             return new JdbcClob(session, this, v, id);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -1378,7 +1378,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             checkClosed();
             getInternalAutoCommit();
             return true;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             // this method doesn't throw an exception, but it logs it
             logAndConvert(e);
             return false;

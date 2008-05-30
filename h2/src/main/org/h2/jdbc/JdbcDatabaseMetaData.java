@@ -159,7 +159,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                 prep.setString(4 + i, types[i]);
             }
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -241,7 +241,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             prep.setString(3, getPattern(tableNamePattern));
             prep.setString(4, getPattern(columnNamePattern));
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -319,7 +319,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             prep.setString(2, getSchemaPattern(schema));
             prep.setString(3, tableName);
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -369,7 +369,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             prep.setString(2, getSchemaPattern(schema));
             prep.setString(3, tableName);
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -403,7 +403,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
         try {
             debugCodeCall("getURL");
             return conn.getURL();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -418,7 +418,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
         try {
             debugCodeCall("getUserName");
             return conn.getUser();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -432,7 +432,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
         try {
             debugCodeCall("isReadOnly");
             return conn.isReadOnly();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -538,7 +538,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, getPattern(procedureNamePattern));
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -600,7 +600,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             prep.setString(3, getPattern(procedureNamePattern));
             prep.setString(4, getPattern(columnNamePattern));
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -630,7 +630,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                             + "FROM INFORMATION_SCHEMA.SCHEMATA "
                             + "ORDER BY SCHEMA_NAME");
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -654,7 +654,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     "SELECT CATALOG_NAME TABLE_CAT "
                     + "FROM INFORMATION_SCHEMA.CATALOGS");
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -680,7 +680,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "FROM INFORMATION_SCHEMA.TABLE_TYPES "
                     + "ORDER BY TABLE_TYPE");
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -742,7 +742,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             prep.setString(3, table);
             prep.setString(4, getPattern(columnNamePattern));
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -797,7 +797,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, getPattern(tableNamePattern));
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -862,7 +862,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             prep.setString(4, getSchemaPattern(schema));
             prep.setString(5, tableName);
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -909,7 +909,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "FROM INFORMATION_SCHEMA.COLUMNS "
                     + "WHERE FALSE");
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -978,7 +978,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             prep.setString(2, getSchemaPattern(schema));
             prep.setString(3, tableName);
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -1048,7 +1048,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             prep.setString(2, getSchemaPattern(schema));
             prep.setString(3, tableName);
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -1134,7 +1134,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             prep.setString(5, getSchemaPattern(foreignSchema));
             prep.setString(6, foreignTable);
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -1182,7 +1182,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "FROM INFORMATION_SCHEMA.CATALOGS "
                     + "WHERE FALSE");
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -1244,7 +1244,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "ORDER BY DATA_TYPE, POS");
             ResultSet rs = prep.executeQuery();
             return rs;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -1356,7 +1356,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             rs.close();
             prep.close();
             return buff.toString();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -2463,7 +2463,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                         +quote(typeNamePattern)+");");
             }
             throw Message.getUnsupportedException();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -2499,7 +2499,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "FROM INFORMATION_SCHEMA.CATALOGS "
                     + "WHERE FALSE");
             return prep.executeQuery();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
@@ -2519,7 +2519,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                         +quote(attributeNamePattern)+");");
             }
             throw Message.getUnsupportedException();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw logAndConvert(e);
         }
     }

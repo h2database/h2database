@@ -44,7 +44,7 @@ implements Xid
             formatId = Integer.parseInt(tokenizer.nextToken());
             branchQualifier = ByteUtils.convertStringToBytes(tokenizer.nextToken());
             globalTransactionId = ByteUtils.convertStringToBytes(tokenizer.nextToken());
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw Message.getSQLException(ErrorCode.WRONG_XID_FORMAT_1, tid);
         }
     }

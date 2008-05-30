@@ -108,6 +108,9 @@ public class TestServlet extends TestBase {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * @deprecated
+         */
         public Servlet getServlet(String string) {
             throw new UnsupportedOperationException();
         }
@@ -116,10 +119,16 @@ public class TestServlet extends TestBase {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * @deprecated
+         */
         public Enumeration getServletNames() {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * @deprecated
+         */
         public Enumeration getServlets() {
             throw new UnsupportedOperationException();
         }
@@ -128,6 +137,9 @@ public class TestServlet extends TestBase {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * @deprecated
+         */
         public void log(Exception exception, String string) {
             throw new UnsupportedOperationException();
         }

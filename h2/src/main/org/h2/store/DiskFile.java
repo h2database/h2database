@@ -331,7 +331,7 @@ public class DiskFile implements CacheWriter {
                 stage++;
                 freeUnusedPages();
                 init = true;
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 database.getTrace(Trace.DATABASE).error(
                         "error initializing summary for " + fileName + " size:" + summary.length + " stage:" + stage, e);
                 // ignore - init is still false in this case

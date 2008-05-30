@@ -47,7 +47,8 @@ public interface Trigger {
      * @param type
      *            the operation type: INSERT, UPDATE, or DELETE
      */
-    void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) throws SQLException;
+    void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) 
+        throws SQLException;
 
     /**
      * This method is called for each triggered action.

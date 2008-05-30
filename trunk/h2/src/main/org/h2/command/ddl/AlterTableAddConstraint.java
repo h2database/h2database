@@ -234,8 +234,8 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             constraint = ref;
             refTable.addConstraint(constraint);
-            ref.setDeleteAction(session, deleteAction);
-            ref.setUpdateAction(session, updateAction);
+            ref.setDeleteAction(deleteAction);
+            ref.setUpdateAction(updateAction);
             break;
         }
         default:
@@ -263,13 +263,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
         indexType.setBelongsToConstraint(true);
         String prefix = constraintName == null ? "CONSTRAINT" : constraintName;
         String indexName = t.getSchema().getUniqueIndexName(t, prefix + "_INDEX_");
-        Index idx;
         try {
-            idx = t.addIndex(session, indexName, indexId, cols, indexType, Index.EMPTY_HEAD, null);
+            return t.addIndex(session, indexName, indexId, cols, indexType, Index.EMPTY_HEAD, null);
         } finally {
             getSchema().freeUniqueName(indexName);
         }
-        return idx;
     }
 
     public void setDeleteAction(int action) {
@@ -283,9 +281,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private Index getUniqueIndex(Table t, IndexColumn[] cols) {
         ObjectArray list = t.getIndexes();
         for (int i = 0; i < list.size(); i++) {
-            Index index = (Index) list.get(i);
-            if (canUseUniqueIndex(index, t, cols)) {
-                return index;
+            Index idx = (Index) list.get(i);
+            if (canUseUniqueIndex(idx, t, cols)) {
+                return idx;
             }
         }
         return null;
@@ -294,19 +292,19 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private Index getIndex(Table t, IndexColumn[] cols) {
         ObjectArray list = t.getIndexes();
         for (int i = 0; i < list.size(); i++) {
-            Index index = (Index) list.get(i);
-            if (canUseIndex(index, t, cols)) {
-                return index;
+            Index idx = (Index) list.get(i);
+            if (canUseIndex(idx, t, cols)) {
+                return idx;
             }
         }
         return null;
     }
 
-    private boolean canUseUniqueIndex(Index index, Table table, IndexColumn[] cols) {
-        if (index.getTable() != table || !index.getIndexType().isUnique()) {
+    private boolean canUseUniqueIndex(Index idx, Table table, IndexColumn[] cols) {
+        if (idx.getTable() != table || !idx.getIndexType().isUnique()) {
             return false;
         }
-        Column[] indexCols = index.getColumns();
+        Column[] indexCols = idx.getColumns();
         if (indexCols.length > cols.length) {
             return false;
         }

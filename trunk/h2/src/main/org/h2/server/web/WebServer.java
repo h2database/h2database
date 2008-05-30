@@ -189,7 +189,7 @@ public class WebServer implements Service {
         return startDateTime;
     }
 
-    public void init(String[] args) throws Exception {
+    public void init(String[] args) {
         // TODO web: support using a different properties file
         Properties prop = loadProperties();
         driverList = prop.getProperty("drivers");
@@ -516,7 +516,7 @@ public class WebServer implements Service {
         }
     }
 
-    Connection getConnection(String driver, String url, String user, String password, DatabaseEventListener listener) throws Exception {
+    Connection getConnection(String driver, String url, String user, String password, DatabaseEventListener listener) throws SQLException {
         driver = driver.trim();
         url = url.trim();
         org.h2.Driver.load();

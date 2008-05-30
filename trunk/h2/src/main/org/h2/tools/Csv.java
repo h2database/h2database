@@ -41,7 +41,7 @@ import org.h2.util.StringUtils;
  */
 public class Csv implements SimpleRowSource {
 
-    private String charset = StringUtils.getDefaultCharset();
+    private String streamCharset = StringUtils.getDefaultCharset();
     private int bufferSize = 8 * 1024;
     private String[] columnNames;
     private char fieldSeparatorRead = ',';
@@ -53,8 +53,8 @@ public class Csv implements SimpleRowSource {
     private String lineSeparator = SysProperties.LINE_SEPARATOR;
     private String nullString = "";
     private String fileName;
-    private Reader reader;
-    private Writer writer;
+    private Reader input;
+    private Writer output;
     private int back;
     private boolean endOfLine, endOfFile;
 
@@ -88,7 +88,7 @@ public class Csv implements SimpleRowSource {
                 writeRow(row);
                 rows++;
             }
-            writer.close();
+            output.close();
             return rows;
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
@@ -104,50 +104,46 @@ public class Csv implements SimpleRowSource {
      * @param writer the writer
      * @param rs the result set
      * @return the number of rows written
-     * @throws IOException
+     * @throws SQLException
      */
     public int write(Writer writer, ResultSet rs) throws SQLException {
-        this.writer = writer;
+        this.output = writer;
         return writeResultSet(rs);
     }
 
     /**
      * Writes the result set to a file in the CSV format.
      *
-     * @param fileName the name of the csv file
+     * @param outputFileName the name of the csv file
      * @param rs the result set
      * @param charset the charset or null to use UTF-8
      * @return the number of rows written
      * @throws SQLException
      */
-    public int write(String fileName, ResultSet rs, String charset) throws SQLException {
-        init(fileName, charset);
+    public int write(String outputFileName, ResultSet rs, String charset) throws SQLException {
+        init(outputFileName, charset);
         try {
             initWrite();
             return writeResultSet(rs);
         } catch (IOException e) {
-            throw convertException("IOException writing " + fileName, e);
+            throw convertException("IOException writing " + outputFileName, e);
         }
     }
 
     /**
      * Writes the result set of a query to a file in the CSV format.
      *
-     * @param conn
-     *            the connection
-     * @param fileName
-     *            the file name
-     * @param sql
-     *            the query
-     * @param charset
-     *            the charset or null to use UTF-8
+     * @param conn the connection
+     * @param outputFileName the file name
+     * @param sql the query
+     * @param charset the charset or null to use UTF-8
      * @return the number of rows written
      * @throws SQLException
      */
-    public int write(Connection conn, String fileName, String sql, String charset) throws SQLException {
+    public int write(Connection conn, String outputFileName, String sql, String charset) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery(sql);
-        int rows = write(fileName, rs, charset);
+        int rows = write(outputFileName, rs, charset);
         stat.close();
         return rows;
     }
@@ -157,18 +153,18 @@ public class Csv implements SimpleRowSource {
      * set are created on demand, that means the file is kept open until all
      * rows are read or the result set is closed.
      *
-     * @param fileName the file name
+     * @param inputFileName the file name
      * @param colNames or null if the column names should be read from the CSV file
      * @param charset the charset or null to use UTF-8
      * @return the result set
      * @throws SQLException
      */
-    public ResultSet read(String fileName, String[] colNames, String charset) throws SQLException {
-        init(fileName, charset);
+    public ResultSet read(String inputFileName, String[] colNames, String charset) throws SQLException {
+        init(inputFileName, charset);
         try {
             return readResultSet(colNames);
         } catch (IOException e) {
-            throw convertException("IOException reading " + fileName, e);
+            throw convertException("IOException reading " + inputFileName, e);
         }
     }
 
@@ -184,7 +180,7 @@ public class Csv implements SimpleRowSource {
      */
     public ResultSet read(Reader reader, String[] colNames) throws SQLException, IOException {
         init(null, null);
-        this.reader = reader;
+        this.input = reader;
         return readResultSet(colNames);
     }
 
@@ -208,7 +204,7 @@ public class Csv implements SimpleRowSource {
             for (int j = 0; j < i; j++) {
                 String y = columnNames[j];
                 if (x.equals(y)) {
-                    x = x + "1";
+                    x += "1";
                     j = -1;
                 }
             }
@@ -216,19 +212,19 @@ public class Csv implements SimpleRowSource {
         }
     }
 
-    private void init(String fileName, String charset) {
-        this.fileName = fileName;
+    private void init(String newFileName, String charset) {
+        this.fileName = newFileName;
         if (charset != null) {
-            this.charset = charset;
+            this.streamCharset = charset;
         }
     }
 
     private void initWrite() throws IOException {
-        if (writer == null) {
+        if (output == null) {
             try {
                 OutputStream out = new FileOutputStream(fileName);
                 out = new BufferedOutputStream(out, bufferSize);
-                writer = new BufferedWriter(new OutputStreamWriter(out, charset));
+                output = new BufferedWriter(new OutputStreamWriter(out, streamCharset));
             } catch (IOException e) {
                 close();
                 throw e;
@@ -240,31 +236,31 @@ public class Csv implements SimpleRowSource {
         for (int i = 0; i < values.length; i++) {
             if (i > 0) {
                 if (fieldSeparatorWrite != null) {
-                    writer.write(fieldSeparatorWrite);
+                    output.write(fieldSeparatorWrite);
                 }
             }
             String s = values[i];
             if (s != null) {
                 if (escapeCharacter != 0) {
                     if (fieldDelimiter != 0) {
-                        writer.write(fieldDelimiter);
+                        output.write(fieldDelimiter);
 
                     }
-                    writer.write(escape(s));
+                    output.write(escape(s));
                     if (fieldDelimiter != 0) {
-                        writer.write(fieldDelimiter);
+                        output.write(fieldDelimiter);
                     }
                 } else {
-                    writer.write(s);
+                    output.write(s);
                 }
             } else if (nullString != null && nullString.length() > 0) {
-                writer.write(nullString);
+                output.write(nullString);
             }
         }
         if (rowSeparatorWrite != null) {
-            writer.write(rowSeparatorWrite);
+            output.write(rowSeparatorWrite);
         }
-        writer.write(lineSeparator);
+        output.write(lineSeparator);
     }
 
     private String escape(String data) {
@@ -285,12 +281,12 @@ public class Csv implements SimpleRowSource {
     }
 
     private void initRead() throws IOException {
-        if (reader == null) {
+        if (input == null) {
             try {
                 InputStream in = FileUtils.openFileInputStream(fileName);
                 in = new BufferedInputStream(in, bufferSize);
-                reader = new InputStreamReader(in, charset);
-                reader = new BufferedReader(reader);
+                input = new InputStreamReader(in, streamCharset);
+                input = new BufferedReader(input);
             } catch (IOException e) {
                 close();
                 throw e;
@@ -333,7 +329,7 @@ public class Csv implements SimpleRowSource {
         } else if (endOfFile) {
             return -1;
         }
-        ch = reader.read();
+        ch = input.read();
         if (ch < 0) {
             endOfFile = true;
             close();
@@ -475,12 +471,13 @@ public class Csv implements SimpleRowSource {
      * INTERNAL
      */
     public Object[] readRow() throws SQLException {
-        if (reader == null) {
+        if (input == null) {
             return null;
         }
         String[] row = new String[columnNames.length];
         try {
-            for (int i = 0;; i++) {
+            int i = 0;
+            while (true) {
                 String v = readValue();
                 if (v == null) {
                     if (endOfFile && i == 0) {
@@ -489,14 +486,13 @@ public class Csv implements SimpleRowSource {
                     if (endOfLine) {
                         if (i == 0) {
                             // empty line
-                            i--;
                             continue;
                         }
                         break;
                     }
                 }
                 if (i < row.length) {
-                    row[i] = v;
+                    row[i++] = v;
                 }
             }
         } catch (IOException e) {
@@ -517,10 +513,10 @@ public class Csv implements SimpleRowSource {
      * INTERNAL
      */
     public void close() {
-        IOUtils.closeSilently(reader);
-        reader = null;
-        IOUtils.closeSilently(writer);
-        writer = null;
+        IOUtils.closeSilently(input);
+        input = null;
+        IOUtils.closeSilently(output);
+        output = null;
     }
 
     /**

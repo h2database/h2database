@@ -70,9 +70,8 @@ ShutdownHandler {
      * Options are case sensitive.
      *
      * @param args the command line arguments
-     * @throws Exception
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         int exitCode = new Console().run(args);
         if (exitCode != 0) {
             System.exit(exitCode);
@@ -87,31 +86,19 @@ ShutdownHandler {
             web.setShutdownHandler(this);
             web.start();
         } catch (SQLException e) {
-            if (web == null) {
-                e.printStackTrace();
-            } else {
-                System.out.println(web.getStatus());
-            }
+            printProblem(e, web);
         }
         try {
             tcp = Server.createTcpServer(args);
             tcp.start();
         } catch (SQLException e) {
-            if (tcp == null) {
-                e.printStackTrace();
-            } else {
-                System.out.println(tcp.getStatus());
-            }
+            printProblem(e, tcp);
         }
         try {
             pg = Server.createPgServer(args);
             pg.start();
         } catch (SQLException e) {
-            if (pg == null) {
-                e.printStackTrace();
-            } else {
-                System.out.println(pg.getStatus());
-            }
+            printProblem(e, pg);
         }
 //## AWT begin ##
         if (!GraphicsEnvironment.isHeadless()) {
@@ -140,6 +127,14 @@ ShutdownHandler {
             exitCode = EXIT_ERROR;
         }
         return exitCode;
+    }
+    
+    private void printProblem(SQLException e, Server server) {
+        if (server == null) {
+            e.printStackTrace();
+        } else {
+            System.out.println(server.getStatus());
+        }
     }
 
     private Image loadImage(String name) throws IOException {
@@ -234,7 +229,7 @@ ShutdownHandler {
              tray.getClass().
                 getMethod("add", new Class[] { Class.forName("java.awt.TrayIcon") }).
                 invoke(tray, new Object[] { trayIcon });
-
+             
              return true;
         } catch (Exception e) {
             return false;

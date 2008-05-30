@@ -76,7 +76,7 @@ public class SelectUnion extends Query {
     }
 
     public void setSQL(String sql) {
-        this.sql = sql;
+        this.sqlStatement = sql;
     }
 
     public void setOrder(ObjectArray order) {

@@ -476,10 +476,9 @@ public class ConstraintReferential extends Constraint {
     /**
      * Set the action to apply (restrict, cascade,...) on a delete.
      * 
-     * @param session the session
      * @param action the action
      */
-    public void setDeleteAction(Session session, int action) throws SQLException {
+    public void setDeleteAction(int action) throws SQLException {
         if (action == deleteAction) {
             return;
         }
@@ -513,10 +512,9 @@ public class ConstraintReferential extends Constraint {
     /**
      * Set the action to apply (restrict, cascade,...) on an update.
      * 
-     * @param session the session
      * @param action the action
      */
-    public void setUpdateAction(Session session, int action) throws SQLException {
+    public void setUpdateAction(int action) throws SQLException {
         if (action == updateAction) {
             return;
         }

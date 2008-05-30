@@ -466,7 +466,7 @@ public class Session implements SessionInterface {
         if (SysProperties.CHECK) {
             int lockMode = database.getLockMode();
             if (lockMode != Constants.LOCK_MODE_OFF && !database.isMultiVersion()) {
-                if (locks.indexOf(log.getTable()) < 0 && log.getTable().getTableType() != Table.TABLE_LINK) {
+                if (locks.indexOf(log.getTable()) < 0 && !Table.TABLE_LINK.equals(log.getTable().getTableType())) {
                     throw Message.getInternalError();
                 }
             }

@@ -29,9 +29,8 @@ public class CacheLRU implements Cache {
     private CacheObject head = new CacheHead();
 
     public CacheLRU(CacheWriter writer, int maxKb) {
-        int maxSize = maxKb * 1024 / 4;
+        this.maxSize = maxKb * 1024 / 4;
         this.writer = writer;
-        this.maxSize = maxSize;
         this.len = MathUtils.nextPowerOf2(maxSize / 64);
         this.mask = len - 1;
         MathUtils.checkPowerOf2(len);

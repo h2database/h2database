@@ -55,7 +55,7 @@ public class MultiDimension {
         for (int i = 0; i < dimensions; i++) {
             long k = values[i];
             if (k < 0 || k > max) {
-                throw new Error("value out of range; value=" + values[i] + " min=0 max=" + max);
+                throw new IllegalArgumentException("value out of range; value=" + values[i] + " min=0 max=" + max);
             }
             for (int b = 0; b < bitsPerValue; b++) {
                 x |= (k & (1L << b)) << (i + (dimensions - 1) * b);
@@ -64,7 +64,7 @@ public class MultiDimension {
         if (dimensions == 2) {
             long xx = getMorton2(values[0], values[1]);
             if (xx != x) {
-                throw new Error("test");
+                throw new IllegalArgumentException("test");
             }
         }
         return x;
@@ -192,10 +192,10 @@ public class MultiDimension {
      * @param max the maximum value
      * @return the list of ranges
      */
-    public long[][] getMortonRanges(int[] min, int[] max) {
+    private long[][] getMortonRanges(int[] min, int[] max) {
         int len = min.length;
         if (max.length != len) {
-            throw new Error("dimensions mismatch");
+            throw new IllegalArgumentException("dimensions mismatch");
         }
         for (int i = 0; i < len; i++) {
             if (min[i] > max[i]) {
@@ -239,8 +239,7 @@ public class MultiDimension {
                 return la[0] > lb[0] ? 1 : -1;
             }
         });
-        int minGap = 10;
-        for (;; minGap += minGap / 2) {
+        for (int minGap = 10;; minGap += minGap / 2) {
             for (int i = 0; i < list.size() - 1; i++) {
                 long[] current = (long[]) list.get(i);
                 long[] next = (long[]) list.get(i + 1);
@@ -263,18 +262,18 @@ public class MultiDimension {
 
     private void addMortonRanges(ArrayList list, int[] min, int[] max, int len, int level) {
         if (level > 100) {
-            throw new Error("Stop");
+            throw new IllegalArgumentException("Stop");
         }
         int largest = 0, largestDiff = 0;
         long size = 1;
         for (int i = 0; i < len; i++) {
             int diff = max[i] - min[i];
             if (diff < 0) {
-                throw new Error("Stop");
+                throw new IllegalArgumentException("Stop");
             }
             size *= diff + 1;
             if (size < 0) {
-                throw new Error("Stop");
+                throw new IllegalArgumentException("Stop");
             }
             if (diff > largestDiff) {
                 largestDiff = diff;
@@ -283,7 +282,7 @@ public class MultiDimension {
         }
         long low = interleave(min), high = interleave(max);
         if (high < low) {
-            throw new Error("Stop");
+            throw new IllegalArgumentException("Stop");
         }
         long range = high - low + 1;
         if (range == size) {
@@ -321,7 +320,7 @@ public class MultiDimension {
         scale--;
         int m = roundUp(a + 2, 1 << scale) - 1;
         if (m <= a || m >= b) {
-            throw new Error("stop");
+            throw new IllegalArgumentException("stop");
         }
         return m;
     }

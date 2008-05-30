@@ -23,7 +23,7 @@ import org.h2.value.ValueNull;
 /**
  * Data stored while calculating an aggregate.
  */
-public class AggregateData {
+class AggregateData {
     private final int aggregateType;
     private long count;
     private ValueHashMap distinctValues;
@@ -34,7 +34,7 @@ public class AggregateData {
     AggregateData(int aggregateType) {
         this.aggregateType = aggregateType;
     }
-
+    
     void add(Database database, boolean distinct, Value v) throws SQLException {
         if (aggregateType == Aggregate.SELECTIVITY) {
             count++;

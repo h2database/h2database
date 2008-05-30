@@ -145,7 +145,7 @@ public class GrantRevoke extends DefineCommand {
         int id = getObjectId(true, true);
         Right right = new Right(db, id, grantee, grantedRole);
         db.addDatabaseObject(session, right);
-        grantee.grantRole(session, grantedRole, right);
+        grantee.grantRole(grantedRole, right);
     }
 
     private void revokeRight() throws SQLException {

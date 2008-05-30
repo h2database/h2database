@@ -83,6 +83,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @param session the session
      * @param first the first row to return (null if no limit)
      * @param last the last  row to return (null if no limit)
+     * @return the cursor to iterate over the results
      */
     public abstract Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException;
 
@@ -91,6 +92,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      *
      * @param session the session
      * @param masks the condition mask
+     * @return the cost
      */
     public abstract double getCost(Session session, int[] masks) throws SQLException;
 

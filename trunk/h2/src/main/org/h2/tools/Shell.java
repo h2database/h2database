@@ -229,7 +229,7 @@ public class Shell {
                     upper = upper.substring("MAXWIDTH".length()).trim();
                     try {
                         maxColumnSize = Integer.parseInt(upper);
-                    } catch (Exception e) {
+                    } catch (NumberFormatException e) {
                         println("Usage: maxwidth <integer value>");
                     }
                     println("Maximum column width is now " + maxColumnSize);
@@ -237,10 +237,10 @@ public class Shell {
                     if (statement == null) {
                         statement = line;
                     } else {
-                        statement = statement + " " + line;
+                        statement += " " + line;
                     }
                     if (end) {
-                        execute(statement, listMode);
+                        execute(statement);
                         statement = null;
                     }
                 }
@@ -336,7 +336,7 @@ public class Shell {
             print("Password  ");
             char[] password = (char[]) readPassword.invoke(console, (Object[]) null);
             return password == null ? null : new String(password);
-        } catch (Throwable t) {
+        } catch (Exception e) {
             // ignore, use the default solution
         }
         /**
@@ -383,7 +383,7 @@ public class Shell {
         return line;
     }
     
-    private void execute(String sql, boolean listMode) {
+    private void execute(String sql) {
         long time = System.currentTimeMillis();
         boolean result;
         try {

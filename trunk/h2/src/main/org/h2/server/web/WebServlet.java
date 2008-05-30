@@ -50,15 +50,7 @@ public class WebServlet extends HttpServlet {
         String[] args = new String[list.size()];
         list.toArray(args);
         server = new WebServer();
-        try {
-            server.init(args);
-        } catch (Exception e) {
-            throw new ServletException("Init failed", e);
-        }
-    }
-
-    public void destroy() {
-        // nothing to do
+        server.init(args);
     }
 
     private boolean allow(HttpServletRequest req) {
@@ -66,13 +58,12 @@ public class WebServlet extends HttpServlet {
             return true;
         }
         String addr = req.getRemoteAddr();
-        InetAddress address;
         try {
-            address = InetAddress.getByName(addr);
+            InetAddress address = InetAddress.getByName(addr);
+            return address.isLoopbackAddress();
         } catch (UnknownHostException e) {
             return false;
         }
-        return address.isLoopbackAddress();
     }
 
     private String getAllowedFile(HttpServletRequest req, String requestedFile) {

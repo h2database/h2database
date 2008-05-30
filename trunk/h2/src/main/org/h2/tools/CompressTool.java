@@ -114,7 +114,7 @@ public class CompressTool {
             byte[] buff = new byte[len];
             compress.expand(in, start, in.length - start, buff, 0, len);
             return buff;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw Message.getSQLException(ErrorCode.COMPRESSION_ERROR, null, e);
         }
     }
@@ -129,7 +129,7 @@ public class CompressTool {
             int len = readInt(in, 1);
             int start = 1 + getLength(len);
             compress.expand(in, start, in.length - start, out, outPos, len);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw Message.getSQLException(ErrorCode.COMPRESSION_ERROR, null, e);
         }
     }
@@ -140,17 +140,17 @@ public class CompressTool {
             return x;
         }
         if (x < 0xc0) {
-            return ((x & 0x3f) << 8) + (buff[pos++] & 0xff);
+            return ((x & 0x3f) << 8) + (buff[pos] & 0xff);
         }
         if (x < 0xe0) {
-            return ((x & 0x1f) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos++] & 0xff);
+            return ((x & 0x1f) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos] & 0xff);
         }
         if (x < 0xf0) {
             return ((x & 0xf) << 24) + ((buff[pos++] & 0xff) << 16) + ((buff[pos++] & 0xff) << 8)
-                    + (buff[pos++] & 0xff);
+                    + (buff[pos] & 0xff);
         }
         return ((buff[pos++] & 0xff) << 24) + ((buff[pos++] & 0xff) << 16) + ((buff[pos++] & 0xff) << 8)
-                + (buff[pos++] & 0xff);
+                + (buff[pos] & 0xff);
     }
 
     private int writeInt(byte[] buff, int pos, int x) {
@@ -159,32 +159,32 @@ public class CompressTool {
             buff[pos++] = (byte) (x >> 24);
             buff[pos++] = (byte) (x >> 16);
             buff[pos++] = (byte) (x >> 8);
-            buff[pos++] = (byte) x;
+            buff[pos] = (byte) x;
             return 5;
         } else if (x < 0x80) {
-            buff[pos++] = (byte) x;
+            buff[pos] = (byte) x;
             return 1;
         } else if (x < 0x4000) {
             buff[pos++] = (byte) (0x80 | (x >> 8));
-            buff[pos++] = (byte) x;
+            buff[pos] = (byte) x;
             return 2;
         } else if (x < 0x200000) {
             buff[pos++] = (byte) (0xc0 | (x >> 16));
             buff[pos++] = (byte) (x >> 8);
-            buff[pos++] = (byte) x;
+            buff[pos] = (byte) x;
             return 3;
         } else if (x < 0x10000000) {
             buff[pos++] = (byte) (0xe0 | (x >> 24));
             buff[pos++] = (byte) (x >> 16);
             buff[pos++] = (byte) (x >> 8);
-            buff[pos++] = (byte) x;
+            buff[pos] = (byte) x;
             return 4;
         } else {
             buff[pos++] = (byte) 0xf0;
             buff[pos++] = (byte) (x >> 24);
             buff[pos++] = (byte) (x >> 16);
             buff[pos++] = (byte) (x >> 8);
-            buff[pos++] = (byte) x;
+            buff[pos] = (byte) x;
             return 5;
         }
     }

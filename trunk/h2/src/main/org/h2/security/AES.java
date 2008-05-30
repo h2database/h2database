@@ -118,7 +118,7 @@ public class AES implements BlockCipher {
         decKey[d++] = encKey[e++];
         decKey[d++] = encKey[e++];
         decKey[d++] = encKey[e++];
-        decKey[d++] = encKey[e++];
+        decKey[d] = encKey[e];
     }
 
     public void encrypt(byte[] bytes, int off, int len) {

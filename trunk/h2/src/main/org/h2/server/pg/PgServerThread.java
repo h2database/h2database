@@ -264,13 +264,11 @@ public class PgServerThread implements Runnable {
             char type = (char) readByte();
             String name = readString();
             server.trace("Describe");
-            PreparedStatement prep;
             if (type == 'S') {
                 Prepared p = (Prepared) prepared.get(name);
                 if (p == null) {
                     sendErrorResponse("Prepared not found: " + name);
                 } else {
-                    prep = p.prep;
                     sendParameterDescription(p);
                 }
             } else if (type == 'P') {
@@ -278,7 +276,7 @@ public class PgServerThread implements Runnable {
                 if (p == null) {
                     sendErrorResponse("Portal not found: " + name);
                 } else {
-                    prep = p.prep;
+                    PreparedStatement prep = p.prep;
                     try {
                         ResultSetMetaData meta = prep.getMetaData();
                         sendRowDescription(meta);

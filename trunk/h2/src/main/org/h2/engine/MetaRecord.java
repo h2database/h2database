@@ -76,7 +76,7 @@ public class MetaRecord {
             command.setObjectId(id);
             command.setHeadPos(headPos);
             command.update();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             SQLException s = Message.addSQL(Message.convert(e), sql);
             db.getTrace(Trace.DATABASE).error(sql, s);
             if (listener != null) {

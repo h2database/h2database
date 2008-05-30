@@ -46,7 +46,7 @@ public class FileObjectMemory implements FileObject {
         private static final long serialVersionUID = 5549197956072850355L;
         private int size;
       
-        public Cache(int size) {
+        Cache(int size) {
             this.size = size;
         }
 

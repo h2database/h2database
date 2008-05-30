@@ -427,7 +427,9 @@ public abstract class Table extends SchemaObjectBase {
     /**
      * Get the best plan for the given search mask.
      * 
-     * @param masks - null means 'always false'
+     * @param session the session
+     * @param masks null means 'always false'
+     * @return the plan item
      */
     public PlanItem getBestPlanItem(Session session, int[] masks) throws SQLException {
         PlanItem item = new PlanItem();

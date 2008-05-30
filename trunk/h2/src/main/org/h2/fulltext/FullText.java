@@ -35,8 +35,8 @@ import org.h2.message.Message;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ByteUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.ObjectUtils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 

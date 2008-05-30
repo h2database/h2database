@@ -377,7 +377,7 @@ public class TableLink extends Table {
                 prepared.checkCancelled();
                 Row oldRow = rows.next();
                 Row newRow = rows.next();
-                linkedIndex.update(session, oldRow, newRow);
+                linkedIndex.update(oldRow, newRow);
                 session.log(this, UndoLogRecord.DELETE, oldRow);
                 session.log(this, UndoLogRecord.INSERT, newRow);
             }

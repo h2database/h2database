@@ -42,7 +42,7 @@ class ResultDiskBuffer implements ResultExternal {
         ObjectArray buffer = new ObjectArray();
     }
 
-    public ResultDiskBuffer(Session session, SortOrder sort, int columnCount) throws SQLException {
+    ResultDiskBuffer(Session session, SortOrder sort, int columnCount) throws SQLException {
         this.sort = sort;
         this.columnCount = columnCount;
         Database db = session.getDatabase();

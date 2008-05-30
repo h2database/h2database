@@ -138,7 +138,7 @@ public abstract class Command implements CommandInterface {
                 database.checkPowerOff();
                 session.setCurrentCommand(this, startTime);
                 return query(maxrows);
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 SQLException s = Message.convert(e);
                 database.exceptionThrown(s, sql);
                 throw s;

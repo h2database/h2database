@@ -9,7 +9,7 @@ package org.h2.log;
 /**
  * Represents a record in the transaction log.
  */
-public class LogRecord {
+class LogRecord {
     LogFile log;
     int logRecordId;
     int sessionId;

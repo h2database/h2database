@@ -14,7 +14,7 @@ import java.sql.SQLException;
  * Keeps the meta data information of a column.
  * This class is used by the H2 Console.
  */
-public class DbColumn {
+class DbColumn {
     String name;
     String dataType;
 

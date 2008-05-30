@@ -445,7 +445,6 @@ public class Parser {
                     Expression expr = readExpression();
                     expr = expr.optimize(session);
                     p.setValue(expr.getValue(session));
-                    index++;
                 } while (readIf(","));
                 read("}");
                 int len = parameters.size();
@@ -1758,20 +1757,20 @@ public class Parser {
         Expression r;
         if (aggregateType == Aggregate.COUNT) {
             if (readIf("*")) {
-                r = new Aggregate(database, Aggregate.COUNT_ALL, null, currentSelect, false);
+                r = new Aggregate(Aggregate.COUNT_ALL, null, currentSelect, false);
             } else {
                 boolean distinct = readIf("DISTINCT");
                 Expression on = readExpression();
                 if (on instanceof Wildcard && !distinct) {
                     // PostgreSQL compatibility: count(t.*)
-                    r = new Aggregate(database, Aggregate.COUNT_ALL, null, currentSelect, false);
+                    r = new Aggregate(Aggregate.COUNT_ALL, null, currentSelect, false);
                 } else {
-                    r = new Aggregate(database, Aggregate.COUNT, on, currentSelect, distinct);
+                    r = new Aggregate(Aggregate.COUNT, on, currentSelect, distinct);
                 }
             }
         } else if (aggregateType == Aggregate.GROUP_CONCAT) {
             boolean distinct = readIf("DISTINCT");
-            Aggregate agg = new Aggregate(database, Aggregate.GROUP_CONCAT, readExpression(), currentSelect, distinct);
+            Aggregate agg = new Aggregate(Aggregate.GROUP_CONCAT, readExpression(), currentSelect, distinct);
             if (readIf("ORDER")) {
                 read("BY");
                 agg.setOrder(parseSimpleOrderList());
@@ -1782,7 +1781,7 @@ public class Parser {
             r = agg;
         } else {
             boolean distinct = readIf("DISTINCT");
-            r = new Aggregate(database, aggregateType, readExpression(), currentSelect, distinct);
+            r = new Aggregate(aggregateType, readExpression(), currentSelect, distinct);
         }
         read(")");
         return r;
@@ -2440,7 +2439,6 @@ public class Parser {
             while (true) {
                 type = types[i];
                 if (type != CHAR_NAME && type != CHAR_VALUE) {
-                    c = chars[i];
                     break;
                 }
                 i++;
@@ -2925,7 +2923,6 @@ public class Parser {
                     return STRING_CONCAT;
                 }
                 break;
-            default:
             }
         }
         throw getSyntaxError();

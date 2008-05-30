@@ -173,10 +173,10 @@ public class Message {
      * Gets an internal error.
      * 
      * @param s the message
-     * @return the error object
+     * @return the RuntimeException object
      */
-    public static Error getInternalError(String s) {
-        Error e = new Error(s);
+    public static RuntimeException getInternalError(String s) {
+        RuntimeException e = new RuntimeException(s);
         TraceSystem.traceThrowable(e);
         return e;
     }
@@ -259,9 +259,9 @@ public class Message {
     /**
      * Gets an internal error.
      * 
-     * @return the error object
+     * @return the RuntimeException object
      */
-    public static Error getInternalError() {
+    public static RuntimeException getInternalError() {
         return getInternalError("Unexpected code path");
     }
 

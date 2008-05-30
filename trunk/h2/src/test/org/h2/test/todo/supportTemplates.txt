@@ -26,7 +26,7 @@ Corrupted database
 
 I am sorry to say that, but it looks like a corruption problem. I am very interested in analyzing and solving this problem. Corruption problems have top priority for me. I have a few question:
 
-- Could you send the full stack trace of the exception?
+- Could you send the full stack trace of the exception including message text?
 - What is your database URL?
 - You can find out if the database is corrupted when running SCRIPT TO 'test.sql'
 - What version H2 are you using?
@@ -35,10 +35,11 @@ I am sorry to say that, but it looks like a corruption problem. I am very intere
 - Did you use multiple connections?
 - The first workarounds is: append ;RECOVER=1 to the database URL. 
   Does it work when you do this?
-- The second workarounds is: delete the index.db file (it is re-created automatically) 
-  and try again. Does it work when you do this?
-- The third workarounds is: use the tool org.h2.tools.Recover to create the SQL script file, 
-  and then re-create the database using this script. Does it work when you do this?
+- The second workarounds is: delete the index.db file 
+  (it is re-created automatically) and try again. Does it work when you do this?
+- The third workarounds is: use the tool org.h2.tools.Recover to create 
+  the SQL script file, and then re-create the database using this script. 
+  Does it work when you do this?
 - Do you use any settings or special features (for example, the setting LOG=0, 
   or two phase commit, linked tables, cache settings)?
 - Is the application multi-threaded?
@@ -46,7 +47,8 @@ I am sorry to say that, but it looks like a corruption problem. I am very intere
 - How big is the database?
 - Is the database usually closed normally, or is process terminated forcefully 
   or the computer switched off?
-- Is it possible to reproduce this problem using a fresh database (sometimes, or always)?
+- Is it possible to reproduce this problem using a fresh database 
+  (sometimes, or always)?
 - Are there any other exceptions (maybe in the .trace.db file)? 
   Could you send them to me please?
 - Do you still have any .trace.db files, and if yes could you send them?

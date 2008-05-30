@@ -8,9 +8,11 @@ package org.h2.bnf;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -53,7 +55,7 @@ public class Bnf {
      * @param csv if not specified, the help.csv is used
      * @return a new instance
      */
-    public static Bnf getInstance(Reader csv) throws Exception {
+    public static Bnf getInstance(Reader csv) throws SQLException, IOException {
         Bnf bnf = new Bnf();
         if (csv == null) {
             byte[] data = Resources.get("/org/h2/res/help.csv");
@@ -81,7 +83,7 @@ public class Bnf {
         return random;
     }
 
-    private void parse(Reader csv) throws Exception {
+    private void parse(Reader csv) throws SQLException, IOException {
         csv = new BufferedReader(csv);
         Rule functions = null;
         statements = new ArrayList();
@@ -137,11 +139,10 @@ public class Bnf {
     /**
      * Get the HTML documentation for a given syntax.
      * 
-     * @param rule the rule (topic)
      * @param bnf the BNF syntax
      * @return the HTML formatted text
      */
-    public String getSyntaxHtml(String rule, String bnf) {
+    public String getSyntaxHtml(String bnf) {
         StringTokenizer tokenizer = new StringTokenizer(bnf, SEPARATORS, true);
         StringBuffer buff = new StringBuffer();
         while (tokenizer.hasMoreTokens()) {

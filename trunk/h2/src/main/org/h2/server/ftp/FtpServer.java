@@ -102,8 +102,7 @@ public class FtpServer implements Service {
     }
 
     ServerSocket createDataSocket() throws SQLException {
-        ServerSocket dataSocket = NetUtils.createServerSocket(0, false);
-        return dataSocket;
+        return NetUtils.createServerSocket(0, false);
     }
 
     void appendFile(StringBuffer buff, String fileName) throws SQLException {
@@ -178,7 +177,7 @@ public class FtpServer implements Service {
         return userName.equals(this.readUserName);
     }
 
-    public void init(String[] args) throws Exception {
+    public void init(String[] args) throws SQLException {
         for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
             if ("-ftpPort".equals(a)) {
@@ -230,7 +229,7 @@ public class FtpServer implements Service {
             Socket s = NetUtils.createLoopbackSocket(port, false);
             s.close();
             return true;
-        } catch (Exception e) {
+        } catch (IOException e) {
             if (traceError) {
                 traceError(e);
             }
@@ -305,7 +304,7 @@ public class FtpServer implements Service {
             if (outFile != null) {
                 try {
                     this.out = FileUtils.openFileOutputStream(outFile, false);
-                } catch (Exception e) {
+                } catch (SQLException e) {
                     // ignore
                 }
                 outFile = null;

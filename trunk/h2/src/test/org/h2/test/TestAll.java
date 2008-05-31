@@ -226,9 +226,6 @@ INSERT INTO TEST VALUES(1,'Apples',1.20),
 (9,NULL,-10.0);
 SELECT DISTINCT NAME FROM TEST;
 
-merge query and result frames
-in-place auto-complete 
-
 test multi-threaded kernel fulltext
 
 Can sometimes not delete log file? need test case

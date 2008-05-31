@@ -140,6 +140,7 @@ public class Build extends BuildBase {
         java("org.h2.build.doc.LinkChecker", null);
         java("org.h2.build.doc.XMLChecker", null);
         java("org.h2.build.doc.SpellChecker", null);
+        beep();
     }
 
     public void download() {
@@ -296,6 +297,7 @@ public class Build extends BuildBase {
     }
     
     public void zip() {
+        delete("docs/html/onePage.html");
         FileList files = getFiles("../h2").keep("../h2/build.*");
         files.addAll(getFiles("../h2/bin").keep("../h2/bin/h2.*"));
         files.addAll(getFiles("../h2/docs"));

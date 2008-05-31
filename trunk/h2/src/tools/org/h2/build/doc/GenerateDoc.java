@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.h2.bnf.Bnf;
+import org.h2.engine.Constants;
 import org.h2.server.web.PageParser;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -52,6 +53,10 @@ public class GenerateDoc {
         conn = DriverManager.getConnection("jdbc:h2:mem:");
         new File(outDir).mkdirs();
         bnf = Bnf.getInstance(null);
+        session.put("version", Constants.getVersion());
+        session.put("versionDate", Constants.BUILD_DATE);
+        session.put("previousVersion", Constants.getVersionPrevious());
+        session.put("previousVersionDate", Constants.BUILD_DATE_PREVIOUS);
         map("commands", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION LIKE 'Commands%' ORDER BY ID");
         map("commandsDML", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION='Commands (DML)' ORDER BY ID");
         map("commandsDDL", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION='Commands (DDL)' ORDER BY ID");

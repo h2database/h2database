@@ -24,50 +24,44 @@ package org.h2.engine;
  *   build javadocImpl (to find missing javadocs)
  * - reset to JDK 1.4
  *   build compile
- *
  * - Change version and build number in
  *     Constants.java
- *     build.html
- *     mainWeb.html
- *     download.html
  * - Maybe increase TCP_DRIVER_VERSION (old clients must be compatible!)
  * - Check code coverage
  * - No "  Message.get" (must be "throw Message.get")
- * - No TODO in the docs, remove @~ in .utf8.txt files
+ * - Check that is no TODO in the docs
  * - Run regression test with JDK 1.4 and 1.5
  * - Use latest versions of other dbs (Derby 10.4.1.3; 
  *      PostgreSQL 8.3.1; MySQL 5.0.51)
  * - Change version(s) in performance.html
  * - Run 'build benchmark' (with JDK 1.4 currently)
  * - Copy the benchmark results and update the performance page and diagram
- *
- * - Documentation: if there are new files, add them to MergeDocs
  * - Documentation: check if all Javadoc files are in the index
  * - Update the changelog (add new version)
  * - Update the newsfeed
  * - build docs
+ * - Check dataWeb/index.html, versions and links in main, downloads, build
  * - PDF
  *      - footer
  *      - front page
  *      - orphan control
  *      - check images
  *      - table of contents
- * - Switch off auto-build, delete all files in bin
- * - build all, delete org in bin
+ * - build all
  * - Copy the pdf file to h2/docs
- * - Remove onePage.html
  * - build zip
  * - Windows installer (nsis)
  * - Test Console
  * - Test all languages
- * - Test the windows service
  * - Scan for viruses
  * - build mavenDeployCentral
  * - Upload to SourceForge
- * - svn commit, svn copy: /svn/trunk /svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
- * - Newsletter: prepare, send (always send to BCC!!)
+ * - svn commit
+ * - svn copy: /svn/trunk /svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
+ * - Newsletter: prepare (always to BCC!!)
+ * - Upload to h2database.com, http://code.google.com/p/h2database/downloads/list
+ * - Newsletter: send (always to BCC!!)
  * - Add to freshmeat
- * - Upload to http://code.google.com/p/h2database/downloads/list
  * - http://en.wikipedia.org/wiki/H2_%28DBMS%29 (change version)
  * - http://www.heise.de/software/
  */
@@ -80,11 +74,21 @@ public class Constants {
      * The build id is incremented for each public release.
      */
     public static final int BUILD_ID = 73;
-    
+
+    /**
+     * The build id of the previous release.
+     */
+    public static final int BUILD_ID_PREVIOUS = 72;
+
     /**
      * The build date is updated for each public release.
      */
-    private static final String BUILD_DATE = "2008-05-31";
+    public static final String BUILD_DATE = "2008-05-31";
+
+    /**
+     * The build date is updated for each public release.
+     */
+    public static final String BUILD_DATE_PREVIOUS = "2008-05-10";
 
     /**
      * The TCP protocol version number 5. This protocol is used by the TCP
@@ -565,6 +569,15 @@ public class Constants {
      */
     public static String getVersion() {
         return VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID;
+    }
+    
+    /**
+     * Get the version of the previous version.
+     * 
+     * @return the version number
+     */
+    public static Object getVersionPrevious() {
+        return VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID_PREVIOUS;
     }
 
     /**

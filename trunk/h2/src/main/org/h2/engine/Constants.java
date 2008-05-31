@@ -12,7 +12,8 @@ package org.h2.engine;
  * - Run FindBugs
  * - build jarClient, check jar file size
  * - build jar, test with IKVM
- * - Compile with JDK 1.4, 1.5 and 1.6:
+ * - build javadocImpl
+ * - Compile with JDK 1.6:
  *   set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
  *   set JAVA_HOME=C:\Programme\Java\jdk1.6.0
  *   set path=C:\Program Files\Java\jdk1.6.0_05\bin;%PATH%
@@ -21,8 +22,8 @@ package org.h2.engine;
  *   set classpath=
  *   build javadoc
  *   build javadocImpl (to find missing javadocs)
- *   build switchSourceJdk14
- *   build javadocImpl
+ * - reset to JDK 1.4
+ *   build compile
  *
  * - Change version and build number in
  *     Constants.java
@@ -43,7 +44,7 @@ package org.h2.engine;
  * - Documentation: if there are new files, add them to MergeDocs
  * - Documentation: check if all Javadoc files are in the index
  * - Update the changelog (add new version)
- * - Update newsfeed and create files
+ * - Update the newsfeed
  * - build docs
  * - PDF
  *      - footer
@@ -51,11 +52,10 @@ package org.h2.engine;
  *      - orphan control
  *      - check images
  *      - table of contents
- * - Switch off auto-build
- * - build all
+ * - Switch off auto-build, delete all files in bin
+ * - build all, delete org in bin
  * - Copy the pdf file to h2/docs
  * - Remove onePage.html
- * - Remove files in bin
  * - build zip
  * - Windows installer (nsis)
  * - Test Console
@@ -64,7 +64,7 @@ package org.h2.engine;
  * - Scan for viruses
  * - build mavenDeployCentral
  * - Upload to SourceForge
- * - svn copy: /svn/trunk /svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
+ * - svn commit, svn copy: /svn/trunk /svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
  * - Newsletter: prepare, send (always send to BCC!!)
  * - Add to freshmeat
  * - Upload to http://code.google.com/p/h2database/downloads/list
@@ -75,6 +75,16 @@ package org.h2.engine;
  * Constants are fixed values that are used in the whole database code.
  */
 public class Constants {
+    
+    /**
+     * The build id is incremented for each public release.
+     */
+    public static final int BUILD_ID = 73;
+    
+    /**
+     * The build date is updated for each public release.
+     */
+    private static final String BUILD_DATE = "2008-05-31";
 
     /**
      * The TCP protocol version number 5. This protocol is used by the TCP
@@ -542,16 +552,6 @@ public class Constants {
      * used as tables).
      */
     public static final int VIEW_INDEX_CACHE_SIZE = 64;
-    
-    /**
-     * The build id is incremented for each public release.
-     */
-    public static final int BUILD_ID = 72;
-    
-    /**
-     * The build date is updated for each public release.
-     */
-    private static final String BUILD_DATE = "2008-05-10";
 
     private Constants() {
         // utility class

@@ -13,6 +13,39 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(43,
+'New version available: 1.0.73 (2008-05-31)', '2008-05-31 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>ParameterMetaData now returns the right data type for most cases.
+</li><li>New column INFORMATION_SCHEMA.CONSTRAINTS.UNIQUE_INDEX_NAME.
+</li><li>Some SET statements no longer commit a transaction. 
+</li><li>The table SYSTEM_RANGE now supports parameters.
+</li><li>The SCRIPT command does now emit IF NOT EXISTS for CREATE ROLE.
+</li><li>Improved MySQL compatibility for AUTO_INCREMENT columns.
+</li><li>The aggregate functions BOOL_OR and BOOL_AND are now supported.
+</li><li>Negative scale values are now supported.
+</li><li>Infinite numbers and NaN are now better supported.
+</li><li>The fulltext search now supports CLOB.
+</li><li>A right can now be granted multiple times.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Disconnecting or unmounting drives while the database is open 
+    now throws the right exception.
+</li><li>The H2 Console could not be shut down from within the tool.
+</li><li>If the password was passed as a char array, it was kept in an internal buffer
+        longer than required. Theoretically the password could have been stolen
+        if the main memory was swapped to disk before the garbage collection was run.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(42,
 'New version available: 1.0.72 (2008-05-10)', '2008-05-10 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -413,33 +446,6 @@ INSERT INTO ITEM VALUES(32,
 </li><li>Changing a user with a schema made the schema inaccessible.
 </li><li>Referential integrity checks didn''t lock the referenced table.
 </li><li>Now changing MVCC too late throws an Exception.
-</li></ul>
-For future plans, see the ''Roadmap'' page at
-http://www.h2database.com/html/roadmap.html
-');
-
-INSERT INTO ITEM VALUES(31,
-'New version available: 1.0.61 (2007-11-10)', '2007-11-10 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click ''Refresh'').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Read-only databases in zip (or jar) files are now supported: jdbc:h2:zip:c:/temp/db.zip!/test
-</li><li>File access is now done using an extensible API. Additional file systems are easy to implement.
-</li><li>Descending indexes are supported.
-</li><li>The Lucene fulltext search is included in the h2.jar.
-</li><li>MODE is now a database level setting (not global).
-</li><li>Vlad Alexahin has translated H2 Console to Russian. Thanks a lot!
-</li><li>INSTR, LOCATE: backward searching is now supported by using a negative start position.
-</li><li>CREATE SEQUENCE: New option CACHE (number of pre-allocated numbers).
-</li><li>Converting decimal to integer now rounds like MySQL and PostgreSQL.
-</li><li>Math operations using only parameters are now interpreted as decimal.
-</li><li>MVCC: The system property h2.mvcc has been removed.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>ResultSetMetaData.getColumnDisplaySize is now calculated correctly.
-</li><li>A few MVCC bugs have been fixed.
-</li><li>The code coverage is now at 83%.
 </li></ul>
 For future plans, see the ''Roadmap'' page at
 http://www.h2database.com/html/roadmap.html

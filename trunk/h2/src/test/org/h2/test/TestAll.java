@@ -168,7 +168,7 @@ java org.h2.test.TestAll timer
 /*
 
 C:\download\Data Concurrency and Consistency.pdf
-
+Console says English but is German
 detect deadlock alarm
 
 not tested:
@@ -238,12 +238,6 @@ Add where required // TODO: change in version 1.1
 http://www.w3schools.com/sql/
 
 History:
-    New column INFORMATION_SCHEMA.CONSTRAINTS.UNIQUE_INDEX_NAME 
-        that contains the name of the unique index used to enforce this 
-        constraint, if there is such an index.
-    It is now possible to grant or revoke a role to a user multiple times without
-        getting an exception.
-    The SCRIPT command does now emit IF NOT EXISTS for CREATE ROLE.
 
 Roadmap:
 

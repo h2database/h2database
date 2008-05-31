@@ -127,6 +127,14 @@ public class BuildBase {
     }
     
     /**
+     * Emit a beep.
+     */
+    public void beep() {
+        out.print("\007");
+        out.flush();
+    }
+
+    /**
      * Lists all targets (all public methods non-static methods without
      * parameters).
      */

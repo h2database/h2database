@@ -1970,7 +1970,7 @@ OpenOffice compatibility: support database name in column names.
 Downloads
 
 @download_1001_h3
-Version 1.0.73 (2008-05-10, Current)
+Version 1.0.73 (2008-05-31, Current)
 
 @download_1002_a
 Windows Installer
@@ -7121,160 +7121,160 @@ Java 1.5 tool: JdbcUtils.closeSilently(s1, s2,...)
 Javadoc: document design patterns used
 
 @roadmap_1284_li
-Don't create @~ of not translated
-
-@roadmap_1285_li
 Triggers for metadata tables; use for PostgreSQL catalog
 
-@roadmap_1286_li
+@roadmap_1285_li
 Does the FTP server has problems with multithreading?
 
-@roadmap_1287_li
+@roadmap_1286_li
 Write an article about SQLInjection (h2\src\docsrc\html\images\SQLInjection.txt)
 
-@roadmap_1288_li
+@roadmap_1287_li
 Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
 
-@roadmap_1289_li
+@roadmap_1288_li
 Send SQL Injection solution proposal to MySQL, Derby, HSQLDB,...
 
-@roadmap_1290_li
+@roadmap_1289_li
 Improve LOB in directories performance
 
-@roadmap_1291_li
+@roadmap_1290_li
 Web site design: http://www.igniterealtime.org/projects/openfire/index.jsp
 
-@roadmap_1292_li
+@roadmap_1291_li
 HSQLDB compatibility: Openfire server uses: CREATE SCHEMA PUBLIC AUTHORIZATION DBA;  CREATE USER SA PASSWORD ""; GRANT DBA TO SA; SET SCHEMA PUBLIC
 
-@roadmap_1293_li
+@roadmap_1292_li
 Web site: Rename Performance to Comparison [/Compatibility],  move Comparison to Other Database Engines to Comparison,  move Products that Work with H2 to Comparison,  move Performance Tuning to Advanced Topics
 
-@roadmap_1294_li
-Translation: use ${.} in help.csv
+@roadmap_1293_li
+Translation: use ?? in help.csv
 
-@roadmap_1295_li
+@roadmap_1294_li
 Translated .pdf
 
-@roadmap_1296_li
+@roadmap_1295_li
 Cluster: hot deploy (adding a node on runtime)
 
-@roadmap_1297_li
+@roadmap_1296_li
 Test with PostgreSQL Version 8.2
 
-@roadmap_1298_li
+@roadmap_1297_li
 Website: Don't use frames.
 
-@roadmap_1299_li
+@roadmap_1298_li
 Try again with Lobo browser (pure Java)
 
-@roadmap_1300_li
+@roadmap_1299_li
 Recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...), and things should go into the .trace.db file
 
-@roadmap_1301_li
+@roadmap_1300_li
 RECOVER=2 to backup the database, run recovery, open the database
 
-@roadmap_1302_li
+@roadmap_1301_li
 Recovery should work with encrypted databases
 
-@roadmap_1303_li
+@roadmap_1302_li
 Corruption: new error code, add help
 
-@roadmap_1304_li
+@roadmap_1303_li
 Space reuse: after init, scan all storages and free those that don't belong to a live database object
 
-@roadmap_1305_li
+@roadmap_1304_li
 SysProperties: change everything to H2_...
 
-@roadmap_1306_li
+@roadmap_1305_li
 Use FilterIn / FilterOut putStream?
 
-@roadmap_1307_li
+@roadmap_1306_li
 Access rights: add missing features (users should be 'owner' of objects; missing rights for sequences; dropping objects)
 
-@roadmap_1308_li
+@roadmap_1307_li
 Support NOCACHE table option (Oracle)
 
-@roadmap_1309_li
+@roadmap_1308_li
 Index usage for UPDATE ... WHERE .. IN (SELECT...)
 
-@roadmap_1310_li
+@roadmap_1309_li
 Add regular javadocs (using the default doclet, but another css) to the homepage.
 
-@roadmap_1311_li
+@roadmap_1310_li
 The database should be kept open for a longer time when using the server mode.
 
-@roadmap_1312_li
+@roadmap_1311_li
 Javadocs: for each tool, add a copy &amp; paste sample in the class level.
 
-@roadmap_1313_li
+@roadmap_1312_li
 Javadocs: add @author tags.
 
-@roadmap_1314_li
+@roadmap_1313_li
 Fluent API for tools: Server.createTcpServer().setPort(9081).setPassword(password).start();
 
-@roadmap_1315_li
+@roadmap_1314_li
 MySQL compatibility: real SQL statements for SHOW TABLES, DESCRIBE TEST (then remove from Shell)
 
-@roadmap_1316_li
+@roadmap_1315_li
 Use a default delay of 1 second before closing a database.
 
-@roadmap_1317_li
+@roadmap_1316_li
 Maven: upload source code and javadocs as well.
 
-@roadmap_1318_li
+@roadmap_1317_li
 Write (log) to system table before adding to internal data structures.
 
-@roadmap_1319_li
+@roadmap_1318_li
 Support very large deletes and updates.
 
-@roadmap_1320_li
+@roadmap_1319_li
 Doclet (javadocs): constructors are not listed.
 
-@roadmap_1321_li
+@roadmap_1320_li
 Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup).
 
-@roadmap_1322_li
+@roadmap_1321_li
 Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object);
 
-@roadmap_1323_li
+@roadmap_1322_li
 MVCC should not be memory bound (uncommitted data is kept in memory in the delta index; maybe using a regular btree index solves the problem).
 
-@roadmap_1324_li
+@roadmap_1323_li
 Support CREATE TEMPORARY LINKED TABLE.
 
-@roadmap_1325_li
+@roadmap_1324_li
 MySQL compatibility: SELECT @variable := x FROM SYSTEM_RANGE(1, 50);
 
-@roadmap_1326_li
+@roadmap_1325_li
 Oracle compatibility: support NLS_DATE_FORMAT.
 
-@roadmap_1327_li
+@roadmap_1326_li
 Support flashback queries as in Oracle.
 
-@roadmap_1328_li
+@roadmap_1327_li
 Import / Export of fixed with text files.
 
-@roadmap_1329_li
+@roadmap_1328_li
 Support for OUT parameters in user-defined procedures.
 
-@roadmap_1330_li
+@roadmap_1329_li
 Support getGeneratedKeys to return multiple rows when used with batch updates.  This is supported by MySQL, but not Derby. Both PostgreSQL and HSQLDB don't support getGeneratedKeys.  Also support it when using INSERT ... SELECT.
 
-@roadmap_1331_li
+@roadmap_1330_li
 HSQLDB compatibility: automatic data type for SUM if value is the value is too big (by default use the same type as the data).
 
-@roadmap_1332_li
+@roadmap_1331_li
 Improve the optimizer to select the right index for special cases: where id between 2 and 4 and booleanColumn
 
-@roadmap_1333_li
+@roadmap_1332_li
 Enable warning for 'Local variable declaration hides another field or variable'.
 
-@roadmap_1334_li
+@roadmap_1333_li
 Linked tables: make hidden columns available (Oracle: rowid and ora_rowscn columns).
 
-@roadmap_1335_li
+@roadmap_1334_li
 Support merge join.
+
+@roadmap_1335_li
+H2 Console: in-place autocomplete (need to merge query and result frame, use div).
 
 @roadmap_1336_h2
 Not Planned

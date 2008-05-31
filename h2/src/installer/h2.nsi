@@ -116,7 +116,7 @@ Section "All"
   SetOutPath "$INSTDIR\src"
   File /r /x CVS /x .cvsignore /x .svn ..\..\src\*.*
   SetOutPath "$INSTDIR\bin"
-  File /r /x CVS /x .cvsignore ..\..\bin\*.*
+  File /r /x CVS /x .cvsignore ..\..\bin\h2.*
   SetOutPath "$INSTDIR\docs"
   File /r /x CVS /x .cvsignore ..\..\docs\*.*
   SetOutPath "$INSTDIR\service"

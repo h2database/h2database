@@ -42,7 +42,6 @@ import org.h2.util.StringUtils;
  */
 public class PrepareTranslation {
     private static final String MAIN_LANGUAGE = "en";
-    private static final String DELETED_PREFIX = "~";
     private static final boolean AUTO_TRANSLATE = false;
     private static final String[] EXCLUDE = { "datatypes.html", "functions.html", "grammar.html" };
 
@@ -62,7 +61,7 @@ public class PrepareTranslation {
                 "src/docsrc/text/_docs_ja.properties");
 
         // create the .jsp files and extract the text in the main language
-        extractFromHtml("src/docsrc/html", "src/docsrc/text");
+        extractFromHtml("docs/html", "src/docsrc/text");
 
         // add missing translations and create a new baseline
         prepare(baseDir, "src/docsrc/text");
@@ -516,16 +515,7 @@ public class PrepareTranslation {
         it = new ArrayList(p.keySet()).iterator();
         while (it.hasNext()) {
             String key = (String) it.next();
-            if (!main.containsKey(key) && !key.startsWith(DELETED_PREFIX)) {
-                String newKey = key;
-                while (true) {
-                    newKey = DELETED_PREFIX + newKey;
-                    if (!p.containsKey(newKey)) {
-                        break;
-                    }
-                }
-                System.out.println(trans.getName() + ": key " + key + " not found in main file; renamed to " + newKey);
-                p.put(newKey, p.getProperty(key));
+            if (!main.containsKey(key)) {
                 p.remove(key);
             }
         }

@@ -58,6 +58,8 @@ Advanced Topics
     Settings Read from System Properties</a><br />
 <a href="#server_bind_address">
     Setting the Server Bind Address</a><br />
+<a href="#limitations">
+    Limitations</a><br />
 <a href="#glossary_links">
     Glossary and Links</a><br />
 
@@ -1061,6 +1063,33 @@ This setting is used for both regular server sockets and for SSL server sockets.
 IPv4 and IPv6 address formats are supported.
 </p>
 
+<br /><a name="limitations"></a>
+<h2>Limitations</h2>
+<p>
+This database has the following known limitations:
+</p>
+<ul>
+<li>The maximum file size is currently 256 GB for the data, and 256 GB for the index.
+This number is excluding BLOB and CLOB data:
+Every CLOB or BLOB can be up to 256 GB as well.
+</li><li>The maximum file size for FAT or FAT32 file systems is 4 GB. That means when using FAT or FAT32, 
+the limit is 4 GB for the data. This is the limitation of the file system, and this database does not provide a 
+workaround for this problem. The suggested solution is to use another file system.
+</li><li>There is a limit on the complexity of SQL statements.
+Statements of the following form will result in a stack overflow exception:
+<pre>
+SELECT * FROM DUAL WHERE X = 1 
+OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2 
+-- repeat previous line 500 times --
+</pre>
+</li><li>There is no limit for the following entities, except the memory and storage capacity: 
+	maximum identifier length, maximum number of tables, maximum number of columns, 
+	maximum number of indexes, maximum number of parameters, 
+	maximum number of triggers, and maximum number of other database objects.
+</li><li>For limitations on data types, see the documentation of the respective Java data type 
+	or the data type documentation of this database.
+</ul>
+    
 <br /><a name="glossary_links"></a>
 <h2>Glossary and Links</h2>
 <table><tr><th>Term</th><th>Description</th></tr>

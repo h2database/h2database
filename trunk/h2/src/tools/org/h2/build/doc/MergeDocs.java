@@ -29,7 +29,7 @@ public class MergeDocs {
         // the order of pages is important here
         String[] pages = { "quickstart.html", "installation.html", "tutorial.html", "features.html",
                 "performance.html", "advanced.html", "grammar.html", "functions.html", "datatypes.html", "build.html",
-                "history.html", "faq.html", "license.html" };    
+                "history.html", "faq.html" };    
         StringBuffer buff = new StringBuffer();
         for (int i = 0; i < pages.length; i++) {
             String fileName = pages[i];

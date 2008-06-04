@@ -312,10 +312,6 @@ public class Storage {
         file.writeBack(rec);
     }
 
-    public void flushFile() throws SQLException {
-        file.flush();
-    }
-
     /**
      * Get the overhead to store a record (header data) in number of bytes.
      * 

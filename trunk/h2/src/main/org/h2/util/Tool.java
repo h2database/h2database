@@ -16,7 +16,6 @@ import java.sql.SQLException;
 public abstract class Tool {
     
     protected PrintStream out = System.out;
-    protected PrintStream err = System.err;
     
     /**
      * Sets the standard output stream.

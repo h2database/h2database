@@ -27,11 +27,28 @@ import org.h2.util.TempFileDeleter;
  */
 public class FileStore {
 
+    /**
+     * The size of the file header in bytes.
+     */
     public static final int HEADER_LENGTH = 3 * Constants.FILE_BLOCK_SIZE;
+    
+    /**
+     * An empty buffer to speed up extending the file (it seems that writing 0
+     * bytes is faster then calling setLength).
+     */
     protected static final byte[] EMPTY = new byte[16 * 1024];
 
+    /**
+     * The file name.
+     */
     protected String name;
+    
+    /**
+     * The callback object is responsible to check access rights, and free up
+     * disk space if required.
+     */
     protected DataHandler handler;
+    
     private byte[] magic;
     private FileObject file;
     private long filePos;
@@ -41,6 +58,14 @@ public class FileStore {
     private boolean synchronousMode;
     private String mode;
     
+    /**
+     * Create a new file using the given settings.
+     * 
+     * @param handler the callback object
+     * @param name the file name
+     * @param mode the access mode ("r", "rw", "rws", "rwd")
+     * @param magic the magic file header
+     */
     protected FileStore(DataHandler handler, String name, String mode, byte[] magic) throws SQLException {
         FileSystem fs = FileSystem.getInstance(name);
         this.handler = handler;
@@ -131,18 +156,22 @@ public class FileStore {
         this.checkedWriting = value;
     }
 
-    protected void checkWritingAllowed() throws SQLException {
+    private void checkWritingAllowed() throws SQLException {
         if (handler != null && checkedWriting) {
             handler.checkWritingAllowed();
         }
     }
 
-    protected void checkPowerOff() throws SQLException {
+    private void checkPowerOff() throws SQLException {
         if (handler != null) {
             handler.checkPowerOff();
         }
     }
 
+    /**
+     * Initialize the file. This method will write or check the file header if
+     * required.
+     */
     public void init() throws SQLException {
         int len = Constants.FILE_BLOCK_SIZE;
         byte[] salt;
@@ -175,6 +204,9 @@ public class FileStore {
         }
     }
 
+    /**
+     * Close the file.
+     */
     public void close() throws IOException {
         if (file != null) {
             try {
@@ -186,6 +218,10 @@ public class FileStore {
         }
     }
 
+    /**
+     * Close the file without throwing any exceptions. Exceptions are simply
+     * ignored.
+     */
     public void closeSilently() {
         try {
             close();
@@ -194,6 +230,9 @@ public class FileStore {
         }
     }
 
+    /**
+     * Close the file (ignoring exceptions) and delete the file.
+     */
     public void closeAndDeleteSilently() {
         if (file != null) {
             closeSilently();
@@ -202,10 +241,24 @@ public class FileStore {
         }
     }
 
+    /**
+     * Read a number of bytes without decrypting.
+     * 
+     * @param b the target buffer
+     * @param off the offset
+     * @param len the number of bytes to read
+     */
     protected void readFullyDirect(byte[] b, int off, int len) throws SQLException {
         readFully(b, off, len);
     }
 
+    /**
+     * Read a number of bytes.
+     * 
+     * @param b the target buffer
+     * @param off the offset
+     * @param len the number of bytes to read
+     */
     public void readFully(byte[] b, int off, int len) throws SQLException {
         if (SysProperties.CHECK && len < 0) {
             throw Message.getInternalError("read len " + len);
@@ -222,6 +275,11 @@ public class FileStore {
         filePos += len;
     }
 
+    /**
+     * Go to the specified file location.
+     * 
+     * @param pos the location
+     */
     public void seek(long pos) throws SQLException {
         if (SysProperties.CHECK && pos % Constants.FILE_BLOCK_SIZE != 0) {
             throw Message.getInternalError("unaligned seek " + name + " pos " + pos);
@@ -236,10 +294,24 @@ public class FileStore {
         }
     }
 
+    /**
+     * Write a number of bytes without encrypting.
+     * 
+     * @param b the source buffer
+     * @param off the offset
+     * @param len the number of bytes to write
+     */
     protected void writeDirect(byte[] b, int off, int len) throws SQLException {
         write(b, off, len);
     }
 
+    /**
+     * Write a number of bytes.
+     * 
+     * @param b the source buffer
+     * @param off the offset
+     * @param len the number of bytes to write
+     */
     public void write(byte[] b, int off, int len) throws SQLException {
         if (SysProperties.CHECK && len < 0) {
             throw Message.getInternalError("read len " + len);
@@ -289,6 +361,11 @@ public class FileStore {
         file.seek(pos);
     }
 
+    /**
+     * Set the length of the file. This will expand or shrink the file.
+     * 
+     * @param newLength the new file size
+     */
     public void setLength(long newLength) throws SQLException {
         if (SysProperties.CHECK && newLength % Constants.FILE_BLOCK_SIZE != 0) {
             throw Message.getInternalError("unaligned setLength " + name + " pos " + newLength);
@@ -315,6 +392,11 @@ public class FileStore {
         }
     }
 
+    /**
+     * Get the file size in bytes.
+     * 
+     * @return the file size
+     */
     public long length() throws SQLException {
         try {
             long len = fileLength;
@@ -336,6 +418,11 @@ public class FileStore {
         }
     }
 
+    /**
+     * Get the current location of the file pointer.
+     * 
+     * @return the location
+     */
     public long getFilePointer() throws SQLException {
         if (SysProperties.CHECK2) {
             try {
@@ -349,6 +436,10 @@ public class FileStore {
         return filePos;
     }
 
+    /**
+     * Call fsync. Depending on the operating system and hardware, this may or
+     * may not in fact write the changes.
+     */
     public void sync() {
         try {
             file.sync();
@@ -357,24 +448,42 @@ public class FileStore {
         }
     }
 
+    /**
+     * Automatically delete the file once it is no longer in use.
+     */
     public void autoDelete() {
         autoDeleteReference = TempFileDeleter.addFile(name, this);
     }
 
+    /**
+     * No longer automatically delete the file once it is no longer in use.
+     */
     public void stopAutoDelete() {
         TempFileDeleter.stopAutoDelete(autoDeleteReference, name);
         autoDeleteReference = null;
     }
 
+    /**
+     * Check if the file is encrypted.
+     * 
+     * @return true if it is
+     */
     public boolean isEncrypted() {
         return false;
     }
 
+    /**
+     * Close the file. The file may later be re-opened using openFile.
+     */
     public void closeFile() throws IOException {
         file.close();
         file = null;
     }
 
+    /**
+     * Re-open the file. The file pointer will be reset to the previous
+     * location.
+     */
     public void openFile() throws IOException {
         if (file == null) {
             file = FileSystem.getInstance(name).openFileObject(name, mode);

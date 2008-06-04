@@ -1469,14 +1469,15 @@ Number with fixed precision and scale.
 [- | +] digit [...]
 [. digit [...] [E [- | +] exponentDigit [...] ]]
 ","
-There is no minimum or maximum number.
+The limitations are the same as for the Java data type Double.
 ","
 -1.4e-10
 "
 "Other Grammar","Date","
 DATE 'yyyy-MM-dd'
 ","
-A date literal.
+A date literal. The limitations are the same as for the Java data type java.sql.Date, but
+for compatibility with other databases the suggested minimum and maximum years are 0001 and 9999.
 ","
 DATE '2004-12-31'
 "
@@ -1490,7 +1491,8 @@ TIME '23:59:59'
 "Other Grammar","Timestamp","
 TIMESTAMP 'yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]'
 ","
-A timestamp literal.
+A timestamp literal. The limitations are the same as for the Java data type java.sql.Timestamp, but
+for compatibility with other databases the suggested minimum and maximum years are 0001 and 9999.
 ","
 TIMESTAMP '2005-12-31 23:59:59'
 "

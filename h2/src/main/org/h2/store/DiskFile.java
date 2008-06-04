@@ -75,11 +75,11 @@ public class DiskFile implements CacheWriter {
      */
     public static final int BLOCK_SIZE = 128;
 
+    // TODO storage: header should probably be 4 KB or so 
+    // (to match block size of operating system)
     private static final int OFFSET = FileStore.HEADER_LENGTH;
     private static final int FREE_PAGE = -1;
     
-    // TODO storage: header should probably be 4 KB or so 
-    // (to match block size of operating system)
     private Database database;
     private String fileName;
     private FileStore file;
@@ -183,6 +183,11 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Get the 'storage allocation table' of this file.
+     * 
+     * @return the table
+     */
     public byte[] getSummary() throws SQLException {
         synchronized (database) {
             try {
@@ -241,6 +246,11 @@ public class DiskFile implements CacheWriter {
         return true;
     }
 
+    /**
+     * Initialize the the 'storage allocation table' of this file from a given byte array.
+     * 
+     * @param summary the storage allocation table
+     */
     public void initFromSummary(byte[] summary) {
         synchronized (database) {
             if (summary == null || summary.length == 0) {
@@ -339,7 +349,9 @@ public class DiskFile implements CacheWriter {
         }
     }
 
-
+    /**
+     * Read the 'storage allocation table' from the file if required.
+     */
     public void init() throws SQLException {
         synchronized (database) {
             if (init) {
@@ -389,6 +401,9 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Flush all pending changes to disk.
+     */
     public void flush() throws SQLException {
         synchronized (database) {
             database.checkPowerOff();
@@ -440,6 +455,9 @@ public class DiskFile implements CacheWriter {
 //        }
 //    }
 
+    /**
+     * Flush all pending changes and close the file.
+     */
     public void close() throws SQLException {
         synchronized (database) {
             SQLException closeException = null;
@@ -678,6 +696,12 @@ public class DiskFile implements CacheWriter {
         return pageOwners.get(page);
     }
 
+    /**
+     * Set the owner of a page.
+     * 
+     * @param page the page id
+     * @param the storage id of this page
+     */
     public void setPageOwner(int page, int storageId) throws SQLException {
         int old = pageOwners.get(page);
         if (old == storageId) {
@@ -721,6 +745,9 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Close the file and delete it.
+     */
     public void delete() throws SQLException {
         synchronized (database) {
             try {
@@ -749,6 +776,12 @@ public class DiskFile implements CacheWriter {
     //        return start;
     //    }
 
+    /**
+     * Write a record to the file immediately.
+     * This method is called by the cache, and when flushing pending changes.
+     * 
+     * @param obj the record to write
+     */
     public void writeBack(CacheObject obj) throws SQLException {
         synchronized (database) {
             writeCount++;
@@ -769,8 +802,10 @@ public class DiskFile implements CacheWriter {
         }
     }
 
-    /*
-     * Must be synchronized externally
+    /**
+     * Get the usage bits. The bit field must be synchronized externally.
+     * 
+     * @return the bit field of used blocks.
      */
     BitField getUsed() {
         return used;
@@ -901,11 +936,11 @@ public class DiskFile implements CacheWriter {
         }
     }
 
-    public int getRecordOverhead() {
+    int getRecordOverhead() {
         return recordOverhead;
     }
 
-    public void truncateStorage(Session session, Storage storage, IntArray pages) throws SQLException {
+    void truncateStorage(Session session, Storage storage, IntArray pages) throws SQLException {
         synchronized (database) {
             int storageId = storage.getId();
             // make sure the cache records of this storage are not flushed to disk

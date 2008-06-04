@@ -14,7 +14,7 @@ import org.h2.constant.SysProperties;
 
 /**
  * The object array is basically the same as ArrayList.
- * It is a bit faster than ArrayList in some java versions.
+ * It is a bit faster than ArrayList in some versions of Java.
  */
 public class ObjectArray {
     private static final int SIZE_INIT = 4, SIZE_SHRINK = 256;

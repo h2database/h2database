@@ -80,17 +80,17 @@ public class TestPowerOff extends TestBase {
             ResultSet rs = stat.executeQuery("SELECT * FROM TEST" + i + " ORDER BY ID");
             for (int j = 0; j < 10; j++) {
                 rs.next();
-                check(rs.getInt(1), j);
-                check(rs.getString(2), "Hello");
+                assertEquals(rs.getInt(1), j);
+                assertEquals(rs.getString(2), "Hello");
             }
             if (i == 1) {
                 for (int j = 0; j < 10; j++) {
                     rs.next();
-                    check(rs.getInt(1), j + 10);
-                    check(rs.getString(2), "World");
+                    assertEquals(rs.getInt(1), j + 10);
+                    assertEquals(rs.getString(2), "World");
                 }
             }
-            checkFalse(rs.next());
+            assertFalse(rs.next());
         }
         conn.close();
     }
@@ -147,8 +147,8 @@ public class TestPowerOff extends TestBase {
         conn = getConnection(url);
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
-        check(rs.next());
-        checkFalse(rs.next());
+        assertTrue(rs.next());
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -167,7 +167,7 @@ public class TestPowerOff extends TestBase {
             stat.execute("CHECKPOINT");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         boolean deleted = false;
         ArrayList files = FileLister.getDatabaseFiles(dir, dbName, false);
@@ -178,7 +178,7 @@ public class TestPowerOff extends TestBase {
                 deleted = true;
             }
         }
-        check(deleted);
+        assertTrue(deleted);
         conn = getConnection(url);
         conn.close();
     }
@@ -201,7 +201,7 @@ public class TestPowerOff extends TestBase {
             stat.execute("CHECKPOINT");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
 
         ((JdbcConnection) conn).setPowerOffCount(0);
@@ -209,7 +209,7 @@ public class TestPowerOff extends TestBase {
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT COUNT(*) FROM TEST");
         rs.next();
-        check(rs.getInt(1), 1);
+        assertEquals(rs.getInt(1), 1);
         conn.close();
     }
 
@@ -307,18 +307,18 @@ public class TestPowerOff extends TestBase {
             if (!rs.next()) {
                 state = 1;
             } else {
-                check(rs.getInt(1), 1);
+                assertEquals(rs.getInt(1), 1);
                 String name1 = rs.getString(2);
-                check(rs.next());
-                check(rs.getInt(1), 2);
+                assertTrue(rs.next());
+                assertEquals(rs.getInt(1), 2);
                 String name2 = rs.getString(2);
-                checkFalse(rs.next());
+                assertFalse(rs.next());
                 if ("Hello".equals(name1)) {
-                    check(name2, "World");
+                    assertEquals(name2, "World");
                     state = 2;
                 } else {
-                    check(name1, "Hallo");
-                    check(name2, "Welt");
+                    assertEquals(name1, "Hallo");
+                    assertEquals(name2, "Welt");
                     state = 3;
                 }
             }

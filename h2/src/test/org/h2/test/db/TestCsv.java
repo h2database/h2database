@@ -60,19 +60,19 @@ public class TestCsv extends TestBase {
         csv.setNullString("\\N");
         ResultSet rs = csv.read(f.getPath(), null, "UTF8");
         ResultSetMetaData meta = rs.getMetaData();
-        check(meta.getColumnCount(), 4);
-        check(meta.getColumnLabel(1), "A");
-        check(meta.getColumnLabel(2), "B");
-        check(meta.getColumnLabel(3), "C");
-        check(meta.getColumnLabel(4), "D");
-        check(rs.next());
-        check(rs.getString(1), null);
-        check(rs.getString(2), "");
+        assertEquals(meta.getColumnCount(), 4);
+        assertEquals(meta.getColumnLabel(1), "A");
+        assertEquals(meta.getColumnLabel(2), "B");
+        assertEquals(meta.getColumnLabel(3), "C");
+        assertEquals(meta.getColumnLabel(4), "D");
+        assertTrue(rs.next());
+        assertEquals(rs.getString(1), null);
+        assertEquals(rs.getString(2), "");
         // null is never quoted
-        check(rs.getString(3), "\\N");
+        assertEquals(rs.getString(3), "\\N");
         // an empty string is always parsed as null
-        check(rs.getString(4), null);
-        checkFalse(rs.next());
+        assertEquals(rs.getString(4), null);
+        assertFalse(rs.next());
 
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
@@ -81,7 +81,7 @@ public class TestCsv extends TestBase {
         // on read, an empty string is treated like null,
         // but on write a null is always written with the nullString
         String data = IOUtils.readStringAndClose(reader, -1);
-        check(csvContent + "\\N", data.trim());
+        assertEquals(csvContent + "\\N", data.trim());
         conn.close();
 
         FileUtils.delete(f.getAbsolutePath());
@@ -110,12 +110,12 @@ public class TestCsv extends TestBase {
         csv.setFieldDelimiter('#');
         ResultSet rs = csv.read("test.csv", null, "UTF-8");
         for (int i = 0; i < len; i++) {
-            check(rs.next());
+            assertTrue(rs.next());
             String[] pair = (String[]) list.get(i);
-            check(pair[0], rs.getString(1));
-            check(pair[1], rs.getString(2));
+            assertEquals(pair[0], rs.getString(1));
+            assertEquals(pair[1], rs.getString(2));
         }
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -141,16 +141,16 @@ public class TestCsv extends TestBase {
         FileReader reader = new FileReader(baseDir + "/test.csv");
         String text = IOUtils.readStringAndClose(reader, -1).trim();
         text = StringUtils.replaceAll(text, "\n", " ");
-        check("ID|NAME 1|Hello", text);
+        assertEquals("ID|NAME 1|Hello", text);
         ResultSet rs = stat.executeQuery("select * from csvread('" + baseDir + "/test.csv', null, null, '|', '')");
         ResultSetMetaData meta = rs.getMetaData();
-        check(meta.getColumnCount(), 2);
-        check(meta.getColumnLabel(1), "ID");
-        check(meta.getColumnLabel(2), "NAME");
-        check(rs.next());
-        check(rs.getString(1), "1");
-        check(rs.getString(2), "Hello");
-        checkFalse(rs.next());
+        assertEquals(meta.getColumnCount(), 2);
+        assertEquals(meta.getColumnLabel(1), "ID");
+        assertEquals(meta.getColumnLabel(2), "NAME");
+        assertTrue(rs.next());
+        assertEquals(rs.getString(1), "1");
+        assertEquals(rs.getString(2), "Hello");
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -164,23 +164,23 @@ public class TestCsv extends TestBase {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select * from csvread('" + baseDir + "/test.csv', null, null, ';', '''', '\\')");
         ResultSetMetaData meta = rs.getMetaData();
-        check(meta.getColumnCount(), 2);
-        check(meta.getColumnLabel(1), "A");
-        check(meta.getColumnLabel(2), "B");
-        check(rs.next());
-        check(rs.getString(1), "It's nice");
-        check(rs.getString(2), "\nHello*\n");
-        checkFalse(rs.next());
+        assertEquals(meta.getColumnCount(), 2);
+        assertEquals(meta.getColumnLabel(1), "A");
+        assertEquals(meta.getColumnLabel(2), "B");
+        assertTrue(rs.next());
+        assertEquals(rs.getString(1), "It's nice");
+        assertEquals(rs.getString(2), "\nHello*\n");
+        assertFalse(rs.next());
         stat.execute("call csvwrite('" + baseDir + "/test2.csv', 'select * from csvread(''" + baseDir + "/test.csv'', null, null, '';'', '''''''', ''\\'')', null, '+', '*', '#')");
         rs = stat.executeQuery("select * from csvread('" + baseDir + "/test2.csv', null, null, '+', '*', '#')");
         meta = rs.getMetaData();
-        check(meta.getColumnCount(), 2);
-        check(meta.getColumnLabel(1), "A");
-        check(meta.getColumnLabel(2), "B");
-        check(rs.next());
-        check(rs.getString(1), "It's nice");
-        check(rs.getString(2), "\nHello*\n");
-        checkFalse(rs.next());
+        assertEquals(meta.getColumnCount(), 2);
+        assertEquals(meta.getColumnLabel(1), "A");
+        assertEquals(meta.getColumnLabel(2), "B");
+        assertTrue(rs.next());
+        assertEquals(rs.getString(1), "It's nice");
+        assertEquals(rs.getString(2), "\nHello*\n");
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -190,10 +190,10 @@ public class TestCsv extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("call csvwrite('" + baseDir + "/test.csv', 'select 1 id, ''Hello'' name', 'utf-8', '|')");
         ResultSet rs = stat.executeQuery("select * from csvread('" + baseDir + "/test.csv', null, 'utf-8', '|')");
-        check(rs.next());
-        check(rs.getInt(1), 1);
-        check(rs.getString(2), "Hello");
-        checkFalse(rs.next());
+        assertTrue(rs.next());
+        assertEquals(rs.getInt(1), 1);
+        assertEquals(rs.getString(2), "Hello");
+        assertFalse(rs.next());
         new File(baseDir + "/test.csv").delete();
 
         // PreparedStatement prep = conn.prepareStatement("select * from
@@ -212,14 +212,14 @@ public class TestCsv extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("call csvwrite('" + baseDir + "/test.csv', 'select 1 id, ''Hello'' name')");
         ResultSet rs = stat.executeQuery("select name from csvread('" + baseDir + "/test.csv')");
-        check(rs.next());
-        check(rs.getString(1), "Hello");
-        checkFalse(rs.next());
+        assertTrue(rs.next());
+        assertEquals(rs.getString(1), "Hello");
+        assertFalse(rs.next());
         rs = stat.executeQuery("call csvread('" + baseDir + "/test.csv')");
-        check(rs.next());
-        check(rs.getInt(1), 1);
-        check(rs.getString(2), "Hello");
-        checkFalse(rs.next());
+        assertTrue(rs.next());
+        assertEquals(rs.getInt(1), 1);
+        assertEquals(rs.getString(2), "Hello");
+        assertFalse(rs.next());
         new File(baseDir + "/test.csv").delete();
         conn.close();
     }
@@ -232,32 +232,32 @@ public class TestCsv extends TestBase {
         file.close();
         ResultSet rs = Csv.getInstance().read(baseDir + "/test.csv", null, "UTF8");
         ResultSetMetaData meta = rs.getMetaData();
-        check(meta.getColumnCount(), 4);
-        check(meta.getColumnLabel(1), "a");
-        check(meta.getColumnLabel(2), "b");
-        check(meta.getColumnLabel(3), "c");
-        check(meta.getColumnLabel(4), "d");
-        check(rs.next());
-        check(rs.getString(1), "201");
-        check(rs.getString(2), "-2");
-        check(rs.getString(3), "0");
-        check(rs.getString(4), "18");
-        check(rs.next());
-        check(rs.getString(1), null);
-        check(rs.getString(2), "abc\"");
-        check(rs.getString(3), null);
-        check(rs.getString(4), "");
-        check(rs.next());
-        check(rs.getString(1), "1");
-        check(rs.getString(2), "2");
-        check(rs.getString(3), "3");
-        check(rs.getString(4), "4");
-        check(rs.next());
-        check(rs.getString(1), "5");
-        check(rs.getString(2), "6");
-        check(rs.getString(3), "7");
-        check(rs.getString(4), "8");
-        checkFalse(rs.next());
+        assertEquals(meta.getColumnCount(), 4);
+        assertEquals(meta.getColumnLabel(1), "a");
+        assertEquals(meta.getColumnLabel(2), "b");
+        assertEquals(meta.getColumnLabel(3), "c");
+        assertEquals(meta.getColumnLabel(4), "d");
+        assertTrue(rs.next());
+        assertEquals(rs.getString(1), "201");
+        assertEquals(rs.getString(2), "-2");
+        assertEquals(rs.getString(3), "0");
+        assertEquals(rs.getString(4), "18");
+        assertTrue(rs.next());
+        assertEquals(rs.getString(1), null);
+        assertEquals(rs.getString(2), "abc\"");
+        assertEquals(rs.getString(3), null);
+        assertEquals(rs.getString(4), "");
+        assertTrue(rs.next());
+        assertEquals(rs.getString(1), "1");
+        assertEquals(rs.getString(2), "2");
+        assertEquals(rs.getString(3), "3");
+        assertEquals(rs.getString(4), "4");
+        assertTrue(rs.next());
+        assertEquals(rs.getString(1), "5");
+        assertEquals(rs.getString(2), "6");
+        assertEquals(rs.getString(3), "7");
+        assertEquals(rs.getString(4), "8");
+        assertFalse(rs.next());
 
         // a,b,c,d
         // 201,-2,0,18
@@ -283,13 +283,13 @@ public class TestCsv extends TestBase {
         ResultSet rs = Csv.getInstance().read(baseDir + "/testRW.csv", null, "UTF8");
         // stat.execute("CREATE ALIAS CSVREAD FOR \"org.h2.tools.Csv.read\"");
         ResultSetMetaData meta = rs.getMetaData();
-        check(2, meta.getColumnCount());
+        assertEquals(2, meta.getColumnCount());
         for (int i = 0; i < len; i++) {
             rs.next();
-            check(rs.getString("ID"), "" + (i + 1));
-            check(rs.getString("NAME"), "Ruebezahl");
+            assertEquals(rs.getString("ID"), "" + (i + 1));
+            assertEquals(rs.getString("NAME"), "Ruebezahl");
         }
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         rs.close();
         conn.close();
 

@@ -54,7 +54,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         conn = DriverManager.getConnection(url, p);
         conn.close();
         if (l.calledOpened) {
-            check(!l.calledScan);
+            assertTrue(!l.calledScan);
         }
     }
 
@@ -67,8 +67,8 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         org.h2.Driver.load();
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:databaseEventListener", p);
         conn.close();
-        check(l.calledOpened);
-        check(l.calledClosingDatabase);
+        assertTrue(l.calledOpened);
+        assertTrue(l.calledClosingDatabase);
     }
 
     public void closingDatabase() {

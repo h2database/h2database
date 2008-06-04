@@ -69,7 +69,7 @@ public class TestRunscript extends TestBase implements Trigger {
                 stat2.execute(sql);
                 error();
             } catch (SQLException e) {
-                checkNotGeneralException(e);
+                assertKnownException(e);
             }
         }
         sql = "runscript from '" + baseDir + "/backup.2.sql'";

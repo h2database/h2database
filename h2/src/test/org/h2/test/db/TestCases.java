@@ -97,7 +97,7 @@ public class TestCases extends TestBase {
         try {
             stat.execute("create table address(id identity, name varchar check? instr(value, '@') > 1)");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         stat.execute("SET AUTOCOMMIT OFF; \n//create sequence if not exists object_id;\n");
         stat.execute("SET AUTOCOMMIT OFF;\n//create sequence if not exists object_id;\n");
@@ -135,19 +135,19 @@ public class TestCases extends TestBase {
 
         conn2 = getConnection("CaSeS");
         rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
-        check(rs.next());
+        assertTrue(rs.next());
         conn2.close();
 
         conn.close();
 
         conn = getConnection("cases");
         rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
-        check(rs.next());
+        assertTrue(rs.next());
         conn.close();
 
         conn = getConnection("CaSeS");
         rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
-        check(rs.next());
+        assertTrue(rs.next());
         conn.close();
 
         deleteDb("cases");
@@ -217,7 +217,7 @@ public class TestCases extends TestBase {
         if (stopped[0] == null) {
             error("query still running");
         } else {
-            checkNotGeneralException(stopped[0]);
+            assertKnownException(stopped[0]);
         }
         time = System.currentTimeMillis() - time;
         if (time > 5000) {
@@ -232,15 +232,15 @@ public class TestCases extends TestBase {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT ? FROM DUAL {1: 'Hello'}");
         rs.next();
-        check("Hello", rs.getString(1));
-        checkFalse(rs.next());
+        assertEquals("Hello", rs.getString(1));
+        assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT ? FROM DUAL UNION ALL SELECT ? FROM DUAL {1: 'Hello', 2:'World' }");
         rs.next();
-        check("Hello", rs.getString(1));
+        assertEquals("Hello", rs.getString(1));
         rs.next();
-        check("World", rs.getString(1));
-        checkFalse(rs.next());
+        assertEquals("World", rs.getString(1));
+        assertFalse(rs.next());
 
         conn.close();
     }
@@ -255,14 +255,14 @@ public class TestCases extends TestBase {
             stat.execute("alter table test add column name varchar not null;");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         conn.close();
         conn = getConnection("cases");
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         rs.next();
-        check(rs.getString(1), "1");
-        checkFalse(rs.next());
+        assertEquals(rs.getString(1), "1");
+        assertFalse(rs.next());
         stat = conn.createStatement();
         stat.execute("drop table test");
         stat.execute("create table test(id identity)");
@@ -273,8 +273,8 @@ public class TestCases extends TestBase {
         stat = conn.createStatement();
         rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         rs.next();
-        check(rs.getString(1), "1");
-        checkFalse(rs.next());
+        assertEquals(rs.getString(1), "1");
+        assertFalse(rs.next());
         stat.execute("drop table test");
         stat.execute("create table test(id identity)");
         stat.execute("insert into test values(1)");
@@ -282,14 +282,14 @@ public class TestCases extends TestBase {
             stat.execute("alter table test alter column id date");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         conn.close();
         conn = getConnection("cases");
         rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         rs.next();
-        check(rs.getString(1), "1");
-        checkFalse(rs.next());
+        assertEquals(rs.getString(1), "1");
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -304,18 +304,18 @@ public class TestCases extends TestBase {
         ResultSet rs;
         rs = stat.executeQuery("select name from test order by name");
         rs.next();
-        check(rs.getString(1), "Hello");
+        assertEquals(rs.getString(1), "Hello");
         rs.next();
-        check(rs.getString(1), "HELLO");
+        assertEquals(rs.getString(1), "HELLO");
         rs.next();
-        check(rs.getString(1), "World");
+        assertEquals(rs.getString(1), "World");
         rs.next();
-        check(rs.getString(1), "WORLD");
+        assertEquals(rs.getString(1), "WORLD");
         rs = stat.executeQuery("select name from test where name like 'He%'");
         rs.next();
-        check(rs.getString(1), "Hello");
+        assertEquals(rs.getString(1), "Hello");
         rs.next();
-        check(rs.getString(1), "HELLO");
+        assertEquals(rs.getString(1), "HELLO");
         conn.close();
     }
 
@@ -332,11 +332,11 @@ public class TestCases extends TestBase {
         conn = getConnection("cases");
         ResultSet rs = conn.createStatement().executeQuery("SELECT NAME FROM TEST ORDER BY NAME");
         rs.next();
-        check(rs.getString(1), "Bach");
+        assertEquals(rs.getString(1), "Bach");
         rs.next();
-        check(rs.getString(1), "B\u00f6hlen");
+        assertEquals(rs.getString(1), "B\u00f6hlen");
         rs.next();
-        check(rs.getString(1), "Bucher");
+        assertEquals(rs.getString(1), "Bucher");
         conn.close();
     }
 
@@ -362,7 +362,7 @@ public class TestCases extends TestBase {
         ps.setString(10, "test desc");
         ps.setString(11, "test_state");
         ps.setString(12, "testid");
-        check(ps.executeUpdate(), 2);
+        assertEquals(ps.executeUpdate(), 2);
         ps.close();
         conn.close();
     }
@@ -382,7 +382,7 @@ public class TestCases extends TestBase {
             stat.execute("select * from abc");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         conn.close();
     }
@@ -404,8 +404,8 @@ public class TestCases extends TestBase {
         stat.execute("insert into test(name) values('test')");
         ResultSet rs = stat.executeQuery("select * from test");
         rs.next();
-        check(rs.getInt(1), 2);
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 2);
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -445,19 +445,19 @@ public class TestCases extends TestBase {
         prep.execute();
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
-        check(rs.getInt(1), 1);
-        check(rs.getString(2), big);
-        check(readString(rs.getCharacterStream(2)), big);
-        check(rs.getString(3), big);
-        check(readString(rs.getCharacterStream(3)), big);
+        assertEquals(rs.getInt(1), 1);
+        assertEquals(rs.getString(2), big);
+        assertEquals(readString(rs.getCharacterStream(2)), big);
+        assertEquals(rs.getString(3), big);
+        assertEquals(readString(rs.getCharacterStream(3)), big);
         rs.next();
-        check(rs.getInt(1), 2);
-        check(rs.getString(2), big);
-        check(readString(rs.getCharacterStream(2)), big);
-        check(rs.getString(3), big);
-        check(readString(rs.getCharacterStream(3)), big);
+        assertEquals(rs.getInt(1), 2);
+        assertEquals(rs.getString(2), big);
+        assertEquals(readString(rs.getCharacterStream(2)), big);
+        assertEquals(rs.getString(3), big);
+        assertEquals(readString(rs.getCharacterStream(3)), big);
         rs.next();
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -507,11 +507,11 @@ public class TestCases extends TestBase {
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
-        check(rs.getInt(1), 1);
-        check(rs.getString(2), "Hello");
+        assertEquals(rs.getInt(1), 1);
+        assertEquals(rs.getString(2), "Hello");
         rs.next();
-        check(rs.getInt(1), 3);
-        check(rs.getString(2), "Break");
+        assertEquals(rs.getInt(1), 3);
+        assertEquals(rs.getString(2), "Break");
         conn.close();
     }
 
@@ -528,7 +528,7 @@ public class TestCases extends TestBase {
         conn.createStatement().execute("INSERT INTO TEST_SEQ(NAME) VALUES('Hi')");
         ResultSet rs = conn.createStatement().executeQuery("CALL IDENTITY()");
         rs.next();
-        check(1, rs.getInt(1));
+        assertEquals(1, rs.getInt(1));
         conn.createStatement().execute("SELECT * FROM TEST2");
         conn.createStatement().execute("SELECT * FROM TEST_B");
         conn.createStatement().execute("ALTER TABLE TEST_B RENAME TO TEST_B2");
@@ -538,7 +538,7 @@ public class TestCases extends TestBase {
         conn.createStatement().execute("INSERT INTO TEST_SEQ(NAME) VALUES('World')");
         rs = conn.createStatement().executeQuery("CALL IDENTITY()");
         rs.next();
-        check(2, rs.getInt(1));
+        assertEquals(2, rs.getInt(1));
         conn.close();
     }
 
@@ -589,7 +589,7 @@ public class TestCases extends TestBase {
             stat2.execute("UPDATE TEST SET ID=2");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         conn1.commit();
         stat2.execute("UPDATE TEST SET ID=2");
@@ -614,13 +614,13 @@ public class TestCases extends TestBase {
         Date d2 = rs.getDate("D");
         Time t2 = rs.getTime("T");
         Timestamp ts2 = rs.getTimestamp("TS");
-        check(ts1 != ts2);
-        check(d1 != d2);
-        check(t1 != t2);
-        check(t2 != rs.getObject("T"));
-        check(d2 != rs.getObject("D"));
-        check(ts2 != rs.getObject("TS"));
-        checkFalse(rs.next());
+        assertTrue(ts1 != ts2);
+        assertTrue(d1 != d2);
+        assertTrue(t1 != t2);
+        assertTrue(t2 != rs.getObject("T"));
+        assertTrue(d2 != rs.getObject("D"));
+        assertTrue(ts2 != rs.getObject("TS"));
+        assertFalse(rs.next());
         conn.close();
     }
 

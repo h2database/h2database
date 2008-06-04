@@ -71,8 +71,8 @@ public class TestCompress extends TestBase {
             for (int i = 0; i < algorithm.length; i++) {
                 byte[] out = utils.compress(buff, algorithm[i]);
                 byte[] test = utils.expand(out);
-                check(test.length, buff.length);
-                check(buff, test);
+                assertEquals(test.length, buff.length);
+                assertEquals(buff, test);
             }
         }
     }

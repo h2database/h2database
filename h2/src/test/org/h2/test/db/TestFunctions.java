@@ -50,18 +50,18 @@ public class TestFunctions extends TestBase {
         out.close();
         ResultSet rs = stat.executeQuery("SELECT LENGTH(FILE_READ('" + baseDir + "/test.txt')) LEN");
         rs.next();
-        check(f.length(), rs.getInt(1));
+        assertEquals(f.length(), rs.getInt(1));
         rs = stat.executeQuery("SELECT FILE_READ('" + baseDir + "/test.txt') PROP");
         rs.next();
         Properties p2 = new Properties();
         p2.load(rs.getBinaryStream(1));
-        check(prop.size(), p2.size());
+        assertEquals(prop.size(), p2.size());
         rs = stat.executeQuery("SELECT FILE_READ('" + baseDir + "/test.txt', NULL) PROP");
         rs.next();
         String ps = rs.getString(1);
         FileReader r = new FileReader(f);
         String ps2 = IOUtils.readStringAndClose(r, -1);
-        check(ps, ps2);
+        assertEquals(ps, ps2);
         f.delete();
         conn.close();
     }
@@ -99,7 +99,7 @@ public class TestFunctions extends TestBase {
         stat.execute("CREATE AGGREGATE IF NOT EXISTS MEDIAN FOR \"" + MedianString.class.getName() + "\"");
         ResultSet rs = stat.executeQuery("SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
         rs.next();
-        check("5", rs.getString(1));
+        assertEquals("5", rs.getString(1));
         conn.close();
 
         if (config.memory) {
@@ -111,8 +111,8 @@ public class TestFunctions extends TestBase {
         rs = stat.executeQuery("SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
         DatabaseMetaData meta = conn.getMetaData();
         rs = meta.getProcedures(null, null, "MEDIAN");
-        check(rs.next());
-        checkFalse(rs.next());
+        assertTrue(rs.next());
+        assertFalse(rs.next());
         rs = stat.executeQuery("SCRIPT");
         boolean found = false;
         while (rs.next()) {
@@ -121,7 +121,7 @@ public class TestFunctions extends TestBase {
                 found = true;
             }
         }
-        check(found);
+        assertTrue(found);
         stat.execute("DROP AGGREGATE MEDIAN");
         stat.execute("DROP AGGREGATE IF EXISTS MEDIAN");
         conn.close();
@@ -140,102 +140,102 @@ public class TestFunctions extends TestBase {
         ResultSet rs;
         rs = stat.executeQuery("CALL ADD_ROW(1, 'Hello')");
         rs.next();
-        check(rs.getInt(1), 1);
+        assertEquals(rs.getInt(1), 1);
         rs = stat.executeQuery("SELECT * FROM TEST");
         rs.next();
-        check(rs.getInt(1), 1);
-        check(rs.getString(2), "Hello");
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 1);
+        assertEquals(rs.getString(2), "Hello");
+        assertFalse(rs.next());
 
         rs = stat.executeQuery("CALL ADD_ROW(2, 'World')");
 
         stat.execute("CREATE ALIAS SELECT_F FOR \"" + getClass().getName() + ".select\"");
         rs = stat.executeQuery("CALL SELECT_F('SELECT * FROM TEST ORDER BY ID')");
-        check(rs.getMetaData().getColumnCount(), 2);
+        assertEquals(rs.getMetaData().getColumnCount(), 2);
         rs.next();
-        check(rs.getInt(1), 1);
-        check(rs.getString(2), "Hello");
+        assertEquals(rs.getInt(1), 1);
+        assertEquals(rs.getString(2), "Hello");
         rs.next();
-        check(rs.getInt(1), 2);
-        check(rs.getString(2), "World");
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 2);
+        assertEquals(rs.getString(2), "World");
+        assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT NAME FROM SELECT_F('SELECT * FROM TEST ORDER BY NAME') ORDER BY NAME DESC");
-        check(rs.getMetaData().getColumnCount(), 1);
+        assertEquals(rs.getMetaData().getColumnCount(), 1);
         rs.next();
-        check(rs.getString(1), "World");
+        assertEquals(rs.getString(1), "World");
         rs.next();
-        check(rs.getString(1), "Hello");
-        checkFalse(rs.next());
+        assertEquals(rs.getString(1), "Hello");
+        assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT SELECT_F('SELECT * FROM TEST WHERE ID=' || ID) FROM TEST ORDER BY ID");
-        check(rs.getMetaData().getColumnCount(), 1);
+        assertEquals(rs.getMetaData().getColumnCount(), 1);
         rs.next();
-        check("((1, Hello))", rs.getString(1));
+        assertEquals("((1, Hello))", rs.getString(1));
         rs.next();
-        check("((2, World))", rs.getString(1));
-        checkFalse(rs.next());
+        assertEquals("((2, World))", rs.getString(1));
+        assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT SELECT_F('SELECT * FROM TEST ORDER BY ID') FROM DUAL");
-        check(rs.getMetaData().getColumnCount(), 1);
+        assertEquals(rs.getMetaData().getColumnCount(), 1);
         rs.next();
-        check("((1, Hello), (2, World))", rs.getString(1));
-        checkFalse(rs.next());
+        assertEquals("((1, Hello), (2, World))", rs.getString(1));
+        assertFalse(rs.next());
 
         try {
             rs = stat.executeQuery("CALL SELECT_F('ERROR')");
             error();
         } catch (SQLException e) {
-            check("42001", e.getSQLState());
+            assertEquals("42001", e.getSQLState());
         }
 
         stat.execute("CREATE ALIAS SIMPLE FOR \"" + getClass().getName() + ".simpleResultSet\"");
         rs = stat.executeQuery("CALL SIMPLE(2, 1,1,1,1,1,1,1)");
-        check(rs.getMetaData().getColumnCount(), 2);
+        assertEquals(rs.getMetaData().getColumnCount(), 2);
         rs.next();
-        check(rs.getInt(1), 0);
-        check(rs.getString(2), "Hello");
+        assertEquals(rs.getInt(1), 0);
+        assertEquals(rs.getString(2), "Hello");
         rs.next();
-        check(rs.getInt(1), 1);
-        check(rs.getString(2), "World");
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 1);
+        assertEquals(rs.getString(2), "World");
+        assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT * FROM SIMPLE(1, 1,1,1,1,1,1,1)");
-        check(rs.getMetaData().getColumnCount(), 2);
+        assertEquals(rs.getMetaData().getColumnCount(), 2);
         rs.next();
-        check(rs.getInt(1), 0);
-        check(rs.getString(2), "Hello");
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 0);
+        assertEquals(rs.getString(2), "Hello");
+        assertFalse(rs.next());
 
         stat.execute("CREATE ALIAS ARRAY FOR \"" + getClass().getName() + ".getArray\"");
         rs = stat.executeQuery("CALL ARRAY()");
-        check(rs.getMetaData().getColumnCount(), 2);
+        assertEquals(rs.getMetaData().getColumnCount(), 2);
         rs.next();
-        check(rs.getInt(1), 0);
-        check(rs.getString(2), "Hello");
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 0);
+        assertEquals(rs.getString(2), "Hello");
+        assertFalse(rs.next());
 
         stat.execute("CREATE ALIAS ROOT FOR \"" + getClass().getName() + ".root\"");
         rs = stat.executeQuery("CALL ROOT(9)");
         rs.next();
-        check(rs.getInt(1), 3);
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 3);
+        assertFalse(rs.next());
 
         stat.execute("CREATE ALIAS MAX_ID FOR \"" + getClass().getName() + ".selectMaxId\"");
         rs = stat.executeQuery("CALL MAX_ID()");
         rs.next();
-        check(rs.getInt(1), 2);
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 2);
+        assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT * FROM MAX_ID()");
         rs.next();
-        check(rs.getInt(1), 2);
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 2);
+        assertFalse(rs.next());
 
         rs = stat.executeQuery("CALL CASE WHEN -9 < 0 THEN 0 ELSE ROOT(-9) END");
         rs.next();
-        check(rs.getInt(1), 0);
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 0);
+        assertFalse(rs.next());
 
         stat.execute("CREATE ALIAS blob2stream FOR \"" + getClass().getName() + ".blob2stream\"");
         stat.execute("CREATE ALIAS stream2stream FOR \"" + getClass().getName() + ".stream2stream\"");
@@ -254,10 +254,10 @@ public class TestFunctions extends TestBase {
 
         stat.execute("CREATE ALIAS NULL_RESULT FOR \"" + getClass().getName() + ".nullResultSet\"");
         rs = stat.executeQuery("CALL NULL_RESULT()");
-        check(rs.getMetaData().getColumnCount(), 1);
+        assertEquals(rs.getMetaData().getColumnCount(), 1);
         rs.next();
-        check(rs.getString(1), null);
-        checkFalse(rs.next());
+        assertEquals(rs.getString(1), null);
+        assertFalse(rs.next());
 
         conn.close();
     }
@@ -266,7 +266,7 @@ public class TestFunctions extends TestBase {
         ResultSet rs = stat.executeQuery("CALL " + sql);
         rs.next();
         String s = rs.getString(1);
-        check(value, s);
+        assertEquals(value, s);
     }
 
     public static BufferedInputStream blob2stream(Blob value) throws SQLException {

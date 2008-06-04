@@ -104,10 +104,10 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         t1.join(1000);
         ResultSet rs = s1.executeQuery("SELECT * FROM TEST1 ORDER BY ID");
         rs.next();
-        check(rs.getInt(1), 1);
+        assertEquals(rs.getInt(1), 1);
         rs.next();
-        check(rs.getInt(1), 5);
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 5);
+        assertFalse(rs.next());
         conn1.close();
         conn2.close();
         conn3.close();
@@ -194,12 +194,12 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
             ResultSet rs;
             rs = conn.createStatement().executeQuery("SELECT * FROM MULTI_A ORDER BY ID");
             rs.next();
-            check(rs.getString("NAME"), "0-insert-A");
-            checkFalse(rs.next());
+            assertEquals(rs.getString("NAME"), "0-insert-A");
+            assertFalse(rs.next());
             rs = conn.createStatement().executeQuery("SELECT * FROM MULTI_B ORDER BY ID");
             rs.next();
-            check(rs.getString("NAME"), "1-insert-D");
-            checkFalse(rs.next());
+            assertEquals(rs.getString("NAME"), "1-insert-D");
+            assertFalse(rs.next());
             conn.close();
         }
 

@@ -83,7 +83,7 @@ public class TestStreams extends TestBase {
                     j += l;
                 }
             }
-            check(buffer, test);
+            assertEquals(buffer, test);
         }
     }
 

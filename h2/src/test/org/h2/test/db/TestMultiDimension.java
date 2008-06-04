@@ -26,9 +26,9 @@ public class TestMultiDimension extends TestBase {
             int x = rand.nextInt(1000), y = rand.nextInt(1000), z = rand.nextInt(1000);
             MultiDimension tool = MultiDimension.getInstance();
             long xyz = tool.interleave(new int[] { x, y, z });
-            check(x, tool.deinterleave(xyz, 3, 0));
-            check(y, tool.deinterleave(xyz, 3, 1));
-            check(z, tool.deinterleave(xyz, 3, 2));
+            assertEquals(x, tool.deinterleave(xyz, 3, 0));
+            assertEquals(y, tool.deinterleave(xyz, 3, 1));
+            assertEquals(z, tool.deinterleave(xyz, 3, 2));
         }
 
         deleteDb("multiDimension");
@@ -95,11 +95,11 @@ public class TestMultiDimension extends TestBase {
             ResultSet rs2 = prepRegular.executeQuery();
             timeRegular += System.currentTimeMillis() - time;
             while (rs1.next()) {
-                check(rs2.next());
-                check(rs1.getInt(1), rs2.getInt(1));
-                check(rs1.getInt(2), rs2.getInt(2));
+                assertTrue(rs2.next());
+                assertEquals(rs1.getInt(1), rs2.getInt(1));
+                assertEquals(rs1.getInt(2), rs2.getInt(2));
             }
-            checkFalse(rs2.next());
+            assertFalse(rs2.next());
         }
         trace("multi: " + timeMulti + " regular: " + timeRegular);
         for (int i = 0; i < 50; i++) {
@@ -120,11 +120,11 @@ public class TestMultiDimension extends TestBase {
             ResultSet rs2 = prep2.executeQuery();
             time2 = System.currentTimeMillis() - time2;
             while (rs1.next()) {
-                check(rs2.next());
-                check(rs1.getInt(1), rs2.getInt(1));
-                check(rs1.getInt(2), rs2.getInt(2));
+                assertTrue(rs2.next());
+                assertEquals(rs1.getInt(1), rs2.getInt(1));
+                assertEquals(rs1.getInt(2), rs2.getInt(2));
             }
-            checkFalse(rs2.next());
+            assertFalse(rs2.next());
             // it just has to work, no need to compare the performance
             // trace("t1="+time1+" t2="+time2+" size="+size);
         }

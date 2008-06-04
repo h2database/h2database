@@ -113,7 +113,7 @@ public class TestKill extends TestBase {
             ResultSet rs2 = prep.executeQuery();
             rs2.next();
             int sumLog = rs2.getInt(1);
-            check(sumLog, sum);
+            assertEquals(sumLog, sum);
             trace("account=" + account + " sum=" + sum);
         }
         PreparedStatement p1 = conn.prepareStatement("SELECT * FROM TEST_A WHERE ID=?");
@@ -124,13 +124,13 @@ public class TestKill extends TestBase {
             ResultSet r1 = p1.executeQuery();
             ResultSet r2 = p2.executeQuery();
             boolean hasData = r1.next();
-            check(r2.next(), hasData);
+            assertEquals(r2.next(), hasData);
             if (hasData) {
                 String d1 = r1.getString("DATA");
                 String d2 = r2.getString("DATA");
-                check(d1, d2);
-                checkFalse(r1.next());
-                checkFalse(r2.next());
+                assertEquals(d1, d2);
+                assertFalse(r1.next());
+                assertFalse(r2.next());
                 trace("test: data=" + d1);
             } else {
                 trace("test: empty");

@@ -99,11 +99,11 @@ public class TestIndex extends TestBase {
                 String s1 = rs.next() ? rs.getString(1) : null;
                 rs = stat.executeQuery(sql.replace('A', 'B'));
                 String s2 = rs.next() ? rs.getString(1) : null;
-                check(s1, s2);
+                assertEquals(s1, s2);
             } else {
                 int count1 = stat.getUpdateCount();
                 int count2 = stat.executeUpdate(sql.replace('A', 'B'));
-                check(count1, count2);
+                assertEquals(count1, count2);
             }
         }
         stat.execute("drop table testA, testB");
@@ -129,20 +129,20 @@ public class TestIndex extends TestBase {
         stat.execute("CREATE INDEX IDX_ND ON TEST(ID DESC)");
         rs = conn.getMetaData().getIndexInfo(null, null, "TEST", false, false);
         rs.next();
-        check(rs.getString("ASC_OR_DESC"), "D");
-        check(rs.getInt("SORT_TYPE"), SortOrder.DESCENDING);
+        assertEquals(rs.getString("ASC_OR_DESC"), "D");
+        assertEquals(rs.getInt("SORT_TYPE"), SortOrder.DESCENDING);
         stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(1, 30)");
         rs = stat.executeQuery("SELECT COUNT(*) FROM TEST WHERE ID BETWEEN 10 AND 20");
         rs.next();
-        check(rs.getInt(1), 11);
+        assertEquals(rs.getInt(1), 11);
         reconnect();
         rs = conn.getMetaData().getIndexInfo(null, null, "TEST", false, false);
         rs.next();
-        check(rs.getString("ASC_OR_DESC"), "D");
-        check(rs.getInt("SORT_TYPE"), SortOrder.DESCENDING);
+        assertEquals(rs.getString("ASC_OR_DESC"), "D");
+        assertEquals(rs.getInt("SORT_TYPE"), SortOrder.DESCENDING);
         rs = stat.executeQuery("SELECT COUNT(*) FROM TEST WHERE ID BETWEEN 10 AND 20");
         rs.next();
-        check(rs.getInt(1), 11);
+        assertEquals(rs.getInt(1), 11);
         stat.execute("DROP TABLE TEST");
         conn.close();
     }
@@ -166,7 +166,7 @@ public class TestIndex extends TestBase {
         while (rs.next()) {
             int id = rs.getInt("ID");
             String name = rs.getString("NAME");
-            check("" + id, name.trim());
+            assertEquals("" + id, name.trim());
         }
         if (!config.memory) {
             reconnect();
@@ -174,7 +174,7 @@ public class TestIndex extends TestBase {
             while (rs.next()) {
                 int id = rs.getInt("ID");
                 String name = rs.getString("NAME");
-                check("" + id, name.trim());
+                assertEquals("" + id, name.trim());
             }
         }
         stat.execute("DROP TABLE TEST");
@@ -247,8 +247,8 @@ public class TestIndex extends TestBase {
             prep.setInt(1, a);
             prep.setInt(2, a);
             prep.execute();
-            check(1, getValue(stat, "SELECT COUNT(*) FROM TEST WHERE A=" + a));
-            check(0, getValue(stat, "SELECT COUNT(*) FROM TEST WHERE A=-1-" + a));
+            assertEquals(1, getValue(stat, "SELECT COUNT(*) FROM TEST WHERE A=" + a));
+            assertEquals(0, getValue(stat, "SELECT COUNT(*) FROM TEST WHERE A=-1-" + a));
         }
 
         reconnect();
@@ -256,12 +256,12 @@ public class TestIndex extends TestBase {
         prep = conn.prepareStatement("DELETE FROM TEST WHERE A=?");
         for (int a = 0; a < len; a++) {
             if (getValue(stat, "SELECT COUNT(*) FROM TEST WHERE A=" + a) != 1) {
-                check(1, getValue(stat, "SELECT COUNT(*) FROM TEST WHERE A=" + a));
+                assertEquals(1, getValue(stat, "SELECT COUNT(*) FROM TEST WHERE A=" + a));
             }
             prep.setInt(1, a);
-            check(1, prep.executeUpdate());
+            assertEquals(1, prep.executeUpdate());
         }
-        check(0, getValue(stat, "SELECT COUNT(*) FROM TEST"));
+        assertEquals(0, getValue(stat, "SELECT COUNT(*) FROM TEST"));
     }
 
     void testMultiColumnIndex() throws Exception {
@@ -280,12 +280,12 @@ public class TestIndex extends TestBase {
         prep = conn.prepareStatement("DELETE FROM TEST WHERE A=?");
         for (int a = 0; a < len; a++) {
             log(stat, "SELECT * FROM TEST");
-            check(2, getValue(stat, "SELECT COUNT(*) FROM TEST WHERE A=" + (len - a - 1)));
-            check((len - a) * 2, getValue(stat, "SELECT COUNT(*) FROM TEST"));
+            assertEquals(2, getValue(stat, "SELECT COUNT(*) FROM TEST WHERE A=" + (len - a - 1)));
+            assertEquals((len - a) * 2, getValue(stat, "SELECT COUNT(*) FROM TEST"));
             prep.setInt(1, len - a - 1);
             prep.execute();
         }
-        check(0, getValue(stat, "SELECT COUNT(*) FROM TEST"));
+        assertEquals(0, getValue(stat, "SELECT COUNT(*) FROM TEST"));
     }
 
     void testMultiColumnHashIndex() throws Exception {
@@ -324,8 +324,8 @@ public class TestIndex extends TestBase {
         reconnect();
 
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST WHERE DATA <> 'i('||a||','||b||')u('||a||','||b||')'");
-        checkFalse(rs.next());
-        check(len * (len / 2), getValue(stat, "SELECT COUNT(*) FROM TEST"));
+        assertFalse(rs.next());
+        assertEquals(len * (len / 2), getValue(stat, "SELECT COUNT(*) FROM TEST"));
         stat.execute("DROP TABLE TEST");
     }
 

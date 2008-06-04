@@ -287,120 +287,122 @@ public abstract class TestBase {
 
     public abstract void test() throws Exception;
 
-    public void check(int a, int b) throws Exception {
-        if (a != b) {
-            error("int a: " + a + " b: " + b);
+    public void assertEquals(int expected, int actual) throws Exception {
+        if (expected != actual) {
+            error("Expected: " + expected + " actual: " + actual);
         }
     }
 
-    protected void check(byte[] a, byte[] b) throws Exception {
-        check(a.length == b.length);
-        for (int i = 0; i < a.length; i++) {
-            if (a[i] != b[i]) {
-                error("byte[" + i + "]: a=" + (int) a[i] + " b=" + (int) b[i]);
+    protected void assertEquals(byte[] expected, byte[] actual) throws Exception {
+        assertTrue(expected.length == actual.length);
+        for (int i = 0; i < expected.length; i++) {
+            if (expected[i] != actual[i]) {
+                error("expected[" + i + "]: a=" + (int) expected[i] + " actual=" + (int) actual[i]);
             }
         }
     }
 
-    protected void check(String a, String b) throws Exception {
-        if (a == null && b == null) {
+    protected void assertEquals(String expected, String actual) throws Exception {
+        if (expected == null && actual == null) {
             return;
-        } else if (a == null || b == null) {
-            error("string a: " + a + " b: " + b);
+        } else if (expected == null || actual == null) {
+            error("Expected: " + expected + " Actual: " + actual);
         }
-        if (!a.equals(b)) {
-            for (int i = 0; i < a.length(); i++) {
-                String s = a.substring(0, i);
-                if (!b.startsWith(s)) {
-                    a = a.substring(0, i) + "<*>" + a.substring(i);
+        if (!expected.equals(actual)) {
+            for (int i = 0; i < expected.length(); i++) {
+                String s = expected.substring(0, i);
+                if (!actual.startsWith(s)) {
+                    expected = expected.substring(0, i) + "<*>" + expected.substring(i);
                     break;
                 }
             }
-            int al = a.length();
-            int bl = b.length();
+            int al = expected.length();
+            int bl = actual.length();
             if (al > 100) {
-                a = a.substring(0, 100);
+                expected = expected.substring(0, 100);
             }
             if (bl > 100) {
-                b = b.substring(0, 100);
+                actual = actual.substring(0, 100);
             }
-            error("string a: " + a + " (" + al + ") b: " + b + " (" + bl + ")");
+            error("Expected: " + expected + " (" + al + ") actual: " + actual + " (" + bl + ")");
         }
     }
 
-    protected void checkFalse(String a, String b) throws Exception {
-        if (a.equals(b)) {
-            error("string false a: " + a + " b: " + b);
-        }
-    }
-
-    protected void check(long a, long b) throws Exception {
-        if (a != b) {
-            error("long a: " + a + " b: " + b);
-        }
-    }
-
-    protected void checkSmaller(long a, long b) throws Exception {
+    protected void assertSmaller(long a, long b) throws Exception {
         if (a >= b) {
             error("a: " + a + " is not smaller than b: " + b);
         }
     }
 
-    protected void checkContains(String result, String contains) throws Exception {
+    protected void assertContains(String result, String contains) throws Exception {
         if (result.indexOf(contains) < 0) {
             error(result + " does not contain: " + contains);
         }
     }
     
-    protected void checkStartsWith(String text, String expectedStart) throws Exception {
+    protected void assertStartsWith(String text, String expectedStart) throws Exception {
         if (!text.startsWith(expectedStart)) {
             error(text + " does not start with: " + expectedStart);
         }
     }
     
-    protected void check(double a, double b) throws Exception {
-        if (a != b) {
-            error("double a: " + a + " b: " + b);
+    protected void assertEquals(long expected, long actual) throws Exception {
+        if (expected != actual) {
+            error("Expected: " + expected + " actual: " + actual);
         }
     }
 
-    protected void check(float a, float b) throws Exception {
-        if (a != b) {
-            error("float a: " + a + " b: " + b);
+    protected void assertEquals(double expected, double actual) throws Exception {
+        if (expected != actual) {
+            error("Expected: " + expected + " actual: " + actual);
         }
     }
 
-    protected void check(boolean a, boolean b) throws Exception {
-        if (a != b) {
-            error("boolean a: " + a + " b: " + b);
+    protected void assertEquals(float expected, float actual) throws Exception {
+        if (expected != actual) {
+            error("Expected: " + expected + " actual: " + actual);
         }
     }
 
-    protected void check(boolean value) throws Exception {
-        if (!value) {
-            error("expected: true got: false");
+    protected void assertEquals(boolean expected, boolean actual) throws Exception {
+        if (expected != actual) {
+            error("Boolean expected: " + expected + " actual: " + actual);
+        }
+    }
+    
+    protected void assertTrue(boolean condition) throws Exception {
+        assertTrue("Expected: true got: false", condition);
+    }
+
+    protected void assertTrue(String message, boolean condition) throws Exception {
+        if (!condition) {
+            error(message);
         }
     }
 
-    protected void checkFalse(boolean value) throws Exception {
+    protected void assertFalse(boolean value) throws Exception {
+        assertFalse("Expected: false got: true", value);
+    }
+    
+    protected void assertFalse(String message, boolean value) throws Exception {
         if (value) {
-            error("expected: false got: true");
-        }
+            error(message);
+        }        
     }
-
-    protected void checkResultRowCount(ResultSet rs, int expected) throws Exception {
+    
+    protected void assertResultRowCount(ResultSet rs, int expected) throws Exception {
         int i = 0;
         while (rs.next()) {
             i++;
         }
-        check(i, expected);
+        assertEquals(i, expected);
     }
 
-    protected void checkSingleValue(Statement stat, String sql, int value) throws Exception {
+    protected void assertSingleValue(Statement stat, String sql, int expected) throws Exception {
         ResultSet rs = stat.executeQuery(sql);
-        check(rs.next());
-        check(rs.getInt(1), value);
-        checkFalse(rs.next());
+        assertTrue(rs.next());
+        assertEquals(expected, rs.getInt(1));
+        assertFalse(rs.next());
     }
 
     protected void testResultSetMeta(ResultSet rs, int columnCount, String[] labels, int[] datatypes, int[] precision,
@@ -427,24 +429,24 @@ public abstract class TestBase {
                 String className = meta.getColumnClassName(i + 1);
                 switch (t) {
                 case Types.INTEGER:
-                    check(typeName, "INTEGER");
-                    check(className, "java.lang.Integer");
+                    assertEquals(typeName, "INTEGER");
+                    assertEquals(className, "java.lang.Integer");
                     break;
                 case Types.VARCHAR:
-                    check(typeName, "VARCHAR");
-                    check(className, "java.lang.String");
+                    assertEquals(typeName, "VARCHAR");
+                    assertEquals(className, "java.lang.String");
                     break;
                 case Types.SMALLINT:
-                    check(typeName, "SMALLINT");
-                    check(className, "java.lang.Short");
+                    assertEquals(typeName, "SMALLINT");
+                    assertEquals(className, "java.lang.Short");
                     break;
                 case Types.TIMESTAMP:
-                    check(typeName, "TIMESTAMP");
-                    check(className, "java.sql.Timestamp");
+                    assertEquals(typeName, "TIMESTAMP");
+                    assertEquals(className, "java.sql.Timestamp");
                     break;
                 case Types.DECIMAL:
-                    check(typeName, "DECIMAL");
-                    check(className, "java.math.BigDecimal");
+                    assertEquals(typeName, "DECIMAL");
+                    assertEquals(className, "java.math.BigDecimal");
                     break;
                 default:
                 }
@@ -582,26 +584,26 @@ public abstract class TestBase {
             }
             return buffer.toString();
         } catch (Exception e) {
-            check(false);
+            assertTrue(false);
             return null;
         }
     }
 
-    protected void checkNotGeneralException(SQLException e) throws Exception {
-        checkNotGeneralException("", e);
+    protected void assertKnownException(SQLException e) throws Exception {
+        assertKnownException("", e);
     }
 
-    protected void checkNotGeneralException(String message, SQLException e) throws Exception {
+    protected void assertKnownException(String message, SQLException e) throws Exception {
         if (e != null && e.getSQLState().startsWith("HY000")) {
             TestBase.logError("Unexpected General error " + message, e);
         }
     }
 
-    protected void check(Integer a, Integer b) throws Exception {
+    protected void assertEquals(Integer a, Integer b) throws Exception {
         if (a == null || b == null) {
-            check(a == b);
+            assertTrue(a == b);
         } else {
-            check(a.intValue(), b.intValue());
+            assertEquals(a.intValue(), b.intValue());
         }
     }
 
@@ -611,7 +613,7 @@ public abstract class TestBase {
         ArrayList list1 = new ArrayList();
         ArrayList list2 = new ArrayList();
         while (rs1.next()) {
-            check(rs2.next());
+            assertTrue(rs2.next());
             String s1 = rs1.getString(1);
             list1.add(s1);
             String s2 = rs2.getString(1);
@@ -623,8 +625,8 @@ public abstract class TestBase {
                 error("not found: " + s);
             }
         }
-        check(list2.size(), 0);
-        checkFalse(rs2.next());
+        assertEquals(list2.size(), 0);
+        assertFalse(rs2.next());
     }
 
 }

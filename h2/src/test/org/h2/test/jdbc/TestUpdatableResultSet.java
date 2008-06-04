@@ -41,15 +41,15 @@ public class TestUpdatableResultSet extends TestBase {
 
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
 
-        check(rs.isBeforeFirst());
-        checkFalse(rs.isAfterLast());
-        check(rs.getRow(), 0);
+        assertTrue(rs.isBeforeFirst());
+        assertFalse(rs.isAfterLast());
+        assertEquals(rs.getRow(), 0);
 
         rs.next();
-        checkFalse(rs.isBeforeFirst());
-        checkFalse(rs.isAfterLast());
-        check(rs.getInt(1), 1);
-        check(rs.getRow(), 1);
+        assertFalse(rs.isBeforeFirst());
+        assertFalse(rs.isAfterLast());
+        assertEquals(rs.getInt(1), 1);
+        assertEquals(rs.getRow(), 1);
 
         rs.next();
 
@@ -57,85 +57,85 @@ public class TestUpdatableResultSet extends TestBase {
             rs.insertRow();
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
 
-        checkFalse(rs.isBeforeFirst());
-        checkFalse(rs.isAfterLast());
-        check(rs.getInt(1), 2);
-        check(rs.getRow(), 2);
+        assertFalse(rs.isBeforeFirst());
+        assertFalse(rs.isAfterLast());
+        assertEquals(rs.getInt(1), 2);
+        assertEquals(rs.getRow(), 2);
 
         rs.next();
-        checkFalse(rs.isBeforeFirst());
-        checkFalse(rs.isAfterLast());
-        check(rs.getInt(1), 3);
-        check(rs.getRow(), 3);
+        assertFalse(rs.isBeforeFirst());
+        assertFalse(rs.isAfterLast());
+        assertEquals(rs.getInt(1), 3);
+        assertEquals(rs.getRow(), 3);
 
-        checkFalse(rs.next());
-        checkFalse(rs.isBeforeFirst());
-        check(rs.isAfterLast());
-        check(rs.getRow(), 0);
+        assertFalse(rs.next());
+        assertFalse(rs.isBeforeFirst());
+        assertTrue(rs.isAfterLast());
+        assertEquals(rs.getRow(), 0);
 
-        check(rs.first());
-        check(rs.getInt(1), 1);
-        check(rs.getRow(), 1);
+        assertTrue(rs.first());
+        assertEquals(rs.getInt(1), 1);
+        assertEquals(rs.getRow(), 1);
 
-        check(rs.last());
-        check(rs.getInt(1), 3);
-        check(rs.getRow(), 3);
+        assertTrue(rs.last());
+        assertEquals(rs.getInt(1), 3);
+        assertEquals(rs.getRow(), 3);
 
-        check(rs.relative(0));
-        check(rs.getRow(), 3);
+        assertTrue(rs.relative(0));
+        assertEquals(rs.getRow(), 3);
 
-        check(rs.relative(-1));
-        check(rs.getRow(), 2);
+        assertTrue(rs.relative(-1));
+        assertEquals(rs.getRow(), 2);
 
-        check(rs.relative(1));
-        check(rs.getRow(), 3);
+        assertTrue(rs.relative(1));
+        assertEquals(rs.getRow(), 3);
 
-        checkFalse(rs.relative(100));
-        check(rs.isAfterLast());
+        assertFalse(rs.relative(100));
+        assertTrue(rs.isAfterLast());
 
-        checkFalse(rs.absolute(0));
-        check(rs.getRow(), 0);
+        assertFalse(rs.absolute(0));
+        assertEquals(rs.getRow(), 0);
 
-        check(rs.absolute(1));
-        check(rs.getRow(), 1);
+        assertTrue(rs.absolute(1));
+        assertEquals(rs.getRow(), 1);
 
-        check(rs.absolute(2));
-        check(rs.getRow(), 2);
+        assertTrue(rs.absolute(2));
+        assertEquals(rs.getRow(), 2);
 
-        check(rs.absolute(3));
-        check(rs.getRow(), 3);
+        assertTrue(rs.absolute(3));
+        assertEquals(rs.getRow(), 3);
 
-        checkFalse(rs.absolute(4));
-        check(rs.getRow(), 0);
+        assertFalse(rs.absolute(4));
+        assertEquals(rs.getRow(), 0);
 
         try {
-            checkFalse(rs.absolute(0));
+            assertFalse(rs.absolute(0));
             // actually, we allow it for compatibility
             // error("absolute 0 not allowed");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
 
-        check(rs.absolute(3));
-        check(rs.getRow(), 3);
+        assertTrue(rs.absolute(3));
+        assertEquals(rs.getRow(), 3);
 
-        check(rs.absolute(-1));
-        check(rs.getRow(), 3);
+        assertTrue(rs.absolute(-1));
+        assertEquals(rs.getRow(), 3);
 
-        checkFalse(rs.absolute(4));
-        check(rs.isAfterLast());
+        assertFalse(rs.absolute(4));
+        assertTrue(rs.isAfterLast());
 
-        checkFalse(rs.absolute(5));
-        check(rs.isAfterLast());
+        assertFalse(rs.absolute(5));
+        assertTrue(rs.isAfterLast());
 
-        check(rs.previous());
-        check(rs.getRow(), 3);
+        assertTrue(rs.previous());
+        assertEquals(rs.getRow(), 3);
 
-        check(rs.previous());
-        check(rs.getRow(), 2);
+        assertTrue(rs.previous());
+        assertEquals(rs.getRow(), 2);
 
         conn.close();
     }
@@ -150,22 +150,22 @@ public class TestUpdatableResultSet extends TestBase {
                 + "O_I INT, SH SMALLINT, CL CLOB, BL BLOB)");
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
         ResultSetMetaData meta = rs.getMetaData();
-        check(meta.getColumnClassName(1), "java.lang.Integer");
-        check(meta.getColumnClassName(2), "java.lang.String");
-        check(meta.getColumnClassName(3), "java.math.BigDecimal");
-        check(meta.getColumnClassName(4), "java.lang.Boolean");
-        check(meta.getColumnClassName(5), "java.lang.Byte");
-        check(meta.getColumnClassName(6), "[B");
-        check(meta.getColumnClassName(7), "java.sql.Date");
-        check(meta.getColumnClassName(8), "java.sql.Time");
-        check(meta.getColumnClassName(9), "java.sql.Timestamp");
-        check(meta.getColumnClassName(10), "java.lang.Double");
-        check(meta.getColumnClassName(11), "java.lang.Float");
-        check(meta.getColumnClassName(12), "java.lang.Long");
-        check(meta.getColumnClassName(13), "java.lang.Integer");
-        check(meta.getColumnClassName(14), "java.lang.Short");
-        check(meta.getColumnClassName(15), "java.sql.Clob");
-        check(meta.getColumnClassName(16), "java.sql.Blob");
+        assertEquals(meta.getColumnClassName(1), "java.lang.Integer");
+        assertEquals(meta.getColumnClassName(2), "java.lang.String");
+        assertEquals(meta.getColumnClassName(3), "java.math.BigDecimal");
+        assertEquals(meta.getColumnClassName(4), "java.lang.Boolean");
+        assertEquals(meta.getColumnClassName(5), "java.lang.Byte");
+        assertEquals(meta.getColumnClassName(6), "[B");
+        assertEquals(meta.getColumnClassName(7), "java.sql.Date");
+        assertEquals(meta.getColumnClassName(8), "java.sql.Time");
+        assertEquals(meta.getColumnClassName(9), "java.sql.Timestamp");
+        assertEquals(meta.getColumnClassName(10), "java.lang.Double");
+        assertEquals(meta.getColumnClassName(11), "java.lang.Float");
+        assertEquals(meta.getColumnClassName(12), "java.lang.Long");
+        assertEquals(meta.getColumnClassName(13), "java.lang.Integer");
+        assertEquals(meta.getColumnClassName(14), "java.lang.Short");
+        assertEquals(meta.getColumnClassName(15), "java.sql.Clob");
+        assertEquals(meta.getColumnClassName(16), "java.sql.Blob");
 
         rs.moveToInsertRow();
         rs.updateInt(1, 0);
@@ -215,61 +215,61 @@ public class TestUpdatableResultSet extends TestBase {
 
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID NULLS FIRST");
         rs.next();
-        check(rs.getInt(1) == 0);
-        check(rs.getString(2) == null && rs.wasNull());
-        check(rs.getBigDecimal(3) == null && rs.wasNull());
-        check(!rs.getBoolean(4) && rs.wasNull());
-        check(rs.getByte(5) == 0 && rs.wasNull());
-        check(rs.getBytes(6) == null && rs.wasNull());
-        check(rs.getDate(7) == null && rs.wasNull());
-        check(rs.getTime(8) == null && rs.wasNull());
-        check(rs.getTimestamp(9) == null && rs.wasNull());
-        check(rs.getDouble(10) == 0.0 && rs.wasNull());
-        check(rs.getFloat(11) == 0.0 && rs.wasNull());
-        check(rs.getLong(12) == 0 && rs.wasNull());
-        check(rs.getObject(13) == null && rs.wasNull());
-        check(rs.getShort(14) == 0 && rs.wasNull());
-        check(rs.getCharacterStream(15) == null && rs.wasNull());
-        check(rs.getBinaryStream(16) == null && rs.wasNull());
+        assertTrue(rs.getInt(1) == 0);
+        assertTrue(rs.getString(2) == null && rs.wasNull());
+        assertTrue(rs.getBigDecimal(3) == null && rs.wasNull());
+        assertTrue(!rs.getBoolean(4) && rs.wasNull());
+        assertTrue(rs.getByte(5) == 0 && rs.wasNull());
+        assertTrue(rs.getBytes(6) == null && rs.wasNull());
+        assertTrue(rs.getDate(7) == null && rs.wasNull());
+        assertTrue(rs.getTime(8) == null && rs.wasNull());
+        assertTrue(rs.getTimestamp(9) == null && rs.wasNull());
+        assertTrue(rs.getDouble(10) == 0.0 && rs.wasNull());
+        assertTrue(rs.getFloat(11) == 0.0 && rs.wasNull());
+        assertTrue(rs.getLong(12) == 0 && rs.wasNull());
+        assertTrue(rs.getObject(13) == null && rs.wasNull());
+        assertTrue(rs.getShort(14) == 0 && rs.wasNull());
+        assertTrue(rs.getCharacterStream(15) == null && rs.wasNull());
+        assertTrue(rs.getBinaryStream(16) == null && rs.wasNull());
 
         rs.next();
-        check(rs.getInt(1) == 1);
-        check(rs.getString(2) == null && rs.wasNull());
-        check(rs.getBigDecimal(3) == null && rs.wasNull());
-        check(!rs.getBoolean(4) && !rs.wasNull());
-        check(rs.getByte(5) == 0 && !rs.wasNull());
-        check(rs.getBytes(6) == null && rs.wasNull());
-        check(rs.getDate(7) == null && rs.wasNull());
-        check(rs.getTime(8) == null && rs.wasNull());
-        check(rs.getTimestamp(9) == null && rs.wasNull());
-        check(rs.getDouble(10) == 0.0 && !rs.wasNull());
-        check(rs.getFloat(11) == 0.0 && !rs.wasNull());
-        check(rs.getLong(12) == 0 && !rs.wasNull());
-        check(rs.getObject(13) == null && rs.wasNull());
-        check(rs.getShort(14) == 0 && !rs.wasNull());
-        check(rs.getString(15), "test");
-        check(rs.getBytes(16), new byte[] { (byte) 0xff, 0x00 });
+        assertTrue(rs.getInt(1) == 1);
+        assertTrue(rs.getString(2) == null && rs.wasNull());
+        assertTrue(rs.getBigDecimal(3) == null && rs.wasNull());
+        assertTrue(!rs.getBoolean(4) && !rs.wasNull());
+        assertTrue(rs.getByte(5) == 0 && !rs.wasNull());
+        assertTrue(rs.getBytes(6) == null && rs.wasNull());
+        assertTrue(rs.getDate(7) == null && rs.wasNull());
+        assertTrue(rs.getTime(8) == null && rs.wasNull());
+        assertTrue(rs.getTimestamp(9) == null && rs.wasNull());
+        assertTrue(rs.getDouble(10) == 0.0 && !rs.wasNull());
+        assertTrue(rs.getFloat(11) == 0.0 && !rs.wasNull());
+        assertTrue(rs.getLong(12) == 0 && !rs.wasNull());
+        assertTrue(rs.getObject(13) == null && rs.wasNull());
+        assertTrue(rs.getShort(14) == 0 && !rs.wasNull());
+        assertEquals(rs.getString(15), "test");
+        assertEquals(rs.getBytes(16), new byte[] { (byte) 0xff, 0x00 });
 
         rs.next();
-        check(rs.getInt(1) == 2);
-        check(rs.getString(2), "+");
-        check(rs.getBigDecimal(3).toString(), "1.20");
-        check(rs.getBoolean(4));
-        check((rs.getByte(5) & 0xff) == 0xff);
-        check(rs.getBytes(6), new byte[] { 0x00, (byte) 0xff });
-        check(rs.getDate(7).toString(), "2005-09-21");
-        check(rs.getTime(8).toString(), "21:46:28");
-        check(rs.getTimestamp(9).toString(), "2005-09-21 21:47:09.567890123");
-        check(rs.getDouble(10) == 1.725);
-        check(rs.getFloat(11) == (float) 2.5);
-        check(rs.getLong(12) == Long.MAX_VALUE);
-        check(((Integer) rs.getObject(13)).intValue(), 10);
-        check(rs.getShort(14) == Short.MIN_VALUE);
+        assertTrue(rs.getInt(1) == 2);
+        assertEquals(rs.getString(2), "+");
+        assertEquals(rs.getBigDecimal(3).toString(), "1.20");
+        assertTrue(rs.getBoolean(4));
+        assertTrue((rs.getByte(5) & 0xff) == 0xff);
+        assertEquals(rs.getBytes(6), new byte[] { 0x00, (byte) 0xff });
+        assertEquals(rs.getDate(7).toString(), "2005-09-21");
+        assertEquals(rs.getTime(8).toString(), "21:46:28");
+        assertEquals(rs.getTimestamp(9).toString(), "2005-09-21 21:47:09.567890123");
+        assertTrue(rs.getDouble(10) == 1.725);
+        assertTrue(rs.getFloat(11) == (float) 2.5);
+        assertTrue(rs.getLong(12) == Long.MAX_VALUE);
+        assertEquals(((Integer) rs.getObject(13)).intValue(), 10);
+        assertTrue(rs.getShort(14) == Short.MIN_VALUE);
         // auml ouml uuml
-        check(rs.getString(15), "\u00ef\u00f6\u00fc");
-        check(rs.getBytes(16), new byte[] { (byte) 0xab, 0x12 });
+        assertEquals(rs.getString(15), "\u00ef\u00f6\u00fc");
+        assertEquals(rs.getBytes(16), new byte[] { (byte) 0xab, 0x12 });
 
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
         conn.close();
     }
@@ -310,14 +310,14 @@ public class TestUpdatableResultSet extends TestBase {
         while (rs.next()) {
             int id = rs.getInt(1);
             String name = rs.getString(2);
-            check(id % 2, 0);
+            assertEquals(id % 2, 0);
             if (id >= max) {
-                check("Inserted " + id, rs.getString(2));
+                assertEquals("Inserted " + id, rs.getString(2));
             } else {
                 if (id % 4 == 0) {
-                    check(rs.getString(2), "Updated Hello" + id + "+");
+                    assertEquals(rs.getString(2), "Updated Hello" + id + "+");
                 } else {
-                    check(rs.getString(2), "Updated Hello" + id);
+                    assertEquals(rs.getString(2), "Updated Hello" + id);
                 }
             }
             trace("id=" + id + " name=" + name);
@@ -355,7 +355,7 @@ public class TestUpdatableResultSet extends TestBase {
             error = true;
         }
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
-        check(rs.getType(), type);
+        assertEquals(rs.getType(), type);
 
         checkState(rs, true, false, false, rows == 0);
         for (int i = 0; i < rows; i++) {
@@ -380,7 +380,7 @@ public class TestUpdatableResultSet extends TestBase {
         }
         try {
             boolean valid = rs.first();
-            check(valid, rows > 0);
+            assertEquals(valid, rows > 0);
             if (valid) {
                 checkState(rs, false, true, rows == 1, rows == 0);
             }
@@ -391,7 +391,7 @@ public class TestUpdatableResultSet extends TestBase {
         }
         try {
             boolean valid = rs.last();
-            check(valid, rows > 0);
+            assertEquals(valid, rows > 0);
             if (valid) {
                 checkState(rs, false, rows == 1, true, rows == 0);
             }
@@ -403,10 +403,10 @@ public class TestUpdatableResultSet extends TestBase {
     }
 
     void checkState(ResultSet rs, boolean beforeFirst, boolean first, boolean last, boolean afterLast) throws Exception {
-        check(rs.isBeforeFirst(), beforeFirst);
-        check(rs.isFirst(), first);
-        check(rs.isLast(), last);
-        check(rs.isAfterLast(), afterLast);
+        assertEquals(rs.isBeforeFirst(), beforeFirst);
+        assertEquals(rs.isFirst(), first);
+        assertEquals(rs.isLast(), last);
+        assertEquals(rs.isAfterLast(), afterLast);
     }
 
 }

@@ -86,10 +86,10 @@ public class TestLinkedTable extends TestBase {
         stat2.execute("CREATE LINKED TABLE two('org.h2.Driver', 'jdbc:h2:mem:one', 'sa', 'sa', 'A');");
         ResultSet rs = stat2.executeQuery("SELECT * FROM one");
         rs.next();
-        check(rs.getInt(1), 2);
+        assertEquals(rs.getInt(1), 2);
         rs = stat2.executeQuery("SELECT * FROM two");
         rs.next();
-        check(rs.getInt(1), 1);
+        assertEquals(rs.getInt(1), 1);
         conn.close();
         conn2.close();
     }
@@ -137,7 +137,7 @@ public class TestLinkedTable extends TestBase {
             stat2.executeUpdate("UPDATE TEST_LINK_U SET ID=ID+1");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         stat2.executeUpdate("UPDATE TEST_LINK_DI SET ID=ID+1");
         stat2.executeUpdate("UPDATE TEST_LINK_U SET NAME=NAME || ID");
@@ -145,30 +145,30 @@ public class TestLinkedTable extends TestBase {
 
         rs = stat2.executeQuery("SELECT * FROM TEST_LINK_DI ORDER BY ID");
         rs.next();
-        check(rs.getInt(1), 2);
-        check(rs.getString(2), "Hello2");
+        assertEquals(rs.getInt(1), 2);
+        assertEquals(rs.getString(2), "Hello2");
         rs.next();
-        check(rs.getInt(1), 3);
-        check(rs.getString(2), "World3");
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 3);
+        assertEquals(rs.getString(2), "World3");
+        assertFalse(rs.next());
 
         rs = stat2.executeQuery("SELECT * FROM TEST_LINK_U ORDER BY ID");
         rs.next();
-        check(rs.getInt(1), 2);
-        check(rs.getString(2), "Hello2");
+        assertEquals(rs.getInt(1), 2);
+        assertEquals(rs.getString(2), "Hello2");
         rs.next();
-        check(rs.getInt(1), 3);
-        check(rs.getString(2), "World3");
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 3);
+        assertEquals(rs.getString(2), "World3");
+        assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
-        check(rs.getInt(1), 2);
-        check(rs.getString(2), "Hello2");
+        assertEquals(rs.getInt(1), 2);
+        assertEquals(rs.getString(2), "Hello2");
         rs.next();
-        check(rs.getInt(1), 3);
-        check(rs.getString(2), "World3");
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 3);
+        assertEquals(rs.getString(2), "World3");
+        assertFalse(rs.next());
 
         conn.close();
         conn2.close();
@@ -227,7 +227,7 @@ public class TestLinkedTable extends TestBase {
             stat.execute("SELECT * FROM TEST_TEMP");
             error("temp table must not be persistent");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         conn.close();
 
@@ -240,8 +240,8 @@ public class TestLinkedTable extends TestBase {
         testRow(stat, "LINK_TEST");
         ResultSet rs = stat.executeQuery("SELECT * FROM LINK_TEST");
         ResultSetMetaData meta = rs.getMetaData();
-        check(10, meta.getPrecision(1));
-        check(200, meta.getPrecision(2));
+        assertEquals(10, meta.getPrecision(1));
+        assertEquals(200, meta.getPrecision(2));
 
         conn.close();
         conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/linked2", "sa2", "def");
@@ -252,41 +252,41 @@ public class TestLinkedTable extends TestBase {
 
         rs = stat.executeQuery("SELECT COUNT(*) FROM LINK_TEST");
         rs.next();
-        check(rs.getInt(1), 4);
+        assertEquals(rs.getInt(1), 4);
 
         rs = stat.executeQuery("SELECT COUNT(*) FROM LINK_TEST WHERE NAME='Link Test'");
         rs.next();
-        check(rs.getInt(1), 1);
+        assertEquals(rs.getInt(1), 1);
 
         int uc = stat.executeUpdate("DELETE FROM LINK_TEST WHERE ID=3");
-        check(uc, 1);
+        assertEquals(uc, 1);
 
         rs = stat.executeQuery("SELECT COUNT(*) FROM LINK_TEST");
         rs.next();
-        check(rs.getInt(1), 3);
+        assertEquals(rs.getInt(1), 3);
 
         rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='LINK_TEST'");
         rs.next();
-        check(rs.getString("TABLE_TYPE"), "TABLE LINK");
+        assertEquals(rs.getString("TABLE_TYPE"), "TABLE LINK");
 
         rs.next();
         rs = stat.executeQuery("SELECT * FROM LINK_TEST WHERE ID=0");
         rs.next();
-        check(rs.getString("NAME") == null && rs.wasNull());
-        check(rs.getString("XT") == null && rs.wasNull());
-        check(rs.getInt("ID") == 0 && !rs.wasNull());
-        check(rs.getBigDecimal("XD") == null && rs.wasNull());
-        check(rs.getTimestamp("XTS") == null && rs.wasNull());
-        check(rs.getBytes("XBY") == null && rs.wasNull());
-        check(!rs.getBoolean("XBO") && rs.wasNull());
-        check(rs.getShort("XSM") == 0 && rs.wasNull());
-        check(rs.getLong("XBI") == 0 && rs.wasNull());
-        check(rs.getString("XBL") == null && rs.wasNull());
-        check(rs.getString("XDA") == null && rs.wasNull());
-        check(rs.getString("XTI") == null && rs.wasNull());
-        check(rs.getString("XCL") == null && rs.wasNull());
-        check(rs.getString("XDO") == null && rs.wasNull());
-        checkFalse(rs.next());
+        assertTrue(rs.getString("NAME") == null && rs.wasNull());
+        assertTrue(rs.getString("XT") == null && rs.wasNull());
+        assertTrue(rs.getInt("ID") == 0 && !rs.wasNull());
+        assertTrue(rs.getBigDecimal("XD") == null && rs.wasNull());
+        assertTrue(rs.getTimestamp("XTS") == null && rs.wasNull());
+        assertTrue(rs.getBytes("XBY") == null && rs.wasNull());
+        assertTrue(!rs.getBoolean("XBO") && rs.wasNull());
+        assertTrue(rs.getShort("XSM") == 0 && rs.wasNull());
+        assertTrue(rs.getLong("XBI") == 0 && rs.wasNull());
+        assertTrue(rs.getString("XBL") == null && rs.wasNull());
+        assertTrue(rs.getString("XDA") == null && rs.wasNull());
+        assertTrue(rs.getString("XTI") == null && rs.wasNull());
+        assertTrue(rs.getString("XCL") == null && rs.wasNull());
+        assertTrue(rs.getString("XDO") == null && rs.wasNull());
+        assertFalse(rs.next());
 
         stat.execute("DROP TABLE LINK_TEST");
 
@@ -294,8 +294,8 @@ public class TestLinkedTable extends TestBase {
                 + "/linked1', 'sa1', 'abc', '(SELECT COUNT(*) FROM TEST)')");
         rs = stat.executeQuery("SELECT * FROM LINK_TEST");
         rs.next();
-        check(rs.getInt(1), 3);
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 3);
+        assertFalse(rs.next());
 
         conn.close();
 
@@ -306,23 +306,23 @@ public class TestLinkedTable extends TestBase {
     void testRow(Statement stat, String name) throws Exception {
         ResultSet rs = stat.executeQuery("SELECT * FROM " + name + " WHERE ID=1");
         rs.next();
-        check(rs.getString("NAME"), "Hello");
-        check(rs.getByte("XT"), -1);
+        assertEquals(rs.getString("NAME"), "Hello");
+        assertEquals(rs.getByte("XT"), -1);
         BigDecimal bd = rs.getBigDecimal("XD");
-        check(bd.equals(new BigDecimal("10.30")));
+        assertTrue(bd.equals(new BigDecimal("10.30")));
         Timestamp ts = rs.getTimestamp("XTS");
         String s = ts.toString();
-        check(s, "2001-02-03 11:22:33.4455");
-        check(ts.equals(Timestamp.valueOf("2001-02-03 11:22:33.4455")));
-        check(rs.getBytes("XBY"), new byte[] { (byte) 255, (byte) 1, (byte) 2 });
-        check(rs.getBoolean("XBO"));
-        check(rs.getShort("XSM"), 3000);
-        check(rs.getLong("XBI"), 1234567890123456789L);
-        check(rs.getString("XBL"), "1122aa");
-        check(rs.getString("XDA"), "0002-01-01");
-        check(rs.getString("XTI"), "00:00:00");
-        check(rs.getString("XCL"), "J\u00fcrg");
-        check(rs.getString("XDO"), "2.25");
+        assertEquals(s, "2001-02-03 11:22:33.4455");
+        assertTrue(ts.equals(Timestamp.valueOf("2001-02-03 11:22:33.4455")));
+        assertEquals(rs.getBytes("XBY"), new byte[] { (byte) 255, (byte) 1, (byte) 2 });
+        assertTrue(rs.getBoolean("XBO"));
+        assertEquals(rs.getShort("XSM"), 3000);
+        assertEquals(rs.getLong("XBI"), 1234567890123456789L);
+        assertEquals(rs.getString("XBL"), "1122aa");
+        assertEquals(rs.getString("XDA"), "0002-01-01");
+        assertEquals(rs.getString("XTI"), "00:00:00");
+        assertEquals(rs.getString("XCL"), "J\u00fcrg");
+        assertEquals(rs.getString("XDO"), "2.25");
 
     }
 

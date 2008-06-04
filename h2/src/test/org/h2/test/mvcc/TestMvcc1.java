@@ -37,16 +37,16 @@ public class TestMvcc1 extends TestBase {
         Statement stat = c1.createStatement();
         ResultSet rs = stat.executeQuery("select * from information_schema.settings where name='MVCC'");
         rs.next();
-        check("FALSE", rs.getString("VALUE"));
+        assertEquals("FALSE", rs.getString("VALUE"));
         try {
             stat.execute("SET MVCC TRUE");
             error();
         } catch (SQLException e) {
-            check(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e.getErrorCode());
+            assertEquals(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e.getErrorCode());
         }
         rs = stat.executeQuery("select * from information_schema.settings where name='MVCC'");
         rs.next();
-        check("FALSE", rs.getString("VALUE"));
+        assertEquals("FALSE", rs.getString("VALUE"));
         c1.close();
     }
 
@@ -107,7 +107,7 @@ public class TestMvcc1 extends TestBase {
              s2.execute("insert into b values('un B', 1)");
              error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         c2.commit();
         c1.rollback();
@@ -123,7 +123,7 @@ public class TestMvcc1 extends TestBase {
             error();
         } catch (SQLException e) {
             // lock timeout expected
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         c1.rollback();
         s2.execute("drop table test");
@@ -150,7 +150,7 @@ public class TestMvcc1 extends TestBase {
             error();
         } catch (SQLException e) {
             // lock timeout expected
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         c2.rollback();
         s1.execute("drop table test");
@@ -309,7 +309,7 @@ public class TestMvcc1 extends TestBase {
                 try {
                     s.execute("UPDATE TEST SET NAME=" + i + " WHERE ID=" + random.nextInt(i));
                 } catch (SQLException e) {
-                    check(e.getErrorCode(), ErrorCode.CONCURRENT_UPDATE_1);
+                    assertEquals(e.getErrorCode(), ErrorCode.CONCURRENT_UPDATE_1);
                 }
                 break;
             case 2:
@@ -372,25 +372,25 @@ public class TestMvcc1 extends TestBase {
             s1.execute("update test set id=2 where id=1");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         ResultSet rs = s1.executeQuery("select * from test order by id");
-        check(rs.next());
-        check(rs.getInt(1), 1);
-        check(rs.getString(2), "Hello");
-        check(rs.next());
-        check(rs.getInt(1), 2);
-        check(rs.getString(2), "World");
-        checkFalse(rs.next());
+        assertTrue(rs.next());
+        assertEquals(rs.getInt(1), 1);
+        assertEquals(rs.getString(2), "Hello");
+        assertTrue(rs.next());
+        assertEquals(rs.getInt(1), 2);
+        assertEquals(rs.getString(2), "World");
+        assertFalse(rs.next());
 
         rs = s2.executeQuery("select * from test order by id");
-        check(rs.next());
-        check(rs.getInt(1), 1);
-        check(rs.getString(2), "Hello");
-        check(rs.next());
-        check(rs.getInt(1), 2);
-        check(rs.getString(2), "World");
-        checkFalse(rs.next());
+        assertTrue(rs.next());
+        assertEquals(rs.getInt(1), 1);
+        assertEquals(rs.getString(2), "Hello");
+        assertTrue(rs.next());
+        assertEquals(rs.getInt(1), 2);
+        assertEquals(rs.getString(2), "World");
+        assertFalse(rs.next());
         s1.execute("drop table test");
         c1.commit();
         c2.commit();

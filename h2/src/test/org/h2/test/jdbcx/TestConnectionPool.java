@@ -60,7 +60,7 @@ public class TestConnectionPool extends TestBase {
         for (int i = 0; i < len; i++) {
             threads[i].join();
         }
-        check(0, man.getActiveConnections());
+        assertEquals(0, man.getActiveConnections());
         man.dispose();
     }
     

@@ -45,11 +45,11 @@ public class TestBigResult extends TestBase {
                 "WHERE SQL_STMT='commit' OR SQL_STMT='rollback')");
         int count = 0, last = 1;
         while (rs.next()) {
-            check(last, rs.getInt(1));
+            assertEquals(last, rs.getInt(1));
             last += 2;
             count++;
         }
-        check(len / 2, count);
+        assertEquals(len / 2, count);
         conn.close();
     }
 
@@ -96,15 +96,15 @@ public class TestBigResult extends TestBase {
         ResultSet rs;
         rs = stat.executeQuery("select id from test order by id limit 10 offset 85");
         for (int i = 85; rs.next(); i++) {
-            check(i, rs.getInt(1));
+            assertEquals(i, rs.getInt(1));
         }
         rs = stat.executeQuery("select id from test order by id limit 10 offset 95");
         for (int i = 95; rs.next(); i++) {
-            check(i, rs.getInt(1));
+            assertEquals(i, rs.getInt(1));
         }
         rs = stat.executeQuery("select id from test order by id limit 10 offset 105");
         for (int i = 105; rs.next(); i++) {
-            check(i, rs.getInt(1));
+            assertEquals(i, rs.getInt(1));
         }
         conn.close();
     }
@@ -133,22 +133,22 @@ public class TestBigResult extends TestBase {
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         for (int i = 0; i < len; i++) {
             rs.next();
-            check(i, rs.getInt(1));
-            check("Name " + i, rs.getString(2));
-            check("First Name " + i, rs.getString(3));
-            check(i * 10, rs.getInt(4));
-            check(i * i, rs.getInt(5));
+            assertEquals(i, rs.getInt(1));
+            assertEquals("Name " + i, rs.getString(2));
+            assertEquals("First Name " + i, rs.getString(3));
+            assertEquals(i * 10, rs.getInt(4));
+            assertEquals(i * i, rs.getInt(5));
         }
 
         stat.setMaxRows(len + 1);
         rs = stat.executeQuery("SELECT * FROM TEST WHERE ID >= 1000 ORDER BY ID");
         for (int i = 1000; i < len; i++) {
             rs.next();
-            check(i, rs.getInt(1));
-            check("Name " + i, rs.getString(2));
-            check("First Name " + i, rs.getString(3));
-            check(i * 10, rs.getInt(4));
-            check(i * i, rs.getInt(5));
+            assertEquals(i, rs.getInt(1));
+            assertEquals("Name " + i, rs.getString(2));
+            assertEquals("First Name " + i, rs.getString(3));
+            assertEquals(i * 10, rs.getInt(4));
+            assertEquals(i * i, rs.getInt(5));
         }
 
         stat.execute("SET MAX_MEMORY_ROWS 2");

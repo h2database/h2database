@@ -63,7 +63,7 @@ public class TestNativeSQL extends TestBase {
         testRandom();
         testQuotes();
         conn.close();
-        check(conn.isClosed());
+        assertTrue(conn.isClosed());
     }
     
     private void testQuotes() throws Exception {
@@ -101,7 +101,7 @@ public class TestNativeSQL extends TestBase {
             ResultSet rs = stat.executeQuery(sql);
             rs.next();
             String raw = buffRaw.toString();
-            check(raw, rs.getString(1));
+            assertEquals(raw, rs.getString(1));
         }
     }
     
@@ -117,7 +117,7 @@ public class TestNativeSQL extends TestBase {
             try {
                 conn.nativeSQL(sql);
             } catch (SQLException e) {
-                checkNotGeneralException(sql, e);
+                assertKnownException(sql, e);
             }
         }
         String smallest = null;
@@ -226,9 +226,9 @@ public class TestNativeSQL extends TestBase {
             stat.execute("CALL {d '2001-01-01'} // this is a test");
             error("expected error if setEscapeProcessing=false");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
-        checkFalse(conn.isClosed());
+        assertFalse(conn.isClosed());
     }
 
     void test(Connection conn, String original, String expected) throws Exception {
@@ -237,10 +237,10 @@ public class TestNativeSQL extends TestBase {
         try {
             String result = conn.nativeSQL(original);
             trace("result: <" + result + ">");
-            check(expected, result);
+            assertEquals(expected, result);
         } catch (SQLException e) {
-            check(expected, null);
-            checkNotGeneralException(e);
+            assertEquals(expected, null);
+            assertKnownException(e);
             trace("got exception, good");
         }
     }

@@ -66,37 +66,37 @@ public class TestTools extends TestBase {
         org.h2.Driver.load();
 
         result = runServer(new String[]{"-?"}, 1);
-        check(result.indexOf("Starts H2 Servers") >= 0);
-        check(result.indexOf("Unknown option") < 0);
+        assertTrue(result.indexOf("Starts H2 Servers") >= 0);
+        assertTrue(result.indexOf("Unknown option") < 0);
 
         result = runServer(new String[]{"-xy"}, 1);
-        check(result.indexOf("Starts H2 Servers") >= 0);
-        check(result.indexOf("Unsupported option") >= 0);
+        assertTrue(result.indexOf("Starts H2 Servers") >= 0);
+        assertTrue(result.indexOf("Unsupported option") >= 0);
         result = runServer(new String[]{"-tcp", "-tcpPort", "9001", "-tcpPassword", "abc"}, 0);
-        check(result.indexOf("tcp://") >= 0);
-        check(result.indexOf(":9001") >= 0);
-        check(result.indexOf("only local") >= 0);
-        check(result.indexOf("Starts H2 Servers") < 0);
+        assertTrue(result.indexOf("tcp://") >= 0);
+        assertTrue(result.indexOf(":9001") >= 0);
+        assertTrue(result.indexOf("only local") >= 0);
+        assertTrue(result.indexOf("Starts H2 Servers") < 0);
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9001/mem:", "sa", "sa");
         conn.close();
         result = runServer(new String[]{"-tcpShutdown", "tcp://localhost:9001", "-tcpPassword", "abc", "-tcpShutdownForce"}, 0);
-        check(result.indexOf("Shutting down") >= 0);
+        assertTrue(result.indexOf("Shutting down") >= 0);
 
         result = runServer(new String[]{"-tcp", "-tcpAllowOthers", "-tcpPort", "9001", "-tcpPassword", "abcdef", "-tcpSSL"}, 0);
-        check(result.indexOf("ssl://") >= 0);
-        check(result.indexOf(":9001") >= 0);
-        check(result.indexOf("others can") >= 0);
-        check(result.indexOf("Starts H2 Servers") < 0);
+        assertTrue(result.indexOf("ssl://") >= 0);
+        assertTrue(result.indexOf(":9001") >= 0);
+        assertTrue(result.indexOf("others can") >= 0);
+        assertTrue(result.indexOf("Starts H2 Servers") < 0);
         conn = DriverManager.getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
         conn.close();
 
         result = runServer(new String[]{"-tcpShutdown", "ssl://localhost:9001", "-tcpPassword", "abcdef"}, 0);
-        check(result.indexOf("Shutting down") >= 0);
+        assertTrue(result.indexOf("Shutting down") >= 0);
         try {
             conn = DriverManager.getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
 
         result = runServer(new String[]{
@@ -105,25 +105,25 @@ public class TestTools extends TestBase {
                 "-ftp", "-ftpPort", "9004", "-ftpDir", ".", "-ftpRead", "guest", "-ftpWrite", "sa", "-ftpWritePassword", "sa", "-ftpTask", 
                 "-tcp", "-tcpAllowOthers", "-tcpPort", "9005", "-tcpPassword", "abc"}, 0);
         Server stop = server;
-        check(result.indexOf("https://") >= 0);
-        check(result.indexOf(":9002") >= 0);
-        check(result.indexOf("pg://") >= 0);
-        check(result.indexOf(":9003") >= 0);
-        check(result.indexOf("others can") >= 0);
-        check(result.indexOf("only local") < 0);
-        check(result.indexOf("ftp://") >= 0);
-        check(result.indexOf(":9004") >= 0);
-        check(result.indexOf("tcp://") >= 0);
-        check(result.indexOf(":9005") >= 0);
+        assertTrue(result.indexOf("https://") >= 0);
+        assertTrue(result.indexOf(":9002") >= 0);
+        assertTrue(result.indexOf("pg://") >= 0);
+        assertTrue(result.indexOf(":9003") >= 0);
+        assertTrue(result.indexOf("others can") >= 0);
+        assertTrue(result.indexOf("only local") < 0);
+        assertTrue(result.indexOf("ftp://") >= 0);
+        assertTrue(result.indexOf(":9004") >= 0);
+        assertTrue(result.indexOf("tcp://") >= 0);
+        assertTrue(result.indexOf(":9005") >= 0);
 
         result = runServer(new String[]{"-tcpShutdown", "tcp://localhost:9005", "-tcpPassword", "abc", "-tcpShutdownForce"}, 0);
-        check(result.indexOf("Shutting down") >= 0);
+        assertTrue(result.indexOf("Shutting down") >= 0);
         stop.shutdown();
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9005/mem:", "sa", "sa");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
     }
 
@@ -132,7 +132,7 @@ public class TestTools extends TestBase {
         PrintStream ps = new PrintStream(buff);
         server = new Server();
         int gotCode = server.run(args, ps);
-        check(exitCode, gotCode);
+        assertEquals(exitCode, gotCode);
         ps.flush();
         String s = new String(buff.toByteArray());
         return s;
@@ -169,10 +169,10 @@ public class TestTools extends TestBase {
         new File(baseDir + "/Test.java").delete();
 
         File trace = new File(baseDir + "/toolsConvertTraceFile.trace.db");
-        check(trace.exists());
+        assertTrue(trace.exists());
         File newTrace = new File(baseDir + "/test.trace.db");
         newTrace.delete();
-        check(trace.renameTo(newTrace));
+        assertTrue(trace.renameTo(newTrace));
         deleteDb("toolsConvertTraceFile");
         Player.main(new String[]{baseDir + "/test.trace.db"});
         testTraceFile(url);
@@ -190,22 +190,22 @@ public class TestTools extends TestBase {
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
         rs.next();
-        check(1, rs.getInt(1));
-        check("Hello", rs.getString(2));
-        check("10.20", rs.getBigDecimal(3).toString());
-        checkFalse(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
+        assertEquals("10.20", rs.getBigDecimal(3).toString());
+        assertFalse(rs.next());
         rs = stat.executeQuery("select * from test2");
         rs.next();
-        check(Float.MIN_VALUE, rs.getFloat("a"));
-        check(Double.MIN_VALUE, rs.getDouble("b"));
-        check(Long.MIN_VALUE, rs.getLong("c"));
-        check(Short.MIN_VALUE, rs.getShort("d"));
-        check(!rs.getBoolean("e"));
-        check(new byte[] { (byte) 10, (byte) 20 }, rs.getBytes("f"));
-        check("2007-12-31", rs.getString("g"));
-        check("23:59:59", rs.getString("h"));
-        check("2007-12-31 23:59:59.0", rs.getString("i"));
-        checkFalse(rs.next());
+        assertEquals(Float.MIN_VALUE, rs.getFloat("a"));
+        assertEquals(Double.MIN_VALUE, rs.getDouble("b"));
+        assertEquals(Long.MIN_VALUE, rs.getLong("c"));
+        assertEquals(Short.MIN_VALUE, rs.getShort("d"));
+        assertTrue(!rs.getBoolean("e"));
+        assertEquals(new byte[] { (byte) 10, (byte) 20 }, rs.getBytes("f"));
+        assertEquals("2007-12-31", rs.getString("g"));
+        assertEquals("23:59:59", rs.getString("h"));
+        assertEquals("2007-12-31 23:59:59.0", rs.getString("i"));
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -231,8 +231,8 @@ public class TestTools extends TestBase {
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
         rs.next();
-        check(1, rs.getInt(1));
-        check("Hello", rs.getString(2));
+        assertEquals(1, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
         conn.close();
     }
 
@@ -259,18 +259,18 @@ public class TestTools extends TestBase {
         stat = conn.createStatement();
         stat.execute("runscript from '" + baseDir + "/toolsRecover.data.sql'");
         rs = stat.executeQuery("select * from \"test 2\"");
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         rs = stat.executeQuery("select * from test");
         rs.next();
-        check(1, rs.getInt(1));
-        check("Hello", rs.getString(2));
+        assertEquals(1, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
         byte[] b2 = rs.getBytes(3);
         String s2 = rs.getString(4);
-        check(2000, b2.length);
-        check(2000, s2.length());
-        check(b1, b2);
-        check(s1, s2);
-        checkFalse(rs.next());
+        assertEquals(2000, b2.length);
+        assertEquals(2000, s2.length());
+        assertEquals(b1, b2);
+        assertEquals(s1, s2);
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -315,18 +315,18 @@ public class TestTools extends TestBase {
         for (int i = 0; i < 2; i++) {
             ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST ORDER BY ID");
             rs.next();
-            check(1, rs.getInt(1));
-            check(rs.getString(2) == null);
-            check(rs.getString(3) == null);
+            assertEquals(1, rs.getInt(1));
+            assertTrue(rs.getString(2) == null);
+            assertTrue(rs.getString(3) == null);
             rs.next();
-            check(2, rs.getInt(1));
-            check("face", rs.getString(2));
-            check("face", rs.getString(3));
+            assertEquals(2, rs.getInt(1));
+            assertEquals("face", rs.getString(2));
+            assertEquals("face", rs.getString(3));
             rs.next();
-            check(3, rs.getInt(1));
-            check(large, rs.getBytes(2));
-            check(largeText, rs.getString(3));
-            checkFalse(rs.next());
+            assertEquals(3, rs.getInt(1));
+            assertEquals(large, rs.getBytes(2));
+            assertEquals(largeText, rs.getString(3));
+            assertFalse(rs.next());
 
             conn.close();
             Script.main(new String[] { "-url", url, "-user", user, "-password", password, "-script", fileName});
@@ -354,7 +354,7 @@ public class TestTools extends TestBase {
                 "-options", "compression", "lzf", "cipher", "xtea", "password", "'123'" });
         conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/utils", "sa", "abc");
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -373,8 +373,8 @@ public class TestTools extends TestBase {
         Restore.main(new String[] { "-file", fileName, "-dir", baseDir, "-db", "utils", "-quiet" });
         conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/utils", "sa", "abc");
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
-        check(rs.next());
-        checkFalse(rs.next());
+        assertTrue(rs.next());
+        assertFalse(rs.next());
         conn.close();
         DeleteDbFiles.main(new String[] { "-dir", baseDir, "-db", "utils", "-quiet" });
     }
@@ -411,7 +411,7 @@ public class TestTools extends TestBase {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
             error("should not be able to create new db");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         conn.close();
@@ -419,7 +419,7 @@ public class TestTools extends TestBase {
             Server.shutdownTcpServer("tcp://localhost:9192", "", true);
             error("shouldn't work and should throw an exception");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         // conn.close();
@@ -430,7 +430,7 @@ public class TestTools extends TestBase {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
             error("server must have been closed");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
     }
 

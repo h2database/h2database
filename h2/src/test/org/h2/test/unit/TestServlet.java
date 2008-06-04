@@ -171,7 +171,7 @@ public class TestServlet extends TestBase {
 
         Connection conn1 = listener.getConnection();
         Connection conn1a = (Connection) context.getAttribute("connection");
-        check(conn1 == conn1a);
+        assertTrue(conn1 == conn1a);
         Statement stat1 = conn1.createStatement();
         stat1.execute("CREATE TABLE T(ID INT)");
 
@@ -185,7 +185,7 @@ public class TestServlet extends TestBase {
             stat1.execute("SELECT * FROM T");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
 
         conn2.close();
@@ -197,7 +197,7 @@ public class TestServlet extends TestBase {
             conn2 = DriverManager.getConnection("jdbc:h2:tcp://localhost:8888/" + baseDir + "/servlet", getUser(), getPassword());
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
 
         // connection must be closed
@@ -205,7 +205,7 @@ public class TestServlet extends TestBase {
             stat1.execute("SELECT * FROM DUAL");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
 
     }

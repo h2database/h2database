@@ -97,29 +97,29 @@ public class TestFullText extends TestBase {
         ResultSet rs;
         rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hello', 0, 0)");
         rs.next();
-        check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
-        checkFalse(rs.next());
+        assertEquals(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
+        assertFalse(rs.next());
         rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hallo', 0, 0)");
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         stat.execute("INSERT INTO TEST VALUES(2, 'Hallo Welt')");
         rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hello', 0, 0)");
         rs.next();
-        check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
-        checkFalse(rs.next());
+        assertEquals(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
+        assertFalse(rs.next());
         rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hallo', 0, 0)");
         rs.next();
-        check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=2");
-        checkFalse(rs.next());
+        assertEquals(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=2");
+        assertFalse(rs.next());
 
         stat.execute("CALL " + prefix + "REINDEX()");
         rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hello', 0, 0)");
         rs.next();
-        check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
-        checkFalse(rs.next());
+        assertEquals(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
+        assertFalse(rs.next());
         rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hallo', 0, 0)");
         rs.next();
-        check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=2");
-        checkFalse(rs.next());
+        assertEquals(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=2");
+        assertFalse(rs.next());
 
         stat.execute("INSERT INTO TEST VALUES(3, 'Hello World')");
         stat.execute("INSERT INTO TEST VALUES(4, 'Hello World')");
@@ -127,38 +127,38 @@ public class TestFullText extends TestBase {
 
         rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 0, 0) ORDER BY QUERY");
         rs.next();
-        check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
+        assertEquals(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
         rs.next();
-        check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=3");
+        assertEquals(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=3");
         rs.next();
-        check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=4");
+        assertEquals(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=4");
         rs.next();
-        check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=5");
-        checkFalse(rs.next());
+        assertEquals(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=5");
+        assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 1, 0)");
         rs.next();
-        check(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
-        checkFalse(rs.next());
+        assertTrue(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
+        assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 0, 2) ORDER BY QUERY");
         rs.next();
-        check(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
+        assertTrue(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
         rs.next();
-        check(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
-        checkFalse(rs.next());
+        assertTrue(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
+        assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 2, 1) ORDER BY QUERY");
         rs.next();
-        check(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
+        assertTrue(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
         rs.next();
-        check(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
-        checkFalse(rs.next());
+        assertTrue(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
+        assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('1', 0, 0)");
         rs.next();
-        check(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
-        checkFalse(rs.next());
+        assertEquals(rs.getString(1), "\"PUBLIC\".\"TEST\" WHERE \"ID\"=1");
+        assertFalse(rs.next());
         conn.close();
 
         conn = getConnection("fullText");

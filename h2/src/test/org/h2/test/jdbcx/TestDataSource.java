@@ -69,7 +69,7 @@ public class TestDataSource extends TestBase {
         XAResource res = xaConn.getXAResource();
         Connection conn = xaConn.getConnection();
         Xid[] list = res.recover(XAResource.TMSTARTRSCAN);
-        check(list.length, 0);
+        assertEquals(list.length, 0);
         Statement stat = conn.createStatement();
         stat.execute("SELECT * FROM DUAL");
         conn.close();

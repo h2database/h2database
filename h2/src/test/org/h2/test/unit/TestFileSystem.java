@@ -77,25 +77,25 @@ public class TestFileSystem extends TestBase {
         String[] files = fs.listFiles("zip:" + baseDir + "/fsJar.zip");
         for (int i = 0; i < files.length; i++) {
             String f = files[i];
-            check(fs.isAbsolute(f));
-            check(!fs.isDirectory(f));
-            check(fs.length(f) > 0);
-            check(f.endsWith(fs.getFileName(f)));
+            assertTrue(fs.isAbsolute(f));
+            assertTrue(!fs.isDirectory(f));
+            assertTrue(fs.length(f) > 0);
+            assertTrue(f.endsWith(fs.getFileName(f)));
         }
         String urlJar = "jdbc:h2:zip:" + baseDir + "/fsJar.zip!/fsJar";
         conn = DriverManager.getConnection(urlJar, "sa", "sa");
         stat = conn.createStatement();
         rs = stat.executeQuery("select * from test");
         rs.next();
-        check(1, rs.getInt(1));
-        check("Hello", rs.getString(2));
+        assertEquals(1, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
         byte[] b2 = rs.getBytes(3);
         String s2 = rs.getString(4);
-        check(2000, b2.length);
-        check(2000, s2.length());
-        check(b1, b2);
-        check(s1, s2);
-        checkFalse(rs.next());
+        assertEquals(2000, b2.length);
+        assertEquals(2000, s2.length());
+        assertEquals(b1, b2);
+        assertEquals(s1, s2);
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -103,7 +103,7 @@ public class TestFileSystem extends TestBase {
         FileSystem fs = FileSystem.getInstance("~/test");
         String fileName = fs.getAbsolutePath("~/test");
         String userDir = System.getProperty("user.home");
-        check(fileName.startsWith(userDir));
+        assertTrue(fileName.startsWith(userDir));
     }
 
     private void testFileSystem(String fsBase) throws Exception {
@@ -122,8 +122,8 @@ public class TestFileSystem extends TestBase {
         fs.mkdirs(fsBase + "/test");
         fs.delete(fsBase + "/test");
         fs.delete(fsBase + "/test2");
-        check(fs.createNewFile(fsBase + "/test"));
-        check(fs.canWrite(fsBase + "/test"));
+        assertTrue(fs.createNewFile(fsBase + "/test"));
+        assertTrue(fs.canWrite(fsBase + "/test"));
         FileObject fo = fs.openFileObject(fsBase + "/test", "rw");
         byte[] buffer = new byte[10000];
         Random random = new Random(1);
@@ -133,18 +133,18 @@ public class TestFileSystem extends TestBase {
         long lastMod = fs.getLastModified(fsBase + "/test");
         if (lastMod < time - 1999) {
             // at most 2 seconds difference
-            check(lastMod, time);
+            assertEquals(lastMod, time);
         }
-        check(fs.length(fsBase + "/test"), 10000);
+        assertEquals(fs.length(fsBase + "/test"), 10000);
         list = fs.listFiles(fsBase);
-        check(list.length, 1);
-        check(list[0].endsWith("test"));
+        assertEquals(list.length, 1);
+        assertTrue(list[0].endsWith("test"));
 
         fs.copy(fsBase + "/test", fsBase + "/test3");
         fs.rename(fsBase + "/test3", fsBase + "/test2");
-        check(!fs.exists(fsBase + "/test3"));
-        check(fs.exists(fsBase + "/test2"));
-        check(fs.length(fsBase + "/test2"), 10000);
+        assertTrue(!fs.exists(fsBase + "/test3"));
+        assertTrue(fs.exists(fsBase + "/test2"));
+        assertEquals(fs.length(fsBase + "/test2"), 10000);
         byte[] buffer2 = new byte[10000];
         InputStream in = fs.openFileInputStream(fsBase + "/test2");
         int pos = 0;
@@ -156,18 +156,18 @@ public class TestFileSystem extends TestBase {
             pos += l;
         }
         in.close();
-        check(pos, 10000);
-        check(buffer2, buffer);
+        assertEquals(pos, 10000);
+        assertEquals(buffer2, buffer);
 
-        check(fs.tryDelete(fsBase + "/test2"));
+        assertTrue(fs.tryDelete(fsBase + "/test2"));
         fs.delete(fsBase + "/test");
 
         if (!fsBase.startsWith(FileSystem.MEMORY_PREFIX) && !fsBase.startsWith(FileSystem.MEMORY_PREFIX_LZF)) {
             fs.createDirs(fsBase + "/testDir/test");
-            check(fs.isDirectory(fsBase + "/testDir"));
+            assertTrue(fs.isDirectory(fsBase + "/testDir"));
             if (!fsBase.startsWith(FileSystem.DB_PREFIX)) {
                 fs.deleteRecursive("/testDir");
-                check(!fs.exists("/testDir"));
+                assertTrue(!fs.exists("/testDir"));
             }
         }
     }
@@ -225,17 +225,17 @@ public class TestFileSystem extends TestBase {
                 f.readFully(b1, 0, len);
                 ra.readFully(b2, 0, len);
                 trace("readFully " + len);
-                check(b1, b2);
+                assertEquals(b1, b2);
                 break;
             }
             case 4: {
                 trace("getFilePointer");
-                check(f.getFilePointer(), ra.getFilePointer());
+                assertEquals(f.getFilePointer(), ra.getFilePointer());
                 break;
             }
             case 5: {
                 trace("length " + ra.length());
-                check(f.length(), ra.length());
+                assertEquals(f.length(), ra.length());
                 break;
             }
             case 6: {
@@ -244,7 +244,7 @@ public class TestFileSystem extends TestBase {
                 ra.close();
                 ra = new RandomAccessFile(file, "rw");
                 f = fs.openFileObject(s, "rw");
-                check(f.length(), ra.length());
+                assertEquals(f.length(), ra.length());
                 break;
             }
             default:
@@ -266,10 +266,10 @@ public class TestFileSystem extends TestBase {
         out.close();
         InputStream in = fs.openFileInputStream(s);
         for (int i = 0; i < 10000; i++) {
-            check(in.read(), 0);
+            assertEquals(in.read(), 0);
         }
-        check(in.read(), 1);
-        check(in.read(), -1);
+        assertEquals(in.read(), 1);
+        assertEquals(in.read(), -1);
         in.close();
         out.close();
     }

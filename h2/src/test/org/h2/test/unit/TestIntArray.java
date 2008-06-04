@@ -48,11 +48,11 @@ public class TestIntArray extends TestBase {
                 test = sort(test);
                 int a = array.findNextValueIndex(v);
                 int b = findNextValueIndex(test, v);
-                check(a, b);
+                assertEquals(a, b);
                 break;
             case 4:
                 if (test.length > idx) {
-                    check(array.get(idx), get(test, idx));
+                    assertEquals(array.get(idx), get(test, idx));
                 }
                 break;
             case 5:
@@ -71,13 +71,13 @@ public class TestIntArray extends TestBase {
                 test = set(test, idx, v);
                 break;
             case 8:
-                check(array.size(), test.length);
+                assertEquals(array.size(), test.length);
                 break;
             default:
             }
-            check(array.size(), test.length);
+            assertEquals(array.size(), test.length);
             for (int j = 0; j < test.length; j++) {
-                check(test[j], array.get(j));
+                assertEquals(test[j], array.get(j));
             }
 
         }

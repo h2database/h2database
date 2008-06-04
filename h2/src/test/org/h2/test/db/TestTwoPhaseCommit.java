@@ -39,14 +39,14 @@ public class TestTwoPhaseCommit extends TestBase {
         stat.execute("SET WRITE_DELAY 0");
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
-        check(rs.getInt(1), 1);
-        check(rs.getString(2), "Hello");
+        assertEquals(rs.getInt(1), 1);
+        assertEquals(rs.getString(2), "Hello");
         if (!rolledBack) {
             rs.next();
-            check(rs.getInt(1), 2);
-            check(rs.getString(2), "World");
+            assertEquals(rs.getInt(1), 2);
+            assertEquals(rs.getString(2), "World");
         }
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         conn.close();
     }
 

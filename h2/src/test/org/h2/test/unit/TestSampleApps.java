@@ -64,10 +64,10 @@ public class TestSampleApps extends TestBase {
         if (expected.endsWith("*")) {
             expected = expected.substring(0, expected.length() - 1);
             if (!s.startsWith(expected)) {
-                check(s.trim(), expected.trim());
+                assertEquals(s.trim(), expected.trim());
             }
         } else {
-            check(s.trim(), expected.trim());
+            assertEquals(s.trim(), expected.trim());
         }
     }
 }

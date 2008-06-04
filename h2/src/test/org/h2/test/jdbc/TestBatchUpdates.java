@@ -63,7 +63,7 @@ public class TestBatchUpdates extends TestBase {
         for (int i = 0; i < updateCounts.length; i++) {
             total += updateCounts[i];
         }
-        check(4, total);
+        assertEquals(4, total);
         conn.close();
     }
 
@@ -194,7 +194,7 @@ public class TestBatchUpdates extends TestBase {
         retValue[i++] = rs.getInt(1);
         for (int j = 0; j < updateCount.length; j++) {
             trace("UpdateCount:" + updateCount[j]);
-            check(updateCount[j], retValue[j]);
+            assertEquals(updateCount[j], retValue[j]);
         }
     }
 

@@ -24,12 +24,12 @@ public class TestAutoRecompile extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
         PreparedStatement prep = conn.prepareStatement("SELECT * FROM TEST");
-        check(prep.executeQuery().getMetaData().getColumnCount(), 1);
+        assertEquals(prep.executeQuery().getMetaData().getColumnCount(), 1);
         stat.execute("ALTER TABLE TEST ADD COLUMN NAME VARCHAR(255)");
-        check(prep.executeQuery().getMetaData().getColumnCount(), 2);
+        assertEquals(prep.executeQuery().getMetaData().getColumnCount(), 2);
         stat.execute("DROP TABLE TEST");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, X INT, Y INT)");
-        check(prep.executeQuery().getMetaData().getColumnCount(), 3);
+        assertEquals(prep.executeQuery().getMetaData().getColumnCount(), 3);
         // TODO test auto-recompile with insert..select, views and so on
 
         prep = conn.prepareStatement("INSERT INTO TEST VALUES(1, 2, 3)");
@@ -38,13 +38,13 @@ public class TestAutoRecompile extends TestBase {
             prep.execute();
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         try {
             prep.execute();
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         conn.close();
     }

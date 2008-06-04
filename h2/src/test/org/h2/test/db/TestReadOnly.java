@@ -35,9 +35,9 @@ public class TestReadOnly extends TestBase {
     private void testReadOnlyFiles(boolean setReadOnly) throws Exception {
 
         File f = File.createTempFile("test", "temp");
-        check(f.canWrite());
+        assertTrue(f.canWrite());
         f.setReadOnly();
-        check(!f.canWrite());
+        assertTrue(!f.canWrite());
         f.delete();
 
         f = File.createTempFile("test", "temp");
@@ -45,7 +45,7 @@ public class TestReadOnly extends TestBase {
         r.write(1);
         f.setReadOnly();
         r.close();
-        check(!f.canWrite());
+        assertTrue(!f.canWrite());
         f.delete();
 
         deleteDb("readonly");
@@ -54,7 +54,7 @@ public class TestReadOnly extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         stat.execute("INSERT INTO TEST VALUES(2, 'World')");
-        check(!conn.isReadOnly());
+        assertTrue(!conn.isReadOnly());
         conn.close();
 
         if (setReadOnly) {
@@ -63,14 +63,14 @@ public class TestReadOnly extends TestBase {
         } else {
             conn = getConnection("readonly;ACCESS_MODE_DATA=r");
         }
-        check(conn.isReadOnly());
+        assertTrue(conn.isReadOnly());
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
         try {
             stat.execute("DELETE FROM TEST");
             error("read only delete");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         conn.close();
 
@@ -85,7 +85,7 @@ public class TestReadOnly extends TestBase {
             stat.execute("DELETE FROM TEST");
             error("read only delete");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         stat.execute("SET DB_CLOSE_DELAY=0");
         conn.close();

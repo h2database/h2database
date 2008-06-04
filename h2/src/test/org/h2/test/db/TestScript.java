@@ -316,7 +316,7 @@ public class TestScript extends TestBase {
     }
 
     private void writeResult(String s, SQLException e) throws Exception {
-        checkNotGeneralException(e);
+        assertKnownException(e);
         s = ("> " + s).trim();
         String compare = readLine();
         if (compare != null && compare.startsWith(">")) {

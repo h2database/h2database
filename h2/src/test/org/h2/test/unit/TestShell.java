@@ -94,7 +94,7 @@ public class TestShell extends TestBase {
     private String read(String expectedStart) throws Exception {
         String line = lineReader.readLine();
         // System.out.println(": " + line);
-        checkStartsWith(line, expectedStart);
+        assertStartsWith(line, expectedStart);
         return line;
     }
 

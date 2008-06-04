@@ -133,9 +133,9 @@ public class TestSimpleIndex extends TestBase {
         String r2 = getResult("SELECT DATA FROM TEST_D " + where + " ORDER BY DATA");
         String r3 = getResult("SELECT DATA FROM TEST_MI " + where + " ORDER BY DATA");
         String r4 = getResult("SELECT DATA FROM TEST_DI " + where + " ORDER BY DATA");
-        check(r1, r2);
-        check(r1, r3);
-        check(r1, r4);
+        assertEquals(r1, r2);
+        assertEquals(r1, r3);
+        assertEquals(r1, r4);
     }
 
     private String getResult(String sql) throws Exception {

@@ -31,9 +31,9 @@ public class TestMvcc3 extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(1)");
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
-        check(0, rs.getInt(1));
+        assertEquals(0, rs.getInt(1));
         rs.next();
-        check(1, rs.getInt(1));
+        assertEquals(1, rs.getInt(1));
         conn.close();
     }
     
@@ -53,13 +53,13 @@ public class TestMvcc3 extends TestBase {
         conn = getConnection("mvcc3");
         rs = conn.createStatement().executeQuery("call abc.nextval");
         rs.next();
-        check(1, rs.getInt(1));
+        assertEquals(1, rs.getInt(1));
         conn.close();
         
         conn = getConnection("mvcc3");
         rs = conn.createStatement().executeQuery("call abc.currval");
         rs.next();
-        check(1, rs.getInt(1));
+        assertEquals(1, rs.getInt(1));
         conn.close();
     }
 }

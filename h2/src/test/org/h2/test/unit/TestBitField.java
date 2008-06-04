@@ -39,9 +39,9 @@ public class TestBitField extends TestBase {
                     set.clear(idx);
                 }
             } else {
-                check(bits.get(idx), set.get(idx));
-                check(bits.nextClearBit(idx), set.nextClearBit(idx));
-                check(bits.nextSetBit(idx), set.nextSetBit(idx));
+                assertEquals(bits.get(idx), set.get(idx));
+                assertEquals(bits.nextClearBit(idx), set.nextClearBit(idx));
+                assertEquals(bits.nextSetBit(idx), set.nextSetBit(idx));
             }
         }
     }

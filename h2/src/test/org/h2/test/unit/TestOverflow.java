@@ -65,7 +65,7 @@ public class TestOverflow extends TestBase {
 
     void checkIfExpected(String a, String b) throws Exception {
         if (successExpected) {
-            check(a, b);
+            assertEquals(a, b);
         }
     }
 

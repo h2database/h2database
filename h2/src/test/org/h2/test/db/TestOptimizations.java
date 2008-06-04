@@ -78,7 +78,7 @@ public class TestOptimizations extends TestBase {
             rs.next();
             if (!config.mvcc) {
                 String plan = rs.getString(1);
-                check(plan.indexOf("direct") > 0);
+                assertTrue(plan.indexOf("direct") > 0);
             }
             rs = stat.executeQuery("select min(x), max(x) from test");
             rs.next();
@@ -90,8 +90,8 @@ public class TestOptimizations extends TestBase {
             if (rs.wasNull()) {
                 max = -1;
             }
-            check(minExpected, min);
-            check(maxExpected, max);
+            assertEquals(minExpected, min);
+            assertEquals(maxExpected, max);
         }
         conn.close();
     }
@@ -108,7 +108,7 @@ public class TestOptimizations extends TestBase {
         rs = stat.executeQuery("EXPLAIN SELECT id FROM Logs WHERE id < 100 and type=2 AND id<100");
         rs.next();
         String plan = rs.getString(1);
-        check(plan.indexOf("TYPE_INDEX") > 0);
+        assertTrue(plan.indexOf("TYPE_INDEX") > 0);
         conn.close();
     }
 
@@ -133,38 +133,38 @@ public class TestOptimizations extends TestBase {
         ResultSet rs;
         rs = stat.executeQuery("SELECT TYPE, COUNT(*) FROM TEST GROUP BY TYPE ORDER BY TYPE");
         for (int i = 0; rs.next(); i++) {
-            check(i, rs.getInt(1));
-            check(groupCount[i], rs.getInt(2));
+            assertEquals(i, rs.getInt(1));
+            assertEquals(groupCount[i], rs.getInt(2));
         }
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE");
         for (int i = 0; rs.next(); i++) {
-            check(i, rs.getInt(1));
+            assertEquals(i, rs.getInt(1));
         }
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         stat.execute("ANALYZE");
         rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE");
         for (int i = 0; i < 10; i++) {
-            check(rs.next());
-            check(i, rs.getInt(1));
+            assertTrue(rs.next());
+            assertEquals(i, rs.getInt(1));
         }
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE LIMIT 5 OFFSET 2");
         for (int i = 2; i < 7; i++) {
-            check(rs.next());
-            check(i, rs.getInt(1));
+            assertTrue(rs.next());
+            assertEquals(i, rs.getInt(1));
         }
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE LIMIT 0 OFFSET 0 SAMPLE_SIZE 3");
         // must have at least one row
-        check(rs.next());
+        assertTrue(rs.next());
         for (int i = 0; i < 3; i++) {
             rs.getInt(1);
             if (i > 0 && !rs.next()) {
                 break;
             }
         }
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -179,7 +179,7 @@ public class TestOptimizations extends TestBase {
         rs = prep.executeQuery();
         rs.next();
         String b = rs.getString(1);
-        checkFalse(a.equals(b));
+        assertFalse(a.equals(b));
         conn.close();
     }
 
@@ -226,15 +226,15 @@ public class TestOptimizations extends TestBase {
         PreparedStatement prep = conn.prepareStatement("select * from test where id = (select id from test2)");
         ResultSet rs1 = prep.executeQuery();
         rs1.next();
-        check(rs1.getInt(1), 1);
+        assertEquals(rs1.getInt(1), 1);
         rs1.next();
-        check(rs1.getInt(1), 1);
-        checkFalse(rs1.next());
+        assertEquals(rs1.getInt(1), 1);
+        assertFalse(rs1.next());
 
         stat.execute("update test2 set id = 2");
         ResultSet rs2 = prep.executeQuery();
         rs2.next();
-        check(rs2.getInt(1), 2);
+        assertEquals(rs2.getInt(1), 2);
 
         conn.close();
     }
@@ -303,9 +303,9 @@ public class TestOptimizations extends TestBase {
                 Integer minDb = (Integer) rs.getObject(1);
                 Integer maxDb = (Integer) rs.getObject(2);
                 int countDb = rs.getInt(3);
-                check(minDb, min);
-                check(maxDb, max);
-                check(countDb, count);
+                assertEquals(minDb, min);
+                assertEquals(maxDb, max);
+                assertEquals(countDb, count);
                 break;
             }
             default:
@@ -328,41 +328,41 @@ public class TestOptimizations extends TestBase {
         prep.setInt(1, 1);
         rs = prep.executeQuery();
         rs.next();
-        check(rs.getInt(1), 1);
-        check(rs.getString(2), "Hello");
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 1);
+        assertEquals(rs.getString(2), "Hello");
+        assertFalse(rs.next());
 
         prep = conn.prepareStatement("select * from test t1 where t1.id in(?, ?) order by id");
         prep.setInt(1, 1);
         prep.setInt(2, 2);
         rs = prep.executeQuery();
         rs.next();
-        check(rs.getInt(1), 1);
-        check(rs.getString(2), "Hello");
+        assertEquals(rs.getInt(1), 1);
+        assertEquals(rs.getString(2), "Hello");
         rs.next();
-        check(rs.getInt(1), 2);
-        check(rs.getString(2), "World");
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 2);
+        assertEquals(rs.getString(2), "World");
+        assertFalse(rs.next());
 
         prep = conn.prepareStatement("select * from test t1 where t1.id in(select t2.id from test t2 where t2.id=?)");
         prep.setInt(1, 2);
         rs = prep.executeQuery();
         rs.next();
-        check(rs.getInt(1), 2);
-        check(rs.getString(2), "World");
-        checkFalse(rs.next());
+        assertEquals(rs.getInt(1), 2);
+        assertEquals(rs.getString(2), "World");
+        assertFalse(rs.next());
 
         prep = conn
                 .prepareStatement("select * from test t1 where t1.id in(select t2.id from test t2 where t2.id=? and t1.id<>t2.id)");
         prep.setInt(1, 2);
         rs = prep.executeQuery();
-        checkFalse(rs.next());
+        assertFalse(rs.next());
 
         prep = conn
                 .prepareStatement("select * from test t1 where t1.id in(select t2.id from test t2 where t2.id in(cast(?+10 as varchar)))");
         prep.setInt(1, 2);
         rs = prep.executeQuery();
-        checkFalse(rs.next());
+        assertFalse(rs.next());
 
         conn.close();
     }

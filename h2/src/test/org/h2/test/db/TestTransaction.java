@@ -39,14 +39,14 @@ public class TestTransaction extends TestBase {
         stat.execute("insert into test values(1)");
         stat.execute("set @x = 1");
         conn.commit();
-        checkSingleValue(stat, "select id from test", 1);
-        checkSingleValue(stat, "call @x", 1);
+        assertSingleValue(stat, "select id from test", 1);
+        assertSingleValue(stat, "call @x", 1);
 
         stat.execute("update test set id=2");
         stat.execute("set @x = 2");
         conn.rollback();
-        checkSingleValue(stat, "select id from test", 1);
-        checkSingleValue(stat, "call @x", 2);
+        assertSingleValue(stat, "select id from test", 1);
+        assertSingleValue(stat, "call @x", 2);
 
         conn.close();
     }
@@ -68,7 +68,7 @@ public class TestTransaction extends TestBase {
             s2.executeUpdate("insert into B values('two', 1)");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         c2.commit();
         c1.rollback();
@@ -140,22 +140,22 @@ public class TestTransaction extends TestBase {
         ResultSet rs;
         rs = stat.executeQuery("SELECT COUNT(*) FROM " + tableName);
         rs.next();
-        check(count, rs.getInt(1));
+        assertEquals(count, rs.getInt(1));
     }
 
     public void testIsolation() throws Exception {
         Connection conn = getConnection("transaction");
         trace("default TransactionIsolation=" + conn.getTransactionIsolation());
         conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-        check(conn.getTransactionIsolation() == Connection.TRANSACTION_READ_COMMITTED);
+        assertTrue(conn.getTransactionIsolation() == Connection.TRANSACTION_READ_COMMITTED);
         conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-        check(conn.getTransactionIsolation() == Connection.TRANSACTION_SERIALIZABLE);
+        assertTrue(conn.getTransactionIsolation() == Connection.TRANSACTION_SERIALIZABLE);
         Statement stat = conn.createStatement();
-        check(conn.getAutoCommit());
+        assertTrue(conn.getAutoCommit());
         conn.setAutoCommit(false);
-        checkFalse(conn.getAutoCommit());
+        assertFalse(conn.getAutoCommit());
         conn.setAutoCommit(true);
-        check(conn.getAutoCommit());
+        assertTrue(conn.getAutoCommit());
         test(stat, "CREATE TABLE TEST(ID INT PRIMARY KEY)");
         conn.commit();
         test(stat, "INSERT INTO TEST VALUES(0)");
@@ -221,7 +221,7 @@ public class TestTransaction extends TestBase {
             rs1.next();
             error("next worked on a closed result set");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         // this is already closed, so but closing again should no do any harm
         rs1.close();

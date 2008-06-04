@@ -36,14 +36,14 @@ public class TestValue extends TestBase {
         for (int i = 0; i < d.length; i++) {
             Value v = useFloat ? (Value) ValueFloat.get((float) d[i]) : (Value) ValueDouble.get(d[i]);
             values[i] = v;
-            check(values[i].compareTypeSave(values[i], null) == 0);
-            check(v.equals(v));
-            check(i < 2 ? -1 : i > 2 ? 1 : 0, v.getSignum());
+            assertTrue(values[i].compareTypeSave(values[i], null) == 0);
+            assertTrue(v.equals(v));
+            assertEquals(i < 2 ? -1 : i > 2 ? 1 : 0, v.getSignum());
         }
         for (int i = 0; i < d.length - 1; i++) {
-            check(values[i].compareTypeSave(values[i+1], null) < 0);
-            check(values[i + 1].compareTypeSave(values[i], null) > 0);
-            check(!values[i].equals(values[i+1]));
+            assertTrue(values[i].compareTypeSave(values[i+1], null) < 0);
+            assertTrue(values[i + 1].compareTypeSave(values[i], null) > 0);
+            assertTrue(!values[i].equals(values[i+1]));
         }        
     }
 
@@ -57,9 +57,9 @@ public class TestValue extends TestBase {
             minLow &= uuid.getLow();
         }
         ValueUuid max = ValueUuid.get(maxHigh, maxLow);
-        check(max.getString(), "ffffffff-ffff-4fff-bfff-ffffffffffff");
+        assertEquals(max.getString(), "ffffffff-ffff-4fff-bfff-ffffffffffff");
         ValueUuid min = ValueUuid.get(minHigh, minLow);
-        check(min.getString(), "00000000-0000-4000-8000-000000000000");
+        assertEquals(min.getString(), "00000000-0000-4000-8000-000000000000");
     }
 
 }

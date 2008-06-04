@@ -70,7 +70,7 @@ public class TestStringCache extends TestBase {
         if (returnNew) {
             String b = StringCache.getNew(a);
             try {
-                check(a, b);
+                assertEquals(a, b);
             } catch (Exception e) {
                 TestBase.logError("error", e);
             }
@@ -85,7 +85,7 @@ public class TestStringCache extends TestBase {
                 b = StringCache.get(a);
             }
             try {
-                check(a, b);
+                assertEquals(a, b);
             } catch (Exception e) {
                 TestBase.logError("error", e);
             }

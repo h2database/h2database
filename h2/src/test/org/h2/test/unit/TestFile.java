@@ -49,8 +49,8 @@ public class TestFile extends TestBase implements DataHandler {
                 mem = FileStore.open(this, prefix + "test", "rw", magic);
                 file = FileStore.open(this, "~/test", "rw", magic);
             }
-            check(file.getFilePointer(), mem.getFilePointer());
-            check(file.length(), mem.length());
+            assertEquals(file.getFilePointer(), mem.getFilePointer());
+            assertEquals(file.length(), mem.length());
             int x = random.nextInt(100);
             if ((x -= 20) < 0) {
                 if (file.length() > 0) {
@@ -97,7 +97,7 @@ public class TestFile extends TestBase implements DataHandler {
                             error("only one threw an exception");
                         }
                     }
-                    check(buffMem, buffFile);
+                    assertEquals(buffMem, buffFile);
                 }
             } else if ((x -= 10) < 0) {
                 trace("reset buffers");

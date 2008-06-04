@@ -65,12 +65,12 @@ public class TestSequence extends TestBase {
         stat.execute("call next value for test_Sequence3");
         ResultSet rs = stat.executeQuery("select * from information_schema.sequences order by sequence_name");
         rs.next();
-        check(rs.getString("SEQUENCE_NAME"), "TEST_SEQUENCE");
-        check(rs.getString("CACHE"), "32");
+        assertEquals(rs.getString("SEQUENCE_NAME"), "TEST_SEQUENCE");
+        assertEquals(rs.getString("CACHE"), "32");
         rs.next();
-        check(rs.getString("SEQUENCE_NAME"), "TEST_SEQUENCE3");
-        check(rs.getString("CACHE"), "3");
-        checkFalse(rs.next());
+        assertEquals(rs.getString("SEQUENCE_NAME"), "TEST_SEQUENCE3");
+        assertEquals(rs.getString("CACHE"), "3");
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -88,11 +88,11 @@ public class TestSequence extends TestBase {
         long last = 0;
         for (int i = 0; i < 100; i++) {
             long v1 = getNext(stat);
-            check(v1 > last);
+            assertTrue(v1 > last);
             last = v1;
             for (int j = 0; j < 100; j++) {
                 long v2 = getNext(stat2);
-                check(v2 > last);
+                assertTrue(v2 > last);
                 last = v2;
             }
         }

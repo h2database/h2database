@@ -31,7 +31,7 @@ public class TestSecurity extends TestBase {
     private String getHashString(SHA256 sha, byte[] data) throws Exception {
         byte[] result = sha.getHash(data, true);
         if (data.length > 0) {
-            check(data[0], 0);
+            assertEquals(data[0], 0);
         }
         return ByteUtils.convertBytesToString(result);
     }
@@ -67,7 +67,7 @@ public class TestSecurity extends TestBase {
     void checkSHA256(String message, String expected) throws Exception {
         SHA256 sha = new SHA256();
         String hash = ByteUtils.convertBytesToString(sha.getHash(message.getBytes(), true)).toUpperCase();
-        check(expected, hash);
+        assertEquals(expected, hash);
     }
 
     public void testXTEA() throws Exception {

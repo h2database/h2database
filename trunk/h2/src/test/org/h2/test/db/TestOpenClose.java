@@ -56,8 +56,8 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
         rs.next();
-        check(rs.getString(1).length(), 10000);
-        checkFalse(rs.next());
+        assertEquals(rs.getString(1).length(), 10000);
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -131,7 +131,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         conn = DriverManager.getConnection(url, "sa", "");
         ResultSet rs = conn.createStatement().executeQuery("select count(*) from employee");
         rs.next();
-        check(rs.getInt(1), len);
+        assertEquals(rs.getInt(1), len);
         conn.close();
     }
 

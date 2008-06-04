@@ -30,12 +30,12 @@ public class TestSQLInjection extends TestBase {
         stat.execute("CREATE SCHEMA CONST");
         stat.execute("CREATE CONSTANT CONST.ACTIVE VALUE 'Active'");
         stat.execute("INSERT INTO USERS VALUES('James', '123456', CONST.ACTIVE)");
-        check(checkPasswordInsecure("123456"));
-        checkFalse(checkPasswordInsecure("abcdef"));
-        check(checkPasswordInsecure("' OR ''='"));
-        check(checkPasswordSecure("123456"));
-        checkFalse(checkPasswordSecure("abcdef"));
-        checkFalse(checkPasswordSecure("' OR ''='"));
+        assertTrue(checkPasswordInsecure("123456"));
+        assertFalse(checkPasswordInsecure("abcdef"));
+        assertTrue(checkPasswordInsecure("' OR ''='"));
+        assertTrue(checkPasswordSecure("123456"));
+        assertFalse(checkPasswordSecure("abcdef"));
+        assertFalse(checkPasswordSecure("' OR ''='"));
         stat.execute("CALL 123");
         stat.execute("CALL 'Hello'");
         stat.execute("CALL $$Hello World$$");
@@ -45,25 +45,25 @@ public class TestSQLInjection extends TestBase {
             stat.execute("CALL 'Hello'");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         try {
             stat.execute("CALL $$Hello World$$");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
 
         stat.execute("SET ALLOW_LITERALS NONE");
 
         try {
-            check(checkPasswordInsecure("123456"));
+            assertTrue(checkPasswordInsecure("123456"));
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
-        check(checkPasswordSecure("123456"));
-        checkFalse(checkPasswordSecure("' OR ''='"));
+        assertTrue(checkPasswordSecure("123456"));
+        assertFalse(checkPasswordSecure("' OR ''='"));
         conn.close();
 
         if (config.memory) {
@@ -73,13 +73,13 @@ public class TestSQLInjection extends TestBase {
         reconnect("sqlInjection");
 
         try {
-            check(checkPasswordInsecure("123456"));
+            assertTrue(checkPasswordInsecure("123456"));
             error("Should fail now");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
-        check(checkPasswordSecure("123456"));
-        checkFalse(checkPasswordSecure("' OR ''='"));
+        assertTrue(checkPasswordSecure("123456"));
+        assertFalse(checkPasswordSecure("' OR ''='"));
         conn.close();
     }
 

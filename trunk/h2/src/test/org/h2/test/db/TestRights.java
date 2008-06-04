@@ -55,7 +55,7 @@ public class TestRights extends TestBase {
             stat2.execute("SELECT * FROM TEST");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         stat2.execute("CREATE LOCAL TEMPORARY TABLE IF NOT EXISTS MY_TEST(ID INT)");
         stat2.execute("INSERT INTO MY_TEST VALUES(1)");
@@ -84,13 +84,13 @@ public class TestRights extends TestBase {
             stat.execute("alter user test1 admin false");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         try {
             stat.execute("drop user test1");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         stat.execute("drop schema b");
         stat.execute("alter user test1 admin false");
@@ -173,19 +173,19 @@ public class TestRights extends TestBase {
             conn = getConnection("rights", "Test", "abc");
             error("mixed case user name");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         try {
             conn = getConnection("rights", "TEST", "abc");
             error("wrong password");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         try {
             conn = getConnection("rights", "TEST", null);
             error("wrong password");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         conn = getConnection("rights", "TEST", "def");
         stat = conn.createStatement();
@@ -242,7 +242,7 @@ public class TestRights extends TestBase {
         ResultSet rs = conn.createStatement().executeQuery(
                 "SELECT STORAGE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='TEST'");
         rs.next();
-        check(rs.getString(1), type);
+        assertEquals(rs.getString(1), type);
         executeSuccess("DROP TABLE TEST");
     }
 
@@ -251,7 +251,7 @@ public class TestRights extends TestBase {
             stat.execute(sql);
             error("not admin");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
     }
 

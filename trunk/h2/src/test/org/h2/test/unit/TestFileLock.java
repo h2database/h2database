@@ -60,7 +60,7 @@ public class TestFileLock extends TestBase implements Runnable {
         for (int i = 0; i < threadCount; i++) {
             threads[i].join();
         }
-        check(locks, 0);
+        assertEquals(locks, 0);
     }
 
     public void run() {

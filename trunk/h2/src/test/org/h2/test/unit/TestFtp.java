@@ -31,11 +31,11 @@ public class TestFtp extends TestBase implements FtpEventListener {
         client.login("sa", "sa");
         client.makeDirectory("test");
         client.changeWorkingDirectory("test");
-        check(lastEvent.getCommand(), "CWD");
+        assertEquals(lastEvent.getCommand(), "CWD");
         client.makeDirectory("hello");
         client.changeWorkingDirectory("hello");
         client.changeDirectoryUp();
-        check(lastEvent.getCommand(), "CDUP");
+        assertEquals(lastEvent.getCommand(), "CDUP");
         client.nameList("hello");
         client.removeDirectory("hello");
         client.close();

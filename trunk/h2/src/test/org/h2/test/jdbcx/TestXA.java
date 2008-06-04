@@ -63,7 +63,7 @@ public class TestXA extends TestBase {
         xa.getXAResource().start(xid,
                 XAResource.TMNOFLAGS);
         Connection c = xa.getConnection();
-        check(!c.getAutoCommit());
+        assertTrue(!c.getAutoCommit());
         c.close();
     }
 

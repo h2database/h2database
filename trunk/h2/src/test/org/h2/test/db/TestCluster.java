@@ -61,14 +61,14 @@ public class TestCluster extends TestBase {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9191/test", "sa", "");
             error("should not be able to connect in standalone mode");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
 
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
             error("should not be able to connect in standalone mode");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
 
         // test regular cluster connection
@@ -130,8 +130,8 @@ public class TestCluster extends TestBase {
             prep.setInt(1, i);
             ResultSet rs = prep.executeQuery();
             rs.next();
-            check(rs.getString(2), "Data" + i);
-            checkFalse(rs.next());
+            assertEquals(rs.getString(2), "Data" + i);
+            assertFalse(rs.next());
         }
     }
 

@@ -28,7 +28,7 @@ public class TestReader extends TestBase {
         InputStream in2 = new ByteArrayInputStream(buff);
         Reader r2 = IOUtils.getReader(in2);
         String s2 = IOUtils.readStringAndClose(r2, Integer.MAX_VALUE);
-        check(s2, "\u00ef\u00f6\u00fc");
+        assertEquals(s2, "\u00ef\u00f6\u00fc");
     }
 
 }

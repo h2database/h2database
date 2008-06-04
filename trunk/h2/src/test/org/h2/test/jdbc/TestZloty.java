@@ -57,14 +57,14 @@ public class TestZloty extends TestBase {
         prep.execute();
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
-        check(rs.getInt(1), 0);
-        check(rs.getBytes(2)[0], 0);
+        assertEquals(rs.getInt(1), 0);
+        assertEquals(rs.getBytes(2)[0], 0);
         rs.next();
-        check(rs.getInt(1), 1);
-        check(rs.getBytes(2)[0], 1);
+        assertEquals(rs.getInt(1), 1);
+        assertEquals(rs.getBytes(2)[0], 1);
         rs.getBytes(2)[0] = 2;
-        check(rs.getBytes(2)[0], 1);
-        checkFalse(rs.next());
+        assertEquals(rs.getBytes(2)[0], 1);
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -87,7 +87,7 @@ public class TestZloty extends TestBase {
             prep.execute();
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
 
         prep.setInt(1, 3);
@@ -103,7 +103,7 @@ public class TestZloty extends TestBase {
             prep.execute();
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
 
         conn.close();

@@ -29,7 +29,7 @@ public class TestSessionsLocks extends TestBase {
         Statement stat = conn.createStatement();
         ResultSet rs;
         rs = stat.executeQuery("select * from information_schema.locks order by session_id");
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         Connection conn2 = getConnection("sessionsLocks");
         Statement stat2 = conn2.createStatement();
         stat2.execute("create table test(id int primary key, name varchar)");
@@ -37,30 +37,30 @@ public class TestSessionsLocks extends TestBase {
         stat2.execute("insert into test values(1, 'Hello')");
         rs = stat.executeQuery("select * from information_schema.locks order by session_id");
         rs.next();
-        check("PUBLIC", rs.getString("TABLE_SCHEMA"));
-        check("TEST", rs.getString("TABLE_NAME"));
+        assertEquals("PUBLIC", rs.getString("TABLE_SCHEMA"));
+        assertEquals("TEST", rs.getString("TABLE_NAME"));
         rs.getString("SESSION_ID");
         if (config.mvcc) {
-            check("READ", rs.getString("LOCK_TYPE"));
+            assertEquals("READ", rs.getString("LOCK_TYPE"));
         } else {
-            check("WRITE", rs.getString("LOCK_TYPE"));
+            assertEquals("WRITE", rs.getString("LOCK_TYPE"));
         }
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         conn2.commit();
         conn2.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
         stat2.execute("SELECT * FROM TEST");
         rs = stat.executeQuery("select * from information_schema.locks order by session_id");
         if (!config.mvcc) {
             rs.next();
-            check("PUBLIC", rs.getString("TABLE_SCHEMA"));
-            check("TEST", rs.getString("TABLE_NAME"));
+            assertEquals("PUBLIC", rs.getString("TABLE_SCHEMA"));
+            assertEquals("TEST", rs.getString("TABLE_NAME"));
             rs.getString("SESSION_ID");
-            check("READ", rs.getString("LOCK_TYPE"));
+            assertEquals("READ", rs.getString("LOCK_TYPE"));
         }
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         conn2.commit();
         rs = stat.executeQuery("select * from information_schema.locks order by session_id");
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         conn.close();
         conn2.close();
     }
@@ -77,16 +77,16 @@ public class TestSessionsLocks extends TestBase {
         rs.getTimestamp("SESSION_START");
         rs.getString("STATEMENT");
         rs.getTimestamp("STATEMENT_START");
-        checkFalse(rs.next());
+        assertFalse(rs.next());
         Connection conn2 = getConnection("sessionsLocks");
         final Statement stat2 = conn2.createStatement();
         rs = stat.executeQuery("select * from information_schema.sessions order by SESSION_START, ID");
-        check(rs.next());
-        check(sessionId, rs.getInt("ID"));
-        check(rs.next());
+        assertTrue(rs.next());
+        assertEquals(sessionId, rs.getInt("ID"));
+        assertTrue(rs.next());
         int otherId = rs.getInt("ID");
-        check(otherId != sessionId);
-        checkFalse(rs.next());
+        assertTrue(otherId != sessionId);
+        assertFalse(rs.next());
         stat2.execute("set throttle 1");
         final boolean[] done = new boolean[1];
         Runnable runnable = new Runnable() {
@@ -111,7 +111,7 @@ public class TestSessionsLocks extends TestBase {
                         break;
                     }
                 }
-                check(done[0]);
+                assertTrue(done[0]);
                 break;
             }
         }

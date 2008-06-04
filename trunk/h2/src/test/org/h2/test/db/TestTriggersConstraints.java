@@ -53,13 +53,13 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("create sequence seq");
         stat.execute("create table test(id int primary key)");
-        checkSingleValue(stat, "call seq.nextval", 1);
+        assertSingleValue(stat, "call seq.nextval", 1);
         conn.setAutoCommit(false);
         stat.execute("create trigger test_upd before insert on test call \"" + Test.class.getName() + "\"");
         stat.execute("insert into test values(1)");
-        checkSingleValue(stat, "call seq.nextval", 3);
+        assertSingleValue(stat, "call seq.nextval", 3);
         stat.execute("alter table test add column name varchar");
-        checkSingleValue(stat, "call seq.nextval", 4);
+        assertSingleValue(stat, "call seq.nextval", 4);
         stat.execute("drop sequence seq");
         stat.execute("drop table test");
         conn.close();
@@ -73,7 +73,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("alter table test add constraint test_parent_id foreign key(parent) references test (id) on delete cascade");
         stat.execute("insert into test select x, x/2 from system_range(0, 100)");
         stat.execute("delete from test");
-        checkSingleValue(stat, "select count(*) from test", 0);
+        assertSingleValue(stat, "select count(*) from test", 0);
         stat.execute("drop table test");
         conn.close();
     }
@@ -113,13 +113,13 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
 
         rs = stat.executeQuery("SELECT * FROM TEST");
         rs.next();
-        check(rs.getString(2), "Hello-updated");
-        checkFalse(rs.next());
+        assertEquals(rs.getString(2), "Hello-updated");
+        assertFalse(rs.next());
         stat.execute("UPDATE TEST SET NAME=NAME||'-upd'");
         rs = stat.executeQuery("SELECT * FROM TEST");
         rs.next();
-        check(rs.getString(2), "Hello-updated-upd-updated2");
-        checkFalse(rs.next());
+        assertEquals(rs.getString(2), "Hello-updated-upd-updated2");
+        assertFalse(rs.next());
 
         mustNotCallTrigger = true;
         stat.execute("DROP TRIGGER IF EXISTS INS_BEFORE");
@@ -128,7 +128,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             stat.execute("DROP TRIGGER INS_BEFORE");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         stat.execute("DROP TRIGGER  INS_AFTER");
         stat.execute("DROP TRIGGER  UPD_BEFORE");
@@ -182,7 +182,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             throw new Error("Commit must not work here");
         } catch (SQLException e) {
             try {
-                checkNotGeneralException(e);
+                assertKnownException(e);
             } catch (Exception e2) {
                 throw new Error("Unexpected: " + e.toString());
             }
@@ -192,7 +192,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             throw new Error("CREATE TABLE WORKED, but implicitly commits");
         } catch (SQLException e) {
             try {
-                checkNotGeneralException(e);
+                assertKnownException(e);
             } catch (Exception e2) {
                 throw new Error("Unexpected: " + e.toString());
             }

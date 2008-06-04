@@ -44,9 +44,9 @@ public class TestDataPage extends TestBase implements DataHandler {
         String s = new String(data);
         page.writeString(s);
         int len = page.length();
-        check(page.getStringLen(s), len);
+        assertEquals(page.getStringLen(s), len);
         page.reset();
-        check(s, page.readString());
+        assertEquals(s, page.readString());
         page.reset();
 
         page.writeString("H\u1111!");

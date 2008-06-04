@@ -174,7 +174,7 @@ public class TestLob extends TestBase {
                 }
             }
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         conn.rollback();
         conn.close();
@@ -257,7 +257,7 @@ public class TestLob extends TestBase {
             while (rs.next()) {
                 String d1 = rs.getString("DATA").trim();
                 String d2 = rs.getString("DATA2").trim();
-                check(d1, d2);
+                assertEquals(d1, d2);
             }
 
         }
@@ -278,9 +278,9 @@ public class TestLob extends TestBase {
         conn.createStatement().execute("SHUTDOWN IMMEDIATELY");
         conn = reconnect(null);
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
-        check(rs.next());
+        assertTrue(rs.next());
         rs.getInt(1);
-        check(rs.getString(2).length(), 10000);
+        assertEquals(rs.getString(2).length(), 10000);
         conn.close();
     }
 
@@ -405,8 +405,8 @@ public class TestLob extends TestBase {
         ResultSet rs;
         rs = stat.executeQuery("select value from information_schema.settings where NAME='COMPRESS_LOB'");
         rs.next();
-        check(rs.getString(1), compress ? "LZF" : "NO");
-        checkFalse(rs.next());
+        assertEquals(rs.getString(1), compress ? "LZF" : "NO");
+        assertFalse(rs.next());
         stat.execute("create table test(text clob)");
         stat.execute("create table test2(text clob)");
         StringBuffer buff = new StringBuffer();
@@ -418,15 +418,15 @@ public class TestLob extends TestBase {
         stat.execute("insert into test2 select * from test");
         rs = stat.executeQuery("select * from test2");
         rs.next();
-        check(rs.getString(1), spaces);
+        assertEquals(rs.getString(1), spaces);
         stat.execute("drop table test");
         rs = stat.executeQuery("select * from test2");
         rs.next();
-        check(rs.getString(1), spaces);
+        assertEquals(rs.getString(1), spaces);
         stat.execute("alter table test2 add column id int before text");
         rs = stat.executeQuery("select * from test2");
         rs.next();
-        check(rs.getString("text"), spaces);
+        assertEquals(rs.getString("text"), spaces);
         conn.close();
     }
 
@@ -460,11 +460,11 @@ public class TestLob extends TestBase {
             ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
             while (rs.next()) {
                 if (i == 0) {
-                    check(xml + rs.getInt(1), rs.getString(2));
+                    assertEquals(xml + rs.getInt(1), rs.getString(2));
                 } else {
                     Reader r = rs.getCharacterStream(2);
                     String result = IOUtils.readStringAndClose(r, -1);
-                    check(xml + rs.getInt(1), result);
+                    assertEquals(xml + rs.getInt(1), result);
                 }
             }
         }
@@ -501,8 +501,8 @@ public class TestLob extends TestBase {
             Blob b = rs.getBlob("B");
             Clob c = rs.getClob("C");
             int l = i;
-            check(b.length(), l);
-            check(c.length(), l);
+            assertEquals(b.length(), l);
+            assertEquals(c.length(), l);
             checkStream(b.getBinaryStream(), getRandomStream(l, i), -1);
             checkReader(c.getCharacterStream(), getRandomReader(l, i), -1);
         }
@@ -523,8 +523,8 @@ public class TestLob extends TestBase {
             Blob b = rs.getBlob("B");
             Clob c = rs.getClob("C");
             int l = i;
-            check(b.length(), l);
-            check(c.length(), l);
+            assertEquals(b.length(), l);
+            assertEquals(c.length(), l);
             checkStream(b.getBinaryStream(), getRandomStream(l, -i), -1);
             checkReader(c.getCharacterStream(), getRandomReader(l, -i), -1);
         }
@@ -549,7 +549,7 @@ public class TestLob extends TestBase {
         conn = reconnect(conn);
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
-        check("Bohlen", rs.getString("C"));
+        assertEquals("Bohlen", rs.getString("C"));
         checkReader(new CharArrayReader("Bohlen".toCharArray()), rs.getCharacterStream("C"), -1);
         rs.next();
         checkReader(new CharArrayReader("B\u00f6hlen".toCharArray()), rs.getCharacterStream("C"), -1);
@@ -557,15 +557,15 @@ public class TestLob extends TestBase {
         checkReader(getRandomReader(501, 1), rs.getCharacterStream("C"), -1);
         Clob clob = rs.getClob("C");
         checkReader(getRandomReader(501, 1), clob.getCharacterStream(), -1);
-        check(clob.length(), 501);
+        assertEquals(clob.length(), 501);
         rs.next();
         checkReader(getRandomReader(401, 2), rs.getCharacterStream("C"), -1);
         checkReader(getRandomReader(1500, 2), rs.getCharacterStream("C"), 401);
         clob = rs.getClob("C");
         checkReader(getRandomReader(1501, 2), clob.getCharacterStream(), 401);
         checkReader(getRandomReader(401, 2), clob.getCharacterStream(), 401);
-        check(clob.length(), 401);
-        checkFalse(rs.next());
+        assertEquals(clob.length(), 401);
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -757,9 +757,9 @@ public class TestLob extends TestBase {
         TestLobObject a = (TestLobObject) oa;
         Object ob = rs.getObject("DATA");
         TestLobObject b = (TestLobObject) ob;
-        check(a.data, "abc");
-        check(b.data, "abc");
-        checkFalse(rs.next());
+        assertEquals(a.data, "abc");
+        assertEquals(b.data, "abc");
+        assertFalse(rs.next());
         conn.close();
     }
 
@@ -774,7 +774,7 @@ public class TestLob extends TestBase {
             int ca = a.read();
             a.read(new byte[0]);
             int cb = b.read();
-            check(ca, cb);
+            assertEquals(ca, cb);
             if (ca == -1) {
                 break;
             }
@@ -791,7 +791,7 @@ public class TestLob extends TestBase {
         for (int i = 0; len < 0 || i < len; i++) {
             int ca = a.read();
             int cb = b.read();
-            check(ca, cb);
+            assertEquals(ca, cb);
             if (ca == -1) {
                 break;
             }

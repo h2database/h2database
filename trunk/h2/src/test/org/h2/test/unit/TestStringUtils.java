@@ -31,37 +31,37 @@ public class TestStringUtils extends TestBase {
     }
 
     private void testHex() throws Exception {
-        check("face", ByteUtils.convertBytesToString(new byte[] { (byte) 0xfa, (byte) 0xce }));
-        check(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("face"));
-        check(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("fAcE"));
-        check(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("FaCe"));
+        assertEquals("face", ByteUtils.convertBytesToString(new byte[] { (byte) 0xfa, (byte) 0xce }));
+        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("face"));
+        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("fAcE"));
+        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("FaCe"));
         try {
             ByteUtils.convertStringToBytes("120");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         try {
             ByteUtils.convertStringToBytes("fast");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
     }
 
     private void testPad() throws Exception {
-        check("large", StringUtils.pad("larger text", 5, null, true));
-        check("large", StringUtils.pad("larger text", 5, null, false));
-        check("short+++++", StringUtils.pad("short", 10, "+", true));
-        check("+++++short", StringUtils.pad("short", 10, "+", false));
+        assertEquals("large", StringUtils.pad("larger text", 5, null, true));
+        assertEquals("large", StringUtils.pad("larger text", 5, null, false));
+        assertEquals("short+++++", StringUtils.pad("short", 10, "+", true));
+        assertEquals("+++++short", StringUtils.pad("short", 10, "+", false));
     }
 
     private void testXML() throws Exception {
-        check("<!-- - - - - - -abc- - - - - - -->\n", StringUtils.xmlComment("------abc------"));
-        check("<test/>\n", StringUtils.xmlNode("test", null, null));
-        check("<test>Gr&#xfc;bel</test>\n", StringUtils.xmlNode("test", null, StringUtils.xmlText("Gr\u00fcbel")));
-        check("Rand&amp;Blue", StringUtils.xmlText("Rand&Blue"));
-        check("&lt;&lt;[[[]]]&gt;&gt;", StringUtils.xmlCData("<<[[[]]]>>"));
+        assertEquals("<!-- - - - - - -abc- - - - - - -->\n", StringUtils.xmlComment("------abc------"));
+        assertEquals("<test/>\n", StringUtils.xmlNode("test", null, null));
+        assertEquals("<test>Gr&#xfc;bel</test>\n", StringUtils.xmlNode("test", null, StringUtils.xmlText("Gr\u00fcbel")));
+        assertEquals("Rand&amp;Blue", StringUtils.xmlText("Rand&Blue"));
+        assertEquals("&lt;&lt;[[[]]]&gt;&gt;", StringUtils.xmlCData("<<[[[]]]>>"));
         Date dt = StringUtils.parseDateTime("2001-02-03 04:05:06 GMT", "yyyy-MM-dd HH:mm:ss z", "en", "GMT");
         String s = StringUtils.xmlStartDoc()
                 + StringUtils.xmlComment("Test Comment")
@@ -80,7 +80,7 @@ public class TestStringUtils extends TestBase {
                                         + StringUtils.xmlNode("link", null, "http://www.h2database.com")
                                         + StringUtils.xmlNode("description", null, StringUtils
                                                 .xmlCData("\nNew Features\nTest\n")))));
-        check(s, "<?xml version=\"1.0\"?>\n" + "<!-- Test Comment -->\n" + "<rss version=\"2.0\">\n" + "    <!--\n"
+        assertEquals(s, "<?xml version=\"1.0\"?>\n" + "<!-- Test Comment -->\n" + "<rss version=\"2.0\">\n" + "    <!--\n"
                 + "        Test Comment\n" + "        Zeile2\n" + "    -->\n" + "    <channel>\n"
                 + "        <title>H2 Database Engine</title>\n" + "        <link>http://www.h2database.com</link>\n"
                 + "        <description>H2 Database Engine</description>\n" + "        <language>en-us</language>\n"
@@ -108,9 +108,9 @@ public class TestStringUtils extends TestBase {
             String a = buff.toString();
             String b = URLEncoder.encode(a, "UTF-8");
             String c = URLDecoder.decode(b, "UTF-8");
-            check(a, c);
+            assertEquals(a, c);
             String d = StringUtils.urlDecode(b);
-            check(d, c);
+            assertEquals(d, c);
         }
     }
 
@@ -129,13 +129,13 @@ public class TestStringUtils extends TestBase {
             String a = buff.toString();
             String b = StringUtils.javaEncode(a);
             String c = StringUtils.javaDecode(b);
-            check(a, c);
+            assertEquals(a, c);
         }
     }
 
     private void testSplit() throws Exception {
-        check(3, StringUtils.arraySplit("ABC,DEF,G\\,HI", ',', false).length);
-        check(StringUtils.arrayCombine(new String[] { "", " ", "," }, ','), ", ,\\,");
+        assertEquals(3, StringUtils.arraySplit("ABC,DEF,G\\,HI", ',', false).length);
+        assertEquals(StringUtils.arrayCombine(new String[] { "", " ", "," }, ','), ", ,\\,");
         Random random = new Random(1);
         for (int i = 0; i < 100; i++) {
             int len = random.nextInt(10);
@@ -154,7 +154,7 @@ public class TestStringUtils extends TestBase {
             String a = buff.toString();
             String[] b = StringUtils.arraySplit(a, ',', false);
             String c = StringUtils.arrayCombine(b, ',');
-            check(a, c);
+            assertEquals(a, c);
         }
     }
 

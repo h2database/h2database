@@ -30,7 +30,7 @@ public class TestLogFile extends TestBase {
         }
         long length = 0;
         ArrayList files = FileLister.getDatabaseFiles(baseDir, "logfile", false);
-        checkSmaller(files.size(), maxFiles + 2);
+        assertSmaller(files.size(), maxFiles + 2);
         for (int i = 0; i < files.size(); i++) {
             String fileName = (String) files.get(i);
             long len = new File(fileName).length();
@@ -57,7 +57,7 @@ public class TestLogFile extends TestBase {
                 insert();
                 long l2 = reconnect(maxFiles);
                 trace("length:" + length + " l2:" + l2);
-                check(l2 <= length * 2);
+                assertTrue(l2 <= length * 2);
             }
             conn.close();
         } finally {
@@ -71,7 +71,7 @@ public class TestLogFile extends TestBase {
             String name = files[j];
             if (name.startsWith("logfile") && name.endsWith(".log.db")) {
                 long length = new File(name).length();
-                checkSmaller(length, MAX_LOG_SIZE * 1024 * 1024 * 2);
+                assertSmaller(length, MAX_LOG_SIZE * 1024 * 1024 * 2);
             }
         }
     }

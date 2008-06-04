@@ -33,22 +33,22 @@ public class TestEncryptedDb extends TestBase {
         try {
             conn.close();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
 
         try {
             conn = getConnection("exclusive;CIPHER=AES", "sa", "1234 1234");
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
 
         conn = getConnection("exclusive;CIPHER=AES", "sa", "123 123");
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
-        check(rs.next());
-        check(1, rs.getInt(1));
-        checkFalse(rs.next());
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertFalse(rs.next());
 
         conn.close();
     }

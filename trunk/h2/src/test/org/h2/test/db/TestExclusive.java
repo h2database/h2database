@@ -27,7 +27,7 @@ public class TestExclusive extends TestBase {
             conn2.close();
             error();
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
 
         stat.execute("set exclusive false");
@@ -57,7 +57,7 @@ public class TestExclusive extends TestBase {
                 break;
             }
         }
-        check(state[0], 2);
+        assertEquals(state[0], 2);
         stat.execute("set exclusive true");
         conn.close();
 

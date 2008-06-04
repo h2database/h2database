@@ -34,7 +34,7 @@ public class TestNestedLoop extends TestBase {
             rs.next();
             error("Result set should be closed");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         rs = stat.executeQuery("select id from test");
         stat.close();
@@ -42,7 +42,7 @@ public class TestNestedLoop extends TestBase {
             rs.next();
             error("Result set should be closed");
         } catch (SQLException e) {
-            checkNotGeneralException(e);
+            assertKnownException(e);
         }
         stat = conn.createStatement();
         rs = stat.executeQuery("select id from test");
@@ -51,13 +51,13 @@ public class TestNestedLoop extends TestBase {
             int id = rs.getInt(1);
             ResultSet rs2 = stat2.executeQuery("select * from test where id=" + id);
             while (rs2.next()) {
-                check(rs2.getInt(1), id);
-                check(rs2.getString(2), "Hello World");
+                assertEquals(rs2.getInt(1), id);
+                assertEquals(rs2.getString(2), "Hello World");
             }
             rs2 = stat2.executeQuery("select * from test where id=" + id);
             while (rs2.next()) {
-                check(rs2.getInt(1), id);
-                check(rs2.getString(2), "Hello World");
+                assertEquals(rs2.getInt(1), id);
+                assertEquals(rs2.getString(2), "Hello World");
             }
         }
         conn.close();

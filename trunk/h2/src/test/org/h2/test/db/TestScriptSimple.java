@@ -50,7 +50,7 @@ public class TestScriptSimple extends TestBase {
                     while (rs.next()) {
                         String expected = reader.readStatement().trim();
                         String got = "> " + rs.getString(1);
-                        check(expected, got);
+                        assertEquals(expected, got);
                     }
                 } else {
                     conn.createStatement().execute(sql);

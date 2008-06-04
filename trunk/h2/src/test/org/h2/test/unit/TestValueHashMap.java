@@ -60,27 +60,27 @@ public class TestValueHashMap extends TestBase implements DataHandler {
             case 2:
                 Value v1 = (Value) map.get(key);
                 Value v2 = (Value) hash.get(key);
-                check((v1 == null && v2 == null) || v1.compareEqual(v2));
+                assertTrue((v1 == null && v2 == null) || v1.compareEqual(v2));
                 break;
             case 3: {
                 ObjectArray a1 = map.keys();
                 ObjectArray a2 = new ObjectArray(hash.keySet());
-                check(a1.size(), a2.size());
+                assertEquals(a1.size(), a2.size());
                 a1.sort(vc);
                 a2.sort(vc);
                 for (int j = 0; j < a1.size(); j++) {
-                    check(((Value) a1.get(j)).compareEqual((Value) a2.get(j)));
+                    assertTrue(((Value) a1.get(j)).compareEqual((Value) a2.get(j)));
                 }
                 break;
             }
             case 4:
                 ObjectArray a1 = map.values();
                 ObjectArray a2 = new ObjectArray(hash.values());
-                check(a1.size(), a2.size());
+                assertEquals(a1.size(), a2.size());
                 a1.sort(vc);
                 a2.sort(vc);
                 for (int j = 0; j < a1.size(); j++) {
-                    check(((Value) a1.get(j)).compareEqual((Value) a2.get(j)));
+                    assertTrue(((Value) a1.get(j)).compareEqual((Value) a2.get(j)));
                 }
                 break;
             default:

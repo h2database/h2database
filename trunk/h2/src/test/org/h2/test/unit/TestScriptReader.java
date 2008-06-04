@@ -45,9 +45,9 @@ public class TestScriptReader extends TestBase {
                 if (c.length() == 0 && j == l - 1) {
                     c = null;
                 }
-                check(e, c);
+                assertEquals(e, c);
             }
-            check(source.readStatement(), null);
+            assertEquals(source.readStatement(), null);
         }
     }
 
@@ -154,18 +154,18 @@ public class TestScriptReader extends TestBase {
         String s = "a;';';\";\";--;\n;/*;\n*/;//;\na;";
         StringReader reader = new StringReader(s);
         ScriptReader source = new ScriptReader(reader);
-        check(source.readStatement(), "a");
-        check(source.readStatement(), "';'");
-        check(source.readStatement(), "\";\"");
-        check(source.readStatement(), "--;\n");
-        check(source.readStatement(), "/*;\n*/");
-        check(source.readStatement(), "//;\na");
-        check(source.readStatement(), null);
+        assertEquals(source.readStatement(), "a");
+        assertEquals(source.readStatement(), "';'");
+        assertEquals(source.readStatement(), "\";\"");
+        assertEquals(source.readStatement(), "--;\n");
+        assertEquals(source.readStatement(), "/*;\n*/");
+        assertEquals(source.readStatement(), "//;\na");
+        assertEquals(source.readStatement(), null);
         source.close();
         s = "/\n$ \n\n $';$$a$$ $\n;'";
         source = new ScriptReader(new StringReader(s));
-        check(source.readStatement(), "/\n$ \n\n $';$$a$$ $\n;'");
-        check(source.readStatement(), null);
+        assertEquals(source.readStatement(), "/\n$ \n\n $';$$a$$ $\n;'");
+        assertEquals(source.readStatement(), null);
         source.close();
     }
 

@@ -27,8 +27,8 @@ public class TestView extends TestBase {
             s.execute("create view t" + (i + 1) + " as select * from t" + i);
             s.execute("select * from t" + (i + 1));
             ResultSet rs = s.executeQuery("select count(*) from t" + (i + 1) + " where id=2");
-            check(rs.next());
-            check(rs.getInt(1), 1);
+            assertTrue(rs.next());
+            assertEquals(rs.getInt(1), 1);
         }
         conn.close();
         conn = getConnection("view");

@@ -23,19 +23,21 @@ import org.h2.value.ValueResultSet;
 public class JavaFunction extends Expression implements FunctionCall {
 
     private FunctionAlias functionAlias;
+    private FunctionAlias.JavaMethod javaMethod;
     private Expression[] args;
 
-    public JavaFunction(FunctionAlias functionAlias, Expression[] args) {
+    public JavaFunction(FunctionAlias functionAlias, Expression[] args) throws SQLException {
         this.functionAlias = functionAlias;
+        this.javaMethod = functionAlias.findJavaMethod(args);
         this.args = args;
     }
 
     public Value getValue(Session session) throws SQLException {
-        return functionAlias.getValue(session, args, false);
+        return javaMethod.getValue(session, args, false);
     }
 
     public int getType() {
-        return functionAlias.getDataType();
+        return javaMethod.getDataType();
     }
 
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
@@ -102,11 +104,11 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     public int getParameterCount() throws SQLException {
-        return functionAlias.getParameterCount();
+        return javaMethod.getParameterCount();
     }
 
     public ValueResultSet getValueForColumnList(Session session, Expression[] args) throws SQLException {
-        Value v = functionAlias.getValue(session, args, true);
+        Value v = javaMethod.getValue(session, args, true);
         return v == ValueNull.INSTANCE ? null : (ValueResultSet) v;
     }
 
@@ -135,7 +137,7 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     public int getCost() {
-        int cost = functionAlias.hasConnectionParam() ? 25 : 5;
+        int cost = javaMethod.hasConnectionParam() ? 25 : 5;
         for (int i = 0; i < args.length; i++) {
             cost += args[i].getCost();
         }

@@ -10,7 +10,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.SQLException;
 import java.text.Collator;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
@@ -1810,15 +1812,17 @@ public class Parser {
             // ( CALL "java.lang.Math.sqrt"(2.0) )
             throw Message.getSQLException(ErrorCode.FUNCTION_NOT_FOUND_1, name);
         }
-        int paramCount = functionAlias.getParameterCount();
-        Expression[] args = new Expression[paramCount];
-        for (int i = 0; i < args.length; i++) {
-            if (i > 0) {
+        Expression[] args;
+        List argList = new ArrayList();
+        int numArgs = 0;
+        while (!readIf(")")) {
+            if (numArgs++ > 0) {
                 read(",");
             }
-            args[i] = readExpression();
+            argList.add(readExpression());
         }
-        read(")");
+        args = new Expression[numArgs];
+        argList.toArray(args);
         JavaFunction func = new JavaFunction(functionAlias, args);
         return func;
     }

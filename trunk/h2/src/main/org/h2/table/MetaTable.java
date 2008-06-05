@@ -264,6 +264,7 @@ public class MetaTable extends Table {
                     "ALIAS_NAME",
                     "JAVA_CLASS",
                     "JAVA_METHOD",
+                    "COLUMN_COUNT INT",
                     "POS INT",
                     "COLUMN_NAME",
                     "DATA_TYPE INT",
@@ -990,30 +991,34 @@ public class MetaTable extends Table {
             ObjectArray aliases = database.getAllFunctionAliases();
             for (int i = 0; i < aliases.size(); i++) {
                 FunctionAlias alias = (FunctionAlias) aliases.get(i);
-                int returnsResult = alias.getDataType() == Value.NULL ? DatabaseMetaData.procedureNoResult
-                        : DatabaseMetaData.procedureReturnsResult;
-                add(rows, new String[] {
-                        // ALIAS_CATALOG
-                        catalog, 
-                        // ALIAS_SCHEMA
-                        Constants.SCHEMA_MAIN, 
-                        // ALIAS_NAME
-                        identifier(alias.getName()), 
-                        // JAVA_CLASS
-                        alias.getJavaClassName(), 
-                        // JAVA_METHOD
-                        alias.getJavaMethodName(), 
-                        // DATA_TYPE
-                        ""+DataType.convertTypeToSQLType(alias.getDataType()), 
-                        // COLUMN_COUNT INT
-                        ""+ alias.getColumnClasses().length, 
-                        // RETURNS_RESULT SMALLINT
-                        ""+ returnsResult, 
-                        // REMARKS
-                        replaceNullWithEmpty(alias.getComment()), 
-                        // ID
-                        "" + alias.getId() 
-                });
+                FunctionAlias.JavaMethod[] methods = alias.getJavaMethods();
+                for (int j = 0; j < methods.length; j++) {
+                    FunctionAlias.JavaMethod method = methods[j];
+                    int returnsResult = method.getDataType() == Value.NULL ? DatabaseMetaData.procedureNoResult
+                            : DatabaseMetaData.procedureReturnsResult;
+                    add(rows, new String[] {
+                            // ALIAS_CATALOG
+                            catalog, 
+                            // ALIAS_SCHEMA
+                            Constants.SCHEMA_MAIN, 
+                            // ALIAS_NAME
+                            identifier(alias.getName()), 
+                            // JAVA_CLASS
+                            alias.getJavaClassName(), 
+                            // JAVA_METHOD
+                            alias.getJavaMethodName(), 
+                            // DATA_TYPE
+                            ""+DataType.convertTypeToSQLType(method.getDataType()), 
+                            // COLUMN_COUNT INT
+                            ""+ method.getColumnClasses().length, 
+                            // RETURNS_RESULT SMALLINT
+                            ""+ returnsResult, 
+                            // REMARKS
+                            replaceNullWithEmpty(alias.getComment()), 
+                            // ID
+                            "" + alias.getId()
+                    });
+                }
             }
             ObjectArray aggregates = database.getAllAggregates();
             for (int i = 0; i < aggregates.size(); i++) {
@@ -1048,45 +1053,51 @@ public class MetaTable extends Table {
             ObjectArray aliases = database.getAllFunctionAliases();
             for (int i = 0; i < aliases.size(); i++) {
                 FunctionAlias alias = (FunctionAlias) aliases.get(i);
-                Class[] columns = alias.getColumnClasses();
-                for (int j = 0; j < columns.length; j++) {
-                    Class clazz = columns[j];
-                    int type = DataType.getTypeFromClass(clazz);
-                    DataType dt = DataType.getDataType(type);
-                    int nullable = clazz.isPrimitive() ? DatabaseMetaData.columnNoNulls
-                            : DatabaseMetaData.columnNullable;
-                    add(rows, new String[] {
-                            // ALIAS_CATALOG
-                            catalog, 
-                            // ALIAS_SCHEMA
-                            Constants.SCHEMA_MAIN, 
-                            // ALIAS_NAME
-                            identifier(alias.getName()), 
-                            // JAVA_CLASS
-                            alias.getJavaClassName(), 
-                            // JAVA_METHOD
-                            alias.getJavaMethodName(), 
-                            // POS INT
-                            "" + j, 
-                            // COLUMN_NAME
-                            "P" + (j+1), 
-                            // DATA_TYPE
-                            "" + DataType.convertTypeToSQLType(dt.type), 
-                            // TYPE_NAME
-                            dt.name, 
-                            // PRECISION
-                            "" + dt.defaultPrecision, 
-                            // SCALE
-                            "" + dt.defaultScale, 
-                            // RADIX
-                            "10", 
-                            // NULLABLE SMALLINT
-                            "" + nullable, 
-                            // COLUMN_TYPE
-                            "" + DatabaseMetaData.procedureColumnIn, 
-                            // REMARKS
-                            "" 
-                    });
+                FunctionAlias.JavaMethod[] methods = alias.getJavaMethods();
+                for (int j = 0; j < methods.length; j++) {
+                    FunctionAlias.JavaMethod method = methods[j];
+                    Class[] columns = method.getColumnClasses();
+                    for (int k = 0; k < columns.length; k++) {
+                        Class clazz = columns[k];
+                        int type = DataType.getTypeFromClass(clazz);
+                        DataType dt = DataType.getDataType(type);
+                        int nullable = clazz.isPrimitive() ? DatabaseMetaData.columnNoNulls
+                                : DatabaseMetaData.columnNullable;
+                        add(rows, new String[] {
+                                // ALIAS_CATALOG
+                                catalog, 
+                                // ALIAS_SCHEMA
+                                Constants.SCHEMA_MAIN, 
+                                // ALIAS_NAME
+                                identifier(alias.getName()), 
+                                // JAVA_CLASS
+                                alias.getJavaClassName(), 
+                                // JAVA_METHOD
+                                alias.getJavaMethodName(), 
+                                // COLUMN_COUNT
+                                "" + method.getParameterCount(),
+                                // POS INT
+                                "" + k, 
+                                // COLUMN_NAME
+                                "P" + (k+1), 
+                                // DATA_TYPE
+                                "" + DataType.convertTypeToSQLType(dt.type), 
+                                // TYPE_NAME
+                                dt.name, 
+                                // PRECISION
+                                "" + dt.defaultPrecision, 
+                                // SCALE
+                                "" + dt.defaultScale, 
+                                // RADIX
+                                "10", 
+                                // NULLABLE SMALLINT
+                                "" + nullable, 
+                                // COLUMN_TYPE
+                                "" + DatabaseMetaData.procedureColumnIn, 
+                                // REMARKS
+                                "" 
+                        });
+                    }
                 }
             }
             break;

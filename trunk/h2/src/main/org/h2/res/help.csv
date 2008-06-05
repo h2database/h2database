@@ -362,6 +362,8 @@ and may optionally include the parameter classes as in ""java.lang.Integer.parse
 Admin rights are required to execute this command.
 If the first parameter of the Java function is a java.sql.Connection, then
 the current to the database is provided. This connection must not be closed.
+Functions may be overloaded, that means multiple functions with the same name may exist.
+In this case, each function must have a different parameter count.
 ","
 CREATE ALIAS MY_SQRT FOR ""java.lang.Math.sqrt""
 "

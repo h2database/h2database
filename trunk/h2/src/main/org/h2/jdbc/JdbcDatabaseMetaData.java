@@ -493,13 +493,15 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Gets the list of procedures. The result set is sorted by PROCEDURE_SCHEM,
-     * and PROCEDURE_NAME.
+     * PROCEDURE_NAME, and NUM_INPUT_PARAMS. There are potentially multiple
+     * procedures with the same name, each with a different number of input
+     * parameters.
      * 
      * <ul>
      * <li>1 PROCEDURE_CAT (String) catalog </li>
      * <li>2 PROCEDURE_SCHEM (String) schema </li>
      * <li>3 PROCEDURE_NAME (String) name </li>
-     * <li>4 NUM_INPUT_PARAMS (int) for future use, always 0 </li>
+     * <li>4 NUM_INPUT_PARAMS (int) the number of arguments </li>
      * <li>5 NUM_OUTPUT_PARAMS (int) for future use, always 0 </li>
      * <li>6 NUM_RESULT_SETS (int) for future use, always 0 </li>
      * <li>7 REMARKS (String) description </li>
@@ -507,7 +509,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * (procedureNoResult or procedureReturnsResult) </li>
      * </ul>
      * 
-     * @return an empty result set
+     * @return the procedures.
      * @throws SQLException if the connection is closed
      */
     public ResultSet getProcedures(String catalog, String schemaPattern,
@@ -524,7 +526,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "ALIAS_CATALOG PROCEDURE_CAT, "
                     + "ALIAS_SCHEMA PROCEDURE_SCHEM, "
                     + "ALIAS_NAME PROCEDURE_NAME, "
-                    + "ZERO() NUM_INPUT_PARAMS, "
+                    + "COLUMN_COUNT NUM_INPUT_PARAMS, "
                     + "ZERO() NUM_OUTPUT_PARAMS, "
                     + "ZERO() NUM_RESULT_SETS, "
                     + "REMARKS, "
@@ -533,7 +535,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "WHERE ALIAS_CATALOG LIKE ? "
                     + "AND ALIAS_SCHEMA LIKE ? "
                     + "AND ALIAS_NAME LIKE ? "
-                    + "ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME");
+                    + "ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME, NUM_INPUT_PARAMS");
             prep.setString(1, getCatalogPattern(catalog));
             prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, getPattern(procedureNamePattern));
@@ -544,24 +546,29 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Gets the list of procedure columns.
-     *
+     * Gets the list of procedure columns. The result set is sorted by
+     * PROCEDURE_SCHEM, PROCEDURE_NAME, NUM_INPUT_PARAMS, and POS.
+     * There are potentially multiple procedures with the same name, each with a
+     * different number of input parameters.
+     * 
      * <ul>
-     * <li>1 PROCEDURE_CAT (String) catalog
-     * </li><li>2 PROCEDURE_SCHEM (String) schema
-     * </li><li>3 PROCEDURE_NAME (String) name
-     * </li><li>4 COLUMN_NAME (String) column name
-     * </li><li>5 COLUMN_TYPE (short) column type
-     * </li><li>6 DATA_TYPE (short) sql type
-     * </li><li>7 TYPE_NAME (String) type name
-     * </li><li>8 PRECISION (int) precision
-     * </li><li>9 LENGTH (int) length
-     * </li><li>10 SCALE (short) scale
-     * </li><li>11 RADIX (int) always 10
-     * </li><li>12 NULLABLE (short) nullable
-     * </li><li>13 REMARKS (String) description
-     * </li></ul>
-     *
+     * <li>1 PROCEDURE_CAT (String) catalog </li>
+     * <li>2 PROCEDURE_SCHEM (String) schema </li>
+     * <li>3 PROCEDURE_NAME (String) name </li>
+     * <li>4 COLUMN_NAME (String) column name </li>
+     * <li>5 COLUMN_TYPE (short) column type </li>
+     * <li>6 DATA_TYPE (short) sql type </li>
+     * <li>7 TYPE_NAME (String) type name </li>
+     * <li>8 PRECISION (int) precision </li>
+     * <li>9 LENGTH (int) length </li>
+     * <li>10 SCALE (short) scale </li>
+     * <li>11 RADIX (int) always 10 </li>
+     * <li>12 NULLABLE (short) nullable </li>
+     * <li>13 REMARKS (String) description </li>
+     * <li>14 NUM_INPUT_PARAMS (int) the parameter count </li>
+     * <li>15 POS (int) the parameter index </li>
+     * </ul>
+     * 
      * @throws SQLException if the connection is closed
      */
     public ResultSet getProcedureColumns(String catalog, String schemaPattern,
@@ -589,12 +596,15 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "SCALE, "
                     + "RADIX, "
                     + "NULLABLE, "
-                    + "REMARKS "
+                    + "REMARKS, "
+                    + "COLUMN_COUNT NUM_INPUT_PARAMS, "
+                    + "POS "
                     + "FROM INFORMATION_SCHEMA.FUNCTION_COLUMNS "
                     + "WHERE ALIAS_CATALOG LIKE ? "
                     + "AND ALIAS_SCHEMA LIKE ? "
                     + "AND ALIAS_NAME LIKE ? "
-                    + "AND COLUMN_NAME LIKE ?");
+                    + "AND COLUMN_NAME LIKE ? "
+                    + "ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME, NUM_INPUT_PARAMS, POS");
             prep.setString(1, getCatalogPattern(catalog));
             prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, getPattern(procedureNamePattern));

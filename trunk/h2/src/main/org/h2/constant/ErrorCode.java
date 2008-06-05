@@ -1093,6 +1093,22 @@ public class ErrorCode {
     public static final int ROLES_AND_RIGHT_CANNOT_BE_MIXED = 90072;
 
     /**
+     * The error with code <code>90073</code> is thrown when trying to create
+     * an alias for a Java method, if two methods exists in this class that have
+     * this name and the same number of parameters. Example:
+     * <pre>
+     * CREATE ALIAS GET_LONG FOR 
+     *      "java.lang.Long.getLong";
+     * </pre>
+     * Correct:
+     * <pre>
+     * CREATE ALIAS GET_LONG FOR 
+     *      "java.lang.Long.getLong(java.lang.String, java.lang.Long)";
+     * </pre>
+     */
+    public static final int METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2 = 90073;
+    
+    /**
      * The error with code <code>90074</code> is thrown when
      * trying to grant a role that has already been granted.
      * Example:

@@ -81,7 +81,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         long used = MemoryUtils.getMemoryUsed() - first;
         memory /= 1024;
         if (used > memory * 3) {
-            error("Type: " + type + " Used memory: " + used + " calculated: " + memory + " " + array.length + " size: " + size);
+            fail("Type: " + type + " Used memory: " + used + " calculated: " + memory + " " + array.length + " size: " + size);
         }
     }
     Value create(int type) throws SQLException {

@@ -59,7 +59,7 @@ public class TestTransactionIsolation extends TestBase {
         conn1.createStatement().executeUpdate("UPDATE TEST SET ID=2");
         try {
             assertSingleValue(conn2.createStatement(), "SELECT * FROM TEST", 1);
-            error("Expected lock timeout");
+            fail("Expected lock timeout");
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -81,7 +81,7 @@ public class TestTransactionIsolation extends TestBase {
         conn2.createStatement().executeUpdate("UPDATE TEST SET ID=4");
         try {
             conn1.createStatement().executeUpdate("DELETE FROM TEST");
-            error("Expected lock timeout");
+            fail("Expected lock timeout");
         } catch (SQLException e) {
             assertKnownException(e);
         }

@@ -63,7 +63,7 @@ public class TestMemoryUsage extends TestBase {
             System.gc();
             int used = MemoryUtils.getMemoryUsed();
             if ((used - start) > 16000) {
-                error("Used: " + (used - start));
+                fail("Used: " + (used - start));
             }
         }
         conn.close();
@@ -89,7 +89,7 @@ public class TestMemoryUsage extends TestBase {
         System.gc();
         int used = MemoryUtils.getMemoryUsed();
         if ((used - start) > 4000) {
-            error("Used: " + (used - start));
+            fail("Used: " + (used - start));
         }
         stat.execute("drop table test");
         conn.close();
@@ -153,7 +153,7 @@ public class TestMemoryUsage extends TestBase {
             ResultSet rs = prep.executeQuery();
             rs.next();
             if (rs.next()) {
-                error("one row expected, got more");
+                fail("one row expected, got more");
             }
             if (i % 50000 == 0) {
                 trace("  " + (100 * i / len) + "%");
@@ -170,7 +170,7 @@ public class TestMemoryUsage extends TestBase {
             ResultSet rs = prep.executeQuery();
             rs.next();
             if (rs.next()) {
-                error("one row expected, got more");
+                fail("one row expected, got more");
             }
             if (i % 50000 == 0) {
                 trace("  " + (100 * i / len) + "%");

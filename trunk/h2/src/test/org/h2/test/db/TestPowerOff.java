@@ -165,7 +165,7 @@ public class TestPowerOff extends TestBase {
         try {
             stat.execute("INSERT INTO TEST VALUES(2, 'Hello')");
             stat.execute("CHECKPOINT");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -199,7 +199,7 @@ public class TestPowerOff extends TestBase {
             stat.execute("INSERT INTO TEST VALUES(2, 'Hello')");
             stat.execute("INSERT INTO TEST VALUES(3, 'Hello')");
             stat.execute("CHECKPOINT");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -294,7 +294,7 @@ public class TestPowerOff extends TestBase {
         Database.setInitialPowerOffCount(0);
         Connection conn = getConnection(url);
         if (((JdbcConnection) conn).getPowerOffCount() != 0) {
-            error("power off count is not 0");
+            fail("power off count is not 0");
         }
         Statement stat = conn.createStatement();
         DatabaseMetaData meta = conn.getMetaData();

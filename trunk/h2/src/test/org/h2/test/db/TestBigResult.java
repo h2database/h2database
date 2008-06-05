@@ -79,7 +79,7 @@ public class TestBigResult extends TestBase {
         deleteDb("bigResult");
         ArrayList files = FileLister.getDatabaseFiles(baseDir, "bigResult", true);
         if (files.size() > 0) {
-            error("file not deleted: " + files.get(0));
+            fail("file not deleted: " + files.get(0));
         }
     }
 

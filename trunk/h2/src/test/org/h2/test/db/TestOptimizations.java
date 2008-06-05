@@ -206,7 +206,7 @@ public class TestOptimizations extends TestBase {
         stat.execute(sql);
         time2 = System.currentTimeMillis() - time2;
         if (time2 > time * 2) {
-            error("not optimized: " + time + " optimized: " + time2 + " sql:" + sql);
+            fail("not optimized: " + time + " optimized: " + time2 + " sql:" + sql);
         }
     }
 

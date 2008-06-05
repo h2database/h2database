@@ -46,17 +46,17 @@ public class TestKillRestart extends TestBase {
                 String s = catcher.readLine(60 * 1000);
                 // System.out.println("> " + s);
                 if (s == null) {
-                    error("No reply from process");
+                    fail("No reply from process");
                 } else if (!s.startsWith("#")) {
                     // System.out.println(s);
-                    error("Expected: #..., got: " + s);
+                    fail("Expected: #..., got: " + s);
                 } else if (s.startsWith("#Running")) {
                     Thread.sleep(100);
                     printTime("killing: " + i);
                     p.destroy();
                     break;
                 } else if (s.startsWith("#Fail")) {
-                    error("Failed: " + s);
+                    fail("Failed: " + s);
                 }
             }
         }

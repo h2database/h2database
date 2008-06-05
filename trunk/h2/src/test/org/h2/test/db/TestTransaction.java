@@ -66,7 +66,7 @@ public class TestTransaction extends TestBase {
         Statement s2 = c2.createStatement();
         try {
             s2.executeUpdate("insert into B values('two', 1)");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -193,7 +193,7 @@ public class TestTransaction extends TestBase {
             }
         }
         if (result.size() != 4) {
-            error("Wrong result, should be NEST1.ID, NEST1.NAME, NEST2.ID, NEST2.NAME but is " + result);
+            fail("Wrong result, should be NEST1.ID, NEST1.NAME, NEST2.ID, NEST2.NAME but is " + result);
         }
         result = new Vector();
         test(stat, "INSERT INTO NEST1 VALUES(1,'A')");
@@ -212,14 +212,14 @@ public class TestTransaction extends TestBase {
             }
         }
         if (result.size() != 4) {
-            error("Wrong result, should be A/1, A/2, B/1, B/2 but is " + result);
+            fail("Wrong result, should be A/1, A/2, B/1, B/2 but is " + result);
         }
         result = new Vector();
         rs1 = s1.executeQuery("SELECT * FROM NEST1 ORDER BY ID");
         rs2 = s1.executeQuery("SELECT * FROM NEST2 ORDER BY ID");
         try {
             rs1.next();
-            error("next worked on a closed result set");
+            fail("next worked on a closed result set");
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -230,7 +230,7 @@ public class TestTransaction extends TestBase {
             result.add(v1);
         }
         if (result.size() != 2) {
-            error("Wrong result, should be A, B but is " + result);
+            fail("Wrong result, should be A, B but is " + result);
         }
         test(stat, "DROP TABLE NEST1");
         test(stat, "DROP TABLE NEST2");
@@ -241,7 +241,7 @@ public class TestTransaction extends TestBase {
         rs.next();
         String s = rs.getString(1);
         if (s == null ? (data != null) : (!s.equals(data))) {
-            error("s= " + s + " should be: " + data);
+            fail("s= " + s + " should be: " + data);
         }
     }
 

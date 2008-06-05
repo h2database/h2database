@@ -72,7 +72,7 @@ public class TestCancel extends TestBase {
         stat.execute("set query_timeout 1");
         try {
             stat.execute("select count(*) from system_range(1, 1000000), system_range(1, 1000000)");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -110,7 +110,7 @@ public class TestCancel extends TestBase {
         assertEquals(1000, rs.getInt(1));
         try {
             stat.executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
-            error();
+            fail();
         } catch (SQLException e) {
             assertEquals(ErrorCode.STATEMENT_WAS_CANCELLED, e.getErrorCode());
         }
@@ -127,7 +127,7 @@ public class TestCancel extends TestBase {
         stat.execute("SET QUERY_TIMEOUT 10");
         try {
             stat.executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
-            error();
+            fail();
         } catch (SQLException e) {
             assertEquals(ErrorCode.STATEMENT_WAS_CANCELLED, e.getErrorCode());
         }
@@ -143,7 +143,7 @@ public class TestCancel extends TestBase {
             Statement stat = conn.createStatement();
             try {
                 stat.executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
-                error();
+                fail();
             } catch (SQLException e) {
                 assertEquals(ErrorCode.STATEMENT_WAS_CANCELLED, e.getErrorCode());
             }

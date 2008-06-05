@@ -58,7 +58,7 @@ public class TestStatement extends TestBase {
         int id1 = savepoint1.getSavepointId();
         try {
             savepoint1.getSavepointName();
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -70,7 +70,7 @@ public class TestStatement extends TestBase {
         conn.releaseSavepoint(savepoint2a);
         try {
             savepoint2a.getSavepointId();
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -82,7 +82,7 @@ public class TestStatement extends TestBase {
         assertEquals(savepointTest.getSavepointName(), "Joe's");
         try {
             savepointTest.getSavepointId();
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -95,7 +95,7 @@ public class TestStatement extends TestBase {
         assertFalse(rs.next());
         try {
             conn.rollback(savepoint2);
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -164,7 +164,7 @@ public class TestStatement extends TestBase {
         // this is supposed to throw an exception
         try {
             stat.setQueryTimeout(-1);
-            error("setQueryTimeout(-1) didn't throw an exception");
+            fail("setQueryTimeout(-1) didn't throw an exception");
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -189,7 +189,7 @@ public class TestStatement extends TestBase {
         assertEquals(count, 1);
         try {
             stat.executeUpdate("SELECT * FROM TEST");
-            error("executeUpdate allowed SELECT");
+            fail("executeUpdate allowed SELECT");
         } catch (SQLException e) {
             assertKnownException(e);
             trace("no error - SELECT not allowed with executeUpdate");
@@ -216,7 +216,7 @@ public class TestStatement extends TestBase {
         trace("executeQuery");
         try {
             stat.executeQuery("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
-            error("executeQuery allowed CREATE TABLE");
+            fail("executeQuery allowed CREATE TABLE");
         } catch (SQLException e) {
             assertKnownException(e);
             trace("no error - CREATE not allowed with executeQuery");
@@ -224,21 +224,21 @@ public class TestStatement extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
         try {
             stat.executeQuery("INSERT INTO TEST VALUES(1,'Hello')");
-            error("executeQuery allowed INSERT");
+            fail("executeQuery allowed INSERT");
         } catch (SQLException e) {
             assertKnownException(e);
             trace("no error - INSERT not allowed with executeQuery");
         }
         try {
             stat.executeQuery("UPDATE TEST SET VALUE='LDBC' WHERE ID=2");
-            error("executeQuery allowed UPDATE");
+            fail("executeQuery allowed UPDATE");
         } catch (SQLException e) {
             assertKnownException(e);
             trace("no error - UPDATE not allowed with executeQuery");
         }
         try {
             stat.executeQuery("DELETE FROM TEST WHERE ID=3");
-            error("executeQuery allowed DELETE");
+            fail("executeQuery allowed DELETE");
         } catch (SQLException e) {
             assertKnownException(e);
             trace("no error - DELETE not allowed with executeQuery");
@@ -246,7 +246,7 @@ public class TestStatement extends TestBase {
         stat.executeQuery("SELECT * FROM TEST");
         try {
             stat.executeQuery("DROP TABLE TEST");
-            error("executeQuery allowed DROP");
+            fail("executeQuery allowed DROP");
         } catch (SQLException e) {
             assertKnownException(e);
             trace("no error - DROP not allowed with executeQuery");
@@ -257,7 +257,7 @@ public class TestStatement extends TestBase {
         try {
             // supposed to be closed now
             rs.next();
-            error("getMoreResults didn't close this result set");
+            fail("getMoreResults didn't close this result set");
         } catch (SQLException e) {
             assertKnownException(e);
             trace("no error - getMoreResults is supposed to close the result set");

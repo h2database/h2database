@@ -43,13 +43,13 @@ public class TestSQLInjection extends TestBase {
         stat.execute("CALL 123");
         try {
             stat.execute("CALL 'Hello'");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
         try {
             stat.execute("CALL $$Hello World$$");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -58,7 +58,7 @@ public class TestSQLInjection extends TestBase {
 
         try {
             assertTrue(checkPasswordInsecure("123456"));
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -74,7 +74,7 @@ public class TestSQLInjection extends TestBase {
 
         try {
             assertTrue(checkPasswordInsecure("123456"));
-            error("Should fail now");
+            fail("Should fail now");
         } catch (SQLException e) {
             assertKnownException(e);
         }

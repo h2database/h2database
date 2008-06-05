@@ -182,7 +182,7 @@ public class TestFileSystem extends TestBase {
         FileObject f = fs.openFileObject(s, "rw");
         try {
             f.readFully(new byte[1], 0, 1);
-            error();
+            fail();
         } catch (EOFException e) {
             // expected
         }

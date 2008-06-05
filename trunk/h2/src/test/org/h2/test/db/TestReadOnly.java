@@ -68,7 +68,7 @@ public class TestReadOnly extends TestBase {
         stat.execute("SELECT * FROM TEST");
         try {
             stat.execute("DELETE FROM TEST");
-            error("read only delete");
+            fail("read only delete");
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -83,7 +83,7 @@ public class TestReadOnly extends TestBase {
         stat.execute("SELECT * FROM TEST");
         try {
             stat.execute("DELETE FROM TEST");
-            error("read only delete");
+            fail("read only delete");
         } catch (SQLException e) {
             assertKnownException(e);
         }

@@ -94,7 +94,7 @@ public class TestTools extends TestBase {
         assertTrue(result.indexOf("Shutting down") >= 0);
         try {
             conn = DriverManager.getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -121,7 +121,7 @@ public class TestTools extends TestBase {
         stop.shutdown();
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9005/mem:", "sa", "sa");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -409,7 +409,7 @@ public class TestTools extends TestBase {
                 new String[] { "-ifExists", "-tcpPassword", "abc", "-baseDir", baseDir, "-tcpPort", "9192" }).start();
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
-            error("should not be able to create new db");
+            fail("should not be able to create new db");
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -417,7 +417,7 @@ public class TestTools extends TestBase {
         conn.close();
         try {
             Server.shutdownTcpServer("tcp://localhost:9192", "", true);
-            error("shouldn't work and should throw an exception");
+            fail("shouldn't work and should throw an exception");
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -428,7 +428,7 @@ public class TestTools extends TestBase {
         deleteDb("test");
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
-            error("server must have been closed");
+            fail("server must have been closed");
         } catch (SQLException e) {
             assertKnownException(e);
         }

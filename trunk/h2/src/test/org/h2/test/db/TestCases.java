@@ -215,13 +215,13 @@ public class TestCases extends TestBase {
         conn.close();
         t.join(5000);
         if (stopped[0] == null) {
-            error("query still running");
+            fail("query still running");
         } else {
             assertKnownException(stopped[0]);
         }
         time = System.currentTimeMillis() - time;
         if (time > 5000) {
-            error("closing took " + time);
+            fail("closing took " + time);
         }
         deleteDb("cases");
     }
@@ -253,7 +253,7 @@ public class TestCases extends TestBase {
         stat.execute("insert into test values(1);");
         try {
             stat.execute("alter table test add column name varchar not null;");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -280,7 +280,7 @@ public class TestCases extends TestBase {
         stat.execute("insert into test values(1)");
         try {
             stat.execute("alter table test alter column id date");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -380,7 +380,7 @@ public class TestCases extends TestBase {
         stat = conn.createStatement();
         try {
             stat.execute("select * from abc");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -568,7 +568,7 @@ public class TestCases extends TestBase {
             int id = rs.getInt(1);
             String s = rs.getString("DATA");
             if (!s.endsWith(")")) {
-                error("id=" + id);
+                fail("id=" + id);
             }
         }
         conn.close();
@@ -587,7 +587,7 @@ public class TestCases extends TestBase {
         Statement stat2 = conn2.createStatement();
         try {
             stat2.execute("UPDATE TEST SET ID=2");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }

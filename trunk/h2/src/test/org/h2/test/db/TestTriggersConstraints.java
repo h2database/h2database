@@ -126,7 +126,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("DROP TRIGGER IF EXISTS INS_BEFORE");
         try {
             stat.execute("DROP TRIGGER INS_BEFORE");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -148,7 +148,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             set.remove(rs.getString(1));
         }
         if (set.size() > 0) {
-            error("set should be empty: " + set);
+            fail("set should be empty: " + set);
         }
     }
 

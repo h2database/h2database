@@ -296,7 +296,7 @@ public class TestResultSet extends TestBase {
         // this should break
         try {
             rs.setFetchSize(-1);
-            error("fetch size -1 is not allowed");
+            fail("fetch size -1 is not allowed");
         } catch (SQLException e) {
             assertKnownException(e);
             trace(e.toString());
@@ -304,7 +304,7 @@ public class TestResultSet extends TestBase {
         trace("after try to set to -1, fetch size=" + rs.getFetchSize());
         try {
             rs.setFetchSize(100);
-            error("fetch size 100 is bigger than maxrows - not allowed");
+            fail("fetch size 100 is bigger than maxrows - not allowed");
         } catch (SQLException e) {
             assertKnownException(e);
             trace(e.toString());

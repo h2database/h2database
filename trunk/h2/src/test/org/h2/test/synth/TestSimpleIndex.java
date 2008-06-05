@@ -85,7 +85,7 @@ public class TestSimpleIndex extends TestBase {
             ed = true;
         }
         if (em != ed) {
-            error("different result: ");
+            fail("different result: ");
         }
         if (!em) {
             execute("INSERT INTO TEST_M " + sql);

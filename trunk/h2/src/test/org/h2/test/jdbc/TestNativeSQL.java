@@ -224,7 +224,7 @@ public class TestNativeSQL extends TestBase {
         stat.setEscapeProcessing(false);
         try {
             stat.execute("CALL {d '2001-01-01'} // this is a test");
-            error("expected error if setEscapeProcessing=false");
+            fail("expected error if setEscapeProcessing=false");
         } catch (SQLException e) {
             assertKnownException(e);
         }

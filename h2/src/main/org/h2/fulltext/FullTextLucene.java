@@ -68,6 +68,7 @@ implements Trigger, CloseListener
     private int[] indexColumns;
     private String[] columnNames;
     private int[] dataTypes;
+    private String indexPath;
     private IndexModifier indexer;
     //## Java 1.4 end ##
 
@@ -160,6 +161,13 @@ implements Trigger, CloseListener
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_SEARCH_DATA FOR \"" + FullTextLucene.class.getName() + ".searchData\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_REINDEX FOR \"" + FullTextLucene.class.getName() + ".reindex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_ALL FOR \"" + FullTextLucene.class.getName() + ".dropAll\"");
+        String path = getIndexPath(conn);
+        IndexModifier indexer = openIndexModifier(path, true);
+        try {
+            indexer.close();
+        } catch (Exception e) {
+            throw convertException(e);
+        }
     }
     //## Java 1.4 end ##
 
@@ -171,6 +179,7 @@ implements Trigger, CloseListener
         init(conn);
         this.schemaName = schemaName;
         this.tableName = tableName;
+        this.indexPath = getIndexPath(conn);        
         this.indexer = getIndexModifier(conn);
         ArrayList keyList = new ArrayList();
         DatabaseMetaData meta = conn.getMetaData();
@@ -569,19 +578,23 @@ implements Trigger, CloseListener
     }
 
     private static IndexModifier getIndexModifier(Connection conn) throws SQLException {
-        try {
-            String path = getIndexPath(conn);
-            IndexModifier indexer;
-            synchronized (indexers) {
-                indexer = (IndexModifier) indexers.get(path);
-                if (indexer == null) {
-                    Analyzer analyzer = new StandardAnalyzer();
-                    boolean create = !IndexReader.indexExists(path);
-                    indexer = new IndexModifier(path, analyzer, create);
-                    indexers.put(path, indexer);
-                }
+        String path = getIndexPath(conn);
+        IndexModifier indexer;
+        synchronized (indexers) {
+            indexer = (IndexModifier) indexers.get(path);
+            if (indexer == null) {
+                boolean recreate = !IndexReader.indexExists(path);
+                indexer = openIndexModifier(path, recreate);
+                indexers.put(path, indexer);
             }
-            return indexer;
+        }
+        return indexer;
+    }
+    
+    private static IndexModifier openIndexModifier(String path, boolean recreate) throws SQLException {
+        try {
+            Analyzer analyzer = new StandardAnalyzer();
+            return new IndexModifier(path, analyzer, recreate);
         } catch (IOException e) {
             throw convertException(e);
         }
@@ -621,6 +634,7 @@ implements Trigger, CloseListener
             if (indexer != null) {
                 indexer.flush();
                 indexer.close();
+                indexers.remove(indexPath);
                 indexer = null;
             }
         } catch (Exception e) {

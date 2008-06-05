@@ -38,7 +38,7 @@ public class TestSpaceReuse extends TestBase {
             }
         }
         if (now > first) {
-            error("first: " + first + " now: " + now);
+            fail("first: " + first + " now: " + now);
         }
     }
 

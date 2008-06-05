@@ -110,7 +110,7 @@ public class TestBatchUpdates extends TestBase {
         stat = conn.createStatement();
         DatabaseMetaData meta = conn.getMetaData();
         if (!meta.supportsBatchUpdates()) {
-            error("does not support BatchUpdates");
+            fail("does not support BatchUpdates");
         }
         stat.executeUpdate("CREATE TABLE TEST(KEY_ID INT PRIMARY KEY,"
                 + "C_NAME VARCHAR(255),PRICE DECIMAL(20,2),TYPE_ID INT)");
@@ -176,7 +176,7 @@ public class TestBatchUpdates extends TestBase {
 
         trace("updateCount length:" + updateCountLen);
         if (updateCountLen != 3) {
-            error("updateCount: " + updateCountLen);
+            fail("updateCount: " + updateCountLen);
         } else {
             trace("addBatch add the SQL statements to Batch ");
         }
@@ -213,7 +213,7 @@ public class TestBatchUpdates extends TestBase {
         updCountLength = updateCount.length;
         trace("updateCount Length:" + updCountLength);
         if (updCountLength != 3) {
-            error("addBatch " + updCountLength);
+            fail("addBatch " + updCountLength);
         } else {
             trace("addBatch add the SQL statements to Batch ");
         }
@@ -230,7 +230,7 @@ public class TestBatchUpdates extends TestBase {
             trace("Update Count:" + updateCount[j]);
             trace("Returned Value : " + retValue[j]);
             if (updateCount[j] != retValue[j]) {
-                error("j=" + j + " right:" + retValue[j]);
+                fail("j=" + j + " right:" + retValue[j]);
             }
         }
     }
@@ -252,7 +252,7 @@ public class TestBatchUpdates extends TestBase {
         if (updCountLength == 0) {
             trace("clearBatch Method clears the current Batch ");
         } else {
-            error("clearBatch " + updCountLength);
+            fail("clearBatch " + updCountLength);
         }
     }
 
@@ -272,7 +272,7 @@ public class TestBatchUpdates extends TestBase {
         if (updCountLength == 0) {
             trace("clearBatch Method clears the current Batch ");
         } else {
-            error("clearBatch");
+            fail("clearBatch");
         }
     }
 
@@ -296,7 +296,7 @@ public class TestBatchUpdates extends TestBase {
         trace("Successfully Updated");
         trace("updateCount Length:" + updCountLength);
         if (updCountLength != 3) {
-            error("executeBatch");
+            fail("executeBatch");
         } else {
             trace("executeBatch executes the Batch of SQL statements");
         }
@@ -320,7 +320,7 @@ public class TestBatchUpdates extends TestBase {
             trace("UpdateCount Value:" + updateCount[j]);
             trace("RetValue : " + retValue[j]);
             if (updateCount[j] != retValue[j]) {
-                error("j=" + j + " right:" + retValue[j]);
+                fail("j=" + j + " right:" + retValue[j]);
             }
         }
     }
@@ -339,7 +339,7 @@ public class TestBatchUpdates extends TestBase {
         if (updCountLength == 0) {
             trace("executeBatch does not execute Empty Batch");
         } else {
-            error("executeBatch");
+            fail("executeBatch");
         }
     }
 
@@ -360,7 +360,7 @@ public class TestBatchUpdates extends TestBase {
         if (batchExceptionFlag) {
             trace("select not allowed; correct");
         } else {
-            error("executeBatch select");
+            fail("executeBatch select");
         }
     }
 
@@ -380,7 +380,7 @@ public class TestBatchUpdates extends TestBase {
         trace("Successfully Updated");
         trace("updateCount Length:" + updCountLength);
         if (updCountLength != 3) {
-            error("executeBatch");
+            fail("executeBatch");
         } else {
             trace("executeBatch executes the Batch of SQL statements");
         }
@@ -395,7 +395,7 @@ public class TestBatchUpdates extends TestBase {
         for (int j = 0; j < updateCount.length; j++) {
             trace("Update Count : " + updateCount[j]);
             if (updateCount[j] != retValue[j]) {
-                error("j=" + j + " right:" + retValue[j]);
+                fail("j=" + j + " right:" + retValue[j]);
             }
         }
     }
@@ -409,7 +409,7 @@ public class TestBatchUpdates extends TestBase {
         if (updCountLength == 0) {
             trace("executeBatch Method does not execute the Empty Batch ");
         } else {
-            error("executeBatch 0!=" + updCountLength);
+            fail("executeBatch 0!=" + updCountLength);
         }
     }
 
@@ -434,7 +434,7 @@ public class TestBatchUpdates extends TestBase {
         if (batchExceptionFlag) {
             trace("executeBatch insert duplicate; correct");
         } else {
-            error("executeBatch");
+            fail("executeBatch");
         }
     }
 
@@ -454,7 +454,7 @@ public class TestBatchUpdates extends TestBase {
         if (batchExceptionFlag) {
             trace("executeBatch select");
         } else {
-            error("executeBatch");
+            fail("executeBatch");
         }
     }
 
@@ -511,7 +511,7 @@ public class TestBatchUpdates extends TestBase {
             // Make sure that we have the correct error code for
             // the failed update.
             if (!(batchUpdates[1] == -3 && count == 1)) {
-                error("insert failed");
+                fail("insert failed");
             }
         }
     }

@@ -42,7 +42,7 @@ public class TestPgServer extends TestBase {
         Statement stat = conn.createStatement();
         try {
             stat.execute("select ***");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }

@@ -32,7 +32,7 @@ public class TestNestedLoop extends TestBase {
         stat.executeQuery("select id from test");
         try {
             rs.next();
-            error("Result set should be closed");
+            fail("Result set should be closed");
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -40,7 +40,7 @@ public class TestNestedLoop extends TestBase {
         stat.close();
         try {
             rs.next();
-            error("Result set should be closed");
+            fail("Result set should be closed");
         } catch (SQLException e) {
             assertKnownException(e);
         }

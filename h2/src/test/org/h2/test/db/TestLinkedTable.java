@@ -135,7 +135,7 @@ public class TestLinkedTable extends TestBase {
         stat2.executeUpdate("INSERT INTO TEST_LINK_DI VALUES(2, 'World')");
         try {
             stat2.executeUpdate("UPDATE TEST_LINK_U SET ID=ID+1");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -225,7 +225,7 @@ public class TestLinkedTable extends TestBase {
         testRow(stat, "TEST");
         try {
             stat.execute("SELECT * FROM TEST_TEMP");
-            error("temp table must not be persistent");
+            fail("temp table must not be persistent");
         } catch (SQLException e) {
             assertKnownException(e);
         }

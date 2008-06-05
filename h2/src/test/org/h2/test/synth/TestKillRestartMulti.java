@@ -58,10 +58,10 @@ public class TestKillRestartMulti extends TestBase {
                 String s = catcher.readLine(5 * 60 * 1000);
                 // System.out.println("> " + s);
                 if (s == null) {
-                    error("No reply from process");
+                    fail("No reply from process");
                 } else if (!s.startsWith("#")) {
                     // System.out.println(s);
-                    error("Expected: #..., got: " + s);
+                    fail("Expected: #..., got: " + s);
                 } else if (s.startsWith("#Running")) {
                     int sleep = 10 + random.nextInt(100);
                     Thread.sleep(sleep);
@@ -79,7 +79,7 @@ public class TestKillRestartMulti extends TestBase {
                         }
                         System.err.println("   " + a);
                     }
-                    error("Failed: " + s);
+                    fail("Failed: " + s);
                 }
             }
             String backup = baseDir + "/killRestartMulti-" + System.currentTimeMillis() + ".zip";

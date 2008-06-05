@@ -37,13 +37,13 @@ public class TestStringUtils extends TestBase {
         assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("FaCe"));
         try {
             ByteUtils.convertStringToBytes("120");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
         try {
             ByteUtils.convertStringToBytes("fast");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }

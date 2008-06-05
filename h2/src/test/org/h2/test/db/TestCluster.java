@@ -59,14 +59,14 @@ public class TestCluster extends TestBase {
 
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9191/test", "sa", "");
-            error("should not be able to connect in standalone mode");
+            fail("should not be able to connect in standalone mode");
         } catch (SQLException e) {
             assertKnownException(e);
         }
 
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
-            error("should not be able to connect in standalone mode");
+            fail("should not be able to connect in standalone mode");
         } catch (SQLException e) {
             assertKnownException(e);
         }

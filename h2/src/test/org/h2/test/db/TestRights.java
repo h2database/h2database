@@ -53,7 +53,7 @@ public class TestRights extends TestBase {
         Statement stat2 = conn2.createStatement();
         try {
             stat2.execute("SELECT * FROM TEST");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -82,13 +82,13 @@ public class TestRights extends TestBase {
         stat.execute("select * from b.test");
         try {
             stat.execute("alter user test1 admin false");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
         try {
             stat.execute("drop user test1");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -171,19 +171,19 @@ public class TestRights extends TestBase {
 
         try {
             conn = getConnection("rights", "Test", "abc");
-            error("mixed case user name");
+            fail("mixed case user name");
         } catch (SQLException e) {
             assertKnownException(e);
         }
         try {
             conn = getConnection("rights", "TEST", "abc");
-            error("wrong password");
+            fail("wrong password");
         } catch (SQLException e) {
             assertKnownException(e);
         }
         try {
             conn = getConnection("rights", "TEST", null);
-            error("wrong password");
+            fail("wrong password");
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -249,7 +249,7 @@ public class TestRights extends TestBase {
     public void executeError(String sql) throws Exception {
         try {
             stat.execute(sql);
-            error("not admin");
+            fail("not admin");
         } catch (SQLException e) {
             assertKnownException(e);
         }

@@ -69,7 +69,8 @@ public abstract class TestBase {
             test();
             println("");
         } catch (Exception e) {
-            fail("FAIL " + e.toString(), e);
+            println("FAIL " + e.toString());
+            logError("FAIL " + e.toString(), e);
             if (config.stopOnError) {
                 throw new Error("ERROR");
             }
@@ -226,18 +227,13 @@ public abstract class TestBase {
         return mb;
     }
 
-    protected void error() throws Exception {
-        error("Unexpected success");
+    protected void fail() throws Exception {
+        fail("Unexpected success");
     }
 
-    protected void error(String string) throws Exception {
+    protected void fail(String string) throws Exception {
         println(string);
         throw new Exception(string);
-    }
-
-    protected void fail(String s, Throwable e) {
-        println(s);
-        logError(s, e);
     }
 
     public static void logError(String s, Throwable e) {
@@ -287,9 +283,15 @@ public abstract class TestBase {
 
     public abstract void test() throws Exception;
 
+    public void assertEquals(String message, int expected, int actual) throws Exception {
+        if (expected != actual) {
+            fail("Expected: " + expected + " actual: " + actual + " message: " + message);
+        }
+    }
+    
     public void assertEquals(int expected, int actual) throws Exception {
         if (expected != actual) {
-            error("Expected: " + expected + " actual: " + actual);
+            fail("Expected: " + expected + " actual: " + actual);
         }
     }
 
@@ -297,7 +299,7 @@ public abstract class TestBase {
         assertTrue(expected.length == actual.length);
         for (int i = 0; i < expected.length; i++) {
             if (expected[i] != actual[i]) {
-                error("expected[" + i + "]: a=" + (int) expected[i] + " actual=" + (int) actual[i]);
+                fail("Expected[" + i + "]: a=" + (int) expected[i] + " actual=" + (int) actual[i]);
             }
         }
     }
@@ -306,7 +308,7 @@ public abstract class TestBase {
         if (expected == null && actual == null) {
             return;
         } else if (expected == null || actual == null) {
-            error("Expected: " + expected + " Actual: " + actual);
+            fail("Expected: " + expected + " Actual: " + actual);
         }
         if (!expected.equals(actual)) {
             for (int i = 0; i < expected.length(); i++) {
@@ -324,49 +326,49 @@ public abstract class TestBase {
             if (bl > 100) {
                 actual = actual.substring(0, 100);
             }
-            error("Expected: " + expected + " (" + al + ") actual: " + actual + " (" + bl + ")");
+            fail("Expected: " + expected + " (" + al + ") actual: " + actual + " (" + bl + ")");
         }
     }
 
     protected void assertSmaller(long a, long b) throws Exception {
         if (a >= b) {
-            error("a: " + a + " is not smaller than b: " + b);
+            fail("a: " + a + " is not smaller than b: " + b);
         }
     }
 
     protected void assertContains(String result, String contains) throws Exception {
         if (result.indexOf(contains) < 0) {
-            error(result + " does not contain: " + contains);
+            fail(result + " does not contain: " + contains);
         }
     }
     
     protected void assertStartsWith(String text, String expectedStart) throws Exception {
         if (!text.startsWith(expectedStart)) {
-            error(text + " does not start with: " + expectedStart);
+            fail(text + " does not start with: " + expectedStart);
         }
     }
     
     protected void assertEquals(long expected, long actual) throws Exception {
         if (expected != actual) {
-            error("Expected: " + expected + " actual: " + actual);
+            fail("Expected: " + expected + " actual: " + actual);
         }
     }
 
     protected void assertEquals(double expected, double actual) throws Exception {
         if (expected != actual) {
-            error("Expected: " + expected + " actual: " + actual);
+            fail("Expected: " + expected + " actual: " + actual);
         }
     }
 
     protected void assertEquals(float expected, float actual) throws Exception {
         if (expected != actual) {
-            error("Expected: " + expected + " actual: " + actual);
+            fail("Expected: " + expected + " actual: " + actual);
         }
     }
 
     protected void assertEquals(boolean expected, boolean actual) throws Exception {
         if (expected != actual) {
-            error("Boolean expected: " + expected + " actual: " + actual);
+            fail("Boolean expected: " + expected + " actual: " + actual);
         }
     }
     
@@ -376,7 +378,7 @@ public abstract class TestBase {
 
     protected void assertTrue(String message, boolean condition) throws Exception {
         if (!condition) {
-            error(message);
+            fail(message);
         }
     }
 
@@ -386,7 +388,7 @@ public abstract class TestBase {
     
     protected void assertFalse(String message, boolean value) throws Exception {
         if (value) {
-            error(message);
+            fail(message);
         }        
     }
     
@@ -410,19 +412,19 @@ public abstract class TestBase {
         ResultSetMetaData meta = rs.getMetaData();
         int cc = meta.getColumnCount();
         if (cc != columnCount) {
-            error("result set contains " + cc + " columns not " + columnCount);
+            fail("result set contains " + cc + " columns not " + columnCount);
         }
         for (int i = 0; i < columnCount; i++) {
             if (labels != null) {
                 String l = meta.getColumnLabel(i + 1);
                 if (!labels[i].equals(l)) {
-                    error("column label " + i + " is " + l + " not " + labels[i]);
+                    fail("column label " + i + " is " + l + " not " + labels[i]);
                 }
             }
             if (datatypes != null) {
                 int t = meta.getColumnType(i + 1);
                 if (datatypes[i] != t) {
-                    error("column datatype " + i + " is " + t + " not " + datatypes[i] + " (prec="
+                    fail("column datatype " + i + " is " + t + " not " + datatypes[i] + " (prec="
                             + meta.getPrecision(i + 1) + " scale=" + meta.getScale(i + 1) + ")");
                 }
                 String typeName = meta.getColumnTypeName(i + 1);
@@ -454,13 +456,13 @@ public abstract class TestBase {
             if (precision != null) {
                 int p = meta.getPrecision(i + 1);
                 if (precision[i] != p) {
-                    error("column precision " + i + " is " + p + " not " + precision[i]);
+                    fail("column precision " + i + " is " + p + " not " + precision[i]);
                 }
             }
             if (scale != null) {
                 int s = meta.getScale(i + 1);
                 if (scale[i] != s) {
-                    error("column scale " + i + " is " + s + " not " + scale[i]);
+                    fail("column scale " + i + " is " + s + " not " + scale[i]);
                 }
             }
 
@@ -481,22 +483,22 @@ public abstract class TestBase {
         if (rows == 0) {
             // special case: no rows
             if (rs.next()) {
-                error("testResultSet expected rowCount:" + rows + " got:0");
+                fail("testResultSet expected rowCount:" + rows + " got:0");
             }
         }
         int len2 = data[0].length;
         if (len < len2) {
-            error("testResultSet expected columnCount:" + len2 + " got:" + len);
+            fail("testResultSet expected columnCount:" + len2 + " got:" + len);
         }
         for (int i = 0; i < rows; i++) {
             if (!rs.next()) {
-                error("testResultSet expected rowCount:" + rows + " got:" + i);
+                fail("testResultSet expected rowCount:" + rows + " got:" + i);
             }
             String[] row = getData(rs, len);
             if (ordered) {
                 String[] good = data[i];
                 if (!testRow(good, row, good.length)) {
-                    error("testResultSet row not equal, got:\n" + formatRow(row) + "\n" + formatRow(good));
+                    fail("testResultSet row not equal, got:\n" + formatRow(row) + "\n" + formatRow(good));
                 }
             } else {
                 boolean found = false;
@@ -508,13 +510,13 @@ public abstract class TestBase {
                     }
                 }
                 if (!found) {
-                    error("testResultSet no match for row:" + formatRow(row));
+                    fail("testResultSet no match for row:" + formatRow(row));
                 }
             }
         }
         if (rs.next()) {
             String[] row = getData(rs, len);
-            error("testResultSet expected rowcount:" + rows + " got:>=" + (rows + 1) + " data:" + formatRow(row));
+            fail("testResultSet expected rowcount:" + rows + " got:>=" + (rows + 1) + " data:" + formatRow(row));
         }
     }
 
@@ -558,7 +560,7 @@ public abstract class TestBase {
         try {
             conn.createStatement().execute("SET WRITE_DELAY 0");
             conn.createStatement().execute("CREATE TABLE TEST_A(ID INT)");
-            error("should be crashed already");
+            fail("should be crashed already");
         } catch (SQLException e) {
             // expected
         }
@@ -622,7 +624,7 @@ public abstract class TestBase {
         for (int i = 0; i < list1.size(); i++) {
             String s = (String) list1.get(i);
             if (!list2.remove(s)) {
-                error("not found: " + s);
+                fail("not found: " + s);
             }
         }
         assertEquals(list2.size(), 0);

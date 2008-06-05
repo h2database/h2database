@@ -77,7 +77,7 @@ public class TestLob extends TestBase {
         stat.execute("CHECKPOINT");
         ArrayList list2 = FileLister.getDatabaseFiles(baseDir, "lob", true);
         if (list2.size() >= list.size() + 5) {
-            error("Expected not many more files, got " + list2.size() + " was " + list.size());
+            fail("Expected not many more files, got " + list2.size() + " was " + list.size());
         }
         stat.execute("DELETE FROM TEST");
         for (int i = 0; i < 3; i++) {
@@ -86,7 +86,7 @@ public class TestLob extends TestBase {
         stat.execute("CHECKPOINT");
         ArrayList list3 = FileLister.getDatabaseFiles(baseDir, "lob", true);
         if (list3.size() >= list.size()) {
-            error("Expected less files, got " + list2.size() + " was " + list.size());
+            fail("Expected less files, got " + list2.size() + " was " + list.size());
         }
         conn.close();
     }
@@ -170,7 +170,7 @@ public class TestLob extends TestBase {
                 // in Linux, it seems it is still possible to read in files 
                 // even if they are deleted
                 if (System.getProperty("os.name").indexOf("Windows") > 0) {
-                    error("Error expected; len=" + len);
+                    fail("Error expected; len=" + len);
                 }
             }
         } catch (SQLException e) {
@@ -380,12 +380,12 @@ public class TestLob extends TestBase {
         for (int i = 0; i < 10000; i++) {
             int ch = r.read();
             if (ch != ('0' + (i % 10))) {
-                error("expected " + (char) ('0' + (i % 10)) + " got: " + ch + " (" + (char) ch + ")");
+                fail("expected " + (char) ('0' + (i % 10)) + " got: " + ch + " (" + (char) ch + ")");
             }
         }
         int ch = r.read();
         if (ch != -1) {
-            error("expected -1 got: " + ch);
+            fail("expected -1 got: " + ch);
         }
         conn0.close();
     }

@@ -183,7 +183,7 @@ public class TestServlet extends TestBase {
 
         try {
             stat1.execute("SELECT * FROM T");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -195,7 +195,7 @@ public class TestServlet extends TestBase {
         // listener must be stopped
         try {
             conn2 = DriverManager.getConnection("jdbc:h2:tcp://localhost:8888/" + baseDir + "/servlet", getUser(), getPassword());
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -203,7 +203,7 @@ public class TestServlet extends TestBase {
         // connection must be closed
         try {
             stat1.execute("SELECT * FROM DUAL");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }

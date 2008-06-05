@@ -85,7 +85,7 @@ public class TestZloty extends TestBase {
         try {
             prep.setBigDecimal(2, new ZlotyBigDecimal("11.0"));
             prep.execute();
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -101,7 +101,7 @@ public class TestZloty extends TestBase {
             };
             prep.setBigDecimal(2, value);
             prep.execute();
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }

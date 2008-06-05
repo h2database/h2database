@@ -108,13 +108,13 @@ public class TestPreparedStatement extends TestBase {
         PreparedStatement prep = conn.prepareStatement("CREATE TABLE BAD AS SELECT A");
         try {
             prep.execute();
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
         try {
             prep.execute();
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -219,7 +219,7 @@ public class TestPreparedStatement extends TestBase {
             "SELECT * FROM (SELECT ? FROM DUAL)");
             prep.setInt(1, 1);
             prep.execute();
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -387,20 +387,20 @@ public class TestPreparedStatement extends TestBase {
         assertEquals(pm.isSigned(1), true);
         try {
             pm.getPrecision(0);
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
         try {
             pm.getPrecision(4);
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
         prep.close();
         try {
             pm.getPrecision(1);
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -509,7 +509,7 @@ public class TestPreparedStatement extends TestBase {
         assertFalse(rs.next());
         try {
             prep = conn.prepareStatement("select ? from dual union select ? from dual");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -661,7 +661,7 @@ public class TestPreparedStatement extends TestBase {
         try {
             // supposed to be closed now
             rs.next();
-            error("getMoreResults didn't close this result set");
+            fail("getMoreResults didn't close this result set");
         } catch (SQLException e) {
             trace("no error - getMoreResults is supposed to close the result set");
         }

@@ -252,15 +252,15 @@ public class TestMetaData extends TestBase {
                 "NUM_INPUT_PARAMS", "NUM_OUTPUT_PARAMS", "NUM_RESULT_SETS", "REMARKS", "PROCEDURE_TYPE" }, new int[] {
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER,
                 Types.VARCHAR, Types.SMALLINT }, null, null);
-        testResultSetOrdered(rs, new String[][] { { catalog, Constants.SCHEMA_MAIN, "EXIT", "0", "0", "0", "",
+        testResultSetOrdered(rs, new String[][] { { catalog, Constants.SCHEMA_MAIN, "EXIT", "1", "0", "0", "",
                 "" + DatabaseMetaData.procedureNoResult }, });
         rs = meta.getProcedureColumns(null, null, null, null);
-        testResultSetMeta(rs, 13,
+        testResultSetMeta(rs, 15,
                 new String[] { "PROCEDURE_CAT", "PROCEDURE_SCHEM", "PROCEDURE_NAME", "COLUMN_NAME", "COLUMN_TYPE",
-                        "DATA_TYPE", "TYPE_NAME", "PRECISION", "LENGTH", "SCALE", "RADIX", "NULLABLE", "REMARKS" },
+                        "DATA_TYPE", "TYPE_NAME", "PRECISION", "LENGTH", "SCALE", "RADIX", "NULLABLE", "REMARKS", "NUM_INPUT_PARAMS", "POS" },
                 new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.INTEGER,
                         Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.SMALLINT, Types.SMALLINT, Types.SMALLINT,
-                        Types.VARCHAR }, null, null);
+                        Types.VARCHAR , Types.INTEGER, Types.INTEGER}, null, null);
         testResultSetOrdered(rs, new String[][] {
                 { catalog, Constants.SCHEMA_MAIN, "EXIT", "P1", "" + DatabaseMetaData.procedureColumnIn,
                         "" + Types.INTEGER, "INTEGER", "10", "10", "0", "10", "" + DatabaseMetaData.procedureNoNulls },
@@ -583,7 +583,7 @@ public class TestMetaData extends TestBase {
                 "SQL" }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                 Types.VARCHAR }, null, null);
         if (rs.next()) {
-            error("Database is not empty after dropping all tables");
+            fail("Database is not empty after dropping all tables");
         }
         stat.executeUpdate("CREATE TABLE TEST(" + "ID INT PRIMARY KEY," + "TEXT_V VARCHAR(120),"
                 + "DEC_V DECIMAL(12,3)," + "DATE_V DATETIME," + "BLOB_V BLOB," + "CLOB_V CLOB" + ")");

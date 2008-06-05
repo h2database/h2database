@@ -40,7 +40,7 @@ public class TestMvcc1 extends TestBase {
         assertEquals("FALSE", rs.getString("VALUE"));
         try {
             stat.execute("SET MVCC TRUE");
-            error();
+            fail();
         } catch (SQLException e) {
             assertEquals(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e.getErrorCode());
         }
@@ -105,7 +105,7 @@ public class TestMvcc1 extends TestBase {
         s1.execute("insert into a(code) values('one')");
         try {
              s2.execute("insert into b values('un B', 1)");
-             error();
+             fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -120,7 +120,7 @@ public class TestMvcc1 extends TestBase {
         s1.execute("insert into test values(1)");
         try {
             s2.execute("drop table test");
-            error();
+            fail();
         } catch (SQLException e) {
             // lock timeout expected
             assertKnownException(e);
@@ -147,7 +147,7 @@ public class TestMvcc1 extends TestBase {
         s2.execute("select * from test for update");
         try {
             s1.execute("insert into test values(2, 'x')");
-            error();
+            fail();
         } catch (SQLException e) {
             // lock timeout expected
             assertKnownException(e);
@@ -370,7 +370,7 @@ public class TestMvcc1 extends TestBase {
         c1.commit();
         try {
             s1.execute("update test set id=2 where id=1");
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }

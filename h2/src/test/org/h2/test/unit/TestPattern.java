@@ -35,7 +35,7 @@ public class TestPattern extends TestBase {
         boolean resultRegexp = value.matches(regexp);
         boolean result = comp.test(pattern, value, '\\');
         if (result != resultRegexp) {
-            error("Error: >" + value + "< LIKE >" + pattern + "< result=" + result + " resultReg=" + resultRegexp);
+            fail("Error: >" + value + "< LIKE >" + pattern + "< result=" + result + " resultReg=" + resultRegexp);
         }
     }
 
@@ -72,7 +72,7 @@ public class TestPattern extends TestBase {
             char c = pattern.charAt(i);
             if (escape == c) {
                 if (i >= len) {
-                    error("escape can't be last char");
+                    fail("escape can't be last char");
                 }
                 c = pattern.charAt(++i);
                 buff.append('\\');

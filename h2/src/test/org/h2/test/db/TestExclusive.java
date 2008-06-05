@@ -25,7 +25,7 @@ public class TestExclusive extends TestBase {
         try {
             Connection conn2 = getConnection("exclusive");
             conn2.close();
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }

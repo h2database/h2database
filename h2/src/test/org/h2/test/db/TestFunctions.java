@@ -184,7 +184,7 @@ public class TestFunctions extends TestBase {
 
         try {
             rs = stat.executeQuery("CALL SELECT_F('ERROR')");
-            error();
+            fail();
         } catch (SQLException e) {
             assertEquals("42001", e.getSQLState());
         }

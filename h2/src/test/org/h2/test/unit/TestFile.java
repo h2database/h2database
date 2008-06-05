@@ -94,7 +94,7 @@ public class TestFile extends TestBase implements DataHandler {
                     }
                     if (a != b) {
                         if (a == null || b == null) {
-                            error("only one threw an exception");
+                            fail("only one threw an exception");
                         }
                     }
                     assertEquals(buffMem, buffFile);

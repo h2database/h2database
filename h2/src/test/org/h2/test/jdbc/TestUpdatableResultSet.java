@@ -55,7 +55,7 @@ public class TestUpdatableResultSet extends TestBase {
 
         try {
             rs.insertRow();
-            error();
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }

@@ -68,845 +68,869 @@ SQLインジェクションに対する防御
 #Setting the Server Bind Address
 
 @advanced_1023_a
+#Limitations
+
+@advanced_1024_a
 用語集とリンク
 
-@advanced_1024_h2
+@advanced_1025_h2
 Result Sets
 
-@advanced_1025_h3
+@advanced_1026_h3
 行数の制限
 
-@advanced_1026_p
+@advanced_1027_p
 アプリケーションから結果が返される前に、全ての行はデータベースによって読み取られます。 サーバー側のカーソルは現在サポートされていません。もし最初の数行がアプリケーションに読み取られたら、 result setサイズはパフォーマンスを改善するために制限されます。これは、クエリーの LIMIT を使用することで 実現できます (例: SELECT * FROM TEST LIMIT 100)、または Statement.setMaxRows(max) を使用します。
 
-@advanced_1027_h3
+@advanced_1028_h3
 大きなResult Set と外部ソート
 
-@advanced_1028_p
+@advanced_1029_p
 1000行以上のresult setのために、結果はディスクにバッファーされます。 もし ORDER BY が使用されていたら、ソートは、外部ソートアルゴリズムを使用して 完了しています。このケースでは、それぞれの行のブロックはクイックソートを使用してソートされ、 ディスクに書き込まれています; データを読み込んでいる時、ブロックは一緒にマージされます。
 
-@advanced_1029_h2
+@advanced_1030_h2
 大きなオブジェクト
 
-@advanced_1030_h3
+@advanced_1031_h3
 大きなオブジェクトのソートと読み込み
 
-@advanced_1031_p
+@advanced_1032_p
 メモリに収まらないオブジェクトは可能であるなら、 データ型は CLOB (テキストデータ) または BLOB (バイナリーデータ) が使用されるべきです。 これらのデータ型に関して、オブジェクトはストリームを使用して、完全にメモリから読み込まれるというわけではありません。 BLOB を保存するためには、PreparedStatement.setBinaryStream を使用します。 CLOB を使用するためには、PreparedStatement.setCharacterStream を使用します。 BLOB を読み込みためには、ResultSet.getBinaryStream を使用し、CLOB を読み込むために ResultSet.getCharacterStream を使用します。もし クライアント / サーバーモードが使用されていたら、 BLOB と CLOB データはアクセス時に完全にメモリから読み込まれます。このケースでは、メモリによって BLOB と CLOB のサイズは制限されています。
 
-@advanced_1032_h2
+@advanced_1033_h2
 リンクテーブル
 
-@advanced_1033_p
+@advanced_1034_p
 このデータベースはリンクテーブルをサポートしています。これは、 現在存在しないテーブルは、ただ他のデータベースへリンクするという意味です。 このようなリンクを作るには、CREATE LINKED TABLE ステートメントを使用します:
 
-@advanced_1034_p
+@advanced_1035_p
 この時、通常の方法でテーブルにアクセスすることが可能です。このテーブルにデータを挿入する時、 制限があります: テーブルに行を挿入、または更新する時、insertステートメントで設定されていないNULLと値は、 両方ともNULLとして挿入されます。目的のテーブルのデフォルト値がNULL以外なら、 望みどおりの効果は得られません。
 
-@advanced_1035_p
+@advanced_1036_p
 各リンクテーブルの新しい接続は開かれます。多くのリンクテーブルが使用されている時、一部データベースにとってこれは問題となり得ます。Oracle XEでは、接続の最大数を増加することができます。Oracle XEは次の値の変更後、再起動する必要があります:
 
-@advanced_1036_h2
+@advanced_1037_h2
 トランザクション分離
 
-@advanced_1037_p
+@advanced_1038_p
 このデータベースは次のトランザクション分離レベルをサポートしています:
 
-@advanced_1038_b
+@advanced_1039_b
 Read Committed (コミット済み読み取り)
 
-@advanced_1039_li
+@advanced_1040_li
 これはデフォルトレベルです。
 read lockは早急に解除されます。 このレベルを使用する時、高い同時並行性が可能です。
 これは多数のデータベースシステムで使用される分離レベルです。
 
-@advanced_1040_li
+@advanced_1041_li
 これを有効にするには、 SQLステートメント 'SET LOCK_MODE 3' を実行します。
 
-@advanced_1041_li
+@advanced_1042_li
 または、;LOCK_MODE=3 をデータベースURLに付け加えます: jdbc:h2:~/test;LOCK_MODE=3
 
-@advanced_1042_b
+@advanced_1043_b
 Serializable (直列化)
 
-@advanced_1043_li
+@advanced_1044_li
 これを有効にするには、 SQLステートメント 'SET LOCK_MODE 1' を実行します。
 
-@advanced_1044_li
+@advanced_1045_li
 または、;LOCK_MODE=1 をデータベースURLに付け加えます: jdbc:h2:~/test;LOCK_MODE=1
 
-@advanced_1045_b
+@advanced_1046_b
 Read Uncommitted (非コミット読み取り)
 
-@advanced_1046_li
+@advanced_1047_li
 このレベルの意味は、トランザクション分離は無効だということです。
 
-@advanced_1047_li
+@advanced_1048_li
 これを有効にするには、SQLステートメント 'SET LOCK_MODE 0' を実行します
 
-@advanced_1048_li
+@advanced_1049_li
 または、;LOCK_MODE=0 をデータベースURLに付け加えます: jdbc:h2:~/test;LOCK_MODE=0
 
-@advanced_1049_p
+@advanced_1050_p
 分離レベル "serializable" を使用している時、ダーティリード、反復不可能読み取り、 ファントムリードを防ぐことができます。
 
-@advanced_1050_b
+@advanced_1051_b
 Dirty Reads (ダーティリード)
 
-@advanced_1051_li
+@advanced_1052_li
 他の接続によるコミットされていない変更を読み取ることができる、という意味です。
 
-@advanced_1052_li
+@advanced_1053_li
 実行可能: read uncommitted (非コミット読み取り)
 
-@advanced_1053_b
+@advanced_1054_b
 Non-Repeatable Reads (反復不可能読み取り)
 
-@advanced_1054_li
+@advanced_1055_li
 ひとつの接続が行を読み取り、 他の接続が行を変更し、コミットすると、最初の接続は同じ行を再読し、新しい結果を取得します。
 
-@advanced_1055_li
+@advanced_1056_li
 実行可能: read uncommitted (非コミット読み取り)、read committed (コミット済み読み取り)
 
-@advanced_1056_b
+@advanced_1057_b
 Phantom Reads (ファントムリード)
 
-@advanced_1057_li
+@advanced_1058_li
 ひとつの接続が条件を使って行の集まりを読み取り、 他の接続がこの条件を壊して行を挿入し、コミットした時、最初の接続は同じ条件を使って再読し、 新しい行を取得します。
 
-@advanced_1058_li
+@advanced_1059_li
 実行可能: read uncommitted (非コミット読み取り)、read committed (コミット済み読み取り)
 
-@advanced_1059_h3
+@advanced_1060_h3
 テーブルレベルロック
 
-@advanced_1060_p
+@advanced_1061_p
 #The database allows multiple concurrent connections to the same database. To make sure all connections only see consistent data, table level locking is used by default. This mechanism does not allow high concurrency, but is very fast. Shared locks and exclusive locks are supported. Before reading from a table, the database tries to add a shared lock to the table (this is only possible if there is no exclusive lock on the object by another connection). If the shared lock is added successfully, the table can be read. It is allowed that other connections also have a shared lock on the same object. If a connection wants to write to a table (update or delete a row), an exclusive lock is required. To get the exclusive lock, other connection must not have any locks on the object. After the connection commits, all locks are released. This database keeps all locks in memory.
 
-@advanced_1061_h3
+@advanced_1062_h3
 ロックタイムアウト
 
-@advanced_1062_p
+@advanced_1063_p
 もし接続がオブジェクト上でロックを取得できないのであれば、一定時間待機します (ロックタイムアウト)。この時間の間、うまくいけば接続はロックコミットを保有し、 この時、ロックを取得することが可能です。他の接続がロックを解除しないため、 これが不可能であれば、失敗した接続がロックタイムアウト例外を取得します。 それぞれの接続に個別にロックタイムアウトを設定することができます。
 
-@advanced_1063_h2
+@advanced_1064_h2
 #Multi-Version Concurrency Control (MVCC)
 
-@advanced_1064_p
+@advanced_1065_p
 #The MVCC feature allows higher concurrency than using (table level or row level) locks. When using MVCC in this database, delete, insert and update operations will only issue a shared lock on the table. An exclusive lock is still used when adding or removing columns, when dropping the table, and when using SELECT ... FOR UPDATE. Connections only 'see' committed data, and own changes. That means, if connection A updates a row but doesn't commit this change yet, connection B will see the old value. Only when the change is committed, the new value is visible by other connections (read committed). If multiple connections concurrently try to update the same row, this database fails fast: a concurrent update exception is thrown.
 
-@advanced_1065_p
+@advanced_1066_p
 #To use the MVCC feature, append MVCC=TRUE to the database URL:
 
-@advanced_1066_p
+@advanced_1067_p
 #The MVCC feature is not fully tested yet.
 
-@advanced_1067_h2
+@advanced_1068_h2
 クラスタリング / 高可用性
 
-@advanced_1068_p
+@advanced_1069_p
 このデータベースは簡単なクラスタリング / 高可用性メカニズムをサポートしています。 アーキテクチャ: 二つのデータベースサーバーは二つの異なったコンピューター上で動作し、 両方のコンピューターは同じデータベースのコピーです。もし両方のサーバーが動いたら、 それぞれのデータベース操作は両方のコンピューター上で実行されます。ひとつのサーバーがおちたら (電源、ハードウェア、またはネットワーク障害)、他のサーバーはまだ動作を続行します。 このポイントから、操作は他のサーバーがバックアップされるまで、ひとつのサーバー上で実行されます。
 
-@advanced_1069_p
+@advanced_1070_p
 クラスタリングはサーバーモードでのみ使用できます (エンベッドモードはクラスタリングをサポートしていません)。 サーバーを停止しないでクラスタを回復することは可能ですが、二番目のデータベースが回復している間に、 他のどんなアプリケーションでも最初のデータベースのデータを変更しないことは重要なため、 クラスタを回復するのは現在手動プロセスです。
 
-@advanced_1070_p
+@advanced_1071_p
 クラスタを初期化するには、次の手順に従います:
 
-@advanced_1071_li
+@advanced_1072_li
 データベースを作成する
 
-@advanced_1072_li
+@advanced_1073_li
 他の位置にデータベースをコピーし、クラスタリングを初期化するために、 CreateClusterツールを使用します。その後、同じデータが含まれる二つのデータベースを所有します。
 
-@advanced_1073_li
+@advanced_1074_li
 二つのサーバーを起動します (ひとつはそれぞれのデータベースのコピー)
 
-@advanced_1074_li
+@advanced_1075_li
 これでクライアントアプリケーションのデータベースに接続する準備ができました
 
-@advanced_1075_h3
+@advanced_1076_h3
 CreateClusterツールを使用する
 
-@advanced_1076_p
+@advanced_1077_p
 クラスタリングがどのように機能するか理解するために、 次の例を試してみて下さい。この例では、二つのデータベースは同じコンピューター内に属していますが、 通常は、データベースは異なるサーバー内にあります。
 
-@advanced_1077_li
+@advanced_1078_li
 二つのディレクトリを作成します: server1 と server2 です。それぞれのディレクトリは コンピューター上のディレクトリをシミュレートします。
 
-@advanced_1078_li
+@advanced_1079_li
 最初のディレクトリを示してTCPサーバーを起動します。 次のコマンドラインを使用して実行できます:
 
-@advanced_1079_li
+@advanced_1080_li
 二番目のディレクトリを示して二番目のTCPサーバーを起動します。 これは二番目の (重複の) コンピューターで動いているサーバーをシミュレートします。 次のコマンドラインを使用して実行できます:
 
-@advanced_1080_li
+@advanced_1081_li
 クラスタリングを初期化するためにCreateClusterツールを使用します。 データベースが存在しなければ、自動的に新しい、空のデータベースを作成します。 次のコマンドラインでツールを実行します:
 
-@advanced_1081_li
+@advanced_1082_li
 #You can now connect to the databases using an application or the H2 Console using the JDBC URL jdbc:h2:tcp://localhost:9101,localhost:9102/~/test
 
-@advanced_1082_li
+@advanced_1083_li
 サーバーを止めたら (プロセスを無視して)、他のマシンは動作を続行し、 従ってデータベースもまだアクセス可能だということがわかります。
 
-@advanced_1083_li
+@advanced_1084_li
 クラスタを回復するために、まず最初に失敗したデータベースを削除し、止められていたサーバーを 再起動します。そして、CreateClusterツールを再実行します。
 
-@advanced_1084_h3
+@advanced_1085_h3
 クラスタリングアルゴリズムと制限
 
-@advanced_1085_p
+@advanced_1086_p
 読み取り専用クエリーは、最初のクラスタノードに対してのみ 実行されますが、他の全てのステートメントは全てのノードに対して実行されます。 現在、トランザクションの問題を回避するように作られたロードバランシングは存在しません。 次の関数は、異なったクラスタノード上で異なった結果をもたらすので、実行には注意して下さい: RANDOM_UUID()、SECURE_RAND()、SESSION_ID()、MEMORY_FREE()、 MEMORY_USED()、CSVREAD()、CSVWRITE()、RAND() [seed を使用していない時] 直接ステートメントを変更する際に、これらの関数を使用してはなりません (例: INSERT、 UPDATE、または MERGE)。しかし、読み取り専用ステートメントでは使用でき、 結果はステートメントを変更するために使用することができます。
 
-@advanced_1086_h2
+@advanced_1087_h2
 2フェーズコミット
 
-@advanced_1087_p
+@advanced_1088_p
 2フェーズコミットプロトコルがサポートされています。 2フェーズコミットは次のように機能します:
 
-@advanced_1088_li
+@advanced_1089_li
 オートコミットはOFFの状態であることが必要です
 
-@advanced_1089_li
+@advanced_1090_li
 トランザクションは、例えば行を挿入することによって、起動されます
 
-@advanced_1090_li
+@advanced_1091_li
 トランザクションは、SQLステートメント PREPARE COMMIT transactionName を実行することによって "prepared" とマークされます
 
-@advanced_1091_li
+@advanced_1092_li
 現在トランザクションはコミット、またはロールバックすることができます
 
-@advanced_1092_li
+@advanced_1093_li
 トランザクションがコミット、またはロールバックに成功する前に問題が起きたら (例えば、ネットワークの問題が起きたことによって)、トランザクションは "in-doubt" の状態になります
 
-@advanced_1093_li
+@advanced_1094_li
 データベースへの再接続時、in-doubtトランザクションは SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT でリストアップされます
 
-@advanced_1094_li
+@advanced_1095_li
 リスト上のそれぞれのトランザクションは、COMMIT TRANSACTION transactionName または、 ROLLBACK TRANSACTION transactionName を実行してコミット、またはロールバックされなければなりません
 
-@advanced_1095_li
+@advanced_1096_li
 変更を適用するために、データベースを終了し、再び開く必要があります
 
-@advanced_1096_h2
+@advanced_1097_h2
 互換性
 
-@advanced_1097_p
+@advanced_1098_p
 このデータベースは (ある程度までは)、HSQLDB、MySQL や PostgreSQLのような 他のデータベースと互換性があります。H2が互換性のないある一定の領域があります。
 
-@advanced_1098_h3
+@advanced_1099_h3
 オートコミットがONの時のトランザクションコミット
 
-@advanced_1099_p
+@advanced_1100_p
 この時、このデータベースエンジンは 結果が返ってくる直前にトランザクションをコミットします (オートコミットがONの場合)。 クエリーにとって、アプリケーションがresult setを通してスキャンする前や、result setが閉じられる前でさえも、 トランザクションはコミットされるということを意味しています。このケースでは、他のデータベースエンジンは result setが閉じられる時、トランザクションをコミットします。
 
-@advanced_1100_h3
+@advanced_1101_h3
 キーワード / 予約語
 
-@advanced_1101_p
+@advanced_1102_p
 引用 (二重引用符で囲まれる) されない限り、識別子 (テーブル名、カラム名など) として使用できないキーワードのリストがあります。 現在のリスト:
 
-@advanced_1102_p
+@advanced_1103_p
 CURRENT_TIMESTAMP, CURRENT_TIME, CURRENT_DATE, CROSS, DISTINCT, EXCEPT, EXISTS, FROM, FOR, FALSE, FULL, GROUP, HAVING, INNER, INTERSECT, IS, JOIN, LIKE, MINUS, NATURAL, NOT, NULL, ON, ORDER, PRIMARY, ROWNUM, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP, TODAY, TRUE, UNION, WHERE
 
-@advanced_1103_p
+@advanced_1104_p
 このリストのある特定のワードはキーワードです。なぜなら、例えば CURRENT_TIMESTAMP のような 互換性のため "()" なしで使用できる関数だからです。
 
-@advanced_1104_h2
+@advanced_1105_h2
 #Standards Compliance
 
-@advanced_1105_p
+@advanced_1106_p
 #This database tries to be as much standard compliant as possible. For the SQL language, ANSI/ISO is the main standard. There are several versions that refer to the release date: SQL-92, SQL:1999, and SQL:2003. Unfortunately, the standard documentation is not freely available. Another problem is that important features are not standardized. Whenever this is the case, this database tries to be compatible to other databases.
 
-@advanced_1106_h2
+@advanced_1107_h2
 Windowsサービスとして実行する
 
-@advanced_1107_p
+@advanced_1108_p
 ネイティブラッパー / アダプタを使用して、JavaアプリケーションはWindowsサービスとして実行できます。これを実行するために、様々なツールが有効です。Tanuki Software, Inc. (<a href="http://wrapper.tanukisoftware.org/">http://wrapper.tanukisoftware.org/</a>) のJavaサービスラッパーはインストールが含まれています。H2データベースエンジンサービスのインストール、起動、終了とアンインストールのためのバッチファイルが添付されます。このサービスは、TCPサーバーとH2コンソールWebアプリケーションが含まれます。バッチファイルは、H2/service ディレクトリに配置されています。
 
-@advanced_1108_h3
+@advanced_1109_h3
 サービスをインストールする
 
-@advanced_1109_p
+@advanced_1110_p
 サービスは、最初にWindowsサービスとして登録することが必要です。 これを行うために、1_install_service.bat をダブルクリックします。 成功すれば、コマンドプロンプトウィンドウが開き、すぐに消えます。失敗したらメッセージが現れます。
 
-@advanced_1110_h3
+@advanced_1111_h3
 サービスを起動する
 
-@advanced_1111_p
+@advanced_1112_p
 Windowsのサービスマネージャを使用するか、2_start_service.bat をダブルクリックして H2データベースエンジンサービスを起動することができます。サービスがインストールされていなければ、 バッチファイルはエラーメッセージを表示しないということに注意して下さい。
 
-@advanced_1112_h3
+@advanced_1113_h3
 H2コンソールに接続する
 
-@advanced_1113_p
+@advanced_1114_p
 サービスのインストールと起動後、ブラウザを使用してH2コンソールアプリケーションに 接続することができます。3_start_browser.bat をダブルクリックして実行します。 デフォルトのポート (8082) はバッチファイルでハードコード化されているものです。
 
-@advanced_1114_h3
+@advanced_1115_h3
 サービスを終了する
 
-@advanced_1115_p
+@advanced_1116_p
 サービスを終了するには、4_stop_service.bat をダブルクリックします。 サービスがインストール、または開始されていなければ、 バッチファイルはエラーメッセージを表示しないということに注意して下さい。
 
-@advanced_1116_h3
+@advanced_1117_h3
 サービスのアンインストール
 
-@advanced_1117_p
+@advanced_1118_p
 サービスをアンインストールするには、5_uninstall_service.bat をダブルクリックします。成功すれば、コマンドプロンプトウィンドウが開き、すぐに消えます。 失敗したらメッセージが現れます。
 
-@advanced_1118_h2
+@advanced_1119_h2
 ODBCドライバ
 
-@advanced_1119_p
+@advanced_1120_p
 このデータベースは現時点で、自身のODBCドライバと共に動作しませんが、PostgreSQLネットワークプロトコルをサポートしています。そのため、PostgreSQL ODBCドライバが使用可能です。PostgreSQLネットワークプロトコルのサポートは非常に新しく、試験的なものとして見なされます。製品アプリケーションで使用されるべきではありません。
 
-@advanced_1120_p
+@advanced_1121_p
 現時点で、PostgreSQL ODBCドライバはWindowsの64 bitバージョンでは動作しません。詳細は <a href="http://svr5.postgresql.org/pgsql-odbc/2005-09/msg00127.php">ODBC Driver on Windows 64 bit</a> をご覧下さい。
 
-@advanced_1121_h3
+@advanced_1122_h3
 ODBCインストール
 
-@advanced_1122_p
+@advanced_1123_p
 まず、ODBCドライバがインストールされていなければなりません。最近のいずれのPostgreSQL ODBCドライバでも動作しますが、バージョン 8.2.4 以降のものを推奨します。PostgreSQL ODBCドライバのWindowsバージョンは <a href="http://www.postgresql.org/ftp/odbc/versions/msi">http://www.postgresql.org/ftp/odbc/versions/msi</a> から利用可能です。
 
-@advanced_1123_h3
+@advanced_1124_h3
 サーバーの起動
 
-@advanced_1124_p
+@advanced_1125_p
 ODBCドライバのインストール後、コマンドラインを使用してH2サーバーを起動します:
 
-@advanced_1125_p
+@advanced_1126_p
 PGサーバー (PostgreSQLプロトコルのためのPG) が同様に起動します。デフォルトでは、データベースはサーバーが起動した現在作業中のディレクトリに保存されます。ユーザーホームディレクトリなど、別のディレクトリにデータベースを保存するには、-baseDir を使用します:
 
-@advanced_1126_p
+@advanced_1127_p
 PGサーバーは次のJavaアプリケーション内から起動、終了することが可能です:
 
-@advanced_1127_p
+@advanced_1128_p
 デフォルトでは、ローカルホストからの接続のみ許可されます。リモート接続を許可するには、サーバーの起動時に<code>-pgAllowOthers true</code> を使用します。
 
-@advanced_1128_h3
+@advanced_1129_h3
 ODBC設定
 
-@advanced_1129_p
+@advanced_1130_p
 ドライバのインストール後、新しいデータソースを追加しなければなりません。Windowsでは、データソースAdministratorを開くために、<code>odbcad32.exe</code> を実行します。"Add..." をクリックし、PostgreSQL Unicode driverを選択します。そして、"Finish" をクリックします。接続プロパティを変更することが可能です:
 
-@advanced_1130_th
+@advanced_1131_th
 プロパティ
 
-@advanced_1131_th
+@advanced_1132_th
 例
 
-@advanced_1132_th
+@advanced_1133_th
 コメント
 
-@advanced_1133_td
+@advanced_1134_td
 Data Source
 
-@advanced_1134_td
+@advanced_1135_td
 H2 Test
 
-@advanced_1135_td
+@advanced_1136_td
 ODBCデータソースの名称
 
-@advanced_1136_td
+@advanced_1137_td
 Database
 
-@advanced_1137_td
+@advanced_1138_td
 test
 
-@advanced_1138_td
+@advanced_1139_td
 データベース名。現時点では簡易な名前のみサポートされています;
 
-@advanced_1139_td
+@advanced_1140_td
 相対パス、または絶対パスはデータベース名にサポートされていません。
 
-@advanced_1140_td
+@advanced_1141_td
 デフォルトでは、-baseDir 設定が使用された時を除き、
 
-@advanced_1141_td
+@advanced_1142_td
 データベースはサーバーが起動された現在作業中のディレクトリに保存されます。
 
-@advanced_1142_td
+@advanced_1143_td
 名前は少なくとも3文字でなければなりません。
 
-@advanced_1143_td
+@advanced_1144_td
 Server
 
-@advanced_1144_td
+@advanced_1145_td
 localhost
 
-@advanced_1145_td
+@advanced_1146_td
 サーバー名、またはIPアドレス
 
-@advanced_1146_td
+@advanced_1147_td
 デフォルトでは、リモート接続のみ許可されています。
 
-@advanced_1147_td
+@advanced_1148_td
 User Name
 
-@advanced_1148_td
-sa
-
 @advanced_1149_td
-データベースのユーザー名
+sa
 
 @advanced_1150_td
-SSL Mode
+データベースのユーザー名
 
 @advanced_1151_td
-disabled
+SSL Mode
 
 @advanced_1152_td
-現時点で、SSLはサポートされていません。
+disabled
 
 @advanced_1153_td
-Port
+現時点で、SSLはサポートされていません。
 
 @advanced_1154_td
-5435
+Port
 
 @advanced_1155_td
-PGサーバーが傾聴しているポート
+5435
 
 @advanced_1156_td
-Password
+PGサーバーが傾聴しているポート
 
 @advanced_1157_td
-sa
+Password
 
 @advanced_1158_td
+sa
+
+@advanced_1159_td
 データベースパスワード
 
-@advanced_1159_p
+@advanced_1160_p
 この後、このデータソースを使用できます。
 
-@advanced_1160_h3
+@advanced_1161_h3
 PGプロトコルサポートの制限
 
-@advanced_1161_p
+@advanced_1162_p
 現時点では、PostgreSQLネットワークプロトコルのサブセットのみ実装されています。また、カタログ、またはテキストエンコーディングでのSQLレベル上の互換性問題がある可能性があります。問題は発見されたら修正されます。現在、PGプロトコルが使用されている時、ステートメントはキャンセルされません。
 
-@advanced_1162_p
+@advanced_1163_p
 #PostgreSQL ODBC Driver Setup requires a database password; that means it is not possible to connect to H2 databases without password. This is a limitation of the ODBC driver.
 
-@advanced_1163_h3
+@advanced_1164_h3
 セキュリティ考慮
 
-@advanced_1164_p
+@advanced_1165_p
 現在、PGサーバーはchallenge response、またはパスワードの暗号化をサポートしていません。パスワードが読みやすいため、アタッカーがODBCドライバとサーバー間でのデータ転送を傾聴できる場合、これは問題になるでしょう。また、暗号化SSL接続も現在使用不可能です。そのため、ODBCドライバはセキュリティが重視される場面においては使用されるべきではありません。
 
-@advanced_1165_h2
+@advanced_1166_h2
 #Using H2 in Microsoft .NET
 
-@advanced_1166_p
+@advanced_1167_p
 #The database can be used from Microsoft .NET even without using Java, by using IKVM.NET. You can access a H2 database on .NET using the JDBC API, or using the ADO.NET interface.
 
-@advanced_1167_h3
+@advanced_1168_h3
 #Using the ADO.NET API on .NET
 
-@advanced_1168_p
+@advanced_1169_p
 #An implementation of the ADO.NET interface is available in the open source project <a href="http://code.google.com/p/h2sharp">H2Sharp</a> .
 
-@advanced_1169_h3
+@advanced_1170_h3
 #Using the JDBC API on .NET
 
-@advanced_1170_li
+@advanced_1171_li
 #Install the .NET Framework from <a href="http://www.microsoft.com">Microsoft</a> .  Mono has not yet been tested.
 
-@advanced_1171_li
+@advanced_1172_li
 #Install <a href="http://www.ikvm.net">IKVM.NET</a> .
 
-@advanced_1172_li
+@advanced_1173_li
 #Copy the h2.jar file to ikvm/bin
 
-@advanced_1173_li
+@advanced_1174_li
 #Run the H2 Console using: <code>ikvm -jar h2.jar</code>
 
-@advanced_1174_li
+@advanced_1175_li
 #Convert the H2 Console to an .exe file using: <code>ikvmc -target:winexe h2.jar</code> .  You may ignore the warnings.
 
-@advanced_1175_li
+@advanced_1176_li
 #Create a .dll file using (change the version accordingly): <code>ikvmc.exe -target:library -version:1.0.69.0 h2.jar</code>
 
-@advanced_1176_p
+@advanced_1177_p
 #If you want your C# application use H2, you need to add the h2.dll and the IKVM.OpenJDK.ClassLibrary.dll to your C# solution. Here some sample code:
 
-@advanced_1177_h2
+@advanced_1178_h2
 ACID
 
-@advanced_1178_p
+@advanced_1179_p
 データベースの世界では、ACIDとは以下を表しています:
 
-@advanced_1179_li
+@advanced_1180_li
 Atomicity (原子性) : トランザクションはアトミックでなければならず、全てのタスクが実行されたか、実行されないかの どちらかであるという意味です。
 
-@advanced_1180_li
+@advanced_1181_li
 Consistency (一貫性) : 全てのオペレーションは定義された制約に従わなくてはいけません。
 
-@advanced_1181_li
+@advanced_1182_li
 Isolation (独立性 / 分離性) : トランザクションはそれぞれ独立 (隔離) されていなくてはなりません。
 
-@advanced_1182_li
+@advanced_1183_li
 Durability (永続性) : コミットされたトランザクションは失われません。
 
-@advanced_1183_h3
+@advanced_1184_h3
 Atomicity (原子性)
 
-@advanced_1184_p
+@advanced_1185_p
 このデータベースでのトランザクションは常にアトミックです。
 
-@advanced_1185_h3
+@advanced_1186_h3
 Consistency (一貫性)
 
-@advanced_1186_p
+@advanced_1187_p
 このデータベースは常に一貫性のある状態です。 参照整合性のルールは常に実行されます。
 
-@advanced_1187_h3
+@advanced_1188_h3
 Isolation (独立性 / 分離性)
 
-@advanced_1188_p
+@advanced_1189_p
 H2は、他の多くのデータベースシステムと同様に、デフォルトの分離レベルは "read committed" です。これはより良いパフォーマンスを提供しますが、トランザクションは完全に分離されていないということも意味します。H2はトランザクション分離レベル "serializable"、"read committed"、"read uncommitted" をサポートしています。
 
-@advanced_1189_h3
+@advanced_1190_h3
 Durability (永続性)
 
-@advanced_1190_p
+@advanced_1191_p
 このデータベースは、全てのコミットされたトランザクションが電源異常に耐えられるということを保証しません。全てのデータベースが電源異常の状況において、一部トランザクションが失われるということをテストは示しています (詳細は下記をご覧下さい)。トランザクションが失われることを容認できない場面では、ノートパソコン、またはUPS (無停電電源装置) を使用します。永続性がハードウェア異常の起こり得る全ての可能性に対して必要とされるのであれば、H2クラスタリングモードのようなクラスタリングが使用されるべきです。
 
-@advanced_1191_h2
+@advanced_1192_h2
 永続性問題
 
-@advanced_1192_p
+@advanced_1193_p
 完全な永続性とは、全てのコミットされたトランザクションは電源異常に耐えられる、ということを意味します。 いくつかのデータベースは、永続性を保証すると主張していますが、このような主張は誤っています。 永続性テストはH2、HSQLDB、PostgreSQL、Derbyに対して実行されました。これらの全てのデータベースは、 時々コミットされたトランザクションを失います。このテストはH2ダウンロードに含まれています。 org.h2.test.poweroff.Test をご覧下さい。
 
-@advanced_1193_h3
+@advanced_1194_h3
 永続性を実現する (しない) 方法
 
-@advanced_1194_p
+@advanced_1195_p
 失われなかったコミット済みトランザクションは、最初に思うよりもより複雑だということを理解して下さい。 完全な永続性を保障するためには、データベースは、コミットの呼び出しが返ってくる前に ログレコードがハードドライブ上にあることを確実にしなければなりません。 これを行うために、データベースは異なったメソッドを使用します。ひとつは "同期書き込み" ファイルアクセスモードを使用することです。Javaでは、RandomAccessFile はモード "rws" と "rwd" を サポートしています:
 
-@advanced_1195_li
+@advanced_1196_li
 rwd: それぞれのファイル内容の更新は、元になるストレージデバイスと同時に書き込まれます。
 
-@advanced_1196_li
+@advanced_1197_li
 rws: rwdに加えて、それぞれのメタデータの更新は同時に書き込まれます。
 
-@advanced_1197_p
+@advanced_1198_p
 この特徴はDerbyで使用されています。それらのモードのうちのひとつは、テスト (org.h2.test.poweroff.TestWrite) において、毎秒およそ5万件の書き込み操作を実現します。オペレーティングシステムのライトバッファーが無効の時でさえも、 書き込み速度は毎秒およそ5万件です。この特徴はディスクを交換させるというものではありません。 なぜなら、全てのバッファーをフラッシュするのではないからです。テストはファイル内の同じバイトを何度も更新しました。 もしハードドライブがこの速度での書き込みが可能なら、ディスクは少なくても毎秒5万回転か、 または300万 RPM (revolutions per minute 回転毎分) を行う必要があります。 そのようなハードドライブは存在しません。テストで使用されたハードドライブは、およそ7200 RPM、または 毎秒120回転です。これがオーバーヘッドなので、最大書き込み速度はこれより低くなくてはなりません。
 
-@advanced_1198_p
+@advanced_1199_p
 バッファーは fsync 関数を呼ぶことによってフラッシュされます。Javaでこれを行う二つの方法があります:
 
-@advanced_1199_li
+@advanced_1200_li
 FileDescriptor.sync() ドキュメンテーションには、これは強制的に全てのシステムバッファーに基本となる デバイスとの同期を取らせる、と書かれています。このFileDescriptorに関連するバッファーのインメモリでの 変更コピーが全て物理メディアに書かれた後、Syncは返ることになっています。
 
-@advanced_1200_li
+@advanced_1201_li
 FileChannel.force() (JDK 1.4 以来) このメソッドは、強制的にこのチャネルのファイルの更新は それを含むストレージデバイスに書き込まれることを行います。
 
-@advanced_1201_p
+@advanced_1202_p
 #By default, MySQL calls fsync for each commit. When using one of those methods, only around 60 write operations per second can be achieved, which is consistent with the RPM rate of the hard drive used. Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(), data is not always persisted to the hard drive, because most hard drives do not obey fsync(): see <a href="http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252">Your Hard Drive Lies to You</a> . In Mac OS X, fsync does not flush hard drive buffers. See <a href="http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a> . So the situation is confusing, and tests prove there is a problem.
 
-@advanced_1202_p
+@advanced_1203_p
 ハードドライブバッファーを懸命にフラッシュしようと試みると、パフォーマンスは非常に悪いものになります。 最初に、ハードドライブは実際には全てのバッファーをフラッシュしているということを確かめることが必要です。 テストは信頼性ある方法でこれが行われていないことを示しています。その結果、トランザクションの最大数は毎秒およそ60件です。 これらの理由により、H2のデフォルト性質はコミットされたトランザクションの書き込みを遅らせることです。
 
-@advanced_1203_p
+@advanced_1204_p
 H2では、電源異常の後、1秒以上のコミットされたトランザクションが失われます。 この性質を変更するためには。 SET WRITE_DELAY と CHECKPOINT SYNC を使用します。 多くの他のデータベースも同様に遅延コミットをサポートしています。パフォーマンス比較では、 遅延コミットは、サポートする全てのデータベースによって使用されました。
 
-@advanced_1204_h3
+@advanced_1205_h3
 永続性テストを実行する
 
-@advanced_1205_p
+@advanced_1206_p
 このデータベースと他のデータベースの、永続性 / 非永続性テストを行うために、 パッケージ内 org.h2.test.poweroff のテストアプリケーションを使用することができます。 ネットワーク接続の二つのコンピューターがこのテストを実行するのに必要です。 ひとつのコンピューターは、他のコンピューター上でテストアプリケーションが実行されている間 (電源は切られています) ただ聞いています。リスナーアプリケーションのコンピューターは TCP/IP ポートを開き、 次の接続のために聞きます。二つ目のコンピューターは最初リスナーに接続し、データベースを作成して レコードの挿入を開始します。この接続は "autocommit" に設定されます。それぞれのレコード挿入後のコミットが 自動的に行われるという意味です。その後、テストコンピューターはこのレコードの挿入に成功したということを リスナーに通知します。リスナーコンピューターは10秒ごとに最後に挿入されたレコードを表示します。 電源を手動でOFFにしてコンピューターを再起動し、アプリケーションを再び実行します。 多くのケースで、リスナーコンピューターが知る全てのレコードを含むデータベースはないということがわかります。 詳細は、リスナーのソースコードとテストアプリケーションを参照して下さい。
 
-@advanced_1206_h2
+@advanced_1207_h2
 リカバーツールを使用する
 
-@advanced_1207_p
+@advanced_1208_p
 リカバーツールはデータベースが破損している場合においても、 データファイルのコンテンツを復元するために使用されます。現段階では、ログファイルのコンテンツ、 または大きなオブジェクト (CLOB または BLOB) は復元しません。 このツールを実行するには、このコマンドラインをタイプして下さい:
 
-@advanced_1208_p
+@advanced_1209_p
 現在のディレクトリのそれぞれのデータベースのために、テキストファイルが作られます。 このファイルには、データベースのスキーマを再び作成するために、行挿入ステートメント (データのための) と data definition (DDL) ステートメントを含んでいます。このファイルは、行挿入ステートメントが 正しいテーブル名を保持していないため、直接実行するこはできません。そのため、 ファイルは実行する前に手動で前処理を行う必要があります。
 
-@advanced_1209_h2
+@advanced_1210_h2
 ファイルロックプロトコル
 
-@advanced_1210_p
+@advanced_1211_p
 データベースが開かれるときはいつも、データベースが使用中であると他のプロセスに合図するためにロックファイルが作成されます。もしデータベースが閉じられるか、データベースを開いたプロセスが終了するなら、ロックファイルは削除されます。
 
-@advanced_1211_p
+@advanced_1212_p
 特別なケースでは (例えば、停電のためプロセスが正常に終了されなかった場合)、 ロックファイルは作られたプロセスによって削除されません。これは、ロックファイルの存在は、 ファイルロックのための安全なプロトコルではない、ということを意味しています。 しかし、このソフトウェアはデータベースファイルを守るため、challenge-responseプロトコルを使用します。 セキュリティ (同じデータベースファイルは、同時に二つのプロセスによって開かれてはいけない) と シンプリシティー (ロックファイルはユーザーによって手動で削除される必要がない) の両方を備えるために 二つのメソッド (アルゴリズム) が実行されます。二つのメソッドは、"Fileメソッド" と "Socketメソッド" です。
 
-@advanced_1212_h3
+@advanced_1213_h3
 ファイルロックメソッド "File"
 
-@advanced_1213_p
+@advanced_1214_p
 データベースファイルロックのデフォルトメソッドは "Fileメソッド" です。アルゴリズム:
 
-@advanced_1214_li
+@advanced_1215_li
 ロックファイルが存在しない時は、作成されます (アトミックオペレーション File.createNewFile を使用する)。 その時、プロセスは少し (20ms) 待機し、再びファイルをチェックします。 もしファイルがこの間に変更されたら、オペレーションは中止されます。 ロックファイルを作成したすぐ後にプロセスがロックファイルを削除する時、 これはレースコンディションから保護し、三番目のプロセスはファイルを再び作成します。 二つのライターしか存在しなければ、これは起こりません。
 
-@advanced_1215_li
+@advanced_1216_li
 もしファイルが作成されたら、ロックメソッド ("file") でランダムな番号が一緒に挿入されます。 その後、ファイルが他のスレッド/ プロセスによって削除、または 修正された時、定期的にチェックする (デフォルトでは毎秒1回) watchdogスレッドは開始されます。 これが起きる時はいつも、ファイルは古いデータに上書きされます。システムが非常に混み合っている時でさえも、 非検出の状態で処理できないロックファイルを変更するために、watchdogスレッドは最優先に実行します。 しかし、watchdogスレッドはほとんどの時間待機しているため、非常に小さなリソース (CPU time) を使用します。 また、watchdogはハードディスクから読み取りのみ行い、書き込みはしません。
 
-@advanced_1216_li
+@advanced_1217_li
 もしロックファイルが存在し、20ms内に変更されたら、プロセスは数回 (10回以上) 待機します。 まだ変更されていたら、例外が投げられます (データベースはロックされます)。 多数の並列ライターで競合している状態を排除するためにこれが行われます。 その後、ファイルは新しいバージョンに上書きされます。 そして、スレッドは2秒間待機します。もしファイルを保護するwatchdogスレッドが存在したら、 変更は上書きし、このプロセスはデータベースをロックするために機能しなくなります。 しかし、もしwatchdogスレッドが存在しなければ、ロックファイルはこのスレッドによって 書かれたままの状態です。このケースでは、ファイルは削除され、自動的にまた作成されます。 watchdogスレッドはこのケースでは起動され、ファイルはロックされます。
 
-@advanced_1217_p
+@advanced_1218_p
 このアルゴリズムは100以上の並列スレッドでテストされました。いくつかのケースでは、 データベースをロックしようとする多数の並列スレッドが存在する時、それらはしばらくお互いをブロックします (それらのうちどれかがファイルをロックすることができないことを意味します)。 しかし、ファイルは同時に二つのスレッドによってロックされることは決してありません。 しかし、多数の並列スレッド / プロセスを使用することは一般的な使用ケースではありません。 通常、データベースを開くことができなかったり、(速い)ループのやり直しができなかったりした場合、 アプリケーションはユーザーにエラーを投げるべきです。
 
-@advanced_1218_h3
+@advanced_1219_h3
 ファイルロックメソッド "Socket"
 
-@advanced_1219_p
+@advanced_1220_p
 実行される二つ目のロックメカニズムがありますが、 デフォルトでは使用不可です。アルゴリズムは:
 
-@advanced_1220_li
+@advanced_1221_li
 ロックファイルが存在しない時は、作成されます。その時、サーバーソケットは定義されたポートで開かれ、 開かれた状態を保ちます。開かれたデータベースのプロセスのポートとIPアドレスはロックファイルの中に書かれています。
 
-@advanced_1221_li
+@advanced_1222_li
 もしロックファイルが存在し、ロックメソッドが "file" なら、ソフトウェアは "file" メソッドにスイッチします。
 
-@advanced_1222_li
+@advanced_1223_li
 もしロックファイルが存在し、ロックメソッドが "socket" なら、プロセスはポートが使用されているかチェックします。 最初のプロセスがまだ実行されていたら、ポートは使用されていれ、このプロセスは例外を投げます (database is in use)。 最初のプロセスが失われたら (例えば、停電または、仮想マシンの異常終了のため)、ポートは解除されます。 新しいプロセスはロックファイルを削除し、再び起動します。
 
-@advanced_1223_p
+@advanced_1224_p
 このメソッドは、活発に毎秒同じファイルをポーリングする (読み込む) watchdogスレッドを必要としていません。 このメソッドの問題は、ファイルがネットワークシェアに保存されたら、二つのプロセスは (異なるコンピューターで実行中の)、 TCP/IP接続を直接保持していなければ、同じデータベースファイルを開くことができます。
 
-@advanced_1224_h2
+@advanced_1225_h2
 SQLインジェクションに対する防御
 
-@advanced_1225_h3
+@advanced_1226_h3
 SQLインジェクションとは
 
-@advanced_1226_p
+@advanced_1227_p
 このデータベースエンジンは "SQLインジェクション" として知られる セキュリティ脆弱性の解決策を備えています。 これは、SQLインジェクションの意味とは何か、 についての短い説明です。いくつかのアプリケーションは、エンベッドユーザーがこのように入力する SQLステートメントを構築します:
 
-@advanced_1227_p
+@advanced_1228_p
 このメカニズムがアプリケーションのどこかで使用され、ユーザー入力が正しくないフィルター処理、 またはエンベッドなら、ユーザーはパスワード: ' OR ''=' のような (この例の場合) 特別に作られた入力を使用することによって、SQLの機能、またはステートメントに入り込むことが可能です。 このケースでは、ステートメントはこのようになります:
 
-@advanced_1228_p
+@advanced_1229_p
 データベースに保存されたパスワードが何であっても、これは常に正しいものになります。 SQLインジェクションについての詳細は、用語集とリンク をご覧下さい。
 
-@advanced_1229_h3
+@advanced_1230_h3
 リテラルを無効にする
 
-@advanced_1230_p
+@advanced_1231_p
 ユーザー入力が直接SQLステートメントに組み込まれなければ、 SQLインジェクションは不可能です。上記の問題の簡単な解決方法は、PreparedStatementを使用することです:
 
-@advanced_1231_p
+@advanced_1232_p
 このデータベースは、ユーザー入力をデータベースに通す時、パラメータの使用を強制する方法を提供しています。 SQLステートメントの組み込まれたリテラルを無効にすることでこれを実行します。 次のステートメントを実行します:
 
-@advanced_1232_p
+@advanced_1233_p
 #Afterwards, SQL statements with text and number literals are not allowed any more. That means, SQL statement of the form WHERE NAME='abc' or WHERE CustomerId=10 will fail. It is still possible to use PreparedStatements and parameters as described above. Also, it is still possible to generate SQL statements dynamically, and use the Statement API, as long as the SQL statements do not include literals. There is also a second mode where number literals are allowed: SET ALLOW_LITERALS NUMBERS. To allow all literals, execute SET ALLOW_LITERALS ALL (this is the default setting). Literals can only be enabled or disabled by an administrator.
 
-@advanced_1233_h3
+@advanced_1234_h3
 定数を使用する
 
-@advanced_1234_p
+@advanced_1235_p
 リテラルを無効にするということは、ハードコード化された "定数" リテラルを無効にする、 ということも意味します。このデータベースは、CREATE CONSTANT コマンドを使用して定数を定義することをサポートしています。 定数はリテラルが有効であるときのみ定義することができますが、リテラルが無効の時でも使用することができます。 カラム名の名前の衝突を避けるために、定数は他のスキーマで定義できます:
 
-@advanced_1235_p
+@advanced_1236_p
 リテラルが有効の時でも、クエリーやビューの中でハードコード化された数値リテラル、 またはテキストリテラルの代わりに、定数を使用する方がより良いでしょう。With 定数では、タイプミスはコンパイル時に発見され、ソースコードは理解、変更しやすくなります。
 
-@advanced_1236_h3
+@advanced_1237_h3
 ZERO() 関数を使用する
 
-@advanced_1237_p
+@advanced_1238_p
 組み込み関数 ZERO() がすでにあるため、 数値 0 のための定数を作る必要はありません:
 
-@advanced_1238_h2
+@advanced_1239_h2
 #Restricting Class Loading and Usage
 
-@advanced_1239_p
+@advanced_1240_p
 #By default there is no restriction on loading classes and executing Java code for admins. That means an admin may call system functions such as System.setProperty by executing:
 
-@advanced_1240_p
+@advanced_1241_p
 #To restrict users (including admins) from loading classes and executing code, the list of allowed classes can be set in the system property h2.allowedClasses in the form of a comma separated list of classes or patterns (items ending with '*'). By default all classes are allowed. Example:
 
-@advanced_1241_p
+@advanced_1242_p
 #This mechanism is used for all user classes, including database event listeners, trigger classes, user-defined functions, user-defined aggregate functions, and JDBC driver classes (with the exception of the H2 driver) when using the H2 Console.
 
-@advanced_1242_h2
+@advanced_1243_h2
 セキュリティプロトコル
 
-@advanced_1243_p
+@advanced_1244_p
 次の文章は、このデータベースで使用されている セキュリティプロトコルのドキュメントです。これらの記述は非常に専門的で、 根本的なセキュリティの基本をすでに知っているセキュリティ専門家のみを対象としています。
 
-@advanced_1244_h3
+@advanced_1245_h3
 ユーザーパスワードの暗号化
 
-@advanced_1245_p
+@advanced_1246_p
 ユーザーがデータベースに接続しようとする時、ユーザー名の組み合わせ、@、パスワードは SHA-256 を使用してハッシュ化され、このハッシュ値はデータベースに送信されます。 この手順は、クライアントとサーバー間の転送をアタッカーが聞ける (非暗号化できる) のであれば、 再使用する値からのアタッカーを試みることはありません。しかし、パスワードはクライアントとサーバー間で 暗号化されていない接続を使用している時でさえも、プレーンテキストで送信されることはありません これはもしユーザーが、異なる場面で同じパスワードを再利用しても、このパスワードはある程度まで保護されます。 詳細は"RFC 2617 - HTTP Authentication: Basic and Digest Access Authentication" もご覧下さい。
 
-@advanced_1246_p
+@advanced_1247_p
 新しいデータベース、またはユーザーが作られた時、暗号化された安全なランダムの 新しいsalt値が生成されます。salt値のサイズは 64 bit です。 ランダムなsaltを使用することによって、多数の異なった (通常、使用された) パスワードのハッシュ値を アタッカーに再計算されるリスクが軽減します。
 
-@advanced_1247_p
+@advanced_1248_p
 ユーザーパスワードのハッシュ値の組み合わせと (上記をご覧下さい) saltは SHA-256を使用してハッシュ化されます。 結果の値はデータベースに保存されます。ユーザーがデータベースに接続しようとする時、 データベースは、保存されたsalt値のユーザーパスワードのハッシュ値と計算されたハッシュ値を結合します。 他の製品は複数の反復 (ハッシュ値を繰り返しハッシュする) を使用していますが、 この製品ではサービス攻撃の拒絶 (アタッカーが偽のパスワードで接続しようとするところや、 サーバーがそれぞれのパスワードのハッシュ値を計算するのに長い時間費やすところ) のリスクを軽減するのに これは使用しません。理由は: もしアタッカーがハッシュ化されたパスワードにアクセスしたら、 プレーンテキストのデータにもアクセスできるため、パスワードはもはや必要ではなくなってしまいます。 もしデータが、保存されている他のコンピューターによって保護されていて、遠隔のみであるなら、 反復回数は全く必要とされません。
 
-@advanced_1248_h3
+@advanced_1249_h3
 ファイル暗号化
 
-@advanced_1249_p
+@advanced_1250_p
 データベースファイルは二つの異なるアルゴリズムを使用して、暗号化されます: AES-128 と XTEA です (32 ラウンドを使用)。 XTEAをサポートする理由はパフォーマンス (XTEAはAESのおよそ二倍の速さです) と、AESが突然壊れた場合、代わりとなるアルゴリズムを 持っているからです。
 
-@advanced_1250_p
+@advanced_1251_p
 ユーザーが暗号化されたデータベースに接続しようとした時、"file" という単語と、@と、 ファイルパスワードの組み合わせは、SHA-256を使用してハッシュ化されます。 このハッシュ値はサーバーに送信されます。
 
-@advanced_1251_p
+@advanced_1252_p
 新しいデータベースファイルが作られた時、暗号化された安全なランダムの新しいsalt値が生成されます。 このsaltのサイズは 64 bitです。ファイルパスワードのハッシュとsalt値の組み合わせは、 SHA-256を使用して1024回ハッシュ化されます。反復の理由は、アタッカーが通常のパスワードの ハッシュ値を計算するよりも困難にするためです。
 
-@advanced_1252_p
+@advanced_1253_p
 ハッシュ値の結果は、ブロック暗号アルゴリズム (AES-128、または 32ラウンドのXTEA) のためのキーとして 使用されます。その時、初期化ベクター (IV) キーは、再びSHA-256を使用してキーをハッシュ化することによって 計算されます。IVはアタッカーに知らないということを確認して下さい。秘密のIVを使用する理由は、 ウォーターマークアタック (電子透かし攻撃) を防御するためです。
 
-@advanced_1253_p
+@advanced_1254_p
 データのブロックを保存する前に (それぞれのブロックは 8 バイト長)、次のオペレーションを 実行します: 最初に、IVはIVキー (同じblock cipher algorithmを使用して) でブロックナンバーを 暗号化することによって計算されます。このIVはXORを使用してプレーンテキストと併用されます。 結果データはAES-128、またはXTEAアルゴリズムを使用して暗号化されます。
 
-@advanced_1254_p
+@advanced_1255_p
 復号化の時、オペレーションは反対に行われます。最初に、ブロックはキーを使用して復号化され、 その時、IVはXORを使用して復号化テキストと併用されます。
 
-@advanced_1255_p
+@advanced_1256_p
 その結果、オペレーションのブロック暗号モードはCBT (Cipher-block chaining) ですが、 それぞれの連鎖はたったひとつのブロック長です。ECB (Electronic codebook) モードに優る利点は、 データのパターンが明らかにされない点で、複数のブロックCBCに優る利点は、 はじき出された暗号テキストビットは次のブロックではじき出されたプレーンテキストビットに伝播されないという点です。
 
-@advanced_1256_p
+@advanced_1257_p
 データベース暗号化は、使用されていない間は (盗まれたノートパソコン等) 安全なデータベースだということを 意味します。これは、データベースが使用されている間に、アタッカーがファイルにアクセスしたというケースを 意味するのではありません。アタッカーが書き込みアクセスをした時、例えば、 彼はファイルの一部を古いバージョンに置き換え、データをこのように操ります。
 
-@advanced_1257_p
+@advanced_1258_p
 ファイル暗号化はデータベースエンジンのパフォーマンスを低速にします。非暗号化モードと比較すると、 データベースオペレーションは、XTEAを使用する時はおよそ2.2倍長くかかり、 AESを使用する時は2.5倍長くかかります (エンベッドモード)。
 
-@advanced_1258_h3
+@advanced_1259_h3
 #Wrong Password Delay
 
-@advanced_1259_p
+@advanced_1260_p
 #To protect against remote brute force password attacks, the delay after each unsuccessful login gets double as long. Use the system properties h2.delayWrongPasswordMin and h2.delayWrongPasswordMax to change the minimum (the default is 250 milliseconds) or maximum delay (the default is 4000 milliseconds, or 4 seconds). The delay only applies for those using the wrong password. Normally there is no delay for a user that knows the correct password, with one exception: after using the wrong password, there is a delay of up (randomly distributed) the same delay as for a wrong password. This is to protect against parallel brute force attacks, so that an attacker needs to wait for the whole delay. Delays are synchronized. This is also required to protect against parallel attacks.
 
-@advanced_1260_h3
+@advanced_1261_h3
 SSL/TLS 接続
 
-@advanced_1261_p
+@advanced_1262_p
 遠隔SSL/TLS接続は、Java Secure Socket Extension (SSLServerSocket / SSLSocket) の使用をサポートしています。デフォルトでは、匿名のSSLは使用可能です。デフォルトの暗号化パッケージソフトは SSL_DH_anon_WITH_RC4_128_MD5 です。
 
-@advanced_1262_p
+@advanced_1263_p
 #To use your own keystore, set the system properties <code>javax.net.ssl.keyStore</code> and <code>javax.net.ssl.keyStorePassword</code> before starting the H2 server and client. See also <a href="http://java.sun.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#CustomizingStores">Customizing the Default Key and Trust Stores, Store Types, and Store Passwords</a> for more information.
 
-@advanced_1263_p
+@advanced_1264_p
 #To disable anonymous SSL, set the system property <code>h2.enableAnonymousSSL</code> to false.
 
-@advanced_1264_h3
+@advanced_1265_h3
 HTTPS 接続
 
-@advanced_1265_p
+@advanced_1266_p
 webサーバーは、SSLServerSocketを使用したHTTP と HTTPS接続をサポートします。 簡単に開始できるように、デフォルトの自己認証された証明書がありますが、 カスタム証明書も同様にサポートされています。
 
-@advanced_1266_h2
+@advanced_1267_h2
 汎用一意識別子 (UUID)
 
-@advanced_1267_p
+@advanced_1268_p
 このデータベースはUUIDをサポートしています。 また、暗号化強力疑似乱数ジェネレーターを使用して新しいUUIDを作成する関数をサポートしています。 同じ値をもつ二つの無作為なUUIDが存在する可能性は、確率論を使用して計算されることができます。 "Birthday Paradox" もご覧下さい。標準化された無作為に生成されたUUIDは、122の無作為なビットを保持しています。 4ビットはバージョン(無作為に生成されたUUID) に、2ビットはバリアント (Leach-Salz) に使用されます。 このデータベースは組み込み関数 RANDOM_UUID() を使用してこのようなUUIDを生成することをサポートしています。 ここに、値の数字が生成された後、二つの 同一のUUIDが生じる可能性を見積もる小さなプログラムがあります:
 
-@advanced_1268_p
+@advanced_1269_p
 いくつかの値は:
 
-@advanced_1269_p
+@advanced_1270_p
 人の隕石に衝突するという年に一度の危険性は、170億に一回と見積もられ、それは、確率がおよそ 0.000'000'000'06 だということを意味しています。
 
-@advanced_1270_h2
+@advanced_1271_h2
 システムプロパティから読み込まれた設定
 
-@advanced_1271_p
+@advanced_1272_p
 いくつかのデータベースの設定は、-DpropertyName=value を使用してコマンドラインで設定することができます。 通常、これらの設定は手動で変更することは必要とされていません。設定は大文字と小文字を区別しています。 例:
 
-@advanced_1272_p
+@advanced_1273_p
 #The current value of the settings can be read in the table INFORMATION_SCHEMA.SETTINGS.
 
-@advanced_1273_p
+@advanced_1274_p
 #For a complete list of settings, see <a href="../javadoc/org/h2/constant/SysProperties.html">SysProperties</a> .
 
-@advanced_1274_h2
+@advanced_1275_h2
 #Setting the Server Bind Address
 
-@advanced_1275_p
+@advanced_1276_p
 #Usually server sockets accept connections on any/all local addresses. This may be a problem on multi-homed hosts. To bind only to one address, use the system property h2.bindAddress. This setting is used for both regular server sockets and for SSL server sockets. IPv4 and IPv6 address formats are supported.
 
-@advanced_1276_h2
+@advanced_1277_h2
+#Limitations
+
+@advanced_1278_p
+#This database has the following known limitations:
+
+@advanced_1279_li
+#The maximum file size is currently 256 GB for the data, and 256 GB for the index. This number is excluding BLOB and CLOB data: Every CLOB or BLOB can be up to 256 GB as well.
+
+@advanced_1280_li
+#The maximum file size for FAT or FAT32 file systems is 4 GB. That means when using FAT or FAT32, the limit is 4 GB for the data. This is the limitation of the file system, and this database does not provide a workaround for this problem. The suggested solution is to use another file system.
+
+@advanced_1281_li
+#There is a limit on the complexity of SQL statements. Statements of the following form will result in a stack overflow exception:
+
+@advanced_1282_li
+#There is no limit for the following entities, except the memory and storage capacity:  maximum identifier length, maximum number of tables, maximum number of columns,  maximum number of indexes, maximum number of parameters,  maximum number of triggers, and maximum number of other database objects.
+
+@advanced_1283_li
+#For limitations on data types, see the documentation of the respective Java data type  or the data type documentation of this database.
+
+@advanced_1284_h2
 用語集とリンク
 
-@advanced_1277_th
+@advanced_1285_th
 用語
 
-@advanced_1278_th
+@advanced_1286_th
 説明
 
-@advanced_1279_td
+@advanced_1287_td
 AES-128
 
-@advanced_1280_td
+@advanced_1288_td
 ブロック暗号化アルゴリズム。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
 
-@advanced_1281_td
+@advanced_1289_td
 Birthday Paradox
 
-@advanced_1282_td
+@advanced_1290_td
 部屋にいる二人が同じ誕生日の可能性が期待された以上に高いということを説明する。 また、有効なランダムに生成されたUUID。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
 
-@advanced_1283_td
+@advanced_1291_td
 Digest
 
-@advanced_1284_td
+@advanced_1292_td
 パスワードを保護するプロトコル (データは保護しません)。こちらもご覧下さい:<a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
 
-@advanced_1285_td
+@advanced_1293_td
 GCJ
 
-@advanced_1286_td
+@advanced_1294_td
 JavaのGNUコンパイラー<a href="http://gcc.gnu.org/java/">http://gcc.gnu.org/java/</a> and <a href="http://nativej.mtsystems.ch">http://nativej.mtsystems.ch/ (not free any more)</a>
 
-@advanced_1287_td
+@advanced_1295_td
 HTTPS
 
-@advanced_1288_td
+@advanced_1296_td
 セキュリティをHTTP接続に提供するプロトコル。こちらもご覧下さい: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
 
-@advanced_1289_td
+@advanced_1297_td
 Modes of Operation
 
-@advanced_1290_a
+@advanced_1298_a
 Wikipedia: Block cipher modes of operation
 
-@advanced_1291_td
+@advanced_1299_td
 Salt
 
-@advanced_1292_td
+@advanced_1300_td
 パスワードのセキュリティを増大する乱数。こちらもご覧下さい: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
 
-@advanced_1293_td
+@advanced_1301_td
 SHA-256
 
-@advanced_1294_td
+@advanced_1302_td
 暗号化の一方方向のハッシュ関数。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
 
-@advanced_1295_td
+@advanced_1303_td
 SQLインジェクション
 
-@advanced_1296_td
+@advanced_1304_td
 組み込みのユーザー入力でアプリケーションがSQLステートメントを生成するセキュリティ脆弱性 こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
 
-@advanced_1297_td
+@advanced_1305_td
 Watermark Attack (透かし攻撃)
 
-@advanced_1298_td
+@advanced_1306_td
 復号化することなくあるデータの存在を証明できる、ある暗号化プログラムのセキュリティ問題。 詳細は、インターネットで "watermark attack cryptoloop" を検索して下さい。
 
-@advanced_1299_td
+@advanced_1307_td
 SSL/TLS
 
-@advanced_1300_td
+@advanced_1308_td
 Secure Sockets Layer / Transport Layer Security。こちらもご覧下さい: <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
 
-@advanced_1301_td
+@advanced_1309_td
 XTEA
 
-@advanced_1302_td
+@advanced_1310_td
 ブロック暗号化アルゴリズム。こちらもご覧下さい: <a href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
 
 @build_1000_h1
@@ -1021,7 +1045,7 @@ Centralリポジトリの利用
 #Next Version (unreleased)
 
 @changelog_1002_li
-#-
+#User defined functions can now be overloaded. The Java class can contain multiple classes  with the same name that only differ in the number of parameters. Thanks to Gary Tong  for providing a patch!
 
 @changelog_1003_h2
 #Version 1.0.73 (2008-05-31)
@@ -3763,70 +3787,70 @@ H2 (for 'Hypersonic 2') is free a Java SQL DBMS. Clustering, embedded and server
 歴史とロードマップ
 
 @history_1001_a
-このデータベースエンジンの歴史
-
-@history_1002_a
-なぜJavaなのか
-
-@history_1003_a
 変更履歴
 
-@history_1004_a
+@history_1002_a
 ロードマップ
+
+@history_1003_a
+このデータベースエンジンの歴史
+
+@history_1004_a
+なぜJavaなのか
 
 @history_1005_a
 支援者
 
 @history_1006_h2
-このデータベースエンジンの歴史
-
-@history_1007_p
-H2DBの開発は2004年の5月に開始されましたが、初めて世に出たのは、2005年12月14日の事でした。生みの親であるThomas Muellerは、Hypersonic SQLの初期の開発者でもあります。2001年、彼はPointBaseMicroを生み出したPointBaseInc.に入社しました。この時点で彼はHypersonic SQLの開発を断念しなければなりませんでしたが、引き続きHypersonic SQLのコードベース開発を進める目的でHSQLDBグループが設立されました。H2DBの H2 は、このHypersonic 2を意味しています。とはいえ、H2DBはHypersonic SQLやHSQLDBとはコードの共有を一切行わず、すべてゼロから開発されました。
-
-@history_1008_h2
-なぜJavaなのか
-
-@history_1009_p
-Javaデータベースを使用するいくつかの理由:
-
-@history_1010_li
-Javaアプリケーションの統合は非常に簡単
-
-@history_1011_li
-多数の異なったプラットフォームのサポート
-
-@history_1012_li
-ネイティブアプリケーションより、より安全 (バッファーのオーバーフローがない)
-
-@history_1013_li
-#User defined functions (or triggers) run very fast
-
-@history_1014_li
-Unicodeをサポート
-
-@history_1015_p
-低いレベルでのオペレーションでは、Javaはまだ低速すぎると思う方もいますが、そうではありません (それ以上でもありません)。一般的に、C、またはC++を使用するよりもずっと速くコードを書くことができます。このように、コードを移植して、低レベルのもの (スレッドのメモリ管理か取り扱いのような) に対処するよりもむしろ、アルゴリズムの改良(アプリケーションをより速くする) に集中することが可能です。ガーベジコレクションは今や手動でのメモリ管理よりおそらく速いでしょう。
-
-@history_1016_p
-#A lot of features are already built in (for example Unicode, network libraries). It is very easy to write secure code because buffer overflows can not occur. Some features such as the reflection mechanism can be used for randomized testing.
-
-@history_1017_p
-Javaは将来への証明でもあります: 多くの会社がJavaをサポートし、今ではオープンソースです。
-
-@history_1018_p
-このソフトウェアは、移植性の増加と使いやすさのため、そしてパフォーマンスの理由から、多くのJavaライブラリ、または他のソフトウェアを信頼していません。例えば、暗号化アルゴリズムと多数のライブラリ関数は、存在するライブラリを使用する代わりにデータベースに実装されています。SwingのようなオープンソースのJava実装が有効でないライブラリは使用されていないか、特定の特徴のみに使用されます。
-
-@history_1019_h2
 変更履歴
 
-@history_1020_p
-#The up-to-date change log is available here: <a href="http://www.h2database.com/html/changelog.html">http://www.h2database.com/html/changelog.html</a>
+@history_1007_p
+#The up-to-date change log is available at <a href="http://www.h2database.com/html/changelog.html">http://www.h2database.com/html/changelog.html</a>
 
-@history_1021_h2
+@history_1008_h2
 ロードマップ
 
+@history_1009_p
+#The current roadmap is available at <a href="http://www.h2database.com/html/roadmap.html">http://www.h2database.com/html/roadmap.html</a>
+
+@history_1010_h2
+このデータベースエンジンの歴史
+
+@history_1011_p
+H2DBの開発は2004年の5月に開始されましたが、初めて世に出たのは、2005年12月14日の事でした。生みの親であるThomas Muellerは、Hypersonic SQLの初期の開発者でもあります。2001年、彼はPointBaseMicroを生み出したPointBaseInc.に入社しました。この時点で彼はHypersonic SQLの開発を断念しなければなりませんでしたが、引き続きHypersonic SQLのコードベース開発を進める目的でHSQLDBグループが設立されました。H2DBの H2 は、このHypersonic 2を意味しています。とはいえ、H2DBはHypersonic SQLやHSQLDBとはコードの共有を一切行わず、すべてゼロから開発されました。
+
+@history_1012_h2
+なぜJavaなのか
+
+@history_1013_p
+Javaデータベースを使用するいくつかの理由:
+
+@history_1014_li
+Javaアプリケーションの統合は非常に簡単
+
+@history_1015_li
+多数の異なったプラットフォームのサポート
+
+@history_1016_li
+ネイティブアプリケーションより、より安全 (バッファーのオーバーフローがない)
+
+@history_1017_li
+#User defined functions (or triggers) run very fast
+
+@history_1018_li
+Unicodeをサポート
+
+@history_1019_p
+低いレベルでのオペレーションでは、Javaはまだ低速すぎると思う方もいますが、そうではありません (それ以上でもありません)。一般的に、C、またはC++を使用するよりもずっと速くコードを書くことができます。このように、コードを移植して、低レベルのもの (スレッドのメモリ管理か取り扱いのような) に対処するよりもむしろ、アルゴリズムの改良(アプリケーションをより速くする) に集中することが可能です。ガーベジコレクションは今や手動でのメモリ管理よりおそらく速いでしょう。
+
+@history_1020_p
+#A lot of features are already built in (for example Unicode, network libraries). It is very easy to write secure code because buffer overflows can not occur. Some features such as the reflection mechanism can be used for randomized testing.
+
+@history_1021_p
+Javaは将来への証明でもあります: 多くの会社がJavaをサポートし、今ではオープンソースです。
+
 @history_1022_p
-#The current roadmap is available here: <a href="http://www.h2database.com/html/roadmap.html">http://www.h2database.com/html/roadmap.html</a>
+このソフトウェアは、移植性の増加と使いやすさのため、そしてパフォーマンスの理由から、多くのJavaライブラリ、または他のソフトウェアを信頼していません。例えば、暗号化アルゴリズムと多数のライブラリ関数は、存在するライブラリを使用する代わりにデータベースに実装されています。SwingのようなオープンソースのJava実装が有効でないライブラリは使用されていないか、特定の特徴のみに使用されます。
 
 @history_1023_h2
 支援者

@@ -247,7 +247,8 @@ public class DiskFile implements CacheWriter {
     }
 
     /**
-     * Initialize the the 'storage allocation table' of this file from a given byte array.
+     * Initialize the the 'storage allocation table' of this file from a given
+     * byte array.
      * 
      * @param summary the storage allocation table
      */
@@ -854,6 +855,13 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Copy a number of bytes at the specified location to the output stream.
+     * 
+     * @param pos the position
+     * @param out the output stream
+     * @return the new position, or -1 if there is no more data to copy
+     */
     public int copyDirect(int pos, OutputStream out) throws SQLException {
         synchronized (database) {
             try {
@@ -977,6 +985,9 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Flush pending writes of the underlying file.
+     */
     public void sync() {
         synchronized (database) {
             if (file != null) {
@@ -985,13 +996,24 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Check if this is the data file.
+     * 
+     * @return true if this is the data file
+     */
     public boolean isDataFile() {
         return dataFile;
     }
 
-    public void setLogChanges(boolean b) {
+    /**
+     * Set whether changes should be written to the transaction log before they
+     * are applied in the file.
+     * 
+     * @param logChanges the new value
+     */
+    public void setLogChanges(boolean logChanges) {
         synchronized (database) {
-            this.logChanges = b;
+            this.logChanges = logChanges;
         }
     }
 
@@ -1037,6 +1059,10 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Write all buffered redo log data to the file. Redo log data is buffered
+     * to improve recovery performance.
+     */
     public void flushRedoLog() throws SQLException {
         synchronized (database) {
             if (redoBuffer.size() == 0) {

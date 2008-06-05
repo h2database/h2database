@@ -159,6 +159,14 @@ public abstract class DataPage {
      */
     public abstract void fill(int len);
 
+    /**
+     * Create a new data page for the given hander. The
+     * handler will decide what type of buffer is created.
+     * 
+     * @param handler the data handler
+     * @param capacity the initial capacity of the buffer
+     * @return the data page
+     */
     public static DataPage create(DataHandler handler, int capacity) {
         if (handler.getTextStorage()) {
             return new DataPageText(handler, new byte[capacity]);
@@ -166,6 +174,14 @@ public abstract class DataPage {
         return new DataPageBinary(handler, new byte[capacity]);
     }
 
+    /**
+     * Create a new data page using the given data for the given hander. The
+     * handler will decide what type of buffer is created.
+     * 
+     * @param handler the data handler
+     * @param buff the data
+     * @return the data page
+     */
     public static DataPage create(DataHandler handler, byte[] buff) {
         if (handler.getTextStorage()) {
             return new DataPageText(handler, buff);
@@ -173,6 +189,12 @@ public abstract class DataPage {
         return new DataPageBinary(handler, buff);
     }
 
+    /**
+     * Check if there is still enough capacity in the buffer.
+     * This method extends the buffer if required.
+     * 
+     * @param plus the number of additional bytes required
+     */
     public void checkCapacity(int plus) {
         if (pos + plus >= data.length) {
             byte[] d = new byte[(data.length + plus) * 2];
@@ -183,6 +205,12 @@ public abstract class DataPage {
         }
     }
 
+    /**
+     * Get the current write position of this data page, which is the current
+     * length.
+     * 
+     * @return the length
+     */
     public int length() {
         return pos;
     }
@@ -217,6 +245,14 @@ public abstract class DataPage {
         pos += len;
     }
 
+    /**
+     * Copy a number of bytes to the given buffer from the current position. The
+     * current position is incremented accordingly.
+     * 
+     * @param buff the output buffer
+     * @param off the offset in the output buffer
+     * @param len the number of bytes to copy
+     */
     public void read(byte[] buff, int off, int len) {
         System.arraycopy(data, pos, buff, off, len);
         pos += len;
@@ -344,6 +380,12 @@ public abstract class DataPage {
         }
     }
 
+    /**
+     * Calculate the number of bytes required to encode the given value.
+     * 
+     * @param v the value
+     * @return the number of bytes required to store this value
+     */
     public int getValueLen(Value v) throws SQLException {
         if (v == ValueNull.INSTANCE) {
             return 1;
@@ -503,6 +545,10 @@ public abstract class DataPage {
         }
     }
 
+    /**
+     * Fill up the buffer with empty space and an (initially empty) checksum
+     * until the size is a multiple of Constants.FILE_BLOCK_SIZE.
+     */
     public void fillAligned() {
         // TODO datapage: fillAligned should not use a fixed constant '2'
         // 0..6 > 8, 7..14 > 16, 15..22 > 24, ...

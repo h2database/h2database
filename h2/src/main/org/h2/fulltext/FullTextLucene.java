@@ -32,6 +32,7 @@ import org.apache.lucene.search.Hits;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Searcher;
+import org.h2.api.CloseListener;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
@@ -50,7 +51,7 @@ import org.h2.util.StringUtils;
  */
 public class FullTextLucene extends FullText
 //## Java 1.4 begin ##
-implements Trigger
+implements Trigger, CloseListener
 //## Java 1.4 end ##
 {
 
@@ -574,8 +575,9 @@ implements Trigger
             synchronized (indexers) {
                 indexer = (IndexModifier) indexers.get(path);
                 if (indexer == null) {
-                    // TODO: create flag = true means re-create
-                    indexer = new IndexModifier(path, new StandardAnalyzer(), true);
+                    Analyzer analyzer = new StandardAnalyzer();
+                    boolean create = !IndexReader.indexExists(path);
+                    indexer = new IndexModifier(path, analyzer, create);
                     indexers.put(path, indexer);
                 }
             }
@@ -611,6 +613,18 @@ implements Trigger
                 throw new SQLException("FULLTEXT", "Column not found: " + key);
             }
             index[i] = found;
+        }
+    }
+    
+    public void close() throws SQLException {
+        try {
+            if (indexer != null) {
+                indexer.flush();
+                indexer.close();
+                indexer = null;
+            }
+        } catch (Exception e) {
+            throw convertException(e);
         }
     }
     //## Java 1.4 end ##

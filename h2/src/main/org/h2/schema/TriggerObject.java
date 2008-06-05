@@ -9,6 +9,7 @@ package org.h2.schema;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import org.h2.api.CloseListener;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.constant.ErrorCode;
@@ -313,12 +314,23 @@ public class TriggerObject extends SchemaObjectBase {
     }
 
     /**
-     * Get the trigger class name
+     * Get the trigger class name.
      * 
      * @return the class name
      */
     public String getTriggerClassName() {
         return triggerClassName;
+    }
+
+    /**
+     * Close the trigger.
+     */
+    public void close() throws SQLException {
+        if (triggerCallback != null) {
+            if (triggerCallback instanceof CloseListener) {
+                ((CloseListener) triggerCallback).close();
+            }
+        }
     }
 
 }

@@ -34,6 +34,7 @@ import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
+import org.h2.schema.TriggerObject;
 import org.h2.store.DataHandler;
 import org.h2.store.DataPage;
 import org.h2.store.DiskFile;
@@ -1042,6 +1043,11 @@ public class Database implements DataHandler {
                 for (int i = 0; i < sequences.size(); i++) {
                     Sequence sequence = (Sequence) sequences.get(i);
                     sequence.close();
+                }
+                ObjectArray triggers = getAllSchemaObjects(DbObject.TRIGGER);
+                for (int i = 0; i < triggers.size(); i++) {
+                    TriggerObject trigger = (TriggerObject) triggers.get(i);
+                    trigger.close();
                 }
                 meta.close(systemSession);
                 systemSession.commit(true);                

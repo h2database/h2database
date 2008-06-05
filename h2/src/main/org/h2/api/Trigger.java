@@ -63,5 +63,5 @@ public interface Trigger {
      *             if the operation must be undone
      */
     void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException;
-
+    
 }

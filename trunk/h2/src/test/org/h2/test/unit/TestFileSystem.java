@@ -30,10 +30,10 @@ public class TestFileSystem extends TestBase {
         testDatabaseInMemFileSys();
         testDatabaseInJar();
         testFileSystem(baseDir + "/fs");
-        testFileSystem(FileSystem.MEMORY_PREFIX);
+        testFileSystem(FileSystem.PREFIX_MEMORY);
         // testFileSystem("jdbc:h2:mem:fs;TRACE_LEVEL_FILE=3");
         testFileSystem("jdbc:h2:mem:fs");
-        testFileSystem(FileSystem.MEMORY_PREFIX_LZF);
+        testFileSystem(FileSystem.PREFIX_MEMORY_LZF);
         testUserHome();
     }
     
@@ -162,10 +162,10 @@ public class TestFileSystem extends TestBase {
         assertTrue(fs.tryDelete(fsBase + "/test2"));
         fs.delete(fsBase + "/test");
 
-        if (!fsBase.startsWith(FileSystem.MEMORY_PREFIX) && !fsBase.startsWith(FileSystem.MEMORY_PREFIX_LZF)) {
+        if (!fsBase.startsWith(FileSystem.PREFIX_MEMORY) && !fsBase.startsWith(FileSystem.PREFIX_MEMORY_LZF)) {
             fs.createDirs(fsBase + "/testDir/test");
             assertTrue(fs.isDirectory(fsBase + "/testDir"));
-            if (!fsBase.startsWith(FileSystem.DB_PREFIX)) {
+            if (!fsBase.startsWith(FileSystem.PREFIX_DB)) {
                 fs.deleteRecursive("/testDir");
                 assertTrue(!fs.exists("/testDir"));
             }

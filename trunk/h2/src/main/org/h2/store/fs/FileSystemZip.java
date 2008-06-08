@@ -221,8 +221,8 @@ public class FileSystemZip extends FileSystem {
     }
 
     private String translateFileName(String fileName) {
-        if (fileName.startsWith(FileSystem.ZIP_PREFIX)) {
-            fileName = fileName.substring(FileSystem.ZIP_PREFIX.length());
+        if (fileName.startsWith(FileSystem.PREFIX_ZIP)) {
+            fileName = fileName.substring(FileSystem.PREFIX_ZIP.length());
         }
         int idx = fileName.indexOf('!');
         if (idx >= 0) {

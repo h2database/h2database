@@ -299,7 +299,7 @@ public class ScriptCommand extends ScriptBase {
                 ObjectArray indexes = table.getIndexes();
                 for (int j = 0; indexes != null && j < indexes.size(); j++) {
                     Index index = (Index) indexes.get(j);
-                    if (!index.getIndexType().belongsToConstraint()) {
+                    if (!index.getIndexType().getBelongsToConstraint()) {
                         add(index.getCreateSQL(), false);
                     }
                 }

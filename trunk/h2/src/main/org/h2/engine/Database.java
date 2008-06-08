@@ -1377,7 +1377,7 @@ public class Database implements DataHandler {
             boolean inTempDir = readOnly;
             String name = databaseName;
             if (!persistent) {
-                name = FileSystem.MEMORY_PREFIX + name;
+                name = FileSystem.PREFIX_MEMORY + name;
             }
             return FileUtils.createTempFile(name, Constants.SUFFIX_TEMP_FILE, true, inTempDir);
         } catch (IOException e) {

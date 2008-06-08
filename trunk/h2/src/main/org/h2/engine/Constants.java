@@ -190,6 +190,12 @@ public class Constants {
      * there is no administrator user registered.
      */
     public static final String DBA_NAME = "DBA";
+    
+    /**
+     * The number of milliseconds after which to check for a deadlock if locking
+     * is not successful.
+     */
+    public static final int DEADLOCK_CHECK = 500;
 
     /**
      * The default value of the ALLOW_LITERALS setting
@@ -305,7 +311,7 @@ public class Constants {
      * For testing, the lock timeout is smaller than for interactive use cases.
      * This value could be increased to about 5 or 10 seconds.
      */ 
-    public static final int INITIAL_LOCK_TIMEOUT = 1000;
+    public static final int INITIAL_LOCK_TIMEOUT = 2000;
 
     /**
      * The block size for I/O operations.

@@ -82,7 +82,7 @@ public class BtreeNode extends BtreePage {
             SearchRow row = getData(i);
             int comp = index.compareRows(row, newRow);
             if (comp == 0) {
-                if (index.indexType.isUnique()) {
+                if (index.indexType.getUnique()) {
                     if (!index.isNull(newRow)) {
                         throw index.getDuplicateKeyException();
                     }

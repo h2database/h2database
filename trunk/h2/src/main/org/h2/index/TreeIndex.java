@@ -52,7 +52,7 @@ public class TreeIndex extends BaseIndex {
             Row r = n.row;
             int compare = compareRows(row, r);
             if (compare == 0) {
-                if (indexType.isUnique()) {
+                if (indexType.getUnique()) {
                     if (!isNull(row)) {
                         throw getDuplicateKeyException();
                     }

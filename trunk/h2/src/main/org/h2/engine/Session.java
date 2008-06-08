@@ -87,6 +87,7 @@ public class Session implements SessionInterface {
     private int queryTimeout = SysProperties.getMaxQueryTimeout();
     private int lastUncommittedDelete;
     private boolean commitOrRollbackDisabled;
+    private Table waitForLock;
 
     public Session() {
         // nothing to do
@@ -518,11 +519,11 @@ public class Session implements SessionInterface {
             ObjectArray list = new ObjectArray(localTempTables.values());
             for (int i = 0; i < list.size(); i++) {
                 Table table = (Table) list.get(i);
-                if (closeSession || table.isOnCommitDrop()) {
+                if (closeSession || table.getOnCommitDrop()) {
                     table.setModified();
                     localTempTables.remove(table.getName());
                     table.removeChildrenAndResources(this);
-                } else if (table.isOnCommitTruncate()) {
+                } else if (table.getOnCommitTruncate()) {
                     table.truncate(this);
                 }
             }
@@ -847,6 +848,10 @@ public class Session implements SessionInterface {
     public int hashCode() {
         return serialId;
     }
+    
+    public String toString() {
+        return "#" + serialId + " (user: " + user.getName() + ")";
+    }
 
     public void setUndoLogEnabled(boolean b) {
         this.undoLogEnabled = b;
@@ -942,6 +947,14 @@ public class Session implements SessionInterface {
 
     public int getQueryTimeout() {
         return queryTimeout;
+    }
+
+    public void setWaitForLock(Table table) {
+        this.waitForLock = table;
+    }
+    
+    public Table getWaitForLock() {
+        return waitForLock;
     }
 
 }

@@ -43,11 +43,34 @@ import org.h2.value.ValueNull;
  */
 public abstract class Table extends SchemaObjectBase {
 
-    public static final int TYPE_CACHED = 0, TYPE_MEMORY = 1;
+    /**
+     * The table type that means this table is a regular persistent table.
+     */
+    public static final int TYPE_CACHED = 0;
+    
+    /**
+     * The table type that means this table is a regular persistent table.
+     */
+    public static final int TYPE_MEMORY = 1;
 
+    /**
+     * The table type name for linked tables.
+     */
     public static final String TABLE_LINK = "TABLE LINK";
+    
+    /**
+     * The table type name for system tables.
+     */
     public static final String SYSTEM_TABLE = "SYSTEM TABLE";
+    
+    /**
+     * The table type name for regular data tables.
+     */
     public static final String TABLE = "TABLE";
+    
+    /**
+     * The table type name for views.
+     */
     public static final String VIEW = "VIEW";
 
     /**
@@ -215,6 +238,11 @@ public abstract class Table extends SchemaObjectBase {
         throw Message.getInternalError();
     }
 
+    /**
+     * Add all objects that this table depends on to the hash set.
+     * 
+     * @param dependencies the current set of dependencies
+     */
     public void addDependencies(HashSet dependencies) {
         if (sequences != null) {
             for (int i = 0; i < sequences.size(); i++) {
@@ -279,6 +307,12 @@ public abstract class Table extends SchemaObjectBase {
         memoryPerRow = memory;
     }
 
+    /**
+     * Rename a column of this table.
+     * 
+     * @param column the column to rename
+     * @param newName the new column name
+     */
     public void renameColumn(Column column, String newName) throws SQLException {
         for (int i = 0; i < columns.length; i++) {
             Column c = columns[i];
@@ -300,10 +334,18 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @return true if it is
      */
-    boolean isLockExclusive(Session session) {
+    boolean isLockedExclusivelyBy(Session session) {
         return false;
     }
 
+    /**
+     * Update a list of rows in this table.
+     * 
+     * @param prepared the prepared statement
+     * @param session the session
+     * @param rows a list of row pairs of the form old row, new row, old row,
+     *            new row,...
+     */
     public void updateRows(Prepared prepared, Session session, RowList rows)
             throws SQLException {
         // remove the old rows
@@ -359,6 +401,13 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
+    /**
+     * Check that this column is not referenced by a referential constraint or
+     * multi-column index.
+     * 
+     * @param col the column
+     * @throws SQLException if the column is referenced
+     */
     public void checkColumnIsNotReferenced(Column col) throws SQLException {
         for (int i = 0; constraints != null && i < constraints.size(); i++) {
             Constraint constraint = (Constraint) constraints.get(i);
@@ -385,6 +434,12 @@ public abstract class Table extends SchemaObjectBase {
         return new Row(new Value[columns.length], memoryPerRow);
     }
 
+    /**
+     * Get a new simple row object.
+     * 
+     * @param singleColumn if only one value need to be stored
+     * @return the simple row object
+     */
     public SearchRow getTemplateSimpleRow(boolean singleColumn) {
         if (singleColumn) {
             return new SimpleRowValue(columns.length);
@@ -412,10 +467,23 @@ public abstract class Table extends SchemaObjectBase {
         return DbObject.TABLE_OR_VIEW;
     }
 
+    /**
+     * Get the column at the given index.
+     * 
+     * @param index the column index (0, 1,...)
+     * @return the column
+     */
     public Column getColumn(int index) {
         return columns[index];
     }
 
+    /**
+     * Get the column with the given name.
+     * 
+     * @param columnName the column name
+     * @return the column
+     * @throws SQLException if the column was not found
+     */
     public Column getColumn(String columnName) throws SQLException {
         Column column = (Column) columnMap.get(columnName);
         if (column == null) {
@@ -447,11 +515,16 @@ public abstract class Table extends SchemaObjectBase {
         return item;
     }
 
+    /**
+     * Get the primary key index if there is one, or null if there is none.
+     * 
+     * @return the primary key index or null
+     */
     public Index findPrimaryKey() {
         ObjectArray indexes = getIndexes();
         for (int i = 0; indexes != null && i < indexes.size(); i++) {
             Index idx = (Index) indexes.get(i);
-            if (idx.getIndexType().isPrimaryKey()) {
+            if (idx.getIndexType().getPrimaryKey()) {
                 return idx;
             }
         }
@@ -466,6 +539,14 @@ public abstract class Table extends SchemaObjectBase {
         throw Message.getSQLException(ErrorCode.INDEX_NOT_FOUND_1, Constants.PREFIX_PRIMARY_KEY);
     }
 
+    /**
+     * Validate all values in this row, convert the values if required, and
+     * update the sequence values if required. This call will also set the
+     * default values if required and set the computed column if there are any.
+     * 
+     * @param session the session
+     * @param row the row
+     */
     public void validateConvertUpdateSequence(Session session, Row row) throws SQLException {
         for (int i = 0; i < columns.length; i++) {
             Value value = row.getValue(i);
@@ -482,7 +563,7 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    public boolean isPersistent() {
+    public boolean getPersistent() {
         return persistent;
     }
 
@@ -495,11 +576,16 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
+    /**
+     * Remove the given index from the list.
+     * 
+     * @param index the index to remove
+     */
     public void removeIndex(Index index) {
         ObjectArray indexes = getIndexes();
         if (indexes != null) {
             remove(indexes, index);
-            if (index.getIndexType().isPrimaryKey()) {
+            if (index.getIndexType().getPrimaryKey()) {
                 Column[] cols = index.getColumns();
                 for (int i = 0; i < cols.length; i++) {
                     cols[i].setPrimaryKey(false);
@@ -508,10 +594,20 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
+    /**
+     * Remove the given view from the list.
+     * 
+     * @param view the view to remove
+     */
     void removeView(TableView view) {
         remove(views, view);
     }
 
+    /**
+     * Remove the given constraint from the list.
+     * 
+     * @param constraint the constraint to remove
+     */
     public void removeConstraint(Constraint constraint) {
         remove(constraints, constraint);
     }
@@ -526,14 +622,29 @@ public abstract class Table extends SchemaObjectBase {
         remove(sequences, sequence);
     }
 
+    /**
+     * Remove the given trigger from the list.
+     * 
+     * @param trigger the trigger to remove
+     */
     public void removeTrigger(TriggerObject trigger) {
         remove(triggers, trigger);
     }
-
+    
+    /**
+     * Add a view to this table.
+     * 
+     * @param view the view to add
+     */
     public void addView(TableView view) {
         views = add(views, view);
     }
 
+    /**
+     * Add a constraint to the table.
+     * 
+     * @param constraint the constraint to add
+     */
     public void addConstraint(Constraint constraint) {
         if (constraints == null || constraints.indexOf(constraint) < 0) {
             constraints = add(constraints, constraint);
@@ -544,10 +655,20 @@ public abstract class Table extends SchemaObjectBase {
         return constraints;
     }
 
+    /**
+     * Add a sequence to this table.
+     * 
+     * @param sequence the sequence to add
+     */
     public void addSequence(Sequence sequence) {
         sequences = add(sequences, sequence);
     }
 
+    /**
+     * Add a trigger to this table.
+     * 
+     * @param trigger the trigger to add
+     */
     public void addTrigger(TriggerObject trigger) {
         triggers = add(triggers, trigger);
     }
@@ -567,12 +688,22 @@ public abstract class Table extends SchemaObjectBase {
         return list;
     }
 
+    /**
+     * Fire the before update triggers for this table.
+     * 
+     * @param session the session
+     */
     public void fireBefore(Session session) throws SQLException {
         // TODO trigger: for sql server compatibility, 
         // should send list of rows, not just 'the event'
         fire(session, true);
     }
 
+    /**
+     * Fire the after update triggers for this table.
+     * 
+     * @param session the session
+     */
     public void fireAfter(Session session) throws SQLException {
         fire(session, false);
     }
@@ -586,10 +717,23 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
+    /**
+     * Check if row based triggers or constraints are defined.
+     * In this case the fire after and before row methods need to be called.
+     *  
+     *  @return if there are any triggers or rows defined
+     */
     public boolean fireRow() {
         return (constraints != null && constraints.size() > 0) || (triggers != null && triggers.size() > 0);
     }
 
+    /**
+     * Fire all triggers that need to be called before a row is updated.
+     *  
+     *  @param session the session
+     *  @param oldRow the old data or null for an insert
+     *  @param newRow the new data or null for a delete
+     */
     public void fireBeforeRow(Session session, Row oldRow, Row newRow) throws SQLException {
         fireRow(session, oldRow, newRow, true);
         fireConstraints(session, oldRow, newRow, true);
@@ -606,6 +750,13 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
+    /**
+     * Fire all triggers that need to be called after a row is updated.
+     *  
+     *  @param session the session
+     *  @param oldRow the old data or null for an insert
+     *  @param newRow the new data or null for a delete
+     */
     public void fireAfterRow(Session session, Row oldRow, Row newRow) throws SQLException {
         fireRow(session, oldRow, newRow, false);
         fireConstraints(session, oldRow, newRow, false);
@@ -624,10 +775,22 @@ public abstract class Table extends SchemaObjectBase {
         return false;
     }
 
+    /**
+     * Check if this table can be truncated.
+     * 
+     * @return true if it can
+     */
     public boolean canTruncate() {
         return false;
     }
 
+    /**
+     * Enable or disable foreign key constraint checking for this table.
+     * 
+     * @param session the session
+     * @param enabled true if checking should be enabled
+     * @param checkExisting true if existing rows must be checked during this call
+     */
     public void setCheckForeignKeyConstraints(Session session, boolean enabled, boolean checkExisting)
             throws SQLException {
         if (enabled && checkExisting) {
@@ -665,7 +828,7 @@ public abstract class Table extends SchemaObjectBase {
         return null;
     }
 
-    public boolean isOnCommitDrop() {
+    public boolean getOnCommitDrop() {
         return onCommitDrop;
     }
 
@@ -673,7 +836,7 @@ public abstract class Table extends SchemaObjectBase {
         this.onCommitDrop = onCommitDrop;
     }
 
-    public boolean isOnCommitTruncate() {
+    public boolean getOnCommitTruncate() {
         return onCommitTruncate;
     }
 
@@ -681,7 +844,7 @@ public abstract class Table extends SchemaObjectBase {
         this.onCommitTruncate = onCommitTruncate;
     }
 
-    boolean isClustered() {
+    boolean getClustered() {
         return false;
     }
 
@@ -705,6 +868,21 @@ public abstract class Table extends SchemaObjectBase {
         if (!stillNeeded) {
             database.removeSchemaObject(session, index);
         }
+    }
+
+    /**
+     * Check if a deadlock occured. This method is called recursively. There is
+     * a circle if the session to be tested for is the same as the originating
+     * session (the 'clash session'). In this case the method must return an
+     * empty object array. Once a deadlock has been detected, the methods must
+     * add the session to the list.
+     * 
+     * @param session the session to be tested for
+     * @param clash the originating session, and null when starting verification
+     * @return an object array with the sessions involved in the deadlock
+     */
+    public ObjectArray checkDeadlock(Session session, Session clash) {
+        return null;
     }
 
 }

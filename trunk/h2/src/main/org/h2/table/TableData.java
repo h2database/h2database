@@ -9,6 +9,8 @@ package org.h2.table;
 import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -82,6 +84,13 @@ public class TableData extends Table implements RecordReader {
         }
     }
 
+    /**
+     * Read the given row.
+     * 
+     * @param session the session
+     * @param key the position of the row in the file
+     * @return the row
+     */
     public Row getRow(Session session, int key) throws SQLException {
         return scanIndex.getRow(session, key);
     }
@@ -133,7 +142,7 @@ public class TableData extends Table implements RecordReader {
     public Index getUniqueIndex() {
         for (int i = 0; i < indexes.size(); i++) {
             Index idx = (Index) indexes.get(i);
-            if (idx.getIndexType().isUnique()) {
+            if (idx.getIndexType().getUnique()) {
                 return idx;
             }
         }
@@ -146,7 +155,7 @@ public class TableData extends Table implements RecordReader {
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             int headPos, String indexComment) throws SQLException {
-        if (indexType.isPrimaryKey()) {
+        if (indexType.getPrimaryKey()) {
             for (int i = 0; i < cols.length; i++) {
                 Column column = cols[i].column;
                 if (column.getNullable()) {
@@ -156,10 +165,10 @@ public class TableData extends Table implements RecordReader {
             }
         }
         Index index;
-        if (isPersistent() && indexType.isPersistent()) {
+        if (getPersistent() && indexType.getPersistent()) {
             index = new BtreeIndex(session, this, indexId, indexName, cols, indexType, headPos);
         } else {
-            if (indexType.isHash()) {
+            if (indexType.getHash()) {
                 index = new HashIndex(this, indexId, indexName, cols, indexType);
             } else {
                 index = new TreeIndex(this, indexId, indexName, cols, indexType);
@@ -214,7 +223,7 @@ public class TableData extends Table implements RecordReader {
             // Need to update, because maybe the index is rebuilt at startup,
             // and so the head pos may have changed, which needs to be stored now.
             // addSchemaObject doesn't update the sys table at startup
-            if (index.getIndexType().isPersistent() && !database.getReadOnly()
+            if (index.getIndexType().getPersistent() && !database.getReadOnly()
                     && !database.getLog().containsInDoubtTransactions()) {
                 // can not save anything in the log file if it contains in-doubt transactions
                 database.update(session, index);
@@ -319,7 +328,7 @@ public class TableData extends Table implements RecordReader {
         rowCount = 0;
     }
 
-    public boolean isLockExclusive(Session session) {
+    boolean isLockedExclusivelyBy(Session session) {
         return lockExclusive == session;
     }
 
@@ -328,7 +337,6 @@ public class TableData extends Table implements RecordReader {
         if (lockMode == Constants.LOCK_MODE_OFF) {
             return;
         }
-        long max = System.currentTimeMillis() + session.getLockTimeout();
         if (!force && database.isMultiVersion()) {
             // MVCC: update, delete, and insert use a shared lock
             // select doesn't lock
@@ -339,61 +347,153 @@ public class TableData extends Table implements RecordReader {
             }
         }
         synchronized (database) {
-            while (true) {
-                if (lockExclusive == session) {
-                    return;
-                }
-                if (exclusive) {
-                    if (lockExclusive == null) {
-                        if (lockShared.isEmpty()) {
-                            traceLock(session, exclusive, "added for");
-                            session.addLock(this);
-                            lockExclusive = session;
-                            return;
-                        } else if (lockShared.size() == 1 && lockShared.contains(session)) {
-                            traceLock(session, exclusive, "add (upgraded) for ");
-                            lockExclusive = session;
-                            return;
-                        }
-                    }
-                } else {
-                    if (lockExclusive == null) {
-                        if (lockMode == Constants.LOCK_MODE_READ_COMMITTED && !database.getMultiThreaded() && !database.isMultiVersion()) {
-                            // READ_COMMITTED read locks are acquired but they
-                            // are released immediately
-                            // when allowing only one thread, no read locks are
-                            // required
-                            return;
-                        } else if (!lockShared.contains(session)) {
-                            traceLock(session, exclusive, "ok");
-                            session.addLock(this);
-                            lockShared.add(session);
-                        }
+            try {
+                doLock(session, lockMode, exclusive);
+            } finally {
+                session.setWaitForLock(null);
+            }
+        }
+    }
+    
+    private void doLock(Session session, int lockMode, boolean exclusive) throws SQLException {
+        long max = System.currentTimeMillis() + session.getLockTimeout();
+        boolean checkDeadlock = false;
+        while (true) {
+            if (lockExclusive == session) {
+                return;
+            }
+            if (exclusive) {
+                if (lockExclusive == null) {
+                    if (lockShared.isEmpty()) {
+                        traceLock(session, exclusive, "added for");
+                        session.addLock(this);
+                        lockExclusive = session;
+                        return;
+                    } else if (lockShared.size() == 1 && lockShared.contains(session)) {
+                        traceLock(session, exclusive, "add (upgraded) for ");
+                        lockExclusive = session;
                         return;
                     }
                 }
-                long now = System.currentTimeMillis();
-                if (now >= max) {
-                    traceLock(session, exclusive, "timeout after " + session.getLockTimeout());
-                    throw Message.getSQLException(ErrorCode.LOCK_TIMEOUT_1, getName());
-                }
-                try {
-                    traceLock(session, exclusive, "waiting for");
-                    if (database.getLockMode() == Constants.LOCK_MODE_TABLE_GC) {
-                        for (int i = 0; i < 20; i++) {
-                            long free = Runtime.getRuntime().freeMemory();
-                            System.gc();
-                            long free2 = Runtime.getRuntime().freeMemory();
-                            if (free == free2) {
-                                break;
-                            }
-                        }
+            } else {
+                if (lockExclusive == null) {
+                    if (lockMode == Constants.LOCK_MODE_READ_COMMITTED && !database.getMultiThreaded() && !database.isMultiVersion()) {
+                        // READ_COMMITTED read locks are acquired but they
+                        // are released immediately
+                        // when allowing only one thread, no read locks are
+                        // required
+                        return;
+                    } else if (!lockShared.contains(session)) {
+                        traceLock(session, exclusive, "ok");
+                        session.addLock(this);
+                        lockShared.add(session);
                     }
-                    database.wait(max - now);
-                } catch (InterruptedException e) {
-                    // ignore
+                    return;
                 }
             }
+            session.setWaitForLock(this);
+            if (checkDeadlock) {
+                ObjectArray sessions = checkDeadlock(session, null);
+                if (sessions != null) {
+                    throw Message.getSQLException(ErrorCode.DEADLOCK_1, getDeadlockDetails(sessions));
+                }
+            } else {
+                // check for deadlocks from now on
+                checkDeadlock = true;
+            }
+            long now = System.currentTimeMillis();
+            if (now >= max) {
+                traceLock(session, exclusive, "timeout after " + session.getLockTimeout());
+                throw Message.getSQLException(ErrorCode.LOCK_TIMEOUT_1, getName());
+            }
+            try {
+                traceLock(session, exclusive, "waiting for");
+                if (database.getLockMode() == Constants.LOCK_MODE_TABLE_GC) {
+                    for (int i = 0; i < 20; i++) {
+                        long free = Runtime.getRuntime().freeMemory();
+                        System.gc();
+                        long free2 = Runtime.getRuntime().freeMemory();
+                        if (free == free2) {
+                            break;
+                        }
+                    }
+                }
+                // don't wait too long so that deadlocks are detected early
+                long sleep = Math.min(Constants.DEADLOCK_CHECK, (max - now) / 4);
+                if (sleep == 0) {
+                    sleep = 1;
+                }
+                database.wait(sleep);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+    }
+    
+    private String getDeadlockDetails(ObjectArray sessions) {
+        StringBuffer buff = new StringBuffer();
+        for (int i = 0; i < sessions.size(); i++) {
+            buff.append('\n');
+            Session s = (Session) sessions.get(i);
+            Table lock = s.getWaitForLock();
+            buff.append("Session ").append(s).append(" is waiting to lock ").append(lock);
+            buff.append(" while locking ");
+            Table[] locks = s.getLocks();
+            for (int j = 0; j < locks.length; j++) {
+                if (j > 0) {
+                    buff.append(", ");
+                }
+                Table t = locks[j];
+                buff.append(t);
+                if (t instanceof TableData) {
+                    if (((TableData) t).lockExclusive == s) {
+                        buff.append(" (exclusive)");
+                    } else {
+                        buff.append(" (shared)");
+                    }
+                }
+            }
+            buff.append('.');
+        }
+        return buff.toString();
+    }
+    
+    public ObjectArray checkDeadlock(Session session, Session clash) {
+        // only one deadlock check at any given time
+        synchronized (TableData.class) {
+            if (clash == null) {
+                // verification is started
+                clash = session;
+            } else if (clash == session) {
+                // we found a circle
+                return new ObjectArray();
+            }
+            ObjectArray error = null;
+            for (Iterator it = lockShared.iterator(); it.hasNext();) {
+                Session s = (Session) it.next();
+                if (s == session) {
+                    // it doesn't matter if we have locked the object already
+                    continue;
+                }
+                Table t = s.getWaitForLock();
+                if (t != null) {
+                    error = t.checkDeadlock(s, clash);
+                    if (error != null) {
+                        error.add(session);
+                        break;
+                    }
+                }
+            }
+            if (error == null && lockExclusive != null) {
+                Table t = lockExclusive.getWaitForLock();
+                if (t != null) {
+                    error = t.checkDeadlock(lockExclusive, clash);
+                    if (error != null) {
+                        error.add(session);
+                    }
+                }
+            }
+            return error;
         }
     }
 
@@ -417,7 +517,7 @@ public class TableData extends Table implements RecordReader {
                 buff.append("LOCAL ");
             }
             buff.append("TEMPORARY ");
-        } else if (isPersistent()) {
+        } else if (getPersistent()) {
             buff.append("CACHED ");
         } else {
             buff.append("MEMORY ");
@@ -473,6 +573,11 @@ public class TableData extends Table implements RecordReader {
         return row;
     }
 
+    /**
+     * Set the row count of this table.
+     * 
+     * @param count the row count
+     */
     public void setRowCount(int count) {
         this.rowCount = count;
     }
@@ -501,6 +606,10 @@ public class TableData extends Table implements RecordReader {
         lockExclusive = null;
         lockShared = null;
         invalidate();
+    }
+    
+    public String toString() {
+        return getSQL();
     }
 
     public void checkRename() {
@@ -542,7 +651,7 @@ public class TableData extends Table implements RecordReader {
         return lastModificationId;
     }
 
-    public boolean isClustered() {
+    boolean getClustered() {
         return clustered;
     }
 

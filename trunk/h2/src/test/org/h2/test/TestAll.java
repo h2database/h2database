@@ -19,6 +19,7 @@ import org.h2.test.db.TestCheckpoint;
 import org.h2.test.db.TestCluster;
 import org.h2.test.db.TestCompatibility;
 import org.h2.test.db.TestCsv;
+import org.h2.test.db.TestDeadlock;
 import org.h2.test.db.TestEncryptedDb;
 import org.h2.test.db.TestExclusive;
 import org.h2.test.db.TestFullText;
@@ -168,29 +169,9 @@ java org.h2.test.TestAll timer
 
 /*
 
-CREATE ALIAS IF NOT EXISTS FTL_INIT FOR "org.h2.fulltext.FullTextLucene.init";
-CALL FTL_INIT();
-DROP TABLE IF EXISTS TEST;
-CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);
-INSERT INTO TEST VALUES(1, 'Hello World');
-CALL FTL_CREATE_INDEX('PUBLIC', 'TEST', NULL);
-SELECT * FROM FTL_SEARCH('Hello', 0, 0);
-SELECT * FROM FTL_SEARCH('Hallo', 0, 0);
-INSERT INTO TEST VALUES(2, 'Hallo Welt');
-SELECT * FROM FTL_SEARCH('Hello', 0, 0);
-SELECT * FROM FTL_SEARCH('Hallo', 0, 0);
-CALL FTL_REINDEX();
-SELECT * FROM FTL_SEARCH('Hello', 0, 0);
-SELECT * FROM FTL_SEARCH('Hallo', 0, 0);
-INSERT INTO TEST VALUES(3, 'Hello World');
-INSERT INTO TEST VALUES(4, 'Hello World');
-INSERT INTO TEST VALUES(5, 'Hello World');
-SELECT * FROM FTL_SEARCH('World', 0, 0);
-SELECT * FROM FTL_SEARCH('World', 1, 0);
-
 C:\download\Data Concurrency and Consistency.pdf
-Console says English but is German
-detect deadlock alarm
+
+detect deadlock: alarm
 
 not tested:
 PreparedProcedure PREPARE <name>(column,...) AS ...
@@ -472,6 +453,7 @@ Roadmap:
         new TestCluster().runTest(this);
         new TestCompatibility().runTest(this);
         new TestCsv().runTest(this);
+        new TestDeadlock().runTest(this);
         new TestEncryptedDb().runTest(this);
         new TestExclusive().runTest(this);
         new TestFullText().runTest(this);

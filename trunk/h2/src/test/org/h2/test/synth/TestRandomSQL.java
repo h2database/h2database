@@ -81,7 +81,7 @@ public class TestRandomSQL extends TestBase {
 
     private void deleteDb() throws SQLException {
         String name = getDatabaseName();
-        if (name.startsWith(FileSystem.MEMORY_PREFIX)) {
+        if (name.startsWith(FileSystem.PREFIX_MEMORY)) {
             DeleteDbFiles.execute("memFS:/", name, true);
         } else {
             DeleteDbFiles.execute(baseDir, name, true);

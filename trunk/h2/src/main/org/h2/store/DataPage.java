@@ -160,7 +160,7 @@ public abstract class DataPage {
     public abstract void fill(int len);
 
     /**
-     * Create a new data page for the given hander. The
+     * Create a new data page for the given handler. The
      * handler will decide what type of buffer is created.
      * 
      * @param handler the data handler
@@ -175,7 +175,7 @@ public abstract class DataPage {
     }
 
     /**
-     * Create a new data page using the given data for the given hander. The
+     * Create a new data page using the given data for the given handler. The
      * handler will decide what type of buffer is created.
      * 
      * @param handler the data handler
@@ -215,14 +215,28 @@ public abstract class DataPage {
         return pos;
     }
 
+    /**
+     * Get the byte array used for this page.
+     * 
+     * @return the byte array
+     */
     public byte[] getBytes() {
         return data;
     }
 
+    /**
+     * Set the position to 0.
+     */
     public void reset() {
         pos = 0;
     }
 
+    /**
+     * Append the contents of the given data page to this page.
+     * The filler is not appended.
+     * 
+     * @param page the page that will be appended
+     */
     public void writeDataPageNoSize(DataPage page) {
         checkCapacity(page.pos);
         // don't write filler
@@ -231,6 +245,12 @@ public abstract class DataPage {
         pos += len;
     }
 
+    /**
+     * Read a data page from this page. The data from the current position to
+     * the end of the page is copied.
+     * 
+     * @return the new page
+     */
     public DataPage readDataPageNoSize() {
         int len = data.length - pos;
         DataPage page = DataPage.create(handler, len);
@@ -239,6 +259,13 @@ public abstract class DataPage {
         return page;
     }
 
+    /**
+     * Append a number of bytes to this data page.
+     * 
+     * @param buff the data
+     * @param off the offset in the data
+     * @param len the length in bytes
+     */
     public void write(byte[] buff, int off, int len) {
         checkCapacity(len);
         System.arraycopy(buff, off, data, pos, len);
@@ -258,23 +285,48 @@ public abstract class DataPage {
         pos += len;
     }
 
+    /**
+     * Append one single byte.
+     * 
+     * @param x the value
+     */
     public void writeByte(byte x) {
         data[pos++] = x;
     }
 
+    /**
+     * Read one single byte.
+     * 
+     * @return the value
+     */
     public int readByte() {
         return data[pos++];
     }
 
+    /**
+     * Read a long value. This method reads two int values and combines them.
+     * 
+     * @return the long value
+     */
     public long readLong() {
         return ((long) (readInt()) << 32) + (readInt() & 0xffffffffL);
     }
 
+    /**
+     * Append a long value. This method writes two int values.
+     * 
+     * @param x the value
+     */
     public void writeLong(long x) {
         writeInt((int) (x >>> 32));
         writeInt((int) x);
     }
-
+    
+    /**
+     * Append a value.
+     * 
+     * @param v the value
+     */
     public void writeValue(Value v) throws SQLException {
         if (SysProperties.CHECK) {
             checkCapacity(8);
@@ -454,6 +506,11 @@ public abstract class DataPage {
         }
     }
 
+    /**
+     * Read a value.
+     * 
+     * @return the value
+     */
     public Value readValue() throws SQLException {
         int dataType = data[pos++];
         if (dataType == '-') {
@@ -555,6 +612,11 @@ public abstract class DataPage {
         fill(MathUtils.roundUp(pos + 2, Constants.FILE_BLOCK_SIZE));
     }
 
+    /**
+     * Set the current read / write position.
+     * 
+     * @param pos the new position
+     */
     public void setPos(int pos) {
         this.pos = pos;
     }

@@ -199,7 +199,11 @@ public abstract class Command implements CommandInterface {
             } catch (SQLException e) {
                 database.exceptionThrown(e, sql);
                 database.checkPowerOff();
-                session.rollbackTo(rollback);
+                if (e.getErrorCode() == ErrorCode.DEADLOCK_1) {
+                    session.rollback();
+                } else {
+                    session.rollbackTo(rollback);
+                }
                 throw e;
             } finally {
                 stop();

@@ -701,7 +701,7 @@ public class DiskFile implements CacheWriter {
      * Set the owner of a page.
      * 
      * @param page the page id
-     * @param the storage id of this page
+     * @param storageId the storage id of this page
      */
     public void setPageOwner(int page, int storageId) throws SQLException {
         int old = pageOwners.get(page);

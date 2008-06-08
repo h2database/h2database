@@ -92,6 +92,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     private String ifModifiedSince;
     private boolean cache;
     private boolean stop;
+    private String headerLanguage;
 
     // TODO web: support online data editing like http://numsum.com/
 
@@ -353,29 +354,29 @@ class WebThread extends Thread implements DatabaseEventListener {
                 len = Integer.parseInt(line.substring(line.indexOf(':') + 1).trim());
                 trace("len=" + len);
             } else if (lower.startsWith("accept-language")) {
-                if (session != null) {
-                    Locale locale = session.locale;
-                    if (locale == null) {
-                        String languages = line.substring(line.indexOf(':') + 1).trim();
-                        StringTokenizer tokenizer = new StringTokenizer(languages, ",;");
-                        while (tokenizer.hasMoreTokens()) {
-                            String token = tokenizer.nextToken();
-                            if (!token.startsWith("q=")) {
-                                if (server.supportsLanguage(token)) {
-                                    int dash = token.indexOf('-');
-                                    if (dash >= 0) {
-                                        String language = token.substring(0, dash);
-                                        String country = token.substring(dash + 1);
-                                        locale = new Locale(language, country);
-                                    } else {
-                                        locale = new Locale(token, "");
-                                    }
-                                    session.locale = locale;
-                                    String language = locale.getLanguage();
-                                    session.put("language", language);
-                                    server.readTranslations(session, language);
-                                    break;
+                Locale locale = session == null ? null : session.locale;
+                if (locale == null) {
+                    String languages = line.substring(line.indexOf(':') + 1).trim();
+                    StringTokenizer tokenizer = new StringTokenizer(languages, ",;");
+                    while (tokenizer.hasMoreTokens()) {
+                        String token = tokenizer.nextToken();
+                        if (!token.startsWith("q=")) {
+                            if (server.supportsLanguage(token)) {
+                                int dash = token.indexOf('-');
+                                if (dash >= 0) {
+                                    String language = token.substring(0, dash);
+                                    String country = token.substring(dash + 1);
+                                    locale = new Locale(language, country);
+                                } else {
+                                    locale = new Locale(token, "");
                                 }
+                                headerLanguage = locale.getLanguage();
+                                if (session != null) {
+                                    session.locale = locale;
+                                    session.put("language", headerLanguage);
+                                    server.readTranslations(session, headerLanguage);
+                                }
+                                break;
                             }
                         }
                     }
@@ -600,6 +601,11 @@ class WebThread extends Thread implements DatabaseEventListener {
     private String index() {
         String[][] languageArray = server.getLanguageArray();
         String language = (String) attributes.get("language");
+        if (language == null) {
+            // if the language is not yet known 
+            // use the last header
+            language = headerLanguage;
+        }
         Locale locale = session.locale;
         if (language != null) {
             if (locale == null || !StringUtils.toLowerEnglish(locale.getLanguage()).equals(language)) {

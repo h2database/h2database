@@ -180,7 +180,7 @@ public class WebServer implements Service {
         session.put("language", DEFAULT_LANGUAGE);
         sessions.put(newId, session);
         // always read the english translation, 
-        // to that untranslated text appears at least in english
+        // so that untranslated text appears at least in english
         readTranslations(session, DEFAULT_LANGUAGE);
         return getSession(newId);
     }

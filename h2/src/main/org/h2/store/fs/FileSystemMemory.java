@@ -204,7 +204,7 @@ public class FileSystemMemory extends FileSystem {
         synchronized (MEMORY_FILES) {
             FileObjectMemory m = (FileObjectMemory) MEMORY_FILES.get(fileName);
             if (m == null) {
-                boolean compress = fileName.startsWith(FileSystem.MEMORY_PREFIX_LZF);
+                boolean compress = fileName.startsWith(FileSystem.PREFIX_MEMORY_LZF);
                 m = new FileObjectMemory(fileName, compress);
                 MEMORY_FILES.put(fileName, m);
             }

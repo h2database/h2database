@@ -72,7 +72,7 @@ public class ScanIndex extends BaseIndex {
         } else {
             storage.truncate(session);
         }
-        if (tableData.getContainsLargeObject() && tableData.isPersistent()) {
+        if (tableData.getContainsLargeObject() && tableData.getPersistent()) {
             ValueLob.removeAllForTable(database, table.getId());
         }
         tableData.setRowCount(0);

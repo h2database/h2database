@@ -16,10 +16,25 @@ import java.sql.SQLException;
  */
 public abstract class FileSystem {
 
-    public static final String MEMORY_PREFIX = "memFS:";
-    public static final String MEMORY_PREFIX_LZF = "memLZF:";
-    public static final String DB_PREFIX = "jdbc:";
-    public static final String ZIP_PREFIX = "zip:";
+    /**
+     * The prefix used for an in-memory file system.
+     */
+    public static final String PREFIX_MEMORY = "memFS:";
+    
+    /**
+     * The prefix used for a compressed in-memory file system.
+     */
+    public static final String PREFIX_MEMORY_LZF = "memLZF:";
+    
+    /**
+     * The prefix used for a database based file system.
+     */
+    public static final String PREFIX_DB = "jdbc:";
+    
+    /**
+     * The prefix used for a read-only zip-file based file system.
+     */
+    public static final String PREFIX_ZIP = "zip:";
 
     /**
      * Get the file system object.
@@ -30,16 +45,16 @@ public abstract class FileSystem {
     public static FileSystem getInstance(String fileName) {
         if (isInMemory(fileName)) {
             return FileSystemMemory.getInstance();
-        } else if (fileName.startsWith(DB_PREFIX)) {
+        } else if (fileName.startsWith(PREFIX_DB)) {
             return FileSystemDatabase.getInstance(fileName);
-        } else if (fileName.startsWith(ZIP_PREFIX)) {
+        } else if (fileName.startsWith(PREFIX_ZIP)) {
             return FileSystemZip.getInstance();
         }
         return FileSystemDisk.getInstance();
     }
 
     private static boolean isInMemory(String fileName) {
-        return fileName != null && (fileName.startsWith(MEMORY_PREFIX) || fileName.startsWith(MEMORY_PREFIX_LZF));
+        return fileName != null && (fileName.startsWith(PREFIX_MEMORY) || fileName.startsWith(PREFIX_MEMORY_LZF));
     }
 
     /**
@@ -247,4 +262,14 @@ public abstract class FileSystem {
      * @return the input stream
      */
     public abstract InputStream openFileInputStream(String fileName) throws IOException;
+
+    /**
+     * Close the file system. This call normally does not have an effect, except
+     * if the file system is kept in a database, in which case the connection is
+     * closed.
+     */
+    public void close() {
+        // do nothing
+    }
+    
 }

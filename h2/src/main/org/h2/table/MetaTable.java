@@ -574,7 +574,7 @@ public class MetaTable extends Table {
                         storageType = "LOCAL TEMPORARY";
                     }
                 } else {
-                    storageType = table.isPersistent() ? "CACHED" : "MEMORY";
+                    storageType = table.getPersistent() ? "CACHED" : "MEMORY";
                 }
                 add(rows, new String[] {
                         // TABLE_CATALOG
@@ -683,7 +683,7 @@ public class MetaTable extends Table {
                                 // TABLE_NAME
                                 tableName, 
                                 // NON_UNIQUE
-                                index.getIndexType().isUnique() ? "FALSE" : "TRUE", 
+                                index.getIndexType().getUnique() ? "FALSE" : "TRUE", 
                                         // INDEX_NAME
                                 identifier(index.getName()), 
                                 // ORDINAL_POSITION
@@ -693,11 +693,11 @@ public class MetaTable extends Table {
                                 // CARDINALITY
                                 "0",
                                 // PRIMARY_KEY
-                                index.getIndexType().isPrimaryKey() ? "TRUE" : "FALSE", 
+                                index.getIndexType().getPrimaryKey() ? "TRUE" : "FALSE", 
                                 // INDEX_TYPE_NAME
                                 index.getIndexType().getSQL(), 
                                 // IS_GENERATED
-                                index.getIndexType().belongsToConstraint() ? "TRUE" : "FALSE",
+                                index.getIndexType().getBelongsToConstraint() ? "TRUE" : "FALSE",
                                 // INDEX_TYPE
                                 "" + DatabaseMetaData.tableIndexOther, 
                                 // ASC_OR_DESC
@@ -1486,7 +1486,7 @@ public class MetaTable extends Table {
                                 // SESSION_ID
                                 "" + s.getId(), 
                                 // LOCK_TYPE
-                                table.isLockExclusive(s) ? "WRITE" : "READ", 
+                                table.isLockedExclusivelyBy(s) ? "WRITE" : "READ", 
                         });
                     }
                 }

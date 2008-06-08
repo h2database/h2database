@@ -116,6 +116,11 @@ public class TableView extends Table {
         setColumns(cols);
     }
 
+    /**
+     * Check if this view is currently invalid.
+     * 
+     * @return true if it is
+     */
     public boolean getInvalid() {
         return createException != null;
     }
@@ -252,6 +257,11 @@ public class TableView extends Table {
         return null;
     }
 
+    /**
+     * Re-compile the view query.
+     * 
+     * @param session the session
+     */
     public void recompile(Session session) throws SQLException {
         for (int i = 0; i < tables.size(); i++) {
             Table t = (Table) tables.get(i);
@@ -308,11 +318,19 @@ public class TableView extends Table {
         return owner;
     }
 
-    public static TableView createTempView(Session s, User owner, Query query) throws SQLException {
-        String tempViewName = s.getNextTempViewName();
-        Schema mainSchema = s.getDatabase().getSchema(Constants.SCHEMA_MAIN);
+    /**
+     * Create a temporary view out of the given query.
+     * 
+     * @param session the session
+     * @param owner the owner of the query
+     * @param query the query
+     * @return the view table
+     */
+    public static TableView createTempView(Session session, User owner, Query query) throws SQLException {
+        String tempViewName = session.getNextTempViewName();
+        Schema mainSchema = session.getDatabase().getSchema(Constants.SCHEMA_MAIN);
         String querySQL = query.getPlanSQL();
-        TableView v = new TableView(mainSchema, 0, tempViewName, querySQL, query.getParameters(), null, s,
+        TableView v = new TableView(mainSchema, 0, tempViewName, querySQL, query.getParameters(), null, session,
                 false);
         if (v.createException != null) {
             throw v.createException;

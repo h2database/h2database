@@ -10,7 +10,7 @@ package org.h2.index;
  * Represents information about the properties of an index
  */
 public class IndexType {
-    private boolean isPrimaryKey, isPersistent, isUnique, isHash, isScan;
+    private boolean primaryKey, persistent, unique, hash, scan;
     private boolean belongsToConstraint;
 
     /**
@@ -22,10 +22,10 @@ public class IndexType {
      */
     public static IndexType createPrimaryKey(boolean persistent, boolean hash) {
         IndexType type = new IndexType();
-        type.isPrimaryKey = true;
-        type.isPersistent = persistent;
-        type.isHash = hash;
-        type.isUnique = true;
+        type.primaryKey = true;
+        type.persistent = persistent;
+        type.hash = hash;
+        type.unique = true;
         return type;
     }
 
@@ -38,9 +38,9 @@ public class IndexType {
      */
     public static IndexType createUnique(boolean persistent, boolean hash) {
         IndexType type = new IndexType();
-        type.isUnique = true;
-        type.isPersistent = persistent;
-        type.isHash = hash;
+        type.unique = true;
+        type.persistent = persistent;
+        type.hash = hash;
         return type;
     }
 
@@ -52,7 +52,7 @@ public class IndexType {
      */
     public static IndexType createNonUnique(boolean persistent) {
         IndexType type = new IndexType();
-        type.isPersistent = persistent;
+        type.persistent = persistent;
         return type;
     }
 
@@ -64,8 +64,8 @@ public class IndexType {
      */
     public static IndexType createScan(boolean persistent) {
         IndexType type = new IndexType();
-        type.isPersistent = persistent;
-        type.isScan = true;
+        type.persistent = persistent;
+        type.scan = true;
         return type;
     }
 
@@ -84,7 +84,7 @@ public class IndexType {
      * 
      * @return if the index belongs to a constraint
      */
-    public boolean belongsToConstraint() {
+    public boolean getBelongsToConstraint() {
         return belongsToConstraint;
     }
 
@@ -93,8 +93,8 @@ public class IndexType {
      * 
      * @return true if it is a hash index
      */
-    public boolean isHash() {
-        return isHash;
+    public boolean getHash() {
+        return hash;
     }
     
     /**
@@ -102,8 +102,8 @@ public class IndexType {
      * 
      * @return true if it is persistent
      */
-    public boolean isPersistent() {
-        return isPersistent;
+    public boolean getPersistent() {
+        return persistent;
     }
     
     /**
@@ -111,8 +111,8 @@ public class IndexType {
      * 
      * @return true if it references a primary key constraint
      */
-    public boolean isPrimaryKey() {
-        return isPrimaryKey;
+    public boolean getPrimaryKey() {
+        return primaryKey;
     }
     
     /**
@@ -120,8 +120,8 @@ public class IndexType {
      * 
      * @return true if it is
      */
-    public boolean isUnique() {
-        return isUnique;
+    public boolean getUnique() {
+        return unique;
     }
     
     /**
@@ -131,16 +131,16 @@ public class IndexType {
      */
     public String getSQL() {
         StringBuffer buff = new StringBuffer();
-        if (isPrimaryKey) {
+        if (primaryKey) {
             buff.append("PRIMARY KEY");
-            if (isHash) {
+            if (hash) {
                 buff.append(" HASH");
             }
         } else {
-            if (isUnique) {
+            if (unique) {
                 buff.append("UNIQUE ");
             }
-            if (isHash) {
+            if (hash) {
                 buff.append("HASH ");
             }
             buff.append("INDEX");
@@ -153,8 +153,8 @@ public class IndexType {
      * 
      * @return true if it is
      */
-    public boolean isScan() {
-        return isScan;
+    public boolean getScan() {
+        return scan;
     }
 
 }

@@ -218,7 +218,7 @@ public class Select extends Query {
         ObjectArray indexes = topTableFilter.getTable().getIndexes();
         for (int i = 0; indexes != null && i < indexes.size(); i++) {
             Index index = (Index) indexes.get(i);
-            if (index.getIndexType().isScan()) {
+            if (index.getIndexType().getScan()) {
                 continue;
             }
             if (isGroupSortedIndex(index)) {
@@ -391,7 +391,7 @@ public class Select extends Query {
                 // can't use the scan index
                 continue;
             }
-            if (index.getIndexType().isHash()) {
+            if (index.getIndexType().getHash()) {
                 continue;
             }
             IndexColumn[] indexCols = index.getIndexColumns();
@@ -713,10 +713,10 @@ public class Select extends Query {
                     boolean ascending = columnIndex.getIndexColumns()[0].sortType == SortOrder.ASCENDING;
                     Index current = topTableFilter.getIndex();
                     // if another index is faster
-                    if (columnIndex.canFindNext() && ascending && (current == null || current.getIndexType().isScan() || columnIndex == current)) {
+                    if (columnIndex.canFindNext() && ascending && (current == null || current.getIndexType().getScan() || columnIndex == current)) {
                         IndexType type = columnIndex.getIndexType();
                         // hash indexes don't work, and unique single column indexes don't work
-                        if (!type.isHash() && (!type.isUnique() || columnIndex.getColumns().length > 1)) {
+                        if (!type.getHash() && (!type.getUnique() || columnIndex.getColumns().length > 1)) {
                             topTableFilter.setIndex(columnIndex);
                             isDistinctQuery = true;
                         }
@@ -727,7 +727,7 @@ public class Select extends Query {
         if (sort != null && !isQuickAggregateQuery && !isGroupQuery) {
             Index index = getSortIndex();
             Index current = topTableFilter.getIndex();
-            if (index != null && (current.getIndexType().isScan() || current == index)) {
+            if (index != null && (current.getIndexType().getScan() || current == index)) {
                 topTableFilter.setIndex(index);
                 if (!distinct || isDistinctQuery) {
                     // sort using index would not work correctly for distinct result sets
@@ -739,7 +739,7 @@ public class Select extends Query {
         if (SysProperties.OPTIMIZE_GROUP_SORTED && !isQuickAggregateQuery && isGroupQuery && getGroupByExpressionCount() > 0) {
             Index index = getGroupSortedIndex();
             Index current = topTableFilter.getIndex();
-            if (index != null && (current.getIndexType().isScan() || current == index)) {
+            if (index != null && (current.getIndexType().getScan() || current == index)) {
                 topTableFilter.setIndex(index);
                 isGroupSortedQuery = true;
             }

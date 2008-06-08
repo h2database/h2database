@@ -199,8 +199,6 @@ public class FtpServer implements Service {
                 allowTask = true;
             }
         }
-        fs = FileSystem.getInstance(root);
-        root = fs.normalize(root);
     }
 
     public String getURL() {
@@ -208,6 +206,8 @@ public class FtpServer implements Service {
     }
 
     public void start() throws SQLException {
+        fs = FileSystem.getInstance(root);
+        root = fs.normalize(root);
         fs.mkdirs(root);
         serverSocket = NetUtils.createServerSocket(port, false);
     }
@@ -219,6 +219,7 @@ public class FtpServer implements Service {
             traceError(e);
         }
         serverSocket = null;
+        fs.close();
     }
 
     public boolean isRunning(boolean traceError) {

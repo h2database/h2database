@@ -66,6 +66,15 @@ public class TableFilter implements ColumnResolver {
     private boolean foundOne;
     private Expression fullCondition;
 
+    /**
+     * Create a new table filter object.
+     * 
+     * @param session the session
+     * @param table the table from where to read data
+     * @param alias the alias name
+     * @param rightsChecked true if rights are already checked
+     * @param select the select statement
+     */
     public TableFilter(Session session, Table table, String alias, boolean rightsChecked, Select select)
             throws SQLException {
         this.session = session;
@@ -85,6 +94,13 @@ public class TableFilter implements ColumnResolver {
         return table;
     }
 
+    /**
+     * Lock the table. This will also lock joined tables.
+     * 
+     * @param session the session
+     * @param exclusive true if an exclusive lock is required
+     * @param force lock even in the MVCC mode
+     */
     public void lock(Session session, boolean exclusive, boolean force) throws SQLException {
         table.lock(session, exclusive, force);
         if (join != null) {
@@ -92,6 +108,12 @@ public class TableFilter implements ColumnResolver {
         }
     }
 
+    /**
+     * Get the best plan item (index, cost) to use use for the current join order.
+     * 
+     * @param session the session
+     * @return the best plan item
+     */
     public PlanItem getBestPlanItem(Session session) throws SQLException {
         PlanItem item;
         if (indexConditions.size() == 0) {
@@ -135,6 +157,11 @@ public class TableFilter implements ColumnResolver {
         } while (join != null);
     }
 
+    /**
+     * Set what plan item (index, cost) to use use.
+     * 
+     * @param item the plan item
+     */    
     public void setPlanItem(PlanItem item) {
         setIndex(item.getIndex());
         if (join != null) {
@@ -144,6 +171,10 @@ public class TableFilter implements ColumnResolver {
         }
     }
 
+    /**
+     * Prepare reading rows. This method will remove all index conditions that
+     * can not be used, and optimize the conditions.
+     */
     public void prepare() throws SQLException {
         // forget all unused index conditions
         for (int i = 0; i < indexConditions.size(); i++) {
@@ -170,7 +201,12 @@ public class TableFilter implements ColumnResolver {
         }
     }
 
-    public void startQuery(Session session) throws SQLException {
+    /**
+     * Start the query. This will reset the scan counts.
+     * 
+     * @param session the session
+     */
+    public void startQuery(Session session) {
         this.session = session;
         scanCount = 0;
         if (join != null) {
@@ -178,6 +214,9 @@ public class TableFilter implements ColumnResolver {
         }
     }
 
+    /**
+     * Reset to the current position.
+     */
     public void reset() {
         if (join != null) {
             join.reset();
@@ -186,6 +225,11 @@ public class TableFilter implements ColumnResolver {
         foundOne = false;
     }
 
+    /**
+     * Check if there are more rows to read.
+     * 
+     * @return true if there are
+     */
     public boolean next() throws SQLException {
         boolean alwaysFalse = false;
         if (state == AFTER_LAST) {
@@ -307,9 +351,14 @@ public class TableFilter implements ColumnResolver {
         return Boolean.TRUE.equals(condition.getBooleanValue(session));
     }
 
+    /**
+     * Get the current row.
+     * 
+     * @return the current row, or null
+     */
     public Row get() throws SQLException {
         if (current == null && currentSearchRow != null) {
-            if (table.isClustered()) {
+            if (table.getClustered()) {
                 current = table.getTemplateRow();
                 for (int i = 0; i < currentSearchRow.getColumnCount(); i++) {
                     current.setValue(i, currentSearchRow.getValue(i));
@@ -321,6 +370,11 @@ public class TableFilter implements ColumnResolver {
         return current;
     }
 
+    /**
+     * Set the current row.
+     * 
+     * @param current the current row
+     */
     public void set(Row current) {
         // this is currently only used so that check constraints work - to set
         // the current (new) row
@@ -328,6 +382,12 @@ public class TableFilter implements ColumnResolver {
         this.currentSearchRow = current;
     }
 
+    /**
+     * Get the table alias name. If no alias is specified, the table name is
+     * returned.
+     * 
+     * @return the alias name
+     */
     public String getTableAlias() {
         if (alias != null) {
             return alias;
@@ -335,10 +395,21 @@ public class TableFilter implements ColumnResolver {
         return table.getName();
     }
 
+    /**
+     * Add an index condition.
+     * 
+     * @param condition the index condition
+     */
     public void addIndexCondition(IndexCondition condition) {
         indexConditions.add(condition);
     }
 
+    /**
+     * Add a filter condition.
+     * 
+     * @param condition the condition
+     * @param join if this is in fact a join condition
+     */
     public void addFilterCondition(Expression condition, boolean join) {
         if (join) {
             if (joinCondition == null) {
@@ -355,6 +426,13 @@ public class TableFilter implements ColumnResolver {
         }
     }
 
+    /**
+     * Add a joined table.
+     * 
+     * @param filter the joined table filter
+     * @param outer if this is an outer join
+     * @param on the join condition
+     */
     public void addJoin(TableFilter filter, boolean outer, Expression on) throws SQLException {
         if (on != null) {
             on.mapColumns(this, 0);
@@ -383,10 +461,21 @@ public class TableFilter implements ColumnResolver {
         return join;
     }
 
+    /**
+     * Check if this is an outer joined table.
+     * 
+     * @return true if it is
+     */
     public boolean isJoinOuter() {
         return outerJoin;
     }
 
+    /**
+     * Get the query execution plan text to use for this table filter.
+     * 
+     * @param join if this is a joined table
+     * @return the SQL statement snippet
+     */
     public String getPlanSQL(boolean join) {
         StringBuffer buff = new StringBuffer();
         if (join) {
@@ -472,6 +561,9 @@ public class TableFilter implements ColumnResolver {
         this.session = session;
     }
 
+    /**
+     * Remove the joined table
+     */
     public void removeJoin() {
         this.join = null;
     }
@@ -480,6 +572,9 @@ public class TableFilter implements ColumnResolver {
         return joinCondition;
     }
 
+    /**
+     * Remove the join condition.
+     */
     public void removeJoinCondition() {
         this.joinCondition = null;
     }
@@ -488,6 +583,9 @@ public class TableFilter implements ColumnResolver {
         return filterCondition;
     }
 
+    /**
+     * Remove the filter condition.
+     */
     public void removeFilterCondition() {
         this.filterCondition = null;
     }
@@ -499,6 +597,12 @@ public class TableFilter implements ColumnResolver {
         }
     }
 
+    /**
+     * Optimize the full condition. This will add the full condition to the
+     * filter condition.
+     * 
+     * @param fromOuterJoin if this method was called from an outer joined table
+     */
     void optimizeFullCondition(boolean fromOuterJoin) {
         if (fullCondition != null) {
             fullCondition.addFilterConditions(this, fromOuterJoin || outerJoin);
@@ -508,6 +612,13 @@ public class TableFilter implements ColumnResolver {
         }
     }
 
+    /**
+     * Update the filter and join conditions of this and all joined tables with
+     * the information that the given table filter can now return rows or not.
+     * 
+     * @param filter the table filter
+     * @param b the new flag
+     */
     public void setEvaluatable(TableFilter filter, boolean b) {
         if (filterCondition != null) {
             filterCondition.setEvaluatable(filter, b);
@@ -528,6 +639,13 @@ public class TableFilter implements ColumnResolver {
         return table.getColumns();
     }
 
+    /**
+     * Get the system columns that this table understands. This is used for
+     * compatibility with other databases. The columns are only returned if the
+     * current mode supports system columns.
+     * 
+     * @return the system columns
+     */
     public Column[] getSystemColumns() {
         if (!session.getDatabase().getMode().systemColumns) {
             return null;

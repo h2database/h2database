@@ -95,6 +95,9 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
+    /**
+     * Close the underlying database.
+     */
     public void close() {
         JdbcUtils.closeSilently(conn);
     }

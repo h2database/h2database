@@ -299,6 +299,13 @@ public class TableLink extends Table {
         return qualifiedTableName;
     }
 
+    /**
+     * Get a prepared statement object for the given statement. Prepared
+     * statements are kept in a hash map to avoid re-creating them.
+     * 
+     * @param sql the SQL statement.
+     * @return the prepared statement
+     */
     public PreparedStatement getPreparedStatement(String sql) throws SQLException {
         if (conn == null) {
             throw connectException;
@@ -362,7 +369,7 @@ public class TableLink extends Table {
     public Index getUniqueIndex() {
         for (int i = 0; i < indexes.size(); i++) {
             Index idx = (Index) indexes.get(i);
-            if (idx.getIndexType().isUnique()) {
+            if (idx.getIndexType().getUnique()) {
                 return idx;
             }
         }

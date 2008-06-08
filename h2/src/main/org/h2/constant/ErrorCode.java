@@ -161,6 +161,22 @@ public class ErrorCode {
     public static final int REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1 = 23003;
 
     // 3B: savepoint exception
+    
+    /**
+     * The error with code <code>40001</code> is thrown when the database
+     * engine has detected a deadlock. The transaction of this session has been
+     * rolled back to solve the problem. A deadlock occurs when a session tries
+     * to lock a table another session has locked, while the other session wants
+     * to lock a table the first session has locked. As an example, session 1
+     * has locked table A, while session 2 has locked table B. If session 1 now
+     * tries to lock table B and session 2 tries to lock table A, a deadlock has
+     * occured. Deadlocks that involve more than two sessions are also possible.
+     * To solve deadlock problems, an application should lock tables always in
+     * the same order, such as always lock table A before locking table B. For
+     * details, see <a href="http://en.wikipedia.org/wiki/Deadlock">Wikipedia
+     * Deadlock</a>.
+     */
+    public static final int DEADLOCK_1 = 40001;
 
     // 42: syntax error or access rule violation
     /**
@@ -1790,7 +1806,7 @@ public class ErrorCode {
      */
     public static final int CAN_ONLY_ASSIGN_TO_VARIABLE_1 = 90137;
 
-    // next is 90073, 90108
+    // next is 90108, 90138
     
     private ErrorCode() {
         // utility class

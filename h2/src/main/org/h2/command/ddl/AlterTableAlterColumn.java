@@ -234,7 +234,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             newColumns.remove(position);
             newColumns.add(position, newColumn);
         }
-        boolean persistent = table.isPersistent();
+        boolean persistent = table.getPersistent();
         // create a table object in order to get the SQL statement
         // can't just use this table, because most column objects are 'shared'
         // with the old table
@@ -253,7 +253,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 continue;
             } else if (child instanceof Index) {
                 Index idx = (Index) child;
-                if (idx.getIndexType().belongsToConstraint()) {
+                if (idx.getIndexType().getBelongsToConstraint()) {
                     continue;
                 }
             }
@@ -419,7 +419,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 continue;
             }
             IndexType indexType = index.getIndexType();
-            if (indexType.isPrimaryKey() || indexType.isHash()) {
+            if (indexType.getPrimaryKey() || indexType.getHash()) {
                 throw Message.getSQLException(ErrorCode.COLUMN_IS_PART_OF_INDEX_1, index.getSQL());
             }
         }

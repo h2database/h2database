@@ -46,6 +46,13 @@ public class JdbcDriverUtils {
         // utility class
     }
 
+    /**
+     * Get the driver class name for the given URL, or null if the URL is
+     * unknown.
+     * 
+     * @param url the database URL
+     * @return the driver class name
+     */
     public static String getDriver(String url) {
         for (int i = 0; i < DRIVERS.length; i += 2) {
             String prefix = DRIVERS[i];
@@ -56,6 +63,11 @@ public class JdbcDriverUtils {
         return null;
     }
 
+    /**
+     * Load the driver class for the given URL, if the database URL is known.
+     * 
+     * @param url the database URL
+     */
     public static void load(String url) throws SQLException {
         String driver = getDriver(url);
         if (driver != null) {

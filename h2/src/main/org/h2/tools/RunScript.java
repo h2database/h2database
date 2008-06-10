@@ -39,6 +39,9 @@ import org.h2.util.Tool;
  * </pre>
  */
 public class RunScript extends Tool {
+    
+    private boolean showResults;
+    private boolean checkResults;
 
     private void showUsage() {
         out.println("Runs a SQL script.");
@@ -49,6 +52,8 @@ public class RunScript extends Tool {
                 " [-script <file>]   The script file to run (default: backup.sql)\n" +
                 " [-driver <class>]  The JDBC driver class to use (not required in most cases)\n" +
                 " [-quiet]           Do not print progress information\n" +
+                " [-showResults]     Show the statements and the results of queries\n" +
+                " [-checkResults]    Check if the query results match the expected results\n" +
                 " [-options ...]     The list of options (only for H2 embedded mode)");
         out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
@@ -63,9 +68,13 @@ public class RunScript extends Tool {
      * <li>-user username </li>
      * <li>-password password </li>
      * <li>-script filename (default file name is backup.sql) </li>
-     * <li>-driver driver the JDBC driver class name (not required for most
+     * <li>-driver driver (the JDBC driver class name; not required for most
      * databases) </li>
-     * <li>-options to specify a list of options (only for H2 and only when
+     * <li>-quiet (do not print progress information) </li>
+     * <li>-showResults (show the statements and the results of queries)</li>
+     * <li>-checkResults (check if the query results match the expected results</li>
+     * <li>-quiet (do not print progress information)</li>
+     * <li>-options (to specify a list of options ;only for H2 and only when
      * using the embedded mode) </li>
      * </ul>
      * To include local files when using remote databases, use the special
@@ -103,6 +112,10 @@ public class RunScript extends Tool {
                 password = args[++i];
             } else if (arg.equals("-continueOnError")) {
                 continueOnError = true;
+            } else if (arg.equals("-checkResults")) {
+                checkResults = true;
+            } else if (arg.equals("-showResults")) {
+                showResults = true;
             } else if (arg.equals("-script")) {
                 script = args[++i];
             } else if (arg.equals("-time")) {
@@ -196,8 +209,9 @@ public class RunScript extends Tool {
             if (sql == null) {
                 break;
             }
-            sql = sql.trim();
-            if (sql.startsWith("@") && StringUtils.toUpperEnglish(sql).startsWith("@INCLUDE")) {
+            String trim = sql.trim();
+            if (trim.startsWith("@") && StringUtils.toUpperEnglish(trim).startsWith("@INCLUDE")) {
+                sql = trim;
                 sql = sql.substring("@INCLUDE".length()).trim();
                 if (!FileUtils.isAbsolute(sql)) {
                     sql = path + File.separator + sql;
@@ -205,8 +219,45 @@ public class RunScript extends Tool {
                 process(conn, sql, continueOnError, charsetName);
             } else {
                 try {
-                    if (sql.trim().length() > 0) {
-                        stat.execute(sql);
+                    if (trim.length() > 0) {
+                        if (showResults && !trim.startsWith("-->")) {
+                            out.print(sql + ";");
+                        }
+                        if (showResults || checkResults) {
+                            boolean query = stat.execute(sql);
+                            if (query) {
+                                ResultSet rs = stat.getResultSet();
+                                int columns = rs.getMetaData().getColumnCount();
+                                StringBuffer buff = new StringBuffer();
+                                while (rs.next()) {
+                                    buff.append("\n-->");
+                                    for (int i = 0; i < columns; i++) {
+                                        String s = rs.getString(i + 1);
+                                        if (s != null) {
+                                            s = StringUtils.replaceAll(s, "\r\n", "\n");
+                                            s = StringUtils.replaceAll(s, "\n", "\n-->    ");
+                                            s = StringUtils.replaceAll(s, "\r", "\r-->    ");
+                                        }
+                                        buff.append(' ');
+                                        buff.append(s);
+                                    }
+                                }
+                                buff.append("\n;");
+                                String result = buff.toString();
+                                if (showResults) {
+                                    out.print(result);
+                                }
+                                if (checkResults) {
+                                    String expected = r.readStatement() + ";";
+                                    if (!expected.equals(result)) {
+                                        throw new SQLException("Unexpected output, got:\n" + result + "\nExpected:\n" + expected);
+                                    }
+                                }
+                                
+                            }
+                        } else {
+                            stat.execute(sql);
+                        }
                     }
                 } catch (SQLException e) {
                     if (continueOnError) {
@@ -264,6 +315,25 @@ public class RunScript extends Tool {
         } catch (IOException e) {
             throw Message.convertIOException(e, fileName);
         }
+    }
+    
+    /**
+     * If the statements as well as the results should be printed to the output.
+     * 
+     * @param show true if yes
+     */
+    public void setShowResults(boolean show) {
+        this.showResults = show;
+    }
+    
+    /**
+     * If results of statements should be cross-checked with the expected
+     * output. The expected result is the next line(s) of the script, commented.
+     * 
+     * @param check true if yes
+     */
+    public void setCheckResults(boolean check) {
+        this.checkResults = check;
     }
 
 }

@@ -36,6 +36,11 @@ public class IOUtils {
         // utility class
     }
 
+    /**
+     * Close an output stream without throwing an exception.
+     * 
+     * @param out the output stream or null
+     */
     public static void closeSilently(OutputStream out) {
         if (out != null) {
             try {
@@ -47,6 +52,15 @@ public class IOUtils {
         }
     }
 
+    /**
+     * Skip a number of bytes in an input stream.
+     * 
+     * @param in the input stream
+     * @param skip the number of bytes to skip
+     * @throws EOFException if the end of file has been reached before all bytes
+     *             could be skipped
+     * @throws IOException if an IO exception occured while skipping
+     */
     public static void skipFully(InputStream in, long skip) throws IOException {
         while (skip > 0) {
             long skipped = in.skip(skip);
@@ -57,6 +71,15 @@ public class IOUtils {
         }
     }
 
+    /**
+     * Skip a number of characters in a reader.
+     * 
+     * @param reader the reader
+     * @param skip the number of characters to skip
+     * @throws EOFException if the end of file has been reached before all
+     *             characters could be skipped
+     * @throws IOException if an IO exception occured while skipping
+     */
     public static void skipFully(Reader reader, long skip) throws IOException {
         while (skip > 0) {
             long skipped = reader.skip(skip);
@@ -67,6 +90,14 @@ public class IOUtils {
         }
     }
 
+    /**
+     * Copy all data from the input stream to the output stream and close both
+     * streams. Exceptions while closing are ignored.
+     * 
+     * @param in the input stream
+     * @param out the output stream
+     * @return the number of bytes copied
+     */
     public static long copyAndClose(InputStream in, OutputStream out) throws IOException {
         try {
             long len = copyAndCloseInput(in, out);
@@ -77,6 +108,14 @@ public class IOUtils {
         }
     }
 
+    /**
+     * Copy all data from the input stream to the output stream and close the
+     * input stream. Exceptions while closing are ignored.
+     * 
+     * @param in the input stream
+     * @param out the output stream
+     * @return the number of bytes copied
+     */
     public static long copyAndCloseInput(InputStream in, OutputStream out) throws IOException {
         try {
             return copy(in, out);
@@ -85,6 +124,14 @@ public class IOUtils {
         }
     }
 
+    /**
+     * Copy all data from the input stream to the output stream. Both streams
+     * are kept open.
+     * 
+     * @param in the input stream
+     * @param out the output stream
+     * @return the number of bytes copied
+     */
     public static long copy(InputStream in, OutputStream out) throws IOException {
         long written = 0;
         byte[] buffer = new byte[4 * 1024];
@@ -99,6 +146,14 @@ public class IOUtils {
         return written;
     }
 
+    /**
+     * Copy all data from the reader to the writer and close the reader.
+     * Exceptions while closing are ignored.
+     * 
+     * @param in the reader
+     * @param out the writer
+     * @return the number of characters copied
+     */
     public static long copyAndCloseInput(Reader in, Writer out) throws IOException {
         long written = 0;
         try {
@@ -117,6 +172,11 @@ public class IOUtils {
         return written;
     }
 
+    /**
+     * Close an input stream without throwing an exception.
+     * 
+     * @param in the input stream or null
+     */
     public static void closeSilently(InputStream in) {
         if (in != null) {
             try {
@@ -128,6 +188,11 @@ public class IOUtils {
         }
     }
 
+    /**
+     * Close a reader without throwing an exception.
+     * 
+     * @param reader the reader or null
+     */
     public static void closeSilently(Reader reader) {
         if (reader != null) {
             try {
@@ -138,6 +203,11 @@ public class IOUtils {
         }
     }
 
+    /**
+     * Close a writer without throwing an exception.
+     * 
+     * @param writer the writer or null
+     */
     public static void closeSilently(Writer writer) {
         if (writer != null) {
             try {
@@ -149,6 +219,14 @@ public class IOUtils {
         }
     }
 
+    /**
+     * Read a number of bytes from an input stream and close the stream.
+     * 
+     * @param in the input stream
+     * @param length the maximum number of bytes to read, or -1 to read until
+     *            the end of file
+     * @return the bytes read
+     */
     public static byte[] readBytesAndClose(InputStream in, int length) throws IOException {
         try {
             if (length <= 0) {
@@ -172,6 +250,14 @@ public class IOUtils {
         }
     }
 
+    /**
+     * Read a number of characters from a reader and close it.
+     * 
+     * @param in the reader
+     * @param length the maximum number of characters to read, or -1 to read
+     *            until the end of file
+     * @return the string read
+     */
     public static String readStringAndClose(Reader in, int length) throws IOException {
         try {
             if (length <= 0) {
@@ -196,7 +282,9 @@ public class IOUtils {
     }
 
     /**
-     * Read the given number of bytes to the buffer.
+     * Try to read the given number of bytes to the buffer. This method reads
+     * until the maximum number of bytes have been read or until the end of
+     * file.
      * 
      * @param in the input stream
      * @param buffer the output buffer
@@ -219,6 +307,16 @@ public class IOUtils {
         return result;
     }
 
+    /**
+     * Try to read the given number of characters to the buffer. This method
+     * reads until the maximum number of characters have been read or until the
+     * end of file.
+     * 
+     * @param in the reader
+     * @param buffer the output buffer
+     * @param max the number of characters to read at most
+     * @return the number of characters read
+     */
     public static int readFully(Reader in, char[] buffer, int max) throws IOException {
         int off = 0, len = Math.min(max, buffer.length);
         if (len == 0) {
@@ -238,6 +336,13 @@ public class IOUtils {
         return off <= 0 ? -1 : off;
     }
 
+    /**
+     * Create a reader to read from an input stream using the UTF-8 format. If
+     * the input stream is null, this method returns null.
+     * 
+     * @param in the input stream or null
+     * @return the reader
+     */
     public static Reader getReader(InputStream in) throws SQLException {
         try {
             // InputStreamReader may read some more bytes
@@ -247,6 +352,14 @@ public class IOUtils {
         }
     }
 
+    /**
+     * Create an input stream to read from a string. The string is converted to
+     * a byte array using UTF-8 encoding.
+     * If the string is null, this method returns null.
+     * 
+     * @param s the string
+     * @return the input stream
+     */
     public static InputStream getInputStream(String s) throws SQLException {
         if (s == null) {
             return null;
@@ -254,13 +367,27 @@ public class IOUtils {
         return new ByteArrayInputStream(StringUtils.utf8Encode(s));
     }
 
+    /**
+     * Create a reader to read from a string.
+     * If the string is null, this method returns null.
+     * 
+     * @param s the string or null
+     * @return the reader
+     */
     public static Reader getReader(String s) {
         return s == null ? null : new StringReader(s);
     }
 
-    public static Reader getAsciiReader(InputStream x) throws SQLException {
+    /**
+     * Wrap an input stream in a reader. The bytes are converted to characters
+     * using the US-ASCII character set.
+     * 
+     * @param in the input stream
+     * @return the reader
+     */
+    public static Reader getAsciiReader(InputStream in) throws SQLException {
         try {
-            return x == null ? null : new InputStreamReader(x, "US-ASCII");
+            return in == null ? null : new InputStreamReader(in, "US-ASCII");
         } catch (UnsupportedEncodingException e) {
             throw Message.convert(e);
         }

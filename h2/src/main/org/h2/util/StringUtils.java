@@ -30,6 +30,13 @@ public class StringUtils {
         // utility class
     }
 
+    /**
+     * Check if two strings are equal. Here, null is equal to null.
+     * 
+     * @param a the first value
+     * @param b the second value
+     * @return true if both are null or both are equal
+     */
     public static boolean equals(String a, String b) {
         if (a == null) {
             return b == null;
@@ -37,18 +44,34 @@ public class StringUtils {
         return a.equals(b);
     }
 
+    /**
+     * Convert a string to uppercase using the English locale.
+     * 
+     * @param s the test to convert
+     * @return the uppercase text
+     */
     public static String toUpperEnglish(String s) {
         return s.toUpperCase(Locale.ENGLISH);
     }
 
+    /**
+     * Convert a string to lowercase using the English locale.
+     * 
+     * @param s the text to convert
+     * @return the lowercase text
+     */
     public static String toLowerEnglish(String s) {
         return s.toLowerCase(Locale.ENGLISH);
     }
 
-    public static String getDefaultCharset() {
-        return SysProperties.FILE_ENCODING;
-    }
-
+    /**
+     * Convert a string to a SQL literal. Null is converted to NULL. The text is
+     * enclosed in single quotes. If there are any special characters, the method
+     * STRINGDECODE is used.
+     * 
+     * @param s the text to convert.
+     * @return the SQL literal
+     */
     public static String quoteStringSQL(String s) {
         if (s == null) {
             return "NULL";
@@ -70,6 +93,14 @@ public class StringUtils {
         return buff.toString();
     }
 
+    /**
+     * Convert a string to the Java literal using the correct escape sequences.
+     * The literal is not enclosed in double quotes. The result can be used in
+     * properties files or in Java source code.
+     * 
+     * @param s the text to convert
+     * @return the Java representation
+     */
     public static String javaEncode(String s) {
         StringBuffer buff = new StringBuffer(s.length());
         for (int i = 0; i < s.length(); i++) {
@@ -123,6 +154,14 @@ public class StringUtils {
         return buff.toString();
     }
 
+    /**
+     * Add an asterisk ('[*]') at the given position. This format is used to
+     * show where parsing failed in a statement.
+     * 
+     * @param s the text
+     * @param index the position
+     * @return the text with asterisk
+     */
     public static String addAsterisk(String s, int index) {
         if (s != null && index < s.length()) {
             s = s.substring(0, index) + "[*]" + s.substring(index);
@@ -134,6 +173,13 @@ public class StringUtils {
         return Message.getSQLException(ErrorCode.STRING_FORMAT_ERROR_1, addAsterisk(s, i));
     }
 
+    /**
+     * Decode a text that is encoded as a Java string literal. The Java
+     * properties file format and Java source code format is supported.
+     * 
+     * @param s the encoded string
+     * @return the string
+     */
     public static String javaDecode(String s) throws SQLException {
         StringBuffer buff = new StringBuffer(s.length());
         for (int i = 0; i < s.length(); i++) {
@@ -209,6 +255,13 @@ public class StringUtils {
         return buff.toString();
     }
 
+    /**
+     * Convert a string to the Java literal and enclose it with double quotes.
+     * Null will result in 'null'.
+     * 
+     * @param s the text to convert
+     * @return the Java representation
+     */
     public static String quoteJavaString(String s) {
         if (s == null) {
             return "null";
@@ -216,16 +269,27 @@ public class StringUtils {
         return "\"" + javaEncode(s) + "\"";
     }
 
+    /**
+     * Convert the text to UTF-8 format. For the Unicode characters
+     * 0xd800-0xdfff only one byte is returned.
+     * 
+     * @param s the text
+     * @return the UTF-8 representation
+     */
     public static byte[] utf8Encode(String s) throws SQLException {
         try {
-            // TODO UTF8: String.getBytes("UTF-8") only returns 1 byte for
-            // 0xd800-0xdfff
             return s.getBytes(Constants.UTF8);
         } catch (UnsupportedEncodingException e) {
             throw Message.convert(e);
         }
     }
 
+    /**
+     * Convert a UTF-8 representation of a text to the text.
+     * 
+     * @param utf8 the UTF-8 representation
+     * @return the text
+     */
     public static String utf8Decode(byte[] utf8) {
         try {
             return new String(utf8, Constants.UTF8);
@@ -234,6 +298,15 @@ public class StringUtils {
         }
     }
 
+    /**
+     * Convert a UTF-8 representation of a text to the text using the given
+     * offset and length.
+     * 
+     * @param bytes the UTF-8 representation
+     * @param offset the offset in the bytes array
+     * @param length the number of bytes
+     * @return the text
+     */
     private static String utf8Decode(byte[] bytes, int offset, int length) {
         try {
             return new String(bytes, offset, length, Constants.UTF8);
@@ -242,6 +315,13 @@ public class StringUtils {
         }
     }
 
+    /**
+     * Convert a string array to the Java source code that represents this
+     * array. Null will be converted to 'null'.
+     * 
+     * @param array the string array
+     * @return the Java source code (including new String[]{})
+     */
     public static String quoteJavaStringArray(String[] array) {
         if (array == null) {
             return "null";
@@ -258,6 +338,13 @@ public class StringUtils {
         return buff.toString();
     }
 
+    /**
+     * Convert an int array to the Java source code that represents this array.
+     * Null will be converted to 'null'.
+     * 
+     * @param array the int array
+     * @return the Java source code (including new int[]{})
+     */
     public static String quoteJavaIntArray(int[] array) {
         if (array == null) {
             return "null";
@@ -274,6 +361,12 @@ public class StringUtils {
         return buff.toString();
     }
 
+    /**
+     * Enclose a string with '(' and ')' if this is not yet done.
+     * 
+     * @param s the string
+     * @return the enclosed string
+     */
     public static String enclose(String s) {
         if (s.startsWith("(")) {
             return s;
@@ -281,6 +374,12 @@ public class StringUtils {
         return "(" + s + ")";
     }
 
+    /**
+     * Remove enclosing '(' and ')' if this text is enclosed.
+     * 
+     * @param s the potentially enclosed string
+     * @return the string
+     */
     public static String unEnclose(String s) {
         if (s.startsWith("(") && s.endsWith(")")) {
             return s.substring(1, s.length() - 1);
@@ -288,6 +387,12 @@ public class StringUtils {
         return s;
     }
 
+    /**
+     * Encode the string as an URL.
+     * 
+     * @param s the string to encode
+     * @return the encoded string
+     */
     public static String urlEncode(String s) {
 //## Java 1.4 begin ##
         try {
@@ -310,6 +415,12 @@ public class StringUtils {
 //        }
     }
 
+    /**
+     * Decode the URL to a string.
+     * 
+     * @param encoded the encoded URL
+     * @return the decoded string
+     */
     public static String urlDecode(String encoded) {
         byte[] buff = new byte[encoded.length()];
         int j = 0;
@@ -331,6 +442,16 @@ public class StringUtils {
         return s;
     }
 
+    /**
+     * Split a string into an array of strings using the given separator. A null
+     * string will result in a null array, and an empty string in a zero element
+     * array.
+     * 
+     * @param s the string to split
+     * @param separatorChar the separator character
+     * @param trim whether each element should be trimmed
+     * @return the array list
+     */
     public static String[] arraySplit(String s, char separatorChar, boolean trim) {
         if (s == null) {
             return null;
@@ -359,6 +480,15 @@ public class StringUtils {
         return array;
     }
 
+    /**
+     * Combine an array of strings to one array using the given separator
+     * character. A backslash and the separator character and escaped using a
+     * backslash.
+     * 
+     * @param list the string array
+     * @param separatorChar the separator character
+     * @return the combined string
+     */
     public static String arrayCombine(String[] list, char separatorChar) {
         StringBuffer buff = new StringBuffer(5 * list.length);
         for (int i = 0; i < list.length; i++) {
@@ -597,6 +727,14 @@ public class StringUtils {
         return buff.toString();
     }
 
+    /**
+     * Replace all occurrences of the before string with the after string.
+     * 
+     * @param s the string
+     * @param before the old text
+     * @param after the new text
+     * @return the string with the before string replaced
+     */
     public static String replaceAll(String s, String before, String after) {
         StringBuffer buff = new StringBuffer(s.length());
         int index = 0;
@@ -613,6 +751,13 @@ public class StringUtils {
         return buff.toString();
     }
 
+    /**
+     * Enclose a string with double quotes. A double quote inside the string is
+     * escaped using a double quote.
+     * 
+     * @param s the text
+     * @return the double quoted text
+     */
     public static String quoteIdentifier(String s) {
         StringBuffer buff = new StringBuffer(s.length() + 2);
         buff.append('\"');
@@ -635,6 +780,12 @@ public class StringUtils {
         return s == null || s.length() == 0;
     }
 
+    /**
+     * In a string, replace block comment marks with /++ .. ++/.
+     * 
+     * @param sql the string
+     * @return the resulting string
+     */
     public static String quoteRemarkSQL(String sql) {
         while (true) {
             int idx = sql.indexOf("*/");

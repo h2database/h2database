@@ -58,6 +58,11 @@ public abstract class HashBase {
      */
     protected abstract void rehash(int newLevel) throws SQLException;
 
+    /**
+     * Get the size of the map.
+     * 
+     * @return the size
+     */
     public int size() {
         return size + (zeroKey ? 1 : 0);
     }

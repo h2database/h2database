@@ -15,26 +15,48 @@ import java.util.HashMap;
 public class IntHashMap {
     private final HashMap map = new HashMap();
 
+    /**
+     * Get the value for the given key. This method returns null if the
+     * entry has not been found.
+     * 
+     * @param key the key
+     * @return the value or null
+     */
     public Object get(int key) {
         return map.get(ObjectUtils.getInteger(key));
     }
 
+    /**
+     * Store the given key-value pair. The value is overwritten or added.
+     * 
+     * @param key the key
+     * @param value the value
+     */
     public void put(int key, Object value) {
         map.put(ObjectUtils.getInteger(key), value);
     }
 
+    /**
+     * Remove the key-value pair with the given key.
+     * 
+     * @param key the key
+     */
     public void remove(int key) {
         map.remove(ObjectUtils.getInteger(key));
     }
 
-    public int size() {
-        return map.size();
-    }
-
+    /**
+     * Remove all entries from the map.
+     */
     public void clear() {
         map.clear();
     }
 
+    /**
+     * Get all values  from the map.
+     * 
+     * @return the values
+     */
     public Collection values() {
         return map.values();
     }

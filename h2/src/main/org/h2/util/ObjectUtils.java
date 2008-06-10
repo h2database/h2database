@@ -17,6 +17,7 @@ import org.h2.message.Message;
 
 /**
  * Utility class for object creation and serialization.
+ * Starting with Java 1.5, some objects are re-used.
  */
 public class ObjectUtils {
     
@@ -24,6 +25,12 @@ public class ObjectUtils {
         // utility class
     }
 
+    /**
+     * Create a new object or get a cached object for the given value.
+     * 
+     * @param x the value
+     * @return the object
+     */
     public static Integer getInteger(int x) {
 /*## Java 1.5 begin ##
         if (true) {
@@ -34,6 +41,12 @@ public class ObjectUtils {
         return new Integer(x); 
     }
 
+    /**
+     * Create a new object or get a cached object for the given value.
+     * 
+     * @param x the value
+     * @return the object
+     */
     public static Character getCharacter(char x) {
 /*## Java 1.5 begin ##
         if (true) {
@@ -43,6 +56,12 @@ public class ObjectUtils {
         return new Character(x);
     }
 
+    /**
+     * Create a new object or get a cached object for the given value.
+     * 
+     * @param x the value
+     * @return the object
+     */
     public static Long getLong(long x) {
 /*## Java 1.5 begin ##
         if (true) {
@@ -53,6 +72,12 @@ public class ObjectUtils {
         return new Long(x); 
     }
 
+    /**
+     * Create a new object or get a cached object for the given value.
+     * 
+     * @param x the value
+     * @return the object
+     */
     public static Short getShort(short x) {
 /*## Java 1.5 begin ##
         if (true) {
@@ -63,6 +88,12 @@ public class ObjectUtils {
         return new Short(x); 
     }
 
+    /**
+     * Create a new object or get a cached object for the given value.
+     * 
+     * @param x the value
+     * @return the object
+     */
     public static Byte getByte(byte x) {
 /*## Java 1.5 begin ##
         if (true) {
@@ -73,6 +104,12 @@ public class ObjectUtils {
         return new Byte(x); 
     }
 
+    /**
+     * Create a new object or get a cached object for the given value.
+     * 
+     * @param x the value
+     * @return the object
+     */
     public static Float getFloat(float x) {
 /*## Java 1.5 begin ##
         if (true) {
@@ -82,6 +119,12 @@ public class ObjectUtils {
         return new Float(x);
     }
 
+    /**
+     * Create a new object or get a cached object for the given value.
+     * 
+     * @param x the value
+     * @return the object
+     */
     public static Double getDouble(double x) {
 /*## Java 1.5 begin ##
         if (true) {
@@ -90,7 +133,13 @@ public class ObjectUtils {
 ## Java 1.5 end ##*/
         return new Double(x);
     }
-
+    
+    /**
+     * Serialize the object to a byte array.
+     * 
+     * @param obj the object to serialize
+     * @return the byte array
+     */
     public static byte[] serialize(Object obj) throws SQLException {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -102,6 +151,13 @@ public class ObjectUtils {
         }
     }
 
+    /**
+     * De-serialize the byte array to an object.
+     * 
+     * @param data the byte array
+     * @return the object
+     * @throws SQLException
+     */
     public static Object deserialize(byte[] data) throws SQLException {
         try {
             ByteArrayInputStream in = new ByteArrayInputStream(data);

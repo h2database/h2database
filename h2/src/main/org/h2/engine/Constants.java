@@ -195,7 +195,7 @@ public class Constants {
      * The number of milliseconds after which to check for a deadlock if locking
      * is not successful.
      */
-    public static final int DEADLOCK_CHECK = 500;
+    public static final int DEADLOCK_CHECK = 100;
 
     /**
      * The default value of the ALLOW_LITERALS setting

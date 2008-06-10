@@ -20,10 +20,16 @@ public class ValueHashMap extends HashBase {
 
     private Value[] keys;
     private Object[] values;
-    private DataHandler database;
+    private DataHandler handler;
 
-    public ValueHashMap(DataHandler database) {
-        this.database = database;
+    /**
+     * Create a new value hash map using the given data handler.
+     * The data handler is used to compare values.
+     * 
+     * @param handler the data handler
+     */
+    public ValueHashMap(DataHandler handler) {
+        this.handler = handler;
     }
 
     protected void reset(int newLevel) {
@@ -48,6 +54,12 @@ public class ValueHashMap extends HashBase {
         return key.hashCode() & mask;
     }
 
+    /**
+     * Add or update a key value pair.
+     * 
+     * @param key the key
+     * @param value the new value
+     */
     public void put(Value key, Object value) throws SQLException {
         checkSizePut();
         int index = getIndex(key);
@@ -70,7 +82,7 @@ public class ValueHashMap extends HashBase {
                 if (deleted < 0) {
                     deleted = index;
                 }
-            } else if (database.compareTypeSave(k, key) == 0) {
+            } else if (handler.compareTypeSave(k, key) == 0) {
                 // update existing
                 values[index] = value;
                 return;
@@ -81,6 +93,11 @@ public class ValueHashMap extends HashBase {
         throw Message.getInternalError("hashmap is full");
     }
 
+    /**
+     * Remove a key value pair.
+     * 
+     * @param key the key
+     */
     public void remove(Value key) throws SQLException {
         checkSizeRemove();
         int index = getIndex(key);
@@ -92,7 +109,7 @@ public class ValueHashMap extends HashBase {
                 return;
             } else if (k == ValueNull.DELETED) {
                 // found a deleted record
-            } else if (database.compareTypeSave(k, key) == 0) {
+            } else if (handler.compareTypeSave(k, key) == 0) {
                 // found the record
                 keys[index] = ValueNull.DELETED;
                 values[index] = null;
@@ -105,6 +122,13 @@ public class ValueHashMap extends HashBase {
         // not found
     }
 
+    /**
+     * Get the value for this key. This method returns null if the key was not
+     * found.
+     * 
+     * @param key the key
+     * @return the value for the given key
+     */
     public Object get(Value key) throws SQLException {
         int index = getIndex(key);
         int plus = 1;
@@ -115,7 +139,7 @@ public class ValueHashMap extends HashBase {
                 return null;
             } else if (k == ValueNull.DELETED) {
                 // found a deleted record
-            } else if (database.compareTypeSave(k, key) == 0) {
+            } else if (handler.compareTypeSave(k, key) == 0) {
                 // found it
                 return values[index];
             }
@@ -124,6 +148,11 @@ public class ValueHashMap extends HashBase {
         return null;
     }
 
+    /**
+     * Get the list of keys.
+     * 
+     * @return all keys
+     */
     public ObjectArray keys() {
         ObjectArray list = new ObjectArray(size);
         for (int i = 0; i < keys.length; i++) {
@@ -135,6 +164,11 @@ public class ValueHashMap extends HashBase {
         return list;
     }
 
+    /**
+     * Get the list of values.
+     * 
+     * @return all values
+     */
     public ObjectArray values() {
         ObjectArray list = new ObjectArray(size);
         for (int i = 0; i < keys.length; i++) {

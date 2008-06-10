@@ -137,6 +137,12 @@ public class FunctionTable extends Table {
         throw Message.getUnsupportedException();
     }
 
+    /**
+     * Read the result set from the function.
+     * 
+     * @param session the session
+     * @return the result set
+     */
     public LocalResult getResult(Session session) throws SQLException {
         function.optimize(session);
         Value v = function.getValue(session);

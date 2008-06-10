@@ -419,7 +419,7 @@ public class TableData extends Table implements RecordReader {
                     }
                 }
                 // don't wait too long so that deadlocks are detected early
-                long sleep = Math.min(Constants.DEADLOCK_CHECK, (max - now) / 4);
+                long sleep = Math.min(Constants.DEADLOCK_CHECK, max - now);
                 if (sleep == 0) {
                     sleep = 1;
                 }

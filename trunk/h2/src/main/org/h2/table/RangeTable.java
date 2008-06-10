@@ -25,10 +25,21 @@ import org.h2.value.Value;
  */
 public class RangeTable extends Table {
 
+    /**
+     * The name of the range table.
+     */
     public static final String NAME = "SYSTEM_RANGE";
+    
     private Expression min, max;
     private boolean optimized;
     
+    /**
+     * Create a new range with the given start and end expressions.
+     * 
+     * @param schema the schema (always the main schema)
+     * @param min the start expression
+     * @param max the end expression
+     */
     public RangeTable(Schema schema, Expression min, Expression max) throws SQLException {
         super(schema, 0, NAME, true);
         Column[] cols = new Column[]{
@@ -107,14 +118,26 @@ public class RangeTable extends Table {
         return new RangeIndex(this, IndexColumn.wrap(columns));
     }
     
-    public long getMin(Session s) throws SQLException {
-        optimize(s);
-        return min.getValue(s).getLong();
+    /**
+     * Calculate and get the start value of this range.
+     * 
+     * @param session the session
+     * @return the start value
+     */
+    public long getMin(Session session) throws SQLException {
+        optimize(session);
+        return min.getValue(session).getLong();
     }
 
-    public long getMax(Session s) throws SQLException {
-        optimize(s);
-        return max.getValue(s).getLong();
+    /**
+     * Calculate and get the end value of this range.
+     * 
+     * @param session the session
+     * @return the end value
+     */
+    public long getMax(Session session) throws SQLException {
+        optimize(session);
+        return max.getValue(session).getLong();
     }
     
     private void optimize(Session s) throws SQLException {

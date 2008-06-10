@@ -24,6 +24,13 @@ public class Plan {
     private final Expression[] allConditions;
     private final TableFilter[] allFilters;
 
+    /**
+     * Create a query plan with the given order.
+     * 
+     * @param filters the tables of the query
+     * @param count the number of table items 
+     * @param condition the condition in the WHERE clause
+     */
     public Plan(TableFilter[] filters, int count, Expression condition) {
         this.filters = new TableFilter[count];
         System.arraycopy(filters, 0, this.filters, 0, count);
@@ -48,14 +55,28 @@ public class Plan {
         all.toArray(allFilters);
     }
 
+    /**
+     * Get the plan item for the given table.
+     * 
+     * @param filter the table
+     * @return the plan item
+     */
     public PlanItem getItem(TableFilter filter) {
         return (PlanItem) planItems.get(filter);
     }
-
+    
+    /**
+     * The the list of tables.
+     * 
+     * @return the list of tables
+     */
     public TableFilter[] getFilters() {
         return filters;
     }
 
+    /**
+     * Remove all index conditions that can not be used.
+     */
     public void removeUnusableIndexConditions() {
         for (int i = 0; i < allFilters.length; i++) {
             TableFilter f = allFilters[i];
@@ -74,6 +95,12 @@ public class Plan {
         }
     }
 
+    /**
+     * Calculate the cost of this query plan.
+     * 
+     * @param session the session
+     * @return the cost
+     */
     public double calculateCost(Session session) throws SQLException {
         double cost = 1;
         boolean invalidPlan = false;

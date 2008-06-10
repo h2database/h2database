@@ -17,21 +17,33 @@ import org.h2.constant.SysProperties;
  * It is a bit faster than ArrayList in some versions of Java.
  */
 public class ObjectArray {
-    private static final int SIZE_INIT = 4, SIZE_SHRINK = 256;
+    private static final int CAPACITY_INIT = 4, CAPACITY_SHRINK = 256;
 
     private Object[] data;
     private int size;
 
+    /**
+     * Create a new object with the default initial capacity.
+     */
     public ObjectArray() {
-        this(SIZE_INIT);
+        this(CAPACITY_INIT);
     }
 
-    public ObjectArray(int size) {
-        data = new Object[size > 1 ? size : 1];
+    /**
+     * Create a new object with the given initial capacity.
+     * 
+     * @param capacity the initial capacity
+     */
+    public ObjectArray(int capacity) {
+        data = new Object[capacity > 1 ? capacity : 1];
     }
 
+    /**
+     * Create a new object with all elements of the given collection.
+     * 
+     * @param collection the collection with all elements
+     */
     public ObjectArray(Collection collection) {
-        // TODO lib: Collection should not be required
         size = collection.size();
         data = new Object[size];
         Iterator it = collection.iterator();
@@ -44,6 +56,11 @@ public class ObjectArray {
         throw new ArrayIndexOutOfBoundsException("i=" + index + " size=" + size);
     }
 
+    /**
+     * Append an object at the end of the list.
+     * 
+     * @param value the value
+     */
     public void add(Object value) {
         if (size >= data.length) {
             ensureCapacity(size);
@@ -51,27 +68,44 @@ public class ObjectArray {
         data[size++] = value;
     }
 
-    public Object get(int i) {
-        if (SysProperties.CHECK && i >= size) {
-            throwException(i);
+    /**
+     * Get the object at the given index.
+     * 
+     * @param index the index
+     * @return the value
+     */
+    public Object get(int index) {
+        if (SysProperties.CHECK && index >= size) {
+            throwException(index);
         }
-        return data[i];
+        return data[index];
     }
 
-    public Object remove(int i) {
+    /**
+     * Remove the object at the given index.
+     * 
+     * @param index the index
+     */
+    public Object remove(int index) {
         // TODO performance: the app should (where possible) 
         // remove from end to start, to avoid O(n^2)
-        if (SysProperties.CHECK && i >= size) {
-            throwException(i);
+        if (SysProperties.CHECK && index >= size) {
+            throwException(index);
         }
-        Object value = data[i];
-        System.arraycopy(data, i + 1, data, i, size - i - 1);
+        Object value = data[index];
+        System.arraycopy(data, index + 1, data, index, size - index - 1);
         size--;
         data[size] = null;
         // TODO optimization / lib: could shrink ObjectArray on element remove
         return value;
     }
 
+    /**
+     * Remove a number of elements from the given start and end index.
+     * 
+     * @param from the start index
+     * @param to the end index
+     */
     public void removeRange(int from, int to) {
         if (SysProperties.CHECK && (to > size || from > to)) {
             throw new ArrayIndexOutOfBoundsException("to=" + to + " from="+from+" size=" + size);
@@ -83,53 +117,84 @@ public class ObjectArray {
         }
     }
 
-    public void setSize(int i) {
-        ensureCapacity(i);
-        this.size = i;
+    /**
+     * Fill the list with empty elements until it reaches the given size.
+     * 
+     * @param size the new size
+     */
+    public void setSize(int size) {
+        ensureCapacity(size);
+        this.size = size;
     }
 
     private void ensureCapacity(int i) {
         while (i >= data.length) {
-            Object[] d = new Object[Math.max(SIZE_INIT, data.length * 2)];
+            Object[] d = new Object[Math.max(CAPACITY_INIT, data.length * 2)];
             System.arraycopy(data, 0, d, 0, data.length);
             data = d;
         }
     }
 
-    public void add(int i, Object value) {
-        if (SysProperties.CHECK && i > size) {
-            throwException(i);
+    /**
+     * Insert an element at the given position. The element at this position and
+     * all elements with a higher index move one element.
+     * 
+     * @param index the index where to insert the object
+     * @param value the object to insert
+     */
+    public void add(int index, Object value) {
+        if (SysProperties.CHECK && index > size) {
+            throwException(index);
         }
         ensureCapacity(size);
-        if (i == size) {
+        if (index == size) {
             add(value);
         } else {
-            System.arraycopy(data, i, data, i + 1, size - i);
-            data[i] = value;
+            System.arraycopy(data, index, data, index + 1, size - index);
+            data[index] = value;
             size++;
         }
     }
 
-    public void set(int i, Object value) {
-        if (SysProperties.CHECK && i >= size) {
-            throwException(i);
+    /**
+     * Update the object at the given index.
+     * 
+     * @param index the index
+     * @param value the new value
+     */
+    public void set(int index, Object value) {
+        if (SysProperties.CHECK && index >= size) {
+            throwException(index);
         }
-        data[i] = value;
+        data[index] = value;
     }
 
+    /**
+     * Get the size of the list.
+     * 
+     * @return the size
+     */
     public int size() {
         return size;
     }
 
+    /**
+     * Convert this list to an array. The target array must be big enough.
+     * 
+     * @param array the target array
+     */
     public void toArray(Object[] array) {
         for (int i = 0; i < size; i++) {
             array[i] = data[i];
         }
     }
 
+    /**
+     * Remove all elements from the list.
+     */
     public void clear() {
-        if (data.length > SIZE_SHRINK) {
-            data = new Object[SIZE_INIT];
+        if (data.length > CAPACITY_SHRINK) {
+            data = new Object[CAPACITY_INIT];
         } else {
             for (int i = 0; i < size; i++) {
                 data[i] = null;
@@ -138,6 +203,12 @@ public class ObjectArray {
         size = 0;
     }
 
+    /**
+     * Get the index of the given object, or -1 if not found.
+     * 
+     * @param o the object to search
+     * @return the index
+     */
     public int indexOf(Object o) {
         for (int i = 0; i < size; i++) {
             if (data[i] == o) {
@@ -147,6 +218,11 @@ public class ObjectArray {
         return -1;
     }
 
+    /**
+     * Add all objects from the given list.
+     * 
+     * @param list the list
+     */
     public void addAll(ObjectArray list) {
         for (int i = 0; i < list.size; i++) {
             add(list.data[i]);
@@ -159,12 +235,23 @@ public class ObjectArray {
         data[l] = t;
     }
 
+    /**
+     * Sort the elements using the given comparator.
+     * 
+     * @param comp the comparator
+     */
     public void sort(Comparator comp) {
         sort(comp, 0, size - 1);
     }
 
+    /**
+     * Sort using the quicksort algorithm.
+     * 
+     * @param comp the comparator
+     * @param l the first element (left)
+     * @param r the last element (right)
+     */
     private void sort(Comparator comp, int l, int r) {
-        // quicksort
         int i, j;
         while (r - l > 10) {
             // randomized pivot to avoid worst case

@@ -3069,7 +3069,7 @@ public class Parser {
                 getSyntaxError();
             }
             Expression expr = readExpression();
-            column.setComputed(true, expr);
+            column.setComputedExpression(expr);
         } else if (readIf("DEFAULT")) {
             Expression defaultExpression = readExpression();
             column.setDefaultExpression(session, defaultExpression);

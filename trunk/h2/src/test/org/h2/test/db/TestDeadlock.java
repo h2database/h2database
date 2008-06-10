@@ -33,9 +33,9 @@ public class TestDeadlock extends TestBase {
         c1 = getConnection("deadlock");
         c2 = getConnection("deadlock");
         c3 = getConnection("deadlock");
-        c1.createStatement().execute("SET LOCK_TIMEOUT 1000000");
-        c2.createStatement().execute("SET LOCK_TIMEOUT 1000000");
-        c3.createStatement().execute("SET LOCK_TIMEOUT 1000000");
+        c1.createStatement().execute("SET LOCK_TIMEOUT 1000");
+        c2.createStatement().execute("SET LOCK_TIMEOUT 1000");
+        c3.createStatement().execute("SET LOCK_TIMEOUT 1000");
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);
         c3.setAutoCommit(false);

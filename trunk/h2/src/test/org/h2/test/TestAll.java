@@ -169,6 +169,12 @@ java org.h2.test.TestAll timer
 
 /*
 
+measure and improve performance of ObjectArray.toArray()
+
+test & document optimizations.sql
+
+convert test.in.sql to RunScript syntax
+
 C:\download\Data Concurrency and Consistency.pdf
 
 detect deadlock: alarm

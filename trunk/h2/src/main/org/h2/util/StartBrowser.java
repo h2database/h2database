@@ -19,6 +19,11 @@ public class StartBrowser {
         // utility class
     }
 
+    /**
+     * Open a new browser tab or window with the given URL.
+     * 
+     * @param url the URL to open
+     */
     public static void openURL(String url) {
         String osName = SysProperties.getStringSetting("os.name", "linux").toLowerCase();
         Runtime rt = Runtime.getRuntime();

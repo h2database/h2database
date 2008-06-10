@@ -57,14 +57,12 @@ public class Resources {
         }
     }
 
-    static void add(String name, String[] data) {
-        StringBuffer buff = new StringBuffer();
-        for (int i = 0; i < data.length; i++) {
-            buff.append(data[i]);
-        }
-        FILES.put(name, ByteUtils.convertBinStringToBytes(buff.toString()));
-    }
-
+    /**
+     * Get a resource from the resource map.
+     * 
+     * @param name the name of the resource
+     * @return the resource data
+     */
     public static byte[] get(String name) throws IOException {
         byte[] data;
         if (FILES.size() == 0) {

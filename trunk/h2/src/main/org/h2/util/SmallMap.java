@@ -23,10 +23,23 @@ public class SmallMap {
     private int lastId;
     private int maxElements;
 
+    /**
+     * Create a map with the given maximum number of entries.
+     * 
+     * @param maxElements the maximum number of entries
+     */
     public SmallMap(int maxElements) {
         this.maxElements = maxElements;
     }
 
+    /**
+     * Add an object to the map. If the size of the map is larger than twice the
+     * maximum size, objects with a low id are removed.
+     * 
+     * @param id the object id
+     * @param o the object
+     * @return the id
+     */
     public int addObject(int id, Object o) {
         if (map.size() > maxElements * 2) {
             Iterator it = map.keySet().iterator();
@@ -46,6 +59,11 @@ public class SmallMap {
         return id;
     }
 
+    /**
+     * Remove an object from the map.
+     * 
+     * @param id the id of the object to remove
+     */
     public void freeObject(int id) {
         if (cacheId == id) {
             cacheId = -1;
@@ -54,6 +72,15 @@ public class SmallMap {
         map.remove(ObjectUtils.getInteger(id));
     }
 
+    /**
+     * Get an object from the map if it is stored.
+     * 
+     * @param id the id of the object
+     * @param ifAvailable only return it if available, otherwise return null
+     * @return the object or null
+     * @throws SQLException if isAvailable is false and the object has not been
+     *             found
+     */
     public Object getObject(int id, boolean ifAvailable) throws SQLException {
         if (id == cacheId) {
             return cache;

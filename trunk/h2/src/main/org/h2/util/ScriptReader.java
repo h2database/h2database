@@ -25,10 +25,18 @@ public class ScriptReader {
     private boolean blockRemark;
     private boolean skipRemarks;
 
+    /**
+     * Create a new SQL script reader from the given reader
+     * 
+     * @param reader the reader
+     */
     public ScriptReader(Reader reader) {
         this.reader = reader;
     }
 
+    /**
+     * Close the underlying reader.
+     */
     public void close() throws SQLException {
         try {
             reader.close();
@@ -45,6 +53,12 @@ public class ScriptReader {
         }
     }
 
+    /**
+     * Read a statement from the reader. This method returns null if the end has
+     * been reached.
+     * 
+     * @return the SQL statement or null
+     */
     public String readStatement() throws SQLException {
         if (end) {
             return null;
@@ -224,15 +238,33 @@ public class ScriptReader {
         return buff.toString();
     }
 
+    /**
+     * Check if this is the last statement, and if the single line or block
+     * comment is not finished yet.
+     * 
+     * @return true if the current position is inside a remark
+     */
     public boolean isInsideRemark() {
         return insideRemark;
     }
 
+    /**
+     * If currently inside a remark, this method tells if it is a block comment
+     * (true) or single line comment (false)
+     * 
+     * @return true if inside a block comment
+     */
     public boolean isBlockRemark() {
         return blockRemark;
     }
 
+    /**
+     * If comments should be skipped completely by this reader.
+     * 
+     * @param skipRemarks true if comments should be skipped
+     */
     public void setSkipRemarks(boolean skipRemarks) {
         this.skipRemarks = skipRemarks;
     }
+
 }

@@ -563,33 +563,9 @@ public class Database implements DataHandler {
                 false, false), Index.EMPTY_HEAD, null);
         objectIds.set(0);
         // there could be views on system tables, so they must be added first
-        addMetaData(MetaTable.TABLES);
-        addMetaData(MetaTable.COLUMNS);
-        addMetaData(MetaTable.INDEXES);
-        addMetaData(MetaTable.TABLE_TYPES);
-        addMetaData(MetaTable.TYPE_INFO);
-        addMetaData(MetaTable.CATALOGS);
-        addMetaData(MetaTable.SETTINGS);
-        addMetaData(MetaTable.HELP);
-        addMetaData(MetaTable.SEQUENCES);
-        addMetaData(MetaTable.USERS);
-        addMetaData(MetaTable.ROLES);
-        addMetaData(MetaTable.RIGHTS);
-        addMetaData(MetaTable.FUNCTION_ALIASES);
-        addMetaData(MetaTable.SCHEMATA);
-        addMetaData(MetaTable.TABLE_PRIVILEGES);
-        addMetaData(MetaTable.COLUMN_PRIVILEGES);
-        addMetaData(MetaTable.COLLATIONS);
-        addMetaData(MetaTable.VIEWS);
-        addMetaData(MetaTable.IN_DOUBT);
-        addMetaData(MetaTable.CROSS_REFERENCES);
-        addMetaData(MetaTable.CONSTRAINTS);
-        addMetaData(MetaTable.FUNCTION_COLUMNS);
-        addMetaData(MetaTable.CONSTANTS);
-        addMetaData(MetaTable.DOMAINS);
-        addMetaData(MetaTable.TRIGGERS);
-        addMetaData(MetaTable.SESSIONS);
-        addMetaData(MetaTable.LOCKS);
+        for (int i = 0; i < MetaTable.getMetaTableTypeCount(); i++) {
+            addMetaData(i);
+        }
         starting = true;
         Cursor cursor = metaIdIndex.find(systemSession, null, null);
         // first, create all function aliases and sequences because

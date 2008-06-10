@@ -29,6 +29,11 @@ public class JdbcUtils {
         // utility class
     }
 
+    /**
+     * Close a statement without throwing an exception.
+     * 
+     * @param stat the statement or null
+     */
     public static void closeSilently(Statement stat) {
         if (stat != null) {
             try {
@@ -39,6 +44,11 @@ public class JdbcUtils {
         }
     }
 
+    /**
+     * Close a connection without throwing an exception.
+     * 
+     * @param conn the connection or null
+     */
     public static void closeSilently(Connection conn) {
         if (conn != null) {
             try {
@@ -48,7 +58,12 @@ public class JdbcUtils {
             }
         }
     }
-
+    
+    /**
+     * Close a result set without throwing an exception.
+     * 
+     * @param rs the result set or null
+     */
     public static void closeSilently(ResultSet rs) {
         if (rs != null) {
             try {
@@ -59,6 +74,13 @@ public class JdbcUtils {
         }
     }
 
+    /**
+     * Get the result set containing the generated keys from the given
+     * statement. This method returns null for Java versions older than 1.4.
+     * 
+     * @param stat the statement
+     * @return the result set or null
+     */
     public static ResultSet getGeneratedKeys(Statement stat) throws SQLException {
         ResultSet rs = null;
         //## Java 1.4 begin ##
@@ -67,6 +89,11 @@ public class JdbcUtils {
         return rs;
     }
 
+    /**
+     * Close an XA connection set without throwing an exception.
+     * 
+     * @param conn the XA connection or null
+     */
 //## Java 1.4 begin ##
     public static void closeSilently(XAConnection conn) {
         if (conn != null) {
@@ -80,7 +107,7 @@ public class JdbcUtils {
 //## Java 1.4 end ##
 
     /**
-     * Create a new database connection with the given settings.
+     * Open a new database connection with the given settings.
      * 
      * @param driver the driver class name
      * @param url the database URL
@@ -99,6 +126,14 @@ public class JdbcUtils {
         return getConnection(driver, url, prop);
     }
 
+    /**
+     * Open a new database connection with the given settings.
+     * 
+     * @param driver the driver class name
+     * @param url the database URL
+     * @param prop the properties containing at least the user name and password
+     * @return the database connection
+     */    
     public static Connection getConnection(String driver, String url, Properties prop) throws SQLException {
         if (StringUtils.isNullOrEmpty(driver)) {
             JdbcDriverUtils.load(url);

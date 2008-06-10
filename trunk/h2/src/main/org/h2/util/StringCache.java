@@ -58,6 +58,14 @@ public class StringCache {
 //    }
 
     // 3906
+    /**
+     * Get the string from the cache if possible. If the string has not been
+     * found, it is added to the cache. If there is such a string in the cache,
+     * that one is returned.
+     * 
+     * @param s the original string
+     * @return a string with the same content, if possible from the cache
+     */
     public static String get(String s) {
         if (!SysProperties.OBJECT_CACHE || !ENABLED) {
             return s;
@@ -85,6 +93,15 @@ public class StringCache {
         return s;
     }
 
+    /**
+     * Get a string from the cache, and if no such string has been found, create
+     * a new one with only this content. This solves out of memory problems if
+     * the string is a substring of another, large string. In Java, strings are
+     * shared, which could lead to memory problems. This avoid such problems.
+     * 
+     * @param s the string
+     * @return a string that is guaranteed not be a substring of a large string
+     */
     public static String getNew(String s) {
         if (!SysProperties.OBJECT_CACHE || !ENABLED) {
             return s;
@@ -116,6 +133,9 @@ public class StringCache {
         return s;
     }
 
+    /**
+     * Clear the cache. This method is used for testing.
+     */
     public static void clearCache() {
         softCache = new SoftReference(null);
     }

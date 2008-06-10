@@ -32,7 +32,6 @@ import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringCache;
-import org.h2.util.StringUtils;
 
 /**
  * A facility to read from and write to CSV (comma separated values) files.
@@ -41,7 +40,7 @@ import org.h2.util.StringUtils;
  */
 public class Csv implements SimpleRowSource {
 
-    private String streamCharset = StringUtils.getDefaultCharset();
+    private String streamCharset = SysProperties.FILE_ENCODING;
     private int bufferSize = 8 * 1024;
     private String[] columnNames;
     private char fieldSeparatorRead = ',';

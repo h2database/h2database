@@ -13,11 +13,11 @@ import java.io.Reader;
 import java.sql.SQLException;
 
 import org.h2.command.Prepared;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.util.ScriptReader;
-import org.h2.util.StringUtils;
 
 /**
  * This class represents the statement
@@ -25,7 +25,7 @@ import org.h2.util.StringUtils;
  */
 public class RunScriptCommand extends ScriptBase {
 
-    private String charset = StringUtils.getDefaultCharset();
+    private String charset = SysProperties.FILE_ENCODING;
 
     public RunScriptCommand(Session session) {
         super(session);

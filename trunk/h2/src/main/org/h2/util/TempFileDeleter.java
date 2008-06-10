@@ -34,6 +34,14 @@ public class TempFileDeleter {
         long lastModified;
     }
 
+    /**
+     * Add a file to the list of temp files to delete. The file is deleted once
+     * the file object is garbage collected.
+     * 
+     * @param fileName the file name
+     * @param file the object to monitor
+     * @return the reference that can be used to stop deleting the file
+     */
     public static synchronized Reference addFile(String fileName, Object file) {
         FileUtils.trace("TempFileDeleter.addFile", fileName, file);
         PhantomReference ref = new PhantomReference(file, QUEUE);
@@ -45,6 +53,12 @@ public class TempFileDeleter {
         return ref;
     }
 
+    /**
+     * Delete the given file now. This will remove the reference from the list.
+     * 
+     * @param ref the reference as returned by addFile
+     * @param fileName the file name
+     */
     public static synchronized void deleteFile(Reference ref, String fileName) {
         if (ref != null) {
             TempFile f2 = (TempFile) REF_MAP.remove(ref);
@@ -71,6 +85,9 @@ public class TempFileDeleter {
         }
     }
 
+    /**
+     * Delete all unused files now.
+     */
     public static void deleteUnused() {
         // Mystery: I don't know how QUEUE could get null, but two independent
         // people reported NullPointerException here - if somebody understands
@@ -85,6 +102,13 @@ public class TempFileDeleter {
         }
     }
 
+    /**
+     * This method is called if a file should no longer be deleted if the object
+     * is garbage collected.
+     * 
+     * @param ref the reference as returned by addFile
+     * @param fileName the file name
+     */
     public static void stopAutoDelete(Reference ref, String fileName) {
         FileUtils.trace("TempFileDeleter.stopAutoDelete", fileName, ref);
         if (ref != null) {

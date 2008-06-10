@@ -18,35 +18,55 @@ public class IntArray {
     private int size;
     private int hash;
 
+    /**
+     * Create an int array with the default initial capacity.
+     */
     public IntArray() {
         data = new int[10];
     }
 
+    /**
+     * Create an int array with the given values and size.
+     */
     public IntArray(int[] data) {
         this.data = data;
         size = data.length;
     }
 
+    /**
+     * Append a value.
+     * 
+     * @param value the value to append
+     */
     public void add(int value) {
         checkCapacity();
         data[size++] = value;
     }
 
-    public int get(int i) {
-        if (SysProperties.CHECK && i >= size) {
-            throw new ArrayIndexOutOfBoundsException("i=" + i + " size=" + size);
+    /**
+     * Get the value at the given index.
+     * 
+     * @param index the index
+     * @return the value
+     */
+    public int get(int index) {
+        if (SysProperties.CHECK && index >= size) {
+            throw new ArrayIndexOutOfBoundsException("i=" + index + " size=" + size);
         }
-        return data[i];
+        return data[index];
     }
 
-    public int remove(int i) {
-        if (SysProperties.CHECK && i >= size) {
-            throw new ArrayIndexOutOfBoundsException("i=" + i + " size=" + size);
+    /**
+     * Remove the value at the given index.
+     * 
+     * @param index the index
+     */
+    public void remove(int index) {
+        if (SysProperties.CHECK && index >= size) {
+            throw new ArrayIndexOutOfBoundsException("i=" + index + " size=" + size);
         }
-        int value = data[i];
-        System.arraycopy(data, i + 1, data, i, size - i - 1);
+        System.arraycopy(data, index + 1, data, index, size - index - 1);
         size--;
-        return value;
     }
 
     private void checkCapacity() {
@@ -57,25 +77,38 @@ public class IntArray {
         }
     }
 
-    public void add(int i, int value) {
-        if (SysProperties.CHECK && i > size) {
-            throw new ArrayIndexOutOfBoundsException("i=" + i + " size=" + size);
+    /**
+     * Insert an element at the given position. The element at this position and
+     * all elements with a higher index move one element.
+     * 
+     * @param index the index where to insert the value
+     * @param value the value to insert
+     */
+    public void add(int index, int value) {
+        if (SysProperties.CHECK && index > size) {
+            throw new ArrayIndexOutOfBoundsException("i=" + index + " size=" + size);
         }
         checkCapacity();
-        if (i == size) {
+        if (index == size) {
             add(value);
         } else {
-            System.arraycopy(data, i, data, i + 1, size - i);
-            data[i] = value;
+            System.arraycopy(data, index, data, index + 1, size - index);
+            data[index] = value;
             size++;
         }
     }
 
-    public void set(int i, int value) {
-        if (SysProperties.CHECK && i >= size) {
-            throw new ArrayIndexOutOfBoundsException("i=" + i + " size=" + size);
+    /**
+     * Update the value at the given index.
+     * 
+     * @param index the index
+     * @param value the new value
+     */
+    public void set(int index, int value) {
+        if (SysProperties.CHECK && index >= size) {
+            throw new ArrayIndexOutOfBoundsException("i=" + index + " size=" + size);
         }
-        data[i] = value;
+        data[index] = value;
     }
 
     public boolean equals(Object obj) {
@@ -106,10 +139,21 @@ public class IntArray {
         return h;
     }
 
+    /**
+     * Get the size of the list.
+     * 
+     * @return the size
+     */
     public int size() {
         return size;
     }
 
+    /**
+     * Insert an element at the correct position in a sorted list.
+     * If the list is not sorted, the result of this operation is undefined.
+     * 
+     * @param value the value to insert
+     */
     public void addValueSorted(int value) {
         int l = 0, r = size;
         while (l < r) {
@@ -142,6 +186,11 @@ public class IntArray {
 //        add(l, value);
 //    }
 
+    /**
+     * Remove the first element of this list that matches this value.
+     * 
+     * @param value the value to be remove
+     */
     public void removeValue(int value) {
         for (int i = 0; i < size; i++) {
             if (data[i] == value) {
@@ -151,7 +200,14 @@ public class IntArray {
         }
         throw Message.getInternalError();
     }
-
+    
+    /**
+     * Return the next index with a value larger than this one.
+     * If the list is not sorted, the result of this operation is undefined.
+     * 
+     * @param value the value to find
+     * @return the index
+     */
     public int findNextValueIndex(int value) {
         int l = 0, r = size;
         while (l < r) {
@@ -173,6 +229,9 @@ public class IntArray {
 //        return size;
     }
 
+    /**
+     * Sort the array by value.
+     */
     public void sort() {
         // insertion sort
         for (int i = 1, j; i < size(); i++) {
@@ -184,6 +243,11 @@ public class IntArray {
         }
     }
 
+    /**
+     * Convert this list to an array. The target array must be big enough.
+     * 
+     * @param array the target array
+     */
     public void toArray(int[] array) {
         System.arraycopy(data, 0, array, 0, size);
     }

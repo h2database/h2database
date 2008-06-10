@@ -67,16 +67,46 @@ public class MetaTable extends Table {
     // TODO INFORMATION_SCHEMA.tables: select table_name 
     // from INFORMATION_SCHEMA.tables where TABLE_TYPE = 'BASE TABLE'
 
-    public static final int TABLES = 0, COLUMNS = 1, INDEXES = 2, TABLE_TYPES = 3, TYPE_INFO = 4, CATALOGS = 5,
-            SETTINGS = 6, HELP = 7, SEQUENCES = 8, USERS = 9, ROLES = 10, RIGHTS = 11, FUNCTION_ALIASES = 12,
-            SCHEMATA = 13, TABLE_PRIVILEGES = 14, COLUMN_PRIVILEGES = 15, COLLATIONS = 16, VIEWS = 17, IN_DOUBT = 18,
-            CROSS_REFERENCES = 19, CONSTRAINTS = 20, FUNCTION_COLUMNS = 21, CONSTANTS = 22, DOMAINS = 23,
-            TRIGGERS = 24, SESSIONS = 25, LOCKS = 26;
-
+    private static final int TABLES = 0;
+    private static final int COLUMNS = 1;
+    private static final int INDEXES = 2;
+    private static final int TABLE_TYPES = 3;
+    private static final int TYPE_INFO = 4;
+    private static final int CATALOGS = 5;
+    private static final int SETTINGS = 6;
+    private static final int HELP = 7;
+    private static final int SEQUENCES = 8;
+    private static final int USERS = 9;
+    private static final int ROLES = 10;
+    private static final int RIGHTS = 11;
+    private static final int FUNCTION_ALIASES = 12;
+    private static final int SCHEMATA = 13;
+    private static final int TABLE_PRIVILEGES = 14;
+    private static final int COLUMN_PRIVILEGES = 15;
+    private static final int COLLATIONS = 16;
+    private static final int VIEWS = 17;
+    private static final int IN_DOUBT = 18;
+    private static final int CROSS_REFERENCES = 19;
+    private static final int CONSTRAINTS = 20;
+    private static final int FUNCTION_COLUMNS = 21;
+    private static final int CONSTANTS = 22;
+    private static final int DOMAINS = 23;
+    private static final int TRIGGERS = 24;
+    private static final int SESSIONS = 25;
+    private static final int LOCKS = 26;
+    private static final int META_TABLE_TYPE_COUNT = LOCKS + 1;
+    
     private final int type;
     private final int indexColumn;
     private MetaIndex index;
 
+    /**
+     * Create a new metadata table.
+     * 
+     * @param schema the schema
+     * @param id the object id
+     * @param type the meta table type
+     */
     public MetaTable(Schema schema, int id, int type) throws SQLException {
         // tableName will be set later
         super(schema, id, null, true);
@@ -543,6 +573,15 @@ public class MetaTable extends Table {
         return s == null ? "" : s;
     }
 
+    /**
+     * Generate the data for the given metadata table using the given first and
+     * last row filters.
+     * 
+     * @param session the session
+     * @param first the first row to return
+     * @param last the last row to return
+     * @return the generated rows
+     */
     public ObjectArray generateRows(Session session, SearchRow first, SearchRow last) throws SQLException {
         Value indexFrom = null, indexTo = null;
 
@@ -1662,6 +1701,16 @@ public class MetaTable extends Table {
 
     public Index getUniqueIndex() {
         return null;
+    }
+
+    /**
+     * Get the number of meta table types. Supported meta table
+     * types are 0 .. this value - 1.
+     * 
+     * @return the number of meta table types
+     */
+    public static int getMetaTableTypeCount() {
+        return META_TABLE_TYPE_COUNT;
     }
 
 }

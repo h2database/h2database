@@ -148,8 +148,14 @@ public class Column {
         }
     }
 
-    public void setComputed(boolean computed, Expression expression) {
-        this.isComputed = computed;
+    /**
+     * Set the default value in the form of a computed expression of other
+     * columns.
+     * 
+     * @param expression the computed expression
+     */
+    public void setComputedExpression(Expression expression) {
+        this.isComputed = true;
         this.defaultExpression = expression;
     }
 
@@ -162,6 +168,12 @@ public class Column {
         return table;
     }
 
+    /**
+     * Set the default expression.
+     * 
+     * @param session the session
+     * @param defaultExpression the default expression
+     */
     public void setDefaultExpression(Session session, Expression defaultExpression) throws SQLException {
         // also to test that no column names are used
         if (defaultExpression != null) {
@@ -205,6 +217,14 @@ public class Column {
         nullable = b;
     }
 
+    /**
+     * Validate the value, convert it if required, and update the sequence value
+     * if required. If the value is null, the default value (NULL if no default
+     * is set) is returned. Check constraints are validated as well.
+     * 
+     * @param session the session
+     * @param value the value or null
+     */
     public Value validateConvertUpdateSequence(Session session, Value value) throws SQLException {
         if (value == null) {
             if (defaultExpression == null) {
@@ -325,6 +345,11 @@ public class Column {
         setSequence(sequence);
     }
 
+    /**
+     * Prepare all expressions of this column.
+     * 
+     * @param session the session
+     */
     public void prepareExpression(Session session) throws SQLException {
         if (defaultExpression != null) {
             computeTableFilter = new TableFilter(session, table, null, false, null);
@@ -421,6 +446,13 @@ public class Column {
         return autoIncrement;
     }
 
+    /**
+     * Set the autoincrement flag and related properties of this column.
+     * 
+     * @param autoInc the new autoincrement flag
+     * @param start the sequence start value
+     * @param increment the sequence increment
+     */
     public void setAutoIncrement(boolean autoInc, long start, long increment) {
         this.autoIncrement = autoInc;
         this.start = start;
@@ -435,6 +467,12 @@ public class Column {
         this.convertNullToDefault = convert;
     }
 
+    /**
+     * Rename the column. This method will only set the column name to the new
+     * value.
+     * 
+     * @param newName the new column name
+     */
     public void rename(String newName) {
         this.name = newName;
     }
@@ -467,6 +505,13 @@ public class Column {
         this.selectivity = selectivity;
     }
 
+    /**
+     * Add a check constraint expression to this column. An existing check
+     * constraint constraint is added using AND.
+     * 
+     * @param session the session
+     * @param expr the (additional) constraint
+     */
     public void addCheckConstraint(Session session, Expression expr) throws SQLException {
         resolver = new SingleColumnResolver(this);
         synchronized (this) {
@@ -491,6 +536,13 @@ public class Column {
         checkConstraintSQL = getCheckConstraintSQL(session, name);
     }
 
+    /**
+     * Get the check constraint expression for this column if set.
+     * 
+     * @param session the session
+     * @param asColumnName the column name to use
+     * @return the constraint expression
+     */
     public Expression getCheckConstraint(Session session, String asColumnName) throws SQLException {
         if (checkConstraint == null) {
             return null;

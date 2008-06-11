@@ -24,7 +24,6 @@ import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.store.fs.FileSystem;
 import org.h2.util.ByteUtils;
-import org.h2.util.FileUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.SortedProperties;
@@ -169,7 +168,7 @@ public class FileLock {
 
     private Properties load() throws SQLException {
         try {
-            Properties p2 = FileUtils.loadProperties(fileName);
+            Properties p2 = SortedProperties.loadProperties(fileName);
             trace.debug("load " + p2);
             return p2;
         } catch (IOException e) {

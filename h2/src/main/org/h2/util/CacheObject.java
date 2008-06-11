@@ -35,6 +35,11 @@ public abstract class CacheObject {
      */
     public abstract boolean canRemove();
 
+    /**
+     * Order the given list of cache objects by position.
+     * 
+     * @param recordList the list of cache objects
+     */
     public static void sort(ObjectArray recordList) {
         recordList.sort(new Comparator() {
             public int compare(Object a, Object b) {
@@ -64,6 +69,12 @@ public abstract class CacheObject {
         return pos;
     }
 
+    /**
+     * Check if this cache object has been changed and thus needs to be written
+     * back to the storage.
+     * 
+     * @return if it has been changed
+     */
     public boolean isChanged() {
         return changed;
     }
@@ -72,6 +83,11 @@ public abstract class CacheObject {
         changed = b;
     }
 
+    /**
+     * Check if this cache object can be removed from the cache.
+     * 
+     * @return if it can be removed
+     */
     public boolean isPinned() {
         return false;
     }

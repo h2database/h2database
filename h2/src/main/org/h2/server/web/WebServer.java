@@ -193,9 +193,9 @@ public class WebServer implements Service {
         // TODO web: support using a different properties file
         Properties prop = loadProperties();
         driverList = prop.getProperty("drivers");
-        port = FileUtils.getIntProperty(prop, "webPort", Constants.DEFAULT_HTTP_PORT);
-        ssl = FileUtils.getBooleanProperty(prop, "webSSL", Constants.DEFAULT_HTTP_SSL);
-        allowOthers = FileUtils.getBooleanProperty(prop, "webAllowOthers", Constants.DEFAULT_HTTP_ALLOW_OTHERS);
+        port = SortedProperties.getIntProperty(prop, "webPort", Constants.DEFAULT_HTTP_PORT);
+        ssl = SortedProperties.getBooleanProperty(prop, "webSSL", Constants.DEFAULT_HTTP_SSL);
+        allowOthers = SortedProperties.getBooleanProperty(prop, "webAllowOthers", Constants.DEFAULT_HTTP_ALLOW_OTHERS);
         for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
             if ("-webPort".equals(a)) {
@@ -437,7 +437,7 @@ public class WebServer implements Service {
     private Properties loadProperties() {
         String fileName = getPropertiesFileName();
         try {
-            return FileUtils.loadProperties(fileName);
+            return SortedProperties.loadProperties(fileName);
         } catch (IOException e) {
             // TODO log exception
             return new Properties();

@@ -19,6 +19,7 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
 
 /**
@@ -302,7 +303,7 @@ public class TraceSystem implements TraceWriter {
                     // can't be opened
                     return false;
                 }
-                fileWriter = FileUtils.openFileWriter(fileName, true);
+                fileWriter = IOUtils.getWriter(FileUtils.openFileOutputStream(fileName, true));
                 printWriter = new PrintWriter(fileWriter, true);
             } catch (Exception e) {
                 logWritingError(e);

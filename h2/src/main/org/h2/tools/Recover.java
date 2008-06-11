@@ -8,7 +8,6 @@ package org.h2.tools;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -318,7 +317,7 @@ public class Recover extends Tool implements DataHandler {
         fileName = fileName.substring(0, fileName.length() - 3);
         String outputFile = fileName + suffix;
         trace("Created file: " + outputFile);
-        return new PrintWriter(new BufferedWriter(FileUtils.openFileWriter(outputFile, false)));
+        return new PrintWriter(IOUtils.getWriter(FileUtils.openFileOutputStream(outputFile, false)));
     }
 
     private void writeDataError(PrintWriter writer, String error, byte[] data, int dumpBlocks) {

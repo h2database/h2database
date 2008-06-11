@@ -249,8 +249,12 @@ public class RunScript extends Tool {
                                 }
                                 if (checkResults) {
                                     String expected = r.readStatement() + ";";
+                                    expected = StringUtils.replaceAll(expected, "\r\n", "\n");
+                                    expected = StringUtils.replaceAll(expected, "\r", "\n");
                                     if (!expected.equals(result)) {
-                                        throw new SQLException("Unexpected output, got:\n" + result + "\nExpected:\n" + expected);
+                                        expected = StringUtils.replaceAll(expected, " ", "+");
+                                        result = StringUtils.replaceAll(result, " ", "+");
+                                        throw new SQLException("Unexpected output for:\n" + sql.trim() + "\nGot:\n" + result + "\nExpected:\n" + expected);
                                     }
                                 }
                                 

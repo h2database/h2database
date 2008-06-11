@@ -17,6 +17,7 @@ import org.h2.constant.SysProperties;
 import org.h2.expression.ParameterInterface;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 
@@ -179,7 +180,7 @@ public class TraceObject {
             synchronized (TraceObject.class) {
                 // e.printStackTrace();
                 try {
-                    Writer writer = FileUtils.openFileWriter(SysProperties.LOG_ALL_ERRORS_FILE, true);
+                    Writer writer = IOUtils.getWriter(FileUtils.openFileOutputStream(SysProperties.LOG_ALL_ERRORS_FILE, true));
                     PrintWriter p = new PrintWriter(writer);
                     e.printStackTrace(p);
                     p.close();

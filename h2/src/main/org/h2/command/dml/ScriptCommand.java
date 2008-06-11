@@ -444,7 +444,7 @@ public class ScriptCommand extends ScriptBase {
      */
     public static Reader combineClob(Connection conn, int id) throws SQLException, IOException {
         ResultSet rs = getLobStream(conn, "CDATA", id);
-        Writer out = FileUtils.openFileWriter(TEMP_LOB_FILENAME, false);
+        Writer out = IOUtils.getWriter(FileUtils.openFileOutputStream(TEMP_LOB_FILENAME, false));
         while (rs.next()) {
             Reader in = new BufferedReader(rs.getCharacterStream(1));
             IOUtils.copyAndCloseInput(in, out);

@@ -7,6 +7,7 @@
 package org.h2.util;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -351,6 +353,21 @@ public class IOUtils {
             throw Message.convert(e);
         }
     }
+    
+    /**
+     * Create a writer to write to an output stream using the UTF-8 format. If
+     * the output stream is null, this method returns null.
+     * 
+     * @param out the output stream or null
+     * @return the writer
+     */
+    public static Writer getWriter(OutputStream out) throws SQLException {
+        try {
+            return out == null ? null : new BufferedWriter(new OutputStreamWriter(out, Constants.UTF8));
+        } catch (UnsupportedEncodingException e) {
+            throw Message.convert(e);
+        }
+    }    
 
     /**
      * Create an input stream to read from a string. The string is converted to

@@ -48,10 +48,24 @@ public class ClassUtils {
         // utility class
     }
 
+    /**
+     * Load a class without performing access rights checking.
+     * 
+     * @param className the name of the class
+     * @return the class object
+     */
     public static Class loadSystemClass(String className) throws ClassNotFoundException {
         return Class.forName(className);
     }
 
+    /**
+     * Load a class, but check if it is allowed to load this class first. To
+     * perform access rights checking, the system property h2.allowedClasses
+     * needs to be set to a list of class file name prefixes.
+     * 
+     * @param className the name of the class
+     * @return the class object
+     */
     public static Class loadUserClass(String className) throws SQLException {
         if (!ALLOW_ALL && !ALLOWED_CLASS_NAMES.contains(className)) {
             boolean allowed = false;

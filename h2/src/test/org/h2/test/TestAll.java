@@ -169,9 +169,26 @@ java org.h2.test.TestAll timer
 
 /*
 
+document bug
+Caused by: java.lang.NullPointerException
+    at org.h2.expression.ExpressionColumn.getValue(ExpressionColumn.java:155)
+    at org.h2.expression.Operation.getValue(Operation.java:97)
+    at org.h2.command.dml.ScriptBase.getFileName(ScriptBase.java:84)
+    at org.h2.command.dml.ScriptBase.openInput(ScriptBase.java:132)
+    at org.h2.command.dml.RunScriptCommand.update(RunScriptCommand.java:38)
+    at org.h2.command.CommandContainer.update(CommandContainer.java:69)
+    at org.h2.command.Command.executeUpdate(Command.java:198)
+    at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:163)
+    ... 6 more 
+add test case
+> RUNSCRIPT FROM SCRIPT_DIRECTORY || 'Create_Users.sql';
+> SCRIPT_DIRECTORY is a constant.    
+    
+feature list:
+computed columns: H2, HSQLDB (PostgreSQL: functional index)
+case insensitive columns: H2, HSQLDB, MySQL (PostgreSQL: functional index)
+        
 measure and improve performance of ObjectArray.toArray()
-
-test & document optimizations.sql
 
 convert test.in.sql to RunScript syntax
 

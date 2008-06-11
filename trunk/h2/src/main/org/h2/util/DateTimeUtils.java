@@ -31,6 +31,13 @@ public class DateTimeUtils {
         // utility class
     }
 
+    /**
+     * Convert the timestamp to the specified time zone.
+     * 
+     * @param x the timestamp
+     * @param calendar the calendar
+     * @return the timestamp using the correct time zone
+     */
     public static Timestamp convertTimestampToCalendar(Timestamp x, Calendar calendar) throws SQLException {
         if (x != null) {
             Timestamp y = new Timestamp(getLocalTime(x, calendar));
@@ -41,6 +48,12 @@ public class DateTimeUtils {
         return x;
     }
 
+    /**
+     * Clone a time object and reset the day to 1970-01-01.
+     * 
+     * @param value the time value
+     * @return the time value without the date component
+     */
     public static Time cloneAndNormalizeTime(Time value) {
         Calendar cal = CALENDAR;
         long time;
@@ -52,6 +65,13 @@ public class DateTimeUtils {
         return new Time(time);
     }
 
+    /**
+     * Clone a date object and reset the hour, minutes, seconds, and
+     * milliseconds to zero.
+     * 
+     * @param value the date value
+     * @return the date value at midnight
+     */
     public static Date cloneAndNormalizeDate(Date value) {
         Calendar cal = CALENDAR;
         long time;
@@ -66,14 +86,35 @@ public class DateTimeUtils {
         return new Date(time);
     }
 
+    /**
+     * Convert the date from the specified time zone to UTC.
+     * 
+     * @param x the date
+     * @param source the calendar
+     * @return the date in UTC
+     */
     public static Value convertDateToUniversal(Date x, Calendar source) throws SQLException {
         return ValueDate.get(new Date(getUniversalTime(source, x)));
     }
 
+    /**
+     * Convert the time from the specified time zone to UTC.
+     * 
+     * @param x the time
+     * @param source the calendar
+     * @return the time in UTC
+     */
     public static Value convertTimeToUniversal(Time x, Calendar source) throws SQLException {
         return ValueTime.get(new Time(getUniversalTime(source, x)));
     }
 
+    /**
+     * Convert the timestamp from the specified time zone to UTC.
+     * 
+     * @param x the time
+     * @param source the calendar
+     * @return the timestamp in UTC
+     */
     public static Value convertTimestampToUniversal(Timestamp x, Calendar source) throws SQLException {
         Timestamp y = new Timestamp(getUniversalTime(source, x));
         // fix the nano seconds
@@ -113,14 +154,38 @@ public class DateTimeUtils {
         to.set(Calendar.MILLISECOND, from.get(Calendar.MILLISECOND));
     }
 
+    /**
+     * Convert the date to the specified time zone.
+     * 
+     * @param x the date
+     * @param calendar the calendar
+     * @return the date using the correct time zone
+     */
     public static Date convertDateToCalendar(Date x, Calendar calendar) throws SQLException {
         return x == null ? null : new Date(getLocalTime(x, calendar));
     }
 
+    /**
+     * Convert the time to the specified time zone.
+     * 
+     * @param x the time
+     * @param calendar the calendar
+     * @return the time using the correct time zone
+     */
     public static Time convertTimeToCalendar(Time x, Calendar calendar) throws SQLException {
         return x == null ? null : new Time(getLocalTime(x, calendar));
     }
 
+    /**
+     * Parse a date, time or timestamp value. This method supports the format
+     * +/-year-month-day hour:minute:seconds.fractional and an optional timezone
+     * part.
+     * 
+     * @param original the original string
+     * @param type the value type (Value.TIME, TIMESTAMP, or DATE)
+     * @param errorCode the error code to use if an error occurs
+     * @return the date object
+     */
     public static java.util.Date parseDateTime(String original, int type, int errorCode) throws SQLException {
         String s = original;
         if (s == null) {
@@ -251,6 +316,14 @@ public class DateTimeUtils {
         return c.getTime().getTime();
     }
 
+    /**
+     * Get the specified field of a date, however with years normalized to
+     * positive or negative, and month starting with 1.
+     * 
+     * @param d the date
+     * @param field the field type
+     * @return the value
+     */
     public static int getDatePart(java.util.Date d, int field) {
         Calendar c = Calendar.getInstance();
         c.setTime(d);

@@ -28,6 +28,7 @@ import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
+import org.h2.util.SortedProperties;
 
 /**
  * Small FTP Server. Intended for ad-hoc networks in a secure environment.
@@ -274,7 +275,7 @@ public class FtpServer implements Service {
             new StreamRedirect(path, p.getInputStream(), null).start();
             return;
         }
-        Properties prop = FileUtils.loadProperties(path);
+        Properties prop = SortedProperties.loadProperties(path);
         String command = prop.getProperty("command");
         String outFile = path.substring(0, path.length() - TASK_SUFFIX.length());
         String errorFile = root + "/" + prop.getProperty("error", outFile + ".err.txt");

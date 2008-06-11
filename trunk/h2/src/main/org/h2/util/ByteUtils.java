@@ -22,14 +22,33 @@ public class ByteUtils {
         // utility class
     }
 
-    public static int readInt(byte[] buff, int pos) {
+    private static int readInt(byte[] buff, int pos) {
         return (buff[pos++] << 24) + ((buff[pos++] & 0xff) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos] & 0xff);
     }
 
+    /**
+     * Read a long value from the byte array at the given position. The most
+     * significant byte is read first.
+     * 
+     * @param buff the byte array
+     * @param pos the position
+     * @return the value
+     */
     public static long readLong(byte[] buff, int pos) {
         return ((long) (readInt(buff, pos)) << 32) + (readInt(buff, pos + 4) & 0xffffffffL);
     }
 
+    /**
+     * Calculate the index of the first occurrence of the pattern in the byte
+     * array, starting with the given index. This methods returns -1 if the
+     * pattern has not been found, and the start position if the pattern is
+     * empty.
+     * 
+     * @param bytes the byte array
+     * @param pattern the pattern
+     * @param start the start index from where to search
+     * @return the index
+     */
     public static int indexOf(byte[] bytes, byte[] pattern, int start) {
         if (pattern.length == 0) {
             return start;
@@ -49,6 +68,12 @@ public class ByteUtils {
         return -1;
     }
 
+    /**
+     * Convert a hex encoded string to a byte array.
+     * 
+     * @param s the hex encoded string
+     * @return the byte array
+     */
     public static byte[] convertStringToBytes(String s) throws SQLException {
         int len = s.length();
         if (len % 2 != 0) {
@@ -75,6 +100,12 @@ public class ByteUtils {
         }
     }
 
+    /**
+     * Calculate the hash code of the given byte array.
+     * 
+     * @param value the byte array
+     * @return the hash code
+     */
     public static int getByteArrayHash(byte[] value) {
         int h = 1;
         for (int i = 0; i < value.length;) {
@@ -83,10 +114,23 @@ public class ByteUtils {
         return h;
     }
 
+    /**
+     * Convert a byte array to a hex encoded string.
+     * 
+     * @param value the byte array
+     * @return the hex encoded string
+     */
     public static String convertBytesToString(byte[] value) {
         return convertBytesToString(value, value.length);
     }
 
+    /**
+     * Convert a byte array to a hex encoded string.
+     * 
+     * @param value the byte array
+     * @param len the number of bytes to encode
+     * @return the hex encoded string
+     */
     public static String convertBytesToString(byte[] value, int len) {
         char[] buff = new char[len + len];
         char[] hex = HEX;
@@ -98,6 +142,15 @@ public class ByteUtils {
         return new String(buff);
     }
 
+    /**
+     * Compare two byte arrays. This method will always loop over all bytes and
+     * doesn't use conditional operations in the loop to make sure an attacker
+     * can not use a timing attack when trying out passwords.
+     * 
+     * @param test the first array
+     * @param good the second array
+     * @return true if both byte arrays contain the same bytes
+     */
     public static boolean compareSecure(byte[] test, byte[] good) {
         if ((test == null) || (good == null)) {
             return (test == null) && (good == null);
@@ -108,24 +161,36 @@ public class ByteUtils {
         if (test.length == 0) {
             return true;
         }
-        // silly loop: this should help a little against timing attacks
-        boolean correct = true, correct2 = false;
+        // don't use conditional operations inside the loop
+        int bits = 0;
         for (int i = 0; i < good.length; i++) {
-            if (test[i] != good[i]) {
-                correct = false;
-            } else {
-                correct2 = true;
-            }
+            // this will never reset any bits
+            bits |= test[i] ^ good[i];
         }
-        return correct && correct2;
+        return bits == 0;
     }
 
+    /**
+     * Set all elements of the array to zero.
+     * 
+     * @param buff the byte array
+     */
     public static void clear(byte[] buff) {
         for (int i = 0; i < buff.length; i++) {
             buff[i] = 0;
         }
     }
 
+    /**
+     * Compare the contents of two byte arrays. If the content or length of the
+     * first array is smaller than the second array, -1 is returned. If the
+     * content or length of the second array is smaller than the first array, 1
+     * is returned. If the contents and lengths are the same, 0 is returned.
+     * 
+     * @param data1 the first byte array (must not be null)
+     * @param data2 the second byte array (must not be null)
+     * @return the result of the comparison (-1, 1 or 0)
+     */
     public static int compareNotNull(byte[] data1, byte[] data2) {
         int len = Math.min(data1.length, data2.length);
         for (int i = 0; i < len; i++) {
@@ -139,22 +204,14 @@ public class ByteUtils {
         return c == 0 ? 0 : (c < 0 ? -1 : 1);
     }
 
-    public static String convertToBinString(byte[] buff) {
-        char[] chars = new char[buff.length];
-        for (int i = 0; i < buff.length; i++) {
-            chars[i] = (char) (buff[i] & 0xff);
-        }
-        return new String(chars);
-    }
-
-    public static byte[] convertBinStringToBytes(String data) {
-        byte[] buff = new byte[data.length()];
-        for (int i = 0; i < data.length(); i++) {
-            buff[i] = (byte) (data.charAt(i) & 0xff);
-        }
-        return buff;
-    }
-
+    /**
+     * Copy the contents of the source array to the target array. If the size if
+     * the target array is too small, a larger array is created.
+     * 
+     * @param source the source array
+     * @param target the target array
+     * @return the target array or a new one if the target array was too small
+     */
     public static byte[] copy(byte[] source, byte[] target) {
         int len = source.length;
         if (len > target.length) {
@@ -164,6 +221,13 @@ public class ByteUtils {
         return target;
     }
 
+    /**
+     * Create a new byte array and copy all the data. If the size of the byte
+     * array is zero, the same array is returned.
+     * 
+     * @param b the byte array (may not be null)
+     * @return a new byte array
+     */
     public static byte[] cloneByteArray(byte[] b) {
         int len = b.length;
         if (len == 0) {

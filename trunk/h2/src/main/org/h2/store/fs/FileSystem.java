@@ -107,12 +107,14 @@ public abstract class FileSystem {
 
     /**
      * Create a new temporary file.
-     *
-     * @param prefix the file name prefix
-     * @param suffix the file name suffix
-     * @param deleteOnExit if the file should be deleted when the system exists
-     * @param inTempDir if the file should be stored in the temp file
-     * @return the file name
+     * 
+     * @param prefix the prefix of the file name (including directory name if
+     *            required)
+     * @param suffix the suffix
+     * @param deleteOnExit if the file should be deleted when the virtual
+     *            machine exists
+     * @param inTempDir if the file should be stored in the temporary directory
+     * @return the name of the created file
      */
     public abstract String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException;
 

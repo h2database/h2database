@@ -24,7 +24,6 @@ import java.util.Properties;
 
 import org.h2.build.code.CheckTextFiles;
 import org.h2.build.indexer.HtmlConverter;
-import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
@@ -48,7 +47,7 @@ public class PropertiesToUTF8 {
         if (!new File(source).exists()) {
             return;
         }
-        Properties prop = FileUtils.loadProperties(source);
+        Properties prop = SortedProperties.loadProperties(source);
         FileOutputStream out = new FileOutputStream(target);
         PrintWriter writer = new PrintWriter(new OutputStreamWriter(out, "UTF-8"));
         // keys is sorted

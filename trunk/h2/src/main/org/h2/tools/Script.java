@@ -146,7 +146,7 @@ public class Script extends Tool {
             org.h2.Driver.load();
             conn = DriverManager.getConnection(url, user, password);
             stat = conn.createStatement();
-            fileWriter = FileUtils.openFileWriter(fileName, false);
+            fileWriter = IOUtils.getWriter(FileUtils.openFileOutputStream(fileName, false));
             PrintWriter writer = new PrintWriter(fileWriter);
             ResultSet rs = stat.executeQuery("SCRIPT");
             while (rs.next()) {

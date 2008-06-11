@@ -27,6 +27,7 @@ import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.JdbcDriverUtils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.SortedProperties;
 
 /**
  * Interactive command line tool to access a database using JDBC.
@@ -273,7 +274,7 @@ public class Shell {
         String user = "sa";
         String driver = null;
         try {
-            Properties prop = FileUtils.loadProperties(propertiesFileName);
+            Properties prop = SortedProperties.loadProperties(propertiesFileName);
             String data = null;
             boolean found = false;
             for (int i = 0;; i++) {

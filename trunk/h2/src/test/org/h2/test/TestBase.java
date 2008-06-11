@@ -321,10 +321,10 @@ public abstract class TestBase {
             int al = expected.length();
             int bl = actual.length();
             if (al > 100) {
-                expected = expected.substring(0, 100);
+                expected = expected.substring(0, 400);
             }
             if (bl > 100) {
-                actual = actual.substring(0, 100);
+                actual = actual.substring(0, 400);
             }
             fail("Expected: " + expected + " (" + al + ") actual: " + actual + " (" + bl + ")");
         }

@@ -30,7 +30,6 @@ import java.util.Map.Entry;
 
 import org.h2.build.doc.XMLParser;
 import org.h2.server.web.PageParser;
-import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
@@ -94,12 +93,12 @@ public class PrepareTranslation {
         new File(targetDir).mkdirs();
         // load the main 'translation'
         String propName = templateDir + "/_docs_" + MAIN_LANGUAGE + ".properties";
-        Properties prop = FileUtils.loadProperties(propName);
+        Properties prop = SortedProperties.loadProperties(propName);
         propName = templateDir + "/_docs_" + language + ".properties";
         if (!(new File(propName)).exists()) {
             throw new IOException("Translation not found: " + propName);
         }
-        Properties transProp = FileUtils.loadProperties(propName);
+        Properties transProp = SortedProperties.loadProperties(propName);
         for (Iterator it = transProp.keySet().iterator(); it.hasNext();) {
             String key = (String) it.next();
             String t = transProp.getProperty(key);
@@ -363,7 +362,7 @@ public class PrepareTranslation {
         }
         new File(target).mkdirs();
         String propFileName = target + "/_docs_" + MAIN_LANGUAGE + ".properties";
-        Properties old = FileUtils.loadProperties(propFileName);
+        Properties old = SortedProperties.loadProperties(propFileName);
         prop.putAll(old);
         PropertiesToUTF8.storeProperties(prop, propFileName);
         String t = template.toString();
@@ -416,8 +415,8 @@ public class PrepareTranslation {
                 }
             }
         }
-        Properties p = FileUtils.loadProperties(main.getAbsolutePath());
-        Properties base = FileUtils.loadProperties(baseDir + "/" + main.getName());
+        Properties p = SortedProperties.loadProperties(main.getAbsolutePath());
+        Properties base = SortedProperties.loadProperties(baseDir + "/" + main.getName());
         PropertiesToUTF8.storeProperties(p, main.getAbsolutePath());
         for (int i = 0; i < translations.size(); i++) {
             File trans = (File) translations.get(i);
@@ -429,7 +428,7 @@ public class PrepareTranslation {
     }
 
     private void prepare(Properties main, Properties base, File trans, String language) throws IOException {
-        Properties p = FileUtils.loadProperties(trans.getAbsolutePath());
+        Properties p = SortedProperties.loadProperties(trans.getAbsolutePath());
         Properties oldTranslations = new Properties();
         for (Iterator it = base.keySet().iterator(); it.hasNext();) {
             String key = (String) it.next();

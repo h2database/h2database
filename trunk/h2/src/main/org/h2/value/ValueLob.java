@@ -31,21 +31,35 @@ import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 
 /**
- * Implementation of the BLOB and CLOB data types.
+ * Implementation of the BLOB and CLOB data types. Small objects are kept in
+ * memory and stored in the data page of the record.
+ * 
+ * Large objects are stored in their own files. When large objects are set in a
+ * prepared statement, they are first stored as 'temporary' files. Later, when
+ * they are used in a record, and when the record is stored, the lob files are
+ * linked: the file is renamed using the file format (tableId).(objectId). There
+ * is one exception: large variables are stored in the file (-1).(objectId).
+ * 
+ * When lobs are deleted, they are first renamed to a temp file, and if the
+ * delete operation is committed the file is deleted.
+ * 
+ * Data compression is supported.
  */
 public class ValueLob extends Value {
     // TODO lob: concatenate function for blob and clob 
     // (to create a large blob from pieces)
     // and a getpart function (to get it in pieces) and make sure a file is created!
 
-    public static final int TABLE_ID_SESSION = -1;
+    /**
+     * The 'table id' to use for session variables.
+     */
+    public static final int TABLE_ID_SESSION_VARIABLE = -1;
     
     /**
-     * This counter is used to calculate the next directory to store lobs.
-     * It is better than using a random number because less directories are created.
+     * This counter is used to calculate the next directory to store lobs. It is
+     * better than using a random number because less directories are created.
      */
     private static int dirCounter;
-
 
     private final int type;
     private long precision;
@@ -90,6 +104,13 @@ public class ValueLob extends Value {
         return copy;
     }
 
+    /**
+     * Create a small lob using the given byte array.
+     * 
+     * @param type the type (Value.BLOB or CLOB)
+     * @param small the byte array
+     * @return the lob value
+     */
     public static ValueLob createSmallLob(int type, byte[] small) {
         return new ValueLob(type, small);
     }
@@ -121,6 +142,14 @@ public class ValueLob extends Value {
         return new ValueLob(type, handler, fileName, tableId, objectId, true, precision, compression);
     }
 
+    /**
+     * Create a CLOB value from a stream.
+     * 
+     * @param in the reader
+     * @param length the number of characters to read, or -1 for no limit
+     * @param handler the data handler
+     * @return the lob value
+     */
     public static ValueLob createClob(Reader in, long length, DataHandler handler) throws SQLException {
         try {
             boolean compress = handler.getLobCompressionAlgorithm(Value.CLOB) != null;
@@ -297,6 +326,14 @@ public class ValueLob extends Value {
         return list;
     }
 
+    /**
+     * Create a BLOB value from a stream.
+     * 
+     * @param in the input stream
+     * @param length the number of characters to read, or -1 for no limit
+     * @param handler the data handler
+     * @return the lob value
+     */
     public static ValueLob createBlob(InputStream in, long length, DataHandler handler) throws SQLException {
         try {
             long remaining = Long.MAX_VALUE;
@@ -371,6 +408,13 @@ public class ValueLob extends Value {
         }
     }
 
+    /**
+     * Convert a lob to another data type. The data is fully read in memory
+     * except when converting to BLOB or CLOB.
+     * 
+     * @param t the new type
+     * @return the converted value
+     */
     public Value convertTo(int t) throws SQLException {
         if (t == type) {
             return this;
@@ -388,6 +432,11 @@ public class ValueLob extends Value {
         return linked;
     }
 
+    /**
+     * Get the current file name where the lob is saved.
+     * 
+     * @return the file name or null
+     */
     public String getFileName() {
         return fileName;
     }
@@ -457,10 +506,20 @@ public class ValueLob extends Value {
         return this;
     }
 
+    /**
+     * Get the current table id of this lob.
+     * 
+     * @return the table id
+     */
     public int getTableId() {
         return tableId;
     }
 
+    /**
+     * Get the current object id of this lob.
+     * 
+     * @return the object id
+     */
     public int getObjectId() {
         return objectId;
     }
@@ -601,6 +660,11 @@ public class ValueLob extends Value {
         return getSQL();
     }
 
+    /**
+     * Get the data if this a small lob value.
+     * 
+     * @return the data
+     */
     public byte[] getSmall() {
         return small;
     }
@@ -617,6 +681,12 @@ public class ValueLob extends Value {
         }
     }
 
+    /**
+     * Store the lob data to a file if the size of the buffer it larger than the
+     * maximum size for an in-place lob.
+     * 
+     * @param handler the data handler
+     */
     public void convertToFileIfRequired(DataHandler handler) throws SQLException {
         if (Constants.AUTO_CONVERT_LOB_TO_FILES && small != null && small.length > handler.getMaxLengthInplaceLob()) {
             boolean compress = handler.getLobCompressionAlgorithm(type) != null;
@@ -634,6 +704,12 @@ public class ValueLob extends Value {
         }
     }
 
+    /**
+     * Remove all lobs for a given table id.
+     * 
+     * @param handler the data handler
+     * @param tableId the table id
+     */
     public static void removeAllForTable(DataHandler handler, int tableId) throws SQLException {
         if (handler.getLobFilesInDirectories()) {
             String dir = getFileNamePrefix(handler.getDatabasePath(), 0);
@@ -665,6 +741,11 @@ public class ValueLob extends Value {
         }
     }
 
+    /**
+     * Check if this lob value is compressed.
+     * 
+     * @return true if it is
+     */
     public boolean useCompression() {
         return compression;
     }
@@ -694,6 +775,12 @@ public class ValueLob extends Value {
         }
     }
 
+    /**
+     * Set the file name of this lob value.
+     * 
+     * @param fileName the file name
+     * @param linked if the lob is linked
+     */
     public void setFileName(String fileName, boolean linked) {
         this.fileName = fileName;
         this.linked = linked;

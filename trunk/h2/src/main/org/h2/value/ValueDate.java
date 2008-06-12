@@ -18,9 +18,13 @@ import org.h2.util.DateTimeUtils;
  * Implementation of the DATE data type.
  */
 public class ValueDate extends Value {
-    public static final int PRECISION = 8;
-    // "2000-01-02".length()
-    public static final int DISPLAY_SIZE = 10;
+    static final int PRECISION = 8;
+    
+    /**
+     * The display size of the textual representation of a date.
+     * Example: 2000-01-02
+     */
+    static final int DISPLAY_SIZE = 10;
 
     private final Date value;
 
@@ -28,6 +32,12 @@ public class ValueDate extends Value {
         this.value = value;
     }
 
+    /**
+     * Parse a string to a java.sql.Date object.
+     * 
+     * @param s the string to parse
+     * @return the date
+     */
     public static Date parseDate(String s) throws SQLException {
         return (Date) DateTimeUtils.parseDateTime(s, Value.DATE, ErrorCode.DATE_CONSTANT_2);
     }
@@ -86,11 +96,25 @@ public class ValueDate extends Value {
         prep.setDate(parameterIndex, value);
     }
 
+    /**
+     * Get or create a date value for the given date.
+     * Clone the date.
+     * 
+     * @param date the date
+     * @return the value
+     */
     public static ValueDate get(Date date) {
         date = DateTimeUtils.cloneAndNormalizeDate(date);
         return getNoCopy(date);
     }
 
+    /**
+     * Get or create a date value for the given date.
+     * Do not clone the date.
+     * 
+     * @param date the date
+     * @return the value
+     */
     public static ValueDate getNoCopy(Date date) {
         return (ValueDate) Value.cache(new ValueDate(date));
     }

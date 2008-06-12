@@ -20,9 +20,17 @@ import org.h2.util.ObjectUtils;
  */
 public class ValueLong extends Value {
 
+    /**
+     * The precision in digits.
+     */
     public static final int PRECISION = 19;
-    // "-9223372036854775808".length()
+    
+    /**
+     * The maximum display size of a long.
+     * Example: 9223372036854775808
+     */    
     public static final int DISPLAY_SIZE = 20; 
+    
     private static final int STATIC_SIZE = 10;
     private static ValueLong[] cache;
     private static final BigInteger MIN = new BigInteger("" + Long.MIN_VALUE);
@@ -172,6 +180,12 @@ public class ValueLong extends Value {
         prep.setLong(parameterIndex, value);
     }
 
+    /**
+     * Get or create a long value for the given long.
+     * 
+     * @param i the long
+     * @return the value
+     */
     public static ValueLong get(long i) {
         if (i >= 0 && i < STATIC_SIZE) {
             return cache[(int) i];

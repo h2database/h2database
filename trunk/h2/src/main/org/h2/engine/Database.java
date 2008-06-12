@@ -1035,7 +1035,7 @@ public class Database implements DataHandler {
         // remove all session variables
         if (persistent) {
             try {
-                ValueLob.removeAllForTable(this, ValueLob.TABLE_ID_SESSION);
+                ValueLob.removeAllForTable(this, ValueLob.TABLE_ID_SESSION_VARIABLE);
             } catch (SQLException e) {
                 traceSystem.getTrace(Trace.DATABASE).error("close", e);
             }

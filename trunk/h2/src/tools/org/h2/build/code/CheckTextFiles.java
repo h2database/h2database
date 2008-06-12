@@ -36,6 +36,12 @@ public class CheckTextFiles {
     String[] suffixIgnoreLicense = new String[] { "bat", "nsi", "txt", "properties", "xml", "java.sql.Driver", "task", "sh" };
     boolean hasError;
 
+    /**
+     * This method is called when executing this application from the command
+     * line.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
         new CheckTextFiles().run();
     }
@@ -102,6 +108,16 @@ public class CheckTextFiles {
         }
     }
 
+    /**
+     * Check a source code file. The following properties are checked:
+     * copyright, license, incorrect source switches, trailing white space,
+     * newline characters, tab characters, and characters codes (only characters
+     * below 128 are allowed).
+     * 
+     * @param file the file to check
+     * @param fix automatically fix newline characters and trailing spaces
+     * @param checkLicense check the license and copyright
+     */
     public void checkOrFixFile(File file, boolean fix, boolean checkLicense) throws Exception {
         RandomAccessFile in = new RandomAccessFile(file, "r");
         byte[] data = new byte[(int) file.length()];

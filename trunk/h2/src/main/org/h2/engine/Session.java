@@ -130,7 +130,7 @@ public class Session implements SessionInterface {
         } else {
             if (value instanceof ValueLob) {
                 // link it, to make sure we have our own file
-                value = value.link(database, ValueLob.TABLE_ID_SESSION);
+                value = value.link(database, ValueLob.TABLE_ID_SESSION_VARIABLE);
             }
             old = (Value) variables.put(name, value);
         }

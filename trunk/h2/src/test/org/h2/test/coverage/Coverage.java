@@ -50,8 +50,13 @@ public class Coverage {
                 + "-f     coverage on a per-function basis\n" + "<dir>  directory name (. for current directory)");
     }
 
+    /**
+     * This method is called when executing this application.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] arg) {
-        (new Coverage()).run(arg);
+        new Coverage().run(arg);
     }
 
     void run(String[] arg) {

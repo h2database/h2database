@@ -23,6 +23,13 @@ public class ValueArray extends Value {
         this.values = list;
     }
 
+    /**
+     * Get or create a array value for the given value array.
+     * Do not clone the data.
+     * 
+     * @param list the value array
+     * @return the value
+     */
     public static ValueArray get(Value[] list) {
         return new ValueArray(list);
     }

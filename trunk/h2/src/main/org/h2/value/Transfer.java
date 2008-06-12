@@ -47,84 +47,172 @@ public class Transfer {
     private static final int BUFFER_SIZE = 16 * 1024;
     private static final int LOB_MAGIC = 0x1234;
 
-    protected Socket socket;
-    protected DataInputStream in;
-    protected DataOutputStream out;
-
+    private Socket socket;
+    private DataInputStream in;
+    private DataOutputStream out;
     private SessionInterface session;
     private boolean ssl;
 
+    /**
+     * Create a new transfer object for the specified session.
+     * 
+     * @param session the session
+     */
     public Transfer(SessionInterface session) {
         this.session = session;
     }
 
+    /**
+     * Set the socket this object uses.
+     * 
+     * @param s the socket
+     */
     public void setSocket(Socket s) {
         socket = s;
     }
 
+    /**
+     * Initialize the transfer object. This method will try to open an input and
+     * output stream.
+     */
     public void init() throws IOException {
         in = new DataInputStream(new BufferedInputStream(socket.getInputStream(), Transfer.BUFFER_SIZE));
         out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream(), Transfer.BUFFER_SIZE));
     }
 
+    /**
+     * Write pending changes.
+     */
     public void flush() throws IOException {
         out.flush();
     }
 
+    /**
+     * Write a boolean.
+     * 
+     * @param x the value
+     * @return itself
+     */
     public Transfer writeBoolean(boolean x) throws IOException {
         out.writeByte((byte) (x ? 1 : 0));
         return this;
     }
 
+    /**
+     * Read a boolean.
+     * 
+     * @return the value
+     */    
     public boolean readBoolean() throws IOException {
         return in.readByte() == 1;
     }
 
-    public Transfer writeByte(byte x) throws IOException {
+    /**
+     * Write a byte.
+     * 
+     * @param x the value
+     * @return itself
+     */
+    private Transfer writeByte(byte x) throws IOException {
         out.writeByte(x);
         return this;
     }
 
-    public byte readByte() throws IOException {
+    /**
+     * Read a byte.
+     * 
+     * @return the value
+     */    
+    private byte readByte() throws IOException {
         return in.readByte();
     }
 
+    /**
+     * Write an int.
+     * 
+     * @param x the value
+     * @return itself
+     */    
     public Transfer writeInt(int i) throws IOException {
         out.writeInt(i);
         return this;
     }
 
+    /**
+     * Read an int.
+     * 
+     * @return the value
+     */    
     public int readInt() throws IOException {
         return in.readInt();
     }
 
+    /**
+     * Write a long.
+     * 
+     * @param x the value
+     * @return itself
+     */   
     public Transfer writeLong(long i) throws IOException {
         out.writeLong(i);
         return this;
     }
 
+    /**
+     * Read a long.
+     * 
+     * @return the value
+     */    
     public long readLong() throws IOException {
         return in.readLong();
     }
 
-    public Transfer writeDouble(double i) throws IOException {
+    /**
+     * Write a double.
+     * 
+     * @param x the value
+     * @return itself
+     */       
+    private Transfer writeDouble(double i) throws IOException {
         out.writeDouble(i);
         return this;
     }
 
-    public Transfer writeFloat(float i) throws IOException {
+    /**
+     * Write a float.
+     * 
+     * @param x the value
+     * @return itself
+     */   
+    private Transfer writeFloat(float i) throws IOException {
         out.writeFloat(i);
         return this;
     }
 
-    public double readDouble() throws IOException {
+    /**
+     * Read a double.
+     * 
+     * @return the value
+     */    
+    private double readDouble() throws IOException {
         return in.readDouble();
     }
 
-    public float readFloat() throws IOException {
+    /**
+     * Read a float.
+     * 
+     * @return the value
+     */    
+    private float readFloat() throws IOException {
         return in.readFloat();
     }
 
+    /**
+     * Write a string. The maximum string length is Integer.MAX_VALUE.
+     * 
+     * @param s the value
+     * @return itself
+     */  
     public Transfer writeString(String s) throws IOException {
         if (s == null) {
             out.writeInt(-1);
@@ -138,6 +226,11 @@ public class Transfer {
         return this;
     }
 
+    /**
+     * Read a string.
+     * 
+     * @return the value
+     */    
     public String readString() throws IOException {
         int len = in.readInt();
         if (len == -1) {
@@ -154,6 +247,12 @@ public class Transfer {
         return s;
     }
 
+    /**
+     * Write a byte array.
+     * 
+     * @param data the value
+     * @return itself
+     */ 
     public Transfer writeBytes(byte[] data) throws IOException {
         if (data == null) {
             writeInt(-1);
@@ -164,6 +263,11 @@ public class Transfer {
         return this;
     }
 
+    /**
+     * Read a byte array.
+     * 
+     * @return the value
+     */    
     public byte[] readBytes() throws IOException {
         int len = readInt();
         if (len == -1) {
@@ -174,6 +278,9 @@ public class Transfer {
         return b;
     }
 
+    /**
+     * Close the transfer object and the socket.
+     */
     public void close() {
         if (socket != null) {
             try {
@@ -189,6 +296,11 @@ public class Transfer {
         }
     }
 
+    /**
+     * Write a value.
+     * 
+     * @param v the value
+     */     
     public void writeValue(Value v) throws IOException, SQLException {
         int type = v.getType();
         writeInt(type);
@@ -320,7 +432,12 @@ public class Transfer {
             throw Message.getInternalError("type=" + type);
         }
     }
-
+    
+    /**
+     * Read a value.
+     * 
+     * @return the value
+     */    
     public Value readValue() throws IOException, SQLException {
         int type = readInt();
         switch(type) {
@@ -410,18 +527,38 @@ public class Transfer {
         }
     }
 
+    /**
+     * Get the socket.
+     * 
+     * @return the socket
+     */
     public Socket getSocket() {
         return socket;
     }
 
+    /**
+     * Set the session.
+     * 
+     * @param session the session
+     */
     public void setSession(SessionInterface session) {
         this.session = session;
     }
 
+    /**
+     * Enable or disable SSL.
+     * 
+     * @param ssl the new value
+     */
     public void setSSL(boolean ssl) {
         this.ssl = ssl;
     }
 
+    /**
+     * Open a new new connection to the same address and port as this one.
+     * 
+     * @return the new transfer object
+     */
     public Transfer openNewConnection() throws IOException {
         InetAddress address = socket.getInetAddress();
         int port = socket.getPort();

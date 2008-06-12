@@ -48,6 +48,13 @@ public class ValueStringIgnoreCase extends ValueStringBase {
         return "CAST(" + StringUtils.quoteStringSQL(value) + " AS VARCHAR_IGNORECASE)";
     }
 
+    /**
+     * Get or create a case insensitive string value for the given string.
+     * The value will have the same case as the passed string.
+     * 
+     * @param s the string
+     * @return the value
+     */
     public static ValueStringIgnoreCase get(String s) {
         if (s.length() == 0) {
             return EMPTY;

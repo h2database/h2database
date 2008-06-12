@@ -17,9 +17,13 @@ import org.h2.util.ObjectUtils;
  * Implementation of the REAL data type.
  */
 public class ValueFloat extends Value {
-    public static final int PRECISION = 7;
-    // "-1.12345676E-20".length()
-    public static final int DISPLAY_SIZE = 15; 
+    static final int PRECISION = 7;
+    
+    /**
+     * The maximum display size of a float.
+     * Example: -1.12345676E-20
+     */
+    static final int DISPLAY_SIZE = 15; 
 
     private static final float FLOAT_ZERO = 0.0F;
     private static final float FLOAT_ONE = 1.0F;
@@ -114,6 +118,12 @@ public class ValueFloat extends Value {
         prep.setFloat(parameterIndex, value);
     }
 
+    /**
+     * Get or create float value for the given float.
+     * 
+     * @param d the float
+     * @return the value
+     */
     public static ValueFloat get(float d) {
         if (FLOAT_ZERO == d) {
             return ZERO;

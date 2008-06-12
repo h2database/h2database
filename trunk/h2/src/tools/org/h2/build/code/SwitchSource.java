@@ -21,6 +21,12 @@ public class SwitchSource {
     private ArrayList enable = new ArrayList();
     private ArrayList disable = new ArrayList();
 
+    /**
+     * This method is called when executing this application from the command
+     * line.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws IOException {
         new SwitchSource().run(args);
     }

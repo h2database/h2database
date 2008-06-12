@@ -18,8 +18,16 @@ import org.h2.util.ObjectUtils;
  * Implementation of the INT data type.
  */
 public class ValueInt extends Value {
+    
+    /**
+     * The precision in digits.
+     */
     public static final int PRECISION = 10;
-    // "-2147483648".length()
+    
+    /**
+     * The maximum display size of an int.
+     * Example: -2147483648
+     */
     public static final int DISPLAY_SIZE = 11; 
 
     private static final int STATIC_SIZE = 100;
@@ -43,6 +51,12 @@ public class ValueInt extends Value {
         this.value = value;
     }
 
+    /**
+     * Get or create an int value for the given int.
+     * 
+     * @param i the int
+     * @return the value
+     */
     public static ValueInt get(int i) {
         if (i >= 0 && i < STATIC_SIZE) {
             return staticCache[i];

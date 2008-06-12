@@ -103,7 +103,7 @@ public class TestTools extends TestBase {
                 "-web", "-webPort", "9002", "-webAllowOthers", "-webSSL", 
                 "-pg", "-pgAllowOthers", "-pgPort", "9003",
                 "-ftp", "-ftpPort", "9004", "-ftpDir", ".", "-ftpRead", "guest", "-ftpWrite", "sa", "-ftpWritePassword", "sa", "-ftpTask", 
-                "-tcp", "-tcpAllowOthers", "-tcpPort", "9005", "-tcpPassword", "abc"}, 0);
+                "-tcp", "-tcpAllowOthers", "-tcpPort", "9006", "-tcpPassword", "abc"}, 0);
         Server stop = server;
         assertTrue(result.indexOf("https://") >= 0);
         assertTrue(result.indexOf(":9002") >= 0);
@@ -114,13 +114,16 @@ public class TestTools extends TestBase {
         assertTrue(result.indexOf("ftp://") >= 0);
         assertTrue(result.indexOf(":9004") >= 0);
         assertTrue(result.indexOf("tcp://") >= 0);
-        assertTrue(result.indexOf(":9005") >= 0);
+        assertTrue(result.indexOf(":9006") >= 0);
+        
+        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
+        conn.close();
 
-        result = runServer(new String[]{"-tcpShutdown", "tcp://localhost:9005", "-tcpPassword", "abc", "-tcpShutdownForce"}, 0);
+        result = runServer(new String[]{"-tcpShutdown", "tcp://localhost:9006", "-tcpPassword", "abc", "-tcpShutdownForce"}, 0);
         assertTrue(result.indexOf("Shutting down") >= 0);
         stop.shutdown();
         try {
-            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9005/mem:", "sa", "sa");
+            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);

@@ -15,8 +15,8 @@ import java.io.Reader;
  */
 public class Tokenizer {
     
-    public static final int TYPE_EOF = -1;
-    public static final int TYPE_WORD = -2;
+    static final int TYPE_EOF = -1;
+    private static final int TYPE_WORD = -2;
     private static final int TYPE_NOTHING = -3;
     private static final byte WHITESPACE = 1;
     private static final byte ALPHA = 4;
@@ -49,12 +49,12 @@ public class Tokenizer {
         charTypes['\''] = QUOTE;
     }
 
-    public Tokenizer(Reader r) {
+    Tokenizer(Reader r) {
         this();
         reader = r;
     }
 
-    public String getString() {
+    String getString() {
         return value;
     }
 
@@ -78,20 +78,20 @@ public class Tokenizer {
         return i;
     }
 
-    public void initToken() {
+    void initToken() {
         buffer = new StringBuffer();
     }
 
-    public String getToken() {
+    String getToken() {
         buffer.setLength(buffer.length() - 1);
         return buffer.toString();
     }
 
-    private void append(int i) {
+    void append(int i) {
         buffer.append((char) i);
     }
 
-    public int nextToken() throws IOException {
+    int nextToken() throws IOException {
         byte[] ct = charTypes;
         int c;
         value = null;
@@ -262,7 +262,7 @@ public class Tokenizer {
         return type = c;
     }
 
-    public int getLine() {
+    int getLine() {
         return line;
     }
 }

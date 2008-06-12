@@ -39,7 +39,7 @@ public class FtpClient {
         // don't allow construction
     }
 
-    public static FtpClient open(String url) throws IOException {
+    static FtpClient open(String url) throws IOException {
         FtpClient client = new FtpClient();
         client.connect(url);
         return client;
@@ -77,7 +77,7 @@ public class FtpClient {
         writer.flush();
     }
 
-    public void login(String userName, String password) throws IOException {
+    void login(String userName, String password) throws IOException {
         send("USER " + userName);
         readCode(331);
         send("PASS " + password);
@@ -92,7 +92,7 @@ public class FtpClient {
         readCode(200);
     }
 
-    public void close() throws IOException {
+    void close() throws IOException {
         if (socket != null) {
             send("QUIT");
             readCode(221);
@@ -100,43 +100,43 @@ public class FtpClient {
         }
     }
 
-    public void changeWorkingDirectory(String dir) throws IOException {
+    void changeWorkingDirectory(String dir) throws IOException {
         send("CWD " + dir);
         readCode(250);
     }
 
-    public void changeDirectoryUp() throws IOException {
+    void changeDirectoryUp() throws IOException {
         send("CDUP");
         readCode(250);
     }
 
-    public void delete(String fileName) throws IOException {
+    void delete(String fileName) throws IOException {
         send("DELE " + fileName);
         readCode(250);
     }
 
-    public void makeDirectory(String dir) throws IOException {
+    void makeDirectory(String dir) throws IOException {
         send("MKD " + dir);
         readCode(257);
     }
 
-    public void mode(String mode) throws IOException {
+    void mode(String mode) throws IOException {
         send("MODE " + mode);
         readCode(200);
     }
 
-    public void modificationTime(String fileName) throws IOException {
+    void modificationTime(String fileName) throws IOException {
         send("MDTM " + fileName);
 
         readCode(213);
     }
 
-    public void noOperation() throws IOException {
+    void noOperation() throws IOException {
         send("NOOP");
         readCode(200);
     }
 
-    public String printWorkingDirectory() throws IOException {
+    String printWorkingDirectory() throws IOException {
         send("PWD");
         readCode(257);
         return removeQuotes();
@@ -177,14 +177,14 @@ public class FtpClient {
         outData = socketData.getOutputStream();
     }
 
-    public void rename(String fromFileName, String toFileName) throws IOException {
+    void rename(String fromFileName, String toFileName) throws IOException {
         send("RNFR " + fromFileName);
         readCode(350);
         send("RNTO " + toFileName);
         readCode(250);
     }
 
-    public void retrieve(String fileName, OutputStream out, long restartAt) throws IOException {
+    void retrieve(String fileName, OutputStream out, long restartAt) throws IOException {
         passive();
         if (restartAt > 0) {
             send("REST " + restartAt);
@@ -195,19 +195,19 @@ public class FtpClient {
         readCode(226);
     }
 
-    public void removeDirectory(String dir) throws IOException {
+    void removeDirectory(String dir) throws IOException {
         send("RMD " + dir);
         readCode(250);
     }
 
-    public long size(String fileName) throws IOException {
+    long size(String fileName) throws IOException {
         send("SIZE " + fileName);
         readCode(250);
         long size = Long.parseLong(message);
         return size;
     }
 
-    public void store(String fileName, InputStream in) throws IOException {
+    void store(String fileName, InputStream in) throws IOException {
         passive();
         send("STOR " + fileName);
         readCode(150);
@@ -215,7 +215,7 @@ public class FtpClient {
         readCode(226);
     }
 
-    public String nameList(String dir) throws IOException {
+    String nameList(String dir) throws IOException {
         passive();
         send("NLST " + dir);
         readCode(150);
@@ -226,7 +226,7 @@ public class FtpClient {
         return new String(data);
     }
 
-    public String list(String dir) throws IOException {
+    String list(String dir) throws IOException {
         passive();
         send("LIST " + dir);
         readCode(150);

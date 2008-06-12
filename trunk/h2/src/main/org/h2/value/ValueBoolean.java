@@ -13,8 +13,16 @@ import java.sql.SQLException;
  * Implementation of the BOOLEAN data type.
  */
 public class ValueBoolean extends Value {
+    
+    /**
+     * The precision in digits.
+     */    
     public static final int PRECISION = 1;
-    // "FALSE".length()
+    
+    /**
+     * The maximum display size of a boolean.
+     * Example: FALSE
+     */
     public static final int DISPLAY_SIZE = 5;
     
     private static final ValueBoolean TRUE = new ValueBoolean(true);
@@ -68,6 +76,12 @@ public class ValueBoolean extends Value {
         prep.setBoolean(parameterIndex, value.booleanValue());
     }
 
+    /**
+     * Get the boolean value for the given boolean.
+     * 
+     * @param b the boolean
+     * @return the value
+     */
     public static ValueBoolean get(boolean b) {
         return b ? TRUE : FALSE;
     }

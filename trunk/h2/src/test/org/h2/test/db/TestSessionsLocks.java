@@ -65,7 +65,7 @@ public class TestSessionsLocks extends TestBase {
         conn2.close();
     }
 
-    public void testCancelStatement() throws Exception {
+    void testCancelStatement() throws Exception {
         deleteDb("sessionsLocks");
         Connection conn = getConnection("sessionsLocks;MULTI_THREADED=1");
         Statement stat = conn.createStatement();

@@ -149,7 +149,7 @@ public class TestBatchUpdates extends TestBase {
         conn.close();
     }
 
-    public void testAddBatch01() throws Exception {
+    void testAddBatch01() throws Exception {
         trace("testAddBatch01");
         int i = 0;
         int[] retValue = { 0, 0, 0 };
@@ -198,7 +198,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    public void testAddBatch02() throws Exception {
+    void testAddBatch02() throws Exception {
         trace("testAddBatch02");
         int i = 0;
         int[] retValue = { 0, 0, 0 };
@@ -235,7 +235,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    public void testClearBatch01() throws Exception {
+    void testClearBatch01() throws Exception {
         trace("testClearBatch01");
         String sPrepStmt = COFFEE_UPDATE;
         trace("Prepared Statement String:" + sPrepStmt);
@@ -256,7 +256,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    public void testClearBatch02() throws Exception {
+    void testClearBatch02() throws Exception {
         trace("testClearBatch02");
         int updCountLength = 0;
         String sUpdCoffee = COFFEE_UPDATE1;
@@ -276,7 +276,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    public void testExecuteBatch01() throws Exception {
+    void testExecuteBatch01() throws Exception {
         trace("testExecuteBatch01");
         int i = 0;
         int[] retValue = { 0, 0, 0 };
@@ -325,7 +325,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    public void testExecuteBatch02() throws Exception {
+    void testExecuteBatch02() throws Exception {
         trace("testExecuteBatch02");
         String sPrepStmt = COFFEE_UPDATE;
         trace("Prepared Statement String:" + sPrepStmt);
@@ -343,7 +343,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    public void testExecuteBatch03() throws Exception {
+    void testExecuteBatch03() throws Exception {
         trace("testExecuteBatch03");
         boolean batchExceptionFlag = false;
         String sPrepStmt = COFFEE_SELECT;
@@ -364,7 +364,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    public void testExecuteBatch04() throws Exception {
+    void testExecuteBatch04() throws Exception {
         trace("testExecuteBatch04");
         int i = 0;
         int[] retValue = { 0, 0, 0 };
@@ -400,7 +400,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    public void testExecuteBatch05() throws Exception {
+    void testExecuteBatch05() throws Exception {
         trace("testExecuteBatch05");
         int updCountLength = 0;
         int[] updateCount = stat.executeBatch();
@@ -413,7 +413,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    public void testExecuteBatch06() throws Exception {
+    void testExecuteBatch06() throws Exception {
         trace("testExecuteBatch06");
         boolean batchExceptionFlag = false;
         // Insert a row which is already Present
@@ -438,7 +438,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    public void testExecuteBatch07() throws Exception {
+    void testExecuteBatch07() throws Exception {
         trace("testExecuteBatch07");
         boolean batchExceptionFlag = false;
         String selectCoffee = COFFEE_SELECT1;
@@ -458,7 +458,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    public void testContinueBatch01() throws Exception {
+    void testContinueBatch01() throws Exception {
         trace("testContinueBatch01");
         int[] batchUpdates = { 0, 0, 0 };
         int buCountLen = 0;

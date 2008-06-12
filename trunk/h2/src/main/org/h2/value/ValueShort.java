@@ -19,9 +19,13 @@ import org.h2.util.ObjectUtils;
  */
 public class ValueShort extends Value {
     
-    public static final int PRECISION = 5;
-    // "-32768".length()
-    public static final int DISPLAY_SIZE = 6; 
+    static final int PRECISION = 5;
+    
+    /**
+     * The maximum display size of a short.
+     * Example: -32768
+     */
+    static final int DISPLAY_SIZE = 6; 
 
     private final short value;
 
@@ -119,6 +123,12 @@ public class ValueShort extends Value {
         prep.setShort(parameterIndex, value);
     }
 
+    /**
+     * Get or create a short value for the given short.
+     * 
+     * @param i the short
+     * @return the value
+     */
     public static ValueShort get(short i) {
         return (ValueShort) Value.cache(new ValueShort(i));
     }

@@ -37,10 +37,16 @@ import org.h2.util.StringUtils;
  */
 public class DataType {
     
-    // JDK 1.3 compatibility: Types.BOOLEAN
+    /**
+     * This constant is used for JDK 1.3 compatibility 
+     * and equal to java.sql.Types.BOOLEAN
+     */
     public static final int TYPE_BOOLEAN = 16;
 
-    // JDK 1.3 compatibility: Types.DATALINK
+    /**
+     * This constant is used for JDK 1.3 compatibility 
+     * and equal to java.sql.Types.DATALINK
+     */
     public static final int TYPE_DATALINK = 70;
 
     private static ObjectArray types = new ObjectArray();
@@ -316,6 +322,11 @@ public class DataType {
         return dataType;
     }
 
+    /**
+     * Get the list of data types.
+     * 
+     * @return the list
+     */
     public static ObjectArray getTypes() {
         return types;
     }
@@ -464,6 +475,12 @@ public class DataType {
         return v;
     }
 
+    /**
+     * Get the name of the Java class for the given value type.
+     * 
+     * @param type the value type
+     * @return the class name
+     */
     public static String getTypeClassName(int type) {
         switch(type) {
         case Value.BOOLEAN:
@@ -531,6 +548,12 @@ public class DataType {
         }
     }
 
+    /**
+     * Get the data type object for the given value type.
+     * 
+     * @param type the value type
+     * @return the data type object
+     */
     public static DataType getDataType(int type) {
         DataType dt = typesByValueType[type];
         if (dt == null) {
@@ -539,10 +562,22 @@ public class DataType {
         return dt;
     }
 
+    /**
+     * Convert a value type to a SQL type.
+     * 
+     * @param type the value type
+     * @return the SQL type
+     */
     public static int convertTypeToSQLType(int type) {
         return getDataType(type).sqlType;
     }
 
+    /**
+     * Convert a SQL type to a value type.
+     * 
+     * @param the SQL type
+     * @return type the value type
+     */
     public static int convertSQLTypeToValueType(int sqlType) throws SQLException {
         switch(sqlType) {
         case Types.CHAR:
@@ -595,6 +630,12 @@ public class DataType {
         }
     }
 
+    /**
+     * Get the value type for the given Java class.
+     * 
+     * @param x the Java class
+     * @return the value type
+     */
     public static int getTypeFromClass(Class x) throws SQLException {
         // TODO refactor: too many if/else in functions, can reduce!
         if (x == null) {
@@ -649,6 +690,14 @@ public class DataType {
         }
     }
 
+    /**
+     * Convert a Java object to a value.
+     * 
+     * @param session the session
+     * @param x the value
+     * @param type the value type
+     * @return the value
+     */
     public static Value convertToValue(SessionInterface session, Object x, int type) throws SQLException {
         if (x == null) {
             return ValueNull.INSTANCE;
@@ -717,10 +766,22 @@ public class DataType {
         }
     }
 
+    /**
+     * Get a data type object from a type name.
+     * 
+     * @param s the type name
+     * @return the data type object
+     */
     public static DataType getTypeByName(String s) {
         return (DataType) typesByName.get(s);
     }
 
+    /**
+     * Check if the given value type is a large object (BLOB or CLOB).
+     * 
+     * @param type the value type
+     * @return true if the value type is a lob type
+     */
     public static boolean isLargeObject(int type) {
         if (type == Value.BLOB || type == Value.CLOB) {
             return true;
@@ -728,6 +789,12 @@ public class DataType {
         return false;
     }
 
+    /**
+     * Check if the given value type supports the add operation.
+     * 
+     * @param type the value type
+     * @return true if add is supported
+     */
     public static boolean supportsAdd(int type) {
         switch (type) {
         case Value.BYTE:
@@ -743,6 +810,12 @@ public class DataType {
         }
     }
 
+    /**
+     * Get the default value in the form of a Java object for the given Java class.
+     * 
+     * @param clazz the Java class
+     * @return the default object
+     */
     public static Object getDefaultForPrimitiveType(Class clazz) {
         if (clazz == Boolean.TYPE) {
             return Boolean.FALSE;

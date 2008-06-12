@@ -21,10 +21,14 @@ import org.h2.util.MathUtils;
  * Implementation of the TIMESTAMP data type.
  */
 public class ValueTimestamp extends Value {
-    public static final int PRECISION = 23;
-    // "2001-01-01 23:59:59.000".length()
-    public static final int DISPLAY_SIZE = 23; 
-    public static final int DEFAULT_SCALE = 10;
+    static final int PRECISION = 23;
+    
+    /**
+     * The display size of the textual representation of a timestamp.
+     * Example: 2001-01-01 23:59:59.000
+     */
+    static final int DISPLAY_SIZE = 23; 
+    static final int DEFAULT_SCALE = 10;
 
     /**
      * This is used to find out if a date is possibly BC. Because of time zone
@@ -51,6 +55,12 @@ public class ValueTimestamp extends Value {
         return "TIMESTAMP '" + getString() + "'";
     }
 
+    /**
+     * Parse a string to a java.sql.Timestamp object.
+     * 
+     * @param s the string to parse
+     * @return the timestamp
+     */
     public static Timestamp parseTimestamp(String s) throws SQLException {
         return (Timestamp) DateTimeUtils.parseDateTime(s, Value.TIMESTAMP, ErrorCode.TIMESTAMP_CONSTANT_2);
     }
@@ -100,11 +110,25 @@ public class ValueTimestamp extends Value {
         prep.setTimestamp(parameterIndex, value);
     }
 
+    /**
+     * Get or create a timestamp value for the given timestamp.
+     * Clone the timestamp.
+     * 
+     * @param timestamp the timestamp
+     * @return the value
+     */
     public static ValueTimestamp get(Timestamp timestamp) {
         timestamp = (Timestamp) timestamp.clone();
         return getNoCopy(timestamp);
     }
 
+    /**
+     * Get or create a timestamp value for the given timestamp.
+     * Do not clone the timestamp.
+     * 
+     * @param timestamp the timestamp
+     * @return the value
+     */
     public static ValueTimestamp getNoCopy(Timestamp timestamp) {
         return (ValueTimestamp) Value.cache(new ValueTimestamp(timestamp));
     }

@@ -17,8 +17,16 @@ import org.h2.util.ObjectUtils;
  * Implementation of the DOUBLE data type.
  */
 public class ValueDouble extends Value {
+    
+    /**
+     * The precision in digits.
+     */    
     public static final int PRECISION = 17;
-    // "-3.3333333333333334E-100".length()
+    
+    /**
+     * The maximum display size of a double.
+     * Example: -3.3333333333333334E-100
+     */
     public static final int DISPLAY_SIZE = 24; 
 
     private static final double DOUBLE_ZERO = 0.0;
@@ -114,6 +122,12 @@ public class ValueDouble extends Value {
         prep.setDouble(parameterIndex, value);
     }
 
+    /**
+     * Get or create double value for the given double.
+     * 
+     * @param d the double
+     * @return the value
+     */
     public static ValueDouble get(double d) {
         if (DOUBLE_ZERO == d) {
             return ZERO;

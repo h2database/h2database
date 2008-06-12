@@ -11,7 +11,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.LineNumberReader;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 
@@ -19,15 +18,15 @@ import java.io.Writer;
  * The class used at runtime to measure the code usage and performance.
  */
 public class Profile extends Thread {
-    public static final boolean LIST_UNVISITED = false;
-    public static final boolean FAST = false;
-    public static final boolean TRACE = false;
-    public static final Profile MAIN = new Profile();
-    public static int current;
-    static int top = 15;
+    static final boolean LIST_UNVISITED = false;
+    static final boolean FAST = false;
+    static final boolean TRACE = false;
+    static final Profile MAIN = new Profile();
+    static int current;
+    private static int top = 15;
     
-    public int[] count;
-    public int[] time;
+    int[] count;
+    int[] time;
     boolean stop;
     int maxIndex;
     int lastIndex;
@@ -67,6 +66,12 @@ public class Profile extends Thread {
         }
     }
 
+    /**
+     * This method is called by an instrumented application whenever a line of
+     * code is executed.
+     * 
+     * @param i the line number that is executed
+     */
     public static void visit(int i) {
         if (FAST) {
             current = i;
@@ -79,16 +84,16 @@ public class Profile extends Thread {
         list();
     }
 
-    public static void startCollecting() {
+    static void startCollecting() {
         MAIN.stop = false;
         MAIN.lastTime = System.currentTimeMillis();
     }
 
-    public static void stopCollecting() {
+    static void stopCollecting() {
         MAIN.stop = true;
     }
 
-    public static void list() {
+    static void list() {
         if (MAIN.lastIndex == 0) {
             // don't list anything if no statistics collected
             return;
@@ -116,16 +121,6 @@ public class Profile extends Thread {
         if (writer != null) {
             try {
                 writer.close();
-            } catch (IOException e) {
-                // ignore
-            }
-        }
-    }
-    
-    public static void closeSilently(OutputStream out) {
-        if (out != null) {
-            try {
-                out.close();
             } catch (IOException e) {
                 // ignore
             }

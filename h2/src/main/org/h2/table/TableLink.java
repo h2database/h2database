@@ -23,6 +23,7 @@ import org.h2.index.IndexType;
 import org.h2.index.LinkedIndex;
 import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
+import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.result.RowList;
 import org.h2.schema.Schema;
@@ -307,6 +308,10 @@ public class TableLink extends Table {
      * @return the prepared statement
      */
     public PreparedStatement getPreparedStatement(String sql) throws SQLException {
+        Trace trace = database.getTrace(Trace.TABLE);
+        if (trace.isDebugEnabled()) {
+            trace.debug(getName() + ":\n" + sql);
+        }
         if (conn == null) {
             throw connectException;
         }

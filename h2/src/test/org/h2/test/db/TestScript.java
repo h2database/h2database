@@ -45,6 +45,13 @@ public class TestScript extends TestBase {
     private ArrayList statements;
     private String fileName = "org/h2/test/test.in.txt";
 
+    /**
+     * Get all SQL statements of this file.
+     * 
+     * @param conf the configuration
+     * @param file the file name
+     * @return the list of statements
+     */
     public ArrayList getAllStatements(TestAll conf, String file) throws Exception {
         config = conf;
         fileName = file;
@@ -67,7 +74,7 @@ public class TestScript extends TestBase {
         }
     }
 
-    public void testScript() throws Exception {
+    void testScript() throws Exception {
         deleteDb("script");
         String outFile = "test.out.txt";
         String inFile = fileName;

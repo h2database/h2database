@@ -16,6 +16,11 @@ public class BitField {
     private static final int ADDRESS_MASK = BITS - 1;
     private long[] data = new long[10];
 
+    /**
+     * Get the index of the last bit that is set.
+     * 
+     * @return the index of the last enabled bit
+     */
     public int getLastSetBit() {
         int i = (data.length << ADDRESS_BITS) - 1;
         while (i >= 0) {
@@ -27,6 +32,12 @@ public class BitField {
         return -1;
     }
 
+    /**
+     * Get the index of the next bit that is set.
+     * 
+     * @param fromIndex where to start searching
+     * @return the index of the next enabled bit
+     */
     public int nextSetBit(int fromIndex) {
         int i = fromIndex >> ADDRESS_BITS;
         int max = data.length;
@@ -44,6 +55,12 @@ public class BitField {
         return -1;
     }
 
+    /**
+     * Get the index of the next bit that is not set.
+     * 
+     * @param fromIndex where to start searching
+     * @return the index of the next disabled bit
+     */
     public int nextClearBit(int fromIndex) {
         int i = fromIndex >> ADDRESS_BITS;
         int max = data.length;
@@ -60,6 +77,12 @@ public class BitField {
         return fromIndex;
     }
 
+    /**
+     * Get the bit mask of the bits at the given index.
+     * 
+     * @param i the index (must be a multiple of 64)
+     * @return the bit mask as a long
+     */
     public long getLong(int i) {
         int addr = getAddress(i);
         if (addr >= data.length) {
@@ -68,6 +91,12 @@ public class BitField {
         return data[addr];
     }
 
+    /**
+     * Get the bit at the given index.
+     * 
+     * @param i the index
+     * @return true if the bit is enabled
+     */
     public boolean get(int i) {
         int addr = getAddress(i);
         if (addr >= data.length) {
@@ -76,12 +105,22 @@ public class BitField {
         return (data[addr] & getBitMask(i)) != 0;
     }
 
+    /**
+     * Set bit at the given index to 'true'.
+     * 
+     * @param i the index
+     */
     public void set(int i) {
         int addr = getAddress(i);
         checkCapacity(addr);
         data[addr] |= getBitMask(i);
     }
 
+    /**
+     * Set bit at the given index to 'false'.
+     * 
+     * @param i the index
+     */
     public void clear(int i) {
         int addr = getAddress(i);
         if (addr >= data.length) {
@@ -107,6 +146,12 @@ public class BitField {
         }
     }
 
+    /**
+     * Enable or disable a number of bits.
+     * 
+     * @param start the index of the first bit to enable or disable
+     * @param len the number of bits to enable or disable
+     */
     public void setRange(int start, int len, boolean value) {
         for (int end = start + len; start < end; start++) {
             set(start, value);

@@ -132,6 +132,13 @@ public class CompareMode {
         return name.equalsIgnoreCase(locale.toString()) || name.equalsIgnoreCase(getName(locale));
     }
 
+    /**
+     * Get the collator object for the given language name or language / country
+     * combination.
+     * 
+     * @param name the language name
+     * @return the collator
+     */
     public static Collator getCollator(String name) {
         Collator result = null;
         if (name.length() == 2) {

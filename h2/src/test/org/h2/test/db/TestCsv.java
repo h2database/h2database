@@ -224,7 +224,7 @@ public class TestCsv extends TestBase {
         conn.close();
     }
 
-    public void testRead() throws Exception {
+    void testRead() throws Exception {
         File f = new File(baseDir + "/test.csv");
         f.delete();
         RandomAccessFile file = new RandomAccessFile(f, "rw");
@@ -268,7 +268,7 @@ public class TestCsv extends TestBase {
         // 201,2,0,18
     }
 
-    public void testWriteRead() throws Exception {
+    void testWriteRead() throws Exception {
 
         deleteDb("csv");
 

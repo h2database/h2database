@@ -20,11 +20,17 @@ public class CheckJavadoc {
     private static final int MAX_COMMENT_LINE_SIZE = 80;
     private int errorCount;
 
+    /**
+     * This method is called when executing this application from the command
+     * line.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
         new CheckJavadoc().run();
     }
 
-    void run() throws Exception {
+    private void run() throws Exception {
         String baseDir = "src";
         check(new File(baseDir));
         if (errorCount > 0) {

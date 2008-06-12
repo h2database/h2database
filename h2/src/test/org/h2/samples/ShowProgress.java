@@ -31,6 +31,11 @@ public class ShowProgress implements DatabaseEventListener {
         start = last = System.currentTimeMillis();
     }
 
+    /**
+     * This method is called when executing this sample application.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
         new ShowProgress().test();
     }

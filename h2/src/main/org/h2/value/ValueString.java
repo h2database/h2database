@@ -74,6 +74,12 @@ public class ValueString extends ValueStringBase {
         return ValueString.get(value.substring(0, p));
     }
 
+    /**
+     * Get or create a string value for the given string.
+     * 
+     * @param s the string
+     * @return the value
+     */
     public static ValueString get(String s) {
         if (s.length() == 0) {
             return EMPTY;

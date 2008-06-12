@@ -25,11 +25,27 @@ public class ValueResultSet extends Value {
         this.result = rs;
     }
 
+    /**
+     * Create a result set value for the given result set.
+     * The result set will be wrapped.
+     * 
+     * @param rs the result set
+     * @return the value
+     */
     public static ValueResultSet get(ResultSet rs) {
         ValueResultSet val = new ValueResultSet(rs);
         return val;
     }
 
+    /**
+     * Create a result set value for the given result set. The result set will
+     * be fully read in memory.
+     * 
+     * @param rs the result set
+     * @param maxrows the maximum number of rows to read (0 to just read the
+     *            meta data)
+     * @return the value
+     */
     public static ValueResultSet getCopy(ResultSet rs, int maxrows) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();

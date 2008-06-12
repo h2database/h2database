@@ -51,11 +51,18 @@ public class ValueStringFixed extends ValueStringBase {
         return Value.STRING_FIXED;
     }
 
+    /**
+     * Get or create a fixed length string value for the given string.
+     * Spaces at the end of the string will be removed.
+     * 
+     * @param s the string
+     * @return the value
+     */
     public static ValueStringFixed get(String s) {
+        s = trimRight(s);
         if (s.length() == 0) {
             return EMPTY;
         }
-        s = trimRight(s);
         ValueStringFixed obj = new ValueStringFixed(StringCache.get(s));
         if (s.length() > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;

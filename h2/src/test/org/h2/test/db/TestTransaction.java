@@ -76,7 +76,7 @@ public class TestTransaction extends TestBase {
         c2.close();
     }
 
-    public void testSavepoint() throws Exception {
+    void testSavepoint() throws Exception {
         deleteDb("transaction");
         Connection conn = getConnection("transaction");
         Statement stat = conn.createStatement();
@@ -143,7 +143,7 @@ public class TestTransaction extends TestBase {
         assertEquals(count, rs.getInt(1));
     }
 
-    public void testIsolation() throws Exception {
+    void testIsolation() throws Exception {
         Connection conn = getConnection("transaction");
         trace("default TransactionIsolation=" + conn.getTransactionIsolation());
         conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);

@@ -20,11 +20,28 @@ public class ValueBytes extends ValueBytesBase {
         super(v);
     }
 
+    /**
+     * Get or create a bytes value for the given byte array.
+     * Clone the data.
+     * 
+     * @param b the byte array
+     * @return the value
+     */
     public static ValueBytes get(byte[] b) {
+        if (b.length == 0) {
+            return EMPTY;
+        }        
         b = ByteUtils.cloneByteArray(b);
         return getNoCopy(b);
     }
 
+    /**
+     * Get or create a bytes value for the given byte array.
+     * Do not clone the date.
+     * 
+     * @param b the byte array
+     * @return the value
+     */
     public static ValueBytes getNoCopy(byte[] b) {
         if (b.length == 0) {
             return EMPTY;

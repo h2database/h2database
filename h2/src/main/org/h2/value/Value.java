@@ -39,11 +39,119 @@ public abstract class Value {
      * The data type is unknown at this time.
      */
     public static final int UNKNOWN = -1;
-    public static final int NULL = 0, BOOLEAN = 1, BYTE = 2, SHORT = 3, INT = 4, LONG = 5, DECIMAL = 6;
-    public static final int DOUBLE = 7, FLOAT = 8, TIME = 9, DATE = 10, TIMESTAMP = 11, BYTES = 12;
-    public static final int STRING = 13, STRING_IGNORECASE = 14, BLOB = 15, CLOB = 16;
-    public static final int ARRAY = 17, RESULT_SET = 18, JAVA_OBJECT = 19, UUID = 20, STRING_FIXED = 21;
-
+    
+    /**
+     * The value type for NULL.
+     */
+    public static final int NULL = 0;
+    
+    /**
+     * The value type for BOOLEAN values.
+     */
+    public static final int BOOLEAN = 1;
+    
+    /**
+     * The value type for BYTE values.
+     */
+    public static final int BYTE = 2;
+    
+    /**
+     * The value type for SHORT values.
+     */
+    public static final int SHORT = 3;
+    
+    /**
+     * The value type for INT values.
+     */
+    public static final int INT = 4;
+    
+    /**
+     * The value type for LONG values.
+     */
+    public static final int LONG = 5;
+    
+    /**
+     * The value type for DECIMAL values.
+     */
+    public static final int DECIMAL = 6;
+    
+    /**
+     * The value type for DOUBLE values.
+     */
+    public static final int DOUBLE = 7;
+    
+    /**
+     * The value type for FLOAT values.
+     */
+    public static final int FLOAT = 8;
+    
+    /**
+     * The value type for INT values.
+     */
+    public static final int TIME = 9;
+    
+    /**
+     * The value type for DATE values.
+     */
+    public static final int DATE = 10;
+    
+    /**
+     * The value type for TIMESTAMP values.
+     */
+    public static final int TIMESTAMP = 11;
+    
+    /**
+     * The value type for BYTES values.
+     */
+    public static final int BYTES = 12;
+    
+    /**
+     * The value type for STRING values.
+     */
+    public static final int STRING = 13;
+    
+    /**
+     * The value type for case insensitive STRING values.
+     */
+    public static final int STRING_IGNORECASE = 14;
+    
+    /**
+     * The value type for BLOB values.
+     */
+    public static final int BLOB = 15;
+    
+    /**
+     * The value type for CLOB values.
+     */
+    public static final int CLOB = 16;
+    
+    /**
+     * The value type for ARRAY values.
+     */
+    public static final int ARRAY = 17;
+    
+    /**
+     * The value type for RESULT_SET values.
+     */
+    public static final int RESULT_SET = 18;
+    /**
+     * The value type for JAVA_OBJECT values.
+     */
+    public static final int JAVA_OBJECT = 19;
+    
+    /**
+     * The value type for UUID values.
+     */
+    public static final int UUID = 20;
+    
+    /**
+     * The value type for string values with a fixed size.
+     */
+    public static final int STRING_FIXED = 21;
+    
+    /**
+     * The number of value types.
+     */
     public static final int TYPE_COUNT = STRING_FIXED + 1;
 
     private static SoftReference softCache = new SoftReference(null);
@@ -131,7 +239,13 @@ public abstract class Value {
      */
     public abstract boolean equals(Object other);
 
-    public static int getOrder(int type) {
+    /**
+     * Get the order of this value type. 
+     * 
+     * @param type the value type
+     * @return the order number
+     */
+    static int getOrder(int type) {
         switch(type) {
         case UNKNOWN:
             return 1;
@@ -184,6 +298,15 @@ public abstract class Value {
         }
     }
 
+    /**
+     * Get the higher value order type of two value types. If values need to be
+     * converted to match the other operands value type, the value with the
+     * lower order is converted to the value with the higher order.
+     * 
+     * @param t1 the first value type
+     * @param t2 the second value type
+     * @return the higher value type of the two
+     */
     public static int getHigherOrder(int t1, int t2) throws SQLException {
         if (t1 == t2) {
             if (t1 == Value.UNKNOWN) {
@@ -306,6 +429,11 @@ public abstract class Value {
         throw Message.getUnsupportedException();
     }
 
+    /**
+     * Return -value if this value support arithmetic operations.
+     * 
+     * @return the negative
+     */
     public Value negate() throws SQLException {
         throw Message.getUnsupportedException();
     }
@@ -340,6 +468,12 @@ public abstract class Value {
         throw Message.getUnsupportedException();
     }
 
+    /**
+     * Compare a value to the specified type.
+     * 
+     * @param type the value type
+     * @return the value
+     */
     public Value convertTo(int type) throws SQLException {
         // converting NULL done in ValueNull
         // converting BLOB to CLOB and vice versa is done in ValueLob
@@ -641,6 +775,15 @@ public abstract class Value {
         }
     }
 
+    /**
+     * Compare this value against another value given that the values are of the
+     * same data type.
+     * 
+     * @param v the other value
+     * @param mode the compare mode
+     * @return 0 if both values are equal, -1 if the other value is smaller, and
+     *         1 otherwise
+     */
     public final int compareTypeSave(Value v, CompareMode mode) throws SQLException {
         if (this == ValueNull.INSTANCE) {
             return v == ValueNull.INSTANCE ? 0 : -1;
@@ -650,6 +793,12 @@ public abstract class Value {
         return compareSecure(v, mode);
     }
 
+    /**
+     * Compare two values and return true if they contain the same data.
+     * 
+     * @param v the value to compare against
+     * @return true if both values are the same     * @throws SQLException
+     */
     public final boolean compareEqual(Value v) throws SQLException {
         if (this == ValueNull.INSTANCE) {
             return v == ValueNull.INSTANCE;
@@ -663,6 +812,15 @@ public abstract class Value {
         return convertTo(t2).equals(v.convertTo(t2));
     }
 
+    /**
+     * Compare this value against another value using the specified compare
+     * mode.
+     * 
+     * @param v the other value
+     * @param mode the compare mode
+     * @return 0 if both values are equal, -1 if the other value is smaller, and
+     *         1 otherwise
+     */
     public final int compareTo(Value v, CompareMode mode) throws SQLException {
         if (this == ValueNull.INSTANCE) {
             return v == ValueNull.INSTANCE ? 0 : -1;
@@ -744,7 +902,8 @@ public abstract class Value {
     }
 
     /**
-     * Link a large value to a given table.
+     * Link a large value to a given table. For values that are kept fully in
+     * memory this method has no effect.
      * 
      * @param handler the data handler
      * @param tableId the table to link to
@@ -754,22 +913,49 @@ public abstract class Value {
         return this;
     }
 
+    /**
+     * Check if this value is linked to a specific table. For values that are
+     * kept fully in memory, this method returns false.
+     * 
+     * @return true if it is
+     */
     public boolean isLinked() {
         return false;
     }
 
+    /**
+     * Mark any underlying resource as 'not linked to any table'. For values
+     * that are kept fully in memory this method has no effect.
+     */
     public void unlink() throws SQLException {
         // nothing to do
     }
 
+    /**
+     * Check if this value is stored in it's own file. For values that are
+     * kept fully in memory, this method returns false.
+     * 
+     * @return true if it is
+     */
     public boolean isFileBased() {
         return false;
     }
 
+    /**
+     * Close the underlying resource, if any. For values that are kept fully in
+     * memory this method has no effect.
+     */
     public void close() throws SQLException {
         // nothing to do
     }
 
+    /**
+     * Check if the precision is smaller or equal than the given precision.
+     * 
+     * @param precision the maximum precision
+     * @return true if the precision of this value is smaller or equal to the
+     *         given precision
+     */
     public boolean checkPrecision(long precision) {
         return getPrecision() <= precision;
     }

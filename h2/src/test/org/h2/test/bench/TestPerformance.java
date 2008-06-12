@@ -30,6 +30,11 @@ public class TestPerformance {
     boolean collect;
     boolean trace;
 
+    /**
+     * This method is called when executing this sample application.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
         new TestPerformance().test(args);
     }
@@ -233,7 +238,7 @@ public class TestPerformance {
         bench.runTest();
     }
 
-    public void trace(String s) {
+    void trace(String s) {
         if (trace) {
             System.out.println(s);
         }

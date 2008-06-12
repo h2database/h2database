@@ -40,7 +40,7 @@ public class TestFunctions extends TestBase {
         testFileRead();
     }
 
-    public void testFileRead() throws Exception {
+    void testFileRead() throws Exception {
         Connection conn = getConnection("functions");
         stat = conn.createStatement();
         File f = new File(baseDir + "/test.txt");

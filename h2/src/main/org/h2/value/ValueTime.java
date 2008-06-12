@@ -16,9 +16,13 @@ import org.h2.util.DateTimeUtils;
  * Implementation of the TIME data type.
  */
 public class ValueTime extends Value {
-    public static final int PRECISION = 6;
-    // "10:00:00".length()
-    public static final int DISPLAY_SIZE = 8; 
+    static final int PRECISION = 6;
+    
+    /**
+     * The display size of the textual representation of a time.
+     * Example: 10:00:00
+     */
+    static final int DISPLAY_SIZE = 8; 
 
     private final Time value;
 
@@ -26,6 +30,12 @@ public class ValueTime extends Value {
         this.value = value;
     }
 
+    /**
+     * Parse a string to a java.sql.Time object.
+     * 
+     * @param s the string to parse
+     * @return the time
+     */
     public static Time parseTime(String s) throws SQLException {
         return (Time) DateTimeUtils.parseDateTime(s, Value.TIME, ErrorCode.TIME_CONSTANT_2);
     }
@@ -73,11 +83,25 @@ public class ValueTime extends Value {
         prep.setTime(parameterIndex, value);
     }
 
+    /**
+     * Get or create a time value for the given time.
+     * Clone the time.
+     * 
+     * @param time the time
+     * @return the value
+     */
     public static ValueTime get(Time time) {
         time = DateTimeUtils.cloneAndNormalizeTime(time);
         return getNoCopy(time);
     }
 
+    /**
+     * Get or create a time value for the given time.
+     * Do not clone the time.
+     * 
+     * @param time the time
+     * @return the value
+     */
     public static ValueTime getNoCopy(Time time) {
         return (ValueTime) Value.cache(new ValueTime(time));
     }

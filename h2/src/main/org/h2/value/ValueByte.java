@@ -18,8 +18,12 @@ import org.h2.util.ObjectUtils;
  * Implementation of the BYTE data type.
  */
 public class ValueByte extends Value {
-    public static final int PRECISION = 3;
-    public static final int DISPLAY_SIZE = 4;
+    
+    /**
+     * The precision in digits.
+     */    
+    static final int PRECISION = 3;
+    static final int DISPLAY_SIZE = 4;
 
     private final byte value;
 
@@ -117,6 +121,12 @@ public class ValueByte extends Value {
         prep.setByte(parameterIndex, value);
     }
 
+    /**
+     * Get or create byte value for the given byte.
+     * 
+     * @param i the byte
+     * @return the value
+     */
     public static ValueByte get(byte i) {
         return (ValueByte) Value.cache(new ValueByte(i));
     }

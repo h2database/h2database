@@ -20,9 +20,9 @@ import org.h2.util.MathUtils;
  */
 public class ValueDecimal extends Value {
     
-    public static final int DEFAULT_PRECISION = 65535;
-    public static final int DEFAULT_SCALE = 32767;
-    public static final int DEFAULT_DISPLAY_SIZE = 65535;
+    static final int DEFAULT_PRECISION = 65535;
+    static final int DEFAULT_SCALE = 32767;
+    static final int DEFAULT_DISPLAY_SIZE = 65535;
     private static final int DIVIDE_SCALE_ADD = 25;
 
     private static final BigDecimal DEC_ZERO = new BigDecimal("0");
@@ -169,6 +169,12 @@ public class ValueDecimal extends Value {
         throw Message.getSQLException(ErrorCode.VALUE_TOO_LARGE_FOR_PRECISION_1, "" + precision);
     }
 
+    /**
+     * Get or create big decimal value for the given big decimal.
+     * 
+     * @param dec the bit decimal
+     * @return the value
+     */
     public static ValueDecimal get(BigDecimal dec) {
         if (DEC_ZERO.equals(dec)) {
             return ZERO;

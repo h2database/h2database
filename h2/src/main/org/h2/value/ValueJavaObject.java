@@ -19,6 +19,13 @@ public class ValueJavaObject extends ValueBytesBase {
         super(v);
     }
 
+    /**
+     * Get or create a java object value for the given byte array. 
+     * Do not clone the data.
+     * 
+     * @param b the byte array
+     * @return the value
+     */
     public static ValueJavaObject getNoCopy(byte[] b) {
         if (b.length == 0) {
             return EMPTY;

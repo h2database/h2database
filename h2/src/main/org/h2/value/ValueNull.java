@@ -22,12 +22,26 @@ import org.h2.message.Message;
  */
 public class ValueNull extends Value {
 
+    /**
+     * The main NULL instance.
+     */
     public static final ValueNull INSTANCE = new ValueNull();
+    
+    /**
+     * This special instance is used as a marker for deleted entries in a map.
+     * It should not be used anywhere else.
+     */
     public static final ValueNull DELETED = new ValueNull();
 
-    public static final int PRECISION = 1;
-    // "null".length()
-    public static final int DISPLAY_SIZE = 4;
+    /**
+     * The precision of NULL.
+     */
+    private static final int PRECISION = 1;
+    
+    /**
+     * The display size of the textual representation of NULL.
+     */    
+    private static final int DISPLAY_SIZE = 4;
 
     private ValueNull() {
         // don't allow construction

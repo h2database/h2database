@@ -229,7 +229,7 @@ public abstract class TestHalt extends TestBase {
         }
     }
 
-    public void disconnectHSQLDB() {
+    void disconnectHSQLDB() {
         try {
             conn.createStatement().execute("SHUTDOWN");
         } catch (Exception e) {
@@ -238,7 +238,7 @@ public abstract class TestHalt extends TestBase {
         // super.disconnect();
     }
 
-    public void disconnectDerby() {
+    void disconnectDerby() {
         // super.disconnect();
         try {
             Class.forName("org.apache.derby.jdbc.EmbeddedDriver");

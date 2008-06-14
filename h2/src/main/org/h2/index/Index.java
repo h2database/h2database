@@ -179,12 +179,15 @@ public interface Index extends SchemaObject {
     int compareRows(SearchRow rowData, SearchRow compare) throws SQLException;
 
     /**
-     * Check if a row is NULL.
-     *
+     * Check if one of the columns is NULL and multiple rows with NULL are
+     * allowed using the current compatibility mode for unique indexes. Note:
+     * NULL behavior is complicated in SQL.
+     * 
      * @param newRow
-     * @return if it is null
+     * @return true if one of the columns is null and multiple nulls in unique
+     *         indexes are allowed
      */
-    boolean isNull(Row newRow);
+    boolean containsNullAndAllowMultipleNull(Session session, Row newRow);
 
     /**
      * Compare the positions of two rows.

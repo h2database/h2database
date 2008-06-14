@@ -32,15 +32,15 @@ public class TestSynth extends TestBase {
     private boolean stopImmediately;
     private int mode;
 
-    public boolean is(int isType) {
+    boolean is(int isType) {
         return mode == isType;
     }
 
-    public RandomGen random() {
+    RandomGen random() {
         return random;
     }
 
-    public String randomIdentifier() {
+    String randomIdentifier() {
         int len = random.getLog(8) + 2;
         while (true) {
             return random.randomString(len);
@@ -193,11 +193,11 @@ public class TestSynth extends TestBase {
         }
     }
 
-    public Table randomTable() {
+    Table randomTable() {
         return db.randomTable();
     }
 
-    public void log(int id, String s) {
+    void log(int id, String s) {
         if (showLog && id == 0) {
             System.out.println(s);
         }

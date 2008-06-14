@@ -131,6 +131,14 @@ public class TestMultiDimension extends TestBase {
         conn.close();
     }
 
+    /**
+     * This method is called via reflection from the database.
+     * 
+     * @param x the x value
+     * @param y the y value
+     * @param z the z value
+     * @return the bit-interleaved value
+     */
     public static long interleave(int x, int y, int z) {
         return MultiDimension.getInstance().interleave(new int[] { x, y, z });
     }

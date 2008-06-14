@@ -52,10 +52,10 @@ public interface DataHandler {
     int getChecksum(byte[] data, int start, int end);
 
     /**
-     * Check if the simulated power failure occured.
+     * Check if the simulated power failure occurred.
      * This call will decrement the countdown.
      *
-     * @throws SQLException if the simulated power failure occured
+     * @throws SQLException if the simulated power failure occurred
      */
     void checkPowerOff() throws SQLException;
 

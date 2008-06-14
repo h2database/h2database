@@ -1687,7 +1687,7 @@ public class Database implements DataHandler {
     }
     
     /**
-     * This method is called after an exception occured, to inform the database
+     * This method is called after an exception occurred, to inform the database
      * event listener (if one is set).
      * 
      * @param e the exception

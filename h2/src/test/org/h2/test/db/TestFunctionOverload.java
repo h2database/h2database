@@ -120,31 +120,52 @@ public class TestFunctionOverload extends TestBase {
         stat.close();
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static int overload0() {
         return 0;
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static int overload1or2(int one) {
         return one;
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static int overload1or2(int one, int two) {
         return one + two;
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static int overload1or2WithConn(Connection conn, int one) throws SQLException {
         conn.createStatement().executeQuery("select 1 from dual");
         return one;
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static int overload1or2WithConn(int one, int two) {
         return one + two;
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static int overloadError(int one, int two) {
         return one + two;
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static int overloadError(double one, double two) {
         return (int) (one + two);
     }

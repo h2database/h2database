@@ -23,6 +23,12 @@ public class TestRunscript extends TestBase implements Trigger {
         test(true);
     }
 
+    /**
+     * This method is called via reflection from the database.
+     * 
+     * @param a the value
+     * @return the absolute value
+     */
     public static int test(int a) {
         return Math.abs(a);
     }

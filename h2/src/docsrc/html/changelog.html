@@ -17,7 +17,11 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>Linked tables: To view the statements that are executed against the target table, set the trace level to 3.
+<li>
+</li><li>Improved compatibility. New compatibility modes for Oracle and Derby. 
+    New compatibility flag uniqueIndexNullDistinct to only allow one row with 'NULL' in a unique 
+    index. This flag is enabled for Derby, Oracle, MSSQLServer, and HSQLDB.
+</li><li>Linked tables: To view the statements that are executed against the target table, set the trace level to 3.
 </li><li>RunScript tool: new options to show and check the results of queries.
 </li><li>Deadlocks are now detected. One transaction is rolled back automatically.
 </li><li>The Lucene fulltext index was always re-created when opening a 
@@ -100,7 +104,7 @@ Change Log
 <li>H2 is now dual-licensed under the Eclipse Public License (EPL) and the
     old 'H2 License' (which is basically MPL).
 </li><li>Sometimes an exception 'File ID mismatch' or 'try to add a record twice'
-    occured after large records (8 KB or larger) are updated or deleted.
+    occurred after large records (8 KB or larger) are updated or deleted.
     See also http://code.google.com/p/h2database/issues/detail?id=22
 </li><li>H2 Console: The tools can now be translated 
     (it didn't work in the last release).
@@ -194,10 +198,10 @@ Change Log
 </li><li>For years below 1, the YEAR method didn't return the correct value,
     and the conversion from date and timestamp to varchar was incorrect.
 </li><li>CSVWRITE caused a NullPointerException when not specifying a nullString.
-</li><li>When a log file switch occured just after a truncate table or drop table 
+</li><li>When a log file switch occurred just after a truncate table or drop table 
     statement, the database could not be started normally (RECOVER=1 
     was required). Fixed.
-</li><li>When a log file switch occured in the middle of a sequence flush 
+</li><li>When a log file switch occurred in the middle of a sequence flush 
     (sequences are only flushed every 32 values by default), the sequence 
     value was lost. Fixed.
 </li><li>Altering a sequence didn't unlock the system table 

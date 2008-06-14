@@ -593,7 +593,7 @@ Roadmap:
         }
     }
 
-    public void beforeTest() throws SQLException {
+    void beforeTest() throws SQLException {
         DeleteDbFiles.execute(TestBase.baseDir, null, true);
         FileSystemDisk.getInstance().deleteRecursive("trace.db");
         if (networked) {
@@ -609,7 +609,7 @@ Roadmap:
         }
     }
 
-    public void afterTest() throws SQLException {
+    private void afterTest() throws SQLException {
         FileSystemDisk.getInstance().deleteRecursive("trace.db");
         if (networked && server != null) {
             server.stop();

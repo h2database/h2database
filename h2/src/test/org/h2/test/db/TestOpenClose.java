@@ -24,7 +24,13 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
 
     int nextId = 10;
 
-    public static void main(String[] a) throws Exception {
+    /**
+     * This method is called when executing this application from the command
+     * line.
+     * 
+     * @param args the command line parameters
+     */
+    public static void main(String[] args) throws Exception {
         new TestOpenClose().test();
     }
 

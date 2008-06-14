@@ -65,7 +65,7 @@ public class TestRights extends TestBase {
         conn.close();
     }
 
-    public void testSchemaRenameUser() throws Exception {
+    void testSchemaRenameUser() throws Exception {
         if (config.memory) {
             return;
         }
@@ -98,7 +98,7 @@ public class TestRights extends TestBase {
         conn.close();
     }
 
-    public void testAccessRights() throws Exception {
+    void testAccessRights() throws Exception {
         if (config.memory) {
             return;
         }
@@ -246,7 +246,7 @@ public class TestRights extends TestBase {
         executeSuccess("DROP TABLE TEST");
     }
 
-    public void executeError(String sql) throws Exception {
+    void executeError(String sql) throws Exception {
         try {
             stat.execute(sql);
             fail("not admin");
@@ -255,7 +255,7 @@ public class TestRights extends TestBase {
         }
     }
 
-    public void executeSuccess(String sql) throws Exception {
+    void executeSuccess(String sql) throws Exception {
         if (stat.execute(sql)) {
             ResultSet rs = stat.getResultSet();
 

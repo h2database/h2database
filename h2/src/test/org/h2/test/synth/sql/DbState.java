@@ -80,7 +80,7 @@ public class DbState implements DbInterface {
         // nothing to do
     }
 
-    public Table randomTable() {
+    Table randomTable() {
         if (tables.size() == 0) {
             return null;
         }

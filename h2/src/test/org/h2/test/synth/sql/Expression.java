@@ -26,7 +26,7 @@ public class Expression {
         sql = "";
     }
 
-    public static String[] getRandomSelectList(TestSynth config, Command command) {
+    static String[] getRandomSelectList(TestSynth config, Command command) {
         if (config.random().getBoolean(30)) {
             return new String[] { "*" };
         }
@@ -47,7 +47,7 @@ public class Expression {
         return list;
     }
 
-    public static Expression getRandomCondition(TestSynth config, Command command) {
+    static Expression getRandomCondition(TestSynth config, Command command) {
         Expression condition = new Expression(config, command, true);
         if (config.random().getBoolean(50)) {
             condition.create();
@@ -55,7 +55,7 @@ public class Expression {
         return condition;
     }
 
-    public static Expression getRandomExpression(TestSynth config, Command command) {
+    static Expression getRandomExpression(TestSynth config, Command command) {
         Expression expression = new Expression(config, command, false);
         String alias = command.getRandomTableAlias();
         Column column = command.getTable(alias).getRandomConditionColumn();
@@ -72,13 +72,13 @@ public class Expression {
         sql = v.getSQL();
     }
 
-    public static Expression getRandomJoinOn(TestSynth config, Command command, String alias) {
+    static Expression getRandomJoinOn(TestSynth config, Command command, String alias) {
         Expression expression = new Expression(config, command, true);
         expression.createJoinComparison(alias);
         return expression;
     }
 
-    public static String getRandomOrder(TestSynth config, Command command) {
+    static String getRandomOrder(TestSynth config, Command command) {
         int len = config.random().getLog(6);
         String sql = "";
         for (int i = 0; i < len; i++) {
@@ -104,7 +104,7 @@ public class Expression {
         return sql;
     }
 
-    public String getSQL() {
+    String getSQL() {
         return sql.trim().length() == 0 ? null : sql.trim();
     }
 
@@ -250,7 +250,7 @@ public class Expression {
         }
     }
 
-    public boolean isEmpty() {
+    boolean isEmpty() {
         return sql == null || sql.trim().length() == 0;
     }
 

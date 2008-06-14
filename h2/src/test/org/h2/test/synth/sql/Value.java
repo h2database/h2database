@@ -127,7 +127,7 @@ public class Value {
         return buff.toString();
     }
 
-    public static Value read(TestSynth config, ResultSet rs, int index) throws SQLException {
+    static Value read(TestSynth config, ResultSet rs, int index) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         Object data;
         int type = meta.getColumnType(index);
@@ -263,7 +263,7 @@ public class Value {
         return new BigDecimal(buff.toString());
     }
 
-    public int compareTo(Object o) {
+    int compareTo(Object o) {
         Value v = (Value) o;
         if (type != v.type) {
             throw new Error("compare " + type + " " + v.type + " " + data + " " + v.data);

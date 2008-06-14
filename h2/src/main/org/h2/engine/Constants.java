@@ -358,12 +358,6 @@ public class Constants {
      * the largest file (data file or index file).
      */
     public static final long LOG_SIZE_DIVIDER = 10;
-    
-    /**
-     * Queries that take longer than this number of milliseconds are written to
-     * the trace file with the level info.
-     */
-    public static final long LONG_QUERY_LIMIT_MS = 100;
 
     /**
      * The file header used for binary files.
@@ -468,6 +462,12 @@ public class Constants {
      */
     public static final String SERVER_PROPERTIES_TITLE = "H2 Server Properties";
     
+    /**
+     * Queries that take longer than this number of milliseconds are written to
+     * the trace file with the level info.
+     */
+    public static final long SLOW_QUERY_LIMIT_MS = 100;
+
     /**
      * The file name suffix of data files.
      */

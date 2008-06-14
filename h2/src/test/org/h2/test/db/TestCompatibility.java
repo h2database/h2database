@@ -8,6 +8,7 @@ package org.h2.test.db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
@@ -23,11 +24,31 @@ public class TestCompatibility extends TestBase {
         deleteDb("compatibility");
         conn = getConnection("compatibility");
 
+        testUniqueIndexSingleNull();
         testHsqlDb();
         testMySQL();
 
         conn.close();
 
+    }
+    
+    private void testUniqueIndexSingleNull() throws Exception {
+        Statement stat = conn.createStatement();
+        String[] modes = new String[] { "PostgreSQL", "MySQL", "HSQLDB", "MSSQLServer", "Derby", "Oracle", "Regular" };
+        String multiNull = "PostgreSQL,MySQL,Regular";
+        for (int i = 0; i < modes.length; i++) {
+            String mode = modes[i];
+            stat.execute("SET MODE " + mode);
+            stat.execute("CREATE TABLE TEST(ID INT)");
+            stat.execute("CREATE UNIQUE INDEX IDX_ID_U ON TEST(ID)");
+            try {
+                stat.execute("INSERT INTO TEST VALUES(1), (2), (NULL), (NULL)");
+                assertTrue(mode + " mode should not support multiple NULL", multiNull.indexOf(mode) >= 0);
+            } catch (SQLException e) {
+                assertTrue(mode + " mode should support multiple NULL", multiNull.indexOf(mode) < 0);
+            }
+            stat.execute("DROP TABLE TEST");
+        }
     }
 
     private void testHsqlDb() throws Exception {

@@ -269,6 +269,9 @@ public class TestFunctions extends TestBase {
         assertEquals(value, s);
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static BufferedInputStream blob2stream(Blob value) throws SQLException {
         if (value == null) {
             return null;
@@ -277,6 +280,9 @@ public class TestFunctions extends TestBase {
         return bufferedInStream;
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static BufferedInputStream stream2stream(InputStream value) {
         if (value == null) {
             return null;
@@ -285,6 +291,9 @@ public class TestFunctions extends TestBase {
         return bufferedInStream;
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static int addRow(Connection conn, int id, String name) throws SQLException {
         conn.createStatement().execute("INSERT INTO TEST VALUES(" + id + ", '" + name + "')");
         ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
@@ -294,19 +303,31 @@ public class TestFunctions extends TestBase {
         return result;
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static ResultSet select(Connection conn, String sql) throws SQLException {
         Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         return stat.executeQuery(sql);
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static ResultSet selectMaxId(Connection conn) throws SQLException {
         return conn.createStatement().executeQuery("SELECT MAX(ID) FROM TEST");
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static Object[] getArray() {
         return new Object[] { new Integer(0), "Hello" };
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static ResultSet nullResultSet(Connection conn) throws SQLException {
         PreparedStatement statement = conn.prepareStatement("select null from system_range(1,1)");
         return statement.executeQuery();
@@ -349,6 +370,9 @@ public class TestFunctions extends TestBase {
         return rs;
     }
 
+    /**
+     * This method is called via reflection from the database.
+     */
     public static int root(int value) {
         if (value < 0) {
             TestBase.logError("function called but should not", null);

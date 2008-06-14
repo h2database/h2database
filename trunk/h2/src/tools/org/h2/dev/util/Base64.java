@@ -44,7 +44,7 @@ public class Base64 {
         }
     }
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         check(new String(encode(new byte[] {})), "");
         check(new String(encode("A".getBytes())), "QQ==");
         check(new String(encode("AB".getBytes())), "QUI=");
@@ -93,7 +93,7 @@ public class Base64 {
         }
     }
 
-    public static byte[] encode(byte[] bin) {
+    static byte[] encode(byte[] bin) {
         byte[] code = CODE;
         int size = bin.length;
         int len = ((size + 2) / 3) * 4;
@@ -121,7 +121,7 @@ public class Base64 {
         return enc;
     }
 
-    public static byte[] encodeFast(byte[] bin) {
+    static byte[] encodeFast(byte[] bin) {
         byte[] code = CODE;
         int size = bin.length;
         int len = ((size * 4) + 2) / 3;
@@ -146,7 +146,7 @@ public class Base64 {
         return enc;
     }
 
-    public static byte[] trim(byte[] enc) {
+    static byte[] trim(byte[] enc) {
         byte[] rev = REV;
         int j = 0, size = enc.length;
         if (size > 1 && enc[size - 2] == '=') {
@@ -173,7 +173,7 @@ public class Base64 {
         return buff;
     }
 
-    public static byte[] decode(byte[] enc) {
+    static byte[] decode(byte[] enc) {
         enc = trim(enc);
         byte[] rev = REV;
         int len = enc.length, size = (len * 3) / 4;
@@ -203,7 +203,7 @@ public class Base64 {
         return bin;
     }
 
-    public static byte[] decodeFast(byte[] enc) {
+    static byte[] decodeFast(byte[] enc) {
         byte[] rev = REV;
         int len = enc.length, size = (len * 3) / 4;
         byte[] bin = new byte[size];

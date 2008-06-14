@@ -8,10 +8,9 @@ package org.h2.build.doc;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringWriter;
 import java.util.Stack;
+
+import org.h2.util.IOUtils;
 
 /**
  * This class checks that the HTML and XML part of the source code
@@ -19,6 +18,12 @@ import java.util.Stack;
  */
 public class XMLChecker {
 
+    /**
+     * This method is called when executing this application from the command
+     * line.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
         new XMLChecker().run(args);
     }
@@ -60,7 +65,7 @@ public class XMLChecker {
         }
         // System.out.println("Checking file:" + fileName);
         FileReader reader = new FileReader(fileName);
-        String s = readStringAndClose(reader, -1);
+        String s = IOUtils.readStringAndClose(reader, -1);
         Exception last = null;
         try {
             checkXML(s, !suffix.equals("xml"));
@@ -71,26 +76,6 @@ public class XMLChecker {
         if (last != null) {
             last.printStackTrace();
         }
-    }
-
-    public static String readStringAndClose(Reader in, int length) throws IOException {
-        if (length <= 0) {
-            length = Integer.MAX_VALUE;
-        }
-        int block = Math.min(4096, length);
-        StringWriter out = new StringWriter(length == Integer.MAX_VALUE ? block : length);
-        char[] buff = new char[block];
-        while (length > 0) {
-            int len = Math.min(block, length);
-            len = in.read(buff, 0, len);
-            if (len < 0) {
-                break;
-            }
-            out.write(buff, 0, len);
-            length -= len;
-        }
-        in.close();
-        return out.toString();
     }
 
     private static void checkXML(String xml, boolean html) throws Exception {

@@ -170,7 +170,7 @@ public class JdbcConnectionPool implements DataSource {
      * 
      * @return a new Connection object.
      * @throws SQLException when a new connection could not be established, 
-     *      or a timeout occured
+     *      or a timeout occurred
      */
     public Connection getConnection() throws SQLException {
         for (int i = 0;; i++) {

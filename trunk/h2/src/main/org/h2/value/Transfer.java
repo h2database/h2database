@@ -133,8 +133,8 @@ public class Transfer {
      * @param x the value
      * @return itself
      */    
-    public Transfer writeInt(int i) throws IOException {
-        out.writeInt(i);
+    public Transfer writeInt(int x) throws IOException {
+        out.writeInt(x);
         return this;
     }
 
@@ -153,8 +153,8 @@ public class Transfer {
      * @param x the value
      * @return itself
      */   
-    public Transfer writeLong(long i) throws IOException {
-        out.writeLong(i);
+    public Transfer writeLong(long x) throws IOException {
+        out.writeLong(x);
         return this;
     }
 

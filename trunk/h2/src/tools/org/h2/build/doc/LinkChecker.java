@@ -31,6 +31,12 @@ public class LinkChecker {
     private HashMap targets = new HashMap();
     private HashMap links = new HashMap();
 
+    /**
+     * This method is called when executing this application from the command
+     * line.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
         new LinkChecker().run(args);
     }

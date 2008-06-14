@@ -25,11 +25,17 @@ public class Build extends BuildBase {
         new Build().run(args);
     }
 
+    /**
+     * Create the jar file and generate the documentation.
+     */
     public void all() {
         jar();
         docs();
     }
     
+    /**
+     * Run the benchmarks.
+     */
     public void benchmark() {
         download("ext/hsqldb-1.8.0.7.jar",
                 "http://repo1.maven.org/maven2/hsqldb/hsqldb/1.8.0.7/hsqldb-1.8.0.7.jar",
@@ -66,6 +72,9 @@ public class Build extends BuildBase {
         exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "8", "-out", "ps.html"});
     }
     
+    /**
+     * Clean all jar files, classes, and generated documentation.
+     */
     public void clean() {
         delete("temp");
         delete("docs");
@@ -73,6 +82,9 @@ public class Build extends BuildBase {
         mkdir("bin");
     }
     
+    /**
+     * Compile all classes
+     */
     public void compile() {
         compile(true, false);
     }
@@ -126,6 +138,10 @@ public class Build extends BuildBase {
         }
     }
 
+    /**
+     * Create the documentation from the documentation sources. API Javadocs are
+     * created as well.
+     */
     public void docs() {
         javadoc();
         copy("docs", getFiles("src/docsrc/index.html"), "src/docsrc");
@@ -143,6 +159,10 @@ public class Build extends BuildBase {
         beep();
     }
 
+    /**
+     * Download all required jar files. Actually those are only compile time
+     * dependencies. The database can be used without any dependencies.
+     */
     public void download() {
         download("ext/servlet-api-2.4.jar",
                 "http://repo1.maven.org/maven2/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar",
@@ -159,6 +179,9 @@ public class Build extends BuildBase {
         return getStaticValue("org.h2.engine.Constants", "getVersion");
     }
     
+    /**
+     * Create the regular h2.jar file.
+     */
     public void jar() {
         compile();
         manifest("org.h2.tools.Console");
@@ -173,6 +196,10 @@ public class Build extends BuildBase {
         jar("bin/h2.jar", files, "temp");
     }
     
+    /**
+     * Create the h2client.jar. This only contains the remote JDBC
+     * implementation.
+     */
     public void jarClient() {
         compile(true, true);
         FileList files = getFiles("temp").
@@ -186,6 +213,9 @@ public class Build extends BuildBase {
         jar("bin/h2client.jar", files, "temp");
     }
     
+    /**
+     * Create the file h2small.jar. This only contains the embedded database.
+     */
     public void jarSmall() {
         compile(false, false);
         FileList files = getFiles("temp").
@@ -204,6 +234,9 @@ public class Build extends BuildBase {
         jar("bin/h2small.jar", files, "temp");
     }
     
+    /**
+     * Create the Javadocs of the API (including the JDBC API) and tools.
+     */
     public void javadoc() {
         delete("docs");
         mkdir("docs/javadoc");
@@ -213,6 +246,9 @@ public class Build extends BuildBase {
         copy("docs/javadoc", getFiles("src/docsrc/javadoc"), "src/docsrc/javadoc");
     }        
     
+    /**
+     * Create the Javadocs of the implementation.
+     */
     public void javadocImpl() {
         mkdir("docs/javadocImpl");
         javadoc(new String[] {
@@ -250,6 +286,11 @@ public class Build extends BuildBase {
         writeFile(new File("temp/META-INF/MANIFEST.MF"), manifest.getBytes());
     }
     
+    /**
+     * This will build a release of the H2 .jar file and upload it to 
+     * file:///data/h2database/m2-repo. This is only required when
+     * a new H2 version is made.
+     */    
     public void mavenDeployCentral() {
         jar();
         String pom = new String(readFile(new File("src/installer/pom.xml")));
@@ -266,6 +307,10 @@ public class Build extends BuildBase {
                 "-DgroupId=com.h2database" });
     }
 
+    /**
+     * This will build a 'snapshot' H2 .jar file and upload it the to the local
+     * Maven 2 repository.
+     */
     public void mavenInstallLocal() {
         jar();
         String pom = new String(readFile(new File("src/installer/pom.xml")));
@@ -292,10 +337,16 @@ public class Build extends BuildBase {
         zip("temp/org/h2/util/data.zip", files, "src/main", true, false);
     }
     
+    /**
+     * Just run the spellchecker.
+     */
     public void spellcheck() {
         java("org.h2.build.doc.SpellChecker", null);
     }
     
+    /**
+     * Create the h2.zip file.
+     */
     public void zip() {
         delete("docs/html/onePage.html");
         FileList files = getFiles("../h2").keep("../h2/build.*");

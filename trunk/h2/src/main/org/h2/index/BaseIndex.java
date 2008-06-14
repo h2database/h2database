@@ -237,7 +237,10 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return 0;
     }
 
-    public boolean isNull(Row newRow) {
+    public boolean containsNullAndAllowMultipleNull(Session session, Row newRow) {
+        if (session.getDatabase().getMode().uniqueIndexSingleNull) {
+            return false;
+        }
         for (int i = 0; i < columns.length; i++) {
             int index = columnIds[i];
             Value v = newRow.getValue(index);

@@ -34,7 +34,13 @@ public class SecureKeyStoreBuilder {
         // utility class
     }
 
-    public static void main(String[] a) throws Exception {
+    /**
+     * This method is called when executing this application from the command
+     * line.
+     * 
+     * @param args the command line parameters
+     */
+    public static void main(String[] args) throws Exception {
         String password = SecureSocketFactory.KEYSTORE_PASSWORD;
         KeyStore store = SecureSocketFactory.getKeyStore(password);
         printKeystore(store, password);

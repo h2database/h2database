@@ -24,7 +24,7 @@ public class TestIntIntHashMap extends TestBase {
         test(false);
     }
 
-    public void test(boolean random) throws Exception {
+    void test(boolean random) throws Exception {
         int len = 2000;
         int[] x = new int[len];
         for (int i = 0; i < len; i++) {

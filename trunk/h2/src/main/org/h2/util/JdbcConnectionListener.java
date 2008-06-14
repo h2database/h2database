@@ -18,7 +18,7 @@ public interface JdbcConnectionListener {
     // TODO pooled connection: make sure 
     // fatalErrorOccurred is called in the right situations
     /**
-     * A fatal error occured.
+     * A fatal error occurred.
      *
      * @param conn the connection
      * @param e the exception

@@ -284,7 +284,7 @@ note notes nothing notice notices notification notified notifies notify notifyin
 notin notwithstanding novelist now nowait nowrap nsi nsis nsub ntext ntfs ntilde
 nul null nullable nullif nulls num number numbers numeric numerical nvarchar nvl
 oacute obey obj object objects obligation obligations obtain obtained obtains
-occupied occupies occupy occur occured occurred occurrence occurrences occurs
+occupied occupies occupy occur occurred occurrence occurrences occurs
 ocirc octal octet october octype odbc odbcad odd odg off offer offered offering
 offers office offset often ograve ohloh oid okay old older oldest oline oliver
 omega omicron once onchange onclick one ones onfocus onkeydown onkeyup online
@@ -520,3 +520,5 @@ overloaded decide clash involve verification dining recursively originating
 philosophers technologies modeling federation enterprise semantic deductive 
 fusion legacy decoded commented trimmed reaches indicating marks scaled tells 
 monitor benefit performing conditional significant arithmetic instrumented
+doclets extremes instructions printable skips sava sources cms bytecode cfml 
+cold compiles markup spellchecker interleaved poormans programmed swt railo

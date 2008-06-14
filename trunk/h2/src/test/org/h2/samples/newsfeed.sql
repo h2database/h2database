@@ -102,7 +102,7 @@ INSERT INTO ITEM VALUES(41,
 </li></ul>
 <b>Bugfixes:</b>
 <ul><li>Sometimes an exception ''File ID mismatch'' or ''try to add a record twice''
-    occured after large records (8 KB or larger) are updated or deleted.
+    occurred after large records (8 KB or larger) are updated or deleted.
     See also http://code.google.com/p/h2database/issues/detail?id=22
 </li><li>H2 Console: The tools can now be translated 
     (it didn''t work in the last release).
@@ -186,7 +186,7 @@ INSERT INTO ITEM VALUES(39,
 </li><li>TRACE_LEVEL_ settings are no longer persistent.
 </li></ul>
 <b>Bugfixes:</b>
-<ul><li>When a log file switch occured in the middle of certain operations,
+<ul><li>When a log file switch occurred in the middle of certain operations,
     the database could not be started normally (RECOVER=1 was required).
 </li><li>Altering a sequence didn''t unlock the system table with autocommit disabled.
 </li><li>CSVWRITE caused a NullPointerException when not specifying a nullString.

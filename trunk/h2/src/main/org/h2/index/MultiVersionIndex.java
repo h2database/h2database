@@ -237,8 +237,8 @@ public class MultiVersionIndex implements Index {
         return base.getType();
     }
 
-    public boolean isNull(Row newRow) {
-        return base.isNull(newRow);
+    public boolean containsNullAndAllowMultipleNull(Session session, Row newRow) {
+        return base.containsNullAndAllowMultipleNull(session, newRow);
     }
 
     public void removeChildrenAndResources(Session session) throws SQLException {

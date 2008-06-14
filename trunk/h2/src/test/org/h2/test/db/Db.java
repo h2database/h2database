@@ -39,6 +39,15 @@ public class Db {
         }
     }
 
+    /**
+     * Open the database connection. For most databases, it is not required to
+     * load the driver before calling this method.
+     * 
+     * @param url the database URL
+     * @param user the user name
+     * @param password the password
+     * @return the database
+     */
     public static Db open(String url, String user, String password) {
         try {
             JdbcDriverUtils.load(url);
@@ -48,6 +57,12 @@ public class Db {
         }
     }
 
+    /**
+     * Prepare a SQL statement.
+     * 
+     * @param sql the SQL statement
+     * @return the prepared statement
+     */
     public Prepared prepare(String sql) {
         try {
             PreparedStatement prep = (PreparedStatement) prepared.get(sql);
@@ -61,6 +76,11 @@ public class Db {
         }
     }
 
+    /**
+     * Execute a SQL statement.
+     * 
+     * @param sql the SQL statement
+     */
     public void execute(String sql) {
         try {
             stat.execute(sql);
@@ -69,6 +89,9 @@ public class Db {
         }
     }
 
+    /**
+     * Close the database connection.
+     */
     public void close() {
         try {
             conn.close();
@@ -88,6 +111,11 @@ public class Db {
             this.prep = prep;
         }
 
+        /**
+         * Set the value of the current parameter.
+         * 
+         * @param x the value
+         */
         public Prepared set(int x) {
             try {
                 prep.setInt(++index, x);
@@ -97,6 +125,11 @@ public class Db {
             }
         }
 
+        /**
+         * Set the value of the current parameter.
+         * 
+         * @param x the value
+         */
         public Prepared set(String x) {
             try {
                 prep.setString(++index, x);
@@ -106,6 +139,11 @@ public class Db {
             }
         }
 
+        /**
+         * Set the value of the current parameter.
+         * 
+         * @param x the value
+         */
         public Prepared set(byte[] x) {
             try {
                 prep.setBytes(++index, x);
@@ -115,6 +153,11 @@ public class Db {
             }
         }
 
+        /**
+         * Set the value of the current parameter.
+         * 
+         * @param x the value
+         */
         public Prepared set(InputStream x) {
             try {
                 prep.setBinaryStream(++index, x, -1);
@@ -124,6 +167,9 @@ public class Db {
             }
         }
 
+        /**
+         * Execute the prepared statement.
+         */
         public void execute() {
             try {
                 prep.execute();
@@ -145,6 +191,9 @@ public class Db {
         }
     }
 
+    /**
+     * Commit a pending transaction.
+     */
     public void commit() {
         try {
             conn.commit();

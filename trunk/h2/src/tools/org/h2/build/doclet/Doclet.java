@@ -37,11 +37,18 @@ public class Doclet {
     private int errorCount;
     private HashSet errors = new HashSet();
 
+    /**
+     * This method is called by the javadoc framework and is required for all
+     * doclets.
+     * 
+     * @param root the root
+     * @return true if successful
+     */
     public static boolean start(RootDoc root) throws IOException {
         return new Doclet().startDoc(root);
     }
     
-    public boolean startDoc(RootDoc root) throws IOException {
+    boolean startDoc(RootDoc root) throws IOException {
         ClassDoc[] classes = root.classes();
         String[][] options = root.options();
         String destDir = System.getProperty("h2.destDir", "docs/javadoc");

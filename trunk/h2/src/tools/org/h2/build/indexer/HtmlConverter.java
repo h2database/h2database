@@ -66,6 +66,12 @@ public class HtmlConverter {
         }
     }
 
+    /**
+     * Convert a string to HTML by encoding all required characters.
+     * 
+     * @param s the string
+     * @return the HTML text
+     */
     public static String convertStringToHtml(String s) {
         if (s == null) {
             return null;
@@ -96,6 +102,12 @@ public class HtmlConverter {
         return buff.toString();
     }
 
+    /**
+     * Convert a HTML encoded text to a string.
+     * 
+     * @param html the HTML text
+     * @return the string
+     */
     public static String convertHtmlToString(String html) {
         if (html == null) {
             return null;

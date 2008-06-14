@@ -575,8 +575,8 @@ public class DataType {
     /**
      * Convert a SQL type to a value type.
      * 
-     * @param the SQL type
-     * @return type the value type
+     * @param sqlType the SQL type
+     * @return the value type
      */
     public static int convertSQLTypeToValueType(int sqlType) throws SQLException {
         switch(sqlType) {

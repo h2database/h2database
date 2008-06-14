@@ -287,7 +287,7 @@ public class BuildBase {
             result = exec("javadoc", args);
         }
         if (result != 0) {
-            throw new Error("An error occured");
+            throw new Error("An error occurred");
         }
     }
     
@@ -586,7 +586,7 @@ public class BuildBase {
             result = exec("javac", args);
         }
         if (result != 0) {
-            throw new Error("An error occured");
+            throw new Error("An error occurred");
         }
     }
     

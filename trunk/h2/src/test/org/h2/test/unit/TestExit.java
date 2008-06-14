@@ -64,6 +64,12 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         }
     }
 
+    /**
+     * This method is called when executing this application from the command
+     * line.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
         SelfDestructor.startCountdown(60);
         if (args.length == 0) {

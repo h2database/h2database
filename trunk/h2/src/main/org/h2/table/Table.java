@@ -105,7 +105,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @param exclusive true for write locks, false for read locks
      * @param force lock even in the MVCC mode
-     * @throws SQLException if a lock timeout occured
+     * @throws SQLException if a lock timeout occurred
      */
     public abstract void lock(Session session, boolean exclusive, boolean force) throws SQLException;
 
@@ -871,7 +871,7 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
-     * Check if a deadlock occured. This method is called recursively. There is
+     * Check if a deadlock occurred. This method is called recursively. There is
      * a circle if the session to be tested for is the same as the originating
      * session (the 'clash session'). In this case the method must return an
      * empty object array. Once a deadlock has been detected, the methods must

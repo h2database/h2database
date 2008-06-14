@@ -12,22 +12,60 @@ package org.h2.build.doc;
  */
 public class XMLParser {
 
+    /**
+     * This event type means an error occurred.
+     */
     public static final int ERROR = 0;
+    
+    /**
+     * This event type means a start element has been read.
+     */
     public static final int START_ELEMENT = 1;
+    
+    /**
+     * This event type means an end element has been read.
+     */
     public static final int END_ELEMENT = 2;
+    
+    /**
+     * This event type means a processing instruction has been read.
+     */
     public static final int PROCESSING_INSTRUCTION = 3;
+    
+    /**
+     * This event type means text has been read.
+     */
     public static final int CHARACTERS = 4;
+    
+    /**
+     * This event type means a comment has been read.
+     */
     public static final int COMMENT = 5;
-    public static final int SPACE = 6;
+    
+    // public static final int SPACE = 6;
+    
+    /**
+     * This event type is used before reading.
+     */
     public static final int START_DOCUMENT = 7;
+    
+    /**
+     * This event type means the end of the document has been reached.
+     */
     public static final int END_DOCUMENT = 8;
-    public static final int ENTITY_REFERENCE = 9;
-    public static final int ATTRIBUTE = 10;
+    
+    // public static final int ENTITY_REFERENCE = 9;
+    // public static final int ATTRIBUTE = 10;
+    
+    /**
+     * This event type means a DTD element has been read.
+     */    
     public static final int DTD = 11;
-    public static final int CDATA = 12;
-    public static final int NAMESPACE = 13;
-    public static final int NOTATION_DECLARATION = 14;
-    public static final int ENTITY_DECLARATION = 15;
+    
+    // public static final int CDATA = 12;
+    // public static final int NAMESPACE = 13;
+    // public static final int NOTATION_DECLARATION = 14;
+    // public static final int ENTITY_DECLARATION = 15;
 
     private String xml;
     private int index;
@@ -40,11 +78,22 @@ public class XMLParser {
     private boolean endElement;
     private boolean html;
 
+    /**
+     * Construct a new XML parser.
+     * 
+     * @param xml the document
+     */
     public XMLParser(String xml) {
         this.xml = xml;
         eventType = START_DOCUMENT;
     }
     
+    /**
+     * Enable or disable HTML processing. When enabled, attributes don't need to
+     * have values.
+     * 
+     * @param html true if HTML processing is enabled.
+     */
     public void setHTML(boolean html) {
         this.html = html;
     }
@@ -324,10 +373,20 @@ public class XMLParser {
         }
     }
 
+    /**
+     * Check if there are more tags to read.
+     * 
+     * @return true if there are more tags
+     */
     public boolean hasNext() {
         return index < xml.length();
     }
 
+    /**
+     * Read the next tag.
+     * 
+     * @return the event type of the next tag
+     */
     public int next() {
         if (endElement) {
             endElement = false;
@@ -339,6 +398,12 @@ public class XMLParser {
         return eventType;
     }
 
+    /**
+     * Read the next start, end, or character tag. This method skips comments,
+     * DTDs, and processing instructions.
+     * 
+     * @return the event type of the next tag
+     */
     public int nextTag() {
         while (true) {
             int type = next();
@@ -348,36 +413,81 @@ public class XMLParser {
         }
     }
 
+    /**
+     * Get the event type of the current token.
+     * 
+     * @return the event type
+     */
     public int getEventType() {
         return eventType;
     }
 
+    /**
+     * Get the current text.
+     * 
+     * @return the text
+     */
     public String getText() {
         return currentText;
     }
 
+    /**
+     * Get the current token text.
+     * 
+     * @return the token
+     */
     public String getToken() {
         return currentToken;
     }
 
+    /**
+     * Get the number of attributes.
+     * 
+     * @return the attribute count
+     */
     public int getAttributeCount() {
         return currentAttribute / 3;
     }
 
+    /**
+     * Get the prefix of the attribute.
+     * 
+     * @param index the index of the attribute (starting with 0)
+     * @return the prefix
+     */
     public String getAttributePrefix(int index) {
         return attributeValues[index * 3];
     }
 
+    /**
+     * Get the local name of the attribute.
+     * 
+     * @param index the index of the attribute (starting with 0)
+     * @return the local name
+     */
     public String getAttributeLocalName(int index) {
         return attributeValues[index * 3 + 1];
     }
 
+    /**
+     * Get the full name of the attribute. If there is no prefix, only the local
+     * name is returned, otherwise the prefix, ':', and the local name.
+     * 
+     * @param index the index of the attribute (starting with 0)
+     * @return the full name
+     */
     public String getAttributeName(int index) {
         String prefix = getAttributePrefix(index);
         String localName = getAttributeLocalName(index);
         return prefix == null || prefix.length() == 0 ? localName : prefix + ":" + localName;
     }
 
+    /**
+     * Get the value of this attribute.
+     * 
+     * @param index the index of the attribute (starting with 0)
+     * @return the value
+     */
     public String getAttributeValue(int index) {
         return attributeValues[index * 3 + 2];
     }
@@ -399,26 +509,59 @@ public class XMLParser {
         return null;
     }
 
+    /**
+     * Get the full name of the current start or end element. If there is no
+     * prefix, only the local name is returned, otherwise the prefix, ':', and
+     * the local name.
+     * 
+     * @return the full name
+     */
     public String getName() {
         return prefix == null || prefix.length() == 0 ? localName : prefix + ":" + localName;
     }
 
+    /**
+     * Get the local name of the current start or end element.
+     * 
+     * @return the local name
+     */
     public String getLocalName() {
         return localName;
     }
 
+    /**
+     * Get the prefix of the current start or end element.
+     * 
+     * @return the prefix
+     */
     public String getPrefix() {
         return prefix;
     }
 
+    /**
+     * Check if the current character tag only contains spaces or other
+     * non-printable characters.
+     * 
+     * @return if the trimmed text is empty
+     */
     public boolean isWhiteSpace() {
         return getText().trim().length() == 0;
     }
 
+    /**
+     * Get the remaining XML text of the document.
+     * 
+     * @return the remaining XML
+     */
     public String getRemaining() {
         return xml.substring(index);
     }
 
+    /**
+     * Get the index of the current position.
+     * 
+     * @return the position
+     */
     public int getPos() {
         return index;
     }

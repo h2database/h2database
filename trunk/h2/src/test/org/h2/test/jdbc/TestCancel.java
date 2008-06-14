@@ -153,6 +153,9 @@ public class TestCancel extends TestBase {
         }
     }
     
+    /**
+     * This method is called via reflection from the database.
+     */
     public static int visit(int x) {
         lastVisited = x;
         return x;

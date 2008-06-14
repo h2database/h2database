@@ -31,6 +31,13 @@ public class Mode {
     public boolean indexDefinitionInCreateTable;
     public boolean systemColumns;
     public boolean squareBracketQuotedNames;
+    
+    /**
+     * When using unique indexes, multiple rows with NULL in one of the columns
+     * are allowed by default. However many databases view NULL as distinct in
+     * this regard and only allow one row with NULL.
+     */
+    public boolean uniqueIndexSingleNull;
 
     private String name;
 
@@ -54,10 +61,20 @@ public class Mode {
         mode = new Mode("HSQLDB");
         mode.nullConcatIsNull = true;
         mode.convertOnlyToSmallerScale = true;
+        mode.uniqueIndexSingleNull = true;
         add(mode);
 
         mode = new Mode("MSSQLServer");
         mode.squareBracketQuotedNames = true;
+        mode.uniqueIndexSingleNull = true;
+        add(mode);
+
+        mode = new Mode("Derby");
+        mode.uniqueIndexSingleNull = true;
+        add(mode);
+
+        mode = new Mode("Oracle");
+        mode.uniqueIndexSingleNull = true;
         add(mode);
 
     }

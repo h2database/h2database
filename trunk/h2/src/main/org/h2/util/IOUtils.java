@@ -61,7 +61,7 @@ public class IOUtils {
      * @param skip the number of bytes to skip
      * @throws EOFException if the end of file has been reached before all bytes
      *             could be skipped
-     * @throws IOException if an IO exception occured while skipping
+     * @throws IOException if an IO exception occurred while skipping
      */
     public static void skipFully(InputStream in, long skip) throws IOException {
         while (skip > 0) {
@@ -80,7 +80,7 @@ public class IOUtils {
      * @param skip the number of characters to skip
      * @throws EOFException if the end of file has been reached before all
      *             characters could be skipped
-     * @throws IOException if an IO exception occured while skipping
+     * @throws IOException if an IO exception occurred while skipping
      */
     public static void skipFully(Reader reader, long skip) throws IOException {
         while (skip > 0) {

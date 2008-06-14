@@ -49,7 +49,7 @@ public class WebClient {
         this.sessionId = id;
     }
 
-    public String get(String url, String page) throws IOException {
+    String get(String url, String page) throws IOException {
         if (sessionId != null) {
             if (page.indexOf('?') < 0) {
                 page += "?";

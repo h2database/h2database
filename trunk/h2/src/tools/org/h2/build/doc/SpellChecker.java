@@ -40,6 +40,12 @@ public class SpellChecker {
     private int errorCount;
     private int contextCount;
 
+    /**
+     * This method is called when executing this application from the command
+     * line.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws IOException {
         String dir = "src";
         new SpellChecker().run("tools/org/h2/build/doc/dictionary.txt", dir);

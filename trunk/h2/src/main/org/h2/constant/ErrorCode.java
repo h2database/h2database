@@ -170,7 +170,7 @@ public class ErrorCode {
      * to lock a table the first session has locked. As an example, session 1
      * has locked table A, while session 2 has locked table B. If session 1 now
      * tries to lock table B and session 2 tries to lock table A, a deadlock has
-     * occured. Deadlocks that involve more than two sessions are also possible.
+     * occurred. Deadlocks that involve more than two sessions are also possible.
      * To solve deadlock problems, an application should lock tables always in
      * the same order, such as always lock table A before locking table B. For
      * details, see <a href="http://en.wikipedia.org/wiki/Deadlock">Wikipedia
@@ -301,7 +301,7 @@ public class ErrorCode {
     /**
      * The error with code <code>50200</code> is thrown when
      * another connection locked an object longer than the lock timeout
-     * set for this connection, or when a deadlock occured.
+     * set for this connection, or when a deadlock occurred.
      * Example:
      * <pre>
      * CREATE TABLE TEST(ID INT);
@@ -560,7 +560,7 @@ public class ErrorCode {
     /**
      * The error with code <code>90021</code> is thrown when
      * trying to convert a value to a data type where the conversion is undefined,
-     * or when an error occured trying to convert.
+     * or when an error occurred trying to convert.
      * Example:
      * <pre>
      * CALL CAST(DATE '2001-01-01' AS BOOLEAN);
@@ -599,7 +599,7 @@ public class ErrorCode {
     /**
      * The error with code <code>90025</code> is thrown when
      * a file could not be deleted, because it is still in use
-     * (only in Windows), or because an error occured when deleting.
+     * (only in Windows), or because an error occurred when deleting.
      */
     public static final int FILE_DELETE_FAILED_1 = 90025;
 
@@ -617,7 +617,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90028</code> is thrown when
-     * an input / output error occured. For more information, see the root
+     * an input / output error occurred. For more information, see the root
      * cause of the exception.
      */
     public static final int IO_EXCEPTION_1 = 90028;
@@ -645,7 +645,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90031</code> is thrown when
-     * an input / output error occured. For more information, see the root
+     * an input / output error occurred. For more information, see the root
      * cause of the exception.
      */
     public static final int IO_EXCEPTION_2 = 90031;
@@ -780,7 +780,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90044</code> is thrown when
-     * an exception or error occured while calling the triggers fire method.
+     * an exception or error occurred while calling the triggers fire method.
      * See the root cause for details.
      */
     public static final int ERROR_EXECUTING_TRIGGER_3 = 90044;
@@ -1398,7 +1398,7 @@ public class ErrorCode {
     public static final int SIMULATED_POWER_OFF = 90098;
 
     /**
-     * The error with code <code>90099</code> is thrown when an error occured
+     * The error with code <code>90099</code> is thrown when an error occurred
      * trying to initialize the database event listener. Example:
      * <pre>
      * jdbc:h2:&tilde;/test;DATABASE_EVENT_LISTENER='java.lang.String'
@@ -1457,7 +1457,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90105</code> is thrown when
-     * an exception occured in a user-defined method.
+     * an exception occurred in a user-defined method.
      * Example:
      * <pre>
      * CREATE ALIAS SYS_PROP FOR "java.lang.System.getProperty";
@@ -1513,7 +1513,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90111</code> is thrown when
-     * an exception occured while accessing a linked table.
+     * an exception occurred while accessing a linked table.
      */
     public static final int ERROR_ACCESSING_LINKED_TABLE_2 = 90111;
 

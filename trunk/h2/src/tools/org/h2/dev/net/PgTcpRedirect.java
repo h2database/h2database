@@ -22,6 +22,12 @@ import java.net.Socket;
  */
 public class PgTcpRedirect {
 
+    /**
+     * This method is called when executing this application from the command
+     * line.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
         new PgTcpRedirect().loop(args);
     }

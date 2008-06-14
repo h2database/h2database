@@ -37,8 +37,11 @@ public abstract class TestBase {
     protected TestAll config;
     private long start;
 
-    // private static final String BASE_TEST_DIR = 
-    // System.getProperty("java.io.tmpdir") + "/h2";
+    /**
+     * Get the test directory for this test.
+     * 
+     * @param name the directory name suffix
+     */
     public static String getTestDir(String name) {
         return BASE_TEST_DIR + "/test" + name;
     }
@@ -47,6 +50,12 @@ public abstract class TestBase {
         config.beforeTest();
     }
 
+    /**
+     * Initialize the test configuration.
+     * 
+     * @param conf the configuration
+     * @return itself
+     */
     public TestBase init(TestAll conf) throws Exception {
         baseDir = getTestDir("");
         this.config = conf;
@@ -62,6 +71,13 @@ public abstract class TestBase {
         // do nothing
     }
 
+    /**
+     * This method is initializes the test, runs the test by calling the test()
+     * method, and prints status information. It also catches exceptions so that
+     * the tests can continue.
+     * 
+     * @param conf the test configuration
+     */
     public void runTest(TestAll conf) {
         try {
             init(conf);
@@ -77,10 +93,25 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Open a database connection in admin mode. The default user name and
+     * password is used.
+     * 
+     * @param name the database name
+     * @return the connection
+     */
     public Connection getConnection(String name) throws Exception {
         return getConnectionInternal(getURL(name, true), getUser(), getPassword());
     }
 
+    /**
+     * Open a database connection.
+     * 
+     * @param name the database name
+     * @param user the user name to use
+     * @param password the password to use
+     * @return the connection
+     */
     protected Connection getConnection(String name, String user, String password) throws Exception {
         return getConnectionInternal(getURL(name, false), user, password);
     }
@@ -194,6 +225,11 @@ public abstract class TestBase {
         trace("" + x);
     }
 
+    /**
+     * Write a message to system out if trace is enabled.
+     * 
+     * @param s the message to write
+     */
     public void trace(String s) {
         if (config.traceTest) {
             println(s);
@@ -206,6 +242,13 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Print the currently used memory, the message and the given time in
+     * milliseconds.
+     * 
+     * @param s the message
+     * @param time the time in millis
+     */
     public void printTimeMemory(String s, long time) {
         if (config.big) {
             println(getMemoryUsed() + " MB: " + s + " ms: " + time);
@@ -236,6 +279,12 @@ public abstract class TestBase {
         throw new Exception(string);
     }
 
+    /**
+     * Log an error message.
+     * 
+     * @param s the message
+     * @param e the exception
+     */
     public static void logError(String s, Throwable e) {
         if (e == null) {
             e = new Exception(s);
@@ -281,14 +330,34 @@ public abstract class TestBase {
         DeleteDbFiles.execute(dir, name, true);
     }
 
+    /**
+     * This method will be called by the test framework.
+     * 
+     * @throws Exception if an exception in the test occurs
+     */
     public abstract void test() throws Exception;
 
+    /**
+     * Check if two values are equal, and if not throw an exception.
+     * 
+     * @param message the message to print in case of error
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws Exception if the values are not equal
+     */
     public void assertEquals(String message, int expected, int actual) throws Exception {
         if (expected != actual) {
             fail("Expected: " + expected + " actual: " + actual + " message: " + message);
         }
     }
     
+    /**
+     * Check if two values are equal, and if not throw an exception.
+     * 
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws Exception if the values are not equal
+     */
     public void assertEquals(int expected, int actual) throws Exception {
         if (expected != actual) {
             fail("Expected: " + expected + " actual: " + actual);

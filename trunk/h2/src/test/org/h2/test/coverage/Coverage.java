@@ -55,19 +55,19 @@ public class Coverage {
      * 
      * @param args the command line parameters
      */
-    public static void main(String[] arg) {
-        new Coverage().run(arg);
+    public static void main(String[] args) {
+        new Coverage().run(args);
     }
 
-    void run(String[] arg) {
-        if (arg.length == 0 || arg[0].equals("-?")) {
+    void run(String[] args) {
+        if (args.length == 0 || args[0].equals("-?")) {
             printUsage();
             return;
         }
         Coverage c = new Coverage();
         int recurse = 1;
-        for (int i = 0; i < arg.length; i++) {
-            String s = arg[i];
+        for (int i = 0; i < args.length; i++) {
+            String s = args[i];
             if (s.equals("-r")) {
                 // maximum recurse is 100 subdirectories, that should be enough
                 recurse = 100;
@@ -76,7 +76,7 @@ public class Coverage {
             } else if (s.equals("-f")) {
                 c.perFunction = true;
             } else if (s.equals("-e")) {
-                c.addExclude(arg[++i]);
+                c.addExclude(args[++i]);
             } else {
                 c.addDir(s, recurse);
             }

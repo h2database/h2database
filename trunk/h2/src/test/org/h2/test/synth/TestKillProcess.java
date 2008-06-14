@@ -25,6 +25,11 @@ public class TestKillProcess {
         // utility class
     }
     
+    /**
+     * This method is called when executing this application.
+     * 
+     * @param args the command line parameters
+     */
     public static void main(String[] args) throws Exception {
         SelfDestructor.startCountdown(60);
         try {

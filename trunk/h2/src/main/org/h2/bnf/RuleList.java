@@ -96,7 +96,7 @@ public class RuleList implements Rule {
     }
 
     public boolean matchRemove(Sentence sentence) {
-        String query = sentence.query;
+        String query = sentence.getQuery();
         if (query.length() == 0) {
             return false;
         }
@@ -118,7 +118,7 @@ public class RuleList implements Rule {
     }
 
     public void addNextTokenList(Sentence sentence) {
-        String old = sentence.query;
+        String old = sentence.getQuery();
         if (or) {
             for (int i = 0; i < list.size(); i++) {
                 sentence.setQuery(old);

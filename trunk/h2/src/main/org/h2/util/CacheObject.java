@@ -17,13 +17,34 @@ import org.h2.store.DiskFile;
  */
 public abstract class CacheObject {
 
-    public CacheObject previous, next, chained;
+    /**
+     * The previous element in the LRU linked list. If the previous element is
+     * the head, then this element is the most recently used object.
+     */
+    public CacheObject previous;
+    
+    /**
+     * The next element in the LRU linked list. If the next element is the head,
+     * then this element is the least recently used object.
+     */
+    public CacheObject next;
+    
+    /**
+     * The next element in the hash chain.
+     */
+    public CacheObject chained;
+    
+    /**
+     * The cache queue identifier. This field is only used for the 2Q cache
+     * algorithm.
+     */
     public int cacheQueue;
     
     /**
      * The number of blocks occupied by this object.
      */
     protected int blockCount;
+
     private int pos;
     private boolean changed;
 

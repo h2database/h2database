@@ -242,7 +242,7 @@ public abstract class Query extends Prepared {
         }
     }
 
-    protected void initOrder(ObjectArray expressions, ObjectArray expressionSQL, ObjectArray orderList, int visible,
+    void initOrder(ObjectArray expressions, ObjectArray expressionSQL, ObjectArray orderList, int visible,
             boolean mustBeInResult) throws SQLException {
         for (int i = 0; i < orderList.size(); i++) {
             SelectOrderBy o = (SelectOrderBy) orderList.get(i);

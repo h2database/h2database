@@ -13,12 +13,38 @@ import org.h2.store.Storage;
  * Such records are only used when recovering.
  */
 public class RedoLogRecord {
+    
+    /**
+     * The storage object to where this log record belongs to.
+     */
     public Storage storage;
+    
+    /**
+     * The sequence id. This id is used to sort the records in the same order as
+     * they appear in the log file.
+     */
     public int sequenceId;
+    
+    /**
+     * The position in the data file.
+     */
     public int recordId;
+    
+    /**
+     * The offset in the data byte array.
+     */
     public int offset;
+    
+    /**
+     * The data.
+     */
     public byte[] data;
 
+    /**
+     * Get the estimated memory size used by this object.
+     * 
+     * @return the estimated memory size
+     */
     public int getSize() {
         // estimated memory size in bytes ((5 variables+myself) * 4 bytes each)
         if (data == null) {
@@ -26,4 +52,5 @@ public class RedoLogRecord {
         }
         return 28 + data.length;
     }
+
 }

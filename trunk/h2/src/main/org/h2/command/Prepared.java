@@ -143,6 +143,11 @@ public abstract class Prepared {
         return parameters;
     }
 
+    /**
+     * Check if all parameters have been set.
+     * 
+     * @throws SQLException if any parameter has not been set
+     */
     protected void checkParameters() throws SQLException {
         for (int i = 0; parameters != null && i < parameters.size(); i++) {
             Parameter param = (Parameter) parameters.get(i);
@@ -214,10 +219,25 @@ public abstract class Prepared {
         return sqlStatement;
     }
     
+    /**
+     * Get the object id to use for the database object that is created in this
+     * statement. This id is only set when the object is persistent.
+     * If not set, this method returns 0.
+     * 
+     * @return the object id or 0 if not set
+     */
     protected int getCurrentObjectId() {
         return objectId;
     }
 
+    /**
+     * Get the current object id, or get a new id from the database. The object
+     * id is used when creating new database object (CREATE statement).
+     * 
+     * @param needFresh if a fresh id is required
+     * @param dataFile if the object id is used for the
+     * @return the object id
+     */
     protected int getObjectId(boolean needFresh, boolean dataFile) {
         Database db = session.getDatabase();
         int id = objectId;

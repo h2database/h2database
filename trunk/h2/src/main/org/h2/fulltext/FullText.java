@@ -633,7 +633,14 @@ public class FullText implements Trigger {
         return search(conn, text, limit, offset, false);
     }
     
-    protected static SimpleResultSet createResultSet(boolean data) throws SQLException {
+    /**
+     * Create an empty search result and initialize the columns.
+     * 
+     * @param data true if the result set should contain the primary key data as
+     *            an array.
+     * @return the empty result set
+     */
+    static SimpleResultSet createResultSet(boolean data) throws SQLException {
         SimpleResultSet result = new SimpleResultSet();
         if (data) {
             result.addColumn(FullText.FIELD_SCHEMA, Types.VARCHAR, 0, 0);
@@ -722,7 +729,14 @@ public class FullText implements Trigger {
         return result;
     }
 
-    protected static Object[][] parseKey(Connection conn, String key) throws SQLException {
+    /**
+     * Parse a primary key condition into the primary key columns.
+     * 
+     * @param conn the database connection
+     * @param key the primary key condition as a string
+     * @return an array containing the column name list and the data list
+     */
+    static Object[][] parseKey(Connection conn, String key) throws SQLException {
         ArrayList columns = new ArrayList();
         ArrayList data = new ArrayList();
         JdbcConnection c = (JdbcConnection) conn;

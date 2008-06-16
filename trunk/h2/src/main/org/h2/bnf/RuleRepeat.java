@@ -40,10 +40,10 @@ public class RuleRepeat implements Rule {
     }
 
     public boolean matchRemove(Sentence sentence) {
-        if (sentence.stop()) {
+        if (sentence.shouldStop()) {
             return false;
         }
-        String query = sentence.query;
+        String query = sentence.getQuery();
         if (query.length() == 0) {
             return false;
         }
@@ -51,20 +51,20 @@ public class RuleRepeat implements Rule {
             if (!rule.matchRemove(sentence)) {
                 return true;
             }
-            if (sentence.query.length() == 0) {
+            if (sentence.getQuery().length() == 0) {
                 return true;
             }
         }
     }
 
     public void addNextTokenList(Sentence sentence) {
-        if (sentence.stop()) {
+        if (sentence.shouldStop()) {
             return;
         }
-        String old = sentence.query;
+        String old = sentence.getQuery();
         while (true) {
             rule.addNextTokenList(sentence);
-            if (!rule.matchRemove(sentence) || old == sentence.query) {
+            if (!rule.matchRemove(sentence) || old == sentence.getQuery()) {
                 break;
             }
         }

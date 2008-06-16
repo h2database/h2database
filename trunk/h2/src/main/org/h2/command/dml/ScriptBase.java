@@ -66,7 +66,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         cipher = c;
     }
 
-    protected boolean isEncrypted() {
+    private boolean isEncrypted() {
         return cipher != null;
     }
 
@@ -94,7 +94,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         return false;
     }
 
-    protected void deleteStore() throws SQLException {
+    void deleteStore() throws SQLException {
         String fileName = getFileName();
         if (fileName != null) {
             FileUtils.delete(fileName);
@@ -111,7 +111,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         store.init();
     }
 
-    protected void openOutput() throws SQLException {
+    void openOutput() throws SQLException {
         String fileName = getFileName();        
         if (fileName == null) {
             return;
@@ -128,7 +128,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         }
     }
 
-    protected void openInput() throws SQLException {
+    void openInput() throws SQLException {
         String fileName = getFileName();        
         if (fileName == null) {
             return;
@@ -151,7 +151,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         }
     }
 
-    protected void closeIO() {
+    void closeIO() {
         IOUtils.closeSilently(out);
         out = null;
         IOUtils.closeSilently(in);

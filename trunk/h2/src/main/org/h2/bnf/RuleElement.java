@@ -78,15 +78,15 @@ public class RuleElement implements Rule {
     }
 
     public boolean matchRemove(Sentence sentence) {
-        if (sentence.stop()) {
+        if (sentence.shouldStop()) {
             return false;
         }
-        String query = sentence.query;
+        String query = sentence.getQuery();
         if (query.length() == 0) {
             return false;
         }
         if (keyword) {
-            String up = sentence.queryUpper;
+            String up = sentence.getQueryUpper();
             if (up.startsWith(name)) {
                 query = query.substring(name.length());
                 while (!"_".equals(name) && query.length() > 0 && Character.isWhitespace(query.charAt(0))) {
@@ -101,7 +101,7 @@ public class RuleElement implements Rule {
             return false;
         }
         if (name != null && !name.startsWith("@") && (link.name() == null || !link.name().startsWith("@"))) {
-            query = sentence.query;
+            query = sentence.getQuery();
             while (query.length() > 0 && Character.isWhitespace(query.charAt(0))) {
                 query = query.substring(1);
             }
@@ -111,13 +111,13 @@ public class RuleElement implements Rule {
     }
 
     public void addNextTokenList(Sentence sentence) {
-        if (sentence.stop()) {
+        if (sentence.shouldStop()) {
             return;
         }
         if (keyword) {
-            String query = sentence.query;
+            String query = sentence.getQuery();
             String q = query.trim();
-            String up = sentence.queryUpper.trim();
+            String up = sentence.getQueryUpper().trim();
             if (q.length() == 0 || name.startsWith(up)) {
                 if (q.length() < name.length()) {
                     sentence.add(name, name.substring(q.length()), type);

@@ -14,7 +14,24 @@ import org.h2.util.StringUtils;
  * This class is used by the H2 Console.
  */
 public class ConnectionInfo {
-    public String driver, url, user;
+    /**
+     * The driver class name.
+     */
+    public String driver;
+    
+    /**
+     * The database URL.
+     */
+    public String url;
+    
+    /**
+     * The user name.
+     */
+    public String user;
+    
+    /**
+     * The connection display name.
+     */
     String name;
     int lastAccess;
 

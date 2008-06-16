@@ -148,7 +148,7 @@ public abstract class Command implements CommandInterface {
         }
     }
 
-    protected void start() {
+    void start() {
         startTime = System.currentTimeMillis();
     }
 

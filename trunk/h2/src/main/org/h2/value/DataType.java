@@ -52,27 +52,111 @@ public class DataType {
     private static ObjectArray types = new ObjectArray();
     private static HashMap typesByName = new HashMap();
     private static DataType[] typesByValueType = new DataType[Value.TYPE_COUNT];
+    
+    /**
+     * The value type of this data type.
+     */
     public int type;
+    
+    /**
+     * The data type name.
+     */
     public String name;
+    
+    /**
+     * The SQL type.
+     */
     public int sqlType;
+    
+    /**
+     * The SQL type name.
+     */
     public String jdbc;
 
-    // how closely the data type maps 
-    // to the corresponding JDBC SQL type (low is best)
+    /**
+     * How closely the data type maps to the corresponding JDBC SQL type (low is
+     * best).
+     */
     public int sqlTypePos;
 
+    /**
+     * The maximum supported precision.
+     */
     public int maxPrecision;
-    public int minScale, maxScale;
+    
+    /**
+     * The lowest possible scale.
+     */
+    public int minScale;
+    
+    /**
+     * The highest possible scale.
+     */
+    public int maxScale;
+    
+    /**
+     * If this is a numeric type.
+     */
     public boolean decimal;
-    public String prefix, suffix;
+    
+    /**
+     * The prefix required for the SQL literal representation.
+     */
+    public String prefix;
+    
+    /**
+     * The suffix required for the SQL literal representation.
+     */
+    public String suffix;
+    
+    /**
+     * The list of parameters used in the column definition.
+     */
     public String params;
-    public boolean autoInc;
+    
+    /**
+     * If this is an autoincrement type.
+     */
+    public boolean autoIncrement;
+    
+    /**
+     * If this data type is an autoincrement type.
+     */
     public boolean caseSensitive;
-    public boolean supportsPrecision, supportsScale;
+    
+    /**
+     * If the precision parameter is supported.
+     */
+    public boolean supportsPrecision;
+    
+    /**
+     * If the scale parameter is supported.
+     */
+    public boolean supportsScale;
+    
+    /**
+     * The default precision.
+     */
     public long defaultPrecision;
+    
+    /**
+     * The default scale.
+     */
     public int defaultScale;
+    
+    /**
+     * The default display size.
+     */
     public int defaultDisplaySize;
+    
+    /**
+     * If this data type should not be listed in the database meta data.
+     */
     public boolean hidden;
+    
+    /**
+     * The number of bytes required for an object.
+     */
     public int memory;
 
     static {
@@ -250,7 +334,7 @@ public class DataType {
             dt.sqlType = sqlType;
             dt.jdbc = jdbc;
             dt.name = names[i];
-            dt.autoInc = dataType.autoInc;
+            dt.autoIncrement = dataType.autoIncrement;
             dt.decimal = dataType.decimal;
             dt.maxPrecision = dataType.maxPrecision;
             dt.maxScale = dataType.maxScale;
@@ -292,7 +376,7 @@ public class DataType {
             dataType.supportsScale = true;
         }
         dataType.decimal = true;
-        dataType.autoInc = autoInc;
+        dataType.autoIncrement = autoInc;
         return dataType;
     }
 

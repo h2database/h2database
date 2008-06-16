@@ -15,6 +15,9 @@ import java.sql.SQLException;
  */
 public abstract class Tool {
     
+    /**
+     * The output stream where this tool writes to.
+     */
     protected PrintStream out = System.out;
     
     /**

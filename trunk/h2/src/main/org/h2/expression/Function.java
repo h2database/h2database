@@ -1450,6 +1450,12 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
+    /**
+     * Check if the parameter count is correct.
+     * 
+     * @param len the number of parameters set
+     * @throws SQLException if the parameter count is incorrect
+     */
     protected void checkParameterCount(int len) throws SQLException {
         int min = 0, max = Integer.MAX_VALUE;
         switch (info.type) {

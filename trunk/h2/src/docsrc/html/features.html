@@ -311,6 +311,20 @@ http://groups.google.com/group/h2-database/web/roadmap
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 </tr><tr>
+<td>Computed Columns</td>
+<td class="compareY">Yes</td>
+<td class="compareN">No</td>
+<td class="compareN">No</td>
+<td class="compareN">No</td>
+<td class="compareY">Yes *6</td>
+</tr><tr>
+<td>Case Insensitive Columns</td>
+<td class="compareY">Yes</td>
+<td class="compareN">No</td>
+<td class="compareY">Yes</td>
+<td class="compareY">Yes</td>
+<td class="compareY">Yes *6</td>
+</tr><tr>
 <td>Custom Aggregate Functions</td>
 <td class="compareY">Yes</td>
 <td class="compareN">No</td>
@@ -331,7 +345,8 @@ http://groups.google.com/group/h2-database/web/roadmap
 *2 MySQL supports linked MySQL tables under the name 'federated tables'.<br />
 *3 Derby support for roles based security and password checking as an option.<br />
 *4 Derby only supports global temporary tables.<br />
-*5 The default H2 jar file contains debug information.
+*5 The default H2 jar file contains debug information, jar files for other databases do not.<br />
+*6 PostgreSQL supports functional indexes.
 </p>
 
 <h3>Derby and HSQLDB</h3>
@@ -973,38 +988,81 @@ IGNORECASE=TRUE to the database URL (example: jdbc:h2:~/test;IGNORECASE=TRUE).
 
 <h3>Compatibility Modes</h3>
 <p>
-For certain features, this database can emulate the behavior of specific databases. Not all features or differences of those
-databases are implemented. Currently, this feature is mainly used for randomized comparative testing
-(where random statements are executed against multiple databases and the results are compared).
-The mode can be changed by specifying the mode in the database URL, or using the SQL statement SET MODE.
-To use the HSQLDB mode, you can use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</code>
-or the SQL statement <code>SET MODE HSQLDB</code>.
+For certain features, this database can emulate the behavior of specific databases. 
+Not all features or differences of those databases are implemented. 
 Here is the list of currently supported modes and the difference to the regular mode:
 </p>
-<table>
-<tr><th>Mode</th><th>Differences</th></tr>
-<tr><td>
-  PostgreSQL
-</td><td>
-  Concatenation of a NULL with another value results in NULL.
-  Usually, the NULL is treated as an empty string if only one of the operators is NULL,
-  and NULL is only returned if both values are NULL.
-</td></tr>
-<tr><td>
-  MySQL
-</td><td>
-  When inserting data, if a column is defined to be NOT NULL and NULL is inserted,
-  then a 0 (or empty string, or the current timestamp for timestamp columns) value is used.
-  Usually, this operation is not allowed and an exception is thrown.
-</td></tr>
-<tr><td>
-  HSQLDB
-</td><td>
-  When converting the scale of decimal data, the number is only converted if the new scale is
-  smaller then current scale.
-  Usually, the scale is converted and 0s are added if required.
-</td></tr>
-</table>
+
+<h3>PostgreSQL Compatibility Mode</h3>
+<p>
+To use the PostgreSQL mode, use the database URL <code>jdbc:h2:~/test;MODE=PostgreSQL</code> 
+or the SQL statement <code>SET MODE PostgreSQL</code>.
+</p>
+<ul><li>Concatenation of a NULL with another value results in NULL. Usually, the NULL is treated as an empty 
+          string if only one of the operators is NULL, and NULL is only returned if both values are NULL.
+</li><li>When converting a floating point number to a integer, the fractional
+          digits should not be truncated, but the value should be rounded.
+</li><li>The system columns 'CTID' and 'OID' should be supported.
+</li></ul>
+
+<h3>MySQL Compatibility Mode</h3>
+<p>
+To use the MySQL mode, use the database URL <code>jdbc:h2:~/test;MODE=MySQL</code> 
+or the SQL statement <code>SET MODE MySQL</code>.
+</p>
+<ul><li>When inserting data, if a column is defined to be NOT NULL and NULL is inserted,
+        then a 0 (or empty string, or the current timestamp for timestamp columns) value is used.
+          Usually, this operation is not allowed and an exception is thrown.
+</li><li>When converting a floating point number to a integer, the fractional
+          digits should not be truncated, but the value should be rounded.
+</li><li>The identifiers should be returned in lower case.
+</li><li>Creating indexes in the CREATE TABLE statement should be supported.
+</li></ul>
+
+<h3>HSQLDB Compatibility Mode</h3>
+<p>
+To use the HSQLDB mode, use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</code>
+or the SQL statement <code>SET MODE HSQLDB</code>.
+</p>
+<ul><li>Concatenation of a NULL with another value results in NULL. Usually, the NULL is treated as an empty 
+          string if only one of the operators is NULL, and NULL is only returned if both values are NULL.
+</li><li>When converting the scale of decimal data, the number is only converted if the new scale is
+          smaller then current scale. Usually, the scale is converted and 0s are added if required.
+</li><li>When using unique indexes, multiple rows with NULL in one of the columns
+        are allowed by default. However many databases view NULL as distinct in
+         this regard and only allow one row with NULL.
+</li></ul>
+
+<h3>MS SQL Server Compatibility Mode</h3>
+<p>
+To use the MS SQL Server mode, use the database URL <code>jdbc:h2:~/test;MODE=MSSQLServer</code>
+or the SQL statement <code>SET MODE MSSQLServer</code>.
+</p>
+<ul><li>Identifiers may be quoted using square brackets as in [Test]. 
+</li><li>When using unique indexes, multiple rows with NULL in one of the columns
+        are allowed by default. However many databases view NULL as distinct in
+         this regard and only allow one row with NULL.
+</li></ul>
+
+<h3>Derby Compatibility Mode</h3>
+<p>
+To use the Derby mode, use the database URL <code>jdbc:h2:~/test;MODE=Derby</code>
+or the SQL statement <code>SET MODE Derby</code>.
+</p>
+<ul><li>When using unique indexes, multiple rows with NULL in one of the columns
+        are allowed by default. However many databases view NULL as distinct in
+         this regard and only allow one row with NULL.
+</li></ul>
+
+<h3>Oracle Compatibility Mode</h3>
+<p>
+To use the Oracle mode, use the database URL <code>jdbc:h2:~/test;MODE=Oracle</code>
+or the SQL statement <code>SET MODE Oracle</code>.
+</p>
+<ul><li>When using unique indexes, multiple rows with NULL in one of the columns
+        are allowed by default. However many databases view NULL as distinct in
+         this regard and only allow one row with NULL.
+</li></ul>
 
 <br /><a name="trace_options"></a>
 <h2>Using the Trace Options</h2>

@@ -98,7 +98,7 @@ public class DbContextRule implements Rule {
     }
 
     private void addTableAlias(Sentence sentence) {
-        String query = sentence.query;
+        String query = sentence.getQuery();
         String q = StringUtils.toUpperEnglish(query.trim());
         HashMap map = sentence.getAliases();
         HashSet set = new HashSet();
@@ -136,7 +136,7 @@ public class DbContextRule implements Rule {
     }
 
     private void addNewTableAlias(Sentence sentence) {
-        String query = sentence.query;
+        String query = sentence.getQuery();
         if (SUGGEST_TABLE_ALIAS) {
             // good when testing!
             if (query.length() > 3) {
@@ -181,7 +181,7 @@ public class DbContextRule implements Rule {
 //    }
 
     private void addSchema(Sentence sentence) {
-        String query = sentence.query;        
+        String query = sentence.getQuery();
         String q = StringUtils.toUpperEnglish(query);
         if (q.trim().length() == 0) {
             q = q.trim();
@@ -201,7 +201,7 @@ public class DbContextRule implements Rule {
     }
 
     private void addTable(Sentence sentence) {
-        String query = sentence.query;
+        String query = sentence.getQuery();
         DbSchema schema = sentence.getLastMatchedSchema();
         if (schema == null) {
             schema = contents.defaultSchema;
@@ -222,14 +222,11 @@ public class DbContextRule implements Rule {
     }
 
     private void addColumn(Sentence sentence) {
-        String query = sentence.query;        
+        String query = sentence.getQuery();
         String tableName = query;
         String columnPattern = "";
         if (query.trim().length() == 0) {
             tableName = null;
-            if (sentence.text.trim().endsWith(".")) {
-                return;
-            }
         } else {
             tableName = StringUtils.toUpperEnglish(query.trim());
             if (tableName.endsWith(".")) {
@@ -286,7 +283,7 @@ public class DbContextRule implements Rule {
     }
 
     public boolean matchRemove(Sentence sentence) {
-        if (sentence.query.length() == 0) {
+        if (sentence.getQuery().length() == 0) {
             return false;
         }
         String s;
@@ -320,8 +317,8 @@ public class DbContextRule implements Rule {
     }
     
     private String matchSchema(Sentence sentence) {
-        String query = sentence.query;
-        String up = sentence.queryUpper;
+        String query = sentence.getQuery();
+        String up = sentence.getQueryUpper();
         DbSchema[] schemas = contents.schemas;
         String best = null;
         DbSchema bestSchema = null;
@@ -347,8 +344,8 @@ public class DbContextRule implements Rule {
     }
 
     private String matchTable(Sentence sentence) {
-        String query = sentence.query;
-        String up = sentence.queryUpper;
+        String query = sentence.getQuery();
+        String up = sentence.getQueryUpper();
         DbSchema schema = sentence.getLastMatchedSchema();
         if (schema == null) {
             schema = contents.defaultSchema;
@@ -378,8 +375,8 @@ public class DbContextRule implements Rule {
     }
 
     private String matchColumnAlias(Sentence sentence) {
-        String query = sentence.query;
-        String up = sentence.queryUpper;
+        String query = sentence.getQuery();
+        String up = sentence.getQueryUpper();
         int i = 0;
         if (query.indexOf(' ') < 0) {
             return null;
@@ -401,8 +398,8 @@ public class DbContextRule implements Rule {
     }
 
     private String matchTableAlias(Sentence sentence, boolean add) {
-        String query = sentence.query;
-        String up = sentence.queryUpper;
+        String query = sentence.getQuery();
+        String up = sentence.getQueryUpper();
         int i = 0;
         if (query.indexOf(' ') < 0) {
             return null;
@@ -455,8 +452,8 @@ public class DbContextRule implements Rule {
     }
 
     private String matchColumn(Sentence sentence) {
-        String query = sentence.query;
-        String up = sentence.queryUpper;
+        String query = sentence.getQuery();
+        String up = sentence.getQueryUpper();
         HashSet set = sentence.getTables();
         String best = null;
         DbTableOrView last = sentence.getLastMatchedTable();

@@ -139,6 +139,11 @@ public class FileStore {
         return store;
     }
 
+    /**
+     * Generate the random salt bytes if required.
+     * 
+     * @return the random salt or the magic
+     */
     protected byte[] generateSalt() {
         return magic;
     }

@@ -54,9 +54,8 @@ public class ConstraintReferential extends Constraint {
      */
     public static final int SET_NULL = 3;
 
-    protected IndexColumn[] columns;
-    protected IndexColumn[] refColumns;
-
+    private IndexColumn[] columns;
+    private IndexColumn[] refColumns;
     private int deleteAction;
     private int updateAction;
     private Table refTable;

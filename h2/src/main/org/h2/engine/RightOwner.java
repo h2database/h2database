@@ -59,7 +59,7 @@ public abstract class RightOwner extends DbObjectBase {
         return false;
     }
 
-    protected boolean isRightGrantedRecursive(Table table, int rightMask) {
+    boolean isRightGrantedRecursive(Table table, int rightMask) {
         Right right;
         if (grantedRights != null) {
             right = (Right) grantedRights.get(table);

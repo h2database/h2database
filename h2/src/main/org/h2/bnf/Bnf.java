@@ -32,7 +32,6 @@ import org.h2.util.StringUtils;
 public class Bnf {
 
     private static final String SEPARATORS = " [](){}|.,\r\n<>:-+*/=<\">!'$";
-    private static final long MAX_PARSE_TIME = 100;
 
     private final Random random = new Random();
     private final HashMap ruleMap = new HashMap();
@@ -286,20 +285,17 @@ public class Bnf {
      * @return the map of possible token types / tokens
      */
     public HashMap getNextTokenList(String query) {
-        HashMap next = new HashMap();
         Sentence sentence = new Sentence();
-        sentence.next = next;
-        sentence.text = query;
+        sentence.setQuery(query);
         for (int i = 0; i < statements.size(); i++) {
             RuleHead head = (RuleHead) statements.get(i);
             if (!head.section.startsWith("Commands")) {
                 continue;
             }
-            sentence.max = System.currentTimeMillis() + MAX_PARSE_TIME;
-            sentence.setQuery(query);
+            sentence.start();
             head.getRule().addNextTokenList(sentence);
         }
-        return next;
+        return sentence.getNext();
     }
 
     /**

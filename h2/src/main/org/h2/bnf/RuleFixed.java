@@ -109,10 +109,10 @@ public class RuleFixed implements Rule {
     }
 
     public boolean matchRemove(Sentence sentence) {
-        if (sentence.stop()) {
+        if (sentence.shouldStop()) {
             return false;
         }
-        String query = sentence.query;
+        String query = sentence.getQuery();
         if (query.length() == 0) {
             return false;
         }
@@ -223,10 +223,10 @@ public class RuleFixed implements Rule {
     }
 
     public void addNextTokenList(Sentence sentence) {
-        if (sentence.stop()) {
+        if (sentence.shouldStop()) {
             return;
         }
-        String query = sentence.query;
+        String query = sentence.getQuery();
         switch(type) {
         case YMD:
             if (query.length() == 0) {

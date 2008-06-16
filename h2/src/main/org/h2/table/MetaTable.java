@@ -871,7 +871,7 @@ public class MetaTable extends Table {
                         // PARAMS
                         t.params, 
                         // AUTO_INCREMENT
-                        String.valueOf(t.autoInc), 
+                        String.valueOf(t.autoIncrement), 
                         // MINIMUM_SCALE
                         String.valueOf(t.minScale), 
                         // MAXIMUM_SCALE

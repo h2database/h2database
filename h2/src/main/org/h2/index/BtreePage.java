@@ -22,17 +22,28 @@ import org.h2.value.Value;
  * An abstract b-tree page.
  */
 public abstract class BtreePage extends Record {
-    // TODO btree: make sure the indexed data is at most half this size!
-    // (and find a solution to work around this problem!)
-    // TODO memory: the btree page needs a lot of memory (in the cache) -
-    // probably better not use ObjectArray but array;
-    // not Row but ValueList / Value (for single key index), int array for row
-    // pos
 
+    /**
+     * The maximum number of blocks occupied by a b-tree page.
+     */
     protected static final int BLOCKS_PER_PAGE = 1024 / DiskFile.BLOCK_SIZE;
 
+    /**
+     * The b-tree index object
+     */
     protected BtreeIndex index;
+    
+    // TODO memory: the btree page needs a lot of memory (in the cache) -
+    // probably better not use ObjectArray but array
+    
+    /**
+     * The list of data pages.
+     */
     protected ObjectArray pageData;
+    
+    /**
+     * If this is the root page of the index.
+     */
     protected boolean root;
     
     BtreePage(BtreeIndex index) {

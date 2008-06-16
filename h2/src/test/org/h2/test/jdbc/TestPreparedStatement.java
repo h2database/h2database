@@ -621,7 +621,7 @@ public class TestPreparedStatement extends TestBase {
 
         assertTrue(stat.execute("SELECT * FROM T_INT ORDER BY ID"));
         rs = stat.getResultSet();
-        testResultSetOrdered(rs, new String[][] { { "1", "0" }, { "2", "-1" }, { "3", "3" }, { "4", null },
+        assertResultSetOrdered(rs, new String[][] { { "1", "0" }, { "2", "-1" }, { "3", "3" }, { "4", null },
                 { "5", "0" }, { "6", "-1" }, { "7", "3" }, { "8", null }, { "9", "-4" }, { "10", "5" }, { "11", null },
                 { "12", "1" }, { "13", "0" }, { "14", "-20" }, { "15", "100" }, { "16", "30000" }, { "17", "-30000" },
                 { "18", "" + Integer.MAX_VALUE }, { "19", "" + Integer.MIN_VALUE }, });

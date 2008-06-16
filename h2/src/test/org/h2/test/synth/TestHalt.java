@@ -30,14 +30,67 @@ import org.h2.util.IOUtils;
  */
 public abstract class TestHalt extends TestBase {
 
-    protected static final int OP_INSERT = 1, OP_DELETE = 2, OP_UPDATE = 4, OP_SELECT = 8;
-    protected static final int FLAG_NO_DELAY = 1, FLAG_LOBS = 2;
+    /**
+     * This bit flag means insert operations should be performed.
+     */
+    protected static final int OP_INSERT = 1;
+    
+    /**
+     * This bit flag means delete operations should be performed.
+     */
+    protected static final int OP_DELETE = 2;
+
+    /**
+     * This bit flag means update operations should be performed.
+     */
+    protected static final int OP_UPDATE = 4;
+    
+    /**
+     * This bit flag means select operations should be performed.
+     */
+    protected static final int OP_SELECT = 8;
+    
+    /**
+     * This bit flag means operations should be written to the log file immediately.
+     */
+    protected static final int FLAG_NO_DELAY = 1;
+    
+    /**
+     * This bit flag means the test should use LOB values.
+     */
+    protected static final int FLAG_LOBS = 2;
+    
+    /**
+     * The test directory.
+     */
     static final String DIR = TestBase.getTestDir("halt");
+    
     private static final String DATABASE_NAME = "halt";
     private static final String TRACE_FILE_NAME = "haltTrace.trace.db";
 
-    protected int operations, flags, value;
+    /**
+     * The current operations bit mask.
+     */
+    protected int operations;
+    
+    /**
+     * The current flags bit mask.
+     */
+    protected int flags;
+    
+    /**
+     * The current test value, for example the number of rows.
+     */
+    protected int value;
+    
+    /**
+     * The database connection.
+     */
     protected Connection conn;
+    
+    /**
+     * The pseudo random number generator used for this test.
+     */
     protected Random random = new Random();
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
@@ -73,6 +126,11 @@ public abstract class TestHalt extends TestBase {
         return DriverManager.getConnection("jdbc:h2:" + baseDir + "/halt", "sa", "sa");
     }
 
+    /**
+     * Start the program.
+     * 
+     * @param args the command line arguments
+     */
     protected void start(String[] args) throws Exception {
         if (args.length == 0) {
             runTest();
@@ -111,10 +169,21 @@ public abstract class TestHalt extends TestBase {
         }
     }
 
+    /**
+     * Print a trace message to the trace file.
+     * 
+     * @param s the message
+     */
     protected void traceOperation(String s) {
         trace(s, null);
     }
 
+    /**
+     * Print a trace message to the trace file.
+     * 
+     * @param s the message
+     * @param e the exception or null
+     */
     protected void trace(String s, Exception e) {
         FileWriter writer = null;
         try {
@@ -191,6 +260,9 @@ public abstract class TestHalt extends TestBase {
         }
     }
 
+    /**
+     * Close the database connection normally.
+     */
     protected void disconnect() {
         try {
             traceOperation("disconnect");
@@ -248,6 +320,12 @@ public abstract class TestHalt extends TestBase {
         }
     }
 
+    /**
+     * Create a random string with the specified length.
+     * 
+     * @param len the number of characters
+     * @return the random string
+     */
     protected String getRandomString(int len) {
         StringBuffer buff = new StringBuffer();
         for (int i = 0; i < len; i++) {

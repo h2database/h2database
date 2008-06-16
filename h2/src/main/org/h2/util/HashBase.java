@@ -67,7 +67,11 @@ public abstract class HashBase {
         return size + (zeroKey ? 1 : 0);
     }
 
-    protected void checkSizePut() throws SQLException {
+    /**
+     * Check the size before adding an entry. This method resizes the map if
+     * required.
+     */
+    void checkSizePut() throws SQLException {
         if (deletedCount > size) {
             rehash(level);
         }
@@ -76,6 +80,10 @@ public abstract class HashBase {
         }
     }
 
+    /**
+     * Check the size before removing an entry. This method resizes the map if
+     * required.
+     */
     protected void checkSizeRemove() throws SQLException {
         if (size < minSize && level > 0) {
             rehash(level - 1);
@@ -84,6 +92,11 @@ public abstract class HashBase {
         }
     }
 
+    /**
+     * Clear the map and reset the level to the specified value.
+     * 
+     * @param newLevel the new level
+     */
     protected void reset(int newLevel) {
         minSize = size * 3 / 4;
         size = 0;
@@ -95,6 +108,12 @@ public abstract class HashBase {
         maxDeleted = 20 + len / 2;
     }
 
+    /**
+     * Calculate the index for this hash code.
+     * 
+     * @param hash the hash code
+     * @return the index
+     */
     protected int getIndex(int hash) {
         return hash & mask;
     }

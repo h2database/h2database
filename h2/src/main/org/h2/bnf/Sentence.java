@@ -20,25 +20,60 @@ import org.h2.util.StringUtils;
 public class Sentence {
     
     /**
-     * The possible choices of the item depend on the context.
+     * This token type means the possible choices of the item depend on the context.
      * For example the item represents a table name of the current database.
      */
     public static final int CONTEXT = 0;
+    
+    /**
+     * The token type for a keyword.
+     */
     static final int KEYWORD = 1;
+    
+    /**
+     * The token type for a function name.
+     */
     static final int FUNCTION = 2;
-    public String text;
-    public String query;
-    public String queryUpper;
-    HashMap next;
-    long max;
+    
+    private static final long MAX_PROCESSING_TIME = 100;
+    
+    /**
+     * The map of next tokens in the form type#tokenName token.
+     */
+    private HashMap next = new HashMap();
+    
+    /**
+     * The complete query string.
+     */
+    private String query;
+    
+    /**
+     * The uppercase version of the query string.
+     */
+    private String queryUpper;
+    
+    private long stopAt;
     private DbSchema lastMatchedSchema;
     private DbTableOrView lastMatchedTable;
     private DbTableOrView lastTable;
     private HashSet tables;
     private HashMap aliases;
+    
+    /**
+     * Start the timer to make sure processing doesn't take too long.
+     */
+    void start() {
+        stopAt = System.currentTimeMillis() + MAX_PROCESSING_TIME;
+    }
 
-    boolean stop() {
-        return System.currentTimeMillis() > max;
+    /**
+     * Check if it's time to stop processing.
+     * Processing auto-complete shouldn't take more than a few milliseconds.
+     * 
+     * @return true if it's time to stop processing
+     */
+    boolean shouldStop() {
+        return System.currentTimeMillis() > stopAt;
     }
 
     /**
@@ -46,7 +81,7 @@ public class Sentence {
      *
      * @param n the token name
      * @param string an example text
-     * @param type the type
+     * @param type the token type
      */
     public void add(String n, String string, int type) {
         next.put(type+"#"+n, string);
@@ -142,11 +177,43 @@ public class Sentence {
         return lastMatchedTable;
     }
 
+    /**
+     * Set the query string.
+     * 
+     * @param query the query string
+     */
     public void setQuery(String query) {
         if (this.query != query) {
             this.query = query;
             this.queryUpper = StringUtils.toUpperEnglish(query);
         }
     }    
+    
+    /**
+     * Get the query string.
+     * 
+     * @return the query
+     */
+    public String getQuery() {
+        return query;
+    }
+    
+    /**
+     * Get the uppercase version of the query string.
+     * 
+     * @return the uppercase query
+     */
+    public String getQueryUpper() {
+        return queryUpper;
+    }
+    
+    /**
+     * Get the map of next tokens.
+     * 
+     * @return the next token map
+     */
+    public HashMap getNext() {
+        return next;
+    }
     
 }

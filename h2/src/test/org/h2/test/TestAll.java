@@ -144,14 +144,110 @@ java org.h2.test.TestAll timer
 
 */
 
-    public boolean smallLog, big, networked, memory, ssl, textStorage, diskUndo, diskResult, deleteIndex, traceSystemOut;
-    public boolean codeCoverage, mvcc, endless;
-    public int logMode = 1, traceLevelFile, throttle;
+    /**
+     * If the test should run with many rows.
+     */
+    public boolean big;
+    
+    /**
+     * If remote database connections should be used.
+     */
+    public boolean networked;
+    
+    /**
+     * If in-memory databases should be used.
+     */
+    public boolean memory;
+    
+    /**
+     * If index files should be deleted before re-opening the database.
+     */
+    public boolean deleteIndex;
+    
+    /**
+     * If code coverage is enabled.
+     */
+    public boolean codeCoverage;
+    
+    /**
+     * If the multi version concurrency control mode should be used.
+     */
+    public boolean mvcc;
+    
+    /**
+     * The log mode to use.
+     */
+    public int logMode = 1;
+    
+    /**
+     * The cipher to use (null for unencrypted).
+     */
     public String cipher;
-
-    public boolean traceTest, stopOnError;
+    
+    /**
+     * If only JDK 1.4 methods should be tested.
+     */
     public boolean jdk14 = true;
-    public boolean cache2Q;
+    
+    /**
+     * If the transaction log files should be kept small (that is, log files should be switched early).
+     */
+    boolean smallLog;
+    
+    /**
+     * If SSL should be used for remote connections.
+     */
+    boolean ssl;
+    
+    /**
+     * If MAX_MEMORY_UNDO=3 should be used.
+     */
+    boolean diskUndo;
+    
+    /**
+     * If the text storage mechanism should be used. 
+     */
+    boolean textStorage;
+    
+    /**
+     * If a small cache and a low number for MAX_MEMORY_ROWS should be used.
+     */
+    boolean diskResult;
+    
+    /**
+     * If TRACE_LEVEL_SYSTEM_OUT should be set to 2 (for debugging only).
+     */
+    boolean traceSystemOut;
+    
+    /**
+     * If the tests should run forever.
+     */
+    boolean endless;
+    
+    /**
+     * The file trace level value to use.
+     */
+    int traceLevelFile;
+    
+    /**
+     * The THROTTLE value to use.
+     */
+    int throttle;
+
+    /**
+     * If test trace information should be written (for debugging only).
+     */
+    boolean traceTest;
+    
+    /**
+     * If the test should stop when the first error occurs.
+     */
+    boolean stopOnError;
+    
+    /**
+     * If the Two-Queue cache algorithm should be used.
+     */
+    boolean cache2Q;
 
     private Server server;
 
@@ -168,33 +264,16 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
 
 /*
-
-document bug
-Caused by: java.lang.NullPointerException
-    at org.h2.expression.ExpressionColumn.getValue(ExpressionColumn.java:155)
-    at org.h2.expression.Operation.getValue(Operation.java:97)
-    at org.h2.command.dml.ScriptBase.getFileName(ScriptBase.java:84)
-    at org.h2.command.dml.ScriptBase.openInput(ScriptBase.java:132)
-    at org.h2.command.dml.RunScriptCommand.update(RunScriptCommand.java:38)
-    at org.h2.command.CommandContainer.update(CommandContainer.java:69)
-    at org.h2.command.Command.executeUpdate(Command.java:198)
-    at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:163)
-    ... 6 more 
-add test case
-> RUNSCRIPT FROM SCRIPT_DIRECTORY || 'Create_Users.sql';
-> SCRIPT_DIRECTORY is a constant.    
-    
-feature list:
-computed columns: H2, HSQLDB (PostgreSQL: functional index)
-case insensitive columns: H2, HSQLDB, MySQL (PostgreSQL: functional index)
         
+jazoon 
+
 measure and improve performance of ObjectArray.toArray()
+
+H2 Console should support Java Queries
 
 convert test.in.sql to RunScript syntax
 
 C:\download\Data Concurrency and Consistency.pdf
-
-detect deadlock: alarm
 
 not tested:
 PreparedProcedure PREPARE <name>(column,...) AS ...
@@ -207,8 +286,6 @@ deleted the same row when exactly does it occur in other databases
 (PostgreSQL, Oracle)?
 
 create an mbean for each database? server? (jconsole)
-
-jazoon 
 
 in help.csv, use complete examples for functions; add a test case
 

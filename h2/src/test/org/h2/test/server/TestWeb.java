@@ -105,6 +105,7 @@ public class TestWeb extends TestBase {
 
         result = client.get(url, "logout.do");
         result = client.get(url, "settingRemove.do?name=_test_");
+        
         server.stop();
     }
 

@@ -46,10 +46,10 @@ public class RuleOptional implements Rule {
     }
 
     public boolean matchRemove(Sentence sentence) {
-        if (sentence.stop()) {
+        if (sentence.shouldStop()) {
             return false;
         }
-        String query = sentence.query;
+        String query = sentence.getQuery();
         if (query.length() == 0) {
             return true;
         }
@@ -60,7 +60,7 @@ public class RuleOptional implements Rule {
     }
 
     public void addNextTokenList(Sentence sentence) {
-        if (sentence.stop()) {
+        if (sentence.shouldStop()) {
             return;
         }
         rule.addNextTokenList(sentence);

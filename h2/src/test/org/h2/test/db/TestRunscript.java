@@ -85,7 +85,7 @@ public class TestRunscript extends TestBase implements Trigger {
         stat2.execute(sql);
         stat2.execute("script to '" + baseDir + "/backup.3.sql'");
 
-        compareDatabases(stat1, stat2);
+        assertEqualDatabases(stat1, stat2);
 
         conn1.close();
         conn2.close();

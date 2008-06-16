@@ -17,6 +17,9 @@ import org.h2.test.TestBase;
  */
 public class TestMulti extends TestBase {
 
+    /**
+     * If set, the test should stop.
+     */
     public volatile boolean stop;
 
     public void test() throws Exception {

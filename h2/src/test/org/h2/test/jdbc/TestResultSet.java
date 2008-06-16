@@ -283,7 +283,7 @@ public class TestResultSet extends TestBase {
         assertEquals(meta.getColumnClassName(3), null);
 
         assertTrue(rs.getRow() == 0);
-        testResultSetMeta(rs, 3, new String[] { "ID", "VALUE", "N" }, new int[] { Types.INTEGER, Types.INTEGER,
+        assertResultSetMeta(rs, 3, new String[] { "ID", "VALUE", "N" }, new int[] { Types.INTEGER, Types.INTEGER,
                 Types.NULL }, new int[] { 10, 10, 1 }, new int[] { 0, 0, 0 });
         rs.next();
         assertEquals(rs.getConcurrency(), ResultSet.CONCUR_READ_ONLY);
@@ -408,7 +408,7 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(10,'\\''')");
         stat.execute("INSERT INTO TEST VALUES(11,'\\%')");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
-        testResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.VARCHAR }, new int[] {
+        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.VARCHAR }, new int[] {
                 10, 255 }, new int[] { 0, 0 });
         String value;
         rs.next();
@@ -488,7 +488,7 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(7,-99999998.99)");
         stat.execute("INSERT INTO TEST VALUES(8,NULL)");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
-        testResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.DECIMAL }, new int[] {
+        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.DECIMAL }, new int[] {
                 10, 10 }, new int[] { 0, 2 });
         BigDecimal bd;
         rs.next();
@@ -539,7 +539,7 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(7, -99999999.99, -99999999.99)");
         stat.execute("INSERT INTO TEST VALUES(8, NULL, NULL)");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
-        testResultSetMeta(rs, 3, new String[] { "ID", "D", "R" },
+        assertResultSetMeta(rs, 3, new String[] { "ID", "D", "R" },
                 new int[] { Types.INTEGER, Types.DOUBLE, Types.REAL }, new int[] { 10, 17, 7 }, new int[] { 0, 0, 0 });
         BigDecimal bd;
         rs.next();
@@ -603,10 +603,10 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(4,TIMESTAMP '9999-12-31 23:59:59')");
         stat.execute("INSERT INTO TEST VALUES(5,NULL)");
         rs = stat.executeQuery("SELECT 0 ID, TIMESTAMP '9999-12-31 23:59:59' VALUE FROM TEST ORDER BY ID");
-        testResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.TIMESTAMP },
+        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.TIMESTAMP },
                 new int[] { 10, 23 }, new int[] { 0, 10 });
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
-        testResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.TIMESTAMP },
+        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.TIMESTAMP },
                 new int[] { 10, 23 }, new int[] { 0, 10 });
         rs.next();
         java.sql.Date date;
@@ -723,7 +723,7 @@ public class TestResultSet extends TestBase {
         prep.execute();
 
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
-        testResultSetMeta(rs, 4, new String[] { "ID", "D", "T", "TS" }, new int[] { Types.INTEGER, Types.DATE,
+        assertResultSetMeta(rs, 4, new String[] { "ID", "D", "T", "TS" }, new int[] { Types.INTEGER, Types.DATE,
                 Types.TIME, Types.TIMESTAMP }, new int[] { 10, 8, 6, 23 }, new int[] { 0, 0, 0, 10 });
 
         rs.next();
@@ -777,7 +777,7 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(5,X'0bcec1')");
         stat.execute("INSERT INTO TEST VALUES(6,NULL)");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
-        testResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.BLOB }, new int[] {
+        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.BLOB }, new int[] {
                 10, Integer.MAX_VALUE }, new int[] { 0, 0 });
         rs.next();
         checkBytes(rs.getBytes(2), new byte[] { (byte) 0x01, (byte) 0x01, (byte) 0x01, (byte) 0x01 });
@@ -816,7 +816,7 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(6,NULL)");
         stat.execute("INSERT INTO TEST VALUES(7,NULL)");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
-        testResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.CLOB }, new int[] {
+        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.CLOB }, new int[] {
                 10, Integer.MAX_VALUE }, new int[] { 0, 0 });
         rs.next();
         string = rs.getString(2);

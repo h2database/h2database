@@ -31,10 +31,17 @@ import org.h2.tools.DeleteDbFiles;
  */
 public abstract class TestBase {
 
+    /**
+     * The base directory to write test databases.
+     */
     protected static String baseDir = getTestDir("");
     private static final String BASE_TEST_DIR = "data";
 
+    /**
+     * The test configuration.
+     */
     protected TestAll config;
+    
     private long start;
 
     /**
@@ -46,6 +53,9 @@ public abstract class TestBase {
         return BASE_TEST_DIR + "/test" + name;
     }
     
+    /**
+     * Start the TCP server if enabled in the configuration.
+     */
     protected void startServerIfRequired() throws SQLException {
         config.beforeTest();
     }
@@ -130,6 +140,14 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Get the database URL for the given database name using the current
+     * configuration options.
+     * 
+     * @param name the database name
+     * @param admin true if the current user is an admin
+     * @return the database URL
+     */
     protected String getURL(String name, boolean admin) {
         String url;
         if (name.startsWith("jdbc:")) {
@@ -213,7 +231,14 @@ public abstract class TestBase {
         return conn;
     }
 
-    protected int getSize(int small, int big) throws Exception {
+    /**
+     * Get the small or the big value depending on the configuration.
+     * 
+     * @param small the value to return if the current test mode is 'small'
+     * @param big the value to return if the current test mode is 'big'
+     * @return small or big, depending on the configuration
+     */
+    protected int getSize(int small, int big) {
         return config.endless ? Integer.MAX_VALUE : config.big ? big : small;
     }
 
@@ -221,6 +246,11 @@ public abstract class TestBase {
         return "sa";
     }
 
+    /**
+     * Write a message to system out if trace is enabled.
+     * 
+     * @param x the value to write
+     */
     protected void trace(int x) {
         trace("" + x);
     }
@@ -236,6 +266,9 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Print how much memory is currently used.
+     */
     protected void traceMemory() {
         if (config.traceTest) {
             trace("mem=" + getMemoryUsed());
@@ -255,6 +288,11 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Get the number of megabytes heap memory in use.
+     * 
+     * @return the used megabytes
+     */
     public static int getMemoryUsed() {
         Runtime rt = Runtime.getRuntime();
         long memory = Long.MAX_VALUE;
@@ -270,10 +308,21 @@ public abstract class TestBase {
         return mb;
     }
 
+    /**
+     * Called if the test reached a point that was not expected.
+     * 
+     * @throws Exception always throws an exception
+     */
     protected void fail() throws Exception {
         fail("Unexpected success");
     }
 
+    /**
+     * Called if the test reached a point that was not expected.
+     * 
+     * @param string the error message
+     * @throws Exception always throws an exception
+     */
     protected void fail(String string) throws Exception {
         println(string);
         throw new Exception(string);
@@ -306,6 +355,11 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Print a message to system out.
+     * 
+     * @param s the message
+     */
     protected void println(String s) {
         long time = System.currentTimeMillis() - start;
         printlnWithTime(time, getClass().getName() + " " + s);
@@ -317,15 +371,31 @@ public abstract class TestBase {
         System.out.println(t + " " + s);
     }
 
+    /**
+     * Print the current time and a message to system out.
+     * 
+     * @param s the message
+     */    
     protected void printTime(String s) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         println(dateFormat.format(new java.util.Date()) + " " + s);
     }
 
+    /**
+     * Delete all database files for this database.
+     * 
+     * @param name the database name
+     */
     protected void deleteDb(String name) throws Exception {
         DeleteDbFiles.execute(baseDir, name, true);
     }
 
+    /**
+     * Delete all database files for a database.
+     * 
+     * @param dir the directory where the database files are located
+     * @param name the database name
+     */
     protected void deleteDb(String dir, String name) throws Exception {
         DeleteDbFiles.execute(dir, name, true);
     }
@@ -364,6 +434,13 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Check if two values are equal, and if not throw an exception.
+     * 
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws Exception if the values are not equal
+     */
     protected void assertEquals(byte[] expected, byte[] actual) throws Exception {
         assertTrue(expected.length == actual.length);
         for (int i = 0; i < expected.length; i++) {
@@ -373,6 +450,13 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Check if two values are equal, and if not throw an exception.
+     * 
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws Exception if the values are not equal
+     */
     protected void assertEquals(String expected, String actual) throws Exception {
         if (expected == null && actual == null) {
             return;
@@ -399,68 +483,151 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Check if the first value is larger or equal than the second value, and if
+     * not throw an exception.
+     * 
+     * @param a the first value
+     * @param b the second value (must be smaller than the first value)
+     * @throws Exception if the first value is smaller
+     */    
     protected void assertSmaller(long a, long b) throws Exception {
         if (a >= b) {
             fail("a: " + a + " is not smaller than b: " + b);
         }
     }
 
+    /**
+     * Check that a result contains the given substring.
+     * 
+     * @param result the result value
+     * @param contains the term that should appear in the result
+     * @throws Exception if the term was not found
+     */   
     protected void assertContains(String result, String contains) throws Exception {
         if (result.indexOf(contains) < 0) {
             fail(result + " does not contain: " + contains);
         }
     }
     
+    /**
+     * Check that a text starts with the expected characters..
+     * 
+     * @param text the text
+     * @param  expectedStart the expected prefix
+     * @throws Exception if the text does not start with the expected characters
+     */  
     protected void assertStartsWith(String text, String expectedStart) throws Exception {
         if (!text.startsWith(expectedStart)) {
             fail(text + " does not start with: " + expectedStart);
         }
     }
     
+    /**
+     * Check if two values are equal, and if not throw an exception.
+     * 
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws Exception if the values are not equal
+     */
     protected void assertEquals(long expected, long actual) throws Exception {
         if (expected != actual) {
             fail("Expected: " + expected + " actual: " + actual);
         }
     }
 
+    /**
+     * Check if two values are equal, and if not throw an exception.
+     * 
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws Exception if the values are not equal
+     */
     protected void assertEquals(double expected, double actual) throws Exception {
         if (expected != actual) {
             fail("Expected: " + expected + " actual: " + actual);
         }
     }
 
+    /**
+     * Check if two values are equal, and if not throw an exception.
+     * 
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws Exception if the values are not equal
+     */
     protected void assertEquals(float expected, float actual) throws Exception {
         if (expected != actual) {
             fail("Expected: " + expected + " actual: " + actual);
         }
     }
 
+    /**
+     * Check if two values are equal, and if not throw an exception.
+     * 
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws Exception if the values are not equal
+     */
     protected void assertEquals(boolean expected, boolean actual) throws Exception {
         if (expected != actual) {
             fail("Boolean expected: " + expected + " actual: " + actual);
         }
     }
     
+    /**
+     * Check that the passed boolean is true.
+     * 
+     * @param condition the condition
+     * @throws Exception if the condition is false
+     */
     protected void assertTrue(boolean condition) throws Exception {
         assertTrue("Expected: true got: false", condition);
     }
 
+    /**
+     * Check that the passed boolean is true.
+     * 
+     * @param message the message to print if the condition is false
+     * @param condition the condition
+     * @throws Exception if the condition is false
+     */
     protected void assertTrue(String message, boolean condition) throws Exception {
         if (!condition) {
             fail(message);
         }
     }
 
+    /**
+     * Check that the passed boolean is false.
+     * 
+     * @param value the condition
+     * @throws Exception if the condition is true
+     */
     protected void assertFalse(boolean value) throws Exception {
         assertFalse("Expected: false got: true", value);
     }
     
+    /**
+     * Check that the passed boolean is false.
+     * 
+     * @param message the message to print if the condition is false
+     * @param value the condition
+     * @throws Exception if the condition is true
+     */
     protected void assertFalse(String message, boolean value) throws Exception {
         if (value) {
             fail(message);
         }        
     }
     
+    /**
+     * Check that the result set row count matches.
+     * 
+     * @param rs the result set
+     * @param expected the number of expected rows
+     * @throws Exception if a different number of rows have been found
+     */
     protected void assertResultRowCount(ResultSet rs, int expected) throws Exception {
         int i = 0;
         while (rs.next()) {
@@ -469,6 +636,14 @@ public abstract class TestBase {
         assertEquals(i, expected);
     }
 
+    /**
+     * Check that the result set of a query is exactly this value.
+     * 
+     * @param stat the statement
+     * @param sql the SQL statement to execute
+     * @param expected the expected result value
+     * @throws Exception if a different result value was returned
+     */
     protected void assertSingleValue(Statement stat, String sql, int expected) throws Exception {
         ResultSet rs = stat.executeQuery(sql);
         assertTrue(rs.next());
@@ -476,7 +651,17 @@ public abstract class TestBase {
         assertFalse(rs.next());
     }
 
-    protected void testResultSetMeta(ResultSet rs, int columnCount, String[] labels, int[] datatypes, int[] precision,
+    /**
+     * Check if the result set meta data is correct.
+     * 
+     * @param rs the result set
+     * @param columnCount the expected column count
+     * @param labels the expected column labels
+     * @param datatypes the expected data types
+     * @param precision the expected precisions
+     * @param scale the expected scales
+     */
+    protected void assertResultSetMeta(ResultSet rs, int columnCount, String[] labels, int[] datatypes, int[] precision,
             int[] scale) throws Exception {
         ResultSetMetaData meta = rs.getMetaData();
         int cc = meta.getColumnCount();
@@ -538,15 +723,39 @@ public abstract class TestBase {
         }
     }
 
-    protected void testResultSetOrdered(ResultSet rs, String[][] data) throws Exception {
-        testResultSet(true, rs, data);
+    /**
+     * Check if a result set contains the expected data.
+     * The sort order is significant
+     * 
+     * @param rs the result set
+     * @param data the expected data
+     * @throws Exception if there is a mismatch
+     */
+    protected void assertResultSetOrdered(ResultSet rs, String[][] data) throws Exception {
+        assertResultSet(true, rs, data);
     }
 
-    void testResultSetUnordered(ResultSet rs, String[][] data) throws Exception {
-        testResultSet(false, rs, data);
+    /**
+     * Check if a result set contains the expected data.
+     * The sort order is not significant
+     * 
+     * @param rs the result set
+     * @param data the expected data
+     * @throws Exception if there is a mismatch
+     */
+    void assertResultSetUnordered(ResultSet rs, String[][] data) throws Exception {
+        assertResultSet(false, rs, data);
     }
 
-    void testResultSet(boolean ordered, ResultSet rs, String[][] data) throws Exception {
+    /**
+     * Check if a result set contains the expected data.
+     * 
+     * @param ordered if the sort order is significant
+     * @param rs the result set
+     * @param data the expected data
+     * @throws Exception if there is a mismatch
+     */
+    void assertResultSet(boolean ordered, ResultSet rs, String[][] data) throws Exception {
         int len = rs.getMetaData().getColumnCount();
         int rows = data.length;
         if (rows == 0) {
@@ -589,7 +798,7 @@ public abstract class TestBase {
         }
     }
 
-    boolean testRow(String[] a, String[] b, int len) {
+    private boolean testRow(String[] a, String[] b, int len) {
         for (int i = 0; i < len; i++) {
             String sa = a[i];
             String sb = b[i];
@@ -624,6 +833,13 @@ public abstract class TestBase {
         return "{" + sb + "}";
     }
 
+    /**
+     * Simulate a database crash. This method will also close the database
+     * files, but the files are in a state as the power was switched off. It
+     * doesn't throw an exception.
+     * 
+     * @param conn the database connection
+     */
     protected void crash(Connection conn) throws Exception {
         ((JdbcConnection) conn).setPowerOffCount(1);
         try {
@@ -640,6 +856,12 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Read a string from the reader. This method reads until end of file.
+     * 
+     * @param reader the reader
+     * @return the string read
+     */
     protected String readString(Reader reader) throws Exception {
         if (reader == null) {
             return null;
@@ -660,25 +882,52 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Check that a given exception is not an unexpected 'general error'
+     * exception.
+     * 
+     * @param e the error
+     */
     protected void assertKnownException(SQLException e) throws Exception {
         assertKnownException("", e);
     }
 
+    /**
+     * Check that a given exception is not an unexpected 'general error'
+     * exception.
+     * 
+     * @param message the message
+     * @param e the exception
+     */
     protected void assertKnownException(String message, SQLException e) throws Exception {
         if (e != null && e.getSQLState().startsWith("HY000")) {
             TestBase.logError("Unexpected General error " + message, e);
         }
     }
 
-    protected void assertEquals(Integer a, Integer b) throws Exception {
-        if (a == null || b == null) {
-            assertTrue(a == b);
+    /**
+     * Check if two values are equal, and if not throw an exception.
+     * 
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws Exception if the values are not equal
+     */
+    protected void assertEquals(Integer expected, Integer actual) throws Exception {
+        if (expected == null || actual == null) {
+            assertTrue(expected == actual);
         } else {
-            assertEquals(a.intValue(), b.intValue());
+            assertEquals(expected.intValue(), actual.intValue());
         }
     }
-
-    protected void compareDatabases(Statement stat1, Statement stat2) throws Exception {
+    
+    /**
+     * Check if two databases contain the same met data.
+     * 
+     * @param stat1 the connection to the first database
+     * @param stat2 the connection to the second database
+     * @throws Exception if the database don't match
+     */
+    protected void assertEqualDatabases(Statement stat1, Statement stat2) throws Exception {
         ResultSet rs1 = stat1.executeQuery("SCRIPT NOPASSWORDS");
         ResultSet rs2 = stat2.executeQuery("SCRIPT NOPASSWORDS");
         ArrayList list1 = new ArrayList();

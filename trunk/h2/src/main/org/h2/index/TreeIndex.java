@@ -305,6 +305,12 @@ public class TreeIndex extends BaseIndex {
         rowCount = 0;
     }
 
+    /**
+     * Get the next node if there is one.
+     * 
+     * @param x the node
+     * @return the next node or null
+     */
     TreeNode next(TreeNode x) {
         if (x == null) {
             return null;
@@ -328,6 +334,12 @@ public class TreeIndex extends BaseIndex {
         return x;
     }
     
+    /**
+     * Get the previous node if there is one.
+     * 
+     * @param x the node
+     * @return the previous node or null
+     */
     TreeNode previous(TreeNode x) {
         if (x == null) {
             return null;

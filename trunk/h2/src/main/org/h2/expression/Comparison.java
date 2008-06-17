@@ -223,6 +223,16 @@ public class Comparison extends Condition {
         return ValueBoolean.get(result);
     }
 
+    /**
+     * Compare two values, given the values are not NULL.
+     * 
+     * @param database the database
+     * @param l the first value
+     * @param r the second value
+     * @param compareType the compare type
+     * @return the result of the comparison (1 if the first value is bigger, -1
+     *         if smaller, 0 if both are equal)
+     */
     static boolean compareNotNull(Database database, Value l, Value r, int compareType) throws SQLException {
         boolean result;
         switch (compareType) {
@@ -405,6 +415,14 @@ public class Comparison extends Condition {
         return left.getCost() + (right == null ? 0 : right.getCost()) + 1;
     }
 
+    /**
+     * Get an additional condition if possible. Example: given two conditions
+     * A=B and B=C, the new condition A=C is returned.
+     * 
+     * @param session the session
+     * @param other the second condition
+     * @return null or the third condition
+     */
     Comparison getAdditional(Session session, Comparison other) {
         if (compareType == other.compareType && compareType == EQUAL) {
             boolean lc = left.isConstant(), rc = right.isConstant();

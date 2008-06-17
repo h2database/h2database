@@ -79,11 +79,20 @@ public class FtpData extends Thread {
         server.trace("connected");
     }
 
+    /**
+     * Close the socket.
+     */
     void close() {
         serverSocket = null;
         socket = null;
     }
 
+    /**
+     * Read a file from a client.
+     * 
+     * @param fs the target file system
+     * @param fileName the target file name
+     */
     synchronized void receive(FileSystem fs, String fileName) throws IOException, SQLException {
         connect();
         try {
@@ -97,6 +106,14 @@ public class FtpData extends Thread {
         server.trace("closed");
     }
 
+    /**
+     * Send a file to the client. This method waits until the client has
+     * connected.
+     * 
+     * @param fs the source file system
+     * @param fileName the source file name
+     * @param skip the number of bytes to skip
+     */
     synchronized void send(FileSystem fs, String fileName, long skip) throws IOException {
         connect();
         try {
@@ -111,6 +128,11 @@ public class FtpData extends Thread {
         server.trace("closed");
     }
 
+    /**
+     * Wait until the client has connected, and then send the data to him.
+     * 
+     * @param data the data to send
+     */
     synchronized void send(byte[] data) throws IOException {
         connect();
         try {

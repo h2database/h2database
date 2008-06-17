@@ -94,6 +94,9 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         return false;
     }
 
+    /**
+     * Delete the target file.
+     */
     void deleteStore() throws SQLException {
         String fileName = getFileName();
         if (fileName != null) {
@@ -111,6 +114,9 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         store.init();
     }
 
+    /**
+     * Open the output stream.
+     */
     void openOutput() throws SQLException {
         String fileName = getFileName();        
         if (fileName == null) {
@@ -128,6 +134,9 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         }
     }
 
+    /**
+     * Open the input stream.
+     */
     void openInput() throws SQLException {
         String fileName = getFileName();        
         if (fileName == null) {
@@ -151,6 +160,9 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         }
     }
 
+    /**
+     * Close input and output streams.
+     */
     void closeIO() {
         IOUtils.closeSilently(out);
         out = null;

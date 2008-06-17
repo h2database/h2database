@@ -63,19 +63,19 @@ public class TestOverflow extends TestBase {
         }
     }
 
-    void checkIfExpected(String a, String b) throws Exception {
+    private void checkIfExpected(String a, String b) throws Exception {
         if (successExpected) {
             assertEquals(a, b);
         }
     }
 
-    void onSuccess() throws Exception {
+    private void onSuccess() throws Exception {
         if (!successExpected && SysProperties.OVERFLOW_EXCEPTIONS) {
             fail();
         }
     }
 
-    void onError() throws Exception {
+    private void onError() throws Exception {
         if (successExpected) {
             fail();
         }

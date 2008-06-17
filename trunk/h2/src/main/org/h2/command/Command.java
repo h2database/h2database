@@ -148,6 +148,9 @@ public abstract class Command implements CommandInterface {
         }
     }
 
+    /**
+     * Start the stopwatch.
+     */
     void start() {
         startTime = System.currentTimeMillis();
     }

@@ -19,11 +19,9 @@ public class RuleElement implements Rule {
     private String name;
     private Rule link;
     private int type;
-    private String topic;
 
     RuleElement(String name, String topic) {
         this.name = name;
-        this.topic = topic;
         if (name.length() == 1 || name.equals(StringUtils.toUpperEnglish(name))) {
             keyword = true;
         }
@@ -33,10 +31,6 @@ public class RuleElement implements Rule {
     
     public String toString() {
         return name;
-    }
-
-    RuleElement merge(RuleElement rule) {
-        return new RuleElement(name + " " + rule.name, topic);
     }
 
     public String random(Bnf config, int level) {

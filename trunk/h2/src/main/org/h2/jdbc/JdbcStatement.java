@@ -62,7 +62,7 @@ public class JdbcStatement extends TraceObject implements Statement {
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "executeQuery(" + quote(sql) + ")");
             }
             checkClosed();
-            closeOld();
+            closeOldResultSet();
             if (escapeProcessing) {
                 sql = conn.translateSQL(sql);
             }
@@ -106,7 +106,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("executeUpdate", sql);
             checkClosed();
-            closeOld();
+            closeOldResultSet();
             if (escapeProcessing) {
                 sql = conn.translateSQL(sql);
             }
@@ -144,7 +144,7 @@ public class JdbcStatement extends TraceObject implements Statement {
                 debugCodeCall("execute", sql);
             }
             checkClosed();
-            closeOld();
+            closeOldResultSet();
             if (escapeProcessing) {
                 sql = conn.translateSQL(sql);
             }
@@ -219,7 +219,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     public void close() throws SQLException {
         try {
             debugCodeCall("close");
-            closeOld();
+            closeOldResultSet();
             if (conn != null) {
                 conn = null;
             }
@@ -285,7 +285,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("getMoreResults");
             checkClosed();
-            closeOld();
+            closeOldResultSet();
             return false;
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -821,6 +821,11 @@ public class JdbcStatement extends TraceObject implements Statement {
 
     // =============================================================
 
+    /**
+     * Check if the statement is closed.
+     * 
+     * @throws SQLException if it is closed
+     */
     void checkClosed() throws SQLException {
         if (conn == null) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
@@ -828,7 +833,10 @@ public class JdbcStatement extends TraceObject implements Statement {
         conn.checkClosed();
     }
 
-    void closeOld() throws SQLException {
+    /**
+     * Close and old result set if there is still one open.
+     */
+    protected void closeOldResultSet() throws SQLException {
         try {
             if (!closedByResultSet) {
                 if (resultSet != null) {

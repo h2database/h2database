@@ -14,15 +14,55 @@ import org.h2.value.Transfer;
  * A result set column of a remote result.
  */
 public class ResultColumn {
+    
+    /**
+     * The column alias.
+     */
     String alias;
+    
+    /**
+     * The schema name or null.
+     */
     String schemaName;
+    
+    /**
+     * The table name or null.
+     */
     String tableName;
+    
+    /**
+     * The column name or null.
+     */
     String columnName;
+    
+    /**
+     * The value type of this column.
+     */
     int columnType;
+    
+    /**
+     * The precision.
+     */
     long precision;
+    
+    /**
+     * The scale.
+     */
     int scale;
+    
+    /**
+     * The expected display size.
+     */
     int displaySize;
+    
+    /**
+     * True if this is an autoincrement column.
+     */
     boolean autoIncrement;
+    
+    /**
+     * True if this column is nullable.
+     */
     int nullable;
 
     /**

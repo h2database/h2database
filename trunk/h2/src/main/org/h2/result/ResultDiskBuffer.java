@@ -38,7 +38,25 @@ class ResultDiskBuffer implements ResultExternal {
      * Each virtual disk tape is a region of the temp file.
      */
     static class ResultDiskTape {
-        long start, end, pos;
+        
+        /**
+         * The start position of this tape in the file.
+         */
+        long start;
+        
+        /**
+         * The end position of this tape in the file.
+         */
+        long end;
+        
+        /**
+         * The current read position.
+         */
+        long pos;
+        
+        /**
+         * A list of rows in the buffer.
+         */
         ObjectArray buffer = new ObjectArray();
     }
 

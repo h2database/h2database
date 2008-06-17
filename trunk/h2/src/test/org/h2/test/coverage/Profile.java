@@ -18,23 +18,19 @@ import java.io.Writer;
  * The class used at runtime to measure the code usage and performance.
  */
 public class Profile extends Thread {
-    static final boolean LIST_UNVISITED = false;
-    static final boolean FAST = false;
-    static final boolean TRACE = false;
-    static final Profile MAIN = new Profile();
-    static int current;
+    private static final boolean LIST_UNVISITED = false;
+    private static final boolean TRACE = false;
+    private static final Profile MAIN = new Profile();
     private static int top = 15;
-    
-    int[] count;
-    int[] time;
-    boolean stop;
-    int maxIndex;
-    int lastIndex;
-    long lastTime;
-    
+    private int[] count;
+    private int[] time;
+    private boolean stop;
+    private int maxIndex;
+    private int lastIndex;
+    private long lastTime;
     private BufferedWriter trace;
     
-    Profile() {
+    private Profile() {
         FileReader reader = null;
         try {
             reader = new FileReader("profile.txt");
@@ -73,27 +69,32 @@ public class Profile extends Thread {
      * @param i the line number that is executed
      */
     public static void visit(int i) {
-        if (FAST) {
-            current = i;
-        } else {
-            MAIN.addVisit(i);
-        }
+        MAIN.addVisit(i);
     }
 
     public void run() {
         list();
     }
 
-    static void startCollecting() {
+    /**
+     * Start collecting data.
+     */
+    public static void startCollecting() {
         MAIN.stop = false;
         MAIN.lastTime = System.currentTimeMillis();
     }
 
-    static void stopCollecting() {
+    /**
+     * Stop collecting data.
+     */
+    public static void stopCollecting() {
         MAIN.stop = true;
     }
 
-    static void list() {
+    /**
+     * List all captured data.
+     */
+    public static void list() {
         if (MAIN.lastIndex == 0) {
             // don't list anything if no statistics collected
             return;
@@ -127,7 +128,7 @@ public class Profile extends Thread {
         }
     }
 
-    void addVisit(int i) {
+    private void addVisit(int i) {
         if (stop) {
             return;
         }
@@ -147,7 +148,7 @@ public class Profile extends Thread {
         lastIndex = i;
     }
 
-    void listUnvisited() throws Exception {
+    private void listUnvisited() throws Exception {
         printLine('=');
         print("NOT COVERED");
         printLine('-');
@@ -183,7 +184,7 @@ public class Profile extends Thread {
         }
     }
 
-    void listTop(String title, int[] list, int max) throws Exception {
+    private void listTop(String title, int[] list, int max) throws Exception {
         printLine('-');
         int total = 0;
         int totalLines = 0;
@@ -241,11 +242,11 @@ public class Profile extends Thread {
         }
     }
 
-    void print(String s) {
+    private void print(String s) {
         System.out.println(s);
     }
 
-    void printLine(char c) {
+    private void printLine(char c) {
         for (int i = 0; i < 60; i++) {
             System.out.print(c);
         }

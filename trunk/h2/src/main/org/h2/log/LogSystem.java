@@ -215,6 +215,13 @@ public class LogSystem {
         }
     }
 
+    /**
+     * Add an undo log entry. This method is called when opening the database.
+     * 
+     * @param log the log file
+     * @param logRecordId the log record id
+     * @param sessionId the session id
+     */
     void addUndoLogRecord(LogFile log, int logRecordId, int sessionId) {
         getOrAddSessionState(sessionId);
         LogRecord record = new LogRecord(log, logRecordId, sessionId);
@@ -315,6 +322,12 @@ public class LogSystem {
         closed = false;
     }
 
+    /**
+     * Get the storage object.
+     * 
+     * @param id the storage id
+     * @return the storage
+     */
     Storage getStorageForRecovery(int id) {
         boolean dataFile;
         if (id < 0) {
@@ -332,6 +345,14 @@ public class LogSystem {
         return storage;
     }
 
+    /**
+     * Check if the session contains uncommitted log entries at the given position.
+     * 
+     * @param sessionId the session id
+     * @param logId the log file id
+     * @param pos the position in the log file
+     * @return true if this session contains an uncommitted transaction
+     */
     boolean isSessionCommitted(int sessionId, int logId, int pos) {
         Integer key = ObjectUtils.getInteger(sessionId);
         SessionState state = (SessionState) sessions.get(key);
@@ -341,6 +362,13 @@ public class LogSystem {
         return state.isCommitted(logId, pos);
     }
 
+    /**
+     * Set the last commit record for a session.
+     * 
+     * @param sessionId the session id
+     * @param logId the log file id
+     * @param pos the position in the log file
+     */
     void setLastCommitForSession(int sessionId, int logId, int pos) {
         SessionState state = getOrAddSessionState(sessionId);
         state.lastCommitLog = logId;
@@ -348,6 +376,13 @@ public class LogSystem {
         state.inDoubtTransaction = null;
     }
 
+    /**
+     * Get the session state for this session. A new object is created if there
+     * is no session state yet.
+     * 
+     * @param sessionId the session id
+     * @return the session state object
+     */
     SessionState getOrAddSessionState(int sessionId) {
         Integer key = ObjectUtils.getInteger(sessionId);
         SessionState state = (SessionState) sessions.get(key);
@@ -359,6 +394,16 @@ public class LogSystem {
         return state;
     }
 
+    /**
+     * This method is called when a 'prepare commit' log entry is read when
+     * opening the database.
+     * 
+     * @param log the log file
+     * @param sessionId the session id
+     * @param pos the position in the log file
+     * @param transaction the transaction name
+     * @param blocks the number of blocks the 'prepare commit' entry occupies
+     */
     void setPreparedCommitForSession(LogFile log, int sessionId, int pos, String transaction, int blocks) {
         SessionState state = getOrAddSessionState(sessionId);
         // this is potentially a commit, so 
@@ -376,6 +421,13 @@ public class LogSystem {
         return inDoubtTransactions;
     }
 
+    /**
+     * Remove a session from the session state map. This is done when opening
+     * the database, when all records of this session have been applied to the
+     * files.
+     * 
+     * @param sessionId the session id
+     */
     void removeSession(int sessionId) {
         sessions.remove(ObjectUtils.getInteger(sessionId));
     }
@@ -597,6 +649,15 @@ public class LogSystem {
         this.disabled = disabled;
     }
 
+    /**
+     * Add a redo log entry to the file. This method is called when re-applying
+     * the log entries (when opening a database).
+     * 
+     * @param storage the target storage
+     * @param recordId the record id
+     * @param blockCount the number of blocks
+     * @param rec the record data
+     */
     void addRedoLog(Storage storage, int recordId, int blockCount, DataPage rec) throws SQLException {
         DiskFile file = storage.getDiskFile();
         file.addRedoLog(storage, recordId, blockCount, rec);

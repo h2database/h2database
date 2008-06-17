@@ -74,7 +74,7 @@ public class TestScript extends TestBase {
         }
     }
 
-    void testScript() throws Exception {
+    private void testScript() throws Exception {
         deleteDb("script");
         String outFile = "test.out.txt";
         String inFile = fileName;

@@ -206,6 +206,13 @@ public class JdbcConnectionPool implements DataSource {
         return conn;
     }
 
+    /**
+     * This method usually puts the connection back into the pool. There are
+     * some exception: If the pool is disposed, the connection is disposed as
+     * well. If the pool is full, the connection is closed.
+     * 
+     * @param pc the pooled connection
+     */
     synchronized void recycleConnection(PooledConnection pc) {
         if (isDisposed) {
             disposeConnection(pc);
@@ -231,6 +238,11 @@ public class JdbcConnectionPool implements DataSource {
         }
     }
 
+    /**
+     * Close the connection, and don't add it back to the pool.
+     * 
+     * @param pc the pooled connection
+     */
     synchronized void disposeConnection(PooledConnection pc) {
         if (activeConnections <= 0) {
             throw new AssertionError();

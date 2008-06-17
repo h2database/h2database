@@ -297,6 +297,13 @@ public abstract class Prepared {
         this.session = currentSession;
     }
 
+    /**
+     * Print information about the statement executed if info trace level is
+     * enabled.
+     * 
+     * @param startTime when the statement was started
+     * @param count the update count
+     */
     void trace(long startTime, int count) throws SQLException {
         if (session.getTrace().isInfoEnabled()) {
             long time = System.currentTimeMillis() - startTime;

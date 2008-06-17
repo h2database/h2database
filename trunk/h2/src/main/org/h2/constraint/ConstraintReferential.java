@@ -458,7 +458,7 @@ public class ConstraintReferential extends Constraint {
         }
     }
 
-    void setWhere(Prepared command, int pos, Row row) {
+    private void setWhere(Prepared command, int pos, Row row) {
         for (int i = 0; i < refColumns.length; i++) {
             int idx = refColumns[i].column.getColumnId();
             Value v = row.getValue(idx);

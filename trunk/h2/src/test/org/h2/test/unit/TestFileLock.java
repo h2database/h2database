@@ -18,15 +18,12 @@ import org.h2.test.TestBase;
  */
 public class TestFileLock extends TestBase implements Runnable {
 
-    static final int KILL = 5;
-    static final String FILE = baseDir + "/test.lock";
+    private static final int KILL = 5;
+    private static final String FILE = baseDir + "/test.lock";
     private static volatile int locks;
     private static volatile boolean stop;
-
-    TestBase base;
-
-    int wait;
-
+    private TestBase base;
+    private int wait;
     private boolean allowSockets;
 
     public TestFileLock() {
@@ -43,7 +40,7 @@ public class TestFileLock extends TestBase implements Runnable {
         test(true);
     }
 
-    void test(boolean allowSockets) throws Exception {
+    private void test(boolean allowSockets) throws Exception {
         int threadCount = getSize(3, 5);
         wait = getSize(20, 200);
         Thread[] threads = new Thread[threadCount];

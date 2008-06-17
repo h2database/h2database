@@ -84,7 +84,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
             fail("Type: " + type + " Used memory: " + used + " calculated: " + memory + " " + array.length + " size: " + size);
         }
     }
-    Value create(int type) throws SQLException {
+    private Value create(int type) throws SQLException {
         switch (type) {
         case Value.NULL:
             return ValueNull.INSTANCE;
@@ -149,7 +149,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         }
     }
 
-    byte[] randomBytes(int len) {
+    private byte[] randomBytes(int len) {
         byte[] data = new byte[len];
         if (random.nextBoolean()) {
             // don't initialize always (compression)
@@ -158,7 +158,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         return data;
     }
 
-    String randomString(int len) {
+    private String randomString(int len) {
         char[] chars = new char[len];
         if (random.nextBoolean()) {
             // don't initialize always (compression)

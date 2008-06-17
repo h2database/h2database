@@ -53,7 +53,7 @@ public class LinkChecker {
         listBadLinks();
     }
 
-    void listExternalLinks() {
+    private void listExternalLinks() {
         for (Iterator it = links.keySet().iterator(); it.hasNext();) {
             String link = (String) it.next();
             if (link.startsWith("http")) {
@@ -68,7 +68,7 @@ public class LinkChecker {
         }
     }
 
-    void listBadLinks() throws Exception {
+    private void listBadLinks() throws Exception {
         ArrayList errors = new ArrayList();
         for (Iterator it = links.keySet().iterator(); it.hasNext();) {
             String link = (String) it.next();
@@ -109,7 +109,7 @@ public class LinkChecker {
         }
     }
 
-    void process(String path) throws Exception {
+    private void process(String path) throws Exception {
         if (path.endsWith("/CVS") || path.endsWith("/.svn")) {
             return;
         }
@@ -124,7 +124,7 @@ public class LinkChecker {
         }
     }
 
-    void processFile(String path) throws Exception {
+    private void processFile(String path) throws Exception {
         targets.put(path, "file");
         String lower = StringUtils.toLowerEnglish(path);
         if (!lower.endsWith(".html") && !lower.endsWith(".htm")) {

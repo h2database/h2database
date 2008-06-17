@@ -100,7 +100,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         conn.close();
     }
 
-    void testCase() throws Exception {
+    private void testCase() throws Exception {
         Class.forName("org.h2.Driver");
         deleteDb(baseDir, "openClose");
         final String url = "jdbc:h2:" + baseDir + "/openClose;FILE_LOCK=NO";

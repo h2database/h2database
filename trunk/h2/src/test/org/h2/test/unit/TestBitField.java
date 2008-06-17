@@ -22,7 +22,7 @@ public class TestBitField extends TestBase {
         testGetSet();
     }
 
-    void testRandom() throws Exception {
+    private void testRandom() throws Exception {
         BitField bits = new BitField();
         BitSet set = new BitSet();
         int max = 300;
@@ -46,7 +46,7 @@ public class TestBitField extends TestBase {
         }
     }
 
-    void testGetSet() throws Exception {
+    private void testGetSet() throws Exception {
         BitField bits = new BitField();
         for (int i = 0; i < 10000; i++) {
             bits.set(i);

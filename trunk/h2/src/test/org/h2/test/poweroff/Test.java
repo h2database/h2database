@@ -28,23 +28,17 @@ import org.h2.util.FileUtils;
  */
 public class Test {
 
-    String driver;
-    String url;
-    String user;
-    String password;
-    Connection conn;
-    Statement stat;
-    PreparedStatement prep;
+    private String url;
+    private Connection conn;
+    private Statement stat;
+    private PreparedStatement prep;
 
     private Test() {
         // nothing to do
     }
 
     private Test(String driver, String url, String user, String password, boolean writeDelay0) {
-        this.driver = driver;
         this.url = url;
-        this.user = user;
-        this.password = password;
         try {
             Class.forName(driver);
             conn = DriverManager.getConnection(url, user, password);
@@ -95,7 +89,7 @@ public class Test {
         new Test().test(args);
     }
 
-    void test(String[] args) throws Exception {
+    private void test(String[] args) throws Exception {
         int port = 9099;
         String connect = "192.168.0.3";
         boolean file = false;
@@ -111,7 +105,7 @@ public class Test {
         test(connect, port, file);
     }
 
-    void test(String connect, int port, boolean file) throws Exception {
+    private void test(String connect, int port, boolean file) throws Exception {
         Socket socket = new Socket(connect, port);
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
         System.out.println("Connected to " + socket.toString());
@@ -122,7 +116,7 @@ public class Test {
         }
     }
 
-    void testFile(DataOutputStream out) throws Exception {
+    private void testFile(DataOutputStream out) throws Exception {
         File file = new File("test.txt");
         if (file.exists()) {
             file.delete();
@@ -147,7 +141,7 @@ public class Test {
         write.close();
     }
 
-    void testDatabases(DataOutputStream out) throws Exception {
+    private void testDatabases(DataOutputStream out) throws Exception {
         Test[] dbs = new Test[] {
                 new Test("org.h2.Driver", "jdbc:h2:test1", "sa", "", true),
                 new Test("org.h2.Driver", "jdbc:h2:test2", "sa", "", false),

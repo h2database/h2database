@@ -15,7 +15,16 @@ import java.sql.SQLException;
  * This class is used by the H2 Console.
  */
 class DbColumn {
+    
+    /**
+     * The column name.
+     */
     String name;
+    
+    /**
+     * The data type name (including precision and the NOT NULL flag if
+     * applicable).
+     */
     String dataType;
 
     DbColumn(ResultSet rs) throws SQLException {

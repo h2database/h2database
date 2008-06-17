@@ -23,7 +23,7 @@ public class TestSecurity extends TestBase {
         testXTEA();
     }
 
-    void testSHA() throws Exception {
+    private void testSHA() throws Exception {
         SHA256 sha = new SHA256();
         testOneSHA(sha);
     }
@@ -64,13 +64,13 @@ public class TestSecurity extends TestBase {
         checkSHA256(buff.toString(), "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB");
     }
     
-    void checkSHA256(String message, String expected) throws Exception {
+    private void checkSHA256(String message, String expected) throws Exception {
         SHA256 sha = new SHA256();
         String hash = ByteUtils.convertBytesToString(sha.getHash(message.getBytes(), true)).toUpperCase();
         assertEquals(expected, hash);
     }
 
-    void testXTEA() throws Exception {
+    private void testXTEA() throws Exception {
         byte[] test = new byte[4096];
         BlockCipher xtea = CipherFactory.getBlockCipher("XTEA");
         xtea.setKey("abcdefghijklmnop".getBytes());
@@ -79,7 +79,7 @@ public class TestSecurity extends TestBase {
         }
     }
 
-    void testAES() throws Exception {
+    private void testAES() throws Exception {
         BlockCipher test = CipherFactory.getBlockCipher("AES");
         test.setKey(ByteUtils.convertStringToBytes("000102030405060708090A0B0C0D0E0F"));
 

@@ -70,6 +70,13 @@ public class FileUtils {
         return file.getAbsolutePath();
     }
 
+    /**
+     * Trace input or output operations if enabled.
+     * 
+     * @param method the method from where this method was called
+     * @param fileName the file name
+     * @param o the object to append to the message
+     */
     static void trace(String method, String fileName, Object o) {
         if (SysProperties.TRACE_IO) {
             System.out.println("FileUtils." + method + " " + fileName + " " + o);

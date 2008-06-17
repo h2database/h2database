@@ -71,11 +71,11 @@ public class FunctionAlias extends DbObjectBase {
                 JavaMethod javaMethod = new JavaMethod(m);
                 for (int j = 0; j < list.size(); j++) {
                     JavaMethod old = (JavaMethod) list.get(j);
-                    if (old.paramCount == javaMethod.paramCount) {
+                    if (old.getParameterCount() == javaMethod.getParameterCount()) {
                         throw Message.getSQLException(ErrorCode.METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2, 
                                 new String[] {
-                                    old.method.toString(),
-                                    javaMethod.method.toString()
+                                    old.toString(),
+                                    javaMethod.toString()
                                 }
                         );
                     }
@@ -154,7 +154,7 @@ public class FunctionAlias extends DbObjectBase {
     public JavaMethod findJavaMethod(Expression[] args) throws SQLException {
         load();
         for (int i = 0; i < javaMethods.length; i++) {
-            if (javaMethods[i].paramCount == args.length) {
+            if (javaMethods[i].getParameterCount() == args.length) {
                 return javaMethods[i];
             }
         }
@@ -185,10 +185,10 @@ public class FunctionAlias extends DbObjectBase {
      * This helper class represents one such method.
      */
     public static class JavaMethod {
-        Method method;
-        boolean hasConnectionParam;
-        int paramCount;
-        int dataType;
+        private Method method;
+        private int paramCount;
+        private boolean hasConnectionParam;
+        private int dataType;
 
         JavaMethod(Method method) throws SQLException {
             this.method = method;
@@ -203,6 +203,10 @@ public class FunctionAlias extends DbObjectBase {
             }
             Class returnClass = method.getReturnType();
             dataType = DataType.getTypeFromClass(returnClass);
+        }
+        
+        public String toString() {
+            return method.toString();
         }
         
         /**

@@ -27,11 +27,31 @@ class WebSession {
     
     private static final int MAX_HISTORY = 1000;
     
+    /**
+     * The last time this client sent a request.
+     */
     long lastAccess;
+    
+    /**
+     * The session attribute map.
+     */
     HashMap map = new HashMap();
+    
+    /**
+     * The current locale.
+     */
     Locale locale;
+    
+    /**
+     * The currently executing statement.
+     */
     Statement executingStatement;
+    
+    /**
+     * The current updatable result set.
+     */
     ResultSet result;
+    
     private WebServer server;
 
     private ArrayList commandHistory = new ArrayList();
@@ -51,10 +71,22 @@ class WebSession {
         this.server = server;
     }
 
+    /**
+     * Put an attribute value in the map.
+     * 
+     * @param key the key
+     * @param value the new value
+     */
     void put(String key, Object value) {
         map.put(key, value);
     }
 
+    /**
+     * Get the value for the given key.
+     * 
+     * @param key the key
+     * @return the value
+     */
     Object get(String key) {
         if ("sessions".equals(key)) {
             return server.getSessions();
@@ -62,14 +94,27 @@ class WebSession {
         return map.get(key);
     }
 
+    /**
+     * Remove a session attribute from the map.
+     * 
+     * @param key the key
+     */
     void remove(String key) {
         map.remove(key);
     }
 
+    /**
+     * Get the BNF object.
+     * 
+     * @return the BNF object
+     */
     Bnf getBnf() {
         return bnf;
     }
 
+    /**
+     * Load the SQL grammar BNF.
+     */
     void loadBnf() {
         try {
             Bnf newBnf = Bnf.getInstance(null);
@@ -105,10 +150,21 @@ class WebSession {
         }
     }
 
+    /**
+     * Get the SQL statement from history.
+     * 
+     * @param id the history id
+     * @return the SQL statement
+     */
     String getCommand(int id) {
         return (String) commandHistory.get(id);
     }
 
+    /**
+     * Add a SQL statement to the history.
+     * 
+     * @param sql the SQL statement
+     */
     void addCommand(String sql) {
         if (sql == null) {
             return;
@@ -127,10 +183,20 @@ class WebSession {
         commandHistory.add(sql);
     }
 
+    /**
+     * Get the list of SQL statements in the history.
+     * 
+     * @return the commands
+     */
     ArrayList getCommands() {
         return commandHistory;
     }
 
+    /**
+     * Update session meta data information and get the information in a map.
+     * 
+     * @return a map containing the session meta data
+     */
     HashMap getInfo() {
         HashMap m = new HashMap();
         m.putAll(map);

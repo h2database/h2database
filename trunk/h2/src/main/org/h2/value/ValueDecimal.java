@@ -20,11 +20,22 @@ import org.h2.util.MathUtils;
  */
 public class ValueDecimal extends Value {
     
+    /**
+     * The default precision for a decimal value.
+     */
     static final int DEFAULT_PRECISION = 65535;
+    
+    /**
+     * The default scale for a decimal value.
+     */
     static final int DEFAULT_SCALE = 32767;
+    
+    /**
+     * The default display size for a decimal value.
+     */
     static final int DEFAULT_DISPLAY_SIZE = 65535;
+    
     private static final int DIVIDE_SCALE_ADD = 25;
-
     private static final BigDecimal DEC_ZERO = new BigDecimal("0");
     private static final BigDecimal DEC_ONE = new BigDecimal("1");
     private static final ValueDecimal ZERO = new ValueDecimal(DEC_ZERO);

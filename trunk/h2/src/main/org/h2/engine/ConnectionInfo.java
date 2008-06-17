@@ -197,6 +197,13 @@ public class ConnectionInfo {
         }
     }
 
+    /**
+     * Return the database event listener object set as a Java object. If the
+     * event listener is not set or set as a string (the class name), then this
+     * method returns null.
+     * 
+     * @return the database event listener object or null
+     */
     DatabaseEventListener removeDatabaseEventListenerObject() throws SQLException {
         Object p = prop.remove("DATABASE_EVENT_LISTENER_OBJECT");
         if (p == null) {

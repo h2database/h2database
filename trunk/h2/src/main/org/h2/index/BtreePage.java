@@ -69,15 +69,76 @@ public abstract class BtreePage extends Record {
      */
     abstract SearchRow remove(Session session, Row row) throws SQLException;
 
+    /**
+     * Split the index page at the given point.
+     * 
+     * @param session the session
+     * @param splitPoint the index where to split
+     * @return the new page that contains about half the entries
+     */
     abstract BtreePage split(Session session, int splitPoint) throws SQLException;
+    
+    /**
+     * Add the first found row to the cursor if a row is found.
+     * 
+     * @param cursor the cursor
+     * @param row the first row to find or null
+     * @param bigger if a row bigger or equal to the row is needed
+     * @return true if a row was found
+     */
     abstract boolean findFirst(BtreeCursor cursor, SearchRow row, boolean bigger) throws SQLException;
+    
+    /**
+     * Get the first row.
+     * 
+     * @param session the session
+     * @return the first row or null
+     */
     abstract SearchRow getFirst(Session session) throws SQLException;
+    
+    /**
+     * Get the next row.
+     * 
+     * @param cursor the cursor
+     * @param i the index in the row list
+     */
     abstract void next(BtreeCursor cursor, int i) throws SQLException;
+    
+    /**
+     * Get the previous row.
+     * 
+     * @param cursor the cursor
+     * @param i the index in the row list
+     */
     abstract void previous(BtreeCursor cursor, int i) throws SQLException;
+    
+    /**
+     * Get the first row.
+     * 
+     * @param cursor the cursor
+     */
     abstract void first(BtreeCursor cursor) throws SQLException;
+    
+    /**
+     * Get the last row.
+     * 
+     * @param cursor the cursor
+     */
     abstract void last(BtreeCursor cursor) throws SQLException;
+    
+    /**
+     * Calculate the number of bytes that contain data if the page is stored.
+     * 
+     * @return the number of bytes
+     */
     abstract int getRealByteCount() throws SQLException;
 
+    /**
+     * Get the row at the given index in the row list.
+     * 
+     * @param i the index
+     * @return the row
+     */
     SearchRow getData(int i) throws SQLException {
         return (SearchRow) pageData.get(i);
     }
@@ -101,6 +162,13 @@ public abstract class BtreePage extends Record {
         return false;
     }
 
+    /**
+     * Get the size of a row (only the part that is stored in the index).
+     * 
+     * @param dummy a dummy data page to calculate the size
+     * @param row the row
+     * @return the number of bytes
+     */
     int getRowSize(DataPage dummy, SearchRow row) throws SQLException {
         int rowsize = dummy.getIntLen();
         Column[] columns = index.getColumns();

@@ -39,6 +39,9 @@ public class MultiVersionCursor implements Cursor {
         needNewBase = true;
     }
     
+    /**
+     * Load the current row.
+     */
     void loadCurrent() throws SQLException {
         synchronized (sync) {
             baseRow = baseCursor.getSearchRow();

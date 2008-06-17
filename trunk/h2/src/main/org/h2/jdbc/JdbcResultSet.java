@@ -173,6 +173,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         }
     }
 
+    /**
+     * Close the result set. This method also closes the statement if required.
+     */
     void closeInternal() throws SQLException {
         if (result != null) {
             try {
@@ -2899,7 +2902,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         return row;
     }
 
-    int getColumnIndex(String columnName) throws SQLException {
+    private int getColumnIndex(String columnName) throws SQLException {
         checkClosed();
         if (columnName == null) {
             throw Message.getInvalidValueException("columnName", null);
@@ -2954,6 +2957,11 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         }
     }
 
+    /**
+     * Check if this result set is closed.
+     * 
+     * @throws SQLException if it is closed
+     */
     void checkClosed() throws SQLException {
         if (result == null) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);

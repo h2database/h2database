@@ -10,9 +10,9 @@ package org.h2.bnf;
  * Represents the head of a BNF rule.
  */
 public class RuleHead {
-    final String section;
-    Rule rule;
+    private final String section;
     private final String topic;
+    private Rule rule;
 
     RuleHead(String section, String topic, Rule rule) {
         this.section = section;
@@ -26,6 +26,14 @@ public class RuleHead {
 
     public Rule getRule() {
         return rule;
+    }
+
+    public void setRule(Rule rule) {
+        this.rule = rule;
+    }
+    
+    public String getSection() {
+        return section;
     }
 
 }

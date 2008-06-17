@@ -81,7 +81,7 @@ public class TestRecover {
         testLoop();
     }
 
-    static File backup(String sourcePath, String targetPath, String basePath, int max, String node) throws Exception {
+    private static File backup(String sourcePath, String targetPath, String basePath, int max, String node) throws Exception {
         File root = new File(targetPath);
         if (!root.exists()) {
             root.mkdirs();
@@ -153,7 +153,7 @@ public class TestRecover {
         return zipFile;
     }
 
-    static void listRecursive(List list, File file) throws IOException {
+    private static void listRecursive(List list, File file) throws IOException {
         File[] l = file.listFiles();
         for (int i = 0; l != null && i < l.length; i++) {
             File f = l[i];
@@ -165,7 +165,7 @@ public class TestRecover {
         }
     }
 
-    static void deleteRecursive(File file) throws IOException {
+    private static void deleteRecursive(File file) throws IOException {
         if (file.isDirectory()) {
             File[] list = file.listFiles();
             for (int i = 0; i < list.length; i++) {
@@ -184,7 +184,7 @@ public class TestRecover {
         }
     }
 
-    Connection openConnection() throws Exception {
+    private Connection openConnection() throws Exception {
         Class.forName(DRIVER);
         Connection conn = DriverManager.getConnection(URL, "sa", "sa");
         Statement stat = conn.createStatement();

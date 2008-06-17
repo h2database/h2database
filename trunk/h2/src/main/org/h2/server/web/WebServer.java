@@ -127,6 +127,12 @@ public class WebServer implements Service {
     private boolean allowScript;
     private boolean trace;
 
+    /**
+     * Read the given file from the file system or from the resources.
+     * 
+     * @param file the file name
+     * @return the data
+     */
     byte[] getFile(String file) throws IOException {
         trace("getFile <" + file + ">");
         byte[] data = Resources.get("/org/h2/server/web/res/" + file);
@@ -138,6 +144,11 @@ public class WebServer implements Service {
         return data;
     }
 
+    /**
+     * Remove this web thread from the set of running threads.
+     * 
+     * @param t the thread to remove
+     */
     synchronized void remove(WebThread t) {
         running.remove(t);
     }
@@ -147,6 +158,12 @@ public class WebServer implements Service {
         return ByteUtils.convertBytesToString(buff);
     }
 
+    /**
+     * Get the web session object for the given session id.
+     * 
+     * @param sessionId the session id
+     * @return the web session or null
+     */
     WebSession getSession(String sessionId) {
         long now = System.currentTimeMillis();
         if (lastTimeoutCheck + SESSION_TIMEOUT < now) {
@@ -169,6 +186,12 @@ public class WebServer implements Service {
         return session;
     }
 
+    /**
+     * Create a new web session id and object.
+     * 
+     * @param hostAddr the host address
+     * @return the web session object
+     */
     WebSession createNewSession(String hostAddr) {
         String newId;
         do {
@@ -336,20 +359,43 @@ public class WebServer implements Service {
         }
     }
 
+    /**
+     * Write trace information if trace is enabled.
+     * 
+     * @param s the message to write
+     */
     void trace(String s) {
         if (trace) {
             System.out.println(s);
         }
     }
 
+    /**
+     * Write the stack trace if trace is enabled.
+     * 
+     * @param e the exception
+     */
     void traceError(Exception e) {
         e.printStackTrace();
     }
 
+    /**
+     * Check if this language is supported / translated.
+     * 
+     * @param language the language
+     * @return true if a translation is available
+     */
     boolean supportsLanguage(String language) {
         return languages.contains(language);
     }
 
+    /**
+     * Read the translation for this language and save them in the 'text'
+     * property of this session.
+     * 
+     * @param session the session
+     * @param language the language
+     */
     void readTranslations(WebSession session, String language) {
         Properties text = new Properties();
         try {
@@ -416,15 +462,31 @@ public class WebServer implements Service {
         return port;
     }
 
+    /**
+     * Get the connection information for this setting.
+     * 
+     * @param name the setting name
+     * @return the connection information
+     */
     ConnectionInfo getSetting(String name) {
         return (ConnectionInfo) connInfoMap.get(name);
     }
 
+    /**
+     * Update a connection information setting.
+     * 
+     * @param info the connection information
+     */
     void updateSetting(ConnectionInfo info) {
         connInfoMap.put(info.name, info);
         info.lastAccess = ticker++;
     }
 
+    /**
+     * Remove a connection information setting from the list
+     * 
+     * @param name the setting to remove
+     */
     void removeSetting(String name) {
         connInfoMap.remove(name);
     }
@@ -444,6 +506,11 @@ public class WebServer implements Service {
         }
     }
 
+    /**
+     * Get the list of connection information setting names.
+     * 
+     * @return the connection info names
+     */
     String[] getSettingNames() {
         ArrayList list = getSettings();
         String[] names = new String[list.size()];
@@ -453,6 +520,11 @@ public class WebServer implements Service {
         return names;
     }
 
+    /**
+     * Get the list of connection info objects.
+     * 
+     * @return the list
+     */
     synchronized ArrayList getSettings() {
         ArrayList settings = new ArrayList();
         if (connInfoMap.size() == 0) {
@@ -491,6 +563,9 @@ public class WebServer implements Service {
         }
     }
 
+    /**
+     * Save the settings to the properties file.
+     */
     synchronized void saveSettings() {
         try {
             Properties prop = new SortedProperties();
@@ -516,6 +591,16 @@ public class WebServer implements Service {
         }
     }
 
+    /**
+     * Open a database connection.
+     * 
+     * @param driver the driver class name
+     * @param url the database URL
+     * @param user the user name
+     * @param password the password
+     * @param listener the database event listener object
+     * @return the database connection
+     */
     Connection getConnection(String driver, String url, String user, String password, DatabaseEventListener listener) throws SQLException {
         driver = driver.trim();
         url = url.trim();
@@ -543,6 +628,9 @@ public class WebServer implements Service {
         return JdbcUtils.getConnection(driver, url, p);
     }
 
+    /**
+     * Shut down the web server.
+     */
     void shutdown() {
         if (shutdownHandler != null) {
             shutdownHandler.shutdown();

@@ -132,6 +132,12 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         }
     }
 
+    /**
+     * Update a page in the storage.
+     * 
+     * @param session the session
+     * @param p the page to update
+     */
     void updatePage(Session session, Record p) throws SQLException {
         if (database.getLogIndexChanges()) {
             storage.addRecord(session, p, p.getPos());
@@ -140,16 +146,35 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         }
     }
 
+    /**
+     * Delete a page from the storage.
+     * 
+     * @param session the session
+     * @param p the page to remove
+     */
     void deletePage(Session session, Record p) throws SQLException {
         if (database.getLogIndexChanges()) {
             storage.removeRecord(session, p.getPos());
         }
     }
 
+    /**
+     * Add a page to the storage.
+     * 
+     * @param session the session
+     * @param p the page to add
+     */
     void addPage(Session session, Record p) throws SQLException {
         storage.addRecord(session, p, Storage.ALLOCATE_POS);
     }
 
+    /**
+     * Get or read a page from the storage.
+     * 
+     * @param session the session
+     * @param i the page position
+     * @return the page
+     */
     BtreePage getPage(Session session, int i) throws SQLException {
         return (BtreePage) storage.getRecord(session, i);
     }
@@ -207,6 +232,12 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         rowCount++;
     }
 
+    /**
+     * Create a search row for this row.
+     * 
+     * @param row the row
+     * @return the search row
+     */
     SearchRow getSearchRow(Row row) {
         SearchRow r = table.getTemplateSimpleRow(columns.length == 1);
         r.setPosAndVersion(row);
@@ -275,6 +306,12 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         }
     }
 
+    /**
+     * Read an array of rows from a data page.
+     * 
+     * @param s the data page
+     * @return the array of rows
+     */
     ObjectArray readRowArray(DataPage s) throws SQLException {
         int len = s.readInt();
         ObjectArray rows = new ObjectArray(len);
@@ -296,6 +333,13 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         return rows;
     }
 
+    /**
+     * Get a row from the data file.
+     * 
+     * @param session the session
+     * @param pos the position in the data file
+     * @return the row
+     */
     Row getRow(Session session, int pos) throws SQLException {
         return tableData.getRow(session, pos);
     }

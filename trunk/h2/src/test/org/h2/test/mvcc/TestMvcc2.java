@@ -30,11 +30,11 @@ public class TestMvcc2 extends TestBase {
         testInsertRollback();
     }
 
-    Connection getConnection() throws Exception {
+    private Connection getConnection() throws Exception {
         return getConnection("mvcc2");
     }
 
-    void testInsertUpdateRollback() throws Exception {
+    private void testInsertUpdateRollback() throws Exception {
         Connection conn = getConnection();
         conn.setAutoCommit(false);
         Statement stmt = conn.createStatement();
@@ -47,7 +47,7 @@ public class TestMvcc2 extends TestBase {
         conn.close();
     }
 
-    void testInsertRollback() throws Exception {
+    private void testInsertRollback() throws Exception {
         Connection conn = getConnection();
         conn.setAutoCommit(false);
         Statement stmt = conn.createStatement();

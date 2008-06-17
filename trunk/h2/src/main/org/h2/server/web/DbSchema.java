@@ -17,10 +17,29 @@ import java.util.ArrayList;
  */
 public class DbSchema {
     
+    /**
+     * The database content container.
+     */
     DbContents contents;
+    
+    /**
+     * The schema name.
+     */
     String name;
+    
+    /**
+     * The quoted schema name.
+     */
     String quotedName;
+    
+    /**
+     * The table list.
+     */
     DbTableOrView[] tables;
+    
+    /**
+     * True if this is the default schema for this database.
+     */
     boolean isDefault;
 
     DbSchema(DbContents contents, String name, boolean isDefault) {
@@ -30,6 +49,12 @@ public class DbSchema {
         this.isDefault = isDefault;
     }
 
+    /**
+     * Read all tables for this schema from the database meta data.
+     * 
+     * @param meta the database meta data
+     * @param tableTypes the table types to read
+     */
     void readTables(DatabaseMetaData meta, String[] tableTypes) throws SQLException {
         ResultSet rs = meta.getTables(null, name, null, tableTypes);
         ArrayList list = new ArrayList();

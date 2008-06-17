@@ -105,6 +105,13 @@ public class TcpServer implements Service {
         SERVERS.put("" + port, this);
     }
 
+    /**
+     * Add a connection to the management database.
+     * 
+     * @param id the connection id
+     * @param url the database URL
+     * @param user the user name
+     */
     synchronized void addConnection(int id, String url, String user) {
         try {
             managementDbAdd.setInt(1, id);
@@ -116,6 +123,11 @@ public class TcpServer implements Service {
         }
     }
 
+    /**
+     * Remove a connection from the management database.
+     * 
+     * @param id the connection id
+     */
     synchronized void removeConnection(int id) {
         try {
             managementDbRemove.setInt(1, id);
@@ -182,6 +194,13 @@ public class TcpServer implements Service {
         return url;
     }
 
+    /**
+     * Check if this socket may connect to this server. Remote connections are
+     * not allowed if the flag allowOthers is set.
+     * 
+     * @param socket the socket
+     * @return true if this client may connect
+     */
     boolean allow(Socket socket) {
         if (allowOthers) {
             return true;
@@ -301,20 +320,39 @@ public class TcpServer implements Service {
         }
     }
 
+    /**
+     * Remove a thread from the list.
+     * 
+     * @param t the thread to remove
+     */
     void remove(TcpServerThread t) {
         running.remove(t);
     }
 
+    /**
+     * Get the configured base directory.
+     * 
+     * @return the base directory
+     */
     String getBaseDir() {
         return baseDir;
     }
 
+    /**
+     * Print a message if the trace flag is enabled.
+     * 
+     * @param s the message
+     */
     void trace(String s) {
         if (trace) {
             System.out.println(s);
         }
     }
-
+    /**
+     * Print a stack trace if the trace flag is enabled.
+     * 
+     * @param e the exception
+     */
     void traceError(Throwable e) {
         if (trace) {
             e.printStackTrace();
@@ -391,6 +429,12 @@ public class TcpServer implements Service {
         }
     }
 
+    /**
+     * Cancel a running statement.
+     * 
+     * @param sessionId the session id
+     * @param statementId the statement id
+     */
     void cancelStatement(String sessionId, int statementId) throws SQLException {
         ArrayList list = new ArrayList(running);
         for (int i = 0; i < list.size(); i++) {

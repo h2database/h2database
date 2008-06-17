@@ -44,6 +44,9 @@ import org.h2.value.ValueUuid;
  */
 public abstract class DataPage {
 
+    /**
+     * Whether calculating (and checking) the checksum is enabled.
+     */
     static final boolean CHECKSUM = true;
 
     /**

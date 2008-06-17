@@ -32,8 +32,9 @@ import org.h2.test.TestBase;
  * Tests for the ResultSet implementation.
  */
 public class TestResultSet extends TestBase {
-    Connection conn;
-    Statement stat;
+    
+    private Connection conn;
+    private Statement stat;
 
     public void test() throws Exception {
         deleteDb("resultSet");
@@ -204,7 +205,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE one");
     }
 
-    void testAutoIncrement() throws Exception {
+    private void testAutoIncrement() throws Exception {
         trace("Test AutoIncrement");
         stat.execute("DROP TABLE IF EXISTS TEST");
         ResultSet rs;
@@ -234,7 +235,7 @@ public class TestResultSet extends TestBase {
 
     }
 
-    void testInt() throws Exception {
+    private void testInt() throws Exception {
         trace("Test INT");
         ResultSet rs;
         Object o;
@@ -390,7 +391,7 @@ public class TestResultSet extends TestBase {
         stat.setMaxRows(0);
     }
 
-    void testVarchar() throws Exception {
+    private void testVarchar() throws Exception {
         trace("Test VARCHAR");
         ResultSet rs;
         Object o;
@@ -474,7 +475,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    void testDecimal() throws Exception {
+    private void testDecimal() throws Exception {
         trace("Test DECIMAL");
         ResultSet rs;
         Object o;
@@ -525,7 +526,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    void testDoubleFloat() throws Exception {
+    private void testDoubleFloat() throws Exception {
         trace("Test DOUBLE - FLOAT");
         ResultSet rs;
         Object o;
@@ -591,7 +592,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    void testDatetime() throws Exception {
+    private void testDatetime() throws Exception {
         trace("Test DATETIME");
         ResultSet rs;
         Object o;
@@ -672,7 +673,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    void testDatetimeWithCalendar() throws Exception {
+    private void testDatetimeWithCalendar() throws Exception {
         trace("Test DATETIME with Calendar");
         ResultSet rs;
 
@@ -765,7 +766,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    void testBlob() throws Exception {
+    private void testBlob() throws Exception {
         trace("Test BLOB");
         ResultSet rs;
 
@@ -803,7 +804,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    void testClob() throws Exception {
+    private void testClob() throws Exception {
         trace("Test CLOB");
         ResultSet rs;
         String string;
@@ -870,7 +871,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    void testArray() throws Exception {
+    private void testArray() throws Exception {
         trace("Test ARRAY");
         ResultSet rs;
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE ARRAY)");
@@ -908,7 +909,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    byte[] readAllBytes(InputStream in) throws Exception {
+    private byte[] readAllBytes(InputStream in) throws Exception {
         if (in == null) {
             return null;
         }
@@ -928,19 +929,15 @@ public class TestResultSet extends TestBase {
         }
     }
 
-    void checkBytes(byte[] test, byte[] good) throws Exception {
+    private void checkBytes(byte[] test, byte[] good) throws Exception {
         if (test == null || good == null) {
-            assertTrue(test == null && good == null);
+            assertTrue(test == good);
         } else {
-            trace("test.length=" + test.length + " good.length=" + good.length);
-            assertEquals(test.length, good.length);
-            for (int i = 0; i < good.length; i++) {
-                assertTrue(test[i] == good[i]);
-            }
+            assertEquals(test, good);
         }
     }
 
-    void checkColumnBigDecimal(ResultSet rs, int column, int i, String bd) throws Exception {
+    private void checkColumnBigDecimal(ResultSet rs, int column, int i, String bd) throws Exception {
         BigDecimal bd1 = rs.getBigDecimal(column);
         int i1 = rs.getInt(column);
         if (bd == null) {

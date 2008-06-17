@@ -16,7 +16,7 @@ import org.h2.test.TestBase;
  */
 public class TestTransactionIsolation extends TestBase {
 
-    Connection conn1, conn2;
+    private Connection conn1, conn2;
 
     public void test() throws Exception {
         if (config.mvcc) {
@@ -26,7 +26,7 @@ public class TestTransactionIsolation extends TestBase {
         }
     }
 
-    void testTableLevelLocking() throws Exception {
+    private void testTableLevelLocking() throws Exception {
         deleteDb("transactionIsolation");
         conn1 = getConnection("transactionIsolation");
         assertEquals(conn1.getTransactionIsolation(), Connection.TRANSACTION_READ_COMMITTED);

@@ -21,8 +21,8 @@ public class TestMultiNews extends TestMultiThread {
     private static final String PREFIX_URL = 
         "http://feeds.wizbangblog.com/WizbangFullFeed?m=";
 
-    int len = 10000;
-    Connection conn;
+    private int len = 10000;
+    private Connection conn;
 
     TestMultiNews(TestMulti base) throws SQLException {
         super(base);

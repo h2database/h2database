@@ -124,7 +124,7 @@ public class TestCluster extends TestBase {
         n2.stop();
     }
 
-    void check(Connection conn, int len) throws Exception {
+    private void check(Connection conn, int len) throws Exception {
         PreparedStatement prep = conn.prepareStatement("SELECT * FROM TEST WHERE ID=?");
         for (int i = 0; i < len; i++) {
             prep.setInt(1, i);

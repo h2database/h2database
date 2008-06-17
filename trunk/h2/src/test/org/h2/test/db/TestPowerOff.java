@@ -234,7 +234,7 @@ public class TestPowerOff extends TestBase {
         recoverAndCheckConsistency();
     }
 
-    void runTest(int min, int max, boolean withConsistencyCheck) throws Exception {
+    private void runTest(int min, int max, boolean withConsistencyCheck) throws Exception {
         for (int i = min; i < max; i++) {
             deleteDb(dir, dbName);
             Database.setInitialPowerOffCount(i);
@@ -249,7 +249,7 @@ public class TestPowerOff extends TestBase {
         Database.setInitialPowerOffCount(0);
     }
 
-    int testRun(boolean init) throws Exception {
+    private int testRun(boolean init) throws Exception {
         if (init) {
             Database.setInitialPowerOffCount(Integer.MAX_VALUE);
         }
@@ -289,7 +289,7 @@ public class TestPowerOff extends TestBase {
         return state;
     }
 
-    int recoverAndCheckConsistency() throws Exception {
+    private int recoverAndCheckConsistency() throws Exception {
         int state;
         Database.setInitialPowerOffCount(0);
         Connection conn = getConnection(url);

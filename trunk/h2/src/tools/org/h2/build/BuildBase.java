@@ -464,6 +464,12 @@ public class BuildBase {
         }
     }
     
+    /**
+     * Get the file name suffix.
+     * 
+     * @param fileName the file name
+     * @return the suffix or an empty string if there is none
+     */
     String getSuffix(String fileName) {
         int idx = fileName.lastIndexOf('.');
         return idx < 0 ? "" : fileName.substring(idx);

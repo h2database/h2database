@@ -242,6 +242,15 @@ public abstract class Query extends Prepared {
         }
     }
 
+    /**
+     * Init the order by list.
+     * 
+     * @param expressions the select list expressions
+     * @param expressionSQL the select list SQL snippets
+     * @param orderList the order by list
+     * @param visible the number of visible columns in the select list
+     * @param mustBeInResult all order by expressions must be in the select list
+     */
     void initOrder(ObjectArray expressions, ObjectArray expressionSQL, ObjectArray orderList, int visible,
             boolean mustBeInResult) throws SQLException {
         for (int i = 0; i < orderList.size(); i++) {
@@ -376,6 +385,11 @@ public abstract class Query extends Prepared {
         this.limit = limit;
     }
 
+    /**
+     * Add a parameter to the parameter list.
+     * 
+     * @param param the parameter to add
+     */
     void addParameter(Parameter param) {
         if (parameters == null) {
             parameters = new ObjectArray();

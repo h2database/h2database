@@ -295,6 +295,12 @@ public class PageParser {
         return buff.toString();
     }
 
+    /**
+     * Escape text as a the javascript string.
+     * 
+     * @param s the text
+     * @return the javascript string
+     */
     static String escapeJavaScript(String s) {
         if (s == null) {
             return null;
@@ -330,6 +336,5 @@ public class PageParser {
             }
         }
         return buff.toString();
-        // return escapeHtml(buff.toString());
     }
 }

@@ -28,13 +28,13 @@ public class CheckTextFiles {
     private static final String[] SUFFIX_IGNORE = new String[] { "gif", "png", "odg", "ico", "sxd", 
             "layout", "res", "win", "jar", "task", "svg", "MF", "sh" };
     
-    boolean failOnError;
-    boolean allowTab, allowCR = true, allowTrailingSpaces = true;
-    int spacesPerTab = 4;
-    boolean autoFix = true;
-    boolean useCRLF = true;
-    String[] suffixIgnoreLicense = new String[] { "bat", "nsi", "txt", "properties", "xml", "java.sql.Driver", "task", "sh" };
-    boolean hasError;
+    private boolean failOnError;
+    private boolean allowTab, allowCR = true, allowTrailingSpaces = true;
+    private int spacesPerTab = 4;
+    private boolean autoFix = true;
+    private boolean useCRLF = true;
+    private String[] suffixIgnoreLicense = new String[] { "bat", "nsi", "txt", "properties", "xml", "java.sql.Driver", "task", "sh" };
+    private boolean hasError;
 
     /**
      * This method is called when executing this application from the command
@@ -46,7 +46,7 @@ public class CheckTextFiles {
         new CheckTextFiles().run();
     }
 
-    void run() throws Exception {
+    private void run() throws Exception {
         String baseDir = "src";
         check(new File(baseDir));
         if (hasError) {

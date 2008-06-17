@@ -593,7 +593,7 @@ public class PrepareTranslation {
     /**
      * Translate the text using Google Translate
      */
-    String translate(String text, String sourceLanguage, String targetLanguage) throws Exception {
+    private String translate(String text, String sourceLanguage, String targetLanguage) throws Exception {
         Thread.sleep(4000);
         String url = "http://translate.google.com/translate_t?langpair=" + 
                 sourceLanguage + "|" + targetLanguage + 

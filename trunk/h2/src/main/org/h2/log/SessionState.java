@@ -11,11 +11,34 @@ package org.h2.log;
  * session. It is only used during recovery.
  */
 public class SessionState {
+    
+    /**
+     * The session id
+     */
     int sessionId;
+    
+    /**
+     * The last log file id where a commit for this session is found.
+     */
     int lastCommitLog;
+    
+    /**
+     * The position where a commit for this session is found.
+     */
     int lastCommitPos;
+    
+    /**
+     * The in-doubt transaction if there is one.
+     */
     InDoubtTransaction inDoubtTransaction;
 
+    /**
+     * Check if this session state is already committed at this point.
+     * 
+     * @param logId the log file id
+     * @param pos the position in the log file
+     * @return true if it is committed
+     */
     boolean isCommitted(int logId, int pos) {
         if (logId != lastCommitLog) {
             return lastCommitLog > logId;

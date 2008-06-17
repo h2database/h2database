@@ -16,7 +16,7 @@ import org.h2.util.IntIntHashMap;
  */
 public class TestIntIntHashMap extends TestBase {
 
-    Random rand = new Random();
+    private Random rand = new Random();
 
     public void test() throws Exception {
         rand.setSeed(10);
@@ -24,7 +24,7 @@ public class TestIntIntHashMap extends TestBase {
         test(false);
     }
 
-    void test(boolean random) throws Exception {
+    private void test(boolean random) throws Exception {
         int len = 2000;
         int[] x = new int[len];
         for (int i = 0; i < len; i++) {

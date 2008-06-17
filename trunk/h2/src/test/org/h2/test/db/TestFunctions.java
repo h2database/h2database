@@ -40,7 +40,7 @@ public class TestFunctions extends TestBase {
         testFileRead();
     }
 
-    void testFileRead() throws Exception {
+    private void testFileRead() throws Exception {
         Connection conn = getConnection("functions");
         stat = conn.createStatement();
         File f = new File(baseDir + "/test.txt");
@@ -262,7 +262,7 @@ public class TestFunctions extends TestBase {
         conn.close();
     }
 
-    void test(String sql, String value) throws Exception {
+    private void test(String sql, String value) throws Exception {
         ResultSet rs = stat.executeQuery("CALL " + sql);
         rs.next();
         String s = rs.getString(1);

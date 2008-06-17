@@ -303,7 +303,7 @@ public class TestLinkedTable extends TestBase {
         deleteDb("linked2");
     }
 
-    void testRow(Statement stat, String name) throws Exception {
+    private void testRow(Statement stat, String name) throws Exception {
         ResultSet rs = stat.executeQuery("SELECT * FROM " + name + " WHERE ID=1");
         rs.next();
         assertEquals(rs.getString("NAME"), "Hello");

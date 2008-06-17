@@ -17,7 +17,7 @@ import org.h2.test.TestBase;
 import org.h2.test.unit.SelfDestructor;
 
 /**
- * Test application for {@link TestKill}.
+ * Test application for TestKill.
  */
 public class TestKillProcess {
     

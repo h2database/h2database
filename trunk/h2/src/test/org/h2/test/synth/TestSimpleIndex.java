@@ -20,9 +20,9 @@ import org.h2.test.synth.sql.RandomGen;
  */
 public class TestSimpleIndex extends TestBase {
 
-    Connection conn;
-    Statement stat;
-    RandomGen random;
+    private Connection conn;
+    private Statement stat;
+    private RandomGen random;
 
     public void test() throws Exception {
         deleteDb("simpleIndex");

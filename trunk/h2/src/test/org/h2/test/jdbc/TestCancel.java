@@ -37,6 +37,9 @@ public class TestCancel extends TestBase {
             this.wait = wait;
         }
         
+        /**
+         * Stop the test now.
+         */
         public void stopNow() {
             this.stop = true;
         }

@@ -347,7 +347,7 @@ public class Doclet {
              return true;
          }
         String name = method.name();
-        if ((method.isPrivate() && !method.isPackagePrivate()) || name.equals("finalize")) {
+        if (method.isPrivate() || name.equals("finalize")) {
             return true;
         }
         if (method.getRawCommentText().trim().startsWith("@deprecated INTERNAL")) {
@@ -362,7 +362,7 @@ public class Doclet {
             if (!doesOverride(method)) {
                 boolean setterOrGetter = name.startsWith("set") && method.parameters().length == 1;
                 setterOrGetter |= name.startsWith("get") && method.parameters().length == 0;
-                if (isInterface || !setterOrGetter) {
+                if (!setterOrGetter) {
                     addError("Undocumented method " + " (" + clazz.name() + ".java:" + method.position().line() +") " + clazz + "." + name + " " + raw);
                     return true;
                 }

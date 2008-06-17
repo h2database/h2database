@@ -41,10 +41,22 @@ implements Savepoint
         this.name = name;
     }
 
+    /**
+     * Release this savepoint. This method only set the connection to null and
+     * does not execute a statement.
+     */
     void release() {
         this.conn = null;
     }
 
+    /**
+     * Get the savepoint name for this name or id.
+     * If the name is null, the id is used.
+     * 
+     * @param name the name (may be null)
+     * @param id the id
+     * @return the savepoint name
+     */
     static String getName(String name, int id) {
         if (name != null) {
             return StringUtils.quoteJavaString(name);
@@ -52,6 +64,9 @@ implements Savepoint
         return SYSTEM_SAVEPOINT_PREFIX + id;
     }
 
+    /**
+     * Roll back to this savepoint.
+     */
     void rollback() throws SQLException {
         checkValid();
         conn.prepareCommand("ROLLBACK TO SAVEPOINT " + getName(name, savepointId), Integer.MAX_VALUE).executeUpdate();

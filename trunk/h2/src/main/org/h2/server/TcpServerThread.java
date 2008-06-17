@@ -151,6 +151,9 @@ public class TcpServerThread implements Runnable {
         }
     }
 
+    /**
+     * Close a connection.
+     */
     void close() {
         try {
             stop = true;
@@ -360,6 +363,12 @@ public class TcpServerThread implements Runnable {
         return thread;
     }
 
+    /**
+     * Cancel a running statement.
+     * 
+     * @param sessionId the session id
+     * @param statementId the statement to cancel
+     */
     void cancelStatement(String sessionId, int statementId) throws SQLException {
         if (StringUtils.equals(sessionId, this.sessionId)) {
             Command cmd = (Command) cache.getObject(statementId, false);

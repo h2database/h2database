@@ -21,7 +21,7 @@ import org.h2.test.TestBase;
  */
 public class TestStatement extends TestBase {
 
-    Connection conn;
+    private Connection conn;
 
     public void test() throws Exception {
         deleteDb("statement");
@@ -49,7 +49,7 @@ public class TestStatement extends TestBase {
         conn.setAutoCommit(true);
     }
 
-    void testSavepoint() throws Exception {
+    private void testSavepoint() throws Exception {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         conn.setAutoCommit(false);
@@ -103,7 +103,7 @@ public class TestStatement extends TestBase {
         conn.setAutoCommit(true);
     }
 
-    void testStatement() throws Exception {
+    private void testStatement() throws Exception {
 
         Statement stat = conn.createStatement();
 

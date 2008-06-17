@@ -95,6 +95,14 @@ public class LogFile {
         }
     }
 
+    /**
+     * Open the file if it is in fact a log file for this database.
+     * 
+     * @param log the log system
+     * @param fileNamePrefix the expected file name prefix
+     * @param fileName the file name
+     * @return null or the log file
+     */
     static LogFile openIfLogFile(LogSystem log, String fileNamePrefix, String fileName) throws SQLException {
         if (!fileName.endsWith(Constants.SUFFIX_LOG_FILE)) {
             return null;
@@ -166,6 +174,11 @@ public class LogFile {
         pos = getBlock() + (bufferPos / BLOCK_SIZE);
     }
 
+    /**
+     * Write a commit entry for this session.
+     * 
+     * @param session the session
+     */
     void commit(Session session) throws SQLException {
         DataPage buff = rowBuff;
         buff.reset();
@@ -178,6 +191,12 @@ public class LogFile {
         }
     }
 
+    /**
+     * Write a prepare commit entry for this session.
+     * 
+     * @param session the session
+     * @param transaction the transaction name
+     */
     void prepareCommit(Session session, String transaction) throws SQLException {
         DataPage buff = rowBuff;
         buff.reset();
@@ -333,6 +352,10 @@ public class LogFile {
         return true;
     }
 
+    /**
+     * Re-apply all changes of this transaction log file and seek to the end of
+     * the file.
+     */
     void redoAllGoEnd() throws SQLException {
         boolean readOnly = logSystem.getDatabase().getReadOnly();
         long length = file.length();
@@ -369,15 +392,29 @@ public class LogFile {
         go(pos);
     }
 
+    /**
+     * Go to the specified location in the file.
+     * 
+     * @param pos the position
+     */
     void go(int pos) throws SQLException {
         file.seek((long) pos * BLOCK_SIZE);
     }
 
+    /**
+     * Undo the changes of this transaction log entry. This method is called
+     * when opening the database.
+     * 
+     * @param pos the position of the log entry
+     */
     void undo(int pos) throws SQLException {
         go(pos);
         redoOrUndo(true, false);
     }
 
+    /**
+     * Flush buffered changes to the file.
+     */
     void flush() throws SQLException {
         if (bufferPos > 0) {
             if (file == null) {
@@ -399,6 +436,11 @@ public class LogFile {
         }
     }
 
+    /**
+     * Close the log file.
+     * 
+     * @param delete if the file should be deleted shortly afterwards
+     */
     void close(boolean delete) throws SQLException {
         SQLException closeException = null;
         try {
@@ -427,6 +469,12 @@ public class LogFile {
         }
     }
 
+    /**
+     * Write a file summary (storage allocation table) to the log file.
+     * 
+     * @param dataFile if his summary is for the data file
+     * @param summary the summary
+     */
     void addSummary(boolean dataFile, byte[] summary) throws SQLException {
         DataPage buff = DataPage.create(database, 256);
         buff.writeInt(0);
@@ -449,6 +497,14 @@ public class LogFile {
         writeBuffer(buff, null);
     }
 
+    /**
+     * Append a truncate entry to the transaction log file.
+     * 
+     * @param session the session
+     * @param storageId the id of the storage that was truncated
+     * @param recordId the record id
+     * @param blockCount the number of blocks to delete
+     */
     void addTruncate(Session session, int storageId, int recordId, int blockCount) throws SQLException {
         DataPage buff = rowBuff;
         buff.reset();
@@ -461,6 +517,13 @@ public class LogFile {
         writeBuffer(buff, null);
     }
 
+    /**
+     * Add a record to the transaction log file.
+     * 
+     * @param session the session
+     * @param storageId the storage id
+     * @param record the record
+     */
     void add(Session session, int storageId, Record record) throws SQLException {
         record.prepareWrite();
         DataPage buff = rowBuff;
@@ -498,7 +561,7 @@ public class LogFile {
         file.write(buff.getBytes(), 0, buff.length());
     }
 
-    void truncate(int pos) throws SQLException {
+    private void truncate(int pos) throws SQLException {
         go(pos);
         file.setLength((long) pos * BLOCK_SIZE);
     }
@@ -536,12 +599,24 @@ public class LogFile {
         return file.getFilePointer();
     }
 
+    /**
+     * Write any pending changed to the log file.
+     */
     void sync() {
         if (file != null) {
             file.sync();
         }
     }
 
+    /**
+     * Commit or roll back a prepared transaction.
+     * 
+     * @param commit if the transaction should be committed (true) or rolled
+     *            back (false)
+     * @param pos the position of the prepare log entry
+     * @param sessionId the session id
+     * @param blocks the number of blocks occupied by the prepare log entry
+     */
     void updatePreparedCommit(boolean commit, int pos, int sessionId, int blocks) throws SQLException {
         synchronized (database) {
             int posNow = getBlock();

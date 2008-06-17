@@ -39,7 +39,7 @@ public class XMLChecker {
         process(dir + "/docs");
     }
 
-    void process(String path) throws Exception {
+    private void process(String path) throws Exception {
         if (path.endsWith("/CVS") || path.endsWith("/.svn")) {
             return;
         }
@@ -54,7 +54,7 @@ public class XMLChecker {
         }
     }
 
-    void processFile(String fileName) throws Exception {
+    private void processFile(String fileName) throws Exception {
         int idx = fileName.lastIndexOf('.');
         if (idx < 0) {
             return;

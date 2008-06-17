@@ -16,6 +16,9 @@ import org.h2.util.StringCache;
  */
 public class TestStringCache extends TestBase {
 
+    /**
+     * Flag to indicate the test should stop.
+     */
     volatile boolean stop;
     private Random random = new Random(1);
     private String[] some = new String[] { null, "", "ABC", "this is a medium sized string", "1", "2" };
@@ -55,7 +58,7 @@ public class TestStringCache extends TestBase {
         testMultiThreads();
     }
 
-    String randomString() {
+    private String randomString() {
         if (random.nextBoolean()) {
             String s = some[random.nextInt(some.length)];
             if (s != null && random.nextBoolean()) {
@@ -71,6 +74,9 @@ public class TestStringCache extends TestBase {
         return buff.toString();
     }
 
+    /**
+     * Test one string operation using the string cache.
+     */
     void testString() {
         String a = randomString();
         if (returnNew) {

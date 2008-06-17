@@ -629,6 +629,9 @@ public class PgServerThread implements Runnable {
         }
     }
 
+    /**
+     * Close this connection.
+     */
     void close() {
         try {
             stop = true;
@@ -756,9 +759,25 @@ public class PgServerThread implements Runnable {
      * Represents a PostgreSQL Prepared object.
      */
     static class Prepared {
+        
+        /**
+         * The object name.
+         */
         String name;
+        
+        /**
+         * The SQL statement.
+         */
         String sql;
+        
+        /**
+         * The prepared statement.
+         */
         PreparedStatement prep;
+        
+        /**
+         * The list of parameter types (if set).
+         */
         int[] paramType;
     }
 
@@ -766,9 +785,25 @@ public class PgServerThread implements Runnable {
      * Represents a PostgreSQL Portal object.
      */
     static class Portal {
+        
+        /**
+         * The portal name.
+         */
         String name;
+        
+        /**
+         * The SQL statement.
+         */
         String sql;
+        
+        /**
+         * The format used in the result set columns (if set).
+         */
         int[] resultColumnFormat;
+        
+        /**
+         * The prepared statement.
+         */
         PreparedStatement prep;
     }
 

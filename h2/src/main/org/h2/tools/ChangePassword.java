@@ -20,7 +20,7 @@ import org.h2.util.Tool;
 
 /**
  * A tools to change, remove or set a file password of a database without
- * opening it.
+ * opening it. It can not be used to change a password of a user.
  */
 public class ChangePassword extends Tool {
 

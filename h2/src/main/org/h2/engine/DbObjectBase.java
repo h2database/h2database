@@ -171,6 +171,13 @@ public abstract class DbObjectBase implements DbObject {
         return comment;
     }
 
+    /**
+     * Get the sort order id for this object type. Objects are created in this
+     * order when opening a database.
+     * 
+     * @param type the database object type
+     * @return the sort index
+     */
     static int getCreateOrder(int type) {
         switch(type) {
         case SETTING:

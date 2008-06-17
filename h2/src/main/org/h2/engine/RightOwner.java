@@ -59,6 +59,14 @@ public abstract class RightOwner extends DbObjectBase {
         return false;
     }
 
+    /**
+     * Check if a right is already granted to this object or to objects that
+     * were granted to this object.
+     * 
+     * @param table the table to check
+     * @param rightMask the right mask to check
+     * @return true if the right was already granted
+     */
     boolean isRightGrantedRecursive(Table table, int rightMask) {
         Right right;
         if (grantedRights != null) {

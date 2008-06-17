@@ -20,9 +20,9 @@ import org.h2.test.TestBase;
  */
 public class TestIndex extends TestBase {
 
-    Connection conn;
-    Statement stat;
-    Random random = new Random();
+    private Connection conn;
+    private Statement stat;
+    private Random random = new Random();
 
     public void test() throws Exception {
         testDescIndex();
@@ -119,7 +119,7 @@ public class TestIndex extends TestBase {
         stat = conn.createStatement();
     }
 
-    void testDescIndex() throws Exception {
+    private void testDescIndex() throws Exception {
         if (config.memory) {
             return;
         }
@@ -147,7 +147,7 @@ public class TestIndex extends TestBase {
         conn.close();
     }
 
-    String getRandomString(int len) {
+    private String getRandomString(int len) {
         StringBuffer buff = new StringBuffer();
         for (int i = 0; i < len; i++) {
             buff.append((char) ('a' + random.nextInt(26)));
@@ -155,7 +155,7 @@ public class TestIndex extends TestBase {
         return buff.toString();
     }
 
-    void testWideIndex(int length) throws Exception {
+    private void testWideIndex(int length) throws Exception {
         reconnect();
         stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR)");
         stat.execute("CREATE INDEX IDXNAME ON TEST(NAME)");
@@ -180,7 +180,7 @@ public class TestIndex extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    void testLike() throws Exception {
+    private void testLike() throws Exception {
         reconnect();
         stat.execute("CREATE TABLE ABC(ID INT, NAME VARCHAR)");
         stat.execute("INSERT INTO ABC VALUES(1, 'Hello')");
@@ -190,7 +190,7 @@ public class TestIndex extends TestBase {
         stat.execute("DROP TABLE ABC");
     }
 
-    void testConstraint() throws Exception {
+    private void testConstraint() throws Exception {
         if (config.memory) {
             return;
         }
@@ -201,7 +201,7 @@ public class TestIndex extends TestBase {
         stat.execute("DROP TABLE CHILD");
     }
 
-    void testLargeIndex() throws Exception {
+    private void testLargeIndex() throws Exception {
         random.setSeed(10);
         for (int i = 1; i < 100; i += getSize(1000, 3)) {
             stat.execute("DROP TABLE IF EXISTS TEST");
@@ -226,7 +226,7 @@ public class TestIndex extends TestBase {
         stat.execute("DROP TABLE IF EXISTS TEST");
     }
 
-    void testHashIndex(boolean primaryKey, boolean hash) throws Exception {
+    private void testHashIndex(boolean primaryKey, boolean hash) throws Exception {
         if (config.memory) {
             return;
         }
@@ -264,7 +264,7 @@ public class TestIndex extends TestBase {
         assertEquals(0, getValue(stat, "SELECT COUNT(*) FROM TEST"));
     }
 
-    void testMultiColumnIndex() throws Exception {
+    private void testMultiColumnIndex() throws Exception {
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE TABLE TEST(A INT, B INT)");
         PreparedStatement prep;
@@ -288,7 +288,7 @@ public class TestIndex extends TestBase {
         assertEquals(0, getValue(stat, "SELECT COUNT(*) FROM TEST"));
     }
 
-    void testMultiColumnHashIndex() throws Exception {
+    private void testMultiColumnHashIndex() throws Exception {
         if (config.memory) {
             return;
         }
@@ -329,13 +329,13 @@ public class TestIndex extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    int getValue(Statement stat, String sql) throws Exception {
+    private int getValue(Statement stat, String sql) throws Exception {
         ResultSet rs = stat.executeQuery(sql);
         rs.next();
         return rs.getInt(1);
     }
 
-    void log(Statement stat, String sql) throws Exception {
+    private void log(Statement stat, String sql) throws Exception {
         trace(sql);
         ResultSet rs = stat.executeQuery(sql);
         int cols = rs.getMetaData().getColumnCount();

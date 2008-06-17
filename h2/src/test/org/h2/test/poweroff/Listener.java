@@ -17,7 +17,7 @@ import java.net.Socket;
  */
 public class Listener implements Runnable {
 
-    volatile int maxValue;
+    private volatile int maxValue;
 
     /**
      * This method is called when executing this application from the command
@@ -29,7 +29,7 @@ public class Listener implements Runnable {
         new Listener().test(args);
     }
 
-    void test(String[] args) throws Exception {
+    private void test(String[] args) throws Exception {
         int port = 9099;
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-port")) {
@@ -50,7 +50,7 @@ public class Listener implements Runnable {
         }
     }
 
-    void listen(int port) throws Exception {
+    private void listen(int port) throws Exception {
         new Thread(this).start();
         ServerSocket serverSocket = new ServerSocket(port);
         System.out.println("Listening on " + serverSocket.toString());

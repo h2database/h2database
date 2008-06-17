@@ -27,7 +27,7 @@ import org.h2.test.TestBase;
  */
 public class TestPreparedStatement extends TestBase {
 
-    static final int LOB_SIZE = 4000, LOB_SIZE_BIG = 512 * 1024;
+    private static final int LOB_SIZE = 4000, LOB_SIZE_BIG = 512 * 1024;
 
     public void test() throws Exception {
 
@@ -768,11 +768,11 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    int getLength() throws Exception {
+    private int getLength() throws Exception {
         return getSize(LOB_SIZE, LOB_SIZE_BIG);
     }
 
-    void testBlob(Connection conn) throws Exception {
+    private void testBlob(Connection conn) throws Exception {
         trace("testBlob");
         Statement stat = conn.createStatement();
         PreparedStatement prep;
@@ -855,7 +855,7 @@ public class TestPreparedStatement extends TestBase {
         assertFalse(rs.next());
     }
 
-    void testClob(Connection conn) throws Exception {
+    private void testClob(Connection conn) throws Exception {
         trace("testClob");
         Statement stat = conn.createStatement();
         PreparedStatement prep;
@@ -937,7 +937,7 @@ public class TestPreparedStatement extends TestBase {
         assertTrue(conn == prep.getConnection());
     }
 
-    void checkBigDecimal(ResultSet rs, String[] value) throws Exception {
+    private void checkBigDecimal(ResultSet rs, String[] value) throws Exception {
         for (int i = 0; i < value.length; i++) {
             String v = value[i];
             assertTrue(rs.next());

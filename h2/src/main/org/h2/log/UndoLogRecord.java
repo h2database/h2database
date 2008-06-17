@@ -58,10 +58,21 @@ public class UndoLogRecord {
         this.state = IN_MEMORY;
     }
 
+    /**
+     * Check if the log record is stored in the file.
+     * 
+     * @return true if it is
+     */
     boolean isStored() {
         return state == STORED;
     }
 
+    /**
+     * Check if this undo log record can be store. Only record can be stored if
+     * the table has a unique index.
+     * 
+     * @return if it can be stored
+     */
     boolean canStore() {
         return table.getUniqueIndex() != null;
     }
@@ -120,6 +131,12 @@ public class UndoLogRecord {
         }
     }
 
+    /**
+     * Save the row in the file using the data page as a buffer.
+     * 
+     * @param buff the data page that is used as a buffer
+     * @param file the file
+     */
     void save(DataPage buff, FileStore file) throws SQLException {
         buff.reset();
         buff.writeInt(0);
@@ -137,10 +154,21 @@ public class UndoLogRecord {
         state = STORED;
     }
 
+    /**
+     * Go to the right position in the file.
+     * 
+     * @param file the file
+     */
     void seek(FileStore file) throws SQLException {
         file.seek(filePos * Constants.FILE_BLOCK_SIZE);
     }
 
+    /**
+     * Load an undo log record row using the data page as a buffer.
+     * 
+     * @param buff the data page that is used as a buffer
+     * @param file the source file
+     */
     void load(DataPage buff, FileStore file) throws SQLException {
         int min = Constants.FILE_BLOCK_SIZE;
         seek(file);

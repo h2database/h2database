@@ -82,7 +82,15 @@ public class ViewIndex extends BaseIndex {
      * A calculated cost value.
      */
     static class CostElement {
+        
+        /**
+         * The time in milliseconds when this cost was calculated.
+         */
         long evaluatedAt;
+        
+        /**
+         * The cost.
+         */
         double cost;
     }
 

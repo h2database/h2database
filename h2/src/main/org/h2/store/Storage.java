@@ -75,6 +75,9 @@ public class Storage {
         return reader;
     }
 
+    /**
+     * Increment the record count (used when initializing the file).
+     */
     void incrementRecordCount() {
         recordCount++;
     }
@@ -245,6 +248,12 @@ public class Storage {
         return pos;
     }
 
+    /**
+     * Called after a record has been deleted.
+     * 
+     * @param pos the position
+     * @param blockCount the number of blocks
+     */
     void free(int pos, int blockCount) {
         file.free(pos, blockCount);
         if (freeList.size() < FREE_LIST_SIZE) {
@@ -334,10 +343,20 @@ public class Storage {
         this.recordCount = recordCount;
     }
 
+    /**
+     * Add a page to this storage.
+     * 
+     * @param i the page id to add
+     */
     void addPage(int i) {
         pages.addValueSorted(i);
     }
 
+    /**
+     * Remove a page from this storage.
+     * 
+     * @param i the page to remove
+     */
     void removePage(int i) {
         pages.removeValue(i);
     }

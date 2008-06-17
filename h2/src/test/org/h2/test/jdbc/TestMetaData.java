@@ -23,10 +23,10 @@ import org.h2.value.DataType;
  */
 public class TestMetaData extends TestBase {
 
-    Connection conn;
-    DatabaseMetaData meta;
-    Statement stat;
-    String catalog = "METADATA";
+    private Connection conn;
+    private DatabaseMetaData meta;
+    private Statement stat;
+    private String catalog = "METADATA";
 
     public void test() throws Exception {
         deleteDb("metaData");
@@ -304,7 +304,7 @@ public class TestMetaData extends TestBase {
                         null, "" + DatabaseMetaData.importedKeyNotDeferrable } });
     }
 
-    void testTempTable() throws Exception {
+    private void testTempTable() throws Exception {
         Connection conn = getConnection("metaData");
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST_TEMP");
@@ -324,7 +324,7 @@ public class TestMetaData extends TestBase {
         conn.close();
     }
 
-    void testStatic() throws Exception {
+    private void testStatic() throws Exception {
         Driver dr = (Driver) Class.forName("org.h2.Driver").newInstance();
 
         assertEquals(dr.getMajorVersion(), meta.getDriverMajorVersion());
@@ -521,7 +521,7 @@ public class TestMetaData extends TestBase {
         assertTrue(meta.usesLocalFiles());
     }
 
-    void test(Connection conn) throws Exception {
+    private void test(Connection conn) throws Exception {
         DatabaseMetaData meta = conn.getMetaData();
         Statement stat = conn.createStatement();
         ResultSet rs;

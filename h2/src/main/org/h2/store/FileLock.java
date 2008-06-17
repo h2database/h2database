@@ -62,11 +62,34 @@ public class FileLock {
     // TODO log / messages: use translatable messages
     // private java.nio.channels.FileLock fileLock;
     
+    /**
+     * The lock file name.
+     */
     volatile String fileName;
+    
+    /**
+     * The server socket (only used when using the SOCKET mode).
+     */
     volatile ServerSocket socket;
+    
+    /**
+     * The file system.
+     */
     FileSystem fs;
+    
+    /**
+     * The number of milliseconds to sleep after checking a file.
+     */
     int sleep;
+    
+    /**
+     * The trace object.
+     */
     Trace trace;
+    
+    /**
+     * The last time the lock file was written.
+     */
     long lastWrite;
 
     private String method, ipAddress;
@@ -150,6 +173,9 @@ public class FileLock {
 //        trace("killed", null);
 //    }
 
+    /**
+     * Save the lock file.
+     */
     void save() throws SQLException {
         try {
             OutputStream out = fs.openFileOutputStream(fileName, false);

@@ -23,6 +23,11 @@ public class ValueByte extends Value {
      * The precision in digits.
      */    
     static final int PRECISION = 3;
+    
+    /**
+     * The display size for a byte.
+     * Example: -127
+     */
     static final int DISPLAY_SIZE = 4;
 
     private final byte value;

@@ -16,10 +16,30 @@ import java.util.ArrayList;
  * This class is used by the H2 Console.
  */
 public class DbTableOrView {
+    
+    /**
+     * The schema this table belongs to.
+     */
     DbSchema schema;
+    
+    /**
+     * The table name.
+     */
     String name;
+    
+    /**
+     * The quoted table name.
+     */
     String quotedName;
+    
+    /**
+     * True if this represents a view.
+     */
     boolean isView;
+    
+    /**
+     * The column list.
+     */
     DbColumn[] columns;
 
     DbTableOrView(DbSchema schema, ResultSet rs) throws SQLException {
@@ -30,6 +50,11 @@ public class DbTableOrView {
         quotedName = schema.contents.quoteIdentifier(name);
     }
 
+    /**
+     * Read the column for this table from the database meta data.
+     * 
+     * @param meta the database meta data
+     */
     void readColumns(DatabaseMetaData meta) throws SQLException {
         ResultSet rs = meta.getColumns(null, schema.name, name, null);
         ArrayList list = new ArrayList();

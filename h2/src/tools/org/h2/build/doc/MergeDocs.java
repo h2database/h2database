@@ -19,7 +19,7 @@ import org.h2.util.StringUtils;
  */
 public class MergeDocs {
 
-    String baseDir = "docs/html";
+    private String baseDir = "docs/html";
 
     /**
      * This method is called when executing this application from the command
@@ -75,7 +75,7 @@ public class MergeDocs {
         return text;
     }
 
-    String getContent(String fileName) throws Exception {
+    private String getContent(String fileName) throws Exception {
         File file = new File(baseDir, fileName);
         int length = (int) file.length();
         char[] data = new char[length];

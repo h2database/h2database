@@ -10,8 +10,20 @@ package org.h2.index;
  * Represents a position of a b-tree index.
  */
 class BtreePosition {
+    
+    /**
+     * The index in the row list.
+     */
     int position;
+    
+    /**
+     * The b-tree page.
+     */
     BtreePage page;
+    
+    /**
+     * The next upper b-tree position.
+     */
     BtreePosition next;
 
     BtreePosition(BtreePage page, int position, BtreePosition next) {

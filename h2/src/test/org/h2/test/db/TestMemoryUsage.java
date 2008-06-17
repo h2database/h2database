@@ -111,7 +111,7 @@ public class TestMemoryUsage extends TestBase {
         conn1.close();
     }
 
-    void insertUpdateSelectDelete() throws Exception {
+    private void insertUpdateSelectDelete() throws Exception {
         Statement stat = conn.createStatement();
         long time;
         int len = getSize(1, 2000);

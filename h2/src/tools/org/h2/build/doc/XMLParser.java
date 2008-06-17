@@ -98,7 +98,7 @@ public class XMLParser {
         this.html = html;
     }
 
-    void addAttributeName(String prefix, String localName) {
+    private void addAttributeName(String prefix, String localName) {
         if (attributeValues.length <= currentAttribute) {
             String[] temp = new String[attributeValues.length * 2];
             System.arraycopy(attributeValues, 0, temp, 0, attributeValues.length);
@@ -108,7 +108,7 @@ public class XMLParser {
         attributeValues[currentAttribute++] = localName;
     }
 
-    void addAttributeValue(String v) {
+    private void addAttributeValue(String v) {
         attributeValues[currentAttribute++] = v;
     }
 

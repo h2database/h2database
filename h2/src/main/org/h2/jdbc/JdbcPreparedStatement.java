@@ -87,7 +87,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "executeQuery()");
             }
             checkClosed();
-            closeOld();
+            closeOldResultSet();
             ResultInterface result;
             boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
             synchronized (session) {
@@ -130,7 +130,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     }
 
     private int executeUpdateInternal() throws SQLException {
-        closeOld();
+        closeOldResultSet();
         synchronized (session) {
             try {
                 setExecutingStatement(command);
@@ -158,7 +158,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 debugCodeCall("execute");
             }
             checkClosed();
-            closeOld();
+            closeOldResultSet();
             boolean returnsResultSet;
             synchronized (session) {
                 try {

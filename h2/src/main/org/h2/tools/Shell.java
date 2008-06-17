@@ -34,8 +34,12 @@ import org.h2.util.SortedProperties;
  */
 public class Shell {
 
+    /**
+     * The system output stream.
+     */
     PrintStream out = System.out;
-    PrintStream err = System.err;
+    
+    private PrintStream err = System.err;
     private InputStream in = System.in;
     private Connection conn;
     private Statement stat;

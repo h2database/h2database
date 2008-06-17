@@ -19,10 +19,57 @@ import org.h2.util.StringUtils;
  * This class is used by the H2 Console.
  */
 public class DbContents {
+    
+    /**
+     * The list of schemas.
+     */
     DbSchema[] schemas;
+    
+    /**
+     * The default schema.
+     */
     DbSchema defaultSchema;
-    boolean isOracle, isH2, isPostgreSQL, isMySQL, isDerby, isFirebird, isSQLite;
+    
+    /**
+     * True if this is an Oracle database.
+     */
+    boolean isOracle;
+    
+    /**
+     * True if this is a H2 database.
+     */
+    boolean isH2;
+    
+    /**
+     * True if this is a PostgreSQL database.
+     */
+    boolean isPostgreSQL;
+    
+    /**
+     * True if this is a MySQL database.
+     */
+    boolean isMySQL;
+    
+    /**
+     * True if this is an Apache Derby database.
+     */
+    boolean isDerby;
+    
+    /**
+     * True if this is a Firebird database.
+     */
+    boolean isFirebird;
+    
+    /**
+     * True if this is an SQLite database.
+     */
+    boolean isSQLite;
 
+    /**
+     * Read the contents of this database from the database meta data.
+     * 
+     * @param meta the database meta data
+     */
     void readContents(DatabaseMetaData meta) throws SQLException {
         String prod = StringUtils.toLowerEnglish(meta.getDatabaseProductName());
         isSQLite = prod.indexOf("sqlite") >= 0;

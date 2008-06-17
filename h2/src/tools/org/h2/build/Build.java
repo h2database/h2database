@@ -251,16 +251,20 @@ public class Build extends BuildBase {
      */
     public void javadocImpl() {
         mkdir("docs/javadocImpl");
+int test;        
         javadoc(new String[] {
-                "-sourcepath", "src/main" + File.pathSeparator + "src/test" + File.pathSeparator + "src/tools" , 
+                "-sourcepath", "src/main" + File.pathSeparator + 
+                "src/test" + File.pathSeparator + "src/tools" , 
                 "-noindex",
                 "-d", "docs/javadocImpl2",
-                "-classpath", System.getProperty("java.home") + "/../lib/tools.jar" + 
+                "-classpath", System.getProperty("java.home") + 
+                "/../lib/tools.jar" + 
                 File.pathSeparator + "ext/slf4j-api-1.5.0.jar" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" + 
                 File.pathSeparator + "ext/lucene-core-2.2.0.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.build.*,org.h2.dev.*" });
+
         System.setProperty("h2.interfacesOnly", "false");
         System.setProperty("h2.destDir", "docs/javadocImpl");
         javadoc(new String[] { 
@@ -270,6 +274,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/servlet-api-2.4.jar" + 
                 File.pathSeparator + "ext/lucene-core-2.2.0.jar",
                 "-subpackages", "org.h2",
+                "-package",
                 "-doclet", "org.h2.build.doclet.Doclet" });
         copy("docs/javadocImpl", getFiles("src/docsrc/javadoc"), "src/docsrc/javadoc");
     }

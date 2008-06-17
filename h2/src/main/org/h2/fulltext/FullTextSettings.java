@@ -41,14 +41,32 @@ class FullTextSettings {
         return words;
     }
 
+    /**
+     * Get the index information for the given index id.
+     * 
+     * @param indexId the index id
+     * @return the index info
+     */
     IndexInfo getIndexInfo(long indexId) {
         return (IndexInfo) indexes.get(ObjectUtils.getLong(indexId));
     }
 
+    /**
+     * Add an index.
+     * 
+     * @param index the index
+     */
     void addIndexInfo(IndexInfo index) {
         indexes.put(ObjectUtils.getLong(index.id), index);
     }
 
+    /**
+     * Convert a word to uppercase. This method returns null if the word is in
+     * the ignore list.
+     * 
+     * @param word the word to convert and check
+     * @return the uppercase version of the word or null
+     */
     String convertWord(String word) {
         // TODO this is locale specific, document
         word = word.toUpperCase();
@@ -58,6 +76,12 @@ class FullTextSettings {
         return word;
     }
 
+    /**
+     * Get or create the fulltext settings for this database.
+     * 
+     * @param conn the connection
+     * @return the settings
+     */
     static FullTextSettings getInstance(Connection conn) throws SQLException {
         String path = getIndexPath(conn);
         FullTextSettings setting = (FullTextSettings) settings.get(path);

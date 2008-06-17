@@ -33,7 +33,7 @@ public class TestCompress extends TestBase {
         }
     }
 
-    void test(int len) throws Exception {
+    private void test(int len) throws Exception {
         Random r = new Random(len);
         for (int pattern = 0; pattern < 4; pattern++) {
             byte[] buff = new byte[len];

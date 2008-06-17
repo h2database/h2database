@@ -973,6 +973,12 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Close the database.
+     * 
+     * @param fromShutdownHook true if this method is called from the shutdown
+     *            hook
+     */
     synchronized void close(boolean fromShutdownHook) {
         closing = true;
         if (userSessions.size() > 0) {

@@ -76,7 +76,7 @@ public class TestLogFile extends TestBase {
         }
     }
 
-    void insert() throws Exception {
+    private void insert() throws Exception {
         Statement stat = conn.createStatement();
         stat.execute("SET LOGSIZE 200");
         stat.execute("SET MAX_LOG_SIZE " + MAX_LOG_SIZE);

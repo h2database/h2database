@@ -128,7 +128,7 @@ public class TableFunction extends Function implements FunctionCall {
         return vr;
     }
 
-    SimpleResultSet getSimpleResultSet(LocalResult rs,  int maxrows) throws SQLException {
+    private SimpleResultSet getSimpleResultSet(LocalResult rs,  int maxrows) throws SQLException {
         int columnCount = rs.getVisibleColumnCount();
         SimpleResultSet simple = new SimpleResultSet();
         for (int i = 0; i < columnCount; i++) {

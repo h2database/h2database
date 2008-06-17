@@ -30,7 +30,7 @@ public class TestPattern extends TestBase {
         }
     }
 
-    void test(CompareLike comp, String value, String pattern) throws Exception {
+    private void test(CompareLike comp, String value, String pattern) throws Exception {
         String regexp = initPatternRegexp(pattern, '\\');
         boolean resultRegexp = value.matches(regexp);
         boolean result = comp.test(pattern, value, '\\');
@@ -39,7 +39,7 @@ public class TestPattern extends TestBase {
         }
     }
 
-    static String getRandomValue() {
+    private static String getRandomValue() {
         StringBuffer buff = new StringBuffer();
         int len = (int) (Math.random() * 10);
         String s = "AB_%\\";
@@ -49,7 +49,7 @@ public class TestPattern extends TestBase {
         return buff.toString();
     }
 
-    static String getRandomPattern() {
+    private static String getRandomPattern() {
         StringBuffer buff = new StringBuffer();
         int len = (int) (Math.random() * 4);
         String s = "A%_\\";

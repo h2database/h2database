@@ -19,7 +19,7 @@ import org.h2.test.TestBase;
  */
 public class TestNativeSQL extends TestBase {
     
-    static final String[] PAIRS = new String[] { 
+    private static final String[] PAIRS = new String[] { 
             "CREATE TABLE TEST(ID INT PRIMARY KEY)",
             "CREATE TABLE TEST(ID INT PRIMARY KEY)", 
             
@@ -53,7 +53,7 @@ public class TestNativeSQL extends TestBase {
 
             "{{{{this is a bug}", null, };
 
-    Connection conn;
+    private Connection conn;
 
     public void test() throws Exception {
         deleteDb("nativeSql");
@@ -231,7 +231,7 @@ public class TestNativeSQL extends TestBase {
         assertFalse(conn.isClosed());
     }
 
-    void test(Connection conn, String original, String expected) throws Exception {
+    private void test(Connection conn, String original, String expected) throws Exception {
         trace("original: <" + original + ">");
         trace("expected: <" + expected + ">");
         try {

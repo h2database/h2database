@@ -579,7 +579,7 @@ public class TestLob extends TestBase {
         return conn;
     }
 
-    void testUpdateLob() throws Exception {
+    private void testUpdateLob() throws Exception {
         deleteDb("lob");
         Connection conn;
         conn = reconnect(null);
@@ -627,7 +627,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    void testLobReconnect() throws Exception {
+    private void testLobReconnect() throws Exception {
         deleteDb("lob");
         Connection conn = reconnect(null);
         Statement stat = conn.createStatement();
@@ -660,7 +660,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    void testLob(boolean clob) throws Exception {
+    private void testLob(boolean clob) throws Exception {
         deleteDb("lob");
         Connection conn = reconnect(null);
         conn = reconnect(conn);
@@ -744,7 +744,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    void testJavaObject() throws Exception {
+    private void testJavaObject() throws Exception {
         deleteDb("lob");
         Connection conn = getConnection("lob");
         conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA OTHER)");

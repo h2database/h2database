@@ -29,16 +29,15 @@ public class Indexer {
     private static final int MIN_WORD_SIZE = 3;
     private static final int MAX_RELATIONS = 20;
 
-    ArrayList pages = new ArrayList();
-    HashMap words = new HashMap();
-    HashSet noIndex = new HashSet();
-    ArrayList wordList;
-    int totalAllWeights;
-    PrintWriter output;
-
-    Page page;
-    boolean title;
-    boolean heading;
+    private ArrayList pages = new ArrayList();
+    private HashMap words = new HashMap();
+    private HashSet noIndex = new HashSet();
+    private ArrayList wordList;
+    private int totalAllWeights;
+    private PrintWriter output;
+    private Page page;
+    private boolean title;
+    private boolean heading;
 
     /**
      * This method is called when executing this application from the command
@@ -50,7 +49,7 @@ public class Indexer {
         new Indexer().run(args);
     }
 
-    void run(String[] args) throws Exception {
+    private void run(String[] args) throws Exception {
         String dir = "docs";
         String destDir = "docs/html";
         for (int i = 0; i < args.length; i++) {
@@ -86,7 +85,7 @@ public class Indexer {
         }
     }
 
-    void sortWords() {
+    private void sortWords() {
         wordList = new ArrayList(words.values());
         // TODO support ignored keywords (to shrink the index)
         // String ignored = "";
@@ -113,7 +112,7 @@ public class Indexer {
         });
     }
 
-    void removeOverflowRelations() {
+    private void removeOverflowRelations() {
         for (int i = 0; i < wordList.size(); i++) {
             Word word = (Word) wordList.get(i);
             ArrayList weights = word.getSortedWeights();
@@ -135,7 +134,7 @@ public class Indexer {
         }
     }
 
-    void sortPages() {
+    private void sortPages() {
         Collections.sort(pages, new Comparator() {
             public int compare(Object o0, Object o1) {
                 Page p0 = (Page) o0;
@@ -149,7 +148,7 @@ public class Indexer {
         }
     }
 
-    void listPages() {
+    private void listPages() {
         for (int i = 0; i < pages.size(); i++) {
             Page page = (Page) pages.get(i);
             output.println("pages[" + page.id + "]=new Page('" + convertUTF(page.title) + "', '" + page.fileName
@@ -157,7 +156,7 @@ public class Indexer {
         }
     }
 
-    void readPages(String dir, File file, int level) throws Exception {
+    private void readPages(String dir, File file, int level) throws Exception {
         String name = file.getName();
         String fileName = dir.length() > 0 ? dir + "/" + name : level > 0 ? name : "";
         if (file.isDirectory()) {
@@ -181,7 +180,7 @@ public class Indexer {
         }
     }
 
-    void listWords() {
+    private void listWords() {
         output.println("// words: " + wordList.size());
         StringBuffer buff = new StringBuffer();
         String first = "";
@@ -298,7 +297,7 @@ public class Indexer {
         page.title = page.title.trim();
     }
 
-    void process(String text) {
+    private void process(String text) {
         text = HtmlConverter.convertHtmlToString(text);
         if (title) {
             if (page.title == null) {
@@ -340,7 +339,7 @@ public class Indexer {
         }
     }
 
-    String convertUTF(String s) {
+    private String convertUTF(String s) {
         s = StringUtils.quoteJavaString(s);
         s = s.substring(1, s.length() - 1);
         return s;

@@ -64,12 +64,12 @@ public class Bnf {
         return bnf;
     }
 
-    void addFixedRule(String name, int fixedType) {
+    private void addFixedRule(String name, int fixedType) {
         Rule rule = new RuleFixed(fixedType);
         addRule(name, "Fixed", rule);
     }
 
-    RuleHead addRule(String topic, String section, Rule rule) {
+    private RuleHead addRule(String topic, String section, Rule rule) {
         RuleHead head = new RuleHead(section, topic, rule);
         if (ruleMap.get(StringUtils.toLowerEnglish(topic)) != null) {
             throw new Error("already exists: " + topic);
@@ -159,14 +159,14 @@ public class Bnf {
                     break;
                 }
             }
-            if (found == null || found.rule instanceof RuleFixed) {
+            if (found == null || found.getRule() instanceof RuleFixed) {
                 buff.append(s);
                 continue;
             }
             String page = "grammar.html";
-            if (found.section.startsWith("Data Types")) {
+            if (found.getSection().startsWith("Data Types")) {
                 page = "datatypes.html";
-            } else if (found.section.startsWith("Functions")) {
+            } else if (found.getSection().startsWith("Functions")) {
                 page = "functions.html";
             }
             String link = StringUtils.urlEncode(found.getTopic().toLowerCase());
@@ -289,7 +289,7 @@ public class Bnf {
         sentence.setQuery(query);
         for (int i = 0; i < statements.size(); i++) {
             RuleHead head = (RuleHead) statements.get(i);
-            if (!head.section.startsWith("Commands")) {
+            if (!head.getSection().startsWith("Commands")) {
                 continue;
             }
             sentence.start();
@@ -324,7 +324,7 @@ public class Bnf {
             ruleMap.put(topic, head);
             statements.add(head);
         } else {
-            head.rule = rule;
+            head.setRule(rule);
         }
     }
 

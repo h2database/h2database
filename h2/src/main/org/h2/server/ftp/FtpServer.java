@@ -96,17 +96,25 @@ public class FtpServer implements Service {
         }
     }
 
+    /**
+     * Close a connection. The open connection count will be decremented.
+     */
     void closeConnection() {
         synchronized (this) {
             openConnectionCount--;
         }
     }
 
+    /**
+     * Create a socket to listen for incoming data connections.
+     * 
+     * @return the server socket
+     */
     ServerSocket createDataSocket() throws SQLException {
         return NetUtils.createServerSocket(0, false);
     }
 
-    void appendFile(StringBuffer buff, String fileName) throws SQLException {
+    private void appendFile(StringBuffer buff, String fileName) throws SQLException {
         buff.append(fs.isDirectory(fileName) ? 'd' : '-');
         buff.append('r');
         buff.append(fs.canWrite(fileName) ? 'w' : '-');
@@ -134,17 +142,30 @@ public class FtpServer implements Service {
         buff.append("\r\n");
     }
 
+    /**
+     * Get the last modified date of a date and format it as required by the FTP
+     * protocol.
+     * 
+     * @param fileName the file name
+     * @return the last modified date of this file
+     */
     String formatLastModified(String fileName) {
         synchronized (dateFormat) {
             return dateFormat.format(new Date(fs.getLastModified(fileName)));
         }
     }
 
+    /**
+     * Get the full file name of this relative path.
+     * 
+     * @param path the relative path
+     * @return the file name
+     */
     String getFileName(String path) {
         return root + getPath(path);
     }
 
-    String getPath(String path) {
+    private String getPath(String path) {
         if (path.indexOf("..") > 0) {
             path = "/";
         }
@@ -158,6 +179,13 @@ public class FtpServer implements Service {
         return path;
     }
 
+    /**
+     * Get the directory listing for this directory.
+     * 
+     * @param directory the directory to list
+     * @param listDirectories if sub-directories should be listed
+     * @return the list
+     */
     String getDirectoryListing(String directory, boolean listDirectories) throws SQLException {
         String[] list = fs.listFiles(directory);
         StringBuffer buff = new StringBuffer();
@@ -170,10 +198,23 @@ public class FtpServer implements Service {
         return buff.toString();
     }
 
-    boolean checkUserPassword(String userName, String password) {
+    /**
+     * Check if this user name is allowed to write.
+     * 
+     * @param userName the user name
+     * @param password the password
+     * @return true if this user may write
+     */
+    boolean checkUserPasswordWrite(String userName, String password) {
         return userName.equals(this.writeUserName) && password.equals(this.writePassword);
     }
 
+    /**
+     * Check if this user name is allowed to read.
+     * 
+     * @param userName the user name
+     * @return true if this user may read
+     */
     boolean checkUserPasswordReadOnly(String userName) {
         return userName.equals(this.readUserName);
     }
@@ -251,12 +292,22 @@ public class FtpServer implements Service {
         return "H2 FTP Server";
     }
 
+    /**
+     * Write trace information if trace is enabled.
+     * 
+     * @param s the message to write
+     */
     void trace(String s) {
         if (trace) {
             System.out.println(s);
         }
     }
 
+    /**
+     * Write the stack trace if trace is enabled.
+     * 
+     * @param e the exception
+     */
     void traceError(Throwable e) {
         if (trace) {
             e.printStackTrace();
@@ -267,6 +318,11 @@ public class FtpServer implements Service {
         return allowTask;
     }
 
+    /**
+     * Start a task.
+     * 
+     * @param path the name of the task file
+     */
     void startTask(String path) throws IOException {
         stopTask(path);
         if (path.endsWith(".zip.task")) {
@@ -334,6 +390,11 @@ public class FtpServer implements Service {
         }
     }
 
+    /**
+     * Stop a running task.
+     * 
+     * @param processName the task name
+     */
     void stopTask(String processName) {
         trace("kill process: " + processName);
         Process p = (Process) tasks.remove(processName);

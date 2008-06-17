@@ -221,6 +221,13 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
     }
 
+    /**
+     * Prepare a statement that will automatically close when the result set is
+     * closed. This method is used to retrieve database meta data.
+     * 
+     * @param sql the SQL statement.
+     * @return the prepared statement
+     */
     PreparedStatement prepareAutoCloseStatement(String sql) throws SQLException {
         try {
             int id = getNextId(TraceObject.PREPARED_STATEMENT);
@@ -1011,11 +1018,18 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
     }
 
+    /**
+     * Prepare an command. This will parse the SQL statement.
+     * 
+     * @param sql the SQL statement
+     * @param fetchSize the fetch size (used in remote connections)
+     * @return the command
+     */
     CommandInterface prepareCommand(String sql, int fetchSize) throws SQLException {
         return session.prepareCommand(sql, fetchSize);
     }
 
-    CommandInterface prepareCommand(String sql, CommandInterface old) throws SQLException {
+    private CommandInterface prepareCommand(String sql, CommandInterface old) throws SQLException {
         return old == null ? session.prepareCommand(sql, Integer.MAX_VALUE) : old;
     }
 
@@ -1080,6 +1094,12 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
     }
 
+    /**
+     * Convert JDBC escape sequences in the SQL statement.
+     * 
+     * @param sql the SQL statement with or without JDBC escape sequences
+     * @return the SQL statement without JDBC escape sequences
+     */
     String translateSQL(String sql) throws SQLException {
         if (sql == null || sql.indexOf('{') < 0) {
             return sql;
@@ -1216,6 +1236,11 @@ public class JdbcConnection extends TraceObject implements Connection {
         //## Java 1.4 end ##
     }
 
+    /**
+     * Check if this connection is closed.
+     * 
+     * @throws SQLException if the connection or session is closed
+     */
     void checkClosed() throws SQLException {
         if (session == null) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
@@ -1455,6 +1480,14 @@ public class JdbcConnection extends TraceObject implements Connection {
         return v;
     }
 
+    /**
+     * Create a blob value from this input stream.
+     * 
+     * @param x the input stream
+     * @param length the length (if smaller or equal to 0, all data until the
+     *            end of file is read)
+     * @return the value
+     */
     Value createBlob(InputStream x, long length) throws SQLException {
         if (x == null) {
             return ValueNull.INSTANCE;

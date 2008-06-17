@@ -17,6 +17,9 @@ import org.h2.engine.Constants;
  */
 public class LZFOutputStream extends OutputStream {
 
+    /**
+     * The file header of a LZF file.
+     */
     static final int MAGIC = ('H' << 24) | ('2' << 16) | ('I' << 8) | 'S';
 
     private final OutputStream out;

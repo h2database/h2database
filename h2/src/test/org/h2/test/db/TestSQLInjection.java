@@ -19,8 +19,8 @@ import org.h2.test.TestBase;
  */
 public class TestSQLInjection extends TestBase {
 
-    Connection conn;
-    Statement stat;
+    private Connection conn;
+    private Statement stat;
 
     public void test() throws Exception {
         deleteDb("sqlInjection");
@@ -83,13 +83,13 @@ public class TestSQLInjection extends TestBase {
         conn.close();
     }
 
-    boolean checkPasswordInsecure(String pwd) throws SQLException {
+    private boolean checkPasswordInsecure(String pwd) throws SQLException {
         String sql = "SELECT * FROM USERS WHERE PASSWORD='" + pwd + "'";
         ResultSet rs = conn.createStatement().executeQuery(sql);
         return rs.next();
     }
 
-    boolean checkPasswordSecure(String pwd) throws Exception {
+    private boolean checkPasswordSecure(String pwd) throws Exception {
         String sql = "SELECT * FROM USERS WHERE PASSWORD=?";
         PreparedStatement prep = conn.prepareStatement(sql);
         prep.setString(1, pwd);

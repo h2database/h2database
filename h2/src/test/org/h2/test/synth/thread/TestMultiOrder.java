@@ -19,14 +19,14 @@ import java.util.Random;
  */
 public class TestMultiOrder extends TestMultiThread {
 
-    static int customerCount;
-    static int orderCount;
-    static int orderLineCount;
+    private static int customerCount;
+    private static int orderCount;
+    private static int orderLineCount;
 
     private static final String[] ITEMS = new String[] { "Apples", "Oranges", "Bananas", "Coffee" };
 
-    Connection conn;
-    PreparedStatement insertLine;
+    private Connection conn;
+    private PreparedStatement insertLine;
 
     TestMultiOrder(TestMulti base) throws SQLException {
         super(base);
@@ -101,19 +101,19 @@ public class TestMultiOrder extends TestMultiThread {
         return buff.toString();
     }
 
-    synchronized int getNextCustomerId() {
+    private synchronized int getNextCustomerId() {
         return customerCount++;
     }
 
-    synchronized int increaseOrders() {
+    private synchronized int increaseOrders() {
         return orderCount++;
     }
 
-    synchronized int increaseOrderLines(int count) {
+    private synchronized int increaseOrderLines(int count) {
         return orderLineCount += count;
     }
 
-    public int getCustomerCount() {
+    private int getCustomerCount() {
         return customerCount;
     }
 

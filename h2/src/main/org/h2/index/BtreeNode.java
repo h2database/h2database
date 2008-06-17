@@ -203,7 +203,7 @@ public class BtreeNode extends BtreePage {
         return n2;
     }
 
-    int getChild(int i) {
+    private int getChild(int i) {
         return pageChildren.get(i);
     }
 

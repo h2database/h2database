@@ -102,11 +102,20 @@ class WebThread extends Thread implements DatabaseEventListener {
         setName("H2 Console thread");
     }
 
+    /**
+     * Set the web session and attributes.
+     * 
+     * @param session the session
+     * @param attributes the attributes
+     */
     void setSession(WebSession session, Properties attributes) {
         this.session = session;
         this.attributes = attributes;
     }
 
+    /**
+     * Close the connection now.
+     */
     void stopNow() {
         this.stop = true;
     }
@@ -121,6 +130,13 @@ class WebThread extends Thread implements DatabaseEventListener {
         return requestedFile;
     }
 
+    /**
+     * Process an HTTP request.
+     * 
+     * @param file the file that was requested
+     * @param the host address
+     * @return the name of the file to return to the client
+     */
     String processRequest(String file, String hostAddr) {
         int index = file.lastIndexOf('.');
         String suffix;
@@ -256,7 +272,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         return keepAlive;
     }
 
-    protected String getComboBox(String[] elements, String selected) {
+    private String getComboBox(String[] elements, String selected) {
         StringBuffer buff = new StringBuffer();
         for (int i = 0; i < elements.length; i++) {
             String value = elements[i];
@@ -273,7 +289,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         return buff.toString();
     }
 
-    protected String getComboBox(String[][] elements, String selected) {
+    private String getComboBox(String[][] elements, String selected) {
         StringBuffer buff = new StringBuffer();
         for (int i = 0; i < elements.length; i++) {
             String[] n = elements[i];
@@ -396,7 +412,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         return keepAlive;
     }
 
-    String process(String file) {
+    private String process(String file) {
         trace("process " + file);
         while (file.endsWith(".do")) {
             if ("login.do".equals(file)) {
@@ -670,8 +686,20 @@ class WebThread extends Thread implements DatabaseEventListener {
      * This class represents index information for the GUI.
      */
     static class IndexInfo {
+        
+        /**
+         * The index name.
+         */
         String name;
+        
+        /**
+         * The index type name.
+         */
         String type;
+        
+        /**
+         * The indexed columns.
+         */
         String columns;
     }
 
@@ -996,6 +1024,13 @@ class WebThread extends Thread implements DatabaseEventListener {
         }
     }
 
+    /**
+     * Get the formatted login error message.
+     * 
+     * @param e the exception 
+     * @param isH2 if the current database is a H2 database
+     * @return the formatted error message
+     */
     String getLoginError(Exception e, boolean isH2) {
         if (e instanceof JdbcSQLException && ((JdbcSQLException) e).getErrorCode() == ErrorCode.CLASS_NOT_FOUND_1) {
             return "${text.login.driverNotFound}<br />" + getStackTrace(0, e, isH2);
@@ -1992,6 +2027,11 @@ class WebThread extends Thread implements DatabaseEventListener {
         return buff.toString();
     }
 
+    /**
+     * Save the current connection settings to the properties file.
+     * 
+     * @return the file to open afterwards
+     */
     String settingSave() {
         ConnectionInfo info = new ConnectionInfo();
         info.name = attributes.getProperty("name", "");
@@ -2035,13 +2075,18 @@ class WebThread extends Thread implements DatabaseEventListener {
         return "index.do";
     }
 
-    boolean allow() {
+    private boolean allow() {
         if (server.getAllowOthers()) {
             return true;
         }
         return NetUtils.isLoopbackAddress(socket);
     }
 
+    /**
+     * Get the current mime type.
+     * 
+     * @return the mime type
+     */
     String getMimeType() {
         return mimeType;
     }

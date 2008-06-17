@@ -70,6 +70,13 @@ public class MetaRecord {
         r.setValue(3, ValueString.get(sql));
     }
 
+    /**
+     * Execute the meta data statement.
+     * 
+     * @param db the database
+     * @param systemSession the system session
+     * @param listener the database event listener
+     */
     void execute(Database db, Session systemSession, DatabaseEventListener listener) throws SQLException {
         try {
             Prepared command = systemSession.prepare(sql);

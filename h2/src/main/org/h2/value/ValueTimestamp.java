@@ -28,6 +28,10 @@ public class ValueTimestamp extends Value {
      * Example: 2001-01-01 23:59:59.000
      */
     static final int DISPLAY_SIZE = 23; 
+    
+    /**
+     * The default scale for timestamps.
+     */
     static final int DEFAULT_SCALE = 10;
 
     /**

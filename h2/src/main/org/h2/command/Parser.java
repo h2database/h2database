@@ -915,7 +915,7 @@ public class Parser {
         return new TableFilter(session, table, alias, rightsChecked, currentSelect);
     }
 
-    String readFromAlias(String alias) throws SQLException {
+    private String readFromAlias(String alias) throws SQLException {
         if (readIf("AS")) {
             alias = readAliasIdentifier();
         } else if (currentTokenType == IDENTIFIER) {
@@ -1108,7 +1108,7 @@ public class Parser {
         throw getSyntaxError();
     }
 
-    DropUserDataType parseDropUserDataType() throws SQLException {
+    private DropUserDataType parseDropUserDataType() throws SQLException {
         boolean ifExists = readIfExists(false);
         DropUserDataType command = new DropUserDataType(session);
         command.setTypeName(readUniqueIdentifier());
@@ -1117,7 +1117,7 @@ public class Parser {
         return command;
     }
 
-    DropAggregate parseDropAggregate() throws SQLException {
+    private DropAggregate parseDropAggregate() throws SQLException {
         boolean ifExists = readIfExists(false);
         DropAggregate command = new DropAggregate(session);
         command.setName(readUniqueIdentifier());

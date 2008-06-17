@@ -124,7 +124,7 @@ public class TestKillRestartMulti extends TestBase {
         new TestKillRestartMulti().test(args);
     }
 
-    void test(String[] args) throws Exception {
+    private void test(String[] args) throws Exception {
         for (int i = 0; i < args.length; i++) {
             if ("-url".equals(args[i])) {
                 url = args[++i];
@@ -227,7 +227,7 @@ public class TestKillRestartMulti extends TestBase {
         }
     }
 
-    Connection openConnection() throws Exception {
+    private Connection openConnection() throws Exception {
         Class.forName(driver);
         openCount++;
         Connection conn = DriverManager.getConnection(url, user, password);
@@ -235,7 +235,7 @@ public class TestKillRestartMulti extends TestBase {
         return conn;
     }
 
-    void createTable(Random random) throws Exception {
+    private void createTable(Random random) throws Exception {
         Connection conn = (Connection) connections.get(random.nextInt(connections.size()));
         Statement stat = conn.createStatement();
         String table = "TEST" + random.nextInt(10);
@@ -256,7 +256,7 @@ public class TestKillRestartMulti extends TestBase {
         }
     }
 
-    void testConsistent(Connection conn) throws Exception {
+    private void testConsistent(Connection conn) throws Exception {
         for (int i = 0; i < 20; i++) {
             Statement stat = conn.createStatement();
             try {

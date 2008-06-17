@@ -190,7 +190,8 @@ java org.h2.test.TestAll timer
     public boolean jdk14 = true;
     
     /**
-     * If the transaction log files should be kept small (that is, log files should be switched early).
+     * If the transaction log files should be kept small (that is, log files
+     * should be switched early).
      */
     boolean smallLog;
     
@@ -670,6 +671,11 @@ Roadmap:
         }
     }
 
+    /**
+     * This method is called before a complete set of tests is run. It deletes
+     * old database files in the test directory and trace files. It also starts
+     * a TCP server if the test uses remote connections.
+     */
     void beforeTest() throws SQLException {
         DeleteDbFiles.execute(TestBase.baseDir, null, true);
         FileSystemDisk.getInstance().deleteRecursive("trace.db");

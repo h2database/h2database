@@ -28,8 +28,8 @@ public class WebSite {
         "<script src=\"http://www.google-analytics.com/ga.js\" type=\"text/javascript\"></script>\n" +
         "<script type=\"text/javascript\">var pageTracker=_gat._getTracker(\"UA-2351060-1\");pageTracker._initData();pageTracker._trackPageview();</script>";
     
-    String sourceDir = "docs";
-    String targetDir = "dataWeb";
+    private String sourceDir = "docs";
+    private String targetDir = "dataWeb";
     
     /**
      * This method is called when executing this application from the command

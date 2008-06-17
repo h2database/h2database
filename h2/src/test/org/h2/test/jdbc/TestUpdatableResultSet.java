@@ -333,7 +333,7 @@ public class TestUpdatableResultSet extends TestBase {
         conn.close();
     }
 
-    void testScrollable(Connection conn, int rows) throws Exception {
+    private void testScrollable(Connection conn, int rows) throws Exception {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE IF NOT EXISTS TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("DELETE FROM TEST");
@@ -349,7 +349,7 @@ public class TestUpdatableResultSet extends TestBase {
         testScrollResultSet(scroll, ResultSet.TYPE_SCROLL_INSENSITIVE, rows);
     }
 
-    void testScrollResultSet(Statement stat, int type, int rows) throws Exception {
+    private void testScrollResultSet(Statement stat, int type, int rows) throws Exception {
         boolean error = false;
         if (type == ResultSet.TYPE_FORWARD_ONLY) {
             error = true;
@@ -402,7 +402,7 @@ public class TestUpdatableResultSet extends TestBase {
         }
     }
 
-    void checkState(ResultSet rs, boolean beforeFirst, boolean first, boolean last, boolean afterLast) throws Exception {
+    private void checkState(ResultSet rs, boolean beforeFirst, boolean first, boolean last, boolean afterLast) throws Exception {
         assertEquals(rs.isBeforeFirst(), beforeFirst);
         assertEquals(rs.isFirst(), first);
         assertEquals(rs.isLast(), last);

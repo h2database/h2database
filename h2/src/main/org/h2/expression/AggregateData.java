@@ -35,6 +35,13 @@ class AggregateData {
         this.aggregateType = aggregateType;
     }
     
+    /**
+     * Add a value to this aggregate.
+     * 
+     * @param database the database
+     * @param distinct if the calculation should be distinct
+     * @param v the value
+     */
     void add(Database database, boolean distinct, Value v) throws SQLException {
         if (aggregateType == Aggregate.SELECTIVITY) {
             count++;
@@ -133,6 +140,13 @@ class AggregateData {
         return list;
     }
 
+    /**
+     * Get the aggregate result.
+     * 
+     * @param database the database
+     * @param distinct if distinct is used
+     * @return the value
+     */
     Value getValue(Database database, boolean distinct) throws SQLException {
         if (distinct) {
             count = 0;

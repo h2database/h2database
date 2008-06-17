@@ -23,7 +23,7 @@ public class TestStreams extends TestBase {
         testLZFStreams();
     }
 
-    byte[] getRandomBytes(Random random) {
+    private byte[] getRandomBytes(Random random) {
         int[] sizes = new int[] { 0, 1, random.nextInt(1000), random.nextInt(100000), random.nextInt(1000000) };
         int size = sizes[random.nextInt(sizes.length)];
         byte[] buffer = new byte[size];

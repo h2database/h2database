@@ -21,24 +21,24 @@ import java.util.ArrayList;
  * runtime of the tested application.
  */
 public class Coverage {
-    static final String IMPORT = "import " + Coverage.class.getPackage().getName() + ".Profile";
-    ArrayList files = new ArrayList();
-    ArrayList exclude = new ArrayList();
-    Tokenizer tokenizer;
-    Writer writer;
-    Writer data;
-    String token = "";
-    String add = "";
-    String file;
-    int index;
-    int indent;
-    int line;
-    String last;
-    String word, function;
-    boolean perClass;
-    boolean perFunction = true;
+    private static final String IMPORT = "import " + Coverage.class.getPackage().getName() + ".Profile";
+    private ArrayList files = new ArrayList();
+    private ArrayList exclude = new ArrayList();
+    private Tokenizer tokenizer;
+    private Writer writer;
+    private Writer data;
+    private String token = "";
+    private String add = "";
+    private String file;
+    private int index;
+    private int indent;
+    private int line;
+    private String last;
+    private String word, function;
+    private boolean perClass;
+    private boolean perFunction = true;
 
-    void printUsage() {
+    private void printUsage() {
         System.out.println("Usage:\n" + "- copy all your source files to another directory\n"
                 + "  (be careful, they will be modified - don't take originals!)\n" + "- java " + getClass().getName()
                 + " <directory>\n" + "  this will modified the source code and create 'profile.txt'\n"
@@ -59,7 +59,7 @@ public class Coverage {
         new Coverage().run(args);
     }
 
-    void run(String[] args) {
+    private void run(String[] args) {
         if (args.length == 0 || args[0].equals("-?")) {
             printUsage();
             return;
@@ -90,11 +90,11 @@ public class Coverage {
         }
     }
 
-    void addExclude(String file) {
+    private void addExclude(String file) {
         exclude.add(file);
     }
 
-    boolean isExcluded(String s) {
+    private boolean isExcluded(String s) {
         for (int i = 0; i < exclude.size(); i++) {
             if (s.startsWith(exclude.get(i).toString())) {
                 return true;
@@ -103,7 +103,7 @@ public class Coverage {
         return false;
     }
 
-    void addDir(String path, int recurse) {
+    private void addDir(String path, int recurse) {
         File f = new File(path);
         if (f.isFile() && path.endsWith(".java")) {
             if (!isExcluded(path)) {
@@ -117,7 +117,7 @@ public class Coverage {
         }
     }
 
-    void processAll() {
+    private void processAll() {
         int len = files.size();
         long time = System.currentTimeMillis();
         for (int i = 0; i < len; i++) {
@@ -131,7 +131,7 @@ public class Coverage {
         }
     }
 
-    void processFile(String name) {
+    private void processFile(String name) {
         file = name;
         int i;
         i = file.lastIndexOf('.');
@@ -183,7 +183,7 @@ public class Coverage {
         }
     }
 
-    void read() throws Exception {
+    private void read() throws Exception {
         last = token;
         String write = token;
         token = null;
@@ -225,14 +225,14 @@ public class Coverage {
         }
     }
 
-    void readThis(String s) throws Exception {
+    private void readThis(String s) throws Exception {
         if (!token.equals(s)) {
             throw new Exception("Expected: " + s + " got:" + token);
         }
         read();
     }
 
-    void process() throws Exception {
+    private void process() throws Exception {
         boolean imp = false;
         read();
         do {
@@ -251,7 +251,7 @@ public class Coverage {
         } while (token != null);
     }
 
-    void processInit() throws Exception {
+    private void processInit() throws Exception {
         do {
             if (token.equals("{")) {
                 read();
@@ -265,7 +265,7 @@ public class Coverage {
         } while (true);
     }
 
-    void processClass() throws Exception {
+    private void processClass() throws Exception {
         int type = 0;
         while (true) {
             if (token == null) {
@@ -317,7 +317,7 @@ public class Coverage {
         }
     }
 
-    void processBracket() throws Exception {
+    private void processBracket() throws Exception {
         do {
             if (token.equals("(")) {
                 read();
@@ -331,7 +331,7 @@ public class Coverage {
         } while (true);
     }
 
-    void processFunction() throws Exception {
+    private void processFunction() throws Exception {
         function = word;
         writeLine();
         do {
@@ -341,7 +341,7 @@ public class Coverage {
         writeLine();
     }
 
-    void processBlockOrStatement() throws Exception {
+    private void processBlockOrStatement() throws Exception {
         if (!token.equals("{")) {
             write("{ //++");
             writeLine();
@@ -356,7 +356,7 @@ public class Coverage {
         }
     }
 
-    void processStatement() throws Exception {
+    private void processStatement() throws Exception {
         while (true) {
             if (token.equals("while") || token.equals("for") || token.equals("synchronized")) {
                 read();
@@ -478,12 +478,12 @@ public class Coverage {
         }
     }
 
-    void setLine() throws Exception {
+    private void setLine() throws Exception {
         add += "Profile.visit(" + index + ");";
         line = tokenizer.getLine();
     }
 
-    void nextDebug() throws Exception {
+    private void nextDebug() throws Exception {
         if (perFunction) {
             int i = function.indexOf("(");
             String func = i < 0 ? function : function.substring(0, i);
@@ -498,19 +498,19 @@ public class Coverage {
         index++;
     }
 
-    void writeLine() throws Exception {
+    private void writeLine() throws Exception {
         write("\r\n");
         for (int i = 0; i < indent; i++) {
             writer.write(' ');
         }
     }
 
-    void write(String s) throws Exception {
+    private void write(String s) throws Exception {
         writer.write(s);
         // System.out.print(s);
     }
 
-    void printError(String error) {
+    private void printError(String error) {
         System.out.println("");
         System.out.println("File:" + file);
         System.out.println("ERROR: " + error);

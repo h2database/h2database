@@ -220,6 +220,9 @@ public class Optimizer {
         return true;
     }
 
+    /**
+     * Calculate the best query plan to use.
+     */
     void optimize() throws SQLException {
         calculateBestPlan();
         bestPlan.removeUnusableIndexConditions();

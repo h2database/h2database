@@ -87,7 +87,7 @@ public class Tokenizer {
         return buffer.toString();
     }
 
-    void append(int i) {
+    private void append(int i) {
         buffer.append((char) i);
     }
 

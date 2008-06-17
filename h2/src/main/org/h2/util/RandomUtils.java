@@ -22,7 +22,14 @@ import java.util.Random;
  */
 public class RandomUtils {
 
+    /**
+     * The secure random object.
+     */
     static SecureRandom secureRandom;
+    
+    /**
+     * True if the secure random object is seeded.
+     */
     static volatile boolean seeded;
     private static Random random  = new Random();
     
@@ -187,6 +194,13 @@ public class RandomUtils {
         return random.nextInt(lower);
     }
 
+    /**
+     * Print a message to system output if there was a problem initializing the
+     * random number generator.
+     * 
+     * @param s the message to print
+     * @param t the stack trace
+     */
     static void warn(String s, Throwable t) {
         // not a fatal problem, but maybe reduced security
         System.out.println("RandomUtils warning: " + s);

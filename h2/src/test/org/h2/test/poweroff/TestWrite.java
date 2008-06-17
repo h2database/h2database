@@ -45,7 +45,7 @@ public class TestWrite {
         testDatabase("org.postgresql.Driver", "jdbc:postgresql:test", "sa", "sa");
     }
 
-    static void testFile(String mode, boolean flush) throws Exception {
+    private static void testFile(String mode, boolean flush) throws Exception {
         System.out.println("Testing RandomAccessFile(.., \"" + mode + "\")...");
         if (flush) {
             System.out.println("  with FileDescriptor.sync()");
@@ -90,7 +90,7 @@ public class TestWrite {
         new File("test.txt").delete();
     }
 
-    static void testDatabase(String driver, String url, String user, String password) throws Exception {
+    private static void testDatabase(String driver, String url, String user, String password) throws Exception {
         Class.forName(driver);
         Connection conn = DriverManager.getConnection(url, user, password);
         System.out.println("Testing Database, URL=" + url);

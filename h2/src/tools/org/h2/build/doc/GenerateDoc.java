@@ -31,11 +31,11 @@ import org.h2.util.StringUtils;
  */
 public class GenerateDoc {
 
-    String inDir = "src/docsrc/html";
-    String outDir = "docs/html";
-    Connection conn;
-    HashMap session = new HashMap();
-    Bnf bnf;
+    private String inDir = "src/docsrc/html";
+    private String outDir = "docs/html";
+    private Connection conn;
+    private HashMap session = new HashMap();
+    private Bnf bnf;
 
     /**
      * This method is called when executing this application from the command
@@ -47,7 +47,7 @@ public class GenerateDoc {
         new GenerateDoc().run(args);
     }
 
-    void run(String[] args) throws Exception {
+    private void run(String[] args) throws Exception {
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-in")) {
                 inDir = args[++i];
@@ -86,7 +86,7 @@ public class GenerateDoc {
         conn.close();
     }
     
-    void processAll(String dir) throws Exception {
+    private void processAll(String dir) throws Exception {
         if (dir.endsWith(".svn")) {
             return;
         }
@@ -101,7 +101,7 @@ public class GenerateDoc {
         }
     }
 
-    void process(String dir, String fileName) throws Exception {
+    private void process(String dir, String fileName) throws Exception {
         String inFile = inDir + "/" + dir + "/" + fileName;
         String outFile = outDir + "/" + dir + "/" + fileName;
         new File(outFile).getParentFile().mkdirs();
@@ -117,7 +117,7 @@ public class GenerateDoc {
         out.close();
     }
 
-    void map(String key, String sql) throws Exception {
+    private void map(String key, String sql) throws Exception {
         ResultSet rs = null;
         Statement stat = null;
         try {

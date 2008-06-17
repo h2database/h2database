@@ -22,8 +22,8 @@ import org.h2.tools.DeleteDbFiles;
  */
 public class TestMvcc1 extends TestBase {
 
-    Connection c1, c2;
-    Statement s1, s2;
+    private Connection c1, c2;
+    private Statement s1, s2;
 
     public void test() throws Exception {
         testSetMode();

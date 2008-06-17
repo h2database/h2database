@@ -17,8 +17,21 @@ import org.h2.test.TestBase;
  */
 public class TestDeadlock extends TestBase {
 
-    Connection c1, c2, c3;
-    volatile SQLException lastException;
+    /**
+     * The first connection.
+     */
+    Connection c1;
+
+    /**
+     * The second connection.
+     */
+    Connection c2;
+    
+    /**
+     * The third connection.
+     */
+    Connection c3;
+    private volatile SQLException lastException;
     
     public void test() throws Exception {
         deleteDb("deadlock");
@@ -29,7 +42,7 @@ public class TestDeadlock extends TestBase {
         testNoDeadlock();
     }
     
-    void init() throws Exception {
+    private void init() throws Exception {
         c1 = getConnection("deadlock");
         c2 = getConnection("deadlock");
         c3 = getConnection("deadlock");
@@ -42,7 +55,7 @@ public class TestDeadlock extends TestBase {
         lastException = null;
     }
     
-    void end() throws SQLException {
+    private void end() throws SQLException {
         c1.close();
         c2.close();
         c3.close();
@@ -63,6 +76,9 @@ public class TestDeadlock extends TestBase {
         }
     }
     
+    /**
+     * Add the exception to the list of exceptions.
+     */
     void catchDeadlock(SQLException e) {
         if (lastException != null) {
             lastException.setNextException(e);
@@ -71,7 +87,7 @@ public class TestDeadlock extends TestBase {
         }
     }
     
-    void testNoDeadlock() throws Exception {
+    private void testNoDeadlock() throws Exception {
         init();
         c1.createStatement().execute("CREATE TABLE TEST_A(ID INT PRIMARY KEY)");
         c1.createStatement().execute("CREATE TABLE TEST_B(ID INT PRIMARY KEY)");
@@ -114,7 +130,7 @@ public class TestDeadlock extends TestBase {
 
     }
     
-    void testThreePhilosophers() throws Exception {
+    private void testThreePhilosophers() throws Exception {
         if (config.mvcc) {
             return;
         }
@@ -156,7 +172,7 @@ public class TestDeadlock extends TestBase {
         end();
     }
 
-    void testLockUpgrade() throws Exception {
+    private void testLockUpgrade() throws Exception {
         if (config.mvcc) {
             return;
         }
@@ -189,7 +205,7 @@ public class TestDeadlock extends TestBase {
         end();
     }
     
-    void testDiningPhilosophers() throws Exception {
+    private void testDiningPhilosophers() throws Exception {
         if (config.mvcc) {
             return;
         }
@@ -224,7 +240,7 @@ public class TestDeadlock extends TestBase {
         assertEquals(ErrorCode.DEADLOCK_1, lastException.getErrorCode());
         SQLException e2 = lastException.getNextException();
         if (e2 != null) {
-            // we have two exception, but there may only be one
+            // we have two exception, but there should only be one
             throw e2;
         }
     }

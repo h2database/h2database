@@ -83,7 +83,7 @@ public class TestIntArray extends TestBase {
         }
     }
 
-    int[] add(int[] array, int i, int value) {
+    private int[] add(int[] array, int i, int value) {
         int[] a2 = new int[array.length + 1];
         System.arraycopy(array, 0, a2, 0, array.length);
         if (i < array.length) {
@@ -94,11 +94,11 @@ public class TestIntArray extends TestBase {
         return array;
     }
 
-    int[] add(int[] array, int value) {
+    private int[] add(int[] array, int value) {
         return add(array, array.length, value);
     }
 
-    int[] addValueSorted(int[] array, int value) {
+    private int[] addValueSorted(int[] array, int value) {
         for (int i = 0; i < array.length; i++) {
             if (array[i] < value) {
                 continue;
@@ -111,7 +111,7 @@ public class TestIntArray extends TestBase {
         return add(array, value);
     }
 
-    int findNextValueIndex(int[] array, int value) {
+    private int findNextValueIndex(int[] array, int value) {
         for (int i = 0; i < array.length; i++) {
             if (array[i] >= value) {
                 return i;
@@ -120,11 +120,11 @@ public class TestIntArray extends TestBase {
         return array.length;
     }
 
-    int get(int[] array, int i) {
+    private int get(int[] array, int i) {
         return array[i];
     }
 
-    int[] remove(int[] array, int i) {
+    private int[] remove(int[] array, int i) {
         int[] a2 = new int[array.length - 1];
         System.arraycopy(array, 0, a2, 0, i);
         if (i < a2.length) {
@@ -133,7 +133,7 @@ public class TestIntArray extends TestBase {
         return a2;
     }
 
-    int[] removeValue(int[] array, int value) {
+    private int[] removeValue(int[] array, int value) {
         for (int i = 0; i < array.length; i++) {
             if (array[i] == value) {
                 return remove(array, i);
@@ -142,16 +142,12 @@ public class TestIntArray extends TestBase {
         return array;
     }
 
-    int[] set(int[] array, int i, int value) {
+    private int[] set(int[] array, int i, int value) {
         array[i] = value;
         return array;
     }
 
-    int size(int[] array) {
-        return array.length;
-    }
-
-    int[] sort(int[] array) {
+    private int[] sort(int[] array) {
         Arrays.sort(array);
         return array;
     }

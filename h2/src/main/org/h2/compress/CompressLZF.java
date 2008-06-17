@@ -55,15 +55,15 @@ public class CompressLZF implements Compressor {
         return Compressor.LZF;
     }
 
-    int first(byte[] in, int inPos) {
+    private int first(byte[] in, int inPos) {
         return (in[inPos] << 8) + (in[inPos + 1] & 255);
     }
 
-    int next(int v, byte[] in, int inPos) {
+    private int next(int v, byte[] in, int inPos) {
         return (v << 8) + (in[inPos + 2] & 255);
     }
 
-    int hash(int h) {
+    private int hash(int h) {
         // or 57321
         return ((h * 184117) >> 9) & (HASH_SIZE - 1);
     }

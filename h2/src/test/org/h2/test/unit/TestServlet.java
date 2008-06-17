@@ -48,6 +48,12 @@ public class TestServlet extends TestBase {
             return attributes.get(key);
         }
 
+        /**
+         * Set an initialization parameter.
+         * 
+         * @param key the parameter key
+         * @param value the value
+         */
         void setInitParameter(String key, String value) {
             initParams.setProperty(key, value);
         }

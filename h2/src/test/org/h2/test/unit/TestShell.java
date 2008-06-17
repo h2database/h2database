@@ -22,11 +22,19 @@ import org.h2.tools.Shell;
  */
 public class TestShell extends TestBase {
 
+    /**
+     * The output stream of the tool.
+     */
     PrintStream toolOut;
+    
+    /**
+     * The input stream of the tool.
+     */
     InputStream toolIn;
-    PrintStream testOut;
-    PipedInputStream testIn;
-    LineNumberReader lineReader;
+    
+    private PrintStream testOut;
+    private PipedInputStream testIn;
+    private LineNumberReader lineReader;
     
     public void test() throws Exception {
         testIn = new PipedInputStream();

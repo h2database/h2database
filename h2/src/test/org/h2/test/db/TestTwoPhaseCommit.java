@@ -33,7 +33,7 @@ public class TestTwoPhaseCommit extends TestBase {
         test(false);
     }
 
-    void test(boolean rolledBack) throws Exception {
+    private void test(boolean rolledBack) throws Exception {
         Connection conn = getConnection("twoPhaseCommit");
         Statement stat = conn.createStatement();
         stat.execute("SET WRITE_DELAY 0");
@@ -50,7 +50,7 @@ public class TestTwoPhaseCommit extends TestBase {
         conn.close();
     }
 
-    void openWith(boolean rollback) throws Exception {
+    private void openWith(boolean rollback) throws Exception {
         Connection conn = getConnection("twoPhaseCommit");
         Statement stat = conn.createStatement();
         ArrayList list = new ArrayList();
@@ -69,7 +69,7 @@ public class TestTwoPhaseCommit extends TestBase {
         conn.close();
     }
 
-    void prepare() throws Exception {
+    private void prepare() throws Exception {
         deleteDb("twoPhaseCommit");
         Connection conn = getConnection("twoPhaseCommit");
         Statement stat = conn.createStatement();

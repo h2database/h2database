@@ -23,22 +23,24 @@ import org.h2.test.TestBase;
  */
 public class TestBatchUpdates extends TestBase {
 
-    static final String COFFEE_UPDATE = "UPDATE TEST SET PRICE=PRICE*20 WHERE TYPE_ID=?";
-    static final String COFFEE_SELECT = "SELECT PRICE FROM TEST WHERE KEY_ID=?";
-    static final String COFFEE_QUERY = "SELECT C_NAME,PRICE FROM TEST WHERE TYPE_ID=?";
-    static final String COFFEE_DELETE = "DELETE FROM TEST WHERE KEY_ID=?";
-    static final String COFFEE_INSERT1 = "INSERT INTO TEST VALUES(9,'COFFEE-9',9.0,5)";
-    static final String COFFEE_DELETE1 = "DELETE FROM TEST WHERE KEY_ID=9";
-    static final String COFFEE_UPDATE1 = "UPDATE TEST SET PRICE=PRICE*20 WHERE TYPE_ID=1";
-    static final String COFFEE_SELECT1 = "SELECT PRICE FROM TEST WHERE KEY_ID>4";
-    static final String COFFEE_UPDATE_SET = "UPDATE TEST SET KEY_ID=?, C_NAME=? WHERE C_NAME=?";
-    static final String COFFEE_SELECT_CONTINUED = "SELECT COUNT(*) FROM TEST WHERE C_NAME='Continue-1'";
+    private static final String COFFEE_UPDATE = "UPDATE TEST SET PRICE=PRICE*20 WHERE TYPE_ID=?";
+    private static final String COFFEE_SELECT = "SELECT PRICE FROM TEST WHERE KEY_ID=?";
+    // private static final String COFFEE_QUERY = 
+    //  "SELECT C_NAME,PRICE FROM TEST WHERE TYPE_ID=?";
+    // private static final String COFFEE_DELETE = 
+    //  "DELETE FROM TEST WHERE KEY_ID=?";
+    private static final String COFFEE_INSERT1 = "INSERT INTO TEST VALUES(9,'COFFEE-9',9.0,5)";
+    private static final String COFFEE_DELETE1 = "DELETE FROM TEST WHERE KEY_ID=9";
+    private static final String COFFEE_UPDATE1 = "UPDATE TEST SET PRICE=PRICE*20 WHERE TYPE_ID=1";
+    private static final String COFFEE_SELECT1 = "SELECT PRICE FROM TEST WHERE KEY_ID>4";
+    private static final String COFFEE_UPDATE_SET = "UPDATE TEST SET KEY_ID=?, C_NAME=? WHERE C_NAME=?";
+    private static final String COFFEE_SELECT_CONTINUED = "SELECT COUNT(*) FROM TEST WHERE C_NAME='Continue-1'";
 
-    int coffeeSize = 10;
-    int coffeeType = 11;
-    Connection conn;
-    Statement stat;
-    PreparedStatement prep;
+    private int coffeeSize = 10;
+    private int coffeeType = 11;
+    private Connection conn;
+    private Statement stat;
+    private PreparedStatement prep;
 
     public void test() throws Exception {
         testExecuteCall();
@@ -149,7 +151,7 @@ public class TestBatchUpdates extends TestBase {
         conn.close();
     }
 
-    void testAddBatch01() throws Exception {
+    private void testAddBatch01() throws Exception {
         trace("testAddBatch01");
         int i = 0;
         int[] retValue = { 0, 0, 0 };
@@ -198,7 +200,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    void testAddBatch02() throws Exception {
+    private void testAddBatch02() throws Exception {
         trace("testAddBatch02");
         int i = 0;
         int[] retValue = { 0, 0, 0 };
@@ -235,7 +237,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    void testClearBatch01() throws Exception {
+    private void testClearBatch01() throws Exception {
         trace("testClearBatch01");
         String sPrepStmt = COFFEE_UPDATE;
         trace("Prepared Statement String:" + sPrepStmt);
@@ -256,7 +258,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    void testClearBatch02() throws Exception {
+    private void testClearBatch02() throws Exception {
         trace("testClearBatch02");
         int updCountLength = 0;
         String sUpdCoffee = COFFEE_UPDATE1;
@@ -276,7 +278,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    void testExecuteBatch01() throws Exception {
+    private void testExecuteBatch01() throws Exception {
         trace("testExecuteBatch01");
         int i = 0;
         int[] retValue = { 0, 0, 0 };
@@ -325,7 +327,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    void testExecuteBatch02() throws Exception {
+    private void testExecuteBatch02() throws Exception {
         trace("testExecuteBatch02");
         String sPrepStmt = COFFEE_UPDATE;
         trace("Prepared Statement String:" + sPrepStmt);
@@ -343,7 +345,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    void testExecuteBatch03() throws Exception {
+    private void testExecuteBatch03() throws Exception {
         trace("testExecuteBatch03");
         boolean batchExceptionFlag = false;
         String sPrepStmt = COFFEE_SELECT;
@@ -364,7 +366,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    void testExecuteBatch04() throws Exception {
+    private void testExecuteBatch04() throws Exception {
         trace("testExecuteBatch04");
         int i = 0;
         int[] retValue = { 0, 0, 0 };
@@ -400,7 +402,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    void testExecuteBatch05() throws Exception {
+    private void testExecuteBatch05() throws Exception {
         trace("testExecuteBatch05");
         int updCountLength = 0;
         int[] updateCount = stat.executeBatch();
@@ -413,7 +415,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    void testExecuteBatch06() throws Exception {
+    private void testExecuteBatch06() throws Exception {
         trace("testExecuteBatch06");
         boolean batchExceptionFlag = false;
         // Insert a row which is already Present
@@ -438,7 +440,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    void testExecuteBatch07() throws Exception {
+    private void testExecuteBatch07() throws Exception {
         trace("testExecuteBatch07");
         boolean batchExceptionFlag = false;
         String selectCoffee = COFFEE_SELECT1;
@@ -458,7 +460,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    void testContinueBatch01() throws Exception {
+    private void testContinueBatch01() throws Exception {
         trace("testContinueBatch01");
         int[] batchUpdates = { 0, 0, 0 };
         int buCountLen = 0;

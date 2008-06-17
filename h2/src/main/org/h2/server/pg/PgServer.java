@@ -87,16 +87,31 @@ public class PgServer implements Service {
         return trace;
     }
 
+    /**
+     * Print a message if the trace flag is enabled.
+     * 
+     * @param s the message
+     */
     void trace(String s) {
         if (trace) {
             System.out.println(s);
         }
     }
 
+    /**
+     * Remove a thread from the list.
+     * 
+     * @param t the thread to remove
+     */
     synchronized void remove(PgServerThread t) {
         running.remove(t);
     }
 
+    /**
+     * Print the stack trace if the trace flag is enabled.
+     * 
+     * @param e the exception
+     */
     void traceError(Exception e) {
         if (trace) {
             e.printStackTrace();
@@ -107,7 +122,7 @@ public class PgServer implements Service {
         return url;
     }
 
-    boolean allow(Socket socket) {
+    private boolean allow(Socket socket) {
         if (allowOthers) {
             return true;
         }

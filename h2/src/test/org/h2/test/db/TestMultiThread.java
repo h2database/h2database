@@ -63,7 +63,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         conn.close();
     }
 
-    Connection getConnection() throws Exception {
+    private Connection getConnection() throws Exception {
         return getConnection("jdbc:h2:mem:multiThread");
     }
 

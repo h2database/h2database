@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
@@ -97,14 +96,30 @@ public abstract class TestHalt extends TestBase {
     private int errorId;
     private int sequenceId;
 
+    /**
+     * Initialize the test.
+     */
     abstract void testInit() throws Exception;
 
+    /**
+     * Check if the database is consistent after a simulated database crash.
+     */
     abstract void testCheckAfterCrash() throws Exception;
 
+    /**
+     * Wait for some time after the application has been started.
+     */
     abstract void testWaitAfterAppStart() throws Exception;
 
+    /**
+     * Start the application.
+     */
     abstract void appStart() throws Exception;
 
+    /**
+     * Run the application.
+     * @throws Exception
+     */
     abstract void appRun() throws Exception;
 
     public void test() throws Exception {
@@ -272,53 +287,55 @@ public abstract class TestHalt extends TestBase {
         }
     }
 
-    public Connection getConnectionHSQLDB() throws Exception {
-        File lock = new File("test.lck");
-        while (lock.exists()) {
-            lock.delete();
-            System.gc();
-        }
-        Class.forName("org.hsqldb.jdbcDriver");
-        return DriverManager.getConnection("jdbc:hsqldb:test", "sa", "");
-    }
+//    public Connection getConnectionHSQLDB() throws Exception {
+//        File lock = new File("test.lck");
+//        while (lock.exists()) {
+//            lock.delete();
+//            System.gc();
+//        }
+//        Class.forName("org.hsqldb.jdbcDriver");
+//        return DriverManager.getConnection("jdbc:hsqldb:test", "sa", "");
+//    }
 
-    public Connection getConnectionDerby() throws Exception {
-        File lock = new File("test3/db.lck");
-        while (lock.exists()) {
-            lock.delete();
-            System.gc();
-        }
-        Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance();
-        try {
-            return DriverManager.getConnection("jdbc:derby:test3;create=true", "sa", "sa");
-        } catch (SQLException e) {
-            Exception e2 = e;
-            do {
-                e.printStackTrace();
-                e = e.getNextException();
-            } while (e != null);
-            throw e2;
-        }
-    }
+//    public Connection getConnectionDerby() throws Exception {
+//        File lock = new File("test3/db.lck");
+//        while (lock.exists()) {
+//            lock.delete();
+//            System.gc();
+//        }
+//        Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance();
+//        try {
+//            return DriverManager.getConnection(
+//                    "jdbc:derby:test3;create=true", "sa", "sa");
+//        } catch (SQLException e) {
+//            Exception e2 = e;
+//            do {
+//                e.printStackTrace();
+//                e = e.getNextException();
+//            } while (e != null);
+//            throw e2;
+//        }
+//    }
 
-    void disconnectHSQLDB() {
-        try {
-            conn.createStatement().execute("SHUTDOWN");
-        } catch (Exception e) {
-            // ignore
-        }
-        // super.disconnect();
-    }
+//    void disconnectHSQLDB() {
+//        try {
+//            conn.createStatement().execute("SHUTDOWN");
+//        } catch (Exception e) {
+//            // ignore
+//        }
+//        // super.disconnect();
+//    }
 
-    void disconnectDerby() {
-        // super.disconnect();
-        try {
-            Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-            DriverManager.getConnection("jdbc:derby:;shutdown=true", "sa", "sa");
-        } catch (Exception e) {
-            // ignore
-        }
-    }
+//    void disconnectDerby() {
+//        // super.disconnect();
+//        try {
+//            Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+//            DriverManager.getConnection(
+//                    "jdbc:derby:;shutdown=true", "sa", "sa");
+//        } catch (Exception e) {
+//            // ignore
+//        }
+//    }
 
     /**
      * Create a random string with the specified length.

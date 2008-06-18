@@ -179,8 +179,14 @@ public class Db {
         }
     }
 
-    static Error convert(Exception e) {
-        return new Error("Error: " + e.toString(), e);
+    /**
+     * Convert a checked exception to a runtime exception.
+     * 
+     * @param e the checked exception
+     * @return the runtime exception
+     */
+    static RuntimeException convert(Exception e) {
+        return new RuntimeException(e.toString(), e);
     }
 
     public void setAutoCommit(boolean autoCommit) {

@@ -31,6 +31,11 @@ public class Value {
         this.data = data;
     }
 
+    /**
+     * Convert the value to a SQL string.
+     * 
+     * @return the SQL string
+     */
     String getSQL() {
         if (data == null) {
             return "NULL";
@@ -127,6 +132,14 @@ public class Value {
         return buff.toString();
     }
 
+    /**
+     * Read a value from a result set.
+     * 
+     * @param config the configuration
+     * @param rs the result set
+     * @param index the column index
+     * @return the value
+     */
     static Value read(TestSynth config, ResultSet rs, int index) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         Object data;
@@ -184,6 +197,16 @@ public class Value {
         return new Value(config, type, data);
     }
 
+    /**
+     * Generate a random value.
+     * 
+     * @param config the configuration
+     * @param type the value type
+     * @param precision the precision
+     * @param scale the scale
+     * @param mayBeNull if the value may be null or not
+     * @return the value
+     */
     static Value getRandom(TestSynth config, int type, int precision, int scale, boolean mayBeNull) {
         Object data;
         if (mayBeNull && config.random().getBoolean(20)) {
@@ -263,48 +286,49 @@ public class Value {
         return new BigDecimal(buff.toString());
     }
 
-    int compareTo(Object o) {
-        Value v = (Value) o;
-        if (type != v.type) {
-            throw new Error("compare " + type + " " + v.type + " " + data + " " + v.data);
-        }
-        if (data == null) {
-            return (v.data == null) ? 0 : -1;
-        } else if (v.data == null) {
-            return 1;
-        }
-        switch (type) {
-        case Types.DECIMAL:
-            return ((BigDecimal) data).compareTo((BigDecimal) v.data);
-        case Types.BLOB:
-        case Types.VARBINARY:
-        case Types.BINARY:
-            return compareBytes((byte[]) data, (byte[]) v.data);
-        case Types.CLOB:
-        case Types.VARCHAR:
-            return data.toString().compareTo(v.data.toString());
-        case Types.DATE:
-            return ((Date) data).compareTo((Date) v.data);
-        case Types.INTEGER:
-            return ((Integer) data).compareTo((Integer) v.data);
-        default:
-            throw new Error("type=" + type);
-        }
-    }
+//    private int compareTo(Object o) {
+//        Value v = (Value) o;
+//        if (type != v.type) {
+//            throw new Error("compare " + type + 
+//                    " " + v.type + " " + data + " " + v.data);
+//        }
+//        if (data == null) {
+//            return (v.data == null) ? 0 : -1;
+//        } else if (v.data == null) {
+//            return 1;
+//        }
+//        switch (type) {
+//        case Types.DECIMAL:
+//            return ((BigDecimal) data).compareTo((BigDecimal) v.data);
+//        case Types.BLOB:
+//        case Types.VARBINARY:
+//        case Types.BINARY:
+//            return compareBytes((byte[]) data, (byte[]) v.data);
+//        case Types.CLOB:
+//        case Types.VARCHAR:
+//            return data.toString().compareTo(v.data.toString());
+//        case Types.DATE:
+//            return ((Date) data).compareTo((Date) v.data);
+//        case Types.INTEGER:
+//            return ((Integer) data).compareTo((Integer) v.data);
+//        default:
+//            throw new Error("type=" + type);
+//        }
+//    }
 
-    static int compareBytes(byte[] a, byte[] b) {
-        int al = a.length, bl = b.length;
-        int len = Math.min(al, bl);
-        for (int i = 0; i < len; i++) {
-            int x = a[i] & 0xff;
-            int y = b[i] & 0xff;
-            if (x == y) {
-                continue;
-            }
-            return x > y ? 1 : -1;
-        }
-        return al == bl ? 0 : al > bl ? 1 : -1;
-    }
+//    private static int compareBytes(byte[] a, byte[] b) {
+//        int al = a.length, bl = b.length;
+//        int len = Math.min(al, bl);
+//        for (int i = 0; i < len; i++) {
+//            int x = a[i] & 0xff;
+//            int y = b[i] & 0xff;
+//            if (x == y) {
+//                continue;
+//            }
+//            return x > y ? 1 : -1;
+//        }
+//        return al == bl ? 0 : al > bl ? 1 : -1;
+//    }
 
     public String toString() {
         return getSQL();

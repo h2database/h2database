@@ -64,9 +64,25 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * This class holds the data of a result column.
      */
     static class Column {
+        
+        /**
+         * The column name.
+         */
         String name;
+        
+        /**
+         * The SQL type.
+         */
         int sqlType;
+        
+        /**
+         * The precision.
+         */
         int precision;
+        
+        /**
+         * The scale.
+         */
         int scale;
     }
 

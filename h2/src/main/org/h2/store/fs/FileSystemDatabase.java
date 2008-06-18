@@ -427,6 +427,13 @@ public class FileSystemDatabase extends FileSystem {
         return true;
     }
 
+    /**
+     * Update a file in the file system.
+     * 
+     * @param fileName the file name
+     * @param b the data
+     * @param len the number of bytes
+     */
     synchronized void write(String fileName, byte[] b, int len) {
         try {
             long id = getId(fileName, false);

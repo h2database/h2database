@@ -53,7 +53,7 @@ public class TableView extends Table {
         initColumnsAndTables(session);
     }
 
-    Query recompileQuery(Session session) throws SQLException {
+    private Query recompileQuery(Session session) throws SQLException {
         Prepared p = session.prepare(querySQL);
         if (!(p instanceof Query)) {
             throw Message.getSyntaxError(querySQL, 0);
@@ -310,7 +310,7 @@ public class TableView extends Table {
         }
     }
 
-    void setOwner(User owner) {
+    private void setOwner(User owner) {
         this.owner = owner;
     }
 

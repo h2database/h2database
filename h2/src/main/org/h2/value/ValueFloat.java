@@ -17,6 +17,10 @@ import org.h2.util.ObjectUtils;
  * Implementation of the REAL data type.
  */
 public class ValueFloat extends Value {
+    
+    /**
+     * The precision in digits.
+     */    
     static final int PRECISION = 7;
     
     /**

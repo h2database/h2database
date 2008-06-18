@@ -30,7 +30,7 @@ class Column {
     private boolean isPrimaryKey;
     // TODO test isAutoincrement;
 
-    Column(TestSynth config) {
+    private Column(TestSynth config) {
         this.config = config;
     }
 
@@ -68,7 +68,14 @@ class Column {
         }
     }
 
-    public static boolean isConditionType(TestSynth config, int type) {
+    /**
+     * Check if this data type supports comparisons for this database.
+     * 
+     * @param config the configuration
+     * @param type the SQL type
+     * @return true if the value can be used in conditions
+     */
+    static boolean isConditionType(TestSynth config, int type) {
         switch (config.getMode()) {
         case TestSynth.H2:
         case TestSynth.H2_MEM:
@@ -103,7 +110,7 @@ class Column {
         }
     }
 
-    String getTypeName() {
+    private String getTypeName() {
         switch (type) {
         case Types.INTEGER:
             return "INT";
@@ -152,7 +159,7 @@ class Column {
         }
     }
 
-    public String getCreateSQL() {
+    String getCreateSQL() {
         String sql = name + " " + getTypeName();
         if (!isNullable) {
             sql += " NOT NULL";
@@ -160,19 +167,25 @@ class Column {
         return sql;
     }
 
-    public String getName() {
+    String getName() {
         return name;
     }
 
-    public Value getRandomValue() {
+    Value getRandomValue() {
         return Value.getRandom(config, type, precision, scale, isNullable);
     }
 
-    public Value getRandomValueNotNull() {
-        return Value.getRandom(config, type, precision, scale, false);
-    }
+//    Value getRandomValueNotNull() {
+//        return Value.getRandom(config, type, precision, scale, false);
+//    }
 
-    public static Column getRandomColumn(TestSynth config) {
+    /**
+     * Generate a random column.
+     * 
+     * @param config the configuration
+     * @return the column
+     */
+    static Column getRandomColumn(TestSynth config) {
         Column column = new Column(config);
         column.name = "C_" + config.randomIdentifier();
         int randomType;
@@ -191,19 +204,24 @@ class Column {
         return column;
     }
 
-    public boolean isPrimaryKey() {
+    boolean getPrimaryKey() {
         return isPrimaryKey;
     }
 
-    public void setPrimaryKey(boolean b) {
+    void setPrimaryKey(boolean b) {
         isPrimaryKey = b;
     }
 
-    public void setNullable(boolean b) {
+    void setNullable(boolean b) {
         isNullable = b;
     }
 
-    public int getType() {
+    /**
+     * The the column type.
+     * 
+     * @return the type
+     */
+    int getType() {
         return type;
     }
 

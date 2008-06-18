@@ -19,6 +19,9 @@ import org.h2.util.ObjectUtils;
  */
 public class ValueShort extends Value {
     
+    /**
+     * The precision in digits.
+     */
     static final int PRECISION = 5;
     
     /**

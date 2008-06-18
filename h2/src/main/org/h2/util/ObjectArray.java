@@ -184,9 +184,7 @@ public class ObjectArray {
      * @param array the target array
      */
     public void toArray(Object[] array) {
-        for (int i = 0; i < size; i++) {
-            array[i] = data[i];
-        }
+        ObjectUtils.arrayCopy(data, array, size);
     }
 
     /**

@@ -21,6 +21,10 @@ import org.h2.util.MathUtils;
  * Implementation of the TIMESTAMP data type.
  */
 public class ValueTimestamp extends Value {
+    
+    /**
+     * The precision in digits.
+     */    
     static final int PRECISION = 23;
     
     /**

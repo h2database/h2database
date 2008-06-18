@@ -126,18 +126,25 @@ public class Script extends Tool {
     }
 
     /**
-     * Backs up a database to a file.
+     * Backs up a database to a SQL script file.
      *
      * @param url the database URL
      * @param user the user name
      * @param password the password
      * @param fileName the script file
-     * @throws SQLException
      */
     public static void execute(String url, String user, String password, String fileName) throws SQLException {
         new Script().process(url, user, password, fileName);
     }
-        
+    
+    /**
+     * Backs up a database to a SQL script file.
+     *
+     * @param url the database URL
+     * @param user the user name
+     * @param password the password
+     * @param fileName the script file
+     */
     void process(String url, String user, String password, String fileName) throws SQLException {
         Connection conn = null;
         Statement stat = null;

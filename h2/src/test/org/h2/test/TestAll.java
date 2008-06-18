@@ -266,13 +266,11 @@ java org.h2.test.TestAll timer
 
 /*
         
-jazoon 
+run the performance tests as part of the unit test
 
-measure and improve performance of ObjectArray.toArray()
+jazoon
 
 H2 Console should support Java Queries
-
-convert test.in.sql to RunScript syntax
 
 C:\download\Data Concurrency and Consistency.pdf
 
@@ -289,8 +287,6 @@ deleted the same row when exactly does it occur in other databases
 create an mbean for each database? server? (jconsole)
 
 in help.csv, use complete examples for functions; add a test case
-
-improve javadocs
 
 option to write complete page right after checkpoint
 

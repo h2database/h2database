@@ -33,6 +33,10 @@ public class ConnectionInfo {
      * The connection display name.
      */
     String name;
+    
+    /**
+     * The last time this connection was used.
+     */
     int lastAccess;
 
     ConnectionInfo() {

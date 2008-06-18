@@ -49,6 +49,12 @@ public class PropertiesToUTF8 {
         convert("bin/org/h2/server/web/res");
     }
 
+    /**
+     * Convert a properties file to a UTF-8 text file.
+     * 
+     * @param source the name of the properties file
+     * @param target the target file name
+     */
     static void propertiesToTextUTF8(String source, String target) throws Exception {
         if (!new File(source).exists()) {
             return;
@@ -67,6 +73,13 @@ public class PropertiesToUTF8 {
         writer.close();
     }
 
+    /**
+     * Convert a translation file (in UTF-8) to a properties file (without
+     * special characters).
+     * 
+     * @param source the source file name
+     * @param target the target file name
+     */
     static void textUTF8ToProperties(String source, String target) throws Exception {
         if (!new File(source).exists()) {
             return;
@@ -147,6 +160,12 @@ public class PropertiesToUTF8 {
         }
     }
 
+    /**
+     * Store a properties file.
+     * 
+     * @param p the properties
+     * @param fileName the file name
+     */
     static void storeProperties(Properties p, String fileName) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         p.store(out, null);

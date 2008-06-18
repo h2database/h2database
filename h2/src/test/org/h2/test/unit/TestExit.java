@@ -80,7 +80,7 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         app.execute(action);
     }
 
-    void execute(int action) throws Exception {
+    private void execute(int action) throws Exception {
         Class.forName("org.h2.Driver");
         String url = "";
         switch (action) {

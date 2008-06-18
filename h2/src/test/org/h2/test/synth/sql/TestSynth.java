@@ -21,7 +21,30 @@ public class TestSynth extends TestBase {
     //  TODO hsqldb: call 1||null should return 1 but returns null
     //  TODO hsqldb: call mod(1) should return invalid parameter count
 
-    static final int H2 = 0, H2_MEM = 1, HSQLDB = 2, MYSQL = 3, POSTGRESQL = 4;
+    /**
+     * A H2 database connection.
+     */
+    static final int H2 = 0;
+    
+    /**
+     * An in-memory H2 database connection.
+     */
+    static final int H2_MEM = 1;
+    
+    /**
+     * An HSQLDB database connection.
+     */
+    static final int HSQLDB = 2;
+    
+    /**
+     * A MySQL database connection.
+     */
+    static final int MYSQL = 3;
+    
+    /**
+     * A PostgreSQL database connection.
+     */
+    static final int POSTGRESQL = 4;
     private static final String DIR = "synth";
 
     private DbState db = new DbState(this);
@@ -32,14 +55,30 @@ public class TestSynth extends TestBase {
     private boolean stopImmediately;
     private int mode;
 
+    /**
+     * Check whether this database is of the specified type.
+     * 
+     * @param isType the database type
+     * @return true if it is
+     */
     boolean is(int isType) {
         return mode == isType;
     }
 
+    /**
+     * Get the random number generator.
+     * 
+     * @return the random number generator
+     */
     RandomGen random() {
         return random;
     }
 
+    /**
+     * Get a random identifier.
+     * 
+     * @return the random identifier
+     */
     String randomIdentifier() {
         int len = random.getLog(8) + 2;
         while (true) {
@@ -193,17 +232,28 @@ public class TestSynth extends TestBase {
         }
     }
 
+    /**
+     * Get a random table.
+     * 
+     * @return the table
+     */
     Table randomTable() {
         return db.randomTable();
     }
 
+    /**
+     * Print this message if the log is enabled.
+     * 
+     * @param id the id
+     * @param s the message
+     */
     void log(int id, String s) {
         if (showLog && id == 0) {
             System.out.println(s);
         }
     }
 
-    public int getMode() {
+    int getMode() {
         return mode;
     }
 

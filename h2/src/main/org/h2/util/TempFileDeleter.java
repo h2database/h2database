@@ -30,7 +30,15 @@ public class TempFileDeleter {
      * Contains information about a file.
      */
     static class TempFile {
+        
+        /**
+         * The file name.
+         */
         String fileName;
+        
+        /**
+         * The last modified date of this file.
+         */
         long lastModified;
     }
 

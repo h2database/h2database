@@ -152,6 +152,9 @@ ShutdownHandler {
         stopAll();
     }
 
+    /**
+     * Stop all servers that were started using the console.
+     */
     void stopAll() {
         if (web != null && web.isRunning(false)) {
             web.stop();

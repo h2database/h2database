@@ -237,6 +237,12 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Check if a page is free, that is, if all blocks of the page are not in use.
+     * 
+     * @param page the page id
+     * @return true if no blocks are used
+     */
     boolean isPageFree(int page) {
         for (int i = page * BLOCKS_PER_PAGE; i < (page + 1) * BLOCKS_PER_PAGE; i++) {
             if (used.get(i)) {
@@ -492,6 +498,15 @@ public class DiskFile implements CacheWriter {
         return ((long) block * BLOCK_SIZE) + OFFSET;
     }
 
+    /**
+     * Get the record if it is stored in the file, or null if not.
+     * 
+     * @param session the session
+     * @param pos the block id
+     * @param reader the record reader that can parse the data
+     * @param storageId the storage id
+     * @return the record or null
+     */
     Record getRecordIfStored(Session session, int pos, RecordReader reader, int storageId)
             throws SQLException {
         synchronized (database) {
@@ -518,6 +533,15 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Get a record from the cache or read it from the file if required.
+     * 
+     * @param session the session
+     * @param pos the block id
+     * @param reader the record reader that can parse the data
+     * @param storageId the storage id
+     * @return the record
+     */
     Record getRecord(Session session, int pos, RecordReader reader, int storageId) throws SQLException {
         synchronized (database) {
             if (file == null) {
@@ -561,6 +585,13 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Allocate space in the file.
+     * 
+     * @param storage the storage
+     * @param blockCount the number of blocks required
+     * @return the position of the first entry
+     */
     int allocate(Storage storage, int blockCount) throws SQLException {
         reuseSpace();
         synchronized (database) {
@@ -666,6 +697,13 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Called after a session deleted a row. This sets the last uncommitted
+     * delete id in the session. This is used to make sure empty space is not
+     * re-used before the change is committed.
+     * 
+     * @param session the session
+     */
     void uncommittedDelete(Session session) {
         if (session != null && logChanges && SysProperties.REUSE_SPACE_QUICKLY) {
             int deleteId = session.getLastUncommittedDelete();
@@ -676,6 +714,11 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Free a page, that is, reset the page owner.
+     * 
+     * @param page the page
+     */
     void freePage(int page) throws SQLException {
         if (!logChanges) {
             setPageOwner(page, FREE_PAGE);
@@ -686,10 +729,22 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Calculate the page number from a block number.
+     * 
+     * @param pos the block number
+     * @return the page number
+     */
     int getPage(int pos) {
         return pos >>> BLOCK_PAGE_PAGE_SHIFT;
     }
 
+    /**
+     * Get the storage id of a page.
+     * 
+     * @param page the page id
+     * @return the storage id
+     */
     int getPageOwner(int page) {
         if (page * BLOCKS_PER_PAGE > fileBlockCount || page >= pageOwners.size()) {
             return FREE_PAGE;
@@ -736,6 +791,12 @@ public class DiskFile implements CacheWriter {
         pageOwners.set(page, storageId);
     }
 
+    /**
+     * Mark a number of blocks as used.
+     * 
+     * @param pos the first block id
+     * @param blockCount the number of blocks
+     */
     void setUsed(int pos, int blockCount) {
         synchronized (database) {
             if (pos + blockCount > fileBlockCount) {
@@ -812,6 +873,12 @@ public class DiskFile implements CacheWriter {
         return used;
     }
 
+    /**
+     * Update a record.
+     * 
+     * @param session the session
+     * @param record the record
+     */
     void updateRecord(Session session, Record record) throws SQLException {
         synchronized (database) {
             record.setChanged(true);
@@ -911,6 +978,15 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Remove a record from the cache and mark it as deleted. This writes the
+     * old data to the transaction log.
+     * 
+     * @param session the session
+     * @param pos the block id
+     * @param record the record
+     * @param blockCount the number of blocks
+     */
     void removeRecord(Session session, int pos, Record record, int blockCount) throws SQLException {
         synchronized (database) {
             if (logChanges) {
@@ -922,6 +998,14 @@ public class DiskFile implements CacheWriter {
         }
     }
 
+    /**
+     * Add a record to the file. The position of the record must already be set
+     * before. This method will write the change to the transaction log and will
+     * update the cache.
+     * 
+     * @param session the session
+     * @param record the record
+     */
     void addRecord(Session session, Record record) throws SQLException {
         synchronized (database) {
             cache.put(record);
@@ -931,23 +1015,43 @@ public class DiskFile implements CacheWriter {
         }
     }
 
-    /*
-     * Must be synchronized externally
+    /**
+     * Get the cache. The cache must be synchronized externally.
+     * 
+     * @return the cache
      */
     public Cache getCache() {
         return cache;
     }
 
+    /**
+     * Free up a number of blocks.
+     * 
+     * @param pos the position of the first block
+     * @param blockCount the number of blocks
+     */
     void free(int pos, int blockCount) {
         synchronized (database) {
             used.setRange(pos, blockCount, false);
         }
     }
 
+    /**
+     * Get the overhead for each record in bytes.
+     * 
+     * @return the overhead
+     */
     int getRecordOverhead() {
         return recordOverhead;
     }
 
+    /**
+     * Remove all rows for this storage.
+     * 
+     * @param session the session
+     * @param storage the storage
+     * @param pages the page id array
+     */
     void truncateStorage(Session session, Storage storage, IntArray pages) throws SQLException {
         synchronized (database) {
             int storageId = storage.getId();

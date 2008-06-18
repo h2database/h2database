@@ -38,7 +38,10 @@ public class BenchCThread {
         this.random = random;
         warehouseId = random.getInt(1, bench.warehouses);
     }
-
+    
+    /**
+     * Process the list of operations (a 'deck') in random order.
+     */
     void process() throws Exception {
         int[] deck = new int[] { OP_NEW_ORDER, OP_NEW_ORDER, OP_NEW_ORDER,
                 OP_NEW_ORDER, OP_NEW_ORDER, OP_NEW_ORDER, OP_NEW_ORDER,

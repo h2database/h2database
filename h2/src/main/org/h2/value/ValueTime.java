@@ -16,6 +16,10 @@ import org.h2.util.DateTimeUtils;
  * Implementation of the TIME data type.
  */
 public class ValueTime extends Value {
+    
+    /**
+     * The precision in digits.
+     */      
     static final int PRECISION = 6;
     
     /**

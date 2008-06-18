@@ -140,6 +140,13 @@ public class Column {
         return isComputed;
     }
 
+    /**
+     * Compute the value of this computed column.
+     * 
+     * @param session the session
+     * @param row the row
+     * @return the value
+     */
     Value computeValue(Session session, Row row) throws SQLException {
         synchronized (this) {
             computeTableFilter.setSession(session);
@@ -159,6 +166,12 @@ public class Column {
         this.defaultExpression = expression;
     }
 
+    /**
+     * Set the table and column id.
+     * 
+     * @param table the table
+     * @param columnId the column index
+     */
     void setTable(Table table, int columnId) {
         this.table = table;
         this.columnId = columnId;
@@ -571,8 +584,15 @@ public class Column {
         return DataType.getDataType(type);
     }
 
-    String getCheckConstraintSQL(Session session, String name) throws SQLException {
-        Expression constraint = getCheckConstraint(session, name);
+    /**
+     * Get the check constraint SQL snippet.
+     * 
+     * @param session the session
+     * @param asColumnName the column name to use
+     * @return the SQL snippet
+     */
+    String getCheckConstraintSQL(Session session, String asColumnName) throws SQLException {
+        Expression constraint = getCheckConstraint(session, asColumnName);
         return constraint == null ? "" : constraint.getSQL();
     }
 
@@ -588,6 +608,14 @@ public class Column {
         this.primaryKey = primaryKey;
     }
 
+    /**
+     * Visit the default expression, the check constraint, and the sequence (if
+     * any).
+     * 
+     * @param visitor the visitor
+     * @return true if every visited expression returned true, or if there are
+     *         no expressions
+     */
     boolean isEverything(ExpressionVisitor visitor) {
         if (visitor.getType() == ExpressionVisitor.GET_DEPENDENCIES) {
             if (sequence != null) {

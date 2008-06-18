@@ -15,6 +15,7 @@ import org.h2.expression.Expression;
 import org.h2.table.Plan;
 import org.h2.table.PlanItem;
 import org.h2.table.TableFilter;
+import org.h2.util.ObjectUtils;
 import org.h2.util.Permutations;
 
 /**
@@ -151,20 +152,20 @@ public class Optimizer {
             }
             boolean generateRandom = (x & 127) == 0;
             if (!generateRandom) {
-                System.arraycopy(best, 0, list, 0, filters.length);
+                ObjectUtils.arrayCopy(best, list, filters.length);
                 if (!shuffleTwo(list)) {
                     generateRandom = true;
                 }
             }
             if (generateRandom) {
                 switched = new BitSet();
-                System.arraycopy(filters, 0, best, 0, filters.length);
+                ObjectUtils.arrayCopy(filters, best, filters.length);
                 shuffleAll(best);
-                System.arraycopy(best, 0, list, 0, filters.length);
+                ObjectUtils.arrayCopy(best, list, filters.length);
             }
             if (testPlan(list)) {
                 switched = new BitSet();
-                System.arraycopy(list, 0, best, 0, filters.length);
+                ObjectUtils.arrayCopy(list, best, filters.length);
             }
         }
     }    

@@ -15,7 +15,11 @@ import java.io.Reader;
  */
 public class Tokenizer {
     
+    /**
+     * This token type means no more tokens are available.
+     */
     static final int TYPE_EOF = -1;
+    
     private static final int TYPE_WORD = -2;
     private static final int TYPE_NOTHING = -3;
     private static final byte WHITESPACE = 1;
@@ -78,6 +82,9 @@ public class Tokenizer {
         return i;
     }
 
+    /**
+     * Initialize the tokenizer.
+     */
     void initToken() {
         buffer = new StringBuffer();
     }
@@ -91,6 +98,11 @@ public class Tokenizer {
         buffer.append((char) i);
     }
 
+    /**
+     * Read the next token and get the token type.
+     * 
+     * @return the token type
+     */
     int nextToken() throws IOException {
         byte[] ct = charTypes;
         int c;

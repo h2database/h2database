@@ -128,27 +128,27 @@ class Result implements Comparable {
         }
     }
 
-    public void log() {
-        switch (type) {
-        case SUCCESS:
-            System.out.println("> ok");
-            break;
-        case EXCEPTION:
-            System.out.println("> exception");
-            break;
-        case INT:
-            if (intValue == 0) {
-                System.out.println("> ok");
-            } else {
-                System.out.println("> update count: " + intValue);
-            }
-            break;
-        case RESULT_SET:
-            System.out.println("> rs " + rows.size());
-            break;
-        default:
-        }
-        System.out.println();
-    }
+//    public void log() {
+//        switch (type) {
+//        case SUCCESS:
+//            System.out.println("> ok");
+//            break;
+//        case EXCEPTION:
+//            System.out.println("> exception");
+//            break;
+//        case INT:
+//            if (intValue == 0) {
+//                System.out.println("> ok");
+//            } else {
+//                System.out.println("> update count: " + intValue);
+//            }
+//            break;
+//        case RESULT_SET:
+//            System.out.println("> rs " + rows.size());
+//            break;
+//        default:
+//        }
+//        System.out.println();
+//    }
 
 }

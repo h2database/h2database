@@ -162,6 +162,14 @@ public class DbContents {
         return defaultSchemaName;
     }
 
+    /**
+     * Add double quotes around an identifier if required.
+     * For the H2 database, only keywords are quoted; for other databases,
+     * all identifiers are.
+     * 
+     * @param identifier the identifier
+     * @return the quoted identifier
+     */
     String quoteIdentifier(String identifier) {
         if (identifier == null) {
             return null;

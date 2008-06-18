@@ -107,7 +107,6 @@ public class FileUtils {
      * Try to delete a file.
      *
      * @param fileName the file name
-     * @return true if it could be deleted
      */
     public static void tryDelete(String fileName) {
         FileSystem.getInstance(fileName).tryDelete(fileName);

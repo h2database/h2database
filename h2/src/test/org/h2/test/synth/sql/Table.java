@@ -24,7 +24,13 @@ class Table {
         this.config = config;
     }
 
-    public static Table newRandomTable(TestSynth config) {
+    /**
+     * Create a new random table.
+     * 
+     * @param config the configuration
+     * @return the table
+     */
+    static Table newRandomTable(TestSynth config) {
         Table table = new Table(config);
         table.name = "T_" + config.randomIdentifier();
 
@@ -52,7 +58,7 @@ class Table {
                 Column pk = null;
                 do {
                     pk = table.columns[config.random().getInt(len)];
-                } while (pk.isPrimaryKey());
+                } while (pk.getPrimaryKey());
                 table.primaryKeys[i] = pk;
                 pk.setPrimaryKey(true);
                 pk.setNullable(false);
@@ -61,7 +67,12 @@ class Table {
         return table;
     }
 
-    public Index newRandomIndex() {
+    /**
+     * Create a new random index.
+     * 
+     * @return the index
+     */
+    Index newRandomIndex() {
         String indexName = "I_" + config.randomIdentifier();
         int len = config.random().getLog(getColumnCount() - 1) + 1;
         boolean unique = config.random().getBoolean(50);
@@ -70,11 +81,21 @@ class Table {
         return index;
     }
 
-    public String getDropSQL() {
+    /**
+     * Get the DROP TABLE statement for this table.
+     * 
+     * @return the SQL statement
+     */
+    String getDropSQL() {
         return "DROP TABLE " + name;
     }
 
-    public String getCreateSQL() {
+    /**
+     * Get the CREATE TABLE statement for this table.
+     * 
+     * @return the SQL statement
+     */
+    String getCreateSQL() {
         String sql = "CREATE ";
         if (temporary) {
             if (globalTemporary) {
@@ -111,7 +132,12 @@ class Table {
         return sql;
     }
 
-    public String getInsertSQL(Column[] c, Value[] v) {
+    /**
+     * Get the INSERT statement for this table.
+     * 
+     * @return the SQL statement
+     */
+    String getInsertSQL(Column[] c, Value[] v) {
         String sql = "INSERT INTO " + name;
         if (c != null) {
             sql += "(";
@@ -134,11 +160,21 @@ class Table {
         return sql;
     }
 
-    public String getName() {
+    /**
+     * Get the table name.
+     * 
+     * @return the name
+     */
+    String getName() {
         return name;
     }
 
-    public Column getRandomConditionColumn() {
+    /**
+     * Get a random column that can be used in a condition.
+     * 
+     * @return the column
+     */
+    Column getRandomConditionColumn() {
         ArrayList list = new ArrayList();
         for (int i = 0; i < columns.length; i++) {
             if (Column.isConditionType(config, columns[i].getType())) {
@@ -151,15 +187,21 @@ class Table {
         return (Column) list.get(config.random().getInt(list.size()));
     }
 
-    public Column getRandomColumn() {
+    Column getRandomColumn() {
         return columns[config.random().getInt(columns.length)];
     }
 
-    public int getColumnCount() {
+    int getColumnCount() {
         return columns.length;
     }
 
-    public Column getRandomColumnOfType(int type) {
+    /**
+     * Get a random column of the specified type.
+     * 
+     * @param type the type
+     * @return the column or null if no such column was found
+     */
+    Column getRandomColumnOfType(int type) {
         ArrayList list = new ArrayList();
         for (int i = 0; i < columns.length; i++) {
             if (columns[i].getType() == type) {
@@ -172,7 +214,13 @@ class Table {
         return (Column) list.get(config.random().getInt(list.size()));
     }
 
-    public Column[] getRandomColumns(int len) {
+    /**
+     * Get a number of random column from this table.
+     * 
+     * @param len the column count
+     * @return the columns
+     */
+    Column[] getRandomColumns(int len) {
         int[] index = new int[columns.length];
         for (int i = 0; i < columns.length; i++) {
             index[i] = i;
@@ -190,15 +238,25 @@ class Table {
         return c;
     }
 
-    public Column[] getColumns() {
+    Column[] getColumns() {
         return columns;
     }
 
-    public void addIndex(Index index) {
+    /**
+     * Add this index to the table.
+     * 
+     * @param index the index to add
+     */
+    void addIndex(Index index) {
         indexes.add(index);
     }
 
-    public void removeIndex(Index index) {
+    /**
+     * Remove an index from the table.
+     * 
+     * @param index the index to remove
+     */
+    void removeIndex(Index index) {
         indexes.remove(index);
     }
 }

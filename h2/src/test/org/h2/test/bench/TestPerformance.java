@@ -27,7 +27,14 @@ import org.h2.util.JdbcUtils;
  */
 public class TestPerformance {
 
+    /**
+     * Whether data should be collected.
+     */
     boolean collect;
+    
+    /**
+     * The flag used to enable or disable trace messages.
+     */
     boolean trace;
 
     /**
@@ -238,6 +245,11 @@ public class TestPerformance {
         bench.runTest();
     }
 
+    /**
+     * Print a message to system out if trace is enabled.
+     * 
+     * @param s the message
+     */
     void trace(String s) {
         if (trace) {
             System.out.println(s);

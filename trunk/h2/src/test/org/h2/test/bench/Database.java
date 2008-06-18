@@ -13,6 +13,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -49,22 +50,45 @@ class Database {
     private Object serverDerby;
     private boolean serverHSQLDB;
 
+    /**
+     * Get the database name.
+     * 
+     * @return the database name
+     */
     String getName() {
         return name;
     }
 
+    /**
+     * Get the total measured time.
+     * 
+     * @return the time
+     */
     int getTotalTime() {
         return totalTime;
     }
 
+    /**
+     * Get the result array.
+     * 
+     * @return the result array
+     */
     ArrayList getResults() {
         return results;
     }
 
+    /**
+     * Get the random number generator.
+     * 
+     * @return the generator
+     */
     Random getRandom() {
         return random;
     }
 
+    /**
+     * Start the server if the this is a remote connection.
+     */
     void startServer() throws Exception {
         if (url.startsWith("jdbc:h2:tcp:")) {
             serverH2 = Server.createTcpServer(new String[0]).start();
@@ -90,6 +114,9 @@ class Database {
         }
     }
 
+    /**
+     * Stop the server if this is a remote connection.
+     */
     void stopServer() throws Exception {
         if (serverH2 != null) {
             serverH2.stop();
@@ -110,6 +137,14 @@ class Database {
         }
     }
 
+    /**
+     * Parse a database configuration and create a database object from it.
+     * 
+     * @param test the test application
+     * @param id the database id
+     * @param dbString the configuration string
+     * @return a new database object with the given settings
+     */
     static Database parse(TestPerformance test, int id, String dbString) {
         try {
             StringTokenizer tokenizer = new StringTokenizer(dbString, ",");
@@ -133,8 +168,20 @@ class Database {
         }
     }
 
-    Connection getConnection() throws Exception {
-        Connection conn = DriverManager.getConnection(url, user, password);
+    /**
+     * Get the database connection. The connection must be opened first.
+     * 
+     * @return the connection
+     */
+    Connection getConnection() {
+        return conn;
+    }
+
+    /**
+     * Open a database connection.
+     */
+    void openConnection() throws SQLException {
+        conn = DriverManager.getConnection(url, user, password);
         if (url.startsWith("jdbc:derby:")) {
             // Derby: use higher cache size
             Statement stat = null;
@@ -159,15 +206,13 @@ class Database {
                 JdbcUtils.closeSilently(stat);
             }
         }
-        return conn;
-    }
-
-    void openConnection() throws Exception {
-        conn = DriverManager.getConnection(url, user, password);
         stat = conn.createStatement();
     }
 
-    void closeConnection() throws Exception {
+    /**
+     * Close the database connection.
+     */
+    void closeConnection() throws SQLException {
 //        if(!serverHSQLDB && url.startsWith("jdbc:hsqldb:")) {
 //            stat.execute("SHUTDOWN");
 //        }
@@ -176,7 +221,12 @@ class Database {
         conn = null;
     }
 
-    public void setTranslations(Properties prop) {
+    /**
+     * Initialize the SQL statement translation of this database.
+     * 
+     * @param prop the properties with the translations to use
+     */
+    void setTranslations(Properties prop) {
         String id = url.substring("jdbc:".length());
         id = id.substring(0, id.indexOf(':'));
         for (Iterator it = prop.keySet().iterator(); it.hasNext();) {
@@ -191,12 +241,18 @@ class Database {
         }
     }
 
-    PreparedStatement prepare(String sql) throws Exception {
+    /**
+     * Prepare a SQL statement.
+     * 
+     * @param sql the SQL statement
+     * @return the prepared statement
+     */
+    PreparedStatement prepare(String sql) throws SQLException {
         sql = getSQL(sql);
         return conn.prepareStatement(sql);
     }
 
-    public String getSQL(String sql) {
+    private String getSQL(String sql) {
         for (int i = 0; i < replace.size(); i++) {
             String[] pair = (String[]) replace.get(i);
             String pattern = pair[0];
@@ -206,11 +262,21 @@ class Database {
         return sql;
     }
 
+    /**
+     * Start the benchmark.
+     * 
+     * @param bench the benchmark
+     * @param action the action
+     */
     void start(Bench bench, String action) {
         this.action = bench.getName() + ": " + action;
         this.startTime = System.currentTimeMillis();
     }
 
+    /**
+     * This method is called when the test run ends. This will stop collecting
+     * data.
+     */
     void end() {
         long time = System.currentTimeMillis() - startTime;
         log(action, "ms", (int) time);
@@ -219,6 +285,11 @@ class Database {
         }
     }
 
+    /**
+     * Drop a table. Errors are ignored.
+     * 
+     * @param table the table name
+     */
     void dropTable(String table) {
         try {
             update("DROP TABLE " + table);
@@ -227,13 +298,24 @@ class Database {
         }
     }
 
-    public void update(PreparedStatement prep, String trace) throws Exception {
+    /**
+     * Execute an SQL statement.
+     * 
+     * @param prep the prepared statement
+     * @param trace the trace message
+     */
+    void update(PreparedStatement prep, String trace) throws SQLException {
         test.trace(trace);
         prep.executeUpdate();
         executedStatements++;
     }
-
-    public void update(String sql) throws Exception {
+    
+    /**
+     * Execute an SQL statement.
+     * 
+     * @param sql the SQL statement
+     */
+    void update(String sql) throws SQLException {
         sql = getSQL(sql);
         if (sql.trim().length() > 0) {
             executedStatements++;
@@ -243,18 +325,36 @@ class Database {
         }
     }
 
-    public void setAutoCommit(boolean b) throws Exception {
+    /**
+     * Enable or disable auto-commit.
+     * 
+     * @param b false to disable
+     */
+    void setAutoCommit(boolean b) throws SQLException {
         conn.setAutoCommit(b);
     }
 
-    public void commit() throws Exception {
+    /**
+     * Commit a transaction.
+     */
+    void commit() throws SQLException {
         conn.commit();
     }
 
-    public void rollback() throws Exception {
+    /**
+     * Roll a transaction back.
+     */
+    void rollback() throws SQLException {
         conn.rollback();
     }
 
+    /**
+     * Print trace information if trace is enabled.
+     * 
+     * @param action the action
+     * @param i the current value
+     * @param max the maximum value
+     */
     void trace(String action, int i, int max) {
         if (trace) {
             long time = System.currentTimeMillis();
@@ -267,17 +367,37 @@ class Database {
         }
     }
 
+    /**
+     * If data collection is enabled, add the currently used memory size to the
+     * log.
+     * 
+     * @param bench the benchmark
+     * @param action the action
+     */
     void logMemory(Bench bench, String action) {
         log(bench.getName() + ": " + action, "MB", TestBase.getMemoryUsed());
     }
 
+    /**
+     * If data collection is enabled, add this information to the log.
+     * 
+     * @param action the action
+     * @param scale the scale
+     * @param value the value
+     */
     void log(String action, String scale, int value) {
         if (test.collect) {
             results.add(new Object[] { action, scale, new Integer(value) });
         }
     }
 
-    public ResultSet query(PreparedStatement prep) throws Exception {
+    /**
+     * Execute a query.
+     * 
+     * @param prep the prepared statement
+     * @return the result set
+     */
+    ResultSet query(PreparedStatement prep) throws SQLException {
 //        long time = System.currentTimeMillis();
         ResultSet rs = prep.executeQuery();
 //        time = System.currentTimeMillis() - time;
@@ -288,7 +408,12 @@ class Database {
         return rs;
     }
 
-    public void queryReadResult(PreparedStatement prep) throws Exception {
+    /**
+     * Execute a query and read all rows.
+     * 
+     * @param prep the prepared statement
+     */
+    void queryReadResult(PreparedStatement prep) throws SQLException {
         ResultSet rs = prep.executeQuery();
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
@@ -299,16 +424,22 @@ class Database {
         }
     }
 
+    /**
+     * Get the number of executed statements.
+     * 
+     * @return the number of statements
+     */
     int getExecutedStatements() {
         return executedStatements;
     }
 
-    public int getId() {
+    /**
+     * Get the database id.
+     * 
+     * @return the id
+     */
+    int getId() {
         return id;
-    }
-
-    public Connection getCurrentConnection() {
-        return conn;
     }
 
 }

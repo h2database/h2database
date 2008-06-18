@@ -45,6 +45,13 @@ class Parser {
         read();
     }
 
+    /**
+     * Parse a Java statement.
+     * 
+     * @param player the player
+     * @param line the statement text
+     * @return the statement
+     */
     static Statement parseStatement(Player player, String line) {
         Parser p = new Parser(player, line);
         p.parseStatement();

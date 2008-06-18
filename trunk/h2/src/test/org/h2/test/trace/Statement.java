@@ -45,6 +45,11 @@ class Statement {
         this.player = player;
     }
 
+    /**
+     * Execute the statement.
+     * 
+     * @return the object returned if this was a method call
+     */
     Object execute() throws Exception {
         if (object == player) {
             // there was an exception previously
@@ -120,19 +125,38 @@ class Statement {
         return returnClass;
     }
 
+    /**
+     * This statement is an assignment.
+     * 
+     * @param className the class of the variable
+     * @param variableName the variable name
+     */
     void setAssign(String className, String variableName) {
         this.assignment = true;
         this.assignClass = className;
         this.assignVariable = variableName;
     }
 
+    /**
+     * This statement is a static method call.
+     * 
+     * @param className the class name
+     */
     void setStaticCall(String className) {
         this.staticCall = true;
         this.staticCallClass = className;
     }
 
-    void setMethodCall(String objectName, Object object, String methodName) {
-        this.objectName = objectName;
+    /**
+     * This statement is a method call, and the result is assigned to a
+     * variable.
+     * 
+     * @param variableName the variable name
+     * @param object the object
+     * @param methodName the method name
+     */
+    void setMethodCall(String variableName, Object object, String methodName) {
+        this.objectName = variableName;
         this.object = object;
         this.methodName = methodName;
     }

@@ -39,6 +39,12 @@ public class FtpClient {
         // don't allow construction
     }
 
+    /**
+     * Open an FTP connection.
+     * 
+     * @param url the FTP URL
+     * @return the ftp client object
+     */
     static FtpClient open(String url) throws IOException {
         FtpClient client = new FtpClient();
         client.connect(url);
@@ -77,6 +83,12 @@ public class FtpClient {
         writer.flush();
     }
 
+    /**
+     * Login to this FTP server (USER, PASS, SYST, SITE, STRU F, TYPE I).
+     * 
+     * @param userName the user name
+     * @param password the password
+     */
     void login(String userName, String password) throws IOException {
         send("USER " + userName);
         readCode(331);
@@ -92,6 +104,9 @@ public class FtpClient {
         readCode(200);
     }
 
+    /**
+     * Close the connection (QUIT).
+     */
     void close() throws IOException {
         if (socket != null) {
             send("QUIT");
@@ -100,42 +115,75 @@ public class FtpClient {
         }
     }
 
+    /**
+     * Change the working directory (CWD).
+     * 
+     * @param dir the new directory
+     */
     void changeWorkingDirectory(String dir) throws IOException {
         send("CWD " + dir);
         readCode(250);
     }
 
+    /**
+     * Change to the parent directory (CDUP).
+     */
     void changeDirectoryUp() throws IOException {
         send("CDUP");
         readCode(250);
     }
 
+    /**
+     * Delete a file (DELE).
+     * 
+     * @param fileName the name of the file to delete
+     */
     void delete(String fileName) throws IOException {
         send("DELE " + fileName);
         readCode(250);
     }
 
+    /**
+     * Create a directory (MKD).
+     * 
+     * @param dir the directory to create
+     */
     void makeDirectory(String dir) throws IOException {
         send("MKD " + dir);
         readCode(257);
     }
 
+    /**
+     * Change the transfer mode (MODE).
+     * 
+     * @param mode the mode
+     */
     void mode(String mode) throws IOException {
         send("MODE " + mode);
         readCode(200);
     }
 
+    /**
+     * Change the modified time of a file (MDTM).
+     * 
+     * @param fileName the file name
+     */
     void modificationTime(String fileName) throws IOException {
         send("MDTM " + fileName);
-
         readCode(213);
     }
-
+    
+    /**
+     * Issue a no-operation statement (NOOP).
+     */
     void noOperation() throws IOException {
         send("NOOP");
         readCode(200);
     }
 
+    /**
+     * Print the working directory (PWD).
+     */
     String printWorkingDirectory() throws IOException {
         send("PWD");
         readCode(257);
@@ -177,6 +225,12 @@ public class FtpClient {
         outData = socketData.getOutputStream();
     }
 
+    /**
+     * Rename a file (RNFR / RNTO).
+     * 
+     * @param fromFileName the old file name
+     * @param toFileName the new file name
+     */
     void rename(String fromFileName, String toFileName) throws IOException {
         send("RNFR " + fromFileName);
         readCode(350);
@@ -184,6 +238,13 @@ public class FtpClient {
         readCode(250);
     }
 
+    /**
+     * Read a file ([REST] RETR).
+     * 
+     * @param fileName the file name
+     * @param out the output stream
+     * @param restartAt restart at the given position (0 if no restart is required).
+     */
     void retrieve(String fileName, OutputStream out, long restartAt) throws IOException {
         passive();
         if (restartAt > 0) {
@@ -195,11 +256,22 @@ public class FtpClient {
         readCode(226);
     }
 
+    /**
+     * Remove a directory (RMD).
+     * 
+     * @param dir the directory to remove
+     */
     void removeDirectory(String dir) throws IOException {
         send("RMD " + dir);
         readCode(250);
     }
 
+    /**
+     * Get the size of a file (SIZE).
+     * 
+     * @param fileName the file name
+     * @return the size
+     */
     long size(String fileName) throws IOException {
         send("SIZE " + fileName);
         readCode(250);
@@ -207,6 +279,12 @@ public class FtpClient {
         return size;
     }
 
+    /**
+     * Store a file (STOR).
+     * 
+     * @param fileName the file name
+     * @param in the input stream
+     */
     void store(String fileName, InputStream in) throws IOException {
         passive();
         send("STOR " + fileName);
@@ -215,6 +293,12 @@ public class FtpClient {
         readCode(226);
     }
 
+    /**
+     * Get the directory listing (NLST).
+     * 
+     * @param dir the directory
+     * @return the listing
+     */
     String nameList(String dir) throws IOException {
         passive();
         send("NLST " + dir);
@@ -226,6 +310,12 @@ public class FtpClient {
         return new String(data);
     }
 
+    /**
+     * Get the directory listing (LIST).
+     * 
+     * @param dir the directory
+     * @return the listing
+     */
     String list(String dir) throws IOException {
         passive();
         send("LIST " + dir);

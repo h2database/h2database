@@ -143,11 +143,11 @@ public class BenchC implements Bench {
         trace("load done");
     }
 
-    void trace(String s) {
+    private void trace(String s) {
         action = s;
     }
 
-    void trace(int i, int max) {
+    private void trace(int i, int max) {
         db.trace(action, i, max);
     }
 

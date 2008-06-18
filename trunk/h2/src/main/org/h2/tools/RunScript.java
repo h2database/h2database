@@ -298,12 +298,21 @@ public class RunScript extends Tool {
      * @param fileName the script file
      * @param charsetName the character set name or null for UTF-8
      * @param continueOnError if execution should be continued if an error occurs
-     * @throws SQLException
      */
     public static void execute(String url, String user, String password, String fileName, String charsetName, boolean continueOnError) throws SQLException {
         new RunScript().process(url, user, password, fileName, charsetName, continueOnError);
     }
     
+    /**
+     * Executes the SQL commands in a script file against a database.
+     *
+     * @param url the database URL
+     * @param user the user name
+     * @param password the password
+     * @param fileName the script file
+     * @param charsetName the character set name or null for UTF-8
+     * @param continueOnError if execution should be continued if an error occurs
+     */
     void process(String url, String user, String password, String fileName, String charsetName, boolean continueOnError) throws SQLException {
         try {
             org.h2.Driver.load();

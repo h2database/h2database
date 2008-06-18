@@ -21,6 +21,12 @@ public class WebClient {
 
     private String sessionId;
 
+    /**
+     * Open an URL and get the HTML data.
+     * 
+     * @param url the HTTP URL
+     * @return the HTML as a string
+     */
     String get(String url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
         connection.setRequestMethod("GET");
@@ -36,10 +42,15 @@ public class WebClient {
         return result;
     }
 
-    void readSessionId(String result) {
-        int idx = result.indexOf("jsessionid=");
-        String id = result.substring(idx + "jsessionid=".length());
-        for (int i = 0; i < result.length(); i++) {
+    /**
+     * Read the session ID from a URL.
+     * 
+     * @param url the URL
+     */
+    void readSessionId(String url) {
+        int idx = url.indexOf("jsessionid=");
+        String id = url.substring(idx + "jsessionid=".length());
+        for (int i = 0; i < url.length(); i++) {
             char ch = id.charAt(i);
             if (!Character.isLetterOrDigit(ch)) {
                 id = id.substring(0, i);
@@ -49,6 +60,13 @@ public class WebClient {
         this.sessionId = id;
     }
 
+    /**
+     * Read the specified HTML page.
+     * 
+     * @param url the base URL
+     * @param page the page to read
+     * @return the HTML page
+     */
     String get(String url, String page) throws IOException {
         if (sessionId != null) {
             if (page.indexOf('?') < 0) {

@@ -10,7 +10,29 @@ package org.h2.build.indexer;
  * Represents a weight of a token in a page.
  */
 public class Weight {
-    static final int TITLE = 10000, HEADER = 100, PARAGRAPH = 1;
+    
+    /**
+     * The weight of a word in a title.
+     */
+    static final int TITLE = 10000;
+    
+    /**
+     * The weight of a word in the header.
+     */
+    static final int HEADER = 100;
+    
+    /**
+     * The weight of a word in a paragraph.
+     */
+    static final int PARAGRAPH = 1;
+    
+    /**
+     * The page referenced.
+     */
     Page page;
+    
+    /**
+     * The weight value.
+     */
     int value;
 }

@@ -15,14 +15,25 @@ import java.util.HashMap;
  * Represents a word of the full text index.
  */
 public class Word {
+    
+    /**
+     * The word text.
+     */
     String name;
-    HashMap pages = new HashMap();
-    ArrayList weightList;
+    
+    private HashMap pages = new HashMap();
+    private ArrayList weightList;
 
     Word(String name) {
         this.name = name;
     }
 
+    /**
+     * Add a page to this word.
+     * 
+     * @param page the page
+     * @param weight the weight of this word in this page
+     */
     void addPage(Page page, int weight) {
         Weight w = (Weight) pages.get(page);
         if (w == null) {

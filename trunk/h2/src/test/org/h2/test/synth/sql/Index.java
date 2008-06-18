@@ -10,10 +10,10 @@ package org.h2.test.synth.sql;
  * Represents an index.
  */
 public class Index {
-    Table table;
-    String name;
-    Column[] columns;
-    boolean unique;
+    private Table table;
+    private String name;
+    private Column[] columns;
+    private boolean unique;
 
     Index(Table table, String name, Column[] columns, boolean unique) {
         this.table = table;
@@ -22,11 +22,11 @@ public class Index {
         this.unique = unique;
     }
 
-    public String getName() {
+    String getName() {
         return name;
     }
 
-    public String getCreateSQL() {
+    String getCreateSQL() {
         String sql = "CREATE ";
         if (unique) {
             sql += "UNIQUE ";
@@ -42,11 +42,11 @@ public class Index {
         return sql;
     }
 
-    public String getDropSQL() {
+    String getDropSQL() {
         return "DROP INDEX " + name;
     }
 
-    public Table getTable() {
+    Table getTable() {
         return table;
     }
 

@@ -82,7 +82,7 @@ public class FileSystemDisk extends FileSystem {
         throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName, newName});
     }
 
-    void trace(String method, String fileName, Object o) {
+    private void trace(String method, String fileName, Object o) {
         if (SysProperties.TRACE_IO) {
             System.out.println("FileSystem." + method + " " + fileName + " " + o);
         }

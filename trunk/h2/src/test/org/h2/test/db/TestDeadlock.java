@@ -66,7 +66,12 @@ public class TestDeadlock extends TestBase {
      * that execute a statement.
      */
     abstract class DoIt extends Thread {
+        
+        /**
+         * The operation to execute.
+         */
         abstract void execute() throws SQLException;
+        
         public void run() {
             try {
                 execute();

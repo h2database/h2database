@@ -365,6 +365,12 @@ public abstract class TestBase {
         printlnWithTime(time, getClass().getName() + " " + s);
     }
 
+    /**
+     * Print a message, prepended with the specified time in milliseconds.
+     * 
+     * @param time the milliseconds
+     * @param s the message
+     */
     static void printlnWithTime(long time, String s) {
         String t = "0000000000" + time;
         t = t.substring(t.length() - 6);
@@ -743,9 +749,10 @@ public abstract class TestBase {
      * @param data the expected data
      * @throws Exception if there is a mismatch
      */
-    void assertResultSetUnordered(ResultSet rs, String[][] data) throws Exception {
-        assertResultSet(false, rs, data);
-    }
+//    void assertResultSetUnordered(ResultSet rs, String[][] data) 
+//            throws Exception {
+//        assertResultSet(false, rs, data);
+//    }
 
     /**
      * Check if a result set contains the expected data.
@@ -755,7 +762,7 @@ public abstract class TestBase {
      * @param data the expected data
      * @throws Exception if there is a mismatch
      */
-    void assertResultSet(boolean ordered, ResultSet rs, String[][] data) throws Exception {
+    private void assertResultSet(boolean ordered, ResultSet rs, String[][] data) throws Exception {
         int len = rs.getMetaData().getColumnCount();
         int rows = data.length;
         if (rows == 0) {
@@ -815,7 +822,7 @@ public abstract class TestBase {
         return true;
     }
 
-    String[] getData(ResultSet rs, int len) throws SQLException {
+    private String[] getData(ResultSet rs, int len) throws SQLException {
         String[] data = new String[len];
         for (int i = 0; i < len; i++) {
             data[i] = rs.getString(i + 1);
@@ -825,7 +832,7 @@ public abstract class TestBase {
         return data;
     }
 
-    String formatRow(String[] row) {
+    private String formatRow(String[] row) {
         String sb = "";
         for (int i = 0; i < row.length; i++) {
             sb += "{" + row[i] + "}";

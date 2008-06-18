@@ -48,7 +48,7 @@ public class Doclet {
         return new Doclet().startDoc(root);
     }
     
-    boolean startDoc(RootDoc root) throws IOException {
+    private boolean startDoc(RootDoc root) throws IOException {
         ClassDoc[] classes = root.classes();
         String[][] options = root.options();
         String destDir = System.getProperty("h2.destDir", "docs/javadoc");

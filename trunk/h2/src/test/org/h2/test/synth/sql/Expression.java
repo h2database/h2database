@@ -13,19 +13,24 @@ import java.util.ArrayList;
  * Represents an expression.
  */
 public class Expression {
-    boolean isCondition;
-
+    
     private String sql;
     private TestSynth config;
     private Command command;
 
-    private Expression(TestSynth config, Command command, boolean isCondition) {
+    private Expression(TestSynth config, Command command) {
         this.config = config;
-        this.isCondition = isCondition;
         this.command = command;
         sql = "";
     }
 
+    /**
+     * Create a random select list.
+     * 
+     * @param config the configuration
+     * @param command the command
+     * @return the select list
+     */
     static String[] getRandomSelectList(TestSynth config, Command command) {
         if (config.random().getBoolean(30)) {
             return new String[] { "*" };
@@ -47,16 +52,23 @@ public class Expression {
         return list;
     }
 
+    /**
+     * Generate a random condition.
+     * 
+     * @param config the configuration
+     * @param command the command
+     * @return the random condition expression
+     */
     static Expression getRandomCondition(TestSynth config, Command command) {
-        Expression condition = new Expression(config, command, true);
+        Expression condition = new Expression(config, command);
         if (config.random().getBoolean(50)) {
             condition.create();
         }
         return condition;
     }
 
-    static Expression getRandomExpression(TestSynth config, Command command) {
-        Expression expression = new Expression(config, command, false);
+    private static Expression getRandomExpression(TestSynth config, Command command) {
+        Expression expression = new Expression(config, command);
         String alias = command.getRandomTableAlias();
         Column column = command.getTable(alias).getRandomConditionColumn();
         if (column == null) {
@@ -72,12 +84,27 @@ public class Expression {
         sql = v.getSQL();
     }
 
+    /**
+     * Generate a random join condition.
+     * 
+     * @param config the configuration
+     * @param command the command
+     * @param alias the alias name
+     * @return the join condition
+     */
     static Expression getRandomJoinOn(TestSynth config, Command command, String alias) {
-        Expression expression = new Expression(config, command, true);
+        Expression expression = new Expression(config, command);
         expression.createJoinComparison(alias);
         return expression;
     }
 
+    /**
+     * Generate a random sort order list.
+     * 
+     * @param config the configuration
+     * @param command the command
+     * @return the ORDER BY list
+     */
     static String getRandomOrder(TestSynth config, Command command) {
         int len = config.random().getLog(6);
         String sql = "";
@@ -104,6 +131,11 @@ public class Expression {
         return sql;
     }
 
+    /**
+     * Get the SQL snippet of this expression.
+     * 
+     * @return the SQL snippet
+     */
     String getSQL() {
         return sql.trim().length() == 0 ? null : sql.trim();
     }
@@ -250,11 +282,7 @@ public class Expression {
         }
     }
 
-    boolean isEmpty() {
-        return sql == null || sql.trim().length() == 0;
-    }
-
-    void createExpression(String alias, Column type) {
+    private void createExpression(String alias, Column type) {
         boolean op = is(20);
         // no null values if there is an operation
         boolean allowNull = !op;
@@ -288,7 +316,7 @@ public class Expression {
         }
     }
 
-    void createTerm(String alias, Column type, boolean allowNull) {
+    private void createTerm(String alias, Column type, boolean allowNull) {
         int dt = type.getType();
         if (is(5) && (dt == Types.INTEGER) || (dt == Types.DECIMAL)) {
             sql += " - ";

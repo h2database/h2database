@@ -521,6 +521,9 @@ public class TableFilter implements ColumnResolver {
         return buff.toString();
     }
 
+    /**
+     * Remove all index conditions that are not used by the current index.
+     */
     void removeUnusableIndexConditions() {
         for (int i = 0; i < indexConditions.size(); i++) {
             IndexCondition cond = (IndexCondition) indexConditions.get(i);
@@ -557,6 +560,11 @@ public class TableFilter implements ColumnResolver {
         return used;
     }
 
+    /**
+     * Set the session of this table filter.
+     * 
+     * @param session
+     */
     void setSession(Session session) {
         this.session = session;
     }

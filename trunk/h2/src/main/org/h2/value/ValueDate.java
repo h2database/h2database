@@ -18,6 +18,10 @@ import org.h2.util.DateTimeUtils;
  * Implementation of the DATE data type.
  */
 public class ValueDate extends Value {
+    
+    /**
+     * The precision in digits.
+     */
     static final int PRECISION = 8;
     
     /**

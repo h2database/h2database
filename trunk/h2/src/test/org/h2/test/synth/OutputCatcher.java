@@ -23,6 +23,12 @@ class OutputCatcher extends Thread {
         this.in = in;
     }
 
+    /**
+     * Read a line from the output.
+     * 
+     * @param wait the maximum number of milliseconds to wait
+     * @return the line
+     */
     String readLine(long wait) {
         long start = System.currentTimeMillis();
         while (true) {

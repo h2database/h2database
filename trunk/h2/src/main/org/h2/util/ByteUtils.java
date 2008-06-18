@@ -236,6 +236,6 @@ public class ByteUtils {
         byte[] copy = new byte[len];
         System.arraycopy(b, 0, copy, 0, len);
         return copy;
-    }
+    } 
 
 }

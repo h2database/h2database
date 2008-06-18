@@ -35,6 +35,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.ObjectArray;
+import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
@@ -205,7 +206,7 @@ public class Select extends Query {
         if (columnCount != distinctColumnCount) {
             // remove columns so that 'distinct' can filter duplicate rows
             Value[] r2 = new Value[distinctColumnCount];
-            System.arraycopy(row, 0, r2, 0, distinctColumnCount);
+            ObjectUtils.arrayCopy(row, r2, distinctColumnCount);
             row = r2;
         }
         result.addRow(row);
@@ -337,7 +338,7 @@ public class Select extends Query {
             if (columnCount != distinctColumnCount) {
                 // remove columns so that 'distinct' can filter duplicate rows
                 Value[] r2 = new Value[distinctColumnCount];
-                System.arraycopy(row, 0, r2, 0, distinctColumnCount);
+                ObjectUtils.arrayCopy(row, r2, distinctColumnCount);
                 row = r2;
             }
             result.addRow(row);

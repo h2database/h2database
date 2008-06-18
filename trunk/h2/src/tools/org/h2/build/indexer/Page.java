@@ -10,11 +10,31 @@ package org.h2.build.indexer;
  * Represents a page of the indexer.
  */
 public class Page {
+    
+    /**
+     * The page id.
+     */
     int id;
+    
+    /**
+     * The file name.
+     */
     String fileName;
+    
+    /**
+     * The title of the page.
+     */
     String title;
+    
+    /**
+     * The total weight of this page.
+     */
     // TODO page.totalWeight is currently not used
     int totalWeight;
+    
+    /**
+     * The number of relations between a page and a word.
+     */
     int relations;
 
     Page(int id, String fileName) {

@@ -55,7 +55,7 @@ public class FileObjectMemory implements FileObject {
                 return false;
             }
             CompressItem c = (CompressItem) eldest.getKey();
-            compress(c.data, c.l);
+            compress(c.data, c.page);
             return true;
         }
     }
@@ -64,17 +64,25 @@ public class FileObjectMemory implements FileObject {
      * Represents a compressed item.
      */
     static class CompressItem {
+        
+        /**
+         * The file data.
+         */
         byte[][] data;
-        int l;
+        
+        /**
+         * The page to compress.
+         */
+        int page;
 
         public int hashCode() {
-            return data.hashCode() ^ l;
+            return data.hashCode() ^ page;
         }
 
         public boolean equals(Object o) {
             if (o instanceof CompressItem) {
                 CompressItem c = (CompressItem) o;
-                return c.data == data && c.l == l;
+                return c.data == data && c.page == page;
             }
             return false;
         }
@@ -88,19 +96,19 @@ public class FileObjectMemory implements FileObject {
         touch();
     }
     
-    private static void compressLater(byte[][] data, int l) {
+    private static void compressLater(byte[][] data, int page) {
 //## Java 1.4 begin ##
         CompressItem c = new CompressItem();
         c.data = data;
-        c.l = l;
+        c.page = page;
         synchronized (LZF) {
             COMPRESS_LATER.put(c, c);
         }
 //## Java 1.4 end ##
     }
     
-    private static void expand(byte[][] data, int i) {
-        byte[] d = data[i];
+    private static void expand(byte[][] data, int page) {
+        byte[] d = data[page];
         if (d.length == BLOCK_SIZE) {
             return;
         }
@@ -108,17 +116,23 @@ public class FileObjectMemory implements FileObject {
         synchronized (LZF) {
             LZF.expand(d, 0, d.length, out, 0, BLOCK_SIZE);
         }
-        data[i] = out;
+        data[page] = out;
     }
 
-    static void compress(byte[][] data, int i) {
-        byte[] d = data[i];
+    /**
+     * Compress the data in a byte array.
+     * 
+     * @param data the page array
+     * @param page which page to compress
+     */
+    static void compress(byte[][] data, int page) {
+        byte[] d = data[page];
         synchronized (LZF) {
             int len = LZF.compress(d, BLOCK_SIZE, BUFFER, 0);
             if (len <= BLOCK_SIZE) {
                 d = new byte[len];
                 System.arraycopy(BUFFER, 0, d, 0, len);
-                data[i] = d;
+                data[page] = d;
             }
         }
     }
@@ -138,25 +152,25 @@ public class FileObjectMemory implements FileObject {
         return length;
     }
     
-    public void setFileLength(long l) {
+    public void setFileLength(long newLength) {
         touch();
-        if (l < length) {
-            pos = Math.min(pos, l);
-            changeLength(l);
-            long end = MathUtils.roundUpLong(l, BLOCK_SIZE);
-            if (end != l) {
-                int lastBlock = (int) (l >>> BLOCK_SIZE_SHIFT);
-                expand(data, lastBlock);
-                byte[] d = data[lastBlock];
-                for (int i = (int) (l & BLOCK_SIZE_MASK); i < BLOCK_SIZE; i++) {
+        if (newLength < length) {
+            pos = Math.min(pos, newLength);
+            changeLength(newLength);
+            long end = MathUtils.roundUpLong(newLength, BLOCK_SIZE);
+            if (end != newLength) {
+                int lastPage = (int) (newLength >>> BLOCK_SIZE_SHIFT);
+                expand(data, lastPage);
+                byte[] d = data[lastPage];
+                for (int i = (int) (newLength & BLOCK_SIZE_MASK); i < BLOCK_SIZE; i++) {
                     d[i] = 0;
                 }
                 if (compress) {
-                    compressLater(data, lastBlock);
+                    compressLater(data, lastPage);
                 }
             }
         } else {
-            changeLength(l);
+            changeLength(newLength);
         }
     }
     
@@ -193,9 +207,9 @@ public class FileObjectMemory implements FileObject {
         }
         while (len > 0) {
             int l = (int) Math.min(len, BLOCK_SIZE - (pos & BLOCK_SIZE_MASK));
-            int id = (int) (pos >>> BLOCK_SIZE_SHIFT);
-            expand(data, id);
-            byte[] block = data[id];
+            int page = (int) (pos >>> BLOCK_SIZE_SHIFT);
+            expand(data, page);
+            byte[] block = data[page];
             int blockOffset = (int) (pos & BLOCK_SIZE_MASK);
             if (write) {
                 System.arraycopy(b, off, block, blockOffset, l);
@@ -203,7 +217,7 @@ public class FileObjectMemory implements FileObject {
                 System.arraycopy(block, blockOffset, b, off, l);
             }
             if (compress) {
-                compressLater(data, id);
+                compressLater(data, page);
             }
             off += l;
             pos += l;

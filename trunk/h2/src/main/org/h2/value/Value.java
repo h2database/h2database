@@ -319,6 +319,14 @@ public abstract class Value {
         return o1 > o2 ? t1 : t2;
     }
 
+    /**
+     * Check if a value is in the cache that is equal to this value. If yes,
+     * this value should be used to save memory. If the value is not in the
+     * cache yet, it is added.
+     * 
+     * @param v the value to look for
+     * @return the value in the cache or the value passed
+     */
     static Value cache(Value v) {
         if (SysProperties.OBJECT_CACHE) {
             Value[] cache = (Value[]) softCache.get();

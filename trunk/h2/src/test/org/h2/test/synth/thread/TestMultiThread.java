@@ -16,25 +16,51 @@ import org.h2.test.TestBase;
  */
 abstract class TestMultiThread extends Thread {
 
+    /**
+     * The base object.
+     */
     TestMulti base;
+    
+    /**
+     * The random number generator.
+     */
     Random random = new Random();
 
     TestMultiThread(TestMulti base) {
         this.base = base;
     }
 
+    /**
+     * Execute statements that need to be executed before starting the thread.
+     * This includes CREATE TABLE statements.
+     */
     abstract void first() throws SQLException;
 
+    /**
+     * The main operation to perform. This method is called in a loop.
+     */
     abstract void operation() throws SQLException;
 
+    /**
+     * Execute statements before entering the loop, but after starting the
+     * thread.
+     */
     abstract void begin() throws SQLException;
 
+    /**
+     * This method is called once after the test is stopped.
+     */
     abstract void end() throws SQLException;
 
+    /**
+     * This method is called once after all threads have been stopped.
+     * @throws Exception
+     */
     abstract void finalTest() throws Exception;
 
     public void run() {
         try {
+            begin();
             while (!base.stop) {
                 operation();
             }

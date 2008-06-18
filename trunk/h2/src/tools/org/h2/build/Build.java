@@ -251,7 +251,7 @@ public class Build extends BuildBase {
      */
     public void javadocImpl() {
         mkdir("docs/javadocImpl");
-int test;        
+
         javadoc(new String[] {
                 "-sourcepath", "src/main" + File.pathSeparator + 
                 "src/test" + File.pathSeparator + "src/tools" , 

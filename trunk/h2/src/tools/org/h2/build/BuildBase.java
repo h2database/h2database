@@ -389,6 +389,14 @@ public class BuildBase {
         }
     }
     
+    /**
+     * Filter a list of file names.
+     * 
+     * @param files the original list
+     * @param keep if matching file names should be kept or removed
+     * @param pattern the file name pattern
+     * @return the filtered file list
+     */
     static FileList filterFiles(FileList files, boolean keep, String pattern) {
         boolean start = false;
         if (pattern.endsWith("*")) {

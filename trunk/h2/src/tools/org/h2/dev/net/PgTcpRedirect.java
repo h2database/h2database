@@ -32,7 +32,7 @@ public class PgTcpRedirect {
         new PgTcpRedirect().loop(args);
     }
 
-    void loop(String[] args) throws Exception {
+    private void loop(String[] args) throws Exception {
         // MySQL protocol:
         // http://www.redferni.uklinux.net/mysql/MySQL-Protocol.html
         // PostgreSQL protocol:
@@ -529,6 +529,12 @@ public class PgTcpRedirect {
         }
     }
 
+    /**
+     * Print the uninterpreted byte array.
+     * 
+     * @param buffer the byte array
+     * @param len the length
+     */
     synchronized void printData(byte[] buffer, int len) {
         if (false) {
             System.out.print(" ");

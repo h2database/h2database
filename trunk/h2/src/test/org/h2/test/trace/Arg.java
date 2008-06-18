@@ -49,6 +49,9 @@ class Arg {
         return quote(clazz, getValue());
     }
 
+    /**
+     * Calculate the value if this is a statement.
+     */
     void execute() throws Exception {
         if (stat != null) {
             obj = stat.execute();
@@ -65,7 +68,7 @@ class Arg {
         return obj;
     }
 
-    String quote(Class clazz, Object value) {
+    private String quote(Class clazz, Object value) {
         if (value == null) {
             return null;
         } else if (clazz == String.class) {

@@ -111,6 +111,11 @@ public class Player {
         }
     }
 
+    /**
+     * Write trace information if trace is enabled.
+     * 
+     * @param s the message to write
+     */
     void trace(String s) {
         if (trace) {
             System.out.println(s);
@@ -131,7 +136,14 @@ public class Player {
             trace("error: " + e.toString());
         }
     }
-
+    
+    /**
+     * Get the class for the given class name.
+     * Only a limited set of classes is supported.
+     * 
+     * @param className the class name
+     * @return the class
+     */
     static Class getClass(String className) {
         for (int i = 0; i < IMPORTED_PACKAGES.length; i++) {
             try {
@@ -143,10 +155,22 @@ public class Player {
         throw new Error("Class not found: " + className);
     }
 
-    void assign(String objectName, Object obj) {
-        objects.put(objectName, obj);
+    /**
+     * Assign an object to a variable.
+     * 
+     * @param variableName the variable name
+     * @param obj the object
+     */
+    void assign(String variableName, Object obj) {
+        objects.put(variableName, obj);
     }
 
+    /**
+     * Get an object.
+     * 
+     * @param name the variable name
+     * @return the object
+     */
     Object getObject(String name) {
         return objects.get(name);
     }

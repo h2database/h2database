@@ -21,6 +21,13 @@ import org.h2.message.Message;
  */
 public class ObjectUtils {
     
+    /**
+     * The maximum number of elements to copy using a Java loop. This value was
+     * found by running tests using the Sun JDK 1.4 and JDK 1.6 on Windows XP.
+     * The biggest difference is for size smaller than 40 (more than 50% saving).
+     */
+    private static final int MAX_JAVA_LOOP_COPY = 100;
+    
     private ObjectUtils() {
         // utility class
     }
@@ -166,6 +173,25 @@ public class ObjectUtils {
             return obj;
         } catch (Throwable e) {
             throw Message.getSQLException(ErrorCode.DESERIALIZATION_FAILED_1, new String[] { e.toString() }, e);
+        }
+    }
+    
+    /**
+     * Copy the elements of the source array to the target array.
+     * System.arraycopy is used for larger arrays, but for very small arrays it
+     * is faster to use a regular loop.
+     * 
+     * @param source the source array
+     * @param target the target array
+     * @param size the number of elements to copy
+     */
+    public static void arrayCopy(Object[] source, Object[] target, int size) {
+        if (size > MAX_JAVA_LOOP_COPY) {
+            System.arraycopy(source, 0, target, 0, size);
+        } else {
+            for (int i = 0; i < size; i++) {
+                target[i] = source[i];
+            }
         }
     }
 

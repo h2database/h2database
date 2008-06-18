@@ -13,8 +13,8 @@ import java.util.ArrayList;
  */
 public class DbState implements DbInterface {
 
-    boolean connected;
-    boolean autoCommit;
+    private boolean connected;
+    private boolean autoCommit;
     private TestSynth config;
     private ArrayList tables = new ArrayList();
     private ArrayList indexes = new ArrayList();
@@ -80,6 +80,11 @@ public class DbState implements DbInterface {
         // nothing to do
     }
 
+    /**
+     * Get a random table.
+     * 
+     * @return the table
+     */
     Table randomTable() {
         if (tables.size() == 0) {
             return null;
@@ -90,6 +95,10 @@ public class DbState implements DbInterface {
 
     public void end() {
         // nothing to do
+    }
+    
+    public String toString() {
+        return "autocommit: " + autoCommit + " connected: " + connected;
     }
 
 }

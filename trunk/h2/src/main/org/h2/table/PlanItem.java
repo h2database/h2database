@@ -13,7 +13,12 @@ import org.h2.index.Index;
  * using it.
  */
 public class PlanItem {
+    
+    /**
+     * The cost.
+     */
     double cost;
+    
     private Index index;
     private PlanItem joinPlan;
 

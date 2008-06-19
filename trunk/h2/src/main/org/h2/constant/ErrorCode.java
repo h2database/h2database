@@ -1491,6 +1491,12 @@ public class ErrorCode {
     public static final int CANNOT_DROP_2 = 90107;
 
     /**
+     * The error with code <code>90108</code> is thrown when
+     * not enough memory was available to read a value from the disk.
+     */
+    public static final int OUT_OF_MEMORY_1 = 90108;
+
+    /**
      * The error with code <code>90109</code> is thrown when
      * trying to run a query against an invalid view.
      * Example:
@@ -1806,7 +1812,7 @@ public class ErrorCode {
      */
     public static final int CAN_ONLY_ASSIGN_TO_VARIABLE_1 = 90137;
 
-    // next is 90108, 90138
+    // next is 90138
     
     private ErrorCode() {
         // utility class

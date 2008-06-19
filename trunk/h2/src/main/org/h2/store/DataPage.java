@@ -545,13 +545,13 @@ public abstract class DataPage {
         }
         case Value.JAVA_OBJECT: {
             int len = readInt();
-            byte[] b = new byte[len];
+            byte[] b = createByteArray(len);
             read(b, 0, len);
             return ValueJavaObject.getNoCopy(b);
         }
         case Value.BYTES: {
             int len = readInt();
-            byte[] b = new byte[len];
+            byte[] b = createByteArray(len);
             read(b, 0, len);
             return ValueBytes.getNoCopy(b);
         }
@@ -571,7 +571,7 @@ public abstract class DataPage {
         case Value.CLOB: {
             int smallLen = readInt();
             if (smallLen >= 0) {
-                byte[] small = new byte[smallLen];
+                byte[] small = createByteArray(smallLen);
                 read(small, 0, smallLen);
                 return ValueLob.createSmallLob(dataType, small);
             }
@@ -602,6 +602,16 @@ public abstract class DataPage {
         }
         default:
             throw Message.getInternalError("type=" + dataType);
+        }
+    }
+    
+    private byte[] createByteArray(int len) {
+        try {
+            return new byte[len];
+        } catch (OutOfMemoryError e) {
+            Error e2 = new OutOfMemoryError("Requested memory: " + len);
+            e2.initCause(e);
+            throw e2;
         }
     }
 

@@ -265,8 +265,13 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
 
 /*
-        
+
+move DataPage.createByteArray to ByteUtils, improve message
+
 run the performance tests as part of the unit test
+
+switch to JDK 1.6 by default
+integrate java queries
 
 jazoon
 

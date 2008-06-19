@@ -62,6 +62,7 @@ import org.h2.tools.Restore;
 import org.h2.tools.RunScript;
 import org.h2.tools.Script;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.ByteUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
@@ -402,7 +403,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             }
         }
         if (session != null && len > 0) {
-            byte[] bytes = new byte[len];
+            byte[] bytes = ByteUtils.newBytes(len);
             for (int pos = 0; pos < len;) {
                 pos += input.read(bytes, pos, len - pos);
             }

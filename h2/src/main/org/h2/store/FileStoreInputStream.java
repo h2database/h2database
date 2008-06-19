@@ -14,6 +14,7 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.tools.CompressTool;
+import org.h2.util.ByteUtils;
 
 /**
  * An input stream that is backed by a file store.
@@ -119,7 +120,7 @@ public class FileStoreInputStream extends InputStream {
             page.readInt();
             if (compress != null) {
                 int uncompressed = page.readInt();
-                byte[] buff = new byte[remainingInBuffer];
+                byte[] buff = ByteUtils.newBytes(remainingInBuffer);
                 page.read(buff, 0, remainingInBuffer);
                 page.reset();
                 page.checkCapacity(uncompressed);

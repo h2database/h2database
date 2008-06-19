@@ -28,6 +28,7 @@ import org.h2.log.RedoLogRecord;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.util.BitField;
+import org.h2.util.ByteUtils;
 import org.h2.util.Cache;
 import org.h2.util.Cache2Q;
 import org.h2.util.CacheLRU;
@@ -584,7 +585,7 @@ public class DiskFile implements CacheWriter {
                 throw Message.getInternalError("0 blocks to read pos=" + pos);
             }
             if (blockCount > 1) {
-                byte[] b2 = new byte[blockCount * BLOCK_SIZE];
+                byte[] b2 = ByteUtils.newBytes(blockCount * BLOCK_SIZE);
                 System.arraycopy(buff, 0, b2, 0, BLOCK_SIZE);
                 buff = b2;
                 file.readFully(buff, BLOCK_SIZE, blockCount * BLOCK_SIZE - BLOCK_SIZE);

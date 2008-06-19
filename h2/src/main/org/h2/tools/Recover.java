@@ -490,7 +490,7 @@ public class Recover extends Tool implements DataHandler {
                 s = DataPage.create(this, buff);
                 blocks = Math.abs(s.readInt());
                 if (blocks > 1) {
-                    byte[] b2 = new byte[blocks * blockSize];
+                    byte[] b2 = ByteUtils.newBytes(blocks * blockSize);
                     System.arraycopy(buff, 0, b2, 0, blockSize);
                     buff = b2;
                     try {
@@ -525,7 +525,7 @@ public class Recover extends Tool implements DataHandler {
                     case 'S': {
                         char fileType = (char) s.readByte();
                         int sumLength = s.readInt();
-                        byte[] summary = new byte[sumLength];
+                        byte[] summary = ByteUtils.newBytes(sumLength);
                         if (sumLength > 0) {
                             s.read(summary, 0, sumLength);
                         }

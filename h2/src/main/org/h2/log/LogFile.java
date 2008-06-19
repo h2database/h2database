@@ -21,6 +21,7 @@ import org.h2.store.DiskFile;
 import org.h2.store.FileStore;
 import org.h2.store.Record;
 import org.h2.store.Storage;
+import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
@@ -216,7 +217,7 @@ public class LogFile {
         DataPage s = DataPage.create(database, buff);
         int blocks = Math.abs(s.readInt());
         if (blocks > 1) {
-            byte[] b2 = new byte[blocks * BLOCK_SIZE];
+            byte[] b2 = ByteUtils.newBytes(blocks * BLOCK_SIZE);
             System.arraycopy(buff, 0, b2, 0, BLOCK_SIZE);
             buff = b2;
             file.readFully(buff, BLOCK_SIZE, blocks * BLOCK_SIZE - BLOCK_SIZE);
@@ -306,7 +307,7 @@ public class LogFile {
                 break;
             }
             int sumLength = in.readInt();
-            byte[] summary = new byte[sumLength];
+            byte[] summary = ByteUtils.newBytes(sumLength);
             if (sumLength > 0) {
                 in.read(summary, 0, sumLength);
             }

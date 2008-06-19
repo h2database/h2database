@@ -15,6 +15,7 @@ import java.sql.Timestamp;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
+import org.h2.util.ByteUtils;
 import org.h2.util.MathUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -200,7 +201,7 @@ public abstract class DataPage {
      */
     public void checkCapacity(int plus) {
         if (pos + plus >= data.length) {
-            byte[] d = new byte[(data.length + plus) * 2];
+            byte[] d = ByteUtils.newBytes((data.length + plus) * 2);
             // must copy everything, because pos could be 0 and data may be
             // still required
             System.arraycopy(data, 0, d, 0, data.length);
@@ -545,13 +546,13 @@ public abstract class DataPage {
         }
         case Value.JAVA_OBJECT: {
             int len = readInt();
-            byte[] b = createByteArray(len);
+            byte[] b = ByteUtils.newBytes(len);
             read(b, 0, len);
             return ValueJavaObject.getNoCopy(b);
         }
         case Value.BYTES: {
             int len = readInt();
-            byte[] b = createByteArray(len);
+            byte[] b = ByteUtils.newBytes(len);
             read(b, 0, len);
             return ValueBytes.getNoCopy(b);
         }
@@ -571,7 +572,7 @@ public abstract class DataPage {
         case Value.CLOB: {
             int smallLen = readInt();
             if (smallLen >= 0) {
-                byte[] small = createByteArray(smallLen);
+                byte[] small = ByteUtils.newBytes(smallLen);
                 read(small, 0, smallLen);
                 return ValueLob.createSmallLob(dataType, small);
             }
@@ -605,16 +606,6 @@ public abstract class DataPage {
         }
     }
     
-    private byte[] createByteArray(int len) {
-        try {
-            return new byte[len];
-        } catch (OutOfMemoryError e) {
-            Error e2 = new OutOfMemoryError("Requested memory: " + len);
-            e2.initCause(e);
-            throw e2;
-        }
-    }
-
     /**
      * Fill up the buffer with empty space and an (initially empty) checksum
      * until the size is a multiple of Constants.FILE_BLOCK_SIZE.

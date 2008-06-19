@@ -342,10 +342,10 @@ public class ValueLob extends Value {
                 remaining = length;
             }
             int len = getBufferSize(handler, compress, remaining);
-            byte[] buff = new byte[len];
+            byte[] buff = ByteUtils.newBytes(len);
             len = IOUtils.readFully(in, buff, 0, len);
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = new byte[len];
+                byte[] small = ByteUtils.newBytes(len);
                 System.arraycopy(buff, 0, small, 0, len);
                 return ValueLob.createSmallLob(Value.BLOB, small);
             }
@@ -693,7 +693,7 @@ public class ValueLob extends Value {
             int len = getBufferSize(handler, compress, Long.MAX_VALUE);
             int tabId = tableId;
             if (type == Value.BLOB) {
-                createFromStream(new byte[len], 0, getInputStream(), Long.MAX_VALUE, handler);
+                createFromStream(ByteUtils.newBytes(len), 0, getInputStream(), Long.MAX_VALUE, handler);
             } else {
                 createFromReader(new char[len], 0, getReader(), Long.MAX_VALUE, handler);
             }

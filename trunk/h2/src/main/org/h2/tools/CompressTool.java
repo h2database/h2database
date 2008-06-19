@@ -26,6 +26,7 @@ import org.h2.compress.LZFInputStream;
 import org.h2.compress.LZFOutputStream;
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
+import org.h2.util.ByteUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -43,10 +44,10 @@ public class CompressTool {
     
     private static byte[] getBuffer(int min) {
         if (min > MAX_BUFFER_SIZE) {
-            return new byte[min];
+            return ByteUtils.newBytes(min);
         }
         if (buffer == null || buffer.length < min) {
-            buffer = new byte[min];
+            buffer = ByteUtils.newBytes(min);
         }
         return buffer;
     }    
@@ -77,7 +78,7 @@ public class CompressTool {
         Compressor compress = getCompressor(algorithm);
         byte[] buff = getBuffer((len < 100 ? len + 100 : len) * 2);
         int newLen = compress(in, in.length, compress, buff);
-        byte[] out = new byte[newLen];
+        byte[] out = ByteUtils.newBytes(newLen);
         System.arraycopy(buff, 0, out, 0, newLen);
         return out;
     }
@@ -111,7 +112,7 @@ public class CompressTool {
         try {
             int len = readInt(in, 1);
             int start = 1 + getLength(len);
-            byte[] buff = new byte[len];
+            byte[] buff = ByteUtils.newBytes(len);
             compress.expand(in, start, in.length - start, buff, 0, len);
             return buff;
         } catch (Exception e) {

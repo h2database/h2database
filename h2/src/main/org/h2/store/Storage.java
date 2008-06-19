@@ -131,7 +131,7 @@ public class Storage {
                 int page = file.getPage(next);
                 if (lastCheckedPage != page) {
                     if (pageIndex < 0) {
-                        pageIndex = pages.findNextValueIndex(page);
+                        pageIndex = pages.findNextIndexSorted(page);
                     } else {
                         pageIndex++;
                     }
@@ -353,12 +353,24 @@ public class Storage {
     }
 
     /**
+     * Remove a list of page from this storage.
+     * 
+     * @param removeSorted the pages to remove
+     */
+    void removePages(IntArray removeSorted) {
+        pages.removeAllSorted(removeSorted);
+    }
+
+    /**
      * Remove a page from this storage.
      * 
      * @param i the page to remove
      */
     void removePage(int i) {
-        pages.removeValue(i);
+        int idx = pages.findIndexSorted(i);
+        if (idx != -1) {
+            pages.remove(idx);
+        }
     }
 
     private void checkOnePage() throws SQLException {

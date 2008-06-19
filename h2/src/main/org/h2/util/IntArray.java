@@ -202,13 +202,51 @@ public class IntArray {
     }
     
     /**
+     * Remove the last element of this list that matches this value.
+     * 
+     * @param value the value to be remove
+     */
+    public void removeLastValue(int value) {
+        for (int i = size - 1; i >= 0; i--) {
+            if (data[i] == value) {
+                remove(i);
+                return;
+            }
+        }
+        throw Message.getInternalError();
+    }    
+    
+    /**
+     * Return the index with a this value.
+     * If the list is not sorted, the result of this operation is undefined.
+     * 
+     * @param value the value to find
+     * @return the index or -1 if not found
+     */
+    public int findIndexSorted(int value) {
+        int l = 0, r = size;
+        while (l < r) {
+            int i = (l + r) >>> 1;
+            int d = data[i];
+            if (d == value) {
+                return i;
+            } else if (d > value) {
+                r = i;
+            } else {
+                l = i + 1;
+            }
+        }
+        return -1;
+    }
+    
+    /**
      * Return the next index with a value larger than this one.
      * If the list is not sorted, the result of this operation is undefined.
      * 
      * @param value the value to find
      * @return the index
      */
-    public int findNextValueIndex(int value) {
+    public int findNextIndexSorted(int value) {
         int l = 0, r = size;
         while (l < r) {
             int i = (l + r) >>> 1;
@@ -220,13 +258,6 @@ public class IntArray {
             }
         }
         return l;
-
-//        for(int i=0; i<size; i++) {
-//            if(data[i] >= value) {
-//                return i;
-//            }
-//        }
-//        return size;
     }
 
     /**
@@ -250,6 +281,24 @@ public class IntArray {
      */
     public void toArray(int[] array) {
         System.arraycopy(data, 0, array, 0, size);
+    }
+    
+    /**
+     * Remove all values from the given sorted list from this sorted list.
+     * 
+     * @param removeSorted the value to remove
+     */    
+    public void removeAllSorted(IntArray removeSorted) {
+        int[] d = new int[data.length];
+        int newSize = 0;
+        for (int i = 0; i < size; i++) {
+            int old = data[i];
+            if (removeSorted.findIndexSorted(old) == -1) {
+                d[newSize++] = old;
+            }
+        }
+        data = d;
+        size = newSize;
     }
 
 //    ArrayList data = new ArrayList();

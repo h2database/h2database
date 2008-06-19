@@ -17,7 +17,8 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>RUNSCRIPT could throw a NullPointerException if the script name was an expression.
+<li>Databases larger than 1 GB was sometimes very slow if a lot of data was deleted previously. Fixed.
+</li><li>RUNSCRIPT could throw a NullPointerException if the script name was an expression.
 </li><li>Improved compatibility. New compatibility modes for Oracle and Derby. 
     New compatibility flag uniqueIndexNullDistinct to only allow one row with 'NULL' in a unique 
     index. This flag is enabled for Derby, Oracle, MSSQLServer, and HSQLDB.

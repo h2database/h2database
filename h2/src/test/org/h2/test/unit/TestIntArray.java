@@ -46,7 +46,7 @@ public class TestIntArray extends TestBase {
             case 3:
                 array.sort();
                 test = sort(test);
-                int a = array.findNextValueIndex(v);
+                int a = array.findNextIndexSorted(v);
                 int b = findNextValueIndex(test, v);
                 assertEquals(a, b);
                 break;

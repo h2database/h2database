@@ -53,7 +53,7 @@ import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
 import org.h2.tools.Backup;
-import org.h2.tools.ChangePassword;
+import org.h2.tools.ChangeFileEncryption;
 import org.h2.tools.ConvertTraceFile;
 import org.h2.tools.CreateCluster;
 import org.h2.tools.DeleteDbFiles;
@@ -578,8 +578,8 @@ class WebThread extends Thread implements DatabaseEventListener {
                 tool = new Recover();
             } else if ("DeleteDbFiles".equals(toolName)) {
                 tool = new DeleteDbFiles();
-            } else if ("ChangePassword".equals(toolName)) {
-                tool = new ChangePassword();
+            } else if ("ChangeFileEncryption".equals(toolName)) {
+                tool = new ChangeFileEncryption();
             } else if ("Script".equals(toolName)) {
                 tool = new Script();
             } else if ("RunScript".equals(toolName)) {

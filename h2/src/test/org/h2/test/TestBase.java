@@ -184,7 +184,9 @@ public abstract class TestBase {
         if (config.textStorage) {
             url += ";STORAGE=TEXT";
         }
-        url += ";LOCK_TIMEOUT=50";
+        if (url.indexOf("LOCK_TIMEOUT=") < 0) {
+            url += ";LOCK_TIMEOUT=50";
+        }
         if (admin) {
             url += ";LOG=" + config.logMode;
         }
@@ -198,7 +200,7 @@ public abstract class TestBase {
             // force operations to disk
             url += ";MAX_OPERATION_MEMORY=1";
         }
-        if (config.mvcc) {
+        if (config.mvcc && url.indexOf("MVCC=") < 0) {
             url += ";MVCC=TRUE";
         }
         if (config.cache2Q) {
@@ -655,6 +657,24 @@ public abstract class TestBase {
         assertTrue(rs.next());
         assertEquals(expected, rs.getInt(1));
         assertFalse(rs.next());
+    }
+    
+    /**
+     * Check that the result set of a query is exactly this value.
+     * 
+     * @param stat the statement
+     * @param sql the SQL statement to execute
+     * @param expected the expected result value
+     * @throws Exception if a different result value was returned
+     */
+    protected void assertResult(Statement stat, String sql, String expected) throws Exception {
+        ResultSet rs = stat.executeQuery(sql);
+        if (rs.next()) {
+            String actual = rs.getString(1);
+            assertEquals(expected, actual);
+        } else {
+            assertEquals(null, expected);
+        }
     }
 
     /**

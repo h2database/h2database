@@ -104,11 +104,11 @@ public class TestCsv extends TestBase {
             list.add(new String[]{a, b});
             prep.execute();
         }
-        stat.execute("CALL CSVWRITE('test.csv', 'SELECT * FROM test', 'UTF-8', '|', '#')");
+        stat.execute("CALL CSVWRITE('" + baseDir + "/test.csv', 'SELECT * FROM test', 'UTF-8', '|', '#')");
         Csv csv = Csv.getInstance();
         csv.setFieldSeparatorRead('|');
         csv.setFieldDelimiter('#');
-        ResultSet rs = csv.read("test.csv", null, "UTF-8");
+        ResultSet rs = csv.read(baseDir + "/test.csv", null, "UTF-8");
         for (int i = 0; i < len; i++) {
             assertTrue(rs.next());
             String[] pair = (String[]) list.get(i);

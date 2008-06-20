@@ -684,6 +684,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 transactionIsolationLevel = Connection.TRANSACTION_READ_UNCOMMITTED;
                 break;
             case Constants.LOCK_MODE_READ_COMMITTED:
+            case Constants.LOCK_MODE_ROW:
                 transactionIsolationLevel = Connection.TRANSACTION_READ_COMMITTED;
                 break;
             case Constants.LOCK_MODE_TABLE:

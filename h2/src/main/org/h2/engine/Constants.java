@@ -335,6 +335,13 @@ public class Constants {
     public static final int LOCK_MODE_READ_COMMITTED = 3;
     
     /**
+     * The lock mode that means row level locks are used if possible.
+     * This lock mode is similar to read committed, but row level locks are
+     * used instead of table level locks.
+     */
+    public static final int LOCK_MODE_ROW = 4;
+    
+    /**
      * The lock mode that means table level locking is used for reads and
      * writes.
      */

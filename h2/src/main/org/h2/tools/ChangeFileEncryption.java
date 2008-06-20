@@ -20,9 +20,10 @@ import org.h2.util.Tool;
 
 /**
  * A tools to change, remove or set a file password of a database without
- * opening it. It can not be used to change a password of a user.
+ * opening it. The encryption algorithm can be changed as well. It can not be
+ * used to change a password of a user.
  */
-public class ChangePassword extends Tool {
+public class ChangeFileEncryption extends Tool {
 
     private String dir;
     private String cipher;
@@ -30,7 +31,7 @@ public class ChangePassword extends Tool {
     private byte[] encrypt;
 
     private void showUsage() {
-        out.println("Allows changing the database file password.");
+        out.println("Allows changing the database file encryption password or algorithm.");
         out.println("java "+getClass().getName() + "\n" +
                 " -cipher <type>    AES or XTEA\n" +
                 " [-dir <dir>]      The database directory (default: .)\n" +
@@ -59,7 +60,7 @@ public class ChangePassword extends Tool {
      * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
-        new ChangePassword().run(args);
+        new ChangeFileEncryption().run(args);
     }
 
     public void run(String[] args) throws SQLException {
@@ -127,11 +128,11 @@ public class ChangePassword extends Tool {
      * @throws SQLException
      */
     public static void execute(String dir, String db, String cipher, char[] decryptPassword, char[] encryptPassword, boolean quiet) throws SQLException {
-        new ChangePassword().process(dir, db, cipher, decryptPassword, encryptPassword, quiet);
+        new ChangeFileEncryption().process(dir, db, cipher, decryptPassword, encryptPassword, quiet);
     }
     
     private void process(String dir, String db, String cipher, char[] decryptPassword, char[] encryptPassword, boolean quiet) throws SQLException {
-        ChangePassword change = new ChangePassword();
+        ChangeFileEncryption change = new ChangeFileEncryption();
         if (encryptPassword != null) {
             for (int i = 0; i < encryptPassword.length; i++) {
                 if (encryptPassword[i] == ' ') {
@@ -159,7 +160,7 @@ public class ChangePassword extends Tool {
             FileUtils.rename(temp, fileName);
         }
         // if this worked, the operation will (hopefully) be successful
-        // TODO changePassword: this is a workaround! 
+        // TODO changeFileEncryption: this is a workaround! 
         // make the operation atomic (all files or none)
         for (int i = 0; i < files.size(); i++) {
             String fileName = (String) files.get(i);

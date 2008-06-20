@@ -553,10 +553,11 @@ public abstract class Table extends SchemaObjectBase {
             Column column = columns[i];
             Value v2;
             if (column.getComputed()) {
+                // force updating the value
+                value = null;
                 v2 = column.computeValue(session, row);
-            } else {
-                v2 = column.validateConvertUpdateSequence(session, value);
             }
+            v2 = column.validateConvertUpdateSequence(session, value);
             if (v2 != value) {
                 row.setValue(i, v2);
             }

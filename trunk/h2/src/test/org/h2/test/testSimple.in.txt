@@ -1,3 +1,11 @@
+create table test (id varchar(36) as random_uuid() primary key);
+insert into test() values();
+delete from test where id = select id from test;
+drop table test;
+create table test (id varchar(36) as now() primary key);
+insert into test() values();
+delete from test where id = select id from test;
+drop table test;
 SELECT SOME(X>4) FROM SYSTEM_RANGE(1,6);
 > TRUE;
 SELECT EVERY(X>4) FROM SYSTEM_RANGE(1,6);

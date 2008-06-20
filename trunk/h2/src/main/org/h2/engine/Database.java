@@ -1741,7 +1741,17 @@ public class Database implements DataHandler {
         return maxMemoryUndo;
     }
 
-    public void setLockMode(int lockMode) {
+    public void setLockMode(int lockMode) throws SQLException {
+        switch (lockMode) {
+        case Constants.LOCK_MODE_OFF:
+        case Constants.LOCK_MODE_READ_COMMITTED:
+        case Constants.LOCK_MODE_TABLE:
+        case Constants.LOCK_MODE_TABLE_GC:
+        case Constants.LOCK_MODE_ROW:
+            break;
+        default:
+            throw Message.getInvalidValueException("lock mode", "" + lockMode);
+        }
         this.lockMode = lockMode;
     }
 

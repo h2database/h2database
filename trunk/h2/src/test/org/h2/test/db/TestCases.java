@@ -74,7 +74,7 @@ public class TestCases extends TestBase {
                 sql = "delete from " + table;
             }
             stat.execute(sql);
-            stat.execute("script to 'test.sql'");
+            stat.execute("script to '" + baseDir + "/test.sql'");
         }
         conn.close();
     }

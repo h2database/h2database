@@ -72,6 +72,7 @@ import org.h2.test.jdbcx.TestXASimple;
 import org.h2.test.mvcc.TestMvcc1;
 import org.h2.test.mvcc.TestMvcc2;
 import org.h2.test.mvcc.TestMvcc3;
+import org.h2.test.rowlock.TestRowLocks;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.server.TestPgServer;
 import org.h2.test.server.TestWeb;
@@ -265,6 +266,8 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
 
 /*
+
+row level locking
 
 run the performance tests as part of the unit test
 
@@ -611,10 +614,11 @@ Roadmap:
         new TestWeb().runTest(this);
         new TestPgServer().runTest(this);
 
-        // mvcc
+        // mvcc & row level locking
         new TestMvcc1().runTest(this);
         new TestMvcc2().runTest(this);
         new TestMvcc3().runTest(this);
+        new TestRowLocks().runTest(this);
 
         // synth
         new TestCrashAPI().runTest(this);

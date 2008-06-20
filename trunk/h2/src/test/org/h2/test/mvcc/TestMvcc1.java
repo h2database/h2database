@@ -7,7 +7,6 @@
 package org.h2.test.mvcc;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -15,7 +14,6 @@ import java.util.Random;
 
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
-import org.h2.tools.DeleteDbFiles;
 
 /**
  * Basic MVCC (multi version concurrency) test cases.
@@ -31,9 +29,8 @@ public class TestMvcc1 extends TestBase {
     }
 
     private void testSetMode() throws Exception {
-        DeleteDbFiles.execute(null, "test", true);
-        Class.forName("org.h2.Driver");
-        c1 = DriverManager.getConnection("jdbc:h2:test", "sa", "sa");
+        deleteDb("mvcc1");
+        c1 = getConnection("mvcc1;MVCC=FALSE");
         Statement stat = c1.createStatement();
         ResultSet rs = stat.executeQuery("select * from information_schema.settings where name='MVCC'");
         rs.next();
@@ -78,11 +75,10 @@ public class TestMvcc1 extends TestBase {
         // TODO test: one thread appends, the other 
         //     selects new data (select * from test where id > ?) and deletes
 
-        DeleteDbFiles.execute(null, "test", true);
-        Class.forName("org.h2.Driver");
-        c1 = DriverManager.getConnection("jdbc:h2:test;MVCC=TRUE;LOCK_TIMEOUT=10", "sa", "sa");
+        deleteDb("mvcc1");
+        c1 = getConnection("mvcc1;MVCC=TRUE;LOCK_TIMEOUT=10");
         s1 = c1.createStatement();
-        c2 = DriverManager.getConnection("jdbc:h2:test;MVCC=TRUE;LOCK_TIMEOUT=10", "sa", "sa");
+        c2 = getConnection("mvcc1;MVCC=TRUE;LOCK_TIMEOUT=10");
         s2 = c2.createStatement();
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);
@@ -91,10 +87,10 @@ public class TestMvcc1 extends TestBase {
         s1.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR, PRIMARY KEY(ID))");
         s1.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         c1.commit();
-        test(s2, "SELECT NAME FROM TEST WHERE ID=1", "Hello");
+        assertResult(s2, "SELECT NAME FROM TEST WHERE ID=1", "Hello");
         s1.execute("UPDATE TEST SET NAME = 'Hallo' WHERE ID=1");
-        test(s2, "SELECT NAME FROM TEST WHERE ID=1", "Hello");
-        test(s1, "SELECT NAME FROM TEST WHERE ID=1", "Hallo");
+        assertResult(s2, "SELECT NAME FROM TEST WHERE ID=1", "Hello");
+        assertResult(s1, "SELECT NAME FROM TEST WHERE ID=1", "Hallo");
         s1.execute("DROP TABLE TEST");
         c1.commit();
         c2.commit();
@@ -133,9 +129,9 @@ public class TestMvcc1 extends TestBase {
         s1.execute("create table test(id int, name varchar)");
         s1.execute("insert into test values(1, 'A'), (2, 'B')");
         c1.commit();
-        test(s1, "select count(*) from test where name<>'C'", "2");
+        assertResult(s1, "select count(*) from test where name<>'C'", "2");
         s2.execute("update test set name='B2' where id=2");
-        test(s1, "select count(*) from test where name<>'C'", "2");
+        assertResult(s1, "select count(*) from test where name<>'C'", "2");
         c2.commit();
         s2.execute("drop table test");
         c2.rollback();
@@ -160,8 +156,8 @@ public class TestMvcc1 extends TestBase {
         s1.execute("create table test(id int primary key, name varchar(255))");
         s2.execute("insert into test values(4, 'Hello')");
         c2.rollback();
-        test(s1, "select count(*) from test where name = 'Hello'", "0");
-        test(s2, "select count(*) from test where name = 'Hello'", "0");
+        assertResult(s1, "select count(*) from test where name = 'Hello'", "0");
+        assertResult(s2, "select count(*) from test where name = 'Hello'", "0");
         c1.commit();
         c2.commit();
         s1.execute("DROP TABLE TEST");
@@ -169,10 +165,10 @@ public class TestMvcc1 extends TestBase {
         s1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         s1.execute("INSERT INTO TEST VALUES(1, 'Test')");
         c1.commit();
-        test(s1, "select max(id) from test", "1");
+        assertResult(s1, "select max(id) from test", "1");
         s1.execute("INSERT INTO TEST VALUES(2, 'World')");
         c1.rollback();
-        test(s1, "select max(id) from test", "1");
+        assertResult(s1, "select max(id) from test", "1");
         c1.commit();
         c2.commit();
         s1.execute("DROP TABLE TEST");
@@ -181,7 +177,7 @@ public class TestMvcc1 extends TestBase {
         s1.execute("create table test as select * from table(id int=(1, 2))");
         s1.execute("update test set id=1 where id=1");
         s1.execute("select max(id) from test");
-        test(s1, "select max(id) from test", "2");
+        assertResult(s1, "select max(id) from test", "2");
         c1.commit();
         c2.commit();
         s1.execute("DROP TABLE TEST");
@@ -189,12 +185,12 @@ public class TestMvcc1 extends TestBase {
         s1.execute("CREATE TABLE TEST(ID INT)");
         s1.execute("INSERT INTO TEST VALUES(1)");
         c1.commit();
-        test(s2, "SELECT COUNT(*) FROM TEST", "1");
+        assertResult(s2, "SELECT COUNT(*) FROM TEST", "1");
         s1.executeUpdate("DELETE FROM TEST");
-        test(s2, "SELECT COUNT(*) FROM TEST", "1");
-        test(s1, "SELECT COUNT(*) FROM TEST", "0");
+        assertResult(s2, "SELECT COUNT(*) FROM TEST", "1");
+        assertResult(s1, "SELECT COUNT(*) FROM TEST", "0");
         c1.commit();
-        test(s2, "SELECT COUNT(*) FROM TEST", "0");
+        assertResult(s2, "SELECT COUNT(*) FROM TEST", "0");
         c1.commit();
         c2.commit();
         s1.execute("DROP TABLE TEST");
@@ -203,39 +199,39 @@ public class TestMvcc1 extends TestBase {
         s1.execute("INSERT INTO TEST VALUES(1)");
         c1.commit();
         s1.execute("DELETE FROM TEST");
-        test(s1, "SELECT COUNT(*) FROM TEST", "0");
+        assertResult(s1, "SELECT COUNT(*) FROM TEST", "0");
         c1.commit();
-        test(s1, "SELECT COUNT(*) FROM TEST", "0");
+        assertResult(s1, "SELECT COUNT(*) FROM TEST", "0");
         s1.execute("INSERT INTO TEST VALUES(1)");
         s1.execute("DELETE FROM TEST");
         c1.commit();
-        test(s1, "SELECT COUNT(*) FROM TEST", "0");
+        assertResult(s1, "SELECT COUNT(*) FROM TEST", "0");
         s1.execute("DROP TABLE TEST");
 
         s1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         s1.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World')");
-        test(s2, "SELECT COUNT(*) FROM TEST", "0");
+        assertResult(s2, "SELECT COUNT(*) FROM TEST", "0");
         c1.commit();
-        test(s2, "SELECT COUNT(*) FROM TEST", "2");
+        assertResult(s2, "SELECT COUNT(*) FROM TEST", "2");
         s1.execute("INSERT INTO TEST VALUES(3, '!')");
         c1.rollback();
-        test(s2, "SELECT COUNT(*) FROM TEST", "2");
+        assertResult(s2, "SELECT COUNT(*) FROM TEST", "2");
         s1.execute("DROP TABLE TEST");
         c1.commit();
 
         s1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         s1.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         s1.execute("DELETE FROM TEST");
-        test(s2, "SELECT COUNT(*) FROM TEST", "0");
+        assertResult(s2, "SELECT COUNT(*) FROM TEST", "0");
         c1.commit();
-        test(s2, "SELECT COUNT(*) FROM TEST", "0");
+        assertResult(s2, "SELECT COUNT(*) FROM TEST", "0");
         s1.execute("DROP TABLE TEST");
         c1.commit();
 
         s1.execute("CREATE TABLE TEST(ID INT IDENTITY, NAME VARCHAR)");
         s1.execute("INSERT INTO TEST(NAME) VALUES('Ruebezahl')");
-        test(s2, "SELECT COUNT(*) FROM TEST", "0");
-        test(s1, "SELECT COUNT(*) FROM TEST", "1");
+        assertResult(s2, "SELECT COUNT(*) FROM TEST", "0");
+        assertResult(s1, "SELECT COUNT(*) FROM TEST", "1");
         s1.execute("DROP TABLE TEST");
         c1.commit();
 
@@ -333,22 +329,22 @@ public class TestMvcc1 extends TestBase {
 
         s1.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR)");
         s1.execute("INSERT INTO TEST VALUES(1, 'Hello')");
-        test(s2, "SELECT COUNT(*) FROM TEST WHERE NAME!='X'", "0");
-        test(s1, "SELECT COUNT(*) FROM TEST WHERE NAME!='X'", "1");
+        assertResult(s2, "SELECT COUNT(*) FROM TEST WHERE NAME!='X'", "0");
+        assertResult(s1, "SELECT COUNT(*) FROM TEST WHERE NAME!='X'", "1");
         c1.commit();
-        test(s2, "SELECT COUNT(*) FROM TEST WHERE NAME!='X'", "1");
-        test(s2, "SELECT COUNT(*) FROM TEST WHERE NAME!='X'", "1");
+        assertResult(s2, "SELECT COUNT(*) FROM TEST WHERE NAME!='X'", "1");
+        assertResult(s2, "SELECT COUNT(*) FROM TEST WHERE NAME!='X'", "1");
         s1.execute("DROP TABLE TEST");
         c1.commit();
         c2.commit();
 
         s1.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         s1.execute("INSERT INTO TEST VALUES(1, 'Hello')");
-        test(s2, "SELECT COUNT(*) FROM TEST WHERE ID<100", "0");
-        test(s1, "SELECT COUNT(*) FROM TEST WHERE ID<100", "1");
+        assertResult(s2, "SELECT COUNT(*) FROM TEST WHERE ID<100", "0");
+        assertResult(s1, "SELECT COUNT(*) FROM TEST WHERE ID<100", "1");
         c1.commit();
-        test(s2, "SELECT COUNT(*) FROM TEST WHERE ID<100", "1");
-        test(s2, "SELECT COUNT(*) FROM TEST WHERE ID<100", "1");
+        assertResult(s2, "SELECT COUNT(*) FROM TEST WHERE ID<100", "1");
+        assertResult(s2, "SELECT COUNT(*) FROM TEST WHERE ID<100", "1");
         s1.execute("DROP TABLE TEST");
         c1.commit();
         c2.commit();
@@ -356,10 +352,10 @@ public class TestMvcc1 extends TestBase {
         s1.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR, PRIMARY KEY(ID, NAME))");
         s1.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         c1.commit();
-        test(s2, "SELECT NAME FROM TEST WHERE ID=1", "Hello");
+        assertResult(s2, "SELECT NAME FROM TEST WHERE ID=1", "Hello");
         s1.execute("UPDATE TEST SET NAME = 'Hallo' WHERE ID=1");
-        test(s2, "SELECT NAME FROM TEST WHERE ID=1", "Hello");
-        test(s1, "SELECT NAME FROM TEST WHERE ID=1", "Hallo");
+        assertResult(s2, "SELECT NAME FROM TEST WHERE ID=1", "Hello");
+        assertResult(s1, "SELECT NAME FROM TEST WHERE ID=1", "Hallo");
         s1.execute("DROP TABLE TEST");
         c1.commit();
         c2.commit();
@@ -400,19 +396,4 @@ public class TestMvcc1 extends TestBase {
 
     }
 
-    private void test(Statement stat, String sql, String expected) throws Exception {
-        ResultSet rs = stat.executeQuery(sql);
-        if (rs.next()) {
-            String s = rs.getString(1);
-            if (expected == null) {
-                throw new Error("expected: no rows, got: " + s);
-            } else if (!expected.equals(s)) {
-                throw new Error("expected: " + expected + ", got: " + s);
-            }
-        } else {
-            if (expected != null) {
-                throw new Error("expected: " + expected + ", got: no rows");
-            }
-        }
-    }
 }

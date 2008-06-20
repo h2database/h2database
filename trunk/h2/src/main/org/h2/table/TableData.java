@@ -377,13 +377,17 @@ public class TableData extends Table implements RecordReader {
                 }
             } else {
                 if (lockExclusive == null) {
-                    if (lockMode == Constants.LOCK_MODE_READ_COMMITTED && !database.getMultiThreaded() && !database.isMultiVersion()) {
-                        // READ_COMMITTED read locks are acquired but they
-                        // are released immediately
-                        // when allowing only one thread, no read locks are
-                        // required
-                        return;
-                    } else if (!lockShared.contains(session)) {
+                    if (lockMode == Constants.LOCK_MODE_READ_COMMITTED || lockMode == Constants.LOCK_MODE_ROW) {
+                        if (!database.getMultiThreaded() && !database.isMultiVersion()) {
+                            // READ_COMMITTED read locks are acquired but they
+                            // are released immediately
+                            // when allowing only one thread, no read locks are
+                            // required
+                            // row level locks work like read committed
+                            return;
+                        }
+                    } 
+                    if (!lockShared.contains(session)) {
                         traceLock(session, exclusive, "ok");
                         session.addLock(this);
                         lockShared.add(session);

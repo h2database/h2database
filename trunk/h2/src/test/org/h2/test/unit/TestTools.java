@@ -25,7 +25,7 @@ import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 import org.h2.test.trace.Player;
 import org.h2.tools.Backup;
-import org.h2.tools.ChangePassword;
+import org.h2.tools.ChangeFileEncryption;
 import org.h2.tools.ConvertTraceFile;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
@@ -53,7 +53,7 @@ public class TestTools extends TestBase {
         testRemove();
         testConvertTraceFile();
         testManagementDb();
-        testChangePassword();
+        testChangeFileEncryption();
         testServer();
         testScriptRunscript();
         testBackupRestore();
@@ -382,7 +382,7 @@ public class TestTools extends TestBase {
         DeleteDbFiles.main(new String[] { "-dir", baseDir, "-db", "utils", "-quiet" });
     }
 
-    private void testChangePassword() throws Exception {
+    private void testChangeFileEncryption() throws Exception {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/utils;CIPHER=XTEA;STORAGE=TEXT", "sa",
                 "abc 123");
@@ -390,9 +390,9 @@ public class TestTools extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         conn.close();
         String[] args = new String[] { "-dir", baseDir, "-db", "utils", "-cipher", "XTEA", "-decrypt", "abc", "-quiet" };
-        ChangePassword.main(args);
+        ChangeFileEncryption.main(args);
         args = new String[] { "-dir", baseDir, "-db", "utils", "-cipher", "AES", "-encrypt", "def", "-quiet" };
-        ChangePassword.main(args);
+        ChangeFileEncryption.main(args);
         conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/utils;CIPHER=AES", "sa", "def 123");
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");

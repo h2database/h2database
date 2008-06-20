@@ -17,7 +17,13 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>Databases larger than 1 GB was sometimes very slow if a lot of data was deleted previously. Fixed.
+<li>The ChangePassword tool is now called ChangeFileEncryption.
+</li><li>It is no longer allowed to create columns with the data type NULL.
+    Also, it is no longer allowed to convert a column to the data type NULL.
+    This was possible before but caused data loss.
+</li><li>When using computed columns or default values with a different data type than the column data type,
+    a class cast exception could occur. Fixed.
+</li><li>Databases larger than 1 GB was sometimes very slow if a lot of data was deleted previously. Fixed.
 </li><li>RUNSCRIPT could throw a NullPointerException if the script name was an expression.
 </li><li>Improved compatibility. New compatibility modes for Oracle and Derby. 
     New compatibility flag uniqueIndexNullDistinct to only allow one row with 'NULL' in a unique 

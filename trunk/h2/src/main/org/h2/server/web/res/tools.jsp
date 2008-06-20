@@ -80,7 +80,7 @@ function update() {
 <a href="javascript:go('Restore')">${text.tools.restore}</a>&nbsp;&nbsp;
 <a href="javascript:go('Recover')">${text.tools.recover}</a>&nbsp;&nbsp;
 <a href="javascript:go('DeleteDbFiles')">${text.tools.deleteDbFiles}</a>&nbsp;&nbsp;
-<a href="javascript:go('ChangePassword')">${text.tools.changePassword}</a>
+<a href="javascript:go('ChangeFileEncryption')">${text.tools.changeFileEncryption}</a>
 </p><p>
 <a href="javascript:go('Script')">${text.tools.script}</a>&nbsp;&nbsp;
 <a href="javascript:go('RunScript')">${text.tools.runScript}</a>&nbsp;&nbsp;
@@ -136,20 +136,20 @@ function update() {
         </td></tr>
     </table>
 </div>
-<div id="toolChangePassword" style="display: none">
-    <h2>${text.tools.changePassword}</h2>
-    <p>${text.tools.changePassword.help}</p>
+<div id="toolChangeFileEncryption" style="display: none">
+    <h2>${text.tools.changeFileEncryption}</h2>
+    <p>${text.tools.changeFileEncryption.help}</p>
     <table class="tool">
         <tr><td>
-        ${text.tools.cipher}:&nbsp;</td><td><input id="optionChangePassword.0" name="cipher" onkeyup="update()" onchange="update()" value="XTEA" />
+        ${text.tools.cipher}:&nbsp;</td><td><input id="optionChangeFileEncryption.0" name="cipher" onkeyup="update()" onchange="update()" value="XTEA" />
         </td></tr><tr><td>
-        ${text.tools.directory}:&nbsp;</td><td><input id="optionChangePassword.1" name="dir" onkeyup="update()" onchange="update()" value="~" size="50" />
+        ${text.tools.directory}:&nbsp;</td><td><input id="optionChangeFileEncryption.1" name="dir" onkeyup="update()" onchange="update()" value="~" size="50" />
         </td></tr><tr><td>
-        ${text.tools.databaseName}:&nbsp;</td><td><input id="optionChangePassword.2" name="db" onkeyup="update()" onchange="update()" value="test" size="50" />
+        ${text.tools.databaseName}:&nbsp;</td><td><input id="optionChangeFileEncryption.2" name="db" onkeyup="update()" onchange="update()" value="test" size="50" />
         </td></tr><tr><td>
-        ${text.tools.decryptionPassword}:&nbsp;</td><td><input type="password" id="optionChangePassword.3" name="decrypt" onkeyup="update()" onchange="update()" value="" />
+        ${text.tools.decryptionPassword}:&nbsp;</td><td><input type="password" id="optionChangeFileEncryption.3" name="decrypt" onkeyup="update()" onchange="update()" value="" />
         </td></tr><tr><td>
-        ${text.tools.encryptionPassword}:&nbsp;</td><td><input type="password" id="optionChangePassword.4" name="encrypt" onkeyup="update()" onchange="update()" value="" />
+        ${text.tools.encryptionPassword}:&nbsp;</td><td><input type="password" id="optionChangeFileEncryption.4" name="encrypt" onkeyup="update()" onchange="update()" value="" />
         </td></tr>
     </table>
 </div>

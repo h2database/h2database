@@ -39,10 +39,10 @@ public class TestSampleApps extends TestBase {
         testApp(org.h2.samples.TriggerSample.class, null, "The sum is 20.00");
 
         // tools
-        testApp(org.h2.tools.ChangePassword.class, new String[] { "-help" },
-                "Allows changing the database file password*");
-        testApp(org.h2.tools.ChangePassword.class, null, 
-                "Allows changing the database file password*");
+        testApp(org.h2.tools.ChangeFileEncryption.class, new String[] { "-help" },
+                "Allows changing the database file encryption password or algorithm*");
+        testApp(org.h2.tools.ChangeFileEncryption.class, null, 
+                "Allows changing the database file encryption password or algorithm*");
         testApp(org.h2.tools.DeleteDbFiles.class, new String[] { "-help" },
                 "Deletes all files belonging to a database.*");
     }

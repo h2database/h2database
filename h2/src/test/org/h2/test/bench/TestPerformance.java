@@ -71,16 +71,20 @@ public class TestPerformance {
     private void test(String[] args) throws Exception {
         boolean init = false;
         int dbId = -1;
+        boolean exit = false;
         String out = "benchmark.html";
         for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("-db")) {
+            String arg = args[i];
+            if ("-db".equals(arg)) {
                 dbId = Integer.parseInt(args[++i]);
-            } else if (args[i].equals("-init")) {
+            } else if ("-init".equals(arg)) {
                 init = true;
-            } else if (args[i].equals("-out")) {
+            } else if ("-out".equals(arg)) {
                 out = args[++i];
-            } else if (args[i].equals("-trace")) {
+            } else if ("-trace".equals(arg)) {
                 trace = true;
+            } else if ("-exit".equals(arg)) {
+                exit = true;
             }
         }
         openResults(init);
@@ -205,7 +209,9 @@ public class TestPerformance {
 //        }
 //        writer.println("</table>");
 
-        // System.exit(0);
+        if (exit) {
+            System.exit(0);
+        }
     }
 
     private void testAll(ArrayList dbs, ArrayList tests, int size) throws Exception {
@@ -216,7 +222,7 @@ public class TestPerformance {
             // calls garbage collection
             TestBase.getMemoryUsed();
             Database db = (Database) dbs.get(i);
-            System.out.println("Testing performance of " + db.getName());
+            System.out.println("Testing the performance of " + db.getName());
             db.startServer();
             Connection conn = db.openNewConnection();
             runDatabase(db, tests, 1);

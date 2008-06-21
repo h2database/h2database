@@ -6,7 +6,7 @@
  */
 package org.h2.jaqu;
 
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,12 +19,12 @@ import org.h2.jaqu.TableDefinition.FieldDefinition;
 import org.h2.jaqu.util.Utils;
 import org.h2.jaqu.util.WeakIdentityHashMap;
 import org.h2.util.JdbcUtils;
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
 /**
  * This class represents a connection to a database.
  */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
 public class Db {
     
     private final Connection conn;
@@ -151,4 +151,4 @@ public class Db {
     }
 
 }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##

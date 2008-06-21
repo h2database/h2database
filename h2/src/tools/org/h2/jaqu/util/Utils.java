@@ -6,7 +6,7 @@
  */
 package org.h2.jaqu.util;
 
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -18,12 +18,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.h2.util.StringUtils;
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
 /**
  * Generic utility methods.
  */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
 public class Utils {
     
     private static volatile long counter;
@@ -129,4 +129,4 @@ public class Utils {
     }
 
 }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##

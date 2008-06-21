@@ -11,7 +11,7 @@ package org.h2.jaqu;
  * 
  * @param <A> the operand type
  */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
 public class Condition<A> implements ConditionToken {
     Query< ? > query;
     CompareType compareType;
@@ -31,4 +31,4 @@ public class Condition<A> implements ConditionToken {
         return query.getString(x) + compareType.toString();
     }
 }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##

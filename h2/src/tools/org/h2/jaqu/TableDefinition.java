@@ -6,7 +6,7 @@
  */
 package org.h2.jaqu;
 
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
 import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,7 +16,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 import org.h2.jaqu.util.Utils;
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
 /**
  * A table definition contains the index definitions of a table, the field
@@ -24,25 +24,25 @@ import org.h2.jaqu.util.Utils;
  * 
  * @param <T> the table type
  */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
 class TableDefinition<T> {
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * The meta data of an index.
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     static class IndexDefinition {
         boolean unique;
         String indexName;
         String[] columnNames;
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
     
     /**
      * The meta data of a field.
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     static class FieldDefinition<X> {
         String columnName;
         Field field;
@@ -238,4 +238,4 @@ class TableDefinition<T> {
     }
 
 }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##

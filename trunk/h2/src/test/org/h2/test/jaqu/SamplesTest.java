@@ -6,19 +6,19 @@
  */
 package org.h2.test.jaqu;
 
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
 import java.math.BigDecimal;
 import java.util.List;
 
 import org.h2.jaqu.Db;
 import org.h2.test.TestBase;
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
 /**
  * Implementation of the 101 LINQ Samples as described in
  * http://msdn2.microsoft.com/en-us/vcsharp/aa336760.aspx
  */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
 public class SamplesTest extends TestBase {
     
     private Db db;
@@ -141,12 +141,12 @@ public class SamplesTest extends TestBase {
             assertEquals(products.get(i).productName, productNames.get(i));
         }
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * A result set class containing the product name and price.
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public static class ProductPrice {
         public String productName;
         public String category;
@@ -182,12 +182,12 @@ public class SamplesTest extends TestBase {
             assertEquals(p2.unitPrice, pr.price);
         }
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * A result set class containing customer data and the order total.
      */    
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public static class CustOrder {
         public String customerId;
         public Integer orderId;
@@ -233,4 +233,4 @@ public class SamplesTest extends TestBase {
     }
 
 }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##

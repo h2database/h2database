@@ -6,7 +6,7 @@
  */
 package org.h2.jaqu;
 
-//## Java 1.6 begin ##
+/*## Java 1.6 begin ##
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -14,14 +14,14 @@ import java.util.List;
 
 import org.h2.jaqu.TableDefinition.FieldDefinition;
 import org.h2.jaqu.util.Utils;
-//## Java 1.6 end ##
+## Java 1.6 end ##*/
 
 /**
  * This class represents a query.
  *
  * @param <T> the return type
  */
-//## Java 1.6 begin ##
+/*## Java 1.6 begin ##
 public class Query<T> {
     
     private Db db;
@@ -108,7 +108,7 @@ public class Query<T> {
     public <A> QueryCondition<T, A> where(A x) {
         return new QueryCondition<T, A>(this, x);
     }
-//## Java 1.6 end ##
+## Java 1.6 end ##*/
     
     /**
      * Order by a number of columns.
@@ -116,7 +116,7 @@ public class Query<T> {
      * @param columns the columns
      * @return the query
      */
-//## Java 1.6 begin ##
+/*## Java 1.6 begin ##
     public Query<T> orderBy(Integer... columns) {
         return this;
     }
@@ -145,7 +145,7 @@ public class Query<T> {
         }
         return buff.toString();
     }
-//## Java 1.6 end ##
+## Java 1.6 end ##*/
 
     /**
      * Join another table.
@@ -153,10 +153,10 @@ public class Query<T> {
      * @param u an alias for the table to join
      * @return the joined query
      */
-//## Java 1.6 begin ##
+/*## Java 1.6 begin ##
     public QueryJoin innerJoin(Object u) {
         return new QueryJoin(this);
     }
 
 }
-//## Java 1.6 end ##
+## Java 1.6 end ##*/

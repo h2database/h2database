@@ -6,7 +6,7 @@
  */
 package org.h2.test.jaqu;
 
-//## Java 1.6 begin ##
+/*## Java 1.6 begin ##
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,7 +17,7 @@ import static org.h2.jaqu.Define.*;
 /**
  * A table containing product data.
  */
-//## Java 1.6 begin ##
+/*## Java 1.6 begin ##
 public class Product implements Table {
 
     public Integer productId;
@@ -30,7 +30,8 @@ public class Product implements Table {
         // public constructor
     }
 
-    private Product(int productId, String productName, String category, double unitPrice, int unitsInStock) {
+    private Product(int productId, String productName, 
+            String category, double unitPrice, int unitsInStock) {
         this.productId = productId;
         this.productName = productName;
         this.category = category;
@@ -44,8 +45,10 @@ public class Product implements Table {
         index(productName, category);
     }
 
-    private static Product create(int productId, String productName, String category, double unitPrice, int unitsInStock) {
-        return new Product(productId, productName, category, unitPrice, unitsInStock);
+    private static Product create(int productId, String productName, 
+            String category, double unitPrice, int unitsInStock) {
+        return new Product(productId, productName, category, 
+            unitPrice, unitsInStock);
     }
 
     public static List<Product> getProductList() {
@@ -131,5 +134,5 @@ public class Product implements Table {
     }
 
 }
-//## Java 1.6 end ##
+## Java 1.6 end ##*/
 

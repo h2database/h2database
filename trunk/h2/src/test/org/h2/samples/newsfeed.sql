@@ -13,6 +13,39 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(44,
+'New version available: 1.0.74 (2008-06-21)', '2008-06-21 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>JaQu (Java Query), a tool similar to LINQ (Language Integrated Query) 
+    is now included. See also
+    <a href="http://code.google.com/p/h2database/source/browse/trunk/h2/src/test/org/h2/test/jaqu/SamplesTest.java">
+    code examples</a>.
+</li><li>Support for overloaded Java methods. Many thanks to Gary Tong!
+</li><li>Deadlocks are now detected.
+</li><li>Linked tables: statements executed against the target are list with trace level 3.
+</li><li>RunScript tool: new options to show and check the results of queries.
+</li><li>Improved compatibility with databases that only allow one row with 'NULL' in a unique 
+    index. Use the compatibility mode to enable this feature.
+</li><li>The source code is now switched to Java 1.6 by default.
+</li><li>The ChangePassword tool is now called ChangeFileEncryption.
+</li><li>It is no longer allowed to create columns with the data type NULL.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>The Lucene fulltext index was always re-created when opening a database.
+</li><li>Setting a column default with a different data type did not work.
+</li><li>Opening big databases was sometimes very slow. Fixed.
+</li><li>RUNSCRIPT could throw a NullPointerException.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(43,
 'New version available: 1.0.73 (2008-05-31)', '2008-05-31 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -415,37 +448,6 @@ INSERT INTO ITEM VALUES(33,
 </li><li>The native fulltext search was not working properly after re-connecting. 
 </li><li>Temporary views (FROM(...)) with UNION didn''t work if nested. 
 </li><li>Using LIMIT with values close to Integer.MAX_VALUE didn''t work. 
-</li></ul>
-For future plans, see the ''Roadmap'' page at
-http://www.h2database.com/html/roadmap.html
-');
-
-INSERT INTO ITEM VALUES(32,
-'New version available: 1.0.62 (2007-11-25)', '2007-11-25 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click ''Refresh'').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Large updates and deletes are now supported.
-</li><li>Google Android is supported.
-</li><li>Large CSV operations are now faster.
-</li><li>A patch for Apache DDL Utils is available.
-</li><li>Eduardo Velasques has translated H2 to Brazilian Portuguese.
-</li><li>Now using custom toString() for JDBC objects.
-</li><li>The setting h2.emergencySpaceInitial is now 256 KB.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Creating a table from GROUP_CONCAT didn''t always work.
-</li><li>CSV: Using an empty field delimiter didn''t work.
-</li><li>Nested temporary views with parameters didn''t always work.
-</li><li>Cluster mode: could not connect if only one server was running.
-</li><li>ARRAY values are now sorted as in PostgreSQL.
-</li><li>The console did not display multiple spaces correctly.
-</li><li>Duplicate column names were not detected when renaming columns.
-</li><li>The H2 Console now also supports -ifExists.
-</li><li>Changing a user with a schema made the schema inaccessible.
-</li><li>Referential integrity checks didn''t lock the referenced table.
-</li><li>Now changing MVCC too late throws an Exception.
 </li></ul>
 For future plans, see the ''Roadmap'' page at
 http://www.h2database.com/html/roadmap.html

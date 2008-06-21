@@ -6,7 +6,7 @@
  */
 package org.h2.test.jaqu;
 
-//## Java 1.6 begin ##
+/*## Java 1.6 begin ##
 import static org.h2.jaqu.Define.*;
 
 import java.math.BigDecimal;
@@ -15,12 +15,12 @@ import java.util.Date;
 import java.util.List;
 
 import org.h2.jaqu.Table;
-//## Java 1.6 end ##
+## Java 1.6 end ##*/
 
 /**
  * A table containing order data.
  */
-//## Java 1.6 begin ##    
+/*## Java 1.6 begin ##    
 
 public class Order implements Table {
     public String customerId;
@@ -28,7 +28,8 @@ public class Order implements Table {
     public Date orderDate;
     public BigDecimal total;
     
-    public Order(String customerId, Integer orderId, String total, String orderDate) {
+    public Order(String customerId, Integer orderId, 
+            String total, String orderDate) {
         this.customerId = customerId;
         this.orderId = orderId;
         this.total = new BigDecimal(total);
@@ -58,4 +59,4 @@ public class Order implements Table {
     }
     
 }
-//## Java 1.6 end ##
+## Java 1.6 end ##*/

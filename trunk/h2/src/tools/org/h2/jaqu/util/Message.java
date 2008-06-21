@@ -6,11 +6,11 @@
  */
 package org.h2.jaqu.util;
 
-//## Java 1.6 begin ##   
+/*## Java 1.6 begin ##   
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
-//## Java 1.6 end ##
+## Java 1.6 end ##*/
 
 /**
  * Messages used in the database engine.
@@ -30,7 +30,7 @@ public class Message {
      * @param e the root cause
      * @return the SQL exception object
      */
-//## Java 1.6 begin ##    
+/*## Java 1.6 begin ##    
     public static SQLException convert(Throwable e) {
         if (e instanceof SQLException) {
             return (SQLException) e;
@@ -46,6 +46,6 @@ public class Message {
         }
         return new SQLException("General exception: " + e.toString(), e);
     }
-//## Java 1.6 end ##
+## Java 1.6 end ##*/
 
 }

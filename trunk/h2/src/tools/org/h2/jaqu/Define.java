@@ -10,7 +10,7 @@ package org.h2.jaqu;
  * This class provides utility methods to define primary keys, indexes, and set
  * the name of the table.
  */
-//## Java 1.6 begin ##
+/*## Java 1.6 begin ##
 public class Define {
     
     private static TableDefinition currentTableDefinition;
@@ -41,9 +41,11 @@ public class Define {
     
     private static void checkInDefine() {
         if (currentTable == null) {
-            throw new RuntimeException("This method may only be called from within the define() method, and the define() method is called by the framework.");
+            throw new RuntimeException("This method may only be called " +
+                "from within the define() method, and the define() method " +
+                "is called by the framework.");
         }
     }
 
 }
-//## Java 1.6 end ##
+## Java 1.6 end ##*/

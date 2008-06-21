@@ -39,11 +39,11 @@ public class ObjectUtils {
      * @return the object
      */
     public static Integer getInteger(int x) {
-/*## Java 1.5 begin ##
+//## Java 1.5 begin ##
         if (true) {
             return Integer.valueOf(x);
         }
-## Java 1.5 end ##*/
+//## Java 1.5 end ##
         // NOPMD
         return new Integer(x); 
     }
@@ -55,11 +55,11 @@ public class ObjectUtils {
      * @return the object
      */
     public static Character getCharacter(char x) {
-/*## Java 1.5 begin ##
+//## Java 1.5 begin ##
         if (true) {
             return Character.valueOf(x);
         }
-## Java 1.5 end ##*/
+//## Java 1.5 end ##
         return new Character(x);
     }
 
@@ -70,11 +70,11 @@ public class ObjectUtils {
      * @return the object
      */
     public static Long getLong(long x) {
-/*## Java 1.5 begin ##
+//## Java 1.5 begin ##
         if (true) {
             return Long.valueOf(x);
         }
-## Java 1.5 end ##*/
+//## Java 1.5 end ##
         // NOPMD
         return new Long(x); 
     }
@@ -86,11 +86,11 @@ public class ObjectUtils {
      * @return the object
      */
     public static Short getShort(short x) {
-/*## Java 1.5 begin ##
+//## Java 1.5 begin ##
         if (true) {
             return Short.valueOf(x);
         }
-## Java 1.5 end ##*/
+//## Java 1.5 end ##
         // NOPMD
         return new Short(x); 
     }
@@ -102,11 +102,11 @@ public class ObjectUtils {
      * @return the object
      */
     public static Byte getByte(byte x) {
-/*## Java 1.5 begin ##
+//## Java 1.5 begin ##
         if (true) {
             return Byte.valueOf(x);
         }
-## Java 1.5 end ##*/
+//## Java 1.5 end ##
         // NOPMD
         return new Byte(x); 
     }
@@ -118,11 +118,11 @@ public class ObjectUtils {
      * @return the object
      */
     public static Float getFloat(float x) {
-/*## Java 1.5 begin ##
+//## Java 1.5 begin ##
         if (true) {
             return Float.valueOf(x);
         }
-## Java 1.5 end ##*/
+//## Java 1.5 end ##
         return new Float(x);
     }
 
@@ -133,11 +133,11 @@ public class ObjectUtils {
      * @return the object
      */
     public static Double getDouble(double x) {
-/*## Java 1.5 begin ##
+//## Java 1.5 begin ##
         if (true) {
             return Double.valueOf(x);
         }
-## Java 1.5 end ##*/
+//## Java 1.5 end ##
         return new Double(x);
     }
     

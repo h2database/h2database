@@ -10,9 +10,9 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
 import java.sql.RowIdLifetime;
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 import java.sql.SQLException;
 
 import org.h2.constant.SysProperties;
@@ -2647,23 +2647,23 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Get the lifetime of a rowid.
      * @return ROWID_UNSUPPORTED
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public RowIdLifetime getRowIdLifetime() {
         debugCodeCall("getRowIdLifetime");
         return RowIdLifetime.ROWID_UNSUPPORTED;
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * [Not supported] Gets the list of schemas.
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public ResultSet getSchemas(String catalog, String schemaPattern)
             throws SQLException {
         debugCodeCall("getSchemas");
         throw Message.getUnsupportedException();
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * Returns whether the database supports calling functions using the call syntax.
@@ -2694,45 +2694,45 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * [Not supported] Return an object of this class if possible.
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
         debugCodeCall("unwrap");
         throw Message.getUnsupportedException();
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * [Not supported] Checks if unwrap can return an object of this class.
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         debugCodeCall("isWrapperFor");
         throw Message.getUnsupportedException();
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * [Not supported] Gets the list of function columns.
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public ResultSet getFunctionColumns(String catalog, String schemaPattern, 
             String functionNamePattern, String columnNamePattern) 
             throws SQLException {
         debugCodeCall("getFunctionColumns");
         throw Message.getUnsupportedException();
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * [Not supported] Gets the list of functions.
      */
-/*## Java 1.6 begin ##
+//## Java 1.6 begin ##
     public ResultSet getFunctions(String catalog, String schemaPattern, 
             String functionNamePattern) throws SQLException {
         debugCodeCall("getFunctions");
         throw Message.getUnsupportedException();
     }
-## Java 1.6 end ##*/
+//## Java 1.6 end ##
 
     /**
      * INTERNAL

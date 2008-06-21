@@ -66,7 +66,7 @@ public class Build extends BuildBase {
         exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "2"});
         exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "3", "-out", "pe.html"});
         exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-init", "-db", "4"});
-        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "5"});
+        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "5", "-exit"});
         exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "6"});
         exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "7"});
         exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "8", "-out", "ps.html"});

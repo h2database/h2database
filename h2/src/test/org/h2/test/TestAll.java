@@ -267,6 +267,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+fix checkstyle
+
 row level locking
 
 run the performance tests as part of the unit test

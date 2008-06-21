@@ -160,7 +160,6 @@ class Database {
             if (tokenizer.hasMoreTokens()) {
                 db.password = tokenizer.nextToken().trim();
             }
-            System.out.println("Loaded successfully: " + db.name);
             return db;
         } catch (Exception e) {
             System.out.println("Cannot load database " + dbString + " :" + e.toString());
@@ -176,12 +175,15 @@ class Database {
     Connection getConnection() {
         return conn;
     }
-
+    
     /**
-     * Open a database connection.
+     * Open a new database connection. This connection must be closed 
+     * by calling conn.close().
+     * 
+     * @return the opened connection
      */
-    void openConnection() throws SQLException {
-        conn = DriverManager.getConnection(url, user, password);
+    Connection openNewConnection() throws SQLException {
+        Connection conn = DriverManager.getConnection(url, user, password);
         if (url.startsWith("jdbc:derby:")) {
             // Derby: use higher cache size
             Statement stat = null;
@@ -206,6 +208,14 @@ class Database {
                 JdbcUtils.closeSilently(stat);
             }
         }
+        return conn;
+    }
+
+    /**
+     * Open the database connection.
+     */
+    void openConnection() throws SQLException {
+        conn = openNewConnection();
         stat = conn.createStatement();
     }
 

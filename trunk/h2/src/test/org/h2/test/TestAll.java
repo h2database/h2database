@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 import org.h2.store.fs.FileSystemDisk;
+import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAutoRecompile;
 import org.h2.test.db.TestBackup;
 import org.h2.test.db.TestBigDb;
@@ -376,6 +377,7 @@ Roadmap:
         } else {
             test.runTests();
         }
+        TestPerformance.main(new String[]{ "-init", "-db", "1"});
         System.out.println("done (" + (System.currentTimeMillis() - time) + " ms)");
     }
 

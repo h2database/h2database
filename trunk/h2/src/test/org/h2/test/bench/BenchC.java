@@ -140,7 +140,7 @@ public class BenchC implements Bench {
         loadCustomer();
         loadOrder();
         db.commit();
-        trace("load done");
+        trace("Load done");
     }
 
     private void trace(String s) {
@@ -152,7 +152,7 @@ public class BenchC implements Bench {
     }
 
     private void loadItem() throws Exception {
-        trace("load item");
+        trace("Loading item table");
         boolean[] original = random.getBoolean(items, items / 10);
         PreparedStatement prep = db.prepare("INSERT INTO ITEM(I_ID, I_IM_ID, I_NAME, I_PRICE, I_DATA) "
                 + "VALUES(?, ?, ?, ?, ?)");
@@ -177,7 +177,7 @@ public class BenchC implements Bench {
     }
 
     private void loadWarehouse() throws Exception {
-        trace("loading warehouses");
+        trace("Loading warehouse table");
         PreparedStatement prep = db.prepare("INSERT INTO WAREHOUSE(W_ID, W_NAME, W_STREET_1, "
                 + "W_STREET_2, W_CITY, W_STATE, W_ZIP, W_TAX, W_YTD) " + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
         for (int id = 1; id <= warehouses; id++) {
@@ -209,7 +209,7 @@ public class BenchC implements Bench {
     }
 
     private void loadCustomer() throws Exception {
-        trace("load customers");
+        trace("Load customer table");
         int max = warehouses * districtsPerWarehouse;
         int i = 0;
         for (int id = 1; id <= warehouses; id++) {
@@ -298,7 +298,7 @@ public class BenchC implements Bench {
     }
 
     private void loadOrder() throws Exception {
-        trace("load orders");
+        trace("Loading order table");
         int max = warehouses * districtsPerWarehouse;
         int i = 0;
         for (int wId = 1; wId <= warehouses; wId++) {
@@ -369,7 +369,7 @@ public class BenchC implements Bench {
     }
 
     private void loadStock(int wId) throws Exception {
-        trace("load stock (warehouse " + wId + ")");
+        trace("Loading stock table (warehouse " + wId + ")");
         boolean[] original = random.getBoolean(items, items / 10);
         PreparedStatement prep = db.prepare("INSERT INTO STOCK(S_I_ID, S_W_ID, S_QUANTITY, "
                 + "S_DIST_01, S_DIST_02, S_DIST_03, S_DIST_04, S_DIST_05, "

@@ -47,7 +47,7 @@ public class BenchB implements Bench, Runnable {
     private BenchB(BenchB master, int seed) throws Exception {
         this.master = master;
         random = new Random(seed);
-        conn = master.db.getConnection();
+        conn = master.db.openNewConnection();
         conn.setAutoCommit(false);
         updateAccount = conn.prepareStatement(
                 "UPDATE ACCOUNTS SET ABALANCE=ABALANCE+? WHERE AID=?");

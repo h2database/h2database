@@ -55,7 +55,7 @@ public class Build extends BuildBase {
         download("ext/mysql-connector-java-5.1.6.jar",
                 "http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.6/mysql-connector-java-5.1.6.jar", 
                 "380ef5226de2c85ff3b38cbfefeea881c5fce09d");
-        String cp = "bin" + File.pathSeparator + "bin/h2.jar" + File.pathSeparator +
+        String cp = "temp" + File.pathSeparator + "bin/h2.jar" + File.pathSeparator +
         "ext/hsqldb-1.8.0.7.jar" + File.pathSeparator +
         "ext/derby-10.4.1.3.jar" + File.pathSeparator +
         "ext/derbyclient-10.4.1.3.jar" + File.pathSeparator +

@@ -205,8 +205,7 @@ public class TestPerformance {
 //        }
 //        writer.println("</table>");
 
-        System.out.println("Test finished");
-        System.exit(0);
+        // System.exit(0);
     }
 
     private void testAll(ArrayList dbs, ArrayList tests, int size) throws Exception {
@@ -217,17 +216,19 @@ public class TestPerformance {
             // calls garbage collection
             TestBase.getMemoryUsed();
             Database db = (Database) dbs.get(i);
-            System.out.println("testing " + db.getName());
+            System.out.println("Testing performance of " + db.getName());
             db.startServer();
-            Connection conn = db.getConnection();
+            Connection conn = db.openNewConnection();
             runDatabase(db, tests, 1);
             runDatabase(db, tests, 1);
             collect = true;
             runDatabase(db, tests, size);
-            conn.close();
-            db.log("Executed Statements", "#", db.getExecutedStatements());
-            db.log("Total Time", "ms", db.getTotalTime());
-            db.log("Statement per Second", "#", db.getExecutedStatements() * 1000 / db.getTotalTime());
+            conn.close();            
+            db.log("Executed statements", "#", db.getExecutedStatements());
+            db.log("Total time", "ms", db.getTotalTime());
+            int statPerSec = db.getExecutedStatements() * 1000 / db.getTotalTime();
+            db.log("Statements per second", "#", statPerSec);
+            System.out.println("Statements per second: " + statPerSec);
             collect = false;
             db.stopServer();
         }

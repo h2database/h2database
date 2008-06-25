@@ -63,6 +63,7 @@ Roadmap
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
 </li><li>Option for Java functions: constant/isDeterministic/readonly/pure (always return the same value) to allow early evaluation when all parameters are constant
+</li><li>Support mixed clustering mode (one embedded, the other server mode)
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
 </li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
 </li><li>System table / function: cache usage
@@ -149,7 +150,6 @@ Roadmap
 </li><li>Clustering: Reads should be randomly distributed or to a designated database on RAM
 </li><li>Clustering: When a database is back alive, automatically synchronize with the master
 </li><li>Standalone tool to get relevant system properties and add it to the trace output.
-</li><li>Support mixed clustering mode (one embedded, the other server mode)
 </li><li>Support 'call proc(1=value)' (PostgreSQL, Oracle)
 </li><li>JAMon (proxy jdbc driver)
 </li><li>Console: Improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?)

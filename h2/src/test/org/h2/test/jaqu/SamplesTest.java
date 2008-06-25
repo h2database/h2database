@@ -6,37 +6,45 @@
  */
 package org.h2.test.jaqu;
 
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
 import java.math.BigDecimal;
 import java.util.List;
 
 import org.h2.jaqu.Db;
+//## Java 1.5 end ##
 import org.h2.test.TestBase;
-//## Java 1.6 end ##
 
 /**
  * Implementation of the 101 LINQ Samples as described in
  * http://msdn2.microsoft.com/en-us/vcsharp/aa336760.aspx
  */
-//## Java 1.6 begin ##
 public class SamplesTest extends TestBase {
+//## Java 1.5 begin ##
     
     private Db db;
     
+    public static void main(String[] args) throws Exception {
+        new SamplesTest().test();
+    }
+//## Java 1.5 end ##
+    
     public void test() throws Exception {
+//## Java 1.5 begin ##
         db = Db.open("jdbc:h2:mem:", "sa", "sa");
         db.insertAll(Product.getProductList());
         db.insertAll(Customer.getCustomerList());
         db.insertAll(Order.getOrderList());
         testSelectManyCompoundFrom2();
-        testAnonymousTypes3();
         testWhereSimple4();
+        testSelectSimple2();
+        testAnonymousTypes3();
         testWhereSimple2();
         testWhereSimple3();
-        testSelectSimple2();
         db.close();
+//## Java 1.5 end ##
     }
 
+//## Java 1.5 begin ##    
     private void testWhereSimple2() throws Exception {
         
 //            var soldOutProducts =
@@ -44,7 +52,7 @@ public class SamplesTest extends TestBase {
 //                where p.UnitsInStock == 0
 //                select p;
 
-        Product p = db.alias(Product.class);
+        Product p = new Product();
         List<Product> soldOutProducts = 
             db.from(p).
             where(p.unitsInStock).is(0).
@@ -66,11 +74,11 @@ public class SamplesTest extends TestBase {
 //                && p.UnitPrice > 3.00M
 //                select p;
         
-        Product p = db.alias(Product.class);
+        Product p = new Product();
         List<Product> expensiveInStockProducts = 
             db.from(p).
-            where(p.unitsInStock).isBigger(0).
-            and(p.unitPrice).isBigger(3.0).
+            where(p.unitsInStock).bigger(0).
+            and(p.unitPrice).bigger(3.0).
             orderBy(p.productId).select();
         
         String result = "";
@@ -114,7 +122,7 @@ public class SamplesTest extends TestBase {
 //            where c.Region == "WA"
 //            select c;
         
-        Customer c = db.alias(Customer.class);
+        Customer c = new Customer();
         List<Customer> waCustomers = 
             db.from(c).
             where(c.region).is("WA").
@@ -131,7 +139,7 @@ public class SamplesTest extends TestBase {
 //            from p in products
 //            select p.ProductName;
         
-        Product p = db.alias(Product.class);
+        Product p = new Product();
         List<String> productNames = 
             db.from(p).
             orderBy(p.productId).select(p.productName);
@@ -141,12 +149,12 @@ public class SamplesTest extends TestBase {
             assertEquals(products.get(i).productName, productNames.get(i));
         }
     }
-//## Java 1.6 end ##
+//## Java 1.5 end ##
 
     /**
      * A result set class containing the product name and price.
      */
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
     public static class ProductPrice {
         public String productName;
         public String category;
@@ -163,7 +171,7 @@ public class SamplesTest extends TestBase {
 //                Price = p.UnitPrice
 //            };
         
-        final Product p = db.alias(Product.class);
+        final Product p = new Product();
         List<ProductPrice> productInfos = 
             db.from(p).orderBy(p.productId).
             select(new ProductPrice() { {
@@ -182,19 +190,19 @@ public class SamplesTest extends TestBase {
             assertEquals(p2.unitPrice, pr.price);
         }
     }
-//## Java 1.6 end ##
+//## Java 1.5 end ##
 
     /**
      * A result set class containing customer data and the order total.
      */    
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
     public static class CustOrder {
         public String customerId;
         public Integer orderId;
         public BigDecimal total;
     }
     
-    private void testSelectManyCompoundFrom2() {
+    private void testSelectManyCompoundFrom2() throws Exception {
         
 //        var orders =
 //            from c in customers,
@@ -206,12 +214,12 @@ public class SamplesTest extends TestBase {
 //                o.Total
 //            };
         
-        final Customer c = db.alias(Customer.class);
-        final Order o = db.alias(Order.class);
+        final Customer c = new Customer();
+        final Order o = new Order();
         List<CustOrder> orders = 
             db.from(c).
             innerJoin(o).on(c.customerId).is(o.customerId).
-            where(o.total).isSmaller(new BigDecimal("500.00")).
+            where(o.total).smaller(new BigDecimal("500.00")).
             select(new CustOrder() { {
                 customerId = c.customerId;
                 orderId = o.orderId;
@@ -227,10 +235,10 @@ public class SamplesTest extends TestBase {
             buff.append(';');
         }
         String s = buff.toString();
-        System.out.println(s);
-        // int todoImplementListResolution;
-        // int todoVerifyResult;
+        assertEquals("c:ALFKI/o:10702;c:ALFKI/o:10952;c:ANATR/o:10308;" +
+                "c:ANATR/o:10625;c:ANATR/o:10759;c:ANTON/o:10355;" +
+                "c:ANTON/o:10365;c:ANTON/o:10682;", s);
     }
 
+//## Java 1.5 end ##
 }
-//## Java 1.6 end ##

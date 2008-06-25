@@ -12,13 +12,13 @@ package org.h2.jaqu;
  * @param <T> the return type of the query
  * @param <A> the incomplete condition data type
  */
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
 public class QueryCondition<T, A> {
     
     private Query<T> query;
     private A x;
 
-    public QueryCondition(Query<T> query, A x) {
+    QueryCondition(Query<T> query, A x) {
         this.query = query;
         this.x = x;
     }
@@ -28,15 +28,15 @@ public class QueryCondition<T, A> {
         return new QueryWhere<T>(query);
     }
 
-    public QueryWhere<T> isBigger(A y) {
+    public QueryWhere<T> bigger(A y) {
         query.addConditionToken(new Condition<A>(query, x, y, CompareType.BIGGER));
         return new QueryWhere<T>(query);
     }
 
-    public QueryWhere<T> isSmaller(A y) {
+    public QueryWhere<T> smaller(A y) {
         query.addConditionToken(new Condition<A>(query, x, y, CompareType.SMALLER));
         return new QueryWhere<T>(query);
     }
 
 }
-//## Java 1.6 end ##
+//## Java 1.5 end ##

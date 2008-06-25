@@ -53,6 +53,7 @@ import org.h2.test.db.TestTransaction;
 import org.h2.test.db.TestTriggersConstraints;
 import org.h2.test.db.TestTwoPhaseCommit;
 import org.h2.test.db.TestView;
+import org.h2.test.jaqu.SamplesTest;
 import org.h2.test.jdbc.TestBatchUpdates;
 import org.h2.test.jdbc.TestCallableStatement;
 import org.h2.test.jdbc.TestCancel;
@@ -268,14 +269,16 @@ java org.h2.test.TestAll timer
 
 /*
 
+JaQu
+try java.lang.instrumentation.*
+
 fix checkstyle
 
 row level locking
 
-run the performance tests as part of the unit test
+embedded + clustering (feature request)
 
-switch to JDK 1.6 by default
-integrate java queries
+start server with connection
 
 jazoon
 
@@ -341,10 +344,6 @@ Can sometimes not delete log file? need test case
 Add where required // TODO: change in version 1.1
 
 http://www.w3schools.com/sql/
-
-History:
-
-Roadmap:
 
 */
         if (args.length > 0) {
@@ -591,6 +590,9 @@ Roadmap:
         new TestTriggersConstraints().runTest(this);
         new TestTwoPhaseCommit().runTest(this);
         new TestView().runTest(this);
+        
+        // jaqu
+        new SamplesTest().runTest(this);
 
         // jdbc
         new TestBatchUpdates().runTest(this);

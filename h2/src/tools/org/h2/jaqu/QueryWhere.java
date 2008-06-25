@@ -6,16 +6,16 @@
  */
 package org.h2.jaqu;
 
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
 import java.util.List;
-//## Java 1.6 end ##
+//## Java 1.5 end ##
 
 /**
  * This class represents a query with a condition.
  *
  * @param <T> the return type
  */
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
 public class QueryWhere<T> {
     
     Query<T> query;
@@ -41,7 +41,7 @@ public class QueryWhere<T> {
     public List<T> select() {
         return query.select();
     }
-//## Java 1.6 end ##
+//## Java 1.5 end ##
 
     /**
      * Order by a number of columns.
@@ -49,10 +49,10 @@ public class QueryWhere<T> {
      * @param columns the columns
      * @return the query
      */
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
     public QueryWhere<T> orderBy(Integer... columns) {
         return this;
     }
 
 }
-//## Java 1.6 end ##
+//## Java 1.5 end ##

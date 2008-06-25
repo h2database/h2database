@@ -10,6 +10,6 @@ package org.h2.jaqu;
  * Classes implementing this interface can be used as a token in a conditional
  * expression.
  */
-public interface ConditionToken {
-    String toString();
+interface ConditionToken {
+    String getString();
 }

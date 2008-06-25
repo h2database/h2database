@@ -6,18 +6,19 @@
  */
 package org.h2.test.jaqu;
 
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
 import java.util.Arrays;
 import java.util.List;
 
 import org.h2.jaqu.Table;
 
 import static org.h2.jaqu.Define.*;
+//## Java 1.5 end ##
 
 /**
  * A table containing product data.
  */
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
 public class Product implements Table {
 
     public Integer productId;
@@ -134,5 +135,4 @@ public class Product implements Table {
     }
 
 }
-//## Java 1.6 end ##
-
+//## Java 1.5 end ##

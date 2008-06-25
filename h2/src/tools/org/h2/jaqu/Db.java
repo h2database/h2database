@@ -6,7 +6,7 @@
  */
 package org.h2.jaqu;
 
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,28 +15,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.h2.jaqu.TableDefinition.FieldDefinition;
 import org.h2.jaqu.util.Utils;
-import org.h2.jaqu.util.WeakIdentityHashMap;
 import org.h2.util.JdbcUtils;
-//## Java 1.6 end ##
+//## Java 1.5 end ##
 
 /**
  * This class represents a connection to a database.
  */
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
 public class Db {
     
     private final Connection conn;
     private final Map<Class, TableDefinition> classMap = Utils.newHashMap();
-    private final WeakIdentityHashMap<Object, FieldDefinition> aliasMap = 
-            Utils.newWeakIdentityHashMap();
     
     Db(Connection conn) {
         this.conn = conn;
     }
     
-    public static <T> T instance(Class<T> clazz) {
+    private static <T> T instance(Class<T> clazz) {
         try {
             return clazz.newInstance();
         } catch (Exception e) {
@@ -75,10 +71,10 @@ public class Db {
     }
 
     public <T extends Object> Query<T> from(T alias) {
-        return new Query<T>(this, alias);
+        return Query.from(this, alias);
     }
     
-    public <T> void createTable(Class<T> clazz) {
+    <T> void createTable(Class<T> clazz) {
         define(clazz).createTableIfRequired(this);
     }
     
@@ -97,12 +93,13 @@ public class Db {
         return def;
     }
 
-    public <T> T alias(Class<T> clazz) {
-        TableDefinition def = define(clazz);
-        T alias = instance(clazz);
-        def.initObject(alias, aliasMap);
-        return alias;
-    }
+//    private <T> T alias(Class<T> clazz) {
+//        TableDefinition def = define(clazz);
+//        T alias = instance(clazz);
+//        SelectTable table = new SelectTable(this, null, alias, false);
+//        def.initSelectObject(table, alias, aliasMap);
+//        return alias;
+//    }
 
     public void close() {
         try {
@@ -126,7 +123,7 @@ public class Db {
         }
     }
 
-    public PreparedStatement prepare(String sql) {
+    PreparedStatement prepare(String sql) {
         try {
             return conn.prepareStatement(sql);
         } catch (SQLException e) {
@@ -138,7 +135,7 @@ public class Db {
         return classMap.get(clazz);
     }
 
-    public ResultSet executeQuery(String sql) {
+    ResultSet executeQuery(String sql) {
         try {
             return conn.createStatement().executeQuery(sql);
         } catch (SQLException e) {
@@ -146,9 +143,13 @@ public class Db {
         }
     }
 
-    public <X> FieldDefinition<X> getFieldDefinition(X x) {
-        return aliasMap.get(x);
-    }
+//    <X> FieldDefinition<X> getFieldDefinition(X x) {
+//        return aliasMap.get(x).getFieldDefinition();
+//    }
+//    
+//    <X> SelectColumn<X> getSelectColumn(X x) {
+//        return aliasMap.get(x);
+//    }
 
 }
-//## Java 1.6 end ##
+//## Java 1.5 end ##

@@ -6,7 +6,7 @@
  */
 package org.h2.jaqu;
 
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
 import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,7 +16,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 import org.h2.jaqu.util.Utils;
-//## Java 1.6 end ##
+//## Java 1.5 end ##
 
 /**
  * A table definition contains the index definitions of a table, the field
@@ -24,40 +24,43 @@ import org.h2.jaqu.util.Utils;
  * 
  * @param <T> the table type
  */
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
 class TableDefinition<T> {
-//## Java 1.6 end ##
+//## Java 1.5 end ##
 
     /**
      * The meta data of an index.
      */
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
     static class IndexDefinition {
         boolean unique;
         String indexName;
         String[] columnNames;
     }
-//## Java 1.6 end ##
+//## Java 1.5 end ##
     
     /**
      * The meta data of a field.
      */
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
     static class FieldDefinition<X> {
         String columnName;
         Field field;
         String dataType;
-        public Object getValue(Object obj) {
+        
+        Object getValue(Object obj) {
             try {
                 return field.get(obj);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
-        public void initWithNewObject(Object obj) {
+        
+        void initWithNewObject(Object obj) {
             Object o = Utils.newObject(field.getType());
             setValue(obj, o);
         }
+        
         void setValue(Object obj, Object o) {
             try {
                 field.set(obj, o);
@@ -67,7 +70,7 @@ class TableDefinition<T> {
         }
         
         @SuppressWarnings("unchecked")
-        public X read(ResultSet rs) {
+        X read(ResultSet rs) {
             try {
                 return (X) rs.getObject(columnName);
             } catch (Exception e) {
@@ -93,7 +96,7 @@ class TableDefinition<T> {
         this.tableName = tableName;
     }
 
-    public void setPrimaryKey(Object[] primaryKeyColumns) {
+    void setPrimaryKey(Object[] primaryKeyColumns) {
         this.primaryKeyColumnNames = mapColumnNames(primaryKeyColumns);
     }
     
@@ -111,19 +114,14 @@ class TableDefinition<T> {
         return columnNames;
     }
     
-    public void addIndex(Object[] columns) {
+    void addIndex(Object[] columns) {
         IndexDefinition index = new IndexDefinition();
         index.indexName = tableName + "_" + indexes.size();
         index.columnNames = mapColumnNames(columns);
         indexes.add(index);
     }
 
-    public void apply() {
-        // TODO Auto-generated method stub
-        
-    }
-
-    public void mapFields() {
+    void mapFields() {
         Field[] classFields = clazz.getFields();
         for (Field f : classFields) {
             FieldDefinition fieldDef = new FieldDefinition();
@@ -142,6 +140,16 @@ class TableDefinition<T> {
             return "VARCHAR";
         } else if (clazz == Double.class) {
             return "DOUBLE";
+        } else if (clazz == java.math.BigDecimal.class) {
+            return "DECIMAL";
+        } else if (clazz == java.util.Date.class) {
+            return "DATE";
+        } else if (clazz == java.sql.Date.class) {
+            return "DATE";
+        } else if (clazz == java.sql.Time.class) {
+            return "TIME";
+        } else if (clazz == java.sql.Timestamp.class) {
+            return "TIMESTAMP";
         }
         return "VARCHAR";
         // TODO add more data types
@@ -180,7 +188,7 @@ class TableDefinition<T> {
         }
     }
 
-    public TableDefinition createTableIfRequired(Db db) {
+    TableDefinition createTableIfRequired(Db db) {
         StringBuilder buff = new StringBuilder("CREATE TABLE IF NOT EXISTS ");
         buff.append(tableName);
         buff.append('(');
@@ -209,7 +217,7 @@ class TableDefinition<T> {
         return this;
     }
 
-    public void mapObject(Object obj) {
+    void mapObject(Object obj) {
         fieldMap.clear();
         initObject(obj, fieldMap);
     }
@@ -221,6 +229,14 @@ class TableDefinition<T> {
         }
     }
 
+    void initSelectObject(SelectTable table, Object obj, Map<Object, SelectColumn> map) {
+        for (FieldDefinition def : fields) {
+            def.initWithNewObject(obj);
+            SelectColumn column = new SelectColumn(table, def);
+            map.put(def.getValue(obj), column);
+        }
+    }
+
     void readRow(Object item, ResultSet rs) {
         for (FieldDefinition def : fields) {
             Object o = def.read(rs);
@@ -228,14 +244,14 @@ class TableDefinition<T> {
         }
     }
     
-    <U, X> void copyAttributeValues(Db db, U from, X to, X map) {
+    <U, X> void copyAttributeValues(Query query, X to, X map) {
         for (FieldDefinition def : fields) {
             Object obj = def.getValue(map);
-            FieldDefinition fd = db.getFieldDefinition(obj);
-            Object value = fd.getValue(from);
+            SelectColumn col = query.getSelectColumn(obj);
+            Object value = col.getCurrentValue();
             def.setValue(to, value);
         }
     }
 
 }
-//## Java 1.6 end ##
+//## Java 1.5 end ##

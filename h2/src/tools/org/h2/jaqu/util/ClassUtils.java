@@ -17,7 +17,14 @@ public class ClassUtils {
         // utility class
     }
 
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
+    
+    @SuppressWarnings("unchecked")
+    public
+    static <X> Class<X> getClass(X x) {
+        return (Class<X>) x.getClass();
+    }
+    
     public static Class< ? > loadClass(String className) {
         try {
             return Class.forName(className);
@@ -25,5 +32,5 @@ public class ClassUtils {
             throw new RuntimeException(e);
         }
     }
-//## Java 1.6 end ##
+//## Java 1.5 end ##
 }

@@ -9,8 +9,8 @@ package org.h2.jaqu;
 /**
  * An OR or an AND condition.
  */
-//## Java 1.6 begin ##
-public enum ConditionAndOr implements ConditionToken {
+//## Java 1.5 begin ##
+enum ConditionAndOr implements ConditionToken {
     AND("AND"),
     OR("OR");
     
@@ -20,9 +20,9 @@ public enum ConditionAndOr implements ConditionToken {
         this.text = text;
     }
     
-    public String toString() {
+    public String getString() {
         return text;
     }
  
 }
-//## Java 1.6 end ##
+//## Java 1.5 end ##

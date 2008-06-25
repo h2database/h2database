@@ -7,10 +7,10 @@
 package org.h2.jaqu;
 
 /**
- * A enumeration of compare operations.
+ * An enumeration of compare operations.
  */
-//## Java 1.6 begin ##
-public enum CompareType {
+//## Java 1.5 begin ##
+enum CompareType {
     EQUAL("=", true),
     BIGGER(">", true),
     BIGGER_EQUAL(">=", true),
@@ -29,14 +29,14 @@ public enum CompareType {
         this.hasRightExpression = hasRightExpression;
     }
     
-    public String toString() {
+    String getString() {
         return text;
     }
     
-    public boolean hasRightExpression() {
+    boolean hasRightExpression() {
         return hasRightExpression;
     }
     
 }
-//## Java 1.6 end ##
+//## Java 1.5 end ##
 

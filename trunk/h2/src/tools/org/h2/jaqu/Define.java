@@ -10,7 +10,7 @@ package org.h2.jaqu;
  * This class provides utility methods to define primary keys, indexes, and set
  * the name of the table.
  */
-//## Java 1.6 begin ##
+//## Java 1.5 begin ##
 public class Define {
     
     private static TableDefinition currentTableDefinition;
@@ -35,7 +35,6 @@ public class Define {
         currentTable = table;
         tableDefinition.mapObject(table);
         table.define();
-        tableDefinition.apply();
         currentTable = null;
     }
     
@@ -48,4 +47,4 @@ public class Define {
     }
 
 }
-//## Java 1.6 end ##
+//## Java 1.5 end ##

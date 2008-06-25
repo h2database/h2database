@@ -23,9 +23,6 @@ public class TestWeb extends TestBase {
         client.readSessionId(result);
         client.get(url, "login.jsp");
         client.get(url, "stylesheet.css");
-        client.get(url, "admin.do");
-        // does not stop the server because it is not started from the command line
-        client.get(url, "adminShutdown.do");
         client.get(url, "adminSave.do");
         result = client.get(url, "index.do?language=de");
         result = client.get(url, "login.jsp");
@@ -105,6 +102,10 @@ public class TestWeb extends TestBase {
 
         result = client.get(url, "logout.do");
         result = client.get(url, "settingRemove.do?name=_test_");
+        
+        client.get(url, "admin.do");
+        // this would also stop the server
+        // client.get(url, "adminShutdown.do");
         
         server.stop();
     }

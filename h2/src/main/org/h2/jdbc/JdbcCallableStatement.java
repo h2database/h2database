@@ -32,7 +32,6 @@ import org.h2.message.TraceObject;
 
 /**
  * Represents a callable statement.
- *
  */
 public class JdbcCallableStatement extends JdbcPreparedStatement implements CallableStatement {
 

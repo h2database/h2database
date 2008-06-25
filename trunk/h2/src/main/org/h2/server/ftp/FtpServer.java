@@ -23,12 +23,12 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.server.Service;
 import org.h2.store.fs.FileSystem;
-import org.h2.tools.Server;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.SortedProperties;
+import org.h2.util.Tool;
 
 /**
  * Small FTP Server. Intended for ad-hoc networks in a secure environment.
@@ -235,7 +235,7 @@ public class FtpServer implements Service {
             } else if ("-trace".equals(a)) {
                 trace = true;
             } else if ("-log".equals(a) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
-                trace = Server.readArgBoolean(args, i) == 1;
+                trace = Tool.readArgBoolean(args, i) == 1;
                 i++;
             } else if ("-ftpTask".equals(a)) {
                 allowTask = true;

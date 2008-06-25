@@ -9,6 +9,8 @@ package org.h2.util;
 import java.io.PrintStream;
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
+
 /**
  * Command line tools implement the tool interface so that they can be used in
  * the H2 Console.
@@ -53,6 +55,29 @@ public abstract class Tool {
             buff.append(db);
         }
         out.println(buff.toString());
+    }
+
+    /**
+     * Read an argument and check if it is true (1), false (-1), or not (0).
+     * This method is used for compatibility with older versions only.
+     * 
+     * @param args the list of arguments
+     * @param i the index - 1
+     * @return 1 for true, -1 for false, or 0 for not read
+     */
+    public static int readArgBoolean(String[] args, int i) {
+        if (!SysProperties.OLD_COMMAND_LINE_OPTIONS) {
+            return 0;
+        }
+        if (i + 1 < args.length) {
+            String a = args[++i];
+            if ("true".equals(a)) {
+                return 1;
+            } else if ("false".equals(a)) {
+                return -1;
+            }
+        }
+        return 0;
     }
     
 }

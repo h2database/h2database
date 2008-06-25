@@ -33,7 +33,6 @@ import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.server.Service;
 import org.h2.server.ShutdownHandler;
-import org.h2.tools.Server;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.JdbcUtils;
@@ -42,6 +41,7 @@ import org.h2.util.NetUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.Resources;
 import org.h2.util.SortedProperties;
+import org.h2.util.Tool;
 
 /**
  * The web server is a simple standalone HTTP server that implements the H2
@@ -224,15 +224,15 @@ public class WebServer implements Service {
             if ("-webPort".equals(a)) {
                 port = MathUtils.decodeInt(args[++i]);
             } else if ("-webSSL".equals(a)) {
-                if (Server.readArgBoolean(args, i) != 0) {
-                    ssl = Server.readArgBoolean(args, i) == 1;
+                if (Tool.readArgBoolean(args, i) != 0) {
+                    ssl = Tool.readArgBoolean(args, i) == 1;
                     i++;
                 } else {
                     ssl = true;
                 }
             } else if ("-webAllowOthers".equals(a)) {
-                if (Server.readArgBoolean(args, i) != 0) {
-                    allowOthers = Server.readArgBoolean(args, i) == 1;
+                if (Tool.readArgBoolean(args, i) != 0) {
+                    allowOthers = Tool.readArgBoolean(args, i) == 1;
                     i++;
                 } else {
                     allowOthers = true;
@@ -243,8 +243,8 @@ public class WebServer implements Service {
                 String baseDir = args[++i];
                 SysProperties.setBaseDir(baseDir);
             } else if ("-ifExists".equals(a)) {
-                if (Server.readArgBoolean(args, i) != 0) {
-                    ifExists = Server.readArgBoolean(args, i) == 1;
+                if (Tool.readArgBoolean(args, i) != 0) {
+                    ifExists = Tool.readArgBoolean(args, i) == 1;
                     i++;
                 } else {
                     ifExists = true;
@@ -252,7 +252,7 @@ public class WebServer implements Service {
             } else if ("-trace".equals(a)) {
                 trace = true;
             } else if ("-log".equals(a) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
-                trace = Server.readArgBoolean(args, i) == 1;
+                trace = Tool.readArgBoolean(args, i) == 1;
                 i++;
             }
         }
@@ -278,15 +278,21 @@ public class WebServer implements Service {
         for (int i = 0; i < LANGUAGES.length; i++) {
             languages.add(LANGUAGES[i][0]);
         }
-        url = (ssl ? "https" : "http") + "://" + NetUtils.getLocalAddress() + ":" + port;
+        updateURL();
     }
 
     public String getURL() {
         return url;
     }
+    
+    private void updateURL() {
+        url = (ssl ? "https" : "http") + "://" + NetUtils.getLocalAddress() + ":" + port;
+    }
 
     public void start() throws SQLException {
         serverSocket = NetUtils.createServerSocket(port, ssl);
+        port = serverSocket.getLocalPort();
+        updateURL();
     }
 
     public void listen() {
@@ -643,6 +649,21 @@ public class WebServer implements Service {
 
     boolean getAllowScript() {
         return allowScript;
+    }
+
+    /**
+     * Create a session with a given connection.
+     * 
+     * @param conn the connection
+     * @return the URL of the web site to access this connection
+     */
+    public String addSession(Connection conn) throws SQLException {
+        WebSession session = createNewSession("local");
+        session.setShutdownServerOnDisconnect();
+        session.setConnection(conn);
+        session.put("url", conn.getMetaData().getURL());
+        String s = (String) session.get("sessionId");
+        return url + "/frame.jsp?jsessionid=" + s;
     }
 
 }

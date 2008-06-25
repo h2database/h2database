@@ -22,9 +22,9 @@ import java.util.Set;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.server.Service;
-import org.h2.tools.Server;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
+import org.h2.util.Tool;
 
 /**
  * This class implements a subset of the PostgreSQL protocol as described here:
@@ -54,22 +54,22 @@ public class PgServer implements Service {
             if ("-trace".equals(a)) {
                 trace = true;
             } else if ("-log".equals(a) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
-                trace = Server.readArgBoolean(args, i) == 1;
+                trace = Tool.readArgBoolean(args, i) == 1;
                 i++;
             } else if ("-pgPort".equals(a)) {
                 port = MathUtils.decodeInt(args[++i]);
             } else if ("-baseDir".equals(a)) {
                 baseDir = args[++i];
             } else if ("-pgAllowOthers".equals(a)) {
-                if (Server.readArgBoolean(args, i) != 0) {
-                    allowOthers = Server.readArgBoolean(args, i) == 1;
+                if (Tool.readArgBoolean(args, i) != 0) {
+                    allowOthers = Tool.readArgBoolean(args, i) == 1;
                     i++;
                 } else {
                     allowOthers = true;
                 }
             } else if ("-ifExists".equals(a)) {
-                if (Server.readArgBoolean(args, i) != 0) {
-                    ifExists = Server.readArgBoolean(args, i) == 1;
+                if (Tool.readArgBoolean(args, i) != 0) {
+                    ifExists = Tool.readArgBoolean(args, i) == 1;
                     i++;
                 } else {
                     ifExists = true;

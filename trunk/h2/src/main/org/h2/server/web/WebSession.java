@@ -66,6 +66,7 @@ class WebSession {
     private DbContextRule aliasRule;
     private DbContextRule columnAliasRule;
     private Bnf bnf;
+    private boolean shutdownServerOnDisconnect;
 
     WebSession(WebServer server) {
         this.server = server;
@@ -232,6 +233,17 @@ class WebSession {
 
     DbContents getContents() {
         return contents;
+    }
+    
+    /**
+     * Shutdown the server when disconnecting.
+     */
+    void setShutdownServerOnDisconnect() {
+        this.shutdownServerOnDisconnect = true;
+    }
+    
+    boolean getShutdownServerOnDisconnect() {
+        return shutdownServerOnDisconnect;
     }
 
 }

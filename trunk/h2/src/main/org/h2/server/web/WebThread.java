@@ -119,6 +119,11 @@ class WebThread extends Thread implements DatabaseEventListener {
      */
     void stopNow() {
         this.stop = true;
+        try {
+            socket.close();
+        } catch (IOException e) {
+            // ignore
+        }
     }
 
     private String getAllowedFile(String requestedFile) {
@@ -1197,7 +1202,11 @@ class WebThread extends Thread implements DatabaseEventListener {
             session.remove("user");
             session.remove("tool");
             if (conn != null) {
-                conn.close();
+                if (session.getShutdownServerOnDisconnect()) {
+                    server.shutdown();
+                } else {
+                    conn.close();
+                }
             }
         } catch (Exception e) {
             trace(e.toString());

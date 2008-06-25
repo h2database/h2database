@@ -7,6 +7,7 @@
 package org.h2.tools;
 
 import java.io.PrintStream;
+import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
@@ -21,6 +22,7 @@ import org.h2.server.ftp.FtpServer;
 import org.h2.server.pg.PgServer;
 import org.h2.server.web.WebServer;
 import org.h2.util.StartBrowser;
+import org.h2.util.Tool;
 
 /**
  * This tool can be used to start various database servers (listeners).
@@ -129,12 +131,12 @@ public class Server implements Runnable, ShutdownHandler {
      * @param args the command line arguments
      * @throws SQLException
      */
-    public static void main(String[] args) throws SQLException {
-        int exitCode = new Server().run(args, System.out);
-        if (exitCode != 0) {
-            System.exit(exitCode);
-        }
-    }
+//    public static void main(String[] args) throws SQLException {
+//        int exitCode = new Server().run(args, System.out);
+//        if (exitCode != 0) {
+//            System.exit(exitCode);
+//        }
+//    }
 
     /**
      * INTERNAL
@@ -158,11 +160,11 @@ public class Server implements Runnable, ShutdownHandler {
                     startDefaultServers = false;
                     webStart = true;
                 } else if ("-webAllowOthers".equals(arg)) {
-                    if (readArgBoolean(args, i) != 0) {
+                    if (Tool.readArgBoolean(args, i) != 0) {
                         i++;
                     }
                 } else if ("-webSSL".equals(arg)) {
-                    if (readArgBoolean(args, i) != 0) {
+                    if (Tool.readArgBoolean(args, i) != 0) {
                         i++;
                     }
                 } else if ("-webPort".equals(arg)) {
@@ -181,11 +183,11 @@ public class Server implements Runnable, ShutdownHandler {
                     startDefaultServers = false;
                     tcpStart = true;
                 } else if ("-tcpAllowOthers".equals(arg)) {
-                    if (readArgBoolean(args, i) != 0) {
+                    if (Tool.readArgBoolean(args, i) != 0) {
                         i++;
                     }
                 } else if ("-tcpSSL".equals(arg)) {
-                    if (readArgBoolean(args, i) != 0) {
+                    if (Tool.readArgBoolean(args, i) != 0) {
                         i++;
                     }
                 } else if ("-tcpPort".equals(arg)) {
@@ -197,8 +199,8 @@ public class Server implements Runnable, ShutdownHandler {
                     tcpShutdown = true;
                     tcpShutdownServer = args[++i];
                 } else if ("-tcpShutdownForce".equals(arg)) {
-                    if (readArgBoolean(args, i) != 0) {
-                        tcpShutdownForce = readArgBoolean(args, i) == 1;
+                    if (Tool.readArgBoolean(args, i) != 0) {
+                        tcpShutdownForce = Tool.readArgBoolean(args, i) == 1;
                         i++;
                     } else {
                         tcpShutdownForce = true;
@@ -212,7 +214,7 @@ public class Server implements Runnable, ShutdownHandler {
                     startDefaultServers = false;
                     pgStart = true;
                 } else if ("-pgAllowOthers".equals(arg)) {
-                    if (readArgBoolean(args, i) != 0) {
+                    if (Tool.readArgBoolean(args, i) != 0) {
                         i++;
                     }
                 } else if ("-pgPort".equals(arg)) {
@@ -246,7 +248,7 @@ public class Server implements Runnable, ShutdownHandler {
             } else if ("-log".equals(arg) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
                 i++;
             } else if ("-ifExists".equals(arg)) {
-                if (readArgBoolean(args, i) != 0) {
+                if (Tool.readArgBoolean(args, i) != 0) {
                     i++;
                 }
             } else if ("-baseDir".equals(arg)) {
@@ -320,29 +322,6 @@ public class Server implements Runnable, ShutdownHandler {
             out.println(ftp.getStatus());
         }
         return exitCode;
-    }
-
-    /**
-     * Read an argument and check if it is true (1), false (-1), or not (0).
-     * This method is used for compatibility with older versions only.
-     * 
-     * @param args the list of arguments
-     * @param i the index - 1
-     * @return 1, -1, or 0
-     */
-    public static int readArgBoolean(String[] args, int i) {
-        if (!SysProperties.OLD_COMMAND_LINE_OPTIONS) {
-            return 0;
-        }
-        if (i + 1 < args.length) {
-            String a = args[++i];
-            if ("true".equals(a)) {
-                return 1;
-            } else if ("false".equals(a)) {
-                return -1;
-            }
-        }
-        return 0;
     }
 
     /**
@@ -564,4 +543,36 @@ public class Server implements Runnable, ShutdownHandler {
     public Service getService() {
         return service;
     }
+    
+    /**
+     * Start a web server and a browser that uses the given connection. The
+     * current transaction is preserved. This is specially useful to manually
+     * inspect the database when debugging.
+     * 
+     * @param conn the database connection (the database must be open)
+     */
+    public static void startWebServer(Connection conn) throws SQLException {
+        final Object waitUntilDisconnected = new Object();
+        WebServer webServer = new WebServer();
+        Server server = new Server(webServer, new String[] { "-webPort", "0" });
+        webServer.setShutdownHandler(new ShutdownHandler() {
+            public void shutdown() {
+                synchronized (waitUntilDisconnected) {
+                    waitUntilDisconnected.notifyAll();
+                }
+            }
+        });
+        server.start();
+        String url = webServer.addSession(conn);
+        StartBrowser.openURL(url);
+        synchronized (waitUntilDisconnected) {
+            try {
+                waitUntilDisconnected.wait();
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+        webServer.stop();
+    }
+
 }

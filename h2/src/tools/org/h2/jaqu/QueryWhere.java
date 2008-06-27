@@ -46,11 +46,45 @@ public class QueryWhere<T> {
     /**
      * Order by a number of columns.
      * 
-     * @param columns the columns
+     * @param expressions the order by expressions
      * @return the query
      */
 //## Java 1.5 begin ##
-    public QueryWhere<T> orderBy(Integer... columns) {
+    public QueryWhere<T> orderBy(Object... expressions) {
+        for (Object expr : expressions) {
+            OrderExpression<Object> e = new OrderExpression<Object>(query, expr, false, false, false);
+            query.addOrderBy(e);
+        }
+        return this;
+    }
+    
+    public QueryWhere<T> orderByNullsFirst(Object expr) {
+        OrderExpression<Object> e = new OrderExpression<Object>(query, expr, false, true, false);
+        query.addOrderBy(e);
+        return this;
+    }
+
+    public QueryWhere<T> orderByNullsLast(Object expr) {
+        OrderExpression<Object> e = new OrderExpression<Object>(query, expr, false, false, true);
+        query.addOrderBy(e);
+        return this;
+    }
+
+    public QueryWhere<T> orderByDesc(Object expr) {
+        OrderExpression<Object> e = new OrderExpression<Object>(query, expr, true, false, false);
+        query.addOrderBy(e);
+        return this;
+    }
+
+    public QueryWhere<T> orderByDescNullsFirst(Object expr) {
+        OrderExpression<Object> e = new OrderExpression<Object>(query, expr, true, true, false);
+        query.addOrderBy(e);
+        return this;
+    }
+
+    public QueryWhere<T> orderByDescNullsLast(Object expr) {
+        OrderExpression<Object> e = new OrderExpression<Object>(query, expr, true, false, true);
+        query.addOrderBy(e);
         return this;
     }
 

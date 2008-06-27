@@ -2745,7 +2745,7 @@ public class Parser {
                     command[i + 1] = ' ';
                     i++;
                 } else {
-                    type = CHAR_SPECIAL_1;
+                    type = CHAR_NAME;
                 }
                 break;
             case '(':

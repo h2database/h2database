@@ -1433,6 +1433,7 @@ $$anythingExceptTwoDollarSigns$$
 ","
 A string starts and ends with two dollar signs. 
 Two dollar signs are not allowed within the text.
+A whitespace is required before the first set of dollar signs.
 No escaping is required within the text.
 ","
 $$John's car$$

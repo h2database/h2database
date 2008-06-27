@@ -139,7 +139,7 @@ public abstract class Command implements CommandInterface {
                 session.setCurrentCommand(this, startTime);
                 return query(maxrows);
             } catch (Exception e) {
-                SQLException s = Message.convert(e);
+                SQLException s = Message.convert(e, sql);
                 database.exceptionThrown(s, sql);
                 throw s;
             } finally {

@@ -270,17 +270,8 @@ java org.h2.test.TestAll timer
 /*
 
 JaQu
-try java.lang.instrumentation.*
-
-fix checkstyle
 
 row level locking
-
-embedded + clustering (feature request)
-
-start server with connection
-
-jazoon
 
 H2 Console should support Java Queries
 

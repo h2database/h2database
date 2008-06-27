@@ -221,6 +221,22 @@ public class Message {
      * Convert an exception to a SQL exception using the default mapping.
      * 
      * @param e the root cause
+     * @param sql the SQL statement or null if it is not known
+     * @return the SQL exception object
+     */
+    public static SQLException convert(Throwable e, String sql) {
+        SQLException e2 = convert(e);
+        if (e2 instanceof JdbcSQLException) {
+            ((JdbcSQLException) e).setSQL(sql);
+        }
+        return e2;
+    }
+
+    /**
+     * Convert an exception to a SQL exception using the default mapping.
+     * 
+     * @param e the root cause
+     * @param sql the SQL statement or null if it is not known
      * @return the SQL exception object
      */
     public static SQLException convert(Throwable e) {

@@ -1,3 +1,7 @@
+create table test$test(id int);
+drop table test$test;
+create table test$$test(id int);
+drop table test$$test;
 create table test (id varchar(36) as random_uuid() primary key);
 insert into test() values();
 delete from test where id = select id from test;

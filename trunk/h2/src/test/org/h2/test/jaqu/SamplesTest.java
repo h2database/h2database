@@ -11,17 +11,26 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import org.h2.jaqu.Db;
+import static org.h2.jaqu.Function.*;
 //## Java 1.5 end ##
 import org.h2.test.TestBase;
 
 /**
- * Implementation of the 101 LINQ Samples as described in
+ * <p>
+ * This is the implementation of the 101 LINQ Samples as described in
  * http://msdn2.microsoft.com/en-us/vcsharp/aa336760.aspx
+ * </p><p>Why should you use JaQu? 
+ * Type checking, 
+ * autocomplete, 
+ * no separate SQL scripts, 
+ * no more SQL injection.</p>
  */
 public class SamplesTest extends TestBase {
 //## Java 1.5 begin ##
     
-    private Db db;
+    Db db;
+    
+    // TODO length
     
     public static void main(String[] args) throws Exception {
         new SamplesTest().test();
@@ -34,12 +43,14 @@ public class SamplesTest extends TestBase {
         db.insertAll(Product.getProductList());
         db.insertAll(Customer.getCustomerList());
         db.insertAll(Order.getOrderList());
+        testGroup();
         testSelectManyCompoundFrom2();
         testWhereSimple4();
         testSelectSimple2();
         testAnonymousTypes3();
         testWhereSimple2();
         testWhereSimple3();
+        testCountStar();
         db.close();
 //## Java 1.5 end ##
     }
@@ -220,6 +231,7 @@ public class SamplesTest extends TestBase {
             db.from(c).
             innerJoin(o).on(c.customerId).is(o.customerId).
             where(o.total).smaller(new BigDecimal("500.00")).
+            orderBy(1).
             select(new CustOrder() { {
                 customerId = c.customerId;
                 orderId = o.orderId;
@@ -238,6 +250,56 @@ public class SamplesTest extends TestBase {
         assertEquals("c:ALFKI/o:10702;c:ALFKI/o:10952;c:ANATR/o:10308;" +
                 "c:ANATR/o:10625;c:ANATR/o:10759;c:ANTON/o:10355;" +
                 "c:ANTON/o:10365;c:ANTON/o:10682;", s);
+    }
+    
+    private void testCountStar() throws Exception {
+        long count = db.from(new Product()).
+            selectCountStar();
+        assertEquals(77, count);
+    }
+    
+  //## Java 1.5 end ##
+
+    /**
+     * A result set class containing customer data and the order total.
+     */    
+//## Java 1.5 begin ##
+    public static class OrderGroup {
+        public String category;
+        public Long productCount;
+    }
+    
+    private void testGroup() throws Exception {
+        
+//      var orderGroups =
+//          from p in products
+//          group p by p.Category into g
+//          select new { 
+//                Category = g.Key, 
+//                Products = g 
+//          };
+        
+        final Product p = new Product();
+        List<OrderGroup> list = 
+            db.from(p).
+            groupBy(p.category).
+            orderBy(1).
+            select(new OrderGroup() { {
+                category = p.category;
+                productCount = countStar();
+            }});
+        
+        StringBuilder buff = new StringBuilder();
+        for (OrderGroup og: list) {
+            buff.append(og.category);
+            buff.append("=");
+            buff.append(og.productCount);
+            buff.append(';');
+        }
+        String s = buff.toString();
+        assertEquals("Beverages=12;Condiments=12;Confections=13;" +
+                "Dairy Products=10;Grains/Cereals=7;Meat/Poultry=6;" +
+                "Produce=5;Seafood=12;", s);
     }
 
 //## Java 1.5 end ##

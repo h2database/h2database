@@ -63,6 +63,7 @@ class TableDefinition<T> {
         
         void setValue(Object obj, Object o) {
             try {
+                o = Utils.convert(o, field.getType());
                 field.set(obj, o);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -70,10 +71,10 @@ class TableDefinition<T> {
         }
         
         @SuppressWarnings("unchecked")
-        X read(ResultSet rs) {
+        X read(ResultSet rs, int columnIndex) {
             try {
-                return (X) rs.getObject(columnName);
-            } catch (Exception e) {
+                return (X) rs.getObject(columnIndex);
+            } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -238,10 +239,25 @@ class TableDefinition<T> {
     }
 
     void readRow(Object item, ResultSet rs) {
-        for (FieldDefinition def : fields) {
-            Object o = def.read(rs);
+        for (int i = 0; i < fields.size(); i++) {
+            FieldDefinition def = fields.get(i);
+            Object o = def.read(rs, i + 1);
             def.setValue(item, o);
         }
+    }
+    
+    <X> String getSelectList(Query query, X x) {
+        StringBuilder buff = new StringBuilder();
+        for (int i = 0; i < fields.size(); i++) {
+            if (i > 0) {
+                buff.append(", ");
+            }
+            FieldDefinition def = fields.get(i);
+            Object obj = def.getValue(x);
+            String s = query.getString(obj);
+            buff.append(s);
+        }
+        return buff.toString();
     }
     
     <U, X> void copyAttributeValues(Query query, X to, X map) {

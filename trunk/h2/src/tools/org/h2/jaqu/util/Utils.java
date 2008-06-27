@@ -128,5 +128,31 @@ public class Utils {
         return false;
     }
 
+    public static Object convert(Object o, Class< ? > targetType) {
+        if (o == null) {
+            return null;
+        }
+        Class currentType = o.getClass();
+        if (currentType == currentType) {
+            return o;
+        }
+        if (targetType == String.class) {
+            return o.toString();
+        }
+        if (Number.class.isAssignableFrom(currentType)) {
+            Number n = (Number) o;
+            if (targetType == Integer.class) {
+                return n.intValue();
+            } else if (targetType == Long.class) {
+                return n.longValue();
+            } else if (targetType == Double.class) {
+                return n.doubleValue();
+            } else if (targetType == Float.class) {
+                return n.floatValue();
+            }
+        }
+        throw new RuntimeException("Can not convert the value " + o + " from " + currentType + " to " + targetType);
+    }
+
 }
 //## Java 1.5 end ##

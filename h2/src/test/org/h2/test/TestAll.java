@@ -269,6 +269,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+document FTL_SEARCH, FTL_SEARCH_DATA
+
 JaQu
 
 row level locking

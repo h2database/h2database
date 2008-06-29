@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.StringTokenizer;
 
+import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 
 /**
@@ -26,12 +27,14 @@ public class TestFullText extends TestBase {
         test(false, "VARCHAR");
         test(false, "CLOB");
         testPerformance(false);
+        testReopen(false);
         String luceneFullTextClassName = "org.h2.fulltext.FullTextLucene";
         try {
             Class.forName(luceneFullTextClassName);
             test(true, "VARCHAR");
             test(true, "CLOB");
             testPerformance(true);
+            testReopen(true);
         } catch (ClassNotFoundException e) {
             println("Class not found, not tested: " + luceneFullTextClassName);
             // ok
@@ -41,9 +44,31 @@ public class TestFullText extends TestBase {
         }
 
     }
+    
+    private void testReopen(boolean lucene) throws Exception {
+        String prefix = lucene ? "FTL" : "FT";
+        deleteDb("fullTextReopen");
+        FileSystem.getInstance(baseDir).deleteRecursive(baseDir + "/fullTextReopen");
+        Connection conn = getConnection("fullTextReopen");
+        Statement stat = conn.createStatement();
+        String className = lucene ? "FullTextLucene" : "FullText";
+        stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
+        stat.execute("CALL " + prefix + "_INIT()");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        stat.execute("INSERT INTO TEST VALUES(1, 'Hello World')");
+        stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
+        conn.close();
+        
+        conn = getConnection("fullTextReopen");
+        stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");
+        assertTrue(rs.next());
+        conn.close();
+    }
 
     private void testPerformance(boolean lucene) throws Exception {
         deleteDb("fullText");
+        FileSystem.getInstance(baseDir).deleteRecursive(baseDir + "/fullText");
         Connection conn = getConnection("fullText");
         String prefix = lucene ? "FTL" : "FT";
         Statement stat = conn.createStatement();

@@ -161,10 +161,8 @@ implements Trigger, CloseListener
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_SEARCH_DATA FOR \"" + FullTextLucene.class.getName() + ".searchData\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_REINDEX FOR \"" + FullTextLucene.class.getName() + ".reindex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_ALL FOR \"" + FullTextLucene.class.getName() + ".dropAll\"");
-        String path = getIndexPath(conn);
-        IndexModifier indexer = openIndexModifier(path, true);
         try {
-            indexer.close();
+            getIndexModifier(conn);
         } catch (Exception e) {
             throw convertException(e);
         }
@@ -583,23 +581,19 @@ implements Trigger, CloseListener
         synchronized (indexers) {
             indexer = (IndexModifier) indexers.get(path);
             if (indexer == null) {
-                boolean recreate = !IndexReader.indexExists(path);
-                indexer = openIndexModifier(path, recreate);
+                try {
+                    boolean recreate = !IndexReader.indexExists(path);
+                    Analyzer analyzer = new StandardAnalyzer();
+                    indexer = new IndexModifier(path, analyzer, recreate);
+                } catch (IOException e) {
+                    throw convertException(e);
+                }
                 indexers.put(path, indexer);
             }
         }
         return indexer;
     }
     
-    private static IndexModifier openIndexModifier(String path, boolean recreate) throws SQLException {
-        try {
-            Analyzer analyzer = new StandardAnalyzer();
-            return new IndexModifier(path, analyzer, recreate);
-        } catch (IOException e) {
-            throw convertException(e);
-        }
-    }
-
     private static String getIndexPath(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("CALL DATABASE_PATH()");

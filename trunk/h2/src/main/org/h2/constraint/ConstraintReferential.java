@@ -286,7 +286,7 @@ public class ConstraintReferential extends Constraint {
         }
         if (t == table) {
             if (!skipOwnTable) {
-                checkRowOwnTable(session, newRow);
+                checkRowOwnTable(session, oldRow, newRow);
             }
         }
         if (t == refTable) {
@@ -294,25 +294,31 @@ public class ConstraintReferential extends Constraint {
         }
     }
 
-    private void checkRowOwnTable(Session session, Row newRow) throws SQLException {
+    private void checkRowOwnTable(Session session, Row oldRow, Row newRow) throws SQLException {
         if (newRow == null) {
             return;
         }
-        boolean containsNull = false;
+        boolean constraintColumnsEqual = oldRow != null;
         for (int i = 0; i < columns.length; i++) {
             int idx = columns[i].column.getColumnId();
             Value v = newRow.getValue(idx);
             if (v == ValueNull.INSTANCE) {
-                containsNull = true;
-                break;
+                // return early if one of the columns is NULL
+                return;
+            }
+            if (constraintColumnsEqual) {
+                if (!v.compareEqual(oldRow.getValue(idx))) {
+                    constraintColumnsEqual = false;
+                }
             }
         }
-        if (containsNull) {
+        if (constraintColumnsEqual) {
+            // return early if the key columns didn't change
             return;
         }
         if (refTable == table) {
-            // special case self referencing constraints: check the inserted row
-            // first
+            // special case self referencing constraints: 
+            // check the inserted row first
             boolean self = true;
             for (int i = 0; i < columns.length; i++) {
                 int idx = columns[i].column.getColumnId();

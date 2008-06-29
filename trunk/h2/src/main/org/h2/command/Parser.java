@@ -2674,6 +2674,7 @@ public class Parser {
         boolean changed = false;
         command[len] = ' ';
         int startLoop = 0;
+        int lastType = 0;
         // TODO optimization in parser: could remember the length of each token
         for (int i = 0; i < len; i++) {
             char c = command[i];
@@ -2745,7 +2746,13 @@ public class Parser {
                     command[i + 1] = ' ';
                     i++;
                 } else {
-                    type = CHAR_NAME;
+                    if (lastType == CHAR_NAME) {
+                        // $ inside an identifier is supported
+                        type = CHAR_NAME;
+                    } else {
+                        // but not at the start, to support PostgreSQL $1
+                        type = CHAR_SPECIAL_1;
+                    }
                 }
                 break;
             case '(':
@@ -2829,8 +2836,6 @@ public class Parser {
                 } else if (c >= '0' && c <= '9') {
                     type = CHAR_VALUE;
                 } else {
-                    // $ is not supported at this time (compatibility for
-                    // PostgreSQL: $1 )
                     if (Character.isJavaIdentifierPart(c)) {
                         type = CHAR_NAME;
                         char u = Character.toUpperCase(c);
@@ -2842,6 +2847,7 @@ public class Parser {
                 }
             }
             types[i] = (byte) type;
+            lastType = type;
         }
         sqlCommandChars = command;
         types[len] = CHAR_END;

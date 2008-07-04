@@ -16,10 +16,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul></li>Referential constraint checking improvement: now the constraint is only checked
-	if the key column values change.
-<li>The Lucene fulltext index was empty when opening a database with fulltext 
-	index enabled, and re-indexing it didn't work. Fixed.
+<ul><li>When using order by in a query that uses the same table multiple times, the order could 
+    be incorrect. Fixed.
+</li><li>Referential constraint checking improvement: now the constraint is only checked
+    if the key column values change.
+</li><li>Some database metadata calls returned the wrong data type for DATA_TYPE columns.
+</li><li>The Lucene fulltext index was empty when opening a database with fulltext 
+    index enabled, and re-indexing it didn't work. Fixed.
 </li><li>The character '$' could not be used in identifier names (table name, 
     column names and so on). Fixed.
 </li><li>The new method org.h2.tools.Server.startWebServer(conn) starts the H2 Console

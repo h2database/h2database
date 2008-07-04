@@ -35,7 +35,7 @@ public class TestFile extends TestBase implements DataHandler {
         byte[] buffFile = null;
         String prefix = compress ? "memLZF:" : "memFS:";
         FileUtils.delete(prefix + "test");
-        FileUtils.delete("~/test");
+        FileUtils.delete("~/testFile");
 
         // config.traceTest = true;
 
@@ -47,7 +47,7 @@ public class TestFile extends TestBase implements DataHandler {
             }
             if (file == null) {
                 mem = FileStore.open(this, prefix + "test", "rw", magic);
-                file = FileStore.open(this, "~/test", "rw", magic);
+                file = FileStore.open(this, "~/testFile", "rw", magic);
             }
             assertEquals(file.getFilePointer(), mem.getFilePointer());
             assertEquals(file.length(), mem.length());
@@ -120,7 +120,7 @@ public class TestFile extends TestBase implements DataHandler {
             file.close();
         }
         FileUtils.delete("inmemory:test");
-        FileUtils.delete("~/test");
+        FileUtils.delete("~/testFile");
     }
 
     public int allocateObjectId(boolean needFresh, boolean dataFile) {

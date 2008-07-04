@@ -216,15 +216,16 @@ public class LogFile {
         file.readFully(buff, 0, BLOCK_SIZE);
         DataPage s = DataPage.create(database, buff);
         int blocks = Math.abs(s.readInt());
-        if (blocks > 1) {
+        if (blocks <= 0) {
+            // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE
+            s.reset();
+        } else {
             byte[] b2 = ByteUtils.newBytes(blocks * BLOCK_SIZE);
             System.arraycopy(buff, 0, b2, 0, BLOCK_SIZE);
             buff = b2;
             file.readFully(buff, BLOCK_SIZE, blocks * BLOCK_SIZE - BLOCK_SIZE);
             s = DataPage.create(database, buff);
             s.check(blocks * BLOCK_SIZE);
-        } else {
-            s.reset();
         }
         return s;
     }

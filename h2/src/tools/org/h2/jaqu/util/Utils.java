@@ -23,8 +23,8 @@ import org.h2.util.StringUtils;
 /**
  * Generic utility methods.
  */
-//## Java 1.5 begin ##
 public class Utils {
+//## Java 1.5 begin ##
     
     private static volatile long counter;
     
@@ -154,5 +154,5 @@ public class Utils {
         throw new RuntimeException("Can not convert the value " + o + " from " + currentType + " to " + targetType);
     }
 
-}
 //## Java 1.5 end ##
+}

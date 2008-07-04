@@ -43,6 +43,7 @@ import org.h2.store.FileStoreInputStream;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.util.RandomUtils;
@@ -488,7 +489,8 @@ public class Recover extends Tool implements DataHandler {
                 buff = new byte[blockSize];
                 store.readFully(buff, 0, blockSize);
                 s = DataPage.create(this, buff);
-                blocks = Math.abs(s.readInt());
+                // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE
+                blocks = MathUtils.convertLongToInt(Math.abs(s.readInt()));
                 if (blocks > 1) {
                     byte[] b2 = ByteUtils.newBytes(blocks * blockSize);
                     System.arraycopy(buff, 0, b2, 0, blockSize);
@@ -502,7 +504,8 @@ public class Recover extends Tool implements DataHandler {
                     s.check(blocks * blockSize);
                 }
                 s.reset();
-                blocks = Math.abs(s.readInt());
+                // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE
+                blocks = MathUtils.convertLongToInt(Math.abs(s.readInt()));
                 if (blocks == 0) {
                     writer.println("// [" + pos + "] blocks: " + blocks + " (end)");
                     break;

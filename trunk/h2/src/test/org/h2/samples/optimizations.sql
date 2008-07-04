@@ -54,13 +54,14 @@ SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE LIMIT 3;
 --> 2
 ;
 
--- Display the query plan - 'IDX_TEST_TYPE' means the index is used
+-- Display the query plan - 'index sorted' means the index is used to order
 EXPLAIN SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE LIMIT 3;
 --> SELECT DISTINCT TYPE
 -->    FROM PUBLIC.TEST /* PUBLIC.IDX_TEST_TYPE */
 -->    ORDER BY 1
 -->    LIMIT 3
 -->    /* distinct */
+-->    /* index sorted */
 ;
 
 DROP TABLE TEST;
@@ -164,12 +165,13 @@ SELECT VALUE FROM TEST ORDER BY VALUE LIMIT 3;
 --> 0.16
 ;
 
--- Display the query plan - 'IDX_TEST_VALUE' means the index is used
+-- Display the query plan - 'index sorted' means the index is used
 EXPLAIN SELECT VALUE FROM TEST ORDER BY VALUE LIMIT 10;
 --> SELECT VALUE
 -->    FROM PUBLIC.TEST /* PUBLIC.IDX_TEST_VALUE */
 -->    ORDER BY 1
 -->    LIMIT 10
+-->    /* index sorted */
 ;
 
 -- To optimize getting the largest values, a new descending index is required
@@ -182,12 +184,13 @@ SELECT VALUE FROM TEST ORDER BY VALUE DESC LIMIT 3;
 --> 99.68
 ;
 
--- Display the query plan - 'IDX_TEST_VALUE_D' means the index is used
+-- Display the query plan - 'index sorted' means the index is used
 EXPLAIN SELECT VALUE FROM TEST ORDER BY VALUE DESC LIMIT 10;
 --> SELECT VALUE
 -->    FROM PUBLIC.TEST /* PUBLIC.IDX_TEST_VALUE_D */
 -->    ORDER BY 1 DESC
 -->    LIMIT 10
+-->    /* index sorted */
 ;
 
 DROP TABLE TEST;

@@ -82,7 +82,7 @@ public class FileSystemMemory extends FileSystem {
     public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir) {
         name += ".";
         for (int i = 0;; i++) {
-            String n = name + Math.abs(RandomUtils.getSecureLong()) + suffix;
+            String n = name + (RandomUtils.getSecureLong() >>> 1) + suffix;
             if (!exists(n)) {
                 // creates the file (not thread safe)
                 getMemoryFile(n);

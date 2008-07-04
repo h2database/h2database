@@ -1,4 +1,20 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table t (pk int primary key, attr int);
+> ok
+
+insert into t values (1, 5), (5, 1);
+> update count: 2
+
+select t1.pk from t t1, t t2 where t1.pk = t2.attr order by t1.pk;
+> PK
+> --
+> 1
+> 5
+> rows (ordered): 2
+
+drop table t;
+> ok
+
 CREATE TABLE T(A NULL);
 > exception
 
@@ -2803,14 +2819,14 @@ insert into test values(1, 'Y');
 > update count: 1
 
 call select a from test order by id;
-> SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ ORDER BY =ID
-> -----------------------------------------------------------------
+> SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ ORDER BY =ID /* index sorted */
+> ------------------------------------------------------------------------------------
 > TRUE
 > rows (ordered): 1
 
 select select a from test order by id;
-> SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ ORDER BY =ID
-> -----------------------------------------------------------------
+> SELECT A FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ ORDER BY =ID /* index sorted */
+> ------------------------------------------------------------------------------------
 > TRUE
 > rows (ordered): 1
 
@@ -4903,8 +4919,8 @@ SELECT LIMIT (1+0) (2+0) NAME, -ID, ID _ID_ FROM TEST ORDER BY _ID_;
 
 EXPLAIN SELECT LIMIT (1+0) (2+0) * FROM TEST ORDER BY ID;
 > PLAN
-> -------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ ORDER BY 1 LIMIT 2 OFFSET 1
+> --------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2 */ ORDER BY 1 LIMIT 2 OFFSET 1 /* index sorted */
 > rows (ordered): 1
 
 SELECT * FROM TEST ORDER BY ID LIMIT 2+0 OFFSET 1+0;

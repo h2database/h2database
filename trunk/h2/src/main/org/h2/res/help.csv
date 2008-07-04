@@ -1888,7 +1888,9 @@ VAR_SAMP(X)
 "Functions (Numeric)","ABS","
 ABS({int | long | decimal | double}): value
 ","
-See also Java Math.abs.
+See also Java Math.abs. 
+Please note that Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE and
+Math.abs(Long.MIN_VALUE) == Long.MIN_VALUE.
 ","
 ABS(ID)
 "
@@ -2128,7 +2130,7 @@ SIGN(VALUE)
 ENCRYPT(algorithmString, keyBytes, dataBytes): bytes
 ","
 Encrypts data using a key. Supported algorithms are XTEA and AES.
-The block size is 16 bytes
+The block size is 16 bytes.
 ","
 CALL ENCRYPT('AES', '00', STRINGTOUTF8('Test'))
 "
@@ -2137,9 +2139,9 @@ CALL ENCRYPT('AES', '00', STRINGTOUTF8('Test'))
 DECRYPT(algorithmString, keyBytes, dataBytes): bytes
 ","
 Decrypts data using a key. Supported algorithms are XTEA and AES.
-The block size is 16 bytes
+The block size is 16 bytes.
 ","
-CALL UTF8TOSTRING(DECRYPT('AES', '00', '3fabb4de8f1ee2e97d7793bab2db1116'))
+CALL TRIM(CHAR(0) FROM UTF8TOSTRING(DECRYPT('AES', '00', '3fabb4de8f1ee2e97d7793bab2db1116')))
 "
 
 "Functions (Numeric)","HASH","

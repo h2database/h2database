@@ -269,7 +269,29 @@ java org.h2.test.TestAll timer
 
 /*
 
+automate a test:
+drop all objects delete files;
+<reconnect>
+drop table stuff;
+create table stuff  (id identity, text varchar(3000), 
+created timestamp default current_timestamp);
+@LOOP 1000000 insert into stuff (text) values 
+('This is record ' || ? || ' and this is it''s data');
+update stuff set text = text || ' updated';
+select count(*) from stuff;
+
+-Xmx16m
+
+Support large updates (use the transaction log to undo).
+
 document FTL_SEARCH, FTL_SEARCH_DATA
+
+I will add a feature request to support DECODE, 
+and another feature request to support a variable 
+number of parameters for Java functions. I don't want 
+to use arrays because H2 also supports ARRAY as a base data type. 
+Varargs as in Java 1.5 would be an option however, 
+but then you can't support it in Java 1.4.
 
 JaQu
 

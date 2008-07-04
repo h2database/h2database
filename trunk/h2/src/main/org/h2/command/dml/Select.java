@@ -372,11 +372,11 @@ public class Select extends Query {
             if (!(expr instanceof ExpressionColumn)) {
                 return null;
             }
-            Column col = ((ExpressionColumn) expr).getColumn();
-            if (col.getTable() != topTableFilter.getTable()) {
+            ExpressionColumn exprCol = (ExpressionColumn) expr;
+            if (exprCol.getTableFilter() != topTableFilter) {
                 return null;
             }
-            sortColumns.add(col);
+            sortColumns.add(exprCol.getColumn());
         }
         Column[] sortCols = new Column[sortColumns.size()];
         sortColumns.toArray(sortCols);
@@ -886,6 +886,9 @@ public class Select extends Query {
         }
         if (isDistinctQuery) {
             buff.append("\n/* distinct */");
+        }
+        if (sortUsingIndex) {
+            buff.append("\n/* index sorted */");
         }
         if (isGroupQuery) {
             if (isGroupSortedQuery) {

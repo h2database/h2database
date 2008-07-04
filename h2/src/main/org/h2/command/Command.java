@@ -200,7 +200,14 @@ public abstract class Command implements CommandInterface {
             session.setCurrentCommand(this, startTime);
             try {
                 database.checkPowerOff();
-                return update();
+                int test;
+                try {
+                    return update();
+                } catch (OutOfMemoryError e) {
+                    throw Message.convert(e);
+                } catch (Throwable e) {
+                    throw Message.convert(e);
+                }
             } catch (SQLException e) {
                 database.exceptionThrown(e, sql);
                 database.checkPowerOff();

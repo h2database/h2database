@@ -12,7 +12,7 @@ package org.h2.jaqu;
  * @param <A> the operand type
  */
 //## Java 1.5 begin ##
-class Condition<A> implements ConditionToken {
+class Condition<A> implements Token {
     Query< ? > query;
     CompareType compareType;
     A x, y;
@@ -24,7 +24,7 @@ class Condition<A> implements ConditionToken {
         this.y = y;
     }
     
-    public String getString() {
+    public String getString(Query query) {
         if (compareType.hasRightExpression()) {
             return query.getString(x) + compareType.getString() + query.getString(y);
         }

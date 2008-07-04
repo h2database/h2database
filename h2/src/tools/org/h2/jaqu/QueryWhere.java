@@ -38,9 +38,18 @@ public class QueryWhere<T> {
         return (List<X>) query.select(x);
     }
 
+    public <X, Z> List<X> selectDistinct(Z x) {
+        return (List<X>) query.selectDistinct(x);
+    }
+
     public List<T> select() {
         return query.select();
     }
+
+    public List<T> selectDistinct() {
+        return query.selectDistinct();
+    }
+
 //## Java 1.5 end ##
 
     /**

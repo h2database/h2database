@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.h2.jaqu.util.Utils;
+import org.h2.jaqu.util.WeakIdentityHashMap;
 import org.h2.util.JdbcUtils;
 //## Java 1.5 end ##
 
@@ -25,11 +26,22 @@ import org.h2.util.JdbcUtils;
 //## Java 1.5 begin ##
 public class Db {
     
+    private static final WeakIdentityHashMap<Object, Token> TOKENS = Utils.newWeakIdentityHashMap();
+    
     private final Connection conn;
     private final Map<Class, TableDefinition> classMap = Utils.newHashMap();
     
     Db(Connection conn) {
         this.conn = conn;
+    }
+    
+    static <X> X registerToken(X x, Token token) {
+        TOKENS.put(x, token);
+        return x;
+    }
+    
+    static Token getToken(Object x) {
+        return TOKENS.get(x);
     }
     
     private static <T> T instance(Class<T> clazz) {

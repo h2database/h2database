@@ -6,9 +6,9 @@
  */
 package org.h2.jaqu;
 
+//## Java 1.5 begin ##
 import java.util.ArrayList;
 
-//## Java 1.5 begin ##
 import org.h2.jaqu.util.ClassUtils;
 import org.h2.jaqu.util.Utils;
 //## Java 1.5 end ##
@@ -28,7 +28,7 @@ class SelectTable <T> {
     private String as;
     private TableDefinition<T> aliasDef;
     private boolean outerJoin;
-    private ArrayList<ConditionToken> joinConditions = Utils.newArrayList();
+    private ArrayList<Token> joinConditions = Utils.newArrayList();
 
     SelectTable(Db db, Query query, T alias, boolean outerJoin) {
         this.query = query;
@@ -53,7 +53,7 @@ class SelectTable <T> {
         return aliasDef.tableName;
     }
     
-    String getStringAsJoin() {
+    String getStringAsJoin(Query query) {
         StringBuilder buff = new StringBuilder();
         if (outerJoin) {
             buff.append(" LEFT OUTER JOIN ");
@@ -63,8 +63,8 @@ class SelectTable <T> {
         buff.append(getString());
         if (!joinConditions.isEmpty()) {
             buff.append(" ON ");
-            for (ConditionToken token : joinConditions) {
-                buff.append(token.getString());
+            for (Token token : joinConditions) {
+                buff.append(token.getString(query));
                 buff.append(' ');
             }
         }
@@ -83,7 +83,7 @@ class SelectTable <T> {
         return as;
     }
     
-    void addConditionToken(ConditionToken condition) {
+    void addConditionToken(Token condition) {
         joinConditions.add(condition);
     }
 

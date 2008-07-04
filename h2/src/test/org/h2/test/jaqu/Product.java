@@ -130,8 +130,14 @@ public class Product implements Table {
                 create(74, "Longlife Tofu", "Produce", 10.0, 4),
                 create(75, "Rhoenbraeu Klosterbier", "Beverages", 7.7500, 125),
                 create(76, "Lakkalikoeoeri", "Beverages", 18.0, 57),
-                create(77, "Original Frankfurter gruene Sosse", "Condiments", 13.0, 32) };
+                create(77, "Original Frankfurter gruene Sosse", "Condiments", 13.0, 32),
+        };
+
         return Arrays.asList(list);
+    }
+    
+    public String toString() {
+        return productName + ": " + unitsInStock;
     }
 
 }

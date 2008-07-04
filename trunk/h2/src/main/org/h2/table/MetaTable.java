@@ -139,7 +139,7 @@ public class MetaTable extends Table {
                     "ORDINAL_POSITION INT",
                     "COLUMN_DEFAULT",
                     "IS_NULLABLE",
-                    "DATA_TYPE SMALLINT",
+                    "DATA_TYPE INT",
                     "CHARACTER_MAXIMUM_LENGTH INT",
                     "CHARACTER_OCTET_LENGTH INT",
                     "NUMERIC_PRECISION INT",
@@ -149,7 +149,7 @@ public class MetaTable extends Table {
                     "COLLATION_NAME",
                     // extensions
                     "TYPE_NAME",
-                    "NULLABLE SMALLINT",
+                    "NULLABLE INT",
                     "IS_COMPUTED BIT",
                     "SELECTIVITY INT",
                     "CHECK_CONSTRAINT",
@@ -191,7 +191,7 @@ public class MetaTable extends Table {
             setObjectName("TYPE_INFO");
             cols = createColumns(new String[]{
                 "TYPE_NAME",
-                "DATA_TYPE SMALLINT",
+                "DATA_TYPE INT",
                 "PRECISION INT",
                 "PREFIX",
                 "SUFFIX",
@@ -421,7 +421,7 @@ public class MetaTable extends Table {
                     "CONSTANT_CATALOG",
                     "CONSTANT_SCHEMA",
                     "CONSTANT_NAME",
-                    "DATA_TYPE SMALLINT",
+                    "DATA_TYPE INT",
                     "REMARKS",
                     "SQL",
                     "ID INT"
@@ -435,7 +435,7 @@ public class MetaTable extends Table {
                     "DOMAIN_NAME",
                     "COLUMN_DEFAULT",
                     "IS_NULLABLE",
-                    "DATA_TYPE SMALLINT",
+                    "DATA_TYPE INT",
                     "PRECISION INT",
                     "SCALE INT",
                     "TYPE_NAME",

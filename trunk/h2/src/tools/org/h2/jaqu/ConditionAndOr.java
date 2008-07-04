@@ -10,7 +10,7 @@ package org.h2.jaqu;
  * An OR or an AND condition.
  */
 //## Java 1.5 begin ##
-enum ConditionAndOr implements ConditionToken {
+enum ConditionAndOr implements Token {
     AND("AND"),
     OR("OR");
     
@@ -20,7 +20,7 @@ enum ConditionAndOr implements ConditionToken {
         this.text = text;
     }
     
-    public String getString() {
+    public String getString(Query query) {
         return text;
     }
  

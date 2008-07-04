@@ -43,6 +43,15 @@ public class SamplesTest extends TestBase {
         db.insertAll(Product.getProductList());
         db.insertAll(Customer.getCustomerList());
         db.insertAll(Order.getOrderList());
+        // TODO SUM, MIN, MAX, LIKE, LIKE ESCAPE...
+        // TODO +, -, *, /, ||, nested operations
+        // TODO nested AND/OR
+        // TODO NOT
+        // TODO DELETE: FROM ... DELETE?
+        // TODO UPDATE: FROM ... UPDATE?
+        // TODO SELECT UNION
+        testLength();
+        testCount();
         testGroup();
         testSelectManyCompoundFrom2();
         testWhereSimple4();
@@ -50,7 +59,6 @@ public class SamplesTest extends TestBase {
         testAnonymousTypes3();
         testWhereSimple2();
         testWhereSimple3();
-        testCountStar();
         db.close();
 //## Java 1.5 end ##
     }
@@ -252,19 +260,28 @@ public class SamplesTest extends TestBase {
                 "c:ANTON/o:10365;c:ANTON/o:10682;", s);
     }
     
-    private void testCountStar() throws Exception {
-        long count = db.from(new Product()).
-            selectCountStar();
+    private void testLength() throws Exception {
+        Product p = new Product();
+        List<Integer> lengths = db.from(p).
+            where(length(p.productName)).smaller(10).
+            orderBy(1).
+            selectDistinct(length(p.productName));
+        String s = lengths.toString();
+        assertEquals("[4, 5, 7, 8, 9]", s);
+    }
+    
+    private void testCount() throws Exception {
+        long count = db.from(new Product()).selectCount();
         assertEquals(77, count);
     }
     
   //## Java 1.5 end ##
 
     /**
-     * A result set class containing customer data and the order total.
+     * A result set class containing product groups.
      */    
 //## Java 1.5 begin ##
-    public static class OrderGroup {
+    public static class ProductGroup {
         public String category;
         public Long productCount;
     }
@@ -280,17 +297,17 @@ public class SamplesTest extends TestBase {
 //          };
         
         final Product p = new Product();
-        List<OrderGroup> list = 
+        List<ProductGroup> list = 
             db.from(p).
             groupBy(p.category).
             orderBy(1).
-            select(new OrderGroup() { {
+            select(new ProductGroup() { {
                 category = p.category;
-                productCount = countStar();
+                productCount = count();
             }});
         
         StringBuilder buff = new StringBuilder();
-        for (OrderGroup og: list) {
+        for (ProductGroup og: list) {
             buff.append(og.category);
             buff.append("=");
             buff.append(og.productCount);

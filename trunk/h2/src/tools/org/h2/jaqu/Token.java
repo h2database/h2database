@@ -7,9 +7,10 @@
 package org.h2.jaqu;
 
 /**
- * Classes implementing this interface can be used as a token in a conditional
- * expression.
+ * Classes implementing this interface can be used as a token in a statement.
  */
-interface ConditionToken {
-    String getString();
+interface Token {
+//## Java 1.5 begin ##
+    String getString(Query query);
+//## Java 1.5 end ##
 }

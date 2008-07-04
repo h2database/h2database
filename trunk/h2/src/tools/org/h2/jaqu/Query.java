@@ -26,7 +26,7 @@ public class Query<T> {
     
     private Db db;
     private SelectTable<T> from;
-    private ArrayList<ConditionToken> conditions = Utils.newArrayList();
+    private ArrayList<Token> conditions = Utils.newArrayList();
     private ArrayList<SelectTable> joins = Utils.newArrayList();
     private final HashMap<Object, SelectColumn> aliasMap = Utils.newHashMap();
     private ArrayList<OrderExpression> orderByList = Utils.newArrayList();
@@ -44,8 +44,8 @@ public class Query<T> {
         return query;
     }
     
-    public long selectCountStar() {
-        ResultSet rs = db.executeQuery(getString("COUNT(*)"));
+    public long selectCount() {
+        ResultSet rs = db.executeQuery(getSQL("COUNT(*)", false));
         try {
             rs.next();
             long value = rs.getLong(1);
@@ -56,8 +56,16 @@ public class Query<T> {
     }
 
     public List<T> select() {
+        return select(false);
+    }
+
+    public List<T> selectDistinct() {
+        return select(true);
+    }
+
+    private List<T> select(boolean distinct) {
         List<T> result = Utils.newArrayList();
-        ResultSet rs = db.executeQuery(getString("*"));
+        ResultSet rs = db.executeQuery(getSQL("*", distinct));
         try {
             while (rs.next()) {
                 T item = from.newObject();
@@ -70,19 +78,27 @@ public class Query<T> {
         return result;
     }
 
-    public <X, Z> List<X> select(Z x) {
-        Class< ? > clazz = x.getClass();
-        if (Utils.isSimpleType(clazz)) {
-            return selectSimple((X) x);
-        }
-        clazz = clazz.getSuperclass();
-        return select((Class<X>) clazz, (X) x);
+    public <X, Z> List<X> selectDistinct(Z x) {
+        return select(x, true);
     }
     
-    private <X> List<X> select(Class<X> clazz, X x) {
+    public <X, Z> List<X> select(Z x) {
+        return select(x, false);
+    }
+
+    private <X, Z> List<X> select(Z x, boolean distinct) {
+        Class< ? > clazz = x.getClass();
+        if (Utils.isSimpleType(clazz)) {
+            return getSimple((X) x, distinct);
+        }
+        clazz = clazz.getSuperclass();
+        return select((Class<X>) clazz, (X) x, distinct);
+    }
+    
+    private <X> List<X> select(Class<X> clazz, X x, boolean distinct) {
         TableDefinition<X> def = db.define(clazz);
         String selectList = def.getSelectList(this, x);
-        ResultSet rs = db.executeQuery(getString(selectList));
+        ResultSet rs = db.executeQuery(getSQL(selectList, distinct));
         List<X> result = Utils.newArrayList();
         try {
             while (rs.next()) {
@@ -96,9 +112,9 @@ public class Query<T> {
         return result;
     }
     
-    private <X> List<X> selectSimple(X x) {
+    private <X> List<X> getSimple(X x, boolean distinct) {
         String selectList = getString(x);
-        ResultSet rs = db.executeQuery(getString(selectList));
+        ResultSet rs = db.executeQuery(getSQL(selectList, distinct));
         List<X> result = Utils.newArrayList();
         try {
             while (rs.next()) {
@@ -135,44 +151,24 @@ public class Query<T> {
         return this;
     }
 
-    public Query<T> orderByNullsFirst(Object expr) {
-        OrderExpression<Object> e = new OrderExpression<Object>(this, expr, false, true, false);
-        addOrderBy(e);
-        return this;
-    }
-
-    public Query<T> orderByNullsLast(Object expr) {
-        OrderExpression<Object> e = new OrderExpression<Object>(this, expr, false, false, true);
-        addOrderBy(e);
-        return this;
-    }
-
     public Query<T> orderByDesc(Object expr) {
         OrderExpression<Object> e = new OrderExpression<Object>(this, expr, true, false, false);
         addOrderBy(e);
         return this;
     }
 
-    public Query<T> orderByDescNullsFirst(Object expr) {
-        OrderExpression<Object> e = new OrderExpression<Object>(this, expr, true, true, false);
-        addOrderBy(e);
-        return this;
-    }
-
-    public Query<T> orderByDescNullsLast(Object expr) {
-        OrderExpression<Object> e = new OrderExpression<Object>(this, expr, true, false, true);
-        addOrderBy(e);
-        return this;
-    }
-    
     public Query<T> groupBy(Object... groupByExpressions) {
         this.groupByExpressions = groupByExpressions;
         return this;
     }
 
     String getString(Object x) {
-        if (x == Function.countStar()) {
+        if (x == Function.count()) {
             return "COUNT(*)";
+        }
+        Token token = Db.getToken(x);
+        if (token != null) {
+            return token.getString(this);
         }
         SelectColumn col = aliasMap.get(x);
         if (col != null) {
@@ -181,22 +177,25 @@ public class Query<T> {
         return Utils.quoteSQL(x);
     }
 
-    void addConditionToken(ConditionToken condition) {
+    void addConditionToken(Token condition) {
         conditions.add(condition);
     }
     
-    String getString(String selectList) {
+    String getSQL(String selectList, boolean distinct) {
         StringBuilder buff = new StringBuilder("SELECT ");
+        if (distinct) {
+            buff.append("DISTINCT ");
+        }
         buff.append(selectList);
         buff.append(" FROM ");
         buff.append(from.getString());
         for (SelectTable join : joins) {
-            buff.append(join.getStringAsJoin());
+            buff.append(join.getStringAsJoin(this));
         }
         if (!conditions.isEmpty()) {
             buff.append(" WHERE ");
-            for (ConditionToken token : conditions) {
-                buff.append(token.getString());
+            for (Token token : conditions) {
+                buff.append(token.getString(this));
                 buff.append(' ');
             }
         }

@@ -37,6 +37,7 @@ import org.h2.test.db.TestMultiDimension;
 import org.h2.test.db.TestMultiThread;
 import org.h2.test.db.TestOpenClose;
 import org.h2.test.db.TestOptimizations;
+import org.h2.test.db.TestOutOfMemory;
 import org.h2.test.db.TestPowerOff;
 import org.h2.test.db.TestReadOnly;
 import org.h2.test.db.TestRights;
@@ -269,29 +270,68 @@ java org.h2.test.TestAll timer
 
 /*
 
-automate a test:
-drop all objects delete files;
-<reconnect>
-drop table stuff;
-create table stuff  (id identity, text varchar(3000), 
-created timestamp default current_timestamp);
-@LOOP 1000000 insert into stuff (text) values 
-('This is record ' || ? || ' and this is it''s data');
-update stuff set text = text || ' updated';
-select count(*) from stuff;
+drop view viewa;
+drop table tablea;
+drop table tableb;
+drop table tablec;
+CREATE TABLE tablea(id INT);
+CREATE TABLE tableb(id INT);
+CREATE TABLE tablec(id INT);
+CREATE VIEW viewa AS 
+    SELECT tablec.id FROM tablec 
+    INNER JOIN tablea ON tablec.id = tablea.id
+    LEFT JOIN tableb ON tableb.id = tablea.id;
+SELECT * FROM tablec INNER JOIN viewa ON tablec.id = viewa.id;
 
--Xmx16m
+drop view view_a;
+drop table table_a;
+drop table table_b;
+drop table table_c;
+CREATE TABLE table_a(id INT, left_id INT);
+CREATE TABLE table_b(id INT);
+CREATE TABLE table_c(left_id INT);
+CREATE VIEW view_a AS 
+    SELECT table_c.left_id
+    FROM table_c 
+    INNER JOIN table_a ON table_c.left_id = table_a.left_id
+    LEFT JOIN table_b ON table_b.id = table_a.id;
+SELECT * FROM table_c INNER JOIN view_a ON table_c.left_id = view_a.left_id;
+
+drop view view_a;
+drop table table_a;
+drop table table_b;
+drop table table_c;
+CREATE TABLE table_a(id INT, left_id INT);
+CREATE TABLE table_b(id INT);
+CREATE TABLE table_c(left_id INT, center_id INT);
+CREATE VIEW view_a AS 
+    SELECT table_c.center_id
+    FROM table_c 
+    INNER JOIN table_a ON table_c.left_id = table_a.left_id
+    LEFT JOIN table_b ON table_b.id = table_a.id;
+SELECT * FROM table_c INNER JOIN view_a ON table_c.center_id = view_a.center_id;
+
+drop view view_b;
+drop view view_a;
+drop table table_a;
+drop table table_b;
+drop table table_c;
+CREATE TABLE table_a(a_id INT PRIMARY KEY, left_id INT, right_id INT);
+CREATE TABLE table_b(b_id INT PRIMARY KEY, a_id INT);
+CREATE TABLE table_c(left_id INT, right_id INT, center_id INT);
+CREATE VIEW view_a AS 
+    SELECT table_c.center_id, table_a.a_id, table_b.b_id
+    FROM table_c 
+    INNER JOIN table_a ON table_c.left_id = table_a.left_id AND table_c.right_id = table_a.right_id 
+    LEFT JOIN table_b ON table_b.a_id = table_a.a_id;
+SELECT * FROM table_c INNER JOIN view_a ON table_c.center_id = view_a.center_id;
+       
+Check Eclipse DTP, see also
+https://bugs.eclipse.org/bugs/show_bug.cgi?id=137701
 
 Support large updates (use the transaction log to undo).
 
 document FTL_SEARCH, FTL_SEARCH_DATA
-
-I will add a feature request to support DECODE, 
-and another feature request to support a variable 
-number of parameters for Java functions. I don't want 
-to use arrays because H2 also supports ARRAY as a base data type. 
-Varargs as in Java 1.5 would be an option however, 
-but then you can't support it in Java 1.4.
 
 JaQu
 
@@ -591,6 +631,7 @@ http://www.w3schools.com/sql/
         new TestMultiThread().runTest(this);
         new TestOpenClose().runTest(this);
         new TestOptimizations().runTest(this);
+        new TestOutOfMemory().runTest(this);
         new TestPowerOff().runTest(this);
         new TestReadOnly().runTest(this);
         new TestRights().runTest(this);

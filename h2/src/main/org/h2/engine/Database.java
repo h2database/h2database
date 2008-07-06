@@ -157,6 +157,8 @@ public class Database implements DataHandler {
     private boolean lobFilesInDirectories = SysProperties.LOB_FILES_IN_DIRECTORIES;
     private SmallLRUCache lobFileListCache = new SmallLRUCache(128);
 
+    private Object reserveMemory;
+
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = new CompareMode(null, null, 0);
         this.persistent = ci.isPersistent();
@@ -2003,6 +2005,23 @@ public class Database implements DataHandler {
      */
     public boolean isSysTableLocked() {
         return meta.isLockedExclusively();
+    }
+
+    /**
+     * Allocate a little main memory that is freed up when if no memory is
+     * available, so that rolling back a large transaction is easier.
+     */
+    public void allocateReserveMemory() {
+        if (reserveMemory == null) {
+            reserveMemory = new byte[SysProperties.RESERVE_MEMORY];
+        }
+    }
+    
+    /**
+     * Free up the reserve memory.
+     */
+    public void freeReserveMemory() {
+        reserveMemory = null;
     }
 
 }

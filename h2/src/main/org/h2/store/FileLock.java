@@ -260,6 +260,8 @@ public class FileLock {
                                 save();
                             }
                             Thread.sleep(sleep);
+                        } catch (OutOfMemoryError e) {
+                            // ignore
                         } catch (Exception e) {
                             trace.debug("watchdog", e);
                         }

@@ -115,7 +115,6 @@ public class Mode {
         add(mode);
 
         mode = new Mode("Oracle");
-        mode.uniqueIndexSingleNull = true;
         add(mode);
 
     }

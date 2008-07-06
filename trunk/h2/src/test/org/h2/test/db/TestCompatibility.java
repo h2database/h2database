@@ -35,7 +35,7 @@ public class TestCompatibility extends TestBase {
     private void testUniqueIndexSingleNull() throws Exception {
         Statement stat = conn.createStatement();
         String[] modes = new String[] { "PostgreSQL", "MySQL", "HSQLDB", "MSSQLServer", "Derby", "Oracle", "Regular" };
-        String multiNull = "PostgreSQL,MySQL,Regular";
+        String multiNull = "PostgreSQL,MySQL,Oracle,Regular";
         for (int i = 0; i < modes.length; i++) {
             String mode = modes[i];
             stat.execute("SET MODE " + mode);

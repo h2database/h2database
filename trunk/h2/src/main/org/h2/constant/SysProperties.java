@@ -390,6 +390,14 @@ public class SysProperties {
     public static final int REDO_BUFFER_SIZE = getIntSetting("h2.redoBufferSize", 256 * 1024);
 
     /**
+     * System property <code>h2.reserveMemory</code> (default: 131072).<br />
+     * This many bytes in main memory are allocated as a reserve. This reserve
+     * is freed up when if no memory is available, so that rolling back a large
+     * transaction is easier.
+     */
+    public static final int RESERVE_MEMORY = getIntSetting("h2.reserveMemory", 128 * 1024);
+
+    /**
      * System property <code>h2.reuseSpaceAfter</code> (default: 16).<br />
      * Reuse space in database files after this many pages are free.
      */

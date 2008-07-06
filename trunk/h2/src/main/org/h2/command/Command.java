@@ -193,6 +193,7 @@ public abstract class Command implements CommandInterface {
     public int executeUpdate() throws SQLException {
         startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
+        database.allocateReserveMemory();
         Object sync = database.getMultiThreaded() ? (Object) session : (Object) database;
         session.waitIfExclusiveModeEnabled();
         synchronized (sync) {
@@ -200,10 +201,10 @@ public abstract class Command implements CommandInterface {
             session.setCurrentCommand(this, startTime);
             try {
                 database.checkPowerOff();
-                int test;
                 try {
                     return update();
                 } catch (OutOfMemoryError e) {
+                    database.freeReserveMemory();
                     throw Message.convert(e);
                 } catch (Throwable e) {
                     throw Message.convert(e);

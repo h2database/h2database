@@ -16,7 +16,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When using order by in a query that uses the same table multiple times, the order could 
+<ul><li>Fixed the Oracle mode: Oracle allows multiple rows with NULL in a unique index. 
+</li><li>Running out of memory could result in incomplete transactions or corrupted databases. Fixed.
+</li><li>When using order by in a query that uses the same table multiple times, the order could 
     be incorrect. Fixed.
 </li><li>Referential constraint checking improvement: now the constraint is only checked
     if the key column values change.

@@ -270,61 +270,7 @@ java org.h2.test.TestAll timer
 
 /*
 
-drop view viewa;
-drop table tablea;
-drop table tableb;
-drop table tablec;
-CREATE TABLE tablea(id INT);
-CREATE TABLE tableb(id INT);
-CREATE TABLE tablec(id INT);
-CREATE VIEW viewa AS 
-    SELECT tablec.id FROM tablec 
-    INNER JOIN tablea ON tablec.id = tablea.id
-    LEFT JOIN tableb ON tableb.id = tablea.id;
-SELECT * FROM tablec INNER JOIN viewa ON tablec.id = viewa.id;
-
-drop view view_a;
-drop table table_a;
-drop table table_b;
-drop table table_c;
-CREATE TABLE table_a(id INT, left_id INT);
-CREATE TABLE table_b(id INT);
-CREATE TABLE table_c(left_id INT);
-CREATE VIEW view_a AS 
-    SELECT table_c.left_id
-    FROM table_c 
-    INNER JOIN table_a ON table_c.left_id = table_a.left_id
-    LEFT JOIN table_b ON table_b.id = table_a.id;
-SELECT * FROM table_c INNER JOIN view_a ON table_c.left_id = view_a.left_id;
-
-drop view view_a;
-drop table table_a;
-drop table table_b;
-drop table table_c;
-CREATE TABLE table_a(id INT, left_id INT);
-CREATE TABLE table_b(id INT);
-CREATE TABLE table_c(left_id INT, center_id INT);
-CREATE VIEW view_a AS 
-    SELECT table_c.center_id
-    FROM table_c 
-    INNER JOIN table_a ON table_c.left_id = table_a.left_id
-    LEFT JOIN table_b ON table_b.id = table_a.id;
-SELECT * FROM table_c INNER JOIN view_a ON table_c.center_id = view_a.center_id;
-
-drop view view_b;
-drop view view_a;
-drop table table_a;
-drop table table_b;
-drop table table_c;
-CREATE TABLE table_a(a_id INT PRIMARY KEY, left_id INT, right_id INT);
-CREATE TABLE table_b(b_id INT PRIMARY KEY, a_id INT);
-CREATE TABLE table_c(left_id INT, right_id INT, center_id INT);
-CREATE VIEW view_a AS 
-    SELECT table_c.center_id, table_a.a_id, table_b.b_id
-    FROM table_c 
-    INNER JOIN table_a ON table_c.left_id = table_a.left_id AND table_c.right_id = table_a.right_id 
-    LEFT JOIN table_b ON table_b.a_id = table_a.a_id;
-SELECT * FROM table_c INNER JOIN view_a ON table_c.center_id = view_a.center_id;
+add download link
        
 Check Eclipse DTP, see also
 https://bugs.eclipse.org/bugs/show_bug.cgi?id=137701

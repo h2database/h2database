@@ -116,24 +116,37 @@ limit is 4 GB for the data.
 That is not easy to say. It is still a quite new product. A lot of tests have been written,
 and the code coverage of these tests is very high. Randomized stress tests
 are run regularly. But as this is a relatively new product, there are probably
-some problems that have not yet been found.
+some problems that have not yet been found (as with most software). Some features are known
+to be dangerous by design, and some problems are hard to solve. Those are:
+</p>
+<ul>
+<li>Using SET LOG 0 to disable the transaction log file.
+</li><li>Using the transaction isolation level READ_UNCOMMITTED (LOCK_MODE 0) while at the same time using multiple
+     connections may result in inconsistent transactions.
+</li></ul>
+<p>
+In addition to that, running out of memory should be avoided.
+In some versions, OutOfMemory errors while using the database could corrupt a databases.
+Not all such problems may be fixed.
+</p>
+
+<p>
 Areas that are not fully tested:
 </p>
 <ul>
 <li>Platforms other than Windows XP and the Sun JVM 1.4 and 1.5
 </li><li>The MVCC (multi version concurrency) mode
-</li><li>The persistent linear hash index
-</li><li>Cluster mode, 2-Phase Commit, Savepoints
-</li><li>Multi-Threading and using multiple connections
-</li><li>24/7 operation and large databases (500 MB and up)
+</li><li>Cluster mode, 2-phase commit, savepoints
+</li><li>24/7 operation
+</li><li>Some operations on databases larger than 500 MB may be slower than expected
 </li><li>Updatable result sets
-</li><li>Referential integrity and check constraints, Triggers
-</li><li>ALTER TABLE statements, Views, Linked Tables, Schema, UNION
+</li><li>Referential integrity and check constraints, triggers
+</li><li>ALTER TABLE statements, views, linked tables, schema, UNION
 </li><li>Not all built-in functions are completely tested
-</li><li>The Optimizer may not always select the best plan
+</li><li>The optimizer may not always select the best plan
 </li><li>Data types BLOB, CLOB, VARCHAR_IGNORECASE, OTHER
-</li><li>Server mode (well tested, but not as well as Embedded mode)
 </li><li>Wide indexes with large VARCHAR or VARBINARY columns and / or with a lot of columns
+</li><li>Multi-threading and using multiple connections
 </li></ul>
 
 <p>
@@ -141,7 +154,6 @@ Areas considered Experimental:
 </p>
 <ul>
 <li>The PostgreSQL server
-</li><li>Linear Hash Index
 </li><li>Compatibility modes for other databases (only some features are implemented)
 </li><li>The ARRAY data type and related functionality
 </li></ul>

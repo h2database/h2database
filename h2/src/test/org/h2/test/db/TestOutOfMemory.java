@@ -47,8 +47,8 @@ public class TestOutOfMemory extends TestBase {
         conn.close();
     }
 
-    private void eatMemory(int remainingKiloBytes) {
-        byte[] reserve = new byte[remainingKiloBytes * 1024];
+    private void eatMemory(int remainingKB) {
+        byte[] reserve = new byte[remainingKB * 1024];
         int max = 128 * 1024 * 1024;
         int div = 2;
         while (true) {

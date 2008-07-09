@@ -141,7 +141,7 @@ public class ViewIndex extends BaseIndex {
                 return 10;
             }
             String sql = query.getPlanSQL();
-            query = (Query) session.prepare(sql);
+            query = (Query) session.prepare(sql, true);
         }
         double cost = query.getCost();
         cachedCost = new CostElement();

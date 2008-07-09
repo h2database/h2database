@@ -31,7 +31,7 @@ I am sorry to say that, but it looks like a corruption problem. I am very intere
 - You can find out if the database is corrupted when running SCRIPT TO 'test.sql'
 - What version H2 are you using?
 - With which version of H2 was this database created? You can find it out using: 
-  select * from information_schema.settings where name='info.BUILD_ID'
+  select * from information_schema.settings where name='CREATE_BUILD'
 - Did you use multiple connections?
 - The first workarounds is: append ;RECOVER=1 to the database URL. 
   Does it work when you do this?

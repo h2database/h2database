@@ -131,12 +131,12 @@ public class Server implements Runnable, ShutdownHandler {
      * @param args the command line arguments
      * @throws SQLException
      */
-//    public static void main(String[] args) throws SQLException {
-//        int exitCode = new Server().run(args, System.out);
-//        if (exitCode != 0) {
-//            System.exit(exitCode);
-//        }
-//    }
+    public static void main(String[] args) throws SQLException {
+        int exitCode = new Server().run(args, System.out);
+        if (exitCode != 0) {
+            System.exit(exitCode);
+        }
+    }
 
     /**
      * INTERNAL

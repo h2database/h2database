@@ -8,6 +8,7 @@ package org.h2.constant;
 
 import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
+import org.h2.util.MathUtils;
 
 /**
  * The constants defined in this class are initialized from system properties.
@@ -287,8 +288,9 @@ public class SysProperties {
     /**
      * System property <code>h2.objectCacheSize</code> (default: 1024).<br />
      * Maximum size of an object in the cache.
+     * This value must be a power of 2.
      */
-    public static final int OBJECT_CACHE_SIZE = getIntSetting("h2.objectCacheSize", 1024);
+    public static final int OBJECT_CACHE_SIZE = MathUtils.nextPowerOf2(getIntSetting("h2.objectCacheSize", 1024));
 
     /**
      * System property <code>h2.oldCommandLineOptions</code> (default: true).<br />

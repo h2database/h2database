@@ -507,9 +507,14 @@ public class TableFilter implements ColumnResolver {
         plan = StringUtils.quoteRemarkSQL(plan);
         buff.append(plan);
         buff.append(" */");
-        if (joinCondition != null) {
+        if (join) {
             buff.append(" ON ");
-            buff.append(StringUtils.unEnclose(joinCondition.getSQL()));
+            if (joinCondition == null) {
+                // need to have a ON expression, otherwise the nesting is unclear
+                buff.append("1=1");
+            } else {
+                buff.append(StringUtils.unEnclose(joinCondition.getSQL()));
+            }
         }
         if (filterCondition != null) {
             buff.append(" /* WHERE ");

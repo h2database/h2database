@@ -227,7 +227,7 @@ public class Message {
     public static SQLException convert(Throwable e, String sql) {
         SQLException e2 = convert(e);
         if (e2 instanceof JdbcSQLException) {
-            ((JdbcSQLException) e).setSQL(sql);
+            ((JdbcSQLException) e2).setSQL(sql);
         }
         return e2;
     }

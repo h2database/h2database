@@ -912,14 +912,16 @@ SET LOCK_MODE int
 ","
 Sets the lock mode.
 0: No locking (should only be used for testing). Also known as READ_UNCOMMITTED.
-1: Table level locking (default). Also known as SERIALIZABLE.
+1: Table level locking. Also known as SERIALIZABLE.
 2: Table level locking with garbage collection (if the application does not close all connections).
-3: Table level locking, but read locks are released immediately. Also known as READ_COMMITTED.
+3: Table level locking, but read locks are released immediately (default). Also known as READ_COMMITTED.
 This setting is not persistent.
+Please note that using SET LOCK_MODE 0 while at the same time using multiple
+connections may result in inconsistent transactions.
 Admin rights are required to execute this command.
 This setting can be appended to the database URL: jdbc:h2:test;LOCK_MODE=3
 ","
-SET LOCK_MODE 2
+SET LOCK_MODE 1
 "
 
 "Commands (Other)","SET LOCK_TIMEOUT","
@@ -2967,7 +2969,7 @@ Returns the name of the current user of this session.
 CURRENT_USER()
 "
 
-"System tables","Information schema","
+"System Tables","Information Schema","
 INFORMATION_SCHEMA
 ","
 To get the list of system tables, execute the statement
@@ -2976,7 +2978,7 @@ WHERE TABLE_SCHEMA = 'INFORMATION_SCHEMA'
 ","
 
 "
-"System tables","Range table","
+"System Tables","Range Table","
 SYSTEM_RANGE(start, end)
 ","
 Contains all values from start to end (this is a dynamic table).

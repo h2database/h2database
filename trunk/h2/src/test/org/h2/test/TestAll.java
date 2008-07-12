@@ -270,6 +270,12 @@ java org.h2.test.TestAll timer
 
 /*
 
+drop all objects;
+create domain email as varchar;
+create table test(e email);
+select * from INFORMATION_SCHEMA.COLUMNS where table_name='TEST';
+script nosettings;
+
 add download link
        
 Check Eclipse DTP, see also

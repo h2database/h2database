@@ -116,6 +116,8 @@ public class UndoLogRecord {
             try {
                 row.setPos(0);
                 table.addRow(session, row);
+                // reset session id, otherwise other  session think this row was inserted by this session                
+                row.commit();
             } catch (SQLException e) {
                 if (session.getDatabase().getLockMode() == Constants.LOCK_MODE_OFF
                         && e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {

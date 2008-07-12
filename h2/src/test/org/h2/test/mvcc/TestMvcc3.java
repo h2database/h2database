@@ -19,6 +19,59 @@ public class TestMvcc3 extends TestBase {
 
     public void test() throws Exception {
         testSequence();
+        testDisableAutoCommit();
+        testRollback();
+    }
+    
+    private void testRollback() throws Exception {
+        if (!config.mvcc) {
+            return;
+        }
+        
+        deleteDb("mvcc3");
+        Connection conn = getConnection("mvcc3");
+        Statement stat = conn.createStatement();
+        stat.executeUpdate("DROP TABLE IF EXISTS TEST");
+        stat.executeUpdate("CREATE TABLE TEST (ID NUMBER(2) PRIMARY KEY, VAL VARCHAR(10))");
+        stat.executeUpdate("INSERT INTO TEST (ID, VAL) VALUES (1, 'Value')");
+        stat.executeUpdate("INSERT INTO TEST (ID, VAL) VALUES (2, 'Value')");
+        if (!config.memory) {
+            conn.close();
+            conn = getConnection("mvcc3");
+        }
+        conn.setAutoCommit(false);
+        conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+        
+        Connection conn2 = getConnection("mvcc3");
+        conn2.setAutoCommit(false);
+        conn2.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+
+        conn.createStatement().executeUpdate("UPDATE TEST SET VAL='Updated' WHERE ID = 1");
+        conn.rollback();
+        
+        ResultSet rs = conn2.createStatement().executeQuery("SELECT * FROM TEST");
+        assertTrue(rs.next());
+        assertEquals("Value", rs.getString(2));
+        assertTrue(rs.next());
+        assertEquals("Value", rs.getString(2));
+        assertFalse(rs.next());
+        
+        conn.createStatement().executeUpdate("UPDATE TEST SET VAL='Updated' WHERE ID = 1");
+        conn.commit();
+        rs = conn2.createStatement().executeQuery("SELECT * FROM TEST ORDER BY ID");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertEquals("Updated", rs.getString(2));
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertEquals("Value", rs.getString(2));
+        assertFalse(rs.next());
+
+        conn.close();
+        conn2.close();
+    }
+    
+    private void testDisableAutoCommit() throws Exception {
         if (!config.mvcc) {
             return;
         }

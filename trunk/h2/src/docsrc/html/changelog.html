@@ -17,7 +17,7 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul><li>Multi version concurrency (MVCC): when a row was updated or deleted, but this change was rolled back,
-	the row was not visible by other sessions if no index was used to access it. Fixed.
+    the row was not visible by other sessions if no index was used to access it. Fixed.
 </li><li>Views with multiple joined tables (where one was an outer join) couldn't be used in some cases. Fixed.
 </li><li>Fixed the Oracle mode: Oracle allows multiple rows with NULL in a unique index. 
 </li><li>Running out of memory could result in incomplete transactions or corrupted databases. Fixed.

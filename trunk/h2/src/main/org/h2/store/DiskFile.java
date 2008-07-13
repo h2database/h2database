@@ -577,11 +577,11 @@ public class DiskFile implements CacheWriter {
             DataPage s = DataPage.create(database, buff);
             int blockCount = s.readInt();
             int id = s.readInt();
-            if (SysProperties.CHECK && storageId != id) {
+            if (storageId != id) {
                 throw Message.getInternalError("File ID mismatch got=" + id + " expected=" + storageId + " pos=" + pos
                         + " " + logChanges + " " + this + " blockCount:" + blockCount);
             }
-            if (SysProperties.CHECK && blockCount == 0) {
+            if (blockCount == 0) {
                 throw Message.getInternalError("0 blocks to read pos=" + pos);
             }
             if (blockCount > 1) {

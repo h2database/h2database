@@ -1,3 +1,12 @@
+Hi,
+
+Sorry I can not reproduce this problem. Could you post a simple, standalone test case that reproduces the problem? It would be great if the test case does not have any dependencies except the H2 jar file (that is, uses the JDBC API and is run using a static main method). Please include any initialization code (CREATE TABLE, INSERT and so on) in the Java class or in a .sql script file.
+
+Regards,
+Thomas
+
+-----------------
+
 Defect report:
 
 What steps will reproduce the problem?

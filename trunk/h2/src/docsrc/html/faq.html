@@ -95,7 +95,7 @@ If the base directory is not set (as in jdbc:h2:test), the database files are st
 (the current working directory). When using the H2 Console application from the start menu, this is [Installation Directory]/bin.
 The base directory can be set in the database URL. A fixed or relative path can be used. When using the URL
 jdbc:h2:file:data/sample, the database is stored in the directory data (relative to the current working directory).
-The directory must exist. It is also possible to use the fully qualified directory (and for Windows, drive) name.
+The directory is created automatically if it does not yet exist. It is also possible to use the fully qualified directory (and for Windows, drive) name.
 Example: jdbc:h2:file:C:/data/test
 </p>
 

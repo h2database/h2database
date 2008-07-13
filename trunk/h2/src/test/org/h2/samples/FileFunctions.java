@@ -20,7 +20,8 @@ import java.sql.Statement;
 public class FileFunctions {
 
     /**
-     * This method is called when executing this sample application.
+     * This method is called when executing this sample application from the
+     * command line.
      * 
      * @param args the command line parameters
      */

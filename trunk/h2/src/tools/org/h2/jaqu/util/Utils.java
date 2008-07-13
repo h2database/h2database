@@ -151,7 +151,8 @@ public class Utils {
                 return n.floatValue();
             }
         }
-        throw new RuntimeException("Can not convert the value " + o + " from " + currentType + " to " + targetType);
+        throw new RuntimeException("Can not convert the value " + o + 
+                " from " + currentType + " to " + targetType);
     }
 
 //## Java 1.5 end ##

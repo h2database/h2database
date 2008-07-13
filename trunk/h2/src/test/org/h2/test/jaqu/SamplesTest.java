@@ -26,16 +26,22 @@ import org.h2.test.TestBase;
  * no more SQL injection.</p>
  */
 public class SamplesTest extends TestBase {
+    /**
+     * This object represents a database (actually a connection to the database).
+     */
 //## Java 1.5 begin ##
-    
     Db db;
+//## Java 1.5 end ##    
     
-    // TODO length
-    
+    /**
+     * This method is called when executing this application from the command
+     * line.
+     * 
+     * @param args the command line parameters
+     */    
     public static void main(String[] args) throws Exception {
         new SamplesTest().test();
     }
-//## Java 1.5 end ##
     
     public void test() throws Exception {
 //## Java 1.5 begin ##

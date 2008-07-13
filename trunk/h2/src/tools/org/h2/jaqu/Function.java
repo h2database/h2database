@@ -29,18 +29,19 @@ public class Function implements Token {
     public String getString(Query query) {
         return name + "(" + query.getString(x) + ")";
     }
-//## Java 1.5 end ##
     
     public static Long count() {
         return COUNT_STAR;
     }
     
     public static Integer length(Object x) {
-        return Db.registerToken(Utils.newObject(Integer.class), new Function("LENGTH", x));
+        return Db.registerToken(
+            Utils.newObject(Integer.class), new Function("LENGTH", x));
     }
 
     public static Long count(Object x) {
-        return Db.registerToken(Utils.newObject(Long.class), new Function("COUNT", x));
+        return Db.registerToken(
+            Utils.newObject(Long.class), new Function("COUNT", x));
     }
 
     public static <X> X min(X x) {
@@ -54,7 +55,6 @@ public class Function implements Token {
         X o = Utils.newObject(clazz);
         return Db.registerToken(o, new Function("MAX", x));
     }
-
 
 //## Java 1.5 end ##
 }

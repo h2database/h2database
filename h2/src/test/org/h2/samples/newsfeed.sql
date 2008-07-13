@@ -13,6 +13,34 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(45,
+'New version available: 1.0.75 (2008-07-14)', '2008-07-14 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>The JaQu (Java Query) tool has been improved.
+</li><li>The H2 Console can be started with an open connection to inspect a database while debugging.
+</li><li>The referential constraint checking performance has been improvement.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Running out of memory could result in incomplete transactions or corrupted databases. Fixed.
+</li><li>Stopping a WebServer didn't always work. Fixed.
+</li><li>Sometimes, order by in a query that uses the same table multiple times didn't work.
+</li><li>A multi version concurrency (MVCC) problem has been fixed.
+</li><li>Some views with multiple joined tables didn't work.
+</li><li>The Oracle mode now allows multiple rows with NULL in a unique index.
+</li><li>Some database metadata calls returned the wrong data type for DATA_TYPE columns.
+</li><li>A bug int the Lucene fulltext implementation has been fixed.
+</li><li>The character '$' could not be used in identifier names.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(44,
 'New version available: 1.0.74 (2008-06-21)', '2008-06-21 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -422,32 +450,6 @@ INSERT INTO ITEM VALUES(34,
 </li><li>The column INFORMATION_SCHEMA.TRIGGERS.SQL is now correct.
 </li><li>This database could not be used in applets. 
 </li><li>The index file is now re-created automatically when required.
-</li></ul>
-For future plans, see the ''Roadmap'' page at
-http://www.h2database.com/html/roadmap.html
-');
-
-INSERT INTO ITEM VALUES(33,
-'New version available: 1.0.63 (2007-12-02)', '2007-12-02 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click ''Refresh'').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Performance optimization for IN(...) and IN(SELECT...), 
-    currently disabled by default. To enable, use java -Dh2.optimizeInJoin=true
-</li><li>The H2 Console has been translated to Ukrainian by Igor Dobrovolskyi. Thanks a lot! 
-</li><li>The SecurePassword example has been improved.
-</li><li>Improved FTP server: now the PORT command is supported.
-</li><li>New function TABLE_DISTINCT. 
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Certain setting in the Server didn''t work.
-</li><li>In time zones where the summer time saving limit is at midnight, 
-  some dates did not work in some virtual machines, 
-    for example 2007-10-14 in Chile, using the Sun JVM 1.6.0_03-b05.
-</li><li>The native fulltext search was not working properly after re-connecting. 
-</li><li>Temporary views (FROM(...)) with UNION didn''t work if nested. 
-</li><li>Using LIMIT with values close to Integer.MAX_VALUE didn''t work. 
 </li></ul>
 For future plans, see the ''Roadmap'' page at
 http://www.h2database.com/html/roadmap.html

@@ -491,8 +491,8 @@ public class BuildBase {
      * @param basePath the base path
      */
     protected void jar(String destFile, List files, String basePath) {
-        out.println("Jar " + destFile);
-        zipOrJar(destFile, files, basePath, false, false, true);
+        long kb = zipOrJar(destFile, files, basePath, false, false, true);
+        out.println("Jar " + destFile + " (" + kb + " KB)");
     }
 
     /**
@@ -505,11 +505,11 @@ public class BuildBase {
      * @param sortBySuffix if the file should be sorted by the file suffix
      */
     protected void zip(String destFile, List files, String basePath, boolean storeOnly, boolean sortBySuffix) {
-        out.println("Zip " + destFile);
-        zipOrJar(destFile, files, basePath, storeOnly, sortBySuffix, false);
+        long kb = zipOrJar(destFile, files, basePath, storeOnly, sortBySuffix, false);
+        out.println("Zip " + destFile + " (" + kb + " KB)");
     }
 
-    private void zipOrJar(String destFile, List files, String basePath, boolean storeOnly, boolean sortBySuffix, boolean jar) {
+    private long zipOrJar(String destFile, List files, String basePath, boolean storeOnly, boolean sortBySuffix, boolean jar) {
         if (sortBySuffix) {
             // for better compressibility, sort by suffix, then name
             Collections.sort(files, new Comparator() {
@@ -555,6 +555,7 @@ public class BuildBase {
             }
             zipOut.closeEntry();
             zipOut.close();
+            return new File(destFile).length() / 1024;
         } catch (IOException e) {
             throw new Error("Error creating file " + destFile, e);
         }

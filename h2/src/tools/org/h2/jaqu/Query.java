@@ -145,14 +145,16 @@ public class Query<T> {
 //## Java 1.5 begin ##
     public Query<T> orderBy(Object... expressions) {
         for (Object expr : expressions) {
-            OrderExpression<Object> e = new OrderExpression<Object>(this, expr, false, false, false);
+            OrderExpression<Object> e = 
+                new OrderExpression<Object>(this, expr, false, false, false);
             addOrderBy(e);
         }
         return this;
     }
 
     public Query<T> orderByDesc(Object expr) {
-        OrderExpression<Object> e = new OrderExpression<Object>(this, expr, true, false, false);
+        OrderExpression<Object> e = 
+            new OrderExpression<Object>(this, expr, true, false, false);
         addOrderBy(e);
         return this;
     }
@@ -228,7 +230,7 @@ public class Query<T> {
     /**
      * Join another table.
      * 
-     * @param u an alias for the table to join
+     * @param alias an alias for the table to join
      * @return the joined query
      */
 //## Java 1.5 begin ##

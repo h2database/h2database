@@ -26,7 +26,8 @@ import org.h2.util.JdbcUtils;
 //## Java 1.5 begin ##
 public class Db {
     
-    private static final WeakIdentityHashMap<Object, Token> TOKENS = Utils.newWeakIdentityHashMap();
+    private static final WeakIdentityHashMap<Object, Token> TOKENS = 
+        Utils.newWeakIdentityHashMap();
     
     private final Connection conn;
     private final Map<Class, TableDefinition> classMap = Utils.newHashMap();

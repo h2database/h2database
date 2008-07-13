@@ -230,7 +230,8 @@ class TableDefinition<T> {
         }
     }
 
-    void initSelectObject(SelectTable table, Object obj, Map<Object, SelectColumn> map) {
+    void initSelectObject(SelectTable table, Object obj, 
+            Map<Object, SelectColumn> map) {
         for (FieldDefinition def : fields) {
             def.initWithNewObject(obj);
             SelectColumn column = new SelectColumn(table, def);

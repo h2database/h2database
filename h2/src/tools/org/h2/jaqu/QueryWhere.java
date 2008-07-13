@@ -61,38 +61,44 @@ public class QueryWhere<T> {
 //## Java 1.5 begin ##
     public QueryWhere<T> orderBy(Object... expressions) {
         for (Object expr : expressions) {
-            OrderExpression<Object> e = new OrderExpression<Object>(query, expr, false, false, false);
+            OrderExpression<Object> e = 
+                new OrderExpression<Object>(query, expr, false, false, false);
             query.addOrderBy(e);
         }
         return this;
     }
     
     public QueryWhere<T> orderByNullsFirst(Object expr) {
-        OrderExpression<Object> e = new OrderExpression<Object>(query, expr, false, true, false);
+        OrderExpression<Object> e = 
+            new OrderExpression<Object>(query, expr, false, true, false);
         query.addOrderBy(e);
         return this;
     }
 
     public QueryWhere<T> orderByNullsLast(Object expr) {
-        OrderExpression<Object> e = new OrderExpression<Object>(query, expr, false, false, true);
+        OrderExpression<Object> e = 
+            new OrderExpression<Object>(query, expr, false, false, true);
         query.addOrderBy(e);
         return this;
     }
 
     public QueryWhere<T> orderByDesc(Object expr) {
-        OrderExpression<Object> e = new OrderExpression<Object>(query, expr, true, false, false);
+        OrderExpression<Object> e = 
+            new OrderExpression<Object>(query, expr, true, false, false);
         query.addOrderBy(e);
         return this;
     }
 
     public QueryWhere<T> orderByDescNullsFirst(Object expr) {
-        OrderExpression<Object> e = new OrderExpression<Object>(query, expr, true, true, false);
+        OrderExpression<Object> e = 
+            new OrderExpression<Object>(query, expr, true, true, false);
         query.addOrderBy(e);
         return this;
     }
 
     public QueryWhere<T> orderByDescNullsLast(Object expr) {
-        OrderExpression<Object> e = new OrderExpression<Object>(query, expr, true, false, true);
+        OrderExpression<Object> e = 
+            new OrderExpression<Object>(query, expr, true, false, true);
         query.addOrderBy(e);
         return this;
     }

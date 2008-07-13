@@ -22,7 +22,8 @@ import org.h2.tools.RunScript;
 public class InitDatabaseFromJar {
 
     /**
-     * This method is called when executing this sample application.
+     * This method is called when executing this sample application from the
+     * command line.
      * 
      * @param args the command line parameters
      */

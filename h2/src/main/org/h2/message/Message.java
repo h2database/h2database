@@ -236,7 +236,6 @@ public class Message {
      * Convert an exception to a SQL exception using the default mapping.
      * 
      * @param e the root cause
-     * @param sql the SQL statement or null if it is not known
      * @return the SQL exception object
      */
     public static SQLException convert(Throwable e) {

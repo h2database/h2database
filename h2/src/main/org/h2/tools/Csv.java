@@ -345,12 +345,12 @@ public class Csv implements SimpleRowSource {
             if (ch < 0 || ch == '\r' || ch == '\n') {
                 endOfLine = true;
                 break;
-            } else if (ch <= ' ') {
-                // ignore spaces
-                continue;
             } else if (ch == fieldSeparatorRead) {
                 // null
                 break;
+            } else if (ch <= ' ') {
+                // ignore spaces
+                continue;
             } else if (ch == fieldDelimiter) {
                 // delimited value
                 StringBuffer buff = new StringBuffer();
@@ -388,10 +388,10 @@ public class Csv implements SimpleRowSource {
                     ch = readChar();
                     if (ch < 0) {
                         break;
-                    } else if (ch == ' ' || ch == '\t') {
-                        // ignore
                     } else if (ch == fieldSeparatorRead) {
                         break;
+                    } else if (ch == ' ' || ch == '\t') {
+                        // ignore
                     } else if (ch == '\r' || ch == '\n') {
                         pushBack(ch);
                         endOfLine = true;

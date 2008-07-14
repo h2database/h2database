@@ -12,6 +12,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+
+import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -133,8 +135,8 @@ public class MultiDimension {
         Long[] from = new Long[len];
         Long[] to = new Long[len];
         for (int i = 0; i < len; i++) {
-            from[i] = new Long(ranges[i][0]);
-            to[i] = new Long(ranges[i][1]);
+            from[i] = ObjectUtils.getLong(ranges[i][0]);
+            to[i] = ObjectUtils.getLong(ranges[i][1]);
         }
         prep.setObject(1, from);
         prep.setObject(2, to);

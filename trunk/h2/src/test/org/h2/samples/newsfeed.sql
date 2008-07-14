@@ -25,6 +25,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li></ul>
 <b>Bugfixes:</b>
 <ul><li>Running out of memory could result in incomplete transactions or corrupted databases. Fixed.
+</li><li>CSVREAD did not process NULL correctly when using a whitespace field separator.
 </li><li>Stopping a WebServer didn't always work. Fixed.
 </li><li>Sometimes, order by in a query that uses the same table multiple times didn't work.
 </li><li>A multi version concurrency (MVCC) problem has been fixed.

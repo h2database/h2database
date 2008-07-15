@@ -26,7 +26,7 @@ public class H2Dialect extends Dialect {
                
         querySequenceString = "select sequence_name from information_schema.sequences";
         try {
-        	// HHH-2300
+            // HHH-2300
             Class constants = ReflectHelper.classForName( "org.h2.engine.Constants" );
             Integer build = (Integer)constants.getDeclaredField("BUILD_ID" ).get(null);
             int buildid = build.intValue();
@@ -213,9 +213,9 @@ public class H2Dialect extends Dialect {
         return true;
     }
 
-	public boolean supportsPooledSequences() {
-		return true;
-	}
+    public boolean supportsPooledSequences() {
+        return true;
+    }
 
     public String getCreateSequenceString(String sequenceName) {
         return "create sequence " + sequenceName;
@@ -237,7 +237,7 @@ public class H2Dialect extends Dialect {
         return querySequenceString;
     }
 
-	public ViolatedConstraintNameExtracter getViolatedConstraintNameExtracter() {
+    public ViolatedConstraintNameExtracter getViolatedConstraintNameExtracter() {
         return EXTRACTER;
     }
 
@@ -290,9 +290,9 @@ public class H2Dialect extends Dialect {
     }
 
 
-	// Overridden informational metadata ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Overridden informational metadata ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	public boolean supportsLobValueChangePropogation() {
-		return false;
-	}
+    public boolean supportsLobValueChangePropogation() {
+        return false;
+    }
 }

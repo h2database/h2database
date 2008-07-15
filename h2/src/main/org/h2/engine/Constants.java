@@ -14,16 +14,15 @@ package org.h2.engine;
  * - build jar, test with IKVM
  * - build javadocImpl
  * - Compile with JDK 1.6:
- *   set path=C:\Programme\Java\jdk1.6.0\bin;%PATH%
- *   set JAVA_HOME=C:\Programme\Java\jdk1.6.0
- *   set path=C:\Program Files\Java\jdk1.6.0_05\bin;%PATH%
- *   set JAVA_HOME=C:\Program Files\Java\jdk1.6.0_05
+ *   java16
  *   build compile
  *   set classpath=
  *   build javadoc
  *   build javadocImpl (to find missing javadocs)
  * - reset to JDK 1.4
  *   build compile
+ *   java16
+ *   compile
  * - Change version and build number in
  *     Constants.java
  * - Maybe increase TCP_DRIVER_VERSION (old clients must be compatible!)
@@ -47,6 +46,7 @@ package org.h2.engine;
  *      - orphan control
  *      - check images
  *      - table of contents
+ * - Use java 1.4 
  * - build all
  * - Copy the pdf file to h2/docs
  * - build zip
@@ -56,6 +56,9 @@ package org.h2.engine;
  * - Scan for viruses
  * - build mavenDeployCentral
  * - Upload to SourceForge
+ * - java16
+ * - build compile
+ * - refresh
  * - svn commit
  * - svn copy: /svn/trunk /svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
  * - Newsletter: prepare (always to BCC!!)

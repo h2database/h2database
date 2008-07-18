@@ -15,13 +15,8 @@ Roadmap
 
 <h1>Roadmap</h1>
 
-<h2>Highest Priority</h2>
-<ul>
-<li>Improve test code coverage
-</li><li>More fuzz tests
-</li><li>Test very large databases and LOBs (up to 256 GB)
-</li><li>Test multi-threaded in-memory db access
-</li></ul>
+New (feature) requests will usually be added at the very end of the list. The priority is increased for important and popular requests.
+Of course, patches are always welcome, but are not always applied as is. Patches should include test cases and documentation.
 
 <h2>In Version 1.1</h2>
 <ul>
@@ -36,8 +31,9 @@ Roadmap
 
 <h2>Priority 1</h2>
 <ul>
-<li>Write more tests and documentation for MVCC (Multi Version Concurrency Control)
+<li>Bugfixes
 </li><li>Row level locking
+</li><li>Write more tests and documentation for MVCC (Multi Version Concurrency Control)
 </li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
 </li><li>More tests with MULTI_THREADED=1
 </li><li>Test with Spatial DB in a box / JTS (http://docs.codehaus.org/display/GEOS/SpatialDBBox)
@@ -50,7 +46,10 @@ Roadmap
 
 <h2>Priority 2</h2>
 <ul>
-<li>Automatic mode: jdbc:h2:auto: (embedded mode if possible, if not use server mode). Keep the server running until all have disconnected.
+<li>Improve test code coverage
+</li><li>More fuzz tests
+</li><li>Test multi-threaded in-memory db access
+</li><li>Automatic mode: jdbc:h2:auto: (embedded mode if possible, if not use server mode). Keep the server running until all have disconnected.
 </li><li>Linked tables that point to the same database should share the connection ([SHARED CONNECTION]). Serialize access to the connection.
 </li><li>Procedural language / script language (Javascript)
 </li><li>Linked tables should support a schema name: CREATE LINKED TABLE ... (... [schemaName, ] originalTableString) - DB2: SET SCHEMA after connecting
@@ -59,6 +58,7 @@ Roadmap
 </li><li>H2 Console: new option 'Open a browser when starting the H2 Console'.
 </li><li>Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
 </li><li>Full outer joins
+</li><li>Test very large databases and LOBs (up to 256 GB)
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.

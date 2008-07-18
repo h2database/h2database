@@ -276,7 +276,13 @@ create table test(e email);
 select * from INFORMATION_SCHEMA.COLUMNS where table_name='TEST';
 script nosettings;
 
-add download link
+  create t1 (c1 char(1)); create unique index i1 on t1(c1); insert
+into t1 values (null);  insert into t1 values (null);
+succeeds on Oracle and H2 1.0.75 with ;MODE=Oracle in the URL.
+  create t2(c1 char(1), c2 (char(1)); create unique index i2 on
+t2(c1, c2); insert into t2 values ('a', null); insert into t2 values
+insert into t5 values (null, null);
+will succeed on Oracle multiple times.
        
 Check Eclipse DTP, see also
 https://bugs.eclipse.org/bugs/show_bug.cgi?id=137701

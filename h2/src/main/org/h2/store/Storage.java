@@ -43,6 +43,7 @@ public class Storage {
     private DiskFile file;
     private int recordCount;
     private RecordReader reader;
+    private int freeCount;
     private IntArray freeList = new IntArray();
     private IntArray pages = new IntArray();
     private int id;
@@ -220,16 +221,44 @@ public class Storage {
             return true;
         }
     }
+    
+    private void refillFreeList() {
+        if (freeList.size() != 0 || freeCount == 0) {
+            return;
+        }
+        BitField used = file.getUsed();
+        for (int i = 0; i < pages.size(); i++) {
+            int p = pages.get(i);
+            int block = DiskFile.BLOCKS_PER_PAGE * p;
+            for (int j = 0; j < DiskFile.BLOCKS_PER_PAGE; j++) {
+                if (!used.get(block)) {
+                    if (freeList.size() < FREE_LIST_SIZE) {
+                        freeList.add(block);
+                    } else {
+                        return;
+                    }
+                }                    
+                block++;
+            }
+        }
+        // if we came here, all free records must be in the list
+        // otherwise it would have returned early
+        if (SysProperties.CHECK && freeCount > freeList.size()) {
+            throw Message.getInternalError("freeCount expected " + freeList.size() + ", got: " + freeCount);
+        }
+        freeCount = freeList.size();
+    }
 
     private int allocate(int blockCount) throws SQLException {
+        refillFreeList();
         if (freeList.size() > 0) {
             synchronized (database) {
                 BitField used = file.getUsed();
                 for (int i = 0; i < freeList.size(); i++) {
                     int px = freeList.get(i);
                     if (used.get(px)) {
-                        // sometime there may stay some entries in the freeList 
-                        // that are not free (free 2, free 1, allocate 1+2)
+                        // sometimes some entries in the freeList 
+                        // are not free (free 2, free 1, allocate 1+2)
                         // these entries are removed right here
                         freeList.remove(i--);
                     } else {
@@ -237,6 +266,7 @@ public class Storage {
                             int pos = px;
                             freeList.remove(i);
                             file.setUsed(pos, blockCount);
+                            freeCount -= blockCount;
                             return pos;
                         }
                     }
@@ -245,6 +275,7 @@ public class Storage {
         }
         int pos = file.allocate(this, blockCount);
         file.setUsed(pos, blockCount);
+        freeCount -= blockCount;
         return pos;
     }
 
@@ -259,6 +290,7 @@ public class Storage {
         if (freeList.size() < FREE_LIST_SIZE) {
             freeList.add(pos);
         }
+        freeCount += blockCount;
     }
 
     //    private int allocateBest(int start, int blocks) {
@@ -299,6 +331,7 @@ public class Storage {
      */
     public void truncate(Session session) throws SQLException {
         freeList = new IntArray();
+        freeCount = 0;
         recordCount = 0;
         file.truncateStorage(session, this, pages);
     }

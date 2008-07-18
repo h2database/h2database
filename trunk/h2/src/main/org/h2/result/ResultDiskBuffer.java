@@ -68,7 +68,6 @@ class ResultDiskBuffer implements ResultExternal {
         String fileName = session.getDatabase().createTempFile();
         file = session.getDatabase().openFile(fileName, "rw", false);
         file.setCheckedWriting(false);
-        file.autoDelete();
         file.seek(FileStore.HEADER_LENGTH);
         if (sort != null) {
             tapes = new ObjectArray();
@@ -127,6 +126,7 @@ class ResultDiskBuffer implements ResultExternal {
 
     public void done() throws SQLException {
         file.seek(FileStore.HEADER_LENGTH);
+        file.autoDelete();
     }
 
     public void reset() {

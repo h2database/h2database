@@ -60,6 +60,22 @@ public class TempFileDeleter {
         deleteUnused();
         return ref;
     }
+    
+    /**
+     * Update the last modified date of the auto-delete reference. If the file
+     * was modified after that, it will not be deleted (because it might have
+     * been deleted and then re-created).
+     * 
+     * @param ref the reference
+     */
+    public static synchronized void updateAutoDelete(Reference ref) {
+        TempFile f2 = (TempFile) REF_MAP.get(ref);
+        if (f2 != null) {
+            String fileName = f2.fileName;
+            long mod = FileUtils.getLastModified(fileName);
+            f2.lastModified = mod;
+        }
+    }
 
     /**
      * Delete the given file now. This will remove the reference from the list.

@@ -84,7 +84,6 @@ public class RowList {
             this.cache = db.getDataFile().getCache();
             String fileName = db.createTempFile();
             file = db.openFile(fileName, "rw", false);
-            file.autoDelete();
             file.seek(FileStore.HEADER_LENGTH);
             rowBuff = DataPage.create(db, Constants.DEFAULT_DATA_PAGE_SIZE);
             file.seek(FileStore.HEADER_LENGTH);
@@ -100,6 +99,7 @@ public class RowList {
             writeRow(buff, r);
         }
         flushBuffer(buff);
+        file.autoDelete();
         list.clear();
         memory = 0;
     }
@@ -117,7 +117,6 @@ public class RowList {
         buff.updateChecksum();            
         file.write(buff.getBytes(), 0, buff.length());
     }
-    
     
     /**
      * Add a row to the list.
@@ -258,6 +257,7 @@ public class RowList {
      */
     public void close() {
         if (file != null) {
+            file.autoDelete();
             file.closeAndDeleteSilently();
             file = null;
             rowBuff = null;

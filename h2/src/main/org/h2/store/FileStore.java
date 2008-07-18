@@ -241,6 +241,7 @@ public class FileStore {
     public void closeAndDeleteSilently() {
         if (file != null) {
             closeSilently();
+            TempFileDeleter.updateAutoDelete(autoDeleteReference);
             TempFileDeleter.deleteFile(autoDeleteReference, name);
             name = null;
         }
@@ -457,7 +458,11 @@ public class FileStore {
      * Automatically delete the file once it is no longer in use.
      */
     public void autoDelete() {
-        autoDeleteReference = TempFileDeleter.addFile(name, this);
+        if (autoDeleteReference == null) {
+            autoDeleteReference = TempFileDeleter.addFile(name, this);
+        } else {
+            TempFileDeleter.updateAutoDelete(autoDeleteReference);
+        }
     }
 
     /**

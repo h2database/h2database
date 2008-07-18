@@ -598,8 +598,8 @@ public class Database implements DataHandler {
         systemSession.commit(true);
         if (!readOnly && persistent) {
             emergencyReserve = openFile(createTempFile(), "rw", false);
-            emergencyReserve.autoDelete();
             emergencyReserve.setLength(SysProperties.EMERGENCY_SPACE_INITIAL);
+            emergencyReserve.autoDelete();
         }
         traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
     }

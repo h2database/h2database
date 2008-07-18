@@ -108,7 +108,6 @@ public class UndoLog {
             if (file == null) {
                 String fileName = database.createTempFile();
                 file = database.openFile(fileName, "rw", false);
-                file.autoDelete();
                 file.seek(FileStore.HEADER_LENGTH);
                 rowBuff = DataPage.create(database, Constants.DEFAULT_DATA_PAGE_SIZE);
                 DataPage buff = rowBuff;
@@ -119,6 +118,7 @@ public class UndoLog {
             } else {
                 saveIfPossible(entry, rowBuff);
             }
+            file.autoDelete();
         }
     }
 

@@ -360,7 +360,7 @@ public class Server implements Runnable, ShutdownHandler {
             }
             buff.append(")");
         } else {
-            buff.append("Port is in use, maybe another " + service.getType() + " server already running on ");
+            buff.append("The " + service.getType() + " server could not be started. Possible cause: another server is already running on ");
             buff.append(service.getURL());
         }
         return buff.toString();

@@ -134,6 +134,7 @@ ShutdownHandler {
             e.printStackTrace();
         } else {
             System.out.println(server.getStatus());
+            System.out.println("Root cause: " + e.getMessage());
         }
     }
 

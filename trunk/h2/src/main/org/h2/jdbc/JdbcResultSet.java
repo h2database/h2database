@@ -63,10 +63,21 @@ import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 
 /**
- * Represents a result set. Column names are case-insensitive, quotes are not
- * supported. The first column has the column index 1. Result sets are updatable
- * when the result only contains columns from one table, and if it contains all
- * columns of a unique index (primary key or other) of this table.
+ * <p>
+ * Represents a result set.
+ * </p>
+ * <p>
+ * Column names are case-insensitive, quotes are not supported. The first column
+ * has the column index 1.
+ * </p>
+ * <p>
+ * Updatable result sets:
+ * Result sets are updatable when the result only contains columns from one
+ * table, and if it contains all columns of a unique index (primary key or
+ * other) of this table. Key columns may not contain NULL (because multiple rows
+ * with NULL could exist). In updatable result sets, own changes are visible,
+ * but not own inserts and deletes.
+ * </p>
  */
 public class JdbcResultSet extends TraceObject implements ResultSet {
     private final SessionInterface session;
@@ -80,6 +91,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     private Value[] insertRow;
     private Value[] updateRow;
     private HashMap columnNameMap;
+    private HashMap patchedRows;
 
     JdbcResultSet(JdbcConnection conn, JdbcStatement stat, ResultInterface result, int id, 
                 boolean closeStatement, boolean scrollable) {
@@ -2821,8 +2833,15 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             checkOnValidRow();
             if (updateRow != null) {
                 UpdatableRow row = getUpdatableRow();
-                row.updateRow(result.currentRow(), updateRow);
-                row.refreshRow(result.currentRow());
+                Value[] current = result.currentRow();
+                row.updateRow(current, updateRow);
+                for (int i = 0; i < updateRow.length; i++) {
+                    if (updateRow[i] == null) {
+                        updateRow[i] = current[i];
+                    }
+                }
+                Value[] patch = row.readRow(updateRow);
+                patchCurrentRow(patch);
                 updateRow = null;
             }
         } catch (Exception e) {
@@ -2866,7 +2885,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 throw Message.getSQLException(ErrorCode.NO_DATA_AVAILABLE);
             }
             checkOnValidRow();
-            getUpdatableRow().refreshRow(result.currentRow());
+            patchCurrentRow(getUpdatableRow().readRow(result.currentRow()));
             updateRow = null;
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -2983,7 +3002,15 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     private Value get(int columnIndex) throws SQLException {
         checkColumnIndex(columnIndex);
         checkOnValidRow();
-        Value[] list = result.currentRow();
+        Value[] list;
+        if (patchedRows == null) {
+            list = result.currentRow();
+        } else {
+            list = (Value[]) patchedRows.get(ObjectUtils.getInteger(result.getRowId()));
+            if (list == null) {
+                list = result.currentRow();
+            }
+        }
         Value value = list[columnIndex - 1];
         wasNull = value == ValueNull.INSTANCE;
         return value;
@@ -3473,6 +3500,26 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      */
     public String toString() {
         return getTraceObjectName() + ": " + result;
+    }
+    
+    private void patchCurrentRow(Value[] row) throws SQLException {
+        boolean changed = false;
+        Value[] current = result.currentRow();
+        for (int i = 0; i < row.length; i++) {
+            if (!row[i].compareEqual(current[i])) {
+                changed = true;
+                break;
+            }
+        }
+        if (patchedRows == null) {
+            patchedRows = new HashMap();
+        }
+        Integer rowId = ObjectUtils.getInteger(result.getRowId());
+        if (!changed) {
+            patchedRows.remove(rowId);
+        } else {
+            patchedRows.put(rowId, row);
+        }
     }
 
 }

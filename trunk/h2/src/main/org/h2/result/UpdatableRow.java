@@ -156,18 +156,6 @@ public class UpdatableRow {
 //        return rs.getInt(1) == 0;
 //    }
 
-    /**
-     * Re-reads a row from the database and updates the values in the array.
-     * 
-     * @param row the values
-     */
-    public void refreshRow(Value[] row) throws SQLException {
-        Value[] newRow = readRow(row);
-        for (int i = 0; i < columnCount; i++) {
-            row[i] = newRow[i];
-        }
-    }
-
     private void appendTableName(StringBuffer buff) {
         if (schemaName != null && schemaName.length() > 0) {
             buff.append(StringUtils.quoteIdentifier(schemaName));
@@ -176,7 +164,13 @@ public class UpdatableRow {
         buff.append(StringUtils.quoteIdentifier(tableName));
     }
 
-    private Value[] readRow(Value[] row) throws SQLException {
+    /**
+     * Re-reads a row from the database and updates the values in the array.
+     * 
+     * @param row the values that contain the key
+     * @return the row
+     */
+    public Value[] readRow(Value[] row) throws SQLException {
         StringBuffer buff = new StringBuffer();
         buff.append("SELECT ");
         appendColumnList(buff, false);

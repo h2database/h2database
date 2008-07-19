@@ -14,9 +14,10 @@ Roadmap
 <table class="content"><tr class="content"><td class="content"><div class="contentDiv">
 
 <h1>Roadmap</h1>
-
+<p>
 New (feature) requests will usually be added at the very end of the list. The priority is increased for important and popular requests.
 Of course, patches are always welcome, but are not always applied as is. Patches should include test cases and documentation.
+</p>
 
 <h2>In Version 1.1</h2>
 <ul>
@@ -175,7 +176,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility)
 </li><li>Backup tool should work with other databases as well
 </li><li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs
-</li><li>Improved full text search (supports LOBs, reader / tokenizer / filter).
+</li><li>Improved fulltext search (supports LOBs, reader / tokenizer / filter).
 </li><li>Performance: Update in-place
 </li><li>Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess)
 </li><li>Java static code analysis: http://pmd.sourceforge.net/
@@ -193,7 +194,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support linked JCR tables
 </li><li>Make sure H2 is supported by Execute Query: http://executequery.org/
 </li><li>Read InputStream when executing, as late as possible (maybe only embedded mode). Problem with re-execute.
-</li><li>Full text search: min word length; store word positions
+</li><li>Fulltext search: min word length; store word positions
 </li><li>FTP Server: Implement a client to send / receive files to server (dir, get, put)
 </li><li>FTP Server: Implement SFTP / FTPS
 </li><li>Add an option to the SCRIPT command to generate only portable / standard SQL
@@ -372,6 +373,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support to assign a primary key index a user defined name.
 </li><li>Cluster: Add feature to make sure cluster nodes can not get out of sync (for example by stopping one process).
 </li><li>H2 Console: support configuration option for fixed width (monospace) font.
+</li><li>Native fulltext search: support analyzers (specially for Chinese, Japanese)
 </li></ul>
 
 <h2>Not Planned</h2>

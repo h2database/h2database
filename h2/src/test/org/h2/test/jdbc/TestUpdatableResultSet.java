@@ -30,6 +30,31 @@ public class TestUpdatableResultSet extends TestBase {
         testScroll();
         testUpdateDeleteInsert();
         testUpdateDataType();
+        testUpdateResetRead();
+    }
+    
+    private void testUpdateResetRead() throws Exception {
+        deleteDb("updatableResultSet");
+        Connection conn = getConnection("updatableResultSet");
+        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+        stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
+        stat.execute("INSERT INTO TEST VALUES(2, 'World')");
+        ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
+        rs.next();
+        rs.updateInt(1, 10);
+        rs.updateRow();
+        rs.next();
+        rs.updateString(2, "Welt");
+        rs.updateRow();
+        rs.beforeFirst();
+        rs.next();
+        assertEquals(10, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
+        rs.next();
+        assertEquals(2, rs.getInt(1));
+        assertEquals("Welt", rs.getString(2));
+        conn.close();
     }
 
     private void testScroll() throws Exception {

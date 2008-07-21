@@ -31,6 +31,8 @@ Frequently Asked Questions
     What is the Size Limit (Maximum Size) of a Database?</a><br />
 <a href="#reliable">
     Is it Reliable?</a><br />
+<a href="#slow_open">
+    Why is Opening my Database Slow?</a><br />
 <a href="#gcj">
     Is the GCJ Version Stable? Faster?</a><br />
 <a href="#translate">
@@ -157,6 +159,25 @@ Areas considered Experimental:
 </li><li>Compatibility modes for other databases (only some features are implemented)
 </li><li>The ARRAY data type and related functionality
 </li></ul>
+
+<br /><a name="slow_open"></a>
+<h3>Why is Opening my Database Slow?</h3>
+<p>
+If it takes a long time to open a database, in most cases it was not closed the last time.
+This is specially a problem for larger databases.
+To close a database, close all connections to it before the application ends, or execute
+the command SHUTDOWN. The database is also closed when the virtual machine exits normally 
+by using a shutdown hook. However killing a Java process or calling Runtime.halt will prevent this.
+</p>
+<p>
+To find out what the problem is, open the database in embedded mode using the H2 Console. 
+This will print progress information. If you have many 'Creating index' lines it is an indication that the 
+database was not closed the last time. 
+</p>
+<p>
+Other possible reasons are: the database is very big (many GB), or contains linked tables
+that are slow to open.
+</p>
 
 <br /><a name="gcj"></a>
 <h3>Is the GCJ Version Stable? Faster?</h3>

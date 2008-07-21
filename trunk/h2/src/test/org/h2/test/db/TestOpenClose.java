@@ -164,7 +164,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
             break;
         case STATE_CREATE_INDEX:
             stateName = "Create Index " + name + " " + current + "/" + max;
-            if (!"SYS".equals(name)) {
+            if (!"SYS:SYS_ID".equals(name)) {
                 throw new Error("unexpected: " + stateName);
             }
             break;

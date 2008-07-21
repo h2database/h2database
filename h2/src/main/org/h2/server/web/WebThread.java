@@ -1115,16 +1115,16 @@ class WebThread extends Thread implements DatabaseEventListener {
             }
 
             public void setProgress(int state, String name, int x, int max) {
-                name = PageParser.escapeHtml(name);
                 if (state == listenerLastState) {
                     long time = System.currentTimeMillis();
-                    if (listenerLastEvent + 500 < time) {
+                    if (time < listenerLastEvent + 1000) {
                         return;
                     }
                     listenerLastEvent = time;
                 } else {
                     listenerLastState = state;
                 }
+                name = PageParser.escapeHtml(name);
                 switch (state) {
                 case DatabaseEventListener.STATE_BACKUP_FILE:
                     log("Backing up " + name + " " + (100L * x / max) + "%");

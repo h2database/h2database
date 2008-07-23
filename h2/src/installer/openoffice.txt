@@ -1,0 +1,368 @@
+REM  *****  BASIC  *****
+
+Sub Main
+	H2Pdf
+End Sub
+
+sub H2Pdf
+
+	Url = "file:///C:/data/h2database/h2/docs/html/onePage.html"
+
+	dim FileProperties(1) As New com.sun.star.beans.PropertyValue
+	FileProperties(0).Name = "FilterName"
+	FileProperties(0).Value = "HTML (StarWriter)"
+	FileProperties(1).Name = "UpdateDocMode"
+	FileProperties(1).Value = 3 'full update 
+	document = StarDesktop.loadComponentFromURL(Url, "_blank", 0, FileProperties)
+
+	docs = ThisComponent.CurrentController.Frame
+	dispatcher = createUnoService("com.sun.star.frame.DispatchHelper")
+	dispatcher.executeDispatch(docs, ".uno:UpdateAll", "", 0, Array())
+	
+	StyleFamilies = document.StyleFamilies
+	
+	ParagraphStyles = StyleFamilies.getByName("ParagraphStyles")
+	BodyStyle = ParagraphStyles.getByName("Text body")
+	BodyStyle.ParaOrphans = 2
+	BodyStyle.ParaWidows = 2
+	
+	rem dim args1(2) as new com.sun.star.beans.PropertyValue
+	rem args1(0).Name = "Template"
+	rem args1(0).Value = "Text body"
+	rem args1(1).Name = "ParaOrphans"
+	rem args1(1).Value = 2 	
+	rem args1(2).Name = "ParaWidows"
+	rem args1(2).Value = 2 	
+	rem dispatcher.executeDispatch(docs, ".uno:StyleApply", "", 0, args1())
+	
+	dim args1(0) as new com.sun.star.beans.PropertyValue
+	args1(0).Name = "Param"
+	args1(0).Value = "Text body"
+	dispatcher.executeDispatch(docs, ".uno:EditStyle", "", 0, args1())
+	MsgBox "OK"
+	rem wait 2000
+	
+	HeadingStyle = ParagraphStyles.getByName("Heading 1")
+	HeadingStyle.BreakType = 3 ' Insert Page Break Before
+	HeadingStyle.ParaKeepTogether = false
+	
+	dim args2(0) as new com.sun.star.beans.PropertyValue
+	args2(0).Name = "Param"
+	args2(0).Value = "Heading 1"
+	dispatcher.executeDispatch(docs, ".uno:EditStyle", "", 0, args2())
+	MsgBox "OK"
+	rem wait 2000
+
+	rem Dim args2(2) as new com.sun.star.beans.PropertyValue
+	rem args2(0).Name = "Template"
+	rem args2(0).Value = "Heading 1"
+	rem args2(1).Name = "BreakType"
+	rem args2(1).Value = 3	
+	rem args2(2).Name = "ParaKeepTogether"
+	rem args2(2).Value = false 	
+	rem dispatcher.executeDispatch(docs, ".uno:StyleApply", "", 0, args2())
+	
+	images = document.GraphicObjects
+	For i = 0 to images.getCount() - 1
+    	image = images.getByIndex(i)
+    	if image.Size.Width <> image.ActualSize.Width or image.Size.Height <> image.ActualSize.Height then
+	    	image.Size.Width = image.ActualSize.Width
+    		image.Size.Height = image.ActualSize.Height
+    		rem msgbox "update"
+		 	wait 1000
+    	end if
+	Next
+	dispatcher.executeDispatch(docs, ".uno:UpdateAll", "", 0, Array())
+ 	
+
+	
+	rem ----------------------------------------------------------------------
+	PageStyles = StyleFamilies.getByName("PageStyles")
+	
+	Standard = PageStyles.getByName("HTML")
+	Standard.FooterIsOn = True
+	
+	dispatcher.executeDispatch(docs, ".uno:UpdateAll", "", 0, Array())
+	
+	oText = Standard.FooterText  
+	oText.setString("")
+	PageNumber = document.createInstance("com.sun.star.text.TextField.PageNumber") 
+	PageNumber.NumberingType = 4 ' magic constant: 4=Arabic numbers
+	PageNumber.SubType = 1 ' magic constant: use current page number
+
+	PageCount = document.createInstance("com.sun.star.text.TextField.PageCount") 
+	PageCount.NumberingType = 4 ' magic constant: 4=Arabic numbers
+
+	FooterCursor = oText.Text.createTextCursor() 
+ 	oText.insertString(FooterCursor, Chr(09)& Chr(09) & "Page ", False)
+ 	oText.insertTextContent(FooterCursor, PageNumber, False)
+ 	oText.insertString(FooterCursor, " of ", False)
+ 	oText.insertTextContent(FooterCursor, PageCount, False)
+
+	Cursor = document.Text.createTextCursor()
+	Cursor.gotoStart(false)
+	document.Text.insertString(Cursor, "H2 Database Engine", False)
+	document.Text.insertControlCharacter(Cursor, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, False)
+	Cursor.ParaStyleName = "Text body"
+	document.Text.insertString(Cursor, "Version 1.0.76 (2008-08-02)", False)
+	document.Text.insertControlCharacter(Cursor, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, False)
+	Cursor.BreakType = 4 ' Insert Page Break After
+	document.Text.insertControlCharacter(Cursor, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, False)
+	Cursor.ParaStyleName = "Heading 1"
+	
+	dispatcher.executeDispatch(docs, ".uno:UpdateAll", "", 0, Array())
+	
+	toc = document.createInstance("com.sun.star.text.ContentIndex")
+	toc.Title= "Table of Contents" 
+	toc.CreateFromOutline = True 
+	toc.Level = 4
+	toc.IsProtected = false 
+	document.Text.insertTextContent(Cursor, toc, false)
+
+	Cursor.ParaStyleName = "Text body"
+	Cursor.BreakType = 4 ' Insert Page Break After
+	document.Text.insertControlCharacter(Cursor, com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, False)
+	Cursor.ParaStyleName = "Heading 1"
+
+	rem MsgBox toc.ParaStyleLevel1
+	rem MsgBox toc.ParaStyleLevel2
+	rem MsgBox toc.ParaStyleLevel3
+	rem MsgBox toc.ParaStyleLevel4
+	rem "Content 1"
+	
+	dim linkStart(0) As New com.sun.star.beans.PropertyValue
+	dim linkEnd(0) As New com.sun.star.beans.PropertyValue
+	
+	For i = 1 To 4
+    	oLevel = toc.LevelFormat.getByIndex(i)
+
+		iCount = UBound(oLevel) 
+
+		rem Dim newFormat(iCount + 2) As new com.sun.star.beans.PropertyValue 
+
+		rem Dim newFormat(iCount + 2) As new com.sun.star.beans.PropertyValue 
+		
+		x = DimArray(5)
+rem 		x = CreateUnoStruct("[][]com.sun.star.beans.PropertyValue")
+rem 		x(0) = CreateUnoStruct("[]com.sun.star.beans.PropertyValue")
+		x = Array(linkStart, oLevel(0), oLevel(1), oLevel(2), oLevel(3), linkEnd)
+		old = oLevel(0)
+		
+rem		ReDim linkStart(1) As New com.sun.star.beans.PropertyValue
+rem  	ReDim linkEnd(1) As New com.sun.star.beans.PropertyValue
+		
+        linkStart(0).Name = "TokenType"
+        linkStart(0).Value = "TokenHyperlinkStart"
+        linkStart(0).Handle = -1
+        linkStart(0).State = com.sun.star.beans.PropertyState.DIRECT_VALUE 
+rem 		linkStart(1).Name = old(0).Name
+rem 		linkStart(1).Value = old(0).Value
+rem 		linkStart(1).Handle = old(0).Handle
+rem 		linkStart(1).State = old(0).State
+		
+	    linkEnd(0).Name = "TokenType"
+        linkEnd(0).Value = "TokenHyperlinkEnd"
+        linkEnd(0).Handle = -1
+        linkEnd(0).State = com.sun.star.beans.PropertyState.DIRECT_VALUE 
+rem 		linkEnd(1).Name = old(0).Name
+rem 		linkEnd(1).Value = old(0).Value
+rem 		linkEnd(1).Handle = old(0).Handle
+rem 		linkEnd(1).State = old(0).State
+ 		
+rem 		For j = 0 To iCount
+rem 			a = oLevel(j)
+rem			newFormat(j + 1, 0) = a(0)
+rem			newFormat(j + 1, 1) = a(1)
+rem            newFormat(j + 1, 0) = CreateUnoStruct("com.sun.star.beans.PropertyValue")
+rem            newFormat(j + 1, 0).Name = oLevel(j).Name
+rem            newFormat(j + 1).Value = oLevel(j).Value
+rem            newFormat(j + 1).Handle = oLevel(j).Handle
+rem            newFormat(j + 1).State = oLevel(j).State
+rem		Next 
+        
+rem 		newFormat(iCount + 2, 0) = CreateUnoStruct("com.sun.star.beans.PropertyValue")
+rem        newFormat(iCount + 2, 0).Name = "TokenType"
+rem        newFormat(iCount + 2, 0).Value = "TokenHyperlinkEnd"
+rem        newFormat(iCount + 2, 0).Handle = -1
+rem        newFormat(iCount + 2, 0).State = com.sun.star.beans.PropertyState.DIRECT_VALUE 
+rem        a = oLevel(1)
+rem        newFormat(iCount + 2, 1) = a(1)
+		
+		
+		rem oProperties = CreateUnoStruct("[]com.sun.star.beans.PropertyValue")
+		rem oProperties.Set "[]com.sun.star.beans.PropertyValue", newFormat
+    	
+    	rem toc.LevelFormat.replaceByIndex(i, oLevel) 
+        
+        toc.LevelFormat.replaceByIndex(i, x) 
+        
+ 	next
+ 	
+	dispatcher.executeDispatch(docs, ".uno:UpdateAll", "", 0, Array())
+	toc.update()
+	dispatcher.executeDispatch(docs, ".uno:UpdateAll", "", 0, Array())
+ 	toc.update()
+	dispatcher.executeDispatch(docs, ".uno:UpdateAll", "", 0, Array())
+	
+	dim pdfurl as string
+	pdfurl =  "file:///C:/data/h2database/h2web/h2.pdf"
+
+	dim pdfProperties(1) as new com.sun.star.beans.PropertyValue
+	pdfProperties(0).Name = "FilterName"
+	pdfProperties(0).Value = "writer_pdf_Export"
+	document.storeToURL(pdfurl, pdfProperties()) 	
+	
+end sub
+
+
+sub Other
+
+	rem ----------------------------------------------------------------------
+	dispatcher = createUnoService("com.sun.star.frame.DispatchHelper")
+
+rem FooterCursor = Standard.FooterTextRight.Text.createTextCursor() 
+rem Standard.FooterTextRight.Text.insertTextContent(FooterCursor, PageNumber, False)
+
+rem ----------------------------------------------------------------------
+dim args3(0) as new com.sun.star.beans.PropertyValue
+args3(0).Name = "DesignerDialog"
+args3(0).Value = true
+
+dispatcher.executeDispatch(document, ".uno:DesignerDialog", "", 0, args3())
+
+rem ----------------------------------------------------------------------
+dim args4(1) as new com.sun.star.beans.PropertyValue
+args4(0).Name = "Param"
+args4(0).Value = "Heading 1"
+args4(1).Name = "Family"
+args4(1).Value = 2
+
+dispatcher.executeDispatch(document, ".uno:EditStyle", "", 0, args4())
+
+rem ----------------------------------------------------------------------
+dim args5(1) as new com.sun.star.beans.PropertyValue
+args5(0).Name = "Param"
+args5(0).Value = "Text body"
+args5(1).Name = "Family"
+args5(1).Value = 2
+
+dispatcher.executeDispatch(document, ".uno:EditStyle", "", 0, args5())
+
+rem ----------------------------------------------------------------------
+dispatcher.executeDispatch(document, ".uno:InsertPageNumberField", "", 0, Array())
+
+rem ----------------------------------------------------------------------
+dispatcher.executeDispatch(document, ".uno:InsertPageCountField", "", 0, Array())
+
+rem ----------------------------------------------------------------------
+dim args8(0) as new com.sun.star.beans.PropertyValue
+args8(0).Name = "DesignerDialog"
+args8(0).Value = false
+
+dispatcher.executeDispatch(document, ".uno:DesignerDialog", "", 0, args8())
+
+rem ----------------------------------------------------------------------
+dispatcher.executeDispatch(document, ".uno:InsertPagebreak", "", 0, Array())
+
+rem ----------------------------------------------------------------------
+dispatcher.executeDispatch(document, ".uno:GoUp", "", 0, Array())
+
+rem ----------------------------------------------------------------------
+dispatcher.executeDispatch(document, ".uno:SwBackspace", "", 0, Array())
+
+rem ----------------------------------------------------------------------
+dispatcher.executeDispatch(document, ".uno:SwBackspace", "", 0, Array())
+
+rem ----------------------------------------------------------------------
+dispatcher.executeDispatch(document, ".uno:SwBackspace", "", 0, Array())
+
+rem ----------------------------------------------------------------------
+dispatcher.executeDispatch(document, ".uno:SwBackspace", "", 0, Array())
+
+rem ----------------------------------------------------------------------
+dispatcher.executeDispatch(document, ".uno:SwBackspace", "", 0, Array())
+
+rem ----------------------------------------------------------------------
+dispatcher.executeDispatch(document, ".uno:SwBackspace", "", 0, Array())
+
+rem ----------------------------------------------------------------------
+dispatcher.executeDispatch(document, ".uno:SwBackspace", "", 0, Array())
+
+rem ----------------------------------------------------------------------
+dispatcher.executeDispatch(document, ".uno:InsertPagebreak", "", 0, Array())
+
+rem ----------------------------------------------------------------------
+rem dispatcher.executeDispatch(document, ".uno:InsertMultiIndex", "", 0, Array())
+
+rem ----------------------------------------------------------------------
+
+rem ----------------------------------------------------------------------
+
+end sub
+
+sub Footer
+	oDoc = ThisComponent
+	oStyles = oDoc.getStyleFamilies
+	oPS = oStyles.getByName("PageStyles")
+	Stan = oPS.getByName("HTML")
+	Stan.FooterIsOn = True
+	oText = Stan.FooterText  
+	oText.setString("")
+	PageNumber = oDoc.createInstance("com.sun.star.text.TextField.PageNumber") 
+	PageNumber.NumberingType = 4
+	PageCount = oDoc.createInstance("com.sun.star.text.TextField.PageCount") 
+	PageCount.NumberingType = 4
+
+	FooterCursor = oText.Text.createTextCursor() 
+ 	oText.insertString(FooterCursor, "Page ", False)
+ 	oText.insertTextContent(FooterCursor, PageNumber, False)
+ 	oText.insertString(FooterCursor, " of ", False)
+ 	oText.insertTextContent(FooterCursor, PageCount, False)
+	MsgBox "End"
+end sub
+
+sub Test
+	MsgBox "hallo"
+	rem ----------------------------------------------------------------------
+	rem define variables
+	dim document   as object
+	dim dispatcher as object
+	dim FileProperties(0) As New com.sun.star.beans.PropertyValue
+	dim Url As String
+	dim StyleFamilies As Object 
+	dim PageProperties as object
+	dim Standard as Object
+	dim PageNumber as Object
+	dim HContent as Object
+	dim HText as Object
+	dim MyPageStyle as object
+end sub
+
+
+sub Upate
+rem ----------------------------------------------------------------------
+rem define variables
+dim document   as object
+dim dispatcher as object
+rem ----------------------------------------------------------------------
+rem get access to the document
+document   = ThisComponent.CurrentController.Frame
+
+
+end sub
+
+
+sub Test2
+rem ----------------------------------------------------------------------
+rem define variables
+dim document   as object
+dim dispatcher as object
+rem ----------------------------------------------------------------------
+rem get access to the document
+document   = ThisComponent.CurrentController.Frame
+dispatcher = createUnoService("com.sun.star.frame.DispatchHelper")
+
+rem ----------------------------------------------------------------------
+
+
+end sub

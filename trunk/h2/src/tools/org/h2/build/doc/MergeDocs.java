@@ -11,6 +11,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
+import org.h2.engine.Constants;
 import org.h2.util.StringUtils;
 
 /**
@@ -52,6 +53,8 @@ public class MergeDocs {
         writer.println("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" /><title>");
         writer.println("H2 Documentation");
         writer.println("</title><link rel=\"stylesheet\" type=\"text/css\" href=\"stylesheetPdf.css\" /></head><body>");
+        writer.println("<h1>H2 Database Engine</h1>");
+        writer.println("<p>Version " + Constants.getFullVersion() + "</p>");
         writer.println(finalText);
         writer.println("</body></html>");
         writer.close();

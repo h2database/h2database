@@ -391,7 +391,7 @@ public class DbContextRule implements Rule {
             return null;
         }
         String alias = up.substring(0, i);
-        if (Parser.isKeyword(alias)) {
+        if (Parser.isKeyword(alias, true)) {
             return null;
         }
         return query.substring(alias.length());
@@ -414,7 +414,7 @@ public class DbContextRule implements Rule {
             return null;
         }
         String alias = up.substring(0, i);
-        if (Parser.isKeyword(alias)) {
+        if (Parser.isKeyword(alias, true)) {
             return null;
         }
         if (add) {

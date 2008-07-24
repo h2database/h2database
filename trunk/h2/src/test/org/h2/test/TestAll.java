@@ -270,6 +270,18 @@ java org.h2.test.TestAll timer
 
 /*
 
+drop table test;
+create table test(a int);
+insert into test values(1);
+insert into test values(2);
+select -test.a a from test order by test.a; 
+select -test.a from test order by test.a;
+select -test.a aa from test order by a;
+select -test.a aa from test order by aa;
+select -test.a a from test order by test.a;
+select -test.a a from test order by a;
+
+
 drop all objects;
 create domain email as varchar;
 create table test(e email);
@@ -289,7 +301,14 @@ https://bugs.eclipse.org/bugs/show_bug.cgi?id=137701
 
 Support large updates (use the transaction log to undo).
 
+H2 Console: support single file upload and directory download (optional)
+
 document FTL_SEARCH, FTL_SEARCH_DATA
+
+find quote:
+You can't make a system that will not lose data, you can only make 
+a system that knows the last save point of 100% integrity. There are 
+too many variables and too much randomness on a cold hard power failure. 
 
 JaQu
 

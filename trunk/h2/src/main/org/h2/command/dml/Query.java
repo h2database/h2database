@@ -267,7 +267,7 @@ public abstract class Query extends Prepared {
             int idx = expressions.size();
             if (e instanceof ExpressionColumn) {
                 ExpressionColumn exprCol = (ExpressionColumn) e;
-                String alias = exprCol.getOriginalAliasName();
+                String tableAlias = exprCol.getOriginalTableAliasName();
                 String col = exprCol.getOriginalColumnName();
                 for (int j = 0; j < visible; j++) {
                     boolean found = false;
@@ -275,15 +275,15 @@ public abstract class Query extends Prepared {
                     if (ec instanceof ExpressionColumn) {
                         ExpressionColumn c = (ExpressionColumn) ec;
                         found = col.equals(c.getColumnName());
-                        if (alias != null && found) {
-                            String ca = c.getOriginalAliasName();
+                        if (tableAlias != null && found) {
+                            String ca = c.getOriginalTableAliasName();
                             if (ca != null) {
-                                found = alias.equals(ca);
+                                found = tableAlias.equals(ca);
                             }
                         }
                     } else if (!(ec instanceof Alias)) {
                         continue;
-                    } else if (col.equals(ec.getAlias())) {
+                    } else if (tableAlias == null && col.equals(ec.getAlias())) {
                         found = true;
                     } else {
                         Expression ec2 = ec.getNonAliasExpression();

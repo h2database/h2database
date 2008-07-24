@@ -1,4 +1,48 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(a int);
+> ok
+
+insert into test values(1), (2);
+> update count: 2
+
+select -test.a a from test order by test.a;
+> A
+> --
+> -1
+> -2
+> rows (ordered): 2
+
+select -test.a from test order by test.a;
+> - TEST.A
+> --------
+> -1
+> -2
+> rows (ordered): 2
+
+select -test.a aa from test order by a;
+> AA
+> --
+> -1
+> -2
+> rows (ordered): 2
+
+select -test.a aa from test order by aa;
+> AA
+> --
+> -2
+> -1
+> rows (ordered): 2
+
+select -test.a a from test order by a;
+> A
+> --
+> -2
+> -1
+> rows (ordered): 2
+
+drop table test;
+> ok
+
 CREATE TABLE table_a(a_id INT PRIMARY KEY, left_id INT, right_id INT);
 > ok
 

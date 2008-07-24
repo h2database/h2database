@@ -7,58 +7,62 @@
 package org.h2.engine;
 
 /*
- * Release checklist
+ * Release checklist:
+ * 
  * - Test with Hibernate
  * - Run FindBugs
- * - build jarClient, check jar file size
- * - build jar, test with IKVM
- * - build javadocImpl
- * - Compile with JDK 1.6:
- *   java16
- *   build compile
- *   set classpath=
- *   build javadoc
- *   build javadocImpl (to find missing javadocs)
- * - reset to JDK 1.4
- *   build compile
- *   java16
- *   compile
- * - Change version and build number in
- *     Constants.java
+ * build jarClient
+ * - Check jar file size
+ * build jar
+ * build javadocImpl
+ * java16
+ * build compile
+ * set classpath=
+ * build javadoc
+ * build javadocImpl
+ * - Check if missing javadocs
+ * java14
+ * build compile
+ * java16
+ * compile
+ * - Change version and build number in Constants.java
  * - Maybe increase TCP_DRIVER_VERSION (old clients must be compatible!)
  * - Check code coverage
  * - No "  Message.get" (must be "throw Message.get")
  * - Check that is no TODO in the docs
  * - Run regression test with JDK 1.4 and 1.5
- * - Use latest versions of other dbs (Derby 10.4.1.3; 
- *      PostgreSQL 8.3.1; MySQL 5.0.51)
+ * - Use latest versions of other dbs
+ *     Derby 10.4.1.3
+ *     PostgreSQL 8.3.1
+ *     MySQL 5.0.51
  * - Change version(s) in performance.html
- * - Run 'build benchmark' (with JDK 1.4 currently)
+ * java14
+ * build benchmark
  * - Copy the benchmark results and update the performance page and diagram
  * - Documentation: check if all Javadoc files are in the index
  * - Update the changelog (add new version)
  * - Update the newsfeed
- * - build docs
+ * build docs
  * - Check dataWeb/index.html, versions and links in main, downloads, build
- * - PDF
- *      - footer
- *      - front page
- *      - orphan control
- *      - check images
- *      - table of contents
- * - Use java 1.4 
- * - build all
+ * soffice.exe -invisible macro:///Standard.Module1.H2Pdf
+ * - Check in the PDF file:
+ *     - footer
+ *     - front page
+ *     - orphan control
+ *     - check images
+ *     - table of contents
+ * java14
+ * build all
  * - Copy the pdf file to h2/docs
- * - build zip
- * - Windows installer (nsis)
+ * build zip
+ * makensis /v2 src/installer/h2.nsi
  * - Test Console
  * - Test all languages
  * - Scan for viruses
- * - build mavenDeployCentral
+ * build mavenDeployCentral
  * - Upload to SourceForge
- * - java16
- * - build compile
- * - refresh
+ * java16
+ * build compile
  * - svn commit
  * - svn copy: /svn/trunk /svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
  * - Newsletter: prepare (always to BCC!!)

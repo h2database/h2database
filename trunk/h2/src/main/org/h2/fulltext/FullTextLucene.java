@@ -314,7 +314,7 @@ implements Trigger, CloseListener
                     Parser p = new Parser(session);
                     String tab = q.substring(0, idx);
                     ExpressionColumn expr = (ExpressionColumn) p.parseExpression(tab);
-                    String schemaName = expr.getOriginalAliasName();
+                    String schemaName = expr.getOriginalTableAliasName();
                     String tableName = expr.getColumnName();
                     q = q.substring(idx + " WHERE ".length());
                     Object[][] columnData = parseKey(conn, q);

@@ -78,8 +78,8 @@ or by using Statement.setMaxRows(max).
 
 <h3>Large Result Sets and External Sorting</h3>
 <p>
-For result set larger than 1000 rows, the result is buffered to disk. If ORDER BY is used,
-the sorting is done using an external sort algorithm. In this case, each block of rows is sorted using
+For large result set, the result is buffered to disk. The threshold can be defined using the statement SET MAX_MEMORY_ROWS. 
+If ORDER BY is used, the sorting is done using an external sort algorithm. In this case, each block of rows is sorted using
 quick sort, then written to disk; when reading the data, the blocks are merged together.
 </p>
 

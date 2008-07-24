@@ -80,6 +80,12 @@ public class Mode {
      */
     public boolean uniqueIndexSingleNull;
 
+    /**
+     * If the syntax [OFFSET .. ROW] [FETCH ... ONLY] should be supported.
+     * This is an alternative syntax for LIMIT .. OFFSET.
+     */
+    public boolean supportOffsetFetch;
+
     private String name;
 
     static {

@@ -199,7 +199,7 @@ public class ExpressionColumn extends Expression {
         return columnName;
     }
 
-    public String getOriginalAliasName() {
+    public String getOriginalTableAliasName() {
         return tableAlias;
     }
 

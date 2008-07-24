@@ -1279,7 +1279,7 @@ public class Parser {
         Query command = parseSelectSub();
         return parseSelectUnionExtension(command, start, false);
     }
-
+    
     private Query parseSelectUnionExtension(Query command, int start, boolean unionOnly) throws SQLException {
         while (true) {
             if (readIf("UNION")) {
@@ -1306,7 +1306,15 @@ public class Parser {
                 break;
             }
         }
-        if (!unionOnly && readIf("ORDER")) {
+        if (!unionOnly) {
+            parseEndOfQuery(command);
+        }
+        setSQL(command, null, start);
+        return command;
+    }
+    
+    private void parseEndOfQuery(Query command) throws SQLException {
+        if (readIf("ORDER")) {
             read("BY");
             Select oldSelect = currentSelect;
             if (command instanceof Select) {
@@ -1346,7 +1354,34 @@ public class Parser {
             command.setOrder(orderList);
             currentSelect = oldSelect;
         }
-        if (!unionOnly && readIf("LIMIT")) {
+        int test;
+        if (database.getMode().supportOffsetFetch) {
+            if (readIf("OFFSET")) {
+                Select temp = currentSelect;
+                // make sure aggregate functions will not work here
+                currentSelect = null;
+                command.setOffset(readExpression().optimize(session));
+                if (!readIf("ROW")) {
+                    read("ROWS");
+                }
+                currentSelect = temp;
+            }
+            if (readIf("FETCH")) {
+                Select temp = currentSelect;
+                // make sure aggregate functions will not work here
+                currentSelect = null;
+                if (readIf("FIRST")) {
+                    Expression limit = readExpression().optimize(session);
+                    command.setLimit(limit);
+                    if (!readIf("ROW")) {
+                        read("ROWS");
+                    }
+                    readIf("ONLY");
+                }
+                currentSelect = temp;
+            }
+        }
+        if (readIf("LIMIT")) {
             Select temp = currentSelect;
             // make sure aggregate functions will not work here
             currentSelect = null;
@@ -1367,7 +1402,7 @@ public class Parser {
             }
             currentSelect = temp;
         }
-        if (!unionOnly && readIf("FOR")) {
+        if (readIf("FOR")) {
             if (readIf("UPDATE")) {
                 if (readIf("OF")) {
                     do {
@@ -1387,8 +1422,6 @@ public class Parser {
                 }
             }
         }
-        setSQL(command, null, start);
-        return command;
     }
 
     private Query parseSelectSub() throws SQLException {
@@ -2943,7 +2976,7 @@ public class Parser {
         if (len == 0) {
             throw getSyntaxError();
         }
-        return getSaveTokenType(s);
+        return getSaveTokenType(s, database.getMode().supportOffsetFetch);
     }
 
     /**
@@ -2952,14 +2985,14 @@ public class Parser {
      * @param s the token to check
      * @return true if it is a keyword
      */
-    public static boolean isKeyword(String s) {
+    public static boolean isKeyword(String s, boolean supportOffsetFetch) {
         if (s == null || s.length() == 0) {
             return false;
         }
-        return getSaveTokenType(s) != IDENTIFIER;
+        return getSaveTokenType(s, supportOffsetFetch) != IDENTIFIER;
     }
 
-    private static int getSaveTokenType(String s) {
+    private static int getSaveTokenType(String s, boolean supportOffsetFetch) {
         switch (s.charAt(0)) {
         case 'C':
             if (s.equals("CURRENT_TIMESTAMP")) {
@@ -2983,6 +3016,8 @@ public class Parser {
             } else if ("FOR".equals(s)) {
                 return KEYWORD;
             } else if ("FULL".equals(s)) {
+                return KEYWORD;
+            } else if (supportOffsetFetch && "FETCH".equals(s)) {
                 return KEYWORD;
             }
             return getKeywordOrIdentifier(s, "FALSE", FALSE);
@@ -3015,6 +3050,8 @@ public class Parser {
             return getKeywordOrIdentifier(s, "NULL", NULL);
         case 'O':
             if ("ON".equals(s)) {
+                return KEYWORD;
+            } else if (supportOffsetFetch && "OFFSET".equals(s)) {
                 return KEYWORD;
             }
             return getKeywordOrIdentifier(s, "ORDER", KEYWORD);
@@ -3476,7 +3513,7 @@ public class Parser {
         boolean ifNotExists = readIfNoExists();
         String constantName = readIdentifierWithSchema();
         Schema schema = getSchema();
-        if (isKeyword(constantName)) {
+        if (isKeyword(constantName, false)) {
             throw Message.getSQLException(ErrorCode.CONSTANT_ALREADY_EXISTS_1, constantName);
         }
         read("VALUE");
@@ -3493,7 +3530,7 @@ public class Parser {
         CreateAggregate command = new CreateAggregate(session);
         command.setForce(force);
         String name = readUniqueIdentifier();
-        if (isKeyword(name) || Function.getFunction(database, name) != null || Aggregate.getAggregateType(name) >= 0) {
+        if (isKeyword(name, false) || Function.getFunction(database, name) != null || Aggregate.getAggregateType(name) >= 0) {
             throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
         }
         command.setName(name);
@@ -3597,7 +3634,7 @@ public class Parser {
         CreateFunctionAlias command = new CreateFunctionAlias(session);
         command.setForce(force);
         String name = readUniqueIdentifier();
-        if (isKeyword(name) || Function.getFunction(database, name) != null || Aggregate.getAggregateType(name) >= 0) {
+        if (isKeyword(name, false) || Function.getFunction(database, name) != null || Aggregate.getAggregateType(name) >= 0) {
             throw Message.getSQLException(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
         }
         command.setAliasName(name);
@@ -4550,7 +4587,7 @@ public class Parser {
                 return StringUtils.quoteIdentifier(s);
             }
         }
-        if (Parser.isKeyword(s)) {
+        if (Parser.isKeyword(s, true)) {
             return StringUtils.quoteIdentifier(s);
         }
         return s;

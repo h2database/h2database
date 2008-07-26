@@ -32,6 +32,7 @@ public class TestMetaData extends TestBase {
         deleteDb("metaData");
         conn = getConnection("metaData");
 
+        testColumnLobMeta();
         testColumnMetaData();
         testColumnPrecision();
         testColumnDefault();
@@ -194,6 +195,20 @@ public class TestMetaData extends TestBase {
         conn.close();
         testTempTable();
 
+    }
+    
+    private void testColumnLobMeta() throws Exception {
+        Statement stat = conn.createStatement();
+        stat.executeUpdate("CREATE TABLE t (blob BLOB, clob CLOB)");
+        stat.execute("INSERT INTO t VALUES('', '')");
+        ResultSet rs = stat.executeQuery("SELECT blob,clob FROM t");
+        ResultSetMetaData rsmd = rs.getMetaData();
+        assertEquals("java.io.InputStream", rsmd.getColumnClassName(1));
+        assertEquals("java.io.Reader", rsmd.getColumnClassName(2));
+        rs.next();
+        assertEquals("java.io.ByteArrayInputStream", rs.getObject(1).getClass().getName());
+        assertEquals("java.io.BufferedReader", rs.getObject(2).getClass().getName());
+        stat.executeUpdate("DROP TABLE t");
     }
 
     private void testColumnMetaData() throws Exception {

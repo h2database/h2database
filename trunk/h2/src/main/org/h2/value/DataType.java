@@ -604,11 +604,11 @@ public class DataType {
             // "java.lang.String";
             return String.class.getName(); 
         case Value.BLOB:
-            // "java.sql.Blob";
-            return java.sql.Blob.class.getName(); 
+            // "java.io.InputStream";
+            return java.io.InputStream.class.getName(); 
         case Value.CLOB:
-            // "java.sql.Clob";
-            return java.sql.Clob.class.getName(); 
+            // "java.io.Reader";
+            return java.io.Reader.class.getName(); 
         case Value.DOUBLE:
             // "java.lang.Double";
             return Double.class.getName(); 

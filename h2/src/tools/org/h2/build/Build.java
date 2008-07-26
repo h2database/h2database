@@ -242,7 +242,7 @@ public class Build extends BuildBase {
         mkdir("docs/javadoc");
         javadoc(new String[] { "-sourcepath", "src/main", "org.h2.jdbc", "org.h2.jdbcx", 
                 "org.h2.tools", "org.h2.api", "org.h2.constant", 
-                "-doclet", "org.h2.build.doclet.Doclet" });
+                "-doclet", "org.h2.build.doclet.Doclet"});
         copy("docs/javadoc", getFiles("src/docsrc/javadoc"), "src/docsrc/javadoc");
     }        
     
@@ -250,8 +250,7 @@ public class Build extends BuildBase {
      * Create the Javadocs of the implementation.
      */
     public void javadocImpl() {
-        mkdir("docs/javadocImpl");
-
+        mkdir("docs/javadocImpl2");
         javadoc(new String[] {
                 "-sourcepath", "src/main" + File.pathSeparator + 
                 "src/test" + File.pathSeparator + "src/tools" , 
@@ -263,7 +262,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/servlet-api-2.4.jar" + 
                 File.pathSeparator + "ext/lucene-core-2.2.0.jar",
                 "-subpackages", "org.h2",
-                "-exclude", "org.h2.build.*,org.h2.dev.*" });
+                "-exclude", "org.h2.test.jaqu:org.h2.jaqu" });
 
         System.setProperty("h2.interfacesOnly", "false");
         System.setProperty("h2.destDir", "docs/javadocImpl");
@@ -274,6 +273,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/servlet-api-2.4.jar" + 
                 File.pathSeparator + "ext/lucene-core-2.2.0.jar",
                 "-subpackages", "org.h2",
+                "-exclude", "org.h2.test.jaqu:org.h2.jaqu",
                 "-package",
                 "-doclet", "org.h2.build.doclet.Doclet" });
         copy("docs/javadocImpl", getFiles("src/docsrc/javadoc"), "src/docsrc/javadoc");

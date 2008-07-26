@@ -6,8 +6,8 @@
  */
 package org.h2.test.jaqu;
 
-//## Java 1.5 begin ##
 import java.math.BigDecimal;
+//## Java 1.5 begin ##
 import java.util.List;
 
 import org.h2.jaqu.Db;
@@ -179,13 +179,13 @@ public class SamplesTest extends TestBase {
     /**
      * A result set class containing the product name and price.
      */
-//## Java 1.5 begin ##
     public static class ProductPrice {
         public String productName;
         public String category;
         public Double price;
     }
 
+//## Java 1.5 begin ##
     private void testAnonymousTypes3() throws Exception {
         
 //        var productInfos =
@@ -220,13 +220,13 @@ public class SamplesTest extends TestBase {
     /**
      * A result set class containing customer data and the order total.
      */    
-//## Java 1.5 begin ##
     public static class CustOrder {
         public String customerId;
         public Integer orderId;
         public BigDecimal total;
     }
     
+//## Java 1.5 begin ##
     private void testSelectManyCompoundFrom2() throws Exception {
         
 //        var orders =
@@ -280,18 +280,17 @@ public class SamplesTest extends TestBase {
         long count = db.from(new Product()).selectCount();
         assertEquals(77, count);
     }
-    
-  //## Java 1.5 end ##
+//## Java 1.5 end ##
 
     /**
      * A result set class containing product groups.
      */    
-//## Java 1.5 begin ##
     public static class ProductGroup {
         public String category;
         public Long productCount;
     }
     
+//## Java 1.5 begin ##
     private void testGroup() throws Exception {
         
 //      var orderGroups =

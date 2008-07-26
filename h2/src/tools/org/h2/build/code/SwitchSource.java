@@ -157,7 +157,7 @@ public class SwitchSource {
             File fileCopy = new File(name);
             fileNew.renameTo(fileCopy);
             fileBack.delete();
-            System.out.println(name);
+            // System.out.println(name);
         }
     }    
     

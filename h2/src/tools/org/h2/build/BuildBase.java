@@ -11,6 +11,7 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -79,6 +80,11 @@ public class BuildBase {
     protected PrintStream out = System.out;
     
     /**
+     * If output should be disabled.
+     */
+    protected boolean quiet;
+    
+    /**
      * This method should be called by the main method.
      * 
      * @param args the command line parameters
@@ -90,19 +96,23 @@ public class BuildBase {
         } else {
             for (int i = 0; i < args.length; i++) {
                 String a = args[i];
-                Method m = null;
-                try {
-                    m = getClass().getMethod(a, new Class[0]);
-                } catch (Exception e) {
-                    out.println("Unknown target: " + a);
-                    projectHelp();
-                    break;
+                if ("-quiet".equals(a)) {
+                    quiet = true;
+                } else {
+                    Method m = null;
+                    try {
+                        m = getClass().getMethod(a, new Class[0]);
+                    } catch (Exception e) {
+                        out.println("Unknown target: " + a);
+                        projectHelp();
+                        break;
+                    }
+                    println("Target: " + a);
+                    invoke(m, this, new Object[0]);
                 }
-                out.println("Target: " + a);
-                invoke(m, this, new Object[0]);
             }
         }
-        out.println("Done in " + (System.currentTimeMillis() - time) + " ms");
+        println("Done in " + (System.currentTimeMillis() - time) + " ms");
     }
     
     private Object invoke(Method m, Object instance, Object[] args) {
@@ -178,19 +188,19 @@ public class BuildBase {
      */
     protected int exec(String command, String[] args) {
         try {
-            out.print(command);
+            print(command);
             for (int i = 0; args != null && i < args.length; i++) {
-                out.print(" " + args[i]);
+                print(" " + args[i]);
             }
-            out.println();
+            println("");
             String[] cmdArray = new String[1 + (args == null ? 0 : args.length)];
             cmdArray[0] = command;
             if (args != null) {
                 System.arraycopy(args, 0, cmdArray, 1, args.length);
             }
             Process p = Runtime.getRuntime().exec(cmdArray);
-            copyInThread(p.getInputStream(), out);
-            copyInThread(p.getErrorStream(), out);
+            copyInThread(p.getInputStream(), quiet ? null : out);
+            copyInThread(p.getErrorStream(), quiet ? null : out);
             p.waitFor();
             return p.exitValue();
         } catch (Exception e) {
@@ -207,7 +217,9 @@ public class BuildBase {
                         if (x < 0) {
                             return;
                         }
-                        out.write(x);
+                        if (out != null) {
+                            out.write(x);
+                        }
                     }
                 } catch (Exception e) {
                     throw new Error("Error: " + e, e);
@@ -260,7 +272,7 @@ public class BuildBase {
     protected void copy(String targetDir, List files, String baseDir) {
         File target = new File(targetDir);
         File base = new File(baseDir);
-        out.println("Copying " + files.size() + " files to " + target.getPath());
+        println("Copying " + files.size() + " files to " + target.getPath());
         String basePath = base.getPath();
         for (int i = 0; i < files.size(); i++) {
             File f = (File) files.get(i);
@@ -271,6 +283,45 @@ public class BuildBase {
         }
     }
     
+    private PrintStream filter(PrintStream out, final String[] exclude) {
+        return new PrintStream(new FilterOutputStream(out) {
+            private ByteArrayOutputStream buff = new ByteArrayOutputStream();
+
+            public void write(byte[] b) throws IOException {
+                write(b, 0, b.length);
+            }
+
+            public void write(byte[] b, int off, int len) throws IOException {
+                for (int i = off; i < len; i++) {
+                    write(b[i]);
+                }
+            }
+
+            public void write(byte b) throws IOException {
+                buff.write(b);
+                if (b == '\n') {
+                    byte[] data = buff.toByteArray();
+                    String line = new String(data, "UTF-8");
+                    boolean print = true;
+                    for (int i = 0; i < exclude.length; i++) {
+                        if (line.startsWith(exclude[i])) {
+                            print = false;
+                            break;
+                        }
+                    }
+                    if (print) {
+                        out.write(data);
+                    }
+                    buff.reset();
+                }
+            }
+
+            public void close() throws IOException {
+                write('\n');
+            }
+        });
+    }
+    
     /**
      * Run a Javadoc task.
      * 
@@ -278,13 +329,25 @@ public class BuildBase {
      */
     protected void javadoc(String[] args) {
         int result;        
+        PrintStream old = System.out;
         try {
-            out.println("Javadoc");
+            println("Javadoc");
+            if (quiet) {
+                System.setOut(filter(System.out, new String[] {
+                        "Loading source files for package",
+                        "Constructing Javadoc information",
+                        "Generating ",
+                        "Standard Doclet",
+                        "Building "
+                }));
+            }
             Class clazz = Class.forName("com.sun.tools.javadoc.Main");
             Method execute = clazz.getMethod("execute", new Class[] { String[].class });
             result = ((Integer) invoke(execute, null, new Object[] { args })).intValue();
         } catch (Exception e) {
             result = exec("javadoc", args);
+        } finally {
+            System.setOut(old);
         }
         if (result != 0) {
             throw new Error("An error occurred");
@@ -328,7 +391,7 @@ public class BuildBase {
         targetFile.getAbsoluteFile().getParentFile().mkdirs();
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         try {
-            out.println("Downloading " + fileURL);
+            println("Downloading " + fileURL);
             URL url = new URL(fileURL);
             InputStream in = new BufferedInputStream(url.openStream());
             long last = System.currentTimeMillis();
@@ -336,7 +399,7 @@ public class BuildBase {
             while (true) {
                 long now = System.currentTimeMillis();
                 if (now > last + 1000) {
-                    out.println("Downloaded " + len + " bytes");
+                    println("Downloaded " + len + " bytes");
                     last = now;
                 }
                 int x = in.read();
@@ -353,7 +416,7 @@ public class BuildBase {
         byte[] data = buff.toByteArray();
         String got = getSHA1(data);
         if (sha1Checksum == null) {
-            out.println("SHA1 checksum: " + got);
+            println("SHA1 checksum: " + got);
         } else {
             
             if (!got.equals(sha1Checksum)) {
@@ -492,7 +555,7 @@ public class BuildBase {
      */
     protected void jar(String destFile, List files, String basePath) {
         long kb = zipOrJar(destFile, files, basePath, false, false, true);
-        out.println("Jar " + destFile + " (" + kb + " KB)");
+        println("Jar " + destFile + " (" + kb + " KB)");
     }
 
     /**
@@ -506,7 +569,7 @@ public class BuildBase {
      */
     protected void zip(String destFile, List files, String basePath, boolean storeOnly, boolean sortBySuffix) {
         long kb = zipOrJar(destFile, files, basePath, storeOnly, sortBySuffix, false);
-        out.println("Zip " + destFile + " (" + kb + " KB)");
+        println("Zip " + destFile + " (" + kb + " KB)");
     }
 
     private long zipOrJar(String destFile, List files, String basePath, boolean storeOnly, boolean sortBySuffix, boolean jar) {
@@ -585,13 +648,19 @@ public class BuildBase {
      * @param files the file list
      */
     protected void javac(String[] args, FileList files) {
-        out.println("Compiling " + files.size() + " classes");
+        println("Compiling " + files.size() + " classes");
         ArrayList argList = new ArrayList(Arrays.asList(args));
         argList.addAll(getPaths(filterFiles(files, true, ".java")));
         args = new String[argList.size()];
         argList.toArray(args);
         int result;
+        PrintStream old = System.err;
         try {
+            if (quiet) {
+                System.setErr(filter(System.err, new String[] {
+                        "Note:"
+                }));
+            }
             Class clazz = Class.forName("com.sun.tools.javac.Main");
             Method compile = clazz.getMethod("compile", new Class[] { String[].class });
             Object instance = clazz.newInstance();
@@ -599,6 +668,8 @@ public class BuildBase {
         } catch (Exception e) {
             e.printStackTrace();
             result = exec("javac", args);
+        } finally {
+            System.setErr(old);
         }
         if (result != 0) {
             throw new Error("An error occurred");
@@ -612,7 +683,7 @@ public class BuildBase {
      * @param args the command line parameters to pass
      */
     protected void java(String className, String[] args) {
-        out.println("Running " + className);
+        println("Running " + className);
         if (args == null) {
             args = new String[0];
         }
@@ -648,7 +719,7 @@ public class BuildBase {
      * @param dir the name of the directory
      */
     protected void delete(String dir) {
-        out.println("Deleting " + dir);
+        println("Deleting " + dir);
         delete(new File(dir));
     }
     
@@ -686,4 +757,27 @@ public class BuildBase {
             index = next + after.length();
         }
     }
+    
+    /**
+     * Print a line to the output unless the quiet mode is enabled.
+     * 
+     * @param s the text to write
+     */
+    protected void println(String s) {
+        if (!quiet) {
+            out.println(s);
+        }
+    }
+    
+    /**
+     * Print a message to the output unless the quiet mode is enabled.
+     * 
+     * @param s the message to write
+     */
+    protected void print(String s) {
+        if (!quiet) {
+            out.print(s);
+        }
+    }
+
 }

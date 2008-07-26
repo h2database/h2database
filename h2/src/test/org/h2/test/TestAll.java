@@ -270,6 +270,13 @@ java org.h2.test.TestAll timer
 
 /*
 
+H2 databases need to have a file name prefix. 
+Probably the database should throw a meaningful exception 
+if the last element in the URL path is a slash (or backslash). 
+I will try to implement that for the next release.
+
+Improved compatibility with DB2: support for FETCH .. ROWS
+
 drop table test;
 create table test(a int);
 insert into test values(1);

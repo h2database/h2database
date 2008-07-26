@@ -1355,32 +1355,32 @@ public class Parser {
             currentSelect = oldSelect;
         }
         int test;
-        if (database.getMode().supportOffsetFetch) {
-            if (readIf("OFFSET")) {
-                Select temp = currentSelect;
-                // make sure aggregate functions will not work here
-                currentSelect = null;
-                command.setOffset(readExpression().optimize(session));
-                if (!readIf("ROW")) {
-                    read("ROWS");
-                }
-                currentSelect = temp;
-            }
-            if (readIf("FETCH")) {
-                Select temp = currentSelect;
-                // make sure aggregate functions will not work here
-                currentSelect = null;
-                if (readIf("FIRST")) {
-                    Expression limit = readExpression().optimize(session);
-                    command.setLimit(limit);
-                    if (!readIf("ROW")) {
-                        read("ROWS");
-                    }
-                    readIf("ONLY");
-                }
-                currentSelect = temp;
-            }
-        }
+//        if (database.getMode().supportOffsetFetch) {
+//            if (readIf("OFFSET")) {
+//                Select temp = currentSelect;
+//                // make sure aggregate functions will not work here
+//                currentSelect = null;
+//                command.setOffset(readExpression().optimize(session));
+//                if (!readIf("ROW")) {
+//                    read("ROWS");
+//                }
+//                currentSelect = temp;
+//            }
+//            if (readIf("FETCH")) {
+//                Select temp = currentSelect;
+//                // make sure aggregate functions will not work here
+//                currentSelect = null;
+//                if (readIf("FIRST")) {
+//                    Expression limit = readExpression().optimize(session);
+//                    command.setLimit(limit);
+//                    if (!readIf("ROW")) {
+//                        read("ROWS");
+//                    }
+//                    readIf("ONLY");
+//                }
+//                currentSelect = temp;
+//            }
+//        }
         if (readIf("LIMIT")) {
             Select temp = currentSelect;
             // make sure aggregate functions will not work here

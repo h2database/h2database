@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
+import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.message.Trace;
@@ -248,8 +249,18 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     public boolean containsNullAndAllowMultipleNull(Session session, Row newRow) {
-        if (session.getDatabase().getMode().uniqueIndexSingleNull) {
+        Mode mode = session.getDatabase().getMode();
+        if (mode.uniqueIndexSingleNull) {
             return false;
+        } else if (mode.uniqueIndexSingleNullExceptAllColumnsAreNull) {
+            for (int i = 0; i < columns.length; i++) {
+                int index = columnIds[i];
+                Value v = newRow.getValue(index);
+                if (v != ValueNull.INSTANCE) {
+                    return false;
+                }
+            }
+            return true;
         }
         for (int i = 0; i < columns.length; i++) {
             int index = columnIds[i];

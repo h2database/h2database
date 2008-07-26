@@ -25,6 +25,7 @@ public class TestCompatibility extends TestBase {
         conn = getConnection("compatibility");
 
         testUniqueIndexSingleNull();
+        testUniqueIndexOracle();
         testHsqlDb();
         testMySQL();
 
@@ -49,6 +50,30 @@ public class TestCompatibility extends TestBase {
             }
             stat.execute("DROP TABLE TEST");
         }
+    }
+
+    private void testUniqueIndexOracle() throws Exception {
+        Statement stat = conn.createStatement();
+        stat.execute("SET MODE ORACLE");
+        stat.execute("create table t2(c1 int, c2 int)");
+        stat.execute("create unique index i2 on t2(c1, c2)");
+        stat.execute("insert into t2 values (null, 1)");
+        try {
+            stat.execute("insert into t2 values (null, 1)");
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        stat.execute("insert into t2 values (null, null)");
+        stat.execute("insert into t2 values (null, null)");
+        stat.execute("insert into t2 values (1, null)");
+        try {
+            stat.execute("insert into t2 values (1, null)");
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        stat.execute("DROP TABLE T2");
     }
 
     private void testHsqlDb() throws Exception {

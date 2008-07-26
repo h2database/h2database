@@ -81,6 +81,13 @@ public class Mode {
     public boolean uniqueIndexSingleNull;
 
     /**
+     * When using unique indexes, multiple rows with NULL in all columns
+     * are allowed, however it is not allowed to have multiple rows with the
+     * same values otherwise. This is how Oracle works.
+     */
+    public boolean uniqueIndexSingleNullExceptAllColumnsAreNull;
+
+    /**
      * If the syntax [OFFSET .. ROW] [FETCH ... ONLY] should be supported.
      * This is an alternative syntax for LIMIT .. OFFSET.
      */
@@ -121,6 +128,10 @@ public class Mode {
         add(mode);
 
         mode = new Mode("Oracle");
+        mode.uniqueIndexSingleNullExceptAllColumnsAreNull = true;
+        add(mode);
+
+        mode = new Mode("DB2");
         add(mode);
 
     }

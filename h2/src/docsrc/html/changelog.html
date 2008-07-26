@@ -16,7 +16,14 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>ORDER BY on tableName.columnName didn't work correctly if the column 
+<ul><li>ResultSetMetaData.getColumnClassName now returns the correct 
+	class name for BLOB and CLOB.
+</li><li>Fixed the Oracle mode: Oracle allows multiple rows only where 
+	all columns of the unique index are NULL. 
+</li><li>There is a problem with Hibernate when using Boolean columns. 
+	A patch for Hibernate has been submitted at
+	http://opensource.atlassian.com/projects/hibernate/browse/HHH-3401
+</li><li>ORDER BY on tableName.columnName didn't work correctly if the column 
     name was also used as an alias.
 </li><li>H2 Console: The progress display when opening a database has been improved.
 </li><li>The error message when the server doesn't start has been improved.

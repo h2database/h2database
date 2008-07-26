@@ -3,7 +3,7 @@
   SetCompressor /SOLID lzma
   Name "H2"
   Icon "favicon.ico"
-  OutFile "../../../h2-setup.exe"
+  OutFile "../../../h2web/h2-setup.exe"
   CRCCheck on
 
   InstallDir "$PROGRAMFILES\H2"

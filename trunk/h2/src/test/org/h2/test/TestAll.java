@@ -271,12 +271,6 @@ java org.h2.test.TestAll timer
 /*
 
 Improved compatibility with DB2: support for FETCH .. ROWS
-
-drop all objects;
-create domain email as varchar comment 'email';
-create table test(e email);
-select * from INFORMATION_SCHEMA.COLUMNS where table_name='TEST';
-script nosettings;
        
 Check Eclipse DTP, see also
 https://bugs.eclipse.org/bugs/show_bug.cgi?id=137701
@@ -427,126 +421,65 @@ http://www.w3schools.com/sql/
      * Run the tests with a number of different settings.
      */
     private void runTests() throws Exception {
-
-        smallLog = big = networked = memory = ssl = textStorage = diskResult = deleteIndex = traceSystemOut = diskUndo = false;
+        jdk14 = true;
+        smallLog = big = networked = memory = ssl = textStorage = false;
+        diskResult = deleteIndex = traceSystemOut = diskUndo = false;
+        mvcc = traceTest = stopOnError = cache2Q = false;
         traceLevelFile = throttle = 0;
         logMode = 1;
         cipher = null;
         test();
 
-        smallLog = big = networked = memory = ssl = textStorage = diskResult = deleteIndex = traceSystemOut = false;
-        traceLevelFile = throttle = 0;
-        logMode = 1;
-        cipher = null;
-        mvcc = false;
-        cache2Q = false;
-        test();
-
-        diskUndo = false;
-        smallLog = false;
-        big = false;
         networked = true;
         memory = true;
-        ssl = false;
         textStorage = true;
-        diskResult = deleteIndex = traceSystemOut = false;
-        traceLevelFile = throttle = 0;
-        logMode = 1;
-        cipher = null;
-        mvcc = false;
-        cache2Q = false;
         test();
 
-        big = false;
-        smallLog = false;
         networked = false;
         memory = false;
-        ssl = false;
         textStorage = false;
-        diskResult = false;
-        deleteIndex = false;
-        traceSystemOut = false;
         logMode = 2;
-        traceLevelFile = 0;
-        throttle = 0;
-        cipher = null;
-        mvcc = false;
-        cache2Q = false;
         test();
 
+        logMode = 1;
         diskUndo = true;
-        smallLog = false;
-        big = networked = memory = ssl = false;
         textStorage = true;
         diskResult = true;
         deleteIndex = true;
-        traceSystemOut = false;
-        logMode = 1;
         traceLevelFile = 3;
         throttle = 1;
         cipher = "XTEA";
-        mvcc = false;
-        cache2Q = false;
         test();
 
         diskUndo = false;
-        big = true;
-        smallLog = false;
-        networked = false;
-        memory = false;
-        ssl = false;
         textStorage = false;
         diskResult = false;
         deleteIndex = false;
-        traceSystemOut = false;
-        logMode = 1;
         traceLevelFile = 1;
         throttle = 0;
         cipher = null;
-        mvcc = false;
-        cache2Q = false;
         test();
 
+        traceLevelFile = 2;
         big = true;
         smallLog = true;
         networked = true;
-        memory = false;
         ssl = true;
-        textStorage = false;
-        diskResult = false;
-        deleteIndex = false;
-        traceSystemOut = false;
         logMode = 2;
-        traceLevelFile = 2;
-        throttle = 0;
-        cipher = null;
-        mvcc = false;
-        cache2Q = true;
         test();
 
-        big = true;
         smallLog = false;
-        networked = true;
-        memory = false;
         ssl = false;
-        textStorage = false;
-        diskResult = false;
-        deleteIndex = false;
-        traceSystemOut = false;
         logMode = 0;
         traceLevelFile = 0;
-        throttle = 0;
         cipher = "AES";
-        mvcc = false;
-        cache2Q = false;
         test();
 
-        smallLog = big = networked = memory = ssl = textStorage = diskResult = deleteIndex = traceSystemOut = false;
-        traceLevelFile = throttle = 0;
+        big = false;
+        networked = false;
         logMode = 1;
         cipher = null;
         mvcc = true;
-        cache2Q = false;
         test();
 
         memory = true;
@@ -558,7 +491,7 @@ http://www.w3schools.com/sql/
      */
     private void test() throws Exception {
         System.out.println();
-        System.out.println("Test big:"+big+" net:"+networked+" cipher:"+cipher+" memory:"+memory+" log:"+logMode+" diskResult:"+diskResult + " mvcc:" + mvcc + " deleteIndex:" + deleteIndex);
+        System.out.println("Test " + toString());
         beforeTest();
 
         // db
@@ -742,5 +675,38 @@ http://www.w3schools.com/sql/
                 prop.getProperty("user.language") + " " +
                 prop.getProperty("user.variant")+" "+
                 prop.getProperty("file.encoding"));
+    }
+    
+    public String toString() {
+        StringBuffer buff = new StringBuffer();
+        appendIf(buff, big, "big");
+        appendIf(buff, networked, "net");
+        appendIf(buff, memory, "memory");
+        appendIf(buff, codeCoverage, "codeCoverage");
+        appendIf(buff, mvcc, "mvcc");
+        appendIf(buff, logMode != 1, "logMode:" + logMode);
+        appendIf(buff, cipher != null, cipher);
+        appendIf(buff, jdk14, "jdk14");
+        appendIf(buff, smallLog, "smallLog");
+        appendIf(buff, ssl, "ssl");
+        appendIf(buff, diskUndo, "diskUndo");
+        appendIf(buff, textStorage, "textStorage");
+        appendIf(buff, diskResult, "diskResult");
+        appendIf(buff, traceSystemOut, "traceSystemOut");
+        appendIf(buff, endless, "endless");
+        appendIf(buff, traceLevelFile > 0, "traceLevelFile");
+        appendIf(buff, throttle > 0, "throttle:" + throttle);
+        appendIf(buff, traceTest, "traceTest");
+        appendIf(buff, stopOnError, "stopOnError");
+        appendIf(buff, cache2Q, "cache2Q");
+        appendIf(buff, deleteIndex, "deleteIndex");
+        return buff.toString();
+    }
+    
+    private void appendIf(StringBuffer buff, boolean flag, String text) {
+        if (flag) {
+            buff.append(text);
+            buff.append(' ');
+        }
     }
 }

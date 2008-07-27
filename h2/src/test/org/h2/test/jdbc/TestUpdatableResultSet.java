@@ -189,8 +189,8 @@ public class TestUpdatableResultSet extends TestBase {
         assertEquals(meta.getColumnClassName(12), "java.lang.Long");
         assertEquals(meta.getColumnClassName(13), "java.lang.Integer");
         assertEquals(meta.getColumnClassName(14), "java.lang.Short");
-        assertEquals(meta.getColumnClassName(15), "java.sql.Clob");
-        assertEquals(meta.getColumnClassName(16), "java.sql.Blob");
+        assertEquals(meta.getColumnClassName(15), "java.io.Reader");
+        assertEquals(meta.getColumnClassName(16), "java.io.InputStream");
 
         rs.moveToInsertRow();
         rs.updateInt(1, 0);

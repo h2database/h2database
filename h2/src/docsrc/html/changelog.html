@@ -16,7 +16,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>ResultSetMetaData.getColumnClassName now returns the correct 
+<ul><li>The comment of a domain (user defined data type) is now used as the 
+	default column comment when creating a column with this domain.
+</li><li>Invalid database names are now detected and a better error message is thrown.
+</li><li>ResultSetMetaData.getColumnClassName now returns the correct 
     class name for BLOB and CLOB.
 </li><li>Fixed the Oracle mode: Oracle allows multiple rows only where 
     all columns of the unique index are NULL. 

@@ -300,7 +300,7 @@ public class FileSystemDisk extends FileSystem {
         }
         String fullFileName = normalize(name);
         if (!fullFileName.startsWith(path)) {
-            throw Message.getInternalError("file utils error: " + fullFileName+" does not start with "+path);
+            throw Message.getInternalError("file utils error: " + fullFileName + " does not start with " + path);
         }
         String fileName = fullFileName.substring(path.length());
         return fileName;

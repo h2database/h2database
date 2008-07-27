@@ -291,6 +291,10 @@ public class ConnectionInfo {
     String getName() throws SQLException {
         if (persistent) {
             String n = FileUtils.normalize(name + Constants.SUFFIX_DATA_FILE);
+            String fileName = FileUtils.getFileName(n);
+            if (fileName.length() < Constants.SUFFIX_DATA_FILE.length() + 2) {
+                throw Message.getSQLException(ErrorCode.INVALID_DATABASE_NAME_1, name);
+            }
             n = n.substring(0, n.length() - Constants.SUFFIX_DATA_FILE.length());
             return FileUtils.normalize(n);
         }

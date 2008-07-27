@@ -4,9 +4,9 @@ echo %time:~0,8%
 rem == Change version and build number in Constants.java
 rem == Maybe increase TCP_DRIVER_VERSION (old clients must be compatible!)
 rem == Update the changelog (add new version)
+rem == Update the newsfeed
 rem == No "  Message.get" (must be "throw Message.get")
 rem == Documentation: check if all Javadoc files are in the index
-rem == Update the newsfeed
 rem == Check that is no TODO in the docs
 
 rem == Check code coverage
@@ -54,6 +54,7 @@ soffice.exe -invisible macro:///Standard.Module1.H2Pdf
 call java14 >nul 2>nul
 call build -quiet all
 copy ..\h2web\h2.pdf docs >nul
+xcopy /s /q /y dataWeb ..\h2web >nul
 call build -quiet zip
 makensis /v2 src/installer/h2.nsi
 

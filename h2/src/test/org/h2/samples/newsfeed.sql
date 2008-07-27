@@ -13,6 +13,39 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(46,
+'New version available: 1.0.76 (2008-07-27)', '2008-07-27 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Key values can now be changed in updatable result sets.
+</li><li>Changes in updatable result sets are now always visible.
+</li><li>There is a problem with Hibernate when using Boolean columns, see 
+    http://opensource.atlassian.com/projects/hibernate/browse/HHH-3401
+<ul><li>The comment of a domain (user defined data type) is now used.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>ResultSetMetaData.getColumnClassName now returns the correct 
+    class name for BLOB and CLOB.
+</li><li>Fixed the Oracle mode: Oracle allows multiple rows only where 
+    all columns of the unique index are NULL. 
+</li><li>ORDER BY on tableName.columnName didn't work correctly if the column 
+    name was also used as an alias.
+</li><li>Invalid database names are now detected and a better error message is thrown.
+</li><li>H2 Console: The progress display when opening a database has been improved.
+</li><li>The error message when the server doesn't start has been improved.
+</li><li>Temporary files were sometimes deleted too late when executing large insert, update, 
+    or delete operations.
+</li><li>The database file was growing after deleting many rows, and after large update operations.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(45,
 'New version available: 1.0.75 (2008-07-14)', '2008-07-14 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -414,44 +447,6 @@ INSERT INTO ITEM VALUES(35,
 For details, see the ''Change Log'' at
 http://www.h2database.com/html/changelog.html
 <br />
-For future plans, see the ''Roadmap'' page at
-http://www.h2database.com/html/roadmap.html
-');
-
-INSERT INTO ITEM VALUES(34,
-'New version available: 1.0.64 (2007-12-27)', '2007-12-27 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click ''Refresh'').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>An exclusive mode is now supported.
-</li><li>The method Trigger.init has been changed. 
-</li><li>New built-in functions RPAD and LPAD.
-</li><li>New meta data table INFORMATION_SCHEMA.SESSIONS and LOCKS.
-</li><li>H2 Console / autocomplete: Ctrl+Space now shows the list in all modes. 
-</li><li>Loading classes and calling methods can be restricted.
-</li><li>Thanks to Fulvio Biondi, the FTP server now supports a event listener.
-</li><li>New system function CANCEL_SESSION.
-</li><li>The H2 Console has been translated to Turkish by Ridvan Agar!
-</li><li>H2 Console: when editing result sets, columns can now be set to null. 
-</li><li>ResultSet methods with column name are now faster.
-</li><li>Improved debugging support: toString now returns a meaningful text.
-</li><li>The classes DbStarter and WebServlet have been moved to src/main. 
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>The PostgreSQL ODBC driver did not work in the last release. 
-</li><li>CSV tool: some escape/separator characters did not work.
-</li><li>CSV tool: the character # could not be used as a separator. 
-</li><li>3-way union queries could return the wrong results. 
-</li><li>The MVCC mode did not work well with in-memory databases. 
-</li><li>The Ukrainian translation was not working in the last release. 
-</li><li>Creating many tables (many hundreds) was slow. 
-</li><li>Opening a database with many indexes (thousands) was slow. 
-</li><li>A stack trace thrown for systems with a slow secure random source.
-</li><li>The column INFORMATION_SCHEMA.TRIGGERS.SQL is now correct.
-</li><li>This database could not be used in applets. 
-</li><li>The index file is now re-created automatically when required.
-</li></ul>
 For future plans, see the ''Roadmap'' page at
 http://www.h2database.com/html/roadmap.html
 ');

@@ -1,3 +1,10 @@
+create domain email as varchar comment 'e-mail';
+create table test(e email);
+select remarks from INFORMATION_SCHEMA.COLUMNS where table_name='TEST';
+> e-mail;
+drop table test;
+drop domain email;
+
 create table test$test(id int);
 drop table test$test;
 create table test$$test(id int);

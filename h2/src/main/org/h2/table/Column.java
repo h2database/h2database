@@ -600,7 +600,7 @@ public class Column {
         this.comment = comment;
     }
 
-    String getComment() {
+    public String getComment() {
         return comment;
     }
 

@@ -84,5 +84,7 @@ Checkstyle Configuration
     </module>
     <module name="NewlineAtEndOfFile"/>
     <module name="Translation"/>
-    <module name="PackageHtml"/>
+    <module name="PackageHtml">
+        <property name="severity" value="ignore"/>
+    </module>
 </module>

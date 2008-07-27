@@ -40,8 +40,6 @@ public class Engine {
     }
 
     private Session openSession(ConnectionInfo ci, boolean ifExists, String cipher) throws SQLException {
-        // may not remove properties here, otherwise they are lost 
-        // if it is required to call it twice
         String name = ci.getName();
         Database database;
         if (ci.isUnnamedInMemory()) {

@@ -18,6 +18,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Random;
 
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -26,6 +27,7 @@ import org.h2.test.TestBase;
 public class TestCases extends TestBase {
 
     public void test() throws Exception {
+        testInvalidDatabaseName();
         testReuseSpace();
         testDeleteGroup();
         testDisconnect();
@@ -53,6 +55,24 @@ public class TestCases extends TestBase {
         testDoubleRecovery();
         testConstraintReconnect();
         testCollation();
+    }
+    
+    private void testInvalidDatabaseName() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        try {
+            getConnection("cases/");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.INVALID_DATABASE_NAME_1, e.getErrorCode());
+        }
+        try {
+            getConnection("cases/a");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.INVALID_DATABASE_NAME_1, e.getErrorCode());
+        }
     }
     
     private void testReuseSpace() throws Exception {

@@ -270,38 +270,13 @@ java org.h2.test.TestAll timer
 
 /*
 
-H2 databases need to have a file name prefix. 
-Probably the database should throw a meaningful exception 
-if the last element in the URL path is a slash (or backslash). 
-I will try to implement that for the next release.
-
 Improved compatibility with DB2: support for FETCH .. ROWS
 
-drop table test;
-create table test(a int);
-insert into test values(1);
-insert into test values(2);
-select -test.a a from test order by test.a; 
-select -test.a from test order by test.a;
-select -test.a aa from test order by a;
-select -test.a aa from test order by aa;
-select -test.a a from test order by test.a;
-select -test.a a from test order by a;
-
-
 drop all objects;
-create domain email as varchar;
+create domain email as varchar comment 'email';
 create table test(e email);
 select * from INFORMATION_SCHEMA.COLUMNS where table_name='TEST';
 script nosettings;
-
-  create t1 (c1 char(1)); create unique index i1 on t1(c1); insert
-into t1 values (null);  insert into t1 values (null);
-succeeds on Oracle and H2 1.0.75 with ;MODE=Oracle in the URL.
-  create t2(c1 char(1), c2 (char(1)); create unique index i2 on
-t2(c1, c2); insert into t2 values ('a', null); insert into t2 values
-insert into t5 values (null, null);
-will succeed on Oracle multiple times.
        
 Check Eclipse DTP, see also
 https://bugs.eclipse.org/bugs/show_bug.cgi?id=137701

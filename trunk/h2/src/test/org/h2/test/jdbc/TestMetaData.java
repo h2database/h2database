@@ -202,9 +202,9 @@ public class TestMetaData extends TestBase {
         stat.executeUpdate("CREATE TABLE t (blob BLOB, clob CLOB)");
         stat.execute("INSERT INTO t VALUES('', '')");
         ResultSet rs = stat.executeQuery("SELECT blob,clob FROM t");
-        ResultSetMetaData rsmd = rs.getMetaData();
-        assertEquals("java.io.InputStream", rsmd.getColumnClassName(1));
-        assertEquals("java.io.Reader", rsmd.getColumnClassName(2));
+        ResultSetMetaData meta = rs.getMetaData();
+        assertEquals("java.io.InputStream", meta.getColumnClassName(1));
+        assertEquals("java.io.Reader", meta.getColumnClassName(2));
         rs.next();
         assertEquals("java.io.ByteArrayInputStream", rs.getObject(1).getClass().getName());
         assertEquals("java.io.BufferedReader", rs.getObject(2).getClass().getName());

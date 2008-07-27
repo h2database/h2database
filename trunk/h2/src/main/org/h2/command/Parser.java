@@ -3167,7 +3167,10 @@ public class Parser {
             int value = getPositiveInt();
             column.setSelectivity(value);
         }
-        column.setComment(readCommentIf());
+        String comment = readCommentIf();
+        if (comment != null) {
+            column.setComment(comment);
+        }
         return column;
     }
     
@@ -3213,6 +3216,7 @@ public class Parser {
         long precision = -1;
         int displaySize = -1;
         int scale = -1;
+        String comment = null;
         Column templateColumn = null;
         if (dataType == null) {
             UserDataType userDataType = database.findUserDataType(original);
@@ -3221,6 +3225,7 @@ public class Parser {
             }
             templateColumn = userDataType.getColumn();
             dataType = DataType.getDataType(templateColumn.getType());
+            comment = templateColumn.getComment();
             original = templateColumn.getOriginalSQL();
             precision = templateColumn.getPrecision();
             displaySize = templateColumn.getDisplaySize();
@@ -3296,6 +3301,7 @@ public class Parser {
                 column.addCheckConstraint(session, checkConstraint);
             }
         }
+        column.setComment(comment);
         column.setOriginalSQL(original);
         return column;
     }

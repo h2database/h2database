@@ -90,7 +90,7 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2008-07-27";
+    public static final String BUILD_DATE = "2008-07-28";
 
     /**
      * The build date is updated for each public release.

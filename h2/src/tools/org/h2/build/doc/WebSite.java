@@ -29,7 +29,7 @@ public class WebSite {
         "<script type=\"text/javascript\">var pageTracker=_gat._getTracker(\"UA-2351060-1\");pageTracker._initData();pageTracker._trackPageview();</script>";
     
     private String sourceDir = "docs";
-    private String targetDir = "dataWeb";
+    private String targetDir = "../h2web";
     
     /**
      * This method is called when executing this application from the command
@@ -44,7 +44,7 @@ public class WebSite {
     private void run() throws Exception {
         deleteRecursive(new File(targetDir));
         copy(new File(sourceDir), new File(targetDir));
-        Newsfeed.main(new String[] {"dataWeb/html"});
+        Newsfeed.main(new String[] {targetDir + "/html"});
     }
 
     private void deleteRecursive(File dir) {

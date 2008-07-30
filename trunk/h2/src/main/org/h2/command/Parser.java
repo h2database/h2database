@@ -1707,8 +1707,11 @@ public class Parser {
                             ObjectArray filters = currentSelect.getTopFilters();
                             for (int i = 0; filters != null && i < filters.size(); i++) {
                                 TableFilter f = (TableFilter) filters.get(i);
-                                leftCol.mapColumns(f, 0);
-                                rightCol.mapColumns(f, 0);
+                                while (f != null) {
+                                    leftCol.mapColumns(f, 0);
+                                    rightCol.mapColumns(f, 0);
+                                    f = f.getJoin();
+                                }
                             }
                             TableFilter leftFilter = leftCol.getTableFilter();
                             TableFilter rightFilter = rightCol.getTableFilter();

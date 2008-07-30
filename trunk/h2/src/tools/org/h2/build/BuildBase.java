@@ -552,10 +552,12 @@ public class BuildBase {
      * @param destFile the target file name
      * @param files the file list
      * @param basePath the base path
+     * @return the size of the jar file in KB
      */
-    protected void jar(String destFile, List files, String basePath) {
+    protected long jar(String destFile, List files, String basePath) {
         long kb = zipOrJar(destFile, files, basePath, false, false, true);
         println("Jar " + destFile + " (" + kb + " KB)");
+        return kb;
     }
 
     /**

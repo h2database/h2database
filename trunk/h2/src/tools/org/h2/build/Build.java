@@ -24,14 +24,6 @@ public class Build extends BuildBase {
     public static void main(String[] args) {
         new Build().run(args);
     }
-
-    /**
-     * Create the jar file and generate the documentation.
-     */
-    public void all() {
-        jar();
-        docs();
-    }
     
     /**
      * Run the benchmarks.
@@ -89,12 +81,19 @@ public class Build extends BuildBase {
         compile(true, false);
     }
     
-    private void compile(boolean debugInfo, boolean clientOnly) {
+    /**
+     * Switch the source code to the current JDK.
+     */
+    public void switchSource() {
         try {
             SwitchSource.main(new String[] { "-dir", "src", "-auto" });
         } catch (IOException e) {
             throw new Error(e);
         }
+    }
+    
+    private void compile(boolean debugInfo, boolean clientOnly) {
+        switchSource();
         clean();
         mkdir("temp");
         resources(clientOnly);
@@ -180,6 +179,27 @@ public class Build extends BuildBase {
     }
     
     /**
+     * Create the h2.zip file and the Windows installer.
+     */
+    public void installer() {
+        jar();
+        docs();
+        exec("soffice", new String[]{"-invisible", "macro:///Standard.Module1.H2Pdf"});
+        copy("docs", getFiles("../h2web/h2.pdf"), "../h2web");
+        delete("docs/html/onePage.html");
+        FileList files = getFiles("../h2").keep("../h2/build.*");
+        files.addAll(getFiles("../h2/bin").keep("../h2/bin/h2.*"));
+        files.addAll(getFiles("../h2/docs"));
+        files.addAll(getFiles("../h2/service"));
+        files.addAll(getFiles("../h2/src"));
+        zip("../h2web/h2.zip", files, "../", false, false);
+        exec("makensis", new String[]{"/v2", "src/installer/h2.nsi"});
+        String buildDate = getStaticField("org.h2.engine.Constants", "BUILD_DATE");
+        writeFile(new File("../h2web/h2-" + buildDate + ".zip"), readFile(new File("../h2web/h2.zip")));
+        writeFile(new File("../h2web/h2-setup-" + buildDate + ".exe"), readFile(new File("../h2web/h2-setup.exe")));
+    }
+    
+    /**
      * Create the regular h2.jar file.
      */
     public void jar() {
@@ -210,7 +230,10 @@ public class Build extends BuildBase {
             exclude("*.bat").
             exclude("*.sh").
             exclude("*.txt");
-        jar("bin/h2client.jar", files, "temp");
+        long kb = jar("bin/h2client.jar", files, "temp");
+        if (kb < 300 || kb > 350) {
+            throw new Error("Expected file size 300 - 350 KB, got: " + kb);
+        }
     }
     
     /**
@@ -347,19 +370,6 @@ public class Build extends BuildBase {
      */
     public void spellcheck() {
         java("org.h2.build.doc.SpellChecker", null);
-    }
-    
-    /**
-     * Create the h2.zip file.
-     */
-    public void zip() {
-        delete("docs/html/onePage.html");
-        FileList files = getFiles("../h2").keep("../h2/build.*");
-        files.addAll(getFiles("../h2/bin").keep("../h2/bin/h2.*"));
-        files.addAll(getFiles("../h2/docs"));
-        files.addAll(getFiles("../h2/service"));
-        files.addAll(getFiles("../h2/src"));
-        zip("../h2.zip", files, "../", false, false);
     }
     
 }

@@ -1,0 +1,205 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- 
+Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,,
+and under the Eclipse Public License, Version 1.0
+(http://h2database.com/html/license.html). 
+Initial Developer: H2 Group
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
+JaQu
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+
+<h1>JaQu</h1>
+
+<h2>What is JaQu</h2>
+<p>
+JaQu stands for Java Query and allows to access databases using pure Java. 
+JaQu replaces SQL, JDBC, and O/R frameworks such as Hibernate.
+JaQu is something like LINQ for Java (LINQ stands for "language integrated query" and is a 
+Microsoft .NET technology). The following JaQu code:
+</p>
+<pre>
+Product p = new Product();
+List&lt;Product> soldOutProducts = 
+  db.from(p).where(p.unitsInStock).is(0).select();
+</pre>
+<p>
+stands for the SQL statement:
+</p>
+<pre>
+SELECT * FROM PRODUCTS P 
+WHERE P.UNITS_IN_STOCK = 0
+</pre>
+
+<h2>Advantages</h2>
+<p>
+Unlike to SQL, JaQu can be easily integrated in Java applications. Because JaQu is pure Java, 
+Javadoc and auto-complete are supported. Type checking is performed by the compiler. 
+JaQu fully protects against SQL injection.
+</p>
+
+<h3>Why in Java?</h3>
+<p>
+Most people use Java in their application. Mixing Java and another language (for example Scala or Groovy)
+in the same application is complicated. It would be required to split the code to access the database 
+and the application code.
+</p>
+
+<h2>Current State</h2>
+<p>
+JaQu is not yet stable, and not part of the h2.jar file. However the source code is included in H2,
+under:
+</p>
+<ul><li>src/test/org/h2/test/jaqu/* (samples and tests)
+</li><li>src/tools/org/h2/jaqu/* (framework)
+</li></ul>
+
+<h2>Requirements</h2>
+<p>
+JaQu requires Java 1.5. Annotations are not need.
+Currently, JaQu is only tested with the H2 database engine, however in theory it should 
+work with any database that supports the JDBC API.
+</p>
+
+<h2>Example Code</h2>
+<pre>
+package org.h2.test.jaqu;
+import java.math.BigDecimal;
+import java.util.List;
+import org.h2.jaqu.Db;
+import static org.h2.jaqu.Function.*;
+
+public class Test {
+   Db db;
+   
+   public static void main(String[] args) throws Exception {
+       new SamplesTest().test();
+   }
+   
+   public void test() throws Exception {
+       db = Db.open("jdbc:h2:mem:", "sa", "sa");
+       db.insertAll(Product.getProductList());
+       db.insertAll(Customer.getCustomerList());
+       db.insertAll(Order.getOrderList());
+       testLength();
+       testCount();
+       testGroup();
+       testSelectManyCompoundFrom2();
+       testWhereSimple4();
+       testSelectSimple2();
+       testAnonymousTypes3();
+       testWhereSimple2();
+       testWhereSimple3();
+       db.close();
+   }
+
+   private void testWhereSimple2() throws Exception {
+       Product p = new Product();
+       List&lt;Product> soldOutProducts =
+           db.from(p).
+           where(p.unitsInStock).is(0).
+           orderBy(p.productId).select();
+   }
+
+   private void testWhereSimple3() throws Exception {
+       Product p = new Product();
+       List&lt;Product> expensiveInStockProducts =
+           db.from(p).
+           where(p.unitsInStock).bigger(0).
+           and(p.unitPrice).bigger(3.0).
+           orderBy(p.productId).select();
+   }
+
+
+   private void testWhereSimple4() throws Exception {
+       Customer c = new Customer();
+       List&lt;Customer> waCustomers =
+           db.from(c).
+           where(c.region).is("WA").
+           select();
+   }
+
+   private void testSelectSimple2() throws Exception {
+       Product p = new Product();
+       List&lt;String> productNames =
+           db.from(p).
+           orderBy(p.productId).select(p.productName);
+       List&lt;Product> products = Product.getProductList();
+   }
+
+   public static class ProductPrice {
+       public String productName;
+       public String category;
+       public Double price;
+   }
+
+   private void testAnonymousTypes3() throws Exception {
+       final Product p = new Product();
+       List&lt;ProductPrice> productInfos =
+           db.from(p).orderBy(p.productId).
+           select(new ProductPrice() { {
+                   productName = p.productName;
+                   category = p.category;
+                   price = p.unitPrice;
+           }});
+       List&lt;Product> products = Product.getProductList();
+   }
+
+   public static class CustOrder {
+       public String customerId;
+       public Integer orderId;
+       public BigDecimal total;
+   }
+
+   private void testSelectManyCompoundFrom2() throws Exception {
+       final Customer c = new Customer();
+       final Order o = new Order();
+       List&lt;CustOrder> orders =
+           db.from(c).
+           innerJoin(o).on(c.customerId).is(o.customerId).
+           where(o.total).smaller(new BigDecimal("500.00")).
+           orderBy(1).
+           select(new CustOrder() { {
+               customerId = c.customerId;
+               orderId = o.orderId;
+               total = o.total;
+           }});
+   }
+   
+   private void testLength() throws Exception {
+       Product p = new Product();
+       List&lt;Integer> lengths = db.from(p).
+           where(length(p.productName)).smaller(10).
+           orderBy(1).
+           selectDistinct(length(p.productName));
+   }
+   
+   private void testCount() throws Exception {
+       long count = db.from(new Product()).selectCount();
+   }
+
+   public static class ProductGroup {
+       public String category;
+       public Long productCount;
+   }
+   
+   private void testGroup() throws Exception {
+       final Product p = new Product();
+       List&lt;ProductGroup> list =
+           db.from(p).
+           groupBy(p.category).
+           orderBy(1).
+           select(new ProductGroup() { {
+               category = p.category;
+               productCount = count();
+           }});
+   }
+
+}
+</pre>
+
+</div></td></tr></table><!-- analytics --></body></html>

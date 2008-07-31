@@ -470,4 +470,12 @@ public class LocalResult implements ResultInterface {
         return closed;
     }
 
+    public int getFetchSize() {
+        return 0;
+    }
+
+    public void setFetchSize(int fetchSize) {
+        // ignore
+    }
+
 }

@@ -2437,7 +2437,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         try {
             debugCodeCall("getFetchSize");
             checkClosed();
-            return 0;
+            return result.getFetchSize();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2446,25 +2446,30 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Sets the number of rows suggested to read in one step. This value cannot
      * be higher than the maximum rows (setMaxRows) set by the statement or
-     * prepared statement, otherwise an exception is throws.
+     * prepared statement, otherwise an exception is throws. Setting the value
+     * to 0 will set the default value. The default value can be changed using
+     * the system property h2.serverResultSetFetchSize.
      * 
-     * @param rowCount the number of rows
+     * @param rows the number of rows
      */
-    public void setFetchSize(int rowCount) throws SQLException {
+    public void setFetchSize(int rows) throws SQLException {
         try {
-            debugCodeCall("setFetchSize", rowCount);
+            debugCodeCall("setFetchSize", rows);
             checkClosed();
-            if (rowCount < 0) {
-                throw Message.getInvalidValueException("" + rowCount, "rowCount");
-            }
-            if (rowCount > 0) {
+            
+            if (rows < 0) {
+                throw Message.getInvalidValueException("" + rows, "rows");
+            } else if (rows > 0) {
                 if (stat != null) {
                     int maxRows = stat.getMaxRows();
-                    if (maxRows > 0 && rowCount > maxRows) {
-                        throw Message.getInvalidValueException("" + rowCount, "rowCount");
+                    if (maxRows > 0 && rows > maxRows) {
+                        throw Message.getInvalidValueException("" + rows, "rows");
                     }
                 }
+            } else {
+                rows = SysProperties.SERVER_RESULT_SET_FETCH_SIZE;
             }
+            result.setFetchSize(rows);
         } catch (Exception e) {
             throw logAndConvert(e);
         }

@@ -132,6 +132,7 @@ public class Mode {
         add(mode);
 
         mode = new Mode("DB2");
+        mode.supportOffsetFetch = true;
         add(mode);
 
     }

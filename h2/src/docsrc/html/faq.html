@@ -125,6 +125,7 @@ to be dangerous by design, and some problems are hard to solve. Those are:
 <li>Using SET LOG 0 to disable the transaction log file.
 </li><li>Using the transaction isolation level READ_UNCOMMITTED (LOCK_MODE 0) while at the same time using multiple
      connections may result in inconsistent transactions.
+</li><li>Using FILE_LOCK=NO in the database URL.
 </li></ul>
 <p>
 In addition to that, running out of memory should be avoided.

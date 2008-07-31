@@ -271,8 +271,8 @@ java org.h2.test.TestAll timer
 
 /*
 
-Improved compatibility with DB2: support for FETCH .. ROWS
-       
+GRANT SELECT, UPDATE ON *
+
 Check Eclipse DTP, see also
 https://bugs.eclipse.org/bugs/show_bug.cgi?id=137701
 

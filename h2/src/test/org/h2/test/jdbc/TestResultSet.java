@@ -42,6 +42,7 @@ public class TestResultSet extends TestBase {
 
         stat = conn.createStatement();
 
+        testFetchSize();
         testOwnUpdates();
         testFindColumn();
         testSubstringPrecision();
@@ -66,6 +67,19 @@ public class TestResultSet extends TestBase {
 
         conn.close();
 
+    }
+    
+    private void testFetchSize() throws Exception {
+        if (!config.networked || config.memory) {
+            return;
+        }
+        ResultSet rs = stat.executeQuery("SELECT * FROM SYSTEM_RANGE(1, 100)");
+        int a = stat.getFetchSize();
+        int b = rs.getFetchSize();
+        assertEquals(a, b);
+        rs.setFetchSize(b + 1);
+        b = rs.getFetchSize();
+        assertEquals(a + 1, b);
     }
     
     private void testOwnUpdates() throws Exception {

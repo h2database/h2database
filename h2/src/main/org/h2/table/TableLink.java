@@ -46,6 +46,10 @@ public class TableLink extends Table {
     private final boolean emitUpdates;
     private LinkedIndex linkedIndex;
     private SQLException connectException;
+    private boolean storesLowerCase;
+    private boolean storesMixedCase;
+    private boolean supportsMixedCaseIdentifiers;        
+
 
     public TableLink(Schema schema, int id, String name, String driver, String url, String user, String password,
             String originalTable, boolean emitUpdates, boolean force) throws SQLException {
@@ -73,9 +77,9 @@ public class TableLink extends Table {
     private void connect() throws SQLException {
         conn = JdbcUtils.getConnection(driver, url, user, password);
         DatabaseMetaData meta = conn.getMetaData();
-        boolean storesLowerCase = meta.storesLowerCaseIdentifiers();
-        boolean storesMixedCase = meta.storesMixedCaseIdentifiers();
-        boolean supportsMixedCaseIdentifiers = meta.supportsMixedCaseIdentifiers();        
+        storesLowerCase = meta.storesLowerCaseIdentifiers();
+        storesMixedCase = meta.storesMixedCaseIdentifiers();
+        supportsMixedCaseIdentifiers = meta.supportsMixedCaseIdentifiers();        
         ResultSet rs = meta.getColumns(null, null, originalTable, null);
         int i = 0;
         ObjectArray columnList = new ObjectArray();
@@ -98,12 +102,7 @@ public class TableLink extends Table {
                 break;
             }
             String n = rs.getString("COLUMN_NAME");
-            if (storesLowerCase && n.equals(StringUtils.toLowerEnglish(n))) {
-                n = StringUtils.toUpperEnglish(n);
-            } else if (storesMixedCase && !supportsMixedCaseIdentifiers) {
-                // TeraData
-                n = StringUtils.toUpperEnglish(n);            
-            }
+            n = convertColumnName(n);
             int sqlType = rs.getInt("DATA_TYPE");
             long precision = rs.getInt("COLUMN_SIZE");
             int scale = rs.getInt("DECIMAL_DIGITS");
@@ -177,6 +176,7 @@ public class TableLink extends Table {
                     list.add(null);
                 }
                 String col = rs.getString("COLUMN_NAME");
+                col = convertColumnName(col);
                 Column column = (Column) columnMap.get(col);
                 list.set(idx - 1, column);
             } while (rs.next());
@@ -208,12 +208,23 @@ public class TableLink extends Table {
             boolean unique = !rs.getBoolean("NON_UNIQUE");
             indexType = unique ? IndexType.createUnique(false, false) : IndexType.createNonUnique(false);
             String col = rs.getString("COLUMN_NAME");
+            col = convertColumnName(col);
             Column column = (Column) columnMap.get(col);
             list.add(column);
         }
         if (indexName != null) {
             addIndex(list, indexType);
         }
+    }
+    
+    private String convertColumnName(String columnName) {
+        if ((storesMixedCase || storesLowerCase) && columnName.equals(StringUtils.toLowerEnglish(columnName))) {
+            columnName = StringUtils.toUpperEnglish(columnName);
+        } else if (storesMixedCase && !supportsMixedCaseIdentifiers) {
+            // TeraData
+            columnName = StringUtils.toUpperEnglish(columnName);            
+        }
+        return columnName;
     }
 
     private void addIndex(ObjectArray list, IndexType indexType) {

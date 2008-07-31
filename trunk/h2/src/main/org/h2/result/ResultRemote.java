@@ -24,7 +24,7 @@ import org.h2.value.Value;
  */
 public class ResultRemote implements ResultInterface {
 
-    private final int fetchSize;
+    private int fetchSize;
     private SessionRemote session;
     private Transfer transfer;
     private int id;
@@ -239,6 +239,14 @@ public class ResultRemote implements ResultInterface {
 
     public String toString() {
         return "columns: " + columns.length + " rows: " + rowCount + " pos: " + rowId;
+    }
+
+    public int getFetchSize() {
+        return fetchSize;
+    }
+
+    public void setFetchSize(int fetchSize) {
+        this.fetchSize = fetchSize;
     }
 
 }

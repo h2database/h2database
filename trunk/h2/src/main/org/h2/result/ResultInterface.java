@@ -143,5 +143,19 @@ public interface ResultInterface {
      * @return Column.NULLABLE_*
      */
     int getNullable(int i);
+    
+    /**
+     * Set the fetch size for this result set.
+     * 
+     * @param fetchSize the new fetch size
+     */
+    void setFetchSize(int fetchSize);
+    
+    /**
+     * Get the current fetch size for this result set.
+     * 
+     * @return the fetch size
+     */
+    int getFetchSize();
 
 }

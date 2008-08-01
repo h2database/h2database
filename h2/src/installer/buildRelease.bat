@@ -69,5 +69,7 @@ rem == Upload to h2database.com, http://code.google.com/p/h2database/downloads/l
 rem == Newsletter: send (always to BCC!!)
 rem == Add to freshmeat
 rem == http://en.wikipedia.org/wiki/H2_%28DBMS%29 (change version)
+rem == http://ja.wikipedia.org/wiki/H2_Database (change version)
+rem == http://de.wikipedia.org/wiki/ ?
 rem == http://www.heise.de/software/
 rem == http://code.google.com/p/h2database/issues/list

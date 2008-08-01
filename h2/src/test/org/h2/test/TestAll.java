@@ -297,8 +297,6 @@ Concurrent update in table test: another transaction has updated or
 deleted the same row when exactly does it occur in other databases 
 (PostgreSQL, Oracle)?
 
-create an mbean for each database? server? (jconsole)
-
 in help.csv, use complete examples for functions; add a test case
 
 option to write complete page right after checkpoint

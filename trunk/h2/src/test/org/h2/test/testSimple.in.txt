@@ -1,3 +1,10 @@
+create view test_view(id,) as select * from dual; 
+drop view test_view;
+create table test(id int,);
+insert into test(id,) values(1,);
+merge into test(id,) key(id,) values(1,);
+drop table test;
+
 SET MODE DB2;
 SELECT * FROM SYSTEM_RANGE(1, 100) OFFSET 99 ROWS;
 > 100;

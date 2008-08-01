@@ -24,6 +24,8 @@ Build
     Using Maven 2</a><br />
 <a href="#translating">
     Translating</a><br />
+<a href="#providing_patches">
+    Providing Patches</a><br />
 
 <br /><a name="portability"></a>
 <h2>Portability</h2>
@@ -43,11 +45,14 @@ Newer version or compatible software works too.
 </p>
 <ul>
     <li>Windows XP
-    </li><li>Sun JDK Version 1.4
-    </li><li>Mozilla Firefox 1.5
-    </li><li>Eclipse Version 3.2.2
+    </li><li>Sun JDK Version 1.4 and 1.6
+    </li><li>Eclipse Version 3.3
+    </li><li>Eclipse Plugins: Subclipse 1.2.4, EclEmma Java Code Coverage 1.3.0, Eclipse Checkstyle Plug-in 4.4.0
+    </li><li>Mozilla Firefox 3.0
+    </li><li>OpenOffice 3.0
+    </li><li>NSIS 2.38 (Nullsoft Scriptable Install System)
+    </li><li>Maven 2.0.7
     </li><li>YourKit Java Profiler
-    </li><li>Apache Ant Version 1.6.5
 </li></ul>
 
 <br /><a name="building"></a>
@@ -128,5 +133,23 @@ The conversion between UTF-8 and Java encoding (using the \u syntax), as well as
 is automated by running the tool PropertiesToUTF8. The web site translation is automated as well,
 using <code>build docs</code>.
 </p>
+
+<br /><a name="providing_patches"></a>
+<h2>Providing Patches</h2>
+<p>
+If you like to provide patches, please consider the following guidelines to simplify merging them:
+</p>
+<ul><li>Only use Java 1.4 features (not use Java 1.5 or 1.6) (see Environment).
+</li><li>Follow the coding style used in the project, use Checkstyle (see above) to check the coding style.
+</li><li>Please provide test cases and integrate them into the test suite. 
+	For Java level tests, see src/test/org/h2/test/TestAll.java.
+	For SQL level tests, see src/test/org/h2/test/test.in.txt or testSimple.in.txt
+</li><li>The test cases should cover at least 90% of the changed/new code; use a code coverage tool to verify that (see above).
+</li><li>Verify that you did not break other features: Run the test cases by executing build test.
+</li><li>Provide end user documentation if required (src/docsrc/html/*).
+</li><li>Document grammar changes in src/main/org/h2/res/help.csv
+</li><li>Provide a change log entry (src/docsrc/html/changelog.html).
+</li><li>Submit patches as .patch files (compressed if big). To create a patch, use for example Eclipse Team/Create Patch.
+</ul>
 
 </div></td></tr></table><!-- analytics --></body></html>

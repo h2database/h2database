@@ -734,8 +734,7 @@ public class Parser {
         do {
             String columnName = readColumnIdentifier();
             columns.add(columnName);
-        } while (readIf(","));
-        read(")");
+        } while (readIfMore());
         String[] cols = new String[columns.size()];
         columns.toArray(cols);
         return cols;
@@ -751,12 +750,19 @@ public class Parser {
                     throw Message.getSQLException(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getSQL());
                 }
                 columns.add(column);
-            } while (readIf(","));
-            read(")");
+            } while (readIfMore());
         }
         Column[] cols = new Column[columns.size()];
         columns.toArray(cols);
         return cols;
+    }
+    
+    private boolean readIfMore() throws SQLException {
+        if (readIf(",")) {
+            return !readIf(")");
+        }
+        read(")");
+        return false;
     }
 
     private Prepared parseHelp() throws SQLException {
@@ -803,8 +809,7 @@ public class Parser {
                         } else {
                             values.add(readExpression());
                         }
-                    } while (readIf(","));
-                    read(")");
+                    } while (readIfMore());
                 }
                 Expression[] expr = new Expression[values.size()];
                 values.toArray(expr);
@@ -841,8 +846,7 @@ public class Parser {
                         } else {
                             values.add(readExpression());
                         }
-                    } while (readIf(","));
-                    read(")");
+                    } while (readIfMore());
                 }
                 Expression[] expr = new Expression[values.size()];
                 values.toArray(expr);
@@ -4531,8 +4535,7 @@ public class Parser {
                             command.addConstraintCommand(ref);
                         }
                     }
-                } while (readIf(","));
-                read(")");
+                } while (readIfMore());
             }
             if (readIf("AS")) {
                 command.setQuery(parseSelect());

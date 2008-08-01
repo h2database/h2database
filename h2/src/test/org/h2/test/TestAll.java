@@ -271,11 +271,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-GRANT SELECT, UPDATE ON *
-
-Check Eclipse DTP, see also
-https://bugs.eclipse.org/bugs/show_bug.cgi?id=137701
-
 Support large updates (use the transaction log to undo).
 
 H2 Console: support single file upload and directory download (optional)
@@ -288,12 +283,9 @@ a system that knows the last save point of 100% integrity. There are
 too many variables and too much randomness on a cold hard power failure. 
 
 JaQu
-
-row level locking
-
 H2 Console should support Java Queries
 
-C:\download\Data Concurrency and Consistency.pdf
+row level locking
 
 not tested:
 PreparedProcedure PREPARE <name>(column,...) AS ...
@@ -318,37 +310,6 @@ analyzer configuration option for the fulltext search
 optimize where x not in (select):
 SELECT c FROM color LEFT OUTER JOIN (SELECT c FROM TABLE(c
 VARCHAR= ?)) p ON color.c = p.c WHERE p.c IS NULL;
-
---------------
-
-scheduler: what if invoke takes more than...
-scheduler: log at startup next 5
-scheduler: add an a cron functionality
-
-document: read uncommitted and multi-threaded mode at the same time 
-is dangerous
-
-C:\temp\db\diff.patch
-
-more tests with disk based select distinct; order by:
-select distinct x from system_range(1, 200000);
-DROP TABLE TEST;
-CREATE TABLE TEST(ID INT PRIMARY KEY, 
-NAME VARCHAR(255), VALUE DECIMAL(10,2));
-INSERT INTO TEST VALUES(1,'Apples',1.20), 
-(2,'Oranges',2.05),
-(3,'Cherries',5.10),
-(4,'Apples',1.50),
-(5,'Apples',1.10),
-(6,'Oranges',1.80),
-(7,'Bananas',2.50),
-(8,NULL,3.10),
-(9,NULL,-10.0);
-SELECT DISTINCT NAME FROM TEST;
-
-test multi-threaded kernel fulltext
-
-Can sometimes not delete log file? need test case
 
 Add where required // TODO: change in version 1.1
 

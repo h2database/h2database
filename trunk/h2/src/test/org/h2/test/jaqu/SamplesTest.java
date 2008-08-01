@@ -87,8 +87,7 @@ public class SamplesTest extends TestBase {
         for (Product x : soldOutProducts) {
             result += x.productName + ";";
         }
-        assertEquals(result, "Chef Anton's Gumbo Mix;Alice Mutton;"
-            + "Thueringer Rostbratwurst;Gorgonzola Telino;Perth Pasties;");
+        assertEquals("Chef Anton's Gumbo Mix;", result);
     }
 
     private void testWhereSimple3() throws Exception {
@@ -111,32 +110,11 @@ public class SamplesTest extends TestBase {
             result += x.productName + ";";
         }
         assertEquals(
-                result,
                 "Chai;Chang;Aniseed Syrup;Chef Anton's Cajun Seasoning;"
                         + "Grandma's Boysenberry Spread;"
                         + "Uncle Bob's Organic Dried Pears;"
-                        + "Northwoods Cranberry Sauce;Mishi Kobe Niku;Ikura;"
-                        + "Queso Cabrales;Queso Manchego La Pastora;"
-                        + "Konbu;Tofu;Genen Shouyu;Pavlova;"
-                        + "Carnarvon Tigers;Teatime Chocolate Biscuits;"
-                        + "Sir Rodney's Marmalade;Sir Rodney's Scones;"
-                        + "Gustaf's Knaeckebroed;Tunnbroed;Guarana Fantastica;"
-                        + "NuNuCa Nuss-Nougat-Creme;Gumbaer Gummibaerchen;"
-                        + "Schoggi Schokolade;Roessle Sauerkraut;"
-                        + "Nord-Ost Matjeshering;Mascarpone Fabioli;Sasquatch Ale;"
-                        + "Steeleye Stout;Inlagd Sill;Gravad lax;Cote de Blaye;"
-                        + "Chartreuse verte;Boston Crab Meat;Jack's New England Clam Chowder;"
-                        + "Singaporean Hokkien Fried Mee;Ipoh Coffee;Gula Malacca;Rogede sild;"
-                        + "Spegesild;Zaanse koeken;Chocolade;Maxilaku;Valkoinen suklaa;"
-                        + "Manjimup Dried Apples;Filo Mix;Tourtiere;Pate chinois;"
-                        + "Gnocchi di nonna Alice;Ravioli Angelo;Escargots de Bourgogne;"
-                        + "Raclette Courdavault;Camembert Pierrot;Sirop d'erable;"
-                        + "Tarte au sucre;Vegie-spread;Wimmers gute Semmelknoedel;"
-                        + "Louisiana Fiery Hot Pepper Sauce;Louisiana Hot Spiced Okra;"
-                        + "Laughing Lumberjack Lager;Scottish Longbreads;Gudbrandsdalsost;"
-                        + "Outback Lager;Flotemysost;Mozzarella di Giovanni;Roed Kaviar;"
-                        + "Longlife Tofu;Rhoenbraeu Klosterbier;Lakkalikoeoeri;"
-                        + "Original Frankfurter gruene Sosse;");
+                        + "Northwoods Cranberry Sauce;Mishi Kobe Niku;Ikura;",
+                result);
     }
 
 
@@ -273,12 +251,12 @@ public class SamplesTest extends TestBase {
             orderBy(1).
             selectDistinct(length(p.productName));
         String s = lengths.toString();
-        assertEquals("[4, 5, 7, 8, 9]", s);
+        assertEquals("[4, 5]", s);
     }
     
     private void testCount() throws Exception {
         long count = db.from(new Product()).selectCount();
-        assertEquals(77, count);
+        assertEquals(10, count);
     }
 //## Java 1.5 end ##
 
@@ -319,9 +297,8 @@ public class SamplesTest extends TestBase {
             buff.append(';');
         }
         String s = buff.toString();
-        assertEquals("Beverages=12;Condiments=12;Confections=13;" +
-                "Dairy Products=10;Grains/Cereals=7;Meat/Poultry=6;" +
-                "Produce=5;Seafood=12;", s);
+        assertEquals("Beverages=2;Condiments=5;Meat/Poultry=1;" +
+                "Produce=1;Seafood=1;", s);
     }
 
 //## Java 1.5 end ##

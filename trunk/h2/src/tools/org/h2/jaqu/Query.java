@@ -62,6 +62,11 @@ public class Query<T> {
     public List<T> selectDistinct() {
         return select(true);
     }
+    
+    public <X, Z> X selectFirst(Z x) {
+        List<X> list = (List<X>) select(x);
+        return list.isEmpty() ? null : list.get(0);
+    }
 
     private List<T> select(boolean distinct) {
         List<T> result = Utils.newArrayList();

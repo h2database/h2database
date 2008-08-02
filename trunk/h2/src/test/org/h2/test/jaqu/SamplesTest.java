@@ -49,13 +49,14 @@ public class SamplesTest extends TestBase {
         db.insertAll(Product.getProductList());
         db.insertAll(Customer.getCustomerList());
         db.insertAll(Order.getOrderList());
-        // TODO SUM, MIN, MAX, LIKE, LIKE ESCAPE...
+        // TODO MIN, MAX, LIKE, LIKE ESCAPE...
         // TODO +, -, *, /, ||, nested operations
         // TODO nested AND/OR
         // TODO NOT
         // TODO DELETE: FROM ... DELETE?
         // TODO UPDATE: FROM ... UPDATE?
         // TODO SELECT UNION
+        testSum();
         testLength();
         testCount();
         testGroup();
@@ -252,6 +253,16 @@ public class SamplesTest extends TestBase {
             selectDistinct(length(p.productName));
         String s = lengths.toString();
         assertEquals("[4, 5]", s);
+    }
+    
+    private void testSum() throws Exception {
+        Product p = new Product();
+        Integer sum = db.from(p).
+            selectFirst(sum(p.unitsInStock));
+        assertEquals(323, sum.intValue());
+        Double sumPrice = db.from(p).
+        selectFirst(sum(p.unitPrice));
+        assertEquals(313.35, sumPrice.doubleValue());
     }
     
     private void testCount() throws Exception {

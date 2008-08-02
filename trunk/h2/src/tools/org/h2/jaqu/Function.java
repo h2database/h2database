@@ -39,6 +39,11 @@ public class Function implements Token {
             Utils.newObject(Integer.class), new Function("LENGTH", x));
     }
 
+    public static <T extends Number> T sum(T x) {
+        return (T) Db.registerToken(
+            Utils.newObject(x.getClass()), new Function("SUM", x));
+    }
+
     public static Long count(Object x) {
         return Db.registerToken(
             Utils.newObject(Long.class), new Function("COUNT", x));

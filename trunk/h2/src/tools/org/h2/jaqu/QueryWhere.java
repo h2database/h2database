@@ -42,6 +42,11 @@ public class QueryWhere<T> {
         return (List<X>) query.selectDistinct(x);
     }
 
+    public <X, Z> X selectFirst(Z x) {
+        List<X> list = (List<X>) query.select(x);
+        return list.isEmpty() ? null : list.get(0);
+    }
+
     public List<T> select() {
         return query.select();
     }

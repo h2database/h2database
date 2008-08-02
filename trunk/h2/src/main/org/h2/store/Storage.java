@@ -243,7 +243,7 @@ public class Storage {
         }
         // if we came here, all free records must be in the list
         // otherwise it would have returned early
-        if (SysProperties.CHECK && freeCount > freeList.size()) {
+        if (SysProperties.CHECK2 && freeCount > freeList.size()) {
             throw Message.getInternalError("freeCount expected " + freeList.size() + ", got: " + freeCount);
         }
         freeCount = freeList.size();

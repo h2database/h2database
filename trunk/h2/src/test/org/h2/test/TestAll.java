@@ -268,6 +268,7 @@ java org.h2.test.TestAll timer
         TestAll test = new TestAll();
         test.printSystem();
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
+        System.setProperty("h2.check2", "true");
 
 /*
 

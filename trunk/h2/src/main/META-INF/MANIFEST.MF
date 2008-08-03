@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Implementation-Title: H2 Database Engine
+Implementation-Title: ${title}
 Implementation-URL: http://www.h2database.com
 Implementation-Version: ${version}
 Build-Jdk: ${buildJdk}

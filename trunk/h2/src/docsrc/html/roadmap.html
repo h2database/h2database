@@ -128,6 +128,9 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>The HELP information schema can be directly exposed in the Console
 </li><li>Maybe use the 0x1234 notation for binary fields, see MS SQL Server
 </li><li>Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html, http://philip.greenspun.com/sql/trees.html
+</li><li>SQL Server 2005, Oracle: Support COUNT(*) OVER(). See
+	http://www.orafusion.com/art_anlytc.htm 
+</li><li>RANK() and DENSE_RANK(), Partition using OVER()
 </li><li>SQL 2003 (http://www.wiscorp.com/sql_2003_standard.zip)
 </li><li>http://www.jpackage.org
 </li><li>Version column (number/sequence and timestamp based)
@@ -163,7 +166,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Try using a factory for Row, Value[] (faster?), http://javolution.org/, alternative ObjectArray / IntArray
 </li><li>Auto-Update feature for database, .jar file
 </li><li>ResultSet SimpleResultSet.readFromURL(String url): id varchar, state varchar, released timestamp
-</li><li>RANK() and DENSE_RANK(), Partition using OVER()
 </li><li>ROW_NUMBER (not the same as ROWNUM)
 </li><li>Partial indexing (see PostgreSQL)
 </li><li>The build should fail if the test fails

@@ -204,7 +204,7 @@ public class Build extends BuildBase {
      */
     public void jar() {
         compile();
-        manifest("org.h2.tools.Console");
+        manifest("H2 Database Engine", "org.h2.tools.Console");
         FileList files = getFiles("temp").
             exclude("temp/org/h2/dev/*").
             exclude("temp/org/h2/build/*").
@@ -251,12 +251,23 @@ public class Build extends BuildBase {
             exclude("*.txt").
             exclude("temp/META-INF/*");
         zip("temp/h2classes.zip", files, "temp", true, true);
-        manifest("org.h2.tools.Console\nClass-Path: h2classes.zip");
+        manifest("H2 Database Engine (Embedded)", "org.h2.tools.Console\nClass-Path: h2classes.zip");
         files = getFiles("temp/h2classes.zip");
         files.addAll(getFiles("temp/META-INF"));
         jar("bin/h2small.jar", files, "temp");
     }
-    
+
+    /**
+     * Create the file h2jaqu.jar. This only contains the JaQu (Java Query) implementation.
+     */
+    public void jarJaqu() {
+        compile(true, false);
+        manifest("H2 JaQu", "");
+        FileList files = getFiles("temp/org/h2/jaqu");
+        files.addAll(getFiles("temp/META-INF/MANIFEST.MF"));
+        jar("bin/h2jaqu.jar", files, "temp");
+    }
+
     /**
      * Create the Javadocs of the API (including the JDBC API) and tools.
      */
@@ -302,8 +313,9 @@ public class Build extends BuildBase {
         copy("docs/javadocImpl", getFiles("src/docsrc/javadoc"), "src/docsrc/javadoc");
     }
     
-    private void manifest(String mainClassName) {
+    private void manifest(String title, String mainClassName) {
         String manifest = new String(readFile(new File("src/main/META-INF/MANIFEST.MF")));
+        manifest = replaceAll(manifest, "${title}", title);
         manifest = replaceAll(manifest, "${version}", getVersion());
         manifest = replaceAll(manifest, "${buildJdk}", getJavaSpecVersion());
         String createdBy = System.getProperty("java.runtime.version") + 

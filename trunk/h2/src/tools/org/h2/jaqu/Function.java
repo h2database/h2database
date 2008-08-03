@@ -18,16 +18,25 @@ public class Function implements Token {
     
     private static final Long COUNT_STAR = new Long(0);
 
+    protected Object[] x;
     private String name;
-    private Object x;
 
-    private Function(String name, Object x) {
+    protected Function(String name, Object... x) {
         this.name = name;
         this.x = x;
     }
-        
+
     public String getString(Query query) {
-        return name + "(" + query.getString(x) + ")";
+        StringBuilder buff = new StringBuilder();
+        buff.append(name).append('(');
+        for (int i = 0; i < x.length; i++) {
+            if (i > 0) {
+                buff.append(',');
+            }
+            buff.append(query.getString(x[i]));
+        }
+        buff.append(')');
+        return buff.toString();
     }
     
     public static Long count() {
@@ -49,6 +58,63 @@ public class Function implements Token {
             Utils.newObject(Long.class), new Function("COUNT", x));
     }
 
+    public static Boolean isNull(Object x) {
+        return Db.registerToken(
+            Utils.newObject(Boolean.class), new Function("", x) {
+                public String getString(Query query) {
+                    return query.getString(x[0]) + " IS NULL";
+                }
+            });
+    }
+
+    public static Boolean isNotNull(Object x) {
+        return Db.registerToken(
+            Utils.newObject(Boolean.class), new Function("", x) {
+                public String getString(Query query) {
+                    return query.getString(x[0]) + " IS NOT NULL";
+                }
+            });
+    }
+    
+    public static Boolean not(Boolean x) {
+        return Db.registerToken(
+            Utils.newObject(Boolean.class), new Function("", x) {
+                public String getString(Query query) {
+                    return "NOT " + query.getString(x[0]);
+                }
+            });
+    }
+
+    public static Boolean or(Boolean... x) {
+        return Db.registerToken(Utils.newObject(Boolean.class), new Function("", (Object[]) x) {
+            public String getString(Query query) {
+                StringBuilder buff = new StringBuilder();
+                for (int i = 0; i < x.length; i++) {
+                    if (i > 0) {
+                        buff.append(" OR ");
+                    }
+                    buff.append(query.getString(x[i]));
+                }
+                return buff.toString();
+            }
+        });
+    }
+
+    public static Boolean and(Boolean... x) {
+        return Db.registerToken(Utils.newObject(Boolean.class), new Function("", (Object[]) x) {
+            public String getString(Query query) {
+                StringBuilder buff = new StringBuilder();
+                for (int i = 0; i < x.length; i++) {
+                    if (i > 0) {
+                        buff.append(" AND ");
+                    }
+                    buff.append(query.getString(x[i]));
+                }
+                return buff.toString();
+            }
+        });
+    }
+
     public static <X> X min(X x) {
         Class<X> clazz = (Class<X>) x.getClass();
         X o = Utils.newObject(clazz);
@@ -59,6 +125,15 @@ public class Function implements Token {
         Class<X> clazz = (Class<X>) x.getClass();
         X o = Utils.newObject(clazz);
         return Db.registerToken(o, new Function("MAX", x));
+    }
+    
+    public static Boolean like(String x, String pattern) {
+        Boolean o = Utils.newObject(Boolean.class);
+        return Db.registerToken(o, new Function("LIKE", x, pattern) {
+            public String getString(Query query) {
+                return "(" + query.getString(x[0]) + " LIKE " + query.getString(x[1]) + ")";
+            }
+        });
     }
 
 //## Java 1.5 end ##

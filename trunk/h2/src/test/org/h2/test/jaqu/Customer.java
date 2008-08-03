@@ -27,6 +27,10 @@ public class Customer {
         this.customerId = customerId;
         this.region = region;
     }
+    
+    public String toString() {
+        return customerId;
+    }
 
 //## Java 1.5 begin ##
     public static List<Customer> getCustomerList() {

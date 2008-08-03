@@ -37,6 +37,10 @@ public class QueryWhere<T> {
     public <X, Z> List<X> select(Z x) {
         return (List<X>) query.select(x);
     }
+    
+    public String getSQL() {
+        return query.getSQL("*", false).trim();
+    }
 
     public <X, Z> List<X> selectDistinct(Z x) {
         return (List<X>) query.selectDistinct(x);
@@ -106,6 +110,10 @@ public class QueryWhere<T> {
             new OrderExpression<Object>(query, expr, true, false, true);
         query.addOrderBy(e);
         return this;
+    }
+
+    public int delete() {
+        return query.delete();
     }
 
 }

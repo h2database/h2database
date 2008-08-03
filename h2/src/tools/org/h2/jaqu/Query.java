@@ -67,6 +67,10 @@ public class Query<T> {
         List<X> list = (List<X>) select(x);
         return list.isEmpty() ? null : list.get(0);
     }
+    
+    public String getSQL() {
+        return getSQL("*", false).trim();
+    }
 
     private List<T> select(boolean distinct) {
         List<T> result = Utils.newArrayList();
@@ -81,6 +85,15 @@ public class Query<T> {
             throw new RuntimeException(e);
         }
         return result;
+    }
+    
+    public int delete() {
+        StringBuilder buff = new StringBuilder();
+        buff.append("DELETE FROM ");
+        buff.append(from.getString());
+        buff.append(getSQLWhere());
+        String sql = buff.toString();
+        return db.executeUpdate(sql);
     }
 
     public <X, Z> List<X> selectDistinct(Z x) {
@@ -139,6 +152,12 @@ public class Query<T> {
     public <A> QueryCondition<T, A> where(A x) {
         return new QueryCondition<T, A>(this, x);
     }
+    
+    public QueryWhere<T> whereTrue(Boolean condition) {
+        Token token = new Function("", condition);
+        addConditionToken(token);
+        return new QueryWhere<T>(this);
+    }
 //## Java 1.5 end ##
     
     /**
@@ -188,6 +207,18 @@ public class Query<T> {
         conditions.add(condition);
     }
     
+    String getSQLWhere() {
+        StringBuilder buff = new StringBuilder("");
+        if (!conditions.isEmpty()) {
+            buff.append(" WHERE ");
+            for (Token token : conditions) {
+                buff.append(token.getString(this));
+                buff.append(' ');
+            }
+        }
+        return buff.toString();
+    }
+    
     String getSQL(String selectList, boolean distinct) {
         StringBuilder buff = new StringBuilder("SELECT ");
         if (distinct) {
@@ -199,13 +230,7 @@ public class Query<T> {
         for (SelectTable join : joins) {
             buff.append(join.getStringAsJoin(this));
         }
-        if (!conditions.isEmpty()) {
-            buff.append(" WHERE ");
-            for (Token token : conditions) {
-                buff.append(token.getString(this));
-                buff.append(' ');
-            }
-        }
+        buff.append(getSQLWhere());
         if (groupByExpressions != null) {
             buff.append(" GROUP BY ");
             for (int i = 0; i < groupByExpressions.length; i++) {

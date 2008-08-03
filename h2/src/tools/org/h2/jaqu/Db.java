@@ -105,21 +105,17 @@ public class Db {
         }
         return def;
     }
-
-//    private <T> T alias(Class<T> clazz) {
-//        TableDefinition def = define(clazz);
-//        T alias = instance(clazz);
-//        SelectTable table = new SelectTable(this, null, alias, false);
-//        def.initSelectObject(table, alias, aliasMap);
-//        return alias;
-//    }
-
+    
     public void close() {
         try {
             conn.close();
         } catch (Exception e) {
             throw new Error(e);
         }
+    }
+    
+    public <A> TestCondition<A> test(A x) {
+        return new TestCondition<A>(x);
     }
 
     public <T> void insertAll(List<T> list) {
@@ -151,6 +147,14 @@ public class Db {
     ResultSet executeQuery(String sql) {
         try {
             return conn.createStatement().executeQuery(sql);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    int executeUpdate(String sql) {
+        try {
+            return conn.createStatement().executeUpdate(sql);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

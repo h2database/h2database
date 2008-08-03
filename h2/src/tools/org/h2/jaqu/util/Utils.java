@@ -68,7 +68,7 @@ public class Utils {
         } else if (clazz == Double.class) {
             return (T) new Double(counter++);
         } else if (clazz == Boolean.class) {
-            return (T) Boolean.FALSE;
+            return (T) new Boolean(false);
         } else if (clazz == BigDecimal.class) {
             return (T) new BigDecimal(counter++);
         } else if (clazz == BigInteger.class) {

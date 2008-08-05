@@ -35,11 +35,20 @@ SELECT * FROM PRODUCTS P
 WHERE P.UNITS_IN_STOCK = 0
 </pre>
 
-<h2>Advantages</h2>
+<h2>Advantages and Differences to other Data Access Tools</h2>
 <p>
-Unlike to SQL, JaQu can be easily integrated in Java applications. Because JaQu is pure Java, 
+Unlike SQL, JaQu can be easily integrated in Java applications. Because JaQu is pure Java, 
 Javadoc and auto-complete are supported. Type checking is performed by the compiler. 
-JaQu fully protects against SQL injection.
+JaQu fully protects against SQL injection. 
+</p>
+<p>
+JaQu is much smaller than object-relation mapping tools such as Hibernate.
+Unlike iBatis and Hibernate, no XML or annotation based configuration is required; 
+instead the configuration (if required at all) is done in pure Java, in the application itself.
+</p>
+<p>
+JaQu does not require or contain any data caching mechanism. Like JDBC and iBatis, 
+JaQu provides full control over when and what SQL statements are executed.
 </p>
 
 <h3>Why in Java?</h3>

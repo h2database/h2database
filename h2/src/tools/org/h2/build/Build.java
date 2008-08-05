@@ -258,7 +258,8 @@ public class Build extends BuildBase {
     }
 
     /**
-     * Create the file h2jaqu.jar. This only contains the JaQu (Java Query) implementation.
+     * Create the file h2jaqu.jar. This only contains the JaQu (Java Query)
+     * implementation.
      */
     public void jarJaqu() {
         compile(true, false);

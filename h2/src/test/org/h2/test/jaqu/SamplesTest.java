@@ -328,7 +328,8 @@ public class SamplesTest extends TestBase {
                 productCount = count();
             }});
         
-        assertEquals("[Beverages:2, Condiments:5, Meat/Poultry:1, Produce:1, Seafood:1]", 
+        assertEquals("[Beverages:2, Condiments:5, " + 
+                "Meat/Poultry:1, Produce:1, Seafood:1]", 
                 list.toString());
     }
 

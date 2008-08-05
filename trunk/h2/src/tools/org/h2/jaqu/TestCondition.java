@@ -13,6 +13,7 @@ import org.h2.jaqu.util.Utils;
  *
  * @param <A> the incomplete condition data type
  */
+//## Java 1.5 begin ##
 public class TestCondition<A> {
     
     private A x;
@@ -76,3 +77,4 @@ public class TestCondition<A> {
     }
 
 }
+//## Java 1.5 end ##

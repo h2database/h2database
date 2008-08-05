@@ -26,7 +26,8 @@ class Condition<A> implements Token {
     
     public String getString(Query query) {
         if (compareType.hasRightExpression()) {
-            return query.getString(x) + " " + compareType.getString() + " " + query.getString(y);
+            return query.getString(x) + " " + 
+                compareType.getString() + " " + query.getString(y);
         }
         return query.getString(x) + " " + compareType.getString();
     }

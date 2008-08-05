@@ -86,7 +86,9 @@ public class Function implements Token {
     }
 
     public static Boolean or(Boolean... x) {
-        return Db.registerToken(Utils.newObject(Boolean.class), new Function("", (Object[]) x) {
+        return Db.registerToken(
+                Utils.newObject(Boolean.class), 
+                new Function("", (Object[]) x) {
             public String getString(Query query) {
                 StringBuilder buff = new StringBuilder();
                 for (int i = 0; i < x.length; i++) {
@@ -101,7 +103,9 @@ public class Function implements Token {
     }
 
     public static Boolean and(Boolean... x) {
-        return Db.registerToken(Utils.newObject(Boolean.class), new Function("", (Object[]) x) {
+        return Db.registerToken(
+                Utils.newObject(Boolean.class), 
+                new Function("", (Object[]) x) {
             public String getString(Query query) {
                 StringBuilder buff = new StringBuilder();
                 for (int i = 0; i < x.length; i++) {

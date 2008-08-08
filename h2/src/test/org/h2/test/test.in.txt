@@ -1,4 +1,41 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id int);
+> ok
+
+insert into test values(null), (1);
+> update count: 2
+
+select * from test where id not in (select id from test where 1=0);
+> ID
+> ----
+> 1
+> null
+> rows: 2
+
+select * from test where null not in (select id from test where 1=0);
+> ID
+> ----
+> 1
+> null
+> rows: 2
+
+select * from test where not (id in (select id from test where 1=0));
+> ID
+> ----
+> 1
+> null
+> rows: 2
+
+select * from test where not (null in (select id from test where 1=0));
+> ID
+> ----
+> 1
+> null
+> rows: 2
+
+drop table test;
+> ok
+
 create table test(a int);
 > ok
 

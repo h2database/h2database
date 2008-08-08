@@ -16,7 +16,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Support a comma before closing a list, as in: create table test(id int,)
+<ul><li>NOT IN(SELECT ...) was incorrect if the subquery returns no rows.
+</li><li>CREATE TABLE AS SELECT did not work correctly in the multi-version concurrency mode.
+</li><li>Support a comma before closing a list, as in: create table test(id int,)
 </li><li>MySQL compatibility: linked tables had lower case column names on some systems. 
 </li><li>DB2 compatibility: the DB2 fetch-first-clause is supported.
 </li><li>Oracle compatibility: old style outer join syntax using (+) did work correctly sometimes.

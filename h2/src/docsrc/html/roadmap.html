@@ -59,6 +59,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>H2 Console: new option 'Open a browser when starting the H2 Console'.
 </li><li>Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
 </li><li>Full outer joins
+</li><li>Support trigger on the tables information_schema.tables and ...columns
 </li><li>Test very large databases and LOBs (up to 256 GB)
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
@@ -188,7 +189,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Tree join functionality
 </li><li>Support alter table add column if table has views defined
 </li><li>Add multiple columns at the same time with ALTER TABLE .. ADD .. ADD ..
-</li><li>Support trigger on the tables information_schema.tables and ...columns
 </li><li>Add H2 to Gem (Ruby install system)
 </li><li>API for functions / user tables
 </li><li>Order conditions inside AND / OR to optimize the performance

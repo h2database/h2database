@@ -338,8 +338,8 @@ public class TableData extends Table implements RecordReader {
             return;
         }
         if (!force && database.isMultiVersion()) {
-            // MVCC: update, delete, and insert use a shared lock
-            // select doesn't lock
+            // MVCC: update, delete, and insert use a shared lock.
+            // Select doesn't lock
             if (exclusive) {
                 exclusive = false;
             } else {
@@ -379,11 +379,12 @@ public class TableData extends Table implements RecordReader {
                 if (lockExclusive == null) {
                     if (lockMode == Constants.LOCK_MODE_READ_COMMITTED || lockMode == Constants.LOCK_MODE_ROW) {
                         if (!database.getMultiThreaded() && !database.isMultiVersion()) {
-                            // READ_COMMITTED read locks are acquired but they
-                            // are released immediately
-                            // when allowing only one thread, no read locks are
-                            // required
-                            // row level locks work like read committed
+                            // READ_COMMITTED: a read lock is acquired, 
+                            // but released immediately after the operation 
+                            // is complete.
+                            // When allowing only one thread, no lock is
+                            // required.
+                            // Row level locks work like read committed.
                             return;
                         }
                     } 

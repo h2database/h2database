@@ -49,7 +49,7 @@ public class Session implements SessionInterface {
 
     private static int nextSerialId;
 
-    private int serialId = nextSerialId++;
+    private final int serialId = nextSerialId++;
     private User user;
     private int id;
     private Database database;
@@ -474,6 +474,9 @@ public class Session implements SessionInterface {
         }
         if (undoLogEnabled) {
             undoLog.add(log);
+        } else {
+            log.commit();
+            log.getRow().commit();
         }
     }
 

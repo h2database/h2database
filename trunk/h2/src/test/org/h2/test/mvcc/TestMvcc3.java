@@ -18,9 +18,27 @@ import org.h2.test.TestBase;
 public class TestMvcc3 extends TestBase {
 
     public void test() throws Exception {
+        testCreateTableAsSelect();
         testSequence();
         testDisableAutoCommit();
         testRollback();
+    }
+    
+    private void testCreateTableAsSelect() throws Exception {
+        if (!config.mvcc) {
+            return;
+        }
+        deleteDb("mvcc3");
+        Connection c1 = getConnection("mvcc3");
+        Statement s1 = c1.createStatement();
+        s1.execute("CREATE TABLE TEST AS SELECT X ID, 'Hello' NAME FROM SYSTEM_RANGE(1, 3)");
+        Connection c2 = getConnection("mvcc3");
+        Statement s2 = c2.createStatement();
+        ResultSet rs = s2.executeQuery("SELECT NAME FROM TEST WHERE ID=1");
+        rs.next();
+        assertEquals("Hello", rs.getString(1));
+        c1.close();
+        c2.close();        
     }
     
     private void testRollback() throws Exception {

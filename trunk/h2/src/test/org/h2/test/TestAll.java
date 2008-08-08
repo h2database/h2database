@@ -272,6 +272,19 @@ java org.h2.test.TestAll timer
 
 /*
 
+drop table test;
+create table test(id int);
+insert into test values(null);
+insert into test values(1);
+select * from test where id not in (select id from test where 1=0);
+select * from test where null not in (select id from test where 1=0);
+select * from test where not (id in (select id from test where 1=0));
+select * from test where not (null in (select id from test where 1=0));
+
+HSQLDB, MySQL, H2: empty
+PostgreSQL, Derby: 1; null
+
+
 Support large updates (use the transaction log to undo).
 
 H2 Console: support single file upload and directory download (optional)

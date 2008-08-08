@@ -784,6 +784,9 @@ public class Select extends Query {
             if (on != null) {
                 if (!on.isEverything(ExpressionVisitor.EVALUATABLE)) {
                     if (f.isJoinOuter()) {
+                        // this will check if all columns exist - it may or may not throw an exception
+                        on = on.optimize(session);
+                        // it is not supported even if the columns exist
                         throw Message.getSQLException(ErrorCode.UNSUPPORTED_OUTER_JOIN_CONDITION_1, on.getSQL());
                     }
                     f.removeJoinCondition();

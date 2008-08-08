@@ -44,6 +44,9 @@ public class ConditionIn extends Condition {
 
     public Value getValue(Session session) throws SQLException {
         Value l = left.getValue(session);
+        if (values.size() == 0) {
+            return ValueBoolean.get(false);
+        }
         if (l == ValueNull.INSTANCE) {
             return l;
         }
@@ -77,6 +80,9 @@ public class ConditionIn extends Condition {
     }
 
     public Expression optimize(Session session) throws SQLException {
+        if (values.size() == 0) {
+            return ValueExpression.get(ValueBoolean.get(false));
+        }
         left = left.optimize(session);
         boolean constant = left.isConstant();
         if (constant && left == ValueExpression.NULL) {

@@ -42,16 +42,20 @@ public class ConditionInSelect extends Condition {
     }
 
     public Value getValue(Session session) throws SQLException {
-        Value l = left.getValue(session);
-        if (l == ValueNull.INSTANCE) {
-            return l;
-        }
         query.setSession(session);
         LocalResult rows = query.query(0);
         session.addTemporaryResult(rows);
         boolean hasNull = false;
         boolean result = all;
+        Value l = left.getValue(session);
+        boolean hasRow = false;
         while (rows.next()) {
+            if (!hasRow) {
+                if (l == ValueNull.INSTANCE) {
+                    return l;
+                }
+                hasRow = true;
+            }
             boolean value;
             Value r = rows.currentRow()[0];
             if (r == ValueNull.INSTANCE) {
@@ -68,6 +72,9 @@ public class ConditionInSelect extends Condition {
                 break;
             }
         }
+        if (!hasRow) {
+            return ValueBoolean.get(false);
+        }
         if (!result && hasNull) {
             return ValueNull.INSTANCE;
         }
@@ -82,9 +89,6 @@ public class ConditionInSelect extends Condition {
 
     public Expression optimize(Session session) throws SQLException {
         left = left.optimize(session);
-        if (left == ValueExpression.NULL) {
-            return left;
-        }
         query.prepare();
         if (query.getColumnCount() != 1) {
             throw Message.getSQLException(ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN);

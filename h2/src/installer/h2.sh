@@ -6,5 +6,5 @@ fi
 if [ -n "$CLASSPATH" ] ; then
   cp="$cp:$CLASSPATH"
 fi
-java -cp "$cp" org.h2.tools.Console
+java -cp "$cp" org.h2.tools.Console %@
 

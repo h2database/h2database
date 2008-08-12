@@ -389,7 +389,7 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 "
 
 "Commands (DDL)","CREATE INDEX","
-CREATE {[UNIQUE [HASH]] INDEX [[IF NOT EXISTS] newIndexName]
+CREATE {[UNIQUE [HASH]] INDEX [IF NOT EXISTS] newIndexName
 | PRIMARY KEY [HASH]} ON tableName(columnName [,...])
 ","
 Creates a new index.
@@ -808,7 +808,7 @@ SET [DATABASE] COLLATION
 ","
 Sets the collation used for comparing strings.
 This command can only be executed if there are no tables defined.
-See java.test.Collator for details about STRENGTH.
+See java.text.Collator for details about STRENGTH.
 This setting is persistent.
 Admin rights are required to execute this command.
 ","

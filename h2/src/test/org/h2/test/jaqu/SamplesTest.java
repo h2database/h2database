@@ -49,6 +49,8 @@ public class SamplesTest extends TestBase {
         db.insertAll(Product.getProductList());
         db.insertAll(Customer.getCustomerList());
         db.insertAll(Order.getOrderList());
+        // TODO use prepared statements
+        // TODO test all relevant data types (Date,...)
         // TODO nested AND/OR, >, <,...
         // TODO NOT
         // TODO +, -, *, /, ||, nested operations
@@ -56,7 +58,6 @@ public class SamplesTest extends TestBase {
         // TODO UPDATE: FROM ... UPDATE?
         // TODO SELECT UNION
         // TODO DatabaseAdapter
-        // TODO user prepared statements
         testOrAndNot();
         testDelete();
         testIsNull();

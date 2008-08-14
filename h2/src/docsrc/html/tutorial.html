@@ -391,6 +391,30 @@ add the following snippet to your web.xml file (after context-param and before f
 <p>
 For details on how to access the database, see the code DbStarter.java
 </p>
+<p>
+By default the DbStarter listener opens a connection using the database URL jdbc:h2:~/test 
+and user name and password 'sa'. It can also start the TCP server, however this is disabled by default. 
+To enable it, use the db.tcpServer parameter in web.xml. Here is the complete list of options.
+These options are set just after the display-name and description tag, but before any listener and filter tags:
+</p>
+<pre>
+&lt;context-param>
+   &lt;param-name>db.url&lt;/param-name>
+   &lt;param-value>jdbc:h2:~/test&lt;/param-value>
+&lt;/context-param>
+&lt;context-param>
+   &lt;param-name>db.user&lt;/param-name>
+   &lt;param-value>sa&lt;/param-value>
+&lt;/context-param>
+&lt;context-param>
+   &lt;param-name>db.password&lt;/param-name>
+   &lt;param-value>sa&lt;/param-value>
+&lt;/context-param>
+&lt;context-param>
+   &lt;param-name>db.tcpServer&lt;/param-name>
+   &lt;param-value>-tcpAllowOthers&lt;/param-value>
+&lt;/context-param>
+</pre>
 
 <br /><a name="csv"></a>
 <h2>CSV (Comma Separated Values) Support</h2>

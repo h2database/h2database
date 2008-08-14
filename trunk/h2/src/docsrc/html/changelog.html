@@ -16,7 +16,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>NOT IN(SELECT ...) was incorrect if the subquery returns no rows.
+<ul><li>Timestamp columns such as TIMESTAMP(6) were not compatible to other database. 
+</li><li>Opening a large database was slow if there was a problem opening the previous time.
+</li><li>NOT IN(SELECT ...) was incorrect if the subquery returns no rows.
 </li><li>CREATE TABLE AS SELECT did not work correctly in the multi-version concurrency mode.
 </li><li>Support a comma before closing a list, as in: create table test(id int,)
 </li><li>MySQL compatibility: linked tables had lower case column names on some systems. 

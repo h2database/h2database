@@ -46,7 +46,7 @@ public class DbStarter implements ServletContextListener {
                 server = Server.createTcpServer(params);
                 server.start();
             }
-            // To access the database using the server, use the URL:
+            // To access the database in server mode, use the database URL:
             // jdbc:h2:tcp://localhost/~/test
 
         } catch (Exception e) {

@@ -369,6 +369,7 @@ public class Build extends BuildBase {
     
     private void resources(boolean clientOnly) {
         FileList files = getFiles("src/main").
+            exclude("*.MF").
             exclude("*.java").
             exclude("*/package.html").
             exclude("*/java.sql.Driver");

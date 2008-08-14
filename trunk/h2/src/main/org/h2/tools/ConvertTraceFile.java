@@ -175,7 +175,7 @@ public class ConvertTraceFile extends Tool {
         if (stats.size() > 0) {
             scriptWriter.println("-----------------------------------------");
             scriptWriter.println("-- SQL Statement Statistics");
-            scriptWriter.println("-- time: total time in milliseconds");
+            scriptWriter.println("-- time: total time in milliseconds (accumulated)");
             scriptWriter.println("-- count: how many times the statement ran");
             scriptWriter.println("-- result: total update count or row count");
             scriptWriter.println("-----------------------------------------");

@@ -648,6 +648,15 @@ public class LogSystem {
     public void setDisabled(boolean disabled) {
         this.disabled = disabled;
     }
+    
+    /**
+     * Set the read only flag for this log system.
+     * 
+     * @param readOnly the new value
+     */
+    void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
+    }
 
     /**
      * Add a redo log entry to the file. This method is called when re-applying

@@ -384,6 +384,8 @@ public class LogFile {
         } catch (OutOfMemoryError e) {
             // OutOfMemoryError means not enough memory is allocated to the VM.
             // this is not necessarily at the end of the log file
+            // set the log system to read only so the current log file stays when closing
+            logSystem.setReadOnly(true);
             throw Message.convert(e);
         } catch (Throwable e) {
             database.getTrace(Trace.LOG).error("Error reading log file (non-fatal)", e);

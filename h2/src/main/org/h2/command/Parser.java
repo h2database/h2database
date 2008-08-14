@@ -3244,8 +3244,8 @@ public class Parser {
             dataType = DataType.getTypeByName(original);
         }
         if (dataType.type == Value.NULL) {
-            // we do support NULL in the database meta data, 
-            // but not actually when creating tables
+            // We do support NULL in the database meta data, 
+            // but not actually when creating tables.
             throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, original);
         }
         if (regular) {
@@ -3256,35 +3256,42 @@ public class Parser {
         scale = scale == -1 ? dataType.defaultScale : scale;
         if (dataType.supportsPrecision || dataType.supportsScale) {
             if (readIf("(")) {
-                precision = readLong();
+                long p = readLong();
                 if (readIf("K")) {
-                    precision *= 1024;
+                    p *= 1024;
                 } else if (readIf("M")) {
-                    precision *= 1024 * 1024;
+                    p *= 1024 * 1024;
                 } else if (readIf("G")) {
-                    precision *= 1024 * 1024 * 1024;
+                    p *= 1024 * 1024 * 1024;
                 }
-                if (precision > Long.MAX_VALUE) {
-                    precision = Long.MAX_VALUE;
+                if (p > Long.MAX_VALUE) {
+                    p = Long.MAX_VALUE;
                 }
-                displaySize = MathUtils.convertLongToInt(precision);
-                original += "(" + precision;
-                // oracle syntax
+                original += "(" + p;
+                // Oracle syntax
                 readIf("CHAR");
                 if (dataType.supportsScale) {
                     if (readIf(",")) {
                         scale = getInt();
                         original += ", " + scale;
                     } else {
-                        scale = 0;
+                        // special case: TIMESTAMP(5) actually means TIMESTAMP(23, 5)
+                        if (dataType.type == Value.TIMESTAMP) {
+                            scale = MathUtils.convertLongToInt(p);
+                            p = precision;
+                        } else {
+                            scale = 0;
+                        }
                     }
                 }
+                precision = p;
+                displaySize = MathUtils.convertLongToInt(precision);
                 original += ")";
                 read(")");
             }
         } else if (readIf("(")) {
-            // support for MySQL: INT(11), MEDIUMINT(8) and so on. Just ignore
-            // the precision.
+            // Support for MySQL: INT(11), MEDIUMINT(8) and so on. 
+            // Just ignore the precision.
             getPositiveInt();
             read(")");
         }

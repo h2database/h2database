@@ -1,4 +1,18 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(t0 timestamp(0), t1 timestamp(1), t4 timestamp(4));
+> ok
+
+select column_name, numeric_scale from information_schema.columns c where c.table_name = 'TEST' order by column_name;
+> COLUMN_NAME NUMERIC_SCALE
+> ----------- -------------
+> T0          0
+> T1          1
+> T4          4
+> rows (ordered): 3
+
+drop table test;
+> ok
+
 create table test(id int);
 > ok
 

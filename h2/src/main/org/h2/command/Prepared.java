@@ -19,6 +19,7 @@ import org.h2.result.LocalResult;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
+import org.h2.value.ValueLob;
 
 /**
  * A prepared statement.
@@ -320,15 +321,29 @@ public abstract class Prepared {
                     Expression e = (Expression) parameters.get(i);
                     Value v = e.getValue(session);
                     try {
-//                        if (v.getPrecision() > SysProperties.MAX_TRACE_DATA_LENGTH) {
-//                            
-//                        }
-                        String s = v.getSQL();
-                        int test;
-//                        if (s.length() > SysProperties.MAX_TRACE_DATA_LENGTH) {
-//                            s = s.substring(0, SysProperties.MAX_TRACE_DATA_LENGTH) + " /* len: " + s.length() + " */";
-//                        }
-                        buff.append(s);
+                        if (v.getPrecision() > SysProperties.MAX_TRACE_DATA_LENGTH) {
+                            if (v.getType() == Value.CLOB) {
+                                ValueLob lob = (ValueLob) v;
+                                buff.append("SPACE(");
+                                buff.append(lob.getPrecision());
+                                buff.append(")");
+                                buff.append("/* ");
+                                buff.append(lob.getObjectId());
+                                buff.append("*/");
+                            } else if (v.getType() == Value.BLOB) {
+                                ValueLob lob = (ValueLob) v;
+                                buff.append("CAST(REPEAT('00', ");
+                                buff.append(lob.getPrecision());
+                                buff.append(") AS BINARY)");
+                                buff.append("/* ");
+                                buff.append(lob.getObjectId());
+                                buff.append("*/");
+                            } else {
+                                buff.append(v.getSQL());
+                            }
+                        } else {
+                            buff.append(v.getSQL());
+                        }
                     } catch (Exception t) {
                         buff.append("? /*");
                         buff.append(StringUtils.quoteJavaString(t.getMessage()));

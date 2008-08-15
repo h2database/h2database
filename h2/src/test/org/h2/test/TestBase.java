@@ -154,7 +154,7 @@ public abstract class TestBase {
             return name;
         }
         if (config.memory) {
-            url = "mem:" + name;
+            name = "mem:" + name;
         } else {
             if (!name.startsWith("memFS:") && !name.startsWith(baseDir + "/")) {
                 name = baseDir + "/" + name;
@@ -162,36 +162,38 @@ public abstract class TestBase {
             if (config.deleteIndex) {
                 deleteIndexFiles(name);
             }
-            if (config.networked) {
-                if (config.ssl) {
-                    url = "ssl://localhost:9192/" + name;
-                } else {
-                    url = "tcp://localhost:9192/" + name;
-                }
+        }
+        if (config.networked) {
+            if (config.ssl) {
+                url = "ssl://localhost:9192/" + name;
             } else {
-                url = name;
+                url = "tcp://localhost:9192/" + name;
             }
-            if (config.traceSystemOut) {
-                url += ";TRACE_LEVEL_SYSTEM_OUT=2";
+        } else {
+            url = name;
+        }
+        if (!config.memory) {
+            if (config.textStorage) {
+                url += ";STORAGE=TEXT";
             }
-            if (config.traceLevelFile > 0 && admin) {
-                url += ";TRACE_LEVEL_FILE=" + config.traceLevelFile;
+            if (admin) {
+                url += ";LOG=" + config.logMode;
             }
+            if (config.smallLog && admin) {
+                url += ";MAX_LOG_SIZE=1";
+            }
+        }
+        if (config.traceSystemOut) {
+            url += ";TRACE_LEVEL_SYSTEM_OUT=2";
+        }
+        if (config.traceLevelFile > 0 && admin) {
+            url += ";TRACE_LEVEL_FILE=" + config.traceLevelFile;
         }
         if (config.throttle > 0) {
             url += ";THROTTLE=" + config.throttle;
         }
-        if (config.textStorage) {
-            url += ";STORAGE=TEXT";
-        }
         if (url.indexOf("LOCK_TIMEOUT=") < 0) {
             url += ";LOCK_TIMEOUT=50";
-        }
-        if (admin) {
-            url += ";LOG=" + config.logMode;
-        }
-        if (config.smallLog && admin) {
-            url += ";MAX_LOG_SIZE=1";
         }
         if (config.diskUndo && admin) {
             url += ";MAX_MEMORY_UNDO=3";

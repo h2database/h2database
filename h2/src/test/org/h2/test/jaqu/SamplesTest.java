@@ -49,6 +49,7 @@ public class SamplesTest extends TestBase {
         db.insertAll(Product.getProductList());
         db.insertAll(Customer.getCustomerList());
         db.insertAll(Order.getOrderList());
+        db.insertAll(ComplexObject.getList());
         // TODO use prepared statements
         // TODO test all relevant data types (Date,...)
         // TODO nested AND/OR, >, <,...

@@ -260,6 +260,12 @@ public class SysProperties {
     public static final int MAX_QUERY_TIMEOUT = getIntSetting(H2_MAX_QUERY_TIMEOUT, 0);
 
     /**
+     * System property <code>h2.maxTraceDataLength</code> (default: 65535).<br />
+     * The maximum size of a LOB value that is written as data to the trace system.
+     */
+    public static final long MAX_TRACE_DATA_LENGTH = getIntSetting("h2.maxTraceDataLength", 65535);
+
+    /**
      * System property <code>h2.minColumnNameMap</code> (default: 3).<br />
      * The minimum number of columns where a hash table is created when result set
      * methods with column name (instead of column index) parameter are called.

@@ -35,6 +35,7 @@ import org.h2.util.StringUtils;
 public class TestLob extends TestBase {
 
     public void test() throws Exception {
+        testLobServerMemory();
         if (config.memory) {
             return;
         }
@@ -58,6 +59,18 @@ public class TestLob extends TestBase {
         testLob(false);
         testLob(true);
         testJavaObject();
+    }
+    
+    private void testLobServerMemory() throws Exception {
+        deleteDb("lob");
+        Connection conn = getConnection("lob;TRACE_LEVEL_FILE=3");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT, DATA CLOB)");
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(1, ?)");
+        StringReader reader = new StringReader(new String(new char[100000]));
+        prep.setClob(1, reader);
+        prep.execute();
+        conn.close();
     }
     
     private void testLobDelete() throws Exception {

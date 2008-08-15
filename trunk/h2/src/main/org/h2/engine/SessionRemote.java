@@ -454,8 +454,6 @@ public class SessionRemote implements SessionInterface, DataHandler {
     public String createTempFile() throws SQLException {
         try {
             String prefix = getFilePrefix(System.getProperty("java.io.tmpdir"));
-            int test;
-//            return FileUtils.createTempFile(databaseName, Constants.SUFFIX_TEMP_FILE, true, false);
             return FileUtils.createTempFile(prefix, Constants.SUFFIX_TEMP_FILE, true, false);
         } catch (IOException e) {
             throw Message.convertIOException(e, databaseName);

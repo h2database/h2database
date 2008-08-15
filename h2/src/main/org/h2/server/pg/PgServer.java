@@ -49,7 +49,7 @@ public class PgServer implements Service {
 
     public void init(String[] args) {
         port = DEFAULT_PORT;
-        for (int i = 0; i < args.length; i++) {
+        for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
             if ("-trace".equals(a)) {
                 trace = true;

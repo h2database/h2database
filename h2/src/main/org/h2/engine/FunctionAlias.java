@@ -84,7 +84,7 @@ public class FunctionAlias extends DbObjectBase {
             }
         }
         if (list.size() == 0) {
-            throw Message.getSQLException(ErrorCode.METHOD_NOT_FOUND_1, methodName + " (" + className + ")");
+            throw Message.getSQLException(ErrorCode.PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1, methodName + " (" + className + ")");
         }
         javaMethods = new JavaMethod[list.size()];
         list.toArray(javaMethods);
@@ -153,12 +153,13 @@ public class FunctionAlias extends DbObjectBase {
      */
     public JavaMethod findJavaMethod(Expression[] args) throws SQLException {
         load();
+        int parameterCount = args.length;
         for (int i = 0; i < javaMethods.length; i++) {
-            if (javaMethods[i].getParameterCount() == args.length) {
+            if (javaMethods[i].getParameterCount() == parameterCount) {
                 return javaMethods[i];
             }
         }
-        throw Message.getSQLException(ErrorCode.METHOD_NOT_FOUND_1, methodName + " (" + className + ")");
+        throw Message.getSQLException(ErrorCode.METHOD_NOT_FOUND_1, methodName + " (" + className + ", parameter count: " + parameterCount + ")");
     }
 
     public String getJavaClassName() {

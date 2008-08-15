@@ -1281,7 +1281,8 @@ public class ErrorCode {
      * the specified method was not found in the class.
      * Example:
      * <pre>
-     * CREATE ALIAS TEST FOR "java.lang.Math.test";
+     * CREATE ALIAS TO_BINARY FOR "java.lang.Long.toBinaryString(long)";
+     * CALL TO_BINARY(10, 2);
      * </pre>
      */
     public static final int METHOD_NOT_FOUND_1 = 90087;
@@ -1837,8 +1838,18 @@ public class ErrorCode {
      * </pre>
      */
     public static final int INVALID_DATABASE_NAME_1 = 90138;
+    
+    /**
+     * The error with code <code>90139</code> is thrown when
+     * the specified public static Java method was not found in the class.
+     * Example:
+     * <pre>
+     * CREATE ALIAS TEST FOR "java.lang.Math.test";
+     * </pre>
+     */
+    public static final int PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1 = 90139;
 
-    // next is 90139
+    // next is 90140
     
     private ErrorCode() {
         // utility class

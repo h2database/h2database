@@ -185,12 +185,11 @@ public class SessionRemote implements SessionInterface, DataHandler {
         }
     }
 
-    private String getTraceFilePrefix(String dbName) {
-        String dir = SysProperties.CLIENT_TRACE_DIRECTORY;
+    private String getFilePrefix(String dir) {
         StringBuffer buff = new StringBuffer();
         buff.append(dir);
-        for (int i = 0; i < dbName.length(); i++) {
-            char ch = dbName.charAt(i);
+        for (int i = 0; i < databaseName.length(); i++) {
+            char ch = databaseName.charAt(i);
             if (Character.isLetterOrDigit(ch)) {
                 buff.append(ch);
             } else {
@@ -229,7 +228,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
             String traceLevelFile = ci.getProperty(SetTypes.TRACE_LEVEL_FILE, null);
             if (traceLevelFile != null) {
                 int level = Integer.parseInt(traceLevelFile);
-                String prefix = getTraceFilePrefix(databaseName);
+                String prefix = getFilePrefix(SysProperties.CLIENT_TRACE_DIRECTORY);
                 String file = FileUtils.createTempFile(prefix, Constants.SUFFIX_TRACE_FILE, false, false);
                 traceSystem.setFileName(file);
                 traceSystem.setLevelFile(level);
@@ -454,7 +453,10 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     public String createTempFile() throws SQLException {
         try {
-            return FileUtils.createTempFile(databaseName, Constants.SUFFIX_TEMP_FILE, true, false);
+            String prefix = getFilePrefix(System.getProperty("java.io.tmpdir"));
+            int test;
+//            return FileUtils.createTempFile(databaseName, Constants.SUFFIX_TEMP_FILE, true, false);
+            return FileUtils.createTempFile(prefix, Constants.SUFFIX_TEMP_FILE, true, false);
         } catch (IOException e) {
             throw Message.convertIOException(e, databaseName);
         }

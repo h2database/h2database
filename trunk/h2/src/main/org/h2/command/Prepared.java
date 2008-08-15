@@ -320,7 +320,15 @@ public abstract class Prepared {
                     Expression e = (Expression) parameters.get(i);
                     Value v = e.getValue(session);
                     try {
-                        buff.append(v.getSQL());
+//                        if (v.getPrecision() > SysProperties.MAX_TRACE_DATA_LENGTH) {
+//                            
+//                        }
+                        String s = v.getSQL();
+                        int test;
+//                        if (s.length() > SysProperties.MAX_TRACE_DATA_LENGTH) {
+//                            s = s.substring(0, SysProperties.MAX_TRACE_DATA_LENGTH) + " /* len: " + s.length() + " */";
+//                        }
+                        buff.append(s);
                     } catch (Exception t) {
                         buff.append("? /*");
                         buff.append(StringUtils.quoteJavaString(t.getMessage()));

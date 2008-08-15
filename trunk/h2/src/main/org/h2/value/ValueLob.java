@@ -654,6 +654,7 @@ public class ValueLob extends Value {
     }
 
     public String toString() {
+        int tst;
         if (small == null) {
             return getClass().getName() + " file: " + fileName + " type: " + type + " precision: " + precision;
         }

@@ -358,7 +358,8 @@ CREATE AGGREGATE MEDIAN FOR ""com.acme.db.Median""
 CREATE ALIAS [IF NOT EXISTS] newFunctionAliasName FOR classAndMethodName
 ","
 Creates a new function alias. The method name must be the full qualified class and method name,
-and may optionally include the parameter classes as in ""java.lang.Integer.parseInt(java.lang.String, int)"")
+and may optionally include the parameter classes as in ""java.lang.Integer.parseInt(java.lang.String, int)"").
+The class and the method must both be public, and the method must be static.
 Admin rights are required to execute this command.
 If the first parameter of the Java function is a java.sql.Connection, then
 the current to the database is provided. This connection must not be closed.

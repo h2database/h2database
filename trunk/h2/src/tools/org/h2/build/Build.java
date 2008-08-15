@@ -238,6 +238,7 @@ public class Build extends BuildBase {
     
     /**
      * Create the file h2small.jar. This only contains the embedded database.
+     * Debug information is disabled.
      */
     public void jarSmall() {
         compile(false, false);
@@ -259,7 +260,7 @@ public class Build extends BuildBase {
 
     /**
      * Create the file h2jaqu.jar. This only contains the JaQu (Java Query)
-     * implementation.
+     * implementation. All other jar files do not include JaQu.
      */
     public void jarJaqu() {
         compile(true, false);

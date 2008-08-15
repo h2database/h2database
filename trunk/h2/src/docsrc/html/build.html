@@ -20,6 +20,8 @@ Build
     Environment</a><br />
 <a href="#building">
     Building the Software</a><br />
+<a href="#build_targets">
+    Build Targets</a><br />
 <a href="#maven2">
     Using Maven 2</a><br />
 <a href="#translating">
@@ -57,7 +59,7 @@ Newer version or compatible software works too.
 <br /><a name="building"></a>
 <h2>Building the Software</h2>
 <p>
-On the command line, go to the directory src and execute the following command:
+On the command line, go to the directory h2 and execute the following command:
 </p>
 <pre>
 build -?
@@ -68,16 +70,22 @@ You will get a list of targets. If you want to build the jar file, execute:
 <pre>
 build jar
 </pre>
+
+<br /><a name="build_targets"></a>
+<h2>Build Targets</h2>
 <p>
-To create a jar file with the JDBC API and the classes required to connect to a server only,
-use the target jarClient:
+The build system can generate smaller jar files as well. The following targets are currently supported:
+</p>
+<ul><li>jarClient: Create the h2client.jar. This only contains the remote JDBC implementation.
+</li><li>jarSmall: Create the file h2small.jar. This only contains the embedded database. Debug information is disabled.
+</li><li>jarJaqu: Create the file h2jaqu.jar. This only contains the JaQu (Java Query) implementation. All other jar files do not include JaQu.
+</li></ul>
+<p>
+To create the h2client.jar file, go to the directory h2 and execute the following command:
 </p>
 <pre>
 build jarClient
 </pre>
-<p>
-The other targets may be used as well.
-</p>
 
 <br /><a name="maven2"></a>
 <h2>Using Maven 2</h2>

@@ -63,7 +63,7 @@ public class TestLob extends TestBase {
     
     private void testLobServerMemory() throws Exception {
         deleteDb("lob");
-        Connection conn = getConnection("lob;TRACE_LEVEL_FILE=3");
+        Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT, DATA CLOB)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(1, ?)");

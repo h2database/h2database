@@ -25,8 +25,12 @@ public class TestCondition<A> {
     public Boolean is(A y) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("=", x, y) {
-            public String getString(Query query) {
-                return "(" + query.getString(x[0]) + " = " + query.getString(x[1]) + ")";
+            public void appendSQL(SqlStatement stat, Query query) {
+                stat.appendSQL("(");
+                query.appendSQL(stat, x[0]);
+                stat.appendSQL(" = ");
+                query.appendSQL(stat, x[1]);
+                stat.appendSQL(")");
             }
         });
     }
@@ -34,8 +38,12 @@ public class TestCondition<A> {
     public Boolean bigger(A y) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function(">", x, y) {
-            public String getString(Query query) {
-                return "(" + query.getString(x[0]) + " > " + query.getString(x[1]) + ")";
+            public void appendSQL(SqlStatement stat, Query query) {
+                stat.appendSQL("(");
+                query.appendSQL(stat, x[0]);
+                stat.appendSQL(" > ");
+                query.appendSQL(stat, x[1]);
+                stat.appendSQL(")");
             }
         });
     }
@@ -43,8 +51,12 @@ public class TestCondition<A> {
     public Boolean biggerEqual(A y) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function(">=", x, y) {
-            public String getString(Query query) {
-                return "(" + query.getString(x[0]) + " >= " + query.getString(x[1]) + ")";
+            public void appendSQL(SqlStatement stat, Query query) {
+                stat.appendSQL("(");
+                query.appendSQL(stat, x[0]);
+                stat.appendSQL(" >= ");
+                query.appendSQL(stat, x[1]);
+                stat.appendSQL(")");
             }
         });
     }
@@ -52,8 +64,12 @@ public class TestCondition<A> {
     public Boolean smaller(A y) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("<", x, y) {
-            public String getString(Query query) {
-                return "(" + query.getString(x[0]) + " < " + query.getString(x[1]) + ")";
+            public void appendSQL(SqlStatement stat, Query query) {
+                stat.appendSQL("(");
+                query.appendSQL(stat, x[0]);
+                stat.appendSQL(" < ");
+                query.appendSQL(stat, x[1]);
+                stat.appendSQL(")");
             }
         });
     }
@@ -61,8 +77,12 @@ public class TestCondition<A> {
     public Boolean smallerEqual(A y) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("<=", x, y) {
-            public String getString(Query query) {
-                return "(" + query.getString(x[0]) + " <= " + query.getString(x[1]) + ")";
+            public void appendSQL(SqlStatement stat, Query query) {
+                stat.appendSQL("(");
+                query.appendSQL(stat, x[0]);
+                stat.appendSQL(" <= ");
+                query.appendSQL(stat, x[1]);
+                stat.appendSQL(")");
             }
         });
     }
@@ -70,8 +90,12 @@ public class TestCondition<A> {
     public Boolean like(A pattern) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("LIKE", x, pattern) {
-            public String getString(Query query) {
-                return "(" + query.getString(x[0]) + " LIKE " + query.getString(x[1]) + ")";
+            public void appendSQL(SqlStatement stat, Query query) {
+                stat.appendSQL("(");
+                query.appendSQL(stat, x[0]);
+                stat.appendSQL(" LIKE ");
+                query.appendSQL(stat, x[1]);
+                stat.appendSQL(")");
             }
         });
     }

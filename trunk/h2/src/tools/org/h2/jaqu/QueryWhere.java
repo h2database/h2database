@@ -39,7 +39,9 @@ public class QueryWhere<T> {
     }
     
     public String getSQL() {
-        return query.getSQL("*", false).trim();
+        SqlStatement selectList = new SqlStatement(query.getDb());
+        selectList.appendSQL("*");
+        return query.prepare(selectList, false).getSQL().trim();
     }
 
     public <X, Z> List<X> selectDistinct(Z x) {
@@ -114,6 +116,10 @@ public class QueryWhere<T> {
 
     public int delete() {
         return query.delete();
+    }
+
+    public long selectCount() {
+        return query.selectCount();
     }
 
 }

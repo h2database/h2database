@@ -46,12 +46,12 @@ public class SamplesTest extends TestBase {
     public void test() throws Exception {
 //## Java 1.5 begin ##
         db = Db.open("jdbc:h2:mem:", "sa", "sa");
-        db.insertAll(Product.getProductList());
-        db.insertAll(Customer.getCustomerList());
-        db.insertAll(Order.getOrderList());
+        db.insertAll(Product.getList());
+        db.insertAll(Customer.getList());
+        db.insertAll(Order.getList());
         db.insertAll(ComplexObject.getList());
-        // TODO use prepared statements
-        // TODO test all relevant data types (Date,...)
+        // TODO support JavaBeans specification
+        // TODO support all relevant data types (byte[],...)
         // TODO nested AND/OR, >, <,...
         // TODO NOT
         // TODO +, -, *, /, ||, nested operations
@@ -59,6 +59,7 @@ public class SamplesTest extends TestBase {
         // TODO UPDATE: FROM ... UPDATE?
         // TODO SELECT UNION
         // TODO DatabaseAdapter
+        testComplexObject();
         testOrAndNot();
         testDelete();
         testIsNull();
@@ -142,7 +143,7 @@ public class SamplesTest extends TestBase {
             db.from(p).
             orderBy(p.productId).select(p.productName);
         
-        List<Product> products = Product.getProductList();
+        List<Product> products = Product.getList();
         for (int i = 0; i < products.size(); i++) {
             assertEquals(products.get(i).productName, productNames.get(i));
         }
@@ -178,7 +179,7 @@ public class SamplesTest extends TestBase {
                     price = p.unitPrice;
             }});
         
-        List<Product> products = Product.getProductList();
+        List<Product> products = Product.getList();
         assertEquals(products.size(), productInfos.size());
         for (int i = 0; i < products.size(); i++) {
             ProductPrice pr = productInfos.get(i);
@@ -243,7 +244,7 @@ public class SamplesTest extends TestBase {
         assertEquals(1, deleted);
         deleted = db.from(p).delete();
         assertEquals(9, deleted);
-        db.insertAll(Product.getProductList());
+        db.insertAll(Product.getList());
     }
     
     private void testOrAndNot() throws Exception {
@@ -253,7 +254,7 @@ public class SamplesTest extends TestBase {
         sql = db.from(p).whereTrue(not(isNull(p.productName))).getSQL();
         assertEquals("SELECT * FROM Product WHERE (NOT productName IS NULL)", sql);
         sql = db.from(p).whereTrue(db.test(p.productId).is(1)).getSQL();
-        assertEquals("SELECT * FROM Product WHERE ((productId = 1))", sql);
+        assertEquals("SELECT * FROM Product WHERE ((productId = ?))", sql);
     }
     
     private void testLength() throws Exception {
@@ -294,6 +295,20 @@ public class SamplesTest extends TestBase {
     private void testCount() throws Exception {
         long count = db.from(new Product()).selectCount();
         assertEquals(10, count);
+    }
+    
+    private void testComplexObject() throws Exception {
+        ComplexObject co = new ComplexObject();
+        long count = db.from(co).
+            where(co.id).is(1).
+            and(co.amount).is(1L).
+            and(co.birthday).smaller(new java.util.Date()).
+            and(co.created).smaller(java.sql.Timestamp.valueOf("2005-05-05 05:05:05")).
+            and(co.name).is("hello").
+            and(co.time).smaller(java.sql.Time.valueOf("23:23:23")).
+            and(co.value).is(new BigDecimal("1")).
+            selectCount();
+        assertEquals(1, count);
     }
     
 //## Java 1.5 end ##

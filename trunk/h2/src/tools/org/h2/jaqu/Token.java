@@ -11,6 +11,6 @@ package org.h2.jaqu;
  */
 interface Token {
 //## Java 1.5 begin ##
-    String getString(Query query);
+    void appendSQL(SqlStatement stat, Query query);
 //## Java 1.5 end ##
 }

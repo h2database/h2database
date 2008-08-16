@@ -33,7 +33,7 @@ public class Customer {
     }
 
 //## Java 1.5 begin ##
-    public static List<Customer> getCustomerList() {
+    public static List<Customer> getList() {
         Customer[] list = new Customer[] { 
                 new Customer("ALFKI", "WA"), 
                 new Customer("ANATR", "WA"),

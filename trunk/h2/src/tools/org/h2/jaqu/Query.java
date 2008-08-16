@@ -45,7 +45,9 @@ public class Query<T> {
     }
     
     public long selectCount() {
-        ResultSet rs = db.executeQuery(getSQL("COUNT(*)", false));
+        SqlStatement selectList = new SqlStatement(db);
+        selectList.setSQL("COUNT(*)");
+        ResultSet rs = prepare(selectList, false).executeQuery();
         try {
             rs.next();
             long value = rs.getLong(1);
@@ -69,12 +71,16 @@ public class Query<T> {
     }
     
     public String getSQL() {
-        return getSQL("*", false).trim();
+        SqlStatement selectList = new SqlStatement(db);
+        selectList.setSQL("*");        
+        return prepare(selectList, false).getSQL().trim();
     }
 
     private List<T> select(boolean distinct) {
         List<T> result = Utils.newArrayList();
-        ResultSet rs = db.executeQuery(getSQL("*", distinct));
+        SqlStatement selectList = new SqlStatement(db);
+        selectList.setSQL("*");           
+        ResultSet rs = prepare(selectList, distinct).executeQuery();
         try {
             while (rs.next()) {
                 T item = from.newObject();
@@ -88,12 +94,11 @@ public class Query<T> {
     }
     
     public int delete() {
-        StringBuilder buff = new StringBuilder();
-        buff.append("DELETE FROM ");
-        buff.append(from.getString());
-        buff.append(getSQLWhere());
-        String sql = buff.toString();
-        return db.executeUpdate(sql);
+        SqlStatement stat = new SqlStatement(db);
+        stat.appendSQL("DELETE FROM ");
+        from.appendSQL(stat);
+        appendWhere(stat);
+        return stat.executeUpdate();
     }
 
     public <X, Z> List<X> selectDistinct(Z x) {
@@ -115,8 +120,8 @@ public class Query<T> {
     
     private <X> List<X> select(Class<X> clazz, X x, boolean distinct) {
         TableDefinition<X> def = db.define(clazz);
-        String selectList = def.getSelectList(this, x);
-        ResultSet rs = db.executeQuery(getSQL(selectList, distinct));
+        SqlStatement selectList = def.getSelectList(this, x);
+        ResultSet rs = prepare(selectList, distinct).executeQuery();
         List<X> result = Utils.newArrayList();
         try {
             while (rs.next()) {
@@ -131,8 +136,9 @@ public class Query<T> {
     }
     
     private <X> List<X> getSimple(X x, boolean distinct) {
-        String selectList = getString(x);
-        ResultSet rs = db.executeQuery(getSQL(selectList, distinct));
+        SqlStatement selectList = new SqlStatement(db);
+        appendSQL(selectList, x);
+        ResultSet rs = prepare(selectList, distinct).executeQuery();
         List<X> result = Utils.newArrayList();
         try {
             while (rs.next()) {
@@ -188,72 +194,77 @@ public class Query<T> {
         return this;
     }
 
-    String getString(Object x) {
+    void appendSQL(SqlStatement stat, Object x) {
         if (x == Function.count()) {
-            return "COUNT(*)";
+            stat.appendSQL("COUNT(*)");
+            return;
         }
         Token token = Db.getToken(x);
         if (token != null) {
-            return token.getString(this);
+            token.appendSQL(stat, this);
+            return;
         }
         SelectColumn col = aliasMap.get(x);
         if (col != null) {
-            return col.getString();
+            col.appendSQL(stat);
+            return;
         }
-        return Utils.quoteSQL(x);
+        stat.appendSQL("?");
+        stat.addParameter(x);
     }
 
     void addConditionToken(Token condition) {
         conditions.add(condition);
     }
     
-    String getSQLWhere() {
-        StringBuilder buff = new StringBuilder("");
+    void appendWhere(SqlStatement stat) {
         if (!conditions.isEmpty()) {
-            buff.append(" WHERE ");
+            stat.appendSQL(" WHERE ");
             for (Token token : conditions) {
-                buff.append(token.getString(this));
-                buff.append(' ');
+                token.appendSQL(stat, this);
+                stat.appendSQL(" ");
             }
         }
-        return buff.toString();
     }
     
-    String getSQL(String selectList, boolean distinct) {
-        StringBuilder buff = new StringBuilder("SELECT ");
+    SqlStatement prepare(SqlStatement selectList, boolean distinct) {
+        SqlStatement stat = selectList;
+        String selectSQL = stat.getSQL();
+        stat.setSQL("");
+        stat.appendSQL("SELECT ");
         if (distinct) {
-            buff.append("DISTINCT ");
+            stat.appendSQL("DISTINCT ");
         }
-        buff.append(selectList);
-        buff.append(" FROM ");
-        buff.append(from.getString());
+        stat.appendSQL(selectSQL);
+        stat.appendSQL(" FROM ");
+        from.appendSQL(stat);
         for (SelectTable join : joins) {
-            buff.append(join.getStringAsJoin(this));
+            join.appendSQLAsJoin(stat, this);
         }
-        buff.append(getSQLWhere());
+        appendWhere(stat);
         if (groupByExpressions != null) {
-            buff.append(" GROUP BY ");
+            stat.appendSQL(" GROUP BY ");
             for (int i = 0; i < groupByExpressions.length; i++) {
                 if (i > 0) {
-                    buff.append(", ");
+                    stat.appendSQL(", ");
                 }
                 Object obj = groupByExpressions[i];
-                buff.append(getString(obj));
-                buff.append(' ');
+                appendSQL(stat, obj);
+                stat.appendSQL(" ");
             }
         }
         if (!orderByList.isEmpty()) {
-            buff.append(" ORDER BY ");
+            stat.appendSQL(" ORDER BY ");
             for (int i = 0; i < orderByList.size(); i++) {
                 if (i > 0) {
-                    buff.append(", ");
+                    stat.appendSQL(", ");
                 }
                 OrderExpression o = orderByList.get(i);
-                buff.append(o.getString());
-                buff.append(' ');
+                o.appendSQL(stat);
+                stat.appendSQL(" ");
             }
         }
-        return buff.toString();
+        return stat;
     }
 //## Java 1.5 end ##
 

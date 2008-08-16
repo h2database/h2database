@@ -26,17 +26,16 @@ public class Function implements Token {
         this.x = x;
     }
 
-    public String getString(Query query) {
-        StringBuilder buff = new StringBuilder();
-        buff.append(name).append('(');
+    public void appendSQL(SqlStatement stat, Query query) {
+        stat.appendSQL(name);
+        stat.appendSQL("(");
         for (int i = 0; i < x.length; i++) {
             if (i > 0) {
-                buff.append(',');
+                stat.appendSQL(",");
             }
-            buff.append(query.getString(x[i]));
+            query.appendSQL(stat, x[i]);
         }
-        buff.append(')');
-        return buff.toString();
+        stat.appendSQL(")");
     }
     
     public static Long count() {
@@ -61,8 +60,9 @@ public class Function implements Token {
     public static Boolean isNull(Object x) {
         return Db.registerToken(
             Utils.newObject(Boolean.class), new Function("", x) {
-                public String getString(Query query) {
-                    return query.getString(x[0]) + " IS NULL";
+                public void appendSQL(SqlStatement stat, Query query) {
+                    query.appendSQL(stat, x[0]);
+                    stat.appendSQL(" IS NULL");
                 }
             });
     }
@@ -70,8 +70,9 @@ public class Function implements Token {
     public static Boolean isNotNull(Object x) {
         return Db.registerToken(
             Utils.newObject(Boolean.class), new Function("", x) {
-                public String getString(Query query) {
-                    return query.getString(x[0]) + " IS NOT NULL";
+                public void appendSQL(SqlStatement stat, Query query) {
+                    query.appendSQL(stat, x[0]);
+                    stat.appendSQL(" IS NOT NULL");
                 }
             });
     }
@@ -79,8 +80,9 @@ public class Function implements Token {
     public static Boolean not(Boolean x) {
         return Db.registerToken(
             Utils.newObject(Boolean.class), new Function("", x) {
-                public String getString(Query query) {
-                    return "NOT " + query.getString(x[0]);
+                public void appendSQL(SqlStatement stat, Query query) {
+                    stat.appendSQL("NOT ");
+                    query.appendSQL(stat, x[0]);
                 }
             });
     }
@@ -89,15 +91,13 @@ public class Function implements Token {
         return Db.registerToken(
                 Utils.newObject(Boolean.class), 
                 new Function("", (Object[]) x) {
-            public String getString(Query query) {
-                StringBuilder buff = new StringBuilder();
+            public void appendSQL(SqlStatement stat, Query query) {
                 for (int i = 0; i < x.length; i++) {
                     if (i > 0) {
-                        buff.append(" OR ");
+                        stat.appendSQL(" OR ");
                     }
-                    buff.append(query.getString(x[i]));
+                    query.appendSQL(stat, x[i]);
                 }
-                return buff.toString();
             }
         });
     }
@@ -106,15 +106,13 @@ public class Function implements Token {
         return Db.registerToken(
                 Utils.newObject(Boolean.class), 
                 new Function("", (Object[]) x) {
-            public String getString(Query query) {
-                StringBuilder buff = new StringBuilder();
+            public void appendSQL(SqlStatement stat, Query query) {
                 for (int i = 0; i < x.length; i++) {
                     if (i > 0) {
-                        buff.append(" AND ");
+                        stat.appendSQL(" AND ");
                     }
-                    buff.append(query.getString(x[i]));
+                    query.appendSQL(stat, x[i]);
                 }
-                return buff.toString();
             }
         });
     }
@@ -134,8 +132,12 @@ public class Function implements Token {
     public static Boolean like(String x, String pattern) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("LIKE", x, pattern) {
-            public String getString(Query query) {
-                return "(" + query.getString(x[0]) + " LIKE " + query.getString(x[1]) + ")";
+            public void appendSQL(SqlStatement stat, Query query) {
+                stat.appendSQL("(");
+                query.appendSQL(stat, x[0]);
+                stat.appendSQL(" LIKE ");
+                query.appendSQL(stat, x[1]);
+                stat.appendSQL(")");
             }
         });
     }

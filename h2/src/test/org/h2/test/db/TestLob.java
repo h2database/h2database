@@ -68,7 +68,7 @@ public class TestLob extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT, DATA CLOB)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(1, ?)");
         StringReader reader = new StringReader(new String(new char[100000]));
-        prep.setClob(1, reader);
+        prep.setCharacterStream(1, reader, -1);
         prep.execute();
         conn.close();
     }

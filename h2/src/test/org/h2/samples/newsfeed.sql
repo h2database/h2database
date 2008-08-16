@@ -12,7 +12,38 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
     'http://www.h2database.com', 'H2 Database Engine', 'en-us', NOW(), NOW(), 'Thomas Mueller');
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
-
+    
+INSERT INTO ITEM VALUES(47,
+'New version available: 1.0.77 (2008-08-16)', '2008-08-16 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>JaQu is now using prepared statements and supports Date, Time, Timestamp.
+</li><li>Support a comma before closing a list, as in: create table test(id int,)
+</li><li>DB2 compatibility: the DB2 fetch-first-clause is supported.
+</li><li>ResultSet.setFetchSize is now supported.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>When using remote in-memory databases, large LOB objects did not work.
+</li><li>Timestamp columns such as TIMESTAMP(6) were not compatible to other database. 
+</li><li>Opening a large database was slow if there was a problem opening the previous time.
+</li><li>Oracle compatibility: old style outer join syntax using (+) did work correctly sometimes.
+</li><li>MySQL compatibility: linked tables had lower case column names on some systems. 
+</li><li>NOT IN(SELECT ...) was incorrect if the subquery returns no rows.
+</li><li>CREATE TABLE AS SELECT did not work correctly in the multi-version concurrency mode.
+</li><li>It has been reported that when using Install4j on some Linux systems and enabling the 'pack200' option, 
+    the h2.jar becomes corrupted by the install process, causing application failure. 
+    A workaround is to add an empty file h2.jar.nopack next to the h2.jar file. 
+    The reason for this problem is not known.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+    
 INSERT INTO ITEM VALUES(46,
 'New version available: 1.0.76 (2008-07-27)', '2008-07-27 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -23,7 +54,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Changes in updatable result sets are now always visible.
 </li><li>There is a problem with Hibernate when using Boolean columns, see 
     http://opensource.atlassian.com/projects/hibernate/browse/HHH-3401
-<ul><li>The comment of a domain (user defined data type) is now used.
+</li><li>The comment of a domain (user defined data type) is now used.
 </li></ul>
 <b>Bugfixes:</b>
 <ul><li>ResultSetMetaData.getColumnClassName now returns the correct 

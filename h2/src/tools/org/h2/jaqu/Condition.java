@@ -24,12 +24,13 @@ class Condition<A> implements Token {
         this.y = y;
     }
     
-    public String getString(Query query) {
+    public void appendSQL(SqlStatement stat, Query query) {
+        query.appendSQL(stat, x);
+        stat.appendSQL(" ");
+        stat.appendSQL(compareType.getString());
         if (compareType.hasRightExpression()) {
-            return query.getString(x) + " " + 
-                compareType.getString() + " " + query.getString(y);
+            query.appendSQL(stat, y);
         }
-        return query.getString(x) + " " + compareType.getString();
     }
 }
 //## Java 1.5 end ##

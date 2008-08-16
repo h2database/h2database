@@ -45,7 +45,7 @@ public class Order implements Table {
         primaryKey(customerId, orderId);
     }
 
-    public static List<Order> getOrderList() {
+    public static List<Order> getList() {
         Order[] list = new Order[] { 
                 new Order("ALFKI", 10702, "330.00", "2007-01-02"),
                 new Order("ALFKI", 10952, "471.20", "2007-02-03"), 

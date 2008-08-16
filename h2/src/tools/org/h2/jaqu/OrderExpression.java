@@ -28,19 +28,17 @@ class OrderExpression<T> {
         this.nullsLast = nullsLast;
     }
     
-    String getString() {
-        StringBuilder buff = new StringBuilder();
-        buff.append(query.getString(expression));
+    void appendSQL(SqlStatement stat) {
+        query.appendSQL(stat, expression);
         if (desc) {
-            buff.append(" DESC");
+            stat.appendSQL(" DESC");
         }
         if (nullsLast) {
-            buff.append(" NULLS LAST");
+            stat.appendSQL(" NULLS LAST");
         }
         if (nullsFirst) {
-            buff.append(" NULLS FIRST");
+            stat.appendSQL(" NULLS FIRST");
         }
-        return buff.toString();
     }
     
 }

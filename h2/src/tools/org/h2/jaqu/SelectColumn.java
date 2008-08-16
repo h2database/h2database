@@ -25,11 +25,12 @@ class SelectColumn<X> {
         this.fieldDef = fieldDef;
     }
     
-    String getString() {
+    void appendSQL(SqlStatement stat) {
         if (selectTable.getQuery().isJoin()) {
-            return selectTable.getAs() + "." + fieldDef.columnName;
+            stat.appendSQL(selectTable.getAs() + "." + fieldDef.columnName);
+        } else {
+            stat.appendSQL(fieldDef.columnName);
         }
-        return fieldDef.columnName;
     }
 
     FieldDefinition<X> getFieldDefinition() {

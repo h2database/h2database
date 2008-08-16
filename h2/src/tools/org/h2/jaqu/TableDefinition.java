@@ -8,7 +8,6 @@ package org.h2.jaqu;
 
 //## Java 1.5 begin ##
 import java.lang.reflect.Field;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -16,7 +15,6 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 import org.h2.jaqu.util.Utils;
-//## Java 1.5 end ##
 
 /**
  * A table definition contains the index definitions of a table, the field
@@ -157,6 +155,7 @@ class TableDefinition<T> {
     }
     
     void insert(Db db, Object obj) {
+        SqlStatement stat = new SqlStatement(db);
         StringBuilder buff = new StringBuilder("INSERT INTO ");
         buff.append(tableName);
         buff.append(" VALUES(");
@@ -165,31 +164,17 @@ class TableDefinition<T> {
                 buff.append(", ");
             }
             buff.append('?');
-        }        
-        buff.append(')');
-        String sql = buff.toString();
-        PreparedStatement prep = db.prepare(sql);
-        for (int i = 0; i < fields.size(); i++) {
             FieldDefinition field = fields.get(i);
             Object value = field.getValue(obj);
-            setValue(prep, i + 1, value);
+            stat.addParameter(value);
         }        
-        try {
-            prep.execute();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    
-    private void setValue(PreparedStatement prep, int parameterIndex, Object x) {
-        try {
-            prep.setObject(parameterIndex, x);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        buff.append(')');
+        stat.setSQL(buff.toString());
+        stat.executeUpdate();
     }
 
     TableDefinition createTableIfRequired(Db db) {
+        SqlStatement stat = new SqlStatement(db);
         StringBuilder buff = new StringBuilder("CREATE TABLE IF NOT EXISTS ");
         buff.append(tableName);
         buff.append('(');
@@ -213,7 +198,8 @@ class TableDefinition<T> {
             buff.append(')');
         }
         buff.append(')');
-        db.execute(buff.toString());
+        stat.setSQL(buff.toString());
+        stat.executeUpdate();
         // TODO create indexes
         return this;
     }
@@ -247,18 +233,17 @@ class TableDefinition<T> {
         }
     }
     
-    <X> String getSelectList(Query query, X x) {
-        StringBuilder buff = new StringBuilder();
+    <X> SqlStatement getSelectList(Query query, X x) {
+        SqlStatement selectList = new SqlStatement(query.getDb());
         for (int i = 0; i < fields.size(); i++) {
             if (i > 0) {
-                buff.append(", ");
+                selectList.appendSQL(", ");
             }
             FieldDefinition def = fields.get(i);
             Object obj = def.getValue(x);
-            String s = query.getString(obj);
-            buff.append(s);
+            query.appendSQL(selectList, obj);
         }
-        return buff.toString();
+        return selectList;
     }
     
     <U, X> void copyAttributeValues(Query query, X to, X map) {

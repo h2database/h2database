@@ -23,30 +23,32 @@ import org.h2.jaqu.Table;
  */
 //## Java 1.5 begin ##    
 public class ComplexObject implements Table {
-    Integer id;
-    Long amount;
-    String name;
-    BigDecimal value;
-    Date birthday;
-    Time time;
-    Timestamp created;
+    public Integer id;
+    public Long amount;
+    public String name;
+    public BigDecimal value;
+    public Date birthday;
+    public Time time;
+    public Timestamp created;
+    
+    static ComplexObject build(Integer id, boolean isNull) {
+        ComplexObject obj = new ComplexObject();
+        obj.id = id;
+        obj.amount = isNull ? null : new Long(1);
+        obj.name = isNull ? null : "hello";
+        obj.value = isNull ? null : new BigDecimal("1");
+        obj.birthday = isNull ? null : java.sql.Date.valueOf("2001-01-01");
+        obj.time = isNull ? null : Time.valueOf("10:20:30");
+        obj.created = isNull ? null : Timestamp.valueOf("2002-02-02 02:02:02");
+        return obj;
+    }
     
     public void define() {
         primaryKey(id);        
     }
 
     public static List<ComplexObject> getList() {
-        ComplexObject[] list = new ComplexObject[] { 
-//                new Order("ALFKI", 10702, "330.00", "2007-01-02"),
-//                new Order("ALFKI", 10952, "471.20", "2007-02-03"), 
-//                new Order("ANATR", 10308, "88.80", "2007-01-03"),
-//                new Order("ANATR", 10625, "479.75", "2007-03-03"), 
-//                new Order("ANATR", 10759, "320.00", "2007-04-01"),
-//                new Order("ANTON", 10365, "403.20", "2007-02-13"), 
-//                new Order("ANTON", 10682, "375.50", "2007-03-13"),
-//                new Order("ANTON", 10355, "480.00", "2007-04-11")
-                };
-        return Arrays.asList(list);
+        return Arrays.asList(new ComplexObject[] { build(0, true), build(1, false) });
     }
     
 }

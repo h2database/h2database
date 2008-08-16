@@ -52,7 +52,7 @@ public class Product implements Table {
             unitPrice, unitsInStock);
     }
 
-    public static List<Product> getProductList() {
+    public static List<Product> getList() {
         Product[] list = new Product[] { 
                 create(1, "Chai", "Beverages", 18, 39),
                 create(2, "Chang", "Beverages", 19.0, 17), 

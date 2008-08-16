@@ -16,8 +16,6 @@ import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.h2.util.StringUtils;
 //## Java 1.5 end ##
 
 /**
@@ -73,6 +71,14 @@ public class Utils {
             return (T) new BigDecimal(counter++);
         } else if (clazz == BigInteger.class) {
             return (T) new BigInteger("" + counter++);
+        } else if (clazz == java.sql.Date.class) {
+            return (T) new java.sql.Date(counter++);
+        } else if (clazz == java.sql.Time.class) {
+            return (T) new java.sql.Time(counter++);
+        } else if (clazz == java.sql.Timestamp.class) {
+            return (T) new java.sql.Timestamp(counter++);
+        } else if (clazz == java.util.Date.class) {
+            return (T) new java.util.Date(counter++);
         } else if (clazz == List.class) {
             return (T) new ArrayList();
         }
@@ -107,16 +113,6 @@ public class Utils {
             throw new RuntimeException("Exception trying to create " + 
                     clazz.getName() + ": " + e, e);
         }
-    }
-
-    public static String quoteSQL(Object x) {
-        if (x == null) {
-            return "NULL";
-        }
-        if (x instanceof String) {
-            return StringUtils.quoteStringSQL((String) x);
-        }
-        return x.toString();
     }
 
     public static <T> boolean isSimpleType(Class<T> clazz) {

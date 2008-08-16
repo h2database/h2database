@@ -46,29 +46,28 @@ class SelectTable <T> {
         return aliasDef;
     }
     
-    String getString() {
+    void appendSQL(SqlStatement stat) {
         if (query.isJoin()) {
-            return aliasDef.tableName + " AS " + as;
+            stat.appendSQL(aliasDef.tableName + " AS " + as);
+        } else {
+            stat.appendSQL(aliasDef.tableName);
         }
-        return aliasDef.tableName;
     }
     
-    String getStringAsJoin(Query query) {
-        StringBuilder buff = new StringBuilder();
+    void appendSQLAsJoin(SqlStatement stat, Query query) {
         if (outerJoin) {
-            buff.append(" LEFT OUTER JOIN ");
+            stat.appendSQL(" LEFT OUTER JOIN ");
         } else {
-            buff.append(" INNER JOIN ");
+            stat.appendSQL(" INNER JOIN ");
         }
-        buff.append(getString());
+        appendSQL(stat);
         if (!joinConditions.isEmpty()) {
-            buff.append(" ON ");
+            stat.appendSQL(" ON ");
             for (Token token : joinConditions) {
-                buff.append(token.getString(query));
-                buff.append(' ');
+                token.appendSQL(stat, query);
+                stat.appendSQL(" ");
             }
         }
-        return buff.toString();
     }
 
     boolean getOuterJoin() {

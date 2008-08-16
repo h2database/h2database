@@ -124,14 +124,6 @@ public class Db {
         }
     }
 
-    void execute(String sql) {
-        try {
-            conn.createStatement().execute(sql);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     PreparedStatement prepare(String sql) {
         try {
             return conn.prepareStatement(sql);

@@ -34,7 +34,7 @@ public class ComplexObject implements Table {
     static ComplexObject build(Integer id, boolean isNull) {
         ComplexObject obj = new ComplexObject();
         obj.id = id;
-        obj.amount = isNull ? null : new Long(1);
+        obj.amount = isNull ? null : Long.valueOf(1);
         obj.name = isNull ? null : "hello";
         obj.value = isNull ? null : new BigDecimal("1");
         obj.birthday = isNull ? null : java.sql.Date.valueOf("2001-01-01");

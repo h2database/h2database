@@ -25,7 +25,7 @@ public class QueryJoinCondition<A> {
     }
     
     public Query< ? > is(A y) {
-        join.addConditionToken(new Condition<A>(query, x, y, CompareType.EQUAL));
+        join.addConditionToken(new Condition<A>(x, y, CompareType.EQUAL));
         return query;
     }
 }

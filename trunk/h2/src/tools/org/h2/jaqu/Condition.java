@@ -13,12 +13,10 @@ package org.h2.jaqu;
  */
 //## Java 1.5 begin ##
 class Condition<A> implements Token {
-    Query< ? > query;
     CompareType compareType;
     A x, y;
     
-    Condition(Query< ? > query, A x, A y, CompareType compareType) {
-        this.query = query;
+    Condition(A x, A y, CompareType compareType) {
         this.compareType = compareType;
         this.x = x;
         this.y = y;

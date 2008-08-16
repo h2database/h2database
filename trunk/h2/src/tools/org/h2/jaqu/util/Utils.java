@@ -129,7 +129,7 @@ public class Utils {
             return null;
         }
         Class currentType = o.getClass();
-        if (currentType == currentType) {
+        if (currentType == targetType) {
             return o;
         }
         if (targetType == String.class) {

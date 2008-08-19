@@ -25,7 +25,9 @@ public class TestOutOfMemory extends TestBase {
     private LinkedList list = new LinkedList();
 
     public void test() throws Exception {
-        
+        if (config.memory) {
+            return;
+        }
         deleteDb("outOfMemory");
         Connection conn = getConnection("outOfMemory");
         Statement stat = conn.createStatement();

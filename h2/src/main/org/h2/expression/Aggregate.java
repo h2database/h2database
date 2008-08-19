@@ -125,6 +125,7 @@ public class Aggregate extends Expression {
     private int dataType, scale;
     private long precision;
     private int displaySize;
+    private int lastGroupRowId;
 
     /**
      * Create a new aggregate object.
@@ -222,6 +223,14 @@ public class Aggregate extends Expression {
             // this is a different level (the enclosing query)
             return;
         }
+        
+        int groupRowId = select.getCurrentGroupRowId();
+        if (lastGroupRowId == groupRowId) {
+            // already visited
+            return;
+        }
+        lastGroupRowId = groupRowId;
+
         AggregateData data = (AggregateData) group.get(this);
         if (data == null) {
             data = new AggregateData(type);

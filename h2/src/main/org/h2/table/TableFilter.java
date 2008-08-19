@@ -15,6 +15,7 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexCondition;
@@ -694,6 +695,10 @@ public class TableFilter implements ColumnResolver {
 
     public void setAlias(String alias) {
         this.alias = alias;
+    }
+
+    public Expression optimize(ExpressionColumn expressionColumn, Column column) {
+        return expressionColumn;
     }
 
 }

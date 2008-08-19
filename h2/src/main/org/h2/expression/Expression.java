@@ -96,7 +96,11 @@ public abstract class Expression {
 
     /**
      * Update an aggregate value.
-     * This method is called at statement execution time once for each row.
+     * This method is called at statement execution time. 
+     * It is usually called once for each row, but if the expression is used multiple
+     * times (for example in the column list, and as part of the HAVING expression)
+     * it is called multiple times - the row counter needs to be used to make sure 
+     * the internal state is only updated once.
      *
      * @param session the session
      */

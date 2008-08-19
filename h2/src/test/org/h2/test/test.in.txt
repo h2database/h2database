@@ -1,4 +1,43 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select x/3 as a, count(*) c from system_range(1, 10) group by a having c>2;
+> A C
+> - -
+> 1 3
+> 2 3
+> rows: 2
+
+create table test(id int);
+> ok
+
+insert into test values(1), (2);
+> update count: 2
+
+select id+1 as x, count(*) from test group by x;
+> X COUNT(*)
+> - --------
+> 2 1
+> 3 1
+> rows: 2
+
+select 1 as id, id as b, count(*)  from test group by id;
+> ID B COUNT(*)
+> -- - --------
+> 1  1 1
+> 1  2 1
+> rows: 2
+
+select id+1 as x, count(*) from test group by -x;
+> exception
+
+select id+1 as x, count(*) from test group by x having x>2;
+> exception
+
+select id+1 as x, count(*) from test group by 1;
+> exception
+
+drop table test;
+> ok
+
 create table test(t0 timestamp(0), t1 timestamp(1), t4 timestamp(4));
 > ok
 

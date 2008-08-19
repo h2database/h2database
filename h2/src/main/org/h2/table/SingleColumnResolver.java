@@ -7,6 +7,8 @@
 package org.h2.table;
 
 import org.h2.command.dml.Select;
+import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
 import org.h2.value.Value;
 
 /**
@@ -52,6 +54,10 @@ public class SingleColumnResolver implements ColumnResolver {
 
     public Column[] getSystemColumns() {
         return null;
+    }
+
+    public Expression optimize(ExpressionColumn expressionColumn, Column column) {
+        return expressionColumn;
     }
 
 }

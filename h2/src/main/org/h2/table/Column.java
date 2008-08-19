@@ -172,7 +172,7 @@ public class Column {
      * @param table the table
      * @param columnId the column index
      */
-    void setTable(Table table, int columnId) {
+    public void setTable(Table table, int columnId) {
         this.table = table;
         this.columnId = columnId;
     }

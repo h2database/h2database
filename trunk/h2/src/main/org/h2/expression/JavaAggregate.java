@@ -35,6 +35,7 @@ public class JavaAggregate extends Expression {
     private int[] argTypes;
     private int dataType;
     private Connection userConnection;
+    private int lastGroupRowId;
 
     public JavaAggregate(UserAggregate userAggregate, Expression[] args, Select select) {
         this.userAggregate = userAggregate;
@@ -154,6 +155,14 @@ public class JavaAggregate extends Expression {
             // this is a different level (the enclosing query)
             return;
         }
+        
+        int groupRowId = select.getCurrentGroupRowId();
+        if (lastGroupRowId == groupRowId) {
+            // already visited
+            return;
+        }
+        lastGroupRowId = groupRowId;
+        
         AggregateFunction agg = (AggregateFunction) group.get(this);
         if (agg == null) {
             agg = getInstance();

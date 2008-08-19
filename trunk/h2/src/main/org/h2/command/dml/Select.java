@@ -77,6 +77,7 @@ public class Select extends Query {
     private boolean isPrepared, checkInit;
     private boolean sortUsingIndex;
     private SortOrder sort;
+    private int currentGroupRowId;
 
     public Select(Session session) {
         super(session);
@@ -125,6 +126,10 @@ public class Select extends Query {
     public HashMap getCurrentGroup() {
         return currentGroup;
     }
+    
+    public int getCurrentGroupRowId() {
+        return currentGroupRowId;
+    }
 
     public void setOrder(ObjectArray order) {
         orderList = order;
@@ -168,6 +173,7 @@ public class Select extends Query {
                     previousKeyValues = keyValues;
                     currentGroup = new HashMap();
                 }
+                currentGroupRowId++;
 
                 for (int i = 0; i < columnCount; i++) {
                     if (groupByExpression == null || !groupByExpression[i]) {
@@ -194,22 +200,34 @@ public class Select extends Query {
             Expression expr = (Expression) expressions.get(j);
             row[j] = expr.getValue(session);
         }
-        if (havingIndex > 0) {
+        if (isHavingNullOrFalse(row)) {
+            return;
+        }
+        row = keepOnlyDistinct(row, columnCount);
+        result.addRow(row);
+    }
+    
+    private Value[] keepOnlyDistinct(Value[] row, int columnCount) {
+        if (columnCount == distinctColumnCount) {
+            return row;
+        }
+        // remove columns so that 'distinct' can filter duplicate rows
+        Value[] r2 = new Value[distinctColumnCount];
+        ObjectUtils.arrayCopy(row, r2, distinctColumnCount);
+        return r2;
+    }
+    
+    private boolean isHavingNullOrFalse(Value[] row) throws SQLException {
+        if (havingIndex >= 0) {
             Value v = row[havingIndex];
             if (v == ValueNull.INSTANCE) {
-                return;
+                return true;
             }
             if (!Boolean.TRUE.equals(v.getBoolean())) {
-                return;
+                return true;
             }
         }
-        if (columnCount != distinctColumnCount) {
-            // remove columns so that 'distinct' can filter duplicate rows
-            Value[] r2 = new Value[distinctColumnCount];
-            ObjectUtils.arrayCopy(row, r2, distinctColumnCount);
-            row = r2;
-        }
-        result.addRow(row);
+        return false;
     }
 
     private Index getGroupSortedIndex() {
@@ -295,6 +313,7 @@ public class Select extends Query {
                     groups.put(key, values);
                 }
                 currentGroup = values;
+                currentGroupRowId++;
                 int len = columnCount;
                 for (int i = 0; i < len; i++) {
                     if (groupByExpression == null || !groupByExpression[i]) {
@@ -326,21 +345,10 @@ public class Select extends Query {
                 Expression expr = (Expression) expressions.get(j);
                 row[j] = expr.getValue(session);
             }
-            if (havingIndex > 0) {
-                Value v = row[havingIndex];
-                if (v == ValueNull.INSTANCE) {
-                    continue;
-                }
-                if (!Boolean.TRUE.equals(v.getBoolean())) {
-                    continue;
-                }
+            if (isHavingNullOrFalse(row)) {
+                continue;
             }
-            if (columnCount != distinctColumnCount) {
-                // remove columns so that 'distinct' can filter duplicate rows
-                Value[] r2 = new Value[distinctColumnCount];
-                ObjectUtils.arrayCopy(row, r2, distinctColumnCount);
-                row = r2;
-            }
+            row = keepOnlyDistinct(row, columnCount);
             result.addRow(row);
         }
     }
@@ -604,7 +612,7 @@ public class Select extends Query {
         ObjectArray expressionSQL;
         if (orderList != null || group != null) {
             expressionSQL = new ObjectArray();
-            for (int i = 0; i < expressions.size(); i++) {
+            for (int i = 0; i < visibleColumnCount; i++) {
                 Expression expr = (Expression) expressions.get(i);
                 expr = expr.getNonAliasExpression();
                 String sql = expr.getSQL();
@@ -625,8 +633,10 @@ public class Select extends Query {
             havingIndex = -1;
         }
 
-        // first visible columns, then order by, then having,
-        // and group by at the end
+        // first the select list (visible columns), 
+        // then 'ORDER BY' expressions, 
+        // then 'HAVING' expressions,
+        // and 'GROUP BY' expressions at the end
         if (group != null) {
             groupIndex = new int[group.size()];
             for (int i = 0; i < group.size(); i++) {
@@ -638,6 +648,16 @@ public class Select extends Query {
                     if (s2.equals(sql)) {
                         found = j;
                         break;
+                    }
+                }
+                if (found < 0) {
+                    // special case: GROUP BY a column alias
+                    for (int j = 0; j < expressionSQL.size(); j++) {
+                        Expression e = (Expression) expressions.get(j);
+                        if (sql.equals(e.getAlias())) {
+                            found = j;
+                            break;
+                        }
                     }
                 }
                 if (found < 0) {
@@ -664,6 +684,11 @@ public class Select extends Query {
             if (condition != null) {
                 condition.mapColumns(f, 0);
             }
+        }
+        if (havingIndex >= 0) {
+            Expression expr = (Expression) expressions.get(havingIndex);
+            SelectListColumnResolver res = new SelectListColumnResolver(this);
+            expr.mapColumns(res, 0);
         }
         checkInit = true;
     }

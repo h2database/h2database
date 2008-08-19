@@ -9,6 +9,8 @@ package org.h2.table;
 import java.sql.SQLException;
 
 import org.h2.command.dml.Select;
+import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
 import org.h2.value.Value;
 
 /**
@@ -66,5 +68,14 @@ public interface ColumnResolver {
      * @return the select statement
      */
     Select getSelect();
+
+    /**
+     * Get the expression that represents this column.
+     * 
+     * @param expressionColumn the expression column
+     * @param column the column
+     * @return the optimized expression
+     */
+    Expression optimize(ExpressionColumn expressionColumn, Column column);
 
 }

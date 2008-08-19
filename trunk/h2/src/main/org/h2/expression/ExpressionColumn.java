@@ -124,7 +124,7 @@ public class ExpressionColumn extends Expression {
             }
             throw Message.getSQLException(ErrorCode.COLUMN_NOT_FOUND_1, name);
         }
-        return this;
+        return resolver.optimize(this, column);
     }
 
     public void updateAggregate(Session session) throws SQLException {
@@ -218,7 +218,7 @@ public class ExpressionColumn extends Expression {
     }
 
     public String getAlias() {
-        return column.getName();
+        return column == null ? null : column.getName();
     }
 
     public boolean isAutoIncrement() {

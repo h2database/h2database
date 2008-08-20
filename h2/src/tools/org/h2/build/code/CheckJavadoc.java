@@ -99,7 +99,7 @@ public class CheckJavadoc {
                 inComment = true;
             }
             if (inComment) {
-                if (line.length() > MAX_COMMENT_LINE_SIZE) {
+                if (line.length() > MAX_COMMENT_LINE_SIZE && !line.trim().startsWith("* http://")) {
                     System.out.println("Long line : " + file.getAbsolutePath()
                             + " (" + file.getName() + ":" + lineNumber + ")");
                     errorCount++;

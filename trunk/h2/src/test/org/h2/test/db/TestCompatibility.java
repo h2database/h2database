@@ -101,6 +101,12 @@ public class TestCompatibility extends TestBase {
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World')");
+        org.h2.mode.FunctionsMySQL.register(conn);
+        assertResult(stat, "SELECT UNIX_TIMESTAMP('2007-11-30 10:30:19Z')", "1196418619");
+        assertResult(stat, "SELECT UNIX_TIMESTAMP(FROM_UNIXTIME(1196418619))", "1196418619");
+        assertResult(stat, "SELECT FROM_UNIXTIME(1196300000, '%Y %M')", "2007 November");
+        assertResult(stat, "SELECT DATE('2003-12-31 11:02:03')", "2003-12-31");
+        
     }
 
 }

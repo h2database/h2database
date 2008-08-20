@@ -842,4 +842,24 @@ public class StringUtils {
         return buff.toString();
     }
 
+    /**
+     * Create a new char array and copy all the data. If the size of the byte
+     * array is zero, the same array is returned.
+     * 
+     * @param chars the char array (may be null)
+     * @return a new char array
+     */
+    public static char[] cloneCharArray(char[] chars) {
+        if (chars == null) {
+            return null;
+        }
+        int len = chars.length;
+        if (len == 0) {
+            return chars;
+        }
+        char[] copy = new char[len];
+        System.arraycopy(chars, 0, copy, 0, len);
+        return copy;
+    }
+
 }

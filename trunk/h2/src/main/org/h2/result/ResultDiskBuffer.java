@@ -138,6 +138,7 @@ class ResultDiskBuffer implements ResultExternal {
             }
         } else {
             mainTape.pos = FileStore.HEADER_LENGTH;
+            mainTape.buffer = new ObjectArray();
         }
     }
 

@@ -23,6 +23,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.util.ByteUtils;
 import org.h2.util.JdbcConnectionListener;
 import org.h2.util.JdbcUtils;
+import org.h2.util.StringUtils;
 //## Java 1.4 end ##
 
 import org.h2.message.TraceObject;
@@ -46,7 +47,8 @@ implements XAConnection, XAResource, JdbcConnectionListener
     private static int nextTransactionId;
     
     private JdbcDataSourceFactory factory;
-    private String url, user, password;
+    private String url, user;
+    private char[] password;
     private JdbcConnection connSentinel;
     private JdbcConnection conn;
     private ArrayList listeners = new ArrayList();
@@ -57,7 +59,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
         org.h2.Driver.load();
     }
 
-    JdbcXAConnection(JdbcDataSourceFactory factory, int id, String url, String user, String password) throws SQLException {
+    JdbcXAConnection(JdbcDataSourceFactory factory, int id, String url, String user, char[] password) throws SQLException {
         this.factory = factory;
         setTrace(factory.getTrace(), TraceObject.XA_DATA_SOURCE, id);
         this.url = url;
@@ -429,7 +431,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
     private JdbcConnection openConnection() throws SQLException {
         Properties info = new Properties();
         info.setProperty("user", user);
-        info.setProperty("password", password);
+        info.put("password", StringUtils.cloneCharArray(password));
         JdbcConnection conn = new JdbcConnection(url, info);
         conn.setJdbcConnectionListener(this);
         if (currentTransaction != null) {
@@ -437,7 +439,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
         }
         return conn;
     }
-
+    
     private XAException convertException(SQLException e) {
         XAException xa = new XAException(e.getMessage());
         xa.initCause(e);

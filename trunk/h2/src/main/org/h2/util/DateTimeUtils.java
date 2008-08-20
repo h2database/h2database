@@ -122,6 +122,13 @@ public class DateTimeUtils {
         return ValueTimestamp.getNoCopy(y);
     }
 
+    /**
+     * Convert the date value to UTC using the given calendar.
+     * 
+     * @param source the source calendar
+     * @param x the date
+     * @return the UTC number of milliseconds.
+     */
     private static long getUniversalTime(Calendar source, java.util.Date x) throws SQLException {
         if (source == null) {
             throw Message.getInvalidValueException("calendar", null);

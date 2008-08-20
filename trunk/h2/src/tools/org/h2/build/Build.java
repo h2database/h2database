@@ -78,7 +78,7 @@ public class Build extends BuildBase {
      * Compile all classes
      */
     public void compile() {
-        compile(true, false);
+        compile(true, false, false);
     }
     
     /**
@@ -92,11 +92,11 @@ public class Build extends BuildBase {
         }
     }
     
-    private void compile(boolean debugInfo, boolean clientOnly) {
+    private void compile(boolean debugInfo, boolean clientOnly, boolean basicResourcesOnly) {
         switchSource();
         clean();
         mkdir("temp");
-        resources(clientOnly);
+        resources(clientOnly, basicResourcesOnly);
         download();
         String classpath = "temp" + 
                 File.pathSeparator + "ext/servlet-api-2.4.jar" + 
@@ -206,8 +206,10 @@ public class Build extends BuildBase {
         compile();
         manifest("H2 Database Engine", "org.h2.tools.Console");
         FileList files = getFiles("temp").
-            exclude("temp/org/h2/dev/*").
             exclude("temp/org/h2/build/*").
+            exclude("temp/org/h2/dev/*").
+            exclude("temp/org/h2/jaqu/*").
+            exclude("temp/org/h2/mode/*").
             exclude("temp/org/h2/samples/*").
             exclude("temp/org/h2/test/*").
             exclude("*.bat").
@@ -221,10 +223,12 @@ public class Build extends BuildBase {
      * implementation.
      */
     public void jarClient() {
-        compile(true, true);
+        compile(true, true, false);
         FileList files = getFiles("temp").
-            exclude("temp/org/h2/dev/*").
             exclude("temp/org/h2/build/*").
+            exclude("temp/org/h2/dev/*").
+            exclude("temp/org/h2/jaqu/*").
+            exclude("temp/org/h2/mode/*").
             exclude("temp/org/h2/samples/*").
             exclude("temp/org/h2/test/*").
             exclude("*.bat").
@@ -241,20 +245,22 @@ public class Build extends BuildBase {
      * Debug information is disabled.
      */
     public void jarSmall() {
-        compile(false, false);
+        compile(false, false, true);
         FileList files = getFiles("temp").
-            exclude("temp/org/h2/dev/*").
+            exclude("temp/org/h2/bnf/*").
             exclude("temp/org/h2/build/*").
+            exclude("temp/org/h2/dev/*").
+            exclude("temp/org/h2/fulltext/*").
+            exclude("temp/org/h2/jaqu/*").
+            exclude("temp/org/h2/jdbcx/*").
+            exclude("temp/org/h2/mode/*").
             exclude("temp/org/h2/samples/*").
+            exclude("temp/org/h2/server/*").
             exclude("temp/org/h2/test/*").
+            exclude("temp/org/h2/tools/*").
             exclude("*.bat").
             exclude("*.sh").
-            exclude("*.txt").
-            exclude("temp/META-INF/*");
-        zip("temp/h2classes.zip", files, "temp", true, true);
-        manifest("H2 Database Engine (Embedded)", "org.h2.tools.Console\nClass-Path: h2classes.zip");
-        files = getFiles("temp/h2classes.zip");
-        files.addAll(getFiles("temp/META-INF"));
+            exclude("*.txt");
         jar("bin/h2small.jar", files, "temp");
     }
 
@@ -263,7 +269,7 @@ public class Build extends BuildBase {
      * implementation. All other jar files do not include JaQu.
      */
     public void jarJaqu() {
-        compile(true, false);
+        compile(true, false, true);
         manifest("H2 JaQu", "");
         FileList files = getFiles("temp/org/h2/jaqu");
         files.addAll(getFiles("temp/META-INF/MANIFEST.MF"));
@@ -368,12 +374,15 @@ public class Build extends BuildBase {
                 "-DgroupId=com.h2database" });
     }
     
-    private void resources(boolean clientOnly) {
+    private void resources(boolean clientOnly, boolean basicOnly) {
         FileList files = getFiles("src/main").
             exclude("*.MF").
             exclude("*.java").
             exclude("*/package.html").
             exclude("*/java.sql.Driver");
+        if (basicOnly) {
+            files = files.keep("src/main/org/h2/res/_messages_en.*");
+        }
         if (clientOnly) {
             files = files.exclude("src/main/org/h2/server/*");
         }

@@ -363,10 +363,13 @@ The class and the method must both be public, and the method must be static.
 Admin rights are required to execute this command.
 If the first parameter of the Java function is a java.sql.Connection, then
 the current to the database is provided. This connection must not be closed.
-Functions may be overloaded, that means multiple functions with the same name may exist.
-In this case, each function must have a different parameter count.
+If the class contains multiple methods with the given name but different parameter count,
+all methods are mapped.
 ","
-CREATE ALIAS MY_SQRT FOR ""java.lang.Math.sqrt""
+CREATE ALIAS MY_SQRT FOR ""java.lang.Math.sqrt"";
+CREATE ALIAS GET_SYSTEM_PROPERTY FOR ""java.lang.System.getProperty"";
+CALL GET_SYSTEM_PROPERTY('java.class.path');
+CALL GET_SYSTEM_PROPERTY('com.acme.test', 'true');
 "
 
 "Commands (DDL)","CREATE CONSTANT","

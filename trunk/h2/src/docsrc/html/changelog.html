@@ -16,7 +16,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Column aliases can now be used in GROUP BY and HAVING.
+<ul><li>The build target 'build jarSmall' now includes the embedded database.
+</li><li>JdbcDataSource now keeps the password in a char array where possible.
+</li><li>ResultSet.absolute did not always work with large result sets.
+</li><li>Column aliases can now be used in GROUP BY and HAVING.
+</li><li>Jason Brittain has contributed MySQL date functions. Thanks a lot!
+    They are not in the h2.jar file currently, but in src/tools/org/h2/mode/FunctionsMySQL.java.
+    To install, add this class to the classpath and call FunctionsMySQL.register(conn) in the Java code.
 </li></ul>
 
 <h2>Version 1.0.77 (2008-08-16)</h2>

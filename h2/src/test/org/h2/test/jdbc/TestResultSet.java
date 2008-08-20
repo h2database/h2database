@@ -41,7 +41,8 @@ public class TestResultSet extends TestBase {
         conn = getConnection("resultSet");
 
         stat = conn.createStatement();
-
+        
+        testAbsolute();
         testFetchSize();
         testOwnUpdates();
         testFindColumn();
@@ -67,6 +68,20 @@ public class TestResultSet extends TestBase {
 
         conn.close();
 
+    }
+    
+    private void testAbsolute() throws Exception {
+        // stat.execute("SET MAX_MEMORY_ROWS 90");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
+        // there was a problem when more than MAX_MEMORY_ROWS where in the result set
+        stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(1, 200)");
+        Statement s2 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        ResultSet rs = s2.executeQuery("SELECT * FROM TEST ORDER BY ID");
+        for (int i = 100; i > 0; i--) {
+            rs.absolute(i);
+            assertEquals(i, rs.getInt(1));
+        }
+        stat.execute("DROP TABLE TEST");
     }
     
     private void testFetchSize() throws Exception {

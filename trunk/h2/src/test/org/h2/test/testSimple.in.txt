@@ -1,3 +1,5 @@
+SELECT X FROM dual GROUP BY X HAVING X=AVG(X);
+> 1;
 create view test_view(id,) as select * from dual; 
 drop view test_view;
 create table test(id int,);

@@ -170,7 +170,7 @@ public class ResultRemote implements ResultInterface {
                 try {
                     v.close();
                 } catch (SQLException e) {
-                    trace.error("delete lob " + v.getSQL(), e);
+                    trace.error("delete lob " + v.getTraceSQL(), e);
                 }
             }
             lobValues = null;

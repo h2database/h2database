@@ -114,7 +114,19 @@ public class ValueArray extends Value {
         buff.append(')');
         return buff.toString();
     }
-
+    
+    public String getTraceSQL() {
+        StringBuffer buff = new StringBuffer();
+        buff.append('(');
+        for (int i = 0; i < values.length; i++) {
+            if (i > 0) {
+                buff.append(", ");
+            }
+            buff.append(values[i].getTraceSQL());
+        }
+        buff.append(')');
+        return buff.toString();
+    }
     public int getDisplaySize() {
         long size = 0;
         for (int i = 0; i < values.length; i++) {

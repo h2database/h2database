@@ -100,7 +100,7 @@ public class Row extends Record implements SearchRow {
             if (i > 0) {
                 buff.append(", ");
             }
-            buff.append(data[i].getSQL());
+            buff.append(data[i].getTraceSQL());
         }
         buff.append(')');
         return buff.toString();

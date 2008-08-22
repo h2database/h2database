@@ -967,9 +967,19 @@ public abstract class Value {
     public boolean checkPrecision(long precision) {
         return getPrecision() <= precision;
     }
+    
+    /**
+     * Get a medium size SQL expression for debugging or tracing. If the precision is
+     * too large, only a subset of the value is returned.
+     * 
+     * @return the SQL expression
+     */
+    public String getTraceSQL() {
+        return getSQL();
+    }
 
     public String toString() {
-        return getSQL();
+        return getTraceSQL();
     }
 
 }

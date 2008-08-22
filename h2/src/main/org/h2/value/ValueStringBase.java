@@ -28,7 +28,7 @@ abstract class ValueStringBase extends Value {
     public String getSQL() {
         return StringUtils.quoteStringSQL(value);
     }
-
+    
     public String getString() {
         return value;
     }

@@ -51,7 +51,7 @@ public class SimpleRowValue implements SearchRow {
     }
 
     public String toString() {
-        return "( /* " + pos + " */ " + data.getSQL() + " )";
+        return "( /* " + pos + " */ " + data.getTraceSQL() + " )";
     }
 
 }

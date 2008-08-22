@@ -107,7 +107,7 @@ public class Function extends Expression implements FunctionCall {
     private static final char[] SOUNDEX_INDEX = new char[128];
 
     protected Expression[] args;
-    
+
     private FunctionInfo info;
     private ObjectArray varArgs;
     private int dataType, scale;
@@ -192,7 +192,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("CHR", CHAR, 1, Value.STRING);
         addFunction("CHAR_LENGTH", CHAR_LENGTH, 1, Value.INT);
         // same as CHAR_LENGTH
-        addFunction("CHARACTER_LENGTH", CHAR_LENGTH, 1, Value.INT); 
+        addFunction("CHARACTER_LENGTH", CHAR_LENGTH, 1, Value.INT);
         addFunctionWithNull("CONCAT", CONCAT, VAR_ARGS, Value.STRING);
         addFunction("DIFFERENCE", DIFFERENCE, 2, Value.INT);
         addFunction("HEXTORAW", HEXTORAW, 1, Value.STRING);
@@ -201,9 +201,9 @@ public class Function extends Expression implements FunctionCall {
         addFunction("LEFT", LEFT, 2, Value.STRING);
         addFunction("LENGTH", LENGTH, 1, Value.INT);
         // 2 or 3 arguments
-        addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INT); 
+        addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INT);
         // same as LOCATE with 2 arguments
-        addFunction("POSITION", LOCATE, 2, Value.INT); 
+        addFunction("POSITION", LOCATE, 2, Value.INT);
         addFunction("INSTR", INSTR, VAR_ARGS, Value.INT);
         addFunction("LTRIM", LTRIM, VAR_ARGS, Value.STRING);
         addFunction("OCTET_LENGTH", OCTET_LENGTH, 1, Value.INT);
@@ -301,7 +301,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
         addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT, VAR_ARGS, Value.RESULT_SET);
     }
-    
+
     protected Function(Database database, FunctionInfo info) {
         this.database = database;
         this.info = info;
@@ -339,7 +339,7 @@ public class Function extends Expression implements FunctionCall {
     /**
      * Get the function info object for this function, or null if there is no
      * such function.
-     * 
+     *
      * @param name the function name
      * @return the function info
      */
@@ -350,7 +350,7 @@ public class Function extends Expression implements FunctionCall {
     /**
      * Get an instance of the given function for this database.
      * If no function with this name is found, null is returned.
-     * 
+     *
      * @param database the database
      * @param name the function name
      * @return the function object or null
@@ -371,7 +371,7 @@ public class Function extends Expression implements FunctionCall {
 
     /**
      * Set the parameter expression at the given index.
-     * 
+     *
      * @param index the index (0, 1,...)
      * @param param the expression
      */
@@ -1453,7 +1453,7 @@ public class Function extends Expression implements FunctionCall {
 
     /**
      * Check if the parameter count is correct.
-     * 
+     *
      * @param len the number of parameters set
      * @throws SQLException if the parameter count is incorrect
      */
@@ -1542,7 +1542,7 @@ public class Function extends Expression implements FunctionCall {
 
     /**
      * Set the result data type of this function.
-     * 
+     *
      * @param dataType the data type
      * @param precision the precision
      * @param scale the scale
@@ -1653,7 +1653,7 @@ public class Function extends Expression implements FunctionCall {
         case SUBSTR: {
             precision = args[0].getPrecision();
             if (args[1].isConstant()) {
-                // if only two arguments are used, 
+                // if only two arguments are used,
                 // subtract offset from first argument length
                 precision -= args[1].getValue(session).getLong() - 1;
             }
@@ -1758,7 +1758,7 @@ public class Function extends Expression implements FunctionCall {
         case DAYNAME:
         case MONTHNAME:
             // day and month names may be long in some languages
-            precision = 20; 
+            precision = 20;
             displaySize = (int) precision;
             break;
         default:

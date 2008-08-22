@@ -11,6 +11,7 @@ import java.util.HashMap;
 
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
+import org.h2.command.dml.SelectListColumnResolver;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -101,7 +102,11 @@ public class ExpressionColumn extends Expression {
             column = col;
             this.resolver = resolver;
         } else if (queryLevel == level && this.resolver != resolver) {
-            throw Message.getSQLException(ErrorCode.AMBIGUOUS_COLUMN_NAME_1, columnName);
+            if (resolver instanceof SelectListColumnResolver) {
+                // ignore - already mapped, that's ok
+            } else {
+                throw Message.getSQLException(ErrorCode.AMBIGUOUS_COLUMN_NAME_1, columnName);
+            }
         }
     }
 

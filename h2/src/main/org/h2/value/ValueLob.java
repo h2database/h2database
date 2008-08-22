@@ -654,7 +654,7 @@ public class ValueLob extends Value {
     }
 
     public String getTraceSQL() {
-        if (getPrecision() <= SysProperties.MAX_TRACE_DATA_LENGTH) {
+        if (small != null && getPrecision() <= SysProperties.MAX_TRACE_DATA_LENGTH) {
             return getSQL();
         }
         StringBuffer buff = new StringBuffer();
@@ -666,12 +666,9 @@ public class ValueLob extends Value {
             buff.append(getPrecision());
             buff.append(") AS BINARY");
         }
-        if (small != null) {
-            buff.append(" /* ");
-            buff.append(fileName);
-            buff.append(" */");
-        }
-        buff.append(")");
+        buff.append(" /* ");
+        buff.append(fileName);
+        buff.append(" */)");
         return buff.toString();
     }
 

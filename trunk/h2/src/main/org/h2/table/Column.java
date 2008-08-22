@@ -292,7 +292,11 @@ public class Column {
         value = value.convertScale(mode.convertOnlyToSmallerScale, scale);
         if (precision > 0) {
             if (!value.checkPrecision(precision)) {
-                throw Message.getSQLException(ErrorCode.VALUE_TOO_LONG_2, new String[]{name, value.getSQL()});
+                String s = value.getTraceSQL();
+                if (s.length() > 127) {
+                    s = s.substring(0, 128) + "...";
+                }
+                throw Message.getSQLException(ErrorCode.VALUE_TOO_LONG_2, new String[]{name, s});
             }
         }
         updateSequenceIfRequired(session, value);

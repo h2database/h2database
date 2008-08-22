@@ -653,11 +653,26 @@ public class ValueLob extends Value {
         }
     }
 
-    public String toString() {
-        if (small == null) {
-            return getClass().getName() + " file: " + fileName + " type: " + type + " precision: " + precision;
+    public String getTraceSQL() {
+        if (getPrecision() <= SysProperties.MAX_TRACE_DATA_LENGTH) {
+            return getSQL();
         }
-        return getSQL();
+        StringBuffer buff = new StringBuffer();
+        if (type == Value.CLOB) {
+            buff.append("SPACE(");
+            buff.append(getPrecision());
+        } else {
+            buff.append("CAST(REPEAT('00', ");
+            buff.append(getPrecision());
+            buff.append(") AS BINARY");
+        }
+        if (small != null) {
+            buff.append(" /* ");
+            buff.append(fileName);
+            buff.append(" */");
+        }
+        buff.append(")");
+        return buff.toString();
     }
 
     /**

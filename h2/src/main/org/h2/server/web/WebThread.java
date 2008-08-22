@@ -651,11 +651,11 @@ class WebThread extends Thread implements DatabaseEventListener {
         if (info == null) {
             info = new ConnectionInfo();
         }
-        session.put("setting", PageParser.escapeHtml(setting));
-        session.put("name", PageParser.escapeHtml(setting));
-        session.put("driver", PageParser.escapeHtml(info.driver));
-        session.put("url", PageParser.escapeHtml(info.url));
-        session.put("user", PageParser.escapeHtml(info.user));
+        session.put("setting", PageParser.escapeHtmlData(setting));
+        session.put("name", PageParser.escapeHtmlData(setting));
+        session.put("driver", PageParser.escapeHtmlData(info.driver));
+        session.put("url", PageParser.escapeHtmlData(info.url));
+        session.put("user", PageParser.escapeHtmlData(info.user));
         return "index.jsp";
     }
 

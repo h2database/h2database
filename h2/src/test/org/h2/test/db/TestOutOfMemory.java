@@ -35,7 +35,7 @@ public class TestOutOfMemory extends TestBase {
         stat.execute("insert into stuff(id) select x from system_range(1, 1000)");
         PreparedStatement prep = conn.prepareStatement("update stuff set text = text || ' upd'");
         prep.execute();
-        eatMemory(100);
+        eatMemory(80);
         try {
             prep.execute();
             fail();

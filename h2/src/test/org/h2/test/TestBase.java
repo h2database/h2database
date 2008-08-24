@@ -555,7 +555,11 @@ public abstract class TestBase {
      */
     protected void assertEquals(double expected, double actual) throws Exception {
         if (expected != actual) {
-            fail("Expected: " + expected + " actual: " + actual);
+            if (Double.isNaN(expected) && Double.isNaN(actual)) {
+                // if both a NaN, then there is no error
+            } else {                
+                fail("Expected: " + expected + " actual: " + actual);
+            }
         }
     }
 
@@ -568,7 +572,11 @@ public abstract class TestBase {
      */
     protected void assertEquals(float expected, float actual) throws Exception {
         if (expected != actual) {
-            fail("Expected: " + expected + " actual: " + actual);
+            if (Float.isNaN(expected) && Float.isNaN(actual)) {
+                // if both a NaN, then there is no error
+            } else {
+                fail("Expected: " + expected + " actual: " + actual);
+            }
         }
     }
 

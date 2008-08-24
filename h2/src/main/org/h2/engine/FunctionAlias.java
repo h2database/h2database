@@ -6,10 +6,12 @@
  */
 package org.h2.engine;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 import org.h2.command.Parser;
 import org.h2.constant.ErrorCode;
@@ -25,15 +27,15 @@ import org.h2.value.ValueNull;
 
 /**
  * Represents a user-defined function, or alias.
- * 
+ *
  * @author Thomas Mueller
  * @author Gary Tong
  */
 public class FunctionAlias extends DbObjectBase {
-    
+
     private String className;
     private String methodName;
-    private JavaMethod[] javaMethods; 
+    private JavaMethod[] javaMethods;
 
     public FunctionAlias(Database db, int id, String name, String javaClassMethod, boolean force) throws SQLException {
         initDbObjectBase(db, id, name, Trace.FUNCTION);
@@ -68,7 +70,7 @@ public class FunctionAlias extends DbObjectBase {
                 continue;
             }
             if (m.getName().equals(methodName) || getMethodSignature(m).equals(methodName)) {
-                JavaMethod javaMethod = new JavaMethod(m);
+                JavaMethod javaMethod = new JavaMethod(m, i);
                 for (int j = 0; j < list.size(); j++) {
                     JavaMethod old = (JavaMethod) list.get(j);
                     if (old.getParameterCount() == javaMethod.getParameterCount()) {
@@ -88,6 +90,11 @@ public class FunctionAlias extends DbObjectBase {
         }
         javaMethods = new JavaMethod[list.size()];
         list.toArray(javaMethods);
+        // Sort elements. Methods with a variable number of arguments must be at
+        // the end. Reason: there could be one method without parameters and one
+        // with a variable number. The one without parameters needs to be used
+        // if no parameters are given.
+        Arrays.sort(javaMethods);
     }
 
     private String getMethodSignature(Method m) {
@@ -155,8 +162,10 @@ public class FunctionAlias extends DbObjectBase {
         load();
         int parameterCount = args.length;
         for (int i = 0; i < javaMethods.length; i++) {
-            if (javaMethods[i].getParameterCount() == parameterCount) {
-                return javaMethods[i];
+            JavaMethod m = javaMethods[i];
+            int count = m.getParameterCount();
+            if (count == parameterCount || (m.isVarArgs() && count <= parameterCount + 1)) {
+                return m;
             }
         }
         throw Message.getSQLException(ErrorCode.METHOD_NOT_FOUND_1, methodName + " (" + className + ", parameter count: " + parameterCount + ")");
@@ -185,14 +194,18 @@ public class FunctionAlias extends DbObjectBase {
      * Each method must have a different number of parameters however.
      * This helper class represents one such method.
      */
-    public static class JavaMethod {
-        private Method method;
-        private int paramCount;
+    public static class JavaMethod implements Comparable {
+        private final int id;
+        private final Method method;
+        private final int dataType;
         private boolean hasConnectionParam;
-        private int dataType;
+        private boolean varArgs;
+        private Class varArgClass;
+        private int paramCount;
 
-        JavaMethod(Method method) throws SQLException {
+        JavaMethod(Method method, int id) throws SQLException {
             this.method = method;
+            this.id = id;
             Class[] paramClasses = method.getParameterTypes();
             paramCount = paramClasses.length;
             if (paramCount > 0) {
@@ -200,6 +213,13 @@ public class FunctionAlias extends DbObjectBase {
                 if (Connection.class.isAssignableFrom(paramClass)) {
                     hasConnectionParam = true;
                     paramCount--;
+                }
+            }
+            if (paramCount > 0) {
+                Class lastArg = paramClasses[paramClasses.length - 1];
+                if (lastArg.isArray() && ClassUtils.isVarArgs(method)) {
+                    varArgs = true;
+                    varArgClass = lastArg.getComponentType();
                 }
             }
             Class returnClass = method.getReturnType();
@@ -234,8 +254,23 @@ public class FunctionAlias extends DbObjectBase {
             if (hasConnectionParam && params.length > 0) {
                 params[p++] = session.createConnection(columnList);
             }
-            for (int a = 0; a < args.length && p < params.length; a++, p++) {
-                Class paramClass = paramClasses[p];
+
+            // allocate array for varArgs parameters
+            Object varArg = null;
+            if (varArgs) {
+                int len = args.length - params.length + 1 + (hasConnectionParam ? 1 : 0);
+                varArg = Array.newInstance(varArgClass, len);
+                params[params.length - 1] = varArg;
+            }
+
+            for (int a = 0; a < args.length; a++, p++) {
+                boolean currentIsVarArg = varArgs && p >= paramClasses.length - 1;
+                Class paramClass;
+                if (currentIsVarArg) {
+                    paramClass = varArgClass;
+                } else {
+                    paramClass = paramClasses[p];
+                }
                 int type = DataType.getTypeFromClass(paramClass);
                 Value v = args[a].getValue(session);
                 v = v.convertTo(type);
@@ -258,7 +293,11 @@ public class FunctionAlias extends DbObjectBase {
                         o = DataType.convertTo(session, session.createConnection(false), v, paramClass);
                     }
                 }
-                params[p] = o;
+                if (currentIsVarArg) {
+                    Array.set(varArg, p - params.length + 1, o);
+                } else {
+                    params[p] = o;
+                }
             }
             boolean old = session.getAutoCommit();
             try {
@@ -289,6 +328,24 @@ public class FunctionAlias extends DbObjectBase {
         
         public int getParameterCount() throws SQLException {
             return paramCount;
+        }
+
+        public boolean isVarArgs() {
+            return varArgs;
+        }
+
+        public int compareTo(Object o) {
+            JavaMethod m = (JavaMethod) o;
+            if (varArgs != m.varArgs) {
+                return varArgs ? 1 : -1;
+            }
+            if (paramCount != m.paramCount) {
+                return paramCount - m.paramCount;
+            }
+            if (hasConnectionParam != m.hasConnectionParam) {
+                return hasConnectionParam ? 1 : -1;
+            }
+            return id - m.id;
         }
 
     }

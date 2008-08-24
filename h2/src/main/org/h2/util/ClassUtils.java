@@ -6,6 +6,7 @@
  */
 package org.h2.util;
 
+import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -85,6 +86,29 @@ public class ClassUtils {
             throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className }, e);
         } catch (NoClassDefFoundError e) {
             throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className }, e);
+        }
+    }
+    
+    /**
+     * Checks if the given method takes a variable number of arguments. For Java
+     * 1.4 and older, false is returned. Example:
+     * <pre>
+     * public static double mean(double... values)
+     * </pre>
+     * 
+     * @param m the method to test
+     * @return true if the method takes a variable number of arguments.
+     */
+    public static boolean isVarArgs(Method m) {
+        if ("1.5".compareTo(SysProperties.JAVA_SPECIFICATION_VERSION) > 0) {
+            return false;
+        }
+        try {
+            Method isVarArgs = m.getClass().getMethod("isVarArgs", new Class[0]);
+            Boolean result = (Boolean) isVarArgs.invoke(m, new Object[0]);
+            return result.booleanValue();
+        } catch (Exception e) {
+            return false;
         }
     }
 

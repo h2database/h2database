@@ -32,17 +32,53 @@ import org.h2.util.IOUtils;
  */
 public class TestFunctions extends TestBase {
 
-    private Statement stat;
-
     public void test() throws Exception {
+        testVarArgs();
         testAggregate();
         testFunctions();
         testFileRead();
     }
+    
+    private void testVarArgs() throws Exception {
+//## Java 1.5 begin ##
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE ALIAS mean FOR \"" + 
+                getClass().getName() + ".mean\"");
+        ResultSet rs = stat.executeQuery(
+                "select mean(), mean(10), mean(10, 20), mean(10, 20, 30)");
+        rs.next();
+        assertEquals(1.0, rs.getDouble(1));
+        assertEquals(10.0, rs.getDouble(2));
+        assertEquals(15.0, rs.getDouble(3));
+        assertEquals(20.0, rs.getDouble(4));
+
+        stat.execute("CREATE ALIAS mean2 FOR \"" + 
+                getClass().getName() + ".mean2\"");
+        rs = stat.executeQuery(
+                "select mean2(), mean2(10), mean2(10, 20)");
+        rs.next();
+        assertEquals(Double.NaN, rs.getDouble(1));
+        assertEquals(10.0, rs.getDouble(2));
+        assertEquals(15.0, rs.getDouble(3));
+
+        stat.execute("CREATE ALIAS printMean FOR \"" + 
+                getClass().getName() + ".printMean\"");
+        rs = stat.executeQuery(
+                "select printMean('A'), printMean('A', 10), " + 
+                "printMean('BB', 10, 20), printMean ('CCC', 10, 20, 30)");
+        rs.next();
+        assertEquals("A: 0", rs.getString(1));
+        assertEquals("A: 10", rs.getString(2));
+        assertEquals("BB: 15", rs.getString(3));
+        assertEquals("CCC: 20", rs.getString(4));
+        conn.close();
+//## Java 1.5 end ##
+    }
 
     private void testFileRead() throws Exception {
         Connection conn = getConnection("functions");
-        stat = conn.createStatement();
+        Statement stat = conn.createStatement();
         File f = new File(baseDir + "/test.txt");
         Properties prop = System.getProperties();
         FileOutputStream out = new FileOutputStream(f);
@@ -94,7 +130,7 @@ public class TestFunctions extends TestBase {
     private void testAggregate() throws Exception {
         deleteDb("functions");
         Connection conn = getConnection("functions");
-        stat = conn.createStatement();
+        Statement stat = conn.createStatement();
         stat.execute("CREATE AGGREGATE MEDIAN FOR \"" + MedianString.class.getName() + "\"");
         stat.execute("CREATE AGGREGATE IF NOT EXISTS MEDIAN FOR \"" + MedianString.class.getName() + "\"");
         ResultSet rs = stat.executeQuery("SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
@@ -130,10 +166,10 @@ public class TestFunctions extends TestBase {
     private void testFunctions() throws Exception {
         deleteDb("functions");
         Connection conn = getConnection("functions");
-        stat = conn.createStatement();
-        test("abs(null)", null);
-        test("abs(1)", "1");
-        test("abs(1)", "1");
+        Statement stat = conn.createStatement();
+        test(stat, "abs(null)", null);
+        test(stat, "abs(1)", "1");
+        test(stat, "abs(1)", "1");
 
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("CREATE ALIAS ADD_ROW FOR \"" + getClass().getName() + ".addRow\"");
@@ -262,7 +298,7 @@ public class TestFunctions extends TestBase {
         conn.close();
     }
 
-    private void test(String sql, String value) throws Exception {
+    private void test(Statement stat, String sql, String value) throws Exception {
         ResultSet rs = stat.executeQuery("CALL " + sql);
         rs.next();
         String s = rs.getString(1);
@@ -379,5 +415,52 @@ public class TestFunctions extends TestBase {
         }
         return (int) Math.sqrt(value);
     }
-
+    
+    /**
+     * This method is called via reflection from the database.
+     */
+    public static double mean() {
+        return 1;
+    }
+    
+    /**
+     * This method is called via reflection from the database.
+     */
+//## Java 1.5 begin ##    
+    public static double mean(double... values) {
+        double sum = 0;
+        for (double x : values) {
+            sum += x;
+        }
+        return sum / values.length;
+    }
+//## Java 1.5 end ##
+    
+    /**
+     * This method is called via reflection from the database.
+     */
+//## Java 1.5 begin ##
+    public static double mean2(Connection conn, double... values) {
+        conn.getClass();
+        double sum = 0;
+        for (double x : values) {
+            sum += x;
+        }
+        return sum / values.length;
+    }
+//## Java 1.5 end ##
+    
+    /**
+     * This method is called via reflection from the database.
+     */
+//## Java 1.5 begin ##
+    public static String printMean(String prefix, double... values) {
+        double sum = 0;
+        for (double x : values) {
+            sum += x;
+        }
+        return prefix + ": " + (int) (sum / values.length);
+    }
+//## Java 1.5 end ##
+    
 }

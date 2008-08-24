@@ -456,7 +456,9 @@ public class PrepareTranslation {
                     if (AUTO_TRANSLATE) {
                         toTranslate.add(key);
                     } else {
-                        System.out.println(trans.getName() + ": key " + key + " not found in translation file; added dummy # 'translation'");
+                        // System.out.println(trans.getName() + 
+                        // ": key " + key + " not found in " + 
+                        // "translation file; added # 'translation'");
                         t = "#" + now;
                         p.put(key, t);
                     }

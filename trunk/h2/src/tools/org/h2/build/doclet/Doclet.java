@@ -187,7 +187,7 @@ public class Doclet {
             writer.println("</table>");
         }
 
-        // message details
+        // method details
         for (int i = 0; i < methods.length; i++) {
             MethodDoc method = methods[i];
             String name = method.name();
@@ -362,6 +362,7 @@ public class Doclet {
             if (!doesOverride(method)) {
                 boolean setterOrGetter = name.startsWith("set") && method.parameters().length == 1;
                 setterOrGetter |= name.startsWith("get") && method.parameters().length == 0;
+                setterOrGetter |= name.startsWith("is") && method.parameters().length == 0 && method.returnType().toString().equals("boolean");
                 if (!setterOrGetter) {
                     addError("Undocumented method " + " (" + clazz.name() + ".java:" + method.position().line() +") " + clazz + "." + name + " " + raw);
                     return true;

@@ -51,6 +51,12 @@ public class SysProperties {
      * It is usually set by the system, and used to build absolute file names.
      */
     public static final String FILE_SEPARATOR = getStringSetting("file.separator", "/");
+    
+    /**
+     * System property <code>java.specification.version</code>.<br />
+     * It is set by the system. Examples: 1.4, 1.5, 1.6.
+     */
+    public static final String JAVA_SPECIFICATION_VERSION = getStringSetting("java.specification.version", "1.4");
 
     /**
      * System property <code>line.separator</code> (default: \n).<br />

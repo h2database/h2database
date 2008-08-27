@@ -16,7 +16,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Java methods with variable number of parameters can now be used (for Java 1.5 or newer).
+<ul><li>When using DB_CLOSE_DELAY, sometimes a NullPointerException is thrown when
+	the database is opened almost at the same time as it is closed automatically.
+	Thanks a lot to Dmitry Pekar for finding this!
+</li><li>Java methods with variable number of parameters can now be used (for Java 1.5 or newer).
 </li><li>The Japanese translation has been improved by Masahiro Ikemoto. Thanks a lot!
 </li><li>The H2 Console replaced an empty user name with a single space. 
 </li><li>The build target 'build jarSmall' now includes the embedded database.

@@ -24,21 +24,28 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
 
     int nextId = 10;
 
-    /**
-     * This method is called when executing this application from the command
-     * line.
-     * 
-     * @param args the command line parameters
-     */
-    public static void main(String[] args) throws Exception {
-        new TestOpenClose().test();
-    }
-
     public void test() throws Exception {
+        testCloseDelay();
         testBackup(false);
         testBackup(true);
         testCase();
         testReconnectFast();
+    }
+    
+    private void testCloseDelay() throws Exception {
+        String url = getURL("openClose;DB_CLOSE_DELAY=1", true);
+        String user = getUser(), password = getPassword();
+        Connection conn = DriverManager.getConnection(url, user, password);
+        conn.close();
+        Thread.sleep(950);
+        long time = System.currentTimeMillis();
+        for (int i = 0; System.currentTimeMillis() - time < 100; i++) {
+            conn = DriverManager.getConnection(url, user, password);
+            conn.close();
+        }
+        conn = DriverManager.getConnection(url, user, password);
+        conn.createStatement().execute("SHUTDOWN");
+        conn.close();
     }
 
     private void testBackup(boolean encrypt) throws Exception {

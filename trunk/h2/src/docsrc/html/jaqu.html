@@ -19,7 +19,7 @@ JaQu
 <p>
 JaQu stands for Java Query and allows to access databases using pure Java. 
 JaQu provides a fluent interface (or internal DSL) for building SQL statements.
-JaQu replaces SQL, JDBC, and O/R frameworks such as Hibernate.
+JaQu replaces SQL, JDBC, and object/relation frameworks such as Hibernate.
 JaQu is something like LINQ for Java (LINQ stands for "language integrated query" and is a 
 Microsoft .NET technology). The following JaQu code:
 </p>
@@ -43,7 +43,7 @@ Javadoc and auto-complete are supported. Type checking is performed by the compi
 JaQu fully protects against SQL injection. 
 </p>
 <p>
-JaQu is much smaller than object-relation mapping tools such as Hibernate.
+JaQu is much smaller than object/relation mapping tools such as Hibernate.
 Unlike iBatis and Hibernate, no XML or annotation based configuration is required; 
 instead the configuration (if required at all) is done in pure Java, in the application itself.
 </p>
@@ -261,7 +261,8 @@ is integrated in the class itself.
 This project has just been started, and nothing is fixed yet.
 Some ideas for what to implement include:
 </p>
-<ul><li>Provide API level compatibility with JPA (so that JaQu can be used as an extension of JPA).
+<ul><li>Support queries on collections (instead of using a database).
+</li><li>Provide API level compatibility with JPA (so that JaQu can be used as an extension of JPA).
 </li><li>Internally use a JPA implementation (for example Hibernate) instead of SQL directly.
 </li><li>Use PreparedStatements and cache them.
 </li></ul>

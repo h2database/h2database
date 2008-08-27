@@ -216,7 +216,12 @@ class WebThread extends Thread implements DatabaseEventListener {
         String head = readHeaderLine();
         if (head.startsWith("GET ") || head.startsWith("POST ")) {
             int begin = head.indexOf('/'), end = head.lastIndexOf(' ');
-            String file = head.substring(begin + 1, end).trim();
+            String file;
+            if (begin < 0 || end < begin) {
+                file = "";
+            } else {
+                file = head.substring(begin + 1, end).trim();
+            }
             trace(head + ": " + file);
             file = getAllowedFile(file);
             attributes = new Properties();

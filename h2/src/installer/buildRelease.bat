@@ -51,7 +51,6 @@ rem == Run FindBugs
 rem == Check docs, versions and links in main, downloads, build numbers
 rem == Check if missing javadocs
 rem == Test installer
-rem == Check the pdf file is in h2/docs
 rem == Check in the PDF file:
 rem == - footer
 rem == - front page

@@ -12,6 +12,36 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
     'http://www.h2database.com', 'H2 Database Engine', 'en-us', NOW(), NOW(), 'Thomas Mueller');
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
+
+INSERT INTO ITEM VALUES(48,
+'New version available: 1.0.78 (2008-08-28)', '2008-08-28 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Column aliases can now be used in GROUP BY and HAVING.
+</li><li>Java methods with variable number of parameters can now be used (for Java 1.5 or newer).
+</li><li>The build target 'build jarSmall' now includes the embedded database.
+</li><li>JdbcDataSource now keeps the password in a char array where possible.
+</li><li>Jason Brittain has contributed MySQL date functions. Thanks a lot!
+    They are not in the h2.jar file currently, but in src/tools/org/h2/mode/FunctionsMySQL.java.
+    To install, add this class to the classpath and call FunctionsMySQL.register(conn) in the Java code.
+</li><li>The Japanese translation has been improved by Masahiro Ikemoto. Thanks a lot!
+</li><li>The documentation no longer uses a frameset (except the Javadocs).
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>The H2 Console replaced an empty user name with a single space. 
+</li><li>ResultSet.absolute did not always work with large result sets.
+</li><li>When using DB_CLOSE_DELAY, sometimes a NullPointerException is thrown when
+    the database is opened almost at the same time as it is closed automatically.
+    Thanks a lot to Dmitry Pekar for finding this!
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
     
 INSERT INTO ITEM VALUES(47,
 'New version available: 1.0.77 (2008-08-16)', '2008-08-16 12:00:00',
@@ -437,43 +467,6 @@ INSERT INTO ITEM VALUES(36,
 </li><li>The acting as PostgreSQL server, a base directory was not set correctly.
 </li><li>Variables: large objects now work correctly.
 </li><li>H2 Console: multiple consecutive spaces in the setting name did not work.
-</li></ul>
-For details, see the ''Change Log'' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the ''Roadmap'' page at
-http://www.h2database.com/html/roadmap.html
-');
-
-INSERT INTO ITEM VALUES(35,
-'New version available: 1.0.65 (2008-01-18)', '2008-01-18 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click ''Refresh'').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>User defined variables are now supported.
-</li><li>JNDI support in the H2 Console has been improved.
-</li><li>The bind IP address can be set (system property h2.bindAddress).
-</li><li>The build automatically switches the source code to the correct JDK.
-</li><li>The SCRIPT command uses multi-row inserts to save space.
-</li><li>Large result sets in the server mode are now faster.
-</li><li>The performance for DROP has been improved. 
-</li><li>Optimization for single column distinct queries with an index.
-</li><li>LIKE comparisons are now faster.
-</li><li>Encrypted databases are now faster.
-</li><li>PostgreSQL compatibility: COUNT(T.*) is now supported. 
-</li><li>The ChangePassword API has been improved. 
-</li><li>The Ukrainian translation has been improved.
-</li><li>CALL statements can now be used in batch updates.
-</li><li>New read-only setting CREATE_BUILD.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>A recovery bug has been fixed.
-</li><li>The optimizer did not always use the right indexes.
-</li><li>BatchUpdateException.printStackTrace() could run out of memory. 
-</li><li>Sometimes unused indexes where not dropped when altering a table.
-</li><li>The SCRIPT command did not split up CLOB data correctly. 
-</li><li>DROP ALL OBJECTS did not drop some objects. 
 </li></ul>
 For details, see the ''Change Log'' at
 http://www.h2database.com/html/changelog.html

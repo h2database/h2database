@@ -109,10 +109,17 @@ function goFirst() {
 
 function go(pageId, word) {
     var page = pages[pageId];
-      var load = '../' + page.file + '?highlight=' + encodeURIComponent(word);
-      if(!top.main.location.href.endsWith(page.file)) {
-        top.main.location = load;
-      }
+    var load = '../' + page.file + '?highlight=' + encodeURIComponent(word);
+    if(top.main) {
+        if(!top.main.location.href.endsWith(page.file)) {
+            top.main.location = load;
+        }
+    } else {
+        if(!document.location.href.endsWith(page.file)) {
+            var search = document.getElementById('search').value;
+            document.location = load + '&search=' + encodeURIComponent(search);
+        }
+    }
 }
 
 function listAnd(keywords) {

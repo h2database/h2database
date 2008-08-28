@@ -64,16 +64,15 @@ public class MergeDocs {
         // String start = "<body";
         // String end = "</body>";
 
-        String start = "<div class=\"contentDiv\"";
-        String end = "</div></td></tr></table><!-- analytics --></body></html>";
+        String start = "<!-- } -->";
+        String end = "<!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>";
 
         int idx = text.indexOf(end);
         if (idx < 0) {
             throw new Error("Footer not found in file " + fileName);
         }
         text = text.substring(0, idx);
-        idx = text.indexOf(start);
-        idx = text.indexOf('>', idx);
+        idx = text.indexOf(start) + start.length();
         text = text.substring(idx + 1);
         return text;
     }

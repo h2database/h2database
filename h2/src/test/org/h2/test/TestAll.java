@@ -272,6 +272,10 @@ java org.h2.test.TestAll timer
 
 /*
 
+CREATE LINKED TABLE ... READONLY
+CREATE FUNCTION? Function interface
+main methods for the tests and make that work
+
 Support large updates (use the transaction log to undo).
 
 H2 Console: support single file upload and directory download (optional)

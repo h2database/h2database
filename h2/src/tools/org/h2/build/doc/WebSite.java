@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 
 import org.h2.samples.Newsfeed;
 import org.h2.util.IOUtils;
@@ -29,7 +30,8 @@ public class WebSite {
         "<script type=\"text/javascript\">var pageTracker=_gat._getTracker(\"UA-2351060-1\");pageTracker._initData();pageTracker._trackPageview();</script>";
     
     private String sourceDir = "docs";
-    private String targetDir = "../h2web";
+    private String webDir = "../h2web";
+    private HashMap fragments = new HashMap();
     
     /**
      * This method is called when executing this application from the command
@@ -42,9 +44,64 @@ public class WebSite {
     }
 
     private void run() throws Exception {
-        deleteRecursive(new File(targetDir));
-        copy(new File(sourceDir), new File(targetDir));
-        Newsfeed.main(new String[] {targetDir + "/html"});
+        // create the web site
+        deleteRecursive(new File(webDir));
+        loadFragments();
+        copy(new File(sourceDir), new File(webDir), true, true);
+        Newsfeed.main(new String[] {webDir + "/html"});
+        
+        // create the internal documentation
+        copy(new File(sourceDir), new File(sourceDir), true, false);
+    }
+    
+    private void loadFragments() throws IOException {
+        File dir = new File(sourceDir, "html");
+        File[] list = dir.listFiles();
+        for (int i = 0; i < list.length; i++) {
+            File f = list[i];
+            if (f.getName().startsWith("fragments")) {
+                FileInputStream in = new FileInputStream(f);
+                byte[] bytes = IOUtils.readBytesAndClose(in, 0);
+                String page = new String(bytes, "UTF-8");
+                fragments.put(f.getName(), page);
+            }
+        }
+    }
+    
+    private String replaceFragments(String fileName, String page) {
+        if (fragments.size() == 0) {
+            return page;
+        }
+        String language = "";
+        int index = fileName.indexOf("_");
+        if (index >= 0) {
+            int end = fileName.indexOf('.');
+            language = fileName.substring(index, end);
+        }
+        String fragment = (String) fragments.get("fragments" + language + ".html");
+        int start = 0;
+        while (true) {
+            start = fragment.indexOf("<!-- [", start);
+            if (start < 0) {
+                break;
+            }
+            int endTag = fragment.indexOf("] { -->", start);
+            int endBlock = fragment.indexOf("<!-- } -->", start);
+            String tag = fragment.substring(start, endTag);
+            String replacement = fragment.substring(start, endBlock);
+            int pageStart = 0;
+            while (true) {
+                pageStart = page.indexOf(tag, pageStart);
+                if (pageStart < 0) {
+                    break;
+                }
+                int pageEnd = page.indexOf("<!-- } -->", pageStart);
+                page = page.substring(0, pageStart) + replacement + page.substring(pageEnd);
+                pageStart += replacement.length();
+            }
+            start = endBlock;
+        }
+        return page;
     }
 
     private void deleteRecursive(File dir) {
@@ -57,32 +114,50 @@ public class WebSite {
         dir.delete();
     }
 
-    private void copy(File source, File target) throws IOException {
+    private void copy(File source, File target, boolean replaceFragments, boolean web) throws IOException {
         if (source.isDirectory()) {
             target.mkdirs();
             File[] list = source.listFiles();
             for (int i = 0; i < list.length; i++) {
-                copy(list[i], new File(target, list[i].getName()));
+                copy(list[i], new File(target, list[i].getName()), replaceFragments, web);
             }
         } else {
             String name = source.getName();
-            if (name.endsWith("main.html") || name.endsWith("main_ja.html") || name.endsWith("onePage.html")) {
+            if (name.endsWith("onePage.html") || name.startsWith("fragments")) {
                 return;
+            }
+            if (web) {
+                if (name.endsWith("main.html") || name.endsWith("main_ja.html")) {
+                    return;
+                }
+            } else {
+                if (name.endsWith("mainWeb.html") || name.endsWith("mainWeb_ja.html")) {
+                    return;
+                }
             }
             FileInputStream in = new FileInputStream(source);
             byte[] bytes = IOUtils.readBytesAndClose(in, 0);
             if (name.endsWith(".html")) {
                 String page = new String(bytes, "UTF-8");
-                page = StringUtils.replaceAll(page, ANALYTICS_TAG, ANALYTICS_SCRIPT);
+                if (web) {
+                    page = StringUtils.replaceAll(page, ANALYTICS_TAG, ANALYTICS_SCRIPT);
+                }
+                if (replaceFragments) {
+                    page = replaceFragments(name, page);
+                    page = StringUtils.replaceAll(page, "<a href=\"frame", "<a href=\"main");
+                    page = StringUtils.replaceAll(page, "html/frame.html", "html/main.html");
+                }
                 bytes = page.getBytes("UTF-8");
             }
             FileOutputStream out = new FileOutputStream(target);
             out.write(bytes);
             out.close();
-            if (name.endsWith("mainWeb.html")) {
-                target.renameTo(new File(target.getParentFile(), "main.html"));
-            } else if (name.endsWith("mainWeb_ja.html")) {
-                target.renameTo(new File(target.getParentFile(), "main_ja.html"));
+            if (web) {
+                if (name.endsWith("mainWeb.html")) {
+                    target.renameTo(new File(target.getParentFile(), "main.html"));
+                } else if (name.endsWith("mainWeb_ja.html")) {
+                    target.renameTo(new File(target.getParentFile(), "main_ja.html"));
+                }
             }
         }
     }

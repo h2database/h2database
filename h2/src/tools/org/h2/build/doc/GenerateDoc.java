@@ -141,6 +141,7 @@ public class GenerateDoc {
                 String link = topic.toLowerCase();
                 link = StringUtils.replaceAll(link, " ", "");
                 link = StringUtils.replaceAll(link, "_", "");
+                link = StringUtils.replaceAll(link, "@", "");
                 map.put("link", StringUtils.urlEncode(link));
                 list.add(map);
             }

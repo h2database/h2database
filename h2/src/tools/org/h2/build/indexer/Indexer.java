@@ -61,6 +61,7 @@ public class Indexer {
         }
         File file = new File(dir);
         setNoIndex(new String[] { "index.html", "html/header.html", "html/search.html", "html/frame.html",
+                "html/sourceError.html", "html/source.html", "html/mainWeb.html",
                 "javadoc/index.html", "javadoc/classes.html", "javadoc/allclasses-frame.html",
                 "javadoc/allclasses-noframe.html", "javadoc/constant-values.html", "javadoc/overview-frame.html",
                 "javadoc/overview-summary.html", "javadoc/serialized-form.html" });

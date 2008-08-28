@@ -194,6 +194,10 @@ td.content {
     margin:10px;
 }
 
+.content {
+    margin: 10px 10px 10px 0px;
+}
+
 .screenshot {
     border: 1px outset #800;
     padding: 10px;

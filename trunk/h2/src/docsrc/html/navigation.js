@@ -33,7 +33,7 @@ function frameMe(frame) {
         var s = frameset + "?" + file + "&" + frame;
         top.location.replace(s);
     } else {
-        highlight();
+        highlightFrame();
     }
     return;
 }
@@ -48,7 +48,7 @@ function addHighlight(page, word, count) {
     }
 }
 
-function highlight() {
+function highlightFrame() {
     var url = new String(top.main.location.href);
     if(url.indexOf('?highlight=') < 0) {
         return;
@@ -58,6 +58,21 @@ function highlight() {
         top.main.document.body.innerHTML = highlightSearchTerms(top.main.document.body, word);
         top.main.location = '#firstFound';
         // window.setTimeout('goFirstFound()', 1);
+    }
+}
+
+function highlight() {
+    var url = new String(document.location.href);
+    if(url.indexOf('?highlight=') < 0) {
+        return;
+    } else {
+        var page = url.split('highlight=')[1].split('&')[0];
+        var search = decodeURIComponent(url.split('search=')[1].split('#')[0]);
+        var word = decodeURIComponent(page);
+        document.body.innerHTML = highlightSearchTerms(document.body, word);
+        document.location = '#firstFound';
+        document.getElementById('search').value = search;
+        listWords(search, '');
     }
 }
 
@@ -124,4 +139,28 @@ function doHighlight(bodyText, searchTerm, highlightStartTag, highlightEndTag) {
     }
   }
   return newText;
+}
+
+var drag = false;
+var dragSize = 0;
+var dragStart = 0;
+function mouseDown(e) {
+    dragStart = e.clientX || e.pageX;
+    dragSize = parseInt(document.getElementById('searchMenu').style.width);
+    drag = true;
+    return false;
+}
+function mouseUp(e) {
+    drag = false;
+    return false;
+}
+function mouseMove(e) {
+    if (drag) {
+        var e = e || window.event;
+        var x = e.clientX || e.pageX;
+        dragSize += x - dragStart;
+        dragStart = x;
+        document.getElementById('searchMenu').style.width=dragSize + 'px';
+    }
+    return false;
 }

@@ -162,6 +162,18 @@ td.searchLink a:hover {
     text-decoration: underline;
 }
 
+table.nav {
+    border: 0px;
+}
+
+tr.nav {
+    border: 0px;
+}
+
+td.nav {
+    border: 0px;
+}
+
 table.content {
     width: 100%;
     height: 100%;

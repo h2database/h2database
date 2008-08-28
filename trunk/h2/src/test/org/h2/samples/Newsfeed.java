@@ -6,6 +6,7 @@
  */
 package org.h2.samples;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -43,6 +44,7 @@ public class Newsfeed {
             if (file.endsWith(".txt")) {
                 content = convertHtml2Text(content);
             }            
+            new File(targetDir).mkdirs();
             FileOutputStream out = new FileOutputStream(targetDir + "/" + file);
             Writer writer = new OutputStreamWriter(out, "UTF-8");
             writer.write(content);

@@ -9,16 +9,19 @@ Initial Developer: H2 Group
 <head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
 Change Log
 </title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<!-- [search] { -->
 <script type="text/javascript" src="navigation.js"></script>
 </head><body onload="frameMe();">
 <table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+<!-- } -->
 
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When using DB_CLOSE_DELAY, sometimes a NullPointerException is thrown when
-	the database is opened almost at the same time as it is closed automatically.
-	Thanks a lot to Dmitry Pekar for finding this!
+<ul><li>The documentation no longer uses a frameset (except the Javadocs).
+</li><li>When using DB_CLOSE_DELAY, sometimes a NullPointerException is thrown when
+    the database is opened almost at the same time as it is closed automatically.
+    Thanks a lot to Dmitry Pekar for finding this!
 </li><li>Java methods with variable number of parameters can now be used (for Java 1.5 or newer).
 </li><li>The Japanese translation has been improved by Masahiro Ikemoto. Thanks a lot!
 </li><li>The H2 Console replaced an empty user name with a single space. 
@@ -566,4 +569,5 @@ Change Log
 </li><li>Using a function in a GROUP BY expression that is used in a view as a condition did not always work.
 </li></ul>
 
-</div></td></tr></table><!-- analytics --></body></html>
+<!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>
+

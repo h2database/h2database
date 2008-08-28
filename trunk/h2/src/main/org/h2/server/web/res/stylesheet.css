@@ -121,6 +121,18 @@ td.toolbar {
     padding: 0px 0px;
 }
 
+table.nav {
+    border: 0px;
+}
+
+tr.nav {
+    border: 0px;
+}
+
+td.nav {
+    border: 0px;
+}
+
 table.login {
     background-color: #ece9d8;
     border:1px solid #aca899;

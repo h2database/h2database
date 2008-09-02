@@ -225,6 +225,19 @@ public class TableFilter implements ColumnResolver {
         state = BEFORE_FIRST;
         foundOne = false;
     }
+    
+    private Value getMax(Value a, Value b, boolean bigger) throws SQLException {
+        if (a == null) {
+            return b;
+        } else if (b == null) {
+            return a;
+        }
+        int comp = a.compareTo(b, session.getDatabase().getCompareMode());
+        if (!bigger) {
+            comp = -comp;
+        }
+        return comp > 0 ? a : b;
+    }
 
     /**
      * Check if there are more rows to read.
@@ -257,18 +270,24 @@ public class TableFilter implements ColumnResolver {
                     isEnd = temp;
                 }
                 if (isStart) {
-                    // TODO index: start.setExpression(id, bigger(start.getValue(id), e));
+                    Value newStart;
                     if (start == null) {
                         start = table.getTemplateRow();
+                        newStart = v;
+                    } else {
+                        newStart = getMax(start.getValue(id), v, true);
                     }
-                    start.setValue(id, v);
+                    start.setValue(id, newStart);
                 }
                 if (isEnd) {
-                    // TODO index: end.setExpression(id, smaller(end.getExpression(id), e));
+                    Value newEnd;
                     if (end == null) {
                         end = table.getTemplateRow();
+                        newEnd = v;
+                    } else {
+                        newEnd = getMax(end.getValue(id), v, false);
                     }
-                    end.setValue(id, v);
+                    end.setValue(id, newEnd);
                 }
             }
             if (!alwaysFalse) {

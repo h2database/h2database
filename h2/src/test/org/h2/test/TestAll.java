@@ -272,6 +272,9 @@ java org.h2.test.TestAll timer
 
 /*
 
+Run benchmark with the newest versions of other databases.
+documentation: use 'server mode' not 'remote mode'.
+
 CREATE LINKED TABLE ... READONLY
 CREATE FUNCTION? Function interface
 main methods for the tests and make that work

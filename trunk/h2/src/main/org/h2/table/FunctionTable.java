@@ -14,6 +14,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.FunctionCall;
+import org.h2.expression.TableFunction;
 import org.h2.index.FunctionIndex;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -33,10 +34,16 @@ import org.h2.value.ValueResultSet;
 public class FunctionTable extends Table {
 
     private final FunctionCall function;
+    private final long rowCount;
 
     public FunctionTable(Schema schema, Session session, FunctionCall function) throws SQLException {
         super(schema, 0, function.getName(), false);
         this.function = function;
+        if (function instanceof TableFunction) {
+            rowCount = ((TableFunction) function).getRowCount();
+        } else {
+            rowCount = Long.MAX_VALUE;
+        }
         function.optimize(session);
         int type = function.getType();
         if (type != Value.RESULT_SET) {
@@ -118,11 +125,11 @@ public class FunctionTable extends Table {
     }
 
     public boolean canGetRowCount() {
-        return false;
+        return rowCount != Long.MAX_VALUE;
     }
 
     public long getRowCount(Session session) {
-        throw Message.getInternalError();
+        return rowCount;
     }
 
     public String getCreateSQL() {

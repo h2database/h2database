@@ -53,8 +53,7 @@ public class FunctionIndex extends BaseIndex {
         if (masks != null) {
             throw Message.getUnsupportedException();
         }
-        return Integer.MAX_VALUE;
-        // return functionTable.getRowCount(session) * 10;
+        return functionTable.getRowCount(session) * 10;
     }
 
     public void remove(Session session) throws SQLException {

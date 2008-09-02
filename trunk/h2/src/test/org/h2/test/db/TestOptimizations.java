@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.TreeSet;
 
+import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 
 /**
@@ -28,6 +29,7 @@ public class TestOptimizations extends TestBase {
         if (config.networked) {
             return;
         }
+        testOptimizeInJoin();
         testMultiColumnRangeQuery();
         testDistinctOptimization();
         testQueryCacheTimestamp();
@@ -37,6 +39,27 @@ public class TestOptimizations extends TestBase {
         testIn();
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
+    }
+    
+    private void testOptimizeInJoin() throws Exception {
+        boolean old = SysProperties.optimizeInJoin;
+        SysProperties.optimizeInJoin = true;
+
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+
+        stat.execute("create table test(id int primary key)");
+        stat.execute("insert into test select x from system_range(1, 1000)");
+        ResultSet rs = stat.executeQuery("explain select * from test where id in (400, 300)");
+        rs.next();
+        String plan = rs.getString(1);
+        if (plan.indexOf("/* PUBLIC.PRIMARY_KEY_") < 0) {
+            fail("Expected using the primary key, got: " + plan);
+        }
+        conn.close();
+        
+        SysProperties.optimizeInJoin = old;
     }
     
     private void testMinMaxNullOptimization() throws Exception {

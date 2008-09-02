@@ -711,7 +711,7 @@ public class Select extends Query {
         }
         if (condition != null) {
             condition = condition.optimize(session);
-            if (SysProperties.OPTIMIZE_IN_JOIN) {
+            if (SysProperties.optimizeInJoin) {
                 condition = condition.optimizeInJoin(session, this);
             }
             for (int j = 0; j < filters.size(); j++) {

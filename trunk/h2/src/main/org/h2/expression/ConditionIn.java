@@ -217,9 +217,10 @@ public class ConditionIn extends Condition {
         }
         Database db = session.getDatabase();
         Schema mainSchema = db.getSchema(Constants.SCHEMA_MAIN);
-        TableFunction function = new TableFunction(database, Function.getFunctionInfo("TABLE_DISTINCT"));
-        Expression[] array = new Expression[values.size()];
-        for (int i = 0; i < values.size(); i++) {
+        int rowCount = values.size();
+        TableFunction function = new TableFunction(database, Function.getFunctionInfo("TABLE_DISTINCT"), rowCount);
+        Expression[] array = new Expression[rowCount];
+        for (int i = 0; i < rowCount; i++) {
             Expression e = (Expression) values.get(i);
             array[i] = e;
         }
@@ -237,10 +238,10 @@ public class ConditionIn extends Condition {
         TableFilter filter = new TableFilter(session, table, viewName, false, select);
         select.addTableFilter(filter, true);
         ExpressionColumn column = new ExpressionColumn(db, null, viewName, columnName);
-        Comparison on = new Comparison(session, Comparison.EQUAL, left, column);
+        Expression on = new Comparison(session, Comparison.EQUAL, left, column);
         on.mapColumns(filter, 0);
-        filter.addFilterCondition(on, true);
-        return ValueExpression.get(ValueBoolean.get(true));
+        on = on.optimize(session);
+        return new ConditionAndOr(ConditionAndOr.AND, this, on);
     }
 
 }

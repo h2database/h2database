@@ -27,12 +27,14 @@ import org.h2.value.ValueResultSet;
  * Implementation of the functions TABLE(..) and TABLE_DISTINCT(..).
  */
 public class TableFunction extends Function implements FunctionCall {
-    private boolean distinct;
+    private final boolean distinct;
+    private final long rowCount;
     private Column[] columnList;
 
-    TableFunction(Database database, FunctionInfo info) {
+    TableFunction(Database database, FunctionInfo info, long rowCount) {
         super(database, info);
         distinct = info.type == Function.TABLE_DISTINCT;
+        this.rowCount = rowCount;
     }
 
     public Value getValue(Session session) throws SQLException {
@@ -147,6 +149,10 @@ public class TableFunction extends Function implements FunctionCall {
             simple.addRow(list);
         }
         return simple;
+    }
+    
+    public long getRowCount() {
+        return rowCount;
     }
 
 }

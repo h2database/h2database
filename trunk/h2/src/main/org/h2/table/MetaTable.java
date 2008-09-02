@@ -827,7 +827,7 @@ public class MetaTable extends Table {
             add(rows, new String[]{"h2.objectCacheSize", "" + SysProperties.OBJECT_CACHE_SIZE});
             add(rows, new String[]{"h2.objectCacheMaxPerElementSize", "" + SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE});
             add(rows, new String[]{"h2.optimizeIn", "" + SysProperties.OPTIMIZE_IN});
-            add(rows, new String[]{"h2.optimizeInJoin", "" + SysProperties.OPTIMIZE_IN_JOIN});
+            add(rows, new String[]{"h2.optimizeInJoin", "" + SysProperties.optimizeInJoin});
             add(rows, new String[]{"h2.optimizeMinMax", "" + SysProperties.OPTIMIZE_MIN_MAX});
             add(rows, new String[]{"h2.optimizeSubqueryCache", "" + SysProperties.OPTIMIZE_SUBQUERY_CACHE});
             add(rows, new String[]{"h2.overflowExceptions", "" + SysProperties.OVERFLOW_EXCEPTIONS});

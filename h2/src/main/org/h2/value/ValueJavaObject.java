@@ -6,7 +6,12 @@
  */
 package org.h2.value;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Types;
+
 import org.h2.constant.SysProperties;
+import org.h2.util.ObjectUtils;
 
 /**
  * Implementation of the OBJECT data type.
@@ -39,6 +44,11 @@ public class ValueJavaObject extends ValueBytesBase {
 
     public int getType() {
         return Value.JAVA_OBJECT;
+    }
+    
+    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+        Object obj = ObjectUtils.deserialize(getBytesNoCopy());
+        prep.setObject(parameterIndex, obj, Types.JAVA_OBJECT);
     }
 
 }

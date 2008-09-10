@@ -18,9 +18,18 @@ import org.h2.test.TestBase;
  */
 public class TestRowLocks extends TestBase {
 
+    /**
+     * The statements used in this test.
+     */
     Statement s1, s2;
+
     private Connection c1, c2;
     
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
     public static void main(String[] a) throws Exception {
         new TestRowLocks().init().test();
     }

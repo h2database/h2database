@@ -75,6 +75,7 @@ import org.h2.test.jdbcx.TestXASimple;
 import org.h2.test.mvcc.TestMvcc1;
 import org.h2.test.mvcc.TestMvcc2;
 import org.h2.test.mvcc.TestMvcc3;
+import org.h2.test.mvcc.TestMvccMultiThreaded;
 import org.h2.test.rowlock.TestRowLocks;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.server.TestPgServer;
@@ -271,6 +272,8 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
+
+row level locking for mvcc
 
 Run benchmark with the newest versions of other databases.
 documentation: use 'server mode' not 'remote mode'.
@@ -540,6 +543,7 @@ http://www.w3schools.com/sql/
         new TestMvcc1().runTest(this);
         new TestMvcc2().runTest(this);
         new TestMvcc3().runTest(this);
+        new TestMvccMultiThreaded().runTest(this);
         new TestRowLocks().runTest(this);
 
         // synth

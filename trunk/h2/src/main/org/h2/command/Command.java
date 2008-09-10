@@ -191,7 +191,7 @@ public abstract class Command implements CommandInterface {
     }
 
     public int executeUpdate() throws SQLException {
-        startTime = System.currentTimeMillis();
+        long start = startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
         database.allocateReserveMemory();
         Object sync = database.getMultiThreaded() ? (Object) session : (Object) database;
@@ -200,14 +200,30 @@ public abstract class Command implements CommandInterface {
             int rollback = session.getLogId();
             session.setCurrentCommand(this, startTime);
             try {
-                database.checkPowerOff();
-                try {
-                    return update();
-                } catch (OutOfMemoryError e) {
-                    database.freeReserveMemory();
-                    throw Message.convert(e);
-                } catch (Throwable e) {
-                    throw Message.convert(e);
+                while (true) {
+                    database.checkPowerOff();
+                    try {
+                        return update();
+                    } catch (OutOfMemoryError e) {
+                        database.freeReserveMemory();
+                        throw Message.convert(e);
+                    } catch (SQLException e) {
+                        if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1) {
+                            long now = System.currentTimeMillis();
+                            if (now - start > session.getLockTimeout()) {
+                                throw e;
+                            }
+                            try {
+                                database.wait(100);
+                            } catch (InterruptedException e1) {
+                                // ignore
+                            }
+                            continue;
+                        }
+                        throw e;
+                    } catch (Throwable e) {
+                        throw Message.convert(e);
+                    }
                 }
             } catch (SQLException e) {
                 database.exceptionThrown(e, sql);

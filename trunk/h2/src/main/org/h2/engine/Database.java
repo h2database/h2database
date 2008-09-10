@@ -132,7 +132,6 @@ public class Database implements DataHandler {
     private boolean logIndexChanges;
     private int logLevel = 1;
     private int maxLengthInplaceLob = Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
-    private long biggestFileSize;
     private int allowLiterals = Constants.DEFAULT_ALLOW_LITERALS;
 
     private int powerOffCount = initialPowerOffCount;
@@ -198,6 +197,7 @@ public class Database implements DataHandler {
             this.recovery = true;
         }
         this.multiVersion = ci.removeProperty("MVCC", false);
+        checkMultiThreadedAllowed();
         boolean closeAtVmShutdown = ci.removeProperty("DB_CLOSE_ON_EXIT", true);
         int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
         int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
@@ -1749,7 +1749,6 @@ public class Database implements DataHandler {
         case Constants.LOCK_MODE_READ_COMMITTED:
         case Constants.LOCK_MODE_TABLE:
         case Constants.LOCK_MODE_TABLE_GC:
-        case Constants.LOCK_MODE_ROW:
             break;
         default:
             throw Message.getInvalidValueException("lock mode", "" + lockMode);
@@ -1858,32 +1857,19 @@ public class Database implements DataHandler {
     public void setLobCompressionAlgorithm(String stringValue) {
         this.lobCompressionAlgorithm = stringValue;
     }
-
+    
     /**
-     * Called when the size if the data or index file has been changed. The log
-     * file size is at least 10% of the largest file.
+     * Called when the size if the data or index file has been changed.
      * 
      * @param length the new file size
      */
     public void notifyFileSize(long length) {
-        if (length > biggestFileSize) {
-            biggestFileSize = length;
-            setMaxLogSize(0);
-        }
+        // ignore
     }
-
+    
     public synchronized void setMaxLogSize(long value) {
-        long minLogSize = biggestFileSize / Constants.LOG_SIZE_DIVIDER;
-        minLogSize = Math.max(value, minLogSize);
-        long currentLogSize = getLog().getMaxLogSize();
-        if (minLogSize > currentLogSize || (value > 0 && minLogSize > value)) {
-            // works for currentLogSize <= 0 as well
-            value = minLogSize;
-        }
-        if (value > 0) {
-            getLog().setMaxLogSize(value);
-        }
-    }
+        getLog().setMaxLogSize(value);
+    }    
 
     public void setAllowLiterals(int value) {
         this.allowLiterals = value;
@@ -1970,9 +1956,18 @@ public class Database implements DataHandler {
         return multiThreaded;
     }
 
-    public void setMultiThreaded(boolean multiThreaded) {
+    public void setMultiThreaded(boolean multiThreaded) throws SQLException {
         this.multiThreaded = multiThreaded;
+        checkMultiThreadedAllowed();
     }
+    
+    private void checkMultiThreadedAllowed() throws SQLException {
+        if (multiThreaded && multiVersion) {
+            multiVersion = false;
+            throw Message.getSQLException(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, "MVCC & MULTI_THREADED");
+        }
+    }
+
 
     public void setMaxOperationMemory(int maxOperationMemory) {
         this.maxOperationMemory  = maxOperationMemory;

@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.sql.Types;
 
 import org.h2.test.TestBase;
 
@@ -27,10 +28,38 @@ import org.h2.test.TestBase;
 public class TestUpdatableResultSet extends TestBase {
 
     public void test() throws Exception {
+        testUpdateLob();
         testScroll();
         testUpdateDeleteInsert();
         testUpdateDataType();
         testUpdateResetRead();
+    }
+    
+    private void testUpdateLob() throws Exception {
+        deleteDb("updatableResultSet");
+        Connection conn = getConnection("updatableResultSet");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE object_index (id integer primary key, object other, number integer)");
+
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO object_index (id,object)  VALUES (1,?)");
+        prep.setObject(1, "hello", Types.JAVA_OBJECT);
+        prep.execute();
+
+        ResultSet rs = stat.executeQuery("SELECT object,id,number FROM object_index WHERE id =1");
+        rs.next();
+        assertEquals("hello", rs.getObject(1).toString());
+        stat = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+        rs = stat.executeQuery("SELECT object,id,number FROM object_index WHERE id =1");
+        rs.next();
+        assertEquals("hello", rs.getObject(1).toString());
+        rs.updateInt(2, 1);
+        rs.updateRow(); 
+        rs.close();
+        stat = conn.createStatement();
+        rs = stat.executeQuery("SELECT object,id,number FROM object_index WHERE id =1");
+        rs.next();
+        assertEquals("hello", rs.getObject(1).toString());
+        conn.close();
     }
     
     private void testUpdateResetRead() throws Exception {

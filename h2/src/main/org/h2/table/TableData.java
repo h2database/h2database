@@ -274,7 +274,6 @@ public class TableData extends Table implements RecordReader {
     }
 
     public void removeRow(Session session, Row row) throws SQLException {
-        lastModificationId = database.getNextModificationDataId();
         if (database.isMultiVersion()) {
             if (row.getDeleted()) {
                 throw Message.getSQLException(ErrorCode.CONCURRENT_UPDATE_1, getName());
@@ -287,6 +286,7 @@ public class TableData extends Table implements RecordReader {
                 throw Message.getSQLException(ErrorCode.CONCURRENT_UPDATE_1, getName());
             }
         }
+        lastModificationId = database.getNextModificationDataId();
         int i = indexes.size() - 1;
         try {
             for (; i >= 0; i--) {
@@ -377,7 +377,7 @@ public class TableData extends Table implements RecordReader {
                 }
             } else {
                 if (lockExclusive == null) {
-                    if (lockMode == Constants.LOCK_MODE_READ_COMMITTED || lockMode == Constants.LOCK_MODE_ROW) {
+                    if (lockMode == Constants.LOCK_MODE_READ_COMMITTED) {
                         if (!database.getMultiThreaded() && !database.isMultiVersion()) {
                             // READ_COMMITTED: a read lock is acquired, 
                             // but released immediately after the operation 

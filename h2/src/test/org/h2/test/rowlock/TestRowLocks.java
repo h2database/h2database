@@ -18,8 +18,12 @@ import org.h2.test.TestBase;
  */
 public class TestRowLocks extends TestBase {
 
+    Statement s1, s2;
     private Connection c1, c2;
-    private Statement s1, s2;
+    
+    public static void main(String[] a) throws Exception {
+        new TestRowLocks().init().test();
+    }
 
     public void test() throws Exception {
         testSetMode();
@@ -30,10 +34,10 @@ public class TestRowLocks extends TestBase {
         deleteDb("rowLocks");
         c1 = getConnection("rowLocks");
         Statement stat = c1.createStatement();
-        stat.execute("SET LOCK_MODE 4");
+        stat.execute("SET LOCK_MODE 2");
         ResultSet rs = stat.executeQuery("call lock_mode()");
         rs.next();
-        assertEquals("4", rs.getString(1));
+        assertEquals("2", rs.getString(1));
         c1.close();
     }
 
@@ -41,40 +45,57 @@ public class TestRowLocks extends TestBase {
         deleteDb("rowLocks");
         c1 = getConnection("rowLocks;MVCC=TRUE");
         s1 = c1.createStatement();
-        s1.execute("SET LOCK_MODE 4");
+        s1.execute("SET LOCK_TIMEOUT 10000");
         s1.execute("CREATE TABLE TEST AS SELECT X ID, 'Hello' NAME FROM SYSTEM_RANGE(1, 3)");
         c1.commit();
         c1.setAutoCommit(false);
         s1.execute("UPDATE TEST SET NAME='Hallo' WHERE ID=1");
+        
         c2 = getConnection("rowLocks");
         c2.setAutoCommit(false);
         s2 = c2.createStatement();
 
-        ResultSet rs = s1.executeQuery("SELECT NAME FROM TEST WHERE ID=1");
-        rs.next();
-        assertEquals("Hallo", rs.getString(1));
-
-        rs = s2.executeQuery("SELECT NAME FROM TEST WHERE ID=1");
-        rs.next();
-        assertEquals("Hello", rs.getString(1));
+        assertEquals("Hallo", getSingleValue(s1, "SELECT NAME FROM TEST WHERE ID=1"));
+        assertEquals("Hello", getSingleValue(s2, "SELECT NAME FROM TEST WHERE ID=1"));
 
         s2.execute("UPDATE TEST SET NAME='Hallo' WHERE ID=2");
         try {
-            s2.executeUpdate("UPDATE TEST SET NAME='Hallo2' WHERE ID=1");
+            s2.executeUpdate("UPDATE TEST SET NAME='Hi' WHERE ID=1");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
         c1.commit();
         c2.commit();
-        rs = s1.executeQuery("SELECT NAME FROM TEST WHERE ID=1");
-        rs.next();
-        assertEquals("Hallo", rs.getString(1));
-        rs = s2.executeQuery("SELECT NAME FROM TEST WHERE ID=1");
-        rs.next();
-        assertEquals("Hallo", rs.getString(1));
+        
+        assertEquals("Hallo", getSingleValue(s1, "SELECT NAME FROM TEST WHERE ID=1"));
+        assertEquals("Hallo", getSingleValue(s2, "SELECT NAME FROM TEST WHERE ID=1"));
+        
+        s2.execute("UPDATE TEST SET NAME='H1' WHERE ID=1");
+        Thread thread = new Thread() {
+            public void run() {
+                try {
+                    s1.execute("UPDATE TEST SET NAME='H2' WHERE ID=1");
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        thread.start();
+        Thread.sleep(100);
+        c2.commit();
+        thread.join();
+        c1.commit();
+        assertEquals("H2", getSingleValue(s1, "SELECT NAME FROM TEST WHERE ID=1"));
+        assertEquals("H2", getSingleValue(s2, "SELECT NAME FROM TEST WHERE ID=1"));
+        
         c1.close();
         c2.close();
     }
 
+    private String getSingleValue(Statement stat, String sql) throws Exception {
+        ResultSet rs = stat.executeQuery(sql);
+        return rs.next() ? rs.getString(1) : null;
+    }
+    
 }

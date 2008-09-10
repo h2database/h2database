@@ -61,6 +61,17 @@ public abstract class TestBase {
     }
 
     /**
+     * Initialize the test configuration using the default settings.
+     * 
+     * @return itself
+     */
+    public TestBase init() throws Exception {
+        baseDir = getTestDir("");
+        this.config = new TestAll();
+        return this;
+    }
+
+    /**
      * Initialize the test configuration.
      * 
      * @param conf the configuration
@@ -483,11 +494,11 @@ public abstract class TestBase {
             }
             int al = expected.length();
             int bl = actual.length();
-            if (al > 400) {
-                expected = expected.substring(0, 400);
+            if (al > 4000) {
+                expected = expected.substring(0, 4000);
             }
-            if (bl > 400) {
-                actual = actual.substring(0, 400);
+            if (bl > 4000) {
+                actual = actual.substring(0, 4000);
             }
             fail("Expected: " + expected + " (" + al + ") actual: " + actual + " (" + bl + ")");
         }

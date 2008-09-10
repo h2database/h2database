@@ -975,7 +975,7 @@ Sets the maximum file size of a log file, in megabytes.
 If the file exceeds the limit, a new file is created.
 Old files (that are not used for recovery) are deleted automatically,
 but multiple log files may exist for some time.
-The default max size is 64 MB.
+The default max size is 32 MB.
 This setting is persistent.
 Admin rights are required to execute this command.
 ","
@@ -1299,6 +1299,7 @@ compare { {{ALL|ANY|SOME}(select)} | operand }
 ","
 The right hand side of a condition.
 When comparing with LIKE, the wildcards characters are _ (any one character) and % (any characters).
+The database uses an index when comparing with LIKE except if the operand starts with a wildcard.
 When comparing with REGEXP, regular expression matching is used. See Java Matcher.find for details.
 ","
 LIKE 'Jo%'

@@ -42,7 +42,7 @@ public class TestDeadlock extends TestBase {
         testNoDeadlock();
     }
     
-    private void init() throws Exception {
+    private void initTest() throws Exception {
         c1 = getConnection("deadlock");
         c2 = getConnection("deadlock");
         c3 = getConnection("deadlock");
@@ -93,7 +93,7 @@ public class TestDeadlock extends TestBase {
     }
     
     private void testNoDeadlock() throws Exception {
-        init();
+        initTest();
         c1.createStatement().execute("CREATE TABLE TEST_A(ID INT PRIMARY KEY)");
         c1.createStatement().execute("CREATE TABLE TEST_B(ID INT PRIMARY KEY)");
         c1.createStatement().execute("CREATE TABLE TEST_C(ID INT PRIMARY KEY)");
@@ -139,7 +139,7 @@ public class TestDeadlock extends TestBase {
         if (config.mvcc) {
             return;
         }
-        init();
+        initTest();
         c1.createStatement().execute("CREATE TABLE TEST_A(ID INT PRIMARY KEY)");
         c1.createStatement().execute("CREATE TABLE TEST_B(ID INT PRIMARY KEY)");
         c1.createStatement().execute("CREATE TABLE TEST_C(ID INT PRIMARY KEY)");
@@ -181,7 +181,7 @@ public class TestDeadlock extends TestBase {
         if (config.mvcc) {
             return;
         }
-        init();
+        initTest();
         c1.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
         c1.createStatement().execute("INSERT INTO TEST VALUES(1)");
         c1.commit();
@@ -214,7 +214,7 @@ public class TestDeadlock extends TestBase {
         if (config.mvcc) {
             return;
         }
-        init();
+        initTest();
         c1.createStatement().execute("CREATE TABLE T1(ID INT)");
         c1.createStatement().execute("CREATE TABLE T2(ID INT)");
         c1.createStatement().execute("INSERT INTO T1 VALUES(1)");

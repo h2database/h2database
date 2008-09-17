@@ -49,7 +49,8 @@ public class TableLink extends Table {
     private boolean storesLowerCase;
     private boolean storesMixedCase;
     private boolean supportsMixedCaseIdentifiers;        
-
+    private boolean globalTemporary;
+    private boolean readOnly;
 
     public TableLink(Schema schema, int id, String name, String driver, String url, String user, String password,
             String originalTable, boolean emitUpdates, boolean force) throws SQLException {
@@ -240,7 +241,14 @@ public class TableLink extends Table {
 
     public String getCreateSQL() {
         StringBuffer buff = new StringBuffer();
-        buff.append("CREATE FORCE LINKED TABLE ");
+        buff.append("CREATE FORCE ");
+        if (getTemporary()) {
+            if (globalTemporary) {
+                buff.append("GLOBAL ");
+            }
+            buff.append("TEMP ");
+        }
+        buff.append("LINKED TABLE ");
         buff.append(getSQL());
         if (comment != null) {
             buff.append(" COMMENT ");
@@ -259,6 +267,9 @@ public class TableLink extends Table {
         buff.append(")");
         if (emitUpdates) {
             buff.append(" EMIT UPDATES");
+        }
+        if (readOnly) {
+            buff.append(" READONLY");
         }
         return buff.toString();
     }
@@ -279,12 +290,20 @@ public class TableLink extends Table {
     public Index getScanIndex(Session session) {
         return linkedIndex;
     }
+    
+    private void checkReadOnly() throws SQLException {
+        if (readOnly) {
+            throw Message.getSQLException(ErrorCode.DATABASE_IS_READ_ONLY);
+        }
+    }
 
     public void removeRow(Session session, Row row) throws SQLException {
+        checkReadOnly();
         getScanIndex(session).remove(session, row);
     }
 
     public void addRow(Session session, Row row) throws SQLException {
+        checkReadOnly();
         getScanIndex(session).add(session, row);
     }
 
@@ -395,6 +414,7 @@ public class TableLink extends Table {
     public void updateRows(Prepared prepared, Session session, RowList rows)
             throws SQLException {
         boolean deleteInsert;
+        checkReadOnly();
         if (emitUpdates) {
             for (rows.reset(); rows.hasNext();) {
                 prepared.checkCancelled();
@@ -411,6 +431,14 @@ public class TableLink extends Table {
         if (deleteInsert) {
             super.updateRows(prepared, session, rows);
         }
+    }
+
+    public void setGlobalTemporary(boolean globalTemporary) {
+        this.globalTemporary = globalTemporary;
+    }
+
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
     }
 
 }

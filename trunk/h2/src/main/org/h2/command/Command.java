@@ -131,7 +131,7 @@ public abstract class Command implements CommandInterface {
     public LocalResult executeQueryLocal(int maxrows) throws SQLException {
         startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
-        Object sync = database.getMultiThreaded() ? (Object) session : (Object) database;
+        Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
         session.waitIfExclusiveModeEnabled();
         synchronized (sync) {
             try {
@@ -174,7 +174,7 @@ public abstract class Command implements CommandInterface {
             session.commit(true);
         } else if (session.getAutoCommit()) {
             session.commit(false);
-        } else if (session.getDatabase().getMultiThreaded()) {
+        } else if (session.getDatabase().isMultiThreaded()) {
             Database db = session.getDatabase();
             if (db != null) {
                 if (db.getLockMode() == Constants.LOCK_MODE_READ_COMMITTED) {
@@ -194,7 +194,7 @@ public abstract class Command implements CommandInterface {
         long start = startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
         database.allocateReserveMemory();
-        Object sync = database.getMultiThreaded() ? (Object) session : (Object) database;
+        Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
         session.waitIfExclusiveModeEnabled();
         synchronized (sync) {
             int rollback = session.getLogId();

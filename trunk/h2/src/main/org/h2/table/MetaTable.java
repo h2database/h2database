@@ -802,7 +802,7 @@ public class MetaTable extends Table {
             }
             add(rows, new String[] { "EXCLUSIVE", database.getExclusiveSession() == null ? "FALSE" : "TRUE" });
             add(rows, new String[] { "MODE", database.getMode().getName() });
-            add(rows, new String[] { "MULTI_THREADED", database.getMultiThreaded() ? "1" : "0"});
+            add(rows, new String[] { "MULTI_THREADED", database.isMultiThreaded() ? "1" : "0"});
             add(rows, new String[] { "MVCC", database.isMultiVersion() ? "TRUE" : "FALSE" });
             add(rows, new String[] { "QUERY_TIMEOUT", "" + session.getQueryTimeout() });
             // the setting for the current database

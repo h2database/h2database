@@ -27,6 +27,9 @@ public class CreateLinkedTable extends SchemaCommand {
     private String comment;
     private boolean emitUpdates;
     private boolean force;
+    private boolean temporary;
+    private boolean globalTemporary;
+    private boolean readOnly;
 
     public CreateLinkedTable(Session session, Schema schema) {
         super(session, schema);
@@ -73,8 +76,15 @@ public class CreateLinkedTable extends SchemaCommand {
         }
         int id = getObjectId(false, true);
         TableLink table = getSchema().createTableLink(id, tableName, driver, url, user, password, originalTable, emitUpdates, force);
+        table.setTemporary(temporary);
+        table.setGlobalTemporary(globalTemporary);
         table.setComment(comment);
-        db.addSchemaObject(session, table);
+        table.setReadOnly(readOnly);
+        if (temporary && !globalTemporary) {
+            session.addLocalTempTable(table);
+        } else {
+            db.addSchemaObject(session, table);
+        }
         return 0;
     }
 
@@ -88,6 +98,18 @@ public class CreateLinkedTable extends SchemaCommand {
 
     public void setForce(boolean force) {
         this.force = force;
+    }
+
+    public void setTemporary(boolean temp) {
+        this.temporary = temp;
+    }
+
+    public void setGlobalTemporary(boolean globalTemp) {
+        this.globalTemporary = globalTemp;
+    }
+
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
     }
 
 }

@@ -24,7 +24,7 @@ public class TestMultiThreadedKernel extends TestBase implements Runnable {
     private volatile boolean stop;
 
     public void test() throws Exception {
-        if (config.networked) {
+        if (config.networked || config.mvcc) {
             return;
         }
         deleteDb("multiThreadedKernel");

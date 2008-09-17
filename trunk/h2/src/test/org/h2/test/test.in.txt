@@ -1,4 +1,42 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create schema a;
+> ok
+
+set autocommit false;
+> ok
+
+set schema a;
+> ok
+
+create table t1 ( k int, v varchar(10) );
+> ok
+
+insert into t1 values ( 1, 't1' );
+> update count: 1
+
+create table t2 ( k int, v varchar(10) );
+> ok
+
+insert into t2 values ( 2, 't2' );
+> update count: 1
+
+create view v_test(a, b, c, d) as select t1.*, t2.* from t1 join t2 on ( t1.k = t2.k );
+> ok
+
+select * from v_test;
+> A B C D
+> - - - -
+> rows: 0
+
+set schema public;
+> ok
+
+drop schema a;
+> ok
+
+set autocommit true;
+> ok
+
 select x/3 as a, count(*) c from system_range(1, 10) group by a having c>2;
 > A C
 > - -
@@ -323,8 +361,8 @@ insert into t2 select x from system_range(1, 1000);
 
 explain select count(*) from t1 where t1.id in ( select t2.id from t2 );
 > PLAN
-> --------------------------------------------------------------------------------------------------------------------------------
-> SELECT COUNT(*) FROM PUBLIC.T1 /* PUBLIC.T1_TABLE_SCAN */ WHERE T1.ID IN(SELECT T2.ID FROM PUBLIC.T2 /* PUBLIC.T2_TABLE_SCAN */)
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT COUNT(*) FROM PUBLIC.T1 /* PUBLIC.T1_TABLE_SCAN */ /* WHERE TRUE */ INNER JOIN (SELECT DISTINCT T2.ID AS TEMP_VIEW_2_X FROM PUBLIC.T2 /* PUBLIC.T2_TABLE_SCAN */) TEMP_VIEW_3 /* SELECT DISTINCT T2.ID AS TEMP_VIEW_2_X FROM PUBLIC.T2 /++ PUBLIC.PRIMARY_KEY_A5: ID = ?1 ++/ WHERE T2.ID = ?1: TEMP_VIEW_2_X = T1.ID */ ON T1.ID = TEMP_VIEW_3.TEMP_VIEW_2_X WHERE TRUE
 > rows: 1
 
 select count(*) from t1 where t1.id in ( select t2.id from t2 );
@@ -770,8 +808,8 @@ insert into test values(1), (2), (3);
 
 explain select * from test where id in(1, 2, null);
 > PLAN
-> -------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID >= 1 AND ID <= 2 */ WHERE ID IN(1, 2, NULL)
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID FROM TABLE_DISTINCT(TEMP_VIEW_20_X INTEGER=(1, 2, NULL)) TEMP_VIEW_21 /* PUBLIC."" */ INNER JOIN PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID >= 1 AND ID <= 2 AND ID = TEMP_VIEW_21.TEMP_VIEW_20_X */ ON 1=1 WHERE (ID IN(1, 2, NULL)) AND (ID = TEMP_VIEW_21.TEMP_VIEW_20_X)
 > rows: 1
 
 drop table test;
@@ -2491,8 +2529,8 @@ select * from test t1 where id in(id);
 
 explain select * from test t1 where id in(select id from test);
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_TABLE_SCAN */ WHERE ID IN(SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */)
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_TABLE_SCAN */ /* WHERE TRUE */ INNER JOIN (SELECT DISTINCT ID AS TEMP_VIEW_70_X FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */) TEMP_VIEW_71 /* SELECT DISTINCT ID AS TEMP_VIEW_70_X FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2: ID = ?1 ++/ WHERE ID = ?1: TEMP_VIEW_70_X = ID */ ON ID = TEMP_VIEW_71.TEMP_VIEW_70_X WHERE TRUE
 > rows: 1
 
 select * from test t1 where id in(select id from test);
@@ -2504,8 +2542,8 @@ select * from test t1 where id in(select id from test);
 
 explain select * from test t1 where id in(1, select max(id) from test);
 > PLAN
-> -----------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID >= 1 AND ID <= 2 */ WHERE ID IN(1, 2)
+> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM TABLE_DISTINCT(TEMP_VIEW_78_X INTEGER=(1, 2)) TEMP_VIEW_79 /* PUBLIC."" */ INNER JOIN PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID >= 1 AND ID <= 2 AND ID = TEMP_VIEW_79.TEMP_VIEW_78_X */ ON 1=1 WHERE (ID IN(1, 2)) AND (ID = TEMP_VIEW_79.TEMP_VIEW_78_X)
 > rows: 1
 
 select * from test t1 where id in(1, select max(id) from test);
@@ -5127,8 +5165,8 @@ SELECT * FROM (SELECT ID FROM TEST GROUP BY ID);
 
 EXPLAIN SELECT * FROM TEST UNION ALL SELECT * FROM TEST ORDER BY ID LIMIT 2+0 OFFSET 1+0;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */) UNION ALL (SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */) ORDER BY 1 LIMIT 2 OFFSET 1
+> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */ UNION ALL (SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */) ORDER BY 1 LIMIT 2 OFFSET 1
 > rows (ordered): 1
 
 EXPLAIN DELETE FROM TEST WHERE ID=1;
@@ -5407,14 +5445,14 @@ EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE EXISTS(SELECT * FROM TEST T2 WHERE 
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(1, 2);
 > PLAN
-> -----------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID >= 1 AND ID <= 2 */ WHERE ID IN(1, 2)
+> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM TABLE_DISTINCT(TEMP_VIEW_115_X INTEGER=(1, 2)) TEMP_VIEW_116 /* PUBLIC."" */ INNER JOIN PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID >= 1 AND ID <= 2 AND ID = TEMP_VIEW_116.TEMP_VIEW_115_X */ ON 1=1 WHERE (ID IN(1, 2)) AND (ID = TEMP_VIEW_116.TEMP_VIEW_115_X)
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(SELECT ID FROM TEST);
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_TABLE_SCAN */ WHERE ID IN(SELECT ID FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */)
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT T1.ID, T1.NAME FROM PUBLIC.TEST T1 /* PUBLIC.TEST_TABLE_SCAN */ /* WHERE TRUE */ INNER JOIN (SELECT DISTINCT ID AS TEMP_VIEW_119_X FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */) TEMP_VIEW_120 /* SELECT DISTINCT ID AS TEMP_VIEW_119_X FROM PUBLIC.TEST /++ PUBLIC.PRIMARY_KEY_2: ID = ?1 ++/ WHERE ID = ?1: TEMP_VIEW_119_X = ID */ ON ID = TEMP_VIEW_120.TEMP_VIEW_119_X WHERE TRUE
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID NOT IN(SELECT ID FROM TEST);
@@ -5474,8 +5512,8 @@ SELECT * FROM SYSTEM_RANGE(1,2) UNION ALL SELECT * FROM SYSTEM_RANGE(1,2) ORDER 
 
 EXPLAIN (SELECT * FROM SYSTEM_RANGE(1,2) UNION ALL SELECT * FROM SYSTEM_RANGE(1,2) ORDER BY 1);
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */) UNION ALL (SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */) ORDER BY 1
+> --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */ UNION ALL (SELECT SYSTEM_RANGE.X FROM SYSTEM_RANGE(1, 2) /* PUBLIC.RANGE_INDEX */) ORDER BY 1
 > rows (ordered): 1
 
 CREATE TABLE CHILDREN(ID INT PRIMARY KEY, NAME VARCHAR(255), CLASS INT);
@@ -5518,8 +5556,8 @@ SELECT * FROM CHILDREN UNION ALL SELECT * FROM CHILDREN ORDER BY ID, NAME FOR UP
 
 EXPLAIN SELECT * FROM CHILDREN UNION ALL SELECT * FROM CHILDREN ORDER BY ID, NAME FOR UPDATE;
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ FOR UPDATE) UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ FOR UPDATE) ORDER BY 1, 2 FOR UPDATE
+> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ FOR UPDATE UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ FOR UPDATE) ORDER BY 1, 2 FOR UPDATE
 > rows (ordered): 1
 
 SELECT 'Child', ID, NAME FROM CHILDREN UNION SELECT 'Class', ID, NAME FROM CLASSES;
@@ -5538,8 +5576,8 @@ SELECT 'Child', ID, NAME FROM CHILDREN UNION SELECT 'Class', ID, NAME FROM CLASS
 
 EXPLAIN SELECT 'Child', ID, NAME FROM CHILDREN UNION SELECT 'Class', ID, NAME FROM CLASSES;
 > PLAN
-> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT 'Child', ID, NAME FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */) UNION (SELECT 'Class', ID, NAME FROM PUBLIC.CLASSES /* PUBLIC.CLASSES_TABLE_SCAN */)
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT 'Child', ID, NAME FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ UNION (SELECT 'Class', ID, NAME FROM PUBLIC.CLASSES /* PUBLIC.CLASSES_TABLE_SCAN */)
 > rows: 1
 
 SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
@@ -5552,14 +5590,14 @@ SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
 
 EXPLAIN SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */) EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ WHERE CLASS = 0)
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ WHERE CLASS = 0)
 > rows: 1
 
 EXPLAIN SELECT CLASS FROM CHILDREN INTERSECT SELECT ID FROM CLASSES;
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */) INTERSECT (SELECT ID FROM PUBLIC.CLASSES /* PUBLIC.CLASSES_TABLE_SCAN */)
+> --------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ INTERSECT (SELECT ID FROM PUBLIC.CLASSES /* PUBLIC.CLASSES_TABLE_SCAN */)
 > rows: 1
 
 SELECT CLASS FROM CHILDREN INTERSECT SELECT ID FROM CLASSES;
@@ -5572,8 +5610,8 @@ SELECT CLASS FROM CHILDREN INTERSECT SELECT ID FROM CLASSES;
 
 EXPLAIN SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE CLASS=0;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */) EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ WHERE CLASS = 0)
+> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /* PUBLIC.CHILDREN_TABLE_SCAN */ WHERE CLASS = 0)
 > rows: 1
 
 SELECT * FROM CHILDREN CH, CLASSES CL WHERE CH.CLASS = CL.ID;
@@ -5663,8 +5701,8 @@ SELECT * FROM V_UNION WHERE ID=1;
 
 EXPLAIN SELECT * FROM V_UNION WHERE ID=1;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT V_UNION.ID, V_UNION.NAME, V_UNION.CLASS FROM PUBLIC.V_UNION /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1) UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1): ID = 1 */ WHERE ID = 1
+> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_UNION.ID, V_UNION.NAME, V_UNION.CLASS FROM PUBLIC.V_UNION /* SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1 UNION ALL (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1): ID = 1 */ WHERE ID = 1
 > rows: 1
 
 CREATE VIEW V_EXCEPT AS SELECT * FROM CHILDREN EXCEPT SELECT * FROM CHILDREN WHERE ID=2;
@@ -5678,8 +5716,8 @@ SELECT * FROM V_EXCEPT WHERE ID=1;
 
 EXPLAIN SELECT * FROM V_EXCEPT WHERE ID=1;
 > PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT V_EXCEPT.ID, V_EXCEPT.NAME, V_EXCEPT.CLASS FROM PUBLIC.V_EXCEPT /* (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1) EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = 2 ++/ WHERE ID = 2): ID = 1 */ WHERE ID = 1
+> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_EXCEPT.ID, V_EXCEPT.NAME, V_EXCEPT.CLASS FROM PUBLIC.V_EXCEPT /* SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE CHILDREN.ID = ?1 EXCEPT (SELECT CHILDREN.ID, CHILDREN.NAME, CHILDREN.CLASS FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = 2 ++/ WHERE ID = 2): ID = 1 */ WHERE ID = 1
 > rows: 1
 
 CREATE VIEW V_INTERSECT AS SELECT ID, NAME FROM CHILDREN INTERSECT SELECT * FROM CLASSES;
@@ -5692,8 +5730,8 @@ SELECT * FROM V_INTERSECT WHERE ID=1;
 
 EXPLAIN SELECT * FROM V_INTERSECT WHERE ID=1;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT V_INTERSECT.ID, V_INTERSECT.NAME FROM PUBLIC.V_INTERSECT /* (SELECT ID, NAME FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE ID = ?1) INTERSECT (SELECT CLASSES.ID, CLASSES.NAME FROM PUBLIC.CLASSES /++ PUBLIC.PRIMARY_KEY_5: ID = ?1 ++/ WHERE CLASSES.ID = ?1): ID = 1 */ WHERE ID = 1
+> ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT V_INTERSECT.ID, V_INTERSECT.NAME FROM PUBLIC.V_INTERSECT /* SELECT ID, NAME FROM PUBLIC.CHILDREN /++ PUBLIC.PRIMARY_KEY_9: ID = ?1 ++/ WHERE ID = ?1 INTERSECT (SELECT CLASSES.ID, CLASSES.NAME FROM PUBLIC.CLASSES /++ PUBLIC.PRIMARY_KEY_5: ID = ?1 ++/ WHERE CLASSES.ID = ?1): ID = 1 */ WHERE ID = 1
 > rows: 1
 
 DROP VIEW V_UNION;

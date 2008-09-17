@@ -19,6 +19,9 @@ import org.h2.test.TestBase;
 public class TestSessionsLocks extends TestBase {
 
     public void test() throws Exception {
+        if (config.mvcc) {
+            return;
+        }
         testCancelStatement();
         testLocks();
     }

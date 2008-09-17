@@ -14,6 +14,7 @@ import java.io.RandomAccessFile;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 
@@ -37,8 +38,8 @@ public class TestFileSystem extends TestBase {
         testUserHome();
     }
     
-    private void testDatabaseInMemFileSys() throws Exception {
-        Class.forName("org.h2.Driver");
+    private void testDatabaseInMemFileSys() throws SQLException {
+        org.h2.Driver.load();
         String url = "jdbc:h2:" + baseDir + "/fsMem";
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
         conn.createStatement().execute("CREATE TABLE TEST AS SELECT * FROM DUAL");
@@ -51,11 +52,11 @@ public class TestFileSystem extends TestBase {
         conn.close();
     }
 
-    private void testDatabaseInJar() throws Exception {
+    private void testDatabaseInJar() throws SQLException {
         if (config.networked) {
             return;
         }
-        Class.forName("org.h2.Driver");
+        org.h2.Driver.load();
         String url = "jdbc:h2:" + baseDir + "/fsJar";
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
         Statement stat = conn.createStatement();
@@ -99,7 +100,7 @@ public class TestFileSystem extends TestBase {
         conn.close();
     }
 
-    private void testUserHome() throws Exception {
+    private void testUserHome() throws SQLException {
         FileSystem fs = FileSystem.getInstance("~/test");
         String fileName = fs.getAbsolutePath("~/test");
         String userDir = System.getProperty("user.home");

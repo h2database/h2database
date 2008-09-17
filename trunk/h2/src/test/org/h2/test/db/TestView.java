@@ -18,6 +18,36 @@ import org.h2.test.TestBase;
 public class TestView extends TestBase {
 
     public void test() throws Exception {
+        testUnionReconnect();
+        testManyViews();
+    }
+    
+    private void testUnionReconnect() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("view");
+        Connection conn = getConnection("view");
+        Statement stat = conn.createStatement();
+        stat.execute("create table t1(k smallint, ts timestamp(6))");
+        stat.execute("create table t2(k smallint, ts timestamp(6))");
+        stat.execute("create table t3(k smallint, ts timestamp(6))");
+        stat.execute("create view v_max_ts as select " + 
+                "max(ts) from (select max(ts) as ts from t1 " + 
+                "union select max(ts) as ts from t2 " + 
+                "union select max(ts) as ts from t3)");
+        stat.execute("create view v_test as select max(ts) as ts from t1 " +
+                "union select max(ts) as ts from t2 " +
+                "union select max(ts) as ts from t3");
+        conn.close();
+        conn = getConnection("view");
+        stat = conn.createStatement();
+        stat.execute("select * from v_max_ts");
+        conn.close();
+        deleteDb("view");
+    }
+    
+    private void testManyViews() throws Exception {
         deleteDb("view");
         Connection conn = getConnection("view");
         Statement s = conn.createStatement();

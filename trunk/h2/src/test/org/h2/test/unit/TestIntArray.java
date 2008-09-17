@@ -16,11 +16,11 @@ import org.h2.util.IntArray;
  */
 public class TestIntArray extends TestBase {
 
-    public void test() throws Exception {
+    public void test() {
         testRandom();
     }
 
-    private void testRandom() throws Exception {
+    private void testRandom() {
         IntArray array = new IntArray();
         int[] test = new int[0];
         Random random = new Random(1);

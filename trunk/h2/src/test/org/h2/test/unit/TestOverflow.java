@@ -27,14 +27,14 @@ public class TestOverflow extends TestBase {
     private BigInteger min, max;
     private boolean successExpected;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         test(Value.BYTE, Byte.MIN_VALUE, Byte.MAX_VALUE);
         test(Value.INT, Integer.MIN_VALUE, Integer.MAX_VALUE);
         test(Value.LONG, Long.MIN_VALUE, Long.MAX_VALUE);
         test(Value.SHORT, Short.MIN_VALUE, Short.MAX_VALUE);
     }
 
-    private void test(int type, long min, long max) throws Exception {
+    private void test(int type, long min, long max) throws SQLException {
         values = new ArrayList();
         this.type = type;
         this.min = new BigInteger("" + min);
@@ -63,25 +63,25 @@ public class TestOverflow extends TestBase {
         }
     }
 
-    private void checkIfExpected(String a, String b) throws Exception {
+    private void checkIfExpected(String a, String b) {
         if (successExpected) {
             assertEquals(a, b);
         }
     }
 
-    private void onSuccess() throws Exception {
+    private void onSuccess() {
         if (!successExpected && SysProperties.OVERFLOW_EXCEPTIONS) {
             fail();
         }
     }
 
-    private void onError() throws Exception {
+    private void onError() {
         if (successExpected) {
             fail();
         }
     }
 
-    private void testValues(Value va, Value vb) throws Exception {
+    private void testValues(Value va, Value vb) throws SQLException {
         BigInteger a = new BigInteger(va.getString());
         BigInteger b = new BigInteger(vb.getString());
         successExpected = inRange(a.negate());

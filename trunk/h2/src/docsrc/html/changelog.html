@@ -18,13 +18,20 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Row level locking for MVCC is now enabled. The exception
-	'Concurrent update in table ...' is still thrown, but only after the lock timeout.
+<ul><li>Multiple UNION queries could not be used in derived tables. 
+</li><li>Linked tables can now be read-only.
+</li><li>Temporary linked tables are now supported.
+</li><li>The optimization for IN(...) is now enabled by default. Use -Dh2.optimizeInJoin=false to disable it.
+</li><li>It was possible to create tables in read-only databases.
+</li><li>SET SCHEMA_SEARCH_PATH is now documented.
+</li><li>SET SCHEMA did not work for views.
+</li><li>Row level locking for MVCC is now enabled. The exception
+    'Concurrent update in table ...' is still thrown, but only after the lock timeout.
 </li><li>The maximum log file size setting was ignored for large databases.
 </li><li>Multi-Version Concurrency (MVCC) may no longer be used when using 
-	the multi-threaded kernel feature (MULTI_THREADED). An exception is thrown
-	when trying to connect with both settings. Additional synchronization
-	is required before those features can be used together.
+    the multi-threaded kernel feature (MULTI_THREADED). An exception is thrown
+    when trying to connect with both settings. Additional synchronization
+    is required before those features can be used together.
 </li><li>The data type JAVA_OBJECT could not be used in updatable result sets.
 </li><li>The system property h2.optimizeInJoin did not work correctly.
 </li><li>Conditions such as ID=? AND ID>? were slow.

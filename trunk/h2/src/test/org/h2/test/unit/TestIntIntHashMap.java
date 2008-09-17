@@ -18,13 +18,13 @@ public class TestIntIntHashMap extends TestBase {
 
     private Random rand = new Random();
 
-    public void test() throws Exception {
+    public void test() {
         rand.setSeed(10);
         test(true);
         test(false);
     }
 
-    private void test(boolean random) throws Exception {
+    private void test(boolean random) {
         int len = 2000;
         int[] x = new int[len];
         for (int i = 0; i < len; i++) {

@@ -8,6 +8,7 @@ package org.h2.test.unit;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 
@@ -18,7 +19,7 @@ import org.h2.test.TestBase;
  */
 public class TestCache extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.memory) {
             return;
         }

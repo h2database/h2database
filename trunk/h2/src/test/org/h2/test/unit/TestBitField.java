@@ -17,12 +17,12 @@ import org.h2.util.BitField;
  */
 public class TestBitField extends TestBase {
 
-    public void test() throws Exception {
+    public void test() {
         testRandom();
         testGetSet();
     }
 
-    private void testRandom() throws Exception {
+    private void testRandom() {
         BitField bits = new BitField();
         BitSet set = new BitSet();
         int max = 300;
@@ -46,26 +46,26 @@ public class TestBitField extends TestBase {
         }
     }
 
-    private void testGetSet() throws Exception {
+    private void testGetSet() {
         BitField bits = new BitField();
         for (int i = 0; i < 10000; i++) {
             bits.set(i);
             if (!bits.get(i)) {
-                throw new Exception("not set: " + i);
+                fail("not set: " + i);
             }
             if (bits.get(i + 1)) {
-                throw new Exception("set: " + i);
+                fail("set: " + i);
             }
         }
         for (int i = 0; i < 10000; i++) {
             if (!bits.get(i)) {
-                throw new Exception("not set: " + i);
+                fail("not set: " + i);
             }
         }
         for (int i = 0; i < 1000; i++) {
             int k = bits.nextClearBit(0);
             if (k != 10000) {
-                throw new Exception("" + k);
+                fail("" + k);
             }
         }
     }

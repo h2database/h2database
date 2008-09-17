@@ -357,8 +357,7 @@ public class SysProperties {
      * System property <code>h2.optimizeInJoin</code> (default: false).<br />
      * Optimize IN(...) comparisons by converting them to inner joins.
      */
-    // TODO change in version 1.1
-    public static boolean optimizeInJoin = getBooleanSetting("h2.optimizeInJoin", false);
+    public static boolean optimizeInJoin = getBooleanSetting("h2.optimizeInJoin", true);
 
     /**
      * System property <code>h2.optimizeMinMax</code> (default: true).<br />

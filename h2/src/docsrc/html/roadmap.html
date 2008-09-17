@@ -42,7 +42,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Test with Spatial DB in a box / JTS (http://docs.codehaus.org/display/GEOS/SpatialDBBox)
 </li><li>Optimization: result set caching (like MySQL)
 </li><li>Server side cursors
-</li><li>Long running queries / errors / trace system table
 </li><li>Migrate database tool (also from other database engines)
 </li><li>Shutdown compact
 </li></ul>
@@ -58,9 +57,11 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Linked tables should support a schema name: CREATE LINKED TABLE ... (... [schemaName, ] originalTableString) - DB2: SET SCHEMA after connecting
 </li><li>Option to shutdown all the running servers (on the same VM).
 </li><li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
+</li><li>Optimize ID=? OR ID=?: convert to IN(...)
+</li><li>Optimize .. OR .. to UNION if the cost is lower
 </li><li>H2 Console: new option 'Open a browser when starting the H2 Console'.
 </li><li>Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
-</li><li>Optimize ID=? OR ID=?: convert to IN(...)
+</li><li>Support large updates (use the transaction log to undo).
 </li><li>Full outer joins
 </li><li>Support trigger on the tables information_schema.tables and ...columns
 </li><li>Test very large databases and LOBs (up to 256 GB)
@@ -386,6 +387,12 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support Oracle ROWID (unique identifier for each row).
 </li><li>Server mode: Improve performance for batch updates.
 </li><li>Applets: Support read-only databases in a zip file (accessed as a resource).
+</li><li>Long running queries / errors / trace system table.
+</li><li>H2 Console should support JaQu directly.
+</li><li>Option to copy the old version of each changed page once after a checkpoint.
+</li><li>H2 Console: support single file upload and directory download (optional).
+</li><li>Document FTL_SEARCH, FTL_SEARCH_DATA.
+</li><li>Support DatabaseMetaData.insertsAreDetected: updatable result sets should detect inserts.
 </li></ul>
 
 <h2>Not Planned</h2>

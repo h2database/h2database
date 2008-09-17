@@ -136,8 +136,6 @@ public class ConditionAndOr extends Condition {
             left = right;
             right = t;
         }
-        // TODO optimization: convert ((A=1 AND B=2) OR (A=1 AND B=3)) to 
-        // (A=1 AND (B=2 OR B=3))
         // this optimization does not work in the following case, 
         // but NOT is optimized before:
         // CREATE TABLE TEST(A INT, B INT);
@@ -157,6 +155,9 @@ public class ConditionAndOr extends Condition {
                 }
             }
         }
+        // TODO optimization: convert ((A=1 AND B=2) OR (A=1 AND B=3)) to 
+        // (A=1 AND (B=2 OR B=3))
+        // TODO optimization: convert .. OR .. to UNION if the cost is lower
         Value l = left.isConstant() ? left.getValue(session) : null;
         Value r = right.isConstant() ? right.getValue(session) : null;
         if (l == null && r == null) {

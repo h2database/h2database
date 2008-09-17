@@ -28,13 +28,13 @@ public class TestDataPage extends TestBase implements DataHandler {
 
     boolean text;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testAll();
         text = true;
         testAll();
     }
 
-    private void testAll() throws Exception {
+    private void testAll() throws SQLException {
         DataPage page = DataPage.create(this, 128);
 
         char[] data = new char[0x10000];

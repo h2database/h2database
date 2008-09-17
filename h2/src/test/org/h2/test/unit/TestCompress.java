@@ -6,6 +6,7 @@
  */
 package org.h2.test.unit;
 
+import java.sql.SQLException;
 import java.util.Random;
 
 import org.h2.test.TestBase;
@@ -16,7 +17,7 @@ import org.h2.tools.CompressTool;
  */
 public class TestCompress extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.big) {
             for (int i = 0; i < 100; i++) {
                 test(i);
@@ -33,7 +34,7 @@ public class TestCompress extends TestBase {
         }
     }
 
-    private void test(int len) throws Exception {
+    private void test(int len) throws SQLException {
         Random r = new Random(len);
         for (int pattern = 0; pattern < 4; pattern++) {
             byte[] buff = new byte[len];

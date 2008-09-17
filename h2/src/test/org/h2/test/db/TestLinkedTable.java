@@ -24,6 +24,7 @@ public class TestLinkedTable extends TestBase {
 
     public void test() throws Exception {
         // testLinkAutoAdd();
+        testReadOnlyLinkedTable();
         testLinkOtherSchema();
         testLinkDrop();
         testLinkSchema();
@@ -51,6 +52,40 @@ public class TestLinkedTable extends TestBase {
 //        ca.close();
 //        cb.close();
 //    }
+    
+    private void testReadOnlyLinkedTable() throws Exception {
+        Class.forName("org.h2.Driver");
+        Connection ca = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
+        Connection cb = DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
+        Statement sa = ca.createStatement();
+        Statement sb = cb.createStatement();
+        sa.execute("CREATE TABLE TEST(ID INT)");
+        sa.execute("INSERT INTO TEST VALUES(1)");
+        String[] suffix = new String[]{"", "READONLY", "EMIT UPDATES"};
+        for (int i = 0; i < suffix.length; i++) {
+            String sql = "CREATE LINKED TABLE T(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'TEST')" + suffix[i];
+            sb.execute(sql);
+            sb.executeQuery("SELECT * FROM T");
+            String[] update = new String[]{"DELETE FROM T", "INSERT INTO T VALUES(2)", "UPDATE T SET ID = 3"};
+            for (int j = 0; j < update.length; j++) {
+                try {
+                    sb.execute(update[j]);
+                    if (i == 1) {
+                        fail();
+                    }
+                } catch (SQLException e) {
+                    if (i == 1) {
+                        assertKnownException(e);
+                    } else {
+                        throw e;
+                    }
+                }
+            }
+            sb.execute("DROP TABLE T");
+        }
+        ca.close();
+        cb.close();
+    }
 
     private void testLinkOtherSchema() throws Exception {
         Class.forName("org.h2.Driver");

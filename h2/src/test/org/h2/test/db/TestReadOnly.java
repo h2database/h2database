@@ -9,6 +9,7 @@ package org.h2.test.db;
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -26,14 +27,41 @@ public class TestReadOnly extends TestBase {
         if (config.memory) {
             return;
         }
+        testReadOnlyDbCreate();
         testReadOnlyFiles(true);
         if (!config.deleteIndex) {
             testReadOnlyFiles(false);
         }
     }
+    
+    private void testReadOnlyDbCreate() throws Exception {
+        if (config.deleteIndex) {
+            return;
+        }
+        deleteDb("readonly");
+        Connection conn = getConnection("readonly");
+        conn.close();
+        conn = getConnection("readonly;ACCESS_MODE_LOG=r;ACCESS_MODE_DATA=r");
+        Statement stat = conn.createStatement();
+        try {
+            stat.execute("CREATE TABLE TEST(ID INT)");
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        try {
+            stat.execute("SELECT * FROM TEST");
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        stat.execute("create local temporary linked table test(null, 'jdbc:h2:mem:test3', 'sa', 'sa', 'INFORMATION_SCHEMA.TABLES')");
+        ResultSet rs = stat.executeQuery("select * from test");
+        assertTrue(rs.next());
+        conn.close();
+    }
 
     private void testReadOnlyFiles(boolean setReadOnly) throws Exception {
-
         File f = File.createTempFile("test", "temp");
         assertTrue(f.canWrite());
         f.setReadOnly();

@@ -48,7 +48,7 @@ buffer buffered buffering buffers bug bugdatabase bugfixes bugs build builder
 building builds built bulk bull bundle bungisoft business busy but button bxor
 bye byte bytea bytes bzip cache cached caching cafe cal calculate calculated
 calculates calculating calculation calendar call callable callback called caller
-calling calls cally camel can cancel cancelled cancels cannot canonical cap
+calling calls cally camel can cancel canceled cancels cannot canonical cap
 capabilities capability capacity capone caps capture car cardinality care careful
 carriage carrier cars cartesian cascade cascading case cases casesensitive
 casewhen casqueiro cast cat catalog catalogs catch catcher catches caucho cause

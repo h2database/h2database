@@ -273,30 +273,24 @@ java org.h2.test.TestAll timer
 
 /*
 
-row level locking for mvcc
+main methods for the tests and make that work
+
+H2 Console: don't display very large blobs; instead show first view bytes and length
+
+MVCC:
+Concurrent update in table test: another transaction has updated or 
+deleted the same row when exactly does it occur in other databases 
+(PostgreSQL, Oracle)?
 
 Run benchmark with the newest versions of other databases.
 documentation: use 'server mode' not 'remote mode'.
 
-CREATE LINKED TABLE ... READONLY
 CREATE FUNCTION? Function interface
-main methods for the tests and make that work
-
-Support large updates (use the transaction log to undo).
-
-H2 Console: support single file upload and directory download (optional)
-
-document FTL_SEARCH, FTL_SEARCH_DATA
 
 find quote:
 You can't make a system that will not lose data, you can only make 
 a system that knows the last save point of 100% integrity. There are 
 too many variables and too much randomness on a cold hard power failure. 
-
-JaQu
-H2 Console should support Java Queries
-
-row level locking
 
 not tested:
 PreparedProcedure PREPARE <name>(column,...) AS ...
@@ -304,15 +298,7 @@ Procedure
 DeallocateProcedure DEALLOCATE [PLAN] <name>
 ExecuteProcedure EXECUTE <name>[([p[,...])]
 
-Concurrent update in table test: another transaction has updated or 
-deleted the same row when exactly does it occur in other databases 
-(PostgreSQL, Oracle)?
-
 in help.csv, use complete examples for functions; add a test case
-
-option to write complete page right after checkpoint
-
-test case for out of memory (try to corrupt the database using out of memory)
 
 analyzer configuration option for the fulltext search   
    

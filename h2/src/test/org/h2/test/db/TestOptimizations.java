@@ -210,8 +210,11 @@ public class TestOptimizations extends TestBase {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
-        testQuerySpeed(stat,
-                "select sum(x) from system_range(1, 10000) a where a.x in (select b.x from system_range(1, 30) b)");
+        // if h2.optimizeInJoin is enabled, the following query can not be improved
+        if (!SysProperties.optimizeInJoin) {
+            testQuerySpeed(stat,
+                    "select sum(x) from system_range(1, 10000) a where a.x in (select b.x from system_range(1, 30) b)");
+        }
         testQuerySpeed(stat,
                 "select sum(a.n), sum(b.x) from system_range(1, 100) b, (select sum(x) n from system_range(1, 4000)) a");
         conn.close();

@@ -21,7 +21,7 @@ import org.h2.value.Value;
  */
 public class TestDate extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         for (int year = 1970; year < 2070; year++) {
             for (int month = 1; month <= 12; month++) {
                 for (int day = 1; day < 29; day++) {

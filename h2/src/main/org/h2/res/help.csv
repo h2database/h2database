@@ -402,10 +402,10 @@ CREATE INDEX IDXNAME ON TEST(NAME)
 "
 
 "Commands (DDL)","CREATE LINKED TABLE","
-CREATE LINKED TABLE [IF NOT EXISTS]
+CREATE [[GLOBAL | LOCAL] TEMPORARY] LINKED TABLE [IF NOT EXISTS]
 name(driverString, urlString,
 userString, passwordString, originalTableString)
-[EMIT UPDATES]
+[EMIT UPDATES | READONLY]
 ","
 Creates a table link to an external table.
 The driver name may be empty if the driver is already loaded.
@@ -1108,6 +1108,18 @@ This command does not commit a transaction, and rollback does not affect it.
 This setting can be appended to the database URL: jdbc:h2:test;SCHEMA=ABC
 ","
 SET SCHEMA INFORMATION_SCHEMA
+"
+
+"Commands (Other)","SET SCHEMA_SEARCH_PATH","
+SET SCHEMA_SEARCH_PATH schemaName [,...]
+","
+Changes the schema search path of the current connection.
+The default schema is used in statements where no schema is set explicitly.
+The default schema for new connections is PUBLIC.
+This command does not commit a transaction, and rollback does not affect it.
+This setting can be appended to the database URL: jdbc:h2:test;SCHEMA_SEARCH_PATH=ABC,DEF
+","
+SET SCHEMA_SEARCH_PATH INFORMATION_SCHEMA, PUBLIC
 "
 
 "Commands (Other)","SET THROTTLE","

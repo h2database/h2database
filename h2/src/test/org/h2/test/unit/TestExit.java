@@ -70,7 +70,7 @@ public class TestExit extends TestBase implements DatabaseEventListener {
      * 
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws SQLException {
         SelfDestructor.startCountdown(60);
         if (args.length == 0) {
             System.exit(1);
@@ -80,8 +80,8 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         app.execute(action);
     }
 
-    private void execute(int action) throws Exception {
-        Class.forName("org.h2.Driver");
+    private void execute(int action) throws SQLException {
+        org.h2.Driver.load();
         String url = "";
         switch (action) {
         case OPEN_WITH_CLOSE_ON_EXIT:
@@ -99,7 +99,7 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         conn2.close();
     }
 
-    private static Connection open(String url) throws Exception {
+    private static Connection open(String url) throws SQLException {
         getClosedFile().delete();
         return DriverManager.getConnection(url, "sa", "");
     }

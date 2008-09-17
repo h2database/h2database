@@ -39,11 +39,11 @@ public class SamplesTest extends TestBase {
      * 
      * @param args the command line parameters
      */    
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         new SamplesTest().test();
     }
     
-    public void test() throws Exception {
+    public void test() {
 //## Java 1.5 begin ##
         db = Db.open("jdbc:h2:mem:", "sa", "sa");
         db.insertAll(Product.getList());
@@ -80,7 +80,7 @@ public class SamplesTest extends TestBase {
     }
 
 //## Java 1.5 begin ##    
-    private void testWhereSimple2() throws Exception {
+    private void testWhereSimple2() {
         
 //            var soldOutProducts =
 //                from p in products
@@ -96,7 +96,7 @@ public class SamplesTest extends TestBase {
         assertEquals("[Chef Anton's Gumbo Mix: 0]", soldOutProducts.toString());
     }
 
-    private void testWhereSimple3() throws Exception {
+    private void testWhereSimple3() {
         
 //            var expensiveInStockProducts =
 //                from p in products
@@ -116,7 +116,7 @@ public class SamplesTest extends TestBase {
     }
 
 
-    private void testWhereSimple4() throws Exception {
+    private void testWhereSimple4() {
         
 //        var waCustomers =
 //            from c in customers
@@ -132,7 +132,7 @@ public class SamplesTest extends TestBase {
         assertEquals("[ALFKI, ANATR]", waCustomers.toString());
     }
 
-    private void testSelectSimple2() throws Exception {
+    private void testSelectSimple2() {
         
 //        var productNames =
 //            from p in products
@@ -160,7 +160,7 @@ public class SamplesTest extends TestBase {
     }
 
 //## Java 1.5 begin ##
-    private void testAnonymousTypes3() throws Exception {
+    private void testAnonymousTypes3() {
         
 //        var productInfos =
 //            from p in products
@@ -204,7 +204,7 @@ public class SamplesTest extends TestBase {
     }
     
 //## Java 1.5 begin ##
-    private void testSelectManyCompoundFrom2() throws Exception {
+    private void testSelectManyCompoundFrom2() {
         
 //        var orders =
 //            from c in customers,
@@ -232,13 +232,13 @@ public class SamplesTest extends TestBase {
         assertEquals("[ANATR:10308:88.80]", orders.toString());
     }
     
-    private void testIsNull() throws Exception {
+    private void testIsNull() {
         Product p = new Product();
         String sql = db.from(p).whereTrue(isNull(p.productName)).getSQL();
         assertEquals("SELECT * FROM Product WHERE (productName IS NULL)", sql);
     }
     
-    private void testDelete() throws Exception {
+    private void testDelete() {
         Product p = new Product();
         int deleted = db.from(p).where(p.productName).like("A%").delete();
         assertEquals(1, deleted);
@@ -247,7 +247,7 @@ public class SamplesTest extends TestBase {
         db.insertAll(Product.getList());
     }
     
-    private void testOrAndNot() throws Exception {
+    private void testOrAndNot() {
         Product p = new Product();
         String sql = db.from(p).whereTrue(not(isNull(p.productName))).getSQL();
         assertEquals("SELECT * FROM Product WHERE (NOT productName IS NULL)", sql);
@@ -257,7 +257,7 @@ public class SamplesTest extends TestBase {
         assertEquals("SELECT * FROM Product WHERE ((productId = ?))", sql);
     }
     
-    private void testLength() throws Exception {
+    private void testLength() {
         Product p = new Product();
         List<Integer> lengths = db.from(p).
             where(length(p.productName)).smaller(10).
@@ -266,7 +266,7 @@ public class SamplesTest extends TestBase {
         assertEquals("[4, 5]", lengths.toString());
     }
     
-    private void testSum() throws Exception {
+    private void testSum() {
         Product p = new Product();
         Integer sum = db.from(p).selectFirst(sum(p.unitsInStock));
         assertEquals(323, sum.intValue());
@@ -274,7 +274,7 @@ public class SamplesTest extends TestBase {
         assertEquals(313.35, sumPrice.doubleValue());
     }
 
-    private void testMinMax() throws Exception {
+    private void testMinMax() {
         Product p = new Product();
         Integer min = db.from(p).selectFirst(min(p.unitsInStock));
         assertEquals(0, min.intValue());
@@ -284,7 +284,7 @@ public class SamplesTest extends TestBase {
         assertEquals(97.0, max.doubleValue());
     }
     
-    private void testLike() throws Exception {
+    private void testLike() {
         Product p = new Product();
         List<Product> aList = db.from(p).
             where(p.productName).like("Cha%").
@@ -292,12 +292,12 @@ public class SamplesTest extends TestBase {
         assertEquals("[Chai: 39, Chang: 17]", aList.toString());
     }
 
-    private void testCount() throws Exception {
+    private void testCount() {
         long count = db.from(new Product()).selectCount();
         assertEquals(10, count);
     }
     
-    private void testComplexObject() throws Exception {
+    private void testComplexObject() {
         ComplexObject co = new ComplexObject();
         long count = db.from(co).
             where(co.id).is(1).
@@ -325,7 +325,7 @@ public class SamplesTest extends TestBase {
     }
     
 //## Java 1.5 begin ##
-    private void testGroup() throws Exception {
+    private void testGroup() {
         
 //      var orderGroups =
 //          from p in products

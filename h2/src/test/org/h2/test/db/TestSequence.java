@@ -8,6 +8,7 @@ package org.h2.test.db;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
@@ -17,14 +18,14 @@ import org.h2.test.TestBase;
  */
 public class TestSequence extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testAlterSequenceColumn();
         testAlterSequence();
         testCache();
         testTwo();
     }
     
-    private void testAlterSequenceColumn() throws Exception {
+    private void testAlterSequenceColumn() throws SQLException {
         deleteDb("sequence");
         Connection conn = getConnection("sequence");
         Statement stat = conn.createStatement();
@@ -36,7 +37,7 @@ public class TestSequence extends TestBase {
         conn.close();
     }
     
-    private void testAlterSequence() throws Exception {
+    private void testAlterSequence() throws SQLException {
         deleteDb("sequence");
         Connection conn = getConnection("sequence");
         Statement stat = conn.createStatement();
@@ -49,7 +50,7 @@ public class TestSequence extends TestBase {
         conn.close();
     }
 
-    private void testCache() throws Exception {
+    private void testCache() throws SQLException {
         if (config.memory) {
             return;
         }
@@ -74,7 +75,7 @@ public class TestSequence extends TestBase {
         conn.close();
     }
 
-    private void testTwo() throws Exception {
+    private void testTwo() throws SQLException {
         deleteDb("sequence");
         Connection conn = getConnection("sequence");
         Statement stat = conn.createStatement();
@@ -101,7 +102,7 @@ public class TestSequence extends TestBase {
         conn.close();
     }
 
-    private long getNext(Statement stat) throws Exception {
+    private long getNext(Statement stat) throws SQLException {
         ResultSet rs = stat.executeQuery("call next value for testSequence");
         rs.next();
         long value = rs.getLong(1);

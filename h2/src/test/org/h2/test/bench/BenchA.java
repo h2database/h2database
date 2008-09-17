@@ -8,6 +8,7 @@ package org.h2.test.bench;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Random;
 
 /**
@@ -28,7 +29,7 @@ public class BenchA implements Bench {
     private int accounts;
     private int size;
 
-    public void init(Database db, int size) throws Exception {
+    public void init(Database db, int size) throws SQLException {
         this.db = db;
         this.size = size;
 
@@ -97,7 +98,7 @@ public class BenchA implements Bench {
 //        db.end();
     }
 
-    public void runTest() throws Exception {
+    public void runTest() throws SQLException {
 
         db.start(this, "Transactions");
         db.openConnection();
@@ -112,7 +113,7 @@ public class BenchA implements Bench {
 
     }
 
-    private void processTransactions() throws Exception {
+    private void processTransactions() throws SQLException {
         Random random = db.getRandom();
         int branch = random.nextInt(branches);
         int teller = random.nextInt(tellers);

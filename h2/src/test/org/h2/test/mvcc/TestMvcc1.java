@@ -23,12 +23,12 @@ public class TestMvcc1 extends TestBase {
     private Connection c1, c2;
     private Statement s1, s2;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testSetMode();
         testCases();
     }
 
-    private void testSetMode() throws Exception {
+    private void testSetMode() throws SQLException {
         deleteDb("mvcc1");
         c1 = getConnection("mvcc1;MVCC=FALSE");
         Statement stat = c1.createStatement();
@@ -47,7 +47,7 @@ public class TestMvcc1 extends TestBase {
         c1.close();
     }
 
-    private void testCases() throws Exception {
+    private void testCases() throws SQLException {
         if (!config.mvcc) {
             return;
         }

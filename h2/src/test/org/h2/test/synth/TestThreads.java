@@ -9,6 +9,7 @@ package org.h2.test.synth;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 
@@ -78,7 +79,7 @@ public class TestThreads extends TestBase implements Runnable {
         conn.close();
     }
 
-    private void insertRows(Connection conn, String tableName, int len) throws Exception {
+    private void insertRows(Connection conn, String tableName, int len) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("INSERT INTO " + tableName + " VALUES(?, 'Hi')");
         for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
@@ -86,7 +87,7 @@ public class TestThreads extends TestBase implements Runnable {
         }
     }
 
-    private void checkTable(Connection conn, String tableName) throws Exception {
+    private void checkTable(Connection conn, String tableName) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM " + tableName + " ORDER BY ID");
         while (rs.next()) {

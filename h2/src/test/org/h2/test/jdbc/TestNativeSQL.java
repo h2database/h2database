@@ -55,7 +55,7 @@ public class TestNativeSQL extends TestBase {
 
     private Connection conn;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         deleteDb("nativeSql");
         conn = getConnection("nativeSql");
         testPairs();
@@ -66,7 +66,7 @@ public class TestNativeSQL extends TestBase {
         assertTrue(conn.isClosed());
     }
     
-    private void testQuotes() throws Exception {
+    private void testQuotes() throws SQLException {
         Statement stat = conn.createStatement();
         Random random = new Random(1);
         String s = "'\"$/-* \n";
@@ -105,7 +105,7 @@ public class TestNativeSQL extends TestBase {
         }
     }
     
-    private void testRandom() throws Exception {
+    private void testRandom() throws SQLException {
         Random random = new Random(1);
         for (int i = 0; i < 100; i++) {
             StringBuffer buff = new StringBuffer("{oj }");
@@ -197,13 +197,13 @@ public class TestNativeSQL extends TestBase {
         }
     }
     
-    private void testPairs() throws Exception {
+    private void testPairs() throws SQLException {
         for (int i = 0; i < PAIRS.length; i += 2) {
             test(conn, PAIRS[i], PAIRS[i + 1]);
         }
     }
     
-    private void testCases() throws Exception {
+    private void testCases() throws SQLException {
         conn.nativeSQL("TEST");
         conn.nativeSQL("TEST--testing");
         conn.nativeSQL("TEST--testing{oj }");
@@ -231,7 +231,7 @@ public class TestNativeSQL extends TestBase {
         assertFalse(conn.isClosed());
     }
 
-    private void test(Connection conn, String original, String expected) throws Exception {
+    private void test(Connection conn, String original, String expected) throws SQLException {
         trace("original: <" + original + ">");
         trace("expected: <" + expected + ">");
         try {

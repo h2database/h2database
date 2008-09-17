@@ -8,6 +8,7 @@ package org.h2.test.mvcc;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
@@ -17,14 +18,14 @@ import org.h2.test.TestBase;
  */
 public class TestMvcc3 extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testCreateTableAsSelect();
         testSequence();
         testDisableAutoCommit();
         testRollback();
     }
     
-    private void testCreateTableAsSelect() throws Exception {
+    private void testCreateTableAsSelect() throws SQLException {
         if (!config.mvcc) {
             return;
         }
@@ -41,7 +42,7 @@ public class TestMvcc3 extends TestBase {
         c2.close();        
     }
     
-    private void testRollback() throws Exception {
+    private void testRollback() throws SQLException {
         if (!config.mvcc) {
             return;
         }
@@ -89,7 +90,7 @@ public class TestMvcc3 extends TestBase {
         conn2.close();
     }
     
-    private void testDisableAutoCommit() throws Exception {
+    private void testDisableAutoCommit() throws SQLException {
         if (!config.mvcc) {
             return;
         }
@@ -108,7 +109,7 @@ public class TestMvcc3 extends TestBase {
         conn.close();
     }
     
-    private void testSequence() throws Exception {
+    private void testSequence() throws SQLException {
         if (config.memory) {
             return;
         }

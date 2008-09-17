@@ -33,7 +33,7 @@ public class TestPowerOff extends TestBase {
 
     private int maxPowerOffCount;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.memory || config.logMode == 0) {
             return;
         }
@@ -51,7 +51,7 @@ public class TestPowerOff extends TestBase {
         testPersistentTables();
     }
 
-    private void testSummaryCrash() throws Exception {
+    private void testSummaryCrash() throws SQLException {
         if (config.networked) {
             return;
         }
@@ -95,7 +95,7 @@ public class TestPowerOff extends TestBase {
         conn.close();
     }
 
-    private void testCrash() throws Exception {
+    private void testCrash() throws SQLException {
         if (config.networked) {
             return;
         }
@@ -135,7 +135,7 @@ public class TestPowerOff extends TestBase {
         }
     }
 
-    private void testShutdown() throws Exception {
+    private void testShutdown() throws SQLException {
         deleteDb(dir, dbName);
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
@@ -152,7 +152,7 @@ public class TestPowerOff extends TestBase {
         conn.close();
     }
 
-    private void testNoIndexFile() throws Exception {
+    private void testNoIndexFile() throws SQLException {
         if (config.networked) {
             return;
         }
@@ -183,7 +183,7 @@ public class TestPowerOff extends TestBase {
         conn.close();
     }
 
-    private void testMemoryTables() throws Exception {
+    private void testMemoryTables() throws SQLException {
         if (config.networked) {
             return;
         }
@@ -213,7 +213,7 @@ public class TestPowerOff extends TestBase {
         conn.close();
     }
 
-    private void testPersistentTables() throws Exception {
+    private void testPersistentTables() throws SQLException {
         if (config.networked) {
             return;
         }
@@ -234,7 +234,7 @@ public class TestPowerOff extends TestBase {
         recoverAndCheckConsistency();
     }
 
-    private void runTest(int min, int max, boolean withConsistencyCheck) throws Exception {
+    private void runTest(int min, int max, boolean withConsistencyCheck) throws SQLException {
         for (int i = min; i < max; i++) {
             deleteDb(dir, dbName);
             Database.setInitialPowerOffCount(i);
@@ -249,7 +249,7 @@ public class TestPowerOff extends TestBase {
         Database.setInitialPowerOffCount(0);
     }
 
-    private int testRun(boolean init) throws Exception {
+    private int testRun(boolean init) throws SQLException {
         if (init) {
             Database.setInitialPowerOffCount(Integer.MAX_VALUE);
         }
@@ -289,7 +289,7 @@ public class TestPowerOff extends TestBase {
         return state;
     }
 
-    private int recoverAndCheckConsistency() throws Exception {
+    private int recoverAndCheckConsistency() throws SQLException {
         int state;
         Database.setInitialPowerOffCount(0);
         Connection conn = getConnection(url);

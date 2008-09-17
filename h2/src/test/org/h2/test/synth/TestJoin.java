@@ -226,11 +226,11 @@ public class TestJoin extends TestBase {
         buff.append(" ");
     }
 
-    private void execute(String sql, Object[] params) throws Exception {
+    private void execute(String sql, Object[] params) throws SQLException {
         execute(sql, params, false);
     }
 
-    private void execute(String sql, Object[] params, boolean ignoreDifference) throws Exception {
+    private void execute(String sql, Object[] params, boolean ignoreDifference) throws SQLException {
         String first = null;
         for (int i = 0; i < connections.size(); i++) {
             Connection conn = (Connection) connections.get(i);
@@ -262,7 +262,7 @@ public class TestJoin extends TestBase {
                 first = s;
             } else {
                 if (!ignoreDifference && !s.equals(first)) {
-                    throw new Exception("FAIL s:" + s + " first:" + first + " sql:" + sql);
+                    fail("FAIL s:" + s + " first:" + first + " sql:" + sql);
                 }
             }
         }

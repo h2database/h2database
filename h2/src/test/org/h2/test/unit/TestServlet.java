@@ -160,7 +160,7 @@ public class TestServlet extends TestBase {
 
     }
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.networked || config.memory) {
             return;
         }

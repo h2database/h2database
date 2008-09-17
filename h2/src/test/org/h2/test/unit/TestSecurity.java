@@ -6,6 +6,8 @@
  */
 package org.h2.test.unit;
 
+import java.sql.SQLException;
+
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
 import org.h2.security.SHA256;
@@ -17,18 +19,18 @@ import org.h2.util.ByteUtils;
  */
 public class TestSecurity extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testSHA();
         testAES();
         testXTEA();
     }
 
-    private void testSHA() throws Exception {
+    private void testSHA() {
         SHA256 sha = new SHA256();
         testOneSHA(sha);
     }
 
-    private String getHashString(SHA256 sha, byte[] data) throws Exception {
+    private String getHashString(SHA256 sha, byte[] data) {
         byte[] result = sha.getHash(data, true);
         if (data.length > 0) {
             assertEquals(data[0], 0);
@@ -36,22 +38,16 @@ public class TestSecurity extends TestBase {
         return ByteUtils.convertBytesToString(result);
     }
     
-    private void testOneSHA(SHA256 sha) throws Exception {
-        if (!getHashString(sha, new byte[] {}).equals(
-                "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")) {
-            throw new Exception("x");
-        }
-        if (!getHashString(sha, new byte[] { 0x19 }).equals(
-                "68aa2e2ee5dff96e3355e6c7ee373e3d6a4e17f75f9518d843709c0c9bc3e3d4")) {
-            throw new Exception("x");
-        }
-        if (!getHashString(
-                sha,
-                new byte[] { (byte) 0xe3, (byte) 0xd7, 0x25, 0x70, (byte) 0xdc, (byte) 0xdd, 0x78, 0x7c, (byte) 0xe3,
-                        (byte) 0x88, 0x7a, (byte) 0xb2, (byte) 0xcd, 0x68, 0x46, 0x52 }).equals(
-                "175ee69b02ba9b58e2b0a5fd13819cea573f3940a94f825128cf4209beabb4e8")) {
-            throw new Exception("x");
-        }
+    private void testOneSHA(SHA256 sha) {
+        assertEquals("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                getHashString(sha, new byte[] {}));
+        assertEquals("68aa2e2ee5dff96e3355e6c7ee373e3d6a4e17f75f9518d843709c0c9bc3e3d4",
+                getHashString(sha, new byte[] { 0x19 }));
+        assertEquals("175ee69b02ba9b58e2b0a5fd13819cea573f3940a94f825128cf4209beabb4e8",
+                getHashString(
+                        sha,
+                        new byte[] { (byte) 0xe3, (byte) 0xd7, 0x25, 0x70, (byte) 0xdc, (byte) 0xdd, 0x78, 0x7c, (byte) 0xe3,
+                                (byte) 0x88, 0x7a, (byte) 0xb2, (byte) 0xcd, 0x68, 0x46, 0x52 }));
         checkSHA256("", "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855");
         checkSHA256("a", "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB");
         checkSHA256("abc", "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD");
@@ -64,13 +60,13 @@ public class TestSecurity extends TestBase {
         checkSHA256(buff.toString(), "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB");
     }
     
-    private void checkSHA256(String message, String expected) throws Exception {
+    private void checkSHA256(String message, String expected) {
         SHA256 sha = new SHA256();
         String hash = ByteUtils.convertBytesToString(sha.getHash(message.getBytes(), true)).toUpperCase();
         assertEquals(expected, hash);
     }
 
-    private void testXTEA() throws Exception {
+    private void testXTEA() throws SQLException {
         byte[] test = new byte[4096];
         BlockCipher xtea = CipherFactory.getBlockCipher("XTEA");
         xtea.setKey("abcdefghijklmnop".getBytes());
@@ -79,7 +75,7 @@ public class TestSecurity extends TestBase {
         }
     }
 
-    private void testAES() throws Exception {
+    private void testAES() throws SQLException {
         BlockCipher test = CipherFactory.getBlockCipher("AES");
         test.setKey(ByteUtils.convertStringToBytes("000102030405060708090A0B0C0D0E0F"));
 

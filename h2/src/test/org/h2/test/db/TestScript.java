@@ -294,7 +294,7 @@ public class TestScript extends TestBase {
         writeResult((ordered ? "rows (ordered): " : "rows: ") + i, null);
     }
 
-    private String format(String[] row, int[] max) throws Exception {
+    private String format(String[] row, int[] max) throws SQLException {
         int length = max.length;
         StringBuffer buff = new StringBuffer();
         for (int i = 0; i < length; i++) {
@@ -351,7 +351,7 @@ public class TestScript extends TestBase {
 
     }
 
-    private void write(String s) throws Exception {
+    private void write(String s) {
         line++;
         out.println(s);
     }

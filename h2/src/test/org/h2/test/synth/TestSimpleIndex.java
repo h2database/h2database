@@ -24,7 +24,7 @@ public class TestSimpleIndex extends TestBase {
     private Statement stat;
     private RandomGen random;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         deleteDb("simpleIndex");
         conn = getConnection("simpleIndex");
         random = new RandomGen();
@@ -34,7 +34,7 @@ public class TestSimpleIndex extends TestBase {
         }
     }
 
-    private void testIndex(int seed) throws Exception {
+    private void testIndex(int seed) throws SQLException {
         random.setSeed(seed);
         String unique = random.nextBoolean() ? "UNIQUE " : "";
         int len = random.getInt(2) + 1;
@@ -64,7 +64,7 @@ public class TestSimpleIndex extends TestBase {
         execute("DROP TABLE TEST_DI");
     }
 
-    private void testRows() throws Exception {
+    private void testRows() throws SQLException {
         String a = randomValue(), b = randomValue(), c = randomValue();
         String data = a + "/" + b + "/" + c;
         String sql = "VALUES(" + a + ", " + b + ", " + c + ", '" + data + "')";
@@ -138,7 +138,7 @@ public class TestSimpleIndex extends TestBase {
         assertEquals(r1, r4);
     }
 
-    private String getResult(String sql) throws Exception {
+    private String getResult(String sql) throws SQLException {
         ResultSet rs = stat.executeQuery(sql);
         StringBuffer buff = new StringBuffer();
         while (rs.next()) {
@@ -153,7 +153,7 @@ public class TestSimpleIndex extends TestBase {
         return random.getInt(10) == 0 ? "NULL" : "" + (random.getInt(100) - 50);
     }
 
-    private void execute(String sql) throws Exception {
+    private void execute(String sql) throws SQLException {
         try {
             println(sql + ";");
             stat.execute(sql);

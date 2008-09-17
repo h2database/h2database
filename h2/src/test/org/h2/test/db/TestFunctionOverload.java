@@ -25,7 +25,7 @@ public class TestFunctionOverload extends TestBase {
     private Connection conn;
     private DatabaseMetaData meta;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         this.deleteDb("functionOverload");
         conn = getConnection("functionOverload");
         meta = conn.getMetaData();
@@ -37,7 +37,7 @@ public class TestFunctionOverload extends TestBase {
         conn.close();
     }
     
-    private void testOverloadError() throws Exception {
+    private void testOverloadError() throws SQLException {
         Statement stat = conn.createStatement();
         try {
             stat.execute("create alias overloadError for \"" + ME + ".overloadError\"");
@@ -47,7 +47,7 @@ public class TestFunctionOverload extends TestBase {
         }
     }
 
-    private void testControl() throws Exception {
+    private void testControl() throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("create alias overload0 for \"" + ME + ".overload0\"");
         ResultSet rs = stat.executeQuery("select overload0() from dual");
@@ -59,7 +59,7 @@ public class TestFunctionOverload extends TestBase {
         assertFalse(rs.next());
     }
 
-    private void testOverload() throws Exception {
+    private void testOverload() throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("create alias overload1or2 for \"" + ME + ".overload1or2\"");
         ResultSet rs = stat.executeQuery("select overload1or2(1) from dual");
@@ -78,7 +78,7 @@ public class TestFunctionOverload extends TestBase {
         assertFalse(rs.next());
     }
 
-    private void testOverloadNamedArgs() throws Exception {
+    private void testOverloadNamedArgs() throws SQLException {
         Statement stat = conn.createStatement();
 
         stat.execute("create alias overload1or2Named for \"" + ME + ".overload1or2(int)\"");
@@ -100,7 +100,7 @@ public class TestFunctionOverload extends TestBase {
         stat.close();
     }
 
-    private void testOverloadWithConnection() throws Exception {
+    private void testOverloadWithConnection() throws SQLException {
         Statement stat = conn.createStatement();
 
         stat.execute("create alias overload1or2WithConn for \"" + ME + ".overload1or2WithConn\"");

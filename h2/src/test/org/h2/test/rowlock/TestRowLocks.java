@@ -39,7 +39,7 @@ public class TestRowLocks extends TestBase {
         testCases();
     }
 
-    private void testSetMode() throws Exception {
+    private void testSetMode() throws SQLException {
         deleteDb("rowLocks");
         c1 = getConnection("rowLocks");
         Statement stat = c1.createStatement();
@@ -102,7 +102,7 @@ public class TestRowLocks extends TestBase {
         c2.close();
     }
 
-    private String getSingleValue(Statement stat, String sql) throws Exception {
+    private String getSingleValue(Statement stat, String sql) throws SQLException {
         ResultSet rs = stat.executeQuery(sql);
         return rs.next() ? rs.getString(1) : null;
     }

@@ -18,7 +18,7 @@ import org.h2.test.TestBase;
  */
 public class TestTempTables extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         deleteDb("tempTables");
         Connection c1 = getConnection("tempTables");
         Connection c2 = getConnection("tempTables");

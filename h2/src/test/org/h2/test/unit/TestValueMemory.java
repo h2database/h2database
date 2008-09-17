@@ -50,13 +50,13 @@ public class TestValueMemory extends TestBase implements DataHandler {
 
     private Random random = new Random(1);
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         for (int i = 0; i < Value.TYPE_COUNT; i++) {
             testType(i);
         }
     }
 
-    private void testType(int type) throws Exception {
+    private void testType(int type) throws SQLException {
         System.gc();
         System.gc();
         long first = MemoryUtils.getMemoryUsed();

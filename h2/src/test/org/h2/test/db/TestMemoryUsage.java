@@ -9,6 +9,7 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 
@@ -22,7 +23,7 @@ public class TestMemoryUsage extends TestBase {
 
     private Connection conn;
 
-    private void reconnect() throws Exception {
+    private void reconnect() throws SQLException {
         if (conn != null) {
             conn.close();
         }
@@ -31,7 +32,7 @@ public class TestMemoryUsage extends TestBase {
         conn = getConnection("memoryUsage");
     }
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         deleteDb("memoryUsage");
         testCreateIndex();
         testClob();
@@ -45,7 +46,7 @@ public class TestMemoryUsage extends TestBase {
         conn.close();
     }
 
-    private void testClob() throws Exception {
+    private void testClob() throws SQLException {
         if (config.memory || !config.big) {
             return;
         }
@@ -69,7 +70,7 @@ public class TestMemoryUsage extends TestBase {
         conn.close();
     }
 
-    private void testCreateIndex() throws Exception {
+    private void testCreateIndex() throws SQLException {
         if (config.memory) {
             return;
         }
@@ -95,7 +96,7 @@ public class TestMemoryUsage extends TestBase {
         conn.close();
     }
 
-    private void testReconnectOften() throws Exception {
+    private void testReconnectOften() throws SQLException {
         int len = getSize(1, 2000);
         Connection conn1 = getConnection("memoryUsage");
         printTimeMemory("start", 0);
@@ -111,7 +112,7 @@ public class TestMemoryUsage extends TestBase {
         conn1.close();
     }
 
-    private void insertUpdateSelectDelete() throws Exception {
+    private void insertUpdateSelectDelete() throws SQLException {
         Statement stat = conn.createStatement();
         long time;
         int len = getSize(1, 2000);

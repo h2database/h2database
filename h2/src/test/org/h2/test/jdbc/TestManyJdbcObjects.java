@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.constant.SysProperties;
@@ -20,13 +21,13 @@ import org.h2.test.TestBase;
  */
 public class TestManyJdbcObjects extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testNestedResultSets();
         testManyConnections();
         testOneConnectionPrepare();
     }
 
-    private void testNestedResultSets() throws Exception {
+    private void testNestedResultSets() throws SQLException {
         if (!config.networked) {
             return;
         }
@@ -41,7 +42,7 @@ public class TestManyJdbcObjects extends TestBase {
         conn.close();
     }
 
-    private void testManyConnections() throws Exception {
+    private void testManyConnections() throws SQLException {
         if (!config.networked || config.memory) {
             return;
         }
@@ -70,7 +71,7 @@ public class TestManyJdbcObjects extends TestBase {
         SysProperties.runFinalize = true;
     }
 
-    private void testOneConnectionPrepare() throws Exception {
+    private void testOneConnectionPrepare() throws SQLException {
         deleteDb("manyObjects");
         SysProperties.runFinalize = false;
         Connection conn = getConnection("manyObjects");

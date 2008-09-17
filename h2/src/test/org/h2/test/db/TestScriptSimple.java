@@ -64,7 +64,7 @@ public class TestScriptSimple extends TestBase {
         conn.close();
     }
 
-    private void reconnect() throws Exception {
+    private void reconnect() throws SQLException {
         if (conn != null) {
             conn.close();
         }

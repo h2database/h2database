@@ -36,7 +36,7 @@ public class TestResultSet extends TestBase {
     private Connection conn;
     private Statement stat;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         deleteDb("resultSet");
         conn = getConnection("resultSet");
 
@@ -70,7 +70,7 @@ public class TestResultSet extends TestBase {
 
     }
     
-    private void testAbsolute() throws Exception {
+    private void testAbsolute() throws SQLException {
         // stat.execute("SET MAX_MEMORY_ROWS 90");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
         // there was a problem when more than MAX_MEMORY_ROWS where in the result set
@@ -84,7 +84,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
     
-    private void testFetchSize() throws Exception {
+    private void testFetchSize() throws SQLException {
         if (!config.networked || config.memory) {
             return;
         }
@@ -97,7 +97,7 @@ public class TestResultSet extends TestBase {
         assertEquals(a + 1, b);
     }
     
-    private void testOwnUpdates() throws Exception {
+    private void testOwnUpdates() throws SQLException {
         DatabaseMetaData meta = conn.getMetaData();
         for (int i = 0; i < 3; i++) {
             int type = i == 0 ? ResultSet.TYPE_FORWARD_ONLY : i == 1 ? ResultSet.TYPE_SCROLL_INSENSITIVE : ResultSet.TYPE_SCROLL_SENSITIVE;
@@ -120,12 +120,12 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
     
-    private void checkPrecision(int expected, String sql) throws Exception {
+    private void checkPrecision(int expected, String sql) throws SQLException {
         ResultSetMetaData meta = stat.executeQuery(sql).getMetaData();
         assertEquals(expected, meta.getPrecision(1));
     }
     
-    private void testSubstringPrecision() throws Exception {
+    private void testSubstringPrecision() throws SQLException {
         trace("testSubstringPrecision");
         stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR(10))");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'WorldPeace')");
@@ -139,7 +139,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private void testFindColumn() throws Exception {
+    private void testFindColumn() throws SQLException {
         trace("testFindColumn");
         ResultSet rs;
         stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR)");
@@ -177,7 +177,7 @@ public class TestResultSet extends TestBase {
 
     }
 
-    private void testColumnLength() throws Exception {
+    private void testColumnLength() throws SQLException {
         trace("testColumnDisplayLength");
         ResultSet rs;
         ResultSetMetaData meta;
@@ -214,7 +214,7 @@ public class TestResultSet extends TestBase {
 
     }
 
-    private void testLimitMaxRows() throws Exception {
+    private void testLimitMaxRows() throws SQLException {
         trace("Test LimitMaxRows");
         ResultSet rs;
         stat.execute("CREATE TABLE one (C CHARACTER(10))");
@@ -234,7 +234,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE one");
     }
 
-    private void testAutoIncrement() throws Exception {
+    private void testAutoIncrement() throws SQLException {
         trace("Test AutoIncrement");
         stat.execute("DROP TABLE IF EXISTS TEST");
         ResultSet rs;
@@ -264,7 +264,7 @@ public class TestResultSet extends TestBase {
 
     }
 
-    private void testInt() throws Exception {
+    private void testInt() throws SQLException {
         trace("Test INT");
         ResultSet rs;
         Object o;
@@ -420,7 +420,7 @@ public class TestResultSet extends TestBase {
         stat.setMaxRows(0);
     }
 
-    private void testVarchar() throws Exception {
+    private void testVarchar() throws SQLException {
         trace("Test VARCHAR");
         ResultSet rs;
         Object o;
@@ -504,7 +504,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private void testDecimal() throws Exception {
+    private void testDecimal() throws SQLException {
         trace("Test DECIMAL");
         ResultSet rs;
         Object o;
@@ -555,7 +555,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private void testDoubleFloat() throws Exception {
+    private void testDoubleFloat() throws SQLException {
         trace("Test DOUBLE - FLOAT");
         ResultSet rs;
         Object o;
@@ -621,7 +621,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private void testDatetime() throws Exception {
+    private void testDatetime() throws SQLException {
         trace("Test DATETIME");
         ResultSet rs;
         Object o;
@@ -702,7 +702,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private void testDatetimeWithCalendar() throws Exception {
+    private void testDatetimeWithCalendar() throws SQLException {
         trace("Test DATETIME with Calendar");
         ResultSet rs;
 
@@ -795,7 +795,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private void testBlob() throws Exception {
+    private void testBlob() throws SQLException {
         trace("Test BLOB");
         ResultSet rs;
 
@@ -833,7 +833,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private void testClob() throws Exception {
+    private void testClob() throws SQLException {
         trace("Test CLOB");
         ResultSet rs;
         String string;
@@ -900,7 +900,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private void testArray() throws Exception {
+    private void testArray() throws SQLException {
         trace("Test ARRAY");
         ResultSet rs;
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE ARRAY)");
@@ -938,7 +938,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private byte[] readAllBytes(InputStream in) throws Exception {
+    private byte[] readAllBytes(InputStream in) throws SQLException {
         if (in == null) {
             return null;
         }
@@ -958,7 +958,7 @@ public class TestResultSet extends TestBase {
         }
     }
 
-    private void checkBytes(byte[] test, byte[] good) throws Exception {
+    private void checkBytes(byte[] test, byte[] good) throws SQLException {
         if (test == null || good == null) {
             assertTrue(test == good);
         } else {
@@ -966,7 +966,7 @@ public class TestResultSet extends TestBase {
         }
     }
 
-    private void checkColumnBigDecimal(ResultSet rs, int column, int i, String bd) throws Exception {
+    private void checkColumnBigDecimal(ResultSet rs, int column, int i, String bd) throws SQLException {
         BigDecimal bd1 = rs.getBigDecimal(column);
         int i1 = rs.getInt(column);
         if (bd == null) {

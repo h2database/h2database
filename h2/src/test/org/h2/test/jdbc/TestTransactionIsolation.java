@@ -18,7 +18,7 @@ public class TestTransactionIsolation extends TestBase {
 
     private Connection conn1, conn2;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.mvcc) {
             // no tests yet
         } else {
@@ -26,7 +26,7 @@ public class TestTransactionIsolation extends TestBase {
         }
     }
 
-    private void testTableLevelLocking() throws Exception {
+    private void testTableLevelLocking() throws SQLException {
         deleteDb("transactionIsolation");
         conn1 = getConnection("transactionIsolation");
         assertEquals(conn1.getTransactionIsolation(), Connection.TRANSACTION_READ_COMMITTED);

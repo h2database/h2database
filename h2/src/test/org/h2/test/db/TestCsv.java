@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
@@ -44,7 +45,7 @@ public class TestCsv extends TestBase {
         testPipe();
     }
     
-    private void testSpaceSeparated() throws Exception {
+    private void testSpaceSeparated() throws SQLException {
         deleteDb("csv");
         File f = new File(baseDir + "/testSpace.csv");
         FileUtils.delete(f.getAbsolutePath());
@@ -107,7 +108,7 @@ public class TestCsv extends TestBase {
         FileUtils.delete(f.getAbsolutePath());
     }
 
-    private void testRandomData() throws Exception {
+    private void testRandomData() throws SQLException {
         deleteDb("csv");
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
@@ -204,7 +205,7 @@ public class TestCsv extends TestBase {
         conn.close();
     }
 
-    private void testPipe() throws Exception {
+    private void testPipe() throws SQLException {
         deleteDb("csv");
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
@@ -226,7 +227,7 @@ public class TestCsv extends TestBase {
         conn.close();
     }
 
-    private void testAsTable() throws Exception {
+    private void testAsTable() throws SQLException {
         deleteDb("csv");
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
@@ -288,7 +289,7 @@ public class TestCsv extends TestBase {
         // 201,2,0,18
     }
 
-    private void testWriteRead() throws Exception {
+    private void testWriteRead() throws SQLException {
 
         deleteDb("csv");
 

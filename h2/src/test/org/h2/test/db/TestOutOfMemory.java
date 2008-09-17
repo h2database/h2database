@@ -24,7 +24,7 @@ public class TestOutOfMemory extends TestBase {
 
     private LinkedList list = new LinkedList();
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.memory) {
             return;
         }

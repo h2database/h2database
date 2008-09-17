@@ -7,6 +7,7 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
@@ -17,14 +18,14 @@ import org.h2.tools.Restore;
  */
 public class TestBackup extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.memory || config.logMode == 0) {
             return;
         }
         testBackup();
     }
 
-    private void testBackup() throws Exception {
+    private void testBackup() throws SQLException {
         deleteDb("backup");
         Connection conn1, conn2, conn3;
         Statement stat1, stat2, stat3;

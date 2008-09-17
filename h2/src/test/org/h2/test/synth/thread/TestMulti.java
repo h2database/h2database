@@ -23,7 +23,7 @@ public class TestMulti extends TestBase {
     public volatile boolean stop;
 
     public void test() throws Exception {
-        Class.forName("org.h2.Driver");
+        org.h2.Driver.load();
         deleteDb(baseDir, "openClose");
 
         // int len = getSize(5, 100);

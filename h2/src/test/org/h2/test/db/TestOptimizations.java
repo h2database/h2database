@@ -9,6 +9,7 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,7 +42,7 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(false);
     }
     
-    private void testOptimizeInJoin() throws Exception {
+    private void testOptimizeInJoin() throws SQLException {
         boolean old = SysProperties.optimizeInJoin;
         SysProperties.optimizeInJoin = true;
 
@@ -62,7 +63,7 @@ public class TestOptimizations extends TestBase {
         SysProperties.optimizeInJoin = old;
     }
     
-    private void testMinMaxNullOptimization() throws Exception {
+    private void testMinMaxNullOptimization() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
@@ -119,7 +120,7 @@ public class TestOptimizations extends TestBase {
         conn.close();
     }
 
-    private void testMultiColumnRangeQuery() throws Exception {
+    private void testMultiColumnRangeQuery() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
@@ -135,7 +136,7 @@ public class TestOptimizations extends TestBase {
         conn.close();
     }
 
-    private void testDistinctOptimization() throws Exception {
+    private void testDistinctOptimization() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
@@ -206,7 +207,7 @@ public class TestOptimizations extends TestBase {
         conn.close();
     }
 
-    private void testQueryCacheSpeed() throws Exception {
+    private void testQueryCacheSpeed() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
@@ -220,7 +221,7 @@ public class TestOptimizations extends TestBase {
         conn.close();
     }
 
-    private void testQuerySpeed(Statement stat, String sql) throws Exception {
+    private void testQuerySpeed(Statement stat, String sql) throws SQLException {
         stat.execute("set OPTIMIZE_REUSE_RESULTS 0");
         stat.execute(sql);
         long time = System.currentTimeMillis();
@@ -236,7 +237,7 @@ public class TestOptimizations extends TestBase {
         }
     }
 
-    private void testQueryCache(boolean optimize) throws Exception {
+    private void testQueryCache(boolean optimize) throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
@@ -265,7 +266,7 @@ public class TestOptimizations extends TestBase {
         conn.close();
     }
 
-    private void testMinMaxCountOptimization(boolean memory) throws Exception {
+    private void testMinMaxCountOptimization(boolean memory) throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
@@ -340,7 +341,7 @@ public class TestOptimizations extends TestBase {
         conn.close();
     }
 
-    private void testIn() throws Exception {
+    private void testIn() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();

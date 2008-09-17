@@ -8,6 +8,7 @@ package org.h2.test.db;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
@@ -17,12 +18,12 @@ import org.h2.test.TestBase;
  */
 public class TestView extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testUnionReconnect();
         testManyViews();
     }
     
-    private void testUnionReconnect() throws Exception {
+    private void testUnionReconnect() throws SQLException {
         if (config.memory) {
             return;
         }
@@ -47,7 +48,7 @@ public class TestView extends TestBase {
         deleteDb("view");
     }
     
-    private void testManyViews() throws Exception {
+    private void testManyViews() throws SQLException {
         deleteDb("view");
         Connection conn = getConnection("view");
         Statement s = conn.createStatement();

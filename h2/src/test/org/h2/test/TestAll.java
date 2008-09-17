@@ -348,7 +348,7 @@ http://www.w3schools.com/sql/
     /**
      * Run all tests in all possible combinations.
      */
-    private void testEverything() throws Exception {
+    private void testEverything() throws SQLException {
         for (int c = 0; c < 3; c++) {
             if (c == 0) {
                 cipher = null;
@@ -377,7 +377,7 @@ http://www.w3schools.com/sql/
     /**
      * Run the tests with a number of different settings.
      */
-    private void runTests() throws Exception {
+    private void runTests() throws SQLException {
         jdk14 = true;
         smallLog = big = networked = memory = ssl = textStorage = false;
         diskResult = deleteIndex = traceSystemOut = diskUndo = false;
@@ -446,7 +446,7 @@ http://www.w3schools.com/sql/
     /**
      * Run all tests with the current settings.
      */
-    private void test() throws Exception {
+    private void test() throws SQLException {
         System.out.println();
         System.out.println("Test " + toString());
         beforeTest();

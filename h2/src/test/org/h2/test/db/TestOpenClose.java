@@ -48,7 +48,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         conn.close();
     }
 
-    private void testBackup(boolean encrypt) throws Exception {
+    private void testBackup(boolean encrypt) throws SQLException {
         deleteDb(baseDir, "openClose");
         String url;
         if (encrypt) {
@@ -74,7 +74,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         conn.close();
     }
 
-    private void testReconnectFast() throws Exception {
+    private void testReconnectFast() throws SQLException {
         deleteDb(baseDir, "openClose");
         String url = "jdbc:h2:" + baseDir + "/openClose;DATABASE_EVENT_LISTENER='" + TestOpenClose.class.getName()
                 + "'";
@@ -108,7 +108,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
     }
 
     private void testCase() throws Exception {
-        Class.forName("org.h2.Driver");
+        org.h2.Driver.load();
         deleteDb(baseDir, "openClose");
         final String url = "jdbc:h2:" + baseDir + "/openClose;FILE_LOCK=NO";
         Connection conn = DriverManager.getConnection(url, "sa", "");

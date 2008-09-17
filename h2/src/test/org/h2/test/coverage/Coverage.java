@@ -11,6 +11,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -183,7 +184,7 @@ public class Coverage {
         }
     }
 
-    private void read() throws Exception {
+    private void read() throws IOException {
         last = token;
         String write = token;
         token = null;
@@ -225,14 +226,14 @@ public class Coverage {
         }
     }
 
-    private void readThis(String s) throws Exception {
+    private void readThis(String s) throws IOException {
         if (!token.equals(s)) {
-            throw new Exception("Expected: " + s + " got:" + token);
+            throw new IOException("Expected: " + s + " got:" + token);
         }
         read();
     }
 
-    private void process() throws Exception {
+    private void process() throws IOException {
         boolean imp = false;
         read();
         do {
@@ -251,7 +252,7 @@ public class Coverage {
         } while (token != null);
     }
 
-    private void processInit() throws Exception {
+    private void processInit() throws IOException {
         do {
             if (token.equals("{")) {
                 read();
@@ -265,7 +266,7 @@ public class Coverage {
         } while (true);
     }
 
-    private void processClass() throws Exception {
+    private void processClass() throws IOException {
         int type = 0;
         while (true) {
             if (token == null) {
@@ -317,7 +318,7 @@ public class Coverage {
         }
     }
 
-    private void processBracket() throws Exception {
+    private void processBracket() throws IOException {
         do {
             if (token.equals("(")) {
                 read();
@@ -331,7 +332,7 @@ public class Coverage {
         } while (true);
     }
 
-    private void processFunction() throws Exception {
+    private void processFunction() throws IOException {
         function = word;
         writeLine();
         do {
@@ -341,7 +342,7 @@ public class Coverage {
         writeLine();
     }
 
-    private void processBlockOrStatement() throws Exception {
+    private void processBlockOrStatement() throws IOException {
         if (!token.equals("{")) {
             write("{ //++");
             writeLine();
@@ -356,7 +357,7 @@ public class Coverage {
         }
     }
 
-    private void processStatement() throws Exception {
+    private void processStatement() throws IOException {
         while (true) {
             if (token.equals("while") || token.equals("for") || token.equals("synchronized")) {
                 read();
@@ -478,12 +479,12 @@ public class Coverage {
         }
     }
 
-    private void setLine() throws Exception {
+    private void setLine() throws IOException {
         add += "Profile.visit(" + index + ");";
         line = tokenizer.getLine();
     }
 
-    private void nextDebug() throws Exception {
+    private void nextDebug() throws IOException {
         if (perFunction) {
             int i = function.indexOf("(");
             String func = i < 0 ? function : function.substring(0, i);
@@ -498,14 +499,14 @@ public class Coverage {
         index++;
     }
 
-    private void writeLine() throws Exception {
+    private void writeLine() throws IOException {
         write("\r\n");
         for (int i = 0; i < indent; i++) {
             writer.write(' ');
         }
     }
 
-    private void write(String s) throws Exception {
+    private void write(String s) throws IOException {
         writer.write(s);
         // System.out.print(s);
     }

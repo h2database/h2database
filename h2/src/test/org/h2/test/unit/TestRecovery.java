@@ -8,6 +8,7 @@ package org.h2.test.unit;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
@@ -18,9 +19,9 @@ import org.h2.tools.DeleteDbFiles;
  */
 public class TestRecovery extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         DeleteDbFiles.execute(baseDir, "recovery", true);
-        Class.forName("org.h2.Driver");
+        org.h2.Driver.load();
         String url = "jdbc:h2:" + baseDir + "/recovery;write_delay=0";
         Connection conn1 = DriverManager.getConnection(url, "sa", "sa");
         Statement stat1 = conn1.createStatement();

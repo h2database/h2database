@@ -34,7 +34,7 @@ public class TestReadOnly extends TestBase {
         }
     }
     
-    private void testReadOnlyDbCreate() throws Exception {
+    private void testReadOnlyDbCreate() throws SQLException {
         if (config.deleteIndex) {
             return;
         }

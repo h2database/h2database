@@ -7,6 +7,7 @@
 package org.h2.test.jdbcx;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 import javax.sql.XAConnection;
 
@@ -18,11 +19,11 @@ import org.h2.test.TestBase;
  */
 public class TestXASimple extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
 
         deleteDb("xaSimple1");
         deleteDb("xaSimple2");
-        Class.forName("org.h2.Driver");
+        org.h2.Driver.load();
 
         // InitialContext context = new InitialContext();
         // context.rebind(USER_TRANSACTION_JNDI_NAME, j.getUserTransaction());

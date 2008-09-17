@@ -9,6 +9,7 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
@@ -19,7 +20,8 @@ import org.h2.test.TestBase;
  * Test for big result sets.
  */
 public class TestBigResult extends TestBase {
-    public void test() throws Exception {
+    
+    public void test() throws SQLException {
         if (config.memory) {
             return;
         }
@@ -30,7 +32,7 @@ public class TestBigResult extends TestBase {
         testLimitBufferedResult();
     }
 
-    private void testLargeSubquery() throws Exception {
+    private void testLargeSubquery() throws SQLException {
         deleteDb("bigResult");
         Connection conn = getConnection("bigResult");
         Statement stat = conn.createStatement();
@@ -53,7 +55,7 @@ public class TestBigResult extends TestBase {
         conn.close();
     }
 
-    private void testLargeUpdateDelete() throws Exception {
+    private void testLargeUpdateDelete() throws SQLException {
         deleteDb("bigResult");
         Connection conn = getConnection("bigResult");
         Statement stat = conn.createStatement();
@@ -65,7 +67,7 @@ public class TestBigResult extends TestBase {
         conn.close();
     }
 
-    private void testCloseConnectionDelete() throws Exception {
+    private void testCloseConnectionDelete() throws SQLException {
         deleteDb("bigResult");
         Connection conn = getConnection("bigResult");
         Statement stat = conn.createStatement();
@@ -83,7 +85,7 @@ public class TestBigResult extends TestBase {
         }
     }
 
-    private void testLimitBufferedResult() throws Exception {
+    private void testLimitBufferedResult() throws SQLException {
         deleteDb("bigResult");
         Connection conn = getConnection("bigResult");
         Statement stat = conn.createStatement();
@@ -109,7 +111,7 @@ public class TestBigResult extends TestBase {
         conn.close();
     }
 
-    private void testOrderGroup() throws Exception {
+    private void testOrderGroup() throws SQLException {
         deleteDb("bigResult");
         Connection conn = getConnection("bigResult");
         Statement stat = conn.createStatement();

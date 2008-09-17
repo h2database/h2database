@@ -7,6 +7,7 @@
 package org.h2.test.jdbcx;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.jdbcx.JdbcConnectionPool;
@@ -64,7 +65,7 @@ public class TestConnectionPool extends TestBase {
         man.dispose();
     }
     
-    private JdbcConnectionPool getConnectionPool(int poolSize) throws Exception {
+    private JdbcConnectionPool getConnectionPool(int poolSize) throws SQLException {
         JdbcDataSource ds = new JdbcDataSource();
         ds.setURL(getURL("connectionPool", true));
         ds.setUser(getUser());
@@ -74,7 +75,7 @@ public class TestConnectionPool extends TestBase {
         return pool;
     }
     
-    private void testConnect() throws Exception {
+    private void testConnect() throws SQLException {
         JdbcConnectionPool man = getConnectionPool(3);
         for (int i = 0; i < 100; i++) {
             Connection conn = man.getConnection();

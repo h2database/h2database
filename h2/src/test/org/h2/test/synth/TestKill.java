@@ -102,7 +102,7 @@ public class TestKill extends TestBase {
         }
     }
 
-    private void checkData() throws Exception {
+    private void checkData() throws SQLException {
         trace("checkData...");
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM ACCOUNT ORDER BY ID");
         PreparedStatement prep = conn.prepareStatement("SELECT SUM(AMOUNT) FROM LOG WHERE ACCOUNTID=?");

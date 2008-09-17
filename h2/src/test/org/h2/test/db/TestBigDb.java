@@ -9,6 +9,7 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
@@ -19,7 +20,7 @@ import org.h2.util.MemoryUtils;
  */
 public class TestBigDb extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.memory) {
             return;
         }
@@ -31,7 +32,7 @@ public class TestBigDb extends TestBase {
         testLeftSummary();
     }
 
-    private void testLargeTable() throws Exception {
+    private void testLargeTable() throws SQLException {
         deleteDb("bigDb");
         Connection conn = getConnection("bigDb");
         Statement stat = conn.createStatement();
@@ -88,7 +89,7 @@ public class TestBigDb extends TestBase {
         conn.close();
     }
 
-    private void testLeftSummary() throws Exception {
+    private void testLeftSummary() throws SQLException {
         deleteDb("bigDb");
         Connection conn = getConnection("bigDb");
         Statement stat = conn.createStatement();
@@ -113,7 +114,7 @@ public class TestBigDb extends TestBase {
         conn.close();
     }
 
-    private void testInsert() throws Exception {
+    private void testInsert() throws SQLException {
         deleteDb("bigDb");
         Connection conn = getConnection("bigDb");
         Statement stat = conn.createStatement();

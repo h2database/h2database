@@ -24,13 +24,13 @@ import org.h2.tools.DeleteDbFiles;
  */
 public class TestTimer extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         validateOld();
         DeleteDbFiles.execute(baseDir, "timer", true);
         loop();
     }
 
-    private void loop() throws Exception {
+    private void loop() throws SQLException {
         println("loop");
         Connection conn = getConnection("timer");
         Statement stat = conn.createStatement();

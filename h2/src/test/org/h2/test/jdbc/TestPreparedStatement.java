@@ -62,7 +62,7 @@ public class TestPreparedStatement extends TestBase {
         conn.close();
     }
     
-    private void testLobTempFiles(Connection conn) throws Exception {
+    private void testLobTempFiles(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
@@ -104,7 +104,7 @@ public class TestPreparedStatement extends TestBase {
     }
 
 
-    private void testExecuteErrorTwice(Connection conn) throws Exception {
+    private void testExecuteErrorTwice(Connection conn) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("CREATE TABLE BAD AS SELECT A");
         try {
             prep.execute();
@@ -121,7 +121,7 @@ public class TestPreparedStatement extends TestBase {
     }
 
 
-    private void testTempView(Connection conn) throws Exception {
+    private void testTempView(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         PreparedStatement prep;
         stat.execute("CREATE TABLE TEST(FIELD INT PRIMARY KEY)");
@@ -145,7 +145,7 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private void testInsertFunction(Connection conn) throws Exception {
+    private void testInsertFunction(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         PreparedStatement prep;
         ResultSet rs;
@@ -165,7 +165,7 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private void testPrepareRecompile(Connection conn) throws Exception {
+    private void testPrepareRecompile(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         PreparedStatement prep;
         ResultSet rs;
@@ -200,7 +200,7 @@ public class TestPreparedStatement extends TestBase {
 
     }
 
-    private void testMaxRowsChange(Connection conn) throws Exception {
+    private void testMaxRowsChange(Connection conn) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("SELECT * FROM SYSTEM_RANGE(1, 100)");
         ResultSet rs;
         for (int j = 1; j < 20; j++) {
@@ -213,7 +213,7 @@ public class TestPreparedStatement extends TestBase {
         }
     }
 
-    private void testUnknownDataType(Connection conn) throws Exception {
+    private void testUnknownDataType(Connection conn) throws SQLException {
         try {
             PreparedStatement prep = conn.prepareStatement(
             "SELECT * FROM (SELECT ? FROM DUAL)");
@@ -259,7 +259,7 @@ public class TestPreparedStatement extends TestBase {
         assertFalse(rs.next());
     }
 
-    private void testCoalesce(Connection conn) throws Exception {
+    private void testCoalesce(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.executeUpdate("create table test(tm timestamp)");
         stat.executeUpdate("insert into test values(current_timestamp)");
@@ -269,7 +269,7 @@ public class TestPreparedStatement extends TestBase {
         stat.executeUpdate("drop table test");
     }
 
-    private void testPreparedStatementMetaData(Connection conn) throws Exception {
+    private void testPreparedStatementMetaData(Connection conn) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("select * from table(x int = ?, name varchar = ?)");
         ResultSetMetaData meta = prep.getMetaData();
         assertEquals(meta.getColumnCount(), 2);
@@ -281,7 +281,7 @@ public class TestPreparedStatement extends TestBase {
         assertEquals(meta.getColumnTypeName(1), "INTEGER");
     }
 
-    private void testArray(Connection conn) throws Exception {
+    private void testArray(Connection conn) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("select * from table(x int = ?) order by x");
         prep.setObject(1, new Object[] { new BigDecimal("1"), "2" });
         ResultSet rs = prep.executeQuery();
@@ -292,7 +292,7 @@ public class TestPreparedStatement extends TestBase {
         assertFalse(rs.next());
     }
 
-    private void testUUIDGeneratedKeys(Connection conn) throws Exception {
+    private void testUUIDGeneratedKeys(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST_UUID(id UUID DEFAULT random_UUID() PRIMARY KEY)");
         stat.execute("INSERT INTO TEST_UUID() VALUES()");
@@ -303,7 +303,7 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("DROP TABLE TEST_UUID");
     }
 
-    private void testSetObject(Connection conn) throws Exception {
+    private void testSetObject(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT, DATA BINARY, JAVA OTHER)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?, ?)");
@@ -331,7 +331,7 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private void testDate(Connection conn) throws Exception {
+    private void testDate(Connection conn) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
         Timestamp ts = Timestamp.valueOf("2001-02-03 04:05:06");
         prep.setObject(1, new java.util.Date(ts.getTime()));
@@ -341,7 +341,7 @@ public class TestPreparedStatement extends TestBase {
         assertEquals(ts.toString(), ts2.toString());
     }
 
-    private void testPreparedSubquery(Connection conn) throws Exception {
+    private void testPreparedSubquery(Connection conn) throws SQLException {
         Statement s = conn.createStatement();
         s.executeUpdate("CREATE TABLE TEST(ID IDENTITY, FLAG BIT)");
         s.executeUpdate("INSERT INTO TEST(ID, FLAG) VALUES(0, FALSE)");
@@ -373,7 +373,7 @@ public class TestPreparedStatement extends TestBase {
         s.executeUpdate("DROP TABLE IF EXISTS TEST");
     }
 
-    private void testParameterMetaData(Connection conn) throws Exception {
+    private void testParameterMetaData(Connection conn) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("SELECT ?, ?, ? FROM DUAL");
         ParameterMetaData pm = prep.getParameterMetaData();
         assertEquals(pm.getParameterClassName(1), "java.lang.String");
@@ -422,7 +422,7 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("DROP TABLE TEST3");
     }
 
-    private void checkParameter(PreparedStatement prep, int index, String className, int type, String typeName, int precision, int scale) throws Exception {
+    private void checkParameter(PreparedStatement prep, int index, String className, int type, String typeName, int precision, int scale) throws SQLException {
         ParameterMetaData meta = prep.getParameterMetaData();
         assertEquals(className, meta.getParameterClassName(index));
         assertEquals(type, meta.getParameterType(index));
@@ -431,7 +431,7 @@ public class TestPreparedStatement extends TestBase {
         assertEquals(scale, meta.getScale(index));
     }
 
-    private void testLikeIndex(Connection conn) throws Exception {
+    private void testLikeIndex(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
@@ -467,7 +467,7 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("DROP TABLE IF EXISTS TEST");
     }
 
-    private void testCasewhen(Connection conn) throws Exception {
+    private void testCasewhen(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT)");
         stat.execute("INSERT INTO TEST VALUES(1),(2),(3)");
@@ -526,7 +526,7 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private void testSubquery(Connection conn) throws Exception {
+    private void testSubquery(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT)");
         stat.execute("INSERT INTO TEST VALUES(1),(2),(3)");
@@ -545,7 +545,7 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private void testDataTypes(Connection conn) throws Exception {
+    private void testDataTypes(Connection conn) throws SQLException {
         conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
         Statement stat = conn.createStatement();
@@ -672,7 +672,7 @@ public class TestPreparedStatement extends TestBase {
         assertTrue(prep.getUpdateCount() == -1);
     }
 
-    private void testObject(Connection conn) throws Exception {
+    private void testObject(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs;
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
@@ -736,7 +736,7 @@ public class TestPreparedStatement extends TestBase {
 
     }
 
-    private void testIdentity(Connection conn) throws Exception {
+    private void testIdentity(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE SEQUENCE SEQ");
         stat.execute("CREATE TABLE TEST(ID INT)");
@@ -768,11 +768,11 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private int getLength() throws Exception {
+    private int getLength() throws SQLException {
         return getSize(LOB_SIZE, LOB_SIZE_BIG);
     }
 
-    private void testBlob(Connection conn) throws Exception {
+    private void testBlob(Connection conn) throws SQLException {
         trace("testBlob");
         Statement stat = conn.createStatement();
         PreparedStatement prep;
@@ -855,7 +855,7 @@ public class TestPreparedStatement extends TestBase {
         assertFalse(rs.next());
     }
 
-    private void testClob(Connection conn) throws Exception {
+    private void testClob(Connection conn) throws SQLException {
         trace("testClob");
         Statement stat = conn.createStatement();
         PreparedStatement prep;
@@ -937,7 +937,7 @@ public class TestPreparedStatement extends TestBase {
         assertTrue(conn == prep.getConnection());
     }
 
-    private void checkBigDecimal(ResultSet rs, String[] value) throws Exception {
+    private void checkBigDecimal(ResultSet rs, String[] value) throws SQLException {
         for (int i = 0; i < value.length; i++) {
             String v = value[i];
             assertTrue(rs.next());

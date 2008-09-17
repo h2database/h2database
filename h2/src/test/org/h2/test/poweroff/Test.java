@@ -9,6 +9,7 @@ package org.h2.test.poweroff;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.Socket;
 import java.sql.Connection;
@@ -116,7 +117,7 @@ public class Test {
         }
     }
 
-    private void testFile(DataOutputStream out) throws Exception {
+    private void testFile(DataOutputStream out) throws IOException {
         File file = new File("test.txt");
         if (file.exists()) {
             file.delete();

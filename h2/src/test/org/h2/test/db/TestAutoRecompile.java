@@ -18,7 +18,7 @@ import org.h2.test.TestBase;
  */
 public class TestAutoRecompile extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         deleteDb("autoRecompile");
         Connection conn = getConnection("autoRecompile");
         Statement stat = conn.createStatement();

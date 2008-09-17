@@ -20,7 +20,7 @@ import org.h2.test.TestBase;
  */
 public class TestZloty extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testZloty();
         testModifyBytes();
     }
@@ -42,7 +42,7 @@ public class TestZloty extends TestBase {
 
     }
 
-    private void testModifyBytes() throws Exception {
+    private void testModifyBytes() throws SQLException {
         deleteDb("zloty");
         Connection conn = getConnection("zloty");
         conn.createStatement().execute("CREATE TABLE TEST(ID INT, DATA BINARY)");
@@ -73,7 +73,7 @@ public class TestZloty extends TestBase {
      *
      * @author Maciej Wegorkiewicz
      */
-    private void testZloty() throws Exception {
+    private void testZloty() throws SQLException {
         deleteDb("zloty");
         Connection conn = getConnection("zloty");
         conn.createStatement().execute("CREATE TABLE TEST(ID INT, AMOUNT DECIMAL)");

@@ -7,6 +7,7 @@
 package org.h2.test.mvcc;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
@@ -21,7 +22,7 @@ public class TestMvcc2 extends TestBase {
     private static final String INSERT = "INSERT INTO EMPLOYEE (id, version, NAME) VALUES (1, 1, 'Jones')";
     private static final String UPDATE = "UPDATE EMPLOYEE SET NAME = 'Miller' WHERE version = 1";
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (!config.mvcc) {
             return;
         }
@@ -30,11 +31,11 @@ public class TestMvcc2 extends TestBase {
         testInsertRollback();
     }
 
-    private Connection getConnection() throws Exception {
+    private Connection getConnection() throws SQLException {
         return getConnection("mvcc2");
     }
 
-    private void testInsertUpdateRollback() throws Exception {
+    private void testInsertUpdateRollback() throws SQLException {
         Connection conn = getConnection();
         conn.setAutoCommit(false);
         Statement stmt = conn.createStatement();
@@ -47,7 +48,7 @@ public class TestMvcc2 extends TestBase {
         conn.close();
     }
 
-    private void testInsertRollback() throws Exception {
+    private void testInsertRollback() throws SQLException {
         Connection conn = getConnection();
         conn.setAutoCommit(false);
         Statement stmt = conn.createStatement();

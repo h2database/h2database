@@ -6,6 +6,7 @@
  */
 package org.h2.test.unit;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.sql.SQLException;
@@ -30,7 +31,7 @@ public class TestStringUtils extends TestBase {
         testPad();
     }
 
-    private void testHex() throws Exception {
+    private void testHex() throws SQLException {
         assertEquals("face", ByteUtils.convertBytesToString(new byte[] { (byte) 0xfa, (byte) 0xce }));
         assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("face"));
         assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, ByteUtils.convertStringToBytes("fAcE"));
@@ -49,14 +50,14 @@ public class TestStringUtils extends TestBase {
         }
     }
 
-    private void testPad() throws Exception {
+    private void testPad() {
         assertEquals("large", StringUtils.pad("larger text", 5, null, true));
         assertEquals("large", StringUtils.pad("larger text", 5, null, false));
         assertEquals("short+++++", StringUtils.pad("short", 10, "+", true));
         assertEquals("+++++short", StringUtils.pad("short", 10, "+", false));
     }
 
-    private void testXML() throws Exception {
+    private void testXML() throws SQLException {
         assertEquals("<!-- - - - - - -abc- - - - - - -->\n", StringUtils.xmlComment("------abc------"));
         assertEquals("<test/>\n", StringUtils.xmlNode("test", null, null));
         assertEquals("<test>Gr&#xfc;bel</test>\n", StringUtils.xmlNode("test", null, StringUtils.xmlText("Gr\u00fcbel")));
@@ -93,7 +94,7 @@ public class TestStringUtils extends TestBase {
                 + "</rss>\n");
     }
 
-    private void testURL() throws Exception {
+    private void testURL() throws UnsupportedEncodingException {
         Random random = new Random(1);
         for (int i = 0; i < 100; i++) {
             int len = random.nextInt(10);
@@ -114,7 +115,7 @@ public class TestStringUtils extends TestBase {
         }
     }
 
-    private void testJavaString() throws Exception {
+    private void testJavaString() throws SQLException {
         Random random = new Random(1);
         for (int i = 0; i < 1000; i++) {
             int len = random.nextInt(10);
@@ -133,7 +134,7 @@ public class TestStringUtils extends TestBase {
         }
     }
 
-    private void testSplit() throws Exception {
+    private void testSplit() {
         assertEquals(3, StringUtils.arraySplit("ABC,DEF,G\\,HI", ',', false).length);
         assertEquals(StringUtils.arrayCombine(new String[] { "", " ", "," }, ','), ", ,\\,");
         Random random = new Random(1);

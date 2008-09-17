@@ -8,6 +8,7 @@ package org.h2.test.db;
 
 import java.io.File;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
@@ -17,7 +18,7 @@ import org.h2.test.TestBase;
  */
 public class TestSpaceReuse extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.memory) {
             return;
         }

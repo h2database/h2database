@@ -23,7 +23,7 @@ public class TestStatement extends TestBase {
 
     private Connection conn;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         deleteDb("statement");
         conn = getConnection("statement");
         if (config.jdk14) {
@@ -37,7 +37,7 @@ public class TestStatement extends TestBase {
         conn.close();
     }
 
-    private void testConnectionRollback() throws Exception {
+    private void testConnectionRollback() throws SQLException {
         Statement stat = conn.createStatement();
         conn.setAutoCommit(false);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
@@ -49,7 +49,7 @@ public class TestStatement extends TestBase {
         conn.setAutoCommit(true);
     }
 
-    private void testSavepoint() throws Exception {
+    private void testSavepoint() throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         conn.setAutoCommit(false);
@@ -103,7 +103,7 @@ public class TestStatement extends TestBase {
         conn.setAutoCommit(true);
     }
 
-    private void testStatement() throws Exception {
+    private void testStatement() throws SQLException {
 
         Statement stat = conn.createStatement();
 
@@ -278,7 +278,7 @@ public class TestStatement extends TestBase {
         stat.close();
     }
 
-    private void testIdentity() throws Exception {
+    private void testIdentity() throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE SEQUENCE SEQ");
         stat.execute("CREATE TABLE TEST(ID INT)");

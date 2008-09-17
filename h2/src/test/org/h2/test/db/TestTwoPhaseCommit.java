@@ -8,6 +8,7 @@ package org.h2.test.db;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
@@ -17,7 +18,7 @@ import org.h2.test.TestBase;
  * Tests for the two-phase-commit feature.
  */
 public class TestTwoPhaseCommit extends TestBase {
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.memory || config.networked || config.logMode == 0) {
             return;
         }
@@ -33,7 +34,7 @@ public class TestTwoPhaseCommit extends TestBase {
         test(false);
     }
 
-    private void test(boolean rolledBack) throws Exception {
+    private void test(boolean rolledBack) throws SQLException {
         Connection conn = getConnection("twoPhaseCommit");
         Statement stat = conn.createStatement();
         stat.execute("SET WRITE_DELAY 0");
@@ -50,7 +51,7 @@ public class TestTwoPhaseCommit extends TestBase {
         conn.close();
     }
 
-    private void openWith(boolean rollback) throws Exception {
+    private void openWith(boolean rollback) throws SQLException {
         Connection conn = getConnection("twoPhaseCommit");
         Statement stat = conn.createStatement();
         ArrayList list = new ArrayList();
@@ -69,7 +70,7 @@ public class TestTwoPhaseCommit extends TestBase {
         conn.close();
     }
 
-    private void prepare() throws Exception {
+    private void prepare() throws SQLException {
         deleteDb("twoPhaseCommit");
         Connection conn = getConnection("twoPhaseCommit");
         Statement stat = conn.createStatement();

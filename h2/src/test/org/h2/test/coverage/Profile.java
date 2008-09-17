@@ -148,7 +148,7 @@ public class Profile extends Thread {
         lastIndex = i;
     }
 
-    private void listUnvisited() throws Exception {
+    private void listUnvisited() throws IOException {
         printLine('=');
         print("NOT COVERED");
         printLine('-');
@@ -184,7 +184,7 @@ public class Profile extends Thread {
         }
     }
 
-    private void listTop(String title, int[] list, int max) throws Exception {
+    private void listTop(String title, int[] list, int max) throws IOException {
         printLine('-');
         int total = 0;
         int totalLines = 0;

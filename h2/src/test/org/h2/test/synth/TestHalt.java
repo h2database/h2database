@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
@@ -99,12 +100,12 @@ public abstract class TestHalt extends TestBase {
     /**
      * Initialize the test.
      */
-    abstract void testInit() throws Exception;
+    abstract void testInit() throws SQLException;
 
     /**
      * Check if the database is consistent after a simulated database crash.
      */
-    abstract void testCheckAfterCrash() throws Exception;
+    abstract void testCheckAfterCrash() throws SQLException;
 
     /**
      * Wait for some time after the application has been started.
@@ -114,15 +115,14 @@ public abstract class TestHalt extends TestBase {
     /**
      * Start the application.
      */
-    abstract void appStart() throws Exception;
+    abstract void appStart() throws SQLException;
 
     /**
      * Run the application.
-     * @throws Exception
      */
-    abstract void appRun() throws Exception;
+    abstract void appRun() throws SQLException;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         for (int i = 0;; i++) {
             operations = OP_INSERT | i;
             flags = i >> 4;
@@ -136,8 +136,8 @@ public abstract class TestHalt extends TestBase {
         }
     }
 
-    Connection getConnection() throws Exception {
-        Class.forName("org.h2.Driver");
+    Connection getConnection() throws SQLException {
+        org.h2.Driver.load();
         return DriverManager.getConnection("jdbc:h2:" + baseDir + "/halt", "sa", "sa");
     }
 
@@ -157,7 +157,7 @@ public abstract class TestHalt extends TestBase {
         }
     }
 
-    private void runRandom() throws Exception {
+    private void runRandom() throws SQLException {
         connect();
         try {
             traceOperation("connected, operations:" + operations + " flags:" + flags + " value:" + value);
@@ -173,11 +173,11 @@ public abstract class TestHalt extends TestBase {
         disconnect();
     }
 
-    private void connect() throws Exception {
+    private void connect() throws SQLException {
         try {
             traceOperation("connecting");
             conn = getConnection();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             trace("connect", e);
             e.printStackTrace();
             throw e;
@@ -287,7 +287,7 @@ public abstract class TestHalt extends TestBase {
         }
     }
 
-//    public Connection getConnectionHSQLDB() throws Exception {
+//    public Connection getConnectionHSQLDB() throws SQLException {
 //        File lock = new File("test.lck");
 //        while (lock.exists()) {
 //            lock.delete();
@@ -297,7 +297,7 @@ public abstract class TestHalt extends TestBase {
 //        return DriverManager.getConnection("jdbc:hsqldb:test", "sa", "");
 //    }
 
-//    public Connection getConnectionDerby() throws Exception {
+//    public Connection getConnectionDerby() throws SQLException {
 //        File lock = new File("test3/db.lck");
 //        while (lock.exists()) {
 //            lock.delete();

@@ -22,7 +22,7 @@ import org.h2.tools.DeleteDbFiles;
  */
 public class TestBtreeIndex extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         Random random = new Random();
         while (true) {
             int seed = random.nextInt();
@@ -30,15 +30,15 @@ public class TestBtreeIndex extends TestBase {
         }
     }
 
-    public void testCase(int seed) throws Exception {
+    public void testCase(int seed) throws SQLException {
         String old = baseDir;
         baseDir = TestBase.getTestDir("index");
         testOne(seed);
         baseDir = old;
     }
 
-    private void testOne(int seed) throws Exception {
-        Class.forName("org.h2.Driver");
+    private void testOne(int seed) throws SQLException {
+        org.h2.Driver.load();
         printTime("testIndex " + seed);
         Random random = new Random(seed);
         int distinct, prefixLength;

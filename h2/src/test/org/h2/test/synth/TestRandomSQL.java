@@ -50,7 +50,7 @@ public class TestRandomSQL extends TestBase {
         // return "dataRandomSQL/randomSql" + dbId+";TRACE_LEVEL_FILE=3";
     }
 
-    private Connection connect() throws Exception {
+    private Connection connect() throws SQLException {
         while (true) {
             try {
                 return getConnection(getDatabaseName());
@@ -122,7 +122,7 @@ public class TestRandomSQL extends TestBase {
         return this;
     }
 
-    private void testWithSeed(Bnf config) throws Exception {
+    private void testWithSeed(Bnf config) throws SQLException {
         config.getRandom().setSeed(seed);
         Connection conn = null;
         try {
@@ -164,7 +164,7 @@ public class TestRandomSQL extends TestBase {
         }
     }
 
-    public void testCase(int i) throws Exception {
+    public void testCase(int i) throws SQLException {
         String old = SysProperties.scriptDirectory;
         SysProperties.scriptDirectory = "dataScript/";
         seed = i;
@@ -178,7 +178,7 @@ public class TestRandomSQL extends TestBase {
         SysProperties.scriptDirectory = old;
     }
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.networked) {
             return;
         }

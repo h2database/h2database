@@ -295,9 +295,8 @@ public class SelectUnion extends Query {
 
     public String getPlanSQL() {
         StringBuffer buff = new StringBuffer();
-        buff.append('(');
         buff.append(left.getPlanSQL());
-        buff.append(") ");
+        buff.append(' ');
         switch (unionType) {
         case UNION_ALL:
             buff.append("UNION ALL ");

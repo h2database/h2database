@@ -168,7 +168,7 @@ public class TransactionCommand extends Prepared {
             Session[] sessions = db.getSessions(false);
             for (int i = 0; i < sessions.length; i++) {
                 Session s = sessions[i];
-                if (db.getMultiThreaded()) {
+                if (db.isMultiThreaded()) {
                     synchronized (s) {
                         s.rollback();
                     }

@@ -3325,20 +3325,29 @@ public class Parser {
         boolean force = readIf("FORCE");
         if (readIf("LOCAL")) {
             read("TEMPORARY");
+            if (readIf("LINKED")) {
+                return parseCreateLinkedTable(true, false, force);
+            }
             read("TABLE");
             return parseCreateTable(true, false, false);
         } else if (readIf("GLOBAL")) {
             read("TEMPORARY");
+            if (readIf("LINKED")) {
+                return parseCreateLinkedTable(true, true, force);
+            }
             read("TABLE");
             return parseCreateTable(true, true, false);
         } else if (readIf("TEMP") || readIf("TEMPORARY")) {
+            if (readIf("LINKED")) {
+                return parseCreateLinkedTable(true, true, force);
+            }
             read("TABLE");
             return parseCreateTable(true, true, false);
         } else if (readIf("MEMORY")) {
             read("TABLE");
             return parseCreateTable(false, false, false);
         } else if (readIf("LINKED")) {
-            return parseCreateLinkedTable(force);
+            return parseCreateLinkedTable(false, false, force);
         } else if (readIf("CACHED")) {
             read("TABLE");
             return parseCreateTable(false, false, true);
@@ -4431,11 +4440,13 @@ public class Parser {
         }
     }
 
-    private CreateLinkedTable parseCreateLinkedTable(boolean force) throws SQLException {
+    private CreateLinkedTable parseCreateLinkedTable(boolean temp, boolean globalTemp, boolean force) throws SQLException {
         read("TABLE");
         boolean ifNotExists = readIfNoExists();
         String tableName = readIdentifierWithSchema();
         CreateLinkedTable command = new CreateLinkedTable(session, getSchema());
+        command.setTemporary(temp);
+        command.setGlobalTemporary(globalTemp);
         command.setForce(force);
         command.setIfNotExists(ifNotExists);
         command.setTableName(tableName);
@@ -4454,6 +4465,8 @@ public class Parser {
         if (readIf("EMIT")) {
             read("UPDATES");
             command.setEmitUpdates(true);
+        } else if (readIf("READONLY")) {
+            command.setReadOnly(true);
         }
         return command;
     }

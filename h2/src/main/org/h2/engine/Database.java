@@ -197,7 +197,6 @@ public class Database implements DataHandler {
             this.recovery = true;
         }
         this.multiVersion = ci.removeProperty("MVCC", false);
-        checkMultiThreadedAllowed();
         boolean closeAtVmShutdown = ci.removeProperty("DB_CLOSE_ON_EXIT", true);
         int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
         int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
@@ -789,8 +788,11 @@ public class Database implements DataHandler {
      * @param obj the object to add
      */
     public synchronized void addSchemaObject(Session session, SchemaObject obj) throws SQLException {
-        obj.getSchema().add(obj);
         int id = obj.getId();
+        if (id > 0 && !starting) {
+            checkWritingAllowed();
+        }
+        obj.getSchema().add(obj);
         if (id > 0 && !starting) {
             addMeta(session, obj);
         }
@@ -803,6 +805,10 @@ public class Database implements DataHandler {
      * @param obj the object to add
      */
     public synchronized void addDatabaseObject(Session session, DbObject obj) throws SQLException {
+        int id = obj.getId();
+        if (id > 0 && !starting) {
+            checkWritingAllowed();
+        }
         HashMap map = getMap(obj.getType());
         if (obj.getType() == DbObject.USER) {
             User user = (User) obj;
@@ -814,7 +820,6 @@ public class Database implements DataHandler {
         if (SysProperties.CHECK && map.get(name) != null) {
             throw Message.getInternalError("object already exists");
         }
-        int id = obj.getId();
         if (id > 0 && !starting) {
             addMeta(session, obj);
         }
@@ -1309,6 +1314,7 @@ public class Database implements DataHandler {
      * @param newName the new name
      */
     public synchronized void renameSchemaObject(Session session, SchemaObject obj, String newName) throws SQLException {
+        checkWritingAllowed();
         obj.getSchema().rename(obj, newName);
         updateWithChildren(session, obj);
     }
@@ -1337,6 +1343,7 @@ public class Database implements DataHandler {
      * @param newName the new name
      */
     public synchronized void renameDatabaseObject(Session session, DbObject obj, String newName) throws SQLException {
+        checkWritingAllowed();
         int type = obj.getType();
         HashMap map = getMap(type);
         if (SysProperties.CHECK) {
@@ -1447,6 +1454,7 @@ public class Database implements DataHandler {
      * @param obj the object to remove
      */
     public synchronized void removeDatabaseObject(Session session, DbObject obj) throws SQLException {
+        checkWritingAllowed();
         String objName = obj.getName();
         int type = obj.getType();
         HashMap map = getMap(type);
@@ -1516,6 +1524,7 @@ public class Database implements DataHandler {
                 return;
             }
         }
+        checkWritingAllowed();
         Comment comment = findComment(obj);
         if (comment != null) {
             removeDatabaseObject(session, comment);
@@ -1866,7 +1875,7 @@ public class Database implements DataHandler {
     public void notifyFileSize(long length) {
         // ignore
     }
-    
+
     public synchronized void setMaxLogSize(long value) {
         getLog().setMaxLogSize(value);
     }    
@@ -1952,22 +1961,16 @@ public class Database implements DataHandler {
         return mode;
     }
 
-    public boolean getMultiThreaded() {
+    public boolean isMultiThreaded() {
         return multiThreaded;
     }
 
     public void setMultiThreaded(boolean multiThreaded) throws SQLException {
-        this.multiThreaded = multiThreaded;
-        checkMultiThreadedAllowed();
-    }
-    
-    private void checkMultiThreadedAllowed() throws SQLException {
         if (multiThreaded && multiVersion) {
-            multiVersion = false;
             throw Message.getSQLException(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, "MVCC & MULTI_THREADED");
         }
+        this.multiThreaded = multiThreaded;
     }
-
 
     public void setMaxOperationMemory(int maxOperationMemory) {
         this.maxOperationMemory  = maxOperationMemory;

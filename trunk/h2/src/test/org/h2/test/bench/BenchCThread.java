@@ -9,6 +9,7 @@ package org.h2.test.bench;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashMap;
 
@@ -30,7 +31,7 @@ public class BenchCThread {
     private BenchC bench;
 
     BenchCThread(Database db, BenchC bench, BenchCRandom random, int terminal)
-            throws Exception {
+            throws SQLException {
         this.db = db;
         this.bench = bench;
         this.terminalId = terminal;
@@ -42,7 +43,7 @@ public class BenchCThread {
     /**
      * Process the list of operations (a 'deck') in random order.
      */
-    void process() throws Exception {
+    void process() throws SQLException {
         int[] deck = new int[] { OP_NEW_ORDER, OP_NEW_ORDER, OP_NEW_ORDER,
                 OP_NEW_ORDER, OP_NEW_ORDER, OP_NEW_ORDER, OP_NEW_ORDER,
                 OP_NEW_ORDER, OP_NEW_ORDER, OP_NEW_ORDER, OP_PAYMENT,
@@ -80,7 +81,7 @@ public class BenchCThread {
         }
     }
 
-    private void processNewOrder() throws Exception {
+    private void processNewOrder() throws SQLException {
         int dId = random.getInt(1, bench.districtsPerWarehouse);
         int cId = random.getNonUniform(1023, 1, bench.customersPerDistrict);
         int olCnt = random.getInt(5, 15);
@@ -166,7 +167,7 @@ public class BenchCThread {
                     db.rollback();
                     return;
                 }
-                throw new Exception("item not found: " + olId + " "
+                throw new SQLException("item not found: " + olId + " "
                         + olSupplyId);
             }
             BigDecimal price = rs.getBigDecimal(1);
@@ -187,7 +188,7 @@ public class BenchCThread {
                     db.rollback();
                     return;
                 }
-                throw new Exception("item not found: " + olId + " "
+                throw new SQLException("item not found: " + olId + " "
                         + olSupplyId);
             }
             int sQuantity = rs.getInt(1);
@@ -257,7 +258,7 @@ public class BenchCThread {
         db.commit();
     }
 
-    private void processPayment() throws Exception {
+    private void processPayment() throws SQLException {
         int dId = random.getInt(1, bench.districtsPerWarehouse);
         int wId, cdId;
         if (bench.warehouses > 1 && random.getInt(1, 100) <= 15) {
@@ -482,7 +483,7 @@ public class BenchCThread {
         db.commit();
     }
 
-    private void processOrderStatus() throws Exception {
+    private void processOrderStatus() throws SQLException {
         int dId = random.getInt(1, bench.districtsPerWarehouse);
         boolean byName;
         String last = null;
@@ -604,7 +605,7 @@ public class BenchCThread {
         db.commit();
     }
 
-    private void processDelivery() throws Exception {
+    private void processDelivery() throws SQLException {
         int carrierId = random.getInt(1, 10);
         Timestamp datetime = new Timestamp(System.currentTimeMillis());
         PreparedStatement prep;
@@ -678,7 +679,7 @@ public class BenchCThread {
         db.commit();
     }
 
-    private void processStockLevel() throws Exception {
+    private void processStockLevel() throws SQLException {
         int dId = (terminalId % bench.districtsPerWarehouse) + 1;
         int threshold = random.getInt(10, 20);
         PreparedStatement prep;
@@ -724,7 +725,7 @@ public class BenchCThread {
         db.commit();
     }
 
-    private PreparedStatement prepare(String sql) throws Exception {
+    private PreparedStatement prepare(String sql) throws SQLException {
         PreparedStatement prep = (PreparedStatement) prepared.get(sql);
         if (prep == null) {
             prep = db.prepare(sql);

@@ -20,7 +20,7 @@ public class TestCompatibility extends TestBase {
 
     private Connection conn;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         deleteDb("compatibility");
         conn = getConnection("compatibility");
 
@@ -33,7 +33,7 @@ public class TestCompatibility extends TestBase {
 
     }
     
-    private void testUniqueIndexSingleNull() throws Exception {
+    private void testUniqueIndexSingleNull() throws SQLException {
         Statement stat = conn.createStatement();
         String[] modes = new String[] { "PostgreSQL", "MySQL", "HSQLDB", "MSSQLServer", "Derby", "Oracle", "Regular" };
         String multiNull = "PostgreSQL,MySQL,Oracle,Regular";
@@ -52,7 +52,7 @@ public class TestCompatibility extends TestBase {
         }
     }
 
-    private void testUniqueIndexOracle() throws Exception {
+    private void testUniqueIndexOracle() throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("SET MODE ORACLE");
         stat.execute("create table t2(c1 int, c2 int)");
@@ -76,7 +76,7 @@ public class TestCompatibility extends TestBase {
         stat.execute("DROP TABLE T2");
     }
 
-    private void testHsqlDb() throws Exception {
+    private void testHsqlDb() throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE TEST IF EXISTS; CREATE TABLE TEST(ID INT PRIMARY KEY); ");
         stat.execute("CALL CURRENT_TIME");
@@ -95,7 +95,7 @@ public class TestCompatibility extends TestBase {
 
     }
 
-    private void testMySQL() throws Exception {
+    private void testMySQL() throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("SELECT 1");
         stat.execute("DROP TABLE IF EXISTS TEST");

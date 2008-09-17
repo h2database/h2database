@@ -424,7 +424,7 @@ public abstract class TestBase {
     /**
      * This method will be called by the test framework.
      * 
-     * @throws AssertionError if an exception in the test occurs
+     * @throws Exception if an exception in the test occurs
      */
     public abstract void test() throws Exception;
 

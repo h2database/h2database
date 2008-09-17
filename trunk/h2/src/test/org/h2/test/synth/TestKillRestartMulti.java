@@ -119,12 +119,12 @@ public class TestKillRestartMulti extends TestBase {
      * 
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws SQLException {
         SelfDestructor.startCountdown(60);
         new TestKillRestartMulti().test(args);
     }
 
-    private void test(String[] args) throws Exception {
+    private void test(String[] args) throws SQLException {
         for (int i = 0; i < args.length; i++) {
             if ("-url".equals(args[i])) {
                 url = args[++i];
@@ -235,7 +235,7 @@ public class TestKillRestartMulti extends TestBase {
         return conn;
     }
 
-    private void createTable(Random random) throws Exception {
+    private void createTable(Random random) throws SQLException {
         Connection conn = (Connection) connections.get(random.nextInt(connections.size()));
         Statement stat = conn.createStatement();
         String table = "TEST" + random.nextInt(10);
@@ -256,7 +256,7 @@ public class TestKillRestartMulti extends TestBase {
         }
     }
 
-    private void testConsistent(Connection conn) throws Exception {
+    private void testConsistent(Connection conn) throws SQLException {
         for (int i = 0; i < 20; i++) {
             Statement stat = conn.createStatement();
             try {

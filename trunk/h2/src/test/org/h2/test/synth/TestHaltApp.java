@@ -69,9 +69,9 @@ public class TestHaltApp extends TestHalt {
      * This method is called after a simulated crash. The method should check if
      * the data is transactionally consistent and throw an exception if not.
      * 
-     * @throws Exception if the data is not consistent.
+     * @throws SQLException  if the data is not consistent.
      */
-    protected void testCheckAfterCrash() throws Exception {
+    protected void testCheckAfterCrash() throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT COUNT(*) FROM TEST");
         rs.next();
@@ -79,7 +79,7 @@ public class TestHaltApp extends TestHalt {
         System.out.println("count: " + count);
         if (count % 2 == 1) {
             traceOperation("row count: " + count);
-            throw new Exception("Unexpected odd row count");
+            throw new SQLException("Unexpected odd row count");
         }
     }
 
@@ -101,7 +101,7 @@ public class TestHaltApp extends TestHalt {
     /**
      * Run the application code.
      */
-    protected void appRun() throws Exception {
+    protected void appRun() throws SQLException {
         conn.setAutoCommit(false);
         traceOperation("setAutoCommit false");
         int rows = 10000 + value;

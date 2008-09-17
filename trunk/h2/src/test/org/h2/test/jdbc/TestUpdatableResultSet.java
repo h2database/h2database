@@ -27,7 +27,7 @@ import org.h2.test.TestBase;
  */
 public class TestUpdatableResultSet extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testUpdateLob();
         testScroll();
         testUpdateDeleteInsert();
@@ -35,7 +35,7 @@ public class TestUpdatableResultSet extends TestBase {
         testUpdateResetRead();
     }
     
-    private void testUpdateLob() throws Exception {
+    private void testUpdateLob() throws SQLException {
         deleteDb("updatableResultSet");
         Connection conn = getConnection("updatableResultSet");
         Statement stat = conn.createStatement();
@@ -62,7 +62,7 @@ public class TestUpdatableResultSet extends TestBase {
         conn.close();
     }
     
-    private void testUpdateResetRead() throws Exception {
+    private void testUpdateResetRead() throws SQLException {
         deleteDb("updatableResultSet");
         Connection conn = getConnection("updatableResultSet");
         Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -86,7 +86,7 @@ public class TestUpdatableResultSet extends TestBase {
         conn.close();
     }
 
-    private void testScroll() throws Exception {
+    private void testScroll() throws SQLException {
         deleteDb("updatableResultSet");
         Connection conn = getConnection("updatableResultSet");
         Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -194,7 +194,7 @@ public class TestUpdatableResultSet extends TestBase {
         conn.close();
     }
 
-    private void testUpdateDataType() throws Exception {
+    private void testUpdateDataType() throws SQLException {
         deleteDb("updatableResultSet");
         Connection conn = getConnection("updatableResultSet");
         Statement stat = conn.createStatement();
@@ -328,7 +328,7 @@ public class TestUpdatableResultSet extends TestBase {
         conn.close();
     }
 
-    private void testUpdateDeleteInsert() throws Exception {
+    private void testUpdateDeleteInsert() throws SQLException {
         deleteDb("updatableResultSet");
         Connection c1 = getConnection("updatableResultSet");
         Connection c2 = getConnection("updatableResultSet");
@@ -387,7 +387,7 @@ public class TestUpdatableResultSet extends TestBase {
         conn.close();
     }
 
-    private void testScrollable(Connection conn, int rows) throws Exception {
+    private void testScrollable(Connection conn, int rows) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE IF NOT EXISTS TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("DELETE FROM TEST");
@@ -403,7 +403,7 @@ public class TestUpdatableResultSet extends TestBase {
         testScrollResultSet(scroll, ResultSet.TYPE_SCROLL_INSENSITIVE, rows);
     }
 
-    private void testScrollResultSet(Statement stat, int type, int rows) throws Exception {
+    private void testScrollResultSet(Statement stat, int type, int rows) throws SQLException {
         boolean error = false;
         if (type == ResultSet.TYPE_FORWARD_ONLY) {
             error = true;
@@ -456,7 +456,7 @@ public class TestUpdatableResultSet extends TestBase {
         }
     }
 
-    private void checkState(ResultSet rs, boolean beforeFirst, boolean first, boolean last, boolean afterLast) throws Exception {
+    private void checkState(ResultSet rs, boolean beforeFirst, boolean first, boolean last, boolean afterLast) throws SQLException {
         assertEquals(rs.isBeforeFirst(), beforeFirst);
         assertEquals(rs.isFirst(), first);
         assertEquals(rs.isLast(), last);

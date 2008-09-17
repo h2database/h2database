@@ -21,14 +21,14 @@ public class TestRights extends TestBase {
 
     private Statement stat;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testDropTempTables();
         // testLowerCaseUser();
         testSchemaRenameUser();
         testAccessRights();
     }
 
-//    public void testLowerCaseUser() throws Exception {
+//    public void testLowerCaseUser() throws SQLException {
     // Documentation: For compatibility, 
     // only unquoted or uppercase user names are allowed.
 //        deleteDb("rights");
@@ -43,7 +43,7 @@ public class TestRights extends TestBase {
 //        conn.close();
 //    }
 
-    private void testDropTempTables() throws Exception {
+    private void testDropTempTables() throws SQLException {
         deleteDb("rights");
         Connection conn = getConnection("rights");
         stat = conn.createStatement();
@@ -65,7 +65,7 @@ public class TestRights extends TestBase {
         conn.close();
     }
 
-    private void testSchemaRenameUser() throws Exception {
+    private void testSchemaRenameUser() throws SQLException {
         if (config.memory) {
             return;
         }
@@ -98,7 +98,7 @@ public class TestRights extends TestBase {
         conn.close();
     }
 
-    private void testAccessRights() throws Exception {
+    private void testAccessRights() throws SQLException {
         if (config.memory) {
             return;
         }
@@ -236,7 +236,7 @@ public class TestRights extends TestBase {
         conn.close();
     }
 
-    private void testTableType(Connection conn, String type) throws Exception {
+    private void testTableType(Connection conn, String type) throws SQLException {
         executeSuccess("SET DEFAULT_TABLE_TYPE " + type);
         executeSuccess("CREATE TABLE TEST(ID INT)");
         ResultSet rs = conn.createStatement().executeQuery(
@@ -246,7 +246,7 @@ public class TestRights extends TestBase {
         executeSuccess("DROP TABLE TEST");
     }
 
-    private void executeError(String sql) throws Exception {
+    private void executeError(String sql) throws SQLException {
         try {
             stat.execute(sql);
             fail("not admin");
@@ -255,7 +255,7 @@ public class TestRights extends TestBase {
         }
     }
 
-    private void executeSuccess(String sql) throws Exception {
+    private void executeSuccess(String sql) throws SQLException {
         if (stat.execute(sql)) {
             ResultSet rs = stat.getResultSet();
 

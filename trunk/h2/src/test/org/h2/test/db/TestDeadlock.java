@@ -42,7 +42,7 @@ public class TestDeadlock extends TestBase {
         testNoDeadlock();
     }
     
-    private void initTest() throws Exception {
+    private void initTest() throws SQLException {
         c1 = getConnection("deadlock");
         c2 = getConnection("deadlock");
         c3 = getConnection("deadlock");
@@ -239,7 +239,7 @@ public class TestDeadlock extends TestBase {
         end();
     }
     
-    private void checkDeadlock() throws Exception {
+    private void checkDeadlock() throws SQLException {
         assertTrue(lastException != null);
         assertKnownException(lastException);
         assertEquals(ErrorCode.DEADLOCK_1, lastException.getErrorCode());

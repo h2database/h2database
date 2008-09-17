@@ -68,7 +68,7 @@ public class TestCancel extends TestBase {
         testCancelStatement();
     }
     
-    private void testReset() throws Exception {
+    private void testReset() throws SQLException {
         deleteDb("cancel");
         Connection conn = getConnection("cancel");
         Statement stat = conn.createStatement();
@@ -84,7 +84,7 @@ public class TestCancel extends TestBase {
         conn.close();
     }
     
-    private void testQueryTimeoutInTransaction() throws Exception {
+    private void testQueryTimeoutInTransaction() throws SQLException {
         deleteDb("cancel");
         Connection conn = getConnection("cancel");
         Statement stat = conn.createStatement();
@@ -99,7 +99,7 @@ public class TestCancel extends TestBase {
         conn.close();
     }
 
-    private void testJdbcQueryTimeout() throws Exception {
+    private void testJdbcQueryTimeout() throws SQLException {
         deleteDb("cancel");
         Connection conn = getConnection("cancel");
         Statement stat = conn.createStatement();
@@ -123,7 +123,7 @@ public class TestCancel extends TestBase {
         conn.close();
     }
 
-    private void testQueryTimeout() throws Exception {
+    private void testQueryTimeout() throws SQLException {
         deleteDb("cancel");
         Connection conn = getConnection("cancel");
         Statement stat = conn.createStatement();
@@ -137,7 +137,7 @@ public class TestCancel extends TestBase {
         conn.close();
     }
 
-    private void testMaxQueryTimeout() throws Exception {
+    private void testMaxQueryTimeout() throws SQLException {
         deleteDb("cancel");
         int oldMax = SysProperties.getMaxQueryTimeout();
         try {

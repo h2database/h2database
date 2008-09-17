@@ -8,6 +8,7 @@ package org.h2.test.db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
@@ -23,7 +24,7 @@ public class TestSpeed extends TestBase {
 
     // TODO test: here is more code, currently untested!
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
 
         deleteDb("speed");
         Connection conn;
@@ -157,7 +158,7 @@ public class TestSpeed extends TestBase {
         trace(time + " close");
     }
 
-    // private void testOuterJoin() throws Exception {
+    // private void testOuterJoin() throws SQLException {
     // Class.forName("org.h2.jdbc.jdbcDriver");
     // Connection conn = DriverManager.getConnection("jdbc:h2:test");
 

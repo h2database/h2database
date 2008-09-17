@@ -9,6 +9,7 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.StringTokenizer;
 
@@ -20,7 +21,7 @@ import org.h2.test.TestBase;
  */
 public class TestFullText extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.memory) {
             return;
         }
@@ -45,7 +46,7 @@ public class TestFullText extends TestBase {
 
     }
     
-    private void testReopen(boolean lucene) throws Exception {
+    private void testReopen(boolean lucene) throws SQLException {
         String prefix = lucene ? "FTL" : "FT";
         deleteDb("fullTextReopen");
         FileSystem.getInstance(baseDir).deleteRecursive(baseDir + "/fullTextReopen");
@@ -66,7 +67,7 @@ public class TestFullText extends TestBase {
         conn.close();
     }
 
-    private void testPerformance(boolean lucene) throws Exception {
+    private void testPerformance(boolean lucene) throws SQLException {
         deleteDb("fullText");
         FileSystem.getInstance(baseDir).deleteRecursive(baseDir + "/fullText");
         Connection conn = getConnection("fullText");
@@ -107,7 +108,7 @@ public class TestFullText extends TestBase {
         conn.close();
     }
 
-    private void test(boolean lucene, String dataType) throws Exception {
+    private void test(boolean lucene, String dataType) throws SQLException {
         deleteDb("fullText");
         Connection conn = getConnection("fullText");
         String prefix = lucene ? "FTL_" : "FT_";

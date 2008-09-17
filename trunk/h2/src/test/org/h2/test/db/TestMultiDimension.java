@@ -9,6 +9,7 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 
@@ -20,7 +21,7 @@ import org.h2.tools.MultiDimension;
  */
 public class TestMultiDimension extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         Random rand = new Random(10);
         for (int i = 0; i < 1000; i++) {
             int x = rand.nextInt(1000), y = rand.nextInt(1000), z = rand.nextInt(1000);

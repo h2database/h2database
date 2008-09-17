@@ -23,14 +23,14 @@ import org.h2.test.TestBase;
  */
 public class TestTransaction extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testSetTransaction();
         testReferential();
         testSavepoint();
         testIsolation();
     }
 
-    private void testSetTransaction() throws Exception {
+    private void testSetTransaction() throws SQLException {
         deleteDb("transaction");
         Connection conn = getConnection("transaction");
         conn.setAutoCommit(false);
@@ -51,7 +51,7 @@ public class TestTransaction extends TestBase {
         conn.close();
     }
 
-    private void testReferential() throws Exception {
+    private void testReferential() throws SQLException {
         deleteDb("transaction");
         Connection c1 = getConnection("transaction");
         c1.setAutoCommit(false);
@@ -76,7 +76,7 @@ public class TestTransaction extends TestBase {
         c2.close();
     }
 
-    private void testSavepoint() throws Exception {
+    private void testSavepoint() throws SQLException {
         deleteDb("transaction");
         Connection conn = getConnection("transaction");
         Statement stat = conn.createStatement();
@@ -136,14 +136,14 @@ public class TestTransaction extends TestBase {
         conn.close();
     }
 
-    private void checkTableCount(Statement stat, String tableName, int count) throws Exception {
+    private void checkTableCount(Statement stat, String tableName, int count) throws SQLException {
         ResultSet rs;
         rs = stat.executeQuery("SELECT COUNT(*) FROM " + tableName);
         rs.next();
         assertEquals(count, rs.getInt(1));
     }
 
-    private void testIsolation() throws Exception {
+    private void testIsolation() throws SQLException {
         Connection conn = getConnection("transaction");
         trace("default TransactionIsolation=" + conn.getTransactionIsolation());
         conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
@@ -174,7 +174,7 @@ public class TestTransaction extends TestBase {
         conn.close();
     }
 
-    private void testNestedResultSets(Connection conn) throws Exception {
+    private void testNestedResultSets(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         test(stat, "CREATE TABLE NEST1(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
         test(stat, "CREATE TABLE NEST2(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
@@ -236,7 +236,7 @@ public class TestTransaction extends TestBase {
         test(stat, "DROP TABLE NEST2");
     }
 
-    private void testValue(Statement stat, String sql, String data) throws Exception {
+    private void testValue(Statement stat, String sql, String data) throws SQLException {
         ResultSet rs = stat.executeQuery(sql);
         rs.next();
         String s = rs.getString(1);
@@ -245,7 +245,7 @@ public class TestTransaction extends TestBase {
         }
     }
 
-    private void test(Statement stat, String sql) throws Exception {
+    private void test(Statement stat, String sql) throws SQLException {
         trace(sql);
         stat.execute(sql);
     }

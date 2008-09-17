@@ -7,6 +7,7 @@
 package org.h2.test.jdbcx;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import javax.sql.ConnectionEvent;
@@ -23,7 +24,7 @@ import org.h2.test.TestBase;
  */
 public class TestDataSource extends TestBase {
 
-//     public static void main(String[] args) throws Exception {
+//     public static void main(String[] args) throws SQLException {
 //    
 //     // first, need to start on the command line:
 //     // rmiregistry 1099
@@ -76,7 +77,7 @@ public class TestDataSource extends TestBase {
         xaConn.close();
     }
 
-    private void testDataSource() throws Exception {
+    private void testDataSource() throws SQLException {
         deleteDb(baseDir, "dataSource");
         JdbcDataSource ds = new JdbcDataSource();
         ds.setURL("jdbc:h2:" + baseDir + "/dataSource");

@@ -39,7 +39,7 @@ public class TestFunctions extends TestBase {
         testFileRead();
     }
     
-    private void testVarArgs() throws Exception {
+    private void testVarArgs() throws SQLException {
 //## Java 1.5 begin ##
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
@@ -127,7 +127,7 @@ public class TestFunctions extends TestBase {
 
     }
 
-    private void testAggregate() throws Exception {
+    private void testAggregate() throws SQLException {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
@@ -163,7 +163,7 @@ public class TestFunctions extends TestBase {
         conn.close();
     }
 
-    private void testFunctions() throws Exception {
+    private void testFunctions() throws SQLException {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
@@ -298,7 +298,7 @@ public class TestFunctions extends TestBase {
         conn.close();
     }
 
-    private void test(Statement stat, String sql, String value) throws Exception {
+    private void test(Statement stat, String sql, String value) throws SQLException {
         ResultSet rs = stat.executeQuery("CALL " + sql);
         rs.next();
         String s = rs.getString(1);

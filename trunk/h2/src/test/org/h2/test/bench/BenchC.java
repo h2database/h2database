@@ -8,6 +8,7 @@ package org.h2.test.bench;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 
@@ -102,7 +103,7 @@ public class BenchC implements Bench {
     private int commitEvery = 1000;
 
 
-    public void init(Database db, int size) throws Exception {
+    public void init(Database db, int size) throws SQLException {
         this.db = db;
 
         random = new BenchCRandom();
@@ -127,7 +128,7 @@ public class BenchC implements Bench {
 
     }
 
-    private void load() throws Exception {
+    private void load() throws SQLException {
         for (int i = 0; i < TABLES.length; i++) {
             db.dropTable(TABLES[i]);
         }
@@ -151,7 +152,7 @@ public class BenchC implements Bench {
         db.trace(action, i, max);
     }
 
-    private void loadItem() throws Exception {
+    private void loadItem() throws SQLException {
         trace("Loading item table");
         boolean[] original = random.getBoolean(items, items / 10);
         PreparedStatement prep = db.prepare("INSERT INTO ITEM(I_ID, I_IM_ID, I_NAME, I_PRICE, I_DATA) "
@@ -176,7 +177,7 @@ public class BenchC implements Bench {
         }
     }
 
-    private void loadWarehouse() throws Exception {
+    private void loadWarehouse() throws SQLException {
         trace("Loading warehouse table");
         PreparedStatement prep = db.prepare("INSERT INTO WAREHOUSE(W_ID, W_NAME, W_STREET_1, "
                 + "W_STREET_2, W_CITY, W_STATE, W_ZIP, W_TAX, W_YTD) " + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -208,7 +209,7 @@ public class BenchC implements Bench {
         }
     }
 
-    private void loadCustomer() throws Exception {
+    private void loadCustomer() throws SQLException {
         trace("Load customer table");
         int max = warehouses * districtsPerWarehouse;
         int i = 0;
@@ -223,7 +224,7 @@ public class BenchC implements Bench {
         }
     }
 
-    private void loadCustomerSub(int dId, int wId) throws Exception {
+    private void loadCustomerSub(int dId, int wId) throws SQLException {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         PreparedStatement prepCustomer = db.prepare("INSERT INTO CUSTOMER(C_ID, C_D_ID, C_W_ID, "
                 + "C_FIRST, C_MIDDLE, C_LAST, " + "C_STREET_1, C_STREET_2, C_CITY, C_STATE, C_ZIP, "
@@ -297,7 +298,7 @@ public class BenchC implements Bench {
         }
     }
 
-    private void loadOrder() throws Exception {
+    private void loadOrder() throws SQLException {
         trace("Loading order table");
         int max = warehouses * districtsPerWarehouse;
         int i = 0;
@@ -309,7 +310,7 @@ public class BenchC implements Bench {
         }
     }
 
-    private void loadOrderSub(int dId, int wId) throws Exception {
+    private void loadOrderSub(int dId, int wId) throws SQLException {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         int[] orderid = random.getPermutation(ordersPerDistrict);
         PreparedStatement prepOrder = db.prepare("INSERT INTO ORDERS(O_ID, O_C_ID, O_D_ID, O_W_ID, "
@@ -368,7 +369,7 @@ public class BenchC implements Bench {
         }
     }
 
-    private void loadStock(int wId) throws Exception {
+    private void loadStock(int wId) throws SQLException {
         trace("Loading stock table (warehouse " + wId + ")");
         boolean[] original = random.getBoolean(items, items / 10);
         PreparedStatement prep = db.prepare("INSERT INTO STOCK(S_I_ID, S_W_ID, S_QUANTITY, "
@@ -417,7 +418,7 @@ public class BenchC implements Bench {
         }
     }
 
-    private void loadDistrict(int wId) throws Exception {
+    private void loadDistrict(int wId) throws SQLException {
         BigDecimal ytd = new BigDecimal("300000.00");
         int nextId = 3001;
         PreparedStatement prep = db.prepare("INSERT INTO DISTRICT(D_ID, D_W_ID, D_NAME, "
@@ -448,7 +449,7 @@ public class BenchC implements Bench {
         }
     }
 
-    public void runTest() throws Exception {
+    public void runTest() throws SQLException {
         db.start(this, "Transactions");
         db.openConnection();
         for (int i = 0; i < 70; i++) {

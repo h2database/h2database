@@ -77,7 +77,7 @@ public class TestMultiNews extends TestMultiThread {
         conn.close();
     }
 
-    void finalTest() throws Exception {
+    void finalTest() throws SQLException {
         // nothing to do
     }
 

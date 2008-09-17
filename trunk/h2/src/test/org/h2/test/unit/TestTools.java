@@ -60,7 +60,7 @@ public class TestTools extends TestBase {
         testRecover();
     }
 
-    private void testServerMain() throws Exception {
+    private void testServerMain() throws SQLException {
         String result;
         Connection conn;
         org.h2.Driver.load();
@@ -130,7 +130,7 @@ public class TestTools extends TestBase {
         }
     }
 
-    private String runServer(String[] args, int exitCode) throws Exception {
+    private String runServer(String[] args, int exitCode) throws SQLException {
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(buff);
         server = new Server();
@@ -143,7 +143,7 @@ public class TestTools extends TestBase {
 
     private void testConvertTraceFile() throws Exception {
         deleteDb("toolsConvertTraceFile");
-        Class.forName("org.h2.Driver");
+        org.h2.Driver.load();
         String url = "jdbc:h2:" + baseDir + "/toolsConvertTraceFile";
         Connection conn = DriverManager.getConnection(url + ";TRACE_LEVEL_FILE=3", "sa", "sa");
         Statement stat = conn.createStatement();
@@ -185,7 +185,7 @@ public class TestTools extends TestBase {
         testTraceFile(url);
     }
 
-    private void testTraceFile(String url) throws Exception {
+    private void testTraceFile(String url) throws SQLException {
         Connection conn;
         Recover.main(new String[]{"-removePassword", "-dir", baseDir, "-db", "toolsConvertTraceFile"});
         conn = DriverManager.getConnection(url, "sa", "");
@@ -212,9 +212,9 @@ public class TestTools extends TestBase {
         conn.close();
     }
 
-    private void testRemove() throws Exception {
+    private void testRemove() throws SQLException {
         deleteDb("toolsRemove");
-        Class.forName("org.h2.Driver");
+        org.h2.Driver.load();
         String url = "jdbc:h2:" + baseDir + "/toolsRemove";
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
         Statement stat = conn.createStatement();
@@ -239,9 +239,9 @@ public class TestTools extends TestBase {
         conn.close();
     }
 
-    private void testRecover() throws Exception {
+    private void testRecover() throws SQLException {
         deleteDb("toolsRecover");
-        Class.forName("org.h2.Driver");
+        org.h2.Driver.load();
         String url = "jdbc:h2:" + baseDir + "/toolsRecover";
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
         Statement stat = conn.createStatement();
@@ -277,7 +277,7 @@ public class TestTools extends TestBase {
         conn.close();
     }
 
-    private void testManagementDb() throws Exception {
+    private void testManagementDb() throws SQLException {
         int count = getSize(2, 10);
         for (int i = 0; i < count; i++) {
             Server server = Server.createTcpServer(new String[] {"-tcpPort", "9192"}).start();
@@ -288,7 +288,7 @@ public class TestTools extends TestBase {
     }
 
     private void testScriptRunscriptLob() throws Exception {
-        Class.forName("org.h2.Driver");
+        org.h2.Driver.load();
         String url = "jdbc:h2:" + baseDir + "/utils";
         String user = "sa", password = "abc";
         String fileName = baseDir + "/b2.sql";
@@ -341,8 +341,8 @@ public class TestTools extends TestBase {
 
     }
 
-    private void testScriptRunscript() throws Exception {
-        Class.forName("org.h2.Driver");
+    private void testScriptRunscript() throws SQLException {
+        org.h2.Driver.load();
         String url = "jdbc:h2:" + baseDir + "/utils";
         String user = "sa", password = "abc";
         String fileName = baseDir + "/b2.sql";
@@ -361,8 +361,8 @@ public class TestTools extends TestBase {
         conn.close();
     }
 
-    private void testBackupRestore() throws Exception {
-        Class.forName("org.h2.Driver");
+    private void testBackupRestore() throws SQLException {
+        org.h2.Driver.load();
         String url = "jdbc:h2:" + baseDir + "/utils";
         String user = "sa", password = "abc";
         String fileName = baseDir + "/b2.zip";
@@ -382,8 +382,8 @@ public class TestTools extends TestBase {
         DeleteDbFiles.main(new String[] { "-dir", baseDir, "-db", "utils", "-quiet" });
     }
 
-    private void testChangeFileEncryption() throws Exception {
-        Class.forName("org.h2.Driver");
+    private void testChangeFileEncryption() throws SQLException {
+        org.h2.Driver.load();
         Connection conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/utils;CIPHER=XTEA;STORAGE=TEXT", "sa",
                 "abc 123");
         Statement stat = conn.createStatement();
@@ -401,7 +401,7 @@ public class TestTools extends TestBase {
         DeleteDbFiles.main(args);
     }
 
-    private void testServer() throws Exception {
+    private void testServer() throws SQLException {
         Connection conn;
         deleteDb("test");
         Server server = Server.createTcpServer(new String[] { "-baseDir", baseDir, "-tcpPort", "9192", "-tcpAllowOthers" }).start();

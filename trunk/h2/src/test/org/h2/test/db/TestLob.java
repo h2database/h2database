@@ -8,6 +8,7 @@ package org.h2.test.db;
 
 import java.io.ByteArrayInputStream;
 import java.io.CharArrayReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
@@ -61,7 +62,7 @@ public class TestLob extends TestBase {
         testJavaObject();
     }
     
-    private void testLobServerMemory() throws Exception {
+    private void testLobServerMemory() throws SQLException {
         deleteDb("lob");
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
@@ -73,7 +74,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
     
-    private void testLobDelete() throws Exception {
+    private void testLobDelete() throws SQLException {
         if (config.memory) {
             return;
         }
@@ -104,7 +105,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    private void testLobVariable() throws Exception {
+    private void testLobVariable() throws SQLException {
         deleteDb("lob");
         Connection conn = reconnect(null);
         Statement stat = conn.createStatement();
@@ -121,7 +122,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    private void testLobDrop() throws Exception {
+    private void testLobDrop() throws SQLException {
         if (config.logMode == 0 || config.networked) {
             return;
         }
@@ -193,7 +194,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    private void testLobTransactions(int spaceLen) throws Exception {
+    private void testLobTransactions(int spaceLen) throws SQLException {
         if (config.logMode == 0) {
             return;
         }
@@ -277,7 +278,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    private void testLobRollbackStop() throws Exception {
+    private void testLobRollbackStop() throws SQLException {
         if (config.logMode == 0) {
             return;
         }
@@ -297,7 +298,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    private void testLobCopy() throws Exception {
+    private void testLobCopy() throws SQLException {
         deleteDb("lob");
         Connection conn = reconnect(null);
         Statement stat = conn.createStatement();
@@ -403,7 +404,7 @@ public class TestLob extends TestBase {
         conn0.close();
     }
 
-    private void testLobCopy(boolean compress) throws Exception {
+    private void testLobCopy(boolean compress) throws SQLException {
         deleteDb("lob");
         Connection conn;
         conn = reconnect(null);
@@ -582,7 +583,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    private Connection reconnect(Connection conn) throws Exception {
+    private Connection reconnect(Connection conn) throws SQLException {
         long time = System.currentTimeMillis();
         if (conn != null) {
             conn.close();
@@ -592,7 +593,7 @@ public class TestLob extends TestBase {
         return conn;
     }
 
-    private void testUpdateLob() throws Exception {
+    private void testUpdateLob() throws SQLException {
         deleteDb("lob");
         Connection conn;
         conn = reconnect(null);
@@ -757,7 +758,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    private void testJavaObject() throws Exception {
+    private void testJavaObject() throws SQLException {
         deleteDb("lob");
         Connection conn = getConnection("lob");
         conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA OTHER)");
@@ -776,7 +777,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    private void checkStream(InputStream a, InputStream b, int len) throws Exception {
+    private void checkStream(InputStream a, InputStream b, int len) throws IOException {
         // this doesn't actually read anything - just tests reading 0 bytes
         a.read(new byte[0]);
         b.read(new byte[0]);
@@ -800,7 +801,7 @@ public class TestLob extends TestBase {
         b.close();
     }
 
-    private void checkReader(Reader a, Reader b, int len) throws Exception {
+    private void checkReader(Reader a, Reader b, int len) throws IOException {
         for (int i = 0; len < 0 || i < len; i++) {
             int ca = a.read();
             int cb = b.read();

@@ -11,6 +11,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 
@@ -28,7 +29,7 @@ public class TestMetaData extends TestBase {
     private Statement stat;
     private String catalog = "METADATA";
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         deleteDb("metaData");
         conn = getConnection("metaData");
 
@@ -197,7 +198,7 @@ public class TestMetaData extends TestBase {
 
     }
     
-    private void testColumnLobMeta() throws Exception {
+    private void testColumnLobMeta() throws SQLException {
         Statement stat = conn.createStatement();
         stat.executeUpdate("CREATE TABLE t (blob BLOB, clob CLOB)");
         stat.execute("INSERT INTO t VALUES('', '')");
@@ -211,7 +212,7 @@ public class TestMetaData extends TestBase {
         stat.executeUpdate("DROP TABLE t");
     }
 
-    private void testColumnMetaData() throws Exception {
+    private void testColumnMetaData() throws SQLException {
         String statement = "select substring('Hello',0,1)";
         ResultSet rs = conn.prepareStatement(statement).executeQuery();
         rs.next();
@@ -219,7 +220,7 @@ public class TestMetaData extends TestBase {
         assertEquals(Types.VARCHAR, type);
     }
 
-    private void testColumnPrecision() throws Exception {
+    private void testColumnPrecision() throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE ONE(X NUMBER(12,2), Y FLOAT)");
         stat.execute("CREATE TABLE TWO AS SELECT * FROM ONE");
@@ -240,7 +241,7 @@ public class TestMetaData extends TestBase {
         stat.execute("DROP TABLE ONE, TWO");
     }
 
-    private void testColumnDefault() throws Exception {
+    private void testColumnDefault() throws SQLException {
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs;
         Statement stat = conn.createStatement();
@@ -256,7 +257,7 @@ public class TestMetaData extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private void testProcedureColumns() throws Exception {
+    private void testProcedureColumns() throws SQLException {
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs;
         Statement stat = conn.createStatement();
@@ -286,7 +287,7 @@ public class TestMetaData extends TestBase {
         stat.execute("DROP ALIAS PROP");
     }
 
-    private void testCrossReferences() throws Exception {
+    private void testCrossReferences() throws SQLException {
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs;
         Statement stat = conn.createStatement();
@@ -303,7 +304,7 @@ public class TestMetaData extends TestBase {
         stat.execute("DROP TABLE CHILD");
     }
 
-    private void checkCrossRef(ResultSet rs) throws Exception {
+    private void checkCrossRef(ResultSet rs) throws SQLException {
         assertResultSetMeta(rs, 14, new String[] { "PKTABLE_CAT", "PKTABLE_SCHEM", "PKTABLE_NAME", "PKCOLUMN_NAME",
                 "FKTABLE_CAT", "FKTABLE_SCHEM", "FKTABLE_NAME", "FKCOLUMN_NAME", "KEY_SEQ", "UPDATE_RULE",
                 "DELETE_RULE", "FK_NAME", "PK_NAME", "DEFERRABILITY" }, new int[] { Types.VARCHAR, Types.VARCHAR,
@@ -319,7 +320,7 @@ public class TestMetaData extends TestBase {
                         null, "" + DatabaseMetaData.importedKeyNotDeferrable } });
     }
 
-    private void testTempTable() throws Exception {
+    private void testTempTable() throws SQLException {
         Connection conn = getConnection("metaData");
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST_TEMP");
@@ -339,8 +340,8 @@ public class TestMetaData extends TestBase {
         conn.close();
     }
 
-    private void testStatic() throws Exception {
-        Driver dr = (Driver) Class.forName("org.h2.Driver").newInstance();
+    private void testStatic() throws SQLException {
+        Driver dr = org.h2.Driver.load();
 
         assertEquals(dr.getMajorVersion(), meta.getDriverMajorVersion());
         assertEquals(dr.getMinorVersion(), meta.getDriverMinorVersion());
@@ -536,7 +537,7 @@ public class TestMetaData extends TestBase {
         assertTrue(meta.usesLocalFiles());
     }
 
-    private void test(Connection conn) throws Exception {
+    private void test(Connection conn) throws SQLException {
         DatabaseMetaData meta = conn.getMetaData();
         Statement stat = conn.createStatement();
         ResultSet rs;

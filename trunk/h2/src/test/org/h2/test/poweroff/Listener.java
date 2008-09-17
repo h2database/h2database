@@ -25,11 +25,11 @@ public class Listener implements Runnable {
      * 
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws IOException {
         new Listener().test(args);
     }
 
-    private void test(String[] args) throws Exception {
+    private void test(String[] args) throws IOException {
         int port = 9099;
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-port")) {
@@ -50,7 +50,7 @@ public class Listener implements Runnable {
         }
     }
 
-    private void listen(int port) throws Exception {
+    private void listen(int port) throws IOException {
         new Thread(this).start();
         ServerSocket serverSocket = new ServerSocket(port);
         System.out.println("Listening on " + serverSocket.toString());

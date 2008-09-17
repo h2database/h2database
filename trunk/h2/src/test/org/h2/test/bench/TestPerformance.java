@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -46,12 +47,12 @@ public class TestPerformance {
         new TestPerformance().test(args);
     }
 
-    private Connection getResultConnection() throws Exception {
-        Class.forName("org.h2.Driver");
+    private Connection getResultConnection() throws SQLException {
+        org.h2.Driver.load();
         return DriverManager.getConnection("jdbc:h2:data/results");
     }
 
-    private void openResults(boolean init) throws Exception {
+    private void openResults(boolean init) throws SQLException {
         Connection conn = null;
         Statement stat = null;
         try {

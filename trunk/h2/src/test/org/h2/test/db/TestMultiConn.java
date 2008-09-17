@@ -166,7 +166,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         // do nothing
     }
 
-    private void testCommitRollback() throws Exception {
+    private void testCommitRollback() throws SQLException {
         deleteDb("multiConn");
         Connection c1 = getConnection("multiConn");
         Connection c2 = getConnection("multiConn");

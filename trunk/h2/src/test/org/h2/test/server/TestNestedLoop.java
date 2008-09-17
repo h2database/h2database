@@ -19,7 +19,7 @@ import org.h2.test.TestBase;
  */
 public class TestNestedLoop extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         deleteDb("nestedLoop");
         Connection conn = getConnection("nestedLoop");
         Statement stat = conn.createStatement();

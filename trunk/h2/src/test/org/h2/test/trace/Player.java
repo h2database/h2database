@@ -62,7 +62,7 @@ public class Player {
      * 
      * @param args the arguments of the application
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws IOException {
         new Player().run(args);
     }
 

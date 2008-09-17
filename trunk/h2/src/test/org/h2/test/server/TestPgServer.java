@@ -23,7 +23,7 @@ import org.h2.tools.Server;
  */
 public class TestPgServer extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         deleteDb("test");
         Server server = Server.createPgServer(new String[]{"-baseDir", baseDir, "-pgPort", "5535"});
         server.start();
@@ -37,7 +37,7 @@ public class TestPgServer extends TestBase {
         }
     }
 
-    private void testPgClient() throws Exception {
+    private void testPgClient() throws SQLException {
         Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "sa", "sa");
         Statement stat = conn.createStatement();
         try {

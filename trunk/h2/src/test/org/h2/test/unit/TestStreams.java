@@ -8,6 +8,7 @@ package org.h2.test.unit;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Random;
 
 import org.h2.compress.LZFInputStream;
@@ -19,7 +20,7 @@ import org.h2.test.TestBase;
  */
 public class TestStreams extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws IOException {
         testLZFStreams();
     }
 
@@ -38,7 +39,7 @@ public class TestStreams extends TestBase {
         return buffer;
     }
 
-    private void testLZFStreams() throws Exception {
+    private void testLZFStreams() throws IOException {
         Random random = new Random(1);
         int max = getSize(100, 1000);
         for (int i = 0; i < max; i += 3) {

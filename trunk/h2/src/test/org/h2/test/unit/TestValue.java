@@ -6,6 +6,8 @@
  */
 package org.h2.test.unit;
 
+import java.sql.SQLException;
+
 import org.h2.test.TestBase;
 import org.h2.value.Value;
 import org.h2.value.ValueDouble;
@@ -17,13 +19,13 @@ import org.h2.value.ValueUuid;
  */
 public class TestValue extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testUUID();
         testDouble(false);
         testDouble(true);
     }
     
-    private void testDouble(boolean useFloat) throws Exception {
+    private void testDouble(boolean useFloat) throws SQLException {
         double[] d = new double[]{
                 Double.NEGATIVE_INFINITY,
                 -1,
@@ -47,7 +49,7 @@ public class TestValue extends TestBase {
         }        
     }
 
-    private void testUUID() throws Exception {
+    private void testUUID() {
         long maxHigh = 0, maxLow = 0, minHigh = -1L, minLow = -1L;
         for (int i = 0; i < 100; i++) {
             ValueUuid uuid = ValueUuid.getNewRandom();

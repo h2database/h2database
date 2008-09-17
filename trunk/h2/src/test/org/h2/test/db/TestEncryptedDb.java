@@ -18,7 +18,7 @@ import org.h2.test.TestBase;
  */
 public class TestEncryptedDb extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.memory || config.cipher != null) {
             return;
         }

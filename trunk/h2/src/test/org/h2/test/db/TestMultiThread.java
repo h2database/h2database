@@ -9,6 +9,7 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 
@@ -30,7 +31,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         // nothing to do
     }
 
-    private TestMultiThread(TestAll config, TestMultiThread parent) throws Exception {
+    private TestMultiThread(TestAll config, TestMultiThread parent) throws SQLException {
         this.config = config;
         this.parent = parent;
         random = new Random();
@@ -63,7 +64,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         conn.close();
     }
 
-    private Connection getConnection() throws Exception {
+    private Connection getConnection() throws SQLException {
         return getConnection("jdbc:h2:mem:multiThread");
     }
 

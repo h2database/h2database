@@ -29,7 +29,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
 
     CompareMode compareMode = new CompareMode(null, null, 0);
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         ValueHashMap map = new ValueHashMap(this);
         HashMap hash = new HashMap();
         Random random = new Random(1);

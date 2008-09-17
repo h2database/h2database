@@ -280,7 +280,7 @@ public class TestSynth extends TestBase {
         // "");
 
         mode = H2_MEM;
-        Class.forName("org.h2.Driver");
+        org.h2.Driver.load();
         addDatabase("org.h2.Driver", "jdbc:h2:mem:synth", "sa", "", true);
         addDatabase("org.h2.Driver", "jdbc:h2:" + baseDir + "/" + DIR + "/synth", "sa", "", false);
 

@@ -6,6 +6,8 @@
  */
 package org.h2.test.unit;
 
+import java.sql.SQLException;
+
 import org.h2.expression.CompareLike;
 import org.h2.test.TestBase;
 import org.h2.value.CompareMode;
@@ -15,7 +17,7 @@ import org.h2.value.CompareMode;
  */
 public class TestPattern extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         CompareMode mode = new CompareMode(null, null, 100);
         CompareLike comp = new CompareLike(mode, null, null, null, false);
         test(comp, "B", "%_");
@@ -30,7 +32,7 @@ public class TestPattern extends TestBase {
         }
     }
 
-    private void test(CompareLike comp, String value, String pattern) throws Exception {
+    private void test(CompareLike comp, String value, String pattern) throws SQLException {
         String regexp = initPatternRegexp(pattern, '\\');
         boolean resultRegexp = value.matches(regexp);
         boolean result = comp.test(pattern, value, '\\');
@@ -65,7 +67,7 @@ public class TestPattern extends TestBase {
         return buff.toString();
     }
 
-    private String initPatternRegexp(String pattern, char escape) throws Exception {
+    private String initPatternRegexp(String pattern, char escape) {
         int len = pattern.length();
         StringBuffer buff = new StringBuffer();
         for (int i = 0; i < len; i++) {

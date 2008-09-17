@@ -29,7 +29,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         start = last = System.currentTimeMillis();
     }
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.networked) {
             return;
         }

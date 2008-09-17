@@ -22,7 +22,7 @@ public class TestSQLInjection extends TestBase {
     private Connection conn;
     private Statement stat;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         deleteDb("sqlInjection");
         reconnect("sqlInjection");
         stat.execute("DROP TABLE IF EXISTS USERS");
@@ -89,7 +89,7 @@ public class TestSQLInjection extends TestBase {
         return rs.next();
     }
 
-    private boolean checkPasswordSecure(String pwd) throws Exception {
+    private boolean checkPasswordSecure(String pwd) throws SQLException {
         String sql = "SELECT * FROM USERS WHERE PASSWORD=?";
         PreparedStatement prep = conn.prepareStatement(sql);
         prep.setString(1, pwd);
@@ -97,7 +97,7 @@ public class TestSQLInjection extends TestBase {
         return rs.next();
     }
 
-    private void reconnect(String name) throws Exception {
+    private void reconnect(String name) throws SQLException {
         if (!config.memory) {
             if (conn != null) {
                 conn.close();

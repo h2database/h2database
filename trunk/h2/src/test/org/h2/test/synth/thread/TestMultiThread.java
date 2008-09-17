@@ -54,9 +54,9 @@ abstract class TestMultiThread extends Thread {
 
     /**
      * This method is called once after all threads have been stopped.
-     * @throws Exception
+     * @throws SQLException 
      */
-    abstract void finalTest() throws Exception;
+    abstract void finalTest() throws SQLException;
 
     public void run() {
         try {

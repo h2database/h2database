@@ -9,6 +9,7 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 
@@ -24,7 +25,7 @@ public class TestIndex extends TestBase {
     private Statement stat;
     private Random random = new Random();
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testDescIndex();
         testHashIndex();
 
@@ -70,7 +71,7 @@ public class TestIndex extends TestBase {
         conn.close();
     }
     
-    private void testHashIndex() throws Exception {
+    private void testHashIndex() throws SQLException {
         reconnect();
         stat.execute("create table testA(id int primary key, name varchar)");
         stat.execute("create table testB(id int primary key hash, name varchar)");
@@ -110,7 +111,7 @@ public class TestIndex extends TestBase {
         conn.close();
     }
 
-    private void reconnect() throws Exception {
+    private void reconnect() throws SQLException {
         if (conn != null) {
             conn.close();
             conn = null;
@@ -119,7 +120,7 @@ public class TestIndex extends TestBase {
         stat = conn.createStatement();
     }
 
-    private void testDescIndex() throws Exception {
+    private void testDescIndex() throws SQLException {
         if (config.memory) {
             return;
         }
@@ -155,7 +156,7 @@ public class TestIndex extends TestBase {
         return buff.toString();
     }
 
-    private void testWideIndex(int length) throws Exception {
+    private void testWideIndex(int length) throws SQLException {
         reconnect();
         stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR)");
         stat.execute("CREATE INDEX IDXNAME ON TEST(NAME)");
@@ -180,7 +181,7 @@ public class TestIndex extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private void testLike() throws Exception {
+    private void testLike() throws SQLException {
         reconnect();
         stat.execute("CREATE TABLE ABC(ID INT, NAME VARCHAR)");
         stat.execute("INSERT INTO ABC VALUES(1, 'Hello')");
@@ -190,7 +191,7 @@ public class TestIndex extends TestBase {
         stat.execute("DROP TABLE ABC");
     }
 
-    private void testConstraint() throws Exception {
+    private void testConstraint() throws SQLException {
         if (config.memory) {
             return;
         }
@@ -201,7 +202,7 @@ public class TestIndex extends TestBase {
         stat.execute("DROP TABLE CHILD");
     }
 
-    private void testLargeIndex() throws Exception {
+    private void testLargeIndex() throws SQLException {
         random.setSeed(10);
         for (int i = 1; i < 100; i += getSize(1000, 3)) {
             stat.execute("DROP TABLE IF EXISTS TEST");
@@ -226,7 +227,7 @@ public class TestIndex extends TestBase {
         stat.execute("DROP TABLE IF EXISTS TEST");
     }
 
-    private void testHashIndex(boolean primaryKey, boolean hash) throws Exception {
+    private void testHashIndex(boolean primaryKey, boolean hash) throws SQLException {
         if (config.memory) {
             return;
         }
@@ -264,7 +265,7 @@ public class TestIndex extends TestBase {
         assertEquals(0, getValue(stat, "SELECT COUNT(*) FROM TEST"));
     }
 
-    private void testMultiColumnIndex() throws Exception {
+    private void testMultiColumnIndex() throws SQLException {
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE TABLE TEST(A INT, B INT)");
         PreparedStatement prep;
@@ -288,7 +289,7 @@ public class TestIndex extends TestBase {
         assertEquals(0, getValue(stat, "SELECT COUNT(*) FROM TEST"));
     }
 
-    private void testMultiColumnHashIndex() throws Exception {
+    private void testMultiColumnHashIndex() throws SQLException {
         if (config.memory) {
             return;
         }
@@ -329,13 +330,13 @@ public class TestIndex extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private int getValue(Statement stat, String sql) throws Exception {
+    private int getValue(Statement stat, String sql) throws SQLException {
         ResultSet rs = stat.executeQuery(sql);
         rs.next();
         return rs.getInt(1);
     }
 
-    private void log(Statement stat, String sql) throws Exception {
+    private void log(Statement stat, String sql) throws SQLException {
         trace(sql);
         ResultSet rs = stat.executeQuery(sql);
         int cols = rs.getMetaData().getColumnCount();

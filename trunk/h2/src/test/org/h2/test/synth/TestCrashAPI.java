@@ -65,7 +65,7 @@ public class TestCrashAPI extends TestBase {
         }
     }
 
-    private Connection getConnection(int seed, boolean delete) throws Exception {
+    private Connection getConnection(int seed, boolean delete) throws SQLException {
         openCount++;
         if (delete) {
             deleteDb();
@@ -148,7 +148,7 @@ public class TestCrashAPI extends TestBase {
         return conn;
     }
 
-    private void testOne(int seed) throws Exception {
+    private void testOne(int seed) throws SQLException {
         printTime("seed: " + seed);
         callCount = 0;
         openCount = 0;
@@ -239,7 +239,7 @@ public class TestCrashAPI extends TestBase {
                 " " + t.getMessage(), t);
     }
 
-    private Object callRandom(int seed, int id, int objectId, Object o, Method m) throws Exception {
+    private Object callRandom(int seed, int id, int objectId, Object o, Method m) throws SQLException {
         Class[] paramClasses = m.getParameterTypes();
         Object[] params = new Object[paramClasses.length];
         for (int i = 0; i < params.length; i++) {
@@ -399,12 +399,12 @@ public class TestCrashAPI extends TestBase {
         TestScript script = new TestScript();
         ArrayList add = script.getAllStatements(config, "org/h2/test/test.in.txt");
         initMethods();
-        Class.forName("org.h2.Driver");
+        org.h2.Driver.load();
         statements.addAll(add);
         return this;
     }
 
-    public void testCase(int i) throws Exception {
+    public void testCase(int i) throws SQLException {
         int old = SysProperties.getMaxQueryTimeout();
         String oldBaseDir = baseDir;
         try {
@@ -417,7 +417,7 @@ public class TestCrashAPI extends TestBase {
         }
     }
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.mvcc || config.networked || config.logMode == 0) {
             return;
         }

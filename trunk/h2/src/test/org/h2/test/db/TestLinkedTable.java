@@ -22,7 +22,7 @@ import org.h2.test.TestBase;
  */
 public class TestLinkedTable extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         // testLinkAutoAdd();
         testReadOnlyLinkedTable();
         testLinkOtherSchema();
@@ -34,7 +34,7 @@ public class TestLinkedTable extends TestBase {
     }
 
     // this is not a bug, it is the documented behavior
-//    private void testLinkAutoAdd() throws Exception {
+//    private void testLinkAutoAdd() throws SQLException {
 //        Class.forName("org.h2.Driver");
 //        Connection ca = 
 //            DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
@@ -53,8 +53,8 @@ public class TestLinkedTable extends TestBase {
 //        cb.close();
 //    }
     
-    private void testReadOnlyLinkedTable() throws Exception {
-        Class.forName("org.h2.Driver");
+    private void testReadOnlyLinkedTable() throws SQLException {
+        org.h2.Driver.load();
         Connection ca = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
         Connection cb = DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
         Statement sa = ca.createStatement();
@@ -87,8 +87,8 @@ public class TestLinkedTable extends TestBase {
         cb.close();
     }
 
-    private void testLinkOtherSchema() throws Exception {
-        Class.forName("org.h2.Driver");
+    private void testLinkOtherSchema() throws SQLException {
+        org.h2.Driver.load();
         Connection ca = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
         Connection cb = DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
         Statement sa = ca.createStatement();
@@ -106,8 +106,8 @@ public class TestLinkedTable extends TestBase {
         cb.close();
     }
 
-    private void testLinkTwoTables() throws Exception {
-        Class.forName("org.h2.Driver");
+    private void testLinkTwoTables() throws SQLException {
+        org.h2.Driver.load();
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("CREATE SCHEMA Y");
@@ -129,8 +129,8 @@ public class TestLinkedTable extends TestBase {
         conn2.close();
     }
 
-    private void testLinkDrop() throws Exception {
-        Class.forName("org.h2.Driver");
+    private void testLinkDrop() throws SQLException {
+        org.h2.Driver.load();
         Connection connA = DriverManager.getConnection("jdbc:h2:mem:a");
         Statement statA = connA.createStatement();
         statA.execute("CREATE TABLE TEST(ID INT)");
@@ -150,10 +150,10 @@ public class TestLinkedTable extends TestBase {
         connB.close();
     }
 
-    private void testLinkEmitUpdates() throws Exception {
+    private void testLinkEmitUpdates() throws SQLException {
         deleteDb("linked1");
         deleteDb("linked2");
-        Class.forName("org.h2.Driver");
+        org.h2.Driver.load();
 
         Connection conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/linked1", "sa1", "abc");
         Statement stat = conn.createStatement();
@@ -209,10 +209,10 @@ public class TestLinkedTable extends TestBase {
         conn2.close();
     }
 
-    private void testLinkSchema() throws Exception {
+    private void testLinkSchema() throws SQLException {
         deleteDb("linked1");
         deleteDb("linked2");
-        Class.forName("org.h2.Driver");
+        org.h2.Driver.load();
 
         Connection conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/linked1", "sa1", "abc");
         Statement stat = conn.createStatement();
@@ -233,10 +233,10 @@ public class TestLinkedTable extends TestBase {
         conn2.close();
     }
 
-    private void testLinkTable() throws Exception {
+    private void testLinkTable() throws SQLException {
         deleteDb("linked1");
         deleteDb("linked2");
-        Class.forName("org.h2.Driver");
+        org.h2.Driver.load();
 
         Connection conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/linked1", "sa1", "abc");
         Statement stat = conn.createStatement();
@@ -338,7 +338,7 @@ public class TestLinkedTable extends TestBase {
         deleteDb("linked2");
     }
 
-    private void testRow(Statement stat, String name) throws Exception {
+    private void testRow(Statement stat, String name) throws SQLException {
         ResultSet rs = stat.executeQuery("SELECT * FROM " + name + " WHERE ID=1");
         rs.next();
         assertEquals(rs.getString("NAME"), "Hello");

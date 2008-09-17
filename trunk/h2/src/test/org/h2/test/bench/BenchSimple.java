@@ -7,6 +7,7 @@
 package org.h2.test.bench;
 
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Random;
 
 /**
@@ -19,7 +20,7 @@ public class BenchSimple implements Bench {
     Database db;
     int records;
 
-    public void init(Database db, int size) throws Exception {
+    public void init(Database db, int size) throws SQLException {
         this.db = db;
         this.records = size * 60;
 
@@ -50,7 +51,7 @@ public class BenchSimple implements Bench {
 
     }
 
-    public void runTest() throws Exception {
+    public void runTest() throws SQLException {
         PreparedStatement prep;
         Random random = db.getRandom();
 

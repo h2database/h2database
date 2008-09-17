@@ -23,7 +23,7 @@ import org.h2.tools.Server;
  */
 public class TestCluster extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.memory || config.networked) {
             return;
         }
@@ -33,7 +33,7 @@ public class TestCluster extends TestBase {
 
         // create the master database
         Connection conn;
-        Class.forName("org.h2.Driver");
+        org.h2.Driver.load();
         conn = DriverManager.getConnection("jdbc:h2:file:" + baseDir + "/node1/test", "sa", "");
         Statement stat;
         stat = conn.createStatement();
@@ -124,7 +124,7 @@ public class TestCluster extends TestBase {
         n2.stop();
     }
 
-    private void check(Connection conn, int len) throws Exception {
+    private void check(Connection conn, int len) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("SELECT * FROM TEST WHERE ID=?");
         for (int i = 0; i < len; i++) {
             prep.setInt(1, i);

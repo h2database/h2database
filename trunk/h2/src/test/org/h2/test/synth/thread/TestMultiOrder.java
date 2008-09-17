@@ -132,7 +132,7 @@ public class TestMultiOrder extends TestMultiThread {
         conn.close();
     }
 
-    void finalTest() throws Exception {
+    void finalTest() throws SQLException {
         conn = base.getConnection();
         ResultSet rs = conn.createStatement().executeQuery("select count(*) from customer");
         rs.next();

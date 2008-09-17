@@ -44,7 +44,7 @@ public class BenchB implements Bench, Runnable {
         // nothing to do
     }
     
-    private BenchB(BenchB master, int seed) throws Exception {
+    private BenchB(BenchB master, int seed) throws SQLException {
         this.master = master;
         random = new Random(seed);
         conn = master.db.openNewConnection();
@@ -61,7 +61,7 @@ public class BenchB implements Bench, Runnable {
                 "INSERT INTO HISTORY(TID, BID, AID, DELTA) VALUES(?, ?, ?, ?)");
     }
 
-    public void init(Database db, int size) throws Exception {
+    public void init(Database db, int size) throws SQLException {
         this.db = db;
         this.transactionPerClient = size;
 

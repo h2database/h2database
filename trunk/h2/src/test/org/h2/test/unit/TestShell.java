@@ -6,6 +6,7 @@
  */
 package org.h2.test.unit;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
@@ -36,7 +37,7 @@ public class TestShell extends TestBase {
     private PipedInputStream testIn;
     private LineNumberReader lineReader;
     
-    public void test() throws Exception {
+    public void test() throws IOException {
         testIn = new PipedInputStream();
         PipedOutputStream out = new PipedOutputStream(testIn);
         toolOut = new PrintStream(out, true);
@@ -99,7 +100,7 @@ public class TestShell extends TestBase {
         read("sql>");
     }
     
-    private String read(String expectedStart) throws Exception {
+    private String read(String expectedStart) throws IOException {
         String line = lineReader.readLine();
         // System.out.println(": " + line);
         assertStartsWith(line, expectedStart);

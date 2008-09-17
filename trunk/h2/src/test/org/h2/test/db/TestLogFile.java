@@ -9,6 +9,7 @@ package org.h2.test.db;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
@@ -24,7 +25,7 @@ public class TestLogFile extends TestBase {
     private static final int MAX_LOG_SIZE = 1;
     private Connection conn;
 
-    private long reconnect(int maxFiles) throws Exception {
+    private long reconnect(int maxFiles) throws SQLException {
         if (conn != null) {
             conn.close();
         }
@@ -40,7 +41,7 @@ public class TestLogFile extends TestBase {
         return length;
     }
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         if (config.memory) {
             return;
         }
@@ -65,7 +66,7 @@ public class TestLogFile extends TestBase {
         }
     }
 
-    private void checkLogSize() throws Exception {
+    private void checkLogSize() throws SQLException {
         String[] files = new File(".").list();
         for (int j = 0; j < files.length; j++) {
             String name = files[j];
@@ -76,7 +77,7 @@ public class TestLogFile extends TestBase {
         }
     }
 
-    private void insert() throws Exception {
+    private void insert() throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("SET LOGSIZE 200");
         stat.execute("SET MAX_LOG_SIZE " + MAX_LOG_SIZE);

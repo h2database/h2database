@@ -57,7 +57,7 @@ public class TestCases extends TestBase {
         testCollation();
     }
     
-    private void testInvalidDatabaseName() throws Exception {
+    private void testInvalidDatabaseName() throws SQLException {
         if (config.memory) {
             return;
         }
@@ -75,7 +75,7 @@ public class TestCases extends TestBase {
         }
     }
     
-    private void testReuseSpace() throws Exception {
+    private void testReuseSpace() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
@@ -99,7 +99,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testDeleteGroup() throws Exception {
+    private void testDeleteGroup() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
@@ -110,7 +110,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testSpecialSQL() throws Exception {
+    private void testSpecialSQL() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
@@ -138,7 +138,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testUpperCaseLowerCaseDatabase() throws Exception {
+    private void testUpperCaseLowerCaseDatabase() throws SQLException {
         if (File.separatorChar != '\\') {
             return;
         }
@@ -175,7 +175,7 @@ public class TestCases extends TestBase {
 
     }
 
-    private void testManualCommitSet() throws Exception {
+    private void testManualCommitSet() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Connection conn2 = getConnection("cases");
@@ -187,7 +187,7 @@ public class TestCases extends TestBase {
         conn2.close();
     }
 
-    private void testSchemaIdentityReconnect() throws Exception {
+    private void testSchemaIdentityReconnect() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
@@ -246,7 +246,7 @@ public class TestCases extends TestBase {
         deleteDb("cases");
     }
 
-    private void testExecuteTrace() throws Exception {
+    private void testExecuteTrace() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
@@ -265,7 +265,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testAlterTableReconnect() throws Exception {
+    private void testAlterTableReconnect() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
@@ -313,7 +313,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testCollation() throws Exception {
+    private void testCollation() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
@@ -339,7 +339,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testPersistentSettings() throws Exception {
+    private void testPersistentSettings() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
@@ -360,7 +360,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testInsertSelectUnion() throws Exception {
+    private void testInsertSelectUnion() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
@@ -387,7 +387,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testViewReconnect() throws Exception {
+    private void testViewReconnect() throws SQLException {
         trace("testViewReconnect");
         deleteDb("cases");
         Connection conn = getConnection("cases");
@@ -407,7 +407,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testDefaultQueryReconnect() throws Exception {
+    private void testDefaultQueryReconnect() throws SQLException {
         trace("testDefaultQueryReconnect");
         deleteDb("cases");
         Connection conn = getConnection("cases");
@@ -429,7 +429,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testBigString() throws Exception {
+    private void testBigString() throws SQLException {
         trace("testBigString");
         deleteDb("cases");
         Connection conn = getConnection("cases");
@@ -481,7 +481,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testConstraintReconnect() throws Exception {
+    private void testConstraintReconnect() throws SQLException {
         trace("testConstraintReconnect");
         deleteDb("cases");
         Connection conn = getConnection("cases");
@@ -500,7 +500,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testDoubleRecovery() throws Exception {
+    private void testDoubleRecovery() throws SQLException {
         if (config.networked) {
             return;
         }
@@ -535,7 +535,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testRenameReconnect() throws Exception {
+    private void testRenameReconnect() throws SQLException {
         trace("testRenameReconnect");
         deleteDb("cases");
         Connection conn = getConnection("cases");
@@ -562,7 +562,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testAllSizes() throws Exception {
+    private void testAllSizes() throws SQLException {
         trace("testAllSizes");
         deleteDb("cases");
         Connection conn = getConnection("cases");
@@ -594,7 +594,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testSelectForUpdate() throws Exception {
+    private void testSelectForUpdate() throws SQLException {
         trace("testSelectForUpdate");
         deleteDb("cases");
         Connection conn1 = getConnection("cases");
@@ -617,7 +617,7 @@ public class TestCases extends TestBase {
         conn2.close();
     }
 
-    private void testMutableObjects() throws Exception {
+    private void testMutableObjects() throws SQLException {
         trace("testMutableObjects");
         deleteDb("cases");
         Connection conn = getConnection("cases");
@@ -644,7 +644,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testCreateDrop() throws Exception {
+    private void testCreateDrop() throws SQLException {
         trace("testCreateDrop");
         deleteDb("cases");
         Connection conn = getConnection("cases");
@@ -658,7 +658,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testPolePos() throws Exception {
+    private void testPolePos() throws SQLException {
         trace("testPolePos");
         // poleposition-0.20
 
@@ -732,7 +732,7 @@ public class TestCases extends TestBase {
         c0.close();
     }
 
-    private void testQuick() throws Exception {
+    private void testQuick() throws SQLException {
         trace("testQuick");
         deleteDb("cases");
 

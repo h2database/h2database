@@ -81,7 +81,7 @@ public class TestRecover {
         testLoop();
     }
 
-    private static File backup(String sourcePath, String targetPath, String basePath, int max, String node) throws Exception {
+    private static File backup(String sourcePath, String targetPath, String basePath, int max, String node) throws IOException {
         File root = new File(targetPath);
         if (!root.exists()) {
             root.mkdirs();

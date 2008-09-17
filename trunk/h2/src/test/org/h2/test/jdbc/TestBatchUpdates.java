@@ -14,6 +14,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
@@ -42,13 +43,13 @@ public class TestBatchUpdates extends TestBase {
     private Statement stat;
     private PreparedStatement prep;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testExecuteCall();
         testException();
         testCoffee();
     }
 
-    private void testExecuteCall() throws Exception {
+    private void testExecuteCall() throws SQLException {
         deleteDb("batchUpdates");
         Connection conn = getConnection("batchUpdates");
         Statement stat = conn.createStatement();
@@ -80,7 +81,7 @@ public class TestBatchUpdates extends TestBase {
         return (int) f;
     }
 
-    private void testException() throws Exception {
+    private void testException() throws SQLException {
         deleteDb("batchUpdates");
         Connection conn = getConnection("batchUpdates");
         Statement stat = conn.createStatement();
@@ -106,7 +107,7 @@ public class TestBatchUpdates extends TestBase {
         conn.close();
     }
 
-    private void testCoffee() throws Exception {
+    private void testCoffee() throws SQLException {
         deleteDb("batchUpdates");
         this.conn = getConnection("batchUpdates");
         stat = conn.createStatement();
@@ -151,7 +152,7 @@ public class TestBatchUpdates extends TestBase {
         conn.close();
     }
 
-    private void testAddBatch01() throws Exception {
+    private void testAddBatch01() throws SQLException {
         trace("testAddBatch01");
         int i = 0;
         int[] retValue = { 0, 0, 0 };
@@ -200,7 +201,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    private void testAddBatch02() throws Exception {
+    private void testAddBatch02() throws SQLException {
         trace("testAddBatch02");
         int i = 0;
         int[] retValue = { 0, 0, 0 };
@@ -237,7 +238,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    private void testClearBatch01() throws Exception {
+    private void testClearBatch01() throws SQLException {
         trace("testClearBatch01");
         String sPrepStmt = COFFEE_UPDATE;
         trace("Prepared Statement String:" + sPrepStmt);
@@ -258,7 +259,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    private void testClearBatch02() throws Exception {
+    private void testClearBatch02() throws SQLException {
         trace("testClearBatch02");
         int updCountLength = 0;
         String sUpdCoffee = COFFEE_UPDATE1;
@@ -278,7 +279,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    private void testExecuteBatch01() throws Exception {
+    private void testExecuteBatch01() throws SQLException {
         trace("testExecuteBatch01");
         int i = 0;
         int[] retValue = { 0, 0, 0 };
@@ -327,7 +328,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    private void testExecuteBatch02() throws Exception {
+    private void testExecuteBatch02() throws SQLException {
         trace("testExecuteBatch02");
         String sPrepStmt = COFFEE_UPDATE;
         trace("Prepared Statement String:" + sPrepStmt);
@@ -345,7 +346,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    private void testExecuteBatch03() throws Exception {
+    private void testExecuteBatch03() throws SQLException {
         trace("testExecuteBatch03");
         boolean batchExceptionFlag = false;
         String sPrepStmt = COFFEE_SELECT;
@@ -366,7 +367,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    private void testExecuteBatch04() throws Exception {
+    private void testExecuteBatch04() throws SQLException {
         trace("testExecuteBatch04");
         int i = 0;
         int[] retValue = { 0, 0, 0 };
@@ -402,7 +403,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    private void testExecuteBatch05() throws Exception {
+    private void testExecuteBatch05() throws SQLException {
         trace("testExecuteBatch05");
         int updCountLength = 0;
         int[] updateCount = stat.executeBatch();
@@ -415,7 +416,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    private void testExecuteBatch06() throws Exception {
+    private void testExecuteBatch06() throws SQLException {
         trace("testExecuteBatch06");
         boolean batchExceptionFlag = false;
         // Insert a row which is already Present
@@ -440,7 +441,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    private void testExecuteBatch07() throws Exception {
+    private void testExecuteBatch07() throws SQLException {
         trace("testExecuteBatch07");
         boolean batchExceptionFlag = false;
         String selectCoffee = COFFEE_SELECT1;
@@ -460,7 +461,7 @@ public class TestBatchUpdates extends TestBase {
         }
     }
 
-    private void testContinueBatch01() throws Exception {
+    private void testContinueBatch01() throws SQLException {
         trace("testContinueBatch01");
         int[] batchUpdates = { 0, 0, 0 };
         int buCountLen = 0;

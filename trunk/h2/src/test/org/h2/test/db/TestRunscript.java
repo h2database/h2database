@@ -18,7 +18,7 @@ import org.h2.test.TestBase;
  */
 public class TestRunscript extends TestBase implements Trigger {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         test(false);
         test(true);
     }
@@ -33,7 +33,7 @@ public class TestRunscript extends TestBase implements Trigger {
         return Math.abs(a);
     }
 
-    private void test(boolean password) throws Exception {
+    private void test(boolean password) throws SQLException {
         deleteDb("runscript");
         Connection conn1, conn2;
         Statement stat1, stat2;

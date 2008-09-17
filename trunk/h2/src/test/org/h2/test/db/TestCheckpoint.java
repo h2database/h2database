@@ -7,6 +7,7 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
@@ -16,7 +17,7 @@ import org.h2.test.TestBase;
  */
 public class TestCheckpoint extends TestBase {
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         // TODO test checkpoint with rollback, not only just run the command
         deleteDb("checkpoint");
         Connection c0 = getConnection("checkpoint");

@@ -22,13 +22,13 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
 
     private boolean calledOpened, calledClosingDatabase, calledScan;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testCalled();
         testCloseLog0(false);
         testCloseLog0(true);
     }
 
-    private void testCloseLog0(boolean shutdown) throws Exception {
+    private void testCloseLog0(boolean shutdown) throws SQLException {
         if (config.memory) {
             return;
         }
@@ -57,7 +57,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         }
     }
 
-    private void testCalled() throws Exception {
+    private void testCalled() throws SQLException {
         Properties p = new Properties();
         p.setProperty("user", "sa");
         p.setProperty("password", "sa");

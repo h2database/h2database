@@ -26,7 +26,7 @@ public class TestSessionsLocks extends TestBase {
         testLocks();
     }
 
-    private void testLocks() throws Exception {
+    private void testLocks() throws SQLException {
         deleteDb("sessionsLocks");
         Connection conn = getConnection("sessionsLocks;MULTI_THREADED=1");
         Statement stat = conn.createStatement();

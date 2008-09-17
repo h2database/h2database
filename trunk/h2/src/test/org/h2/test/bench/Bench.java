@@ -6,6 +6,8 @@
  */
 package org.h2.test.bench;
 
+import java.sql.SQLException;
+
 /**
  * The interface for benchmark tests.
  */
@@ -17,7 +19,7 @@ public interface Bench {
      * @param db the database object
      * @param size the amount of data
      */
-    void init(Database db, int size) throws Exception;
+    void init(Database db, int size) throws SQLException;
 
     /**
      * Run the test.

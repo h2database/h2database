@@ -25,7 +25,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
     
     private String triggerName;
 
-    public void test() throws Exception {
+    public void test() throws SQLException {
         deleteDb("trigger");
         testTriggerAlterTable();
         testTriggers();
@@ -47,7 +47,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         }
     }
     
-    private void testTriggerAlterTable() throws Exception {
+    private void testTriggerAlterTable() throws SQLException {
         Connection conn = getConnection("trigger");
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
@@ -65,7 +65,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         conn.close();
     }
 
-    private void testConstraints() throws Exception {
+    private void testConstraints() throws SQLException {
         Connection conn = getConnection("trigger");
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
@@ -78,7 +78,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         conn.close();
     }
 
-    private void testTriggers() throws Exception {
+    private void testTriggers() throws SQLException {
         mustNotCallTrigger = false;
         Connection conn = getConnection("trigger");
         Statement stat = conn.createStatement();
@@ -142,7 +142,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         conn.close();
     }
 
-    private void checkRows(ResultSet rs, String[] expected) throws Exception {
+    private void checkRows(ResultSet rs, String[] expected) throws SQLException {
         HashSet set = new HashSet(Arrays.asList(expected));
         while (rs.next()) {
             set.remove(rs.getString(1));

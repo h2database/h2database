@@ -31,11 +31,22 @@ public class TestStringCache extends TestBase {
      * 
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         new TestStringCache().runBenchmark();
     }
+    
+    public void test() throws InterruptedException {
+        returnNew = true;
+        StringCache.clearCache();
+        testSingleThread(getSize(5000, 20000));
+        testMultiThreads();
+        returnNew = false;
+        StringCache.clearCache();
+        testSingleThread(getSize(5000, 20000));
+        testMultiThreads();
+    }
 
-    private void runBenchmark() throws Exception {
+    private void runBenchmark() {
         returnNew = false;
         for (int i = 0; i < 6; i++) {
             useIntern = (i % 2) == 1;
@@ -45,17 +56,6 @@ public class TestStringCache extends TestBase {
             System.out.println(time + " ms (useIntern=" + useIntern + ")");
         }
 
-    }
-
-    public void test() throws Exception {
-        returnNew = true;
-        StringCache.clearCache();
-        testSingleThread(getSize(5000, 20000));
-        testMultiThreads();
-        returnNew = false;
-        StringCache.clearCache();
-        testSingleThread(getSize(5000, 20000));
-        testMultiThreads();
     }
 
     private String randomString() {
@@ -104,13 +104,13 @@ public class TestStringCache extends TestBase {
         }
     }
 
-    private void testSingleThread(int len) throws Exception {
+    private void testSingleThread(int len) {
         for (int i = 0; i < len; i++) {
             testString();
         }
     }
 
-    private void testMultiThreads() throws Exception {
+    private void testMultiThreads() throws InterruptedException {
         int threadCount = getSize(3, 100);
         Thread[] threads = new Thread[threadCount];
         for (int i = 0; i < threadCount; i++) {

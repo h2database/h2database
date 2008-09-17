@@ -10,6 +10,7 @@ import java.sql.SQLException;
 
 import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -64,8 +65,20 @@ public class CreateView extends SchemaCommand {
             querySQL = select.getSQL();
         }
         Session sysSession = db.getSystemSession();
-        TableView view = new TableView(getSchema(), id, viewName, querySQL, null, columnNames, sysSession, recursive);
+        TableView view;
+        try {
+            Schema schema = session.getDatabase().getSchema(session.getCurrentSchemaName());
+            sysSession.setCurrentSchema(schema);
+            view = new TableView(getSchema(), id, viewName, querySQL, null, columnNames, sysSession, recursive);
+        } finally {
+            sysSession.setCurrentSchema(db.getSchema(Constants.SCHEMA_MAIN));
+        }
         view.setComment(comment);
+        try {
+            view.recompileQuery(session);
+        } catch (SQLException e) {
+            // this is not strictly required - ignore exceptions, specially when using FORCE
+        }
         db.addSchemaObject(session, view);
         return 0;
     }

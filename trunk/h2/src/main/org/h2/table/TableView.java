@@ -53,7 +53,13 @@ public class TableView extends Table {
         initColumnsAndTables(session);
     }
 
-    private Query recompileQuery(Session session) throws SQLException {
+    /**
+     * Re-compile the query, updating the SQL statement.
+     * 
+     * @param session the session
+     * @return the query
+     */
+    public Query recompileQuery(Session session) throws SQLException {
         Prepared p = session.prepare(querySQL);
         if (!(p instanceof Query)) {
             throw Message.getSyntaxError(querySQL, 0);
@@ -91,9 +97,6 @@ public class TableView extends Table {
             cols = new Column[list.size()];
             list.toArray(cols);
             createException = null;
-            if (getId() != 0) {
-                addViewToTables();
-            }
             viewQuery = query;
         } catch (SQLException e) {
             createException = e;
@@ -114,6 +117,9 @@ public class TableView extends Table {
 
         }
         setColumns(cols);
+        if (getId() != 0) {
+            addViewToTables();
+        }
     }
 
     /**
@@ -157,6 +163,15 @@ public class TableView extends Table {
                     buff.append(", ");
                 }
                 buff.append(columns[i].getSQL());
+            }
+            buff.append(")");
+        } else if (columnNames != null) {
+            buff.append('(');
+            for (int i = 0; i < columnNames.length; i++) {
+                if (i > 0) {
+                    buff.append(", ");
+                }
+                buff.append(columnNames[i]);
             }
             buff.append(")");
         }

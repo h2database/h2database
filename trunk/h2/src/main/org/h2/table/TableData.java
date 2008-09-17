@@ -378,7 +378,7 @@ public class TableData extends Table implements RecordReader {
             } else {
                 if (lockExclusive == null) {
                     if (lockMode == Constants.LOCK_MODE_READ_COMMITTED) {
-                        if (!database.getMultiThreaded() && !database.isMultiVersion()) {
+                        if (!database.isMultiThreaded() && !database.isMultiVersion()) {
                             // READ_COMMITTED: a read lock is acquired, 
                             // but released immediately after the operation 
                             // is complete.

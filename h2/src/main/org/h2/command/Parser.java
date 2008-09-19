@@ -10,9 +10,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.SQLException;
 import java.text.Collator;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
@@ -400,6 +398,8 @@ public class Parser {
                     c = parseScript();
                 } else if (readIf("SHUTDOWN")) {
                     c = parseShutdown();
+                } else if (readIf("SHOW")) {
+                    c = parseShow();
                 }
                 break;
             case 'T':
@@ -768,6 +768,7 @@ public class Parser {
     private Prepared parseHelp() throws SQLException {
         StringBuffer buff = new StringBuffer("SELECT * FROM INFORMATION_SCHEMA.HELP");
         int i = 0;
+        ObjectArray paramValues = new ObjectArray();
         while (currentTokenType != END) {
             String s = currentToken;
             read();
@@ -777,10 +778,61 @@ public class Parser {
                 buff.append(" AND ");
             }
             i++;
-            buff.append("UPPER(TOPIC) LIKE ");
-            buff.append(StringUtils.quoteStringSQL("%" + s + "%"));
+            buff.append("UPPER(TOPIC) LIKE ?");
+            paramValues.add(ValueString.get("%" + s + "%"));
         }
-        return session.prepare(buff.toString());
+        return prepare(session, buff.toString(), paramValues);
+    }
+    
+    private Prepared parseShow() throws SQLException {
+        ObjectArray paramValues = new ObjectArray();
+        StringBuffer buff = new StringBuffer("SELECT ");
+        if (readIf("CLIENT_ENCODING")) {
+            // for PostgreSQL compatibility
+            buff.append("'UNICODE' AS CLIENT_ENCODING FROM DUAL");
+        } else if (readIf("DATESTYLE")) {
+            // for PostgreSQL compatibility
+            buff.append("'ISO' AS DATESTYLE FROM DUAL");
+        } else if (readIf("SERVER_VERSION")) {
+            // for PostgreSQL compatibility
+            buff.append("'8.1.4' AS SERVER_VERSION FROM DUAL");
+        } else if (readIf("SERVER_ENCODING")) {
+            // for PostgreSQL compatibility
+            buff.append("'UTF8' AS SERVER_ENCODING FROM DUAL");
+        } else if (readIf("TABLES")) {
+            // for MySQL compatibility
+            String schema = Constants.SCHEMA_MAIN;
+            if (readIf("FROM")) {
+                schema = readUniqueIdentifier();
+            }
+            buff.append("TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=? ORDER BY TABLE_NAME");
+            paramValues.add(ValueString.get(schema));
+        } else if (readIf("COLUMNS")) {
+            // for MySQL compatibility
+            read("FROM");
+            String tableName = readUniqueIdentifier();
+            paramValues.add(ValueString.get(tableName));
+            String schema = Constants.SCHEMA_MAIN;
+            if (readIf("FROM")) {
+                schema = readUniqueIdentifier();
+            }
+            buff.append("COLUMN_NAME, TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=? AND TABLE_SCHEMA=? ORDER BY ORDINAL_POSITION");
+            paramValues.add(ValueString.get(schema));
+        } else if (readIf("DATABASES") || readIf("SCHEMAS")) {
+            // for MySQL compatibility
+            buff.append("SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA");
+        }
+        return prepare(session, buff.toString(), paramValues);
+    }
+    
+    private Prepared prepare(Session session, String sql, ObjectArray paramValues) throws SQLException {
+        Prepared prep = session.prepare(sql);
+        ObjectArray params = prep.getParameters();
+        for (int i = 0; params != null && i < params.size(); i++) {
+            Parameter p = (Parameter) params.get(i);
+            p.setValue((Value) paramValues.get(i));
+        }
+        return prep;
     }
 
     private Merge parseMerge() throws SQLException {
@@ -1854,7 +1906,7 @@ public class Parser {
             throw Message.getSQLException(ErrorCode.FUNCTION_NOT_FOUND_1, name);
         }
         Expression[] args;
-        List argList = new ArrayList();
+        ObjectArray argList = new ObjectArray();
         int numArgs = 0;
         while (!readIf(")")) {
             if (numArgs++ > 0) {
@@ -4007,7 +4059,12 @@ public class Parser {
         } else if (readIf("DATESTYLE")) {
             // PostgreSQL compatibility
             readIfEqualOrTo();
-            read("ISO");
+            if (!readIf("ISO")) {
+                String s = readString();
+                if (!s.equals("ISO")) {
+                    throw getSyntaxError();
+                }
+            }
             return new NoOperation(session);
         } else if (readIf("SEARCH_PATH") || readIf(SetTypes.getTypeName(SetTypes.SCHEMA_SEARCH_PATH))) {
             readIfEqualOrTo();

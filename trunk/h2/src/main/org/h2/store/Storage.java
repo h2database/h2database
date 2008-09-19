@@ -209,18 +209,6 @@ public class Storage {
         recordCount--;
         file.removeRecord(session, pos, record, blockCount);
     }
-
-    private boolean isFreeAndMine(int pos, int blocks) {
-        synchronized (database) {
-            BitField used = file.getUsed();
-            for (int i = blocks + pos - 1; i >= pos; i--) {
-                if (file.getPageOwner(file.getPage(i)) != id || used.get(i)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
     
     private void refillFreeList() {
         if (freeList.size() != 0 || freeCount == 0) {
@@ -254,22 +242,51 @@ public class Storage {
         if (freeList.size() > 0) {
             synchronized (database) {
                 BitField used = file.getUsed();
+                int lastPage = Integer.MIN_VALUE;
+                int lastBlockLow  = Integer.MAX_VALUE;
+                int lastBlockHigh = 0;
+                
+                nextEntry:
                 for (int i = 0; i < freeList.size(); i++) {
                     int px = freeList.get(i);
+                    
+                    if (px >= lastBlockLow && px <= lastBlockHigh) {
+                        // we have already tested this block 
+                        // and found that it's used
+                        continue;
+                    }
+
                     if (used.get(px)) {
                         // sometimes some entries in the freeList 
                         // are not free (free 2, free 1, allocate 1+2)
                         // these entries are removed right here
                         freeList.remove(i--);
-                    } else {
-                        if (isFreeAndMine(px, blockCount)) {
-                            int pos = px;
-                            freeList.remove(i);
-                            file.setUsed(pos, blockCount);
-                            freeCount -= blockCount;
-                            return pos;
-                        }
+                        continue;
                     }
+
+                    lastBlockLow = px;
+                    lastBlockHigh = px + blockCount - 1;
+
+                    while (lastBlockHigh >= lastBlockLow) {
+                        int page = file.getPage(lastBlockHigh);
+                        if (page != lastPage) {
+                            if (file.getPageOwner(page) != id) {
+                                continue nextEntry;
+                            }
+                            lastPage = page;
+                        }
+                        if (used.get(lastBlockHigh)) {
+                            continue nextEntry;
+                        }
+                        --lastBlockHigh;
+                    }
+
+                    // range found
+                    int pos = px;
+                    freeList.remove(i);
+                    file.setUsed(pos, blockCount);
+                    freeCount -= blockCount;
+                    return pos;
                 }
             }
         }

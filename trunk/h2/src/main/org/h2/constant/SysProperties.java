@@ -211,6 +211,12 @@ public class SysProperties {
     public static final int EMERGENCY_SPACE_MIN = getIntSetting("h2.emergencySpaceMin", 64 * 1024);
 
     /**
+     * System property <code>h2.largeResultBufferSize</code> (default: 4096).<br />
+     * Buffer size for large result sets. Set this value to 0 to disable the buffer.
+     */
+    public static final int LARGE_RESULT_BUFFER_SIZE = getIntSetting("h2.largeResultBufferSize", 4 * 1024);
+
+    /**
      * System property <code>h2.lobCloseBetweenReads</code> (default: false).<br />
      * Close LOB files between read operations.
      */
@@ -463,10 +469,10 @@ public class SysProperties {
     public static final boolean TRACE_IO = getBooleanSetting("h2.traceIO", false);
 
     /**
-     * System property <code>h2.largeResultBufferSize</code> (default: 4096).<br />
-     * Buffer size for large result sets. Set this value to 0 to disable the buffer.
+     * System property <code>h2.webMaxValueLength</code> (default: 10000).<br />
+     * The H2 Console will abbreviate result values larger than this size.
      */
-    public static final int LARGE_RESULT_BUFFER_SIZE = getIntSetting("h2.largeResultBufferSize", 4 * 1024);
+    public static final int WEB_MAX_VALUE_LENGTH = getIntSetting("h2.webMaxValueLength", 10000);
 
     /**
      * System property <code>h2.collatorCacheSize</code> (default: 10000).<br />

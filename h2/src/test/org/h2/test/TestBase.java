@@ -105,7 +105,7 @@ public abstract class TestBase {
             start = System.currentTimeMillis();
             test();
             println("");
-        } catch (Exception e) {
+        } catch (Throwable e) {
             println("FAIL " + e.toString());
             logError("FAIL " + e.toString(), e);
             if (config.stopOnError) {

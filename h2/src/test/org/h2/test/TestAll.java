@@ -275,9 +275,7 @@ java org.h2.test.TestAll timer
 
 main methods for the tests and make that work
 
-H2 Console: don't display very large blobs; instead show first view bytes and length
-
-MVCC:
+TestMVCC:
 Concurrent update in table test: another transaction has updated or 
 deleted the same row when exactly does it occur in other databases 
 (PostgreSQL, Oracle)?

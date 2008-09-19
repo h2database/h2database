@@ -48,6 +48,7 @@ import java.util.Map.Entry;
 import org.h2.api.DatabaseEventListener;
 import org.h2.bnf.Bnf;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
@@ -1373,7 +1374,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 }
                 for (int i = 0; i < rs.getMetaData().getColumnCount(); i++) {
                     String x = attributes.getProperty("r" + row + "c" + (i + 1));
-                    rs.updateString(i + 1, unescapeData(x));
+                    unescapeData(x, rs, i + 1);
                 }
                 if (insert) {
                     rs.insertRow();
@@ -1950,7 +1951,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                     buff.append(PageParser.escapeHtml(meta.getColumnLabel(i + 1)));
                     buff.append("</td>");
                     buff.append("<td>");
-                    buff.append(escapeData(rs.getString(i + 1)));
+                    buff.append(escapeData(rs, i + 1));
                     buff.append("</td></tr>");
                 }
             }
@@ -1986,7 +1987,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 }
                 for (int i = 0; i < columns; i++) {
                     buff.append("<td>");
-                    buff.append(escapeData(rs.getString(i + 1)));
+                    buff.append(escapeData(rs, i + 1));
                     buff.append("</td>");
                 }
                 buff.append("</tr>");
@@ -2059,24 +2060,30 @@ class WebThread extends Thread implements DatabaseEventListener {
         return "index.do";
     }
 
-    private String escapeData(String d) {
+    private String escapeData(ResultSet rs, int columnIndex) throws SQLException {
+        String d = rs.getString(columnIndex);
         if (d == null) {
             return "<i>null</i>";
-        } else if (d.startsWith("null")) {
-            return "<div style='display: none'>=</div>" + PageParser.escapeHtml(d);
+        } else if (d.length() > SysProperties.WEB_MAX_VALUE_LENGTH) {
+            return "<div style='display: none'>=+</div>" + 
+                PageParser.escapeHtml(d.substring(0, 100) + "... (" + d.length() + ")");
+        } else if (d.equals("null") || d.startsWith("= ") || d.startsWith("=+")) {
+            return "<div style='display: none'>= </div>" + PageParser.escapeHtml(d);
         }
         return PageParser.escapeHtml(d);
     }
 
-    private String unescapeData(String d) {
-        if (d.endsWith("null")) {
-            if (d.equals("null")) {
-                return null;
-            } else if (d.startsWith("=")) {
-                return d.substring(1);
-            }
+    private void unescapeData(String d, ResultSet rs, int columnIndex) throws SQLException {
+        if (d.equals("null")) {
+            rs.updateNull(columnIndex);
+        } else if (d.startsWith("=+")) {
+            // don't update
+        } else if (d.startsWith("= ")) {
+            d = d.substring(2);
+            rs.updateString(columnIndex, d);
+        } else {
+            rs.updateString(columnIndex, d);
         }
-        return d;
     }
 
     private String settingRemove() {

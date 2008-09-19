@@ -507,12 +507,14 @@ public class Session implements SessionInterface {
                 throw Message.getInternalError();
             }
         }
-        synchronized (database) {
-            for (int i = 0; i < locks.size(); i++) {
-                Table t = (Table) locks.get(i);
-                t.unlock(this);
+        if (locks.size() > 0) {
+            synchronized (database) {
+                for (int i = 0; i < locks.size(); i++) {
+                    Table t = (Table) locks.get(i);
+                    t.unlock(this);
+                }
+                locks.clear();
             }
-            locks.clear();
         }
         savepoints = null;
     }

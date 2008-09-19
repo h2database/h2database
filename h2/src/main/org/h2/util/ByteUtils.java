@@ -107,9 +107,21 @@ public class ByteUtils {
      * @return the hash code
      */
     public static int getByteArrayHash(byte[] value) {
-        int h = 1;
-        for (int i = 0; i < value.length;) {
-            h = 31 * h + value[i++];
+        int len = value.length;
+        int h = len;
+        if (len < 50) {
+            for (int i = 0; i < len; i++) {
+                h = 31 * h + value[i];
+            }
+        } else {
+            int step = len / 16;
+            for (int i = 0; i < 4; i++) {
+                h = 31 * h + value[i];
+                h = 31 * h + value[--len];
+            }
+            for (int i = 4 + step; i < len; i += step) {
+                h = 31 * h + value[i];
+            }
         }
         return h;
     }

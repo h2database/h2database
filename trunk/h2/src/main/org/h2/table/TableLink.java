@@ -391,6 +391,10 @@ public class TableLink extends Table {
         prepared = null;
         invalidate();
     }
+    
+    public boolean isOracle() {
+        return url.startsWith("jdbc:oracle:");
+    }
 
     public ObjectArray getIndexes() {
         return indexes;

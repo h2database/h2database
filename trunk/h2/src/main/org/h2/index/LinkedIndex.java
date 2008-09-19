@@ -16,6 +16,7 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableLink;
 import org.h2.value.Value;
@@ -90,8 +91,10 @@ public class LinkedIndex extends BaseIndex {
                 if (buff.length() != 0) {
                     buff.append(" AND ");
                 }
-                buff.append(table.getColumn(i).getSQL());
-                buff.append(">=?");
+                Column col = table.getColumn(i);
+                buff.append(col.getSQL());
+                buff.append(">=");
+                addParameter(buff, col);
             }
         }
         for (int i = 0; last != null && i < last.getColumnCount(); i++) {
@@ -100,8 +103,10 @@ public class LinkedIndex extends BaseIndex {
                 if (buff.length() != 0) {
                     buff.append(" AND ");
                 }
-                buff.append(table.getColumn(i).getSQL());
-                buff.append("<=?");
+                Column col = table.getColumn(i);
+                buff.append(col.getSQL());
+                buff.append("<=");
+                addParameter(buff, col);
             }
         }
         if (buff.length() > 0) {
@@ -130,6 +135,20 @@ public class LinkedIndex extends BaseIndex {
             return new LinkedCursor(table, rs, session);
         } catch (SQLException e) {
             throw wrapException(sql, e);
+        }
+    }
+    
+    private void addParameter(StringBuffer buff, Column col) {
+        if (col.getType() == Value.STRING_FIXED && link.isOracle()) {
+            // workaround for Oracle
+            // create table test(id int primary key, name char(15));
+            // insert into test values(1, 'Hello')
+            // select * from test where name = ? -- where ? = "Hello" > no rows
+            buff.append("CAST(? AS CHAR(");
+            buff.append(col.getPrecision());
+            buff.append("))");
+        } else {
+            buff.append("?");
         }
     }
 
@@ -171,12 +190,15 @@ public class LinkedIndex extends BaseIndex {
             if (i > 0) {
                 buff.append("AND ");
             }
-            buff.append(table.getColumn(i).getSQL());
+            Column col = table.getColumn(i);
+            buff.append(col.getSQL());
             Value v = row.getValue(i);
             if (isNull(v)) {
                 buff.append(" IS NULL ");
             } else {
-                buff.append("=? ");
+                buff.append('=');
+                addParameter(buff, col);
+                buff.append(' ');
             }
         }
         String sql = buff.toString();
@@ -217,12 +239,15 @@ public class LinkedIndex extends BaseIndex {
             if (i > 0) {
                 buff.append("AND ");
             }
-            buff.append(table.getColumn(i).getSQL());
+            Column col = table.getColumn(i);
+            buff.append(col.getSQL());
             Value v = oldRow.getValue(i);
             if (isNull(v)) {
                 buff.append(" IS NULL ");
             } else {
-                buff.append("=? ");
+                buff.append('=');
+                addParameter(buff, col);
+                buff.append(' ');
             }
         }
         String sql = buff.toString();

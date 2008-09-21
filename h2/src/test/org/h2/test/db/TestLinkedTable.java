@@ -21,9 +21,19 @@ import org.h2.test.TestBase;
  * Tests the linked table feature (CREATE LINKED TABLE).
  */
 public class TestLinkedTable extends TestBase {
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        new TestLinkedTable().init().test();
+    }
 
     public void test() throws SQLException {
         // testLinkAutoAdd();
+        testMultipleSchemas();
         testReadOnlyLinkedTable();
         testLinkOtherSchema();
         testLinkDrop();
@@ -52,6 +62,30 @@ public class TestLinkedTable extends TestBase {
 //        ca.close();
 //        cb.close();
 //    }
+    
+    private void testMultipleSchemas() throws SQLException {
+        org.h2.Driver.load();
+        Connection ca = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
+        Connection cb = DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
+        Statement sa = ca.createStatement();
+        Statement sb = cb.createStatement();
+        sa.execute("CREATE TABLE TEST(ID INT)");
+        sa.execute("CREATE SCHEMA P");
+        sa.execute("CREATE TABLE P.TEST(X INT)");
+        sa.execute("INSERT INTO TEST VALUES(1)");
+        try {
+            sb.execute("CREATE LINKED TABLE T(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'TEST')");
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        sb.execute("CREATE LINKED TABLE T(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'PUBLIC', 'TEST')");
+        sb.execute("CREATE LINKED TABLE T2(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'P', 'TEST')");
+        sa.execute("DROP ALL OBJECTS");
+        sb.execute("DROP ALL OBJECTS");
+        ca.close();
+        cb.close();
+    }
     
     private void testReadOnlyLinkedTable() throws SQLException {
         org.h2.Driver.load();
@@ -118,7 +152,7 @@ public class TestLinkedTable extends TestBase {
         Connection conn2 = DriverManager.getConnection("jdbc:h2:mem:two");
         Statement stat2 = conn2.createStatement();
         stat2.execute("CREATE LINKED TABLE one('org.h2.Driver', 'jdbc:h2:mem:one', 'sa', 'sa', 'Y.A');");
-        stat2.execute("CREATE LINKED TABLE two('org.h2.Driver', 'jdbc:h2:mem:one', 'sa', 'sa', 'A');");
+        stat2.execute("CREATE LINKED TABLE two('org.h2.Driver', 'jdbc:h2:mem:one', 'sa', 'sa', 'PUBLIC.A');");
         ResultSet rs = stat2.executeQuery("SELECT * FROM one");
         rs.next();
         assertEquals(rs.getInt(1), 2);

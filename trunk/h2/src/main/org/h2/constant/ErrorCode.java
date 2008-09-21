@@ -1197,6 +1197,8 @@ public class ErrorCode {
      * The error with code <code>90080</code> is thrown when
      * trying to rename a object to a different schema, or when trying to
      * create a related object in another schema.
+     * For CREATE LINKED TABLE, it is thrown when multiple tables with that
+     * name exist in different schemas.
      * Example:
      * <pre>
      * CREATE SCHEMA TEST_SCHEMA;

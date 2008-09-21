@@ -22,7 +22,7 @@ import org.h2.table.TableLink;
 public class CreateLinkedTable extends SchemaCommand {
 
     private String tableName;
-    private String driver, url, user, password, originalTable;
+    private String driver, url, user, password, originalSchema, originalTable;
     private boolean ifNotExists;
     private String comment;
     private boolean emitUpdates;
@@ -75,7 +75,7 @@ public class CreateLinkedTable extends SchemaCommand {
                     tableName);
         }
         int id = getObjectId(false, true);
-        TableLink table = getSchema().createTableLink(id, tableName, driver, url, user, password, originalTable, emitUpdates, force);
+        TableLink table = getSchema().createTableLink(id, tableName, driver, url, user, password, originalSchema, originalTable, emitUpdates, force);
         table.setTemporary(temporary);
         table.setGlobalTemporary(globalTemporary);
         table.setComment(comment);
@@ -110,6 +110,10 @@ public class CreateLinkedTable extends SchemaCommand {
 
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
+    }
+
+    public void setOriginalSchema(String originalSchema) {
+        this.originalSchema = originalSchema;
     }
 
 }

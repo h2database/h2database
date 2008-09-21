@@ -404,11 +404,12 @@ CREATE INDEX IDXNAME ON TEST(NAME)
 "Commands (DDL)","CREATE LINKED TABLE","
 CREATE [[GLOBAL | LOCAL] TEMPORARY] LINKED TABLE [IF NOT EXISTS]
 name(driverString, urlString,
-userString, passwordString, originalTableString)
+userString, passwordString, [originalSchemaString,] originalTableString)
 [EMIT UPDATES | READONLY]
 ","
 Creates a table link to an external table.
 The driver name may be empty if the driver is already loaded.
+If the schema name is not set, only one table with that name may exist in the target database.
 Usually, for update statements, the old rows are deleted first
 and then the new rows inserted. It is possible to emit update
 statements (however this is not possible on rollback), however

@@ -39,7 +39,7 @@ import org.h2.value.DataType;
  */
 public class TableLink extends Table {
 
-    private String driver, url, user, password, originalTable, qualifiedTableName;
+    private String driver, url, user, password, originalSchema, originalTable, qualifiedTableName;
     private Connection conn;
     private HashMap prepared = new HashMap();
     private final ObjectArray indexes = new ObjectArray();
@@ -53,12 +53,13 @@ public class TableLink extends Table {
     private boolean readOnly;
 
     public TableLink(Schema schema, int id, String name, String driver, String url, String user, String password,
-            String originalTable, boolean emitUpdates, boolean force) throws SQLException {
+            String originalSchema, String originalTable, boolean emitUpdates, boolean force) throws SQLException {
         super(schema, id, name, false);
         this.driver = driver;
         this.url = url;
         this.user = user;
         this.password = password;
+        this.originalSchema = originalSchema;
         this.originalTable = originalTable;
         this.emitUpdates = emitUpdates;
         try {
@@ -81,7 +82,12 @@ public class TableLink extends Table {
         storesLowerCase = meta.storesLowerCaseIdentifiers();
         storesMixedCase = meta.storesMixedCaseIdentifiers();
         supportsMixedCaseIdentifiers = meta.supportsMixedCaseIdentifiers();        
-        ResultSet rs = meta.getColumns(null, null, originalTable, null);
+        ResultSet rs = meta.getTables(null, originalSchema, originalTable, null);
+        if (rs.next() && rs.next()) {
+            throw Message.getSQLException(ErrorCode.SCHEMA_NAME_MUST_MATCH, originalTable);
+        }
+        rs.close();
+        rs = meta.getColumns(null, originalSchema, originalTable, null);
         int i = 0;
         ObjectArray columnList = new ObjectArray();
         HashMap columnMap = new HashMap();
@@ -114,6 +120,7 @@ public class TableLink extends Table {
             columnList.add(col);
             columnMap.put(n, col);
         }
+        rs.close();
         if (originalTable.indexOf('.') < 0 && !StringUtils.isNullOrEmpty(schema)) {
             qualifiedTableName = schema + "." + originalTable;
         } else {
@@ -143,6 +150,7 @@ public class TableLink extends Table {
                     columnMap.put(n, col);
                 }
             }
+            rs.close();
         } catch (SQLException e) {
             throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, new String[] { originalTable + "("
                     + e.toString() + ")" }, e);
@@ -156,7 +164,7 @@ public class TableLink extends Table {
         linkedIndex = new LinkedIndex(this, id, IndexColumn.wrap(cols), IndexType.createNonUnique(false));
         indexes.add(linkedIndex);
         try {
-            rs = meta.getPrimaryKeys(null, null, originalTable);
+            rs = meta.getPrimaryKeys(null, originalSchema, originalTable);
         } catch (SQLException e) {
             // Some ODBC bridge drivers don't support it:
             // some combinations of "DataDirect SequeLink(R) for JDBC"
@@ -182,9 +190,10 @@ public class TableLink extends Table {
                 list.set(idx - 1, column);
             } while (rs.next());
             addIndex(list, IndexType.createPrimaryKey(false, false));
+            rs.close();
         }
         try {
-            rs = meta.getIndexInfo(null, null, originalTable, false, true);
+            rs = meta.getIndexInfo(null, originalSchema, originalTable, false, true);
         } catch (SQLException e) {
             // Oracle throws an exception if the table is not found or is a
             // SYNONYM
@@ -193,25 +202,28 @@ public class TableLink extends Table {
         String indexName = null;
         list = new ObjectArray();
         IndexType indexType = null;
-        while (rs != null && rs.next()) {
-            String newIndex = rs.getString("INDEX_NAME");
-            if (pkName.equals(newIndex)) {
-                continue;
+        if (rs != null) {
+            while (rs.next()) {
+                String newIndex = rs.getString("INDEX_NAME");
+                if (pkName.equals(newIndex)) {
+                    continue;
+                }
+                if (indexName != null && !indexName.equals(newIndex)) {
+                    addIndex(list, indexType);
+                    indexName = null;
+                }
+                if (indexName == null) {
+                    indexName = newIndex;
+                    list.clear();
+                }
+                boolean unique = !rs.getBoolean("NON_UNIQUE");
+                indexType = unique ? IndexType.createUnique(false, false) : IndexType.createNonUnique(false);
+                String col = rs.getString("COLUMN_NAME");
+                col = convertColumnName(col);
+                Column column = (Column) columnMap.get(col);
+                list.add(column);
             }
-            if (indexName != null && !indexName.equals(newIndex)) {
-                addIndex(list, indexType);
-                indexName = null;
-            }
-            if (indexName == null) {
-                indexName = newIndex;
-                list.clear();
-            }
-            boolean unique = !rs.getBoolean("NON_UNIQUE");
-            indexType = unique ? IndexType.createUnique(false, false) : IndexType.createNonUnique(false);
-            String col = rs.getString("COLUMN_NAME");
-            col = convertColumnName(col);
-            Column column = (Column) columnMap.get(col);
-            list.add(column);
+            rs.close();
         }
         if (indexName != null) {
             addIndex(list, indexType);

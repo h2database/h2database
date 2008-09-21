@@ -466,8 +466,8 @@ public class Schema extends DbObjectBase {
      * @return the {@link TableLink} object
      */
     public TableLink createTableLink(int id, String tableName, String driver, String url, String user, String password,
-            String originalTable, boolean emitUpdates, boolean force) throws SQLException {
-        return new TableLink(this, id, tableName, driver, url, user, password, originalTable, emitUpdates, force);
+            String originalSchema, String originalTable, boolean emitUpdates, boolean force) throws SQLException {
+        return new TableLink(this, id, tableName, driver, url, user, password, originalSchema, originalTable, emitUpdates, force);
     }
 
 }

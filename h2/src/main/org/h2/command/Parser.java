@@ -4517,7 +4517,12 @@ public class Parser {
         read(",");
         command.setPassword(readString());
         read(",");
-        command.setOriginalTable(readString());
+        String originalTable = readString();
+        if (readIf(",")) {
+            command.setOriginalSchema(originalTable);
+            originalTable = readString();
+        }
+        command.setOriginalTable(originalTable);
         read(")");
         if (readIf("EMIT")) {
             read("UPDATES");

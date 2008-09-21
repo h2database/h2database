@@ -212,7 +212,7 @@ Change Log
         object is garbage collected). Now they are removed as soon
         as the PreparedStatement is closed, or when the value is
         overwritten.
-</li><li>Statements can now be cancelled remotely 
+</li><li>Statements can now be canceled remotely 
         (when using remote connections).
 </li><li>The Shell tool now uses java.io.Console to read the password
         when using JDK 1.6
@@ -369,7 +369,7 @@ Change Log
 </li><li>SELECT UNION with a different number of ORDER BY columns did throw an ArrayIndexOutOfBoundsException.
 </li><li>When using a view, the column precision was changed to the default scale for some data types.
 </li><li>CSVWRITE now supports a 'null string' that is used for parsing and writing NULL.
-</li><li>Some long running queries could not be cancelled.
+</li><li>Some long running queries could not be canceled.
 </li><li>Queries with many outer join tables were very slow. Fixed.
 </li><li>The performance of text comparison has been improved when using locale sensitive
     string comparison (SET COLLATOR). Now CollationKey is used with a LRU cache.

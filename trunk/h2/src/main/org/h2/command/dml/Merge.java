@@ -131,7 +131,7 @@ public class Merge extends Prepared {
             table.fireBefore(session);
             table.lock(session, true, false);
             while (rows.next()) {
-                checkCancelled();
+                checkCanceled();
                 count++;
                 Value[] r = rows.currentRow();
                 Row newRow = table.getTemplateRow();

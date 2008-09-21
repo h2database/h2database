@@ -84,7 +84,7 @@ public class Update extends Prepared {
             setCurrentRowNumber(0);
             int count = 0;
             while (tableFilter.next()) {
-                checkCancelled();
+                checkCanceled();
                 setCurrentRowNumber(count+1);
                 if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
                     Row oldRow = tableFilter.get();
@@ -132,7 +132,7 @@ public class Update extends Prepared {
             if (table.fireRow()) {
                 rows.invalidateCache();
                 for (rows.reset(); rows.hasNext();) {
-                    checkCancelled();
+                    checkCanceled();
                     Row o = rows.next();
                     Row n = rows.next();
                     table.fireAfterRow(session, o, n);

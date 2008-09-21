@@ -113,7 +113,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
     
     public void cancel() {
         // this method is called when closing the connection
-        // the statement that is currently running is not cancelled in this case
+        // the statement that is currently running is not canceled in this case
         // however Statement.cancel is supported
     }
 

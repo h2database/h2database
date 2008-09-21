@@ -1405,7 +1405,7 @@ Centralリポジトリの利用
 #When setting BLOB or CLOB values larger than 65 KB using   a remote connection, temporary files were kept on the client   longer than required (until the connection was closed or the   object is garbage collected). Now they are removed as soon   as the PreparedStatement is closed, or when the value is   overwritten.
 
 @changelog_1100_li
-#Statements can now be cancelled remotely   (when using remote connections).
+#Statements can now be canceled remotely   (when using remote connections).
 
 @changelog_1101_li
 #The Shell tool now uses java.io.Console to read the password   when using JDK 1.6
@@ -1615,7 +1615,7 @@ Centralリポジトリの利用
 #CSVWRITE now supports a 'null string' that is used for parsing and writing NULL.
 
 @changelog_1170_li
-#Some long running queries could not be cancelled.
+#Some long running queries could not be canceled.
 
 @changelog_1171_li
 #Queries with many outer join tables were very slow. Fixed.

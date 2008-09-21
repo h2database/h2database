@@ -712,12 +712,12 @@ public class Session implements SessionInterface {
     }
 
     /**
-     * Check if the current transaction is cancelled by calling
+     * Check if the current transaction is canceled by calling
      * Statement.cancel() or because a session timeout was set and expired.
      * 
-     * @throws SQLException if the transaction is cancelled
+     * @throws SQLException if the transaction is canceled
      */
-    public void checkCancelled() throws SQLException {
+    public void checkCanceled() throws SQLException {
         throttle();
         if (cancelAt == 0) {
             return;
@@ -725,7 +725,7 @@ public class Session implements SessionInterface {
         long time = System.currentTimeMillis();
         if (time >= cancelAt) {
             cancelAt = 0;
-            throw Message.getSQLException(ErrorCode.STATEMENT_WAS_CANCELLED);
+            throw Message.getSQLException(ErrorCode.STATEMENT_WAS_CANCELED);
         }
     }
 

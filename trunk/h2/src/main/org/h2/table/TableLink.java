@@ -433,7 +433,7 @@ public class TableLink extends Table {
         checkReadOnly();
         if (emitUpdates) {
             for (rows.reset(); rows.hasNext();) {
-                prepared.checkCancelled();
+                prepared.checkCanceled();
                 Row oldRow = rows.next();
                 Row newRow = rows.next();
                 linkedIndex.update(oldRow, newRow);

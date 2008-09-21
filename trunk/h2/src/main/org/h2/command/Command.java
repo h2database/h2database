@@ -40,7 +40,7 @@ public abstract class Command implements CommandInterface {
     protected long startTime;
 
     /**
-     * If this query was cancelled.
+     * If this query was canceled.
      */
     private volatile boolean cancel;
 
@@ -156,14 +156,14 @@ public abstract class Command implements CommandInterface {
     }
 
     /**
-     * Check if this command has been cancelled, and throw an exception if yes.
+     * Check if this command has been canceled, and throw an exception if yes.
      * 
-     * @throws SQLException if the statement has been cancelled
+     * @throws SQLException if the statement has been canceled
      */
-    public void checkCancelled() throws SQLException {
+    public void checkCanceled() throws SQLException {
         if (cancel) {
             cancel = false;
-            throw Message.getSQLException(ErrorCode.STATEMENT_WAS_CANCELLED);
+            throw Message.getSQLException(ErrorCode.STATEMENT_WAS_CANCELED);
         }
     }
 

@@ -360,7 +360,7 @@ public class TableFilter implements ColumnResolver {
     }
 
     private void checkTimeout() throws SQLException {
-        session.checkCancelled();
+        session.checkCanceled();
         // System.out.println(this.alias+ " " + table.getName() + ": " + scanCount);
     }
 

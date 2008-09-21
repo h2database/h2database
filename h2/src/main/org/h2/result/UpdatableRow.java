@@ -82,9 +82,12 @@ public class UpdatableRow {
             key.add(rs.getString("COLUMN_NAME"));
         }
         if (key.size() == 0) {
-            return;
+            rs = meta.getIndexInfo(null, schemaName, tableName, true, true);
+            while (rs.next()) {
+                key.add(rs.getString("COLUMN_NAME"));
+            }
         }
-        isUpdatable = true;
+        isUpdatable = key.size() > 0;
     }
 
     /**

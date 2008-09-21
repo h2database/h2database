@@ -220,7 +220,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
         when using JDK 1.6
 </li><li>The Japanese translation of the error messages and the H2 Console 
         has been completed by Masahiro Ikemoto (Arizona Design Inc.)
-</li><li>Statements can now be cancelled remotely 
+</li><li>Statements can now be canceled remotely 
         (when using remote connections).
 </li><li>Triggers are no longer executed when executing an changing the table
         structure (ALTER TABLE).
@@ -392,7 +392,7 @@ INSERT INTO ITEM VALUES(38,
 </li><li>Random: the process didn''t stop if generateSeed was very slow.
 </li><li>SELECT UNION with a different number of ORDER BY columns didn''t work.
 </li><li>When using a view, the column precision was wrong sometimes.
-</li><li>Some long running queries could not be cancelled.
+</li><li>Some long running queries could not be canceled.
 </li><li>When using encrypted databases, and using the wrong file password,
     the log file was renamed sometimes.
 </li></ul>

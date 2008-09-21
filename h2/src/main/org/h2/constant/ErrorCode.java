@@ -852,7 +852,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90051</code> is thrown when
-     * a statement was cancelled using Statement.cancel() or
+     * a statement was canceled using Statement.cancel() or
      * when the query timeout has been reached.
      * Examples:
      * <pre>
@@ -860,7 +860,7 @@ public class ErrorCode {
      * stat.cancel();
      * </pre>
      */
-    public static final int STATEMENT_WAS_CANCELLED = 90051;
+    public static final int STATEMENT_WAS_CANCELED = 90051;
 
     /**
      * The error with code <code>90052</code> is thrown when

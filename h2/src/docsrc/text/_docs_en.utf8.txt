@@ -491,7 +491,7 @@ Afterwards, you may use this data source.
 PG Protocol Support Limitations
 
 @advanced_1164_p
-At this time, only a subset of the PostgreSQL network protocol is implemented. Also, there may be compatibility problems on the SQL level, with the catalog, or with text encoding. Problems are fixed as they are found. Currently, statements can not be cancelled when using the PG protocol.
+At this time, only a subset of the PostgreSQL network protocol is implemented. Also, there may be compatibility problems on the SQL level, with the catalog, or with text encoding. Problems are fixed as they are found. Currently, statements can not be canceled when using the PG protocol.
 
 @advanced_1165_p
 PostgreSQL ODBC Driver Setup requires a database password; that means it is not possible to connect to H2 databases without password. This is a limitation of the ODBC driver.
@@ -1403,7 +1403,7 @@ Triggers are no longer executed when changing the table   structure (ALTER TABLE
 When setting BLOB or CLOB values larger than 65 KB using   a remote connection, temporary files were kept on the client   longer than required (until the connection was closed or the   object is garbage collected). Now they are removed as soon   as the PreparedStatement is closed, or when the value is   overwritten.
 
 @changelog_1100_li
-Statements can now be cancelled remotely   (when using remote connections).
+Statements can now be canceled remotely   (when using remote connections).
 
 @changelog_1101_li
 The Shell tool now uses java.io.Console to read the password   when using JDK 1.6
@@ -1613,7 +1613,7 @@ When using a view, the column precision was changed to the default scale for som
 CSVWRITE now supports a 'null string' that is used for parsing and writing NULL.
 
 @changelog_1170_li
-Some long running queries could not be cancelled.
+Some long running queries could not be canceled.
 
 @changelog_1171_li
 Queries with many outer join tables were very slow. Fixed.

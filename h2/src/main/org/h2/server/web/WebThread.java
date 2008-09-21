@@ -1667,7 +1667,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 stat = session.executingStatement;
                 if (stat != null) {
                     stat.cancel();
-                    buff.append("${text.result.statementWasCancelled}");
+                    buff.append("${text.result.statementWasCanceled}");
                 } else {
                     buff.append("${text.result.noRunningStatement}");
                 }

@@ -2711,7 +2711,7 @@ CANCEL_SESSION(sessionInt): boolean
 ","
 Cancels the currently executing statement of another session.
 The method only works if the multithreaded kernel is enabled (see SET MULTI_THREADED).
-Returns true if the statement was cancelled, false if the session is closed
+Returns true if the statement was canceled, false if the session is closed
 or no statement is currently executing.
 Admin rights are required to execute this command.
 ","

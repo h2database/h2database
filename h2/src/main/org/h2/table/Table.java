@@ -350,7 +350,7 @@ public abstract class Table extends SchemaObjectBase {
             throws SQLException {
         // remove the old rows
         for (rows.reset(); rows.hasNext();) {
-            prepared.checkCancelled();
+            prepared.checkCanceled();
             Row o = rows.next();
             rows.next();
             removeRow(session, o);
@@ -358,7 +358,7 @@ public abstract class Table extends SchemaObjectBase {
         }
         // add the new rows
         for (rows.reset(); rows.hasNext();) {
-            prepared.checkCancelled();
+            prepared.checkCanceled();
             rows.next();
             Row n = rows.next();
             addRow(session, n);

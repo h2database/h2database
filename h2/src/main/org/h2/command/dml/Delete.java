@@ -53,7 +53,7 @@ public class Delete extends Prepared {
         try {
             setCurrentRowNumber(0);
             while (tableFilter.next()) {
-                checkCancelled();
+                checkCanceled();
                 setCurrentRowNumber(rows.size() + 1);
                 if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
                     Row row = tableFilter.get();
@@ -64,7 +64,7 @@ public class Delete extends Prepared {
                 }
             }
             for (rows.reset(); rows.hasNext();) {
-                checkCancelled();
+                checkCanceled();
                 Row row = rows.next();
                 table.removeRow(session, row);
                 session.log(table, UndoLogRecord.DELETE, row);

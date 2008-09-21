@@ -257,15 +257,15 @@ public abstract class Prepared {
     }
 
     /**
-     * Check if this statement was cancelled.
+     * Check if this statement was canceled.
      *
-     * @throws SQLException if it was cancelled
+     * @throws SQLException if it was canceled
      */
-    public void checkCancelled() throws SQLException {
-        session.checkCancelled();
+    public void checkCanceled() throws SQLException {
+        session.checkCanceled();
         Command c = command != null ? command : session.getCurrentCommand();
         if (c != null) {
-            c.checkCancelled();
+            c.checkCanceled();
         }
     }
 

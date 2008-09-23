@@ -500,11 +500,23 @@ public class Server implements Runnable, ShutdownHandler {
 
     /**
      * Gets the URL of this server.
+     * 
      * @return the url
      */
     public String getURL() {
         return service.getURL();
     }
+    
+    /**
+     * Gets the port this server is listening on.
+     * 
+     * @return the port
+     */
+    public int getPort() {
+        return service.getPort();
+    }
+
+
 
     /**
      * INTERNAL

@@ -19,6 +19,7 @@ import java.util.Properties;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
@@ -102,7 +103,7 @@ public class FileLock {
      * @param traceSystem the trace system to use
      * @param sleep the number of milliseconds to sleep
      */
-    public FileLock(TraceSystem traceSystem,  int sleep) {
+    public FileLock(TraceSystem traceSystem, int sleep) {
         this.trace = traceSystem.getTrace(Trace.FILE_LOCK);
         this.sleep = sleep;
     }
@@ -152,6 +153,17 @@ public class FileLock {
         fileName = null;
         socket = null;
         locked = false;
+    }
+
+    /**
+     * Add a setting to the properties file.
+     * 
+     * @param key the key
+     * @param value the value
+     */
+    public void addProperty(String key, String value) throws SQLException {
+        properties.put(key, value);
+        save();
     }
 
     /**
@@ -377,7 +389,15 @@ public class FileLock {
     }
 
     private SQLException error(String reason) {
-        return Message.getSQLException(ErrorCode.DATABASE_ALREADY_OPEN_1, reason);
+        JdbcSQLException ex = Message.getSQLException(ErrorCode.DATABASE_ALREADY_OPEN_1, reason);
+        String server = null;
+        try {
+            server = load().getProperty("server");
+        } catch (SQLException e) {
+            // ignore
+        }
+        ex.setPayload(server);
+        return ex;
     }
 
     /**

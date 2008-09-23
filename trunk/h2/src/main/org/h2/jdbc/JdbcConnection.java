@@ -22,6 +22,7 @@ import java.sql.Statement;
 import java.util.Map;
 import java.util.Properties;
 
+
 import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -105,7 +106,28 @@ public class JdbcConnection extends TraceObject implements Connection {
                         ci.setBaseDir(baseDir);
                     }
                 }
-                session = si.createSession(ci);
+                boolean autoServerMode = Boolean.parseBoolean(ci.getProperty("AUTO_SERVER", "false"));
+                ConnectionInfo backup = null;
+                if (autoServerMode) {
+                    backup = (ConnectionInfo) ci.clone();
+                }
+                try {
+                    session = si.createSession(ci);
+                } catch (SQLException e) {
+                    int errorCode = e.getErrorCode();
+                    if (errorCode == ErrorCode.DATABASE_ALREADY_OPEN_1) {
+                        if (autoServerMode) {
+                            String server = (String) ((JdbcSQLException) e).getPayload();
+                            if (server != null) {
+                                backup.setServer(server);
+                                session = new SessionRemote().createSession(backup);
+                            }
+                        }
+                    }
+                    if (session == null) {
+                        throw e;
+                    }
+                }
             }
             trace = session.getTrace();
             int id = getNextId(TraceObject.CONNECTION);

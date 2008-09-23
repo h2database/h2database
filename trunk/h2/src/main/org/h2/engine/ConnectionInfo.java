@@ -17,6 +17,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.security.SHA256;
+import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
@@ -25,9 +26,9 @@ import org.h2.util.StringUtils;
 /**
  * Encapsulates the connection settings, including user name and password.
  */
-public class ConnectionInfo {
+public class ConnectionInfo implements Cloneable {
     private static final HashSet KNOWN_SETTINGS = new HashSet();
-    private final Properties prop = new Properties();
+    private Properties prop = new Properties();
     private String originalURL;
     private String url;
     private String user;
@@ -42,6 +43,14 @@ public class ConnectionInfo {
     private boolean ssl;
     private boolean persistent;
     private boolean unnamed;
+    
+    public Object clone() throws CloneNotSupportedException {
+        ConnectionInfo clone = (ConnectionInfo) super.clone();
+        clone.prop = (Properties) prop.clone();
+        clone.filePasswordHash = ByteUtils.cloneByteArray(filePasswordHash);
+        clone.userPasswordHash = ByteUtils.cloneByteArray(userPasswordHash);
+        return clone;
+    }
 
     static {
         ObjectArray list = SetTypes.getSettings();
@@ -51,7 +60,7 @@ public class ConnectionInfo {
         // TODO document these settings
         String[] connectionTime = new String[] { "ACCESS_MODE_LOG", "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS",
-                "PASSWORD", "RECOVER", "STORAGE", "USER", "DATABASE_EVENT_LISTENER_OBJECT" };
+                "PASSWORD", "RECOVER", "STORAGE", "USER", "DATABASE_EVENT_LISTENER_OBJECT", "AUTO_SERVER" };
         for (int i = 0; i < connectionTime.length; i++) {
             String key = connectionTime[i];
             if (SysProperties.CHECK && KNOWN_SETTINGS.contains(key)) {
@@ -360,7 +369,7 @@ public class ConnectionInfo {
      * @param defaultValue the default value
      * @return the value as a String
      */
-    String getProperty(String key, String defaultValue) {
+    public String getProperty(String key, String defaultValue) {
         if (SysProperties.CHECK && !KNOWN_SETTINGS.contains(key)) {
             throw Message.getInternalError(key);
         }
@@ -500,4 +509,16 @@ public class ConnectionInfo {
         String format = Constants.URL_FORMAT;
         return Message.getSQLException(ErrorCode.URL_FORMAT_ERROR_2, new String[] { format, url });
     }
+    
+    /**
+     * Switch to server mode. 
+     * 
+     * @param server the server
+     */
+    public void setServer(String server) {
+        remote = true;
+        persistent = false;
+        name = server + "/" + name;
+    }
+
 }

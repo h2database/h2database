@@ -19,7 +19,6 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Properties;
 
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceSystem;
@@ -136,9 +135,13 @@ public abstract class TestBase {
     protected Connection getConnection(String name, String user, String password) throws SQLException {
         return getConnectionInternal(getURL(name, false), user, password);
     }
+    
+    protected String getPassword(String userPassword) {
+        return config.cipher == null ? userPassword : "filePassword " + userPassword;
+    }
 
     protected String getPassword() {
-        return "123";
+        return getPassword("123");
     }
 
     private void deleteIndexFiles(String name) {
@@ -222,6 +225,9 @@ public abstract class TestBase {
         if (config.diskResult && admin) {
             url += ";MAX_MEMORY_ROWS=100;CACHE_SIZE=0";
         }
+        if (config.cipher != null) {
+            url += ";CIPHER=" + config.cipher;
+        }
         return "jdbc:h2:" + url;
     }
 
@@ -230,20 +236,7 @@ public abstract class TestBase {
         // url += ";DEFAULT_TABLE_TYPE=1";
         // Class.forName("org.hsqldb.jdbcDriver");
         // return DriverManager.getConnection("jdbc:hsqldb:" + name, "sa", "");
-        Connection conn;
-        if (config.cipher != null) {
-            url += ";cipher=" + config.cipher;
-            password = "filePassword " + password;
-            Properties info = new Properties();
-            info.setProperty("user", user);
-            info.setProperty("password", password);
-            // a bug in the PostgreSQL driver: throws a NullPointerException if we do this
-            // info.put("password", password.toCharArray());
-            conn = DriverManager.getConnection(url, info);
-        } else {
-            conn = DriverManager.getConnection(url, user, password);
-        }
-        return conn;
+        return DriverManager.getConnection(url, user, password);
     }
 
     /**

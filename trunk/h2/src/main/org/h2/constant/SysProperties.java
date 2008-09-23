@@ -226,10 +226,9 @@ public class SysProperties {
      * System property <code>h2.lobFilesInDirectories</code> (default: false).<br />
      * Store LOB files in subdirectories.
      */
-    // TODO change in version 1.1
     // TODO: when removing this property, also remove 
     // DataHandler.allocateObjectId, createTempFile it
-    public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", false);
+    public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", true);
 
     /**
      * System property <code>h2.lobFilesPerDirectory</code> (default: 256).<br />

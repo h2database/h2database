@@ -30,7 +30,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws SQLException {
-        if (config.networked) {
+        if (config.networked || config.cipher != null) {
             return;
         }
         deleteDb("listener");

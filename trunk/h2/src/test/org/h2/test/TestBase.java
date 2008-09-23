@@ -137,7 +137,7 @@ public abstract class TestBase {
     }
     
     protected String getPassword(String userPassword) {
-        return config.cipher == null ? userPassword : "filePassword " + userPassword;
+        return config == null || config.cipher == null ? userPassword : "filePassword " + userPassword;
     }
 
     protected String getPassword() {

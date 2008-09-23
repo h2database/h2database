@@ -51,6 +51,7 @@ import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.tools.Server;
 import org.h2.util.BitField;
 import org.h2.util.ByteUtils;
 import org.h2.util.CacheLRU;
@@ -58,6 +59,7 @@ import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.IntHashMap;
+import org.h2.util.NetUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
@@ -155,8 +157,9 @@ public class Database implements DataHandler {
     private int maxOperationMemory = SysProperties.DEFAULT_MAX_OPERATION_MEMORY;
     private boolean lobFilesInDirectories = SysProperties.LOB_FILES_IN_DIRECTORIES;
     private SmallLRUCache lobFileListCache = new SmallLRUCache(128);
-
+    private boolean autoServerMode;
     private Object reserveMemory;
+    private Server server;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = new CompareMode(null, null, 0);
@@ -168,6 +171,7 @@ public class Database implements DataHandler {
         String lockMethodName = ci.removeProperty("FILE_LOCK", null);
         this.accessModeLog = ci.removeProperty("ACCESS_MODE_LOG", "rw").toLowerCase();
         this.accessModeData = ci.removeProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
+        this.autoServerMode = ci.removeProperty("AUTO_SERVER", false);
         if ("r".equals(accessModeData)) {
             readOnly = true;
             accessModeLog = "r";
@@ -392,6 +396,7 @@ public class Database implements DataHandler {
                     fileIndex = null;
                 }
                 if (lock != null) {
+                    stopServer();
                     lock.unlock();
                     lock = null;
                 }
@@ -446,10 +451,13 @@ public class Database implements DataHandler {
      * 
      * @param cipher the cipher algorithm
      * @param hash the hash code
-     * @return true if the password matches
+     * @return true if the cipher algorithm and the password match
      */
-    public boolean validateFilePasswordHash(String cipher, byte[] hash) {
-        return ByteUtils.compareSecure(hash, filePasswordHash) && StringUtils.equals(cipher, this.cipher);
+    public boolean validateFilePasswordHash(String cipher, byte[] hash) throws SQLException {
+        if (!StringUtils.equals(cipher, this.cipher)) {
+            return false;
+        }
+        return ByteUtils.compareSecure(hash, filePasswordHash);
     }
 
     private void openFileData() throws SQLException {
@@ -490,6 +498,7 @@ public class Database implements DataHandler {
                 // if it is already read-only because ACCESS_MODE_DATA=r
                 readOnly = readOnly | FileUtils.isReadOnly(dataFileName);
                 textStorage = isTextStorage(dataFileName, textStorage);
+                lobFilesInDirectories &= !ValueLob.existsLobFile(getDatabasePath());
                 lobFilesInDirectories |= FileUtils.exists(databaseName + Constants.SUFFIX_LOBS_DIRECTORY);
             }
         }
@@ -507,9 +516,17 @@ public class Database implements DataHandler {
             traceSystem.setLevelSystemOut(traceLevelSystemOut);
             traceSystem.getTrace(Trace.DATABASE)
                     .info("opening " + databaseName + " (build " + Constants.BUILD_ID + ")");
+            if (autoServerMode) {
+                if (readOnly || fileLockMethod == FileLock.LOCK_NO) {
+                    throw Message.getSQLException(ErrorCode.FEATURE_NOT_SUPPORTED);
+                }
+            }
             if (!readOnly && fileLockMethod != FileLock.LOCK_NO) {
                 lock = new FileLock(traceSystem, Constants.LOCK_SLEEP);
                 lock.lock(databaseName + Constants.SUFFIX_LOCK_FILE, fileLockMethod == FileLock.LOCK_SOCKET);
+                if (autoServerMode) {
+                    startServer();
+                }
             }
             deleteOldTempFiles();
             log = new LogSystem(this, databaseName, readOnly, accessModeLog);
@@ -601,6 +618,20 @@ public class Database implements DataHandler {
             emergencyReserve.autoDelete();
         }
         traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
+    }
+
+    private void startServer() throws SQLException {
+        server = Server.createTcpServer(new String[]{"-tcpPort", "0"});
+        server.start();
+        String address = NetUtils.getLocalAddress() + ":" + server.getPort();
+        lock.addProperty("server", address);
+    }
+    
+    private void stopServer() {
+        if (server != null) {
+            server.stop();
+            server = null;
+        }
     }
 
     private void recompileInvalidViews(Session session) {
@@ -1021,6 +1052,7 @@ public class Database implements DataHandler {
             }
             closing = true;
         }
+        stopServer();
         try {
             if (systemSession != null) {
                 ObjectArray tablesAndViews = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);

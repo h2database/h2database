@@ -77,6 +77,7 @@ import org.h2.test.mvcc.TestMvcc2;
 import org.h2.test.mvcc.TestMvcc3;
 import org.h2.test.mvcc.TestMvccMultiThreaded;
 import org.h2.test.rowlock.TestRowLocks;
+import org.h2.test.server.TestAutoServer;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.server.TestPgServer;
 import org.h2.test.server.TestWeb;
@@ -272,6 +273,8 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
+
+test on linux
 
 main methods for the tests and make that work
 
@@ -519,6 +522,7 @@ http://www.w3schools.com/sql/
         new TestXASimple().runTest(this);
 
         // server
+        new TestAutoServer().runTest(this);
         new TestNestedLoop().runTest(this);
         new TestWeb().runTest(this);
         new TestPgServer().runTest(this);

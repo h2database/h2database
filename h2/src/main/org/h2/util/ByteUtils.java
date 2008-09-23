@@ -188,7 +188,7 @@ public class ByteUtils {
      * @param buff the byte array
      */
     public static void clear(byte[] buff) {
-        for (int i = 0; i < buff.length; i++) {
+        for (int i = 0; buff != null && i < buff.length; i++) {
             buff[i] = 0;
         }
     }
@@ -241,6 +241,9 @@ public class ByteUtils {
      * @return a new byte array
      */
     public static byte[] cloneByteArray(byte[] b) {
+        if (b == null) {
+            return null;
+        }
         int len = b.length;
         if (len == 0) {
             return b;

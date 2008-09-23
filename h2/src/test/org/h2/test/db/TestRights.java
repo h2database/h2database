@@ -49,7 +49,7 @@ public class TestRights extends TestBase {
         stat = conn.createStatement();
         stat.execute("CREATE USER IF NOT EXISTS READER PASSWORD 'READER'");
         stat.execute("CREATE TABLE TEST(ID INT)");
-        Connection conn2 = getConnection("rights", "READER", "READER");
+        Connection conn2 = getConnection("rights", "READER", getPassword("READER"));
         Statement stat2 = conn2.createStatement();
         try {
             stat2.execute("SELECT * FROM TEST");
@@ -119,7 +119,7 @@ public class TestRights extends TestBase {
         executeSuccess("GRANT SELECT, INSERT, UPDATE ON TEST TO PASS_READER");
         conn.close();
 
-        conn = getConnection("rights", "PASS_READER", "abc");
+        conn = getConnection("rights", "PASS_READER", getPassword("abc"));
         stat = conn.createStatement();
         executeSuccess("SELECT * FROM PASS_NAME");
         executeSuccess("SELECT * FROM (SELECT * FROM PASS_NAME)");
@@ -170,24 +170,24 @@ public class TestRights extends TestBase {
         conn.close();
 
         try {
-            conn = getConnection("rights", "Test", "abc");
+            conn = getConnection("rights", "Test", getPassword("abc"));
             fail("mixed case user name");
         } catch (SQLException e) {
             assertKnownException(e);
         }
         try {
-            conn = getConnection("rights", "TEST", "abc");
+            conn = getConnection("rights", "TEST", getPassword("abc"));
             fail("wrong password");
         } catch (SQLException e) {
             assertKnownException(e);
         }
         try {
-            conn = getConnection("rights", "TEST", null);
+            conn = getConnection("rights", "TEST", getPassword(""));
             fail("wrong password");
         } catch (SQLException e) {
             assertKnownException(e);
         }
-        conn = getConnection("rights", "TEST", "def");
+        conn = getConnection("rights", "TEST", getPassword("def"));
         stat = conn.createStatement();
 
         executeError("SET DEFAULT_TABLE_TYPE MEMORY");

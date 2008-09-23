@@ -150,7 +150,12 @@ public class NetUtils {
         boolean result = true;
         //## Java 1.4 begin ##
         result = socket.getInetAddress().isLoopbackAddress();
+        if (result) {
+            return result;
+        }
         //## Java 1.4 end ##
+        String s = getLocalAddress();
+        result = socket.getInetAddress().getHostAddress().equals(s);
         return result;
     }
 
@@ -180,10 +185,17 @@ public class NetUtils {
         InetAddress bind = null;
         try {
             bind = getBindAddress();
+            if (bind == null) {
+                bind = InetAddress.getLocalHost();
+            }
         } catch (UnknownHostException e) {
             // ignore
         }
-        return bind == null ? "localhost" : bind.getHostAddress();
+        String address = bind == null ? "localhost" : bind.getHostAddress();
+        if (address.equals("127.0.0.1")) {
+            address = "localhost";
+        }
+        return address;
     }
 
 }

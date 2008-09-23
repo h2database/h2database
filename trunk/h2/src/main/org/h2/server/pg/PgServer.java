@@ -43,7 +43,6 @@ public class PgServer implements Service {
     private ServerSocket serverSocket;
     private Set running = Collections.synchronizedSet(new HashSet());
     private String baseDir;
-    private String url;
     private boolean allowOthers;
     private boolean ifExists;
 
@@ -77,8 +76,6 @@ public class PgServer implements Service {
             }
         }
         org.h2.Driver.load();
-        url = "pg://" + NetUtils.getLocalAddress() + ":" + port;
-
 //        int testing;
 //        log = true;
     }
@@ -119,7 +116,11 @@ public class PgServer implements Service {
     }
 
     public String getURL() {
-        return url;
+        return "pg://" + NetUtils.getLocalAddress() + ":" + port;
+    }
+    
+    public int getPort() {
+        return port;
     }
 
     private boolean allow(Socket socket) {

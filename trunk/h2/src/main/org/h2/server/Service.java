@@ -75,4 +75,12 @@ public interface Service {
      * @return the type
      */
     String getType();
+
+    /**
+     * Gets the port this service is listening on.
+     * 
+     * @return the port
+     */
+    int getPort();
+
 }

@@ -464,7 +464,7 @@ public class WebServer implements Service {
         return ssl;
     }
 
-    int getPort() {
+    public int getPort() {
         return port;
     }
 

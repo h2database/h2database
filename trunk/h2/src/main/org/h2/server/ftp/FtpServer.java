@@ -246,12 +246,17 @@ public class FtpServer implements Service {
     public String getURL() {
         return "ftp://" + NetUtils.getLocalAddress() + ":" + port;
     }
+    
+    public int getPort() {
+        return port;
+    }
 
     public void start() throws SQLException {
         fs = FileSystem.getInstance(root);
         root = fs.normalize(root);
         fs.mkdirs(root);
         serverSocket = NetUtils.createServerSocket(port, false);
+        port = serverSocket.getLocalPort();
     }
 
     public void stop() {

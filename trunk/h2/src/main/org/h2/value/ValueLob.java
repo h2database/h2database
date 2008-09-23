@@ -732,11 +732,23 @@ public class ValueLob extends Value {
             String[] list = FileUtils.listFiles(dir);
             for (int i = 0; i < list.length; i++) {
                 String name = list[i];
-                if (name.startsWith(prefix + "." + tableId + ".") && name.endsWith(".lob.db")) {
+                if (name.startsWith(prefix + "." + tableId + ".") && name.endsWith(Constants.SUFFIX_LOB_FILE)) {
                     deleteFile(handler, name);
                 }
             }
         }
+    }
+    
+    public static boolean existsLobFile(String prefix) throws SQLException {
+        String dir = FileUtils.getParent(prefix);
+        String[] list = FileUtils.listFiles(dir);
+        for (int i = 0; i < list.length; i++) {
+            String name = list[i];
+            if (name.startsWith(prefix + ".") && name.endsWith(Constants.SUFFIX_LOB_FILE)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void removeAllForTable(DataHandler handler, String dir, int tableId) throws SQLException {
@@ -746,7 +758,7 @@ public class ValueLob extends Value {
                 removeAllForTable(handler, list[i], tableId);
             } else {
                 String name = list[i];
-                if (name.endsWith(".t" + tableId + ".lob.db")) {
+                if (name.endsWith(".t" + tableId + Constants.SUFFIX_LOB_FILE)) {
                     deleteFile(handler, name);
                 }
             }

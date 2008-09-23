@@ -64,7 +64,6 @@ public class TcpServer implements Service {
     private ServerSocket serverSocket;
     private Set running = Collections.synchronizedSet(new HashSet());
     private String baseDir;
-    private String url;
     private boolean allowOthers;
     private boolean ifExists;
     private Connection managementDb;
@@ -187,11 +186,14 @@ public class TcpServer implements Service {
             }
         }
         org.h2.Driver.load();
-        url = (ssl ? "ssl" : "tcp") + "://" + NetUtils.getLocalAddress() + ":" + port;
     }
 
     public String getURL() {
-        return url;
+        return (ssl ? "ssl" : "tcp") + "://" + NetUtils.getLocalAddress() + ":" + port;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     /**
@@ -210,6 +212,7 @@ public class TcpServer implements Service {
 
     public synchronized void start() throws SQLException {
         serverSocket = NetUtils.createServerSocket(port, ssl);
+        port = serverSocket.getLocalPort();
         initManagementDb();
     }
 

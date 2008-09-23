@@ -28,7 +28,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Change Constants.DEFAULT_MAX_MEMORY_UNDO to 10000 (and change the docs). Test.
 </li><li>Enable and document optimizations, LOB files in directories
 </li><li>Special methods for DataPage.writeByte / writeShort and so on
-</li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
 </li><li>Change the default for NULL || 'x' to NULL
 </li></ul>
 
@@ -51,7 +50,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 <li>Improve test code coverage
 </li><li>More fuzz tests
 </li><li>Test multi-threaded in-memory db access
-</li><li>Automatic mode: jdbc:h2:auto: (embedded mode if possible, if not use server mode). Keep the server running until all have disconnected.
 </li><li>Linked tables that point to the same database should share the connection ([SHARED CONNECTION]). Serialize access to the connection.
 </li><li>Procedural language / script language (Javascript)
 </li><li>Linked tables should support a schema name: CREATE LINKED TABLE ... (... [schemaName, ] originalTableString) - DB2: SET SCHEMA after connecting
@@ -59,6 +57,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
 </li><li>Optimize ID=? OR ID=?: convert to IN(...)
 </li><li>Optimize .. OR .. to UNION if the cost is lower
+</li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
 </li><li>H2 Console: new option 'Open a browser when starting the H2 Console'.
 </li><li>Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
 </li><li>Support large updates (use the transaction log to undo).
@@ -393,6 +392,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>H2 Console: support single file upload and directory download (optional).
 </li><li>Document FTL_SEARCH, FTL_SEARCH_DATA.
 </li><li>Support DatabaseMetaData.insertsAreDetected: updatable result sets should detect inserts.
+</li><li>Auto-server: add option to define the IP address range or list.
 </li></ul>
 
 <h2>Not Planned</h2>

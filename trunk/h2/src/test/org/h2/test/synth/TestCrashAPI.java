@@ -98,7 +98,7 @@ public class TestCrashAPI extends TestBase {
 
         Connection conn = null;
         // System.gc();
-        conn = DriverManager.getConnection(url, "sa", "");
+        conn = DriverManager.getConnection(url, "sa", getPassword(""));
         int len = random.getInt(50);
         int start = random.getInt(statements.size() - len);
         int end = start + len;

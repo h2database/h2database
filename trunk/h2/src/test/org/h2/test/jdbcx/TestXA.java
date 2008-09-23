@@ -247,7 +247,7 @@ public class TestXA extends TestBase {
 
     private XADataSource createXADatasource(boolean useOneDatabase, String url) {
         JdbcDataSource ds = new JdbcDataSource();
-        ds.setPassword("");
+        ds.setPassword(getPassword(""));
         ds.setUser("sa");
         if (useOneDatabase) {
             ds.setURL(getURL("xa", true));

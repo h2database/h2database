@@ -167,7 +167,8 @@ public class TestServlet extends TestBase {
         DbStarter listener = new DbStarter();
 
         TestServletContext context = new TestServletContext();
-        context.setInitParameter("db.url", getURL("servlet", true));
+        String url = getURL("servlet", true);
+        context.setInitParameter("db.url", url);
         context.setInitParameter("db.user", getUser());
         context.setInitParameter("db.password", getPassword());
         context.setInitParameter("db.tcpServer", "-tcpPort 8888");
@@ -181,8 +182,10 @@ public class TestServlet extends TestBase {
         Statement stat1 = conn1.createStatement();
         stat1.execute("CREATE TABLE T(ID INT)");
 
+        String u2 = url.substring(url.indexOf("servlet"));
+        u2 = "jdbc:h2:tcp://localhost:8888/" + baseDir + "/" + u2;
         Connection conn2 = DriverManager.getConnection(
-                "jdbc:h2:tcp://localhost:8888/" + baseDir + "/servlet", getUser(), getPassword());
+                u2, getUser(), getPassword());
         Statement stat2 = conn2.createStatement();
         stat2.execute("SELECT * FROM T");
         stat2.execute("DROP TABLE T");

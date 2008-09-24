@@ -41,7 +41,7 @@ public abstract class TestBase {
      */
     protected TestAll config;
     
-    private long start;
+    protected long start;
 
     /**
      * Get the test directory for this test.

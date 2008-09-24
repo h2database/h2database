@@ -21,7 +21,7 @@ import org.h2.util.JdbcUtils;
  */
 public class TestListener extends TestBase implements DatabaseEventListener {
 
-    private long last, start;
+    private long last;
     private int lastState = -1;
     private String url;
 

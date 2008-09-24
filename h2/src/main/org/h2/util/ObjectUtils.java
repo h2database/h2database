@@ -195,4 +195,14 @@ public class ObjectUtils {
         }
     }
 
+    /**
+     * Calculate the hash code of the given object. The object may be null.
+     * 
+     * @param the object
+     * @return the hash code, or 0 if the object is null
+     */
+    public static int hashCode(Object o) {
+        return o == null ? 0 : o.hashCode();
+    }
+
 }

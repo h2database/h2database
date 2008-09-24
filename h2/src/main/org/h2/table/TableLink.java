@@ -6,7 +6,6 @@
  */
 package org.h2.table;
 
-import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -40,7 +39,7 @@ import org.h2.value.DataType;
 public class TableLink extends Table {
 
     private String driver, url, user, password, originalSchema, originalTable, qualifiedTableName;
-    private Connection conn;
+    private TableLinkConnection conn;
     private HashMap prepared = new HashMap();
     private final ObjectArray indexes = new ObjectArray();
     private final boolean emitUpdates;
@@ -77,8 +76,20 @@ public class TableLink extends Table {
     }
 
     private void connect() throws SQLException {
-        conn = JdbcUtils.getConnection(driver, url, user, password);
-        DatabaseMetaData meta = conn.getMetaData();
+        conn = database.getLinkConnection(driver, url, user, password);
+        synchronized (conn) {
+            try {
+                readMetaData();
+            } catch (SQLException e) {
+                conn.close();
+                conn = null;
+                throw e;
+            }
+        }
+    }
+    
+    private void readMetaData() throws SQLException {
+        DatabaseMetaData meta = conn.getConnection().getMetaData();
         storesLowerCase = meta.storesLowerCaseIdentifiers();
         storesMixedCase = meta.storesMixedCaseIdentifiers();
         supportsMixedCaseIdentifiers = meta.supportsMixedCaseIdentifiers();        
@@ -129,7 +140,7 @@ public class TableLink extends Table {
         // check if the table is accessible
         Statement stat = null;
         try {
-            stat = conn.createStatement();
+            stat = conn.getConnection().createStatement();
             rs = stat.executeQuery("SELECT * FROM " + qualifiedTableName + " T WHERE 1=0");
             if (columnList.size() == 0) {
                 // alternative solution
@@ -359,7 +370,7 @@ public class TableLink extends Table {
         }
         PreparedStatement prep = (PreparedStatement) prepared.get(sql);
         if (prep == null) {
-            prep = conn.prepareStatement(sql);
+            prep = conn.getConnection().prepareStatement(sql);
             prepared.put(sql, prep);
         }
         return prep;
@@ -399,7 +410,6 @@ public class TableLink extends Table {
         database.removeMeta(session, getId());
         driver = null;
         url = user = password = originalTable = null;
-        conn = null;
         prepared = null;
         invalidate();
     }
@@ -455,6 +465,10 @@ public class TableLink extends Table {
 
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
+    }
+
+    public TableLinkConnection getConnection() {
+        return conn;
     }
 
 }

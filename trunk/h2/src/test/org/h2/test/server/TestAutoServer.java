@@ -31,7 +31,7 @@ public class TestAutoServer extends TestBase {
     }
 
     public void test() throws Exception {
-        if (config.memory) {
+        if (config.memory || config.networked) {
             return;
         }
         deleteDb("autoServer");

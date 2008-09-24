@@ -50,9 +50,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 <li>Improve test code coverage
 </li><li>More fuzz tests
 </li><li>Test multi-threaded in-memory db access
-</li><li>Linked tables that point to the same database should share the connection ([SHARED CONNECTION]). Serialize access to the connection.
 </li><li>Procedural language / script language (Javascript)
-</li><li>Linked tables should support a schema name: CREATE LINKED TABLE ... (... [schemaName, ] originalTableString) - DB2: SET SCHEMA after connecting
 </li><li>Option to shutdown all the running servers (on the same VM).
 </li><li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
 </li><li>Optimize ID=? OR ID=?: convert to IN(...)
@@ -61,6 +59,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>H2 Console: new option 'Open a browser when starting the H2 Console'.
 </li><li>Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
 </li><li>Support large updates (use the transaction log to undo).
+</li><li>Auto-reconnect on lost connection to server (even if the server was re-started) except if autocommit was off and there was pending transaction.
 </li><li>Full outer joins
 </li><li>Support trigger on the tables information_schema.tables and ...columns
 </li><li>Test very large databases and LOBs (up to 256 GB)
@@ -145,7 +144,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Implement point-in-time recovery
 </li><li>Include the version name in the jar file name
 </li><li>LIKE: improved version for larger texts (currently using naive search)
-</li><li>Auto-reconnect on lost connection to server (even if the server was re-started) except if autocommit was off and there was pending transaction
 </li><li>The Script tool should work with other databases as well
 </li><li>Automatically convert to the next 'higher' data type whenever there is an overflow.
 </li><li>Throw an exception when the application calls getInt on a Long (optional)

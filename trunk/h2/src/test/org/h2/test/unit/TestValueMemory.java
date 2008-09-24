@@ -7,6 +7,7 @@
 package org.h2.test.unit;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -15,9 +16,12 @@ import java.util.IdentityHashMap;
 import java.util.Random;
 
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
+import org.h2.message.Message;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.test.TestBase;
+import org.h2.util.FileUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.value.Value;
@@ -49,6 +53,7 @@ import org.h2.value.ValueUuid;
 public class TestValueMemory extends TestBase implements DataHandler {
 
     private Random random = new Random(1);
+    private SmallLRUCache lobFileListCache = new SmallLRUCache(128);
 
     public void test() throws SQLException {
         for (int i = 0; i < Value.TYPE_COUNT; i++) {
@@ -118,12 +123,12 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.STRING_IGNORECASE:
             return ValueStringIgnoreCase.get(randomString(random.nextInt(100)));
         case Value.BLOB: {
-            int len = (int) Math.abs(random.nextGaussian() * 100);
+            int len = (int) Math.abs(random.nextGaussian() * 10);
             byte[] data = randomBytes(len);
             return ValueLob.createBlob(new ByteArrayInputStream(data), len, this);
         }
         case Value.CLOB: {
-            int len = (int) Math.abs(random.nextGaussian() * 100);
+            int len = (int) Math.abs(random.nextGaussian() * 10);
             String s = randomString(len);
             return ValueLob.createClob(new StringReader(s), len, this);
         }
@@ -185,8 +190,13 @@ public class TestValueMemory extends TestBase implements DataHandler {
         return 0;
     }
 
-    public String createTempFile() {
-        return baseDir + "/valueMemory/data";
+    public String createTempFile() throws SQLException {
+        String name = baseDir + "/valueMemory/data";
+        try {
+            return FileUtils.createTempFile(name, Constants.SUFFIX_TEMP_FILE, true, false);
+        } catch (IOException e) {
+            throw Message.convertIOException(e, name);
+        }
     }
 
     public void freeUpDiskSpace() {
@@ -230,7 +240,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
     }
 
     public SmallLRUCache getLobFileListCache() {
-        return null;
+        return lobFileListCache;
     }
 
 }

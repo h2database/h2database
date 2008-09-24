@@ -276,8 +276,6 @@ java org.h2.test.TestAll timer
 
 test on linux
 
-main methods for the tests and make that work
-
 TestMVCC:
 Concurrent update in table test: another transaction has updated or 
 deleted the same row when exactly does it occur in other databases 

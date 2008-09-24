@@ -67,19 +67,21 @@ public class LinkedIndex extends BaseIndex {
         }
         buff.append(')');
         String sql = buff.toString();
-        try {
-            PreparedStatement prep = link.getPreparedStatement(sql);
-            for (int i = 0, j = 0; i < row.getColumnCount(); i++) {
-                Value v = row.getValue(i);
-                if (v != null && v != ValueNull.INSTANCE) {
-                    v.set(prep, j + 1);
-                    j++;
+        synchronized (link.getConnection()) {
+            try {
+                PreparedStatement prep = link.getPreparedStatement(sql);
+                for (int i = 0, j = 0; i < row.getColumnCount(); i++) {
+                    Value v = row.getValue(i);
+                    if (v != null && v != ValueNull.INSTANCE) {
+                        v.set(prep, j + 1);
+                        j++;
+                    }
                 }
+                prep.executeUpdate();
+                rowCount++;
+            } catch (SQLException e) {
+                throw wrapException(sql, e);
             }
-            prep.executeUpdate();
-            rowCount++;
-        } catch (SQLException e) {
-            throw wrapException(sql, e);
         }
     }
 
@@ -114,27 +116,29 @@ public class LinkedIndex extends BaseIndex {
         }
         buff.insert(0, "SELECT * FROM " + targetTableName + " T");
         String sql = buff.toString();
-        try {
-            PreparedStatement prep = link.getPreparedStatement(sql);
-            int j = 0;
-            for (int i = 0; first != null && i < first.getColumnCount(); i++) {
-                Value v = first.getValue(i);
-                if (v != null) {
-                    v.set(prep, j + 1);
-                    j++;
+        synchronized (link.getConnection()) {
+            try {
+                PreparedStatement prep = link.getPreparedStatement(sql);
+                int j = 0;
+                for (int i = 0; first != null && i < first.getColumnCount(); i++) {
+                    Value v = first.getValue(i);
+                    if (v != null) {
+                        v.set(prep, j + 1);
+                        j++;
+                    }
                 }
-            }
-            for (int i = 0; last != null && i < last.getColumnCount(); i++) {
-                Value v = last.getValue(i);
-                if (v != null) {
-                    v.set(prep, j + 1);
-                    j++;
+                for (int i = 0; last != null && i < last.getColumnCount(); i++) {
+                    Value v = last.getValue(i);
+                    if (v != null) {
+                        v.set(prep, j + 1);
+                        j++;
+                    }
                 }
+                ResultSet rs = prep.executeQuery();
+                return new LinkedCursor(table, rs, session);
+            } catch (SQLException e) {
+                throw wrapException(sql, e);
             }
-            ResultSet rs = prep.executeQuery();
-            return new LinkedCursor(table, rs, session);
-        } catch (SQLException e) {
-            throw wrapException(sql, e);
         }
     }
     
@@ -202,19 +206,21 @@ public class LinkedIndex extends BaseIndex {
             }
         }
         String sql = buff.toString();
-        try {
-            PreparedStatement prep = link.getPreparedStatement(sql);
-            for (int i = 0, j = 0; i < row.getColumnCount(); i++) {
-                Value v = row.getValue(i);
-                if (!isNull(v)) {
-                    v.set(prep, j + 1);
-                    j++;
+        synchronized (link.getConnection()) {
+            try {
+                PreparedStatement prep = link.getPreparedStatement(sql);
+                for (int i = 0, j = 0; i < row.getColumnCount(); i++) {
+                    Value v = row.getValue(i);
+                    if (!isNull(v)) {
+                        v.set(prep, j + 1);
+                        j++;
+                    }
                 }
+                int count = prep.executeUpdate();
+                rowCount -= count;
+            } catch (SQLException e) {
+                throw wrapException(sql, e);
             }
-            int count = prep.executeUpdate();
-            rowCount -= count;
-        } catch (SQLException e) {
-            throw wrapException(sql, e);
         }
     }
 
@@ -251,25 +257,27 @@ public class LinkedIndex extends BaseIndex {
             }
         }
         String sql = buff.toString();
-        try {
-            int j = 1;
-            PreparedStatement prep = link.getPreparedStatement(sql);
-            for (int i = 0; i < newRow.getColumnCount(); i++) {
-                newRow.getValue(i).set(prep, j);
-                j++;
-            }
-            for (int i = 0; i < oldRow.getColumnCount(); i++) {
-                Value v = oldRow.getValue(i);
-                if (!isNull(v)) {
-                    v.set(prep, j);
+        synchronized (link.getConnection()) {
+            try {
+                int j = 1;
+                PreparedStatement prep = link.getPreparedStatement(sql);
+                for (int i = 0; i < newRow.getColumnCount(); i++) {
+                    newRow.getValue(i).set(prep, j);
                     j++;
                 }
+                for (int i = 0; i < oldRow.getColumnCount(); i++) {
+                    Value v = oldRow.getValue(i);
+                    if (!isNull(v)) {
+                        v.set(prep, j);
+                        j++;
+                    }
+                }
+                int count = prep.executeUpdate();
+                // this has no effect but at least it allows to debug the update count
+                rowCount = rowCount + count - count;
+            } catch (SQLException e) {
+                throw wrapException(sql, e);
             }
-            int count = prep.executeUpdate();
-            // this has no effect but at least it allows to debug the update count
-            rowCount = rowCount + count - count;
-        } catch (SQLException e) {
-            throw wrapException(sql, e);
         }
     }
 

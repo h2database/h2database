@@ -73,6 +73,7 @@ public class TestLinkedTable extends TestBase {
         sa.execute("CREATE SCHEMA P");
         sa.execute("CREATE TABLE P.TEST(X INT)");
         sa.execute("INSERT INTO TEST VALUES(1)");
+        sa.execute("INSERT INTO P.TEST VALUES(2)");
         try {
             sb.execute("CREATE LINKED TABLE T(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'TEST')");
             fail();
@@ -81,6 +82,8 @@ public class TestLinkedTable extends TestBase {
         }
         sb.execute("CREATE LINKED TABLE T(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'PUBLIC', 'TEST')");
         sb.execute("CREATE LINKED TABLE T2(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'P', 'TEST')");
+        assertSingleValue(sb, "SELECT * FROM T", 1);
+        assertSingleValue(sb, "SELECT * FROM T2", 2);
         sa.execute("DROP ALL OBJECTS");
         sb.execute("DROP ALL OBJECTS");
         ca.close();

@@ -49,6 +49,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.MetaTable;
 import org.h2.table.Table;
 import org.h2.table.TableData;
+import org.h2.table.TableLinkConnection;
 import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
@@ -160,6 +161,7 @@ public class Database implements DataHandler {
     private boolean autoServerMode;
     private Object reserveMemory;
     private Server server;
+    private HashMap linkConnections;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = new CompareMode(null, null, 0);
@@ -2052,6 +2054,22 @@ public class Database implements DataHandler {
      */
     public void freeReserveMemory() {
         reserveMemory = null;
+    }
+    
+    /**
+     * Open a new connection or get an existing connection to another database.
+     * 
+     * @param driver the database driver or null
+     * @param url the database URL
+     * @param user the user name
+     * @param password the password
+     * @return the connection
+     */
+    public TableLinkConnection getLinkConnection(String driver, String url, String user, String password) throws SQLException {
+        if (linkConnections == null) {
+            linkConnections = new HashMap();
+        }
+        return TableLinkConnection.open(linkConnections, driver, url, user, password);
     }
 
 }

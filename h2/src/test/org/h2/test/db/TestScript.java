@@ -21,6 +21,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import org.h2.engine.Constants;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.StringUtils;
@@ -43,7 +44,8 @@ public class TestScript extends TestBase {
     private String putBack;
     private StringBuffer errors;
     private ArrayList statements;
-    private String fileName = "org/h2/test/test.in.txt";
+    private String fileName = "org/h2/test/test-" + 
+        Constants.VERSION_MAJOR + "." + Constants.VERSION_MINOR + ".txt";
 
     /**
      * Get all SQL statements of this file.
@@ -52,9 +54,8 @@ public class TestScript extends TestBase {
      * @param file the file name
      * @return the list of statements
      */
-    public ArrayList getAllStatements(TestAll conf, String file) throws Exception {
+    public ArrayList getAllStatements(TestAll conf) throws Exception {
         config = conf;
-        fileName = file;
         statements = new ArrayList();
         test();
         return statements;

@@ -96,6 +96,7 @@ public class FileLock {
     private String method, ipAddress;
     private Properties properties;
     private boolean locked;
+    private String uniqueId;
 
     /**
      * Create a new file locking object.
@@ -233,13 +234,18 @@ public class FileLock {
         }
         throw error("Lock file recently modified");
     }
+    
+    private void setUniqueId() {
+        byte[] bytes = RandomUtils.getSecureBytes(RANDOM_BYTES);
+        String random = ByteUtils.convertBytesToString(bytes);
+        uniqueId = Long.toHexString(System.currentTimeMillis()) + random;
+        properties.setProperty("id", uniqueId);
+    }
 
     private void lockFile() throws SQLException {
         method = FILE;
         properties = new SortedProperties();
-        byte[] bytes = RandomUtils.getSecureBytes(RANDOM_BYTES);
-        String random = ByteUtils.convertBytesToString(bytes);
-        properties.setProperty("id", Long.toHexString(System.currentTimeMillis())+random);
+        setUniqueId();
         if (!fs.createNewFile(fileName)) {
             waitUntilOld();
             String m2 = load().getProperty("method", FILE);
@@ -293,6 +299,7 @@ public class FileLock {
     private void lockSocket() throws SQLException {
         method = SOCKET;
         properties = new SortedProperties();
+        setUniqueId();
         try {
             // TODO documentation: if this returns 127.0.0.1, 
             // the computer is probably not networked
@@ -390,13 +397,14 @@ public class FileLock {
 
     private SQLException error(String reason) {
         JdbcSQLException ex = Message.getSQLException(ErrorCode.DATABASE_ALREADY_OPEN_1, reason);
-        String server = null;
+        String payload = null;
         try {
-            server = load().getProperty("server");
+            Properties prop = load();
+            payload = prop.getProperty("server") + "/" + prop.getProperty("id");
         } catch (SQLException e) {
             // ignore
         }
-        ex.setPayload(server);
+        ex.setPayload(payload);
         return ex;
     }
 
@@ -417,6 +425,10 @@ public class FileLock {
         } else {
             throw Message.getSQLException(ErrorCode.UNSUPPORTED_LOCK_METHOD_1, method);
         }
+    }
+
+    public String getUniqueId() {
+        return uniqueId;
     }
 
 }

@@ -45,7 +45,7 @@ public class TestOutOfMemory extends TestBase {
         list = null;
         ResultSet rs = stat.executeQuery("select count(*) from stuff");
         rs.next();
-        assertEquals(1000, rs.getInt(1));
+        assertEquals(2000, rs.getInt(1));
         conn.close();
     }
 

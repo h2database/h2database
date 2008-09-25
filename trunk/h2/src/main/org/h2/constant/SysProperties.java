@@ -75,10 +75,11 @@ public class SysProperties {
      * System property <code>h2.aliasColumnName</code> (default: false).<br />
      * When enabled, aliased columns (as in SELECT ID AS I FROM TEST) return the
      * real table and column name in ResultSetMetaData.getTableName() and
-     * getColumnName(). This is disabled by default for compatibility with other
+     * getColumnName().
+     * <p>
+     * This feature is disabled by default for compatibility with other
      * databases (HSQLDB, Apache Derby, PostgreSQL, some version of MySQL).
      */
-    // TODO change in version 1.1
     public static final boolean ALIAS_COLUMN_NAME = getBooleanSetting("h2.aliasColumnName", false);
 
     /**
@@ -97,7 +98,8 @@ public class SysProperties {
 
     /**
      * System property <code>h2.enableAnonymousSSL</code> (default: true).<br />
-     * Comma separated list of class names or prefixes.
+     * When using SSL connection, the anonymous cipher suite
+     * SSL_DH_anon_WITH_RC4_128_MD5 should be enabled.
      */
     public static final boolean ENABLE_ANONYMOUS_SSL = getBooleanSetting("h2.enableAnonymousSSL", true);
     
@@ -223,12 +225,16 @@ public class SysProperties {
     public static boolean lobCloseBetweenReads = getBooleanSetting("h2.lobCloseBetweenReads", false);
 
     /**
-     * System property <code>h2.lobFilesInDirectories</code> (default: false).<br />
+     * System property <code>h2.lobFilesInDirectories</code>.<br />
      * Store LOB files in subdirectories.
+     * <p>
+     * In version 1.0, it is disabled by default.
+     * <p>
+     * In version 1.1, it is enabled by default.
      */
     // TODO: when removing this property, also remove 
     // DataHandler.allocateObjectId, createTempFile it
-    public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", true);
+    public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", Constants.VERSION > 1.0);
 
     /**
      * System property <code>h2.lobFilesPerDirectory</code> (default: 256).<br />
@@ -310,11 +316,14 @@ public class SysProperties {
     public static final int OBJECT_CACHE_SIZE = MathUtils.nextPowerOf2(getIntSetting("h2.objectCacheSize", 1024));
 
     /**
-     * System property <code>h2.oldCommandLineOptions</code> (default: true).<br />
+     * System property <code>h2.oldCommandLineOptions</code>.<br />
      * Support old command line options.
+     * <p>
+     * In version 1.0, it is enabled by default.
+     * <p>
+     * In version 1.1, it is disabled by default.
      */
-    // TODO change in version 1.1
-    public static final boolean OLD_COMMAND_LINE_OPTIONS = getBooleanSetting("h2.oldCommandLineOptions", true);
+    public static final boolean OLD_COMMAND_LINE_OPTIONS = getBooleanSetting("h2.oldCommandLineOptions", Constants.VERSION < 1.1);
     
     /**
      * System property <code>h2.optimizeDropDependencies</code> (default:
@@ -346,11 +355,15 @@ public class SysProperties {
     public static final boolean OPTIMIZE_EVALUATABLE_SUBQUERIES = getBooleanSetting("h2.optimizeEvaluatableSubqueries", true);
 
     /**
-     * System property <code>h2.optimizeGroupSorted</code> (default: false).<br />
+     * System property <code>h2.optimizeGroupSorted</code>.<br />
      * Optimize GROUP BY queries if an index can be used that matches the group
      * by columns.
+     * <p>
+     * In version 1.0, it is disabled by default.
+     * <p>
+     * In version 1.1, it is enabled by default.
      */
-    public static final boolean OPTIMIZE_GROUP_SORTED = getBooleanSetting("h2.optimizeGroupSorted", false);
+    public static final boolean OPTIMIZE_GROUP_SORTED = getBooleanSetting("h2.optimizeGroupSorted", Constants.VERSION > 1.0);
 
     /**
      * System property <code>h2.optimizeIn</code> (default: true).<br />
@@ -361,8 +374,12 @@ public class SysProperties {
     /**
      * System property <code>h2.optimizeInJoin</code> (default: false).<br />
      * Optimize IN(...) comparisons by converting them to inner joins.
+     * <p>
+     * In version 1.0, it is disabled by default.
+     * <p>
+     * In version 1.1, it is enabled by default.
      */
-    public static boolean optimizeInJoin = getBooleanSetting("h2.optimizeInJoin", true);
+    public static boolean optimizeInJoin = getBooleanSetting("h2.optimizeInJoin", Constants.VERSION > 1.0);
 
     /**
      * System property <code>h2.optimizeMinMax</code> (default: true).<br />
@@ -452,6 +469,17 @@ public class SysProperties {
      * The default result set fetch size when using the server mode.
      */
     public static final int SERVER_RESULT_SET_FETCH_SIZE = getIntSetting("h2.serverResultSetFetchSize", 100);
+    
+    /**
+     * System property <code>h2.shareLinkedConnections</code>.<br />
+     * Linked connections should be shared, that means connections to the same
+     * database should be used for all linked tables that connect to the same database.
+     * <p>
+     * In version 1.0, it is disabled by default.
+     * <p>
+     * In version 1.1, it is enabled by default.
+     */
+    public static final boolean SHARE_LINKED_CONNECTIONS = getBooleanSetting("h2.shareLinkedConnections", Constants.VERSION > 1.0);
     
     /**
      * System property <code>h2.sortNullsHigh</code> (default: false).<br />

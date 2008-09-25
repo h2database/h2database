@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 
+import org.h2.constant.SysProperties;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
@@ -42,8 +43,13 @@ public class TableLinkConnection {
     
     public static TableLinkConnection open(HashMap map, String driver, String url, String user, String password) throws SQLException {
         TableLinkConnection t = new TableLinkConnection(map, driver, url, user, password);
+        if (SysProperties.SHARE_LINKED_CONNECTIONS) {
+            t.open();
+            return t;
+        }
         synchronized (map) {
-            TableLinkConnection result = (TableLinkConnection) map.get(t);
+            TableLinkConnection result;
+            result = (TableLinkConnection) map.get(t);
             if (result == null) {
                 synchronized (t) {
                     t.open();
@@ -105,7 +111,7 @@ public class TableLinkConnection {
      * Closes the connection if this is the last link to it.
      */
     synchronized void close() throws SQLException {
-        if (--useCounter == 0) {
+        if (--useCounter <= 0) {
             conn.close();
             conn = null;
             synchronized (map) {

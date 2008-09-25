@@ -9,6 +9,7 @@ package org.h2.test;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import org.h2.engine.Constants;
 import org.h2.store.fs.FileSystemDisk;
 import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAutoRecompile;
@@ -273,6 +274,11 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
+
+14.zip
+check all version(s) before releasing
+
+Add version number. Install directory: h2-1.1, jar file: h2-1.1.100.jar. Micro version: use build number, staring with 1.1.100
 
 test on linux
 
@@ -617,11 +623,12 @@ http://www.w3schools.com/sql/
 
     private void printSystem() {
         Properties prop = System.getProperties();
-        System.out.println("Java: " +
+        System.out.println("H2 " + Constants.getFullVersion());
+        System.out.println("Java " +
                 prop.getProperty("java.runtime.version") + ", " +
                 prop.getProperty("java.vm.name")+", " +
                 prop.getProperty("java.vendor"));
-        System.out.println("Env: " +
+        System.out.println(
                 prop.getProperty("os.name") + ", " +
                 prop.getProperty("os.arch")+", "+
                 prop.getProperty("os.version")+", "+

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 
 import org.h2.engine.Constants;
 import org.h2.store.FileLister;
+import org.h2.store.fs.FileSystem;
 import org.h2.util.FileUtils;
 import org.h2.util.Tool;
 
@@ -107,7 +108,15 @@ public class DeleteDbFiles extends Tool {
     }
 
     private void process(String fileName, boolean quiet) throws SQLException {
-        if (quiet || fileName.endsWith(Constants.SUFFIX_TEMP_FILE) || fileName.endsWith(Constants.SUFFIX_TRACE_FILE)) {
+        if (FileUtils.isDirectory(fileName)) {
+            try {
+                FileSystem.getInstance(fileName).deleteRecursive(fileName);
+            } catch (SQLException e) {
+                if (!quiet) {
+                    throw e; 
+                }
+            }
+        } else if (quiet || fileName.endsWith(Constants.SUFFIX_TEMP_FILE) || fileName.endsWith(Constants.SUFFIX_TRACE_FILE)) {
             FileUtils.tryDelete(fileName);
         } else {
             FileUtils.delete(fileName);

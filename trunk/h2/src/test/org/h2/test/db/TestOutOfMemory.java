@@ -32,7 +32,7 @@ public class TestOutOfMemory extends TestBase {
         Connection conn = getConnection("outOfMemory");
         Statement stat = conn.createStatement();
         stat.execute("create table stuff (id int primary key, text varchar as space(100) || id)");
-        stat.execute("insert into stuff(id) select x from system_range(1, 1000)");
+        stat.execute("insert into stuff(id) select x from system_range(1, 2000)");
         PreparedStatement prep = conn.prepareStatement("update stuff set text = text || ' upd'");
         prep.execute();
         eatMemory(80);

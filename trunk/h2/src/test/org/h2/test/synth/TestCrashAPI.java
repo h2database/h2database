@@ -397,7 +397,7 @@ public class TestCrashAPI extends TestBase {
         baseDir = TestBase.getTestDir("crash");
         startServerIfRequired();
         TestScript script = new TestScript();
-        ArrayList add = script.getAllStatements(config, "org/h2/test/test.in.txt");
+        ArrayList add = script.getAllStatements(config);
         initMethods();
         org.h2.Driver.load();
         statements.addAll(add);

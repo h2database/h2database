@@ -257,7 +257,17 @@ public class TestTools extends TestBase {
 
         conn.close();
         Recover.main(new String[]{"-dir", baseDir, "-db", "toolsRecover"});
-        deleteDb("toolsRecover");
+        
+        // deleteDb would delete the .lob.db directory as well
+        // deleteDb("toolsRecover");
+        ArrayList list = FileLister.getDatabaseFiles(baseDir, "toolsRecover", true);
+        for (int i = 0; i < list.size(); i++) {
+            String fileName = (String) list.get(i);
+            if (!FileUtils.isDirectory(fileName)) {
+                FileUtils.delete(fileName);
+            }
+        }
+        
         conn = DriverManager.getConnection(url, "another", "another");
         stat = conn.createStatement();
         stat.execute("runscript from '" + baseDir + "/toolsRecover.data.sql'");

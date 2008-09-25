@@ -47,7 +47,7 @@ public class Build extends BuildBase {
         download("ext/mysql-connector-java-5.1.6.jar",
                 "http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.6/mysql-connector-java-5.1.6.jar", 
                 "380ef5226de2c85ff3b38cbfefeea881c5fce09d");
-        String cp = "temp" + File.pathSeparator + "bin/h2.jar" + File.pathSeparator +
+        String cp = "temp" + File.pathSeparator + "bin/h2" + getJarSuffix() + File.pathSeparator +
         "ext/hsqldb-1.8.0.7.jar" + File.pathSeparator +
         "ext/derby-10.4.2.0.jar" + File.pathSeparator +
         "ext/derbyclient-10.4.2.0.jar" + File.pathSeparator +
@@ -178,6 +178,14 @@ public class Build extends BuildBase {
         return getStaticValue("org.h2.engine.Constants", "getVersion");
     }
     
+    private String getJarSuffix() {
+        String version = getVersion();
+        if (version.startsWith("1.0.")) {
+            return ".jar";
+        }
+        return "-" + version + ".jar";
+    }
+    
     /**
      * Create the h2.zip file and the Windows installer.
      */
@@ -215,7 +223,7 @@ public class Build extends BuildBase {
             exclude("*.bat").
             exclude("*.sh").
             exclude("*.txt");
-        jar("bin/h2.jar", files, "temp");
+        jar("bin/h2" + getJarSuffix(), files, "temp");
     }
     
     /**
@@ -234,7 +242,7 @@ public class Build extends BuildBase {
             exclude("*.bat").
             exclude("*.sh").
             exclude("*.txt");
-        long kb = jar("bin/h2client.jar", files, "temp");
+        long kb = jar("bin/h2client" + getJarSuffix(), files, "temp");
         if (kb < 300 || kb > 350) {
             throw new Error("Expected file size 300 - 350 KB, got: " + kb);
         }
@@ -261,7 +269,7 @@ public class Build extends BuildBase {
             exclude("*.bat").
             exclude("*.sh").
             exclude("*.txt");
-        jar("bin/h2small.jar", files, "temp");
+        jar("bin/h2small" + getJarSuffix(), files, "temp");
     }
 
     /**
@@ -273,7 +281,7 @@ public class Build extends BuildBase {
         manifest("H2 JaQu", "");
         FileList files = getFiles("temp/org/h2/jaqu");
         files.addAll(getFiles("temp/META-INF/MANIFEST.MF"));
-        jar("bin/h2jaqu.jar", files, "temp");
+        jar("bin/h2jaqu" + getJarSuffix(), files, "temp");
     }
 
     /**
@@ -346,7 +354,7 @@ public class Build extends BuildBase {
         writeFile(new File("bin/pom.xml"), pom.getBytes());
         execScript("mvn", new String[] { 
                 "deploy:deploy-file", 
-                "-Dfile=bin/h2.jar",
+                "-Dfile=bin/h2" + getJarSuffix(),
                 "-Durl=file:///data/h2database/m2-repo", 
                 "-Dpackaging=jar", 
                 "-Dversion=" + getVersion(),
@@ -367,7 +375,7 @@ public class Build extends BuildBase {
         execScript("mvn", new String[] { 
                 "install:install-file", 
                 "-Dversion=1.0-SNAPSHOT", 
-                "-Dfile=bin/h2.jar",
+                "-Dfile=bin/h2" + getJarSuffix(),
                 "-Dpackaging=jar", 
                 "-DpomFile=bin/pom.xml", 
                 "-DartifactId=h2", 

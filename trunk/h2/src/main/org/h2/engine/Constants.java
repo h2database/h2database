@@ -117,8 +117,13 @@ public class Constants {
     /**
      * The minor version of this product.
      */
-    public static final int VERSION_MINOR = 0;
-    
+    public static final int VERSION_MINOR = 1;
+
+    /**
+     * The version number (major.minor) of this product.
+     */
+    public static final double VERSION = VERSION_MAJOR + VERSION_MINOR / 10.;
+
     /**
      * If empty b-tree pages are allowed. This is supported for backward
      * compatibility.

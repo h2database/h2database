@@ -23,6 +23,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.h2.Driver;
+import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
@@ -72,6 +73,7 @@ public class TcpServer implements Service {
     private String managementPassword = "";
     private Thread listenerThread;
     private int nextThreadId;
+    private String key, keyDatabase;
 
     /**
      * Get the database name of the management database.
@@ -169,6 +171,9 @@ public class TcpServer implements Service {
                 managementPassword = args[++i];
             } else if ("-baseDir".equals(a)) {
                 baseDir = args[++i];
+            } else if ("-key".equals(a)) {
+                key = args[++i];
+                keyDatabase = args[++i];
             } else if ("-tcpAllowOthers".equals(a)) {
                 if (Tool.readArgBoolean(args, i) != 0) {
                     allowOthers = Tool.readArgBoolean(args, i) == 1;
@@ -446,6 +451,25 @@ public class TcpServer implements Service {
                 c.cancelStatement(sessionId, statementId);
             }
         }
+    }
+
+    /**
+     * If no key is set, return the original database name. If a key is set,
+     * check if the key matches. If yes, return the correct database name. If
+     * not, throw an exception.
+     * 
+     * @param db the key to test (or database name if no key is used)
+     * @return the database name
+     * @throws SQLException if a key is set but doesn't match
+     */
+    public String checkKeyAndGetDatabaseName(String db) throws SQLException {
+        if (key == null) {
+            return db;
+        }
+        if (key.equals(db)) {
+            return keyDatabase;
+        }
+        throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
     }
 
 }

@@ -511,14 +511,14 @@ public class ConnectionInfo implements Cloneable {
     }
     
     /**
-     * Switch to server mode. 
+     * Switch to server mode, and set the server name and database key.
      * 
-     * @param server the server
+     * @param serverKey the server name, '/', and the security key
      */
-    public void setServer(String server) {
+    public void setServerKey(String serverKey) {
         remote = true;
         persistent = false;
-        name = server + "/" + name;
+        this.name = serverKey;
     }
 
 }

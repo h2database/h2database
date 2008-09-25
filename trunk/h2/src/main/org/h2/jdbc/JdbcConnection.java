@@ -117,9 +117,9 @@ public class JdbcConnection extends TraceObject implements Connection {
                     int errorCode = e.getErrorCode();
                     if (errorCode == ErrorCode.DATABASE_ALREADY_OPEN_1) {
                         if (autoServerMode) {
-                            String server = (String) ((JdbcSQLException) e).getPayload();
-                            if (server != null) {
-                                backup.setServer(server);
+                            String serverKey = (String) ((JdbcSQLException) e).getPayload();
+                            if (serverKey != null) {
+                                backup.setServerKey(serverKey);
                                 session = new SessionRemote().createSession(backup);
                             }
                         }

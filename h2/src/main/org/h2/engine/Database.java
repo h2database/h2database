@@ -527,7 +527,7 @@ public class Database implements DataHandler {
                 lock = new FileLock(traceSystem, Constants.LOCK_SLEEP);
                 lock.lock(databaseName + Constants.SUFFIX_LOCK_FILE, fileLockMethod == FileLock.LOCK_SOCKET);
                 if (autoServerMode) {
-                    startServer();
+                    startServer(lock.getUniqueId());
                 }
             }
             deleteOldTempFiles();
@@ -622,8 +622,11 @@ public class Database implements DataHandler {
         traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
     }
 
-    private void startServer() throws SQLException {
-        server = Server.createTcpServer(new String[]{"-tcpPort", "0"});
+    private void startServer(String key) throws SQLException {
+        server = Server.createTcpServer(new String[]{
+                "-tcpPort", "0", 
+                "-tcpAllowOthers", "true", 
+                "-key", key, databaseName});
         server.start();
         String address = NetUtils.getLocalAddress() + ":" + server.getPort();
         lock.addProperty("server", address);

@@ -62,8 +62,8 @@ public class TcpServerThread implements Runnable {
         try {
             transfer.init();
             trace("Connect");
-            // TODO server: should support a list of allowed databases and a
-            // list of allowed clients
+            // TODO server: should support a list of allowed databases 
+            // and a list of allowed clients
             try {
                 clientVersion = transfer.readInt();
                 if (!server.allow(transfer.getSocket())) {
@@ -91,6 +91,7 @@ public class TcpServerThread implements Runnable {
                 if (baseDir == null) {
                     baseDir = SysProperties.getBaseDir();
                 }
+                db = server.checkKeyAndGetDatabaseName(db);
                 ConnectionInfo ci = new ConnectionInfo(db);
                 if (baseDir != null) {
                     ci.setBaseDir(baseDir);

@@ -398,11 +398,13 @@ public class FileLock {
     private SQLException error(String reason) {
         JdbcSQLException ex = Message.getSQLException(ErrorCode.DATABASE_ALREADY_OPEN_1, reason);
         String payload = null;
-        try {
-            Properties prop = load();
-            payload = prop.getProperty("server") + "/" + prop.getProperty("id");
-        } catch (SQLException e) {
-            // ignore
+        if (fileName != null) {
+            try {
+                Properties prop = load();
+                payload = prop.getProperty("server") + "/" + prop.getProperty("id");
+            } catch (SQLException e) {
+                // ignore
+            }
         }
         ex.setPayload(payload);
         return ex;

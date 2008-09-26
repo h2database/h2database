@@ -327,12 +327,8 @@ public class TraceSystem implements TraceWriter {
             }
             fileWriter = null;
         }
-        try {
-            if (fileName != null && FileUtils.length(fileName) == 0) {
-                FileUtils.delete(fileName);
-            }
-        } catch (SQLException e) {
-            // ignore
+        if (fileName != null && FileUtils.length(fileName) == 0) {
+            FileUtils.tryDelete(fileName);
         }
     }
 

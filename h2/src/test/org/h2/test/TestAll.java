@@ -276,7 +276,7 @@ java org.h2.test.TestAll timer
 /*
 
 14.zip
-check all version(s) before releasing
+check all version(s) before the release
 
 Add version number. Install directory: h2-1.1, jar file: h2-1.1.100.jar. Micro version: use build number, staring with 1.1.100
 

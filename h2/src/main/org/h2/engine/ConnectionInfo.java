@@ -44,14 +44,6 @@ public class ConnectionInfo implements Cloneable {
     private boolean persistent;
     private boolean unnamed;
     
-    public Object clone() throws CloneNotSupportedException {
-        ConnectionInfo clone = (ConnectionInfo) super.clone();
-        clone.prop = (Properties) prop.clone();
-        clone.filePasswordHash = ByteUtils.cloneByteArray(filePasswordHash);
-        clone.userPasswordHash = ByteUtils.cloneByteArray(userPasswordHash);
-        return clone;
-    }
-
     static {
         ObjectArray list = SetTypes.getSettings();
         for (int i = 0; i < list.size(); i++) {
@@ -98,6 +90,14 @@ public class ConnectionInfo implements Cloneable {
         convertPasswords();
         name = url.substring(Constants.START_URL.length());
         parseName();
+    }
+    
+    public Object clone() throws CloneNotSupportedException {
+        ConnectionInfo clone = (ConnectionInfo) super.clone();
+        clone.prop = (Properties) prop.clone();
+        clone.filePasswordHash = ByteUtils.cloneByteArray(filePasswordHash);
+        clone.userPasswordHash = ByteUtils.cloneByteArray(userPasswordHash);
+        return clone;
     }
 
     private void parseName() {

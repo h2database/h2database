@@ -19,14 +19,14 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul><li>Linked tables that point to the same database can now share the connection 
-	within the same database. Access to the same connection is serialized. To enable this feature,
-	set the system property h2.shareLinkedConnections to true.
+    within the same database. Access to the same connection is serialized. To enable this feature,
+    set the system property h2.shareLinkedConnections to true.
 </li><li>Multiple processes can now access the same database without having to explicitly
-	start the server. To do that, append ;AUTO_SERVER=TRUE to the database URL. 
-	In this case, the server is started automatically if the connection is in embedded mode, 
-	and the server mode is used if a server is running. If the process that opened the first 
-	connection is closed, the other client need to reconnect (there is no automatic re-connect so far).
-	Remote connections are allowed, but only to this database.
+    start the server. To do that, append ;AUTO_SERVER=TRUE to the database URL. 
+    In this case, the server is started automatically if the connection is in embedded mode, 
+    and the server mode is used if a server is running. If the process that opened the first 
+    connection is closed, the other client need to reconnect (there is no automatic re-connect so far).
+    Remote connections are allowed, but only to this database.
 </li><li>The server tool now displays the correct IP address if networked.
 </li><li>Can now start a TCP server with port 0 (automatically select a port).
 </li><li>Result sets with just a unique index can now be updated (previously a primary key was required).

@@ -41,6 +41,9 @@ public abstract class TestBase {
      */
     protected TestAll config;
     
+    /**
+     * The time when the test was started.
+     */
     protected long start;
 
     /**
@@ -136,10 +139,23 @@ public abstract class TestBase {
         return getConnectionInternal(getURL(name, false), user, password);
     }
     
+    /**
+     * Get the password to use to login for the given user password. The file
+     * password is added if required.
+     * 
+     * @param userPassword the password of this user
+     * @return the login password
+     */
     protected String getPassword(String userPassword) {
         return config == null || config.cipher == null ? userPassword : "filePassword " + userPassword;
     }
 
+    /**
+     * Get the login password. This is usually the user password. If file
+     * encryption is used it is combined with the file password.
+     * 
+     * @return the login password
+     */
     protected String getPassword() {
         return getPassword("123");
     }

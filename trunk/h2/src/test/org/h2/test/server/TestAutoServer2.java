@@ -17,6 +17,12 @@ import org.h2.test.TestBase;
  * Tests automatic embedded/server mode.
  */
 public class TestAutoServer2 extends TestBase {
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a the connection information or empty
+     */    
     public static void main(String[] a) throws Exception {
         if (a.length == 3) {
             // PrintStream ps = new PrintStream(new File("test.txt"));

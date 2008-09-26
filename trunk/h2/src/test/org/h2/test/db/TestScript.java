@@ -51,7 +51,6 @@ public class TestScript extends TestBase {
      * Get all SQL statements of this file.
      * 
      * @param conf the configuration
-     * @param file the file name
      * @return the list of statements
      */
     public ArrayList getAllStatements(TestAll conf) throws Exception {

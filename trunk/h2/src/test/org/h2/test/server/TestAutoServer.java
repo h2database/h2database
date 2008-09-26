@@ -19,6 +19,9 @@ import org.h2.util.SortedProperties;
  */
 public class TestAutoServer extends TestBase {
     
+    /**
+     * If enabled, this flag allows to debug the test case.
+     */
     static final boolean SLOW = false;
 
     /**
@@ -74,6 +77,9 @@ public class TestAutoServer extends TestBase {
         // proc.destroy();
     }
     
+    /**
+     * This method is called via reflection from the database.
+     */    
     public static void halt(int exitValue) {
         Runtime.getRuntime().halt(exitValue);
     }

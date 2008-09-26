@@ -117,7 +117,7 @@ public class Constants {
     /**
      * The minor version of this product.
      */
-    public static final int VERSION_MINOR = 1;
+    public static final int VERSION_MINOR = 0;
 
     /**
      * The version number (major.minor) of this product.

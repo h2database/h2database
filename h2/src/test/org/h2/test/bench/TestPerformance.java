@@ -10,6 +10,7 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -226,6 +227,8 @@ public class TestPerformance {
             System.out.println("Testing the performance of " + db.getName());
             db.startServer();
             Connection conn = db.openNewConnection();
+            DatabaseMetaData meta = conn.getMetaData();
+            System.out.println(" " + meta.getDatabaseProductName() + " " + meta.getDatabaseProductVersion());
             runDatabase(db, tests, 1);
             runDatabase(db, tests, 1);
             collect = true;

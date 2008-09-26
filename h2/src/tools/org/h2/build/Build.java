@@ -32,13 +32,13 @@ public class Build extends BuildBase {
         download("ext/hsqldb-1.8.0.7.jar",
                 "http://repo1.maven.org/maven2/hsqldb/hsqldb/1.8.0.7/hsqldb-1.8.0.7.jar",
                 "20554954120b3cc9f08804524ec90113a73f3015");
-        download("ext/derby-10.4.1.3.jar",
+        download("ext/derby-10.4.2.0.jar",
                 "http://repo1.maven.org/maven2/org/apache/derby/derby/10.4.2.0/derby-10.4.2.0.jar",
                 "e785a7c453056a842826d98e6a780724f9b7abf8");
-        download("ext/derbyclient-10.4.1.3.jar",
+        download("ext/derbyclient-10.4.2.0.jar",
                 "http://repo1.maven.org/maven2/org/apache/derby/derbyclient/10.4.2.0/derbyclient-10.4.2.0.jar",
                 "b3452b5e026e418462fd5464bb7571c7ff1ee8a5");
-        download("ext/derbynet-10.4.1.3.jar",
+        download("ext/derbynet-10.4.2.0.jar",
                 "http://repo1.maven.org/maven2/org/apache/derby/derbynet/10.4.2.0/derbynet-10.4.2.0.jar",
                 "1547800a688132a7602d5dc280bfe88bb085bfde");
         download("ext/postgresql-8.3-603.jdbc3.jar",
@@ -48,6 +48,7 @@ public class Build extends BuildBase {
                 "http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.6/mysql-connector-java-5.1.6.jar", 
                 "380ef5226de2c85ff3b38cbfefeea881c5fce09d");
         String cp = "temp" + File.pathSeparator + "bin/h2" + getJarSuffix() + File.pathSeparator +
+        "ext/hsqldb.jar" + File.pathSeparator +
         "ext/hsqldb-1.8.0.7.jar" + File.pathSeparator +
         "ext/derby-10.4.2.0.jar" + File.pathSeparator +
         "ext/derbyclient-10.4.2.0.jar" + File.pathSeparator +

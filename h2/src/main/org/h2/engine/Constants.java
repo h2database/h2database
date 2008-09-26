@@ -80,22 +80,22 @@ public class Constants {
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 78;
+    public static final int BUILD_ID = 79;
 
     /**
      * The build id of the previous release.
      */
-    public static final int BUILD_ID_PREVIOUS = 77;
+    public static final int BUILD_ID_PREVIOUS = 78;
 
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2008-08-28";
+    public static final String BUILD_DATE = "2008-09-26";
 
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE_PREVIOUS = "2008-08-16";
+    public static final String BUILD_DATE_PREVIOUS = "2008-08-28";
 
     /**
      * The TCP protocol version number 5. This protocol is used by the TCP

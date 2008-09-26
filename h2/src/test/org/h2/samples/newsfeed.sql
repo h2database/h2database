@@ -13,6 +13,47 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(49,
+'New version available: 1.0.79 (2008-09-26)', '2008-09-26 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Row level locking for MVCC is now enabled.
+</li><li>Multiple processes can now access the same database by appending 
+    ;AUTO_SERVER=TRUE to the database URL. 
+</li><li>The database supports the SHOW command for better MySQL and PostgreSQL compatibility.
+</li><li>Result sets with just a unique index can now be updated.
+</li><li>Linked tables can now share the connection.
+</li><li>Linked tables can now be read-only.
+</li><li>Linked tables: the schema name can now be set.
+</li><li>Linked tables: worked around a bug in Oracle with the CHAR data type.
+</li><li>Temporary linked tables are now supported.
+</li><li>Faster storage re-use algorithm thanks to Greg Dhuse from cleversafe.com.
+</li><li>Faster hash code calculation for large binary arrays.
+</li><li>Multi-Version Concurrency may no longer be used when using 
+    the multi-threaded kernel feature.
+</li><li>The H2 Console now abbreviates large texts in results.
+</li><li>SET SCHEMA_SEARCH_PATH is now documented.
+</li><li>Can now start a TCP server with port 0 (automatically select a port).
+</li><li>The server tool now displays the correct IP address if networked.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Multiple UNION queries could not be used in derived tables. 
+</li><li>It was possible to create tables in read-only databases.
+</li><li>SET SCHEMA did not work for views.
+</li><li>The maximum log file size setting was ignored for large databases.
+</li><li>The data type JAVA_OBJECT could not be used in updatable result sets.
+</li><li>The system property h2.optimizeInJoin did not work correctly.
+</li><li>Conditions such as ID=? AND ID&gt;? were slow.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(48,
 'New version available: 1.0.78 (2008-08-28)', '2008-08-28 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -395,78 +436,6 @@ INSERT INTO ITEM VALUES(38,
 </li><li>Some long running queries could not be canceled.
 </li><li>When using encrypted databases, and using the wrong file password,
     the log file was renamed sometimes.
-</li></ul>
-For details, see the ''Change Log'' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the ''Roadmap'' page at
-http://www.h2database.com/html/roadmap.html
-');
-
-INSERT INTO ITEM VALUES(37,
-'New version available: 1.0.67 (2008-02-22)', '2008-02-22 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click ''Refresh'').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>New function FILE_READ to read a file or from an URL.
-</li><li>CREATE TABLE AS SELECT now supports a column list.
-</li><li>The CSV tool now supports a custom lineSeparator.
-</li><li>A user now has all rights on his own local temporary tables.
-</li><li>Opening databases with ACCESS_MODE_DATA=r is now supported.
-</li><li>Protection against password dictionary attacks in server mode.
-</li><li>The value cache is improved to save memory.
-</li><li>Large result sets are now a bit faster.
-</li><li>ALTER SEQUENCE now support parameters.
-</li><li>Statement.setQueryTimeout() is now supported.
-</li><li>New session setting QUERY_TIMEOUT.
-</li><li>The H2 Console has been translated to Dutch. Thanks a lot to Remco Schoen!
-</li><li>The H2 Console is now faster for databases containing many tables.
-</li><li>Databases can now be opened even if trigger classes are not in the classpath.
-</li><li>Changing the transaction log level (SET LOG) is now written to the trace file.
-</li><li>Primary key are now ordered before foreign key constraints.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>When using multiple connections, empty space was reused too early sometimes. 
-    This could corrupt the database when recovering.
-</li><li>The DbStarter servlet didn''t start the TCP listener even if configured.
-</li><li>The user directory prefix (''~'') was ignored sometimes.
-</li><li>Connecting to a TCP server and at shutting it down at the same time could fail.
-</li><li>CREATE INDEX on a table with many rows used too much memory.
-</li><li>A referential constraint to a table in a different schema could not be created.
-</li></ul>
-For details, see the ''Change Log'' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the ''Roadmap'' page at
-http://www.h2database.com/html/roadmap.html
-');
-
-INSERT INTO ITEM VALUES(36,
-'New version available: 1.0.66 (2008-02-02)', '2008-02-02 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click ''Refresh'').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>New tool: <a href="http://www.h2database.com/html/sourceError.html">Online Error Analyzer</a>.
-</li><li>In the H2 Console, errors now link to the docs and source code.
-</li><li>IKVM (www.ikvm.net) is now better supported.
-</li><li>The exception ''Value too long for column'' now includes the data.
-</li><li>Statements that contain very large subqueries are now faster.
-</li><li>Fulltext search is now supported in named in-memory databases.
-</li><li>Primary keys can now have a constraint name.
-</li><li>Calling EXTRACT(HOUR FROM ...) returned the wrong values.
-    Please check if your application relies on the old behavior before upgrading.
-</li><li>The meta data compatibility with other databases has been improved.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>CHAR data type equals comparison was wrong.
-</li><li>The table name was missing in the documentation of CREATE INDEX.
-</li><li>The cache memory usage calculation has been improved.
-</li><li>The exception "Hex string contains non-hex character" was not thrown.
-</li><li>The acting as PostgreSQL server, a base directory was not set correctly.
-</li><li>Variables: large objects now work correctly.
-</li><li>H2 Console: multiple consecutive spaces in the setting name did not work.
 </li></ul>
 For details, see the ''Change Log'' at
 http://www.h2database.com/html/changelog.html

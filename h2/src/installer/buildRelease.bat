@@ -11,9 +11,6 @@ rem == Check that is no TODO in the docs
 rem == Check code coverage
 rem == Run regression test with JDK 1.4 and 1.5
 rem == Use latest versions of other dbs
-rem ==   - Derby 10.4.1.3
-rem ==   - PostgreSQL 8.3.1
-rem ==   - MySQL 5.0.51
 rem == Change version(s) in performance.html
 
 setlocal

@@ -41,6 +41,25 @@ public class TableLinkConnection {
      */
     private int useCounter;
     
+    private TableLinkConnection(HashMap map, String driver, String url, String user, String password) {
+        this.map = map;
+        this.driver = driver;
+        this.url = url;
+        this.user = user;
+        this.password = password;
+    }
+    
+    /**
+     * Open a new connection.
+     * 
+     * @param map the map where the connection should be stored 
+     *      (if shared connections are enabled).
+     * @param driver the JDBC driver class name
+     * @param url the database URL
+     * @param user the user name
+     * @param password the password
+     * @return a connection
+     */
     public static TableLinkConnection open(HashMap map, String driver, String url, String user, String password) throws SQLException {
         TableLinkConnection t = new TableLinkConnection(map, driver, url, user, password);
         if (SysProperties.SHARE_LINKED_CONNECTIONS) {
@@ -64,14 +83,6 @@ public class TableLinkConnection {
             }
             return result;
         }
-    }
-    
-    private TableLinkConnection(HashMap map, String driver, String url, String user, String password) {
-        this.map = map;
-        this.driver = driver;
-        this.url = url;
-        this.user = user;
-        this.password = password;
     }
     
     private void open() throws SQLException {

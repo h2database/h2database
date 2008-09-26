@@ -106,7 +106,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                         ci.setBaseDir(baseDir);
                     }
                 }
-                boolean autoServerMode = Boolean.parseBoolean(ci.getProperty("AUTO_SERVER", "false"));
+                boolean autoServerMode = Boolean.valueOf(ci.getProperty("AUTO_SERVER", "false")).booleanValue();
                 ConnectionInfo backup = null;
                 if (autoServerMode) {
                     backup = (ConnectionInfo) ci.clone();

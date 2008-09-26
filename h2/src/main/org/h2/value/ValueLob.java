@@ -739,6 +739,12 @@ public class ValueLob extends Value {
         }
     }
     
+    /**
+     * Check if a lob file exists for this database.
+     * 
+     * @param prefix the file name prefix
+     * @return true if a lob file exists
+     */
     public static boolean existsLobFile(String prefix) throws SQLException {
         String dir = FileUtils.getParent(prefix);
         String[] list = FileUtils.listFiles(dir);

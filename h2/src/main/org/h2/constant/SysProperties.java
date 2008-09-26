@@ -79,6 +79,7 @@ public class SysProperties {
      * <p>
      * This feature is disabled by default for compatibility with other
      * databases (HSQLDB, Apache Derby, PostgreSQL, some version of MySQL).
+     * </p>
      */
     public static final boolean ALIAS_COLUMN_NAME = getBooleanSetting("h2.aliasColumnName", false);
 
@@ -229,8 +230,9 @@ public class SysProperties {
      * Store LOB files in subdirectories.
      * <p>
      * In version 1.0, it is disabled by default.
-     * <p>
+     * </p><p>
      * In version 1.1, it is enabled by default.
+     * </p>
      */
     // TODO: when removing this property, also remove 
     // DataHandler.allocateObjectId, createTempFile it
@@ -320,8 +322,9 @@ public class SysProperties {
      * Support old command line options.
      * <p>
      * In version 1.0, it is enabled by default.
-     * <p>
+     * </p><p>
      * In version 1.1, it is disabled by default.
+     * </p>
      */
     public static final boolean OLD_COMMAND_LINE_OPTIONS = getBooleanSetting("h2.oldCommandLineOptions", Constants.VERSION < 1.1);
     
@@ -360,8 +363,9 @@ public class SysProperties {
      * by columns.
      * <p>
      * In version 1.0, it is disabled by default.
-     * <p>
+     * </p><p>
      * In version 1.1, it is enabled by default.
+     * </p>
      */
     public static final boolean OPTIMIZE_GROUP_SORTED = getBooleanSetting("h2.optimizeGroupSorted", Constants.VERSION > 1.0);
 
@@ -376,8 +380,9 @@ public class SysProperties {
      * Optimize IN(...) comparisons by converting them to inner joins.
      * <p>
      * In version 1.0, it is disabled by default.
-     * <p>
+     * </p><p>
      * In version 1.1, it is enabled by default.
+     * </p>
      */
     public static boolean optimizeInJoin = getBooleanSetting("h2.optimizeInJoin", Constants.VERSION > 1.0);
 
@@ -465,7 +470,8 @@ public class SysProperties {
     public static final int SERVER_CACHED_OBJECTS = getIntSetting("h2.serverCachedObjects", 64);
 
     /**
-     * System property <code>h2.serverResultSetFetchSize</code> (default: 100).<br />
+     * System property <code>h2.serverResultSetFetchSize</code> 
+     * (default: 100).<br />
      * The default result set fetch size when using the server mode.
      */
     public static final int SERVER_RESULT_SET_FETCH_SIZE = getIntSetting("h2.serverResultSetFetchSize", 100);
@@ -473,11 +479,14 @@ public class SysProperties {
     /**
      * System property <code>h2.shareLinkedConnections</code>.<br />
      * Linked connections should be shared, that means connections to the same
-     * database should be used for all linked tables that connect to the same database.
+     * database should be used for all linked tables that connect to the same
+     * database.
      * <p>
      * In version 1.0, it is disabled by default.
+     * </p>
      * <p>
      * In version 1.1, it is enabled by default.
+     * </p>
      */
     public static final boolean SHARE_LINKED_CONNECTIONS = getBooleanSetting("h2.shareLinkedConnections", Constants.VERSION > 1.0);
     

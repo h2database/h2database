@@ -31,7 +31,15 @@ public class SelfDestructor extends Thread {
             Thread thread = new Thread() {
                 public void run() {
                     for (int i = minutes; i >= 0; i--) {
-                        setName("SelfDestructor " + i + " min");
+                        while (true) {
+                            try {
+                                String name = "SelfDestructor " + i + " min";
+                                setName(name);
+                                break;
+                            } catch (OutOfMemoryError e) {
+                                // ignore
+                            }
+                        }
                         try {
                             Thread.sleep(60 * 1000);
                         } catch (InterruptedException e) {

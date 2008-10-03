@@ -24,6 +24,7 @@ import org.h2.result.ResultInterface;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.util.ByteUtils;
+import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.ObjectArray;
@@ -61,7 +62,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     private TraceSystem traceSystem;
     private Trace trace;
-    private ObjectArray transferList;
+    private ObjectArray transferList = new ObjectArray();
     private int nextId;
     private boolean autoCommit = true;
     private CommandInterface switchOffAutoCommit;
@@ -72,7 +73,10 @@ public class SessionRemote implements SessionInterface, DataHandler {
     private byte[] fileEncryptionKey;
     private Object lobSyncObject = new Object();
     private String sessionId;
-    private int clientVersion = Constants.TCP_PROTOCOL_VERSION_5; 
+    private int clientVersion = Constants.TCP_PROTOCOL_VERSION_5;
+    private boolean autoReconnect;
+    private int lastReconnect;
+    private SessionInterface embedded;
 
     public SessionRemote() {
         // nothing to do
@@ -80,7 +84,6 @@ public class SessionRemote implements SessionInterface, DataHandler {
     
     private SessionRemote(ConnectionInfo ci) throws SQLException {
         this.connectionInfo = ci;
-        connect();
     }
 
     private Transfer initTransfer(ConnectionInfo ci, String db, String server) throws IOException, SQLException {
@@ -179,7 +182,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
                     transfer.writeInt(SessionRemote.COMMAND_COMMIT);
                     done(transfer);
                 } catch (IOException e) {
-                    removeServer(i--);
+                    removeServer(e, i--);
                 }
             }
         }
@@ -209,11 +212,49 @@ public class SessionRemote implements SessionInterface, DataHandler {
     }
 
     public SessionInterface createSession(ConnectionInfo ci) throws SQLException {
-        return new SessionRemote(ci);
+        return new SessionRemote(ci).connectEmbeddedOrServer();
     }
-
-    private void connect() throws SQLException {
+    
+    private SessionInterface connectEmbeddedOrServer() throws SQLException {
         ConnectionInfo ci = connectionInfo;
+        if (ci.isRemote()) {
+            connectServer(ci);
+            return this;
+        }
+        // create the session using reflection, 
+        // so that the JDBC layer can be compiled without it
+        boolean autoServerMode = Boolean.valueOf(ci.getProperty("AUTO_SERVER", "false")).booleanValue();
+        ConnectionInfo backup = null;
+        try {
+            if (autoServerMode) {
+                backup = (ConnectionInfo) ci.clone();
+                connectionInfo = (ConnectionInfo) ci.clone();
+            }
+            SessionInterface si = (SessionInterface) ClassUtils.loadSystemClass("org.h2.engine.Session").newInstance();
+            return si.createSession(ci);
+        } catch (SQLException e) {
+            int errorCode = e.getErrorCode();
+            if (errorCode == ErrorCode.DATABASE_ALREADY_OPEN_1) {
+                if (autoServerMode) {
+                    String serverKey = (String) ((JdbcSQLException) e).getPayload();
+                    if (serverKey != null) {
+                        backup.setServerKey(serverKey);
+                        // OPEN_NEW must be removed now, otherwise 
+                        // opening a session with AUTO_SERVER fails 
+                        // if another connection is already open
+                        backup.removeProperty("OPEN_NEW", false);
+                        connectServer(backup);
+                        return this;
+                    }
+                }
+            }
+            throw e;
+        } catch (Exception e) {
+            throw Message.convert(e);
+        }
+    }
+    
+    private void connectServer(ConnectionInfo ci) throws SQLException {
         String name = ci.getName();
         if (name.startsWith("//")) {
             name = name.substring("//".length());
@@ -243,11 +284,14 @@ public class SessionRemote implements SessionInterface, DataHandler {
             throw Message.convert(e);
         }
         trace = traceSystem.getTrace(Trace.JDBC);
-        transferList = new ObjectArray();
-        String serverlist = null;
+        String serverList = null;
         if (server.indexOf(',') >= 0) {
-            serverlist = StringUtils.quoteStringSQL(server);
-            ci.setProperty("CLUSTER", serverlist);
+            serverList = StringUtils.quoteStringSQL(server);
+            ci.setProperty("CLUSTER", serverList);
+        }
+        autoReconnect = Boolean.valueOf(ci.getProperty("AUTO_RECONNECT", "false")).booleanValue();
+        if (autoReconnect && serverList != null) {
+            throw Message.getSQLException(ErrorCode.FEATURE_NOT_SUPPORTED);
         }
         cipher = ci.getProperty("CIPHER");
         if (cipher != null) {
@@ -255,7 +299,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
         }
         String[] servers = StringUtils.arraySplit(server, ',', true);
         int len = servers.length;
-        transferList = new ObjectArray();
+        transferList.clear();
         // TODO cluster: support at most 2 connections
         boolean switchOffCluster = false;
         try {
@@ -289,8 +333,8 @@ public class SessionRemote implements SessionInterface, DataHandler {
             ResultInterface result = command.executeQuery(1, false);
             if (result.next()) {
                 Value[] v = result.currentRow();
-                String version = v[0].getString();
-                if (version.compareTo("71") > 0) {
+                int version = v[0].getInt();
+                if (version > 71) {
                     clientVersion = Constants.TCP_PROTOCOL_VERSION_6;
                 }
             }
@@ -327,10 +371,14 @@ public class SessionRemote implements SessionInterface, DataHandler {
      * Remove a server from the list of cluster nodes and disables the cluster
      * mode.
      * 
+     * @param e the exception (used for debugging)
      * @param i the index of the server to remove
      */
-    public void removeServer(int i) throws SQLException {
+    public void removeServer(IOException e, int i) throws SQLException {
         transferList.remove(i);
+        if (autoReconnect()) {
+            return;
+        }        
         checkClosed();
         switchOffCluster();
     }
@@ -341,6 +389,32 @@ public class SessionRemote implements SessionInterface, DataHandler {
             return new CommandRemote(this, transferList, sql, fetchSize);
         }
     }
+    
+    /**
+     * Automatically re-connect if necessary and if configured to do so.
+     * 
+     * @return true if reconnected
+     */
+    public boolean autoReconnect() throws SQLException {
+        if (!isClosed()) {
+            return false;
+        }
+        if (!autoReconnect || !autoCommit) {
+            return false;
+        }
+        lastReconnect++;
+        embedded = connectEmbeddedOrServer();
+        if (embedded == this) {
+            // connected to a server somewhere else
+            embedded = null;
+        } else {
+            // opened an embedded connection now - 
+            // must connect to this database in server mode
+            // unfortunately
+            connectEmbeddedOrServer();
+        }
+        return true;
+    }
 
     /**
      * Check if this session is closed and throws an exception if so.
@@ -349,12 +423,11 @@ public class SessionRemote implements SessionInterface, DataHandler {
      */
     public void checkClosed() throws SQLException {
         if (isClosed()) {
-            // TODO broken connection: try to reconnect automatically
             throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
         }
     }
 
-    public void close() {
+    public void close() throws SQLException {
         if (transferList != null) {
             synchronized (this) {
                 for (int i = 0; i < transferList.size(); i++) {
@@ -372,6 +445,10 @@ public class SessionRemote implements SessionInterface, DataHandler {
             transferList = null;
         }
         traceSystem.close();
+        if (embedded != null) {
+            embedded.close();
+            embedded = null;
+        }
     }
 
     public Trace getTrace() {
@@ -528,6 +605,10 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     public int getClientVersion() {
         return clientVersion;
+    }
+
+    public int getLastReconnect() {
+        return lastReconnect;
     }
 
 }

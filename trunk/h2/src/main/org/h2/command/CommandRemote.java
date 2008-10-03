@@ -38,6 +38,7 @@ public class CommandRemote implements CommandInterface {
     private boolean isQuery;
     private boolean readonly;
     private int paramCount;
+    private int created;
 
     public CommandRemote(SessionRemote session, ObjectArray transferList, String sql, int fetchSize) throws SQLException {
         this.transferList = transferList;
@@ -49,6 +50,7 @@ public class CommandRemote implements CommandInterface {
         // need to close the object
         this.session = session;
         this.fetchSize = fetchSize;
+        created = session.getLastReconnect();
     }
 
     private void prepare(SessionRemote s, boolean createParams) throws SQLException {
@@ -82,7 +84,7 @@ public class CommandRemote implements CommandInterface {
                     }
                 }
             } catch (IOException e) {
-                s.removeServer(i--);
+                s.removeServer(e, i--);
             }
         }
     }
@@ -94,20 +96,28 @@ public class CommandRemote implements CommandInterface {
     public ObjectArray getParameters() {
         return parameters;
     }
+    
+    private void prepareIfRequired() throws SQLException {
+        if (session.getLastReconnect() != created) {
+            // in this case we need to prepare again in every case
+            id = Integer.MIN_VALUE;
+        }            
+        session.checkClosed();
+        if (id <= session.getCurrentId() - SysProperties.SERVER_CACHED_OBJECTS) {
+            // object is too old - we need to prepare again
+            prepare(session, false);
+        }
+    }
 
     public ResultInterface getMetaData() throws SQLException {
         synchronized (session) {
-            session.checkClosed();
             if (!isQuery) {
                 return null;
-            }
-            if (id <= session.getCurrentId() - SysProperties.SERVER_CACHED_OBJECTS) {
-                // object is too old - we need to prepare again
-                prepare(session, false);
             }
             int objectId = session.getNextId();
             ResultRemote result = null;
             for (int i = 0; i < transferList.size(); i++) {
+                prepareIfRequired();
                 Transfer transfer = (Transfer) transferList.get(i);
                 try {
                     // TODO cluster: support load balance with values for each server / auto detect
@@ -118,7 +128,7 @@ public class CommandRemote implements CommandInterface {
                     result = new ResultRemote(session, transfer, objectId, columnCount, Integer.MAX_VALUE);
                     break;
                 } catch (IOException e) {
-                    session.removeServer(i--);
+                    session.removeServer(e, i--);
                 }
             }
             session.autoCommitIfCluster();
@@ -129,14 +139,10 @@ public class CommandRemote implements CommandInterface {
     public ResultInterface executeQuery(int maxRows, boolean scrollable) throws SQLException {
         checkParameters();
         synchronized (session) {
-            session.checkClosed();
-            if (id <= session.getCurrentId() - SysProperties.SERVER_CACHED_OBJECTS) {
-                // object is too old - we need to prepare again
-                prepare(session, false);
-            }
             int objectId = session.getNextId();
             ResultRemote result = null;
             for (int i = 0; i < transferList.size(); i++) {
+                prepareIfRequired();
                 Transfer transfer = (Transfer) transferList.get(i);
                 try {
                     // TODO cluster: support load balance with values for each
@@ -163,7 +169,7 @@ public class CommandRemote implements CommandInterface {
                         break;
                     }
                 } catch (IOException e) {
-                    session.removeServer(i--);
+                    session.removeServer(e, i--);
                 }
             }
             session.autoCommitIfCluster();
@@ -174,16 +180,12 @@ public class CommandRemote implements CommandInterface {
     public int executeUpdate() throws SQLException {
         checkParameters();
         synchronized (session) {
-            session.checkClosed();
-            if (id <= session.getCurrentId() - SysProperties.SERVER_CACHED_OBJECTS) {
-                // object is too old - we need to prepare again
-                prepare(session, false);
-            }
             int updateCount = 0;
             boolean autoCommit = false;
             for (int i = 0; i < transferList.size(); i++) {
+                prepareIfRequired();
+                Transfer transfer = (Transfer) transferList.get(i);
                 try {
-                    Transfer transfer = (Transfer) transferList.get(i);
                     session.traceOperation("COMMAND_EXECUTE_UPDATE", id);
                     transfer.writeInt(SessionRemote.COMMAND_EXECUTE_UPDATE).writeInt(id);
                     sendParameters(transfer);
@@ -191,7 +193,7 @@ public class CommandRemote implements CommandInterface {
                     updateCount = transfer.readInt();
                     autoCommit = transfer.readBoolean();
                 } catch (IOException e) {
-                    session.removeServer(i--);
+                    session.removeServer(e, i--);
                 }
             }
             session.setAutoCommit(autoCommit);

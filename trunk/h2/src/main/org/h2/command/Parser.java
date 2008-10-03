@@ -4039,6 +4039,10 @@ public class Parser {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
+        } else if (readIf("AUTO_RECONNECT")) {
+            readIfEqualOrTo();
+            read();
+            return new NoOperation(session);
         } else if (readIf("ASSERT")) {
             readIfEqualOrTo();
             read();

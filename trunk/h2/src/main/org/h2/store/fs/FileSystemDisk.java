@@ -154,6 +154,9 @@ public class FileSystemDisk extends FileSystem {
             dir = new File(name).getAbsoluteFile().getParentFile();
             dir.mkdirs();
         }
+        if (prefix.length() < 3) {
+            prefix += "0";
+        }
         File f = File.createTempFile(prefix, suffix, dir);
         if (deleteOnExit) {
             try {

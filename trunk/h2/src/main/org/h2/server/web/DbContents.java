@@ -122,8 +122,15 @@ public class DbContents {
         }
         ResultSet rs = meta.getSchemas();
         ArrayList schemas = new ArrayList();
+        int index = 1;
+        try {
+            index = rs.findColumn("TABLE_SCHEM");
+        } catch (SQLException e) {
+            // ignore
+            // workaround for a JDBC-ODBC bridge problem
+        }
         while (rs.next()) {
-            String schema = rs.getString("TABLE_SCHEM");
+            String schema = rs.getString(index);
             if (schema == null) {
                 continue;
             }

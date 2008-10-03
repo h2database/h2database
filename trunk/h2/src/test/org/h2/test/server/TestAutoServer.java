@@ -6,12 +6,14 @@
  */
 package org.h2.test.server;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
+import org.h2.test.unit.SelfDestructor;
 import org.h2.util.SortedProperties;
 
 /**
@@ -42,7 +44,10 @@ public class TestAutoServer extends TestBase {
         String user = getUser(), password = getPassword();
         Connection conn = getConnection(url, user, password);
         conn.close();
-        String[] procDef = new String[] { "java", "-cp", "bin", TestAutoServer2.class.getName(), url, user, password };
+        String selfDestruct = SelfDestructor.getPropertyString(60);
+        String[] procDef = new String[] { "java", selfDestruct, 
+                "-cp", "bin" + File.pathSeparator + ".", 
+                TestAutoServer2.class.getName(), url, user, password };
         // TestAutoServer2.main(new String[]{url, user, password});
         Process proc = Runtime.getRuntime().exec(procDef);
         

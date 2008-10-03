@@ -6,6 +6,7 @@
  */
 package org.h2.test.synth;
 
+import java.io.File;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -34,7 +35,9 @@ public class TestKillRestart extends TestBase {
         //        "killRestart;CACHE_SIZE=2048;WRITE_DELAY=0;STORAGE=TEXT", true);
         String user = getUser(), password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);
-        String[] procDef = new String[] { "java", selfDestruct, "-cp", "bin", getClass().getName(), "-url", url, "-user", user,
+        String[] procDef = new String[] { "java", selfDestruct, 
+                "-cp", "bin" + File.pathSeparator + ".", 
+                getClass().getName(), "-url", url, "-user", user,
                 "-password", password };
 
         int len = getSize(2, 15);

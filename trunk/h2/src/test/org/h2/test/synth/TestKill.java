@@ -6,6 +6,7 @@
  */
 package org.h2.test.synth;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -38,7 +39,10 @@ public class TestKill extends TestBase {
         String user = getUser();
         String password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);
-        String[] procDef = new String[] { "java", selfDestruct, "-cp", "bin", "org.h2.test.synth.TestKillProcess", url, user,
+        String[] procDef = new String[] { 
+                "java", selfDestruct, 
+                "-cp", "bin" + File.pathSeparator + ".", 
+                "org.h2.test.synth.TestKillProcess", url, user,
                 password, baseDir, "" + accounts };
 
         for (int i = 0;; i++) {

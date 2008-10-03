@@ -24,6 +24,7 @@ import org.h2.test.unit.SelfDestructor;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;
+import org.h2.util.StringUtils;
 
 /**
  * Tests database recovery by destroying a process that writes to the database.
@@ -239,16 +240,17 @@ public abstract class TestHalt extends TestBase {
             // String classPath = "-cp
             // .;D:/data/java/hsqldb.jar;D:/data/java/derby.jar";
             String selfDestruct = SelfDestructor.getPropertyString(60);
-            String classPath = "";
-            String[] command = {"java", selfDestruct, classPath, getClass().getName(), "" + operations, "" + flags, "" + value};
-            traceOperation("start: " + command);
-            Process p = Runtime.getRuntime().exec(command);
+            String[] procDef = new String[] { "java", selfDestruct, 
+                    "-cp", "bin" + File.pathSeparator + ".", 
+                    getClass().getName(), "" + operations, "" + flags, "" + value};
+            traceOperation("start: " + StringUtils.arrayCombine(procDef, ' '));
+            Process p = Runtime.getRuntime().exec(procDef);
             InputStream in = p.getInputStream();
             OutputCatcher catcher = new OutputCatcher(in);
             catcher.start();
             String s = catcher.readLine(5 * 60 * 1000);
             if (s == null) {
-                throw new IOException("No reply from process, command: " + command);
+                throw new IOException("No reply from process, command: " + StringUtils.arrayCombine(procDef, ' '));
             } else if (s.startsWith("READY")) {
                 traceOperation("got reply: " + s);
             }

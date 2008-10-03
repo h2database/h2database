@@ -29,12 +29,11 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         if (config.codeCoverage || config.networked) {
             return;
         }
-        String classPath = "bin" + File.pathSeparator + ".";
-
         deleteDb("exit");
-        String[] procDef;
         String selfDestruct = SelfDestructor.getPropertyString(60);
-        procDef = new String[] { "java", selfDestruct, "-cp", classPath, getClass().getName(), "" + OPEN_WITH_CLOSE_ON_EXIT };
+        String[] procDef = new String[] { "java", selfDestruct, 
+                "-cp", "bin" + File.pathSeparator + ".", 
+                getClass().getName(), "" + OPEN_WITH_CLOSE_ON_EXIT };
         Process proc = Runtime.getRuntime().exec(procDef);
         while (true) {
             int ch = proc.getErrorStream().read();
@@ -55,7 +54,9 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         if (!getClosedFile().exists()) {
             fail("did not close database");
         }
-        procDef = new String[] { "java", "-cp", classPath, getClass().getName(), "" + OPEN_WITHOUT_CLOSE_ON_EXIT };
+        procDef = new String[] { "java", 
+                "-cp", "bin" + File.pathSeparator + ".", getClass().getName(), 
+                "" + OPEN_WITHOUT_CLOSE_ON_EXIT };
         proc = Runtime.getRuntime().exec(procDef);
         proc.waitFor();
         Thread.sleep(100);

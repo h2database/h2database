@@ -207,7 +207,7 @@ public class Trace {
         }
         buff.append("*/");
         buff.append(StringUtils.javaEncode(sql));
-        buff.append(params);
+        buff.append(StringUtils.javaEncode(params));
         buff.append(';');
         sql = buff.toString();
         traceWriter.write(TraceSystem.INFO, module, sql, null);

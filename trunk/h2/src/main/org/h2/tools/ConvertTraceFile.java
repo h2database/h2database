@@ -143,6 +143,7 @@ public class ConvertTraceFile extends Tool {
             } else if (line.startsWith("/*SQL")) {
                 int end = line.indexOf("*/");
                 String sql = line.substring(end + "*/".length());
+                sql = StringUtils.javaDecode(sql);
                 line = line.substring("/*SQL".length(), end);
                 if (line.length() > 0) {
                     String statement = sql;
@@ -165,7 +166,7 @@ public class ConvertTraceFile extends Tool {
                     }
                     addToStats(statement, count, time);
                 }
-                scriptWriter.println(StringUtils.javaDecode(sql));
+                scriptWriter.println(sql);
             }
         }
         javaWriter.println("    }");

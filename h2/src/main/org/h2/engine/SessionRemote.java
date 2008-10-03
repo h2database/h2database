@@ -93,6 +93,9 @@ public class SessionRemote implements SessionInterface, DataHandler {
         trans.setSSL(ci.isSSL());
         trans.init();
         trans.writeInt(clientVersion);
+        if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_6) {
+            trans.writeInt(clientVersion);
+        }
         trans.writeString(db);
         trans.writeString(ci.getOriginalURL());
         trans.writeString(ci.getUserName());
@@ -106,6 +109,9 @@ public class SessionRemote implements SessionInterface, DataHandler {
         }
         try {
             done(trans);
+            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_6) {
+                clientVersion = trans.readInt();
+            }
         } catch (SQLException e) {
             trans.close();
             throw e;

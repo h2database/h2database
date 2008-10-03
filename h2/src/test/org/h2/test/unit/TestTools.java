@@ -150,7 +150,7 @@ public class TestTools extends TestBase {
         stat.execute("create table test(id int primary key, name varchar, amount decimal)");
         PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?, ?)");
         prep.setInt(1, 1);
-        prep.setString(2, "Hello");
+        prep.setString(2, "Hello \\'Joe\n\\'");
         prep.setBigDecimal(3, new BigDecimal("10.20"));
         prep.executeUpdate();
         stat.execute("create table test2(id int primary key, a real, b double, c bigint, " +
@@ -194,7 +194,7 @@ public class TestTools extends TestBase {
         rs = stat.executeQuery("select * from test");
         rs.next();
         assertEquals(1, rs.getInt(1));
-        assertEquals("Hello", rs.getString(2));
+        assertEquals("Hello \\'Joe\n\\'", rs.getString(2));
         assertEquals("10.20", rs.getBigDecimal(3).toString());
         assertFalse(rs.next());
         rs = stat.executeQuery("select * from test2");

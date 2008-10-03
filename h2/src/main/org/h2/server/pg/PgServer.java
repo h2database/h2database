@@ -9,6 +9,7 @@ package org.h2.server.pg;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -127,7 +128,12 @@ public class PgServer implements Service {
         if (allowOthers) {
             return true;
         }
-        return NetUtils.isLoopbackAddress(socket);
+        try {
+            return NetUtils.isLocalAddress(socket);
+        } catch (UnknownHostException e) {
+            traceError(e);
+            return false;
+        }
     }
 
     public void start() throws SQLException {

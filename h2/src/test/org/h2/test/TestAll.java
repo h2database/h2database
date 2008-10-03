@@ -78,6 +78,7 @@ import org.h2.test.mvcc.TestMvcc2;
 import org.h2.test.mvcc.TestMvcc3;
 import org.h2.test.mvcc.TestMvccMultiThreaded;
 import org.h2.test.rowlock.TestRowLocks;
+import org.h2.test.server.TestAutoReconnect;
 import org.h2.test.server.TestAutoServer;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.server.TestPgServer;
@@ -275,8 +276,46 @@ java org.h2.test.TestAll timer
 
 /*
 
-14.zip
+Open Anzo 
+http://www.openanzo.org
+Semantic Application Server
+
+H2 Dialect for TopLink
+http://www.marciowb.net/blog/2008/08/quickly-using-h2-database-with
+
+osgi (derby, hsqldb)
+
+private=true
+
+auto_reconnect
+implemented:
+- works with server mode
+- works with auto_server mode
+- use the same property name as in MySQL (reconnect?)
+- statements
+- prepared statements
+- small result sets (up to fetch size)
+- throws an error when autocommit is false
+untested:
+- batch updates
+- throw error for large result sets
+- throw error in cluster mode
+- ignored in embedded mode
+- server mode, embedded (ignored)
+not implemented
+- temporary linked tables
+- temporary tables
+- variables
+- in cluster mode (error)
+- identity, getGeneratedKeys
+
 check all version(s) before the release
+
+Patch.zip
+
+document url parameter auto_server
+document url parameter auto_reconnect
+document url parameter private
 
 Add version number. Install directory: h2-1.1, jar file: h2-1.1.100.jar. 
 Micro version: use build number, staring with 1.1.100
@@ -527,6 +566,7 @@ http://www.w3schools.com/sql/
         new TestXASimple().runTest(this);
 
         // server
+        new TestAutoReconnect().runTest(this);
         new TestAutoServer().runTest(this);
         new TestNestedLoop().runTest(this);
         new TestWeb().runTest(this);

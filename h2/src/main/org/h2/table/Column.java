@@ -130,6 +130,7 @@ public class Column {
         newColumn.convertNullToDefault = convertNullToDefault;
         newColumn.sequence = sequence;
         newColumn.comment = comment;
+        newColumn.computeTableFilter = computeTableFilter;
         newColumn.isComputed = isComputed;
         newColumn.selectivity = selectivity;
         newColumn.primaryKey = primaryKey;

@@ -80,22 +80,22 @@ public class Constants {
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 79;
+    public static final int BUILD_ID = 100;
 
     /**
-     * The build id of the previous release.
+     * The build id of the last stable release.
      */
-    public static final int BUILD_ID_PREVIOUS = 78;
-
-    /**
-     * The build date is updated for each public release.
-     */
-    public static final String BUILD_DATE = "2008-09-26";
+    public static final int BUILD_ID_STABLE = 79;
 
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE_PREVIOUS = "2008-08-28";
+    public static final String BUILD_DATE = "2008-09-29";
+
+    /**
+     * The build date is updated for each public release.
+     */
+    public static final String BUILD_DATE_STABLE = "2008-09-26";
 
     /**
      * The TCP protocol version number 5. This protocol is used by the TCP
@@ -117,7 +117,7 @@ public class Constants {
     /**
      * The minor version of this product.
      */
-    public static final int VERSION_MINOR = 0;
+    public static final int VERSION_MINOR = 1;
 
     /**
      * The version number (major.minor) of this product.
@@ -584,12 +584,12 @@ public class Constants {
     }
     
     /**
-     * Get the version of the previous version.
+     * Get the last stable version name.
      * 
      * @return the version number
      */
-    public static Object getVersionPrevious() {
-        return VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID_PREVIOUS;
+    public static Object getVersionStable() {
+        return "1.0." + BUILD_ID_STABLE;
     }
 
     /**

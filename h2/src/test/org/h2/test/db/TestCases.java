@@ -67,12 +67,6 @@ public class TestCases extends TestBase {
         } catch (SQLException e) {
             assertEquals(ErrorCode.INVALID_DATABASE_NAME_1, e.getErrorCode());
         }
-        try {
-            getConnection("cases/a");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.INVALID_DATABASE_NAME_1, e.getErrorCode());
-        }
     }
     
     private void testReuseSpace() throws SQLException {

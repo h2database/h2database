@@ -384,7 +384,7 @@ selling semicolon semmle send sending sends sense sensitive sensitivity sent
 sentence sentinel sep sepang separate separated separately separating separator
 separators sept september seq sequence sequences sequential sequentially sequoia
 serial serializable serialization serialize serialized series serif server
-serverlist servers service services servicing servlet servlets sesar session
+servers service services servicing servlet servlets sesar session
 sessions set sets setter setters setting settings settlement setup several
 severity sftp sha shadow shall shallow share shared shares shell shellbook shift
 shipping short shorter shortest should shouldn show showing shown shows shrink

@@ -38,6 +38,7 @@ public class Newsfeed {
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
         InputStream in = Newsfeed.class.getResourceAsStream("newsfeed.sql");
         ResultSet rs = RunScript.execute(conn, new InputStreamReader(in, "ISO-8859-1"));
+        in.close();
         while (rs.next()) {
             String file = rs.getString("FILE");
             String content = rs.getString("CONTENT");

@@ -42,7 +42,8 @@ public class Engine {
     private Session openSession(ConnectionInfo ci, boolean ifExists, String cipher) throws SQLException {
         String name = ci.getName();
         Database database;
-        if (ci.isUnnamedInMemory()) {
+        boolean openNew = ci.removeProperty("OPEN_NEW", false);
+        if (openNew || ci.isUnnamedInMemory()) {
             database = null;
         } else {
             database = (Database) databases.get(name);

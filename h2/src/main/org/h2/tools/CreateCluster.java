@@ -28,7 +28,7 @@ public class CreateCluster extends Tool {
                 " -urlTarget <url>    The database URL of the target database (jdbc:h2:...)\n" +
                 " -user <user>        The user name\n" +
                 " [-password <pwd>]   The password\n" +
-                " -serverlist <list>  The comma separated list of host names or IP addresses");
+                " -serverList <list>  The comma separated list of host names or IP addresses");
         out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
 
@@ -43,7 +43,7 @@ public class CreateCluster extends Tool {
      * <li>-urlTarget jdbc:h2:... (the database URL of the target database)
      * </li><li>-user (the user name)
      * </li><li>-password (the password)
-     * </li><li>-serverlist (the server list)
+     * </li><li>-serverList (the server list)
      * </li></ul>
      * 
      * @param args the command line arguments
@@ -58,7 +58,7 @@ public class CreateCluster extends Tool {
         String urlTarget = null;
         String user = null;
         String password = "";
-        String serverlist = null;
+        String serverList = null;
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg.equals("-urlSource")) {
@@ -69,8 +69,8 @@ public class CreateCluster extends Tool {
                 user = args[++i];
             } else if (arg.equals("-password")) {
                 password = args[++i];
-            } else if (arg.equals("-serverlist")) {
-                serverlist = args[++i];
+            } else if (arg.equals("-serverList")) {
+                serverList = args[++i];
             } else if (arg.equals("-help") || arg.equals("-?")) {
                 showUsage();
                 return;
@@ -80,11 +80,11 @@ public class CreateCluster extends Tool {
                 return;
             }
         }
-        if (urlSource == null || urlTarget == null || user == null || serverlist == null) {
+        if (urlSource == null || urlTarget == null || user == null || serverList == null) {
             showUsage();
             return;
         }
-        process(urlSource, urlTarget, user, password, serverlist);
+        process(urlSource, urlTarget, user, password, serverList);
     }
 
     /**
@@ -94,14 +94,14 @@ public class CreateCluster extends Tool {
      * @param urlTarget the database URL of the copy
      * @param user the user name
      * @param password the password
-     * @param serverlist the server list
+     * @param serverList the server list
      * @throws SQLException
      */
-    public void execute(String urlSource, String urlTarget, String user, String password, String serverlist) throws SQLException {
-        new CreateCluster().process(urlSource, urlTarget, user, password, serverlist);
+    public void execute(String urlSource, String urlTarget, String user, String password, String serverList) throws SQLException {
+        new CreateCluster().process(urlSource, urlTarget, user, password, serverList);
     }
     
-    private void process(String urlSource, String urlTarget, String user, String password, String serverlist) throws SQLException {
+    private void process(String urlSource, String urlTarget, String user, String password, String serverList) throws SQLException {
         Connection conn = null;
         Statement stat = null;
         try {
@@ -136,14 +136,14 @@ public class CreateCluster extends Tool {
             runscript.process(urlTarget, user, password, scriptFile, null, false);
             FileUtils.delete(scriptFile);
 
-            // set the cluster to the serverlist on both databases
+            // set the cluster to the serverList on both databases
             conn = DriverManager.getConnection(urlSource, user, password);
             stat = conn.createStatement();
-            stat.executeUpdate("SET CLUSTER '" + serverlist + "'");
+            stat.executeUpdate("SET CLUSTER '" + serverList + "'");
             conn.close();
             conn = DriverManager.getConnection(urlTarget, user, password);
             stat = conn.createStatement();
-            stat.executeUpdate("SET CLUSTER '" + serverlist + "'");
+            stat.executeUpdate("SET CLUSTER '" + serverList + "'");
         } finally {
             JdbcUtils.closeSilently(conn);
             JdbcUtils.closeSilently(stat);

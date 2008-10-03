@@ -24,8 +24,11 @@ import org.h2.security.SecureSocketFactory;
  */
 public class NetUtils {
 
+    private static final int CACHE_MILLIS = 1000;
     private static InetAddress bindAddress;
-
+    private static String cachedLocalAddress;
+    private static long cachedLocalAddressTime;
+    
     private NetUtils() {
         // utility class
     }
@@ -141,22 +144,29 @@ public class NetUtils {
     }
 
     /**
-     * Check if a socket is connected to localhost.
+     * Check if a socket is connected to a local address.
      * 
      * @param socket the socket
      * @return true if it is
      */
-    public static boolean isLoopbackAddress(Socket socket) {
+    public static boolean isLocalAddress(Socket socket) throws UnknownHostException {
+        InetAddress test = socket.getInetAddress();
         boolean result = true;
         //## Java 1.4 begin ##
-        result = socket.getInetAddress().isLoopbackAddress();
+        result = test.isLoopbackAddress();
         if (result) {
             return result;
         }
         //## Java 1.4 end ##
-        String s = getLocalAddress();
-        result = socket.getInetAddress().getHostAddress().equals(s);
-        return result;
+        InetAddress localhost = InetAddress.getLocalHost();
+        InetAddress[] list = InetAddress.getAllByName(localhost.getCanonicalHostName());
+        for (int i = 0; i < list.length; i++) {
+            InetAddress addr = list[i];
+            if (test.equals(addr)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -178,10 +188,17 @@ public class NetUtils {
 
     /**
      * Get the local host address as a string.
+     * For performance, the result is cached for one second.
      * 
      * @return the local host address
      */
-    public static String getLocalAddress() {
+    public static synchronized String getLocalAddress() {
+        long now = System.currentTimeMillis();
+        if (cachedLocalAddress != null) {
+            if (cachedLocalAddressTime + CACHE_MILLIS > now) {
+                return cachedLocalAddress;
+            }
+        }
         InetAddress bind = null;
         try {
             bind = getBindAddress();
@@ -195,6 +212,8 @@ public class NetUtils {
         if (address.equals("127.0.0.1")) {
             address = "localhost";
         }
+        cachedLocalAddress = address;
+        cachedLocalAddressTime = now;
         return address;
     }
 

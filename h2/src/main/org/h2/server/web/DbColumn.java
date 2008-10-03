@@ -28,19 +28,12 @@ class DbColumn {
     String dataType;
 
     DbColumn(ResultSet rs) throws SQLException {
-        int indexColumnSize = 7;
-        try {
-            indexColumnSize = rs.findColumn("COLUMN_NAME");
-        } catch (SQLException e) {
-            // ignore
-            // workaround for a JDBC-ODBC bridge problem
-        }
         name = rs.getString("COLUMN_NAME");
         String type = rs.getString("TYPE_NAME");
-        int size = rs.getInt(indexColumnSize);
+        int size = rs.getInt(DbContents.findColumn(rs, "COLUMN_SIZE", 7));
         if (size > 0) {
             type += "(" + size;
-            int prec = rs.getInt("DECIMAL_DIGITS");
+            int prec = rs.getInt(DbContents.findColumn(rs, "DECIMAL_DIGITS", 9));
             if (prec > 0) {
                 type += ", " + prec;
             }

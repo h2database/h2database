@@ -64,6 +64,24 @@ public class DbContents {
      * True if this is an SQLite database.
      */
     boolean isSQLite;
+    
+    /**
+     * Get the column index of a column in a result set. If the column is not
+     * found, the default column index is returned.
+     * This is a workaround for a JDBC-ODBC bridge problem.
+     * 
+     * @param rs the result set
+     * @param columnName the column name
+     * @param defaultColumnIndex the default column index
+     * @return the column index
+     */
+    static int findColumn(ResultSet rs, String columnName, int defaultColumnIndex) {
+        try {
+            return rs.findColumn(columnName);
+        } catch (SQLException e) {
+            return defaultColumnIndex;
+        }
+    }
 
     /**
      * Read the contents of this database from the database meta data.
@@ -122,15 +140,8 @@ public class DbContents {
         }
         ResultSet rs = meta.getSchemas();
         ArrayList schemas = new ArrayList();
-        int index = 1;
-        try {
-            index = rs.findColumn("TABLE_SCHEM");
-        } catch (SQLException e) {
-            // ignore
-            // workaround for a JDBC-ODBC bridge problem
-        }
         while (rs.next()) {
-            String schema = rs.getString(index);
+            String schema = rs.getString(findColumn(rs, "TABLE_SCHEM", 1));
             if (schema == null) {
                 continue;
             }

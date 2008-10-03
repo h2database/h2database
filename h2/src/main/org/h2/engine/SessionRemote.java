@@ -188,6 +188,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
     private String getFilePrefix(String dir) {
         StringBuffer buff = new StringBuffer();
         buff.append(dir);
+        buff.append('/');
         for (int i = 0; i < databaseName.length(); i++) {
             char ch = databaseName.charAt(i);
             if (Character.isLetterOrDigit(ch)) {

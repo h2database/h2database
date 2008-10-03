@@ -85,24 +85,31 @@ public class TestLob extends TestBase {
         stat.execute("INSERT INTO TEST SELECT X, SPACE(10000) FROM SYSTEM_RANGE(1, 10)");
         ArrayList list = FileLister.getDatabaseFiles(baseDir, "lob", true);
         stat.execute("UPDATE TEST SET DATA = SPACE(5000)");
-        for (int i = 0; i < 3; i++) {
-            System.gc();
-        }
+        collectAndWait();
         stat.execute("CHECKPOINT");
         ArrayList list2 = FileLister.getDatabaseFiles(baseDir, "lob", true);
         if (list2.size() >= list.size() + 5) {
             fail("Expected not many more files, got " + list2.size() + " was " + list.size());
         }
         stat.execute("DELETE FROM TEST");
-        for (int i = 0; i < 3; i++) {
-            System.gc();
-        }
+        collectAndWait();
         stat.execute("CHECKPOINT");
         ArrayList list3 = FileLister.getDatabaseFiles(baseDir, "lob", true);
         if (list3.size() >= list.size()) {
             fail("Expected less files, got " + list2.size() + " was " + list.size());
         }
         conn.close();
+    }
+    
+    private void collectAndWait() {
+        for (int i = 0; i < 3; i++) {
+            System.gc();
+        }
+        try {
+			Thread.sleep(50);
+		} catch (InterruptedException e) {
+			// ignore
+		}
     }
 
     private void testLobVariable() throws SQLException {

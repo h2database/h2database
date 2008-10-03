@@ -197,7 +197,7 @@ public class Build extends BuildBase {
         copy("docs", getFiles("../h2web/h2.pdf"), "../h2web");
         delete("docs/html/onePage.html");
         FileList files = getFiles("../h2").keep("../h2/build.*");
-        files.addAll(getFiles("../h2/bin").keep("../h2/bin/h2.*"));
+        files.addAll(getFiles("../h2/bin").keep("../h2/bin/h2*"));
         files.addAll(getFiles("../h2/docs"));
         files.addAll(getFiles("../h2/service"));
         files.addAll(getFiles("../h2/src"));
@@ -405,4 +405,16 @@ public class Build extends BuildBase {
         java("org.h2.build.doc.SpellChecker", null);
     }
     
+    /**
+     * Build the h2console.war file.
+     */
+    public void warConsole() {
+        jar();
+        copy("temp/WEB-INF", getFiles("src/tools/WEB-INF/web.xml"), "src/tools/WEB-INF");
+        copy("temp", getFiles("src/tools/WEB-INF/console.html"), "src/tools/WEB-INF");
+        copy("temp/WEB-INF/lib", getFiles("bin/h2" + getJarSuffix()), "bin");
+        FileList files = getFiles("temp").exclude("temp/org*").exclude("temp/META-INF*");
+        jar("bin/h2console.war", files, "temp");
+    }
+        
 }

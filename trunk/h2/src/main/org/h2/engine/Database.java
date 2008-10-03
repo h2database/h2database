@@ -634,8 +634,12 @@ public class Database implements DataHandler {
     
     private void stopServer() {
         if (server != null) {
-            server.stop();
+            Server s = server;
+            // avoid calling stop recursively
+            // because stopping the server will
+            // try to close the database as well
             server = null;
+            s.stop();
         }
     }
 

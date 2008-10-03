@@ -53,7 +53,7 @@ public class TestAutoReconnect extends TestBase {
         test(false);
     }
     
-    public void test(boolean autoServer) throws Exception {
+    private void test(boolean autoServer) throws Exception {
         this.autoServer = autoServer;
         deleteDb("autoReconnect");
         if (autoServer) {

@@ -52,7 +52,8 @@ public class ConnectionInfo implements Cloneable {
         // TODO document these settings
         String[] connectionTime = new String[] { "ACCESS_MODE_LOG", "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS",
-                "PASSWORD", "RECOVER", "STORAGE", "USER", "DATABASE_EVENT_LISTENER_OBJECT", "AUTO_SERVER" };
+                "PASSWORD", "RECOVER", "STORAGE", "USER", "DATABASE_EVENT_LISTENER_OBJECT", "AUTO_SERVER", 
+                "AUTO_RECONNECT", "OPEN_NEW" };
         for (int i = 0; i < connectionTime.length; i++) {
             String key = connectionTime[i];
             if (SysProperties.CHECK && KNOWN_SETTINGS.contains(key)) {
@@ -272,7 +273,7 @@ public class ConnectionInfo implements Cloneable {
      * @param defaultValue the default value
      * @return the value
      */
-    boolean removeProperty(String key, boolean defaultValue) {
+    public boolean removeProperty(String key, boolean defaultValue) {
         String x = removeProperty(key, null);
         return x == null ? defaultValue : Boolean.valueOf(x).booleanValue();
     }
@@ -301,7 +302,7 @@ public class ConnectionInfo implements Cloneable {
         if (persistent) {
             String n = FileUtils.normalize(name + Constants.SUFFIX_DATA_FILE);
             String fileName = FileUtils.getFileName(n);
-            if (fileName.length() < Constants.SUFFIX_DATA_FILE.length() + 2) {
+            if (fileName.length() < Constants.SUFFIX_DATA_FILE.length() + 1) {
                 throw Message.getSQLException(ErrorCode.INVALID_DATABASE_NAME_1, name);
             }
             n = n.substring(0, n.length() - Constants.SUFFIX_DATA_FILE.length());

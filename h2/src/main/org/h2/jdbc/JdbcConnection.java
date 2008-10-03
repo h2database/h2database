@@ -35,7 +35,6 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
-import org.h2.util.ClassUtils;
 import org.h2.util.JdbcConnectionListener;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -93,42 +92,15 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
     public JdbcConnection(ConnectionInfo ci, boolean useBaseDir) throws SQLException {
         try {
-            checkJavaVersion();
-            if (ci.isRemote()) {
-                session = new SessionRemote().createSession(ci);
-            } else {
-                // create the session using reflection, 
-                // so that the JDBC layer can be compiled without it
-                SessionInterface si = (SessionInterface) ClassUtils.loadSystemClass("org.h2.engine.Session").newInstance();
-                if (useBaseDir) {
-                    String baseDir = SysProperties.getBaseDir();
-                    if (baseDir != null) {
-                        ci.setBaseDir(baseDir);
-                    }
-                }
-                boolean autoServerMode = Boolean.valueOf(ci.getProperty("AUTO_SERVER", "false")).booleanValue();
-                ConnectionInfo backup = null;
-                if (autoServerMode) {
-                    backup = (ConnectionInfo) ci.clone();
-                }
-                try {
-                    session = si.createSession(ci);
-                } catch (SQLException e) {
-                    int errorCode = e.getErrorCode();
-                    if (errorCode == ErrorCode.DATABASE_ALREADY_OPEN_1) {
-                        if (autoServerMode) {
-                            String serverKey = (String) ((JdbcSQLException) e).getPayload();
-                            if (serverKey != null) {
-                                backup.setServerKey(serverKey);
-                                session = new SessionRemote().createSession(backup);
-                            }
-                        }
-                    }
-                    if (session == null) {
-                        throw e;
-                    }
+            if (useBaseDir) {
+                String baseDir = SysProperties.getBaseDir();
+                if (baseDir != null) {
+                    ci.setBaseDir(baseDir);
                 }
             }
+            checkJavaVersion();
+            // this will return an embedded or server connection
+            session = new SessionRemote().createSession(ci);
             trace = session.getTrace();
             int id = getNextId(TraceObject.CONNECTION);
             setTrace(trace, TraceObject.CONNECTION, id);

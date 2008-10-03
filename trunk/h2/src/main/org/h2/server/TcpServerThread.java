@@ -69,7 +69,7 @@ public class TcpServerThread implements Runnable {
                 if (!server.allow(transfer.getSocket())) {
                     throw Message.getSQLException(ErrorCode.REMOTE_CONNECTION_NOT_ALLOWED);
                 }
-                if (clientVersion == Constants.TCP_PROTOCOL_VERSION_6) {
+                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_6) {
                     // version 6 and newer: read max version (currently not used)
                     transfer.readInt();
                 } else if (clientVersion != Constants.TCP_PROTOCOL_VERSION_5) {

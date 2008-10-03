@@ -22,6 +22,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.security.SecureClassLoader;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -2101,7 +2102,12 @@ class WebThread extends Thread implements DatabaseEventListener {
         if (server.getAllowOthers()) {
             return true;
         }
-        return NetUtils.isLoopbackAddress(socket);
+        try {
+            return NetUtils.isLocalAddress(socket);
+        } catch (UnknownHostException e) {
+            server.traceError(e);
+            return false;
+        }
     }
 
     /**

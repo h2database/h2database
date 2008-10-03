@@ -9,6 +9,7 @@ package org.h2.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -212,10 +213,16 @@ public class TcpServer implements Service {
         if (allowOthers) {
             return true;
         }
-        return NetUtils.isLoopbackAddress(socket);
+        try {
+            return NetUtils.isLocalAddress(socket);
+        } catch (UnknownHostException e) {
+            traceError(e);
+            return false;
+        }
     }
 
     public synchronized void start() throws SQLException {
+        stop = false;
         serverSocket = NetUtils.createServerSocket(port, ssl);
         port = serverSocket.getLocalPort();
         initManagementDb();

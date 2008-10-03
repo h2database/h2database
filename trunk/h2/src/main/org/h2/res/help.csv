@@ -2764,6 +2764,7 @@ CSVREAD(fileNameString [, columnNamesString [, charsetString [, fieldSeparatorSt
 [, escapeCharacterString [, nullString]]]]]]): resultSet
 ","
 Returns the result set of reading the CSV (comma separated values) file.
+For each parameter, NULL means the default value should be used.
 If the column names are specified (a list of column names separated with the fieldSeparator),
 those are used they are read from the file, otherwise (or if they are set to NULL) the first line
 of the file is interpreted as the column names.
@@ -2776,6 +2777,8 @@ Admin rights are required to execute this command.
 CALL CSVREAD('test.csv');
 -- Read a file containing the columns ID, NAME with UTF-8 encoding and the pipe (|) as field separator
 CALL CSVREAD('test2.csv', 'ID|NAME', 'UTF-8', '|');
+-- Read a semicolon-separated file
+SELECT * FROM CSVREAD('data/test.csv', NULL, NULL, ';');
 "
 
 "Functions (System)","CSVWRITE","
@@ -2784,6 +2787,7 @@ CSVWRITE(fileNameString, queryString [, charsetString [, fieldSeparatorString [,
 ","
 Writes a CSV (comma separated values).
 The file is overwritten if it exists.
+For each parameter, NULL means the default value should be used.
 The default charset is the default value for this system, and the default field separator is a comma.
 The null string is used when writing NULL (by default nothing is written when NULL appears).
 The default line separator is the default value for this system ('line.separator' system property).

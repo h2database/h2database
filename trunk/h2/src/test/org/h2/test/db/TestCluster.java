@@ -50,7 +50,7 @@ public class TestCluster extends TestBase {
         conn.close();
 
         CreateCluster.main(new String[] { "-urlSource", "jdbc:h2:file:" + baseDir + "/node1/test", "-urlTarget",
-                "jdbc:h2:file:" + baseDir + "/node2/test", "-user", "sa", "-serverlist",
+                "jdbc:h2:file:" + baseDir + "/node2/test", "-user", "sa", "-serverList",
                 "localhost:9191,localhost:9192" });
         Server n1 = org.h2.tools.Server.createTcpServer(
                 new String[] { "-tcpPort", "9191", "-baseDir", baseDir + "/node1" }).start();
@@ -91,7 +91,7 @@ public class TestCluster extends TestBase {
         // re-create the cluster
         DeleteDbFiles.main(new String[] { "-dir", baseDir + "/node2", "-quiet" });
         CreateCluster.main(new String[] { "-urlSource", "jdbc:h2:file:" + baseDir + "/node1/test", "-urlTarget",
-                "jdbc:h2:file:" + baseDir + "/node2/test", "-user", "sa", "-serverlist",
+                "jdbc:h2:file:" + baseDir + "/node2/test", "-user", "sa", "-serverList",
                 "localhost:9191,localhost:9192" });
         n1 = org.h2.tools.Server.createTcpServer(
                 new String[] { "-tcpPort", "9191", "-baseDir", baseDir + "/node1" }).start();

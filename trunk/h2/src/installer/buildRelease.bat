@@ -63,6 +63,7 @@ rem == svn copy: /svn/trunk /svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
 rem == Newsletter: prepare (always to BCC!!)
 rem == Upload to h2database.com, http://code.google.com/p/h2database/downloads/list
 rem == Newsletter: send (always to BCC!!)
+rem == Remove Contacts in GMail
 rem == Add to freshmeat
 rem == Change version: http://en.wikipedia.org/wiki/H2_%28DBMS%29
 rem == Change version: http://ja.wikipedia.org/wiki/H2_Database

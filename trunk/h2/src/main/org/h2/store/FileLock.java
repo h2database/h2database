@@ -300,13 +300,9 @@ public class FileLock {
         method = SOCKET;
         properties = new SortedProperties();
         setUniqueId();
-        try {
-            // TODO documentation: if this returns 127.0.0.1, 
-            // the computer is probably not networked
-            ipAddress = InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            throw getException(e);
-        }
+        // TODO documentation: if this returns 127.0.0.1, 
+        // the computer is probably not networked
+        ipAddress = NetUtils.getLocalAddress();
         if (!fs.createNewFile(fileName)) {
             waitUntilOld();
             long read = fs.getLastModified(fileName);

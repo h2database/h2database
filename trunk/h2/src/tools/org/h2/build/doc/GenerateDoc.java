@@ -61,8 +61,8 @@ public class GenerateDoc {
         bnf = Bnf.getInstance(null);
         session.put("version", Constants.getVersion());
         session.put("versionDate", Constants.BUILD_DATE);
-        session.put("previousVersion", Constants.getVersionPrevious());
-        session.put("previousVersionDate", Constants.BUILD_DATE_PREVIOUS);
+        session.put("stableVersion", Constants.getVersionStable());
+        session.put("stableVersionDate", Constants.BUILD_DATE_STABLE);
         map("commands", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION LIKE 'Commands%' ORDER BY ID");
         map("commandsDML", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION='Commands (DML)' ORDER BY ID");
         map("commandsDDL", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION='Commands (DDL)' ORDER BY ID");

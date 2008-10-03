@@ -18,7 +18,23 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>The Console tool now supports command line options to start things separately.
+</li><li>Large objects did not work for in-memory databases in server mode in Linux.
+</li><li>Connections from a local address other than 'localhost' were not allowed if remote 
+	connections were disabled. This was always a problem, but only got visible in the last release
+	because the server no longer connects to 'localhost' if networked.
+</li><li>The h2console.war can now be built using the Java build.
+</li><li>By default, databases are shared in the same process. For read-only databases
+	this causes unnecessary synchronization, but safes memory. If you want that each connection
+	opens its own database, append ;OPEN_NEW=TRUE to the database URL.
+</li><li>New auto-reconnect feature will setting causes the JDBC driver to reconnect to 
+	the database if the connection is lost. To enable, append ;AUTO_RECONNECT=TRUE to the database URL. 
+	This is specially helpful when using AUTO_SERVER.
+</li><li>CreateCluster: the property 'serverlist' is now called 'serverList'.
+</li><li>The ConvertTraceFile tool could not parse some files because the trace
+	mechanism did not encode prepared statement parameters.
+</li><li>Databases names can now be one character long 
+	(the minimum size used to be 2 characters). 
 </li></ul>
 
 <h2>Version 1.0.79 (2008-09-26)</h2>

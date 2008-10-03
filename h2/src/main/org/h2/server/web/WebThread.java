@@ -1994,8 +1994,14 @@ class WebThread extends Thread implements DatabaseEventListener {
                 buff.append("</tr>");
             }
         }
-        boolean isUpdatable = rs.getConcurrency() == ResultSet.CONCUR_UPDATABLE
+        boolean isUpdatable = false;
+        try {
+            isUpdatable = rs.getConcurrency() == ResultSet.CONCUR_UPDATABLE
                 && rs.getType() != ResultSet.TYPE_FORWARD_ONLY;
+        } catch (NullPointerException e) {
+            // ignore
+            // workaround for a JDBC-ODBC bridge problem
+        }
         if (edit) {
             ResultSet old = session.result;
             if (old != null) {

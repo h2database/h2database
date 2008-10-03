@@ -6,14 +6,12 @@
  */
 package org.h2.test.server;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
-import org.h2.test.unit.SelfDestructor;
 import org.h2.util.SortedProperties;
 
 /**
@@ -42,14 +40,7 @@ public class TestAutoServer extends TestBase {
         deleteDb("autoServer");
         String url = getURL("autoServer;AUTO_SERVER=TRUE", true);
         String user = getUser(), password = getPassword();
-        Connection conn = getConnection(url, user, password);
-        conn.close();
-        String selfDestruct = SelfDestructor.getPropertyString(60);
-        String[] procDef = new String[] { "java", selfDestruct, 
-                "-cp", "bin" + File.pathSeparator + ".", 
-                TestAutoServer2.class.getName(), url, user, password };
-        // TestAutoServer2.main(new String[]{url, user, password});
-        Process proc = Runtime.getRuntime().exec(procDef);
+        Connection connServer = getConnection(url + ";OPEN_NEW=TRUE", user, password);
         
         int i = SLOW ? Integer.MAX_VALUE : 30;
         for (; i > 0; i--) {
@@ -60,7 +51,7 @@ public class TestAutoServer extends TestBase {
             if (server != null) {
                 String u2 = url.substring(url.indexOf(";"));
                 u2 = "jdbc:h2:tcp://" + server + "/" + key + u2;
-                conn = DriverManager.getConnection(u2, user, password);
+                Connection conn = DriverManager.getConnection(u2, user, password);
                 conn.close();
                 break;
             }
@@ -69,17 +60,17 @@ public class TestAutoServer extends TestBase {
             fail();
         }
         
-        conn = getConnection(url);
+        Connection conn = getConnection(url + ";OPEN_NEW=TRUE");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS HALT FOR \"" + getClass().getName() + ".halt\"");
         try {
-            stat.execute("CALL HALT(11)");
+            stat.execute("SHUTDOWN");
         } catch (SQLException e) {
             assertKnownException(e);
+            // the connection is closed
         }
         conn.close();
-        assertEquals(11, proc.exitValue());
-        // proc.destroy();
+        
+        connServer.close();
     }
     
     /**

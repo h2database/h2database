@@ -106,10 +106,10 @@ public class TestLob extends TestBase {
             System.gc();
         }
         try {
-			Thread.sleep(50);
-		} catch (InterruptedException e) {
-			// ignore
-		}
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            // ignore
+        }
     }
 
     private void testLobVariable() throws SQLException {

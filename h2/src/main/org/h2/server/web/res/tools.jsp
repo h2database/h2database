@@ -209,7 +209,7 @@ function update() {
         </td></tr><tr><td>
         ${text.a.password}:&nbsp;</td><td><input type="password" id="optionCreateCluster.3" name="password" onkeyup="update()" onchange="update()" value="" />
         </td></tr><tr><td>
-        ${text.tools.serverList}:&nbsp;</td><td><input id="optionCreateCluster.4" name="serverlist" onkeyup="update()" onchange="update()" value="server1,server2" size="50" />
+        ${text.tools.serverList}:&nbsp;</td><td><input id="optionCreateCluster.4" name="serverList" onkeyup="update()" onchange="update()" value="server1,server2" size="50" />
         </td></tr>
     </table>
 </div>

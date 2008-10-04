@@ -13,6 +13,35 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(50,
+'New version available: 1.1.100 (beta; 2008-10-04)', '2008-10-04 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>In version H2 1.1, some features are now enabled by default.
+</li><li>New auto-reconnect feature. 
+    To enable, append ;AUTO_RECONNECT=TRUE to the database URL. 
+<ul><li>The H2 Console tool now works with the JDBC-ODBC bridge.
+</li><li>The H2 Console tool now supports command line options.
+</li><li>The h2console.war can now be built using the Java build.
+</li><li>If you want that each connection opens its own database, append 
+    ;OPEN_NEW=TRUE to the database URL.
+</li><li>CreateCluster: the property 'serverlist' is now called 'serverList'.
+</li><li>Databases names can now be one character long. 
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Connections from a local address other than 'localhost' were not allowed by default.
+</li><li>Large objects did not work for in-memory databases in server mode in Linux.
+</li><li>The ConvertTraceFile tool could not parse some files.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(49,
 'New version available: 1.0.79 (2008-09-26)', '2008-09-26 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -393,49 +422,6 @@ INSERT INTO ITEM VALUES(39,
 </li><li>The memory usage of native fulltext search has been improved.
 </li><li>Performance was very slow when using LOG=2. 
 </li><li>The linear hash has been removed because it was slow and sometimes incorrect.
-</li></ul>
-For details, see the ''Change Log'' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the ''Roadmap'' page at
-http://www.h2database.com/html/roadmap.html
-');
-
-INSERT INTO ITEM VALUES(38,
-'New version available: 1.0.68 (2008-03-15)', '2008-03-15 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click ''Refresh'').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Faster text comparison when using a collator.
-</li><li>CSVWRITE now supports a ''null string'' to parse NULL.
-</li><li>UPDATE SET column=DEFAULT is now supported.
-</li><li>Large SELECT DISTINCT and UNION queries are now supported
-    (this is disabled by default).
-</li><li>Committing inside a trigger is not allowed any more.
-    </li><li>ALTER SEQUENCE can now be used inside a transaction.
-</li><li>New system property h2.aliasColumnName. When enabled, aliased columns 
-    return the real table and column name in ResultSetMetaData calls.
-</li><li>Improved performance when using lob files in directories 
-    (however this is still disabled by default)
-</li><li>Fulltext search: new method SEARCH_DATA.
-</li><li>New experimental optimization for GROUP BY queries.
-</li><li>Better browser starting for the H2 Console on Linux.
-</li><li>Improved support for IKVM.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>With MVCC=TRUE, duplicate rows could appear in the result set.
-</li><li>Queries with many outer join tables were very slow.
-</li><li>Unused LOB files were deleted much too late. 
-</li><li>H2 Console: remote connections were very slow.
-</li><li>H2 Console: autocomplete didn''t work with very large scripts.
-</li><li>H2 Console: improved compatibility with Safari (Safari requires keep-alive)
-</li><li>Random: the process didn''t stop if generateSeed was very slow.
-</li><li>SELECT UNION with a different number of ORDER BY columns didn''t work.
-</li><li>When using a view, the column precision was wrong sometimes.
-</li><li>Some long running queries could not be canceled.
-</li><li>When using encrypted databases, and using the wrong file password,
-    the log file was renamed sometimes.
 </li></ul>
 For details, see the ''Change Log'' at
 http://www.h2database.com/html/changelog.html

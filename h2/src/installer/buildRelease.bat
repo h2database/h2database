@@ -31,7 +31,7 @@ call build -quiet spellcheck javadocImpl jarClient
 
 echo %time:~0,8% JDK 1.4
 call java14 >nul 2>nul
-call build -quiet compile
+call build -quiet clean compile
 call build -quiet installer mavenDeployCentral
 
 rem call build -quiet compile benchmark

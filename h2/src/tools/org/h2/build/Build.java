@@ -126,16 +126,17 @@ public class Build extends BuildBase {
             files.addAll(getFiles("src/tools"));
             javac(new String[] { "-d", "temp", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
                     "-classpath", classpath }, files);
-
-            files = getFiles("src/installer").keep("*.bat");
-            files.addAll(getFiles("src/installer").keep("*.sh"));
-            copy("bin", files, "src/installer");
-    
             files = getFiles("src/test").
                 exclude("*.java").
                 exclude("*/package.html");
             copy("temp", files, "src/test");
         }
+    }
+    
+    private void filter(String source, String target, String old, String replacement) {
+        String text = new String(readFile(new File(source)));
+        text = replaceAll(text, old, replacement);
+        writeFile(new File(target), text.getBytes());
     }
 
     /**
@@ -191,6 +192,7 @@ public class Build extends BuildBase {
      * Create the h2.zip file and the Windows installer.
      */
     public void installer() {
+        delete(getFiles("bin").keep("*.jar"));
         jar();
         docs();
         exec("soffice", new String[]{"-invisible", "macro:///Standard.Module1.H2Pdf"});
@@ -225,6 +227,9 @@ public class Build extends BuildBase {
             exclude("*.sh").
             exclude("*.txt");
         jar("bin/h2" + getJarSuffix(), files, "temp");
+        filter("src/installer/h2.sh", "bin/h2.sh", "h2.jar", "h2" + getJarSuffix());
+        filter("src/installer/h2.bat", "bin/h2.bat", "h2.jar", "h2" + getJarSuffix());
+        filter("src/installer/h2w.bat", "bin/h2w.bat", "h2.jar", "h2" + getJarSuffix());
     }
     
     /**

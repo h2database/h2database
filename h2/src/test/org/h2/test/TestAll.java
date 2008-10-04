@@ -309,6 +309,8 @@ not implemented / not tested
 
 check all version(s) before the release
 
+test with system property h2.aliasColumnName.
+
 document url parameter auto_server
 document url parameter auto_reconnect
 document url parameter open_new

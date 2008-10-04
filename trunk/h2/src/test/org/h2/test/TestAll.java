@@ -284,6 +284,8 @@ http://www.marciowb.net/blog/2008/08/quickly-using-h2-database-with
 
 osgi (derby, hsqldb)
 
+support 'build test'
+
 auto_reconnect
 implemented:
 - auto_server includes auto_reconnect
@@ -309,7 +311,7 @@ check all version(s) before the release
 
 document url parameter auto_server
 document url parameter auto_reconnect
-document url parameter private
+document url parameter open_new
 
 Add version number. Install directory: h2-1.1, jar file: h2-1.1.100.jar. 
 Micro version: use build number, staring with 1.1.100

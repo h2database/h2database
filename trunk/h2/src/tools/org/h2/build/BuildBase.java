@@ -725,6 +725,18 @@ public class BuildBase {
         delete(new File(dir));
     }
     
+    /**
+     * Delete all files in the list.
+     *  
+     * @param files the name of the files to delete
+     */
+    protected void delete(FileList files) {
+        for (int i = 0; i < files.size(); i++) {
+            File f = (File) files.get(i);
+            delete(f);
+        }
+    }
+
     private void delete(File file) {
         if (file.exists()) {
             if (file.isDirectory()) {

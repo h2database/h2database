@@ -296,6 +296,8 @@ public class SessionRemote implements SessionInterface, DataHandler {
             ci.setProperty("CLUSTER", serverList);
         }
         autoReconnect = Boolean.valueOf(ci.getProperty("AUTO_RECONNECT", "false")).booleanValue();
+        // AUTO_SERVER implies AUTO_RECONNECT
+        autoReconnect |= Boolean.valueOf(ci.getProperty("AUTO_SERVER", "false")).booleanValue();
         if (autoReconnect && serverList != null) {
             throw Message.getSQLException(ErrorCode.FEATURE_NOT_SUPPORTED);
         }

@@ -58,7 +58,7 @@ public class TestAutoReconnect extends TestBase {
         deleteDb("autoReconnect");
         if (autoServer) {
             url = "jdbc:h2:" + baseDir + "/autoReconnect;" + 
-                "FILE_LOCK=SOCKET;AUTO_RECONNECT=TRUE;" + 
+                "FILE_LOCK=SOCKET;" + 
                 "AUTO_SERVER=TRUE;OPEN_NEW=TRUE";
             restart();
         } else {

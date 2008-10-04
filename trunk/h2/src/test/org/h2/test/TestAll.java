@@ -276,42 +276,36 @@ java org.h2.test.TestAll timer
 
 /*
 
-Open Anzo 
-http://www.openanzo.org
-Semantic Application Server
+extend server protocol to keep stuff on client 
+(temporary linked tables, variables; identity)
 
 H2 Dialect for TopLink
 http://www.marciowb.net/blog/2008/08/quickly-using-h2-database-with
 
 osgi (derby, hsqldb)
 
-private=true
-
 auto_reconnect
 implemented:
+- auto_server includes auto_reconnect
 - works with server mode
 - works with auto_server mode
-- use the same property name as in MySQL (reconnect?)
 - statements
 - prepared statements
 - small result sets (up to fetch size)
 - throws an error when autocommit is false
+- an error is thrown when the connection is lost 
+  while looping over large result sets (larger than fetch size)
 untested:
 - batch updates
-- throw error for large result sets
 - throw error in cluster mode
 - ignored in embedded mode
-- server mode, embedded (ignored)
-not implemented
-- temporary linked tables
-- temporary tables
-- variables
-- in cluster mode (error)
-- identity, getGeneratedKeys
+not implemented / not tested
+- keep temporary linked tables, variables on client
+- keep temporary tables (including data) on client
+- keep identity, getGeneratedKeys on client
+- throw error when in cluster mode
 
 check all version(s) before the release
-
-Patch.zip
 
 document url parameter auto_server
 document url parameter auto_reconnect
@@ -319,8 +313,6 @@ document url parameter private
 
 Add version number. Install directory: h2-1.1, jar file: h2-1.1.100.jar. 
 Micro version: use build number, staring with 1.1.100
-
-test on linux
 
 TestMVCC:
 Concurrent update in table test: another transaction has updated or 

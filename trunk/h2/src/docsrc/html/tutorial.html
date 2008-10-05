@@ -26,6 +26,8 @@ Tutorial
     Using the Server</a><br />
 <a href="#using_hibernate">
     Using Hibernate</a><br />
+<a href="#using_toplink">
+    Using TopLink and Glassfish</a><br />
 <a href="#web_applications">
     Using Databases in Web Applications</a><br />
 <a href="#csv">
@@ -345,6 +347,33 @@ or the native H2 Dialect. Unfortunately the H2 Dialect included in Hibernate is 
 for Hibernate</a> has been submitted. The dialect for the newest version of Hibernate 
 is also available at src/tools/org/hibernate/dialect/H2Dialect.java.txt.
 You can rename it to H2Dialect.java and include this as a patch in your application.
+</p>
+
+<br /><a name="using_toplink"></a>
+<h2>Using TopLink and Glassfish</h2>
+<p>
+To use H2 with Glassfish (or Sun AS), set the Datasource Classname to 
+<code>org.h2.jdbcx.JdbcDataSource</code>. You can set this in the GUI
+at Application Server - Resources - JDBC - Connection Pools,
+or by editing the file <code>sun-resources.xml</code>: at element
+<code>jdbc-connection-pool</code>, set the attribute 
+<code>datasource-classname</code> to <code>org.h2.jdbcx.JdbcDataSource</code>.
+</p>
+<p>
+The H2 database is compatible with HSQLDB and PostgreSQL. 
+To take advantage of H2 specific features, use the <code>H2Platform</code>.
+The source code of this platform is included in H2 at
+<code>src/tools/oracle/toplink/essentials/platform/database/DatabasePlatform.java.txt</code>.
+You will need to copy this file to your application, and rename it to .java.
+To enable it, change the following setting in persistence.xml:
+</p>
+<pre>
+&lt;property
+  name="toplink.target-database"
+  value="oracle.toplink.essentials.platform.database.H2Platform"/>
+</pre>
+<p>
+In old versions of Glassfish, the property name is <code>toplink.platform.class.name</code>.
 </p>
 
 <br /><a name="web_applications"></a>

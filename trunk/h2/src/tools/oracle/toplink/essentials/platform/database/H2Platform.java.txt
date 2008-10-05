@@ -34,13 +34,18 @@ import oracle.toplink.essentials.internal.sessions.AbstractSession;
 
 /**
  * This platform provides H2 specific behaviour.
- * Use the following setting to enable this platform:
+ * To enable this platform change the following setting in persistence.xml:
  * <pre>
  * &lt;property
- *   name="toplink.platform.class.name"
+ *   name="toplink.target-database"
  *   value="oracle.toplink.essentials.platform.database.H2Platform"/>
  * </pre>
+ * In old versions of Glassfish, the property name is
+ * <code>toplink.platform.class.name</code>.
  * See also: https://glassfish.dev.java.net/issues/show_bug.cgi?id=4042
+ *
+ * @author Thomas Mueller
+ * @author Marcio Borges (http://www.marciowb.net/blog/2008_08_01_)
  */
 public class H2Platform extends DatabasePlatform {
     public H2Platform() {
@@ -87,7 +92,15 @@ public class H2Platform extends DatabasePlatform {
     }
 
     public ValueReadQuery buildSelectQueryForNativeSequence(String seqName, Integer size) {
-        return new ValueReadQuery("CALL NEXT VALUE FOR " + getQualifiedSequenceName(seqName));
+    	StringBuffer buff = new StringBuffer();
+    	buff.append("SELECT MAX(NEXT VALUE FOR ");
+    	buff.append(getQualifiedSequenceName(seqName));
+    	buff.append(") FROM SYSTEM_RANGE(1, ");
+    	buff.append(size);
+    	buff.append(")");
+    	String sql = buff.toString();
+    	return new ValueReadQuery(sql);
+        // return new ValueReadQuery("CALL NEXT VALUE FOR " + getQualifiedSequenceName(seqName));
         // return new ValueReadQuery("SELECT " + getQualifiedSequenceName(seqName) + ".NEXTVAL FROM DUAL");
     }
 
@@ -118,6 +131,14 @@ public class H2Platform extends DatabasePlatform {
 
     public boolean shouldUseJDBCOuterJoinSyntax() {
         return false;
+    }
+    
+    public boolean supportsIdentity() {
+        return true;
+    }
+    
+    public ValueReadQuery buildSelectQueryForIdentity() {
+        return new ValueReadQuery("SELECT IDENTITY()");
     }
 
 }

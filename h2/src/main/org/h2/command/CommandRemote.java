@@ -57,7 +57,7 @@ public class CommandRemote implements CommandInterface {
         id = s.getNextId();
         paramCount = 0;
         boolean readParams = s.getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_6;
-        for (int i = 0; i < transferList.size(); i++) {
+        for (int i = 0, count = 0; i < transferList.size(); i++) {
             try {
                 Transfer transfer = (Transfer) transferList.get(i);
                 if (readParams && createParams) {
@@ -84,7 +84,7 @@ public class CommandRemote implements CommandInterface {
                     }
                 }
             } catch (IOException e) {
-                s.removeServer(e, i--);
+                s.removeServer(e, i--, ++count);
             }
         }
     }
@@ -116,7 +116,7 @@ public class CommandRemote implements CommandInterface {
             }
             int objectId = session.getNextId();
             ResultRemote result = null;
-            for (int i = 0; i < transferList.size(); i++) {
+            for (int i = 0, count = 0; i < transferList.size(); i++) {
                 prepareIfRequired();
                 Transfer transfer = (Transfer) transferList.get(i);
                 try {
@@ -128,7 +128,7 @@ public class CommandRemote implements CommandInterface {
                     result = new ResultRemote(session, transfer, objectId, columnCount, Integer.MAX_VALUE);
                     break;
                 } catch (IOException e) {
-                    session.removeServer(e, i--);
+                    session.removeServer(e, i--, ++count);
                 }
             }
             session.autoCommitIfCluster();
@@ -141,7 +141,7 @@ public class CommandRemote implements CommandInterface {
         synchronized (session) {
             int objectId = session.getNextId();
             ResultRemote result = null;
-            for (int i = 0; i < transferList.size(); i++) {
+            for (int i = 0, count = 0; i < transferList.size(); i++) {
                 prepareIfRequired();
                 Transfer transfer = (Transfer) transferList.get(i);
                 try {
@@ -169,7 +169,7 @@ public class CommandRemote implements CommandInterface {
                         break;
                     }
                 } catch (IOException e) {
-                    session.removeServer(e, i--);
+                    session.removeServer(e, i--, ++count);
                 }
             }
             session.autoCommitIfCluster();
@@ -182,7 +182,7 @@ public class CommandRemote implements CommandInterface {
         synchronized (session) {
             int updateCount = 0;
             boolean autoCommit = false;
-            for (int i = 0; i < transferList.size(); i++) {
+            for (int i = 0, count = 0; i < transferList.size(); i++) {
                 prepareIfRequired();
                 Transfer transfer = (Transfer) transferList.get(i);
                 try {
@@ -193,7 +193,7 @@ public class CommandRemote implements CommandInterface {
                     updateCount = transfer.readInt();
                     autoCommit = transfer.readBoolean();
                 } catch (IOException e) {
-                    session.removeServer(e, i--);
+                    session.removeServer(e, i--, ++count);
                 }
             }
             session.setAutoCommit(autoCommit);

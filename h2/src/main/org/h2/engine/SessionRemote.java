@@ -181,14 +181,14 @@ public class SessionRemote implements SessionInterface, DataHandler {
             // server side auto commit is off because of race conditions
             // (update set id=1 where id=0, but update set id=2 where id=0 is
             // faster)
-            for (int i = 0; i < transferList.size(); i++) {
+            for (int i = 0, count = 0; i < transferList.size(); i++) {
                 Transfer transfer = (Transfer) transferList.get(i);
                 try {
                     traceOperation("COMMAND_COMMIT", 0);
                     transfer.writeInt(SessionRemote.COMMAND_COMMIT);
                     done(transfer);
                 } catch (IOException e) {
-                    removeServer(e, i--);
+                    removeServer(e, i--, ++count);
                 }
             }
         }
@@ -382,9 +382,9 @@ public class SessionRemote implements SessionInterface, DataHandler {
      * @param e the exception (used for debugging)
      * @param i the index of the server to remove
      */
-    public void removeServer(IOException e, int i) throws SQLException {
+    public void removeServer(IOException e, int i, int count) throws SQLException {
         transferList.remove(i);
-        if (autoReconnect()) {
+        if (autoReconnect(count)) {
             return;
         }        
         checkClosed();
@@ -403,11 +403,14 @@ public class SessionRemote implements SessionInterface, DataHandler {
      * 
      * @return true if reconnected
      */
-    public boolean autoReconnect() throws SQLException {
+    public boolean autoReconnect(int count) throws SQLException {
         if (!isClosed()) {
             return false;
         }
         if (!autoReconnect || !autoCommit) {
+            return false;
+        }
+        if (count > SysProperties.MAX_RECONNECT) {
             return false;
         }
         lastReconnect++;

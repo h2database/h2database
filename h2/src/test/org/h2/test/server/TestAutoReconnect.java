@@ -62,8 +62,8 @@ public class TestAutoReconnect extends TestBase {
                 "AUTO_SERVER=TRUE;OPEN_NEW=TRUE";
             restart();
         } else {
-            server = Server.createTcpServer(null).start();
-            url = "jdbc:h2:tcp://localhost/" + baseDir + "/autoReconnect;" + 
+            server = Server.createTcpServer(new String[]{"-tcpPort", "8181"}).start();
+            url = "jdbc:h2:tcp://localhost:8181/" + baseDir + "/autoReconnect;" + 
                 "FILE_LOCK=SOCKET;AUTO_RECONNECT=TRUE";
         }
         Connection conn = DriverManager.getConnection(url);

@@ -279,6 +279,12 @@ public class SysProperties {
     public static final int MAX_QUERY_TIMEOUT = getIntSetting(H2_MAX_QUERY_TIMEOUT, 0);
 
     /**
+     * System property <code>h2.maxReconnect</code> (default: 3).<br />
+     * The maximum number of tries to reconnect in a row.
+     */
+    public static final int MAX_RECONNECT = getIntSetting("h2.maxReconnect", 3);
+
+    /**
      * System property <code>h2.maxTraceDataLength</code> (default: 65535).<br />
      * The maximum size of a LOB value that is written as data to the trace system.
      */

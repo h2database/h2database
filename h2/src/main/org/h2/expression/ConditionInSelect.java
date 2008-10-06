@@ -145,9 +145,8 @@ public class ConditionInSelect extends Condition {
         ExpressionColumn column = new ExpressionColumn(session.getDatabase(), null, view.getName(), alias);
         Expression on = new Comparison(session, Comparison.EQUAL, left, column);
         on.mapColumns(filter, 0);
-        on.createIndexConditions(session, filter);
-        filter.addFilterCondition(on, true);
-        return ValueExpression.get(ValueBoolean.get(true));
+        on = on.optimize(session);
+        return on;
     }
 
 }

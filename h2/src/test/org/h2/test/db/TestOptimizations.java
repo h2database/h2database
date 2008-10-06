@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
@@ -18,6 +19,7 @@ import java.util.TreeSet;
 
 import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
+import org.h2.tools.SimpleResultSet;
 
 /**
  * Test various optimizations (query cache, optimization for MIN(..), and
@@ -25,11 +27,21 @@ import org.h2.test.TestBase;
  */
 public class TestOptimizations extends TestBase {
 
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        new TestOptimizations().init().test();
+    }
+
     public void test() throws Exception {
         testMinMaxNullOptimization();
         if (config.networked) {
             return;
         }
+        testOptimizeInJoinSelect();
         testOptimizeInJoin();
         testMultiColumnRangeQuery();
         testDistinctOptimization();
@@ -41,7 +53,41 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
     }
+
+    private void testOptimizeInJoinSelect() throws SQLException {
+        boolean old = SysProperties.optimizeInJoin;
+        SysProperties.optimizeInJoin = true;
+
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("create table item(id int primary key)");
+        stat.execute("insert into item values(1)");
+        stat.execute("create alias opt for \"" +
+                getClass().getName() + 
+                ".optimizeInJoinSelect\"");
+        PreparedStatement prep = conn.prepareStatement(
+                "select * from item where id in (select x from opt())");
+        ResultSet rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertFalse(rs.next());
+        conn.close();
+        
+        SysProperties.optimizeInJoin = old;
+        
+    }
     
+    /**
+     * This method is called via reflection from the database.
+     */
+    public static ResultSet optimizeInJoinSelect() throws SQLException {
+        SimpleResultSet rs = new SimpleResultSet();
+        rs.addColumn("X", Types.INTEGER, 0, 0);
+        rs.addRow(new Object[]{new Integer(1)});
+        return rs;
+    }
+
     private void testOptimizeInJoin() throws SQLException {
         boolean old = SysProperties.optimizeInJoin;
         SysProperties.optimizeInJoin = true;

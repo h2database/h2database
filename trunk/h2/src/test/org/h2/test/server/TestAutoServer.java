@@ -62,14 +62,15 @@ public class TestAutoServer extends TestBase {
         
         Connection conn = getConnection(url + ";OPEN_NEW=TRUE");
         Statement stat = conn.createStatement();
-        try {
-            stat.execute("SHUTDOWN");
-        } catch (SQLException e) {
-            assertKnownException(e);
-            // the connection is closed
+        if (config.big) {
+            try {
+                stat.execute("SHUTDOWN");
+            } catch (SQLException e) {
+                assertKnownException(e);
+                // the connection is closed
+            }
         }
         conn.close();
-        
         connServer.close();
     }
     

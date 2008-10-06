@@ -154,6 +154,15 @@ public class Session implements SessionInterface {
         Value v = (Value) variables.get(name);
         return v == null ? ValueNull.INSTANCE : v;
     }
+    
+    public String[] getVariableNames() {
+        if (variables == null) {
+            return new String[0];
+        }
+        String[] list = new String[variables.size()];
+        variables.keySet().toArray(list);
+        return list;
+    }
 
     /**
      * Get the local temporary table if one exists with that name, or null if

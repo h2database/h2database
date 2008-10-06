@@ -1027,7 +1027,11 @@ public class Database implements DataHandler {
      *            hook
      */
     synchronized void close(boolean fromShutdownHook) {
+        if (closing) {
+            return;
+        }
         closing = true;
+        stopServer();
         if (userSessions.size() > 0) {
             if (!fromShutdownHook) {
                 return;
@@ -1061,7 +1065,6 @@ public class Database implements DataHandler {
             }
             closing = true;
         }
-        stopServer();
         try {
             if (systemSession != null) {
                 ObjectArray tablesAndViews = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
@@ -2077,6 +2080,10 @@ public class Database implements DataHandler {
             linkConnections = new HashMap();
         }
         return TableLinkConnection.open(linkConnections, driver, url, user, password);
+    }
+    
+    public String toString() {
+        return databaseShortName + ":" + super.toString();
     }
 
 }

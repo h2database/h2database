@@ -276,11 +276,15 @@ java org.h2.test.TestAll timer
 
 /*
 
+download/local_temp_index.txt
+
+system_temp_lob.db leaks unencrypted data, even when I use
+encrypted SCRIPT/RUNSCRIPT with an encrypted database.
+
+Event on Re-Connect (DatabaseEventListener)
+
 extend server protocol to keep stuff on client 
 (temporary linked tables, variables; identity)
-
-H2 Dialect for TopLink
-http://www.marciowb.net/blog/2008/08/quickly-using-h2-database-with
 
 osgi (derby, hsqldb)
 
@@ -307,7 +311,8 @@ not implemented / not tested
 - keep identity, getGeneratedKeys on client
 - throw error when in cluster mode
 
-check all version(s) before the release
+Feature requests:
+SCOPE_IDENTITY
 
 test with system property h2.aliasColumnName.
 

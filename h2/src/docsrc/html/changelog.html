@@ -18,7 +18,17 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Improved Glassfish / Toplink support in H2Platform 
+<ul><li>RUNSCRIPT no longer uses a temporary file.
+</li><li>New system table INFORMATION_SCHEMA.SESSION_STATE containing the
+	SQL statements that make up the session state. The list currently contains
+	variables (SET @..) and local temporary tables (without data).
+</li><li>After an automatic re-connect, part of the session state stays (the part
+	that is stored in the SESSION_STATE table).
+</li><li>The build didn't work if the directory temp didn't exist before.
+</li><li>New system property h2.maxReconnect (default 3) to limit the number of re-connects 
+	for the same SQL statement (this is usually only important for SHUTDOWN).
+</li><li>WHERE .. IN (SELECT ...) could throw a NullPointerException. 
+</li><li>Improved Glassfish / Toplink support in H2Platform 
 	thanks to Marcio Borges from Brazil. Thanks a lot!
 </li></ul>
 

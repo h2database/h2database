@@ -23,18 +23,13 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 
 <h2>In Version 1.1</h2>
 <ul>
-<li>Add version number. Install directory: h2-1.1, jar file: h2-1.1.100.jar. Micro version: use build number, staring with 1.1.100
-</li><li>Automatic upgrade if there is a file format change
-</li><li>Change Constants.DEFAULT_MAX_MEMORY_UNDO to 10000 (and change the docs). Test.
-</li><li>Enable and document optimizations, LOB files in directories
-</li><li>Special methods for DataPage.writeByte / writeShort and so on
+<li>Change Constants.DEFAULT_MAX_MEMORY_UNDO to 10000 (and change the docs). Test.
 </li><li>Change the default for NULL || 'x' to NULL
 </li></ul>
 
 <h2>Priority 1</h2>
 <ul>
 <li>Bugfixes
-</li><li>Row level locking
 </li><li>Write more tests and documentation for MVCC (Multi Version Concurrency Control)
 </li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
 </li><li>More tests with MULTI_THREADED=1
@@ -48,7 +43,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 <h2>Priority 2</h2>
 <ul>
 <li>Improve test code coverage
-</li><li>More fuzz tests
 </li><li>Test multi-threaded in-memory db access
 </li><li>Procedural language / script language (Javascript)
 </li><li>Option to shutdown all the running servers (on the same VM).
@@ -56,17 +50,15 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Optimize ID=? OR ID=?: convert to IN(...)
 </li><li>Optimize .. OR .. to UNION if the cost is lower
 </li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
-</li><li>H2 Console: new option 'Open a browser when starting the H2 Console'.
 </li><li>Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
 </li><li>Support large updates (use the transaction log to undo).
-</li><li>Auto-reconnect on lost connection to server (even if the server was re-started) except if autocommit was off and there was pending transaction.
 </li><li>Full outer joins
 </li><li>Support trigger on the tables information_schema.tables and ...columns
 </li><li>Test very large databases and LOBs (up to 256 GB)
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
-</li><li>Option for Java functions: constant/isDeterministic/readonly/pure (always return the same value) to allow early evaluation when all parameters are constant
+</li><li>Option for Java functions: [DETERMINISTIC] FOR ... 
 </li><li>Support mixed clustering mode (one embedded, the other server mode)
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
 </li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
@@ -74,7 +66,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Add a migration guide (list differences between databases)
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer
-</li><li>Start / stop server with database URL
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
 </li><li>Rebuild index functionality (other than delete the index file)
 </li><li>Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory)
@@ -86,14 +77,12 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Test with dbcopy (http://dbcopyplugin.sourceforge.net)
 </li><li>Find a tool to view large text file >100 MB, with find, page up and down (like less), truncate before / after
 </li><li>Implement, test, document XAConnection and so on
-</li><li>Web site: get rid of frame set
 </li><li>Pluggable data type (for compression, validation, conversion, encryption)
 </li><li>CHECK: find out what makes CHECK=TRUE slow, move to CHECK2
 </li><li>Improve recovery: improve code for log recovery problems (less try/catch)
 </li><li>Index usage for (ID, NAME)=(1, 'Hi'); document
 </li><li>Suggestion: include Jetty as Servlet Container (like LAMP)
 </li><li>Trace shipping to server
-</li><li>Performance / server mode: use UDP optionally?
 </li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP)
 </li><li>Web server classloader: override findResource / getResourceFrom
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant
@@ -116,7 +105,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Don't write stack traces for common exceptions like duplicate key to the log by default
 </li><li>GCJ: what is the state now?
 </li><li>Use Janino to convert Java to C++
-</li><li>Reduce disk space usage (Derby uses less disk space?)
+</li><li>Reduce disk space usage
 </li><li>Events for: Database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
 </li><li>Optimization: Log compression
 </li><li>Support standard INFORMATION_SCHEMA tables, as defined in http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt; specially KEY_COLUMN_USAGE (http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif)
@@ -392,6 +381,8 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support DatabaseMetaData.insertsAreDetected: updatable result sets should detect inserts.
 </li><li>Auto-server: add option to define the IP address range or list.
 </li><li>Open a read-only database but don't share it with other connections. jdbc:h2:~/test;PRIVATE=TRUE
+</li><li>Index creation only using deterministic functions.
+</li><li>Use http://recaptcha.net somehow to secure the Google Group.
 </li></ul>
 
 <h2>Not Planned</h2>

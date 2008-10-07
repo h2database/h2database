@@ -10,9 +10,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.Reader;
-import java.io.Writer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -48,9 +46,7 @@ import org.h2.schema.TriggerObject;
 import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
-import org.h2.util.AutoCloseInputStream;
 import org.h2.util.ByteUtils;
-import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
@@ -65,7 +61,6 @@ import org.h2.value.ValueString;
  */
 public class ScriptCommand extends ScriptBase {
 
-    private static final String TEMP_LOB_FILENAME = "system_temp_lob.db";
     private boolean passwords;
     private boolean data;
     private boolean settings;
@@ -420,18 +415,48 @@ public class ScriptCommand extends ScriptBase {
      */
     public static InputStream combineBlob(Connection conn, int id) throws SQLException, IOException {
         if (id < 0) {
-            FileUtils.delete(TEMP_LOB_FILENAME);
             return null;
         }
-        ResultSet rs = getLobStream(conn, "BDATA", id);
-        OutputStream out = FileUtils.openFileOutputStream(TEMP_LOB_FILENAME, false);
-        while (rs.next()) {
-            InputStream in = rs.getBinaryStream(1);
-            IOUtils.copyAndCloseInput(in, out);
-        }
-        out.close();
-        deleteLobStream(conn, id);
-        return openAutoCloseInput();
+        final ResultSet rs = getLobStream(conn, "BDATA", id);
+        return new InputStream() {
+            private InputStream current;
+            private boolean closed;
+            public int read() throws IOException {
+                while (true) {
+                    try {
+                        if (current == null) {
+                            if (closed) {
+                                return -1;
+                            }
+                            if (!rs.next()) {
+                                close();
+                                return -1;
+                            }
+                            current = rs.getBinaryStream(1);
+                            current = new BufferedInputStream(current);
+                        }
+                        int x = current.read();
+                        if (x >= 0) {
+                            return x;
+                        }
+                        current = null;
+                    } catch (SQLException e) {
+                        Message.convertToIOException(e);
+                    }
+                }
+            }
+            public void close() throws IOException {
+                if (closed) {
+                    return;
+                }
+                closed = true;
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    Message.convertToIOException(e);
+                }
+            }
+        };
     }
 
     /**
@@ -443,15 +468,68 @@ public class ScriptCommand extends ScriptBase {
      * @return a reader for the combined data
      */
     public static Reader combineClob(Connection conn, int id) throws SQLException, IOException {
-        ResultSet rs = getLobStream(conn, "CDATA", id);
-        Writer out = IOUtils.getWriter(FileUtils.openFileOutputStream(TEMP_LOB_FILENAME, false));
-        while (rs.next()) {
-            Reader in = new BufferedReader(rs.getCharacterStream(1));
-            IOUtils.copyAndCloseInput(in, out);
+        if (id < 0) {
+            return null;
         }
-        out.close();
-        deleteLobStream(conn, id);
-        return IOUtils.getReader(openAutoCloseInput());
+        final ResultSet rs = getLobStream(conn, "CDATA", id);
+        return new Reader() {
+            private Reader current;
+            private boolean closed;
+            public int read() throws IOException {
+                while (true) {
+                    try {
+                        if (current == null) {
+                            if (closed) {
+                                return -1;
+                            }                            
+                            if (!rs.next()) {
+                                close();
+                                return -1;
+                            }
+                            current = rs.getCharacterStream(1);
+                            current = new BufferedReader(current);
+                        }
+                        int x = current.read();
+                        if (x >= 0) {
+                            return x;
+                        }
+                        current = null;
+                    } catch (SQLException e) {
+                        Message.convertToIOException(e);
+                    }
+                }
+            }
+            public void close() throws IOException {
+                if (closed) {
+                    return;
+                }
+                closed = true;        
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    Message.convertToIOException(e);
+                }
+            }
+            public int read(char[] buffer, int off, int len) throws IOException {
+                if (len == 0) {
+                    return 0;
+                }
+                int c = read();
+                if (c == -1) {
+                    return -1;
+                }
+                buffer[off] = (char) c;
+                int i = 1;
+                for (; i < len; i++) {
+                    c = read();
+                    if (c == -1) {
+                        break;
+                    }
+                    buffer[off + i] = (char) c;
+                }
+                return i;
+            }
+        };
     }
 
     private static ResultSet getLobStream(Connection conn, String column, int id) throws SQLException {
@@ -459,18 +537,6 @@ public class ScriptCommand extends ScriptBase {
                 "SELECT " + column + " FROM SYSTEM_LOB_STREAM WHERE ID=? ORDER BY PART");
         prep.setInt(1, id);
         return prep.executeQuery();
-    }
-
-    private static void deleteLobStream(Connection conn, int id) throws SQLException {
-        PreparedStatement prep = conn.prepareStatement("DELETE FROM SYSTEM_LOB_STREAM WHERE ID=?");
-        prep.setInt(1, id);
-        prep.execute();
-    }
-
-    private static InputStream openAutoCloseInput() throws IOException {
-        InputStream in = FileUtils.openFileInputStream(TEMP_LOB_FILENAME);
-        in = new BufferedInputStream(in);
-        return new AutoCloseInputStream(in);
     }
 
     private void reset() throws SQLException {

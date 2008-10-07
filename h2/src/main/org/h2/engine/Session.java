@@ -88,6 +88,7 @@ public class Session implements SessionInterface {
     private int lastUncommittedDelete;
     private boolean commitOrRollbackDisabled;
     private Table waitForLock;
+    private int modificationId;
 
     public Session() {
         // nothing to do
@@ -124,6 +125,7 @@ public class Session implements SessionInterface {
      */
     public void setVariable(String name, Value value) throws SQLException {
         initVariables();
+        modificationId++;
         Value old;
         if (value == ValueNull.INSTANCE) {
             old = (Value) variables.remove(name);
@@ -200,6 +202,7 @@ public class Session implements SessionInterface {
         if (localTempTables.get(table.getName()) != null) {
             throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, table.getSQL());
         }
+        modificationId++;
         localTempTables.put(table.getName(), table);
     }
 
@@ -209,6 +212,7 @@ public class Session implements SessionInterface {
      * @param table the table
      */
     public void removeLocalTempTable(Table table) throws SQLException {
+        modificationId++;
         localTempTables.remove(table.getName());
         table.removeChildrenAndResources(this);
     }
@@ -534,6 +538,7 @@ public class Session implements SessionInterface {
             for (int i = 0; i < list.size(); i++) {
                 Table table = (Table) list.get(i);
                 if (closeSession || table.getOnCommitDrop()) {
+                    modificationId++;
                     table.setModified();
                     localTempTables.remove(table.getName());
                     table.removeChildrenAndResources(this);
@@ -755,6 +760,7 @@ public class Session implements SessionInterface {
     }
 
     public void setCurrentSchema(Schema schema) {
+        modificationId++;
         this.currentSchemaName = schema.getName();
     }
 
@@ -852,6 +858,7 @@ public class Session implements SessionInterface {
     }
 
     public void setSchemaSearchPath(String[] schemas) {
+        modificationId++;
         this.schemaSearchPath = schemas;
     }
 
@@ -969,6 +976,10 @@ public class Session implements SessionInterface {
     
     public Table getWaitForLock() {
         return waitForLock;
+    }
+    
+    public int getModificationId() {
+        return modificationId;
     }
 
 }

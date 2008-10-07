@@ -30,7 +30,7 @@ public class TestAutoServer extends TestBase {
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
-        new TestAutoServer().init().test();
+        TestBase.createCaller().init().test();
     }
 
     public void test() throws Exception {

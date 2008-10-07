@@ -208,13 +208,14 @@ public class TcpServerThread implements Runnable {
         case SessionRemote.SESSION_PREPARE: {
             int id = transfer.readInt();
             String sql = transfer.readString();
+            int old = session.getModificationId();
             Command command = session.prepareLocal(sql);
             boolean readonly = command.isReadOnly();
             cache.addObject(id, command);
             boolean isQuery = command.isQuery();
             ObjectArray params = command.getParameters();
             int paramCount = params.size();
-            transfer.writeInt(SessionRemote.STATUS_OK).writeBoolean(isQuery).writeBoolean(readonly)
+            transfer.writeInt(getState(old)).writeBoolean(isQuery).writeBoolean(readonly)
                     .writeInt(paramCount);
             if (operation == SessionRemote.SESSION_PREPARE_READ_PARAMS) {
                 for (int i = 0; i < paramCount; i++) {
@@ -235,8 +236,9 @@ public class TcpServerThread implements Runnable {
             if (commit == null) {
                 commit = session.prepareLocal("COMMIT");
             }
+            int old = session.getModificationId();
             commit.executeUpdate();
-            transfer.writeInt(SessionRemote.STATUS_OK).flush();
+            transfer.writeInt(getState(old)).flush();
             break;
         }
         case SessionRemote.COMMAND_GET_META_DATA: {
@@ -260,10 +262,12 @@ public class TcpServerThread implements Runnable {
             int fetchSize = transfer.readInt();
             Command command = (Command) cache.getObject(id, false);
             setParameters(command);
+            int old = session.getModificationId();
             LocalResult result = command.executeQueryLocal(maxRows);
             cache.addObject(objectId, result);
             int columnCount = result.getVisibleColumnCount();
-            transfer.writeInt(SessionRemote.STATUS_OK).writeInt(columnCount);
+            int state = getState(old);
+            transfer.writeInt(state).writeInt(columnCount);
             int rowCount = result.getRowCount();
             transfer.writeInt(rowCount);
             for (int i = 0; i < columnCount; i++) {
@@ -280,10 +284,13 @@ public class TcpServerThread implements Runnable {
             int id = transfer.readInt();
             Command command = (Command) cache.getObject(id, false);
             setParameters(command);
+            int old = session.getModificationId();
             int updateCount = command.executeUpdate();
-            int status = SessionRemote.STATUS_OK;
+            int status;
             if (session.isClosed()) {
                 status = SessionRemote.STATUS_CLOSED;
+            } else {
+                status = getState(old);
             }
             transfer.writeInt(status).writeInt(updateCount).writeBoolean(session.getAutoCommit());
             transfer.flush();
@@ -342,6 +349,13 @@ public class TcpServerThread implements Runnable {
             closeSession();
             close();
         }
+    }
+    
+    private int getState(int oldModificationId) {
+        if (session.getModificationId() == oldModificationId) {
+            return SessionRemote.STATUS_OK;
+        }
+        return SessionRemote.STATUS_OK_STATE_CHANGED;
     }
 
     private void sendRow(LocalResult result) throws IOException, SQLException {

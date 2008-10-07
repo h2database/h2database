@@ -173,6 +173,7 @@ public class CommandRemote implements CommandInterface {
                 }
             }
             session.autoCommitIfCluster();
+            session.readSessionState();
             return result;
         }
     }
@@ -198,6 +199,7 @@ public class CommandRemote implements CommandInterface {
             }
             session.setAutoCommit(autoCommit);
             session.autoCommitIfCluster();
+            session.readSessionState();
             return updateCount;
         }
     }

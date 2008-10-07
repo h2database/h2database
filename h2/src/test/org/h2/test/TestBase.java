@@ -1005,4 +1005,18 @@ public abstract class TestBase {
         assertFalse(rs2.next());
     }
 
+    /**
+     * Create a new object of the calling class.
+     * 
+     * @return the new test
+     */
+    public static TestBase createCaller() {
+        String className = new Exception().getStackTrace()[1].getClassName();
+        try {
+            return (TestBase) Class.forName(className).newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("Can not create object " + className, e);
+        }
+    }
+
 }

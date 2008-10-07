@@ -4412,7 +4412,7 @@ public class Parser {
             command.setIndexColumns(parseIndexColumnList());
             if (readIf("INDEX")) {
                 String indexName = readIdentifierWithSchema();
-                command.setIndex(getSchema().findIndex(indexName));
+                command.setIndex(getSchema().findIndex(session, indexName));
             }
             return command;
         } else if (database.getMode().indexDefinitionInCreateTable && (readIf("INDEX") || readIf("KEY"))) {
@@ -4443,7 +4443,7 @@ public class Parser {
             command.setIndexColumns(parseIndexColumnList());
             if (readIf("INDEX")) {
                 String indexName = readIdentifierWithSchema();
-                command.setIndex(getSchema().findIndex(indexName));
+                command.setIndex(getSchema().findIndex(session, indexName));
             }
         } else if (readIf("FOREIGN")) {
             command = new AlterTableAddConstraint(session, schema);
@@ -4453,7 +4453,7 @@ public class Parser {
             command.setIndexColumns(parseIndexColumnList());
             if (readIf("INDEX")) {
                 String indexName = readIdentifierWithSchema();
-                command.setIndex(schema.findIndex(indexName));
+                command.setIndex(schema.findIndex(session, indexName));
             }
             read("REFERENCES");
             parseReferences(command, schema, tableName);
@@ -4488,7 +4488,7 @@ public class Parser {
         }
         if (readIf("INDEX")) {
             String indexName = readIdentifierWithSchema();
-            command.setRefIndex(getSchema().findIndex(indexName));
+            command.setRefIndex(getSchema().findIndex(session, indexName));
         }
         while (readIf("ON")) {
             if (readIf("DELETE")) {

@@ -224,11 +224,16 @@ public class Schema extends DbObjectBase {
      * Try to find an index with this name. This method returns null if
      * no object with this name exists.
      * 
+     * @param session the session
      * @param name the object name
      * @return the object or null
      */
-    public Index findIndex(String name) {
-        return (Index) indexes.get(name);
+    public Index findIndex(Session session, String name) {
+        Index index = (Index) indexes.get(name);
+        if (index == null) {
+            index = session.findLocalTempTableIndex(name);
+        }
+        return index;
     }
 
     /**
@@ -326,8 +331,14 @@ public class Schema extends DbObjectBase {
      * @param prefix the index name prefix
      * @return the unique name
      */
-    public String getUniqueIndexName(Table table, String prefix) {
-        return getUniqueName(table, indexes, prefix);
+    public String getUniqueIndexName(Session session, Table table, String prefix) {
+        HashMap tableIndexes;
+        if (table.getTemporary() && !table.getGlobalTemporary()) {
+            tableIndexes = session.getLocalTempTableIndexes();
+        } else {
+            tableIndexes = indexes;
+        }
+        return getUniqueName(table, tableIndexes, prefix);
     }
 
     /**

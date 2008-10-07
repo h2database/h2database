@@ -219,7 +219,11 @@ public class TableData extends Table implements RecordReader {
         index.setTemporary(temporary);
         if (index.getCreateSQL() != null) {
             index.setComment(indexComment);
-            database.addSchemaObject(session, index);
+            if (temporary && !getGlobalTemporary()) {
+                session.addLocalTempTableIndex(index);
+            } else {
+                database.addSchemaObject(session, index);
+            }            
             // Need to update, because maybe the index is rebuilt at startup,
             // and so the head pos may have changed, which needs to be stored now.
             // addSchemaObject doesn't update the sys table at startup

@@ -1567,6 +1567,12 @@ public class Database implements DataHandler {
                 session.removeLocalTempTable(table);
                 return;
             }
+        } else if (obj.getType() == DbObject.INDEX) {
+            Index index = (Index) obj;
+            if (index.getTable().getTemporary() && !index.getTable().getGlobalTemporary()) {
+                session.removeLocalTempTableIndex(index);
+                return;
+            }
         }
         checkWritingAllowed();
         Comment comment = findComment(obj);

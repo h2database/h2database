@@ -28,6 +28,15 @@ public class TestMetaData extends TestBase {
     private DatabaseMetaData meta;
     private Statement stat;
     private String catalog = "METADATA";
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws SQLException {
         deleteDb("metaData");
@@ -118,6 +127,8 @@ public class TestMetaData extends TestBase {
         assertEquals("SEQUENCES", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("SESSIONS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("SESSION_STATE", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("SETTINGS", rs.getString("TABLE_NAME"));
         rs.next();

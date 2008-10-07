@@ -94,7 +94,8 @@ public class MetaTable extends Table {
     private static final int TRIGGERS = 24;
     private static final int SESSIONS = 25;
     private static final int LOCKS = 26;
-    private static final int META_TABLE_TYPE_COUNT = LOCKS + 1;
+    private static final int SESSION_STATE = 27;
+    private static final int META_TABLE_TYPE_COUNT = SESSION_STATE + 1;
     
     private final int type;
     private final int indexColumn;
@@ -483,6 +484,14 @@ public class MetaTable extends Table {
                     "TABLE_NAME",
                     "SESSION_ID INT",
                     "LOCK_TYPE",
+            });
+            break;
+        }
+        case SESSION_STATE: {
+            setObjectName("SESSION_STATE");
+            cols = createColumns(new String[]{
+                    "KEY",
+                    "SQL",
             });
             break;
         }
@@ -1529,6 +1538,56 @@ public class MetaTable extends Table {
                         });
                     }
                 }
+            }
+            break;
+        }
+        case SESSION_STATE: {
+            String[] variableNames = session.getVariableNames();
+            for (int i = 0; i < variableNames.length; i++) {
+                String name = variableNames[i];
+                Value v = session.getVariable(name);
+                add(rows, new String[] {
+                        // KEY
+                        "@" + name,
+                        // SQL
+                        "SET @" + name + " " + v.getSQL()
+                });
+            }
+            ObjectArray tables = session.getLocalTempTables();
+            for (int i = 0; i < tables.size(); i++) {
+                Table table = (Table) tables.get(i);
+                add(rows, new String[] {
+                        // KEY
+                        "TABLE " + table.getName(),
+                        // SQL
+                        table.getCreateSQL()
+                });
+            }
+            String[] path = session.getSchemaSearchPath();
+            if (path != null && path.length > 0) {
+                StringBuffer buff = new StringBuffer();
+                buff.append("SET SCHEMA_SEARCH_PATH ");
+                for (int i = 0; i < path.length; i++) {
+                    if (i > 0) {
+                        buff.append(", ");
+                    }
+                    buff.append(StringUtils.quoteIdentifier(path[i]));
+                }
+                add(rows, new String[] {
+                        // KEY
+                        "SCHEMA_SEARCH_PATH",
+                        // SQL
+                        buff.toString()
+                });
+            }
+            String schema = session.getCurrentSchemaName();
+            if (schema != null) {
+                add(rows, new String[] {
+                        // KEY
+                        "SCHEMA",
+                        // SQL
+                        "SET SCHEMA " + StringUtils.quoteIdentifier(schema)
+                });
             }
             break;
         }

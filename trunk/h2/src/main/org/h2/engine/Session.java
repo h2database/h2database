@@ -20,6 +20,7 @@ import org.h2.command.Prepared;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.index.Index;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.log.InDoubtTransaction;
 import org.h2.log.LogSystem;
@@ -65,6 +66,7 @@ public class Session implements SessionInterface {
     private HashMap savepoints;
     private Exception stackTrace = new Exception();
     private HashMap localTempTables;
+    private HashMap localTempTableIndexes;
     private int throttle;
     private long lastThrottle;
     private Command currentCommand;
@@ -157,6 +159,11 @@ public class Session implements SessionInterface {
         return v == null ? ValueNull.INSTANCE : v;
     }
     
+    /**
+     * Get the list of variable names that are set for this session.
+     * 
+     * @return the list of names
+     */    
     public String[] getVariableNames() {
         if (variables == null) {
             return new String[0];
@@ -174,19 +181,17 @@ public class Session implements SessionInterface {
      * @return the table, or null
      */
     public Table findLocalTempTable(String name) {
-        Table t = null;
-        if (localTempTables != null) {
-            t = (Table) localTempTables.get(name);
+        if (localTempTables == null) {
+            return null;
         }
-        return t;
+        return (Table) localTempTables.get(name);
     }
 
     public ObjectArray getLocalTempTables() {
         if (localTempTables == null) {
             return new ObjectArray();
         }
-        ObjectArray list = new ObjectArray(localTempTables.values());
-        return list;
+        return new ObjectArray(localTempTables.values());
     }
 
     /**
@@ -217,6 +222,53 @@ public class Session implements SessionInterface {
         table.removeChildrenAndResources(this);
     }
 
+    /**
+     * Get the local temporary index if one exists with that name, or null if
+     * not.
+     * 
+     * @param name the table name
+     * @return the table, or null
+     */
+    public Index findLocalTempTableIndex(String name) {
+        if (localTempTableIndexes == null) {
+            return null;
+        }
+        return (Index) localTempTableIndexes.get(name);
+    }
+
+    public HashMap getLocalTempTableIndexes() {
+        if (localTempTableIndexes == null) {
+            return new HashMap();
+        }
+        return localTempTableIndexes;
+    }
+
+    /**
+     * Add a local temporary index to this session.
+     * 
+     * @param index the index to add
+     * @throws SQLException if a index with this name already exists
+     */
+    public void addLocalTempTableIndex(Index index) throws SQLException {
+        if (localTempTableIndexes == null) {
+            localTempTableIndexes = new HashMap();
+        }
+        if (localTempTableIndexes.get(index.getName()) != null) {
+            throw Message.getSQLException(ErrorCode.INDEX_ALREADY_EXISTS_1, index.getSQL());
+        }
+        localTempTableIndexes.put(index.getName(), index);
+    }
+
+    /**
+     * Drop and remove the given local temporary index from this session.
+     * 
+     * @param index the index
+     */
+    public void removeLocalTempTableIndex(Index index) throws SQLException {
+        localTempTableIndexes.remove(index.getName());
+        index.removeChildrenAndResources(this);
+    }
+    
     protected void finalize() {
         if (!SysProperties.runFinalize) {
             return;

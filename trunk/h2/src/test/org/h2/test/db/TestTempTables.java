@@ -43,6 +43,7 @@ public class TestTempTables extends TestBase {
         conn2.createStatement().executeUpdate("create local temporary table test(id int)");
         conn2.createStatement().executeUpdate("create index idx_id on test(id)");
         conn2.createStatement().executeUpdate("drop index idx_id");
+        conn2.createStatement().executeUpdate("drop table test");
         conn2.createStatement().executeUpdate("create table test(id int)");
         conn2.createStatement().executeUpdate("create index idx_id on test(id)");
         conn1.createStatement().executeUpdate("drop table test");

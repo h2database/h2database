@@ -32,7 +32,7 @@ public class TestAutoReconnect extends TestBase {
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
-        new TestAutoReconnect().init().test();
+        TestBase.createCaller().init().test();
     }
     
     private void restart() throws SQLException {
@@ -98,6 +98,11 @@ public class TestAutoReconnect extends TestBase {
         restart();
         assertFalse(rs.next());
         restart();
+        stat.execute("SET @TEST 10");
+        restart();
+        rs = stat.executeQuery("CALL @TEST");
+        rs.next();
+        assertEquals(10, rs.getInt(1));
         stat.setFetchSize(10);
         restart();
         rs = stat.executeQuery("select * from system_range(1, 20)");

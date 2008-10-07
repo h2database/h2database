@@ -59,6 +59,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
     public static final int STATUS_ERROR = 0;
     public static final int STATUS_OK = 1;
     public static final int STATUS_CLOSED = 2;
+    public static final int STATUS_OK_STATE_CHANGED = 3;
 
     private TraceSystem traceSystem;
     private Trace trace;
@@ -77,6 +78,9 @@ public class SessionRemote implements SessionInterface, DataHandler {
     private boolean autoReconnect;
     private int lastReconnect;
     private SessionInterface embedded;
+    private boolean sessionStateChanged;
+    private ObjectArray sessionState;
+    private boolean sessionStateUpdating;
 
     public SessionRemote() {
         // nothing to do
@@ -424,6 +428,19 @@ public class SessionRemote implements SessionInterface, DataHandler {
             // unfortunately
             connectEmbeddedOrServer();
         }
+        if (sessionState != null && sessionState.size() > 0) {
+            sessionStateUpdating = true;
+            try {
+                for (int i = 0; i < sessionState.size(); i++) {
+                    String sql = (String) sessionState.get(i);
+                    CommandInterface ci = prepareCommand(sql, Integer.MAX_VALUE);
+                    ci.executeUpdate();
+                }
+            } finally {
+                sessionStateUpdating = false;
+                sessionStateChanged = false;
+            }
+        }
         return true;
     }
 
@@ -496,6 +513,8 @@ public class SessionRemote implements SessionInterface, DataHandler {
             throw new JdbcSQLException(message, sql, sqlstate, errorCode, null, stackTrace);
         } else if (status == STATUS_CLOSED) {
             transferList = null;
+        } else if (status == STATUS_OK_STATE_CHANGED) {
+            sessionStateChanged = true;
         }
     }
 
@@ -620,6 +639,23 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     public int getLastReconnect() {
         return lastReconnect;
+    }
+
+    /**
+     * Read the session state if necessary.
+     */
+    public void readSessionState() throws SQLException {
+        if (!sessionStateChanged || sessionStateUpdating) {
+            return;
+        }
+        sessionStateChanged = false;
+        sessionState = new ObjectArray();
+        CommandInterface ci = prepareCommand("SELECT * FROM INFORMATION_SCHEMA.SESSION_STATE", Integer.MAX_VALUE);
+        ResultInterface result = ci.executeQuery(0, false);
+        while (result.next()) {
+            Value[] row = result.currentRow();
+            sessionState.add(row[1].getString());
+        }
     }
 
 }

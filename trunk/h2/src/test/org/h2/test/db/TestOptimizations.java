@@ -33,7 +33,7 @@ public class TestOptimizations extends TestBase {
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
-        new TestOptimizations().init().test();
+        TestBase.createCaller().init().test();
     }
 
     public void test() throws Exception {

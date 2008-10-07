@@ -25,7 +25,7 @@ public class TestOutOfMemory extends TestBase {
     private LinkedList list = new LinkedList();
 
     public void test() throws SQLException {
-        if (config.memory) {
+        if (config.memory || config.mvcc) {
             return;
         }
         deleteDb("outOfMemory");

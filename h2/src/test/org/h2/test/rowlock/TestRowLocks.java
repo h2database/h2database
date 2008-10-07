@@ -31,7 +31,7 @@ public class TestRowLocks extends TestBase {
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
-        new TestRowLocks().init().test();
+        TestBase.createCaller().init().test();
     }
 
     public void test() throws Exception {

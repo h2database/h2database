@@ -18,10 +18,38 @@ import org.h2.test.TestBase;
  */
 public class TestTempTables extends TestBase {
 
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+    
     public void test() throws SQLException {
         deleteDb("tempTables");
         Connection c1 = getConnection("tempTables");
         Connection c2 = getConnection("tempTables");
+        testTables(c1, c2);
+        testIndexes(c1, c2);
+        c1.close();
+        c2.close();
+    }
+
+    private void testIndexes(Connection conn1, Connection conn2) throws SQLException {
+        conn1.createStatement().executeUpdate("create local temporary table test(id int)");
+        conn1.createStatement().executeUpdate("create index idx_id on test(id)");
+        conn2.createStatement().executeUpdate("create local temporary table test(id int)");
+        conn2.createStatement().executeUpdate("create index idx_id on test(id)");
+        conn2.createStatement().executeUpdate("drop index idx_id");
+        conn2.createStatement().executeUpdate("create table test(id int)");
+        conn2.createStatement().executeUpdate("create index idx_id on test(id)");
+        conn1.createStatement().executeUpdate("drop table test");
+        conn1.createStatement().executeUpdate("drop table test");
+    }
+    
+    private void testTables(Connection c1, Connection c2) throws SQLException {
         Statement s1 = c1.createStatement();
         Statement s2 = c2.createStatement();
         s1.execute("CREATE LOCAL TEMPORARY TABLE LT(A INT)");
@@ -65,9 +93,6 @@ public class TestTempTables extends TestBase {
         } catch (SQLException e) {
             assertKnownException(e);
         }
-
-        c1.close();
-        c2.close();
     }
 
 }

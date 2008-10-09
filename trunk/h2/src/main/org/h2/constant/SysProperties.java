@@ -72,16 +72,23 @@ public class SysProperties {
     public static final String USER_HOME = getStringSetting("user.home", "");
 
     /**
-     * System property <code>h2.aliasColumnName</code> (default: false).<br />
+     * System property <code>h2.aliasColumnName</code>.<br />
      * When enabled, aliased columns (as in SELECT ID AS I FROM TEST) return the
-     * real table and column name in ResultSetMetaData.getTableName() and
-     * getColumnName().
+     * alias (I in this case) in ResultSetMetaData.getColumnName() and 'null' in
+     * getTableName(). If disabled, the real column name (ID in this case) and
+     * table name is returned. This setting only affects the default mode.
      * <p>
-     * This feature is disabled by default for compatibility with other
-     * databases (HSQLDB, Apache Derby, PostgreSQL, some version of MySQL).
+     * When using different modes, this feature is disabled for compatibility
+     * for all databases except MySQL. For MySQL, it is always enabled.
+     * </p>
+     * <p>
+     * In version 1.0, it is enabled by default.
+     * </p>
+     * <p>
+     * In version 1.1, it is disabled by default.
      * </p>
      */
-    public static final boolean ALIAS_COLUMN_NAME = getBooleanSetting("h2.aliasColumnName", false);
+    public static final boolean ALIAS_COLUMN_NAME = getBooleanSetting("h2.aliasColumnName", Constants.VERSION <= 1.0);
 
     /**
      * System property <code>h2.allowBigDecimalExtensions</code> (default:
@@ -164,10 +171,10 @@ public class SysProperties {
     public static final int DATASOURCE_TRACE_LEVEL = getIntSetting("h2.dataSourceTraceLevel", TraceSystem.ERROR);
 
     /**
-     * System property <code>h2.defaultMaxMemoryUndo</code> (default: 100000).<br />
+     * System property <code>h2.defaultMaxMemoryUndo</code> (default: 50000).<br />
      * The default value for the MAX_MEMORY_UNDO setting.
      */
-    public static final int DEFAULT_MAX_MEMORY_UNDO = getIntSetting("h2.defaultMaxMemoryUndo", 100000);
+    public static final int DEFAULT_MAX_MEMORY_UNDO = getIntSetting("h2.defaultMaxMemoryUndo", 50000);
 
     /**
      * System property <code>h2.defaultLockMode</code> (default: 3).<br />

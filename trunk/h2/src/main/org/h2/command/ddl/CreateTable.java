@@ -115,7 +115,7 @@ public class CreateTable extends SchemaCommand {
         if (asQuery != null) {
             asQuery.prepare();
             if (columns.size() == 0) {
-                generateColumnFromQuery();
+                generateColumnsFromQuery();
             } else if (columns.size() != asQuery.getColumnCount()) {
                 throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
@@ -194,13 +194,13 @@ public class CreateTable extends SchemaCommand {
         return 0;
     }
 
-    private void generateColumnFromQuery() {
+    private void generateColumnsFromQuery() {
         int columnCount = asQuery.getColumnCount();
         ObjectArray expressions = asQuery.getExpressions();
         for (int i = 0; i < columnCount; i++) {
             Expression expr = (Expression) expressions.get(i);
             int type = expr.getType();
-            String name = expr.getColumnName();
+            String name = expr.getAlias();
             long precision = expr.getPrecision();
             int displaySize = expr.getDisplaySize();
             DataType dt = DataType.getDataType(type);

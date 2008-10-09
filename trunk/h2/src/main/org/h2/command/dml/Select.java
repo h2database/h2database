@@ -13,6 +13,7 @@ import java.util.HashSet;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
+import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.expression.Alias;
 import org.h2.expression.Comparison;
@@ -1089,7 +1090,8 @@ public class Select extends Query {
         if (expr instanceof Alias) {
             return expr.getAlias();
         }
-        expr = new Alias(expr,  session.getNextTempViewName() + "_X");
+        Mode mode = session.getDatabase().getMode();
+        expr = new Alias(expr,  session.getNextTempViewName() + "_X", mode.aliasColumnName);
         expressions.set(0, expr);
         return expr.getAlias();
     }

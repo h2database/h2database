@@ -9,7 +9,6 @@ package org.h2.expression;
 import java.sql.SQLException;
 
 import org.h2.command.Parser;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -22,10 +21,12 @@ public class Alias extends Expression {
 
     private final String alias;
     private Expression expr;
+    private boolean aliasColumnName;
 
-    public Alias(Expression expression, String alias) {
+    public Alias(Expression expression, String alias, boolean aliasColumnName) {
         this.expr = expression;
         this.alias = alias;
+        this.aliasColumnName = aliasColumnName;
     }
 
     public Expression getNonAliasExpression() {
@@ -94,17 +95,17 @@ public class Alias extends Expression {
     }
     
     public String getTableName() {
-        if (SysProperties.ALIAS_COLUMN_NAME) {
-            return expr.getTableName();
+        if (aliasColumnName) {
+            return super.getTableName();
         }
-        return super.getTableName();
+        return expr.getTableName();
     }
 
     public String getColumnName() {
-        if (SysProperties.ALIAS_COLUMN_NAME) {
-            return expr.getColumnName();
+        if (aliasColumnName) {
+            return super.getColumnName();
         }
-        return super.getColumnName();
+        return expr.getColumnName();
     }
 
 }

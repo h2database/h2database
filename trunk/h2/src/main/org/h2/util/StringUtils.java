@@ -861,5 +861,37 @@ public class StringUtils {
         System.arraycopy(chars, 0, copy, 0, len);
         return copy;
     }
+    
+    /**
+     * Trim a character from a string.
+     * 
+     * @param s the string
+     * @param leading if leading characters should be removed
+     * @param trailing if trailing characters should be removed
+     * @param sp what to remove (only the first character is used) 
+     *      or null for a space
+     * @return the trimmed string
+     */
+    public static String trim(String s, boolean leading, boolean trailing, String sp) {
+        char space = (sp == null || sp.length() < 1) ? ' ' : sp.charAt(0);
+        // TODO function trim: HSQLDB says 'tabs are not removed', but they are.
+        // check what other databases do
+        if (leading) {
+            int len = s.length(), i = 0;
+            while (i < len && s.charAt(i) == space) {
+                i++;
+            }
+            s = (i == 0) ? s : s.substring(i);
+        }
+        if (trailing) {
+            int endIndex = s.length() - 1;
+            int i = endIndex;
+            while (i >= 0 && s.charAt(i) == space) {
+                i--;
+            }
+            s = i == endIndex ? s : s.substring(0, i + 1);
+        }
+        return s;
+    }
 
 }

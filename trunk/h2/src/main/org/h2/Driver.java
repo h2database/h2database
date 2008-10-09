@@ -32,15 +32,12 @@ import org.h2.message.TraceSystem;
 public class Driver implements java.sql.Driver {
 
     private static final Driver INSTANCE = new Driver();
+    private static volatile boolean registered;
 
     static {
-        try {
-            DriverManager.registerDriver(INSTANCE);
-        } catch (SQLException e) {
-            TraceSystem.traceThrowable(e);
-        }
+        load();
     }
-
+    
     /**
      * This method should not be called by an application.
      *
@@ -108,8 +105,30 @@ public class Driver implements java.sql.Driver {
     /**
      * INTERNAL
      */
-    public static Driver load() {
+    public static synchronized Driver load() {
+        try {
+            if (!registered) {
+                registered = true;
+                DriverManager.registerDriver(INSTANCE);
+            }
+        } catch (SQLException e) {
+            TraceSystem.traceThrowable(e);
+        }
         return INSTANCE;
+    }
+    
+    /**
+     * INTERNAL
+     */
+    public static synchronized void unload() {
+        try {
+            if (registered) {
+                registered = false;
+                DriverManager.deregisterDriver(INSTANCE);
+            }
+        } catch (SQLException e) {
+            TraceSystem.traceThrowable(e);
+        }
     }
 
 }

@@ -39,6 +39,12 @@ public interface DatabaseEventListener extends EventListener {
     int STATE_BACKUP_FILE = 3;
 
     /**
+     * This state is used after re-connecting to a database (if auto-reconnect
+     * is enabled).
+     */
+    int STATE_RECONNECTED = 4;
+
+    /**
      * This method is called just after creating the object.
      * This is done when opening the database if the listener is specified 
      * in the database URL, but may be later if the listener is set at 
@@ -67,7 +73,7 @@ public interface DatabaseEventListener extends EventListener {
     void diskSpaceIsLow(long stillAvailable) throws SQLException;
 
     /**
-     * This method is called if an exception occurred during database recovery
+     * This method is called if an exception occurred.
      *
      * @param e the exception
      * @param sql the SQL statement

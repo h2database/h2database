@@ -21,32 +21,25 @@ New (feature) requests will usually be added at the very end of the list. The pr
 Of course, patches are always welcome, but are not always applied as is. Patches should include test cases and documentation.
 </p>
 
-<h2>In Version 1.1</h2>
-<ul>
-<li>Change Constants.DEFAULT_MAX_MEMORY_UNDO to 10000 (and change the docs). Test.
-</li><li>Change the default for NULL || 'x' to NULL
-</li></ul>
-
 <h2>Priority 1</h2>
 <ul>
 <li>Bugfixes
 </li><li>Write more tests and documentation for MVCC (Multi Version Concurrency Control)
-</li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
 </li><li>More tests with MULTI_THREADED=1
+</li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
 </li><li>Test with Spatial DB in a box / JTS (http://docs.codehaus.org/display/GEOS/SpatialDBBox)
 </li><li>Optimization: result set caching (like MySQL)
 </li><li>Server side cursors
-</li><li>Migrate database tool (also from other database engines)
 </li><li>Shutdown compact
 </li></ul>
 
 <h2>Priority 2</h2>
 <ul>
 <li>Improve test code coverage
+</li><li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
 </li><li>Test multi-threaded in-memory db access
 </li><li>Procedural language / script language (Javascript)
 </li><li>Option to shutdown all the running servers (on the same VM).
-</li><li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
 </li><li>Optimize ID=? OR ID=?: convert to IN(...)
 </li><li>Optimize .. OR .. to UNION if the cost is lower
 </li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
@@ -64,6 +57,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
 </li><li>System table / function: cache usage
 </li><li>Add a migration guide (list differences between databases)
+</li><li>Migrate database tool (also from other database engines)
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
@@ -383,6 +377,8 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Open a read-only database but don't share it with other connections. jdbc:h2:~/test;PRIVATE=TRUE
 </li><li>Index creation only using deterministic functions.
 </li><li>Use http://recaptcha.net somehow to secure the Google Group.
+</li><li>Support DELETE with TOP or LIMIT. See also: http://dev.mysql.com/doc/refman/5.1/de/delete.html
+</li><li>Change the default for NULL || 'x' to return NULL
 </li></ul>
 
 <h2>Not Planned</h2>

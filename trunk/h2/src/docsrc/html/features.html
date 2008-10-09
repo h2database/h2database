@@ -1016,6 +1016,8 @@ or the SQL statement <code>SET MODE PostgreSQL</code>.
 </li><li>When converting a floating point number to a integer, the fractional
           digits should not be truncated, but the value should be rounded.
 </li><li>The system columns 'CTID' and 'OID' should be supported.
+</li><li>For aliased columns, ResultSetMetaData.getColumnName() returns the alias name
+        and getTableName() returns null.
 </li></ul>
 
 <h3>MySQL Compatibility Mode</h3>
@@ -1027,9 +1029,11 @@ or the SQL statement <code>SET MODE MySQL</code>.
         then a 0 (or empty string, or the current timestamp for timestamp columns) value is used.
           Usually, this operation is not allowed and an exception is thrown.
 </li><li>When converting a floating point number to a integer, the fractional
-          digits should not be truncated, but the value should be rounded.
+        digits should not be truncated, but the value should be rounded.
 </li><li>The identifiers should be returned in lower case.
 </li><li>Creating indexes in the CREATE TABLE statement should be supported.
+</li><li>For aliased columns, ResultSetMetaData.getColumnName() and getTableName() 
+        return the real column and table name.
 </li></ul>
 
 <h3>HSQLDB Compatibility Mode</h3>
@@ -1038,12 +1042,14 @@ To use the HSQLDB mode, use the database URL <code>jdbc:h2:~/test;MODE=HSQLDB</c
 or the SQL statement <code>SET MODE HSQLDB</code>.
 </p>
 <ul><li>Concatenation of a NULL with another value results in NULL. Usually, the NULL is treated as an empty 
-          string if only one of the operators is NULL, and NULL is only returned if both values are NULL.
+        string if only one of the operators is NULL, and NULL is only returned if both values are NULL.
 </li><li>When converting the scale of decimal data, the number is only converted if the new scale is
-          smaller then current scale. Usually, the scale is converted and 0s are added if required.
+        smaller then current scale. Usually, the scale is converted and 0s are added if required.
 </li><li>When using unique indexes, multiple rows with NULL in one of the columns
         are allowed by default. However many databases view NULL as distinct in
-         this regard and only allow one row with NULL.
+        this regard and only allow one row with NULL.
+</li><li>For aliased columns, ResultSetMetaData.getColumnName() returns the alias name
+        and getTableName() returns null.
 </li></ul>
 
 <h3>MS SQL Server Compatibility Mode</h3>
@@ -1054,7 +1060,9 @@ or the SQL statement <code>SET MODE MSSQLServer</code>.
 <ul><li>Identifiers may be quoted using square brackets as in [Test]. 
 </li><li>When using unique indexes, multiple rows with NULL in one of the columns
         are allowed by default. However many databases view NULL as distinct in
-         this regard and only allow one row with NULL.
+        this regard and only allow one row with NULL.
+</li><li>For aliased columns, ResultSetMetaData.getColumnName() returns the alias name
+        and getTableName() returns null.
 </li></ul>
 
 <h3>Derby Compatibility Mode</h3>
@@ -1064,7 +1072,9 @@ or the SQL statement <code>SET MODE Derby</code>.
 </p>
 <ul><li>When using unique indexes, multiple rows with NULL in one of the columns
         are allowed by default. However many databases view NULL as distinct in
-         this regard and only allow one row with NULL.
+        this regard and only allow one row with NULL.
+</li><li>For aliased columns, ResultSetMetaData.getColumnName() returns the alias name
+        and getTableName() returns null.
 </li></ul>
 
 <h3>Oracle Compatibility Mode</h3>
@@ -1074,7 +1084,9 @@ or the SQL statement <code>SET MODE Oracle</code>.
 </p>
 <ul><li>When using unique indexes, multiple rows with NULL in one of the columns
         are allowed by default. However many databases view NULL as distinct in
-         this regard and only allow one row with NULL.
+        this regard and only allow one row with NULL.
+</li><li>For aliased columns, ResultSetMetaData.getColumnName() returns the alias name
+        and getTableName() returns null.
 </li></ul>
 
 <br /><a name="trace_options"></a>

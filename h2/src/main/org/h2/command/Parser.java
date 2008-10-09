@@ -1555,7 +1555,7 @@ public class Parser {
                 Expression expr = readExpression();
                 if (readIf("AS") || currentTokenType == IDENTIFIER) {
                     String alias = readAliasIdentifier();
-                    expr = new Alias(expr, alias);
+                    expr = new Alias(expr, alias, database.getMode().aliasColumnName);
                 }
                 expressions.add(expr);
             }

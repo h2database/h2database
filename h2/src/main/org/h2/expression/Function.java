@@ -922,13 +922,13 @@ public class Function extends Expression implements FunctionCall {
             result = ValueString.get(right(v0.getString(), v1.getInt()));
             break;
         case LTRIM:
-            result = ValueString.get(trim(v0.getString(), true, false, v1 == null ? " " : v1.getString()));
+            result = ValueString.get(StringUtils.trim(v0.getString(), true, false, v1 == null ? " " : v1.getString()));
             break;
         case TRIM:
-            result = ValueString.get(trim(v0.getString(), true, true, v1 == null ? " " : v1.getString()));
+            result = ValueString.get(StringUtils.trim(v0.getString(), true, true, v1 == null ? " " : v1.getString()));
             break;
         case RTRIM:
-            result = ValueString.get(trim(v0.getString(), false, true, v1 == null ? " " : v1.getString()));
+            result = ValueString.get(StringUtils.trim(v0.getString(), false, true, v1 == null ? " " : v1.getString()));
             break;
         case SUBSTR:
         case SUBSTRING: {
@@ -1240,28 +1240,6 @@ public class Function extends Expression implements FunctionCall {
             length = len - start;
         }
         return s.substring(start, start + length);
-    }
-
-    private static String trim(String s, boolean leading, boolean trailing, String sp) {
-        char space = (sp == null || sp.length() < 1) ? ' ' : sp.charAt(0);
-        // TODO function trim: HSQLDB says 'tabs are not removed', but they are.
-        // check what other databases do
-        if (leading) {
-            int len = s.length(), i = 0;
-            while (i < len && s.charAt(i) == space) {
-                i++;
-            }
-            s = (i == 0) ? s : s.substring(i);
-        }
-        if (trailing) {
-            int endIndex = s.length() - 1;
-            int i = endIndex;
-            while (i >= 0 && s.charAt(i) == space) {
-                i--;
-            }
-            s = i == endIndex ? s : s.substring(0, i + 1);
-        }
-        return s;
     }
 
     private static String replace(String s, String replace, String with) {

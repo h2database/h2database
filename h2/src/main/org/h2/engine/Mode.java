@@ -8,6 +8,7 @@ package org.h2.engine;
 
 import java.util.HashMap;
 
+import org.h2.constant.SysProperties;
 import org.h2.util.StringUtils;
 
 /**
@@ -93,16 +94,26 @@ public class Mode {
      */
     public boolean supportOffsetFetch;
 
+    /**
+     * When enabled, aliased columns (as in SELECT ID AS I FROM TEST) return the
+     * alias (I in this case) in ResultSetMetaData.getColumnName() and 'null' in
+     * getTableName(). If disabled, the real column name (ID in this case) and
+     * table name is returned.
+     */
+    public boolean aliasColumnName;
+
     private String name;
 
     static {
         Mode mode = new Mode(REGULAR);
+        mode.aliasColumnName = SysProperties.ALIAS_COLUMN_NAME;
         add(mode);
 
         mode = new Mode("PostgreSQL");
         mode.nullConcatIsNull = true;
         mode.roundWhenConvertToLong = true;
         mode.systemColumns = true;
+        mode.aliasColumnName = true;
         add(mode);
 
         mode = new Mode("MySQL");
@@ -116,23 +127,28 @@ public class Mode {
         mode.nullConcatIsNull = true;
         mode.convertOnlyToSmallerScale = true;
         mode.uniqueIndexSingleNull = true;
+        mode.aliasColumnName = true;
         add(mode);
 
         mode = new Mode("MSSQLServer");
         mode.squareBracketQuotedNames = true;
         mode.uniqueIndexSingleNull = true;
+        mode.aliasColumnName = true;
         add(mode);
 
         mode = new Mode("Derby");
         mode.uniqueIndexSingleNull = true;
+        mode.aliasColumnName = true;
         add(mode);
 
         mode = new Mode("Oracle");
         mode.uniqueIndexSingleNullExceptAllColumnsAreNull = true;
+        mode.aliasColumnName = true;
         add(mode);
 
         mode = new Mode("DB2");
         mode.supportOffsetFetch = true;
+        mode.aliasColumnName = true;
         add(mode);
 
     }

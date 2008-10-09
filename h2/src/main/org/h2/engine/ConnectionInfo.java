@@ -206,6 +206,13 @@ public class ConnectionInfo implements Cloneable {
             }
         }
     }
+    
+    /**
+     * Removes the database event listener object.
+     */
+    void removeDatabaseEventListenerObject() {
+        prop.remove("DATABASE_EVENT_LISTENER_OBJECT");
+    }
 
     /**
      * Return the database event listener object set as a Java object. If the
@@ -214,8 +221,8 @@ public class ConnectionInfo implements Cloneable {
      * 
      * @return the database event listener object or null
      */
-    DatabaseEventListener removeDatabaseEventListenerObject() throws SQLException {
-        Object p = prop.remove("DATABASE_EVENT_LISTENER_OBJECT");
+    DatabaseEventListener getDatabaseEventListenerObject() throws SQLException {
+        Object p = prop.get("DATABASE_EVENT_LISTENER_OBJECT");
         if (p == null) {
             return null;
         }

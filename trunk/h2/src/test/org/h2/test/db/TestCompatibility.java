@@ -8,9 +8,12 @@ package org.h2.test.db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 
 /**
@@ -19,11 +22,21 @@ import org.h2.test.TestBase;
 public class TestCompatibility extends TestBase {
 
     private Connection conn;
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }    
 
     public void test() throws SQLException {
         deleteDb("compatibility");
         conn = getConnection("compatibility");
 
+        testColumnAlias();
         testUniqueIndexSingleNull();
         testUniqueIndexOracle();
         testHsqlDb();
@@ -31,6 +44,34 @@ public class TestCompatibility extends TestBase {
 
         conn.close();
 
+    }
+    
+    private void testColumnAlias() throws SQLException {
+        Statement stat = conn.createStatement();
+        String[] modes = new String[] { "PostgreSQL", "MySQL", "HSQLDB", "MSSQLServer", "Derby", "Oracle", "Regular" };
+        String columnAlias;
+        if (Constants.VERSION_MINOR == 0) {
+            columnAlias = "MySQL";
+        } else {
+            columnAlias = "MySQL,Regular";
+        }
+        stat.execute("CREATE TABLE TEST(ID INT)");
+        for (int i = 0; i < modes.length; i++) {
+            String mode = modes[i];
+            stat.execute("SET MODE " + mode);
+            ResultSet rs = stat.executeQuery("SELECT ID I FROM TEST");
+            ResultSetMetaData meta = rs.getMetaData();
+            String columnName = meta.getColumnName(1);
+            String tableName = meta.getTableName(1);
+            if ("ID".equals(columnName) && "TEST".equals(tableName)) {
+                assertTrue(mode + " mode should not support columnAlias", columnAlias.indexOf(mode) >= 0);
+            } else if ("I".equals(columnName) && tableName == null) {
+                assertTrue(mode + " mode should support columnAlias", columnAlias.indexOf(mode) < 0);
+            } else {
+                fail();
+            }
+        }
+        stat.execute("DROP TABLE TEST");
     }
     
     private void testUniqueIndexSingleNull() throws SQLException {

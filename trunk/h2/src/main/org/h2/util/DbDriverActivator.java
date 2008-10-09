@@ -4,7 +4,7 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.tools;
+package org.h2.util;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -15,10 +15,16 @@ import org.osgi.framework.BundleContext;
  */
 public class DbDriverActivator implements BundleActivator {
 
+    /**
+     * Start the bundle. This will load the database driver.
+     */
     public void start(BundleContext bundleContext) {
         org.h2.Driver.load();
     }
 
+    /**
+     * Stop the bundle. This will unload the database driver.
+     */
     public void stop(BundleContext bundleContext) {
         org.h2.Driver.unload();
     }

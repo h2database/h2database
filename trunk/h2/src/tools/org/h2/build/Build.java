@@ -103,6 +103,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/servlet-api-2.4.jar" + 
                 File.pathSeparator + "ext/lucene-core-2.2.0.jar" + 
                 File.pathSeparator + "ext/slf4j-api-1.5.0.jar" + 
+                File.pathSeparator + "ext/org.osgi.core-1.2.0.jar" +
                 File.pathSeparator + System.getProperty("java.home") + "/../lib/tools.jar";
         FileList files;
         if (clientOnly) {
@@ -319,7 +320,8 @@ public class Build extends BuildBase {
                 "/../lib/tools.jar" + 
                 File.pathSeparator + "ext/slf4j-api-1.5.0.jar" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" + 
-                File.pathSeparator + "ext/lucene-core-2.2.0.jar",
+                File.pathSeparator + "ext/lucene-core-2.2.0.jar" +
+                File.pathSeparator + "ext/org.osgi.core-1.2.0.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu" });
 
@@ -330,7 +332,8 @@ public class Build extends BuildBase {
                 "-classpath", System.getProperty("java.home") + "/../lib/tools.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.5.0.jar" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" + 
-                File.pathSeparator + "ext/lucene-core-2.2.0.jar",
+                File.pathSeparator + "ext/lucene-core-2.2.0.jar" +
+                File.pathSeparator + "ext/org.osgi.core-1.2.0.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu",
                 "-package",

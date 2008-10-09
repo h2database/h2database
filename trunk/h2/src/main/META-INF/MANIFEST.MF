@@ -5,7 +5,7 @@ Implementation-Version: ${version}
 Build-Jdk: ${buildJdk}
 Created-By: ${createdBy}
 ${mainClassTag}
-Bundle-Activator: org.h2.tools.DbDriverActivator
+Bundle-Activator: org.h2.util.DbDriverActivator
 Bundle-Name: H2 Database Engine
 Bundle-Vendor: H2 Group
 Bundle-Version: ${version}

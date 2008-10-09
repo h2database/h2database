@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.sql.SQLException;
 
+import org.h2.api.DatabaseEventListener;
 import org.h2.command.CommandInterface;
 import org.h2.command.CommandRemote;
 import org.h2.command.dml.SetTypes;
@@ -36,8 +37,8 @@ import org.h2.value.Value;
 import org.h2.value.ValueString;
 
 /**
- * The client side part of a session when using the server mode.
- * This object communicates with a Session on the server side.
+ * The client side part of a session when using the server mode. This object
+ * communicates with a Session on the server side.
  */
 public class SessionRemote implements SessionInterface, DataHandler {
 
@@ -81,11 +82,12 @@ public class SessionRemote implements SessionInterface, DataHandler {
     private boolean sessionStateChanged;
     private ObjectArray sessionState;
     private boolean sessionStateUpdating;
+    private DatabaseEventListener eventListener;
 
     public SessionRemote() {
         // nothing to do
     }
-    
+
     private SessionRemote(ConnectionInfo ci) throws SQLException {
         this.connectionInfo = ci;
     }
@@ -123,7 +125,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
         autoCommit = true;
         return trans;
     }
-    
+
     public void cancel() {
         // this method is called when closing the connection
         // the statement that is currently running is not canceled in this case
@@ -224,14 +226,14 @@ public class SessionRemote implements SessionInterface, DataHandler {
     public SessionInterface createSession(ConnectionInfo ci) throws SQLException {
         return new SessionRemote(ci).connectEmbeddedOrServer();
     }
-    
+
     private SessionInterface connectEmbeddedOrServer() throws SQLException {
         ConnectionInfo ci = connectionInfo;
         if (ci.isRemote()) {
             connectServer(ci);
             return this;
         }
-        // create the session using reflection, 
+        // create the session using reflection,
         // so that the JDBC layer can be compiled without it
         boolean autoServerMode = Boolean.valueOf(ci.getProperty("AUTO_SERVER", "false")).booleanValue();
         ConnectionInfo backup = null;
@@ -249,8 +251,8 @@ public class SessionRemote implements SessionInterface, DataHandler {
                     String serverKey = (String) ((JdbcSQLException) e).getPayload();
                     if (serverKey != null) {
                         backup.setServerKey(serverKey);
-                        // OPEN_NEW must be removed now, otherwise 
-                        // opening a session with AUTO_SERVER fails 
+                        // OPEN_NEW must be removed now, otherwise
+                        // opening a session with AUTO_SERVER fails
                         // if another connection is already open
                         backup.removeProperty("OPEN_NEW", false);
                         connectServer(backup);
@@ -263,7 +265,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
             throw Message.convert(e);
         }
     }
-    
+
     private void connectServer(ConnectionInfo ci) throws SQLException {
         String name = ci.getName();
         if (name.startsWith("//")) {
@@ -305,6 +307,20 @@ public class SessionRemote implements SessionInterface, DataHandler {
         if (autoReconnect && serverList != null) {
             throw Message.getSQLException(ErrorCode.FEATURE_NOT_SUPPORTED);
         }
+        if (autoReconnect) {
+            eventListener = ci.getDatabaseEventListenerObject();
+            if (eventListener == null) {
+                String className = ci.getProperty("DATABASE_EVENT_LISTENER");
+                if (className != null) {
+                    className = StringUtils.trim(className, true, true, "'");
+                    try {
+                        eventListener = (DatabaseEventListener) ClassUtils.loadUserClass(className).newInstance();
+                    } catch (Throwable e) {
+                        throw Message.convert(e);
+                    }
+                }
+            }
+        }
         cipher = ci.getProperty("CIPHER");
         if (cipher != null) {
             fileEncryptionKey = RandomUtils.getSecureBytes(32);
@@ -334,10 +350,10 @@ public class SessionRemote implements SessionInterface, DataHandler {
         }
         upgradeClientVersionIfPossible();
     }
-    
+
     private void upgradeClientVersionIfPossible() {
         try {
-            // TODO check if a newer client version can be used 
+            // TODO check if a newer client version can be used
             // not required when sending TCP_DRIVER_VERSION_6
             CommandInterface command = prepareCommand("SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?", 1);
             ParameterInterface param = (ParameterInterface) command.getParameters().get(0);
@@ -370,7 +386,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
                     }
                 }
             }
-            
+
         }
     }
 
@@ -390,7 +406,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
         transferList.remove(i);
         if (autoReconnect(count)) {
             return;
-        }        
+        }
         checkClosed();
         switchOffCluster();
     }
@@ -401,7 +417,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
             return new CommandRemote(this, transferList, sql, fetchSize);
         }
     }
-    
+
     /**
      * Automatically re-connect if necessary and if configured to do so.
      * 
@@ -423,7 +439,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
             // connected to a server somewhere else
             embedded = null;
         } else {
-            // opened an embedded connection now - 
+            // opened an embedded connection now -
             // must connect to this database in server mode
             // unfortunately
             connectEmbeddedOrServer();
@@ -440,6 +456,10 @@ public class SessionRemote implements SessionInterface, DataHandler {
                 sessionStateUpdating = false;
                 sessionStateChanged = false;
             }
+        }
+        if (eventListener != null) {
+            eventListener.setProgress(DatabaseEventListener.STATE_RECONNECTED, databaseName, count,
+                    SysProperties.MAX_RECONNECT);
         }
         return true;
     }

@@ -7,24 +7,29 @@
 package org.h2.test.server;
 
 import java.sql.Connection;
+import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 
+import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
 
 /**
  * Tests automatic embedded/server mode.
  */
-public class TestAutoReconnect extends TestBase {
+public class TestAutoReconnect extends TestBase implements DatabaseEventListener {
 
     private String url;
     private boolean autoServer;
     private Server server;
     private Connection connServer;
+    private Connection conn;
+    private String state;
     
     /**
      * Run just this test.
@@ -66,9 +71,41 @@ public class TestAutoReconnect extends TestBase {
             url = "jdbc:h2:tcp://localhost:8181/" + baseDir + "/autoReconnect;" + 
                 "FILE_LOCK=SOCKET;AUTO_RECONNECT=TRUE";
         }
-        Connection conn = DriverManager.getConnection(url);
-        restart();
+        
+        // test the database event listener
+        conn = DriverManager.getConnection(url + ";DATABASE_EVENT_LISTENER='" + getClass().getName() + "'");
+        conn.close();
+        
+        // test the database event listener object
+        Properties prop = new Properties();
+        state = null;
+        Driver postgreDriver = null;
+        try {
+            postgreDriver = DriverManager.getDriver("jdbc:postgresql:test");
+            if (postgreDriver != null) {
+                DriverManager.deregisterDriver(postgreDriver);
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        prop.put("DATABASE_EVENT_LISTENER_OBJECT", this);
+        conn = DriverManager.getConnection(url, prop);
+        assertEquals(null, state);
         Statement stat = conn.createStatement();
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        restart();
+        // the table is created in the database event listener
+        stat.execute("SELECT * FROM TEST");
+        assertEquals("state " + DatabaseEventListener.STATE_RECONNECTED, state);
+        conn.close();
+        
+        if (postgreDriver != null) {
+            DriverManager.registerDriver(postgreDriver);
+        }
+        
+        conn = DriverManager.getConnection(url);
+        restart();
+        stat = conn.createStatement();
         restart();
         stat.execute("create table test(id identity, name varchar)");
         restart();
@@ -143,6 +180,37 @@ public class TestAutoReconnect extends TestBase {
             connServer.close();
         } else {
             server.stop();
+        }
+    }
+
+    public void closingDatabase() {
+        // ignore
+    }
+
+    public void diskSpaceIsLow(long stillAvailable) throws SQLException {
+        // ignore
+    }
+
+    public void exceptionThrown(SQLException e, String sql) {
+        // ignore
+    }
+
+    public void init(String url) {
+        state = "init";
+    }
+
+    public void opened() {
+        state = "opened";
+    }
+
+    public void setProgress(int state, String name, int x, int max) {
+        this.state = "state " + state;
+        if (state == DatabaseEventListener.STATE_RECONNECTED) {
+            try {
+                conn.createStatement().execute("CREATE LOCAL TEMPORARY TABLE TEST(ID INT)");
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

@@ -174,6 +174,9 @@ public class Build extends BuildBase {
         download("ext/slf4j-api-1.5.0.jar",
                 "http://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.5.0/slf4j-api-1.5.0.jar", 
                 "b2df265d02350ecfe87b6c1773c7c4fab2b33505");
+        download("ext/org.osgi.core-1.2.0.jar",
+                "http://repo1.maven.org/maven2/org/apache/felix/org.osgi.core/1.2.0/org.osgi.core-1.2.0.jar", 
+                "3006beb1ca6a83449def6127dad3c060148a0209");
     }
     
     private String getVersion() {
@@ -408,6 +411,14 @@ public class Build extends BuildBase {
      */
     public void spellcheck() {
         java("org.h2.build.doc.SpellChecker", null);
+    }
+    
+    /**
+     * Compile and run all tests.
+     */
+    public void test() {
+        compile();
+        java("org.h2.test.TestAll", null);
     }
     
     /**

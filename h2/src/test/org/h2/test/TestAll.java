@@ -60,6 +60,7 @@ import org.h2.test.jdbc.TestBatchUpdates;
 import org.h2.test.jdbc.TestCallableStatement;
 import org.h2.test.jdbc.TestCancel;
 import org.h2.test.jdbc.TestDatabaseEventListener;
+import org.h2.test.jdbc.TestDriver;
 import org.h2.test.jdbc.TestManyJdbcObjects;
 import org.h2.test.jdbc.TestMetaData;
 import org.h2.test.jdbc.TestNativeSQL;
@@ -275,46 +276,34 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
+ 
+test with 1.0
 
-download/local_temp_index.txt
-
-system_temp_lob.db leaks unencrypted data, even when I use
-encrypted SCRIPT/RUNSCRIPT with an encrypted database.
-
-Event on Re-Connect (DatabaseEventListener)
-
-extend server protocol to keep stuff on client 
-(temporary linked tables, variables; identity)
+merge join test case
 
 osgi (derby, hsqldb)
-
-support 'build test'
 
 auto_reconnect
 implemented:
 - auto_server includes auto_reconnect
 - works with server mode
 - works with auto_server mode
+- keep temporary linked tables, variables on client
 - statements
 - prepared statements
 - small result sets (up to fetch size)
 - throws an error when autocommit is false
 - an error is thrown when the connection is lost 
   while looping over large result sets (larger than fetch size)
-untested:
-- batch updates
-- throw error in cluster mode
-- ignored in embedded mode
 not implemented / not tested
-- keep temporary linked tables, variables on client
+- batch updates
+- ignored in embedded mode
 - keep temporary tables (including data) on client
 - keep identity, getGeneratedKeys on client
 - throw error when in cluster mode
 
 Feature requests:
 SCOPE_IDENTITY
-
-test with system property h2.aliasColumnName.
 
 document url parameter auto_server
 document url parameter auto_reconnect
@@ -351,8 +340,6 @@ analyzer configuration option for the fulltext search
 optimize where x not in (select):
 SELECT c FROM color LEFT OUTER JOIN (SELECT c FROM TABLE(c
 VARCHAR= ?)) p ON color.c = p.c WHERE p.c IS NULL;
-
-Add where required // TODO: change in version 1.1
 
 http://www.w3schools.com/sql/
 
@@ -550,6 +537,7 @@ http://www.w3schools.com/sql/
         new TestCallableStatement().runTest(this);
         new TestCancel().runTest(this);
         new TestDatabaseEventListener().runTest(this);
+        new TestDriver().runTest(this);
         new TestManyJdbcObjects().runTest(this);
         new TestMetaData().runTest(this);
         new TestNativeSQL().runTest(this);

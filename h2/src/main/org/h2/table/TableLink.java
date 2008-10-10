@@ -147,9 +147,7 @@ public class TableLink extends Table {
                 ResultSetMetaData rsMeta = rs.getMetaData();
                 for (i = 0; i < rsMeta.getColumnCount();) {
                     String n = rsMeta.getColumnName(i + 1);
-                    if (storesLowerCase && n.equals(StringUtils.toLowerEnglish(n))) {
-                        n = StringUtils.toUpperEnglish(n);
-                    }
+                    n = convertColumnName(n);
                     int sqlType = rsMeta.getColumnType(i + 1);
                     long precision = rsMeta.getPrecision(i + 1);
                     int scale = rsMeta.getScale(i + 1);
@@ -215,6 +213,10 @@ public class TableLink extends Table {
         IndexType indexType = null;
         if (rs != null) {
             while (rs.next()) {
+                if (rs.getShort("TYPE") == DatabaseMetaData.tableIndexStatistic) {
+                    // ignore index statistics
+                    continue; 
+                }                
                 String newIndex = rs.getString("INDEX_NAME");
                 if (pkName.equals(newIndex)) {
                     continue;

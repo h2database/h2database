@@ -86,6 +86,7 @@ import org.h2.test.server.TestPgServer;
 import org.h2.test.server.TestWeb;
 import org.h2.test.synth.TestBtreeIndex;
 import org.h2.test.synth.TestCrashAPI;
+import org.h2.test.synth.TestFuzzOptimizations;
 import org.h2.test.synth.TestHaltApp;
 import org.h2.test.synth.TestJoin;
 import org.h2.test.synth.TestKill;
@@ -570,6 +571,7 @@ http://www.w3schools.com/sql/
 
         // synth
         new TestCrashAPI().runTest(this);
+        new TestFuzzOptimizations().runTest(this);
         new TestRandomSQL().runTest(this);
         new TestKillRestart().runTest(this);
         new TestKillRestartMulti().runTest(this);

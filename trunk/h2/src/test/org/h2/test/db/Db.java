@@ -12,6 +12,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,6 +99,20 @@ public class Db {
         }
     }
     
+    static List query(ResultSet rs) throws SQLException {
+        List list = new ArrayList();
+        ResultSetMetaData meta = rs.getMetaData();
+        int columnCount = meta.getColumnCount();
+        while (rs.next()) {
+            HashMap map = new HashMap();
+            for (int i = 0; i < columnCount; i++) {
+                map.put(meta.getColumnLabel(i+1), rs.getObject(i+1));
+            }
+            list.add(map);
+        }
+        return list;
+    }
+    
     /**
      * Execute a SQL statement.
      * 
@@ -106,18 +121,7 @@ public class Db {
      */
     public List query(String sql) {
         try {
-            List list = new ArrayList();
-            ResultSet rs = stat.executeQuery(sql);
-            ResultSetMetaData meta = rs.getMetaData();
-            int columnCount = meta.getColumnCount();
-            while (rs.next()) {
-                HashMap map = new HashMap();
-                for (int i = 0; i < columnCount; i++) {
-                    map.put(meta.getColumnLabel(i+1), rs.getObject(i+1));
-                }
-                list.add(map);
-            }
-            return list;
+            return query(stat.executeQuery(sql));
         } catch (Exception e) {
             throw convert(e);
         }
@@ -207,6 +211,17 @@ public class Db {
         public void execute() {
             try {
                 prep.execute();
+            } catch (Exception e) {
+                throw convert(e);
+            }
+        }
+        
+        /**
+         * Execute the prepared query.
+         */        
+        public List query() {
+            try {
+                return Db.query(prep.executeQuery());
             } catch (Exception e) {
                 throw convert(e);
             }

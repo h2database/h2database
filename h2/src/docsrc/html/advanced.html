@@ -110,7 +110,7 @@ are just links to another database. To create such a link, use the CREATE LINKED
 CREATE LINKED TABLE LINK('org.postgresql.Driver', 'jdbc:postgresql:test', 'sa', 'sa', 'TEST');
 </pre>
 <p>
-It is then possible to access the table in the usual way.
+You can then access the table in the usual way.
 Whenever the linked table is accessed, the database issues specific queries over JDBC. 
 Using the example above, if you issue the query <code>SELECT * FROM LINK WHERE ID=1</code>, 
 then the following query is run against the PostgreSQL database: <code>SELECT * FROM TEST WHERE ID=?</code>.
@@ -134,6 +134,10 @@ Oracle XE needs to be restarted after changing these values:
 alter system set processes=100 scope=spfile;
 alter system set sessions=100 scope=spfile;
 </pre>
+<p>
+The CREATE LINKED TABLE statement supports an optional schema name parameter.
+See the grammar for details.
+</p>
 
 <br /><a name="transaction_isolation"></a>
 <h2>Transaction Isolation</h2>

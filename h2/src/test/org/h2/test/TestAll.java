@@ -280,6 +280,12 @@ java org.h2.test.TestAll timer
  
 test with 1.0
 
+document url parameter auto_server
+document url parameter auto_reconnect
+document url parameter open_new
+document shared connections for linked tables
+document osgi
+
 merge join test case
 
 osgi (derby, hsqldb)
@@ -305,10 +311,6 @@ not implemented / not tested
 
 Feature requests:
 SCOPE_IDENTITY
-
-document url parameter auto_server
-document url parameter auto_reconnect
-document url parameter open_new
 
 Add version number. Install directory: h2-1.1, jar file: h2-1.1.100.jar. 
 Micro version: use build number, staring with 1.1.100

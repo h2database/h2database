@@ -119,6 +119,12 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable 
     public abstract void checkExistingData(Session session) throws SQLException;
     
     /**
+     * This method is called after a related table has changed
+     * (the table was renamed, or columns have been renamed).
+     */
+    public abstract void rebuild() throws SQLException;
+
+    /**
      * Get the unique index used to enforce this constraint, or null if no index
      * is used.
      * 

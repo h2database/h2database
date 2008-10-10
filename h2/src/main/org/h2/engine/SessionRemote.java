@@ -224,10 +224,10 @@ public class SessionRemote implements SessionInterface, DataHandler {
     }
 
     public SessionInterface createSession(ConnectionInfo ci) throws SQLException {
-        return new SessionRemote(ci).connectEmbeddedOrServer();
+        return new SessionRemote(ci).connectEmbeddedOrServer(false);
     }
 
-    private SessionInterface connectEmbeddedOrServer() throws SQLException {
+    private SessionInterface connectEmbeddedOrServer(boolean openNew) throws SQLException {
         ConnectionInfo ci = connectionInfo;
         if (ci.isRemote()) {
             connectServer(ci);
@@ -243,6 +243,9 @@ public class SessionRemote implements SessionInterface, DataHandler {
                 connectionInfo = (ConnectionInfo) ci.clone();
             }
             SessionInterface si = (SessionInterface) ClassUtils.loadSystemClass("org.h2.engine.Session").newInstance();
+            if (openNew) {
+                ci.setProperty("OPEN_NEW", "true");
+            }
             return si.createSession(ci);
         } catch (SQLException e) {
             int errorCode = e.getErrorCode();
@@ -434,7 +437,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
             return false;
         }
         lastReconnect++;
-        embedded = connectEmbeddedOrServer();
+        embedded = connectEmbeddedOrServer(false);
         if (embedded == this) {
             // connected to a server somewhere else
             embedded = null;
@@ -442,7 +445,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
             // opened an embedded connection now -
             // must connect to this database in server mode
             // unfortunately
-            connectEmbeddedOrServer();
+            connectEmbeddedOrServer(true);
         }
         if (sessionState != null && sessionState.size() > 0) {
             sessionStateUpdating = true;

@@ -54,24 +54,8 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
     }
     
     public void test() throws Exception {
-        testIsClosed();
         testReconnect(true);
         testReconnect(false);
-    }
-    
-    private void testIsClosed() throws Exception {
-        deleteDb("autoReconnect");
-        url = "jdbc:h2:" + baseDir + "/autoReconnect;" + 
-            "AUTO_SERVER=TRUE;OPEN_NEW=TRUE";
-        Connection conn1 = DriverManager.getConnection(url);
-        conn1.createStatement().execute("CREATE TABLE TEST(ID INT)");
-        Connection conn2 = DriverManager.getConnection(url);
-        assertFalse(conn1.isClosed());
-        conn1.close();
-        assertTrue(conn1.isClosed());
-        assertFalse(conn2.isClosed());
-        conn2.close();
-        assertTrue(conn1.isClosed());
     }
     
     private void testReconnect(boolean autoServer) throws Exception {

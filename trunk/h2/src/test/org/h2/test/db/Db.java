@@ -10,8 +10,12 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.h2.util.JdbcDriverUtils;
 
@@ -30,7 +34,12 @@ public class Db {
     private Statement stat;
     private HashMap prepared = new HashMap();
 
-    private Db(Connection conn) {
+    /**
+     * Create a database object using the given connection.
+     * 
+     * @param conn the database connection
+     */
+    public Db(Connection conn) {
         try {
             this.conn = conn;
             stat = conn.createStatement();
@@ -84,6 +93,31 @@ public class Db {
     public void execute(String sql) {
         try {
             stat.execute(sql);
+        } catch (Exception e) {
+            throw convert(e);
+        }
+    }
+    
+    /**
+     * Execute a SQL statement.
+     * 
+     * @param sql the SQL statement
+     * @return a list of maps
+     */
+    public List query(String sql) {
+        try {
+            List list = new ArrayList();
+            ResultSet rs = stat.executeQuery(sql);
+            ResultSetMetaData meta = rs.getMetaData();
+            int columnCount = meta.getColumnCount();
+            while (rs.next()) {
+                HashMap map = new HashMap();
+                for (int i = 0; i < columnCount; i++) {
+                    map.put(meta.getColumnLabel(i+1), rs.getObject(i+1));
+                }
+                list.add(map);
+            }
+            return list;
         } catch (Exception e) {
             throw convert(e);
         }

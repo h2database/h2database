@@ -44,7 +44,7 @@ public class Db {
         try {
             this.conn = conn;
             stat = conn.createStatement();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw convert(e);
         }
     }
@@ -62,7 +62,7 @@ public class Db {
         try {
             JdbcDriverUtils.load(url);
             return new Db(DriverManager.getConnection(url, user, password));
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw convert(e);
         }
     }
@@ -81,7 +81,7 @@ public class Db {
                 prepared.put(sql, prep);
             }
             return new Prepared(conn.prepareStatement(sql));
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw convert(e);
         }
     }
@@ -94,11 +94,17 @@ public class Db {
     public void execute(String sql) {
         try {
             stat.execute(sql);
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw convert(e);
         }
     }
     
+    /**
+     * Read a result set.
+     * 
+     * @param rs the result set
+     * @return a list of maps
+     */    
     static List query(ResultSet rs) throws SQLException {
         List list = new ArrayList();
         ResultSetMetaData meta = rs.getMetaData();
@@ -122,7 +128,7 @@ public class Db {
     public List query(String sql) {
         try {
             return query(stat.executeQuery(sql));
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw convert(e);
         }
     }
@@ -133,7 +139,7 @@ public class Db {
     public void close() {
         try {
             conn.close();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw convert(e);
         }
     }
@@ -158,7 +164,7 @@ public class Db {
             try {
                 prep.setInt(++index, x);
                 return this;
-            } catch (Exception e) {
+            } catch (SQLException e) {
                 throw convert(e);
             }
         }
@@ -172,7 +178,7 @@ public class Db {
             try {
                 prep.setString(++index, x);
                 return this;
-            } catch (Exception e) {
+            } catch (SQLException e) {
                 throw convert(e);
             }
         }
@@ -186,7 +192,7 @@ public class Db {
             try {
                 prep.setBytes(++index, x);
                 return this;
-            } catch (Exception e) {
+            } catch (SQLException e) {
                 throw convert(e);
             }
         }
@@ -200,7 +206,7 @@ public class Db {
             try {
                 prep.setBinaryStream(++index, x, -1);
                 return this;
-            } catch (Exception e) {
+            } catch (SQLException e) {
                 throw convert(e);
             }
         }
@@ -211,7 +217,7 @@ public class Db {
         public void execute() {
             try {
                 prep.execute();
-            } catch (Exception e) {
+            } catch (SQLException e) {
                 throw convert(e);
             }
         }
@@ -222,7 +228,7 @@ public class Db {
         public List query() {
             try {
                 return Db.query(prep.executeQuery());
-            } catch (Exception e) {
+            } catch (SQLException e) {
                 throw convert(e);
             }
         }
@@ -241,7 +247,7 @@ public class Db {
     public void setAutoCommit(boolean autoCommit) {
         try {
             conn.setAutoCommit(autoCommit);
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw convert(e);
         }
     }
@@ -252,7 +258,7 @@ public class Db {
     public void commit() {
         try {
             conn.commit();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw convert(e);
         }
     }

@@ -1,3 +1,18 @@
+create table master(id int primary key);
+create table detail(id int primary key, x bigint, foreign key(x) references master(id) on delete cascade);
+alter table detail alter column x bigint;
+insert into master values(0);
+insert into detail values(0,0);
+delete from master;
+drop table master, detail;
+
+drop all objects;
+create table test(id int, parent int references test(id) on delete cascade);
+insert into test values(0, 0);
+alter table test rename to test2;
+delete from test2;
+drop table test2;
+
 SELECT X FROM dual GROUP BY X HAVING X=AVG(X);
 > 1;
 create view test_view(id,) as select * from dual; 

@@ -97,6 +97,14 @@ public abstract class Table extends SchemaObjectBase {
         initSchemaObjectBase(schema, id, name, Trace.TABLE);
         this.persistent = persistent;
     }
+    
+    public void rename(String newName) throws SQLException {
+        super.rename(newName);
+        for (int i = 0; constraints != null && i < constraints.size(); i++) {
+            Constraint constraint = (Constraint) constraints.get(i);
+            constraint.rebuild();
+        }
+    }
 
     /**
      * Lock the table for the given session.

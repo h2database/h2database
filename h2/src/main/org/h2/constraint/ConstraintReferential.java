@@ -484,15 +484,22 @@ public class ConstraintReferential extends Constraint {
      * @param action the action
      */
     public void setDeleteAction(int action) throws SQLException {
-        if (action == deleteAction) {
+        if (action == deleteAction && deleteSQL == null) {
             return;
         }
         if (deleteAction != RESTRICT) {
             throw Message.getSQLException(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, "ON DELETE");
         }
         this.deleteAction = action;
+        buildDeleteSQL();
+    }
+    
+    private void buildDeleteSQL() {
+        if (deleteAction == RESTRICT) {
+            return;
+        }
         StringBuffer buff = new StringBuffer();
-        if (action == CASCADE) {
+        if (deleteAction == CASCADE) {
             buff.append("DELETE FROM ");
             buff.append(table.getSQL());
         } else {
@@ -520,17 +527,29 @@ public class ConstraintReferential extends Constraint {
      * @param action the action
      */
     public void setUpdateAction(int action) throws SQLException {
-        if (action == updateAction) {
+        if (action == updateAction && updateSQL == null) {
             return;
         }
         if (updateAction != RESTRICT) {
             throw Message.getSQLException(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, "ON UPDATE");
         }
         this.updateAction = action;
+        buildUpdateSQL();
+    }
+    
+    private void buildUpdateSQL() {
+        if (updateAction == RESTRICT) {
+            return;
+        }
         StringBuffer buff = new StringBuffer();
         appendUpdate(buff);
         appendWhere(buff);
         updateSQL = buff.toString();
+    }
+    
+    public void rebuild() throws SQLException {
+        buildUpdateSQL();
+        buildDeleteSQL();
     }
 
     private Prepared prepare(Session session, String sql, int action) throws SQLException {
@@ -555,7 +574,7 @@ public class ConstraintReferential extends Constraint {
         }
         return command;
     }
-
+    
     private void appendUpdate(StringBuffer buff) {
         buff.append("UPDATE ");
         buff.append(table.getSQL());

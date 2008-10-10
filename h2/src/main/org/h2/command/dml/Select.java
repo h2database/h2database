@@ -249,8 +249,11 @@ public class Select extends Query {
     }
 
     private boolean isGroupSortedIndex(Index index) {
+        // check that all the GROUP BY expressions are part of the index
         Column[] indexColumns = index.getColumns();
-        outerLoop: 
+        // also check that the first columns in the index are grouped
+        boolean[] grouped = new boolean[indexColumns.length];
+        outerLoop:
         for (int i = 0; i < expressions.size(); i++) {
             if (!groupByExpression[i]) {
                 continue;
@@ -262,12 +265,21 @@ public class Select extends Query {
             ExpressionColumn exprCol = (ExpressionColumn) expr;
             for (int j = 0; j < indexColumns.length; ++j) {
                 if (indexColumns[j].equals(exprCol.getColumn())) {
+                    grouped[j] = true;
                     continue outerLoop;
                 }
             }
-            // We didn't find a matching index column for the group by
-            // expression
+            // We didn't find a matching index column 
+            // for one group by expression
             return false;
+        }
+        // check that the first columns in the index are grouped
+        // good: index(a, b, c); group by b, a
+        // bad: index(a, b, c); group by a, c
+        for (int i = 1; i < grouped.length; i++) {
+            if (!grouped[i - 1] && grouped[i]) {
+                return false;
+            }
         }
         return true;
     }

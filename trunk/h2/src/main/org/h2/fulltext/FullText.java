@@ -99,20 +99,68 @@ public class FullText implements Trigger {
         createTrigger(conn, schema, table);
         indexExistingRows(conn, schema, table);
     }
+    
+    /**
+     * Drop an existing full text index for a table.
+     *
+     * @param conn the connection
+     * @param schema the schema name of the table
+     * @param table the table name
+     */
+    public static void dropIndex(Connection conn, String schema, String table) throws SQLException {
+        init(conn);
+        PreparedStatement prep = conn.prepareStatement("SELECT ID FROM " + SCHEMA
+                + ".INDEXES WHERE SCHEMA=? AND TABLE=?");
+        prep.setString(1, schema);
+        prep.setString(2, table);
+        ResultSet rs = prep.executeQuery();
+        if (!rs.next()) {
+            return;
+        }
+        int indexId = rs.getInt(1);
+        prep = conn.prepareStatement("DELETE FROM " + SCHEMA
+                + ".INDEXES WHERE ID=?");
+        prep.setInt(1, indexId);
+        prep.execute();
+        createOrDropTrigger(conn, schema, table, false);
+        prep = conn.prepareStatement("DELETE FROM " + SCHEMA + 
+                ".ROWS WHERE INDEXID=? AND ROWNUM<10000");
+        while (true) {
+            prep.setInt(1, indexId);
+            int deleted = prep.executeUpdate();
+            if (deleted == 0) {
+                break;
+            }
+        }
+        prep = conn.prepareStatement("DELETE FROM " + SCHEMA + ".MAP M " +
+                "WHERE NOT EXISTS (SELECT * FROM " + SCHEMA + ".ROWS R WHERE R.ID=M.ROWID) AND ROWID<10000");
+        while (true) {
+            int deleted = prep.executeUpdate();
+            if (deleted == 0) {
+                break;
+            }
+        }
+    }    
 
     private static void createTrigger(Connection conn, String schema, String table) throws SQLException {
+        createOrDropTrigger(conn, schema, table, true);
+    }
+    
+    private static void createOrDropTrigger(Connection conn, String schema, String table, boolean create) throws SQLException {
         Statement stat = conn.createStatement();
         String trigger = StringUtils.quoteIdentifier(schema) + "."
                 + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
         stat.execute("DROP TRIGGER IF EXISTS " + trigger);
-        StringBuffer buff = new StringBuffer("CREATE TRIGGER IF NOT EXISTS ");
-        buff.append(trigger);
-        buff.append(" AFTER INSERT, UPDATE, DELETE ON ");
-        buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
-        buff.append(" FOR EACH ROW CALL \"");
-        buff.append(FullText.class.getName());
-        buff.append("\"");
-        stat.execute(buff.toString());
+        if (create) {
+            StringBuffer buff = new StringBuffer("CREATE TRIGGER IF NOT EXISTS ");
+            buff.append(trigger);
+            buff.append(" AFTER INSERT, UPDATE, DELETE ON ");
+            buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
+            buff.append(" FOR EACH ROW CALL \"");
+            buff.append(FullText.class.getName());
+            buff.append("\"");
+            stat.execute(buff.toString());
+        }
     }
 
     private static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
@@ -250,6 +298,7 @@ public class FullText implements Trigger {
 
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA + ".IGNORELIST(LIST VARCHAR)");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_CREATE_INDEX FOR \"" + FullText.class.getName() + ".createIndex\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_INDEX FOR \"" + FullText.class.getName() + ".dropIndex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH FOR \"" + FullText.class.getName() + ".search\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH_DATA FOR \"" + FullText.class.getName() + ".searchData\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_REINDEX FOR \"" + FullText.class.getName() + ".reindex\"");

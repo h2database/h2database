@@ -230,8 +230,22 @@ public abstract class Command implements CommandInterface {
                 database.checkPowerOff();
                 if (e.getErrorCode() == ErrorCode.DEADLOCK_1) {
                     session.rollback();
+                } else if (e.getErrorCode() == ErrorCode.OUT_OF_MEMORY) {
+                    // try to rollback, saving memory
+                    try {
+                        session.rollbackTo(rollback, true);
+                    } catch (SQLException e2) {
+                        if (e2.getErrorCode() == ErrorCode.OUT_OF_MEMORY) {
+                            // if rollback didn't work, there is a serious problem:
+                            // the transaction may be applied partially
+                            // in this case we need to panic:
+                            // close the database
+                            session.getDatabase().shutdownImmediately();
+                        }
+                        throw e2;
+                    }
                 } else {
-                    session.rollbackTo(rollback);
+                    session.rollbackTo(rollback, false);
                 }
                 throw e;
             } finally {

@@ -278,15 +278,7 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
-
-java -Xmx3m
-
-create table test(name varchar);
-set max_log_size 1024;
-@LOOP 20000 insert into test values(space(10000));
-delete from test;
-SELECT * FROM TEST where name like 'a';
-
+ 
 test with 1.0
 
 document shared connections for linked tables

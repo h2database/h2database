@@ -17,9 +17,50 @@ import org.h2.util.BitField;
  */
 public class TestBitField extends TestBase {
 
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() {
+        testByteOperations();
         testRandom();
         testGetSet();
+    }
+    
+    private void testByteOperations() {
+        BitField used = new BitField();
+        testSetFast(used, false);
+        testSetFast(used, true);
+    }
+    
+    private void testSetFast(BitField used, boolean init) {
+        int len = 10000;
+        Random random = new Random(1);
+        for (int i = 0, x = 0; i < len / 8; i++) {
+            int mask = random.nextInt() & 255;
+            if (init) {
+                assertEquals(mask, used.getByte(x));
+                x += 8;
+                // for (int j = 0; j < 8; j++, x++) {
+                //    if (used.get(x) != ((mask & (1 << j)) != 0)) {
+                //        throw Message.getInternalError("Redo failure, block: " + x + " expected in-use bit: " + used.get(x));
+                //    }
+                // }
+            } else {
+                used.setByte(x, mask);
+                x += 8;
+                // for (int j = 0; j < 8; j++, x++) {
+                //    if ((mask & (1 << j)) != 0) {
+                //        used.set(x);
+                //    }
+                // }
+            }
+        }
     }
 
     private void testRandom() {

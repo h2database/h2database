@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The wrong parameters were bound to subqueries with parameters, specially
+<ul><li>Opening large database is now faster.
+</li><li>New system property h2.socketConnectTimeout, the timeout in milliseconds 
+	to connect to a server. The default is 2000 (2 seconds).
+</li><li>The wrong parameters were bound to subqueries with parameters, specially
     when using IN(SELECT ...) and IN(...).
 </li><li>Unset parameters were not detected when the query was re-compiled.
 </li><li>New functions ISO_YEAR, ISO_WEEK, ISO_DAY_OF_WEEK.

@@ -8,7 +8,6 @@ package org.h2.command;
 
 import java.sql.SQLException;
 
-import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
 import org.h2.result.LocalResult;
 import org.h2.util.ObjectArray;
@@ -45,16 +44,19 @@ public class CommandContainer extends Command {
             // TODO test with 'always recompile'
             prepared.setModificationMetaId(0);
             String sql = prepared.getSQL();
-            ObjectArray oldValues = prepared.getParameters();
+            ObjectArray oldParams = prepared.getParameters();
             Parser parser = new Parser(session);
             prepared = parser.parseOnly(sql);
             long mod = prepared.getModificationMetaId();
             prepared.setModificationMetaId(0);
             ObjectArray newParams = prepared.getParameters();
             for (int i = 0; i < newParams.size(); i++) {
-                Value v = ((Expression) oldValues.get(i)).getValue(session);
-                Parameter p = (Parameter) newParams.get(i);
-                p.setValue(v);
+                Parameter old = (Parameter) oldParams.get(i);
+                if (old.isValueSet()) {
+                    Value v = old.getValue(session);
+                    Parameter p = (Parameter) newParams.get(i);
+                    p.setValue(v);
+                }
             }
             prepared.prepare();
             prepared.setModificationMetaId(mod);

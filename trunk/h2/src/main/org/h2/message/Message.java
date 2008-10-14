@@ -190,9 +190,9 @@ public class Message {
      */
     public static Error getInternalError(String s, Exception e) {
         Error e2 = new Error(s);
-        // ## Java 1.4 begin ##
+        //## Java 1.4 begin ##
         e2.initCause(e);
-        // ## Java 1.4 end ##
+        //## Java 1.4 end ##
         TraceSystem.traceThrowable(e2);
         return e2;
     }
@@ -304,9 +304,9 @@ public class Message {
             }
         }
         IOException io = new IOException(e.toString());
-        // ## Java 1.4 begin ##
+        //## Java 1.4 begin ##
         io.initCause(e);
-        // ## Java 1.4 end ##
+        //## Java 1.4 end ##
         return io;
     }
 

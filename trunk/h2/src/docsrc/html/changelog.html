@@ -19,14 +19,14 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul><li>The wrong parameters were bound to subqueries with parameters, specially
-	when using IN(SELECT ...) and IN(...).
+    when using IN(SELECT ...) and IN(...).
 </li><li>Unset parameters were not detected when the query was re-compiled.
 </li><li>New functions ISO_YEAR, ISO_WEEK, ISO_DAY_OF_WEEK.
-	Thanks a lot to Robert Rathsack for implementing those!
+    Thanks a lot to Robert Rathsack for implementing those!
 </li><li>The date functions DAYOFYEAR, DAYOFMONTH, DAYOFWEEK are now called
-	DAY_OF_YEAR, DAY_OF_MONTH, DAY_OF_WEEK (the old names still work).
+    DAY_OF_YEAR, DAY_OF_MONTH, DAY_OF_WEEK (the old names still work).
 </li><li>An out of memory error while deleting or updating many rows could
-	result in a strange exception.
+    result in a strange exception.
 </li><li>Linked tables: compatibility with MS SQL Server has been improved.
 </li><li>Renaming tables that have foreign keys with cascade didn't work correctly.
 </li><li>The auto-reconnect feature didn't work when using the auto-server mode. Fixed.

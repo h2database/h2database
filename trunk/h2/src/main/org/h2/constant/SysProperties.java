@@ -504,6 +504,12 @@ public class SysProperties {
     public static final boolean SHARE_LINKED_CONNECTIONS = getBooleanSetting("h2.shareLinkedConnections", Constants.VERSION > 1.0);
     
     /**
+     * System property <code>h2.socketConnectTimeout</code> (default: 2000).<br />
+     * The timeout in milliseconds to connect to a server.
+     */
+    public static final int SOCKET_CONNECT_TIMEOUT = getIntSetting("h2.socketConnectTimeout", 2000);
+    
+    /**
      * System property <code>h2.sortNullsHigh</code> (default: false).<br />
      * Invert the default sorting behavior for NULL values, such that NULL
      * values are sorted to the end of a result set in an ascending sort and to

@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.KeyFactory;
@@ -67,7 +68,9 @@ public class SecureSocketFactory {
 //## Java 1.4 begin ##
         setKeystore();
         SSLSocketFactory f = (SSLSocketFactory) SSLSocketFactory.getDefault();
-        SSLSocket secureSocket = (SSLSocket) f.createSocket(address, port);
+        SSLSocket secureSocket = (SSLSocket) f.createSocket();
+        secureSocket.connect(new InetSocketAddress(address, port), 
+                SysProperties.SOCKET_CONNECT_TIMEOUT);
         if (SysProperties.ENABLE_ANONYMOUS_SSL) {
             String[] list = secureSocket.getEnabledCipherSuites();
             list = addAnonymous(list);

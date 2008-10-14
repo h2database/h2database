@@ -84,7 +84,7 @@ public class TestFuzzOptimizations extends TestBase {
             p.set(new String[] { null, "0", "1", "2" }[random.nextInt(4)]);
             p.execute();
         }
-        int len = getSize(1000, 10000);
+        int len = getSize(1000, 3000);
         for (int i = 0; i < len / 10; i++) {
             db.execute("CREATE TABLE TEST_INDEXED AS SELECT * FROM TEST");
             int jLen = 1 + random.nextInt(2);

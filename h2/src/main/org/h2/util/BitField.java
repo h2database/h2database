@@ -153,8 +153,10 @@ public class BitField {
      * @param len the number of bits to enable or disable
      */
     public void setRange(int start, int len, boolean value) {
-        for (int end = start + len; start < end; start++) {
-            set(start, value);
+        // go backwards so that OutOfMemory happens
+        // before some bytes are modified
+        for (int i = start + len - 1; i >= start; i--) {
+            set(i, value);
         }
     }
 

@@ -1497,10 +1497,12 @@ public class ErrorCode {
     public static final int CANNOT_DROP_2 = 90107;
 
     /**
-     * The error with code <code>90108</code> is thrown when
-     * not enough memory was available to read a value from the disk.
+     * The error with code <code>90108</code> is thrown when not enough heap
+     * memory was available. A possible solutions is to increase the memory size
+     * using <code>java -Xmx128m ...</code>. Another solution is to reduce
+     * the cache size.
      */
-    public static final int OUT_OF_MEMORY_1 = 90108;
+    public static final int OUT_OF_MEMORY = 90108;
 
     /**
      * The error with code <code>90109</code> is thrown when

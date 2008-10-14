@@ -69,7 +69,7 @@ public class UndoLog {
      * 
      * @return the last record
      */
-    public UndoLogRecord getAndRemoveLast() throws SQLException {
+    public UndoLogRecord getLast() throws SQLException {
         int i = records.size() - 1;
         UndoLogRecord entry = (UndoLogRecord) records.get(i);
         if (entry.isStored()) {
@@ -87,11 +87,23 @@ public class UndoLog {
             }
             first.seek(file);
         }
+        return entry;
+    }
+    
+    /**
+     * Remove the last record from the list of operations.
+     * 
+     * @param trimToSize if the undo array should shrink to conserve memory
+     */    
+    public void removeLast(boolean trimToSize) {
+        int i = records.size() - 1;
         UndoLogRecord r = (UndoLogRecord) records.remove(i);
         if (!r.isStored()) {
             memoryUndo--;
         }
-        return entry;
+        if (trimToSize && i > 1024 && (i & 1023) == 0) {
+            records.trimToSize();
+        }
     }
 
     /**

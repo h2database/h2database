@@ -37,6 +37,7 @@ public class TestOptimizations extends TestBase {
     }
 
     public void test() throws Exception {
+        testInSelectJoin();
         testMinMaxNullOptimization();
         if (config.networked) {
             return;
@@ -53,6 +54,40 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
     }
+    
+    private void testInSelectJoin() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(a int, b int, c int, d int) " +
+                "as select 1, 1, 1, 1 from dual;");
+        ResultSet rs;
+        PreparedStatement prep;
+        prep = conn.prepareStatement("SELECT 2 FROM TEST A "
+                + "INNER JOIN (SELECT DISTINCT B.C AS X FROM TEST B "
+                + "WHERE B.D = ?2) V ON 1=1 WHERE (A = ?1) AND (B = V.X)");
+        prep.setInt(1, 1);
+        prep.setInt(2, 1);
+        rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        
+        boolean old = SysProperties.optimizeInJoin;
+        SysProperties.optimizeInJoin = true;
+
+        prep = conn.prepareStatement(
+                "select 2 from test a where a=? and b in(" +
+                "select b.c from test b where b.d=?)");
+        prep.setInt(1, 1);
+        prep.setInt(2, 1);
+        rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        conn.close();
+        
+        SysProperties.optimizeInJoin = old;
+    }
+
 
     private void testOptimizeInJoinSelect() throws SQLException {
         boolean old = SysProperties.optimizeInJoin;

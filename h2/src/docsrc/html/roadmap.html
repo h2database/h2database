@@ -379,6 +379,8 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Use http://recaptcha.net somehow to secure the Google Group.
 </li><li>Support DELETE with TOP or LIMIT. See also: http://dev.mysql.com/doc/refman/5.1/de/delete.html
 </li><li>Change the default for NULL || 'x' to return NULL
+</li><li>ANALYZE: Use a bloom filter for each indexed column to estimate count of distinct values.
+</li><li>ANALYZE: For unique indexes that allow null, count the number of null.
 </li></ul>
 
 <h2>Not Planned</h2>

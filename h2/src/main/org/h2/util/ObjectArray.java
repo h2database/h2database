@@ -130,9 +130,18 @@ public class ObjectArray {
     private void ensureCapacity(int i) {
         while (i >= data.length) {
             Object[] d = new Object[Math.max(CAPACITY_INIT, data.length * 2)];
-            System.arraycopy(data, 0, d, 0, data.length);
+            System.arraycopy(data, 0, d, 0, size);
             data = d;
         }
+    }
+    
+    /**
+     * Shrink the array to the required size.
+     */
+    public void trimToSize() {
+        Object[] d = new Object[size];
+        System.arraycopy(data, 0, d, 0, size);
+        data = d;
     }
 
     /**

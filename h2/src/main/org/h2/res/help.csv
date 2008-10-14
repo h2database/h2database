@@ -2493,6 +2493,7 @@ The value is encoded as XML text.
 ","
 CALL XMLNODE('a', XMLATTR('href', 'http://h2database.com'))
 "
+
 "Functions (String)","XMLNODE","
 XMLNODE(elementString [, attributesString [, contentString]]): string
 ","
@@ -2500,6 +2501,7 @@ Create an XML node element.
 ","
 CALL XMLNODE('a', XMLATTR('href', 'http://h2database.com'), 'H2')
 "
+
 "Functions (String)","XMLCOMMENT","
 XMLCOMMENT(commentString): string
 ","
@@ -2507,6 +2509,7 @@ Creates an XML comment. Two dashes (--) are converted to - -.
 ","
 CALL XMLCOMMENT('Test')
 "
+
 "Functions (String)","XMLCDATA","
 XMLCDATA(valueString): string
 ","
@@ -2514,6 +2517,7 @@ Creates an XML CDATA element. If the value contains ']]>', an XML text element i
 ","
 CALL XMLCDATA('data')
 "
+
 "Functions (String)","XMLSTARTDOC","
 XMLSTARTDOC(): string
 ","
@@ -2521,6 +2525,7 @@ The string '<?xml version=""1.0""?>' is returned.
 ","
 CALL XMLSTARTDOC()
 "
+
 "Functions (String)","XMLTEXT","
 XMLTEXT(valueString): string
 ","
@@ -2528,6 +2533,7 @@ Creates an XML text element.
 ","
 CALL XMLTEXT('test')
 "
+
 "Functions (Time and Date)","CURRENT_DATE","
 {CURRENT_DATE[()] | CURDATE() | SYSDATE | TODAY}: date
 ","
@@ -2535,6 +2541,7 @@ Returns the current date.
 ","
 CURRENT_DATE()
 "
+
 "Functions (Time and Date)","CURRENT_TIME","
 {CURRENT_TIME[()] | CURTIME()}: time
 ","
@@ -2542,6 +2549,7 @@ Returns the current time.
 ","
 CURRENT_TIME()
 "
+
 "Functions (Time and Date)","CURRENT_TIMESTAMP","
 {CURRENT_TIMESTAMP[([int])] | NOW([int])}: timestamp
 ","
@@ -2550,24 +2558,25 @@ The precision parameter for nanoseconds precision is optional.
 ","
 CURRENT_TIMESTAMP()
 "
+
 "Functions (Time and Date)","DATEADD","
 DATEADD(unitString, addInt, timestamp): timestamp
 ","
 Adds units to a timestamp. The string indicates the unit. Use negative values to subtract units.
-The following units are supported:
-YY, YEAR, MM, MONTH, DD, DAY, HH, HOUR, MI, MINUTE, SS, SECOND, MS, MILLISECOND.
+The same units as in the EXTRACT function are supported.
 ","
 DATEADD('MONTH', 1, DATE '2001-01-31')
 "
+
 "Functions (Time and Date)","DATEDIFF","
 DATEDIFF(unitString, aTimestamp, bTimestamp): long
 ","
 Returns the difference between two timestamps. The string indicates the unit.
-The following units are supported:
-YY, YEAR, MM, MONTH, DD, DAY, HH, HOUR, MI, MINUTE, SS, SECOND, MS, MILLISECOND.
+The same units as in the EXTRACT function are supported.
 ","
 DATEDIFF('YEAR', T1.CREATED, T2.CREATED)
 "
+
 "Functions (Time and Date)","DAYNAME","
 DAYNAME(date): string
 ","
@@ -2575,37 +2584,42 @@ Returns the name of the day (in English).
 ","
 DAYNAME(CREATED)
 "
-"Functions (Time and Date)","DAYOFMONTH","
-DAYOFMONTH(date): int
+
+"Functions (Time and Date)","DAY_OF_MONTH","
+DAY_OF_MONTH(date): int
 ","
 Returns the day of the month (1-31).
 ","
-DAYOFMONTH(CREATED)
+DAY_OF_MONTH(CREATED)
 "
-"Functions (Time and Date)","DAYOFWEEK","
-DAYOFWEEK(date): int
+
+"Functions (Time and Date)","DAY_OF_WEEK","
+DAY_OF_WEEK(date): int
 ","
 Returns the day of the week (1 means Sunday).
 ","
-DAYOFWEEK(CREATED)
+DAY_OF_WEEK(CREATED)
 "
-"Functions (Time and Date)","DAYOFYEAR","
-DAYOFYEAR(date): int
+
+"Functions (Time and Date)","DAY_OF_YEAR","
+DAY_OF_YEAR(date): int
 ","
 Returns the day of the year (1-366).
 ","
-DAYOFYEAR(CREATED)
+DAY_OF_YEAR(CREATED)
 "
+
 "Functions (Time and Date)","EXTRACT","
 EXTRACT(
-{YY | YEAR | MM | MONTH | DD | DAY | HH | HOUR |
-MI | MINUTE | SS | SECOND | MS | MILLISECOND}
+{YEAR | YY | MONTH | MM | DAY | DD | DAY_OF_YEAR | DOY | 
+HOUR | HH | MINUTE | MI | SECOND | SS | MILLISECOND | MS}
 FROM timestamp): int
 ","
 Returns a specific value from a timestamps.
 ","
 EXTRACT(SECOND FROM CURRENT_TIMESTAMP)
 "
+
 "Functions (Time and Date)","FORMATDATETIME","
 FORMATDATETIME(timestamp, formatString [, localeString [, timeZoneString]]): string
 ","
@@ -2615,6 +2629,7 @@ For details of the format, see java.text.SimpleDateFormat.
 ","
 CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06', 'EEE, d MMM yyyy HH:mm:ss z', 'en', 'GMT')
 "
+
 "Functions (Time and Date)","HOUR","
 HOUR(timestamp): int
 ","
@@ -2629,6 +2644,7 @@ Returns the minute (0-59) from a timestamp.
 ","
 MINUTE(CREATED)
 "
+
 "Functions (Time and Date)","MONTH","
 MONTH(timestamp): int
 ","
@@ -2636,6 +2652,7 @@ Returns the month (1-12) from a timestamp.
 ","
 MONTH(CREATED)
 "
+
 "Functions (Time and Date)","MONTHNAME","
 MONTHNAME(date): string
 ","
@@ -2643,6 +2660,7 @@ Returns the name of the month (in English).
 ","
 MONTHNAME(CREATED)
 "
+
 "Functions (Time and Date)","PARSEDATETIME","
 PARSEDATETIME(string, formatString [, localeString [, timeZoneString]]): string
 ","
@@ -2652,6 +2670,7 @@ For details of the format, see java.text.SimpleDateFormat.
 ","
 CALL PARSEDATETIME('Sat, 3 Feb 2001 03:05:06 GMT', 'EEE, d MMM yyyy HH:mm:ss z', 'en', 'GMT')
 "
+
 "Functions (Time and Date)","QUARTER","
 QUARTER(timestamp): int
 ","
@@ -2659,6 +2678,7 @@ Returns the quarter (1-4) from a timestamp.
 ","
 QUARTER(CREATED)
 "
+
 "Functions (Time and Date)","SECOND","
 SECOND(timestamp): int
 ","
@@ -2666,6 +2686,7 @@ Returns the second (0-59) from a timestamp.
 ","
 SECOND(CREATED)
 "
+
 "Functions (Time and Date)","WEEK","
 WEEK(timestamp): int
 ","
@@ -2674,6 +2695,7 @@ This method uses the current system locale.
 ","
 WEEK(CREATED)
 "
+
 "Functions (Time and Date)","YEAR","
 YEAR(timestamp): int
 ","

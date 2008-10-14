@@ -391,9 +391,10 @@ public class Session implements SessionInterface {
                 ArrayList rows = new ArrayList();
                 synchronized (database) {
                     while (undoLog.size() > 0) {
-                        UndoLogRecord entry = undoLog.getAndRemoveLast();
+                        UndoLogRecord entry = undoLog.getLast();
                         entry.commit();
                         rows.add(entry.getRow());
+                        undoLog.removeLast(false);
                     }
                     for (int i = 0; i < rows.size(); i++) {
                         Row r = (Row) rows.get(i);
@@ -440,7 +441,7 @@ public class Session implements SessionInterface {
         currentTransactionName = null;
         boolean needCommit = false;
         if (undoLog.size() > 0) {
-            rollbackTo(0);
+            rollbackTo(0, false);
             needCommit = true;
         }
         if (locks.size() > 0 || needCommit) {
@@ -459,10 +460,11 @@ public class Session implements SessionInterface {
      * 
      * @param index the position to which should be rolled back
      */    
-    public void rollbackTo(int index) throws SQLException {
+    public void rollbackTo(int index, boolean trimToSize) throws SQLException {
         while (undoLog.size() > index) {
-            UndoLogRecord entry = undoLog.getAndRemoveLast();
+            UndoLogRecord entry = undoLog.getLast();
             entry.undo(this);
+            undoLog.removeLast(trimToSize);
         }
         if (savepoints != null) {
             String[] names = new String[savepoints.size()];
@@ -687,7 +689,7 @@ public class Session implements SessionInterface {
             throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
         int i = id.intValue();
-        rollbackTo(i);
+        rollbackTo(i, false);
     }
 
     /**

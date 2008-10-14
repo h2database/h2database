@@ -2088,4 +2088,16 @@ public class Database implements DataHandler {
         return databaseShortName + ":" + super.toString();
     }
 
+    /**
+     * Immediately close the database.
+     */
+    public void shutdownImmediately() {
+        setPowerOffCount(1);
+        try {
+            checkPowerOff();
+        } catch (SQLException e) {
+            // ignore
+        }
+    }
+
 }

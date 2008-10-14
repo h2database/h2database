@@ -102,6 +102,7 @@ import org.h2.test.unit.TestCache;
 import org.h2.test.unit.TestCompress;
 import org.h2.test.unit.TestDataPage;
 import org.h2.test.unit.TestDate;
+import org.h2.test.unit.TestDateIso8601;
 import org.h2.test.unit.TestExit;
 import org.h2.test.unit.TestFile;
 import org.h2.test.unit.TestFileLock;
@@ -277,14 +278,22 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
- 
+
+java -Xmx3m
+
+create table test(name varchar);
+set max_log_size 1024;
+@LOOP 20000 insert into test values(space(10000));
+delete from test;
+SELECT * FROM TEST where name like 'a';
+
 test with 1.0
 
+document shared connections for linked tables
+document osgi
 document url parameter auto_server
 document url parameter auto_reconnect
 document url parameter open_new
-document shared connections for linked tables
-document osgi
 
 merge join test case
 
@@ -584,6 +593,7 @@ http://www.w3schools.com/sql/
         new TestCompress().runTest(this);
         new TestDataPage().runTest(this);
         new TestDate().runTest(this);
+        new TestDateIso8601().runTest(this);
         new TestExit().runTest(this);
         new TestFile().runTest(this);
         new TestFileLock().runTest(this);

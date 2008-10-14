@@ -55,12 +55,12 @@ I am sorry to say that, but it looks like a corruption problem. I am very intere
   or two phase commit, linked tables, cache settings)?
 - Is the application multi-threaded?
 - On what operating system, file system, and virtual machine (java -version)?
-- How big is the database?
+- How big is the database (file sizes)?
 - Is the database usually closed normally, or is process terminated forcefully 
   or the computer switched off?
 - Is it possible to reproduce this problem using a fresh database 
   (sometimes, or always)?
 - Are there any other exceptions (maybe in the .trace.db file)? 
-  Could you send them to me please?
+  Could you send them please?
 - Do you still have any .trace.db files, and if yes could you send them?
-- Could you send me the .data.db file where this exception occurs?
+- Could you send the .data.db file where this exception occurs?

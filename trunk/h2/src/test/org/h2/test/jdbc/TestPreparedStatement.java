@@ -531,7 +531,7 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT)");
         stat.execute("INSERT INTO TEST VALUES(1),(2),(3)");
         PreparedStatement prep = conn.prepareStatement("select x.id, ? from "
-                + "(select * from test where id in(?, ?)) x " + "where x.id*2 <>  ?");
+                + "(select * from test where id in(?, ?)) x where x.id*2 <>  ?");
         assertEquals(prep.getParameterMetaData().getParameterCount(), 4);
         prep.setInt(1, 0);
         prep.setInt(2, 1);

@@ -23,6 +23,15 @@ import org.h2.test.TestBase;
 public class TestOutOfMemory extends TestBase {
 
     private LinkedList list = new LinkedList();
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }    
 
     public void test() throws SQLException {
         if (config.memory || config.mvcc) {
@@ -42,7 +51,7 @@ public class TestOutOfMemory extends TestBase {
                 prep.execute();
                 fail();
             } catch (SQLException e) {
-                assertEquals(ErrorCode.GENERAL_ERROR_1, e.getErrorCode());
+                assertEquals(ErrorCode.OUT_OF_MEMORY, e.getErrorCode());
             }
             list = null;
             ResultSet rs = stat.executeQuery("select count(*) from stuff");

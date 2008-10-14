@@ -510,23 +510,25 @@ public class TableFilter implements ColumnResolver {
             buff.append(' ');
             buff.append(Parser.quoteIdentifier(alias));
         }
-        buff.append(" /* ");
-        StringBuffer planBuff = new StringBuffer();
-        planBuff.append(index.getPlanSQL());
-        if (indexConditions.size() > 0) {
-            planBuff.append(": ");
-            for (int i = 0; i < indexConditions.size(); i++) {
-                IndexCondition condition = (IndexCondition) indexConditions.get(i);
-                if (i > 0) {
-                    planBuff.append(" AND ");
+        if (index != null) {
+            buff.append(" /* ");
+            StringBuffer planBuff = new StringBuffer();
+            planBuff.append(index.getPlanSQL());
+            if (indexConditions.size() > 0) {
+                planBuff.append(": ");
+                for (int i = 0; i < indexConditions.size(); i++) {
+                    IndexCondition condition = (IndexCondition) indexConditions.get(i);
+                    if (i > 0) {
+                        planBuff.append(" AND ");
+                    }
+                    planBuff.append(condition.getSQL());
                 }
-                planBuff.append(condition.getSQL());
             }
+            String plan = planBuff.toString();
+            plan = StringUtils.quoteRemarkSQL(plan);
+            buff.append(plan);
+            buff.append(" */");
         }
-        String plan = planBuff.toString();
-        plan = StringUtils.quoteRemarkSQL(plan);
-        buff.append(plan);
-        buff.append(" */");
         if (join) {
             buff.append(" ON ");
             if (joinCondition == null) {

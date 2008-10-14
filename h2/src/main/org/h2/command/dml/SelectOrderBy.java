@@ -39,4 +39,24 @@ public class SelectOrderBy {
      * If NULL should be appear at the end.
      */
     public boolean nullsLast;
+    
+    public String getSQL() {
+        StringBuffer buff = new StringBuffer();
+        if (columnIndexExpr != null) {
+            buff.append(columnIndexExpr.getSQL());
+        } else {
+            buff.append("=");
+            buff.append(expression.getSQL());
+        }
+        if (descending) {
+            buff.append(" DESC");
+        }
+        if (nullsFirst) {
+            buff.append(" NULLS FIRST");
+        } else if (nullsLast) {
+            buff.append(" NULLS LAST");
+        }
+        return buff.toString();
+    }
+
 }

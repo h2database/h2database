@@ -41,6 +41,7 @@ import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.util.AutoCloseInputStream;
 import org.h2.util.ByteUtils;
+import org.h2.util.DateTimeIso8601Utils;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.MathUtils;
@@ -84,10 +85,11 @@ public class Function extends Expression implements FunctionCall {
             STRINGENCODE = 79, STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82, XMLATTR = 83, XMLNODE = 84,
             XMLCOMMENT = 85, XMLCDATA = 86, XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90, LPAD = 91;
 
-    public static final int CURDATE = 100, CURTIME = 101, DATEADD = 102, DATEDIFF = 103, DAYNAME = 104,
-            DAYOFMONTH = 105, DAYOFWEEK = 106, DAYOFYEAR = 107, HOUR = 108, MINUTE = 109, MONTH = 110, MONTHNAME = 111,
+    public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102, DATE_DIFF = 103, DAY_NAME = 104,
+            DAY_OF_MONTH = 105, DAY_OF_WEEK = 106, DAY_OF_YEAR = 107, HOUR = 108, MINUTE = 109, MONTH = 110, MONTH_NAME = 111,
             NOW = 112, QUARTER = 113, SECOND = 114, WEEK = 115, YEAR = 116, CURRENT_DATE = 117, CURRENT_TIME = 118,
-            CURRENT_TIMESTAMP = 119, EXTRACT = 120, FORMATDATETIME = 121, PARSEDATETIME = 122;
+            CURRENT_TIMESTAMP = 119, EXTRACT = 120, FORMATDATETIME = 121, PARSEDATETIME = 122,
+            ISO_YEAR = 123, ISO_WEEK = 124, ISO_DAY_OF_WEEK = 125;
 
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152, IDENTITY = 153, AUTOCOMMIT = 154,
             READONLY = 155, DATABASE_PATH = 156, LOCK_TIMEOUT = 157;
@@ -121,8 +123,10 @@ public class Function extends Expression implements FunctionCall {
         DATE_PART.put("YEAR", ObjectUtils.getInteger(Calendar.YEAR));
         DATE_PART.put("MM", ObjectUtils.getInteger(Calendar.MONTH));
         DATE_PART.put("MONTH", ObjectUtils.getInteger(Calendar.MONTH));
-        DATE_PART.put("DD", ObjectUtils.getInteger(Calendar.DATE));
-        DATE_PART.put("DAY", ObjectUtils.getInteger(Calendar.DATE));
+        DATE_PART.put("DD", ObjectUtils.getInteger(Calendar.DAY_OF_MONTH));
+        DATE_PART.put("DAY", ObjectUtils.getInteger(Calendar.DAY_OF_MONTH));
+        DATE_PART.put("DAY_OF_YEAR", ObjectUtils.getInteger(Calendar.DAY_OF_YEAR));
+        DATE_PART.put("DOY", ObjectUtils.getInteger(Calendar.DAY_OF_YEAR));
         DATE_PART.put("HH", ObjectUtils.getInteger(Calendar.HOUR_OF_DAY));
         DATE_PART.put("HOUR", ObjectUtils.getInteger(Calendar.HOUR_OF_DAY));
         DATE_PART.put("MI", ObjectUtils.getInteger(Calendar.MINUTE));
@@ -242,17 +246,21 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotConst("CURTIME", CURTIME, 0, Value.TIME);
         addFunctionNotConst("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
         addFunctionNotConst("NOW", NOW, VAR_ARGS, Value.TIMESTAMP);
-        addFunction("DATEADD", DATEADD, 3, Value.TIMESTAMP);
-        addFunction("DATEDIFF", DATEDIFF, 3, Value.LONG);
-        addFunction("DAYNAME", DAYNAME, 1, Value.STRING);
-        addFunction("DAY", DAYOFMONTH, 1, Value.INT);
-        addFunction("DAYOFMONTH", DAYOFMONTH, 1, Value.INT);
-        addFunction("DAYOFWEEK", DAYOFWEEK, 1, Value.INT);
-        addFunction("DAYOFYEAR", DAYOFYEAR, 1, Value.INT);
+        addFunction("DATEADD", DATE_ADD, 3, Value.TIMESTAMP);
+        addFunction("DATEDIFF", DATE_DIFF, 3, Value.LONG);
+        addFunction("DAYNAME", DAY_NAME, 1, Value.STRING);
+        addFunction("DAYNAME", DAY_NAME, 1, Value.STRING);
+        addFunction("DAY", DAY_OF_MONTH, 1, Value.INT);
+        addFunction("DAY_OF_MONTH", DAY_OF_MONTH, 1, Value.INT);
+        addFunction("DAY_OF_WEEK", DAY_OF_WEEK, 1, Value.INT);
+        addFunction("DAY_OF_YEAR", DAY_OF_YEAR, 1, Value.INT);
+        addFunction("DAYOFMONTH", DAY_OF_MONTH, 1, Value.INT);
+        addFunction("DAYOFWEEK", DAY_OF_WEEK, 1, Value.INT);
+        addFunction("DAYOFYEAR", DAY_OF_YEAR, 1, Value.INT);
         addFunction("HOUR", HOUR, 1, Value.INT);
         addFunction("MINUTE", MINUTE, 1, Value.INT);
         addFunction("MONTH", MONTH, 1, Value.INT);
-        addFunction("MONTHNAME", MONTHNAME, 1, Value.STRING);
+        addFunction("MONTHNAME", MONTH_NAME, 1, Value.STRING);
         addFunction("QUARTER", QUARTER, 1, Value.INT);
         addFunction("SECOND", SECOND, 1, Value.INT);
         addFunction("WEEK", WEEK, 1, Value.INT);
@@ -260,6 +268,9 @@ public class Function extends Expression implements FunctionCall {
         addFunction("EXTRACT", EXTRACT, 2, Value.INT);
         addFunctionWithNull("FORMATDATETIME", FORMATDATETIME, VAR_ARGS, Value.STRING);
         addFunctionWithNull("PARSEDATETIME", PARSEDATETIME, VAR_ARGS, Value.TIMESTAMP);
+        addFunction("ISO_YEAR", ISO_YEAR, 1, Value.INT);
+        addFunction("ISO_WEEK", ISO_WEEK, 1, Value.INT);
+        addFunction("ISO_DAY_OF_WEEK", ISO_DAY_OF_WEEK, 1, Value.INT);
         // system
         addFunctionNotConst("DATABASE", DATABASE, 0, Value.STRING);
         addFunctionNotConst("USER", USER, 0, Value.STRING);
@@ -584,20 +595,20 @@ public class Function extends Expression implements FunctionCall {
         case XMLTEXT:
             result = ValueString.get(StringUtils.xmlText(v0.getString()));
             break;
-        case DAYNAME: {
+        case DAY_NAME: {
             synchronized (FORMAT_DAYNAME) {
                 result = ValueString.get(FORMAT_DAYNAME.format(v0.getDateNoCopy()));
             }
             break;
         }
-        case DAYOFMONTH:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.DAY_OF_MONTH));
+        case DAY_OF_MONTH:
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.DAY_OF_MONTH));
             break;
-        case DAYOFWEEK:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.DAY_OF_WEEK));
+        case DAY_OF_WEEK:
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.DAY_OF_WEEK));
             break;
-        case DAYOFYEAR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.DAY_OF_YEAR));
+        case DAY_OF_YEAR:
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.DAY_OF_YEAR));
             break;
         case HOUR:
             result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.HOUR_OF_DAY));
@@ -606,25 +617,34 @@ public class Function extends Expression implements FunctionCall {
             result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.MINUTE));
             break;
         case MONTH:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.MONTH));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.MONTH));
             break;
-        case MONTHNAME: {
+        case MONTH_NAME: {
             synchronized (FORMAT_MONTHNAME) {
                 result = ValueString.get(FORMAT_MONTHNAME.format(v0.getDateNoCopy()));
             }
             break;
         }
         case QUARTER:
-            result = ValueInt.get((DateTimeUtils.getDatePart(v0.getTimestamp(), Calendar.MONTH) - 1) / 3 + 1);
+            result = ValueInt.get((DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.MONTH) - 1) / 3 + 1);
             break;
         case SECOND:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(), Calendar.SECOND));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.SECOND));
             break;
         case WEEK:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(), Calendar.WEEK_OF_YEAR));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.WEEK_OF_YEAR));
             break;
         case YEAR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(), Calendar.YEAR));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.YEAR));
+            break;
+        case ISO_YEAR:
+            result = ValueInt.get(DateTimeIso8601Utils.getIsoYear(v0.getDateNoCopy()));
+            break;
+        case ISO_WEEK:
+            result = ValueInt.get(DateTimeIso8601Utils.getIsoWeek(v0.getDateNoCopy()));
+            break;
+        case ISO_DAY_OF_WEEK:
+            result = ValueInt.get(DateTimeIso8601Utils.getIsoDayOfWeek(v0.getDateNoCopy()));
             break;
         case CURDATE:
         case CURRENT_DATE:
@@ -965,10 +985,10 @@ public class Function extends Expression implements FunctionCall {
             result = ValueString.get(StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), false));
             break;
             // date
-        case DATEADD:
+        case DATE_ADD:
             result = ValueTimestamp.getNoCopy(dateadd(v0.getString(), v1.getInt(), v2.getTimestampNoCopy()));
             break;
-        case DATEDIFF:
+        case DATE_DIFF:
             result = ValueLong.get(datediff(v0.getString(), v1.getTimestampNoCopy(), v2.getTimestampNoCopy()));
             break;
         case EXTRACT: {
@@ -1733,8 +1753,8 @@ public class Function extends Expression implements FunctionCall {
             precision = 4;
             displaySize = (int) precision;
             break;
-        case DAYNAME:
-        case MONTHNAME:
+        case DAY_NAME:
+        case MONTH_NAME:
             // day and month names may be long in some languages
             precision = 20;
             displaySize = (int) precision;

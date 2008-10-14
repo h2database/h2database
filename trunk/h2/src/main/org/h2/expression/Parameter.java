@@ -162,4 +162,8 @@ public class Parameter extends Expression implements ParameterInterface {
         this.column = column;
     }
 
+    public int getIndex() {
+        return index;
+    }
+
 }

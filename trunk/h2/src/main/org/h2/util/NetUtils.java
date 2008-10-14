@@ -9,6 +9,7 @@ package org.h2.util;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -86,7 +87,10 @@ public class NetUtils {
         if (ssl) {
             return SecureSocketFactory.createSocket(address, port);
         }
-        return new Socket(address, port);
+        Socket socket = new Socket();
+        socket.connect(new InetSocketAddress(address, port), 
+                SysProperties.SOCKET_CONNECT_TIMEOUT);
+        return socket;
     }
 
     /**

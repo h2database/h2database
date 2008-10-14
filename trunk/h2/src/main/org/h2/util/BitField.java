@@ -104,6 +104,34 @@ public class BitField {
         }
         return (data[addr] & getBitMask(i)) != 0;
     }
+    
+    /**
+     * Get the next 8 bits at the given index.
+     * The index must be a multiple of 8.
+     * 
+     * @param i the index
+     * @return the next 8 bits
+     */
+    public int getByte(int i) {
+        int addr = getAddress(i);
+        if (addr >= data.length) {
+            return 0;
+        }
+        return (int) (data[addr] >>> (i & (7 << 3)) & 255);
+    }
+    
+    /**
+     * Combine the next 8 bits at the given index with OR.
+     * The index must be a multiple of 8.
+     * 
+     * @param i the index
+     * @param x the next 8 bits (0 - 255)
+     */
+    public void setByte(int i, int x) {
+        int addr = getAddress(i);
+        checkCapacity(addr);
+        data[addr] |= ((long) x) << (i & (7 << 3));
+    }
 
     /**
      * Set bit at the given index to 'true'.
@@ -138,6 +166,12 @@ public class BitField {
     }
 
     private void checkCapacity(int size) {
+        if (size >= data.length) {
+            expandCapacity(size);
+        }
+    }
+    
+    private void expandCapacity(int size) {
         while (size >= data.length) {
             int newSize = data.length == 0 ? 1 : data.length * 2;
             long[] d = new long[newSize];

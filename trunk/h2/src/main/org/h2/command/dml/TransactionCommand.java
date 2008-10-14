@@ -149,12 +149,7 @@ public class TransactionCommand extends Prepared {
             break;
         case SHUTDOWN_IMMEDIATELY:
             session.getUser().checkAdmin();
-            session.getDatabase().setPowerOffCount(1);
-            try {
-                session.getDatabase().checkPowerOff();
-            } catch (SQLException e) {
-                // ignore
-            }
+            session.getDatabase().shutdownImmediately();
             break;
         case SHUTDOWN: {
             session.getUser().checkAdmin();

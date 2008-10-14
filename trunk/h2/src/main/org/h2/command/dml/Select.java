@@ -853,9 +853,9 @@ public class Select extends Query {
     }
 
     public String getPlanSQL() {
-        if (topTableFilter == null) {
-            return sqlStatement;
-        }
+        // can not use the field sqlStatement because the parameter
+        // indexes may be incorrect: ? may be in fact ?2 for a subquery
+        // but indexes may be set manually as well
         StringBuffer buff = new StringBuffer();
         Expression[] exprList = new Expression[expressions.size()];
         expressions.toArray(exprList);
@@ -872,17 +872,25 @@ public class Select extends Query {
         }
         buff.append("\nFROM ");
         TableFilter filter = topTableFilter;
-        boolean join = false;
-        int id = 0;
-        do {
-            if (id > 0) {
-                buff.append("\n");
+        if (filter != null) {
+            int i = 0;
+            do {
+                if (i > 0) {
+                    buff.append("\n");
+                }
+                buff.append(filter.getPlanSQL(i > 0));
+                i++;
+                filter = filter.getJoin();
+            } while (filter != null);
+        } else {
+            for (int i = 0; i < filters.size(); i++) {
+                if (i > 0) {
+                    buff.append("\n");
+                }
+                filter = (TableFilter) filters.get(i);
+                buff.append(filter.getPlanSQL(i > 0));
             }
-            buff.append(filter.getPlanSQL(join));
-            id++;
-            join = true;
-            filter = filter.getJoin();
-        } while (filter != null);
+        }
         if (condition != null) {
             buff.append("\nWHERE " + StringUtils.unEnclose(condition.getSQL()));
         }
@@ -891,6 +899,16 @@ public class Select extends Query {
             for (int i = 0; i < groupIndex.length; i++) {
                 Expression g = exprList[groupIndex[i]];
                 g = g.getNonAliasExpression();
+                if (i > 0) {
+                    buff.append(", ");
+                }
+                buff.append(StringUtils.unEnclose(g.getSQL()));
+            }
+        }
+        if (group != null) {
+            buff.append("\nGROUP BY ");
+            for (int i = 0; i < group.size(); i++) {
+                Expression g = (Expression) group.get(i);
                 if (i > 0) {
                     buff.append(", ");
                 }
@@ -910,6 +928,16 @@ public class Select extends Query {
         if (sort != null) {
             buff.append("\nORDER BY ");
             buff.append(sort.getSQL(exprList, visibleColumnCount));
+        }
+        if (orderList != null) {
+            buff.append("\nORDER BY ");
+            for (int i = 0; i < orderList.size(); i++) {
+                if (i > 0) {
+                    buff.append(", ");
+                }
+                SelectOrderBy o = (SelectOrderBy) orderList.get(i);
+                buff.append(StringUtils.unEnclose(o.getSQL()));
+            }            
         }
         if (limit != null) {
             buff.append("\nLIMIT ");

@@ -306,21 +306,18 @@ public class DiskFile implements CacheWriter {
                     return;
                 }
                 stage++;
-                for (int i = 0, x = 0; i < b2 / 8; i++) {
-                    int mask = in.read();
-                    if (init) {
-                        for (int j = 0; j < 8; j++, x++) {
-                            if (used.get(x) != ((mask & (1 << j)) != 0)) {
-                                throw Message.getInternalError("Redo failure, block: " + x + " expected in-use bit: " + used.get(x));
-                            }
+                if (init) {
+                    for (int x = 0; x < b2; x += 8) {
+                        int mask = in.read();
+                        if (mask != used.getByte(x)) {
+                            throw Message.getInternalError("Redo failure, block: " + x + " expected: " + used.getByte(x) + " got: " + mask);
                         }
-                    } else {
-                        for (int j = 0; j < 8; j++, x++) {
-                            if ((mask & (1 << j)) != 0) {
-                                used.set(x);
-                            }
-                        }
-                    }
+                    }                    
+                } else {
+                    for (int x = 0; x < b2; x += 8) {
+                        int mask = in.read();
+                        used.setByte(x, mask);
+                    }                    
                 }
                 stage++;
                 int len = in.readInt();

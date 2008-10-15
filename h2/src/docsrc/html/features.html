@@ -29,6 +29,8 @@ Features
     Connection Modes</a><br />
 <a href="#database_url">
     Database URL Overview</a><br />
+<a href="#embedded_databases">
+    Connecting to an Embedded (Local) Database</a><br />
 <a href="#memory_only_databases">
     Memory-Only Databases</a><br />
 <a href="#file_encryption">
@@ -39,6 +41,10 @@ Features
     Opening a Database Only if it Already Exists</a><br />
 <a href="#closing_the_database">
     Closing the Database</a><br />
+<a href="#ignore_unknown_settings">
+    Ignore Unknown Settings</a><br />
+<a href="#other_settings">
+    Changing Other Settings when Opening a Connection</a><br />
 <a href="#log_index_changes">
     Log Index Changes</a><br />
 <a href="#custom_access_mode">
@@ -51,6 +57,10 @@ Features
     Logging and Recovery</a><br />
 <a href="#compatibility">
     Compatibility</a><br />
+<a href="#auto_reconnect">
+    Auto-Reconnect</a><br />
+<a href="#auto_mixed_mode">
+    Automatic Mixed Mode</a><br />
 <a href="#trace_options">
     Using the Trace Options</a><br />
 <a href="#other_logging">
@@ -364,7 +374,7 @@ http://groups.google.com/group/h2-database/web/roadmap
 <h3>Derby and HSQLDB</h3>
 <p>
 After an unexpected process termination (for example power failure), H2 can recover safely and
-automatically without any user interaction. For Derby and HSQLDB, there are some manual steps required
+automatically without any user interaction. For Derby and HSQLDB, some manual steps are required
 ('Another instance of Derby may have already booted the database' /
 'The database is already in use by another process').
 </p>
@@ -444,7 +454,7 @@ This is achieved using different database URLs. Settings in the URLs are not cas
 </p>
 <table><tr><th>Topic</th><th>URL Format and Examples</th></tr>
 <tr>
-  <td>Embedded (local) connection</td>
+  <td><a href="#embedded_databases">Embedded (local) connection</a></td>
   <td>
     jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;<br />
       jdbc:h2:~/test<br />
@@ -453,18 +463,18 @@ This is achieved using different database URLs. Settings in the URLs are not cas
   </td>
 </tr>
 <tr>
-  <td>In-Memory (private)</td>
+  <td><a href="#memory_only_databases">In-Memory (private)</a></td>
   <td>jdbc:h2:mem:</td>
 </tr>
 <tr>
-  <td>In-Memory (named)</td>
+  <td><a href="#memory_only_databases">In-Memory (named)</a></td>
   <td>
     jdbc:h2:mem:&lt;databaseName&gt;<br />
     jdbc:h2:mem:test_mem
   </td>
 </tr>
 <tr>
-  <td>Remote using TCP/IP</td>
+  <td><a href="tutorial.html#using_server">Remote using TCP/IP</a></td>
   <td>
     jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;<br />
     jdbc:h2:tcp://localhost/~/test<br />
@@ -472,14 +482,14 @@ This is achieved using different database URLs. Settings in the URLs are not cas
   </td>
 </tr>
 <tr>
-  <td>Remote using SSL/TLS</td>
+  <td><a href="advanced.html#ssl_tls_connections">Remote using SSL/TLS</a></td>
   <td>
     jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;<br />
     jdbc:h2:ssl://secureserv:8085/~/sample;
   </td>
 </tr>
 <tr>
-  <td>Using Encrypted Files</td>
+  <td><a href="#file_encryption">Using Encrypted Files</a></td>
   <td>
     jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]<br />
     jdbc:h2:ssl://secureserv/~/testdb;CIPHER=AES<br />
@@ -487,7 +497,7 @@ This is achieved using different database URLs. Settings in the URLs are not cas
   </td>
 </tr>
 <tr>
-  <td>File Locking Methods</td>
+  <td><a href="#database_file_locking">File Locking Methods</a></td>
   <td>
     jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}<br />
     jdbc:h2:file:~/quickAndDirty;FILE_LOCK=NO<br />
@@ -495,64 +505,81 @@ This is achieved using different database URLs. Settings in the URLs are not cas
   </td>
 </tr>
 <tr>
-  <td>Only Open if it Already Exists</td>
+  <td><a href="#database_only_if_exists">Only Open if it Already Exists</a></td>
   <td>
     jdbc:h2:&lt;url&gt;;IFEXISTS=TRUE<br />
     jdbc:h2:file:~/sample;IFEXISTS=TRUE<br />
   </td>
 </tr>
 <tr>
-    <td>Don't Close the Database when the VM Exits</td>
+    <td><a href="#do_not_close_on_exit">Don't Close the Database when the VM Exits</a></td>
     <td>
     jdbc:h2:&lt;url&gt;;DB_CLOSE_ON_EXIT=FALSE
     </td>
 </tr>
 <tr>
-  <td>User Name and/or Password</td>
+  <td><a href="#passwords">User Name and/or Password</a></td>
   <td>
     jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]<br />
     jdbc:h2:file:~/sample;USER=sa;PASSWORD=123<br />
   </td>
 </tr>
 <tr>
-  <td>Log Index Changes</td>
+  <td><a href="#log_index_changes">Log Index Changes</a></td>
   <td>
     jdbc:h2:&lt;url&gt;;LOG=2<br />
     jdbc:h2:file:~/sample;LOG=2<br />
   </td>
 </tr>
 <tr>
-  <td>Debug Trace Settings</td>
+  <td><a href="#trace_options">Debug Trace Settings</a></td>
   <td>
     jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;<br />
     jdbc:h2:file:~/sample;TRACE_LEVEL_FILE=3<br />
   </td>
 </tr>
 <tr>
-  <td>Ignore Unknown Settings</td>
+  <td><a href="#ignore_unknown_settings">Ignore Unknown Settings</a></td>
   <td>
     jdbc:h2:&lt;url&gt;;IGNORE_UNKNOWN_SETTINGS=TRUE<br />
   </td>
 </tr>
 <tr>
-  <td>Custom File Access Mode</td>
+  <td><a href="#custom_access_mode">Custom File Access Mode</a></td>
   <td>
     jdbc:h2:&lt;url&gt;;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws<br />
   </td>
 </tr>
 <tr>
-  <td>In-Memory (private)</td>
-  <td>jdbc:h2:mem:</td>
-</tr>
-<tr>
-  <td>Database in or Zip File</td>
+  <td><a href="#database_in_zip">Database in or Zip File</a></td>
   <td>
     jdbc:h2:zip:&lt;zipFileName&gt;!/&lt;databaseName&gt;<br />
     jdbc:h2:zip:~/db.zip!/test
   </td>
 </tr>
 <tr>
-  <td>Changing Other Settings</td>
+  <td><a href="#compatibility">Compatibility Mode</a></td>
+  <td>
+    jdbc:h2:&lt;url&gt;;MODE=&lt;databaseType&gt;<br />
+    jdbc:h2:~/test;MODE=MYSQL
+  </td>
+</tr>
+<tr>
+  <td><a href="#auto_reconnect">Auto-Reconnect</a></td>
+  <td>
+    jdbc:h2:&lt;url&gt;;AUTO_RECONNECT=TRUE<br />
+    jdbc:h2:tcp://localhost/~/test;AUTO_RECONNECT=TRUE
+  </td>
+</tr>
+<tr>
+  <td><a href="#auto_mixed_mode">Automatic Mixed Mode</td>
+  <td>
+    jdbc:h2:&lt;url&gt;;AUTO_SERVER=TRUE<br />
+    jdbc:h2:~/test;AUTO_SERVER=TRUE
+  </td>
+</tr>
+<tr>
+  <td><a href="#other_settings">Changing Other Settings</a></td>
   <td>
     jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]<br />
     jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3<br />
@@ -560,7 +587,8 @@ This is achieved using different database URLs. Settings in the URLs are not cas
 </tr>
 </table>
 
-<h3>Connecting to an Embedded (Local) Database</h3>
+<br /><a name="embedded_databases"></a>
+<h2>Connecting to an Embedded (Local) Database</h2>
 <p>
 The database URL for connecting to a local database is <code>jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;</code>.
 The prefix <code>file:</code> is optional. If no or only a relative path is used, then the current working
@@ -693,6 +721,7 @@ This setting is persistent and can be set by an administrator only.
 It is possible to set the value in the database URL: <code>jdbc:h2:~/test;DB_CLOSE_DELAY=10</code>.
 </p>
 
+<br /><a name="do_not_close_on_exit"></a>
 <h3>Don't Close the Database when the VM Exits</h3>
 <p>
 By default, a database is closed when the last connection is closed. However, if it is never closed,
@@ -724,7 +753,8 @@ This setting should be specified when connecting.
 The update performance of the database will be reduced when using this option.
 </p>
 
-<h3>Ignore Unknown Settings</h3>
+<br /><a name="ignore_unknown_settings"></a>
+<h2>Ignore Unknown Settings</h2>
 <p>
 Some applications (for example OpenOffice.org Base) pass some additional parameters
 when connecting to the database. Why those parameters are passed is unknown.
@@ -735,7 +765,8 @@ saying the parameter is not supported. It is possible to ignored such parameters
 ;IGNORE_UNKNOWN_SETTINGS=TRUE to the database URL.
 </p>
 
-<h3>Changing Other Settings when Opening a Connection</h3>
+<br /><a name="other_settings"></a>
+<h2>Changing Other Settings when Opening a Connection</h2>
 <p>
 In addition to the settings already described (cipher, file_lock, ifexists, user, password),
 other database settings can be passed in the database URL.
@@ -1090,6 +1121,40 @@ or the SQL statement <code>SET MODE Oracle</code>.
         and getTableName() returns null.
 </li></ul>
 
+<br /><a name="auto_reconnect"></a>
+<h2>Auto-Reconnect</h2>
+<p>
+The auto-reconnect feature causes the JDBC driver to reconnect to 
+the database if the connection is lost. The automatic re-connect only 
+occurs when auto-commit is enabled; if auto-commit is disabled, an exception is thrown.
+</p>
+<p>
+Re-connecting will open a new session. After an automatic re-connect, 
+variables and local temporary tables definitions (excluding data) are re-created. 
+The contents of the system table INFORMATION_SCHEMA.SESSION_STATE 
+contains all client side state that is re-created.
+</p>
+
+<br /><a name="auto_mixed_mode"></a>
+<h2>Automatic Mixed Mode</h2>
+<p>
+Multiple processes can access the same database without having to explicitly
+start the server. To do that, append <code>;AUTO_SERVER=TRUE</code> to the database URL. 
+In this case, the first connection to the database is made in embedded mode, and additionally a server is started.
+If the database is already open in another process, the server mode is used. 
+</p>
+<p>
+When using this feature, auto-reconnect is enabled as well.
+</p>
+<p>
+The application that opens the first connection to the database uses the embedded mode,
+which is faster than the server mode. Therefore the main application should open
+the database first if possible. A server is started on a random port. 
+This server allows remote connections, however only to this database.
+In addition to the user name and password, the client sends the random key that is 
+stored in .lock.db file to the server.
+</p>
+    
 <br /><a name="trace_options"></a>
 <h2>Using the Trace Options</h2>
 <p>

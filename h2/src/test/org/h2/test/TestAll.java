@@ -278,14 +278,11 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
- 
-test with 1.0
 
-document shared connections for linked tables
-document osgi
 document url parameter auto_server
 document url parameter auto_reconnect
 document url parameter open_new
+osgi: create a sample application, test, document
 
 merge join test case
 
@@ -309,12 +306,6 @@ not implemented / not tested
 - keep temporary tables (including data) on client
 - keep identity, getGeneratedKeys on client
 - throw error when in cluster mode
-
-Feature requests:
-SCOPE_IDENTITY
-
-Add version number. Install directory: h2-1.1, jar file: h2-1.1.100.jar. 
-Micro version: use build number, staring with 1.1.100
 
 TestMVCC:
 Concurrent update in table test: another transaction has updated or 

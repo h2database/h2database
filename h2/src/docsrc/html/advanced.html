@@ -54,6 +54,8 @@ Advanced Topics
     Restricting Class Loading and Usage</a><br />
 <a href="#security_protocols">
     Security Protocols</a><br />
+<a href="#ssl_tls_connections">
+    SSL/TLS Connections</a><br />
 <a href="#uuid">
     Universally Unique Identifiers (UUID)</a><br />
 <a href="#system_properties">
@@ -126,14 +128,9 @@ NULL and values that are not set in the insert statement are both inserted as NU
 This may not have the desired effect if a default value in the target table is other than NULL.
 </p>
 <p>
-For each linked table a new connection is opened. This can be a problem for some databases when using
-many linked tables. For Oracle XE, the maximum number of connection can be increased.
-Oracle XE needs to be restarted after changing these values:
+If multiple linked tables point to the same database (using the same database URL), the connection 
+is shared. To disable this, set the system property h2.shareLinkedConnections to false.
 </p>
-<pre>
-alter system set processes=100 scope=spfile;
-alter system set sessions=100 scope=spfile;
-</pre>
 <p>
 The CREATE LINKED TABLE statement supports an optional schema name parameter.
 See the grammar for details.
@@ -990,7 +987,15 @@ so that an attacker needs to wait for the whole delay. Delays are synchronized. 
 to protect against parallel attacks.
 </p>
 
-<h3>SSL/TLS Connections</h3>
+<h3>HTTPS Connections</h3>
+<p>
+The web server supports HTTP and HTTPS connections using SSLServerSocket.
+There is a default self-certified certificate to support an easy starting point, but
+custom certificates are supported as well.
+</p>
+
+<br /><a name="ssl_tls_connections"></a>
+<h2>SSL/TLS Connections</h2>
 <p>
 Remote SSL/TLS connections are supported using the Java Secure Socket Extension
 (SSLServerSocket / SSLSocket). By default, anonymous SSL is enabled.
@@ -1005,13 +1010,6 @@ for more information.
 </p>
 <p>
 To disable anonymous SSL, set the system property <code>h2.enableAnonymousSSL</code> to false.
-</p>
-
-<h3>HTTPS Connections</h3>
-<p>
-The web server supports HTTP and HTTPS connections using SSLServerSocket.
-There is a default self-certified certificate to support an easy starting point, but
-custom certificates are supported as well.
 </p>
 
 <br /><a name="uuid"></a>

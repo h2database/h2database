@@ -29,8 +29,9 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
 </li><li>Test with Spatial DB in a box / JTS (http://docs.codehaus.org/display/GEOS/SpatialDBBox)
 </li><li>Optimization: result set caching (like MySQL)
-</li><li>Server side cursors
+</li><li>Support large updates (use the transaction log to undo).
 </li><li>Shutdown compact
+</li><li>Server side cursors
 </li></ul>
 
 <h2>Priority 2</h2>
@@ -44,7 +45,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Optimize .. OR .. to UNION if the cost is lower
 </li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
 </li><li>Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
-</li><li>Support large updates (use the transaction log to undo).
 </li><li>Full outer joins
 </li><li>Support trigger on the tables information_schema.tables and ...columns
 </li><li>Test very large databases and LOBs (up to 256 GB)
@@ -98,7 +98,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files
 </li><li>Don't write stack traces for common exceptions like duplicate key to the log by default
 </li><li>GCJ: what is the state now?
-</li><li>Use Janino to convert Java to C++
 </li><li>Reduce disk space usage
 </li><li>Events for: Database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
 </li><li>Optimization: Log compression
@@ -111,6 +110,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>EXE file: maybe use http://jsmooth.sourceforge.net
 </li><li>Performance: Automatically build in-memory indexes if the whole table is in memory
 </li><li>H2 Console: The webclient could support more features like phpMyAdmin.
+</li><li>Use Janino to convert Java to C++
 </li><li>The HELP information schema can be directly exposed in the Console
 </li><li>Maybe use the 0x1234 notation for binary fields, see MS SQL Server
 </li><li>Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html, http://philip.greenspun.com/sql/trees.html
@@ -349,7 +349,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Enable warning for 'Local variable declaration hides another field or variable'.
 </li><li>Linked tables: make hidden columns available (Oracle: rowid and ora_rowscn columns).
 </li><li>Support merge join.
-</li><li>H2 Console: in-place autocomplete (need to merge query and result frame, use div). 
+</li><li>H2 Console: in-place autocomplete. 
 </li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.id = t2.id where t1.id = t2.id;
 </li><li>Oracle: support DECODE method (convert to CASE WHEN).
 </li><li>Support large databases: split LOB (BLOB, CLOB) to multiple directories / disks (similar to tablespaces).
@@ -358,6 +358,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>H2 Console: support configuration option for fixed width (monospace) font.
 </li><li>Native fulltext search: support analyzers (specially for Chinese, Japanese).
 </li><li>Automatically compact databases from time to time (as a background process).
+</li><li>Support SCOPE_IDENTITY().
 </li><li>Support GRANT SELECT, UPDATE ON *.
 </li><li>Test Eclipse DTP.
 </li><li>Support JMX: Create an MBean for each database and server (support JConsole).

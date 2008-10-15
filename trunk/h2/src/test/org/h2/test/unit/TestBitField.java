@@ -27,11 +27,42 @@ public class TestBitField extends TestBase {
     }
 
     public void test() {
+        testNextClearBit();
+        testNextSetBit();
         testByteOperations();
         testRandom();
         testGetSet();
     }
     
+    private void testNextSetBit() {
+        Random random = new Random(1);
+        BitField field = new BitField();
+        for (int i = 0; i < 100000; i++) {
+            int a = random.nextInt(120);
+            int b = a + 1 + random.nextInt(200);
+            field.set(a);
+            field.set(b);
+            assertEquals(b, field.nextSetBit(a + 1));
+            field.clear(a);
+            field.clear(b);
+        }
+    }
+
+    private void testNextClearBit() {
+        Random random = new Random(1);
+        BitField field = new BitField();
+        field.setRange(0, 500, true);
+        for (int i = 0; i < 100000; i++) {
+            int a = random.nextInt(120);
+            int b = a + 1 + random.nextInt(200);
+            field.clear(a);
+            field.clear(b);
+            assertEquals(b, field.nextClearBit(a + 1));
+            field.set(a);
+            field.set(b);
+        }
+    }
+
     private void testByteOperations() {
         BitField used = new BitField();
         testSetFast(used, false);
@@ -48,7 +79,9 @@ public class TestBitField extends TestBase {
                 x += 8;
                 // for (int j = 0; j < 8; j++, x++) {
                 //    if (used.get(x) != ((mask & (1 << j)) != 0)) {
-                //        throw Message.getInternalError("Redo failure, block: " + x + " expected in-use bit: " + used.get(x));
+                //        throw Message.getInternalError(
+                //          "Redo failure, block: " + x + 
+                //          " expected in-use bit: " + used.get(x));
                 //    }
                 // }
             } else {

@@ -46,11 +46,12 @@ public class BitField {
             if (data[i] == 0) {
                 continue;
             }
-            for (int j = Math.max(fromIndex, i << ADDRESS_BITS); j < maxAddress; j++) {
+            int j = Math.max(fromIndex, i << ADDRESS_BITS);
+            for (int end = Math.min(maxAddress, j + 64); j < end; j++) {
                 if (get(j)) {
                     return j;
                 }
-            }
+            }            
         }
         return -1;
     }
@@ -68,7 +69,8 @@ public class BitField {
             if (data[i] == -1) {
                 continue;
             }
-            for (int j = Math.max(fromIndex, i << ADDRESS_BITS);; j++) {
+            int j = Math.max(fromIndex, i << ADDRESS_BITS);
+            for (int end = j + 64; j < end; j++) {
                 if (!get(j)) {
                     return j;
                 }

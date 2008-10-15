@@ -25,7 +25,7 @@ public class ThreadDumpFilter {
                 do {
                     System.out.println(s);
                     s = in.readLine();
-                } while(s != null && (s.length() == 0 || "\t\"".indexOf(s.charAt(0)) >= 0));
+                } while(s != null && (s.length() == 0 || " \t\"".indexOf(s.charAt(0)) >= 0));
             }
         }
     }

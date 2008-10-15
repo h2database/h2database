@@ -414,11 +414,17 @@ Usually, for update statements, the old rows are deleted first
 and then the new rows inserted. It is possible to emit update
 statements (however this is not possible on rollback), however
 in this case multi-row unique key updates may not always work.
+Linked tables to the same database share one connection.
 If a query is used instead of the original table name, the table is read only.
+To use JNDI to get the connection, the driver class must be a 
+javax.naming.Context (for example javax.naming.InitialContext), and the 
+URL must be the resource name (for example java:comp/env/jdbc/Test). 
 The current user owner must have admin rights.
 ","
 CREATE LINKED TABLE LINK('org.h2.Driver', 'jdbc:h2:test2', 'sa', 'sa', 'TEST');
 CREATE LINKED TABLE LINK('', 'jdbc:h2:test2', 'sa', 'sa', '(SELECT * FROM TEST WHERE ID>0)');
+CREATE LINKED TABLE LINK('javax.naming.InitialContext', 
+  'java:comp/env/jdbc/Test', NULL, NULL, '(SELECT * FROM TEST WHERE ID>0)');
 "
 
 "Commands (DDL)","CREATE ROLE","

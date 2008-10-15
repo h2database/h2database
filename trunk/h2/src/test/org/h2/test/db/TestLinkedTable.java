@@ -33,6 +33,7 @@ public class TestLinkedTable extends TestBase {
 
     public void test() throws SQLException {
         // testLinkAutoAdd();
+        testSharedConnection();
         testMultipleSchemas();
         testReadOnlyLinkedTable();
         testLinkOtherSchema();
@@ -62,6 +63,24 @@ public class TestLinkedTable extends TestBase {
 //        ca.close();
 //        cb.close();
 //    }
+    
+    private void testSharedConnection() throws SQLException {
+        org.h2.Driver.load();
+        deleteDb("linkedTable");
+        String url = getURL("linkedTable", true);
+        String user = getUser();
+        String password = getPassword();
+        Connection ca = getConnection(url, user, password);
+        Statement sa = ca.createStatement();
+        sa.execute("CREATE TABLE TEST(ID INT)");
+        ca.close();
+        Connection cb = DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
+        Statement sb = cb.createStatement();
+        sb.execute("CREATE LINKED TABLE T1(NULL, '" + url + ";OPEN_NEW=TRUE', '"+user+"', '"+password+"', 'TEST')");
+        sb.execute("CREATE LINKED TABLE T2(NULL, '" + url + ";OPEN_NEW=TRUE', '"+user+"', '"+password+"', 'TEST')");
+        sb.execute("DROP ALL OBJECTS");
+        cb.close();
+    }
     
     private void testMultipleSchemas() throws SQLException {
         org.h2.Driver.load();

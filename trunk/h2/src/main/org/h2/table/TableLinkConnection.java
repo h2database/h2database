@@ -62,7 +62,7 @@ public class TableLinkConnection {
      */
     public static TableLinkConnection open(HashMap map, String driver, String url, String user, String password) throws SQLException {
         TableLinkConnection t = new TableLinkConnection(map, driver, url, user, password);
-        if (SysProperties.SHARE_LINKED_CONNECTIONS) {
+        if (!SysProperties.SHARE_LINKED_CONNECTIONS) {
             t.open();
             return t;
         }

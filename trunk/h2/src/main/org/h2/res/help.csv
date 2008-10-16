@@ -250,7 +250,7 @@ ALTER TABLE TEST DROP COLUMN NAME
 "
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","
 ALTER TABLE tableName DROP
-{CONSTRAINT constraintName | PRIMARY KEY}
+{CONSTRAINT [IF EXISTS] constraintName | PRIMARY KEY}
 ","
 Removes a constraint or a primary key from a table.
 ","
@@ -1238,7 +1238,7 @@ FROM TEST
 
 "Other Grammar","Constraint","
 PRIMARY KEY [HASH] (columnName [,...])
-| [CONSTRAINT newConstraintName] {
+| [CONSTRAINT [IF NOT EXISTS] newConstraintName] {
 CHECK expression
 | UNIQUE (columnName [,...])
 | referentialConstraint}
@@ -1248,6 +1248,7 @@ The check condition must evaluate to true or to NULL (to prevent NULL, use NOT N
 ","
 PRIMARY KEY(ID, NAME)
 "
+
 "Other Grammar","Referential Constraint","
 FOREIGN KEY (columnName [,...])
 REFERENCES [refTableName] [(refColumnName[,...])]
@@ -1263,6 +1264,7 @@ The required indexes are automatically created if required.
 ","
 FOREIGN KEY(ID) REFERENCES TEST(ID)
 "
+
 "Other Grammar","Table Expression","
 {[schemaName.] tableName | (select)} [[AS] newTableAlias]
 [{{LEFT | RIGHT} [OUTER] | [INNER] | CROSS | NATURAL}

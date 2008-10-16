@@ -279,8 +279,27 @@ java org.h2.test.TestAll timer
 
 /*
 
-document url parameter auto_server
-document url parameter auto_reconnect
+test ant build
+
+test documentation (japanese, pdf download, frames, sourceError)
+
+AUTO_SERVER=TRUE improve performance for the second connection.
+
+SET LOG 2:
+Database.logIndexChanges stays; should be updated? need test case
+        
+fix html (use xhtml?)
+        
+'if not exists" / 'if exists" clauses to the 
+"alter table create/drop constraint"
+test case:
+create table test(id int not null);
+alter table test add constraint if not exists pk primary key(id);
+alter table test add constraint if not exists pk primary key(id);
+alter table test drop constraint if exists pk;
+alter table test drop constraint if exists pk;
+drop table test;
+
 document url parameter open_new
 osgi: create a sample application, test, document
 

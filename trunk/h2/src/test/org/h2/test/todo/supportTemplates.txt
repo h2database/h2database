@@ -40,9 +40,6 @@ I am sorry to say that, but it looks like a corruption problem. I am very intere
 - You can find out if the database is corrupted when running 
   SCRIPT TO 'test.sql'
 - What version H2 are you using?
-- With which version of H2 was this database created? 
-  You can find it out using: 
-  select * from information_schema.settings where name='CREATE_BUILD'
 - Did you use multiple connections?
 - The first workarounds is: append ;RECOVER=1 to the database URL. 
   Does it work when you do this?
@@ -51,10 +48,14 @@ I am sorry to say that, but it looks like a corruption problem. I am very intere
 - The third workarounds is: use the tool org.h2.tools.Recover to create 
   the SQL script file, and then re-create the database using this script. 
   Does it work when you do this?
+- With which version of H2 was this database created? 
+  You can find it out using: 
+  select * from information_schema.settings where name='CREATE_BUILD'
 - Do you use any settings or special features (for example, the setting LOG=0, 
   or two phase commit, linked tables, cache settings)?
 - Is the application multi-threaded?
-- On what operating system, file system, and virtual machine (java -version)?
+- What operating system, file system, and virtual machine 
+  (java -version) do you use?
 - How big is the database (file sizes)?
 - Is the database usually closed normally, or is process terminated forcefully 
   or the computer switched off?

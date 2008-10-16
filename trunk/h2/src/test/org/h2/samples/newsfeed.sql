@@ -22,7 +22,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 <ul><li>In version H2 1.1, some features are now enabled by default.
 </li><li>New auto-reconnect feature. 
     To enable, append ;AUTO_RECONNECT=TRUE to the database URL. 
-<ul><li>The H2 Console tool now works with the JDBC-ODBC bridge.
+</li><li>The H2 Console tool now works with the JDBC-ODBC bridge.
 </li><li>The H2 Console tool now supports command line options.
 </li><li>The h2console.war can now be built using the Java build.
 </li><li>If you want that each connection opens its own database, append 

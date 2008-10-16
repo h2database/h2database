@@ -220,7 +220,13 @@ public class Database implements DataHandler {
             }
         } catch (Exception e) {
             if (traceSystem != null) {
-                traceSystem.getTrace(Trace.DATABASE).error("opening " + databaseName, e);
+                if (e instanceof SQLException) {
+                    SQLException e2 = (SQLException) e;
+                    if (e2.getErrorCode() != ErrorCode.DATABASE_ALREADY_OPEN_1) {
+                        // only write if the database is not already in use
+                        traceSystem.getTrace(Trace.DATABASE).error("opening " + databaseName, e);
+                    }
+                }
                 traceSystem.close();
             }
             closeOpenFilesAndUnlock();
@@ -495,13 +501,7 @@ public class Database implements DataHandler {
             if (FileUtils.exists(dataFileName)) {
                 // if it is already read-only because ACCESS_MODE_DATA=r
                 readOnly = readOnly | FileUtils.isReadOnly(dataFileName);
-                textStorage = isTextStorage(dataFileName, textStorage);
-                lobFilesInDirectories &= !ValueLob.existsLobFile(getDatabasePath());
-                lobFilesInDirectories |= FileUtils.exists(databaseName + Constants.SUFFIX_LOBS_DIRECTORY);
-            }
-        }
-        dummy = DataPage.create(this, 0);
-        if (persistent) {
+            }            
             if (readOnly) {
                 traceSystem = new TraceSystem(null, false);
             } else {
@@ -526,6 +526,12 @@ public class Database implements DataHandler {
                     startServer(lock.getUniqueId());
                 }
             }
+            if (FileUtils.exists(dataFileName)) {
+                textStorage = isTextStorage(dataFileName, textStorage);
+                lobFilesInDirectories &= !ValueLob.existsLobFile(getDatabasePath());
+                lobFilesInDirectories |= FileUtils.exists(databaseName + Constants.SUFFIX_LOBS_DIRECTORY);
+            }
+            dummy = DataPage.create(this, 0);            
             deleteOldTempFiles();
             log = new LogSystem(this, databaseName, readOnly, accessModeLog);
             openFileData();

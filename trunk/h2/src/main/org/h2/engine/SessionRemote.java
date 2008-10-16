@@ -56,6 +56,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
     public static final int SESSION_PREPARE_READ_PARAMS = 11;
     public static final int SESSION_SET_ID = 12;
     public static final int SESSION_CANCEL_STATEMENT = 13;
+    public static final int SESSION_CHECK_KEY = 14;
 
     public static final int STATUS_ERROR = 0;
     public static final int STATUS_OK = 1;

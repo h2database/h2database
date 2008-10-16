@@ -19,6 +19,8 @@ import java.util.Properties;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
+import org.h2.engine.SessionRemote;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.message.Trace;
@@ -28,6 +30,7 @@ import org.h2.util.ByteUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.SortedProperties;
+import org.h2.value.Transfer;
 
 /**
  * The file lock is used to lock a database so that only one process can write
@@ -120,6 +123,7 @@ public class FileLock {
     public synchronized void lock(String fileName, boolean allowSocket) throws SQLException {
         this.fs = FileSystem.getInstance(fileName);
         this.fileName = fileName;
+        checkServer();
         if (locked) {
             throw Message.getInternalError("already locked");
         }
@@ -202,6 +206,43 @@ public class FileLock {
             trace.debug("save " + properties);
         } catch (IOException e) {
             throw getException(e);
+        }
+    }
+    
+    private void checkServer() throws SQLException {
+        Properties prop = load();
+        String server = prop.getProperty("server");
+        if (server == null) {
+            return;
+        }
+        boolean running = false;
+        String id = prop.getProperty("id");
+        try {
+            Socket socket = NetUtils.createSocket(server, Constants.DEFAULT_SERVER_PORT, false);
+            Transfer transfer = new Transfer(null);
+            transfer.setSocket(socket);
+            transfer.init();
+            transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
+            transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
+            transfer.writeString(null);
+            transfer.writeString(null);
+            transfer.writeString(id);
+            transfer.writeInt(SessionRemote.SESSION_CHECK_KEY);
+            transfer.flush();
+            int state = transfer.readInt();
+            if (state == SessionRemote.STATUS_OK) {
+                running = true;
+            }
+            transfer.close();
+            socket.close();
+        } catch (IOException e) {
+            return;
+        }
+        if (running) {
+            String payload = server + "/" + id;
+            JdbcSQLException ex = Message.getSQLException(ErrorCode.DATABASE_ALREADY_OPEN_1, "Server is running");
+            ex.setPayload(payload);
+            throw ex;
         }
     }
 

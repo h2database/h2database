@@ -69,9 +69,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private String comment;
     private boolean checkExisting;
     private boolean primaryKeyHash;
+    private boolean ifNotExists;
 
-    public AlterTableAddConstraint(Session session, Schema schema) {
+    public AlterTableAddConstraint(Session session, Schema schema, boolean ifNotExists) {
         super(session, schema);
+        this.ifNotExists = ifNotExists;
     }
 
     private String generateConstraintName(Table table) {
@@ -99,6 +101,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
         Database db = session.getDatabase();
         Table table = getSchema().getTableOrView(session, tableName);
         if (getSchema().findConstraint(constraintName) != null) {
+            if (ifNotExists) {
+                return 0;
+            }
             throw Message.getSQLException(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraintName);
         }
         session.getUser().checkRight(table, Right.ALL);

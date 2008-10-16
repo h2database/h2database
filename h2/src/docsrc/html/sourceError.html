@@ -40,7 +40,7 @@ function get(id) {
 var lastError = '';
 var hasData = false;
 var errorCode = '0';
-var build = '';
+var build = 100;
 
 function goDetails(code) {
     code = code.replace('21S', '210');
@@ -64,6 +64,8 @@ function go(file, line) {
         var tag = 'trunk/h2';
         if (build == 64) {
             tag = 'tags/version-1.0.' + build;
+        } else if (build >= 100) {
+            tag = 'tags/version-1.1.' + build + '/h2';
         } else if (build >= 63) {
             tag = 'tags/version-1.0.' + build + '/h2';
         }
@@ -94,8 +96,8 @@ function convert() {
             errorCode = s.substring(idx + 1, end);
             hasData = true;
             idx = errorCode.indexOf("-");
-            build = errorCode.substring(idx + 1);
-            get('version').innerHTML = '1.0.' + build;
+            build = parseInt(errorCode.substring(idx + 1));
+            get('version').innerHTML = (build < 100 ? '1.0.' : '1.1.') + build;
             errorCode = errorCode.substring(0, idx);
             while (errorCode.length > 1 && errorCode.charAt(0) == '0') {
                 errorCode = errorCode.substring(1);

@@ -8,9 +8,11 @@ package org.h2.command.ddl;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
+import org.h2.message.Message;
 import org.h2.schema.Schema;
 
 /**
@@ -20,9 +22,11 @@ import org.h2.schema.Schema;
 public class AlterTableDropConstraint extends SchemaCommand {
 
     private String constraintName;
+    private boolean ifExists;
 
-    public AlterTableDropConstraint(Session session, Schema schema) {
+    public AlterTableDropConstraint(Session session, Schema schema, boolean ifExists) {
         super(session, schema);
+        this.ifExists = ifExists;
     }
 
     public void setConstraintName(String string) {
@@ -31,10 +35,16 @@ public class AlterTableDropConstraint extends SchemaCommand {
 
     public int update() throws SQLException {
         session.commit(true);
-        Constraint constraint = getSchema().getConstraint(constraintName);
-        session.getUser().checkRight(constraint.getTable(), Right.ALL);
-        session.getUser().checkRight(constraint.getRefTable(), Right.ALL);
-        session.getDatabase().removeSchemaObject(session, constraint);
+        Constraint constraint = getSchema().findConstraint(constraintName);
+        if (constraint == null) {
+            if (!ifExists) {
+                throw Message.getSQLException(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
+            }
+        } else {
+            session.getUser().checkRight(constraint.getTable(), Right.ALL);
+            session.getUser().checkRight(constraint.getRefTable(), Right.ALL);
+            session.getDatabase().removeSchemaObject(session, constraint);
+        }
         return 0;
     }
 

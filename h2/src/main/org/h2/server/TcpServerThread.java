@@ -83,8 +83,17 @@ public class TcpServerThread implements Runnable {
                     int command = transfer.readInt();
                     stop = true;
                     if (command == SessionRemote.SESSION_CANCEL_STATEMENT) {
+                        // cancel a running statement
                         int statementId = transfer.readInt();
                         server.cancelStatement(sessionId, statementId);
+                    } else if (command == SessionRemote.SESSION_CHECK_KEY) {
+                        // check if this is the correct server
+                        db = server.checkKeyAndGetDatabaseName(sessionId);
+                        if (!sessionId.equals(db)) {
+                            transfer.writeInt(SessionRemote.STATUS_OK);
+                        } else {
+                            transfer.writeInt(SessionRemote.STATUS_ERROR);
+                        }
                     }
                 }
                 String baseDir = server.getBaseDir();

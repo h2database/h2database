@@ -59,7 +59,6 @@ public class TestAutoServer extends TestBase {
         if (i <= 0) {
             fail();
         }
-        
         Connection conn = getConnection(url + ";OPEN_NEW=TRUE");
         Statement stat = conn.createStatement();
         if (config.big) {

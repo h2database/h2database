@@ -65,6 +65,9 @@ public class TestLinkedTable extends TestBase {
 //    }
     
     private void testSharedConnection() throws SQLException {
+        if (config.memory) {
+            return;
+        }
         org.h2.Driver.load();
         deleteDb("linkedTable");
         String url = getURL("linkedTable", true);

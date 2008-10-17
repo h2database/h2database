@@ -284,8 +284,6 @@ test ant build
 
 test documentation (japanese, pdf download, frames, sourceError)
 
-AUTO_SERVER=TRUE improve performance for the second connection.
-
 SET LOG 2:
 Database.logIndexChanges stays; should be updated? need test case
         

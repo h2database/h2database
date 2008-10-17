@@ -18,14 +18,16 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Queries with more than 10 joins are now faster.
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.1.101 (2008-10-17)</h2>
+<ul><li>Queries with more than 10 tables are now faster.
 </li><li>Opening a connection with AUTO_SERVER=TRUE is now fast
     when the database is already open in another process  (less than 0.01 seconds
     instead of 2 seconds).
-</li><li>IF NOT EXISTS is supported for named constraints in 
-    ALTER TABLE ... ADD CONSTRAINT.
-</li><li>IF EXISTS is supported for named constraints in 
-    ALTER TABLE ... DROP CONSTRAINT.
+</li><li>IF [NOT] EXISTS is supported for named constraints in 
+    ALTER TABLE ... ADD/DROP CONSTRAINT.
 </li><li>The error messages have been translated to Spanish by Dario V. Fassi.
     Thanks a lot!
 </li><li>Linked tables: the automatic connection sharing didn't work. Actually the
@@ -52,7 +54,7 @@ Change Log
 </li><li>OSGi meta data is included in the manifest file. 
     An OSGi BundleActivator is included: it loads the database driver when starting the bundle,
     and unloads it when stopping the bundle.
-</li><li>The default value for MAX_MEMORY_UNDO to 50000.
+</li><li>The default value for MAX_MEMORY_UNDO is now 50000.
 </li><li>For alias columns, ResultSetMetaData.getTableName() and getColumnName() now 
         return the real table and column name in the default mode.
 </li><li>In SQL scripts created with SCRIPT TO, schemas are now only created if they don't exist yet.
@@ -579,28 +581,6 @@ Change Log
 </li><li>New function TABLE_DISTINCT.
 </li><li>Using LIMIT with values close to Integer.MAX_VALUE didn't work correctly.
 </li><li>Certain setting in the Server didn't work (http://code.google.com/p/h2database/issues/detail?id=7).
-</li></ul>
-
-<h2>Version 1.0.62 (2007-11-25)</h2>
-<ul>
-<li>Large updates and deletes are now supported by buffering data to disk if required. The threshold is currently set to 100'000 bytes and can be changed using SET MAX_OPERATION_MEMORY or using by appending ;MAX_OPERATION_MEMORY=.. to the database URL. See also the docs.
-</li><li>MVCC: now an exception is thrown when an application tries to change the MVCC setting while the database is already open.
-</li><li>Referential integrity checks didn't lock the referenced table, and thus could read uncommitted rows of other connections. In that way the referential constraints could get violated (except when using MVCC).
-</li><li>Renaming or dropping a user with a schema, or removing the admin property of that user made the schema inaccessible after re-opening the database. Fixed.
-</li><li>The H2 Console now also support the command line option -ifExists when started from the Server tool, but only when connecting to H2 databases.
-</li><li>Duplicate column names were not detected when renaming columns. Fixed.
-</li><li>The console did not display multiple embedded spaces in text correctly. Fixed.
-</li><li>Google Android support: use 'ant codeswitchAndroid' to switch the source code to Android.
-</li><li>Values of type ARRAY are now sorted as in PostgreSQL.
-</li><li>In the cluster mode, could not connect if only one server was running (last release only). Fixed.
-</li><li>The performance of large CSV operations has been improved.
-</li><li>Now using custom toString() for most JDBC objects and commands.
-</li><li>Nested temporary views (SELECT * FROM (SELECT ...)) with parameters didn't work in some cases. Fixed.
-</li><li>CSV: Using an empty field delimiter didn't work (a workaround was using char(0)). Fixed.
-</li><li>A patch for Apache DDL Utils is available at https://issues.apache.org/jira/browse/DDLUTILS-185
-</li><li>The default value for h2.emergencySpaceInitial is now 256 KB (to speed up creating encrypted databases)
-</li><li>Eduardo Velasques has translated the H2 Console and the error messages to Brazilian Portuguese. Thanks a lot!
-</li><li>Creating a table from GROUP_CONCAT didn't work if the data was longer than 255 characters
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

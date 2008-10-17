@@ -7,6 +7,7 @@
 package org.h2.util;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.SQLException;
 
 import org.h2.engine.Constants;
@@ -176,6 +177,31 @@ public class MathUtils {
         } else {
             return (int) l;
         }
+    }
+
+    /**
+     * Calculate the factorial (n!) of a number.
+     * This implementation uses a naive multiplication loop, and
+     * is very slow for large n. 
+     * For n = 1000, it takes about 10 ms.
+     * For n = 8000, it takes about 800 ms.
+     * 
+     * @param n the number
+     * @return the factorial of n
+     */
+    public static BigInteger factorial(int n) {
+        if (n < 0) {
+            throw new IllegalArgumentException(n + "<0");
+        } else if (n < 2) {
+            return BigInteger.ONE;
+        }
+        BigInteger x = new BigInteger("" + n);
+        BigInteger result = x;
+        for (int i = n - 1; i >= 2; i--) {
+            x = x.subtract(BigInteger.ONE);
+            result = result.multiply(x);
+        }
+        return result;
     }
 
 }

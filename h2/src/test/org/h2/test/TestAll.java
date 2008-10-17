@@ -110,6 +110,7 @@ import org.h2.test.unit.TestFileSystem;
 import org.h2.test.unit.TestFtp;
 import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
+import org.h2.test.unit.TestMathUtils;
 import org.h2.test.unit.TestMultiThreadedKernel;
 import org.h2.test.unit.TestOverflow;
 import org.h2.test.unit.TestPattern;
@@ -603,6 +604,7 @@ http://www.w3schools.com/sql/
         new TestFileSystem().runTest(this);
         new TestIntArray().runTest(this);
         new TestIntIntHashMap().runTest(this);
+        new TestMathUtils().runTest(this);
         new TestMultiThreadedKernel().runTest(this);
         new TestOverflow().runTest(this);
         new TestPattern().runTest(this);

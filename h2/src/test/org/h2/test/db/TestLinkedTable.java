@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
+import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 
 /**
@@ -65,7 +66,7 @@ public class TestLinkedTable extends TestBase {
 //    }
     
     private void testSharedConnection() throws SQLException {
-        if (config.memory) {
+        if (config.memory || !SysProperties.SHARE_LINKED_CONNECTIONS) {
             return;
         }
         org.h2.Driver.load();

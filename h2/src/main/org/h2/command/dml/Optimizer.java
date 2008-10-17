@@ -6,6 +6,7 @@
  */
 package org.h2.command.dml;
 
+import java.math.BigInteger;
 import java.sql.SQLException;
 import java.util.BitSet;
 import java.util.Random;
@@ -15,6 +16,7 @@ import org.h2.expression.Expression;
 import org.h2.table.Plan;
 import org.h2.table.PlanItem;
 import org.h2.table.TableFilter;
+import org.h2.util.MathUtils;
 import org.h2.util.ObjectUtils;
 import org.h2.util.Permutations;
 
@@ -25,8 +27,8 @@ import org.h2.util.Permutations;
 public class Optimizer {
 
     private static final int MAX_BRUTE_FORCE_FILTERS = 7;
-    private static final int MAX_BRUTE_FORCE = 2000;
-    private static final int MAX_GENETIC = 2000;
+    private static final BigInteger MAX_BRUTE_FORCE = new BigInteger("" + 2000);
+    private static final int MAX_GENETIC = 500;
     private long start;
     private BitSet switched;
     
@@ -62,10 +64,11 @@ public class Optimizer {
     }
     
     private int getMaxBruteForceFilters(int filterCount) {
-        int i = 0, j = filterCount, total = filterCount;
-        while (j > 0 && total < MAX_BRUTE_FORCE) {
+        int i = 0, j = filterCount;
+        BigInteger total = new BigInteger("" + filterCount);
+        while (j > 0 && total.compareTo(MAX_BRUTE_FORCE) < 0) {
             j--;
-            total *= j;
+            total = total.multiply(MathUtils.factorial(j));
             i++;
         }
         return i;

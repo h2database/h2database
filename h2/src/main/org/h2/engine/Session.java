@@ -265,8 +265,10 @@ public class Session implements SessionInterface {
      * @param index the index
      */
     public void removeLocalTempTableIndex(Index index) throws SQLException {
-        localTempTableIndexes.remove(index.getName());
-        index.removeChildrenAndResources(this);
+        if (localTempTableIndexes != null) {
+            localTempTableIndexes.remove(index.getName());
+            index.removeChildrenAndResources(this);
+        }
     }
     
     protected void finalize() {

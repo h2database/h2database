@@ -152,10 +152,9 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
     }
 
     public void setProgress(int state, String name, int x, int max) {
-        while (wait > 0) {
+        if (wait > 0) {
             try {
                 Thread.sleep(wait);
-                wait = 0;
             } catch (InterruptedException e) {
                 TestBase.logError("sleep", e);
             }

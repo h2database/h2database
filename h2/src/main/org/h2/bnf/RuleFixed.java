@@ -215,7 +215,7 @@ public class RuleFixed implements Rule {
         default:
             throw new Error("type=" + type);
         }
-        if (s == query) {
+        if (s.equals(query)) {
             return false;
         }
         sentence.setQuery(s);

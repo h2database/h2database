@@ -295,7 +295,7 @@ public class TestRecover {
                 int id = rs.getInt("ID");
                 String name = rs.getString("NAME");
                 int value = Integer.parseInt(name);
-                if (value % 2 == 1) {
+                if (value % 2 == 0) {
                     throw new Exception("unexpected odd entry " + id);
                 }
                 max = Math.max(max, id);

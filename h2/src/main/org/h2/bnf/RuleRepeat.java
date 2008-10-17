@@ -64,7 +64,7 @@ public class RuleRepeat implements Rule {
         String old = sentence.getQuery();
         while (true) {
             rule.addNextTokenList(sentence);
-            if (!rule.matchRemove(sentence) || old == sentence.getQuery()) {
+            if (!rule.matchRemove(sentence) || old.equals(sentence.getQuery())) {
                 break;
             }
         }

@@ -35,6 +35,15 @@ public class TestResultSet extends TestBase {
     
     private Connection conn;
     private Statement stat;
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }    
 
     public void test() throws SQLException {
         deleteDb("resultSet");
@@ -654,8 +663,8 @@ public class TestResultSet extends TestBase {
         assertEquals(date.getTime(), java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0").getTime());
         assertEquals(time.getTime(), java.sql.Timestamp.valueOf("1970-01-01 00:00:00.0").getTime());
         assertEquals(ts.getTime(), java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0").getTime());
-        assertTrue(date.equals(java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0")));
-        assertTrue(time.equals(java.sql.Timestamp.valueOf("1970-01-01 00:00:00.0")));
+        assertTrue(date.equals(java.sql.Date.valueOf("2011-11-11")));
+        assertTrue(time.equals(java.sql.Time.valueOf("00:00:00")));
         assertTrue(ts.equals(java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0")));
         assertFalse(rs.wasNull());
         o = rs.getObject(2);

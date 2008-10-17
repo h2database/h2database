@@ -77,7 +77,7 @@ public class TestHaltApp extends TestHalt {
         rs.next();
         int count = rs.getInt(1);
         System.out.println("count: " + count);
-        if (count % 2 == 1) {
+        if (count % 2 == 0) {
             traceOperation("row count: " + count);
             throw new SQLException("Unexpected odd row count");
         }

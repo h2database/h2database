@@ -1,0 +1,1 @@
+sc stop "H2DatabaseService"

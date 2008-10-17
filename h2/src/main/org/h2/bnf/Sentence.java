@@ -183,7 +183,7 @@ public class Sentence {
      * @param query the query string
      */
     public void setQuery(String query) {
-        if (!this.query.equals(query)) {
+        if (!StringUtils.equals(this.query, query)) {
             this.query = query;
             this.queryUpper = StringUtils.toUpperEnglish(query);
         }

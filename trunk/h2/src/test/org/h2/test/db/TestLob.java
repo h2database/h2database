@@ -667,7 +667,6 @@ public class TestLob extends TestBase {
         checkStream(new ByteArrayInputStream(data), rs.getBinaryStream("TEXT"), -1);
 
         prep = conn.prepareStatement("UPDATE TEST SET TEXT = ?");
-        s = new String(getRandomChars(10201, 1));
         prep.setBinaryStream(1, new ByteArrayInputStream(data), 0);
         prep.execute();
 

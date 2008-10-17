@@ -235,8 +235,8 @@ public class CommandRemote implements CommandInterface {
                     trace.error("close", e);
                 }
             }
-            session = null;
         }
+        session = null;
         int len = parameters.size();
         try {
             for (int i = 0; i < len; i++) {

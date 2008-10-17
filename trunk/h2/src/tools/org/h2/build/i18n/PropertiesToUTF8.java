@@ -85,37 +85,41 @@ public class PropertiesToUTF8 {
             return;
         }
         LineNumberReader reader = new LineNumberReader(new InputStreamReader(new FileInputStream(source), "UTF-8"));
-        Properties prop = new SortedProperties();
-        StringBuffer buff = new StringBuffer();
-        String key = null;
-        boolean found = false;
-        while (true) {
-            String line = reader.readLine();
-            if (line == null) {
-                break;
-            }
-            line = line.trim();
-            if (line.length() == 0) {
-                continue;
-            }
-            if (line.startsWith("@")) {
-                if (key != null) {
-                    prop.setProperty(key, buff.toString());
-                    buff.setLength(0);
+        try {
+            Properties prop = new SortedProperties();
+            StringBuffer buff = new StringBuffer();
+            String key = null;
+            boolean found = false;
+            while (true) {
+                String line = reader.readLine();
+                if (line == null) {
+                    break;
                 }
-                found = true;
-                key = line.substring(1);
-            } else {
-                if (buff.length() > 0) {
-                    buff.append(System.getProperty("line.separator"));
+                line = line.trim();
+                if (line.length() == 0) {
+                    continue;
                 }
-                buff.append(line);
+                if (line.startsWith("@")) {
+                    if (key != null) {
+                        prop.setProperty(key, buff.toString());
+                        buff.setLength(0);
+                    }
+                    found = true;
+                    key = line.substring(1);
+                } else {
+                    if (buff.length() > 0) {
+                        buff.append(System.getProperty("line.separator"));
+                    }
+                    buff.append(line);
+                }
             }
+            if (found) {
+                prop.setProperty(key, buff.toString());
+            }
+            storeProperties(prop, target);
+        } finally {
+            reader.close();
         }
-        if (found) {
-            prop.setProperty(key, buff.toString());
-        }
-        storeProperties(prop, target);
     }
 
     private static void convert(String source) throws Exception {

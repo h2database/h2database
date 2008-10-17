@@ -144,16 +144,16 @@ public class ResultRemote implements ResultInterface {
             return;
         }
         // TODO result sets: no reset possible for larger remote result sets
-        synchronized (session) {
-            try {
+        try {
+            synchronized (session) {
                 session.traceOperation("RESULT_CLOSE", id);
                 transfer.writeInt(SessionRemote.RESULT_CLOSE).writeInt(id);
-            } catch (IOException e) {
-                session.getTrace().error("close", e);
-            } finally {
-                transfer = null;
-                session = null;
             }
+        } catch (IOException e) {
+            session.getTrace().error("close", e);
+        } finally {
+            transfer = null;
+            session = null;
         }
     }
 

@@ -62,12 +62,14 @@ public class FtpClient {
 
     private void readLine() throws IOException {
         message = reader.readLine();
-        int idx = message.indexOf(' ');
-        if (idx < 0) {
-            code = 0;
-        } else {
-            code = Integer.parseInt(message.substring(0, idx));
-            message = message.substring(idx + 1);
+        if (message != null) {
+            int idx = message.indexOf(' ');
+            if (idx < 0) {
+                code = 0;
+            } else {
+                code = Integer.parseInt(message.substring(0, idx));
+                message = message.substring(idx + 1);
+            }
         }
     }
 

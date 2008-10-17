@@ -203,7 +203,7 @@ public class TestServlet extends TestBase {
 
         // listener must be stopped
         try {
-            conn2 = DriverManager.getConnection("jdbc:h2:tcp://localhost:8888/" + baseDir + "/servlet", getUser(), getPassword());
+            DriverManager.getConnection("jdbc:h2:tcp://localhost:8888/" + baseDir + "/servlet", getUser(), getPassword());
             fail();
         } catch (SQLException e) {
             assertKnownException(e);

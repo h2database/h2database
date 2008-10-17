@@ -278,7 +278,7 @@ public class BuildBase {
             File f = (File) files.get(i);
             File t = new File(target, removeBase(basePath, f.getPath()));
             byte[] data = readFile(f);
-            t.getParentFile().mkdirs();
+            mkdirs(t.getParentFile());
             writeFile(t, data);
         }
     }
@@ -388,7 +388,7 @@ public class BuildBase {
         if (targetFile.exists()) {
             return;
         }
-        targetFile.getAbsoluteFile().getParentFile().mkdirs();
+        mkdirs(targetFile.getAbsoluteFile().getParentFile());
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         try {
             println("Downloading " + fileURL);
@@ -589,7 +589,7 @@ public class BuildBase {
                 }
             });
         }
-        new File(destFile).getAbsoluteFile().getParentFile().mkdirs();
+        mkdirs(new File(destFile).getAbsoluteFile().getParentFile());
         // normalize the path (replace / with \ if required)
         basePath = new File(basePath).getPath();
         try {
@@ -709,10 +709,14 @@ public class BuildBase {
                 throw new Error("Can not create directory " + dir + " because a file with this name exists");
             }
         } else {
-            if (!f.mkdirs()) {
-                throw new Error("Can not create directory " + dir);
-            }                
+            mkdirs(f);
         }
+    }
+    
+    private void mkdirs(File f) {
+        if (!f.mkdirs()) {
+            throw new Error("Can not create directory " + f.getAbsolutePath());
+        }                
     }
     
     /**

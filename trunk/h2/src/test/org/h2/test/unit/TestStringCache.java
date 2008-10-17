@@ -49,7 +49,7 @@ public class TestStringCache extends TestBase {
     private void runBenchmark() {
         returnNew = false;
         for (int i = 0; i < 6; i++) {
-            useIntern = (i % 2) == 1;
+            useIntern = (i % 2) == 0;
             long time = System.currentTimeMillis();
             testSingleThread(100000);
             time = System.currentTimeMillis() - time;

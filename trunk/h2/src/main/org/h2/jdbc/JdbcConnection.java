@@ -299,8 +299,8 @@ public class JdbcConnection extends TraceObject implements Connection {
                 return;
             }
             session.cancel();
-            synchronized (session) {
-                try {
+            try {
+                synchronized (session) {
                     if (!session.isClosed()) {
                         try {
                             rollbackInternal();
@@ -319,9 +319,9 @@ public class JdbcConnection extends TraceObject implements Connection {
                             session.close();
                         }
                     }
-                } finally {
-                    session = null;
                 }
+            } finally {
+                session = null;
             }
         } catch (Exception e) {
             throw logAndConvert(e);

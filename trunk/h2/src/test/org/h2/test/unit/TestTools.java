@@ -93,7 +93,7 @@ public class TestTools extends TestBase {
         result = runServer(new String[]{"-tcpShutdown", "ssl://localhost:9001", "-tcpPassword", "abcdef"}, 0);
         assertTrue(result.indexOf("Shutting down") >= 0);
         try {
-            conn = DriverManager.getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
+            DriverManager.getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);
@@ -418,7 +418,7 @@ public class TestTools extends TestBase {
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         conn.close();
         server.stop();
-        server = Server.createTcpServer(
+        Server.createTcpServer(
                 new String[] { "-ifExists", "-tcpPassword", "abc", "-baseDir", baseDir, "-tcpPort", "9192" }).start();
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");

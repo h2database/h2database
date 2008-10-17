@@ -18,15 +18,16 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Opening a connection with AUTO_SERVER=TRUE is now fast
-	when the database is already open in another process  (less than 0.01 seconds
-	instead of 2 seconds).
+<ul><li>Queries with more than 10 joins are now faster.
+</li><li>Opening a connection with AUTO_SERVER=TRUE is now fast
+    when the database is already open in another process  (less than 0.01 seconds
+    instead of 2 seconds).
 </li><li>IF NOT EXISTS is supported for named constraints in 
-	ALTER TABLE ... ADD CONSTRAINT.
+    ALTER TABLE ... ADD CONSTRAINT.
 </li><li>IF EXISTS is supported for named constraints in 
-	ALTER TABLE ... DROP CONSTRAINT.
+    ALTER TABLE ... DROP CONSTRAINT.
 </li><li>The error messages have been translated to Spanish by Dario V. Fassi.
-	Thanks a lot!
+    Thanks a lot!
 </li><li>Linked tables: the automatic connection sharing didn't work. Actually the
     system property h2.shareLinkedConnections was working in the opposite direction: 
     it was disabled when set to true. Now it works as expected.

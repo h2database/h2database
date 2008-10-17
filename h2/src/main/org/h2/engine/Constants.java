@@ -80,7 +80,7 @@ public class Constants {
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 100;
+    public static final int BUILD_ID = 101;
 
     /**
      * The build id of the last stable release.
@@ -90,7 +90,7 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2008-10-04";
+    public static final String BUILD_DATE = "2008-10-17";
 
     /**
      * The build date is updated for each public release.

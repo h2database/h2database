@@ -13,6 +13,52 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(51,
+'New version available: 1.1.101 (beta; 2008-10-17)', '2008-10-17 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>OSGi meta data is included in the manifest file. 
+</li><li>Queries with more than 10 tables are now faster.
+</li><li>Opening large database is now faster.
+</li><li>Opening a connection with AUTO_SERVER=TRUE is now fast.
+</li><li>There is now a default timeout of 2 seconds to connect to a server.
+</li><li>Improved Glassfish / Toplink support in H2Platform.
+</li><li>New functions ISO_YEAR, ISO_WEEK, ISO_DAY_OF_WEEK.
+</li><li>IF [NOT] EXISTS is supported for named constraints.
+</li><li>The methods getTableName() and getColumnName() now return the real names.
+</li><li>In SQL scripts created with SCRIPT TO, schemas are now only created if they don't exist yet.
+</li><li>Local temporary tables now support indexes.
+</li><li>RUNSCRIPT no longer uses a temporary file.
+</li><li>New system table INFORMATION_SCHEMA.SESSION_STATE.
+</li><li>After an automatic re-connect, part of the session state stays.
+</li><li>After re-connecting to a database, the database event listener (if set) is informed about it.
+</li><li>New system property h2.maxReconnect (default 3).
+</li><li>The error messages have been translated to Spanish by Dario V. Fassi.
+</li><li>The date functions DAYOF... are now called DAY_OF_... (the old names still work).
+</li><li>Linked tables: compatibility with MS SQL Server has been improved.
+</li><li>The default value for MAX_MEMORY_UNDO is now 50000.
+</li><li>Fulltext search: new method FT_DROP_INDEX.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Linked tables: the automatic connection sharing didn't work.
+</li><li>The wrong parameters were bound to subqueries with parameters.
+</li><li>Unset parameters were not detected when the query was re-compiled.
+</li><li>An out of memory error could result in a strange exception.
+</li><li>Renaming tables that have foreign keys didn't work.
+</li><li>Auto-reconnect didn't work when using auto-server.
+</li><li>The optimization to group using an index didn't work sometimes.
+</li><li>The build didn't work if the directory temp didn't exist before.
+</li><li>WHERE .. IN (SELECT ...) could throw a NullPointerException. 
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(50,
 'New version available: 1.1.100 (beta; 2008-10-04)', '2008-10-04 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -390,38 +436,6 @@ INSERT INTO ITEM VALUES(40,
     would still timeout. Fixed.
 </li><li>Adding a IDENTITY column to a table with data threw a lock timeout.
 </li><li>OutOfMemoryError could occur when using EXISTS or IN(SELECT ..).
-</li></ul>
-For details, see the ''Change Log'' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the ''Roadmap'' page at
-http://www.h2database.com/html/roadmap.html
-');
-
-INSERT INTO ITEM VALUES(39,
-'New version available: 1.0.69 (2008-03-29)', '2008-03-29 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click ''Refresh'').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Most command line tools can now be called within the H2 Console.
-</li><li>A new Shell tools is now included to query a database from the command line.
-</li><li>Some command line options have changed (the old behavior is still supported).
-</li><li>New system property h2.sortNullsHigh to invert the default NULL sorting.
-</li><li>ALTER TABLE or CREATE TABLE now support parameters.
-</li><li>TRACE_LEVEL_ settings are no longer persistent.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>When a log file switch occurred in the middle of certain operations,
-    the database could not be started normally (RECOVER=1 was required).
-</li><li>Altering a sequence didn''t unlock the system table with autocommit disabled.
-</li><li>CSVWRITE caused a NullPointerException when not specifying a nullString.
-</li><li>Years below 1 were not supported correctly.
-</li><li>The recovery tool didn''t work correctly for tables without rows.
-</li><li>It is no longer possible to create a role with the name of an existing user.
-</li><li>The memory usage of native fulltext search has been improved.
-</li><li>Performance was very slow when using LOG=2. 
-</li><li>The linear hash has been removed because it was slow and sometimes incorrect.
 </li></ul>
 For details, see the ''Change Log'' at
 http://www.h2database.com/html/changelog.html

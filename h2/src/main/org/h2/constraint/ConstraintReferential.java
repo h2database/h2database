@@ -343,18 +343,21 @@ public class ConstraintReferential extends Constraint {
             int refIdx = refCol.getColumnId();
             check.setValue(refIdx, v.convertTo(refCol.getType()));
         }
-        if (!found(session, refIndex, check)) {
+        if (!found(session, refIndex, check, null)) {
             throw Message.getSQLException(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1,
                     getShortDescription());
         }
     }
 
-    private boolean found(Session session, Index index, SearchRow check) throws SQLException {
+    private boolean found(Session session, Index index, SearchRow check, Row excluding) throws SQLException {
         index.getTable().lock(session, false, false);
         Cursor cursor = index.find(session, check, check);
         while (cursor.next()) {
             SearchRow found;
             found = cursor.getSearchRow();
+            if (excluding != null && found.getPos() == excluding.getPos()) {
+                continue;
+            }
             Column[] cols = index.getColumns();
             boolean allEqual = true;
             for (int i = 0; i < columns.length && i < cols.length; i++) {
@@ -378,25 +381,6 @@ public class ConstraintReferential extends Constraint {
     }
 
     private void checkRow(Session session, Row oldRow) throws SQLException {
-        if (refTable == table) {
-            // special case self referencing constraints: check the deleted row
-            // first
-            boolean self = true;
-            for (int i = 0; i < columns.length; i++) {
-                Column refCol = refColumns[i].column;
-                int refIdx = refCol.getColumnId();
-                Value v = oldRow.getValue(refIdx);
-                int idx = columns[i].column.getColumnId();
-                Value r = oldRow.getValue(idx);
-                if (!database.areEqual(r, v)) {
-                    self = false;
-                    break;
-                }
-            }
-            if (self) {
-                return;
-            }
-        }
         SearchRow check = table.getTemplateSimpleRow(false);
         for (int i = 0; i < columns.length; i++) {
             Column refCol = refColumns[i].column;
@@ -406,7 +390,7 @@ public class ConstraintReferential extends Constraint {
             Value v = oldRow.getValue(refIdx).convertTo(col.getType());
             check.setValue(idx, v);
         }
-        if (found(session, index, check)) {
+        if (found(session, index, check, oldRow)) {
             throw Message.getSQLException(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1,
                     getShortDescription());
         }

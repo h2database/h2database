@@ -102,7 +102,7 @@ public class Alias extends Expression {
     }
 
     public String getColumnName() {
-        if (aliasColumnName) {
+        if (!(expr instanceof ExpressionColumn) || aliasColumnName) {
             return super.getColumnName();
         }
         return expr.getColumnName();

@@ -229,6 +229,8 @@ public class TestMetaData extends TestBase {
         rs.next();
         int type = rs.getMetaData().getColumnType(1);
         assertEquals(Types.VARCHAR, type);
+        rs = conn.createStatement().executeQuery("SELECT COUNT(*) C FROM DUAL");
+        assertEquals("C", rs.getMetaData().getColumnName(1));
     }
 
     private void testColumnPrecision() throws SQLException {

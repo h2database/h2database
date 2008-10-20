@@ -41,6 +41,15 @@ import org.h2.util.FileUtils;
 public class TestTools extends TestBase {
 
     private Server server;
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }    
 
     public void test() throws Exception {
         if (config.networked) {

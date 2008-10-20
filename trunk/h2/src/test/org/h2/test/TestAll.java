@@ -280,24 +280,23 @@ java org.h2.test.TestAll timer
 
 /*
 
-test ant build
+use only one icon, not both
 
-test documentation (japanese, pdf download, frames, sourceError)
+test web site (including search, main, web main)
+test with firefox 3, internet explorer, opera, safari, google chrome
+
+don't write stack trace of common exceptions in log file: 23*
 
 SET LOG 2:
 Database.logIndexChanges stays; should be updated? need test case
         
+DROP ALL OBJECTS in a loop: memory problem with storageMap
+
+test with 1.0
+
 fix html (use xhtml?)
-        
-'if not exists" / 'if exists" clauses to the 
-"alter table create/drop constraint"
-test case:
-create table test(id int not null);
-alter table test add constraint if not exists pk primary key(id);
-alter table test add constraint if not exists pk primary key(id);
-alter table test drop constraint if exists pk;
-alter table test drop constraint if exists pk;
-drop table test;
+http://validator.w3.org/
+
 
 document url parameter open_new
 osgi: create a sample application, test, document

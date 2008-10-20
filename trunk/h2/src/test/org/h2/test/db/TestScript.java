@@ -48,6 +48,15 @@ public class TestScript extends TestBase {
         Constants.VERSION_MAJOR + "." + Constants.VERSION_MINOR + ".txt";
 
     /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+    
+    /**
      * Get all SQL statements of this file.
      * 
      * @param conf the configuration

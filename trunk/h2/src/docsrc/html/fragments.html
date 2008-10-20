@@ -17,14 +17,14 @@ Initial Developer: H2 Group
 <table class="nav" onmousemove="return mouseMove(event)"><tr class="nav"><td class="nav" valign="top">
 <div id="searchMenu" style="width: 180px; overflow: hidden;">
 <div class="menu">
-<img border="0" src="images/h2-logo.png" alt="H2 Logo"  onclick="document.location='main.html'" />
+<img src="images/h2-logo.png" alt="H2 Logo"  onclick="document.location='main.html'" />
 </div>
-<form name="searchForm" action="submit" onsubmit="return goFirst();">
+<form action="submit" onsubmit="return goFirst();">
 <table width="100%" class="search">
   <tr class="search">
     <td class="search" colspan="2">
-        <a href="frame.html"><img border="0" src="images/language_en.gif" alt="English" /></a>
-        <a href="frame_ja.html"><img border="0" src="images/language_ja.gif" alt="Japanese" /></a>
+        <a href="frame.html"><img src="images/language_en.gif" alt="English" /></a>
+        <a href="frame_ja.html"><img src="images/language_ja.gif" alt="Japanese" /></a>
     </td>
   </tr>
   <tr class="search">
@@ -39,12 +39,13 @@ Initial Developer: H2 Group
     </td>
   </tr>
   <tr class="search" style="display:none;" >
-    <td width="1%" class="search" style="vertical-align: middle;"><input id="highlight" type="checkbox" checked="checked" onclick="highlightCurrent(this.checked, search.value)" /></td>
-    <td width="99%" class="search" style="padding: 0px; vertical-align: middle;"> Highlight keyword(s) </td>
+    <td class="search" style="width: 1%; vertical-align: middle;"><input id="highlight" type="checkbox" checked="checked" onclick="highlightCurrent(this.checked, search.value)" /></td>
+    <td class="search" style="width: 99%; padding: 0px; vertical-align: middle;"> Highlight keyword(s) </td>
   </tr>
   <tr class="search">
     <td class="search" colspan="2">
       <table id="result" style="border: 0px;">
+          <tr style="display:none"><td></td></tr>
       </table>
     </td>
   </tr>

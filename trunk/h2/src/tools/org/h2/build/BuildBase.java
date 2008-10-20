@@ -714,9 +714,11 @@ public class BuildBase {
     }
     
     private void mkdirs(File f) {
-        if (!f.mkdirs()) {
-            throw new Error("Can not create directory " + f.getAbsolutePath());
-        }                
+        if (!f.exists()) {
+            if (!f.mkdirs()) {
+                throw new Error("Can not create directory " + f.getAbsolutePath());
+            }
+        }
     }
     
     /**

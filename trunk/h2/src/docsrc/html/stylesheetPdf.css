@@ -25,6 +25,10 @@ pre {
     padding: 4px;
 }
 
+img {
+    border: 0px;
+}
+
 body {
     margin: 0px;
 }

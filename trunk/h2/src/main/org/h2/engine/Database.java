@@ -64,6 +64,7 @@ import org.h2.util.NetUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
+import org.h2.util.TempFileDeleter;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -162,6 +163,7 @@ public class Database implements DataHandler {
     private Object reserveMemory;
     private Server server;
     private HashMap linkConnections;
+    private TempFileDeleter tempFileDeleter = TempFileDeleter.getInstance();
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = new CompareMode(null, null, 0);
@@ -1099,6 +1101,7 @@ public class Database implements DataHandler {
                 traceSystem.getTrace(Trace.DATABASE).error("close", e);
             }
         }
+        tempFileDeleter.deleteAll();
         try {
             closeOpenFilesAndUnlock();
         } catch (SQLException e) {
@@ -2104,6 +2107,10 @@ public class Database implements DataHandler {
         } catch (SQLException e) {
             // ignore
         }
+    }
+
+    public TempFileDeleter getTempFileDeleter() {
+        return tempFileDeleter;
     }
 
 }

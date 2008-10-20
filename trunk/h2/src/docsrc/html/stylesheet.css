@@ -30,6 +30,10 @@ code {
     padding: 0px 2px;
 }
 
+img {
+    border: 0px;
+}
+
 body {
     margin: 0px;
 }
@@ -182,12 +186,10 @@ table.content {
 
 tr.content {
     border:0px;
-    border-left:1px solid #aca899;
 }
 
 td.content {
     border:0px;
-    border-left:1px solid #aca899;
 }
 
 .contentDiv {

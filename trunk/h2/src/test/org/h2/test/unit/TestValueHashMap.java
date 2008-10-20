@@ -17,6 +17,7 @@ import org.h2.store.FileStore;
 import org.h2.test.TestBase;
 import org.h2.util.ObjectArray;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.TempFileDeleter;
 import org.h2.util.ValueHashMap;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -150,6 +151,10 @@ public class TestValueHashMap extends TestBase implements DataHandler {
 
     public SmallLRUCache getLobFileListCache() {
         return null;
+    }
+    
+    public TempFileDeleter getTempFileDeleter() {
+        return TempFileDeleter.getInstance();
     }
 
 }

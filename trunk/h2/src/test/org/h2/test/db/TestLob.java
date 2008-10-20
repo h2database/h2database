@@ -8,6 +8,7 @@ package org.h2.test.db;
 
 import java.io.ByteArrayInputStream;
 import java.io.CharArrayReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -34,12 +35,22 @@ import org.h2.util.StringUtils;
  * Tests LOB and CLOB data types.
  */
 public class TestLob extends TestBase {
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }    
 
     public void test() throws Exception {
         testLobServerMemory();
         if (config.memory) {
             return;
         }
+        testLobDeleteTemp();
         testLobDelete();
         testLobVariable();
         testLobDrop();
@@ -60,6 +71,17 @@ public class TestLob extends TestBase {
         testLob(false);
         testLob(true);
         testJavaObject();
+    }
+    
+    private void testLobDeleteTemp() throws SQLException {
+        deleteDb("lob");
+        Connection conn = getConnection("lob");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(data clob) as select space(100000) from dual");
+        assertEquals(1, new File(baseDir + "/lob.lobs.db").listFiles().length);
+        stat.execute("delete from test");
+        conn.close();
+        assertEquals(0, new File(baseDir + "/lob.lobs.db").listFiles().length);
     }
     
     private void testLobServerMemory() throws SQLException {

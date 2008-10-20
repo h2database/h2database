@@ -14,6 +14,7 @@ import org.h2.store.FileStore;
 import org.h2.test.TestBase;
 import org.h2.util.FileUtils;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.TempFileDeleter;
 import org.h2.value.Value;
 
 /**
@@ -185,6 +186,10 @@ public class TestFile extends TestBase implements DataHandler {
 
     public SmallLRUCache getLobFileListCache() {
         return null;
+    }
+
+    public TempFileDeleter getTempFileDeleter() {
+        return TempFileDeleter.getInstance();
     }
 
 }

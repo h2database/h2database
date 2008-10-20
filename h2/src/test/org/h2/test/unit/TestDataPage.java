@@ -14,6 +14,7 @@ import org.h2.store.DataPage;
 import org.h2.store.FileStore;
 import org.h2.test.TestBase;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.TempFileDeleter;
 import org.h2.value.Value;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
@@ -152,4 +153,8 @@ public class TestDataPage extends TestBase implements DataHandler {
         return null;
     }
 
+    public TempFileDeleter getTempFileDeleter() {
+        return TempFileDeleter.getInstance();
+    }
+    
 }

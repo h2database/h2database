@@ -24,6 +24,7 @@ import org.h2.test.TestBase;
 import org.h2.util.FileUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.TempFileDeleter;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -241,6 +242,10 @@ public class TestValueMemory extends TestBase implements DataHandler {
 
     public SmallLRUCache getLobFileListCache() {
         return lobFileListCache;
+    }
+
+    public TempFileDeleter getTempFileDeleter() {
+        return TempFileDeleter.getInstance();
     }
 
 }

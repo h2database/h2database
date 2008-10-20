@@ -48,6 +48,7 @@ import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
@@ -1034,6 +1035,13 @@ public class Recover extends Tool implements DataHandler {
      */
     public SmallLRUCache getLobFileListCache() {
         return null;
+    }
+    
+    /**
+     * INTERNAL
+     */
+    public TempFileDeleter getTempFileDeleter() {
+        return TempFileDeleter.getInstance();
     }
 
 }

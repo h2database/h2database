@@ -51,7 +51,14 @@ import java.sql.SQLClientInfoException;
 //## Java 1.6 end ##
 
 /**
+ * <p>
  * Represents a connection (session) to a database.
+ * </p>
+ * <p>
+ * Thread safety: The connection is thread-safe, because access
+ * is synchronized. However, for compatibility with other databases, a
+ * connection should only be used in one thread at any time.
+ * </p>
  */
 public class JdbcConnection extends TraceObject implements Connection {
     // TODO test: check if enough synchronization on jdbc objects

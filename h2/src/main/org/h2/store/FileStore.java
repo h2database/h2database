@@ -57,6 +57,7 @@ public class FileStore {
     private boolean checkedWriting = true;
     private boolean synchronousMode;
     private String mode;
+    private TempFileDeleter tempFileDeleter;
     
     /**
      * Create a new file using the given settings.
@@ -72,6 +73,9 @@ public class FileStore {
         this.name = name;
         this.magic = magic;
         this.mode = mode;
+        if (handler != null) {
+            tempFileDeleter = handler.getTempFileDeleter();
+        }
         try {
             fs.createDirs(name);
             if (fs.exists(name) && !fs.canWrite(name)) {
@@ -241,8 +245,8 @@ public class FileStore {
     public void closeAndDeleteSilently() {
         if (file != null) {
             closeSilently();
-            TempFileDeleter.updateAutoDelete(autoDeleteReference);
-            TempFileDeleter.deleteFile(autoDeleteReference, name);
+            tempFileDeleter.updateAutoDelete(autoDeleteReference);
+            tempFileDeleter.deleteFile(autoDeleteReference, name);
             name = null;
         }
     }
@@ -459,9 +463,9 @@ public class FileStore {
      */
     public void autoDelete() {
         if (autoDeleteReference == null) {
-            autoDeleteReference = TempFileDeleter.addFile(name, this);
+            autoDeleteReference = tempFileDeleter.addFile(name, this);
         } else {
-            TempFileDeleter.updateAutoDelete(autoDeleteReference);
+            tempFileDeleter.updateAutoDelete(autoDeleteReference);
         }
     }
 
@@ -469,7 +473,7 @@ public class FileStore {
      * No longer automatically delete the file once it is no longer in use.
      */
     public void stopAutoDelete() {
-        TempFileDeleter.stopAutoDelete(autoDeleteReference, name);
+        tempFileDeleter.stopAutoDelete(autoDeleteReference, name);
         autoDeleteReference = null;
     }
 

@@ -10,6 +10,7 @@ import java.lang.ref.PhantomReference;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
@@ -19,11 +20,15 @@ import org.h2.message.Message;
  */
 public class TempFileDeleter {
 
-    private static final ReferenceQueue QUEUE = new ReferenceQueue();
-    private static final HashMap REF_MAP = new HashMap();
+    private final ReferenceQueue queue = new ReferenceQueue();
+    private final HashMap refMap = new HashMap();
     
     private TempFileDeleter() {
         // utility class
+    }
+    
+    public static TempFileDeleter getInstance() {
+        return new TempFileDeleter();
     }
     
     /**
@@ -50,13 +55,13 @@ public class TempFileDeleter {
      * @param file the object to monitor
      * @return the reference that can be used to stop deleting the file
      */
-    public static synchronized Reference addFile(String fileName, Object file) {
+    public synchronized Reference addFile(String fileName, Object file) {
         FileUtils.trace("TempFileDeleter.addFile", fileName, file);
-        PhantomReference ref = new PhantomReference(file, QUEUE);
+        PhantomReference ref = new PhantomReference(file, queue);
         TempFile f = new TempFile();
         f.fileName = fileName;
         f.lastModified = FileUtils.getLastModified(fileName);
-        REF_MAP.put(ref, f);
+        refMap.put(ref, f);
         deleteUnused();
         return ref;
     }
@@ -68,8 +73,8 @@ public class TempFileDeleter {
      * 
      * @param ref the reference
      */
-    public static synchronized void updateAutoDelete(Reference ref) {
-        TempFile f2 = (TempFile) REF_MAP.get(ref);
+    public synchronized void updateAutoDelete(Reference ref) {
+        TempFile f2 = (TempFile) refMap.get(ref);
         if (f2 != null) {
             String fileName = f2.fileName;
             long mod = FileUtils.getLastModified(fileName);
@@ -83,9 +88,9 @@ public class TempFileDeleter {
      * @param ref the reference as returned by addFile
      * @param fileName the file name
      */
-    public static synchronized void deleteFile(Reference ref, String fileName) {
+    public synchronized void deleteFile(Reference ref, String fileName) {
         if (ref != null) {
-            TempFile f2 = (TempFile) REF_MAP.remove(ref);
+            TempFile f2 = (TempFile) refMap.remove(ref);
             if (f2 != null) {
                 if (SysProperties.CHECK && fileName != null && !f2.fileName.equals(fileName)) {
                     throw Message.getInternalError("f2:" + f2.fileName + " f:" + fileName);
@@ -108,17 +113,25 @@ public class TempFileDeleter {
             }
         }
     }
+    
+    /**
+     * Delete all registered temp files.
+     */
+    public void deleteAll() {
+        Iterator it = refMap.values().iterator();
+        while (it.hasNext()) {
+            TempFile tempFile = (TempFile) it.next();
+            deleteFile(null, tempFile.fileName);
+        }
+        deleteUnused();
+    }
 
     /**
      * Delete all unused files now.
      */
-    public static void deleteUnused() {
-        // Mystery: I don't know how QUEUE could get null, but two independent
-        // people reported NullPointerException here - if somebody understands
-        // how it could happen please report it!
-        // Environment: web application under Tomcat, exception occurs during undeploy
-        while (QUEUE != null) {
-            Reference ref = QUEUE.poll();
+    public void deleteUnused() {
+        while (queue != null) {
+            Reference ref = queue.poll();
             if (ref == null) {
                 break;
             }
@@ -133,10 +146,10 @@ public class TempFileDeleter {
      * @param ref the reference as returned by addFile
      * @param fileName the file name
      */
-    public static void stopAutoDelete(Reference ref, String fileName) {
+    public void stopAutoDelete(Reference ref, String fileName) {
         FileUtils.trace("TempFileDeleter.stopAutoDelete", fileName, ref);
         if (ref != null) {
-            TempFile f2 = (TempFile) REF_MAP.remove(ref);
+            TempFile f2 = (TempFile) refMap.remove(ref);
             if (SysProperties.CHECK && (f2 == null || !f2.fileName.equals(fileName))) {
                 throw Message.getInternalError("f2:" + f2 + " " + (f2 == null ? "" : f2.fileName) + " f:" + fileName);
             }

@@ -9,6 +9,7 @@ package org.h2.store;
 import java.sql.SQLException;
 
 import org.h2.util.SmallLRUCache;
+import org.h2.util.TempFileDeleter;
 import org.h2.value.Value;
 
 /**
@@ -121,6 +122,13 @@ public interface DataHandler {
      * @return the file name
      */
     String createTempFile() throws SQLException;
+    
+    /**
+     * Get the temp file deleter mechanism.
+     * 
+     * @return the temp file deleter
+     */
+    TempFileDeleter getTempFileDeleter();
 
     /**
      * Get the synchronization object for lob operations.

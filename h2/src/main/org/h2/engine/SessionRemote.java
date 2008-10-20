@@ -32,6 +32,7 @@ import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
+import org.h2.util.TempFileDeleter;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 import org.h2.value.ValueString;
@@ -680,6 +681,10 @@ public class SessionRemote implements SessionInterface, DataHandler {
             Value[] row = result.currentRow();
             sessionState.add(row[1].getString());
         }
+    }
+
+    public TempFileDeleter getTempFileDeleter() {
+        return TempFileDeleter.getInstance();
     }
 
 }

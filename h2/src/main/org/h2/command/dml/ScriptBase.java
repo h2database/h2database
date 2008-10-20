@@ -30,6 +30,7 @@ import org.h2.tools.CompressTool;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.TempFileDeleter;
 import org.h2.value.Value;
 
 /**
@@ -225,6 +226,10 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
 
     public String createTempFile() throws SQLException {
         return session.getDatabase().createTempFile();
+    }
+    
+    public TempFileDeleter getTempFileDeleter() {
+        return session.getDatabase().getTempFileDeleter();
     }
 
     public String getLobCompressionAlgorithm(int type) {

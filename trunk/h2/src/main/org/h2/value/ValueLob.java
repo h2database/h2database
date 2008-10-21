@@ -158,9 +158,16 @@ public class ValueLob extends Value {
                 remaining = length;
             }
             int len = getBufferSize(handler, compress, remaining);
-            char[] buff = new char[len];
-            len = IOUtils.readFully(in, buff, len);
-            len = len < 0 ? 0 : len;
+            char[] buff;
+            if (len >= Integer.MAX_VALUE) {
+                String data = IOUtils.readStringAndClose(in, -1);
+                buff = data.toCharArray();
+                len = buff.length;
+            } else {
+                buff = new char[len];
+                len = IOUtils.readFully(in, buff, len);
+                len = len < 0 ? 0 : len;
+            }
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = StringUtils.utf8Encode(new String(buff, 0, len));
                 return ValueLob.createSmallLob(Value.CLOB, small);
@@ -342,8 +349,14 @@ public class ValueLob extends Value {
                 remaining = length;
             }
             int len = getBufferSize(handler, compress, remaining);
-            byte[] buff = ByteUtils.newBytes(len);
-            len = IOUtils.readFully(in, buff, 0, len);
+            byte[] buff;
+            if (len >= Integer.MAX_VALUE) {
+                buff = IOUtils.readBytesAndClose(in, -1);
+                len = buff.length;
+            } else {
+                buff = ByteUtils.newBytes(len);
+                len = IOUtils.readFully(in, buff, 0, len);
+            }
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = ByteUtils.newBytes(len);
                 System.arraycopy(buff, 0, small, 0, len);
@@ -369,7 +382,7 @@ public class ValueLob extends Value {
         synchronized (handler) {
             if (handler.getLobFilesInDirectories()) {
                 objectId = getNewObjectId(handler);
-                fileName = getFileNamePrefix(handler.getDatabasePath(), objectId) + ".temp.db";
+                fileName = getFileNamePrefix(handler.getDatabasePath(), objectId) + Constants.SUFFIX_TEMP_FILE;
             } else {
                 objectId = handler.allocateObjectId(false, true);
                 fileName = handler.createTempFile();

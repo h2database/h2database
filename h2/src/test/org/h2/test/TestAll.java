@@ -203,6 +203,16 @@ java org.h2.test.TestAll timer
     public boolean jdk14 = true;
     
     /**
+     * The file trace level value to use.
+     */
+    public int traceLevelFile;
+    
+    /**
+     * If test trace information should be written (for debugging only).
+     */
+    public boolean traceTest;
+    
+    /**
      * If the transaction log files should be kept small (that is, log files
      * should be switched early).
      */
@@ -239,19 +249,9 @@ java org.h2.test.TestAll timer
     boolean endless;
     
     /**
-     * The file trace level value to use.
-     */
-    int traceLevelFile;
-    
-    /**
      * The THROTTLE value to use.
      */
     int throttle;
-
-    /**
-     * If test trace information should be written (for debugging only).
-     */
-    boolean traceTest;
     
     /**
      * If the test should stop when the first error occurs.
@@ -280,12 +280,18 @@ java org.h2.test.TestAll timer
 
 /*
 
+memory problems with in-memory databases (open, close... loop)
+
+simplify translation
+
 use only one icon, not both
 
+http://validator.w3.org/
 test web site (including search, main, web main)
 test with firefox 3, internet explorer, opera, safari, google chrome
 
-don't write stack trace of common exceptions in log file: 23*
+don't write stack trace of common exceptions in log in level ERROR (use info?) file: 23*
+remote and embedded
 
 SET LOG 2:
 Database.logIndexChanges stays; should be updated? need test case
@@ -293,10 +299,6 @@ Database.logIndexChanges stays; should be updated? need test case
 DROP ALL OBJECTS in a loop: memory problem with storageMap
 
 test with 1.0
-
-fix html (use xhtml?)
-http://validator.w3.org/
-
 
 document url parameter open_new
 osgi: create a sample application, test, document

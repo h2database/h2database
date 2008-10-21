@@ -698,7 +698,7 @@ public class Recover extends Tool implements DataHandler {
             for (int i = 0; i < 256; i += 16) {
                 textStorage = (i % 2) == 0;
                 int offset = i / 2;
-                String out = fileName + (textStorage ? ".txt." : ".") + offset + ".data.db";
+                String out = fileName + (textStorage ? ".txt." : ".") + offset + Constants.SUFFIX_DATA_FILE;
                 dumpData(fileName, textStorage, out, offset);
             }
         }

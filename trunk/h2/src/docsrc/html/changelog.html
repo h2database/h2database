@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Self referencing constraints didn't restrict deleting rows that reference
+<ul><li>Common exception (error code 23*) are no longer written to the .trace.db file by default.
+</li><li>In-memory databases don't write LOBs to files any longer.
+</li><li>Self referencing constraints didn't restrict deleting rows that reference
     itself if there is another row that references it.
 </li><li>ResultSetMetaData.getColumnName now returns the alias name except for columns.
 </li><li>Temporary files are now deleted when the database is closed, even
@@ -26,7 +28,8 @@ Change Log
 </li></ul>
 
 <h2>Version 1.1.101 (2008-10-17)</h2>
-<ul><li>Queries with more than 10 tables are now faster.
+<ul><li>Errors with code 42000 - 42999 are no longer written to the trace file by default.
+</li><li>Queries with more than 10 tables are now faster.
 </li><li>Opening a connection with AUTO_SERVER=TRUE is now fast
     when the database is already open in another process  (less than 0.01 seconds
     instead of 2 seconds).

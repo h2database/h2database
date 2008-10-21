@@ -6,6 +6,7 @@
  */
 package org.h2.test.jdbc;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,9 +24,19 @@ public class TestStatement extends TestBase {
 
     private Connection conn;
 
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+    
     public void test() throws SQLException {
         deleteDb("statement");
         conn = getConnection("statement");
+        testTraceError();
         if (config.jdk14) {
             testSavepoint();
         }
@@ -35,6 +46,34 @@ public class TestStatement extends TestBase {
             testIdentity();
         }
         conn.close();
+    }
+    
+    private void testTraceError() throws SQLException {
+        if (config.memory || config.networked || config.traceLevelFile != 0) {
+            return;
+        }
+        Statement stat = conn.createStatement();
+        File trace = new File(baseDir + "/statement.trace.db");
+        stat.execute("DROP TABLE TEST IF EXISTS");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
+        stat.execute("INSERT INTO TEST VALUES(1)");
+        long start = trace.length();
+        try {
+            stat.execute("ERROR");
+        } catch (SQLException e) {
+            // ignore
+        }
+        long error = trace.length();
+        assertSmaller(start, error);
+        start = error;
+        try {
+            stat.execute("INSERT INTO TEST VALUES(1)");
+        } catch (SQLException e) {
+            // ignore
+        }
+        error = trace.length();
+        assertEquals(start, error);
+        stat.execute("DROP TABLE TEST IF EXISTS");
     }
 
     private void testConnectionRollback() throws SQLException {

@@ -151,6 +151,16 @@ public class Trace {
     }
 
     /**
+     * Write a message with trace level INFO to the trace system.
+     * 
+     * @param s the message
+     * @param t the exception
+     */
+    public void info(String s, Throwable t) {
+        traceWriter.write(TraceSystem.INFO, module, s, t);
+    }
+
+    /**
      * Write Java source code with trace level DEBUG to the trace system.
      * 
      * @param java the source code

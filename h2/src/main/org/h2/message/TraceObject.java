@@ -390,7 +390,13 @@ public class TraceObject {
             TraceSystem.traceThrowable(e);
         } else {
             if (e instanceof SQLException) {
-                trace.error("SQLException", e);
+                SQLException e2 = (SQLException) e;
+                int errorCode = e2.getErrorCode(); 
+                if (errorCode >= 23000 && errorCode < 24000) {
+                    trace.info("SQLException", e);
+                } else {
+                    trace.error("SQLException", e);
+                }
                 return (SQLException) e;
             }
             trace.error("Uncaught Exception", e);

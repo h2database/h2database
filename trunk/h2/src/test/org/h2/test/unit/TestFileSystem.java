@@ -27,6 +27,15 @@ import org.h2.test.TestBase;
  */
 public class TestFileSystem extends TestBase {
 
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+    
     public void test() throws Exception {
         testDatabaseInMemFileSys();
         testDatabaseInJar();
@@ -40,6 +49,7 @@ public class TestFileSystem extends TestBase {
     
     private void testDatabaseInMemFileSys() throws SQLException {
         org.h2.Driver.load();
+        deleteDb("fsMem");
         String url = "jdbc:h2:" + baseDir + "/fsMem";
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
         conn.createStatement().execute("CREATE TABLE TEST AS SELECT * FROM DUAL");
@@ -145,7 +155,7 @@ public class TestFileSystem extends TestBase {
         fs.rename(fsBase + "/test3", fsBase + "/test2");
         assertTrue(!fs.exists(fsBase + "/test3"));
         assertTrue(fs.exists(fsBase + "/test2"));
-        assertEquals(fs.length(fsBase + "/test2"), 10000);
+        assertEquals(10000, fs.length(fsBase + "/test2"));
         byte[] buffer2 = new byte[10000];
         InputStream in = fs.openFileInputStream(fsBase + "/test2");
         int pos = 0;
@@ -157,8 +167,8 @@ public class TestFileSystem extends TestBase {
             pos += l;
         }
         in.close();
-        assertEquals(pos, 10000);
-        assertEquals(buffer2, buffer);
+        assertEquals(10000, pos);
+        assertEquals(buffer, buffer2);
 
         assertTrue(fs.tryDelete(fsBase + "/test2"));
         fs.delete(fsBase + "/test");
@@ -171,6 +181,7 @@ public class TestFileSystem extends TestBase {
                 assertTrue(!fs.exists("/testDir"));
             }
         }
+        fs.close();
     }
 
     private void testRandomAccess(String fsBase) throws Exception {
@@ -245,7 +256,7 @@ public class TestFileSystem extends TestBase {
                 ra.close();
                 ra = new RandomAccessFile(file, "rw");
                 f = fs.openFileObject(s, "rw");
-                assertEquals(f.length(), ra.length());
+                assertEquals(ra.length(), f.length());
                 break;
             }
             default:
@@ -253,6 +264,7 @@ public class TestFileSystem extends TestBase {
         }
         f.close();
         ra.close();
+        fs.close();
     }
 
     private void testTempFile(String fsBase) throws Exception {
@@ -273,6 +285,7 @@ public class TestFileSystem extends TestBase {
         assertEquals(in.read(), -1);
         in.close();
         out.close();
+        fs.close();
     }
 
 

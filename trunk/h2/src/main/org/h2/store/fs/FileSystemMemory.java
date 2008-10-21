@@ -11,9 +11,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.h2.message.Message;
 import org.h2.util.IOUtils;
+import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
 
 /**
@@ -23,7 +25,7 @@ import org.h2.util.RandomUtils;
 public class FileSystemMemory extends FileSystem {
 
     private static final FileSystemMemory INSTANCE = new FileSystemMemory();
-    private static final HashMap MEMORY_FILES = new HashMap();
+    private final HashMap memoryFiles = new HashMap();
 
     private FileSystemMemory() {
         // don't allow construction
@@ -40,71 +42,85 @@ public class FileSystemMemory extends FileSystem {
     public void rename(String oldName, String newName) {
         oldName = normalize(oldName);
         newName = normalize(newName);
-        FileObjectMemory f = getMemoryFile(oldName);
-        f.setName(newName);
-        synchronized (MEMORY_FILES) {
-            MEMORY_FILES.remove(oldName);
-            MEMORY_FILES.put(newName, f);
+        synchronized (memoryFiles) {
+            FileObjectMemory f = getMemoryFile(oldName);
+            f.setName(newName);
+            memoryFiles.remove(oldName);
+            memoryFiles.put(newName, f);
         }
     }
 
     public boolean createNewFile(String fileName) {
-        if (exists(fileName)) {
-            return false;
+        synchronized (memoryFiles) {        
+            if (exists(fileName)) {
+                return false;
+            }
+            getMemoryFile(fileName);
         }
-        // creates the file (not thread safe)
-        getMemoryFile(fileName);
         return true;
     }
 
     public boolean exists(String fileName) {
         fileName = normalize(fileName);
-        synchronized (MEMORY_FILES) {
-            return MEMORY_FILES.get(fileName) != null;
+        synchronized (memoryFiles) {
+            return memoryFiles.get(fileName) != null;
         }
     }
 
     public void delete(String fileName) {
         fileName = normalize(fileName);
-        synchronized (MEMORY_FILES) {
-            MEMORY_FILES.remove(fileName);
+        synchronized (memoryFiles) {
+            memoryFiles.remove(fileName);
         }
     }
 
     public boolean tryDelete(String fileName) {    
         fileName = normalize(fileName);
-        synchronized (MEMORY_FILES) {
-            MEMORY_FILES.remove(fileName);
+        synchronized (memoryFiles) {
+            memoryFiles.remove(fileName);
         }
         return true;
     }
 
     public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir) {
         name += ".";
-        for (int i = 0;; i++) {
-            String n = name + (RandomUtils.getSecureLong() >>> 1) + suffix;
-            if (!exists(n)) {
-                // creates the file (not thread safe)
-                getMemoryFile(n);
-                return n;
+        synchronized (memoryFiles) {
+            for (int i = 0;; i++) {
+                String n = name + (RandomUtils.getSecureLong() >>> 1) + suffix;
+                if (!exists(n)) {
+                    getMemoryFile(n);
+                    return n;
+                }
             }
         }
     }
 
     public String[] listFiles(String path) {
-        synchronized (MEMORY_FILES) {
-            String[] list = new String[MEMORY_FILES.size()];
-            FileObjectMemory[] l = new FileObjectMemory[MEMORY_FILES.size()];
-            MEMORY_FILES.values().toArray(l);
-            for (int i = 0; i < list.length; i++) {
-                list[i] = l[i].getName();
+        ObjectArray list = new ObjectArray();
+        synchronized (memoryFiles) {
+            for (Iterator it = memoryFiles.keySet().iterator(); it.hasNext();) {
+                String name = (String) it.next();
+                if (name.startsWith(path)) {
+                    list.add(name);
+                }
             }
-            return list;
+            String[] array = new String[list.size()];
+            list.toArray(array);
+            return array;
         }
     }
 
     public void deleteRecursive(String fileName) throws SQLException {
-        throw Message.getUnsupportedException();
+        fileName = normalize(fileName);
+        synchronized (memoryFiles) {
+            Iterator it = memoryFiles.keySet().iterator();
+            while (it.hasNext()) {
+                String name = (String) it.next();
+                if (name.startsWith(fileName)) {
+                    it.remove();
+                }
+            }
+        }
     }
 
     public boolean isReadOnly(String fileName) {
@@ -201,12 +217,12 @@ public class FileSystemMemory extends FileSystem {
 
     private FileObjectMemory getMemoryFile(String fileName) {
         fileName = normalize(fileName);
-        synchronized (MEMORY_FILES) {
-            FileObjectMemory m = (FileObjectMemory) MEMORY_FILES.get(fileName);
+        synchronized (memoryFiles) {
+            FileObjectMemory m = (FileObjectMemory) memoryFiles.get(fileName);
             if (m == null) {
                 boolean compress = fileName.startsWith(FileSystem.PREFIX_MEMORY_LZF);
                 m = new FileObjectMemory(fileName, compress);
-                MEMORY_FILES.put(fileName, m);
+                memoryFiles.put(fileName, m);
             }
             return m;
         }

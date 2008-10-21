@@ -100,6 +100,7 @@ public class FileSystemDatabase extends FileSystem {
      */
     public void close() {
         JdbcUtils.closeSilently(conn);
+        INSTANCES.remove(url);
     }
 
     private void commit() {
@@ -240,7 +241,6 @@ public class FileSystemDatabase extends FileSystem {
     }
 
     public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
-        name = translateFileName(name);
         name += ".";
         for (int i = 0;; i++) {
             String n = name + i + suffix;

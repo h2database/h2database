@@ -1895,7 +1895,7 @@ public class Database implements DataHandler {
     }
 
     public int getMaxLengthInplaceLob() {
-        return maxLengthInplaceLob;
+        return persistent ? maxLengthInplaceLob : Integer.MAX_VALUE;
     }
 
     public void setIgnoreCase(boolean b) {

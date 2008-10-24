@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Common exception (error code 23*) are no longer written to the .trace.db file by default.
+<ul><li>The French translation of the H2 Console has been improved by Olivier Parent.
+	Thanks a lot!
+</li><li>There was a memory leak when creating and dropping tables and 
+    indexes in a loop (persistent database only).
+</li><li>SET LOG 2 was not effective if executed after opening the database.
+</li><li>Translating the H2 Console is now simpler.
+</li><li>Common exception (error code 23*) are no longer written to the .trace.db file by default.
 </li><li>In-memory databases don't write LOBs to files any longer.
 </li><li>Self referencing constraints didn't restrict deleting rows that reference
     itself if there is another row that references it.

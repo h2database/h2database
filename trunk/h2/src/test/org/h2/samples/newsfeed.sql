@@ -13,6 +13,34 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(52,
+'New version available: 1.1.102 (beta; 2008-10-24)', '2008-10-24 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>The French translation of the H2 Console has been improved by Olivier Parent.
+</li><li>Translating the H2 Console is now simpler.
+</li><li>Common exception (error code 23*) are no longer written to the .trace.db file by default.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>ResultSetMetaData.getColumnName now returns the alias name except for columns.
+</li><li>Temporary files are now deleted when the database is closed, even
+    if they were not garbage collected so far.
+</li><li>There was a memory leak when creating and dropping tables and 
+    indexes in a loop (persistent database only).
+</li><li>SET LOG 2 was not effective if executed after opening the database.
+</li><li>In-memory databases don't write LOBs to files any longer.
+</li><li>Self referencing constraints didn't restrict deleting rows that reference
+    itself if there is another row that references it.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(51,
 'New version available: 1.1.101 (beta; 2008-10-17)', '2008-10-17 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.

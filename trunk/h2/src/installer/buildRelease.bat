@@ -45,6 +45,7 @@ echo %time:~0,8% Done
 
 rem == Test with Hibernate
 rem == Run FindBugs
+rem == buildRelease.bat
 rem == Check docs, versions and links in main, downloads, build numbers
 rem == Check if missing javadocs
 rem == Test installer

@@ -281,7 +281,7 @@ java org.h2.test.TestAll timer
 /*
 
 allow to map TEXT to VARCHAR
-Compatiblity with PostgreSQL: TEXT seems to be VARCHAR there.
+PostgreSQL compatibility: TEXT seems to be VARCHAR there.
 
 http://validator.w3.org/
 test web site (including search, main, web main)

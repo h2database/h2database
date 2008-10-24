@@ -1857,6 +1857,7 @@ public class Database implements DataHandler {
         if (fileIndex != null) {
             fileIndex.setLogChanges(logIndex);
         }
+        logIndexChanges = logIndex;
         if (log != null) {
             log.setDisabled(!logData);
             log.checkpoint();

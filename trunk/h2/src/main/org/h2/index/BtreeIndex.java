@@ -115,6 +115,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     public void remove(Session session) throws SQLException {
         storage.truncate(session);
+        database.removeStorage(storage.getId(), storage.getDiskFile());
         storage = null;
     }
 

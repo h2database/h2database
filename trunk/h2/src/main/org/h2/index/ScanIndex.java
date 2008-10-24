@@ -62,6 +62,7 @@ public class ScanIndex extends BaseIndex {
         truncate(session);
         if (storage != null) {
             storage.truncate(session);
+            database.removeStorage(storage.getId(), storage.getDiskFile());
         }
     }
 

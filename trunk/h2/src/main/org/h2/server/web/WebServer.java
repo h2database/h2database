@@ -7,7 +7,9 @@
 package org.h2.server.web;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -22,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
@@ -126,6 +129,7 @@ public class WebServer implements Service {
     private boolean ifExists;
     private boolean allowScript;
     private boolean trace;
+    private TranslateThread translateThread;
 
     /**
      * Read the given file from the file system or from the resources.
@@ -664,6 +668,72 @@ public class WebServer implements Service {
         session.put("url", conn.getMetaData().getURL());
         String s = (String) session.get("sessionId");
         return url + "/frame.jsp?jsessionid=" + s;
+    }
+    
+    /**
+     * The translate thread reads and writes the file translation.properties
+     * once a second.
+     */
+    private static class TranslateThread extends Thread {
+        
+        private final File file = new File("translation.properties");
+        private final Map translation;
+        private volatile boolean stopNow;
+        
+        TranslateThread(Map translation) {
+            this.translation = translation;
+        }
+        
+        public String getFileName() {
+            return file.getAbsolutePath();
+        }
+        
+        public void stopNow() {
+            this.stopNow = true;
+            try {
+                join();
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+        
+        public void run() {
+            while (!stopNow) {
+                try {
+                    SortedProperties sp = new SortedProperties();
+                    if (file.exists()) {
+                        InputStream in = FileUtils.openFileInputStream(file.getName());
+                        sp.load(in);
+                        translation.putAll(sp);
+                    } else {
+                        OutputStream out = FileUtils.openFileOutputStream(file.getName(), false);
+                        sp.putAll(translation);
+                        sp.store(out, "Translation");
+                    }
+                    Thread.sleep(1000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // ignore
+                }
+            }
+        }
+        
+    }
+    
+    /**
+     * Start the translation thread that reads the file once a second.
+     * 
+     * @param translation the translation map
+     * @return the name of the file to translate
+     */
+    String startTranslate(Map translation) {
+        if (translateThread != null) {
+            translateThread.stopNow();
+        }
+        translateThread = new TranslateThread(translation);
+        translateThread.setDaemon(true);
+        translateThread.start();
+        return translateThread.getFileName();
     }
 
 }

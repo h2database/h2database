@@ -452,6 +452,8 @@ class WebThread extends Thread implements DatabaseEventListener {
                 file = admin();
             } else if ("adminSave.do".equals(file)) {
                 file = adminSave();
+            } else if ("adminStartTranslate.do".equals(file)) {
+                file = adminStartTranslate();
             } else if ("adminShutdown.do".equals(file)) {
                 file = adminShutdown();
             } else if ("autoCompleteList.do".equals(file)) {
@@ -619,6 +621,13 @@ class WebThread extends Thread implements DatabaseEventListener {
             server.traceError(e);
         }
         return "tools.jsp";
+    }
+    
+    private String adminStartTranslate() {
+        Map p = (Map) session.map.get("text");
+        String file = server.startTranslate(p);
+        session.put("translationFile", file);
+        return "helpTranslate.jsp";
     }
 
     private String adminShutdown() {

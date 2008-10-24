@@ -82,6 +82,16 @@ Initial Developer: H2 Group
     <p>
         ${text.adminRestart}
     </p>
+    </form>
+    <hr />
+    <p>
+        <form name="translate" method="post" action="adminStartTranslate.do?jsessionid=${sessionId}">
+            <input type="submit" class="button" value="${text.adminTranslateStart}" />
+        </form>
+    </p>
+    <p>
+        ${text.adminTranslateHelp}
+    </p>
     <hr />
     <h3>
         ${text.adminSessions}
@@ -118,7 +128,6 @@ Initial Developer: H2 Group
             </tr>
         </c:forEach>
     </table>
-    </form>
     <br />
     <form name="shutdown" method="post" action="adminShutdown.do?jsessionid=${sessionId}">
         <input type="submit" class="button" value="${text.adminShutdown}" />

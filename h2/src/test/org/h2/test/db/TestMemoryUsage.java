@@ -23,17 +23,18 @@ public class TestMemoryUsage extends TestBase {
 
     private Connection conn;
 
-    private void reconnect() throws SQLException {
-        if (conn != null) {
-            conn.close();
-        }
-        // Class.forName("org.hsqldb.jdbcDriver");
-        // conn = DriverManager.getConnection("jdbc:hsqldb:test", "sa", "");
-        conn = getConnection("memoryUsage");
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
     }
 
     public void test() throws SQLException {
         deleteDb("memoryUsage");
+        testCreateDropLoop();
         testCreateIndex();
         testClob();
         deleteDb("memoryUsage");
@@ -44,6 +45,35 @@ public class TestMemoryUsage extends TestBase {
         reconnect();
         insertUpdateSelectDelete();
         conn.close();
+    }
+    
+    private void testCreateDropLoop() throws SQLException {
+        conn = getConnection("memoryUsage");
+        Statement stat = conn.createStatement();
+        for (int i = 0; i < 100; i++) {
+            stat.execute("CREATE TABLE TEST(ID INT)");
+            stat.execute("DROP TABLE TEST");
+        }
+        int used = MemoryUtils.getMemoryUsed();
+        for (int i = 0; i < 1000; i++) {
+            stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
+            stat.execute("DROP TABLE TEST");
+        }
+        int usedNow = MemoryUtils.getMemoryUsed();
+        if (usedNow > used * 1.3) {
+            assertEquals(used, usedNow);
+        }
+        conn.close();
+    }
+
+
+    private void reconnect() throws SQLException {
+        if (conn != null) {
+            conn.close();
+        }
+        // Class.forName("org.hsqldb.jdbcDriver");
+        // conn = DriverManager.getConnection("jdbc:hsqldb:test", "sa", "");
+        conn = getConnection("memoryUsage");
     }
 
     private void testClob() throws SQLException {

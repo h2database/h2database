@@ -73,6 +73,7 @@ public class Build extends BuildBase {
         delete("docs");
         mkdir("docs");
         mkdir("bin");
+        delete(getFiles(".").keep("*/Thumbs.db"));
     }
     
     /**

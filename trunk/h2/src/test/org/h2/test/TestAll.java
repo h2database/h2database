@@ -280,23 +280,12 @@ java org.h2.test.TestAll timer
 
 /*
 
-memory problems with in-memory databases (open, close... loop)
-
-simplify translation
-
-use only one icon, not both
+allow to map TEXT to VARCHAR
+Compatiblity with PostgreSQL: TEXT seems to be VARCHAR there.
 
 http://validator.w3.org/
 test web site (including search, main, web main)
 test with firefox 3, internet explorer, opera, safari, google chrome
-
-don't write stack trace of common exceptions in log in level ERROR (use info?) file: 23*
-remote and embedded
-
-SET LOG 2:
-Database.logIndexChanges stays; should be updated? need test case
-        
-DROP ALL OBJECTS in a loop: memory problem with storageMap
 
 test with 1.0
 

@@ -953,9 +953,11 @@ Enabled or disables writing to the log file.
 0: logging is disabled (faster)
 1: logging of the data is enabled, but logging of the index changes is disabled (default)
 2: logging of both data and index changes are enabled
-Logging can be disabled to improve the performance when durability is not important, for example while running tests or when loading the database.
-Warning: It may not be possible to recover the database if logging is disabled and the application terminates abnormally.
-If logging of index changes is enabled, opening a database that was crashed becomes faster because the indexes don't need to be rebuilt.
+Logging can be disabled to improve the performance when durability is not important, 
+for example while running tests or when loading the database.
+Warning: It may not be possible to recover the database if logging is disabled and 
+the application terminates abnormally. If logging of index changes is enabled, 
+opening a database that was crashed becomes faster because the indexes don't need to be rebuilt.
 Admin rights are required to execute this command.
 This setting can be appended to the database URL: jdbc:h2:test;LOG=2
 ","

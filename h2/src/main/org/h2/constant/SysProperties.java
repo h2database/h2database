@@ -105,6 +105,12 @@ public class SysProperties {
     public static final String ALLOWED_CLASSES = getStringSetting("h2.allowedClasses", "*");
 
     /**
+     * System property <code>h2.browser</code> (default: null).<br />
+     * The preferred browser to use. If not set, the default browser is used.
+     */
+    public static final String BROWSER = getStringSetting("h2.browser", null);
+
+    /**
      * System property <code>h2.enableAnonymousSSL</code> (default: true).<br />
      * When using SSL connection, the anonymous cipher suite
      * SSL_DH_anon_WITH_RC4_128_MD5 should be enabled.

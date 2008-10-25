@@ -289,6 +289,8 @@ test with firefox 3, internet explorer, opera, safari, google chrome
 
 test with 1.0
 
+documentation: how can you improve performance (group of settings)
+
 document url parameter open_new
 osgi: create a sample application, test, document
 

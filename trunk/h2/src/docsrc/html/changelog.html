@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,,
+Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
 and under the Eclipse Public License, Version 1.0
 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.1.102 (2008-10-24)</h2>
 <ul><li>The French translation of the H2 Console has been improved by Olivier Parent.
     Thanks a lot!
 </li><li>There was a memory leak when creating and dropping tables and 
@@ -580,20 +584,6 @@ Change Log
 </li><li>The column INFORMATION_SCHEMA.TRIGGERS.SQL now contains the CREATE TRIGGER statement.
 </li><li>Loading classes and calling methods can be restricted using the new system property h2.allowedClasses.
 </li><li>The database could not be used in Java applets due to security exceptions. Fixed.
-</li></ul>
-
-<h2>Version 1.0.63 (2007-12-02)</h2>
-<ul>
-<li>The SecurePassword example has been improved.
-</li><li>In time zones where the summer time saving limit is at midnight, some dates do not work in some virtual machines, for example 2007-10-14 in Chile, using the Sun JVM 1.6.0_03-b05. Fixed.
-</li><li>The native fulltext search was not working properly after re-connecting.
-</li><li>Improved FTP server: now the PORT command is supported.
-</li><li>Temporary views (FROM(...)) with UNION didn't work if nested. Fixed.
-</li><li>Performance optimization for IN(...) and IN(SELECT...), currently disabled by default. To enable, use java -Dh2.optimizeInJoin=true
-</li><li>The H2 Console has been translated to Ukrainian by Igor Dobrovolskyi. Thanks a lot!
-</li><li>New function TABLE_DISTINCT.
-</li><li>Using LIMIT with values close to Integer.MAX_VALUE didn't work correctly.
-</li><li>Certain setting in the Server didn't work (http://code.google.com/p/h2database/issues/detail?id=7).
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

@@ -851,10 +851,15 @@ public class MetaTable extends Table {
             if (dataFile != null) {
                 add(rows, new String[] { "CACHE_TYPE", dataFile.getCache().getTypeName() });
                 if (session.getUser().getAdmin()) {
+                    DiskFile indexFile = database.getIndexFile();
                     add(rows, new String[]{"info.FILE_DISK_WRITE", "" + dataFile.getWriteCount()});
                     add(rows, new String[]{"info.FILE_DISK_READ", "" + dataFile.getReadCount()});
                     add(rows, new String[]{"info.FILE_INDEX_WRITE", "" + database.getIndexFile().getWriteCount()});
                     add(rows, new String[]{"info.FILE_INDEX_READ", "" + database.getIndexFile().getReadCount()});
+                    add(rows, new String[]{"info.CACHE_DATA_MAX_SIZE", "" + dataFile.getCache().getMaxSize()});
+                    add(rows, new String[]{"info.CACHE_DATA_SIZE", "" + dataFile.getCache().getSize()});
+                    add(rows, new String[]{"info.CACHE_INDEX_MAX_SIZE", "" + indexFile.getCache().getMaxSize()});
+                    add(rows, new String[]{"info.CACHE_INDEX_SIZE", "" + indexFile.getCache().getSize()});
                 }
             }
             break;

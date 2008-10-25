@@ -263,6 +263,14 @@ public class CacheLRU implements Cache {
     public String getTypeName() {
         return TYPE_NAME;
     }
+    
+    public int  getMaxSize() {
+        return maxSize;
+    }
+
+    public int getSize() {
+        return sizeMemory;
+    }
 
 }
 

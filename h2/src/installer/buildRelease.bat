@@ -60,7 +60,7 @@ rem == Test all languages
 rem == Scan for viruses
 rem == Upload to SourceForge
 rem == svn commit
-rem == svn copy: /svn/trunk /svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
+rem == svn copy: /svn/trunk /svn/tags/version-1.1.x; Version 1.1.x (yyyy-mm-dd)
 rem == Newsletter: prepare (always to BCC!!)
 rem == Upload to h2database.com, http://code.google.com/p/h2database/downloads/list
 rem == Newsletter: send (always to BCC!!)

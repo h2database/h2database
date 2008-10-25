@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,,
+Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
 and under the Eclipse Public License, Version 1.0
 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
@@ -53,14 +53,13 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
 </li><li>Option for Java functions: [DETERMINISTIC] FOR ... 
 </li><li>Support mixed clustering mode (one embedded, the other server mode)
+</li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
 </li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)
-</li><li>System table / function: cache usage
 </li><li>Add a migration guide (list differences between databases)
 </li><li>Migrate database tool (also from other database engines)
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer
-</li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
 </li><li>Rebuild index functionality (other than delete the index file)
 </li><li>Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory)
 </li><li>Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA)
@@ -69,7 +68,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Test performance again with SQL Server, Oracle, DB2
 </li><li>Test with dbmonster (http://dbmonster.kernelpanic.pl/)
 </li><li>Test with dbcopy (http://dbcopyplugin.sourceforge.net)
-</li><li>Find a tool to view large text file >100 MB, with find, page up and down (like less), truncate before / after
+</li><li>Find a tool to view large text file (larger than 100 MB), with find, page up and down (like less), truncate before / after
 </li><li>Implement, test, document XAConnection and so on
 </li><li>Pluggable data type (for compression, validation, conversion, encryption)
 </li><li>CHECK: find out what makes CHECK=TRUE slow, move to CHECK2

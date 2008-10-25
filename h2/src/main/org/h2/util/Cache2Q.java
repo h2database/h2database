@@ -324,4 +324,12 @@ public class Cache2Q implements Cache {
         return TYPE_NAME;
     }
 
+    public int  getMaxSize() {
+        return maxSize;
+    }
+
+    public int getSize() {
+        return sizeIn + sizeOut + sizeMain;
+    }
+
 }

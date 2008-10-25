@@ -7,6 +7,7 @@
 package org.h2.util;
 
 import java.io.IOException;
+import java.net.URI;
 
 import org.h2.constant.SysProperties;
 
@@ -28,6 +29,36 @@ public class StartBrowser {
         String osName = SysProperties.getStringSetting("os.name", "linux").toLowerCase();
         Runtime rt = Runtime.getRuntime();
         try {
+            String browser = SysProperties.BROWSER;
+            if (browser != null) {
+                if (osName.indexOf("windows") >= 0) {
+                    rt.exec(new String[] { "cmd.exe", "/C",  browser, url });
+                } else {
+                    rt.exec(new String[] { browser, url });
+                }
+                return;
+            }
+            
+            try {
+                Class desktopClass = Class.forName("java.awt.Desktop");
+                // Desktop.isDesktopSupported()
+                Boolean supported = (Boolean) desktopClass.
+                    getMethod("isDesktopSupported", new Class[0]).
+                    invoke(null, new Object[0]);
+                URI uri = new URI(url);
+                if (supported.booleanValue()) {
+                    // Desktop.getDesktop();
+                    Object desktop = desktopClass.getMethod("getDesktop", new Class[0]).
+                        invoke(null, new Object[0]);
+                    // desktop.browse(uri);
+                    desktopClass.getMethod("browse", new Class[] { URI.class }).
+                        invoke(desktop, new Object[] { uri });
+                    return;
+                }
+            } catch (Exception e) {
+                // ignore
+            }
+            
             if (osName.indexOf("windows") >= 0) {
                 rt.exec(new String[] { "rundll32", "url.dll,FileProtocolHandler", url });
             } else if (osName.indexOf("mac") >= 0) {

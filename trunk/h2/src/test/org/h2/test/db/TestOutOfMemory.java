@@ -37,6 +37,9 @@ public class TestOutOfMemory extends TestBase {
         if (config.memory || config.mvcc) {
             return;
         }
+        for (int i = 0; i < 5; i++) {
+            System.gc();
+        }
         deleteDb("outOfMemory");
         Connection conn = getConnection("outOfMemory");
         Statement stat = conn.createStatement();

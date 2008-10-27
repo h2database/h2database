@@ -6,6 +6,8 @@
  */
 package org.h2.util;
 
+import org.h2.constant.SysProperties;
+
 /**
  * This is a utility class with functions to measure the free and used memory.
  */
@@ -14,6 +16,7 @@ public class MemoryUtils {
     private static long lastGC;
     private static final int GC_DELAY = 50;
     private static final int MAX_GC = 8;
+    private static volatile byte[] reserveMemory;
     
     private MemoryUtils() {
         // utility class
@@ -59,5 +62,22 @@ public class MemoryUtils {
             }
         }
     }
+    
+    /**
+     * Allocate a little main memory that is freed up when if no memory is
+     * available, so that rolling back a large transaction is easier.
+     */
+    public static void allocateReserveMemory() {
+        if (reserveMemory == null) {
+            reserveMemory = new byte[SysProperties.RESERVE_MEMORY];
+        }
+    }
+    
+    /**
+     * Free up the reserve memory.
+     */
+    public static void freeReserveMemory() {
+        reserveMemory = null;
+    }    
 
 }

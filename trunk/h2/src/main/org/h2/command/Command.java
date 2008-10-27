@@ -17,6 +17,7 @@ import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
+import org.h2.util.MemoryUtils;
 import org.h2.util.ObjectArray;
 
 /**
@@ -193,7 +194,7 @@ public abstract class Command implements CommandInterface {
     public int executeUpdate() throws SQLException {
         long start = startTime = System.currentTimeMillis();
         Database database = session.getDatabase();
-        database.allocateReserveMemory();
+        MemoryUtils.allocateReserveMemory();
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
         session.waitIfExclusiveModeEnabled();
         synchronized (sync) {
@@ -205,7 +206,7 @@ public abstract class Command implements CommandInterface {
                     try {
                         return update();
                     } catch (OutOfMemoryError e) {
-                        database.freeReserveMemory();
+                        MemoryUtils.freeReserveMemory();
                         throw Message.convert(e);
                     } catch (SQLException e) {
                         if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1) {

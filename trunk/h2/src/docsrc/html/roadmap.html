@@ -32,6 +32,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support large updates (use the transaction log to undo).
 </li><li>Shutdown compact
 </li><li>Server side cursors
+</li><li>Support nested outer joins (see todo.txt).
 </li></ul>
 
 <h2>Priority 2</h2>
@@ -45,6 +46,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Optimize .. OR .. to UNION if the cost is lower
 </li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
 </li><li>Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
+</li><li>Implement INSTEAD OF trigger (for views, tables, metadata tables).
 </li><li>Full outer joins
 </li><li>Support trigger on the tables information_schema.tables and ...columns
 </li><li>Test very large databases and LOBs (up to 256 GB)
@@ -242,7 +244,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Add a role DBA (like ADMIN).
 </li><li>Better support multiple processors for in-memory databases.
 </li><li>Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
-</li><li>Implement INSTEAD OF trigger.
 </li><li>Access rights: Finer grained access control (grant access for specific functions)
 </li><li>Support N'text'
 </li><li>Support SCOPE_IDENTITY() to avoid problems when inserting rows in a trigger

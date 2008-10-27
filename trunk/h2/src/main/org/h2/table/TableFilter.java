@@ -721,5 +721,9 @@ public class TableFilter implements ColumnResolver {
     public Expression optimize(ExpressionColumn expressionColumn, Column column) {
         return expressionColumn;
     }
+    
+    public String toString() {
+        return alias != null ? alias : "" + table;
+    }
 
 }

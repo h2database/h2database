@@ -392,13 +392,11 @@ public abstract class TestBase {
     /**
      * Print a message, prepended with the specified time in milliseconds.
      * 
-     * @param time the milliseconds
+     * @param millis the time in milliseconds
      * @param s the message
      */
-    static void printlnWithTime(long time, String s) {
-        String t = "0000000000" + time;
-        t = t.substring(t.length() - 6);
-        System.out.println(t + " " + s);
+    static void printlnWithTime(long millis, String s) {
+        System.out.println(formatTime(millis) + " " + s);
     }
 
     /**
@@ -410,6 +408,17 @@ public abstract class TestBase {
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         println(dateFormat.format(new java.util.Date()) + " " + s);
     }
+    
+    /**
+     * Format the time in the format hh:mm:ss.1234 where 1234 is milliseconds.
+     * 
+     * @param millis the time in milliseconds
+     * @return the formatted time
+     */
+    static String formatTime(long millis) {
+        return new java.sql.Time(java.sql.Time.valueOf("0:0:0").getTime() + millis).toString() 
+        + "." + ("" + (1000 + (millis % 1000))).substring(1);
+    }    
 
     /**
      * Delete all database files for this database.

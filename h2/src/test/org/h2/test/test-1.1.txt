@@ -1,4 +1,35 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create domain integer as varchar;
+> exception
+
+create domain int as varchar;
+> ok
+
+create domain bit as int;
+> ok
+
+create table test(id bit);
+> ok
+
+script nodata nopasswords nosettings;
+> SCRIPT
+> --------------------------------------------------
+> -- 0 = SELECT COUNT(*) FROM PUBLIC.TEST;
+> CREATE CACHED TABLE PUBLIC.TEST(     ID VARCHAR );
+> CREATE DOMAIN BIT AS VARCHAR;
+> CREATE DOMAIN INT AS VARCHAR;
+> CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
+> rows: 5
+
+drop table test;
+> ok
+
+drop domain int;
+> ok
+
+drop domain bit;
+> ok
+
 create table test(id identity, parent bigint, foreign key(parent) references(id));
 > ok
 

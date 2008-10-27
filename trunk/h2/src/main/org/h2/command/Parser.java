@@ -3272,17 +3272,14 @@ public class Parser {
         } else {
             regular = true;
         }
-        DataType dataType = DataType.getTypeByName(original);
         long precision = -1;
         int displaySize = -1;
         int scale = -1;
         String comment = null;
         Column templateColumn = null;
-        if (dataType == null) {
-            UserDataType userDataType = database.findUserDataType(original);
-            if (userDataType == null) {
-                throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, currentToken);
-            }
+        DataType dataType;
+        UserDataType userDataType = database.findUserDataType(original);
+        if (userDataType != null) {
             templateColumn = userDataType.getColumn();
             dataType = DataType.getDataType(templateColumn.getType());
             comment = templateColumn.getComment();
@@ -3290,6 +3287,11 @@ public class Parser {
             precision = templateColumn.getPrecision();
             displaySize = templateColumn.getDisplaySize();
             scale = templateColumn.getScale();
+        } else {
+            dataType = DataType.getTypeByName(original);
+            if (dataType == null) {
+                throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, currentToken);
+            }
         }
         if (database.getIgnoreCase() && dataType.type == Value.STRING && !"VARCHAR_CASESENSITIVE".equals(original)) {
             original = "VARCHAR_IGNORECASE";

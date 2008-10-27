@@ -14,6 +14,7 @@ import org.h2.engine.Session;
 import org.h2.engine.UserDataType;
 import org.h2.message.Message;
 import org.h2.table.Column;
+import org.h2.value.DataType;
 
 /**
  * This class represents the statement
@@ -51,6 +52,10 @@ public class CreateUserDataType extends DefineCommand {
             if (ifNotExists) {
                 return 0;
             }
+            throw Message.getSQLException(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, typeName);
+        }
+        DataType builtIn = DataType.getTypeByName(typeName);
+        if (builtIn != null && !builtIn.hidden) {
             throw Message.getSQLException(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, typeName);
         }
         int id = getObjectId(false, true);

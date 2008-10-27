@@ -1615,9 +1615,11 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90119</code> is thrown when
-     * trying to create a domain if an object with this name already exists.
+     * trying to create a domain if an object with this name already exists,
+     * or when trying to overload a built-in data type.
      * Example:
      * <pre>
+     * CREATE DOMAIN INTEGER AS VARCHAR;
      * CREATE DOMAIN EMAIL AS VARCHAR CHECK LOCATE('@', VALUE) > 0;
      * CREATE DOMAIN EMAIL AS VARCHAR CHECK LOCATE('@', VALUE) > 0;
      * </pre>

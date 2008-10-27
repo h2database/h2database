@@ -1,3 +1,33 @@
+Nested Outer Joins
+-----------------
+Example:
+create table a(x int);
+create table b(x int);
+create table c(x int, y int);
+insert into a values(1);
+insert into a values(2);
+insert into b values(3);
+insert into c values(1, 3);
+insert into c values(4, 5);
+select * from a left outer join (b left outer join c on b.x = c.y) on a.x = c.x;
+explain select * from a left outer join (b left outer join c on b.x = c.y) on a.x = c.x;
+drop table a;
+drop table b;
+drop table c;
+
+The following doesn't work correctly:
+TableFilter,
+    private void mapAndAddFilter(Expression on) throws SQLException {
+        on.mapColumns(this, 0);
+        if (join == null || on.isEverything(ExpressionVisitor.RESOLVED)) {
+          addFilterCondition(on, true);
+          on.createIndexConditions(session, this);
+        }
+        if (join != null) {
+            join.mapAndAddFilter(on);
+        }
+    }
+
 Auto Upgrade
 -----------------
 file conversion should be done automatically when the new engine connects.  

@@ -92,6 +92,7 @@ import org.h2.test.synth.TestJoin;
 import org.h2.test.synth.TestKill;
 import org.h2.test.synth.TestKillRestart;
 import org.h2.test.synth.TestKillRestartMulti;
+import org.h2.test.synth.TestMultiThreaded;
 import org.h2.test.synth.TestRandomSQL;
 import org.h2.test.synth.TestTimer;
 import org.h2.test.synth.sql.TestSynth;
@@ -280,12 +281,7 @@ java org.h2.test.TestAll timer
 
 /*
 
-allow to map TEXT to VARCHAR
-PostgreSQL compatibility: TEXT seems to be VARCHAR there.
-
-http://validator.w3.org/
-test web site (including search, main, web main)
-test with firefox 3, internet explorer, opera, safari, google chrome
+test web site with firefox 3, internet explorer, opera, safari, google chrome
 
 test with 1.0
 
@@ -295,8 +291,6 @@ document url parameter open_new
 osgi: create a sample application, test, document
 
 merge join test case
-
-osgi (derby, hsqldb)
 
 auto_reconnect
 implemented:
@@ -380,7 +374,7 @@ http://www.w3schools.com/sql/
             test.runTests();
         }
         TestPerformance.main(new String[]{ "-init", "-db", "1"});
-        System.out.println("done (" + (System.currentTimeMillis() - time) + " ms)");
+        System.out.println(TestBase.formatTime(System.currentTimeMillis() - time) + " total");
     }
 
     /**
@@ -579,6 +573,7 @@ http://www.w3schools.com/sql/
         new TestRandomSQL().runTest(this);
         new TestKillRestart().runTest(this);
         new TestKillRestartMulti().runTest(this);
+        new TestMultiThreaded().runTest(this);
 
         // unit
         new TestBitField().runTest(this);

@@ -1199,6 +1199,13 @@ public class DiskFile implements CacheWriter {
                 }
             });
             // first write all deleted entries
+            // because delete entries are always 1 block, 
+            // while not-deleted entries can be many blocks
+            // so for example: 
+            // (A) block: 1 (delete) 
+            // (B) block: 2 (delete) 
+            // (C) block: 1 ('Hello', 2 blocks long)
+            // needs to be written in this order and not (A) (C) (B)
             RedoLogRecord last = null;
             for (int i = 0; i < redoBuffer.size(); i++) {
                 RedoLogRecord entry = (RedoLogRecord) redoBuffer.get(i);

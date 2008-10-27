@@ -18,7 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>New system property h2.browser to set the browser to use.
+<ul><li>Aliases for built-in data types (such as MEDIUMBLOB which is an alias for BLOB) 
+    can now be re-mapped to another data type using CREATE DOMAIN. However 
+    main built-in data types (such as INTEGER) can not be re-mapped.
+</li><li>The Japanese translation has been completed by Masahiro Ikemoto. 
+    Thanks a lot!
+</li><li>Improved PostgreSQL compatibility for NEXTVAL and CURRVAL.
+</li><li>Less heap memory is needed when multiple databases are open at the same time: The memory reserve 
+    (used to rollback after out of memory) is now global and no longer allocated for each database separately.
+</li><li>New system property h2.browser to set the browser to use.
 </li><li>To start the browser, java.awt.Desktop.browse is now used if available.
 </li></ul>
 

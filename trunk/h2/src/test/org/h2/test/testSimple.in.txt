@@ -1,3 +1,13 @@
+create schema test;
+create sequence test.report_id_seq;
+select nextval('"test".REPORT_ID_SEQ');
+> 1;
+select nextval('"test"."report_id_seq"');
+> 2;
+select nextval('test.report_id_seq');
+> 3;
+drop schema test;
+
 create table master(id int primary key);
 create table detail(id int primary key, x bigint, foreign key(x) references master(id) on delete cascade);
 alter table detail alter column x bigint;

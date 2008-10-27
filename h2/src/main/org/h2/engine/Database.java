@@ -154,13 +154,12 @@ public class Database implements DataHandler {
     private boolean multiVersion;
     private DatabaseCloser closeOnExit;
     private Mode mode = Mode.getInstance(Mode.REGULAR);
-    // TODO change in version 1.1
+    // TODO change in version 1.2
     private boolean multiThreaded;
     private int maxOperationMemory = SysProperties.DEFAULT_MAX_OPERATION_MEMORY;
     private boolean lobFilesInDirectories = SysProperties.LOB_FILES_IN_DIRECTORIES;
     private SmallLRUCache lobFileListCache = new SmallLRUCache(128);
     private boolean autoServerMode;
-    private Object reserveMemory;
     private Server server;
     private HashMap linkConnections;
     private TempFileDeleter tempFileDeleter = TempFileDeleter.getInstance();
@@ -2022,7 +2021,8 @@ public class Database implements DataHandler {
     }
 
     public void setMultiThreaded(boolean multiThreaded) throws SQLException {
-        if (multiThreaded && multiVersion) {
+        if (multiThreaded && multiVersion && this.multiThreaded != multiThreaded) {
+            // currently the combination of MVCC and MULTI_THREADED is not supported
             throw Message.getSQLException(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, "MVCC & MULTI_THREADED");
         }
         this.multiThreaded = multiThreaded;
@@ -2059,23 +2059,6 @@ public class Database implements DataHandler {
      */
     public boolean isSysTableLocked() {
         return meta.isLockedExclusively();
-    }
-
-    /**
-     * Allocate a little main memory that is freed up when if no memory is
-     * available, so that rolling back a large transaction is easier.
-     */
-    public void allocateReserveMemory() {
-        if (reserveMemory == null) {
-            reserveMemory = new byte[SysProperties.RESERVE_MEMORY];
-        }
-    }
-    
-    /**
-     * Free up the reserve memory.
-     */
-    public void freeReserveMemory() {
-        reserveMemory = null;
     }
     
     /**

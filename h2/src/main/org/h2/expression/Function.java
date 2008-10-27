@@ -24,6 +24,7 @@ import java.util.TimeZone;
 import java.util.regex.PatternSyntaxException;
 
 import org.h2.command.Command;
+import org.h2.command.Parser;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
@@ -1116,8 +1117,26 @@ public class Function extends Expression implements FunctionCall {
     private Sequence getSequence(Session session, Value v0, Value v1) throws SQLException {
         String schemaName, sequenceName;
         if (v1 == null) {
-            schemaName = session.getCurrentSchemaName();
-            sequenceName = StringUtils.toUpperEnglish(v0.getString());
+            Parser p = new Parser(session);
+            String sql = v0.getString();
+            Expression expr = p.parseExpression(sql);
+            if (expr instanceof ExpressionColumn) {
+                ExpressionColumn seq = (ExpressionColumn) expr;
+                schemaName = seq.getOriginalTableAliasName();
+                if (schemaName == null) {
+                    schemaName = session.getCurrentSchemaName();
+                } else {
+                    if (schemaName.equals(StringUtils.toLowerEnglish(schemaName))) {
+                        schemaName = StringUtils.toUpperEnglish(schemaName);
+                    }
+                }
+                sequenceName = seq.getColumnName();
+                if (sequenceName.equals(StringUtils.toLowerEnglish(sequenceName))) {
+                    sequenceName = StringUtils.toUpperEnglish(sequenceName);
+                }
+            } else {
+                throw Message.getSyntaxError(sql, 1);
+            }
         } else {
             schemaName = v0.getString();
             sequenceName = v1.getString();

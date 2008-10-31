@@ -61,6 +61,7 @@ Newer version or compatible software works too.
 <br /><a name="building"></a>
 <h2>Building the Software</h2>
 <p>
+You need to install a JDK, for example the Sun JDK version 1.4, 1.5 or 1.6.
 On the command line, go to the directory h2 and execute the following command:
 </p>
 <pre>
@@ -69,12 +70,20 @@ build -?
 <p>
 For Linux and OS X, use <code>./build.sh</code> instead of <code>build</code>.
 </p>
-
 <p>
 You will get a list of targets. If you want to build the jar file, execute (Windows):
 </p>
 <pre>
 build jar
+</pre>
+
+<h3>Switching the Source Code</h3>
+<p>
+By default the source code uses Java 1.6 features, however Java 1.4 and 1.5 are supported as well.
+To disable Java 1.6 specific features, run:
+</p>
+<pre>
+build switchSource
 </pre>
 
 <br /><a name="build_targets"></a>

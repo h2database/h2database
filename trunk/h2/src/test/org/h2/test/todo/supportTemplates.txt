@@ -1,3 +1,18 @@
+Benchmark:
+
+Hi,
+
+If you are running benchmarks, could you profile them please? To do that use java -Xrunhprof:cpu=samples,depth=8 ... - and then upload/post the file java.hprof.txt 
+
+If the benchmark application is not a self contained application, another way is to generate 'full thread dumps' (maybe 30 or so) while running the benchmark, and upload them? To get a full thread dump, you can use "kill -QUIT <pid>", or (Windows) press Ctrl+Pause, or (Java 1.6) use jps -l to get the <pid>, and then use jstack <pid>. 
+
+Regards,
+Thomas
+
+-----------------
+
+Can not reproduce:
+
 Hi,
 
 Sorry I can not reproduce this problem. Could you post a simple, standalone test case that reproduces the problem? It would be great if the test case does not have any dependencies except the H2 jar file (that is, a simple SQL script that can be run in the H2 Console, or a Java class uses the JDBC API and is run using a static main method). Please include any initialization code (CREATE TABLE, INSERT and so on) in the Java class or in a .sql script file.

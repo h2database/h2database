@@ -1,4 +1,16 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table parent as select 1 id, 2 x;
+> ok
+
+create table child(id int references parent(id)) as select 1;
+> ok
+
+delete from parent;
+> exception
+
+drop table parent, child;
+> ok
+
 create domain integer as varchar;
 > exception
 

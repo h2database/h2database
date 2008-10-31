@@ -281,6 +281,12 @@ java org.h2.test.TestAll timer
 
 /*
 
+fix TODO multithreaded kernel
+
+*.bat, *.sh: maybe can use wildcards
+
+select last_value from conf.report_id_seq
+
 test web site with firefox 3, internet explorer, opera, safari, google chrome
 
 test with 1.0

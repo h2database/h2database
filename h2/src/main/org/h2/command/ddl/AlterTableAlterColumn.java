@@ -239,11 +239,41 @@ public class AlterTableAlterColumn extends SchemaCommand {
         // can't just use this table, because most column objects are 'shared'
         // with the old table
         // still need a new id because using 0 would mean: the new table tries
-        // to use the rows of the table 0 (the script table)
+        // to use the rows of the table 0 (the meta table)
         int id = -1;
         TableData newTable = getSchema().createTable(tempName, id, newColumns, persistent, false);
         newTable.setComment(table.getComment());
-        execute(newTable.getCreateSQL(), true);
+        StringBuffer buff = new StringBuffer(newTable.getCreateSQL());
+        StringBuffer columnList = new StringBuffer();
+        for (int i = 0; i < newColumns.size(); i++) {
+            Column nc = (Column) newColumns.get(i);
+            if (columnList.length() > 0) {
+                columnList.append(", ");
+            }
+            if (type == ADD && nc == newColumn) {
+                Expression def = nc.getDefaultExpression();
+                columnList.append(def == null ? "NULL" : def.getSQL());
+            } else {
+                columnList.append(nc.getSQL());
+            }
+        }
+        buff.append(" AS SELECT ");
+        if (columnList.length() == 0) {
+            // special case insert into test select * from test
+            buff.append("*");
+        } else {
+            buff.append(columnList);
+        }
+        buff.append(" FROM ");
+        buff.append(table.getSQL());
+        String newTableSQL = buff.toString();
+        try {
+            execute(newTableSQL, true);
+        } catch (SQLException e) {
+            unlinkSequences(newTable);
+            execute("DROP TABLE " + newTable.getSQL(), true);
+            throw e;
+        }        
         newTable = (TableData) newTable.getSchema().getTableOrView(session, newTable.getName());
         ObjectArray children = table.getChildren();
         ObjectArray triggers = new ObjectArray();
@@ -283,51 +313,6 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 }
             }
         }
-        StringBuffer columnList = new StringBuffer();
-        for (int i = 0; i < newColumns.size(); i++) {
-            Column nc = (Column) newColumns.get(i);
-            if (type == ADD && nc == newColumn) {
-                continue;
-            }
-            if (columnList.length() > 0) {
-                columnList.append(", ");
-            }
-            columnList.append(nc.getSQL());
-        }
-        // TODO loop instead of use insert (saves memory)
-        /*
-         *
-         * Index scan = table.getBestPlanItem(null).getIndex(); Cursor cursor =
-         * scan.find(null, null); while (cursor.next()) { Row row =
-         * cursor.get(); Row newRow = newTable.getTemplateRow(); for (int i=0,
-         * j=0; i<columns.length; i++) { if(i == position) { continue; }
-         * newRow.setValue(j++, row.getValue(i)); }
-         * newTable.validateAndConvert(newRow); newTable.addRow(newRow); }
-         */
-        StringBuffer buff = new StringBuffer();
-        buff.append("INSERT INTO ");
-        buff.append(newTable.getSQL());
-        buff.append("(");
-        buff.append(columnList);
-        buff.append(") SELECT ");
-        if (columnList.length() == 0) {
-            // special case insert into test select * from test
-            buff.append("*");
-        } else {
-            buff.append(columnList);
-        }
-        buff.append(" FROM ");
-        buff.append(table.getSQL());
-        String sql = buff.toString();
-        newTable.setCheckForeignKeyConstraints(session, false, false);
-        try {
-            execute(sql, false);
-        } catch (SQLException e) {
-            unlinkSequences(newTable);
-            execute("DROP TABLE " + newTable.getSQL(), true);
-            throw e;
-        }
-        newTable.setCheckForeignKeyConstraints(session, true, false);
         String tableName = table.getName();
         table.setModified();
         for (int i = 0; i < columns.length; i++) {
@@ -340,7 +325,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             }
         }
         for (int i = 0; i < triggers.size(); i++) {
-            sql = (String) triggers.get(i);
+            String sql = (String) triggers.get(i);
             execute(sql, true);
         }
         execute("DROP TABLE " + table.getSQL(), true);

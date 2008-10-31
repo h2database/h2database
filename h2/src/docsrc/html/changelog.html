@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Aliases for built-in data types (such as MEDIUMBLOB which is an alias for BLOB) 
+<ul><li>ALTER TABLE used a lot of memory when using multi-version concurrency.
+</li><li>Referential integrity for in-memory databases didn't work in some cases in version 1.1.102.
+</li><li>New column INFORMATION_SCHEMA.COLUMNS.SEQUENCE_NAME to get the name
+    of the sequence for auto-increment columns.
+</li><li>Aliases for built-in data types (such as MEDIUMBLOB which is an alias for BLOB) 
     can now be re-mapped to another data type using CREATE DOMAIN. However 
     main built-in data types (such as INTEGER) can not be re-mapped.
 </li><li>The Japanese translation has been completed by Masahiro Ikemoto. 

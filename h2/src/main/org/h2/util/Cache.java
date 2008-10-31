@@ -71,7 +71,7 @@ public interface Cache {
     /**
      * Set the maximum memory to be used by this cache.
      *
-     * @param memorySize in number of double words (4 bytes)
+     * @param size in number of double words (4 bytes)
      */
     void setMaxSize(int size) throws SQLException;
 

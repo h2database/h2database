@@ -394,7 +394,7 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 
 "Commands (DDL)","CREATE INDEX","
 CREATE {[UNIQUE [HASH]] INDEX [IF NOT EXISTS] newIndexName
-| PRIMARY KEY [HASH]} ON tableName(columnName [,...])
+| PRIMARY KEY [HASH]} ON tableName(indexColumn [,...])
 ","
 Creates a new index.
 ","
@@ -603,6 +603,7 @@ Drops an existing table, or a list of existing tables.
 ","
 DROP TABLE TEST
 "
+
 "Commands (DDL)","DROP TRIGGER","
 DROP TRIGGER [IF EXISTS] triggerName
 ","
@@ -610,6 +611,7 @@ Drops an existing trigger.
 ","
 DROP TRIGGER TRIG_INS
 "
+
 "Commands (DDL)","DROP USER","
 DROP USER [IF EXISTS] userName
 ","
@@ -620,6 +622,7 @@ For compatibility, only unquoted or uppercase user names are allowed.
 ","
 DROP USER TOM
 "
+
 "Commands (DDL)","DROP VIEW","
 DROP VIEW [IF EXISTS] viewName
 ","
@@ -627,6 +630,7 @@ Drops a view.
 ","
 DROP VIEW TEST_VIEW
 "
+
 "Commands (DDL)","TRUNCATE TABLE","
 TRUNCATE TABLE tableName
 ","
@@ -638,6 +642,7 @@ This command commits an open transaction.
 ","
 TRUNCATE TABLE TEST
 "
+
 "Commands (Other)","COMMIT","
 COMMIT [WORK]
 ","
@@ -645,6 +650,7 @@ Commits a transaction.
 ","
 COMMIT
 "
+
 "Commands (Other)","COMMIT TRANSACTION","
 COMMIT TRANSACTION transactionName
 ","
@@ -654,6 +660,7 @@ This command is part of the 2-phase-commit protocol.
 ","
 COMMIT TRANSACTION XID_TEST
 "
+
 "Commands (Other)","CHECKPOINT","
 CHECKPOINT
 ","
@@ -662,6 +669,7 @@ Admin rights are required to execute this command.
 ","
 CHECKPOINT
 "
+
 "Commands (Other)","CHECKPOINT SYNC","
 CHECKPOINT SYNC
 ","
@@ -670,6 +678,7 @@ Admin rights are required to execute this command.
 ","
 CHECKPOINT SYNC
 "
+
 "Commands (Other)","GRANT RIGHT","
 GRANT {SELECT | INSERT | UPDATE | DELETE | ALL} [,...]
 ON tableName [,...] TO {PUBLIC | userName | roleName}
@@ -679,6 +688,7 @@ Admin rights are required to execute this command.
 ","
 GRANT SELECT ON TEST TO READONLY
 "
+
 "Commands (Other)","GRANT ROLE","
 GRANT roleName TO {PUBLIC | userName | roleName}
 ","
@@ -694,6 +704,7 @@ Displays the help pages of SQL commands or keywords
 ","
 HELP SELECT
 "
+
 "Commands (Other)","PREPARE COMMIT","
 PREPARE COMMIT newTransactionName
 ","
@@ -702,6 +713,7 @@ This command is part of the 2-phase-commit protocol.
 ","
 PREPARE COMMIT XID_TEST
 "
+
 "Commands (Other)","REVOKE RIGHT","
 REVOKE {SELECT | INSERT | UPDATE | DELETE | ALL} [,...]
 ON tableName [,...] FROM {PUBLIC | userName | roleName}
@@ -711,6 +723,7 @@ Admin rights are required to execute this command.
 ","
 REVOKE SELECT ON TEST FROM READONLY
 "
+
 "Commands (Other)","REVOKE ROLE","
 REVOKE roleName
 FROM {PUBLIC | userName | roleName}
@@ -720,6 +733,7 @@ Admin rights are required to execute this command.
 ","
 REVOKE READONLY FROM TOM
 "
+
 "Commands (Other)","ROLLBACK","
 ROLLBACK [TO SAVEPOINT savepointName]
 ","
@@ -728,6 +742,7 @@ If a savepoint name is used, the transaction is only rolled back to the specifie
 ","
 ROLLBACK
 "
+
 "Commands (Other)","ROLLBACK TRANSACTION","
 ROLLBACK TRANSACTION transactionName
 ","
@@ -1279,14 +1294,23 @@ TEST AS T LEFT JOIN TEST AS T1 ON T.ID = T1.ID
 "
 
 "Other Grammar","Order","
-{int | expression} [ASC | DESC]
-[NULLS {FIRST | LAST}]
+{int | expression} [ASC | DESC] [NULLS {FIRST | LAST}]
 ","
 Sorts the result by the given column number, or by an expression.
 If the expression is a single parameter, then the value is interpreted
 as a column number. Negative column numbers reverse the sort order.
 ","
 NAME DESC NULLS LAST
+"
+
+"Other Grammar","Index Column","
+columnName [ASC | DESC] [NULLS {FIRST | LAST}]
+","
+Indexes this column in ascending or descending order. 
+Usually it is not required to specify the order; however doing
+so will speed up large queries that order the column in the same way.
+","
+NAME
 "
 
 "Other Grammar","Expression","
@@ -1296,6 +1320,7 @@ Value or condition.
 ","
 ID=1 OR NAME='Hi'
 "
+
 "Other Grammar","And Condition","
 condition [AND condition]
 ","
@@ -1303,6 +1328,7 @@ Value or condition.
 ","
 ID=1 AND NAME='Hi'
 "
+
 "Other Grammar","Condition","
 operand [conditionRightHandSide]
 | NOT condition
@@ -1312,6 +1338,7 @@ Boolean value or condition.
 ","
 ID<>2
 "
+
 "Other Grammar","Condition Right Hand Side","
 compare { {{ALL|ANY|SOME}(select)} | operand }
 | IS [NOT] NULL
@@ -1335,6 +1362,7 @@ Comparison operator. The operator != is the same as <>.
 ","
 <>
 "
+
 "Other Grammar","Operand","
 summand [ || summand]
 ","
@@ -1342,6 +1370,7 @@ A value or a concatenation of values.
 ","
 'Hi' || ' Eva'
 "
+
 "Other Grammar","Summand","
 factor [{+ | -} factor]
 ","
@@ -1349,6 +1378,7 @@ A value or a numeric sum.
 ","
 ID + 20
 "
+
 "Other Grammar","Factor","
 term [{* | /} term]
 ","
@@ -1356,6 +1386,7 @@ A value or a numeric factor.
 ","
 ID * 10
 "
+
 "Other Grammar","Term","
 value
 | columnName
@@ -1373,6 +1404,7 @@ A value. Parameters can be indexed, for example ?1 meaning the first parameter.
 ","
 'Hello'
 "
+
 "Other Grammar","Value","
 string | dollarQuotedString | hexNumber | int | long | decimal | double |
 date | time | timestamp | boolean | bytes | array | null
@@ -1381,6 +1413,7 @@ A value of any data type, or null
 ","
 10
 "
+
 "Other Grammar","Case","
 CASE expression {WHEN expression THEN expression}
 [...] [ELSE expression] END
@@ -1390,6 +1423,7 @@ If no else part is specified, return NULL
 ","
 CASE CNT WHEN 0 THEN 'No' WHEN 1 THEN 'One' ELSE 'Some' END
 "
+
 "Other Grammar","Case When","
 CASE {WHEN expression THEN expression}
 [...] [ELSE expression] END
@@ -1399,6 +1433,7 @@ If no else part is specified, return NULL
 ","
 CASE WHEN CNT<10 THEN 'Low' ELSE 'High' END
 "
+
 "Other Grammar","Cipher","
 [AES | XTEA]
 ","
@@ -1407,6 +1442,7 @@ The AES algorithm is about half as fast as XTEA.
 ","
 AES
 "
+
 "Other Grammar","Select Expression","
 * | expression [[AS] columnAlias] | tableAlias.*
 ","
@@ -1414,6 +1450,7 @@ An expression in a SELECT statement.
 ","
 ID AS VALUE
 "
+
 "Other Grammar","Data Type","
 intType | booleanType | tinyintType | smallintType | bigintType | identityType |
 decimalType | doubleType | realType | dateType | timeType | timestampType |
@@ -1424,6 +1461,7 @@ A data type definition.
 ","
 INT
 "
+
 "Other Grammar","Name","
 { { A-Z|_ } [ { A-Z|_|0-9} [...] ] } | quotedName
 ","
@@ -1432,6 +1470,7 @@ There is no maximum name length.
 ","
 TEST
 "
+
 "Other Grammar","Alias","
 name
 ","

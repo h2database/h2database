@@ -390,7 +390,9 @@ public class ConstraintReferential extends Constraint {
             Value v = oldRow.getValue(refIdx).convertTo(col.getType());
             check.setValue(idx, v);
         }
-        if (found(session, index, check, oldRow)) {
+        // exclude the row only for self-referencing constraints
+        Row excluding = (refTable == table) ? oldRow : null;
+        if (found(session, index, check, excluding)) {
             throw Message.getSQLException(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1,
                     getShortDescription());
         }

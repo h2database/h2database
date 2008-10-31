@@ -154,6 +154,7 @@ public class MetaTable extends Table {
                     "IS_COMPUTED BIT",
                     "SELECTIVITY INT",
                     "CHECK_CONSTRAINT",
+                    "SEQUENCE_NAME",
                     "REMARKS"
             });
             indexColumnName = "TABLE_NAME";
@@ -657,6 +658,7 @@ public class MetaTable extends Table {
                 String collation = database.getCompareMode().getName();
                 for (int j = 0; j < cols.length; j++) {
                     Column c = cols[j];
+                    Sequence sequence = c.getSequence();
                     add(rows, new String[]{
                             // TABLE_CATALOG
                             catalog, 
@@ -698,6 +700,8 @@ public class MetaTable extends Table {
                             "" + (c.getSelectivity()), 
                             // CHECK_CONSTRAINT
                             c.getCheckConstraintSQL(session, c.getName()),  
+                            // SEQUENCE_NAME
+                            sequence == null ? null : sequence.getName(),
                             // REMARKS
                             replaceNullWithEmpty(c.getComment()) 
                     });

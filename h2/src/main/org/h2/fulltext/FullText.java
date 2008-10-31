@@ -84,8 +84,8 @@ public class FullText implements Trigger {
      * only have one index at any time.
      *
      * @param conn the connection
-     * @param schema the schema name of the table
-     * @param table the table name
+     * @param schema the schema name of the table (case sensitive)
+     * @param table the table name (case sensitive)
      * @param columnList the column list (null for all columns)
      */
     public static void createIndex(Connection conn, String schema, String table, String columnList) throws SQLException {
@@ -101,11 +101,12 @@ public class FullText implements Trigger {
     }
     
     /**
-     * Drop an existing full text index for a table.
-     *
+     * Drop an existing full text index for a table. This method returns
+     * silently if no index for this table exists.
+     * 
      * @param conn the connection
-     * @param schema the schema name of the table
-     * @param table the table name
+     * @param schema the schema name of the table (case sensitive)
+     * @param table the table name (case sensitive)
      */
     public static void dropIndex(Connection conn, String schema, String table) throws SQLException {
         init(conn);

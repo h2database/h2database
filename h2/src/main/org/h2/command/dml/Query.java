@@ -321,6 +321,8 @@ public abstract class Query extends Prepared {
                     throw Message.getSQLException(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL());
                 }
                 expressions.add(e);
+                String sql = e.getSQL();
+                expressionSQL.add(sql);
             }
             o.expression = null;
             o.columnIndexExpr = ValueExpression.get(ValueInt.get(idx + 1));

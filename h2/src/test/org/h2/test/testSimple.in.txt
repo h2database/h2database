@@ -1,3 +1,12 @@
+create table t(d date) as select '2008-11-01' union select '2008-11-02';
+select 1 from t group by year(d) order by year(d);
+> 1;
+drop table t;
+create table t(d int) as select 2001 union select 2002;
+select 1 from t group by d/10 order by d/10;
+> 1;
+drop table t;
+
 create schema test;
 create sequence test.report_id_seq;
 select nextval('"test".REPORT_ID_SEQ');

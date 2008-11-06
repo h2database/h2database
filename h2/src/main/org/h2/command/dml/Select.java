@@ -570,8 +570,8 @@ public class Select extends Query {
     }
 
     private void expandColumnList() throws SQLException {
-        // TODO this works: select distinct count(*) from system_columns group
-        // by table
+        // TODO this works: select distinct count(*) 
+        // from system_columns group by table
         for (int i = 0; i < expressions.size(); i++) {
             Expression expr = (Expression) expressions.get(i);
             if (!expr.isWildcard()) {

@@ -25,10 +25,22 @@ import org.h2.value.ValueTimestamp;
  */
 public class DateTimeUtils {
     
-    private static final Calendar CALENDAR = Calendar.getInstance();
+    private static final int DEFAULT_YEAR = 1970;
+    private static final int DEFAULT_MONTH = 1;
+    private static final int DEFAULT_DAY = 1;
+    private static final int DEFAULT_HOUR = 0;
+    
+    private static Calendar calendar = Calendar.getInstance();
     
     private DateTimeUtils() {
         // utility class
+    }
+    
+    /**
+     * Reset the calendar, for example after changing the default timezone.
+     */
+    public static void resetCalendar() {
+        calendar = Calendar.getInstance();
     }
 
     /**
@@ -55,11 +67,12 @@ public class DateTimeUtils {
      * @return the time value without the date component
      */
     public static Time cloneAndNormalizeTime(Time value) {
-        Calendar cal = CALENDAR;
+        Calendar cal = calendar;
         long time;
         synchronized (cal) {
             cal.setTime(value);
-            cal.set(1970, 0, 1);
+            // month is 0 based
+            cal.set(DEFAULT_YEAR, DEFAULT_MONTH - 1, DEFAULT_DAY);
             time = cal.getTime().getTime();
         }
         return new Time(time);
@@ -73,14 +86,14 @@ public class DateTimeUtils {
      * @return the date value at midnight
      */
     public static Date cloneAndNormalizeDate(Date value) {
-        Calendar cal = CALENDAR;
+        Calendar cal = calendar;
         long time;
         synchronized (cal) {
             cal.setTime(value);
             cal.set(Calendar.MILLISECOND, 0);
             cal.set(Calendar.SECOND, 0);
             cal.set(Calendar.MINUTE, 0);
-            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.HOUR_OF_DAY, DEFAULT_HOUR);
             time = cal.getTime().getTime();
         }
         return new Date(time);
@@ -134,10 +147,12 @@ public class DateTimeUtils {
             throw Message.getInvalidValueException("calendar", null);
         }
         source = (Calendar) source.clone();
-        Calendar universal = Calendar.getInstance();
-        source.setTime(x);
-        convertTime(source, universal);
-        return universal.getTime().getTime();
+        Calendar universal = calendar;
+        synchronized (universal) {
+            source.setTime(x);
+            convertTime(source, universal);
+            return universal.getTime().getTime();
+        }
     }
 
     private static long getLocalTime(java.util.Date x, Calendar target) throws SQLException {
@@ -146,8 +161,10 @@ public class DateTimeUtils {
         }
         target = (Calendar) target.clone();
         Calendar local = Calendar.getInstance();
-        local.setTime(x);
-        convertTime(local, target);
+        synchronized (local) {
+            local.setTime(x);
+            convertTime(local, target);
+        }
         return target.getTime().getTime();
     }
 
@@ -211,7 +228,7 @@ public class DateTimeUtils {
                 }
             }
 
-            int year = 1970, month = 1, day = 1;
+            int year = DEFAULT_YEAR, month = DEFAULT_MONTH, day = DEFAULT_DAY;
             if (type != Value.TIME) {
                 if (s.startsWith("+")) {
                     // +year
@@ -228,7 +245,7 @@ public class DateTimeUtils {
                 int end = timeStart == 0 ? s.length() : timeStart - 1;
                 day = Integer.parseInt(s.substring(s2 + 1, end));
             }
-            int hour = 0, minute = 0, second = 0, nano = 0;
+            int hour = DEFAULT_HOUR, minute = 0, second = 0, nano = 0;
             if (type != Value.DATE) {
                 int s1 = s.indexOf(':', timeStart);
                 int s2 = s.indexOf(':', s1 + 1);
@@ -265,15 +282,32 @@ public class DateTimeUtils {
                     nano = Integer.parseInt(n);
                 }
             }
-            if (hour < 0 || hour > 23) {
-                throw new IllegalArgumentException("hour: " + hour);
-            }
             long time;
             try {
                 time = getTime(false, tz, year, month, day, hour, minute, second, type != Value.TIMESTAMP, nano);
             } catch (IllegalArgumentException e) {
-                // special case: if the time simply doesn't exist, use the lenient version
-                if (e.toString().indexOf("HOUR_OF_DAY") > 0) {
+                // special case: if the time simply doesn't exist because of 
+                // daylight saving time changes, use the lenient version
+                String message = e.toString();
+                if (message.indexOf("HOUR_OF_DAY") > 0) {
+                    if (hour < 0 || hour > 23) {
+                        throw e;
+                    }
+                    time = getTime(true, tz, year, month, day, hour, minute, second, type != Value.TIMESTAMP, nano);
+                } else if (message.indexOf("DAY_OF_MONTH") > 0) {
+                    int maxDay;
+                    if (month == 2) {
+                        maxDay = new GregorianCalendar().isLeapYear(year) ? 29 : 28;
+                    } else {
+                        maxDay = 30 + ((month + (month > 7 ? 1 : 0)) & 1);
+                    }
+                    if (day < 1 || day > maxDay) {
+                        throw e;
+                    }
+                    // DAY_OF_MONTH is thrown for years > 2037 
+                    // using the timezone Brasilia and others, 
+                    // for example for 2042-10-12 00:00:00.
+                    hour += 6;
                     time = getTime(true, tz, year, month, day, hour, minute, second, type != Value.TIMESTAMP, nano);
                 } else {
                     throw e;
@@ -300,27 +334,30 @@ public class DateTimeUtils {
     private static long getTime(boolean lenient, TimeZone tz, int year, int month, int day, int hour, int minute, int second, boolean setMillis, int nano) {
         Calendar c;
         if (tz == null) {
-            c = Calendar.getInstance();
+            c = calendar;
         } else {
             c = Calendar.getInstance(tz);
         }
-        c.setLenient(lenient);
-        if (year <= 0) {
-            c.set(Calendar.ERA, GregorianCalendar.BC);
-            c.set(Calendar.YEAR, 1 - year);
-        } else {
-            c.set(Calendar.YEAR, year);
+        synchronized (c) {
+            c.setLenient(lenient);
+            if (year <= 0) {
+                c.set(Calendar.ERA, GregorianCalendar.BC);
+                c.set(Calendar.YEAR, 1 - year);
+            } else {
+                c.set(Calendar.ERA, GregorianCalendar.AD);
+                c.set(Calendar.YEAR, year);
+            }
+            // january is 0
+            c.set(Calendar.MONTH, month - 1); 
+            c.set(Calendar.DAY_OF_MONTH, day);
+            c.set(Calendar.HOUR_OF_DAY, hour);
+            c.set(Calendar.MINUTE, minute);
+            c.set(Calendar.SECOND, second);
+            if (setMillis) {
+                c.set(Calendar.MILLISECOND, nano / 1000000);
+            }
+            return c.getTime().getTime();
         }
-        // january is 0
-        c.set(Calendar.MONTH, month - 1); 
-        c.set(Calendar.DAY_OF_MONTH, day);
-        c.set(Calendar.HOUR_OF_DAY, hour);
-        c.set(Calendar.MINUTE, minute);
-        c.set(Calendar.SECOND, second);
-        if (setMillis) {
-            c.set(Calendar.MILLISECOND, nano / 1000000);
-        }
-        return c.getTime().getTime();
     }
 
     /**
@@ -332,9 +369,12 @@ public class DateTimeUtils {
      * @return the value
      */
     public static int getDatePart(java.util.Date d, int field) {
-        Calendar c = Calendar.getInstance();
-        c.setTime(d);
-        int value = c.get(field);
+        Calendar c = calendar;
+        int value;
+        synchronized (c) {
+            c.setTime(d);
+            value = c.get(field);
+        }
         if (field == Calendar.MONTH) {
             value++;
         } else if (field == Calendar.YEAR) {

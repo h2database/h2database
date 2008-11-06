@@ -74,7 +74,7 @@ public class TestDate extends TestBase {
         }
     }
 
-    void test(PreparedStatement prep, int d) throws SQLException {
+    private void test(PreparedStatement prep, int d) throws SQLException {
         String s = "2040-10-" + ("" + d).substring(1);
         // some dates don't work in some versions of Java
         //        java.sql.Date date = java.sql.Date.valueOf(s);

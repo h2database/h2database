@@ -384,6 +384,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>ANALYZE: Use a bloom filter for each indexed column to estimate count of distinct values.
 </li><li>ANALYZE: For unique indexes that allow null, count the number of null.
 </li><li>AUTO_SERVER: support changing IP addresses (disable a network while the database is open).
+</li><li>Avoid using java.util.Calendar internally because it's slow, complicated, and seems to be buggy.
 </li></ul>
 
 <h2>Not Planned</h2>

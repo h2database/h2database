@@ -283,7 +283,12 @@ java org.h2.test.TestAll timer
 
 fix TODO multithreaded kernel
 
-*.bat, *.sh: maybe can use wildcards
+remove old TODO
+
+online backup may not work for very large files 
+(document problem with jdk 1.4; document to use jar -xf)
+
+split files (2 GB max size)
 
 select last_value from conf.report_id_seq
 

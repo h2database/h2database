@@ -31,7 +31,7 @@ public class TestMultiThreaded extends TestBase {
     /**
      * Processes random operations.
      */
-    private static class Processor extends Thread {
+    private class Processor extends Thread {
         private int id;
         private Statement stat;
         private Random random;
@@ -46,18 +46,20 @@ public class TestMultiThreaded extends TestBase {
         }
         public void run() {
             int count = 0;
+            ResultSet rs;
             try {
-int test;                
                 while (!isInterrupted()) {
-                    switch(random.nextInt(3)) {
+                    switch(random.nextInt(6)) {
                     case 0:
-//System.out.println("insert " + id + " count: " + count);                              
+                        // insert a row for this connection
+                        trace("insert " + id + " count: " + count);                              
                         stat.execute("INSERT INTO TEST(NAME) VALUES('"+ id +"')");
                         count++;
                         break;
                     case 1:
+                        // delete a row for this connection
                         if (count > 0) {
-//System.out.println("delete " + id + " count: " + count);                         
+                            trace("delete " + id + " count: " + count);                         
                             int updateCount = stat.executeUpdate(
                                     "DELETE FROM TEST WHERE NAME = '"+ id +"' AND ROWNUM()<2");
                             if (updateCount != 1) {
@@ -67,12 +69,28 @@ int test;
                         }
                         break;
                     case 2:
-//System.out.println("select " + id + " count: " + count);                            
-                        ResultSet rs = stat.executeQuery("SELECT COUNT(*) FROM TEST WHERE NAME = '"+ id +"'");
+                        // select the number of rows of this connection
+                        trace("select " + id + " count: " + count);                            
+                        rs = stat.executeQuery("SELECT COUNT(*) FROM TEST WHERE NAME = '"+ id +"'");
                         rs.next();
                         int got = rs.getInt(1);
                         if (got != count) {
                             throw new Error("Expected: " + count + " got: " + got);
+                        }
+                        break;
+                    case 3:
+                        // insert a row
+                        stat.execute("INSERT INTO TEST(NAME) VALUES(NULL)");
+                        break;
+                    case 4:
+                        // delete a row
+                        stat.execute("DELETE FROM TEST WHERE NAME IS NULL");
+                        break;
+                    case 5:
+                        // select rows
+                        rs = stat.executeQuery("SELECT * FROM TEST WHERE NAME IS NULL");
+                        while (rs.next()) {
+                            rs.getString(1);
                         }
                         break;
                     }
@@ -85,21 +103,24 @@ int test;
 
     public void test() throws Exception {
         if (config.mvcc) {
-int test;
             return;
         }
         deleteDb("multiThreaded");
         int size = getSize(2, 4);
-//int size = 10;
         Connection[] connList = new Connection[size];
         for (int i = 0; i < size; i++) {
             connList[i] = getConnection("multiThreaded;MULTI_THREADED=1");
         }
         Connection conn = connList[0];
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
+        stat.execute("SET LOCK_TIMEOUT 10000");
+        stat.execute("CREATE SEQUENCE TEST_SEQ");
+        stat.execute("CREATE TABLE TEST(ID BIGINT DEFAULT NEXT VALUE FOR TEST_SEQ, NAME VARCHAR)");
+        // stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
+        // stat.execute("CREATE INDEX IDX_TEST_NAME ON TEST(NAME)");
         Processor[] processors = new Processor[size];
         for (int i = 0; i < size; i++) {
+            conn = connList[i];
             processors[i] = new Processor(conn, i);
             processors[i].start();
         }

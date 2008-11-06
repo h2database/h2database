@@ -452,6 +452,33 @@ If the server is started within the DbStarter, it will also be stopped automatic
 web application is stopped.
 </p>
 
+<h3>Using the H2 Console Servlet</h3>
+<p>
+The H2 Console is a standalone application and includes its own web server, but it can be 
+used as a servlet as well. To do that, include the the h2 jar file in your application, and
+add the following configuration to your web.xml:
+</p>
+<pre>
+&lt;servlet&gt;
+    &lt;servlet-name&gt;H2Console&lt;/servlet-name&gt;
+    &lt;servlet-class&gt;org.h2.server.web.WebServlet&lt;/servlet-class&gt;
+    &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+&lt;/servlet&gt;
+&lt;servlet-mapping&gt;
+    &lt;servlet-name&gt;H2Console&lt;/servlet-name&gt;
+    &lt;url-pattern&gt;/console/*&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;
+</pre>
+<p>
+For details, see also <code>src/tools/WEB-INF/web.xml</code>.
+</p>
+<p>
+To create a web application that creates just the H2 Console, run the following command:
+</p>
+<pre>
+build warConsole
+</pre>
+
 <br /><a name="csv"></a>
 <h2>CSV (Comma Separated Values) Support</h2>
 <p>

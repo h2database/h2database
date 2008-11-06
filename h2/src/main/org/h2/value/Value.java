@@ -742,11 +742,11 @@ public abstract class Value {
             case DECIMAL:
                 return ValueDecimal.get(new BigDecimal(s.trim()));
             case TIME:
-                return ValueTime.get(ValueTime.parseTime(s.trim()));
+                return ValueTime.getNoCopy(ValueTime.parseTime(s.trim()));
             case DATE:
-                return ValueDate.get(ValueDate.parseDate(s.trim()));
+                return ValueDate.getNoCopy(ValueDate.parseDate(s.trim()));
             case TIMESTAMP:
-                return ValueTimestamp.get(ValueTimestamp.parseTimestamp(s.trim()));
+                return ValueTimestamp.getNoCopy(ValueTimestamp.parseTimestamp(s.trim()));
             case BYTES:
                 return ValueBytes.getNoCopy(ByteUtils.convertStringToBytes(s.trim()));
             case JAVA_OBJECT:

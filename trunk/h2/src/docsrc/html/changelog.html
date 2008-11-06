@@ -18,7 +18,14 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>ALTER TABLE used a lot of memory when using multi-version concurrency.
+<ul><li>Could not order by a formula when the formula was in the group by list 
+	but not in the select list.
+</li><li>Date values that match the daylight saving time end were not allowed in 
+    times zones were the daylight saving time ends at midnight, for years larger than 2037. 
+    Example: timezone Brasilia, date 2042-10-12. This is a problem of Java, however a 
+    workaround is implemented in H2 that solves most problems (except the problems of 
+    java.sql.Date itself).
+</li><li>ALTER TABLE used a lot of memory when using multi-version concurrency.
 </li><li>Referential integrity for in-memory databases didn't work in some cases in version 1.1.102.
 </li><li>New column INFORMATION_SCHEMA.COLUMNS.SEQUENCE_NAME to get the name
     of the sequence for auto-increment columns.

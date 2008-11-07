@@ -39,7 +39,7 @@ public abstract class TestBase {
     /**
      * The test configuration.
      */
-    protected TestAll config;
+    public TestAll config;
     
     /**
      * The time when the test was started.
@@ -363,6 +363,7 @@ public abstract class TestBase {
             e = new Exception(s);
         }
         System.out.println("ERROR: " + s + " " + e.toString() + " ------------------------------");
+        System.out.flush();
         e.printStackTrace();
         try {
             TraceSystem ts = new TraceSystem(null, false);
@@ -377,6 +378,7 @@ public abstract class TestBase {
         } catch (Throwable t) {
             t.printStackTrace();
         }
+        System.err.flush();
     }
 
     /**

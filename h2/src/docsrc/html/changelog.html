@@ -18,13 +18,17 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.1.103 (2008-11-07)</h2>
 <ul><li>Could not order by a formula when the formula was in the group by list 
     but not in the select list.
 </li><li>Date values that match the daylight saving time end were not allowed in 
     times zones were the daylight saving time ends at midnight, for years larger than 2037. 
     Example: timezone Brasilia, date 2042-10-12. This is a problem of Java, however a 
     workaround is implemented in H2 that solves most problems (except the problems of 
-    java.sql.Date itself).
+    java.util.Date itself).
 </li><li>ALTER TABLE used a lot of memory when using multi-version concurrency.
 </li><li>Referential integrity for in-memory databases didn't work in some cases in version 1.1.102.
 </li><li>New column INFORMATION_SCHEMA.COLUMNS.SEQUENCE_NAME to get the name
@@ -575,35 +579,6 @@ Change Log
 </li><li>PostgreSQL compatibility: COUNT(T.*) is now supported.
 </li><li>LIKE comparisons are now faster.
 </li><li>Encrypted databases are now faster.
-</li></ul>
-
-<h2>Version 1.0.64 (2007-12-27)</h2>
-<ul>
-<li>3-way union queries with prepared statement or views could return the wrong results. Fixed.
-</li><li>The PostgreSQL ODBC driver did not work in the last release due to a parser regression. Fixed.
-</li><li>CSV tool: some escape/separator character combinations did not work. Fixed.
-</li><li>CSV tool: the character # could not be used as a separator when reading.
-</li><li>Recovery: when the index file is corrupt, now the database deletes it and re-creates it automatically.
-</li><li>The MVCC mode did not work well with in-memory databases. Fixed.
-</li><li>The FTP server now supports a event listener. Thanks Fulvio Biondi for the help!
-</li><li>New system function CANCEL_SESSION to cancel the currently executing statement of another session.
-</li><li>The database now supports an exclusive mode. In exclusive mode, new connections are rejected.
-</li><li>H2 Console: when editing result sets, columns can now be set to null. The text 'null' must be escaped using '=null'.
-</li><li>New built-in functions RPAD and LPAD.
-</li><li>New meta data table INFORMATION_SCHEMA.SESSIONS and LOCKS to get information about active connections and locks. Admins will see all connections, non-admins only their own session.
-</li><li>The Ukrainian translation was not working in the last release. Fixed.
-</li><li>Creating many tables (many hundreds) was slow. Fixed.
-</li><li>Opening a database with many indexes (thousands) was slow. Fixed.
-</li><li>H2 Console / autocomplete: Ctrl+Space now shows the list in all modes.
-</li><li>The method Trigger.init has been changed: the parameters 'before' and 'type', have been added to the init method.
-</li><li>The performance has been improved for ResultSet methods with column name.
-</li><li>A stack trace was thrown if the system did not provide a quick secure random source and if there is no network or the network settings are not configured. Fixed.
-</li><li>The H2 Console has been translated to Turkish. Thanks a lot to Ridvan Agar!
-</li><li>Improved debugging support: toString methods of most object now return a meaningful text.
-</li><li>The classes DbStarter and WebServlet have been moved to src/main.
-</li><li>The column INFORMATION_SCHEMA.TRIGGERS.SQL now contains the CREATE TRIGGER statement.
-</li><li>Loading classes and calling methods can be restricted using the new system property h2.allowedClasses.
-</li><li>The database could not be used in Java applets due to security exceptions. Fixed.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

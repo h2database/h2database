@@ -493,456 +493,459 @@ sa
 データベースパスワード
 
 @advanced_1164_p
+#To improve performance, please enable 'server side prepare' under Options / Datasource / Page 2 / Server side prepare.
+
+@advanced_1165_p
 この後、このデータソースを使用できます。
 
-@advanced_1165_h3
+@advanced_1166_h3
 PGプロトコルサポートの制限
 
-@advanced_1166_p
+@advanced_1167_p
 現時点では、PostgreSQLネットワークプロトコルのサブセットのみ実装されています。また、カタログ、またはテキストエンコーディングでのSQLレベル上の互換性問題がある可能性があります。問題は発見されたら修正されます。現在、PGプロトコルが使用されている時、ステートメントはキャンセルされません。
 
-@advanced_1167_p
+@advanced_1168_p
 #PostgreSQL ODBC Driver Setup requires a database password; that means it is not possible to connect to H2 databases without password. This is a limitation of the ODBC driver.
 
-@advanced_1168_h3
+@advanced_1169_h3
 セキュリティ考慮
 
-@advanced_1169_p
+@advanced_1170_p
 現在、PGサーバーはchallenge response、またはパスワードの暗号化をサポートしていません。パスワードが読みやすいため、アタッカーがODBCドライバとサーバー間でのデータ転送を傾聴できる場合、これは問題になるでしょう。また、暗号化SSL接続も現在使用不可能です。そのため、ODBCドライバはセキュリティが重視される場面においては使用されるべきではありません。
 
-@advanced_1170_h2
+@advanced_1171_h2
 #Using H2 in Microsoft .NET
 
-@advanced_1171_p
+@advanced_1172_p
 #The database can be used from Microsoft .NET even without using Java, by using IKVM.NET. You can access a H2 database on .NET using the JDBC API, or using the ADO.NET interface.
 
-@advanced_1172_h3
+@advanced_1173_h3
 #Using the ADO.NET API on .NET
 
-@advanced_1173_p
+@advanced_1174_p
 #An implementation of the ADO.NET interface is available in the open source project <a href="http://code.google.com/p/h2sharp">H2Sharp</a> .
 
-@advanced_1174_h3
+@advanced_1175_h3
 #Using the JDBC API on .NET
 
-@advanced_1175_li
+@advanced_1176_li
 #Install the .NET Framework from <a href="http://www.microsoft.com">Microsoft</a> .  Mono has not yet been tested.
 
-@advanced_1176_li
+@advanced_1177_li
 #Install <a href="http://www.ikvm.net">IKVM.NET</a> .
 
-@advanced_1177_li
+@advanced_1178_li
 #Copy the h2.jar file to ikvm/bin
 
-@advanced_1178_li
+@advanced_1179_li
 #Run the H2 Console using: <code>ikvm -jar h2.jar</code>
 
-@advanced_1179_li
+@advanced_1180_li
 #Convert the H2 Console to an .exe file using: <code>ikvmc -target:winexe h2.jar</code> .  You may ignore the warnings.
 
-@advanced_1180_li
+@advanced_1181_li
 #Create a .dll file using (change the version accordingly): <code>ikvmc.exe -target:library -version:1.0.69.0 h2.jar</code>
 
-@advanced_1181_p
+@advanced_1182_p
 #If you want your C# application use H2, you need to add the h2.dll and the IKVM.OpenJDK.ClassLibrary.dll to your C# solution. Here some sample code:
 
-@advanced_1182_h2
+@advanced_1183_h2
 ACID
 
-@advanced_1183_p
+@advanced_1184_p
 データベースの世界では、ACIDとは以下を表しています:
 
-@advanced_1184_li
+@advanced_1185_li
 Atomicity (原子性) : トランザクションはアトミックでなければならず、全てのタスクが実行されたか、実行されないかの どちらかであるという意味です。
 
-@advanced_1185_li
+@advanced_1186_li
 Consistency (一貫性) : 全てのオペレーションは定義された制約に従わなくてはいけません。
 
-@advanced_1186_li
+@advanced_1187_li
 Isolation (独立性 / 分離性) : トランザクションはそれぞれ独立 (隔離) されていなくてはなりません。
 
-@advanced_1187_li
+@advanced_1188_li
 Durability (永続性) : コミットされたトランザクションは失われません。
 
-@advanced_1188_h3
+@advanced_1189_h3
 Atomicity (原子性)
 
-@advanced_1189_p
+@advanced_1190_p
 このデータベースでのトランザクションは常にアトミックです。
 
-@advanced_1190_h3
+@advanced_1191_h3
 Consistency (一貫性)
 
-@advanced_1191_p
+@advanced_1192_p
 このデータベースは常に一貫性のある状態です。 参照整合性のルールは常に実行されます。
 
-@advanced_1192_h3
+@advanced_1193_h3
 Isolation (独立性 / 分離性)
 
-@advanced_1193_p
+@advanced_1194_p
 H2は、他の多くのデータベースシステムと同様に、デフォルトの分離レベルは "read committed" です。これはより良いパフォーマンスを提供しますが、トランザクションは完全に分離されていないということも意味します。H2はトランザクション分離レベル "serializable"、"read committed"、"read uncommitted" をサポートしています。
 
-@advanced_1194_h3
+@advanced_1195_h3
 Durability (永続性)
 
-@advanced_1195_p
+@advanced_1196_p
 このデータベースは、全てのコミットされたトランザクションが電源異常に耐えられるということを保証しません。全てのデータベースが電源異常の状況において、一部トランザクションが失われるということをテストは示しています (詳細は下記をご覧下さい)。トランザクションが失われることを容認できない場面では、ノートパソコン、またはUPS (無停電電源装置) を使用します。永続性がハードウェア異常の起こり得る全ての可能性に対して必要とされるのであれば、H2クラスタリングモードのようなクラスタリングが使用されるべきです。
 
-@advanced_1196_h2
+@advanced_1197_h2
 永続性問題
 
-@advanced_1197_p
+@advanced_1198_p
 完全な永続性とは、全てのコミットされたトランザクションは電源異常に耐えられる、ということを意味します。 いくつかのデータベースは、永続性を保証すると主張していますが、このような主張は誤っています。 永続性テストはH2、HSQLDB、PostgreSQL、Derbyに対して実行されました。これらの全てのデータベースは、 時々コミットされたトランザクションを失います。このテストはH2ダウンロードに含まれています。 org.h2.test.poweroff.Test をご覧下さい。
 
-@advanced_1198_h3
+@advanced_1199_h3
 永続性を実現する (しない) 方法
 
-@advanced_1199_p
+@advanced_1200_p
 失われなかったコミット済みトランザクションは、最初に思うよりもより複雑だということを理解して下さい。 完全な永続性を保障するためには、データベースは、コミットの呼び出しが返ってくる前に ログレコードがハードドライブ上にあることを確実にしなければなりません。 これを行うために、データベースは異なったメソッドを使用します。ひとつは "同期書き込み" ファイルアクセスモードを使用することです。Javaでは、RandomAccessFile はモード "rws" と "rwd" を サポートしています:
 
-@advanced_1200_li
+@advanced_1201_li
 rwd: それぞれのファイル内容の更新は、元になるストレージデバイスと同時に書き込まれます。
 
-@advanced_1201_li
+@advanced_1202_li
 rws: rwdに加えて、それぞれのメタデータの更新は同時に書き込まれます。
 
-@advanced_1202_p
+@advanced_1203_p
 この特徴はDerbyで使用されています。それらのモードのうちのひとつは、テスト (org.h2.test.poweroff.TestWrite) において、毎秒およそ5万件の書き込み操作を実現します。オペレーティングシステムのライトバッファーが無効の時でさえも、 書き込み速度は毎秒およそ5万件です。この特徴はディスクを交換させるというものではありません。 なぜなら、全てのバッファーをフラッシュするのではないからです。テストはファイル内の同じバイトを何度も更新しました。 もしハードドライブがこの速度での書き込みが可能なら、ディスクは少なくても毎秒5万回転か、 または300万 RPM (revolutions per minute 回転毎分) を行う必要があります。 そのようなハードドライブは存在しません。テストで使用されたハードドライブは、およそ7200 RPM、または 毎秒120回転です。これがオーバーヘッドなので、最大書き込み速度はこれより低くなくてはなりません。
 
-@advanced_1203_p
+@advanced_1204_p
 バッファーは fsync 関数を呼ぶことによってフラッシュされます。Javaでこれを行う二つの方法があります:
 
-@advanced_1204_li
+@advanced_1205_li
 FileDescriptor.sync() ドキュメンテーションには、これは強制的に全てのシステムバッファーに基本となる デバイスとの同期を取らせる、と書かれています。このFileDescriptorに関連するバッファーのインメモリでの 変更コピーが全て物理メディアに書かれた後、Syncは返ることになっています。
 
-@advanced_1205_li
+@advanced_1206_li
 FileChannel.force() (JDK 1.4 以来) このメソッドは、強制的にこのチャネルのファイルの更新は それを含むストレージデバイスに書き込まれることを行います。
 
-@advanced_1206_p
+@advanced_1207_p
 #By default, MySQL calls fsync for each commit. When using one of those methods, only around 60 write operations per second can be achieved, which is consistent with the RPM rate of the hard drive used. Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(), data is not always persisted to the hard drive, because most hard drives do not obey fsync(): see <a href="http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252">Your Hard Drive Lies to You</a> . In Mac OS X, fsync does not flush hard drive buffers. See <a href="http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a> . So the situation is confusing, and tests prove there is a problem.
 
-@advanced_1207_p
+@advanced_1208_p
 ハードドライブバッファーを懸命にフラッシュしようと試みると、パフォーマンスは非常に悪いものになります。 最初に、ハードドライブは実際には全てのバッファーをフラッシュしているということを確かめることが必要です。 テストは信頼性ある方法でこれが行われていないことを示しています。その結果、トランザクションの最大数は毎秒およそ60件です。 これらの理由により、H2のデフォルト性質はコミットされたトランザクションの書き込みを遅らせることです。
 
-@advanced_1208_p
+@advanced_1209_p
 H2では、電源異常の後、1秒以上のコミットされたトランザクションが失われます。 この性質を変更するためには。 SET WRITE_DELAY と CHECKPOINT SYNC を使用します。 多くの他のデータベースも同様に遅延コミットをサポートしています。パフォーマンス比較では、 遅延コミットは、サポートする全てのデータベースによって使用されました。
 
-@advanced_1209_h3
+@advanced_1210_h3
 永続性テストを実行する
 
-@advanced_1210_p
+@advanced_1211_p
 このデータベースと他のデータベースの、永続性 / 非永続性テストを行うために、 パッケージ内 org.h2.test.poweroff のテストアプリケーションを使用することができます。 ネットワーク接続の二つのコンピューターがこのテストを実行するのに必要です。 ひとつのコンピューターは、他のコンピューター上でテストアプリケーションが実行されている間 (電源は切られています) ただ聞いています。リスナーアプリケーションのコンピューターは TCP/IP ポートを開き、 次の接続のために聞きます。二つ目のコンピューターは最初リスナーに接続し、データベースを作成して レコードの挿入を開始します。この接続は "autocommit" に設定されます。それぞれのレコード挿入後のコミットが 自動的に行われるという意味です。その後、テストコンピューターはこのレコードの挿入に成功したということを リスナーに通知します。リスナーコンピューターは10秒ごとに最後に挿入されたレコードを表示します。 電源を手動でOFFにしてコンピューターを再起動し、アプリケーションを再び実行します。 多くのケースで、リスナーコンピューターが知る全てのレコードを含むデータベースはないということがわかります。 詳細は、リスナーのソースコードとテストアプリケーションを参照して下さい。
 
-@advanced_1211_h2
+@advanced_1212_h2
 リカバーツールを使用する
 
-@advanced_1212_p
+@advanced_1213_p
 リカバーツールはデータベースが破損している場合においても、 データファイルのコンテンツを復元するために使用されます。現段階では、ログファイルのコンテンツ、 または大きなオブジェクト (CLOB または BLOB) は復元しません。 このツールを実行するには、このコマンドラインをタイプして下さい:
 
-@advanced_1213_p
+@advanced_1214_p
 現在のディレクトリのそれぞれのデータベースのために、テキストファイルが作られます。 このファイルには、データベースのスキーマを再び作成するために、行挿入ステートメント (データのための) と data definition (DDL) ステートメントを含んでいます。このファイルは、行挿入ステートメントが 正しいテーブル名を保持していないため、直接実行するこはできません。そのため、 ファイルは実行する前に手動で前処理を行う必要があります。
 
-@advanced_1214_h2
+@advanced_1215_h2
 ファイルロックプロトコル
 
-@advanced_1215_p
+@advanced_1216_p
 データベースが開かれるときはいつも、データベースが使用中であると他のプロセスに合図するためにロックファイルが作成されます。もしデータベースが閉じられるか、データベースを開いたプロセスが終了するなら、ロックファイルは削除されます。
 
-@advanced_1216_p
+@advanced_1217_p
 特別なケースでは (例えば、停電のためプロセスが正常に終了されなかった場合)、 ロックファイルは作られたプロセスによって削除されません。これは、ロックファイルの存在は、 ファイルロックのための安全なプロトコルではない、ということを意味しています。 しかし、このソフトウェアはデータベースファイルを守るため、challenge-responseプロトコルを使用します。 セキュリティ (同じデータベースファイルは、同時に二つのプロセスによって開かれてはいけない) と シンプリシティー (ロックファイルはユーザーによって手動で削除される必要がない) の両方を備えるために 二つのメソッド (アルゴリズム) が実行されます。二つのメソッドは、"Fileメソッド" と "Socketメソッド" です。
 
-@advanced_1217_h3
+@advanced_1218_h3
 ファイルロックメソッド "File"
 
-@advanced_1218_p
+@advanced_1219_p
 データベースファイルロックのデフォルトメソッドは "Fileメソッド" です。アルゴリズム:
 
-@advanced_1219_li
+@advanced_1220_li
 ロックファイルが存在しない時は、作成されます (アトミックオペレーション File.createNewFile を使用する)。 その時、プロセスは少し (20ms) 待機し、再びファイルをチェックします。 もしファイルがこの間に変更されたら、オペレーションは中止されます。 ロックファイルを作成したすぐ後にプロセスがロックファイルを削除する時、 これはレースコンディションから保護し、三番目のプロセスはファイルを再び作成します。 二つのライターしか存在しなければ、これは起こりません。
 
-@advanced_1220_li
+@advanced_1221_li
 もしファイルが作成されたら、ロックメソッド ("file") でランダムな番号が一緒に挿入されます。 その後、ファイルが他のスレッド/ プロセスによって削除、または 修正された時、定期的にチェックする (デフォルトでは毎秒1回) watchdogスレッドは開始されます。 これが起きる時はいつも、ファイルは古いデータに上書きされます。システムが非常に混み合っている時でさえも、 非検出の状態で処理できないロックファイルを変更するために、watchdogスレッドは最優先に実行します。 しかし、watchdogスレッドはほとんどの時間待機しているため、非常に小さなリソース (CPU time) を使用します。 また、watchdogはハードディスクから読み取りのみ行い、書き込みはしません。
 
-@advanced_1221_li
+@advanced_1222_li
 もしロックファイルが存在し、20ms内に変更されたら、プロセスは数回 (10回以上) 待機します。 まだ変更されていたら、例外が投げられます (データベースはロックされます)。 多数の並列ライターで競合している状態を排除するためにこれが行われます。 その後、ファイルは新しいバージョンに上書きされます。 そして、スレッドは2秒間待機します。もしファイルを保護するwatchdogスレッドが存在したら、 変更は上書きし、このプロセスはデータベースをロックするために機能しなくなります。 しかし、もしwatchdogスレッドが存在しなければ、ロックファイルはこのスレッドによって 書かれたままの状態です。このケースでは、ファイルは削除され、自動的にまた作成されます。 watchdogスレッドはこのケースでは起動され、ファイルはロックされます。
 
-@advanced_1222_p
+@advanced_1223_p
 このアルゴリズムは100以上の並列スレッドでテストされました。いくつかのケースでは、 データベースをロックしようとする多数の並列スレッドが存在する時、それらはしばらくお互いをブロックします (それらのうちどれかがファイルをロックすることができないことを意味します)。 しかし、ファイルは同時に二つのスレッドによってロックされることは決してありません。 しかし、多数の並列スレッド / プロセスを使用することは一般的な使用ケースではありません。 通常、データベースを開くことができなかったり、(速い)ループのやり直しができなかったりした場合、 アプリケーションはユーザーにエラーを投げるべきです。
 
-@advanced_1223_h3
+@advanced_1224_h3
 ファイルロックメソッド "Socket"
 
-@advanced_1224_p
+@advanced_1225_p
 実行される二つ目のロックメカニズムがありますが、 デフォルトでは使用不可です。アルゴリズムは:
 
-@advanced_1225_li
+@advanced_1226_li
 ロックファイルが存在しない時は、作成されます。その時、サーバーソケットは定義されたポートで開かれ、 開かれた状態を保ちます。開かれたデータベースのプロセスのポートとIPアドレスはロックファイルの中に書かれています。
 
-@advanced_1226_li
+@advanced_1227_li
 もしロックファイルが存在し、ロックメソッドが "file" なら、ソフトウェアは "file" メソッドにスイッチします。
 
-@advanced_1227_li
+@advanced_1228_li
 もしロックファイルが存在し、ロックメソッドが "socket" なら、プロセスはポートが使用されているかチェックします。 最初のプロセスがまだ実行されていたら、ポートは使用されていれ、このプロセスは例外を投げます (database is in use)。 最初のプロセスが失われたら (例えば、停電または、仮想マシンの異常終了のため)、ポートは解除されます。 新しいプロセスはロックファイルを削除し、再び起動します。
 
-@advanced_1228_p
+@advanced_1229_p
 このメソッドは、活発に毎秒同じファイルをポーリングする (読み込む) watchdogスレッドを必要としていません。 このメソッドの問題は、ファイルがネットワークシェアに保存されたら、二つのプロセスは (異なるコンピューターで実行中の)、 TCP/IP接続を直接保持していなければ、同じデータベースファイルを開くことができます。
 
-@advanced_1229_h2
+@advanced_1230_h2
 SQLインジェクションに対する防御
 
-@advanced_1230_h3
+@advanced_1231_h3
 SQLインジェクションとは
 
-@advanced_1231_p
+@advanced_1232_p
 このデータベースエンジンは "SQLインジェクション" として知られる セキュリティ脆弱性の解決策を備えています。 これは、SQLインジェクションの意味とは何か、 についての短い説明です。いくつかのアプリケーションは、エンベッドユーザーがこのように入力する SQLステートメントを構築します:
 
-@advanced_1232_p
+@advanced_1233_p
 このメカニズムがアプリケーションのどこかで使用され、ユーザー入力が正しくないフィルター処理、 またはエンベッドなら、ユーザーはパスワード: ' OR ''=' のような (この例の場合) 特別に作られた入力を使用することによって、SQLの機能、またはステートメントに入り込むことが可能です。 このケースでは、ステートメントはこのようになります:
 
-@advanced_1233_p
+@advanced_1234_p
 データベースに保存されたパスワードが何であっても、これは常に正しいものになります。 SQLインジェクションについての詳細は、用語集とリンク をご覧下さい。
 
-@advanced_1234_h3
+@advanced_1235_h3
 リテラルを無効にする
 
-@advanced_1235_p
+@advanced_1236_p
 ユーザー入力が直接SQLステートメントに組み込まれなければ、 SQLインジェクションは不可能です。上記の問題の簡単な解決方法は、PreparedStatementを使用することです:
 
-@advanced_1236_p
+@advanced_1237_p
 このデータベースは、ユーザー入力をデータベースに通す時、パラメータの使用を強制する方法を提供しています。 SQLステートメントの組み込まれたリテラルを無効にすることでこれを実行します。 次のステートメントを実行します:
 
-@advanced_1237_p
+@advanced_1238_p
 #Afterwards, SQL statements with text and number literals are not allowed any more. That means, SQL statement of the form WHERE NAME='abc' or WHERE CustomerId=10 will fail. It is still possible to use PreparedStatements and parameters as described above. Also, it is still possible to generate SQL statements dynamically, and use the Statement API, as long as the SQL statements do not include literals. There is also a second mode where number literals are allowed: SET ALLOW_LITERALS NUMBERS. To allow all literals, execute SET ALLOW_LITERALS ALL (this is the default setting). Literals can only be enabled or disabled by an administrator.
 
-@advanced_1238_h3
+@advanced_1239_h3
 定数を使用する
 
-@advanced_1239_p
+@advanced_1240_p
 リテラルを無効にするということは、ハードコード化された "定数" リテラルを無効にする、 ということも意味します。このデータベースは、CREATE CONSTANT コマンドを使用して定数を定義することをサポートしています。 定数はリテラルが有効であるときのみ定義することができますが、リテラルが無効の時でも使用することができます。 カラム名の名前の衝突を避けるために、定数は他のスキーマで定義できます:
 
-@advanced_1240_p
+@advanced_1241_p
 リテラルが有効の時でも、クエリーやビューの中でハードコード化された数値リテラル、 またはテキストリテラルの代わりに、定数を使用する方がより良いでしょう。With 定数では、タイプミスはコンパイル時に発見され、ソースコードは理解、変更しやすくなります。
 
-@advanced_1241_h3
+@advanced_1242_h3
 ZERO() 関数を使用する
 
-@advanced_1242_p
+@advanced_1243_p
 組み込み関数 ZERO() がすでにあるため、 数値 0 のための定数を作る必要はありません:
 
-@advanced_1243_h2
+@advanced_1244_h2
 #Restricting Class Loading and Usage
 
-@advanced_1244_p
+@advanced_1245_p
 #By default there is no restriction on loading classes and executing Java code for admins. That means an admin may call system functions such as System.setProperty by executing:
 
-@advanced_1245_p
+@advanced_1246_p
 #To restrict users (including admins) from loading classes and executing code, the list of allowed classes can be set in the system property h2.allowedClasses in the form of a comma separated list of classes or patterns (items ending with '*'). By default all classes are allowed. Example:
 
-@advanced_1246_p
+@advanced_1247_p
 #This mechanism is used for all user classes, including database event listeners, trigger classes, user-defined functions, user-defined aggregate functions, and JDBC driver classes (with the exception of the H2 driver) when using the H2 Console.
 
-@advanced_1247_h2
+@advanced_1248_h2
 セキュリティプロトコル
 
-@advanced_1248_p
+@advanced_1249_p
 次の文章は、このデータベースで使用されている セキュリティプロトコルのドキュメントです。これらの記述は非常に専門的で、 根本的なセキュリティの基本をすでに知っているセキュリティ専門家のみを対象としています。
 
-@advanced_1249_h3
+@advanced_1250_h3
 ユーザーパスワードの暗号化
 
-@advanced_1250_p
+@advanced_1251_p
 ユーザーがデータベースに接続しようとする時、ユーザー名の組み合わせ、@、パスワードは SHA-256 を使用してハッシュ化され、このハッシュ値はデータベースに送信されます。 この手順は、クライアントとサーバー間の転送をアタッカーが聞ける (非暗号化できる) のであれば、 再使用する値からのアタッカーを試みることはありません。しかし、パスワードはクライアントとサーバー間で 暗号化されていない接続を使用している時でさえも、プレーンテキストで送信されることはありません これはもしユーザーが、異なる場面で同じパスワードを再利用しても、このパスワードはある程度まで保護されます。 詳細は"RFC 2617 - HTTP Authentication: Basic and Digest Access Authentication" もご覧下さい。
 
-@advanced_1251_p
+@advanced_1252_p
 新しいデータベース、またはユーザーが作られた時、暗号化された安全なランダムの 新しいsalt値が生成されます。salt値のサイズは 64 bit です。 ランダムなsaltを使用することによって、多数の異なった (通常、使用された) パスワードのハッシュ値を アタッカーに再計算されるリスクが軽減します。
 
-@advanced_1252_p
+@advanced_1253_p
 ユーザーパスワードのハッシュ値の組み合わせと (上記をご覧下さい) saltは SHA-256を使用してハッシュ化されます。 結果の値はデータベースに保存されます。ユーザーがデータベースに接続しようとする時、 データベースは、保存されたsalt値のユーザーパスワードのハッシュ値と計算されたハッシュ値を結合します。 他の製品は複数の反復 (ハッシュ値を繰り返しハッシュする) を使用していますが、 この製品ではサービス攻撃の拒絶 (アタッカーが偽のパスワードで接続しようとするところや、 サーバーがそれぞれのパスワードのハッシュ値を計算するのに長い時間費やすところ) のリスクを軽減するのに これは使用しません。理由は: もしアタッカーがハッシュ化されたパスワードにアクセスしたら、 プレーンテキストのデータにもアクセスできるため、パスワードはもはや必要ではなくなってしまいます。 もしデータが、保存されている他のコンピューターによって保護されていて、遠隔のみであるなら、 反復回数は全く必要とされません。
 
-@advanced_1253_h3
+@advanced_1254_h3
 ファイル暗号化
 
-@advanced_1254_p
+@advanced_1255_p
 データベースファイルは二つの異なるアルゴリズムを使用して、暗号化されます: AES-128 と XTEA です (32 ラウンドを使用)。 XTEAをサポートする理由はパフォーマンス (XTEAはAESのおよそ二倍の速さです) と、AESが突然壊れた場合、代わりとなるアルゴリズムを 持っているからです。
 
-@advanced_1255_p
+@advanced_1256_p
 ユーザーが暗号化されたデータベースに接続しようとした時、"file" という単語と、@と、 ファイルパスワードの組み合わせは、SHA-256を使用してハッシュ化されます。 このハッシュ値はサーバーに送信されます。
 
-@advanced_1256_p
+@advanced_1257_p
 新しいデータベースファイルが作られた時、暗号化された安全なランダムの新しいsalt値が生成されます。 このsaltのサイズは 64 bitです。ファイルパスワードのハッシュとsalt値の組み合わせは、 SHA-256を使用して1024回ハッシュ化されます。反復の理由は、アタッカーが通常のパスワードの ハッシュ値を計算するよりも困難にするためです。
 
-@advanced_1257_p
+@advanced_1258_p
 ハッシュ値の結果は、ブロック暗号アルゴリズム (AES-128、または 32ラウンドのXTEA) のためのキーとして 使用されます。その時、初期化ベクター (IV) キーは、再びSHA-256を使用してキーをハッシュ化することによって 計算されます。IVはアタッカーに知らないということを確認して下さい。秘密のIVを使用する理由は、 ウォーターマークアタック (電子透かし攻撃) を防御するためです。
 
-@advanced_1258_p
+@advanced_1259_p
 データのブロックを保存する前に (それぞれのブロックは 8 バイト長)、次のオペレーションを 実行します: 最初に、IVはIVキー (同じblock cipher algorithmを使用して) でブロックナンバーを 暗号化することによって計算されます。このIVはXORを使用してプレーンテキストと併用されます。 結果データはAES-128、またはXTEAアルゴリズムを使用して暗号化されます。
 
-@advanced_1259_p
+@advanced_1260_p
 復号化の時、オペレーションは反対に行われます。最初に、ブロックはキーを使用して復号化され、 その時、IVはXORを使用して復号化テキストと併用されます。
 
-@advanced_1260_p
+@advanced_1261_p
 その結果、オペレーションのブロック暗号モードはCBT (Cipher-block chaining) ですが、 それぞれの連鎖はたったひとつのブロック長です。ECB (Electronic codebook) モードに優る利点は、 データのパターンが明らかにされない点で、複数のブロックCBCに優る利点は、 はじき出された暗号テキストビットは次のブロックではじき出されたプレーンテキストビットに伝播されないという点です。
 
-@advanced_1261_p
+@advanced_1262_p
 データベース暗号化は、使用されていない間は (盗まれたノートパソコン等) 安全なデータベースだということを 意味します。これは、データベースが使用されている間に、アタッカーがファイルにアクセスしたというケースを 意味するのではありません。アタッカーが書き込みアクセスをした時、例えば、 彼はファイルの一部を古いバージョンに置き換え、データをこのように操ります。
 
-@advanced_1262_p
+@advanced_1263_p
 ファイル暗号化はデータベースエンジンのパフォーマンスを低速にします。非暗号化モードと比較すると、 データベースオペレーションは、XTEAを使用する時はおよそ2.2倍長くかかり、 AESを使用する時は2.5倍長くかかります (エンベッドモード)。
 
-@advanced_1263_h3
+@advanced_1264_h3
 #Wrong Password Delay
 
-@advanced_1264_p
+@advanced_1265_p
 #To protect against remote brute force password attacks, the delay after each unsuccessful login gets double as long. Use the system properties h2.delayWrongPasswordMin and h2.delayWrongPasswordMax to change the minimum (the default is 250 milliseconds) or maximum delay (the default is 4000 milliseconds, or 4 seconds). The delay only applies for those using the wrong password. Normally there is no delay for a user that knows the correct password, with one exception: after using the wrong password, there is a delay of up (randomly distributed) the same delay as for a wrong password. This is to protect against parallel brute force attacks, so that an attacker needs to wait for the whole delay. Delays are synchronized. This is also required to protect against parallel attacks.
 
-@advanced_1265_h3
+@advanced_1266_h3
 HTTPS 接続
 
-@advanced_1266_p
+@advanced_1267_p
 webサーバーは、SSLServerSocketを使用したHTTP と HTTPS接続をサポートします。 簡単に開始できるように、デフォルトの自己認証された証明書がありますが、 カスタム証明書も同様にサポートされています。
 
-@advanced_1267_h2
+@advanced_1268_h2
 SSL/TLS 接続
 
-@advanced_1268_p
+@advanced_1269_p
 遠隔SSL/TLS接続は、Java Secure Socket Extension (SSLServerSocket / SSLSocket) の使用をサポートしています。デフォルトでは、匿名のSSLは使用可能です。デフォルトの暗号化パッケージソフトは SSL_DH_anon_WITH_RC4_128_MD5 です。
 
-@advanced_1269_p
+@advanced_1270_p
 #To use your own keystore, set the system properties <code>javax.net.ssl.keyStore</code> and <code>javax.net.ssl.keyStorePassword</code> before starting the H2 server and client. See also <a href="http://java.sun.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#CustomizingStores">Customizing the Default Key and Trust Stores, Store Types, and Store Passwords</a> for more information.
 
-@advanced_1270_p
+@advanced_1271_p
 #To disable anonymous SSL, set the system property <code>h2.enableAnonymousSSL</code> to false.
 
-@advanced_1271_h2
+@advanced_1272_h2
 汎用一意識別子 (UUID)
 
-@advanced_1272_p
+@advanced_1273_p
 このデータベースはUUIDをサポートしています。 また、暗号化強力疑似乱数ジェネレーターを使用して新しいUUIDを作成する関数をサポートしています。 同じ値をもつ二つの無作為なUUIDが存在する可能性は、確率論を使用して計算されることができます。 "Birthday Paradox" もご覧下さい。標準化された無作為に生成されたUUIDは、122の無作為なビットを保持しています。 4ビットはバージョン(無作為に生成されたUUID) に、2ビットはバリアント (Leach-Salz) に使用されます。 このデータベースは組み込み関数 RANDOM_UUID() を使用してこのようなUUIDを生成することをサポートしています。 ここに、値の数字が生成された後、二つの 同一のUUIDが生じる可能性を見積もる小さなプログラムがあります:
 
-@advanced_1273_p
+@advanced_1274_p
 いくつかの値は:
 
-@advanced_1274_p
+@advanced_1275_p
 人の隕石に衝突するという年に一度の危険性は、170億に一回と見積もられ、それは、確率がおよそ 0.000'000'000'06 だということを意味しています。
 
-@advanced_1275_h2
+@advanced_1276_h2
 システムプロパティから読み込まれた設定
 
-@advanced_1276_p
+@advanced_1277_p
 いくつかのデータベースの設定は、-DpropertyName=value を使用してコマンドラインで設定することができます。 通常、これらの設定は手動で変更することは必要とされていません。設定は大文字と小文字を区別しています。 例:
 
-@advanced_1277_p
+@advanced_1278_p
 #The current value of the settings can be read in the table INFORMATION_SCHEMA.SETTINGS.
 
-@advanced_1278_p
+@advanced_1279_p
 #For a complete list of settings, see <a href="../javadoc/org/h2/constant/SysProperties.html">SysProperties</a> .
 
-@advanced_1279_h2
+@advanced_1280_h2
 #Setting the Server Bind Address
 
-@advanced_1280_p
+@advanced_1281_p
 #Usually server sockets accept connections on any/all local addresses. This may be a problem on multi-homed hosts. To bind only to one address, use the system property h2.bindAddress. This setting is used for both regular server sockets and for SSL server sockets. IPv4 and IPv6 address formats are supported.
 
-@advanced_1281_h2
+@advanced_1282_h2
 #Limitations
 
-@advanced_1282_p
+@advanced_1283_p
 #This database has the following known limitations:
 
-@advanced_1283_li
+@advanced_1284_li
 #The maximum file size is currently 256 GB for the data, and 256 GB for the index. This number is excluding BLOB and CLOB data: Every CLOB or BLOB can be up to 256 GB as well.
 
-@advanced_1284_li
+@advanced_1285_li
 #The maximum file size for FAT or FAT32 file systems is 4 GB. That means when using FAT or FAT32, the limit is 4 GB for the data. This is the limitation of the file system, and this database does not provide a workaround for this problem. The suggested solution is to use another file system.
 
-@advanced_1285_li
+@advanced_1286_li
 #There is a limit on the complexity of SQL statements. Statements of the following form will result in a stack overflow exception:
 
-@advanced_1286_li
+@advanced_1287_li
 #There is no limit for the following entities, except the memory and storage capacity:  maximum identifier length, maximum number of tables, maximum number of columns,  maximum number of indexes, maximum number of parameters,  maximum number of triggers, and maximum number of other database objects.
 
-@advanced_1287_li
+@advanced_1288_li
 #For limitations on data types, see the documentation of the respective Java data type  or the data type documentation of this database.
 
-@advanced_1288_h2
+@advanced_1289_h2
 用語集とリンク
 
-@advanced_1289_th
+@advanced_1290_th
 用語
 
-@advanced_1290_th
+@advanced_1291_th
 説明
 
-@advanced_1291_td
+@advanced_1292_td
 AES-128
 
-@advanced_1292_td
+@advanced_1293_td
 ブロック暗号化アルゴリズム。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
 
-@advanced_1293_td
+@advanced_1294_td
 Birthday Paradox
 
-@advanced_1294_td
+@advanced_1295_td
 部屋にいる二人が同じ誕生日の可能性が期待された以上に高いということを説明する。 また、有効なランダムに生成されたUUID。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
 
-@advanced_1295_td
+@advanced_1296_td
 Digest
 
-@advanced_1296_td
+@advanced_1297_td
 パスワードを保護するプロトコル (データは保護しません)。こちらもご覧下さい:<a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
 
-@advanced_1297_td
+@advanced_1298_td
 GCJ
 
-@advanced_1298_td
+@advanced_1299_td
 JavaのGNUコンパイラー<a href="http://gcc.gnu.org/java/">http://gcc.gnu.org/java/</a> and <a href="http://nativej.mtsystems.ch">http://nativej.mtsystems.ch/ (not free any more)</a>
 
-@advanced_1299_td
+@advanced_1300_td
 HTTPS
 
-@advanced_1300_td
+@advanced_1301_td
 セキュリティをHTTP接続に提供するプロトコル。こちらもご覧下さい: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
 
-@advanced_1301_td
+@advanced_1302_td
 Modes of Operation
 
-@advanced_1302_a
+@advanced_1303_a
 Wikipedia: Block cipher modes of operation
 
-@advanced_1303_td
+@advanced_1304_td
 Salt
 
-@advanced_1304_td
+@advanced_1305_td
 パスワードのセキュリティを増大する乱数。こちらもご覧下さい: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
 
-@advanced_1305_td
+@advanced_1306_td
 SHA-256
 
-@advanced_1306_td
+@advanced_1307_td
 暗号化の一方方向のハッシュ関数。こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
 
-@advanced_1307_td
+@advanced_1308_td
 SQLインジェクション
 
-@advanced_1308_td
+@advanced_1309_td
 組み込みのユーザー入力でアプリケーションがSQLステートメントを生成するセキュリティ脆弱性 こちらもご覧下さい:<a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
 
-@advanced_1309_td
+@advanced_1310_td
 Watermark Attack (透かし攻撃)
 
-@advanced_1310_td
+@advanced_1311_td
 復号化することなくあるデータの存在を証明できる、ある暗号化プログラムのセキュリティ問題。 詳細は、インターネットで "watermark attack cryptoloop" を検索して下さい。
 
-@advanced_1311_td
+@advanced_1312_td
 SSL/TLS
 
-@advanced_1312_td
+@advanced_1313_td
 Secure Sockets Layer / Transport Layer Security。こちらもご覧下さい: <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
 
-@advanced_1313_td
+@advanced_1314_td
 XTEA
 
-@advanced_1314_td
+@advanced_1315_td
 ブロック暗号化アルゴリズム。こちらもご覧下さい: <a href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
 
 @build_1000_h1
@@ -5485,7 +5488,7 @@ Sourceファイル
 #SeQuaLite
 
 @links_1163_p
-#A free, light-weight, java data access framework released under GPL.
+#A free, light-weight, java data access framework.
 
 @links_1164_a
 #ShapeLogic

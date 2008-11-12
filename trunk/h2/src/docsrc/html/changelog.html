@@ -18,7 +18,14 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>The database now tries to detect if the classloader or virtual machine has 
+    almost shut down by checking if static final variables are set to null.
+</li><li>Compatibility for MS SQL Server DATEDIFF(YYYY, .., ..)
+</li><li>ResultSet.getObject for CLOB or BLOB will return a java.sql.Clob / java.sql.Blob object instead of
+    a java.io.Reader / java.io.InputStream as in version 1.0. This behavior can be changed using the system
+    property h2.returnLobObjects (true by default for version 1.1).
+</li><li>The interface CloseListener has a new method 'remove' that is called when the trigger is dropped.
+</li><li>Fulltext search: there was a memory leak when creating and dropping fulltext indexes in a loop.
 </li></ul>
 
 <h2>Version 1.1.103 (2008-11-07)</h2>

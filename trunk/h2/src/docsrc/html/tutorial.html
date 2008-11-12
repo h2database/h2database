@@ -18,6 +18,8 @@ Tutorial
 <h1>Tutorial</h1>
 <a href="#tutorial_starting_h2_console">
     Starting and Using the H2 Console</a><br />
+<a href="#console_settings">
+    Settings of the H2 Console</a><br />
 <a href="#connecting_using_jdbc">
     Connecting to a Database using JDBC</a><br />
 <a href="#creating_new_databases">
@@ -170,13 +172,6 @@ Multiple concurrent browser sessions are supported. As that the database objects
 the amount of concurrent work is limited by the memory available to the server application.
 </p>
 
-<h3>Application Properties</h3>
-<p>
-Starting the server will create a configuration file in you local home directory called <code>.h2.server.properties</code>.
-For Windows installations, this file will be in the directory <code>C:\Documents and Settings\[username]</code>.
-This file contains the settings of the application.
-</p>
-
 <h3>Login</h3>
 <p>
 At the login page, you need to provide connection information to connect to a database.
@@ -228,6 +223,15 @@ To stop the server, right click on the system tray icon and select [Exit].
 If you don't have the icon (because you started it in another way),
 press [Ctrl]+[C] on the console where the server was started (Windows),
 or close the console window.
+</p>
+    
+<br /><a name="console_settings"></a>
+<h2>Settings of the H2 Console</h2>    
+<p>
+The settings of the H2 Console are stored in a configuration file 
+called <code>.h2.server.properties</code> in you user home directory. 
+For Windows installations, the user home directory is usually <code>C:\Documents and Settings\[username]</code>.
+The configuration file contains the settings of the application and is automatically created when the H2 Console is first started.
 </p>
 
 <br /><a name="connecting_using_jdbc"></a>

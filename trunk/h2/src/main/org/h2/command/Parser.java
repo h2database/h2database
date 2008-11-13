@@ -1971,6 +1971,20 @@ public class Parser {
             read(")");
             break;
         }
+        case Function.DATE_DIFF: {
+            if (Function.isDatePart(currentToken)) {
+                function.setParameter(0, ValueExpression.get(ValueString.get(currentToken)));
+                read();
+            } else {
+                function.setParameter(0, readExpression());
+            }
+            read(",");
+            function.setParameter(1, readExpression());
+            read(",");
+            function.setParameter(2, readExpression());
+            read(")");
+            break;
+        }
         case Function.SUBSTRING: {
             function.setParameter(0, readExpression());
             if (!readIf(",")) {

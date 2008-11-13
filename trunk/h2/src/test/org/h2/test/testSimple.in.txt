@@ -1,3 +1,5 @@
+select datediff(yyyy, now(), now());
+> 0;
 create table t(d date) as select '2008-11-01' union select '2008-11-02';
 select 1 from t group by year(d) order by year(d);
 > 1;

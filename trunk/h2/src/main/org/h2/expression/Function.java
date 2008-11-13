@@ -120,22 +120,31 @@ public class Function extends Expression implements FunctionCall {
 
     static {
         // DATE_PART
-        DATE_PART.put("YY", ObjectUtils.getInteger(Calendar.YEAR));
         DATE_PART.put("YEAR", ObjectUtils.getInteger(Calendar.YEAR));
-        DATE_PART.put("MM", ObjectUtils.getInteger(Calendar.MONTH));
+        DATE_PART.put("YYYY", ObjectUtils.getInteger(Calendar.YEAR));
+        DATE_PART.put("YY", ObjectUtils.getInteger(Calendar.YEAR));
         DATE_PART.put("MONTH", ObjectUtils.getInteger(Calendar.MONTH));
-        DATE_PART.put("DD", ObjectUtils.getInteger(Calendar.DAY_OF_MONTH));
+        DATE_PART.put("MM", ObjectUtils.getInteger(Calendar.MONTH));
+        DATE_PART.put("M", ObjectUtils.getInteger(Calendar.MONTH));
+        DATE_PART.put("WW", ObjectUtils.getInteger(Calendar.WEEK_OF_YEAR));
+        DATE_PART.put("WK", ObjectUtils.getInteger(Calendar.WEEK_OF_YEAR));
         DATE_PART.put("DAY", ObjectUtils.getInteger(Calendar.DAY_OF_MONTH));
+        DATE_PART.put("DD", ObjectUtils.getInteger(Calendar.DAY_OF_MONTH));
+        DATE_PART.put("D", ObjectUtils.getInteger(Calendar.DAY_OF_MONTH));
+        DATE_PART.put("DAYOFYEAR", ObjectUtils.getInteger(Calendar.DAY_OF_YEAR));
         DATE_PART.put("DAY_OF_YEAR", ObjectUtils.getInteger(Calendar.DAY_OF_YEAR));
+        DATE_PART.put("DY", ObjectUtils.getInteger(Calendar.DAY_OF_YEAR));
         DATE_PART.put("DOY", ObjectUtils.getInteger(Calendar.DAY_OF_YEAR));
-        DATE_PART.put("HH", ObjectUtils.getInteger(Calendar.HOUR_OF_DAY));
         DATE_PART.put("HOUR", ObjectUtils.getInteger(Calendar.HOUR_OF_DAY));
-        DATE_PART.put("MI", ObjectUtils.getInteger(Calendar.MINUTE));
+        DATE_PART.put("HH", ObjectUtils.getInteger(Calendar.HOUR_OF_DAY));
         DATE_PART.put("MINUTE", ObjectUtils.getInteger(Calendar.MINUTE));
-        DATE_PART.put("SS", ObjectUtils.getInteger(Calendar.SECOND));
+        DATE_PART.put("MI", ObjectUtils.getInteger(Calendar.MINUTE));
+        DATE_PART.put("N", ObjectUtils.getInteger(Calendar.MINUTE));
         DATE_PART.put("SECOND", ObjectUtils.getInteger(Calendar.SECOND));
-        DATE_PART.put("MS", ObjectUtils.getInteger(Calendar.MILLISECOND));
+        DATE_PART.put("SS", ObjectUtils.getInteger(Calendar.SECOND));
+        DATE_PART.put("S", ObjectUtils.getInteger(Calendar.SECOND));
         DATE_PART.put("MILLISECOND", ObjectUtils.getInteger(Calendar.MILLISECOND));
+        DATE_PART.put("MS", ObjectUtils.getInteger(Calendar.MILLISECOND));
 
         // SOUNDEX_INDEX
         String index = "7AEIOUY8HW1BFPV2CGJKQSXZ3DT4L5MN6R";
@@ -1187,6 +1196,17 @@ public class Function extends Expression implements FunctionCall {
             bytes = hash.getHash(bytes, false);
         }
         return bytes;
+    }
+    
+    /**
+     * Check if a given string is a valid date part string.
+     * 
+     * @param part the string
+     * @return true if it is
+     */
+    public static boolean isDatePart(String part) {
+        Integer p = (Integer) DATE_PART.get(StringUtils.toUpperEnglish(part));
+        return p != null;
     }
 
     private static int getDatePart(String part) throws SQLException {

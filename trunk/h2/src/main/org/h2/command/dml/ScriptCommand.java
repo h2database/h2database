@@ -61,6 +61,14 @@ import org.h2.value.ValueString;
  */
 public class ScriptCommand extends ScriptBase {
 
+    private static final Comparator TABLE_COMPARATOR = new Comparator() {
+        public int compare(Object o1, Object o2) {
+            Table t1 = (Table) o1;
+            Table t2 = (Table) o2;
+            return t1.getId() - t2.getId();
+        }
+    };
+    
     private boolean passwords;
     private boolean data;
     private boolean settings;
@@ -188,13 +196,7 @@ public class ScriptCommand extends ScriptBase {
             ObjectArray tables = db.getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
             // sort by id, so that views are after tables and views on views
             // after the base views
-            tables.sort(new Comparator() {
-                public int compare(Object o1, Object o2) {
-                    Table t1 = (Table) o1;
-                    Table t2 = (Table) o2;
-                    return t1.getId() - t2.getId();
-                }
-            });
+            tables.sort(TABLE_COMPARATOR);
             for (int i = 0; i < tables.size(); i++) {
                 Table table = (Table) tables.get(i);
                 table.lock(session, false, false);

@@ -473,7 +473,14 @@ public class FullText implements Trigger, CloseListener {
         return "'" + ByteUtils.convertBytesToString(data) + "'";
     }
 
-    static String asString(Object data, int type) throws SQLException {
+    /**
+     * Convert the object to a string.
+     * 
+     * @param data the object
+     * @param type the SQL type
+     * @return the string
+     */
+    protected static String asString(Object data, int type) throws SQLException {
         if (data == null) {
             return "NULL";
         }

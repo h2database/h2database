@@ -120,11 +120,19 @@ class FullTextSettings {
         this.prepSelectRowById = prepSelectRowById;
     }
 
+    /**
+     * Remove all indexes from the settings.
+     */
     void removeAllIndexes() {
         indexes.clear();
     }
 
-    public void removeIndexInfo(IndexInfo index) {
+    /**
+     * Remove an index from the settings.
+     * 
+     * @param index the index to remove
+     */
+    void removeIndexInfo(IndexInfo index) {
         indexes.remove(ObjectUtils.getLong(index.id));
     }
 

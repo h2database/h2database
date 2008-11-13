@@ -743,11 +743,19 @@ public class TestLob extends TestBase {
             if (clob) {
                 Reader rt = rs.getCharacterStream(2);
                 checkReader(rt, getRandomReader(size, id), -1);
-                checkReader((Reader) rs.getObject(2), getRandomReader(size, id), -1);
+                Object obj = rs.getObject(2);
+                if (obj instanceof Clob) {
+                    obj = ((Clob) obj).getCharacterStream();
+                }                
+                checkReader((Reader) obj, getRandomReader(size, id), -1);
             } else {
                 InputStream in = rs.getBinaryStream(2);
                 checkStream(in, getRandomStream(size, id), -1);
-                checkStream((InputStream) rs.getObject(2), getRandomStream(size, id), -1);
+                Object obj = rs.getObject(2);
+                if (obj instanceof Blob) {
+                    obj = ((Blob) obj).getBinaryStream();
+                }
+                checkStream((InputStream) obj, getRandomStream(size, id), -1);
             }
         }
         trace("select=" + (System.currentTimeMillis() - time));

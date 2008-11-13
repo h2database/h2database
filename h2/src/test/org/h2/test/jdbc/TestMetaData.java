@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.value.DataType;
@@ -218,8 +219,13 @@ public class TestMetaData extends TestBase {
         assertEquals("java.io.InputStream", meta.getColumnClassName(1));
         assertEquals("java.io.Reader", meta.getColumnClassName(2));
         rs.next();
-        assertEquals("java.io.ByteArrayInputStream", rs.getObject(1).getClass().getName());
-        assertEquals("java.io.BufferedReader", rs.getObject(2).getClass().getName());
+        if (SysProperties.RETURN_LOB_OBJECTS) {
+            assertTrue(rs.getObject(1) instanceof java.sql.Blob);
+            assertTrue(rs.getObject(2) instanceof java.sql.Clob);
+        } else {
+            assertEquals("java.io.ByteArrayInputStream", rs.getObject(1).getClass().getName());
+            assertEquals("java.io.BufferedReader", rs.getObject(2).getClass().getName());
+        }
         stat.executeUpdate("DROP TABLE t");
     }
 

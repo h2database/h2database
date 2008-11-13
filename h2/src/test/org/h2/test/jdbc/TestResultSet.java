@@ -26,6 +26,7 @@ import java.sql.Types;
 import java.util.Calendar;
 import java.util.TimeZone;
 
+import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 
 /**
@@ -858,6 +859,12 @@ public class TestResultSet extends TestBase {
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.CLOB }, new int[] {
                 10, Integer.MAX_VALUE }, new int[] { 0, 0 });
         rs.next();
+        Object obj = rs.getObject(2);
+        if (SysProperties.RETURN_LOB_OBJECTS) {
+            assertTrue(obj instanceof java.sql.Clob);
+        } else {
+            assertTrue(obj instanceof java.io.Reader);
+        }
         string = rs.getString(2);
         assertTrue(string != null && string.equals("Test"));
         assertTrue(!rs.wasNull());

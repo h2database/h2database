@@ -33,19 +33,14 @@ public interface Trigger {
      * This method is called by the database engine once when initializing the
      * trigger.
      * 
-     * @param conn
-     *            a connection to the database
-     * @param schemaName
-     *            the name of the schema
-     * @param triggerName
-     *            the name of the trigger used in the CREATE TRIGGER statement
-     * @param tableName
-     *            the name of the table
-     * @param before
-     *            whether the fire method is called before or after the
+     * @param conn a connection to the database
+     * @param schemaName the name of the schema
+     * @param triggerName the name of the trigger used in the CREATE TRIGGER
+     *            statement
+     * @param tableName the name of the table
+     * @param before whether the fire method is called before or after the
      *            operation is performed
-     * @param type
-     *            the operation type: INSERT, UPDATE, or DELETE
+     * @param type the operation type: INSERT, UPDATE, or DELETE
      */
     void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) 
         throws SQLException;
@@ -53,14 +48,12 @@ public interface Trigger {
     /**
      * This method is called for each triggered action.
      * 
-     * @param conn
-     *            a connection to the database
-     * @param oldRow
-     *            the old row, or null if no old row is available (for INSERT)
-     * @param newRow
-     *            the new row, or null if no new row is available (for DELETE)
-     * @throws SQLException
-     *             if the operation must be undone
+     * @param conn a connection to the database
+     * @param oldRow the old row, or null if no old row is available (for
+     *            INSERT)
+     * @param newRow the new row, or null if no new row is available (for
+     *            DELETE)
+     * @throws SQLException if the operation must be undone
      */
     void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException;
     

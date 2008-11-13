@@ -22,5 +22,12 @@ public interface CloseListener {
      * @throws SQLException
      */
     void close() throws SQLException;
+    
+    /**
+     * This method is called when the trigger is dropped.
+     * 
+     * @throws SQLException
+     */
+    void remove() throws SQLException;
 
 }

@@ -8,7 +8,6 @@ package org.h2.fulltext;
 
 //## Java 1.4 begin ##
 import java.io.IOException;
-import java.io.Reader;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -38,11 +37,9 @@ import org.h2.command.Parser;
 import org.h2.engine.Session;
 import org.h2.expression.ExpressionColumn;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.message.Message;
 import org.h2.store.fs.FileSystem;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.ByteUtils;
-import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 //## Java 1.4 end ##
 
@@ -413,53 +410,6 @@ implements Trigger, CloseListener
         return "'" + ByteUtils.convertBytesToString(data) + "'";
     }
 
-    private String asString(Object data, int type) throws SQLException {
-        if (data == null) {
-            return "NULL";
-        }
-        switch (type) {
-        case Types.BIT:
-        case Types.BOOLEAN:
-        case Types.INTEGER:
-        case Types.BIGINT:
-        case Types.DECIMAL:
-        case Types.DOUBLE:
-        case Types.FLOAT:
-        case Types.NUMERIC:
-        case Types.REAL:
-        case Types.SMALLINT:
-        case Types.TINYINT:
-        case Types.DATE:
-        case Types.TIME:
-        case Types.TIMESTAMP:
-        case Types.LONGVARCHAR:
-        case Types.CHAR:
-        case Types.VARCHAR:
-            return data.toString();
-        case Types.CLOB:
-            try {
-                return IOUtils.readStringAndClose((Reader) data, -1);
-            } catch (IOException e) {
-                throw Message.convert(e);
-            }
-        case Types.VARBINARY:
-        case Types.LONGVARBINARY:
-        case Types.BINARY:
-        case Types.JAVA_OBJECT:
-        case Types.OTHER:
-        case Types.BLOB:
-        case Types.STRUCT:
-        case Types.REF:
-        case Types.NULL:
-        case Types.ARRAY:
-        case Types.DATALINK:
-        case Types.DISTINCT:
-            throw new SQLException("FULLTEXT", "Unsupported column data type: " + type);
-        default:
-            return "";
-        }
-    }
-
     private String quoteSQL(Object data, int type) throws SQLException {
         if (data == null) {
             return "NULL";
@@ -634,6 +584,10 @@ implements Trigger, CloseListener
         } catch (Exception e) {
             throw convertException(e);
         }
+    }
+    
+    public void remove() throws SQLException {
+        // ignore
     }
     //## Java 1.4 end ##
 

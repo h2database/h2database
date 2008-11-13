@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.StringTokenizer;
 
+import org.h2.fulltext.FullText;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 
@@ -20,8 +21,18 @@ import org.h2.test.TestBase;
  * Fulltext search tests.
  */
 public class TestFullText extends TestBase {
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws SQLException {
+        testCreateDrop();
         if (config.memory) {
             return;
         }
@@ -44,6 +55,22 @@ public class TestFullText extends TestBase {
             // ok
         }
 
+    }
+    
+    private void testCreateDrop() throws SQLException {
+        deleteDb("fullText");
+        FileSystem.getInstance(baseDir).deleteRecursive(baseDir + "/fullText");
+        Connection conn = getConnection("fullText");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT FOR \"org.h2.fulltext.FullText.init\"");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        for (int i = 0; i < 10; i++) {
+            FullText.createIndex(conn, "PUBLIC", "TEST", null);
+            FullText.dropIndex(conn, "PUBLIC", "TEST");
+        }
+        conn.close();
+        deleteDb("fullText");
+        FileSystem.getInstance(baseDir).deleteRecursive(baseDir + "/fullText");
     }
     
     private void testReopen(boolean lucene) throws SQLException {

@@ -68,4 +68,10 @@ public interface FileObject {
      */
     void setFileLength(long newLength) throws IOException;
 
+    /**
+     * Get the full qualified name of this file.
+     *
+     * @return the name
+     */
+    String getName();
 }

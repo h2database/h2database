@@ -37,6 +37,12 @@ public abstract class FileSystem {
     public static final String PREFIX_ZIP = "zip:";
 
     /**
+     * The prefix used to split large files (required for a FAT32 because it
+     * only support files up to 2 GB).
+     */
+    public static final String PREFIX_SPLIT = "split:";
+
+    /**
      * Get the file system object.
      *
      * @param fileName the file name or prefix
@@ -49,6 +55,8 @@ public abstract class FileSystem {
             return FileSystemDatabase.getInstance(fileName);
         } else if (fileName.startsWith(PREFIX_ZIP)) {
             return FileSystemZip.getInstance();
+        } else if (fileName.startsWith(PREFIX_SPLIT)) {
+            return FileSystemSplit.getInstance();
         }
         return FileSystemDisk.getInstance();
     }

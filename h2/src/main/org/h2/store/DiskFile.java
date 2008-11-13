@@ -80,6 +80,18 @@ public class DiskFile implements CacheWriter {
     // (to match block size of operating system)
     private static final int OFFSET = FileStore.HEADER_LENGTH;
     private static final int FREE_PAGE = -1;
+
+    private static final Comparator REDO_LOG_COMPARATOR = new Comparator() {
+        public int compare(Object o1, Object o2) {
+            RedoLogRecord e1 = (RedoLogRecord) o1;
+            RedoLogRecord e2 = (RedoLogRecord) o2;
+            int comp = e1.recordId - e2.recordId;
+            if (comp == 0) {
+                comp = e1.sequenceId - e2.sequenceId;
+            }
+            return comp;
+        }
+    };
     
     private Database database;
     private String fileName;
@@ -1187,17 +1199,7 @@ public class DiskFile implements CacheWriter {
             if (redoBuffer.size() == 0) {
                 return;
             }
-            redoBuffer.sort(new Comparator() {
-                public int compare(Object o1, Object o2) {
-                    RedoLogRecord e1 = (RedoLogRecord) o1;
-                    RedoLogRecord e2 = (RedoLogRecord) o2;
-                    int comp = e1.recordId - e2.recordId;
-                    if (comp == 0) {
-                        comp = e1.sequenceId - e2.sequenceId;
-                    }
-                    return comp;
-                }
-            });
+            redoBuffer.sort(REDO_LOG_COMPARATOR);
             // first write all deleted entries
             // because delete entries are always 1 block, 
             // while not-deleted entries can be many blocks

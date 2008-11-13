@@ -18,8 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The database now tries to detect if the classloader or virtual machine has 
+<ul><li>File systems with a maximum file size (for example FAT) are now supported using
+	the file prefix 'split:'. In this case the files are split in parts of 1 GB.
+	Example URL: jdbc:h2:split:~/db/test. If you want to split into parts of 1 MB, use
+	jdbc:h2:split:20:~/db/test (the part size is 1 << x, the default is 30 meaning 1 GB). 
+</li><li>The database now tries to detect if the classloader or virtual machine has 
     almost shut down by checking if static final variables are set to null.
+    This should help reduce exceptions when stopping the web application.
 </li><li>Compatibility for MS SQL Server DATEDIFF(YYYY, .., ..)
 </li><li>ResultSet.getObject for CLOB or BLOB will return a java.sql.Clob / java.sql.Blob object instead of
     a java.io.Reader / java.io.InputStream as in version 1.0. This behavior can be changed using the system

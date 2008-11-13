@@ -281,14 +281,21 @@ java org.h2.test.TestAll timer
 
 /*
 
-fix TODO multithreaded kernel
+split files (1 GB max size)
+
+Windows service Wrapper not starting because of incorrect classpath
+where is wrapper.exe
+
+study SQLite file format
+
+multithreaded kernel
+
+use free ports http://www.iana.org/assignments/port-numbers
 
 remove old TODO
 
 online backup may not work for very large files 
 (document problem with jdk 1.4; document to use jar -xf)
-
-split files (2 GB max size)
 
 select last_value from conf.report_id_seq
 

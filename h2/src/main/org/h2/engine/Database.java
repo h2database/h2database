@@ -60,6 +60,7 @@ import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.IntHashMap;
+import org.h2.util.MemoryUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.SmallLRUCache;
@@ -1031,6 +1032,14 @@ public class Database implements DataHandler {
      */
     synchronized void close(boolean fromShutdownHook) {
         if (closing) {
+            return;
+        }
+        if (MemoryUtils.isShutdown()) {
+            try {
+                traceSystem.getTrace(Trace.DATABASE).error("already shut down");
+            } catch (Exception e) {
+                // ignore
+            }
             return;
         }
         closing = true;

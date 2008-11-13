@@ -78,6 +78,17 @@ public class MemoryUtils {
      */
     public static void freeReserveMemory() {
         reserveMemory = null;
+    }
+
+    /**
+     * Check if the classloader or virtual machine is shut down. In this case
+     * static references are set to null, which can cause NullPointerExceptions
+     * and can be confusing because it looks like a bug in the application.
+     * 
+     * @return true if static references are set to null
+     */
+    public static boolean isShutdown() {
+        return StringCache.isShutdown() || JdbcDriverUtils.isShutdown() || Resources.isShutdown();
     }    
 
 }

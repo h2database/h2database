@@ -74,5 +74,9 @@ public class JdbcDriverUtils {
             ClassUtils.loadUserClass(driver);
         }
     }
+    
+    static boolean isShutdown() {
+        return DRIVERS == null;
+    }
 
 }

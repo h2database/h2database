@@ -30,20 +30,17 @@ public class ValueInt extends Value {
      */
     public static final int DISPLAY_SIZE = 11; 
 
-    private static final int STATIC_SIZE = 100;
+    private static final int STATIC_SIZE = 128;
     // must be a power of 2
     private static final int DYNAMIC_SIZE = 256;
-    // TODO check performance of final static
-    private static ValueInt[] staticCache;
-    private static ValueInt[] dynamicCache;
+    private static final ValueInt[] STATIC_CACHE = new ValueInt[STATIC_SIZE];
+    private static final ValueInt[] DYNAMIC_CACHE = new ValueInt[DYNAMIC_SIZE];
 
     private final int value;
     
     static {
-        staticCache = new ValueInt[STATIC_SIZE];
-        dynamicCache = new ValueInt[DYNAMIC_SIZE];
         for (int i = 0; i < STATIC_SIZE; i++) {
-            staticCache[i] = new ValueInt(i);
+            STATIC_CACHE[i] = new ValueInt(i);
         }
     }
     
@@ -59,12 +56,12 @@ public class ValueInt extends Value {
      */
     public static ValueInt get(int i) {
         if (i >= 0 && i < STATIC_SIZE) {
-            return staticCache[i];
+            return STATIC_CACHE[i];
         }
-        ValueInt v = dynamicCache[i & DYNAMIC_SIZE - 1];
+        ValueInt v = DYNAMIC_CACHE[i & (DYNAMIC_SIZE - 1)];
         if (v == null || v.value != i) {
             v = new ValueInt(i);
-            dynamicCache[i & DYNAMIC_SIZE - 1] = v;
+            DYNAMIC_CACHE[i & (DYNAMIC_SIZE - 1)] = v;
         }
         return v;
     }

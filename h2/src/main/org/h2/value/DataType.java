@@ -49,9 +49,9 @@ public class DataType {
      */
     public static final int TYPE_DATALINK = 70;
 
-    private static ObjectArray types = new ObjectArray();
-    private static HashMap typesByName = new HashMap();
-    private static DataType[] typesByValueType = new DataType[Value.TYPE_COUNT];
+    private static final ObjectArray TYPES = new ObjectArray();
+    private static final HashMap TYPES_BY_NAME = new HashMap();
+    private static final DataType[] TYPES_BY_VALUE_TYPE = new DataType[Value.TYPE_COUNT];
     
     /**
      * The value type of this data type.
@@ -318,8 +318,8 @@ public class DataType {
                 new String[]{"RESULT_SET"},
                 20
         );
-        for (int i = 0; i < typesByValueType.length; i++) {
-            DataType dt = typesByValueType[i];
+        for (int i = 0; i < TYPES_BY_VALUE_TYPE.length; i++) {
+            DataType dt = TYPES_BY_VALUE_TYPE[i];
             if (dt == null) {
                 throw Message.getInternalError("unmapped type " + i);
             }
@@ -350,17 +350,17 @@ public class DataType {
             dt.caseSensitive = dataType.caseSensitive;
             dt.hidden = i > 0;
             dt.memory = memory;
-            for (int j = 0; j < types.size(); j++) {
-                DataType t2 = (DataType) types.get(j);
+            for (int j = 0; j < TYPES.size(); j++) {
+                DataType t2 = (DataType) TYPES.get(j);
                 if (t2.sqlType == dt.sqlType) {
                     dt.sqlTypePos++;
                 }
             }
-            typesByName.put(dt.name, dt);
-            if (typesByValueType[type] == null) {
-                typesByValueType[type] = dt;
+            TYPES_BY_NAME.put(dt.name, dt);
+            if (TYPES_BY_VALUE_TYPE[type] == null) {
+                TYPES_BY_VALUE_TYPE[type] = dt;
             }
-            types.add(dt);
+            TYPES.add(dt);
         }
     }
 
@@ -412,7 +412,7 @@ public class DataType {
      * @return the list
      */
     public static ObjectArray getTypes() {
-        return types;
+        return TYPES;
     }
 
     /**
@@ -639,9 +639,9 @@ public class DataType {
      * @return the data type object
      */
     public static DataType getDataType(int type) {
-        DataType dt = typesByValueType[type];
+        DataType dt = TYPES_BY_VALUE_TYPE[type];
         if (dt == null) {
-            dt = typesByValueType[Value.NULL];
+            dt = TYPES_BY_VALUE_TYPE[Value.NULL];
         }
         return dt;
     }
@@ -857,7 +857,7 @@ public class DataType {
      * @return the data type object
      */
     public static DataType getTypeByName(String s) {
-        return (DataType) typesByName.get(s);
+        return (DataType) TYPES_BY_NAME.get(s);
     }
 
     /**

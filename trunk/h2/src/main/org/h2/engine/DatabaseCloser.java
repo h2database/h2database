@@ -8,6 +8,8 @@ package org.h2.engine;
 
 import java.lang.ref.WeakReference;
 
+import org.h2.message.Trace;
+
 /**
  * This class is responsible to close a database if the application did not
  * close a connection. A database closer object only exists if there is no user
@@ -16,6 +18,7 @@ import java.lang.ref.WeakReference;
 public class DatabaseCloser extends Thread {
 
     private final boolean shutdownHook;
+    private final Trace trace;
     private volatile WeakReference databaseRef;
     private int delayInMillis;
     private boolean stopImmediately;
@@ -24,6 +27,7 @@ public class DatabaseCloser extends Thread {
         this.databaseRef = new WeakReference(db);
         this.delayInMillis = delayInMillis;
         this.shutdownHook = shutdownHook;
+        trace = db.getTrace(Trace.DATABASE);
     }
 
     /**
@@ -72,7 +76,20 @@ public class DatabaseCloser extends Thread {
             }
         }
         if (database != null) {
-            database.close(shutdownHook);
+            try {
+                database.close(shutdownHook);
+            } catch (RuntimeException e) {
+                // this can happen when stopping a web application,
+                // if loading classes is no longer allowed
+                // it would throw an IllegalStateException
+                try {
+                    trace.error("Could not close the database", e);
+                    // if this was successful, we ignore the exception
+                    // otherwise not
+                } catch (RuntimeException e2) {
+                    throw e;
+                }
+            }
         }
     }
 

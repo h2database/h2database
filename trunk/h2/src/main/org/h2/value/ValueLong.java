@@ -31,17 +31,17 @@ public class ValueLong extends Value {
      */    
     public static final int DISPLAY_SIZE = 20; 
     
-    private static final int STATIC_SIZE = 10;
-    private static ValueLong[] cache;
+    private static final int STATIC_SIZE = 100;
+    private static final ValueLong[] STATIC_CACHE;
     private static final BigInteger MIN = new BigInteger("" + Long.MIN_VALUE);
     private static final BigInteger MAX = new BigInteger("" + Long.MAX_VALUE);
     
     private final long value;
 
     static {
-        cache = new ValueLong[STATIC_SIZE];
+        STATIC_CACHE = new ValueLong[STATIC_SIZE];
         for (int i = 0; i < STATIC_SIZE; i++) {
-            cache[i] = new ValueLong(i);
+            STATIC_CACHE[i] = new ValueLong(i);
         }
     }
 
@@ -188,7 +188,7 @@ public class ValueLong extends Value {
      */
     public static ValueLong get(long i) {
         if (i >= 0 && i < STATIC_SIZE) {
-            return cache[(int) i];
+            return STATIC_CACHE[(int) i];
         }
         return (ValueLong) Value.cache(new ValueLong(i));
     }

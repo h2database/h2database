@@ -16,6 +16,19 @@ import org.h2.store.DiskFile;
  * The base object for all cached objects.
  */
 public abstract class CacheObject {
+    
+    /**
+     * Ensure the class is loaded when initialized, so that sorting is possible
+     * even when loading new classes is not allowed any more. This can occur
+     * when stopping a web application.
+     */
+    private static final Comparator CACHE_COMPARATOR = new Comparator() {
+        public int compare(Object a, Object b) {
+            int pa = ((CacheObject) a).getPos();
+            int pb = ((CacheObject) b).getPos();
+            return pa == pb ? 0 : (pa < pb ? -1 : 1);
+        }
+    };
 
     /**
      * The previous element in the LRU linked list. If the previous element is
@@ -62,13 +75,7 @@ public abstract class CacheObject {
      * @param recordList the list of cache objects
      */
     public static void sort(ObjectArray recordList) {
-        recordList.sort(new Comparator() {
-            public int compare(Object a, Object b) {
-                int pa = ((CacheObject) a).getPos();
-                int pb = ((CacheObject) b).getPos();
-                return pa == pb ? 0 : (pa < pb ? -1 : 1);
-            }
-        });
+        recordList.sort(CACHE_COMPARATOR);
     }
 
     public void setBlockCount(int size) {

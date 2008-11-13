@@ -34,7 +34,6 @@ import java.sql.SQLXML;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
 import org.h2.message.TraceObject;
@@ -460,12 +459,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         try {
             debugCodeCall("getObject", columnIndex);
             Value v = get(columnIndex);
-            if (Constants.SERIALIZE_JAVA_OBJECTS) {
-                if (v.getType() == Value.JAVA_OBJECT) {
-                    return ObjectUtils.deserialize(v.getBytesNoCopy());
-                }
-            }
-            return v.getObject();
+            return conn.convertToDefaultObject(v);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -484,12 +478,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         try {
             debugCodeCall("getObject", columnName);
             Value v = get(columnName);
-            if (Constants.SERIALIZE_JAVA_OBJECTS) {
-                if (v.getType() == Value.JAVA_OBJECT) {
-                    return ObjectUtils.deserialize(v.getBytesNoCopy());
-                }
-            }
-            return v.getObject();
+            return conn.convertToDefaultObject(v);
         } catch (Exception e) {
             throw logAndConvert(e);
         }

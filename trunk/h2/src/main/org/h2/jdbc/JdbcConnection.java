@@ -36,6 +36,7 @@ import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.JdbcConnectionListener;
+import org.h2.util.ObjectUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLob;
@@ -1531,6 +1532,47 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
     public String toString() {
         return getTraceObjectName() + ": url=" + url + " user=" + user;
+    }
+    
+    /**
+     * Convert an object to the default Java object for the given SQL type. For
+     * example, LOB objects are converted to java.sql.Clob / java.sql.Blob.
+     * 
+     * @param v the value
+     * @return the object
+     */
+    Object convertToDefaultObject(Value v) throws SQLException {
+        Object o;
+        switch (v.getType()) {
+        case Value.CLOB: {
+            if (SysProperties.RETURN_LOB_OBJECTS) {
+                int id = getNextId(TraceObject.CLOB);
+                o = new JdbcClob(session, this, v, id);
+            } else {
+                o = v.getObject();
+            }
+            break;
+        }
+        case Value.BLOB: {
+            if (SysProperties.RETURN_LOB_OBJECTS) {
+                int id = getNextId(TraceObject.BLOB);
+                o = new JdbcBlob(session, this, v, id);
+            } else {
+                o = v.getObject();
+            }
+            break;
+        }
+        case Value.JAVA_OBJECT:
+            if (Constants.SERIALIZE_JAVA_OBJECTS) {
+                o = ObjectUtils.deserialize(v.getBytesNoCopy());
+            } else {
+                o = v.getObject();
+            }
+            break;
+        default:
+            o = v.getObject();
+        }
+        return o;
     }
 
 }

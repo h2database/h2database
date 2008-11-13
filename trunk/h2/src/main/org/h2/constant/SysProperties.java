@@ -456,6 +456,20 @@ public class SysProperties {
      * transaction is easier.
      */
     public static final int RESERVE_MEMORY = getIntSetting("h2.reserveMemory", 512 * 1024);
+    
+    /**
+     * System property <code>h2.returnLobObjects</code>.<br />
+     * When true, ResultSet.getObject for CLOB or BLOB will return a
+     * java.sql.Clob / java.sql.Blob object. When set to false, it will return a
+     * java.io.Reader / java.io.InputStream.
+     * <p>
+     * In version 1.0, it is disabled by default.
+     * </p>
+     * <p>
+     * In version 1.1, it is enabled by default.
+     * </p>
+     */
+    public static final boolean RETURN_LOB_OBJECTS = getBooleanSetting("h2.returnLobObjects", Constants.VERSION > 1.0);
 
     /**
      * System property <code>h2.reuseSpaceAfter</code> (default: 16).<br />
@@ -525,6 +539,12 @@ public class SysProperties {
     public static final boolean SORT_NULLS_HIGH = getBooleanSetting("h2.sortNullsHigh", false);
 
     /**
+     * System property <code>h2.splitFileSizeShift</code> (default: 30).<br />
+     * The maximum file size of a split file is 1L << x.
+     */
+    public static final long SPLIT_FILE_SIZE_SHIFT = getIntSetting("h2.splitFileSizeShift", 20);
+
+    /**
      * System property <code>h2.traceIO</code> (default: false).<br />
      * Trace all I/O operations.
      */
@@ -592,7 +612,7 @@ public class SysProperties {
         }
         return defaultValue;
     }
-
+    
     /**
      * INTERNAL
      */

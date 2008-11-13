@@ -51,7 +51,7 @@ public abstract class Tool {
             buff.append(dir);
         }
         if (db != null) {
-            buff.append(" for the directory ");
+            buff.append(" for the database ");
             buff.append(db);
         }
         out.println(buff.toString());

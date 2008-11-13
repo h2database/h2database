@@ -486,7 +486,7 @@ public abstract class TestBase {
         assertTrue(expected.length == actual.length);
         for (int i = 0; i < expected.length; i++) {
             if (expected[i] != actual[i]) {
-                fail("Expected[" + i + "]: a=" + (int) expected[i] + " actual=" + (int) actual[i]);
+                fail("[" + i + "]: expected: " + (int) expected[i] + " actual: " + (int) actual[i]);
             }
         }
     }

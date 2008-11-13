@@ -8,6 +8,7 @@ package org.h2.fulltext;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -22,6 +23,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 
+import org.h2.api.CloseListener;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
@@ -43,7 +45,7 @@ import org.h2.value.DataType;
 /**
  * This class implements the native full text search.
  */
-public class FullText implements Trigger {
+public class FullText implements Trigger, CloseListener {
 
     private static final String TRIGGER_PREFIX = "FT_";
     private static final String SCHEMA = "FT";
@@ -73,6 +75,7 @@ public class FullText implements Trigger {
      */
     private static final String FIELD_KEYS = "KEYS";
 
+    private FullTextSettings setting;
     private IndexInfo index;
     private int[] dataTypes;
     private PreparedStatement prepInsertWord, prepInsertRow, prepInsertMap;
@@ -260,6 +263,7 @@ public class FullText implements Trigger {
         stat.execute("DROP SCHEMA IF EXISTS " + SCHEMA);
         removeAllTriggers(conn);
         FullTextSettings setting = FullTextSettings.getInstance(conn);
+        setting.removeAllIndexes();
         setting.getIgnoreList().clear();
         setting.getWordList().clear();
     }
@@ -327,7 +331,7 @@ public class FullText implements Trigger {
      */
     public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) throws SQLException {
         init(conn);
-        FullTextSettings setting = FullTextSettings.getInstance(conn);
+        setting = FullTextSettings.getInstance(conn);
         ArrayList keyList = new ArrayList();
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs = meta.getColumns(null, schemaName, tableName, null);
@@ -420,7 +424,6 @@ public class FullText implements Trigger {
      * INTERNAL
      */
     public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
-        FullTextSettings setting = FullTextSettings.getInstance(conn);
         if (oldRow != null) {
             delete(setting, oldRow);
         }
@@ -470,7 +473,7 @@ public class FullText implements Trigger {
         return "'" + ByteUtils.convertBytesToString(data) + "'";
     }
 
-    private String asString(Object data, int type) throws SQLException {
+    static String asString(Object data, int type) throws SQLException {
         if (data == null) {
             return "NULL";
         }
@@ -495,6 +498,9 @@ public class FullText implements Trigger {
             return data.toString();
         case Types.CLOB:
             try {
+                if (data instanceof Clob) {
+                    data = ((Clob) data).getCharacterStream();
+                }
                 return IOUtils.readStringAndClose((Reader) data, -1);
             } catch (IOException e) {
                 throw Message.convert(e);
@@ -824,5 +830,13 @@ public class FullText implements Trigger {
             }
         }
     }
+    
+    public void close() throws SQLException {
+        setting.removeIndexInfo(index);
+    }    
+    
+    public void remove() throws SQLException {
+        setting.removeIndexInfo(index);
+    }    
 
 }

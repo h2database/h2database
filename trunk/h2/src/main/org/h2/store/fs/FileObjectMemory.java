@@ -89,7 +89,7 @@ public class FileObjectMemory implements FileObject {
     }
 //## Java 1.4 end ##
     
-    public FileObjectMemory(String name, boolean compress) {
+    FileObjectMemory(String name, boolean compress) {
         this.name = name;
         this.compress = compress;
         data = new byte[0][];

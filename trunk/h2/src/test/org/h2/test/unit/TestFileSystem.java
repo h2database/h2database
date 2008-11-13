@@ -39,6 +39,9 @@ public class TestFileSystem extends TestBase {
     public void test() throws Exception {
         testDatabaseInMemFileSys();
         testDatabaseInJar();
+        // set default part size to 1 << 10
+        FileSystem.getInstance(FileSystem.PREFIX_SPLIT + "10:" + baseDir + "/fs");
+        testFileSystem(FileSystem.PREFIX_SPLIT + baseDir + "/fs");
         testFileSystem(baseDir + "/fs");
         testFileSystem(FileSystem.PREFIX_MEMORY);
         // testFileSystem("jdbc:h2:mem:fs;TRACE_LEVEL_FILE=3");
@@ -177,8 +180,8 @@ public class TestFileSystem extends TestBase {
             fs.createDirs(fsBase + "/testDir/test");
             assertTrue(fs.isDirectory(fsBase + "/testDir"));
             if (!fsBase.startsWith(FileSystem.PREFIX_DB)) {
-                fs.deleteRecursive("/testDir");
-                assertTrue(!fs.exists("/testDir"));
+                fs.deleteRecursive(fsBase + "/testDir");
+                assertTrue(!fs.exists(fsBase + "/testDir"));
             }
         }
         fs.close();
@@ -234,20 +237,20 @@ public class TestFileSystem extends TestBase {
                 len = (int) Math.min(len, ra.length() - ra.getFilePointer());
                 byte[] b1 = new byte[len];
                 byte[] b2 = new byte[len];
-                f.readFully(b1, 0, len);
-                ra.readFully(b2, 0, len);
+                ra.readFully(b1, 0, len);
+                f.readFully(b2, 0, len);
                 trace("readFully " + len);
                 assertEquals(b1, b2);
                 break;
             }
             case 4: {
                 trace("getFilePointer");
-                assertEquals(f.getFilePointer(), ra.getFilePointer());
+                assertEquals(ra.getFilePointer(), f.getFilePointer());
                 break;
             }
             case 5: {
                 trace("length " + ra.length());
-                assertEquals(f.length(), ra.length());
+                assertEquals(ra.length(), f.length());
                 break;
             }
             case 6: {

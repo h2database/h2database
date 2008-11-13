@@ -16,9 +16,12 @@ import org.h2.util.FileUtils;
  * This class is extends a java.io.RandomAccessFile.
  */
 public class FileObjectDisk extends RandomAccessFile implements FileObject {
+    
+    private final String name;
 
-    public FileObjectDisk(String fileName, String mode) throws FileNotFoundException {
+    FileObjectDisk(String fileName, String mode) throws FileNotFoundException {
         super(fileName, mode);
+        this.name = fileName;
     }
 
     public void sync() throws IOException {
@@ -27,6 +30,10 @@ public class FileObjectDisk extends RandomAccessFile implements FileObject {
 
     public void setFileLength(long newLength) throws IOException {
         FileUtils.setLength(this, newLength);
+    }
+
+    public String getName() {
+        return name;
     }
 
 }

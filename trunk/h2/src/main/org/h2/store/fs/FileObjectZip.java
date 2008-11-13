@@ -28,7 +28,7 @@ public class FileObjectZip implements FileObject {
     private long inPos;
     private long length;
 
-    public FileObjectZip(ZipFile file, ZipEntry entry) {
+    FileObjectZip(ZipFile file, ZipEntry entry) {
         this.file = file;
         this.entry = entry;
         length = entry.getSize();
@@ -83,6 +83,10 @@ public class FileObjectZip implements FileObject {
 
     public void write(byte[] b, int off, int len) throws IOException {
         throw new IOException("File is read-only");
+    }
+
+    public String getName() {
+        return file.getName();
     }
 
 }

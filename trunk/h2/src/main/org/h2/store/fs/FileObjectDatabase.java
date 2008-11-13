@@ -84,5 +84,9 @@ public class FileObjectDatabase implements FileObject {
         length = Math.max(length, pos);
         changed = true;
     }
+    
+    public String getName() {
+        return fileName;
+    }
 
 }

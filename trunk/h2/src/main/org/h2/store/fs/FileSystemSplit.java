@@ -21,10 +21,9 @@ import org.h2.message.Message;
  */
 public class FileSystemSplit extends FileSystem {
 
-    static final String PART_SUFFIX = ".part";
+    private static final String PART_SUFFIX = ".part";
     private static final FileSystemSplit INSTANCE = new FileSystemSplit();
-    
-    long defaultMaxSize = 1L << SysProperties.SPLIT_FILE_SIZE_SHIFT;
+    private long defaultMaxSize = 1L << SysProperties.SPLIT_FILE_SIZE_SHIFT;
 
     public static FileSystemSplit getInstance() {
         return INSTANCE;
@@ -288,6 +287,13 @@ public class FileSystemSplit extends FileSystem {
         return fileName;
     }
     
+    /**
+     * Get the file name of a part file.
+     * 
+     * @param fileName the file name
+     * @param id the part id
+     * @return the file name including the part id
+     */
     static String getFileName(String fileName, int id) {
         if (id > 0) {
             fileName += "." + id + PART_SUFFIX;

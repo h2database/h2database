@@ -39,6 +39,8 @@ public class CacheLRU implements Cache {
 
     public void clear() {
         head.next = head.previous = head;
+        // first set to null - avoiding out of memory
+        values = null;
         values = new CacheObject[len];
         recordCount = 0;
         sizeMemory = 0;

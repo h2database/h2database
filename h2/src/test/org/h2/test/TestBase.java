@@ -217,7 +217,9 @@ public abstract class TestBase {
             url += ";TRACE_LEVEL_SYSTEM_OUT=2";
         }
         if (config.traceLevelFile > 0 && admin) {
-            url += ";TRACE_LEVEL_FILE=" + config.traceLevelFile;
+            if (url.indexOf("TRACE_LEVEL_FILE=") < 0) {
+                url += ";TRACE_LEVEL_FILE=" + config.traceLevelFile;
+            }
         }
         if (config.throttle > 0) {
             url += ";THROTTLE=" + config.throttle;

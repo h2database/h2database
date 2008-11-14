@@ -278,8 +278,10 @@ java org.h2.test.TestAll timer
         test.printSystem();
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
-
+        
 /*
+
+truncate in-memory file system after each test
 
 split files (1 GB max size)
 

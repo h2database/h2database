@@ -42,7 +42,7 @@ public class TestPowerOff extends TestBase {
         } else {
             dir = "memFS:";
         }
-        url = dir + "/" + dbName + ";file_lock=no";
+        url = dir + "/" + dbName + ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0";
         testSummaryCrash();
         testCrash();
         testShutdown();

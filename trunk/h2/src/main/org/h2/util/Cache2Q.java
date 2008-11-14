@@ -52,6 +52,8 @@ public class Cache2Q implements Cache {
         headMain.next = headMain.previous = headMain;
         headIn.next = headIn.previous = headIn;
         headOut.next = headOut.previous = headOut;
+        // first set to null - avoiding out of memory        
+        values = null;
         values = new CacheObject[len];
         sizeIn = sizeOut = sizeMain = 0;
         recordCount = 0;

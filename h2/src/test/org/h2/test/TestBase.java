@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
+import org.h2.store.fs.FileSystem;
 import org.h2.tools.DeleteDbFiles;
 
 /**
@@ -106,6 +107,8 @@ public abstract class TestBase {
             init(conf);
             start = System.currentTimeMillis();
             test();
+            FileSystem.getInstance("memFS:").deleteRecursive("memFS:");
+            FileSystem.getInstance("memLZF:").deleteRecursive("memLZF:");
             println("");
         } catch (Throwable e) {
             println("FAIL " + e.toString());

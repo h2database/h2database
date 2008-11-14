@@ -1,6 +1,8 @@
 @echo off
 setlocal
 
+copy /y /b ..\bin\h2-*.jar ..\bin\h2.jar
+
 rem Copyright (c) 1999, 2006 Tanuki Software Inc.
 rem
 rem Java Service Wrapper general startup script

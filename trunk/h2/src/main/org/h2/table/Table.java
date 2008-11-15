@@ -404,7 +404,11 @@ public abstract class Table extends SchemaObjectBase {
             Sequence sequence = (Sequence) sequences.get(0);
             sequences.remove(0);
             if (!getTemporary()) {
-                database.removeSchemaObject(session, sequence);
+                // only remove if no other table depends on this sequence
+                // this is possible when calling ALTER TABLE ALTER COLUMN
+                if (database.getDependentTable(sequence, this) == null) {
+                    database.removeSchemaObject(session, sequence);
+                }
             }
         }
     }

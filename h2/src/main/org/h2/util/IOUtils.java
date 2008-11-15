@@ -355,8 +355,8 @@ public class IOUtils {
     }
     
     /**
-     * Create a writer to write to an output stream using the UTF-8 format. If
-     * the output stream is null, this method returns null.
+     * Create a buffered writer to write to an output stream using the UTF-8
+     * format. If the output stream is null, this method returns null.
      * 
      * @param out the output stream or null
      * @return the writer
@@ -368,6 +368,21 @@ public class IOUtils {
             throw Message.convert(e);
         }
     }    
+    
+    /**
+     * Create an unbuffered writer to write to an output stream using the UTF-8
+     * format. If the output stream is null, this method returns null.
+     * 
+     * @param out the output stream or null
+     * @return the writer
+     */
+    public static Writer getUnbufferedWriter(OutputStream out) throws SQLException {
+        try {
+            return out == null ? null : new OutputStreamWriter(out, Constants.UTF8);
+        } catch (UnsupportedEncodingException e) {
+            throw Message.convert(e);
+        }
+    }        
 
     /**
      * Create an input stream to read from a string. The string is converted to

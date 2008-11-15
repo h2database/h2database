@@ -50,6 +50,8 @@ Tutorial
     User-Defined Variables</a><br />
 <a href="#date_time">
     Date and Time</a><br />
+<a href="#spring">
+    Using Spring</a><br />
 
 <br /><a name="tutorial_starting_h2_console"></a>
 <h2>Starting and Using the H2 Console</h2>
@@ -103,7 +105,13 @@ If you don't want other computers in the network to access the application on yo
 let the firewall block those connections. The connection from the local machine will still work.
 Only if you want other computers to access the database on this computer, you need allow remote connections
 in the firewall.
-</p><p>
+</p>
+<p>
+It has been reported that when using Kaspersky 7.0 with firewall, the H2 Console is very slow when
+connecting over the IP address. A workaround is to connect using localhost, however this only works
+on the local machine.
+</p>
+<p>
 A small firewall is already built into the server: other computers may not connect to the server by default.
 To change this, go to 'Preferences' and select 'Allow connections from other computers'.
 </p>
@@ -839,6 +847,24 @@ If the database is opened using another system time zone, the date and time will
 If you want to move a database from one time zone to the other and don't want this to happen, 
 you need to create a SQL script file using the SCRIPT command or Script tool, and then load 
 the database using the RUNSCRIPT command or the RunScript tool in the new time zone.
+</p>
+
+<br /><a name="spring"></a>
+<h2>Using Spring</h2>
+<p>
+Use the following configuration to start and stop the H2 TCP Server using the Spring Framework:
+</p>
+<pre>
+&lt;bean id="org.h2.tools.Server"
+            class="org.h2.tools.Server"
+            factory-method="createTcpServer"
+            init-method="start"
+            destroy-method="stop"&gt;
+    &lt;constructor-arg value="-tcp,-tcpAllowOthers,true,-tcpPort,8043" /&gt;
+&lt;/bean&gt;
+</pre>
+<p>
+The "destroy-method" will help prevent exceptions on hot-redeployment or when restarting server.
 </p>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

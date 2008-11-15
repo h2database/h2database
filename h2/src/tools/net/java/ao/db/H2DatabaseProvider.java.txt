@@ -27,7 +27,7 @@ public class H2DatabaseProvider extends HSQLDatabaseProvider {
     /** 
      * Create a new provider.
      * 
-     * @param uri the databae uri
+     * @param uri the database uri
      * @param username the user name
      * @param password the password
      */  

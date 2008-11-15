@@ -309,9 +309,8 @@ Of course, patches are always welcome, but are not always applied as is. Patches
     See http://thedevcloud.blogspot.com/2008/10/displaying-hsql-database-manager-in.html
 </li><li>Translation: use ${.} in help.csv
 </li><li>Translated .pdf
-</li><li>Cluster: hot deploy (adding a node on runtime)
-</li><li>Test with PostgreSQL Version 8.2
-</li><li>Website: Don't use frames.
+</li><li>Cluster: hot deploy (adding a node at runtime)
+</li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.id = t2.id where t1.id = t2.id;
 </li><li>Try again with Lobo browser (pure Java)
 </li><li>Recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...), and things should go into the .trace.db file
 </li><li>RECOVER=2 to backup the database, run recovery, open the database
@@ -352,7 +351,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Linked tables: make hidden columns available (Oracle: rowid and ora_rowscn columns).
 </li><li>Support merge join.
 </li><li>H2 Console: in-place autocomplete. 
-</li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.id = t2.id where t1.id = t2.id;
 </li><li>Oracle: support DECODE method (convert to CASE WHEN).
 </li><li>Support large databases: split LOB (BLOB, CLOB) to multiple directories / disks (similar to tablespaces).
 </li><li>Support to assign a primary key index a user defined name.

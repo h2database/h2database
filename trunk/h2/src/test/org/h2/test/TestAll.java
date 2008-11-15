@@ -281,18 +281,11 @@ java org.h2.test.TestAll timer
         
 /*
 
-truncate in-memory file system after each test
-
 split files (1 GB max size)
-
-Windows service Wrapper not starting because of incorrect classpath
-where is wrapper.exe
 
 study SQLite file format
 
 multithreaded kernel
-
-use free ports http://www.iana.org/assignments/port-numbers
 
 remove old TODO
 

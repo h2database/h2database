@@ -51,7 +51,6 @@ public class RunScript extends Tool {
                 " [-password <pwd>]  The password\n" +
                 " [-script <file>]   The script file to run (default: backup.sql)\n" +
                 " [-driver <class>]  The JDBC driver class to use (not required in most cases)\n" +
-                " [-quiet]           Do not print progress information\n" +
                 " [-showResults]     Show the statements and the results of queries\n" +
                 " [-checkResults]    Check if the query results match the expected results\n" +
                 " [-options ...]     The list of options (only for H2 embedded mode)");
@@ -70,10 +69,8 @@ public class RunScript extends Tool {
      * <li>-script filename (default file name is backup.sql) </li>
      * <li>-driver driver (the JDBC driver class name; not required for most
      * databases) </li>
-     * <li>-quiet (do not print progress information) </li>
      * <li>-showResults (show the statements and the results of queries)</li>
      * <li>-checkResults (check if the query results match the expected results</li>
-     * <li>-quiet (do not print progress information)</li>
      * <li>-options (to specify a list of options ;only for H2 and only when
      * using the embedded mode) </li>
      * </ul>

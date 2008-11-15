@@ -30,8 +30,7 @@ public class Restore extends Tool {
         out.println("java "+getClass().getName() + "\n" +
                 " [-file <filename>]  The source file name (default: backup.zip)\n" +
                 " [-dir <dir>]        Target directory (default: .)\n" +
-                " [-db <database>]    Target database name\n" +
-                " [-quiet]            Do not print progress information");
+                " [-db <database>]    Target database name");
         out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
 
@@ -44,7 +43,6 @@ public class Restore extends Tool {
      * </li><li>-file filename (the default is backup.zip)
      * </li><li>-dir database directory (the default is the current directory)
      * </li><li>-db database name (as stored in the backup if no name is specified)
-     * </li><li>-quiet does not print progress information
      * </li></ul>
      *
      * @param args the command line arguments

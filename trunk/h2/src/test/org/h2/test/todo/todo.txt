@@ -61,3 +61,16 @@ create index idx_test on test(id, version, idx);
 @LOOP 1000 select max(id)+1 from test;
 @LOOP 1000 select max(idx)+1 from test where id=1 and version=2;
 -- should be direct query
+
+
+Update Multiple Tables with Merge
+-----------------
+drop table statisticlog;
+create table statisticlog(id int primary key, datatext varchar, moment int);
+@LOOP 20000 insert into statisticlog values(?, ?, ?);
+merge into statisticlog(id, datatext) key(id)
+ select id, 'data1' from statisticlog order by moment limit 5;
+select * from statisticlog where id < 10;
+UPDATE statisticlog SET datatext = 'data2'
+ WHERE id IN (SELECT id FROM statisticlog ORDER BY moment LIMIT 5);
+select * from statisticlog where id < 10;

@@ -1528,7 +1528,14 @@ public class Database implements DataHandler {
         removeMeta(session, id);
     }
 
-    private String getDependentObject(SchemaObject obj) {
+    /**
+     * Get the first table that depends on this object.
+     * 
+     * @param obj the object to find
+     * @param except the table to exclude (or null)
+     * @return the first dependent table, or null
+     */
+    public Table getDependentTable(SchemaObject obj, Table except) {
         switch (obj.getType()) {
         case DbObject.COMMENT:
         case DbObject.CONSTRAINT:
@@ -1543,10 +1550,13 @@ public class Database implements DataHandler {
         HashSet set = new HashSet();
         for (int i = 0; i < list.size(); i++) {
             Table t = (Table) list.get(i);
+            if (except == t) {
+                continue;
+            }
             set.clear();
             t.addDependencies(set);
             if (set.contains(obj)) {
-                return t.getSQL();
+                return t;
             }
         }
         return null;
@@ -1595,7 +1605,8 @@ public class Database implements DataHandler {
         obj.getSchema().remove(obj);
         String invalid;
         if (SysProperties.OPTIMIZE_DROP_DEPENDENCIES) {
-            invalid = getDependentObject(obj);
+            Table t = getDependentTable(obj, null);
+            invalid = t == null ? null : t.getSQL();
         } else {
             invalid = getFirstInvalidTable(session);
         }

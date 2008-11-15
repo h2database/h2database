@@ -267,13 +267,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         buff.append(" FROM ");
         buff.append(table.getSQL());
         String newTableSQL = buff.toString();
-        try {
-            execute(newTableSQL, true);
-        } catch (SQLException e) {
-            unlinkSequences(newTable);
-            execute("DROP TABLE " + newTable.getSQL(), true);
-            throw e;
-        }        
+        execute(newTableSQL, true);
         newTable = (TableData) newTable.getSchema().getTableOrView(session, newTable.getName());
         ObjectArray children = table.getChildren();
         ObjectArray triggers = new ObjectArray();
@@ -343,19 +337,6 @@ public class AlterTableAlterColumn extends SchemaCommand {
             if (name.startsWith(tempName + "_")) {
                 name = name.substring(tempName.length() + 1);
                 db.renameSchemaObject(session, (SchemaObject) child, name);
-            }
-        }
-    }
-
-    private void unlinkSequences(Table table) {
-        Column[] columns = table.getColumns();
-        for (int i = 0; i < columns.length; i++) {
-            // if we don't do that, the sequence is dropped when the table is
-            // dropped
-            Sequence seq = columns[i].getSequence();
-            if (seq != null) {
-                table.removeSequence(session, seq);
-                columns[i].setSequence(null);
             }
         }
     }

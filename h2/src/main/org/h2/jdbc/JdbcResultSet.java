@@ -2827,7 +2827,10 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             checkOnValidRow();
             if (updateRow != null) {
                 UpdatableRow row = getUpdatableRow();
-                Value[] current = result.currentRow();
+                Value[] current = new Value[columnCount];
+                for (int i = 0; i < updateRow.length; i++) {
+                    current[i] = get(i + 1);
+                }                
                 row.updateRow(current, updateRow);
                 for (int i = 0; i < updateRow.length; i++) {
                     if (updateRow[i] == null) {

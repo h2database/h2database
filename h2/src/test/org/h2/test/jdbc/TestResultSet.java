@@ -55,6 +55,7 @@ public class TestResultSet extends TestBase {
         testAbsolute();
         testFetchSize();
         testOwnUpdates();
+        testUpdatePrimaryKey();
         testFindColumn();
         testSubstringPrecision();
         testColumnLength();
@@ -127,6 +128,20 @@ public class TestResultSet extends TestBase {
         rs.updateString(2, "Hallo");
         rs.updateRow();
         assertEquals("Hallo", rs.getString(2));
+        stat.execute("DROP TABLE TEST");
+    }
+    
+    private void testUpdatePrimaryKey() throws SQLException {
+        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, 
+                ResultSet.CONCUR_UPDATABLE);
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+        stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
+        ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
+        rs.next();
+        rs.updateInt(1, 2);
+        rs.updateRow();
+        rs.updateInt(1, 3);
+        rs.updateRow();      
         stat.execute("DROP TABLE TEST");
     }
     

@@ -33,6 +33,7 @@ public class FileViewer extends Tool {
         out.println("java "+getClass().getName() + "\n" +
                 " -file <file>     The name of the file to view\n" +
                 " [-find <text>]   Find a string and display the next lines\n" +
+                " [-start <x>]     Start at the given position\n" +
                 " [-head]          Display the first lines\n" +
                 " [-tail]          Display the last lines\n" +
                 " [-lines <x>]     Display only x lines (default: 30)\n" +
@@ -46,12 +47,15 @@ public class FileViewer extends Tool {
         boolean head = false, tail = false;
         int lines = 30;
         boolean quiet = false;
+        long start = 0;
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg.equals("-file")) {
                 file = args[++i];
             } else if (arg.equals("-find")) {
                 find = args[++i];
+            } else if (arg.equals("-start")) {
+                start = Long.decode(args[++i]).longValue();
             } else if (arg.equals("-head")) {
                 head = true;
             } else if (arg.equals("-tail")) {
@@ -77,20 +81,21 @@ public class FileViewer extends Tool {
             head = true;
         }
         try {
-            process(file, find, head, tail, lines, quiet);
+            process(file, find, head, tail, start, lines, quiet);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void process(String fileName, String find, boolean head, boolean tail, int lines, boolean quiet) throws IOException {
+    private void process(String fileName, String find, boolean head, boolean tail, long start, int lines, boolean quiet) throws IOException {
         RandomAccessFile file = new RandomAccessFile(fileName, "r");
         long length = file.length();
         if (head) {
-            file.seek(0);
-            list(0, "Head", readLines(file, lines));
+            file.seek(start);
+            list(start, "Head", readLines(file, lines));
         }
         if (find != null) {
+            file.seek(start);
             long pos = find(file, find.getBytes(), quiet);
             if (pos >= 0) {
                 file.seek(pos);

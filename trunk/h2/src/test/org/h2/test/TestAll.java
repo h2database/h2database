@@ -131,6 +131,7 @@ import org.h2.test.unit.TestValueHashMap;
 import org.h2.test.unit.TestValueMemory;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
+import org.h2.util.MemoryUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -496,7 +497,7 @@ http://www.w3schools.com/sql/
      */
     private void test() throws SQLException {
         System.out.println();
-        System.out.println("Test " + toString());
+        System.out.println("Test " + toString() + " (" + MemoryUtils.getMemoryUsed() + " KB used)");
         beforeTest();
 
         // db

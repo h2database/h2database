@@ -114,6 +114,8 @@ public class DiskFile implements CacheWriter {
     private int readCount, writeCount;
     private String mode;
     private int nextDeleteId = 1;
+    // actually this is the first potentially free page
+    private int firstFreePage;
 
     /**
      * Create a new disk file.
@@ -630,7 +632,15 @@ public class DiskFile implements CacheWriter {
             int pageCount = getPage(blockCount);
             int pos = -1;
             boolean found = false;
-            for (int i = 0; i < lastPage; i++) {
+            // correct firstFreePage
+            int i = firstFreePage;
+            for (; i < lastPage; i++) {
+                if (getPageOwner(i) == FREE_PAGE) {
+                    break;
+                }
+            }
+            firstFreePage = i;
+            for (; i < lastPage; i++) {
                 found = true;
                 for (int j = i; j < i + pageCount; j++) {
                     if (j >= lastPage || getPageOwner(j) != FREE_PAGE) {
@@ -661,7 +671,7 @@ public class DiskFile implements CacheWriter {
                 }
             }
             setBlockOwner(null, storage, pos, blockCount, false);
-            for (int i = 0; i < blockCount; i++) {
+            for (i = 0; i < blockCount; i++) {
                 storage.free(i + pos, 1);
             }
             return pos;
@@ -814,6 +824,8 @@ public class DiskFile implements CacheWriter {
             if (SysProperties.REUSE_SPACE_QUICKLY) {
                 potentiallyFreePages.remove(ObjectUtils.getInteger(page));
             }
+        } else {
+            firstFreePage = Math.min(firstFreePage, page);
         }
         pageOwners.set(page, storageId);
     }

@@ -71,6 +71,7 @@ public class TestLob extends TestBase {
         testLob(false);
         testLob(true);
         testJavaObject();
+        deleteDb("lob");
     }
     
     private void testLobDeleteTemp() throws SQLException {

@@ -19,6 +19,15 @@ import org.h2.util.MemoryUtils;
  * Test for big databases.
  */
 public class TestBigDb extends TestBase {
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws SQLException {
         if (config.memory) {
@@ -30,6 +39,7 @@ public class TestBigDb extends TestBase {
         testLargeTable();
         testInsert();
         testLeftSummary();
+        deleteDb("bigDb");
     }
 
     private void testLargeTable() throws SQLException {

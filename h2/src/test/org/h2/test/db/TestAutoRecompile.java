@@ -17,6 +17,15 @@ import org.h2.test.TestBase;
  * Tests if prepared statements are re-compiled when required.
  */
 public class TestAutoRecompile extends TestBase {
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws SQLException {
         deleteDb("autoRecompile");
@@ -47,6 +56,7 @@ public class TestAutoRecompile extends TestBase {
             assertKnownException(e);
         }
         conn.close();
+        deleteDb("autoRecompile");
     }
 
 }

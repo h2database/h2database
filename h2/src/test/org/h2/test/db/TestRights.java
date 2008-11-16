@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
+import org.h2.util.FileUtils;
 
 /**
  * Access rights tests.
@@ -26,6 +27,7 @@ public class TestRights extends TestBase {
         // testLowerCaseUser();
         testSchemaRenameUser();
         testAccessRights();
+        deleteDb("rights");
     }
 
 //    public void testLowerCaseUser() throws SQLException {
@@ -234,6 +236,7 @@ public class TestRights extends TestBase {
         conn.close();
         conn = getConnection("rights");
         conn.close();
+        FileUtils.delete(baseDir + "/rights.sql");
     }
 
     private void testTableType(Connection conn, String type) throws SQLException {

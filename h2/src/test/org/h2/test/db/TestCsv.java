@@ -32,6 +32,15 @@ import org.h2.util.StringUtils;
  * 
  */
 public class TestCsv extends TestBase {
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws Exception {
         testSpaceSeparated();
@@ -43,6 +52,7 @@ public class TestCsv extends TestBase {
         testWriteRead();
         testRead();
         testPipe();
+        deleteDb("csv");
     }
     
     private void testSpaceSeparated() throws SQLException {
@@ -138,6 +148,7 @@ public class TestCsv extends TestBase {
         }
         assertFalse(rs.next());
         conn.close();
+        FileUtils.delete(baseDir + "/test.csv");
     }
 
     private String randomData(Random random) {
@@ -173,6 +184,7 @@ public class TestCsv extends TestBase {
         assertEquals(rs.getString(2), "Hello");
         assertFalse(rs.next());
         conn.close();
+        FileUtils.delete(baseDir + "/test.csv");
     }
 
     private void testFieldDelimiter() throws Exception {
@@ -203,6 +215,8 @@ public class TestCsv extends TestBase {
         assertEquals(rs.getString(2), "\nHello*\n");
         assertFalse(rs.next());
         conn.close();
+        FileUtils.delete(baseDir + "/test.csv");
+        FileUtils.delete(baseDir + "/test2.csv");
     }
 
     private void testPipe() throws SQLException {
@@ -225,6 +239,7 @@ public class TestCsv extends TestBase {
         // rs = prep.executeQuery();
 
         conn.close();
+        FileUtils.delete(baseDir + "/test.csv");
     }
 
     private void testAsTable() throws SQLException {
@@ -287,6 +302,7 @@ public class TestCsv extends TestBase {
         // 201,2,0,18
         // 201,2,0,18
         // 201,2,0,18
+        FileUtils.delete(baseDir + "/test.csv");
     }
 
     private void testWriteRead() throws SQLException {
@@ -313,7 +329,7 @@ public class TestCsv extends TestBase {
         assertFalse(rs.next());
         rs.close();
         conn.close();
-
+        FileUtils.delete(baseDir + "/testRW.csv");
     }
 
 }

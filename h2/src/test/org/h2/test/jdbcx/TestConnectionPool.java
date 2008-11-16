@@ -23,6 +23,7 @@ public class TestConnectionPool extends TestBase {
         deleteDb("connectionPool");
         testConnect();
         testThreads();
+        deleteDb("connectionPool");
     }
     
     private void testThreads() throws Exception {

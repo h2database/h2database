@@ -24,6 +24,7 @@ public class TestCallableStatement extends TestBase {
         Connection conn = getConnection("preparedStatement");
         testPrepare(conn);
         conn.close();
+        deleteDb("callableStatement");
     }
 
     private void testPrepare(Connection conn) throws SQLException {

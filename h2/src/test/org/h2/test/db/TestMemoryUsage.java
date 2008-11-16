@@ -45,6 +45,7 @@ public class TestMemoryUsage extends TestBase {
         reconnect();
         insertUpdateSelectDelete();
         conn.close();
+        deleteDb("memoryUsage");
     }
     
     private void testCreateDropLoop() throws SQLException {

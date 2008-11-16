@@ -207,6 +207,7 @@ public class TestMetaData extends TestBase {
 
         conn.close();
         testTempTable();
+        deleteDb("metaData");
 
     }
     

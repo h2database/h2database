@@ -63,6 +63,7 @@ public class TestOutOfMemory extends TestBase {
         } finally {
             conn.close();
         }
+        deleteDb("outOfMemory");
     }
 
     private void eatMemory(int remainingKB) {

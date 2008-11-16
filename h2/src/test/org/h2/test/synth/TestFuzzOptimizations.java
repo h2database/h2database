@@ -39,6 +39,7 @@ public class TestFuzzOptimizations extends TestBase {
         testGroupSorted();
         testInSelect();
         conn.close();
+        deleteDb("optimizations");
     }
     
     private void testInSelect() throws SQLException {

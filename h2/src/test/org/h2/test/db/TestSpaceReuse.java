@@ -41,6 +41,7 @@ public class TestSpaceReuse extends TestBase {
         if (now > first) {
             fail("first: " + first + " now: " + now);
         }
+        deleteDb("spaceReuse");
     }
 
 }

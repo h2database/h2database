@@ -51,6 +51,7 @@ public class TestDataSource extends TestBase {
     public void test() throws Exception {
         testDataSource();
         testXAConnection();
+        deleteDb(baseDir, "dataSource");
     }
     
     private void testXAConnection() throws Exception {

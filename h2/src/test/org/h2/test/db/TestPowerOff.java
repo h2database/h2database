@@ -32,6 +32,15 @@ public class TestPowerOff extends TestBase {
     private String dir, url;
 
     private int maxPowerOffCount;
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws SQLException {
         if (config.memory || config.logMode == 0) {
@@ -49,6 +58,7 @@ public class TestPowerOff extends TestBase {
         testNoIndexFile();
         testMemoryTables();
         testPersistentTables();
+        deleteDb(dir, dbName);
     }
 
     private void testSummaryCrash() throws SQLException {

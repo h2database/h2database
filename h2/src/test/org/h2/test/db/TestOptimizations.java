@@ -53,6 +53,7 @@ public class TestOptimizations extends TestBase {
         testIn();
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
+        deleteDb("optimizations");
     }
     
     private void testInSelectJoin() throws SQLException {

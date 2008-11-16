@@ -21,11 +21,21 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
 
     private static int wait;
     
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }    
+    
     public void test() throws Exception {
         testConcurrentShutdownQuery();
         testCommitRollback();
         testConcurrentOpen();
         testThreeThreads();
+        deleteDb("multiConn");
     }
 
     private void testConcurrentShutdownQuery() throws Exception {
@@ -53,6 +63,11 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         Thread.sleep(50);
         stat1.execute("SHUTDOWN");
         conn1.close();
+        try {
+            conn2.close();
+        } catch (SQLException e) {
+            // ignore
+        }
     }
 
     private void testThreeThreads() throws Exception {

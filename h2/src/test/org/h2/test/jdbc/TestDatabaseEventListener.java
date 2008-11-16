@@ -26,6 +26,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         testCalled();
         testCloseLog0(false);
         testCloseLog0(true);
+        deleteDb("databaseEventListener");
     }
 
     private void testCloseLog0(boolean shutdown) throws SQLException {

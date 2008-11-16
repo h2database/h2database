@@ -23,6 +23,15 @@ import org.h2.test.TestBase;
 public class TestCancel extends TestBase {
     
     private static int lastVisited;
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }    
 
     /**
      * This thread cancels a statement after some time.
@@ -66,6 +75,7 @@ public class TestCancel extends TestBase {
         testQueryTimeout();
         testJdbcQueryTimeout();
         testCancelStatement();
+        deleteDb("cancel");
     }
     
     private void testReset() throws SQLException {

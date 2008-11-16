@@ -32,6 +32,7 @@ public class TestReadOnly extends TestBase {
         if (!config.deleteIndex) {
             testReadOnlyFiles(false);
         }
+        deleteDb("readonly");
     }
     
     private void testReadOnlyDbCreate() throws SQLException {

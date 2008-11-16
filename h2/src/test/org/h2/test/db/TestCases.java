@@ -25,6 +25,15 @@ import org.h2.test.TestBase;
  * Various test cases.
  */
 public class TestCases extends TestBase {
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws Exception {
         testInvalidDatabaseName();
@@ -55,6 +64,7 @@ public class TestCases extends TestBase {
         testDoubleRecovery();
         testConstraintReconnect();
         testCollation();
+        deleteDb("cases");
     }
     
     private void testInvalidDatabaseName() throws SQLException {

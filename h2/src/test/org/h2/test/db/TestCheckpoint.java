@@ -16,6 +16,15 @@ import org.h2.test.TestBase;
  * Tests the CHECKPOINT SQL statement.
  */
 public class TestCheckpoint extends TestBase {
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }    
 
     public void test() throws SQLException {
         // TODO test checkpoint with rollback, not only just run the command
@@ -42,6 +51,7 @@ public class TestCheckpoint extends TestBase {
 
         c0.close();
         c1.close();
+        deleteDb("checkpoint");
     }
 
 }

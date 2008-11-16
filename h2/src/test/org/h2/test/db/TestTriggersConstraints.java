@@ -30,6 +30,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         testTriggerAlterTable();
         testTriggers();
         testConstraints();
+        deleteDb("trigger");
     }
     
     /**

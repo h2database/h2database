@@ -46,6 +46,7 @@ public class TestStatement extends TestBase {
             testIdentity();
         }
         conn.close();
+        deleteDb("statement");
     }
     
     private void testTraceError() throws SQLException {

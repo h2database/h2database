@@ -37,6 +37,7 @@ public class TestRowLocks extends TestBase {
     public void test() throws Exception {
         testSetMode();
         testCases();
+        deleteDb("rowLocks");
     }
 
     private void testSetMode() throws SQLException {

@@ -169,6 +169,7 @@ public class TestMultiThreaded extends TestBase {
         for (int i = 0; i < size; i++) {
             connList[i].close();
         }
+        deleteDb("multiThreaded");
     }
 
 }

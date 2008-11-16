@@ -23,6 +23,15 @@ import org.h2.util.ScriptReader;
 public class TestScriptSimple extends TestBase {
 
     private Connection conn;
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws Exception {
         if (config.memory || config.big || config.networked) {
@@ -62,6 +71,7 @@ public class TestScriptSimple extends TestBase {
         }
         is.close();
         conn.close();
+        deleteDb("scriptSimple");
     }
 
     private void reconnect() throws SQLException {

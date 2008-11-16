@@ -72,6 +72,8 @@ public class TestDate extends TestBase {
             TimeZone.setDefault(defaultTimeZone);
             DateTimeUtils.resetCalendar();
         }
+        conn.close();
+        deleteDb("date");
     }
 
     private void test(PreparedStatement prep, int d) throws SQLException {

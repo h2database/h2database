@@ -64,6 +64,7 @@ public class TestMvccMultiThreaded extends TestBase {
         for (int i = 0; i < len; i++) {
             connList[i].close();
         }
+        deleteDb("mvccMultiThreaded");
     }
 
 }

@@ -64,6 +64,7 @@ public class TestKillRestart extends TestBase {
                 }
             }
         }
+        deleteDb("killRestart");
     }
 
     /**

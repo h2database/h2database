@@ -53,6 +53,7 @@ public class TestCache extends TestBase {
             }
         }
         conn.close();
+        deleteDb("cache");
     }
 
 }

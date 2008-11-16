@@ -33,13 +33,22 @@ public class TestDeadlock extends TestBase {
     Connection c3;
     private volatile SQLException lastException;
     
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+    
     public void test() throws Exception {
         deleteDb("deadlock");
-        
         testDiningPhilosophers();
         testLockUpgrade();
         testThreePhilosophers();
         testNoDeadlock();
+        deleteDb("deadlock");
     }
     
     private void initTest() throws SQLException {

@@ -28,6 +28,7 @@ public class TestTransaction extends TestBase {
         testReferential();
         testSavepoint();
         testIsolation();
+        deleteDb("transaction");
     }
 
     private void testSetTransaction() throws SQLException {

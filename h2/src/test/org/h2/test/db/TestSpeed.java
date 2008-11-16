@@ -156,6 +156,7 @@ public class TestSpeed extends TestBase {
         conn.close();
         time = System.currentTimeMillis() - time;
         trace(time + " close");
+        deleteDb("speed");
     }
 
     // private void testOuterJoin() throws SQLException {

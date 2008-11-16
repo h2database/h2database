@@ -29,6 +29,7 @@ public class TestMvcc2 extends TestBase {
         deleteDb("mvcc2");
         testInsertUpdateRollback();
         testInsertRollback();
+        deleteDb("mvcc2");
     }
 
     private Connection getConnection() throws SQLException {

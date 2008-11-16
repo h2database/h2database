@@ -78,6 +78,7 @@ public class TestResultSet extends TestBase {
         testAutoIncrement();
 
         conn.close();
+        deleteDb("resultSet");
 
     }
     

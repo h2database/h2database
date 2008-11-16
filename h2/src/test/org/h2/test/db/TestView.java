@@ -21,6 +21,7 @@ public class TestView extends TestBase {
     public void test() throws SQLException {
         testUnionReconnect();
         testManyViews();
+        deleteDb("view");
     }
     
     private void testUnionReconnect() throws SQLException {

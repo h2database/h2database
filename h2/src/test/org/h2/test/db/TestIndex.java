@@ -69,6 +69,7 @@ public class TestIndex extends TestBase {
         testMultiColumnHashIndex();
 
         conn.close();
+        deleteDb("index");
     }
     
     private void testHashIndex() throws SQLException {

@@ -63,6 +63,7 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         if (getClosedFile().exists()) {
             fail("closed database");
         }
+        deleteDb("exit");
     }
 
     /**

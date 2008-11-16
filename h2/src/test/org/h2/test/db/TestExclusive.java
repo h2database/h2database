@@ -16,6 +16,15 @@ import org.h2.test.TestBase;
  * Test for the exclusive mode.
  */
 public class TestExclusive extends TestBase {
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws Exception {
         deleteDb("exclusive");
@@ -64,7 +73,7 @@ public class TestExclusive extends TestBase {
         // check that exclusive mode is off when disconnected
         stat2.execute("select * from dual");
         conn2.close();
-
+        deleteDb("exclusive");
     }
 
 }

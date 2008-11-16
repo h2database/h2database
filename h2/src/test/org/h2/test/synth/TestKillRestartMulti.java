@@ -35,7 +35,7 @@ public class TestKillRestartMulti extends TestBase {
     private ArrayList connections = new ArrayList();
     private ArrayList tables = new ArrayList();
     private int openCount;
-
+    
     public void test() throws Exception {
         if (config.networked) {
             return;
@@ -114,6 +114,7 @@ public class TestKillRestartMulti extends TestBase {
                 throw e;
             }
         }
+        deleteDb("killRestartMulti");
     }
 
     /**

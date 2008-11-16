@@ -67,6 +67,7 @@ public class TestTools extends TestBase {
         testScriptRunscript();
         testBackupRestore();
         testRecover();
+        deleteDb("utils");
     }
 
     private void testServerMain() throws SQLException {

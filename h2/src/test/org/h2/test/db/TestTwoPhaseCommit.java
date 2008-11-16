@@ -32,6 +32,7 @@ public class TestTwoPhaseCommit extends TestBase {
         prepare();
         openWith(false);
         test(false);
+        deleteDb("twoPhaseCommit");
     }
 
     private void test(boolean rolledBack) throws SQLException {

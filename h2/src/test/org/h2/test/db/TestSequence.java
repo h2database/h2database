@@ -23,6 +23,7 @@ public class TestSequence extends TestBase {
         testAlterSequence();
         testCache();
         testTwo();
+        deleteDb("sequence");
     }
     
     private void testAlterSequenceColumn() throws SQLException {

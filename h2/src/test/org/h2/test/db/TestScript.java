@@ -81,6 +81,7 @@ public class TestScript extends TestBase {
                 testScript();
             }
         }
+        deleteDb("script");
     }
 
     private void testScript() throws Exception {

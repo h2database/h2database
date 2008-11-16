@@ -107,14 +107,19 @@ public abstract class TestBase {
             init(conf);
             start = System.currentTimeMillis();
             test();
-            FileSystem.getInstance("memFS:").deleteRecursive("memFS:");
-            FileSystem.getInstance("memLZF:").deleteRecursive("memLZF:");
             println("");
         } catch (Throwable e) {
             println("FAIL " + e.toString());
             logError("FAIL " + e.toString(), e);
             if (config.stopOnError) {
                 throw new Error("ERROR");
+            }
+        } finally {
+            try {
+                FileSystem.getInstance("memFS:").deleteRecursive("memFS:");
+                FileSystem.getInstance("memLZF:").deleteRecursive("memLZF:");
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
     }

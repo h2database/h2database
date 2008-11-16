@@ -21,6 +21,15 @@ import org.h2.test.TestBase;
  */
 public class TestBigResult extends TestBase {
     
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+    
     public void test() throws SQLException {
         if (config.memory) {
             return;
@@ -30,6 +39,7 @@ public class TestBigResult extends TestBase {
         testCloseConnectionDelete();
         testOrderGroup();
         testLimitBufferedResult();
+        deleteDb("bigResult");
     }
 
     private void testLargeSubquery() throws SQLException {

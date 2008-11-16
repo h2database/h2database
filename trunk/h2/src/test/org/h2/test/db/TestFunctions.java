@@ -31,12 +31,22 @@ import org.h2.util.IOUtils;
  * Tests for user defined functions and aggregates.
  */
 public class TestFunctions extends TestBase {
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws Exception {
         testVarArgs();
         testAggregate();
         testFunctions();
         testFileRead();
+        deleteDb("functions");
     }
     
     private void testVarArgs() throws SQLException {

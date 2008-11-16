@@ -81,6 +81,7 @@ public class TestSQLInjection extends TestBase {
         assertTrue(checkPasswordSecure("123456"));
         assertFalse(checkPasswordSecure("' OR ''='"));
         conn.close();
+        deleteDb("sqlInjection");
     }
 
     private boolean checkPasswordInsecure(String pwd) throws SQLException {

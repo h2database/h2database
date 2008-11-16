@@ -71,6 +71,7 @@ public class TestAutoServer extends TestBase {
         }
         conn.close();
         connServer.close();
+        deleteDb("autoServer");
     }
     
     /**

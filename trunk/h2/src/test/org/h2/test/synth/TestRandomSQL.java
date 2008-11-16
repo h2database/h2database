@@ -176,6 +176,11 @@ public class TestRandomSQL extends TestBase {
         }
         testWithSeed(bnf);
         SysProperties.scriptDirectory = old;
+        try {
+            deleteDb();
+        } catch (SQLException e) {
+            processException("deleteDb", e);
+        }        
     }
 
     public void test() throws SQLException {

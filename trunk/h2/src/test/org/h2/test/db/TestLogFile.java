@@ -24,6 +24,15 @@ public class TestLogFile extends TestBase {
 
     private static final int MAX_LOG_SIZE = 1;
     private Connection conn;
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }    
 
     private long reconnect(int maxFiles) throws SQLException {
         if (conn != null) {
@@ -64,6 +73,7 @@ public class TestLogFile extends TestBase {
         } finally {
             System.setProperty(SysProperties.H2_LOG_DELETE_DELAY, "" + old);
         }
+        deleteDb("logfile");
     }
 
     private void checkLogSize() throws SQLException {

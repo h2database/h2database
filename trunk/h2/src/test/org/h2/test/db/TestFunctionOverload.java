@@ -24,9 +24,18 @@ public class TestFunctionOverload extends TestBase {
     private static final String ME = TestFunctionOverload.class.getName();
     private Connection conn;
     private DatabaseMetaData meta;
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws SQLException {
-        this.deleteDb("functionOverload");
+        deleteDb("functionOverload");
         conn = getConnection("functionOverload");
         meta = conn.getMetaData();
         testControl();
@@ -35,6 +44,7 @@ public class TestFunctionOverload extends TestBase {
         testOverloadWithConnection();
         testOverloadError();
         conn.close();
+        deleteDb("functionOverload");
     }
     
     private void testOverloadError() throws SQLException {

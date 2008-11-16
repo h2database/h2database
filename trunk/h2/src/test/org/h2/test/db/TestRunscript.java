@@ -12,6 +12,7 @@ import java.sql.Statement;
 
 import org.h2.api.Trigger;
 import org.h2.test.TestBase;
+import org.h2.util.FileUtils;
 
 /**
  * Tests the RUNSCRIPT SQL statement.
@@ -21,6 +22,7 @@ public class TestRunscript extends TestBase implements Trigger {
     public void test() throws SQLException {
         test(false);
         test(true);
+        deleteDb("runscript");
     }
 
     /**
@@ -89,6 +91,10 @@ public class TestRunscript extends TestBase implements Trigger {
 
         conn1.close();
         conn2.close();
+        deleteDb("runscriptRestore");
+        FileUtils.delete(baseDir + "/backup.2.sql");
+        FileUtils.delete(baseDir + "/backup.3.sql");
+        
     }
 
     public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {

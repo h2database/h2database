@@ -34,6 +34,9 @@ public class TestXA extends TestBase {
         deleteDb(baseDir, DB_NAME1);
         deleteDb(baseDir, DB_NAME2);
         testXA(false);
+        deleteDb(baseDir, "xa");
+        deleteDb(baseDir, DB_NAME1);
+        deleteDb(baseDir, DB_NAME2);
     }
 
     /**

@@ -92,6 +92,7 @@ public class TestTransactionIsolation extends TestBase {
 
         conn1.close();
         conn2.close();
+        deleteDb("transactionIsolation");
     }
 
 }

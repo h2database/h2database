@@ -47,6 +47,7 @@ public class TestMultiThreadedKernel extends TestBase implements Runnable {
         for (int i = 0; i < count; i++) {
             list[i].join();
         }
+        deleteDb("multiThreadedKernel");
     }
 
     public void run() {

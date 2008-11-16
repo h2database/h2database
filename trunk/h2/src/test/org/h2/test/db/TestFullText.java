@@ -54,7 +54,8 @@ public class TestFullText extends TestBase {
             println("Class not found, not tested: " + luceneFullTextClassName);
             // ok
         }
-
+        deleteDb("fullText");
+        deleteDb("fullTextReopen");
     }
     
     private void testCreateDrop() throws SQLException {

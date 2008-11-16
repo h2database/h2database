@@ -23,6 +23,7 @@ public class TestMvcc3 extends TestBase {
         testSequence();
         testDisableAutoCommit();
         testRollback();
+        deleteDb("mvcc3");
     }
     
     private void testCreateTableAsSelect() throws SQLException {

@@ -20,11 +20,21 @@ import org.h2.test.TestBase;
  * Tests the server by creating many JDBC objects (result sets and so on).
  */
 public class TestManyJdbcObjects extends TestBase {
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws SQLException {
         testNestedResultSets();
         testManyConnections();
         testOneConnectionPrepare();
+        deleteDb("manyObjects");
     }
 
     private void testNestedResultSets() throws SQLException {

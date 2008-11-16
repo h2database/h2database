@@ -23,6 +23,7 @@ public class TestZloty extends TestBase {
     public void test() throws SQLException {
         testZloty();
         testModifyBytes();
+        deleteDb("zloty");
     }
 
     /**

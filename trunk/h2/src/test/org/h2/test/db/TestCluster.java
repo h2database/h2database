@@ -22,14 +22,21 @@ import org.h2.tools.Server;
  * Test for the cluster feature.
  */
 public class TestCluster extends TestBase {
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws SQLException {
         if (config.memory || config.networked) {
             return;
         }
-
-        DeleteDbFiles.main(new String[] { "-dir", baseDir + "/node1", "-quiet" });
-        DeleteDbFiles.main(new String[] { "-dir", baseDir + "/node2", "-quiet" });
+        deleteFiles();
 
         // create the master database
         Connection conn;
@@ -122,6 +129,12 @@ public class TestCluster extends TestBase {
         conn.createStatement().execute("SELECT * FROM A");
         conn.close();
         n2.stop();
+        deleteFiles();
+    }
+    
+    private void deleteFiles() throws SQLException {
+        DeleteDbFiles.main(new String[] { "-dir", baseDir + "/node1", "-quiet" });
+        DeleteDbFiles.main(new String[] { "-dir", baseDir + "/node2", "-quiet" });
     }
 
     private void check(Connection conn, int len) throws SQLException {

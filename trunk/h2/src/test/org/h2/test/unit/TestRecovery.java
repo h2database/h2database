@@ -39,6 +39,7 @@ public class TestRecovery extends TestBase {
         // Recover.execute("data", null);
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
         conn.close();
+        DeleteDbFiles.execute(baseDir, "recovery", true);
     }
 
 }

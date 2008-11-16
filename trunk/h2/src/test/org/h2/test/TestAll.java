@@ -284,6 +284,8 @@ java org.h2.test.TestAll timer
 
 split files (1 GB max size)
 
+allocating space gets slower and slower the larger the database. 
+test trace_level_file=3 performance (when throwing exceptions)
 study SQLite file format
 
 multithreaded kernel

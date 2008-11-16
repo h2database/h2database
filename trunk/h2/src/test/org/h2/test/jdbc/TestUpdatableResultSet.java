@@ -33,6 +33,7 @@ public class TestUpdatableResultSet extends TestBase {
         testUpdateDeleteInsert();
         testUpdateDataType();
         testUpdateResetRead();
+        deleteDb("updatableResultSet");
     }
     
     private void testUpdateLob() throws SQLException {

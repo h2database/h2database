@@ -43,7 +43,7 @@ public class TestCompatibility extends TestBase {
         testMySQL();
 
         conn.close();
-
+        deleteDb("compatibility");
     }
     
     private void testColumnAlias() throws SQLException {

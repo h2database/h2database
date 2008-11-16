@@ -35,6 +35,7 @@ public class TestTempTables extends TestBase {
         testIndexes(c1, c2);
         c1.close();
         c2.close();
+        deleteDb("tempTables");
     }
 
     private void testIndexes(Connection conn1, Connection conn2) throws SQLException {

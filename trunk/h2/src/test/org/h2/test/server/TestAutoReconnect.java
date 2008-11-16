@@ -56,6 +56,7 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
     public void test() throws Exception {
         testReconnect(true);
         testReconnect(false);
+        deleteDb("autoReconnect");
     }
     
     private void testReconnect(boolean autoServer) throws Exception {

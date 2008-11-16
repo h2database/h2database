@@ -17,6 +17,15 @@ import org.h2.test.TestBase;
  * Test using an encrypted database.
  */
 public class TestEncryptedDb extends TestBase {
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws SQLException {
         if (config.memory || config.cipher != null) {
@@ -51,6 +60,7 @@ public class TestEncryptedDb extends TestBase {
         assertFalse(rs.next());
 
         conn.close();
+        deleteDb("exclusive");
     }
 
 }

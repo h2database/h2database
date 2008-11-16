@@ -26,6 +26,7 @@ public class TestMvcc1 extends TestBase {
     public void test() throws SQLException {
         testSetMode();
         testCases();
+        deleteDb("mvcc1");
     }
 
     private void testSetMode() throws SQLException {

@@ -61,7 +61,7 @@ public class TestNestedLoop extends TestBase {
             }
         }
         conn.close();
-
+        deleteDb("nestedLoop");
     }
 
 }

@@ -25,6 +25,7 @@ public class TestSampleApps extends TestBase {
         String url = "jdbc:h2:" + baseDir + "/optimizations";
         testApp(org.h2.tools.RunScript.class, new String[] { "-url", url, "-user", "sa", "-password", "sa", "-script",
                 "src/test/org/h2/samples/optimizations.sql", "-checkResults" }, "");
+        deleteDb("optimizations");
         
         testApp(org.h2.samples.Compact.class, null, "Compacting...\nDone.");
         testApp(org.h2.samples.CsvSample.class, null, "NAME: Bob Meier\n" + "EMAIL: bob.meier@abcde.abc\n"

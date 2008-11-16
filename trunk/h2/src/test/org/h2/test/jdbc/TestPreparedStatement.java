@@ -60,6 +60,7 @@ public class TestPreparedStatement extends TestBase {
         testClob(conn);
         testParameterMetaData(conn);
         conn.close();
+        deleteDb("preparedStatement");
     }
     
     private void testLobTempFiles(Connection conn) throws SQLException {

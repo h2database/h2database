@@ -130,6 +130,7 @@ public class TestMultiDimension extends TestBase {
             // trace("t1="+time1+" t2="+time2+" size="+size);
         }
         conn.close();
+        deleteDb("multiDimension");
     }
 
     /**

@@ -44,6 +44,7 @@ public class TestPgServer extends TestBase {
         } finally {
             server.stop();
         }
+        deleteDb("test");
     }
 
     private void testPgClient() throws SQLException {

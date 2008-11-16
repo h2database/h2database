@@ -12,17 +12,28 @@ import java.sql.Statement;
 
 import org.h2.test.TestBase;
 import org.h2.tools.Restore;
+import org.h2.util.FileUtils;
 
 /**
  * Test for the BACKUP SQL statement.
  */
 public class TestBackup extends TestBase {
+    
+    /**
+     * Run just this test.
+     * 
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws SQLException {
         if (config.memory || config.logMode == 0) {
             return;
         }
         testBackup();
+        deleteDb("backup");
     }
 
     private void testBackup() throws SQLException {
@@ -54,6 +65,8 @@ public class TestBackup extends TestBase {
         conn1.close();
         conn2.close();
         conn3.close();
+        deleteDb("restored");
+        FileUtils.delete(baseDir + "/backup.zip");
     }
 
 }

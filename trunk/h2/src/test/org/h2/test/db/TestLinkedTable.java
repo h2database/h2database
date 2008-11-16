@@ -43,6 +43,7 @@ public class TestLinkedTable extends TestBase {
         testLinkEmitUpdates();
         testLinkTable();
         testLinkTwoTables();
+        deleteDb("linkedTable");
     }
 
     // this is not a bug, it is the documented behavior

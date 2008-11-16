@@ -24,6 +24,7 @@ public class TestSessionsLocks extends TestBase {
         }
         testCancelStatement();
         testLocks();
+        deleteDb("sessionsLocks");
     }
 
     private void testLocks() throws SQLException {

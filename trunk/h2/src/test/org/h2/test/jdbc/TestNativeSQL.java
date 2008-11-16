@@ -64,6 +64,7 @@ public class TestNativeSQL extends TestBase {
         testQuotes();
         conn.close();
         assertTrue(conn.isClosed());
+        deleteDb("nativeSql");
     }
     
     private void testQuotes() throws SQLException {

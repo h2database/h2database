@@ -48,7 +48,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
 
         conn = getConnection("listener;database_event_listener='" + getClass().getName() + "'");
         conn.close();
-
+        deleteDb("listener");
     }
 
     public void diskSpaceIsLow(long stillAvailable) {

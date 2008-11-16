@@ -47,6 +47,7 @@ public class TestBatchUpdates extends TestBase {
         testExecuteCall();
         testException();
         testCoffee();
+        deleteDb("batchUpdates");
     }
 
     private void testExecuteCall() throws SQLException {

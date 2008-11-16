@@ -328,7 +328,6 @@ public class FileLock {
                 } catch (Exception e) {
                     trace.debug("watchdog", e);
                 }
-                trace.debug("watchdog end");
             }
         });
         watchdog.setName("H2 File Lock Watchdog " + fileName);

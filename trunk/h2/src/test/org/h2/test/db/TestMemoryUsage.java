@@ -34,17 +34,17 @@ public class TestMemoryUsage extends TestBase {
 
     public void test() throws SQLException {
         deleteDb("memoryUsage");
-        testCreateDropLoop();
+//        testCreateDropLoop();
         testCreateIndex();
-        testClob();
-        deleteDb("memoryUsage");
-        testReconnectOften();
-        deleteDb("memoryUsage");
-        reconnect();
-        insertUpdateSelectDelete();
-        reconnect();
-        insertUpdateSelectDelete();
-        conn.close();
+//        testClob();
+//        deleteDb("memoryUsage");
+//        testReconnectOften();
+//        deleteDb("memoryUsage");
+//        reconnect();
+//        insertUpdateSelectDelete();
+//        reconnect();
+//        insertUpdateSelectDelete();
+//        conn.close();
         deleteDb("memoryUsage");
     }
     
@@ -108,11 +108,16 @@ public class TestMemoryUsage extends TestBase {
         Connection conn = getConnection("memoryUsage");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar)");
-        PreparedStatement prep = conn.prepareStatement("insert into test values(?, space(200) || ?)");
+        int todo;
+        // PreparedStatement prep = conn.prepareStatement("insert into test values(?, space(200) || ?)");
+        PreparedStatement prep = conn.prepareStatement("insert into test values(?, space(200))");
         int len = getSize(10000, 100000);
         for (int i = 0; i < len; i++) {
+//            if(i % 1000 == 0) {
+//                System.out.println("  " + i + " of " + len + " used KB: " + MemoryUtils.getMemoryUsed());
+//            }
             prep.setInt(1, i);
-            prep.setInt(2, i);
+            // prep.setInt(2, i);
             prep.executeUpdate();
         }
         int start = MemoryUtils.getMemoryUsed();

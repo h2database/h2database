@@ -78,7 +78,11 @@ public class StringCache {
         String[] cache = (String[]) softCache.get();
         int hash = s.hashCode();
         if (cache == null) {
-            cache = new String[SysProperties.OBJECT_CACHE_SIZE];
+            try {
+                cache = new String[SysProperties.OBJECT_CACHE_SIZE];
+            } catch (OutOfMemoryError e) {
+                return s;
+            }
             softCache = new SoftReference(cache);
         }
         int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);

@@ -54,6 +54,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
 </li><li>Option for Java functions: [DETERMINISTIC] FOR ... 
+</li><li>Improved fulltext search (supports LOBs).
 </li><li>Support mixed clustering mode (one embedded, the other server mode)
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
@@ -163,7 +164,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility)
 </li><li>Backup tool should work with other databases as well
 </li><li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs
-</li><li>Improved fulltext search (supports LOBs, reader / tokenizer / filter).
+</li><li>Improved fulltext search (reader / tokenizer / filter).
 </li><li>Performance: Update in-place
 </li><li>Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess)
 </li><li>Java static code analysis: http://pmd.sourceforge.net/

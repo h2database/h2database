@@ -65,7 +65,6 @@ public class PageParser {
                 setError(pos);
             }
         } catch (ParseException e) {
-            // TODO log error
             setError(pos);
         }
         return result.toString();

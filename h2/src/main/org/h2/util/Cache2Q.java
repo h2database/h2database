@@ -178,7 +178,7 @@ public class Cache2Q implements Cache {
                 // can't remove any record, because the log is not written yet
                 // hopefully this does not happen too much, but it could happen
                 // theoretically
-                // TODO log this
+                writer.getTrace().info("Cannot remove records, cache size too small?");
                 break;
             }
             if (sizeIn > maxIn) {

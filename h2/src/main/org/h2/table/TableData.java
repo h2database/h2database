@@ -119,7 +119,7 @@ public class TableData extends Table implements RecordReader {
                 // this could happen, for example on failure in the storage
                 // but if that is not the case it means there is something wrong
                 // with the database
-                // TODO log this problem
+                trace.error("Could not undo operation", e);
                 throw e2;
             }
             throw Message.convert(e);
@@ -209,7 +209,7 @@ public class TableData extends Table implements RecordReader {
                     // this could happen, for example on failure in the storage
                     // but if that is not the case it means 
                     // there is something wrong with the database
-                    // TODO log this problem
+                    trace.error("Could not remove index", e);
                     throw e2;
                 }
                 throw e;
@@ -310,7 +310,7 @@ public class TableData extends Table implements RecordReader {
                 // this could happen, for example on failure in the storage
                 // but if that is not the case it means there is something wrong
                 // with the database
-                // TODO log this problem
+                trace.error("Could not undo operation", e);
                 throw e2;
             }
             throw Message.convert(e);

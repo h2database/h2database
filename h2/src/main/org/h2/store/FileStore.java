@@ -14,6 +14,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
+import org.h2.message.Trace;
 import org.h2.security.SecureFileStore;
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
@@ -454,7 +455,10 @@ public class FileStore {
         try {
             file.sync();
         } catch (IOException e) {
-            // TODO log exception
+            Trace trace = handler.getTrace();
+            if (trace != null) {
+                trace.error("Sync failed", e);
+            }
         }
     }
 

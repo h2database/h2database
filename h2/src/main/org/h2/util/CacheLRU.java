@@ -100,7 +100,7 @@ public class CacheLRU implements Cache {
                 // can't remove any record, because the log is not written yet
                 // hopefully this does not happen too much, but it could happen
                 // theoretically
-                // TODO log this
+                writer.getTrace().info("Cannot remove records, cache size too small?");
                 break;
             }
             CacheObject last = head.next;
@@ -304,7 +304,7 @@ public class CacheLRU implements Cache {
 ////System.out.println("cache write "+entry.getPos());
 //                writer.writeBack(entry);
 //            } catch(SQLException e) {
-//                // TODO cache: printStackTrace not needed 
+//                // printStackTrace not needed 
 //                // if we use our own hashtable
 //                e.printStackTrace();
 //            }

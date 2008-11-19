@@ -589,7 +589,7 @@ public class ValueLob extends Value {
             if (precision > 4096) {
                 // TODO: should calculate the hash code when saving, and store
                 // it in the data file
-                return (int) (precision ^ (precision >> 32));
+                return (int) (precision ^ (precision >>> 32));
             }
             try {
                 hash = ByteUtils.getByteArrayHash(getBytes());
@@ -640,7 +640,6 @@ public class ValueLob extends Value {
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         long p = getPrecision();
-        // TODO test if setBinaryStream with -1 works for other databases a well
         if (p > Integer.MAX_VALUE || p <= 0) {
             p = -1;
         }

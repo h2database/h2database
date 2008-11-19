@@ -41,7 +41,6 @@ public class ValueDecimal extends Value {
     private static final ValueDecimal ZERO = new ValueDecimal(DEC_ZERO);
     private static final ValueDecimal ONE = new ValueDecimal(DEC_ONE);
 
-    // TODO doc: document differences for BigDecimal 1.5 <> 1.4
     private final BigDecimal value;
     private String valueString;
     private int precision;

@@ -283,10 +283,34 @@ java org.h2.test.TestAll timer
         
 /*
 
+remove emergencyReserver?
+
+test.sql
+good:
+select documents.*, 'this is a test' as snippet
+from documents, document_text
+where
+       document_text.id in (select substring(search.query, locate('=',
+search.query) + 1) from ftl_search('+nelson +"drip pan"', 500, 0)
+search)
+       and documents.id = document_text.doc_id
+       and source_id in (3, 2, 4, 1)
+limit 500
+bad:
+select documents.*, 'this is a test' as snippet
+from document_text, documents
+where
+       document_text.id in (select substring(search.query, locate('=',
+search.query) + 1) from ftl_search('+nelson +"drip pan"', 500, 0)
+search)
+       and documents.id = document_text.doc_id
+       and source_id in (3, 2, 4, 1)
+limit 500
+
+
+
 split files (1 GB max size)
 
-allocating space gets slower and slower the larger the database. 
-test trace_level_file=3 performance (when throwing exceptions)
 study SQLite file format
 
 multithreaded kernel
@@ -295,8 +319,6 @@ remove old TODO
 
 online backup may not work for very large files 
 (document problem with jdk 1.4; document to use jar -xf)
-
-select last_value from conf.report_id_seq
 
 test web site with firefox 3, internet explorer, opera, safari, google chrome
 

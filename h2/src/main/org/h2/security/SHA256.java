@@ -13,8 +13,6 @@ import java.util.Arrays;
  */
 public class SHA256 {
 
-    // TODO maybe implement WHIRLPOOL
-    
     /**
      * The first 32 bits of the fractional parts of the cube roots of the first
      * sixty-four prime numbers.

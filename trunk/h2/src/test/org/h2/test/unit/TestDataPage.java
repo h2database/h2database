@@ -9,6 +9,7 @@ package org.h2.test.unit;
 import java.sql.SQLException;
 
 import org.h2.constant.SysProperties;
+import org.h2.message.Trace;
 import org.h2.store.DataHandler;
 import org.h2.store.DataPage;
 import org.h2.store.FileStore;
@@ -155,6 +156,10 @@ public class TestDataPage extends TestBase implements DataHandler {
 
     public TempFileDeleter getTempFileDeleter() {
         return TempFileDeleter.getInstance();
+    }
+    
+    public Trace getTrace() {
+        return null;
     }
     
 }

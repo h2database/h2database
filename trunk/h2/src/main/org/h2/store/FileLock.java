@@ -60,11 +60,6 @@ public class FileLock {
     private static final int RANDOM_BYTES = 16;
     private static final int SLEEP_GAP = 25;
     private static final int TIME_GRANULARITY = 2000;
-
-    // TODO lock: maybe not so secure! what if tread does not have chance to run?
-    // TODO lock: implement locking method using java 1.4 FileLock
-    // TODO log / messages: use translatable messages
-    // private java.nio.channels.FileLock fileLock;
     
     /**
      * The lock file name.
@@ -340,7 +335,7 @@ public class FileLock {
         method = SOCKET;
         properties = new SortedProperties();
         setUniqueId();
-        // TODO documentation: if this returns 127.0.0.1, 
+        // if this returns 127.0.0.1, 
         // the computer is probably not networked
         ipAddress = NetUtils.getLocalAddress();
         if (!fs.createNewFile(fileName)) {

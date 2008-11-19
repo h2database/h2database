@@ -1163,7 +1163,6 @@ public class JdbcConnection extends TraceObject implements Connection {
                     level--;
                     break;
                 } else if (chars[i] == '?') {
-                    // TODO nativeSQL: '? = ...' : register out parameter
                     chars[i++] = ' ';
                     checkRunOver(i, len, sql);
                     while (Character.isSpaceChar(chars[i])) {

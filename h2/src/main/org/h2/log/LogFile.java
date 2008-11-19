@@ -389,7 +389,6 @@ public class LogFile {
             throw Message.convert(e);
         } catch (Throwable e) {
             database.getTrace(Trace.LOG).error("Error reading log file (non-fatal)", e);
-            // TODO log exception, but mark as 'probably ok'
             // on power loss, sometime there is garbage at the end of the file
             // we stop recovering in this case (checksum mismatch)
         }

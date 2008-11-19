@@ -76,7 +76,7 @@ public class Row extends Record implements SearchRow {
 
     public int getMemorySize() {
         if (memory != MEMORY_CALCULATE) {
-            return blockCount * (DiskFile.BLOCK_SIZE / 16) + memory * 4;
+            return blockCount * (DiskFile.BLOCK_SIZE / 8) + memory * 4;
         }
         int m = blockCount * (DiskFile.BLOCK_SIZE / 16);
         for (int i = 0; data != null && i < data.length; i++) {

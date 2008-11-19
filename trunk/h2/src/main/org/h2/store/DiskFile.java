@@ -314,7 +314,7 @@ public class DiskFile implements CacheWriter {
                 DataInputStream in = new DataInputStream(new ByteArrayInputStream(summary));
                 int b2 = in.readInt();
                 if (b2 > fileBlockCount) {
-                    database.getTrace(Trace.DATABASE).info(
+                    getTrace().info(
                             "unexpected size " + b2 + " when initializing summary for " + fileName + " expected:"
                                     + fileBlockCount);
                     return;
@@ -378,7 +378,7 @@ public class DiskFile implements CacheWriter {
                 freeUnusedPages();
                 init = true;
             } catch (Throwable e) {
-                database.getTrace(Trace.DATABASE).error(
+                getTrace().error(
                         "error initializing summary for " + fileName + " size:" + summary.length + " stage:" + stage, e);
                 // ignore - init is still false in this case
             }
@@ -1278,5 +1278,10 @@ public class DiskFile implements CacheWriter {
     public String toString() {
         return getClass().getName() + ":" + fileName;
     }
+    
+    public Trace getTrace() {
+        return database.getTrace(Trace.DATABASE);
+    }
+
 
 }

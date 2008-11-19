@@ -8,6 +8,8 @@ package org.h2.util;
 
 import java.sql.SQLException;
 
+import org.h2.message.Trace;
+
 /**
  * The cache writer is called by the cache to persist changed data that needs to
  * be removed from the cache.
@@ -28,4 +30,12 @@ public interface CacheWriter {
      * log file first, because the log file is 'write ahead'.
      */
     void flushLog() throws SQLException;
+    
+    /**
+     * Get the trace writer.
+     * 
+     * @return the trace writer
+     */
+    Trace getTrace();
+    
 }

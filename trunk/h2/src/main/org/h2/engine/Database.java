@@ -2117,4 +2117,8 @@ public class Database implements DataHandler {
         return tempFileDeleter;
     }
 
+    public Trace getTrace() {
+        return getTrace(Trace.DATABASE);
+    }
+
 }

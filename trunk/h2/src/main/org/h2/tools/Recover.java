@@ -32,6 +32,7 @@ import org.h2.engine.DbObject;
 import org.h2.engine.MetaRecord;
 import org.h2.log.LogFile;
 import org.h2.message.Message;
+import org.h2.message.Trace;
 import org.h2.result.SimpleRow;
 import org.h2.security.SHA256;
 import org.h2.store.DataHandler;
@@ -1042,6 +1043,13 @@ public class Recover extends Tool implements DataHandler {
      */
     public TempFileDeleter getTempFileDeleter() {
         return TempFileDeleter.getInstance();
+    }
+    
+    /**
+     * INTERNAL
+     */
+    public Trace getTrace() {
+        return null;
     }
 
 }

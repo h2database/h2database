@@ -9,6 +9,7 @@ package org.h2.test.unit;
 import java.util.Random;
 
 import org.h2.constant.SysProperties;
+import org.h2.message.Trace;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.test.TestBase;
@@ -192,4 +193,8 @@ public class TestFile extends TestBase implements DataHandler {
         return TempFileDeleter.getInstance();
     }
 
+    public Trace getTrace() {
+        return null;
+    }
+    
 }

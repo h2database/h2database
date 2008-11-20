@@ -155,15 +155,15 @@ public class NetUtils {
      */
     public static boolean isLocalAddress(Socket socket) throws UnknownHostException {
         InetAddress test = socket.getInetAddress();
-        boolean result = true;
         //## Java 1.4 begin ##
-        result = test.isLoopbackAddress();
-        if (result) {
-            return result;
+        if (test.isLoopbackAddress()) {
+            return true;
         }
         //## Java 1.4 end ##
         InetAddress localhost = InetAddress.getLocalHost();
-        InetAddress[] list = InetAddress.getAllByName(localhost.getCanonicalHostName());
+        // localhost.getCanonicalHostName() is very very slow
+        String host = localhost.getHostAddress();
+        InetAddress[] list = InetAddress.getAllByName(host);
         for (int i = 0; i < list.length; i++) {
             InetAddress addr = list[i];
             if (test.equals(addr)) {

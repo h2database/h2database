@@ -52,7 +52,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
     }
 
     public void diskSpaceIsLow(long stillAvailable) {
-        printTime("diskSpaceIsLow stillAvailable=" + stillAvailable);
+        printTime("diskSpaceIsLow");
     }
 
     public void exceptionThrown(SQLException e, String sql) {

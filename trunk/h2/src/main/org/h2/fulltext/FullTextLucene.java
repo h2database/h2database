@@ -53,6 +53,7 @@ implements Trigger, CloseListener
 {
 
     //## Java 1.4 begin ##
+    private static final boolean STORE_DOCUMENT_TEXT_IN_INDEX = Boolean.getBoolean("h2.storeDocumentTextInIndex");
     private static HashMap indexers = new HashMap();
     private static final String FIELD_DATA = "DATA";
     private static final String FIELD_QUERY = "QUERY";
@@ -471,7 +472,8 @@ implements Trigger, CloseListener
             }
             allData.append(data);
         }
-        doc.add(new Field(FIELD_DATA, allData.toString(), Field.Store.NO, Field.Index.TOKENIZED));
+        Field.Store storeText = STORE_DOCUMENT_TEXT_IN_INDEX ? Field.Store.YES : Field.Store.NO;
+        doc.add(new Field(FIELD_DATA, allData.toString(), storeText, Field.Index.TOKENIZED));
         try {
             indexer.addDocument(doc);
         } catch (IOException e) {

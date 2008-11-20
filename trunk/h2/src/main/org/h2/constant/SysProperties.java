@@ -216,18 +216,6 @@ public class SysProperties {
     public static final boolean DOLLAR_QUOTING = getBooleanSetting("h2.dollarQuoting", true);
 
     /**
-     * System property <code>h2.emergencySpaceInitial</code> (default: 262144).<br />
-     * Size of 'reserve' file to detect disk full problems early.
-     */
-    public static final int EMERGENCY_SPACE_INITIAL = getIntSetting("h2.emergencySpaceInitial", 256 * 1024);
-
-    /**
-     * System property <code>h2.emergencySpaceMin</code> (default: 65536).<br />
-     * Minimum size of 'reserve' file.
-     */
-    public static final int EMERGENCY_SPACE_MIN = getIntSetting("h2.emergencySpaceMin", 64 * 1024);
-
-    /**
      * System property <code>h2.largeResultBufferSize</code> (default: 4096).<br />
      * Buffer size for large result sets. Set this value to 0 to disable the buffer.
      */

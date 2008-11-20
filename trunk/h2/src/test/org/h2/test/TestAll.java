@@ -282,8 +282,8 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
         
 /*
-
-remove emergencyReserver?
+remove emergencyReserve?
+build.sh from mac (test in Ubuntu)
 
 test.sql
 good:

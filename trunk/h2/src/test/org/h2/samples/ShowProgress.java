@@ -90,7 +90,7 @@ public class ShowProgress implements DatabaseEventListener {
      * @param stillAvailable the number of bytes still available
      */
     public void diskSpaceIsLow(long stillAvailable) {
-        System.out.println("diskSpaceIsLow stillAvailable="+stillAvailable);
+        System.out.println("diskSpaceIsLow");
     }
 
     /**

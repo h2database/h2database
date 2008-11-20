@@ -130,7 +130,6 @@ public class Database implements DataHandler {
     private boolean noDiskSpace;
     private int writeDelay = Constants.DEFAULT_WRITE_DELAY;
     private DatabaseEventListener eventListener;
-    private FileStore emergencyReserve;
     private int maxMemoryRows = Constants.DEFAULT_MAX_MEMORY_ROWS;
     private int maxMemoryUndo = SysProperties.DEFAULT_MAX_MEMORY_UNDO;
     private int lockMode = SysProperties.DEFAULT_LOCK_MODE;
@@ -406,10 +405,6 @@ public class Database implements DataHandler {
                     lock.unlock();
                     lock = null;
                 }
-                if (emergencyReserve != null) {
-                    emergencyReserve.closeAndDeleteSilently();
-                    emergencyReserve = null;
-                }
             } catch (Exception e) {
                 TraceSystem.traceThrowable(e);
             }
@@ -618,11 +613,6 @@ public class Database implements DataHandler {
             removeUnusedStorages(systemSession);
         }
         systemSession.commit(true);
-        if (!readOnly && persistent) {
-            emergencyReserve = openFile(createTempFile(), "rw", false);
-            emergencyReserve.setLength(SysProperties.EMERGENCY_SPACE_INITIAL);
-            emergencyReserve.autoDelete();
-        }
         traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
     }
 
@@ -1453,10 +1443,6 @@ public class Database implements DataHandler {
     }
 
     private void deleteOldTempFiles() throws SQLException {
-        if (emergencyReserve != null) {
-            emergencyReserve.closeAndDeleteSilently();
-            emergencyReserve = null;
-        }
         String path = FileUtils.getParent(databaseName);
         String prefix = FileUtils.normalize(databaseName);
         String[] list = FileUtils.listFiles(path);
@@ -1742,18 +1728,8 @@ public class Database implements DataHandler {
     }
 
     public synchronized void freeUpDiskSpace() throws SQLException {
-        long sizeAvailable = 0;
-        if (emergencyReserve != null) {
-            sizeAvailable = emergencyReserve.length();
-            long newLength = sizeAvailable / 4;
-            if (newLength < SysProperties.EMERGENCY_SPACE_MIN) {
-                newLength = 0;
-                noDiskSpace = true;
-            }
-            emergencyReserve.setLength(newLength);
-        }
         if (eventListener != null) {
-            eventListener.diskSpaceIsLow(sizeAvailable);
+            eventListener.diskSpaceIsLow(0);
         }
     }
 

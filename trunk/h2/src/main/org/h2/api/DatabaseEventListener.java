@@ -68,6 +68,7 @@ public interface DatabaseEventListener extends EventListener {
      * within this method (even to close it).
      *
      * @param stillAvailable the estimated space that is still available, in bytes
+     *         (if known)
      * @throws SQLException if the operation should be canceled
      */
     void diskSpaceIsLow(long stillAvailable) throws SQLException;

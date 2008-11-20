@@ -123,6 +123,11 @@ This seems to be a structural problem, because all operations are really slow.
 It will not be easy for the developers of Derby to improve the performance to a reasonable level.
 A few problems have been identified: Leaving autocommit on is a problem for Derby.
 If it is switched off during the whole test, the results are about 20% better for Derby.
+Derby supports a testing mode (java -Dderby.system.durability=test) where durablity is
+disabled. According to the documentation, this setting should be used for testing only,
+as the database may not recover after a crash. Enabling this setting improves performance 
+by a factor of 2.6 (embedded mode) or 1.4 (server mode). Even if enabled, Derby is still less 
+than half as fast as H2 in default mode.
 </p>
 
 <h4>PostgreSQL</h4>

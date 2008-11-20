@@ -895,6 +895,29 @@ public class DataType {
     }
 
     /**
+     * Get the data type that will not overflow when calling 'add' 2 billion times.
+     * 
+     * @param type the value type
+     * @return the data type that supports adding
+     */
+    public static int getAddProofType(int type) {
+        switch (type) {
+        case Value.BYTE:
+            return Value.LONG;
+        case Value.FLOAT:
+            return Value.DOUBLE;
+        case Value.INT:
+            return Value.LONG;
+        case Value.LONG:
+            return Value.DECIMAL;
+        case Value.SHORT:
+            return Value.LONG;
+        default:
+            return type;
+        }
+    }
+
+    /**
      * Get the default value in the form of a Java object for the given Java class.
      * 
      * @param clazz the Java class

@@ -53,64 +53,64 @@ public class Aggregate extends Expression {
     public static final int COUNT = 1;
     
     /**
+     * The aggregate type for GROUP_CONCAT(...).
+     */
+    public static final int GROUP_CONCAT = 2;
+    
+    /**
      * The aggregate type for SUM(expression).
      */
-    public static final int SUM = 2;
+    static final int SUM = 3;
     
     /**
      * The aggregate type for MIN(expression).
      */
-    public static final int MIN = 3;
+    static final int MIN = 4;
 
     /**
      * The aggregate type for MAX(expression).
      */
-    public static final int MAX = 4;
+    static final int MAX = 5;
     
     /**
      * The aggregate type for AVG(expression).
      */
-    public static final int AVG = 5;
-    
-    /**
-     * The aggregate type for GROUP_CONCAT(...).
-     */
-    public static final int GROUP_CONCAT = 6;
+    static final int AVG = 6;
     
     /**
      * The aggregate type for STDDEV_POP(expression).
      */
-    public static final int STDDEV_POP = 7;
+    static final int STDDEV_POP = 7;
     
     /**
      * The aggregate type for STDDEV_SAMP(expression).
      */
-    public static final int STDDEV_SAMP = 8;
+    static final int STDDEV_SAMP = 8;
     
     /**
      * The aggregate type for VAR_POP(expression).
      */
-    public static final int VAR_POP = 9;
+    static final int VAR_POP = 9;
     
     /**
      * The aggregate type for VAR_SAMP(expression).
      */
-    public static final int VAR_SAMP = 10;
+    static final int VAR_SAMP = 10;
     
     /**
      * The aggregate type for BOOL_OR(expression).
      */
-    public static final int BOOL_OR = 11;
+    static final int BOOL_OR = 11;
     
     /**
      * The aggregate type for BOOL_AND(expression).
      */
-    public static final int BOOL_AND = 12;
+    static final int BOOL_AND = 12;
     
     /**
      * The aggregate type for SELECTIVITY(expression).
      */
-    public static final int SELECTIVITY = 13;
+    static final int SELECTIVITY = 13;
     
     private static final HashMap AGGREGATES = new HashMap();
 
@@ -233,7 +233,7 @@ public class Aggregate extends Expression {
 
         AggregateData data = (AggregateData) group.get(this);
         if (data == null) {
-            data = new AggregateData(type);
+            data = new AggregateData(type, dataType);
             group.put(this, data);
         }
         Value v = on == null ? null : on.getValue(session);
@@ -287,7 +287,7 @@ public class Aggregate extends Expression {
         }
         AggregateData data = (AggregateData) group.get(this);
         if (data == null) {
-            data = new AggregateData(type);
+            data = new AggregateData(type, dataType);
         }
         Value v = data.getValue(session.getDatabase(), distinct);
         if (type == GROUP_CONCAT) {
@@ -394,6 +394,11 @@ public class Aggregate extends Expression {
             displaySize = ValueInt.DISPLAY_SIZE;
             break;
         case SUM:
+            if (!DataType.supportsAdd(dataType)) {
+                throw Message.getSQLException(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
+            }
+            dataType = DataType.getAddProofType(dataType);
+            break;
         case AVG:
             if (!DataType.supportsAdd(dataType)) {
                 throw Message.getSQLException(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());

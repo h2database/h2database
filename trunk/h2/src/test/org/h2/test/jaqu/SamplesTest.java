@@ -268,7 +268,7 @@ public class SamplesTest extends TestBase {
     
     private void testSum() {
         Product p = new Product();
-        Integer sum = db.from(p).selectFirst(sum(p.unitsInStock));
+        Long sum = db.from(p).selectFirst(sum(p.unitsInStock));
         assertEquals(323, sum.intValue());
         Double sumPrice = db.from(p).selectFirst(sum(p.unitPrice));
         assertEquals(313.35, sumPrice.doubleValue());

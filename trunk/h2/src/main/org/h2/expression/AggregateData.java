@@ -13,6 +13,7 @@ import org.h2.engine.Database;
 import org.h2.message.Message;
 import org.h2.util.ObjectArray;
 import org.h2.util.ValueHashMap;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueDouble;
@@ -25,14 +26,16 @@ import org.h2.value.ValueNull;
  */
 class AggregateData {
     private final int aggregateType;
+    private final int dataType;
     private long count;
     private ValueHashMap distinctValues;
     private Value value;
     private double sum, vpn;
     private ObjectArray list;
 
-    AggregateData(int aggregateType) {
+    AggregateData(int aggregateType, int dataType) {
         this.aggregateType = aggregateType;
+        this.dataType = dataType;
     }
     
     /**
@@ -75,9 +78,16 @@ class AggregateData {
         case Aggregate.COUNT:
             return;
         case Aggregate.SUM:
+            if (value == null) {
+                value = v.convertTo(dataType);
+            } else {
+                v = v.convertTo(value.getType());
+                value = value.add(v);
+            }
+            break;
         case Aggregate.AVG:
             if (value == null) {
-                value = v;
+                value = v.convertTo(DataType.getAddProofType(dataType));
             } else {
                 v = v.convertTo(value.getType());
                 value = value.add(v);
@@ -216,7 +226,7 @@ class AggregateData {
         default:
             throw Message.getInternalError("type=" + aggregateType);
         }
-        return v == null ? ValueNull.INSTANCE : v;
+        return v == null ? ValueNull.INSTANCE : v.convertTo(dataType);
     }
 
     private Value divide(Value a, long count) throws SQLException {

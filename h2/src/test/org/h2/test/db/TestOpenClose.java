@@ -118,7 +118,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         conn.createStatement().execute("drop table employee if exists");
         conn.createStatement().execute("create table employee(id int primary key, name varchar, salary int)");
         conn.close();
-        int len = this.getSize(200, 4000);
+        int len = this.getSize(200, 1000);
         Thread[] threads = new Thread[len];
         for (int i = 0; i < len; i++) {
             threads[i] = new Thread() {

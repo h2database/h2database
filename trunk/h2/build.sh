@@ -1,6 +1,10 @@
 #!/bin/sh
 if [ -z "$JAVA_HOME" ] ; then
-  echo "Error: JAVA_HOME is not defined."
+  if [ -d "/System/Library/Frameworks/JavaVM.framework/Home" ] ; then
+    export JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Home
+  else
+    echo "Error: JAVA_HOME is not defined."
+  fi
 fi
 if [ ! -d "temp" ] ; then
   mkdir temp

@@ -269,7 +269,7 @@ public class DbContextRule implements Rule {
                 break;
             }
         }
-        if (table != null) {
+        if (table != null && table.columns != null) {
             for (int j = 0; j < table.columns.length; j++) {
                 String columnName = table.columns[j].name;
                 if (!StringUtils.toUpperEnglish(columnName).startsWith(columnPattern)) {

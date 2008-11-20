@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Build: JAVA_HOME is now automatically detected on Mac OS X.
+<ul><li>The emergency reserve file has been removed. It didn't provide an appropriate 
+	solution for the problem. It is still possible for an application to detect and deal with
+	the low disk space problem (deleting temporary files for example) 
+	using DatabaseEventListener.diskSpaceIsLow, but this method is now always called 
+	with stillAvailable=0.
+</li><li>Build: JAVA_HOME is now automatically detected on Mac OS X.
 </li><li>Testing for local connections was very slow on some systems.
 </li><li>The cache memory usage calculation is more conservative.
 </li><li>Allocating space got slower and slower the larger the database.

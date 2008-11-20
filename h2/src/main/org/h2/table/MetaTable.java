@@ -827,8 +827,6 @@ public class MetaTable extends Table {
             add(rows, new String[]{"h2.clientTraceDirectory", SysProperties.CLIENT_TRACE_DIRECTORY});
             add(rows, new String[]{SysProperties.H2_COLLATOR_CACHE_SIZE, "" + SysProperties.getCollatorCacheSize()});
             add(rows, new String[]{"h2.defaultMaxMemoryUndo", "" + SysProperties.DEFAULT_MAX_MEMORY_UNDO});
-            add(rows, new String[]{"h2.emergencySpaceInitial", "" + SysProperties.EMERGENCY_SPACE_INITIAL});
-            add(rows, new String[]{"h2.emergencySpaceMin", "" + SysProperties.EMERGENCY_SPACE_MIN});
             add(rows, new String[]{"h2.lobFilesInDirectories", "" + SysProperties.LOB_FILES_IN_DIRECTORIES});
             add(rows, new String[]{"h2.lobFilesPerDirectory", "" + SysProperties.LOB_FILES_PER_DIRECTORY});
             add(rows, new String[]{"h2.logAllErrors", "" + SysProperties.LOG_ALL_ERRORS});

@@ -1114,9 +1114,9 @@ class WebThread extends Thread implements DatabaseEventListener {
             }
 
             public void diskSpaceIsLow(long stillAvailable) {
-                log("Disk space is low; still available: " + stillAvailable);
+                log("No more disk space is available");
             }
-
+            
             public void exceptionThrown(SQLException e, String sql) {
                 log("Exception: " + PageParser.escapeHtml(e.toString()) + " SQL: " + PageParser.escapeHtml(sql));
                 server.traceError(e);
@@ -2147,7 +2147,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     }
 
     public void diskSpaceIsLow(long stillAvailable) {
-        trace("Disk space is low; still available: " + stillAvailable);
+        trace("No more disk space is available");
     }
 
     public void exceptionThrown(SQLException e, String sql) {

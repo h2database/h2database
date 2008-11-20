@@ -206,7 +206,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     }
 
     public void freeUpDiskSpace() throws SQLException {
-        session.getDatabase().checkWritingAllowed();
+        session.getDatabase().freeUpDiskSpace();
     }
 
     public void handleInvalidChecksum() throws SQLException {

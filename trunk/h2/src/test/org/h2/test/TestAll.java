@@ -9,6 +9,7 @@ package org.h2.test;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileSystemDisk;
 import org.h2.test.bench.TestPerformance;
@@ -285,33 +286,7 @@ java org.h2.test.TestAll timer
 remove emergencyReserve?
 build.sh from mac (test in Ubuntu)
 
-test.sql
-good:
-select documents.*, 'this is a test' as snippet
-from documents, document_text
-where
-       document_text.id in (select substring(search.query, locate('=',
-search.query) + 1) from ftl_search('+nelson +"drip pan"', 500, 0)
-search)
-       and documents.id = document_text.doc_id
-       and source_id in (3, 2, 4, 1)
-limit 500
-bad:
-select documents.*, 'this is a test' as snippet
-from document_text, documents
-where
-       document_text.id in (select substring(search.query, locate('=',
-search.query) + 1) from ftl_search('+nelson +"drip pan"', 500, 0)
-search)
-       and documents.id = document_text.doc_id
-       and source_id in (3, 2, 4, 1)
-limit 500
-
-
-
 split files (1 GB max size)
-
-study SQLite file format
 
 multithreaded kernel
 
@@ -671,6 +646,7 @@ http://www.w3schools.com/sql/
      * a TCP server if the test uses remote connections.
      */
     void beforeTest() throws SQLException {
+    	Driver.load();
         DeleteDbFiles.execute(TestBase.baseDir, null, true);
         FileSystemDisk.getInstance().deleteRecursive("trace.db");
         if (networked) {

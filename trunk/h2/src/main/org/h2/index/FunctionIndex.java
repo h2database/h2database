@@ -8,6 +8,7 @@ package org.h2.index;
 
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
@@ -53,7 +54,13 @@ public class FunctionIndex extends BaseIndex {
         if (masks != null) {
             throw Message.getUnsupportedException();
         }
-        return functionTable.getRowCount(session) * 10;
+        long expectedRows;
+        if (functionTable.canGetRowCount()) {
+            expectedRows = functionTable.getRowCount(session);
+        } else {
+            expectedRows = SysProperties.ESTIMATED_FUNCTION_TABLE_ROWS;
+        }
+        return expectedRows * 10;
     }
 
     public void remove(Session session) throws SQLException {

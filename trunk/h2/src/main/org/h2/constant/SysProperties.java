@@ -216,6 +216,13 @@ public class SysProperties {
     public static final boolean DOLLAR_QUOTING = getBooleanSetting("h2.dollarQuoting", true);
 
     /**
+     * System property <code>h2.estimatedFunctionTableRows</code> (default: 1000).<br />
+     * The estimated number of rows in a function table (for example, CSVREAD or FTL_SEARCH).
+     * This value is used by the optimizer.
+     */
+    public static final int ESTIMATED_FUNCTION_TABLE_ROWS = getIntSetting("h2.estimatedFunctionTableRows", 1000);
+
+    /**
      * System property <code>h2.largeResultBufferSize</code> (default: 4096).<br />
      * Buffer size for large result sets. Set this value to 0 to disable the buffer.
      */
@@ -418,7 +425,7 @@ public class SysProperties {
      * added so an index on A can be used.
      */
     public static final boolean OPTIMIZE_TWO_EQUALS = getBooleanSetting("h2.optimizeTwoEquals", true);
-
+    
     /**
      * System property <code>h2.overflowExceptions</code> (default: true).<br />
      * Throw an exception on integer overflows.

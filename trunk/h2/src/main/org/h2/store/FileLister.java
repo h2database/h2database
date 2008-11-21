@@ -67,6 +67,8 @@ public class FileLister {
                 ok = true;
             } else if (f.endsWith(Constants.SUFFIX_LOB_FILE)) {
                 ok = true;
+            } else if (f.endsWith(Constants.SUFFIX_PAGE_FILE)) {
+                ok = true;
             } else if (all) {
                 if (f.endsWith(Constants.SUFFIX_LOCK_FILE)) {
                     ok = true;

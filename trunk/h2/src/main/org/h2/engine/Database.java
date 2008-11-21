@@ -40,6 +40,7 @@ import org.h2.store.DataPage;
 import org.h2.store.DiskFile;
 import org.h2.store.FileLock;
 import org.h2.store.FileStore;
+import org.h2.store.PageStore;
 import org.h2.store.RecordReader;
 import org.h2.store.Storage;
 import org.h2.store.WriterThread;
@@ -163,6 +164,7 @@ public class Database implements DataHandler {
     private Server server;
     private HashMap linkConnections;
     private TempFileDeleter tempFileDeleter = TempFileDeleter.getInstance();
+    private PageStore pageStore;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = new CompareMode(null, null, 0);
@@ -400,6 +402,14 @@ public class Database implements DataHandler {
                     }
                     fileIndex = null;
                 }
+                if (pageStore != null) {
+                    try {
+                        pageStore.close();
+                    } catch (SQLException e) {
+                        // ignore
+                    }
+                    pageStore = null;
+                }
                 if (lock != null) {
                     stopServer();
                     lock.unlock();
@@ -576,7 +586,7 @@ public class Database implements DataHandler {
         cols.add(new Column("HEAD", Value.INT));
         cols.add(new Column("TYPE", Value.INT));
         cols.add(new Column("SQL", Value.STRING));
-        meta = mainSchema.createTable("SYS", 0, cols, persistent, false);
+        meta = mainSchema.createTable("SYS", 0, cols, persistent, false, 1);
         IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
         metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(
                 false, false), Index.EMPTY_HEAD, null);
@@ -2095,6 +2105,15 @@ public class Database implements DataHandler {
 
     public Trace getTrace() {
         return getTrace(Trace.DATABASE);
+    }
+
+    public PageStore getPageStorage() throws SQLException {
+        if (pageStore == null) {
+            pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData,
+                    SysProperties.CACHE_SIZE_DEFAULT);
+            pageStore.open();
+        }
+        return pageStore;
     }
 
 }

@@ -216,15 +216,17 @@ public class SysProperties {
     public static final boolean DOLLAR_QUOTING = getBooleanSetting("h2.dollarQuoting", true);
 
     /**
-     * System property <code>h2.estimatedFunctionTableRows</code> (default: 1000).<br />
-     * The estimated number of rows in a function table (for example, CSVREAD or FTL_SEARCH).
-     * This value is used by the optimizer.
+     * System property <code>h2.estimatedFunctionTableRows</code> (default:
+     * 1000).<br />
+     * The estimated number of rows in a function table (for example, CSVREAD or
+     * FTL_SEARCH). This value is used by the optimizer.
      */
     public static final int ESTIMATED_FUNCTION_TABLE_ROWS = getIntSetting("h2.estimatedFunctionTableRows", 1000);
 
     /**
      * System property <code>h2.largeResultBufferSize</code> (default: 4096).<br />
-     * Buffer size for large result sets. Set this value to 0 to disable the buffer.
+     * Buffer size for large result sets. Set this value to 0 to disable the
+     * buffer.
      */
     public static final int LARGE_RESULT_BUFFER_SIZE = getIntSetting("h2.largeResultBufferSize", 4 * 1024);
 
@@ -431,6 +433,12 @@ public class SysProperties {
      * Throw an exception on integer overflows.
      */
     public static final boolean OVERFLOW_EXCEPTIONS = getBooleanSetting("h2.overflowExceptions", true);
+
+    /**
+     * System property <code>h2.pageStore</code> (default: false).<br />
+     * Use the page store file format (experimental).
+     */
+    public static final boolean PAGE_STORE = getBooleanSetting("h2.pageStore", false);
 
     /**
      * System property <code>h2.recompileAlways</code> (default: false).<br />

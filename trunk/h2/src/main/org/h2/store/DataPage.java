@@ -107,7 +107,7 @@ public abstract class DataPage {
      * @param x the value
      */
     public abstract void writeInt(int x);
-
+    
     /**
      * Read an integer at the current position.
      * The current position is incremented.

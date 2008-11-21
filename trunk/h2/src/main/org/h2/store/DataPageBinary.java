@@ -68,6 +68,29 @@ public class DataPageBinary extends DataPage {
         byte[] buff = data;
         return (buff[pos++] << 24) + ((buff[pos++] & 0xff) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos++] & 0xff);
     }
+    
+    /**
+     * Write a short integer at the current position.
+     * The current position is incremented.
+     *
+     * @param x the value
+     */
+    public void writeShortInt(int x) {
+        byte[] buff = data;
+        buff[pos++] = (byte) (x >> 8);
+        buff[pos++] = (byte) x;
+    }
+    
+    /**
+     * Read an short integer at the current position.
+     * The current position is incremented.
+     *
+     * @return the value
+     */
+    public int readShortInt() {
+        byte[] buff = data;
+        return ((buff[pos++] & 0xff) << 8) + (buff[pos++] & 0xff);
+    }
 
 //    private static int getStringLenChar(String s) {
 //        return 4 + s.length() * 2;

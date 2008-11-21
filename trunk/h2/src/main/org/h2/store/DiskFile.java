@@ -54,7 +54,7 @@ import org.h2.util.ObjectUtils;
  * individual objects (multiple blocks at a time) are read or written.
  * <p>
  * Currently there are no in-place updates. Each row occupies one or multiple
- * blocks. Row can occupy multiple pages. Rows are always contiguous (except
+ * blocks. Rows can occupy multiple pages. Rows are always contiguous (except
  * LOBs, they are stored in their own files).
  */
 public class DiskFile implements CacheWriter {
@@ -1282,6 +1282,5 @@ public class DiskFile implements CacheWriter {
     public Trace getTrace() {
         return database.getTrace(Trace.DATABASE);
     }
-
 
 }

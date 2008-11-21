@@ -241,7 +241,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         // still need a new id because using 0 would mean: the new table tries
         // to use the rows of the table 0 (the meta table)
         int id = -1;
-        TableData newTable = getSchema().createTable(tempName, id, newColumns, persistent, false);
+        TableData newTable = getSchema().createTable(tempName, id, newColumns, persistent, false, Index.EMPTY_HEAD);
         newTable.setComment(table.getComment());
         StringBuffer buff = new StringBuffer(newTable.getCreateSQL());
         StringBuffer columnList = new StringBuffer();

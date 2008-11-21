@@ -480,6 +480,11 @@ public class Constants {
     public static final String SUFFIX_DATA_FILE = ".data.db";
     
     /**
+     * The file name suffix of page files.
+     */
+    public static final String SUFFIX_PAGE_FILE = ".h2.db";
+
+    /**
      * The file name suffix of all database files.
      */
     public static final String SUFFIX_DB_FILE = ".db";

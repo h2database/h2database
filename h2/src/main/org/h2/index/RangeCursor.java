@@ -15,7 +15,7 @@ import org.h2.value.ValueLong;
 /**
  * The cursor implementation for the range index.
  */
-public class RangeCursor implements Cursor {
+class RangeCursor implements Cursor {
 
     private boolean beforeFirst;
     private long current;

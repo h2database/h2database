@@ -33,7 +33,7 @@ import org.h2.value.ValueLob;
  * of a table. Each regular table has one such object, even if no primary key or
  * indexes are defined.
  */
-public class ScanIndex extends BaseIndex {
+public class ScanIndex extends BaseIndex implements RowIndex {
     private int firstFree = -1;
     private ObjectArray rows = new ObjectArray();
     private Storage storage;
@@ -93,13 +93,6 @@ public class ScanIndex extends BaseIndex {
         }
     }
 
-    /**
-     * Get the row at the given position.
-     * 
-     * @param session the session
-     * @param key the position
-     * @return the row
-     */
     public Row getRow(Session session, int key) throws SQLException {
         if (storage != null) {
             return (Row) storage.getRecord(session, key);

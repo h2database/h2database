@@ -457,9 +457,9 @@ public class Schema extends DbObjectBase {
      * @param clustered if a clustered table should be created
      * @return the created {@link TableData} object
      */
-    public TableData createTable(String tableName, int id, ObjectArray columns, boolean persistent, boolean clustered)
+    public TableData createTable(String tableName, int id, ObjectArray columns, boolean persistent, boolean clustered, int headPos)
             throws SQLException {
-        return new TableData(this, tableName, id, columns, persistent, clustered);
+        return new TableData(this, tableName, id, columns, persistent, clustered, headPos);
     }
 
     /**

@@ -38,7 +38,8 @@ public class FileViewer extends Tool {
                 " [-tail]          Display the last lines\n" +
                 " [-lines <x>]     Display only x lines (default: 30)\n" +
                 " [-quiet]         Do not print progress information)");
-        // out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
+        // out.println("See also http://h2database.com/javadoc/" + 
+        // getClass().getName().replace('.', '/') + ".html");
     }
 
     public void run(String[] args) {

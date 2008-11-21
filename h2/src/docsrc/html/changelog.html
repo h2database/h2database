@@ -19,21 +19,21 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul><li>The optimizer had problems with function tables (for example CSVREAD and FTL_SEARCH).
-	A new system property h2.estimatedFunctionTableRows (default 1000) defines how many rows
-	can be expected in the table.
+    A new system property h2.estimatedFunctionTableRows (default 1000) defines how many rows
+    can be expected in the table.
 </li><li>The function SUM could overflow when using large values. It returns now a data type that is safe.
 </li><li>The function AVG could overflow when using large values. Fixed.
 </li><li>The emergency reserve file has been removed. It didn't provide an appropriate 
-	solution for the problem. It is still possible for an application to detect and deal with
-	the low disk space problem (deleting temporary files for example) 
-	using DatabaseEventListener.diskSpaceIsLow, but this method is now always called 
-	with stillAvailable=0.
+    solution for the problem. It is still possible for an application to detect and deal with
+    the low disk space problem (deleting temporary files for example) 
+    using DatabaseEventListener.diskSpaceIsLow, but this method is now always called 
+    with stillAvailable=0.
 </li><li>Build: JAVA_HOME is now automatically detected on Mac OS X.
 </li><li>Testing for local connections was very slow on some systems.
 </li><li>The cache memory usage calculation is more conservative.
 </li><li>Allocating space got slower and slower the larger the database.
 </li><li>ALTER TABLE ALTER COLUMN could throw the wrong exception in the last version
-	(Table not found).
+    (Table not found).
 </li><li>Updatable result sets: the key columns can now be updated.
 </li><li>The H2DatabaseProvider for ActiveObjects is now included in the tools section.
 </li><li>The H2Platform for Oracle Toplink Essential has been improved a bit.

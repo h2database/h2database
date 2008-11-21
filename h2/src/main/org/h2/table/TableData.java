@@ -25,6 +25,8 @@ import org.h2.index.HashIndex;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.MultiVersionIndex;
+import org.h2.index.PageScanIndex;
+import org.h2.index.RowIndex;
 import org.h2.index.ScanIndex;
 import org.h2.index.TreeIndex;
 import org.h2.message.Message;
@@ -47,7 +49,7 @@ import org.h2.value.Value;
  */
 public class TableData extends Table implements RecordReader {
     private final boolean clustered;
-    private ScanIndex scanIndex;
+    private RowIndex scanIndex;
     private long rowCount;
     private Session lockExclusive;
     private HashSet lockShared = new HashSet();
@@ -58,14 +60,18 @@ public class TableData extends Table implements RecordReader {
     private boolean containsLargeObject;
 
     public TableData(Schema schema, String tableName, int id, ObjectArray columns,
-            boolean persistent, boolean clustered) throws SQLException {
+            boolean persistent, boolean clustered, int headPos) throws SQLException {
         super(schema, id, tableName, persistent);
         Column[] cols = new Column[columns.size()];
         columns.toArray(cols);
         setColumns(cols);
         this.clustered = clustered;
         if (!clustered) {
-            scanIndex = new ScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistent));
+            if (SysProperties.PAGE_STORE && persistent) {
+                scanIndex = new PageScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistent), headPos);
+            } else {
+                scanIndex = new ScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistent));
+            }
             indexes.add(scanIndex);
         }
         for (int i = 0; i < cols.length; i++) {
@@ -573,6 +579,16 @@ public class TableData extends Table implements RecordReader {
     }
 
     public Record read(Session session, DataPage s) throws SQLException {
+        return readRow(s);
+    }
+    
+    /**
+     * Read a row from the data page.
+     * 
+     * @param s the data page
+     * @return the row
+     */
+    public Row readRow(DataPage s) throws SQLException {
         int len = s.readInt();
         Value[] data = new Value[len];
         for (int i = 0; i < len; i++) {
@@ -587,7 +603,7 @@ public class TableData extends Table implements RecordReader {
      * 
      * @param count the row count
      */
-    public void setRowCount(int count) {
+    public void setRowCount(long count) {
         this.rowCount = count;
     }
 

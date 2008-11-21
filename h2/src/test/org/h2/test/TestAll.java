@@ -283,9 +283,10 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
         
 /*
-remove emergencyReserve?
-build.sh from mac (test in Ubuntu)
 
+don't store default values (store a special value)
+build.sh from mac (test in Ubuntu)
+btree: maybe split at the insertion point
 split files (1 GB max size)
 
 multithreaded kernel
@@ -646,7 +647,7 @@ http://www.w3schools.com/sql/
      * a TCP server if the test uses remote connections.
      */
     void beforeTest() throws SQLException {
-    	Driver.load();
+        Driver.load();
         DeleteDbFiles.execute(TestBase.baseDir, null, true);
         FileSystemDisk.getInstance().deleteRecursive("trace.db");
         if (networked) {

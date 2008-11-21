@@ -3753,7 +3753,7 @@ public class Parser {
             columns.add(new Column(cols[i], Value.STRING));
         }
         int id = database.allocateObjectId(true, true);
-        recursiveTable = schema.createTable(tempViewName, id, columns, false, false);
+        recursiveTable = schema.createTable(tempViewName, id, columns, false, false, Index.EMPTY_HEAD);
         recursiveTable.setTemporary(true);
         session.addLocalTempTable(recursiveTable);
         String querySQL = StringCache.getNew(sqlCommand.substring(parseIndex));

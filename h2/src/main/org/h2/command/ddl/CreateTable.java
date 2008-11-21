@@ -15,6 +15,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.index.Index;
 import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -144,7 +145,7 @@ public class CreateTable extends SchemaCommand {
             }
         }
         int id = getObjectId(true, true);
-        TableData table = getSchema().createTable(tableName, id, columns, persistent, clustered);
+        TableData table = getSchema().createTable(tableName, id, columns, persistent, clustered, Index.EMPTY_HEAD);
         table.setComment(comment);
         table.setTemporary(temporary);
         table.setGlobalTemporary(globalTemporary);

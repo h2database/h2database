@@ -38,13 +38,16 @@ class PageScanCursor implements Cursor {
     }
 
     public boolean next() throws SQLException {
-        int todo;
-        if (index < current.getEntryCount()) {
-            row = current.getRow(index);
-            index++;
-            return true;
+        if (index >= current.getEntryCount()) {
+            current = current.getNextPage();
+            index = 0;
+            if (current == null) {
+                return false;
+            }
         }
-        return false;
+        row = current.getRow(index);
+        index++;
+        return true;
     }
 
     public boolean previous() throws SQLException {

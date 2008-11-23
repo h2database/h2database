@@ -30,6 +30,14 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     private TableData tableData;
     private int headPos;
     
+    // TODO remember last page with deleted keys (in the root page?), 
+    // and chain such pages
+    // TODO order pages so that searching for a key 
+    // doesn't seek backwards in the file
+    private int nextKey;
+    
+    // TODO remember the row count (in the root page?)
+    
     public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
         if (database.isMultiVersion()) {
@@ -44,11 +52,11 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (headPos == Index.EMPTY_HEAD || headPos >= store.getPageCount()) {
             // new table
             headPos = store.allocatePage();
-            PageDataLeaf root = new PageDataLeaf(this, headPos, 1, store.createDataPage());
+            PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
             root.write();
         } else {
-            int todo;
-            rowCount = 10;
+            int todoRowCount;
+            rowCount = getPage(headPos).getLastKey();
         }
         this.headPos = headPos;
         table.setRowCount(rowCount);
@@ -56,14 +64,36 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 
 
     public void add(Session session, Row row) throws SQLException {
-        int invalidateRowCount;
+        row.setPos((int) rowCount);
         PageData root = getPage(headPos);
-        root.addRow(row);
+        int splitPoint = root.addRow(row);
+        if (splitPoint != 0) {
+            int pivot = root.getKey(splitPoint);
+            PageData page1 = root;
+            PageData page2 = root.split(splitPoint);
+            int rootPageId = root.getPageId();
+            int id = store.allocatePage();
+            page1.setPageId(id);
+            page1.setParentPageId(headPos);
+            PageDataNode newRoot = new PageDataNode(this, rootPageId, Page.ROOT, store.createDataPage());
+            newRoot.init(page1, pivot, page2);
+            page1.write();
+            page2.write();
+            newRoot.write();
+            root = newRoot;
+        }
         rowCount++;
     }
 
-    private PageData getPage(int id) throws SQLException {
+    /**
+     * Read the given page.
+     * 
+     * @param id the page id
+     * @return the page
+     */
+    PageData getPage(int id) throws SQLException {
         DataPageBinary data = store.readPage(id);
+        data.reset();
         int parentPageId = data.readInt();
         int type = data.readByte() & 255;
         PageData result;

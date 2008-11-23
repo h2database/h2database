@@ -29,12 +29,12 @@ abstract class PageData {
     /**
      * the page number.
      */
-    protected final int pageId;
+    protected int pageId;
     
     /**
      * The page number of the parent.
      */
-    protected final int parentPageId;
+    protected int parentPageId;
     
     /**
      * The number of entries.
@@ -42,15 +42,37 @@ abstract class PageData {
     protected int entryCount;
     
     /**
-     * If the page has unwritten changes.
+     * The row keys.
      */
-    protected boolean changed;
+    protected int[] keys;
     
     PageData(PageScanIndex index, int pageId, int parentPageId, DataPageBinary data) {
         this.index = index;
         this.pageId = pageId;
         this.parentPageId = parentPageId;
         this.data = data;
+    }
+    
+    /**
+     * Find an entry by key.
+     * 
+     * @param key the key (may not exist)
+     * @return the matching or next index
+     */
+    int find(int key) {
+        int l = 0, r = entryCount;
+        while (l < r) {
+            int i = (l + r) >>> 1;
+            int k = keys[i];
+            if (k > key) {
+                r = i;
+            } else if (k == key) {
+                return i;
+            } else {
+                l = i + 1;
+            }
+        }
+        return l;
     }
     
     /**
@@ -72,11 +94,66 @@ abstract class PageData {
      * 
      * @return the cursor
      */
-    abstract Cursor find();
+    abstract Cursor find() throws SQLException;
 
     /**
      * Write the page.
      */
     abstract void write() throws SQLException;
+
+    /**
+     * Get the key at this position.
+     * 
+     * @param index the index
+     * @return the key
+     */
+    int getKey(int index) {
+        return keys[index];
+    }
+
+    /**
+     * Split the index page at the given point.
+     * 
+     * @param session the session
+     * @param splitPoint the index where to split
+     * @return the new page that contains about half the entries
+     */
+    abstract PageData split(int splitPoint) throws SQLException;
+
+    /**
+     * Change the page id.
+     * 
+     * @param id the new page id
+     */
+    void setPageId(int id) {
+        this.pageId = id;
+    }
+
+    int getPageId() {
+        return pageId;
+    }
+
+    /**
+     * Get the last key of a page.
+     * 
+     * @return the last key
+     */
+    abstract int getLastKey() throws SQLException;
+
+    /**
+     * Get the first child leaf page of a page.
+     * 
+     * @return the page
+     */
+    abstract PageDataLeaf getFirstLeaf() throws SQLException;
+
+    /**
+     * Change the parent page id.
+     * 
+     * @param id the new parent page id
+     */
+    void setParentPageId(int id) {
+        this.parentPageId = id;
+    }
     
 }

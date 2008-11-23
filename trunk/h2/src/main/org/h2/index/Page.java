@@ -41,5 +41,10 @@ class Page {
      * An overflow pages (more to come).
      */
     static final int TYPE_DATA_OVERFLOW_WITH_MORE = 7;
+    
+    /**
+     * This is a root page.
+     */
+    static final int ROOT = 0;
 
 }

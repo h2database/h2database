@@ -2275,7 +2275,7 @@ ANALYZEを実行する (詳細はドキュメントをご覧下さい)
 理論上のデータの制限は現在256GBです。これはBLOBとCLOBデータを含まない状態での値です: BLOB、CLOBの最大値はそれぞれ256GB以上の設定が可能です。インデックスデータのサイズ制限も同様に256GBです。
 
 @faq_1032_p
-#The maximum number of rows per table is 2'147'483'648. #FAT、FAT32ファイルシステムの最大ファイルサイズは4GBです。よって、FATやFAT32を利用する場合は、データの制限は4GBということになります。
+#The maximum number of rows per table is 2'147'483'648.
 
 @faq_1033_p
 FAT、FAT32ファイルシステムの最大ファイルサイズは4GBです。よって、FATやFAT32を利用する場合は、データの制限は4GBということになります。
@@ -2332,7 +2332,7 @@ FAT、FAT32ファイルシステムの最大ファイルサイズは4GBです。
 試験的に考慮された箇所は以下の通り:
 
 @faq_1051_li
-#The PostgreSQL server #他のデータベースとの互換モード (一部の特徴のみ提供される)
+#The PostgreSQL server
 
 @faq_1052_li
 他のデータベースとの互換モード (一部の特徴のみ提供される)

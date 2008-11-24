@@ -155,5 +155,13 @@ abstract class PageData {
     void setParentPageId(int id) {
         this.parentPageId = id;
     }
+
+    /**
+     * Remove a row.
+     * 
+     * @param key the key of the row to remove
+     * @return true if this page is now empty
+     */
+    abstract boolean remove(int key) throws SQLException;
     
 }

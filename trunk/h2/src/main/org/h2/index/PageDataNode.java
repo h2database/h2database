@@ -8,6 +8,9 @@ package org.h2.index;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
+import org.h2.engine.Constants;
+import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.DataPageBinary;
@@ -140,6 +143,50 @@ class PageDataNode extends PageData {
     PageDataLeaf getFirstLeaf() throws SQLException {
         int child = childPageIds[0];
         return index.getPage(child).getFirstLeaf();
+    }
+    
+    private void removeRow(int i) throws SQLException {
+        entryCount--;
+        if (entryCount <= 0) {
+            Message.getInternalError();
+        }
+        int[] newKeys = new int[entryCount];
+        int[] newChildPageIds = new int[entryCount + 1];
+        System.arraycopy(keys, 0, newKeys, 0, i);
+        System.arraycopy(childPageIds, 0, newChildPageIds, 0, i);
+        System.arraycopy(keys, i + 1, newKeys, i, entryCount - i);
+        System.arraycopy(childPageIds, i + 1, newChildPageIds, i, entryCount - i + 1);
+        keys = newKeys;
+        childPageIds = newChildPageIds;
+    }
+    
+    boolean remove(int key) throws SQLException {
+        int todo;
+        int at = find(key);
+        // merge is not implemented to allow concurrent usage of btrees
+        // TODO maybe implement merge
+        PageData page = index.getPage(childPageIds[at]);
+        boolean empty = page.remove(key);
+        if (!empty) {
+            // the first row didn't change - nothing to do
+            return false;
+        }
+        // this child is now empty
+        if (entryCount == 1) {
+            // no more children - this page is empty as well
+            // it can't be the root otherwise the index would have been
+            // truncated
+            return true;
+        }
+        if (at == 0) {
+            // the first child is empty - then the first row of this subtree
+            // has changed
+            removeRow(at);
+        } else {
+            // otherwise the first row didn't change
+            removeRow(at - 1);
+        }
+        return false;
     }
 
 }

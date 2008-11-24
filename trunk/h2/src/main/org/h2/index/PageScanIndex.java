@@ -143,8 +143,14 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 
     public void remove(Session session, Row row) throws SQLException {
         int invalidateRowCount;
-        int todo;
-        rowCount++;
+        // setChanged(session);
+        if (rowCount == 1) {
+            truncate(session);
+        } else {
+            PageData root = getPage(headPos);
+            root.remove(row.getPos());
+            rowCount--;
+        }
     }
 
     public void remove(Session session) throws SQLException {

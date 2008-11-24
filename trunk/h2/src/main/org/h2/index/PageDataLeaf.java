@@ -8,8 +8,13 @@ package org.h2.index;
 
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 import org.h2.store.DataPageBinary;
 
 /**
@@ -159,7 +164,7 @@ class PageDataLeaf extends PageData {
         return 0;
     }
     
-    private void removeRow(int index) throws SQLException {
+    private void removeRow(int i) throws SQLException {
         entryCount--;
         if (entryCount <= 0) {
             Message.getInternalError();
@@ -167,12 +172,12 @@ class PageDataLeaf extends PageData {
         int[] newOffsets = new int[entryCount];
         int[] newKeys = new int[entryCount];
         Row[] newRows = new Row[entryCount];
-        System.arraycopy(offsets, 0, newOffsets, 0, index);
-        System.arraycopy(keys, 0, newKeys, 0, index);
-        System.arraycopy(rows, 0, newRows, 0, index);
-        System.arraycopy(offsets, index + 1, newOffsets, index, entryCount - index);
-        System.arraycopy(keys, index + 1, newKeys, index, entryCount - index);
-        System.arraycopy(rows, index + 1, newRows, index, entryCount - index);
+        System.arraycopy(offsets, 0, newOffsets, 0, i);
+        System.arraycopy(keys, 0, newKeys, 0, i);
+        System.arraycopy(rows, 0, newRows, 0, i);
+        System.arraycopy(offsets, i + 1, newOffsets, i, entryCount - i);
+        System.arraycopy(keys, i + 1, newKeys, i, entryCount - i);
+        System.arraycopy(rows, i + 1, newRows, i, entryCount - i);
         start -= 6;
         offsets = newOffsets;
         keys = newKeys;
@@ -229,6 +234,39 @@ class PageDataLeaf extends PageData {
 
     PageDataLeaf getFirstLeaf() {
         return this;
+    }
+
+    boolean remove(int key) throws SQLException {
+        int i = find(key);
+        if (keys[i] != key) {
+            throw Message.getSQLException(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL());
+        }
+        if (entryCount == 1) {
+            return true;
+        }
+//                if (pageData.size() == 1 && !root) {
+//                    // the last row has been deleted
+//                    return oldRow;
+//                }
+//                pageData.remove(i);
+//                updateRealByteCount(false, row);
+//                index.updatePage(session, this);
+//                if (i > 0) {
+//                    // the first row didn't change
+//                    return null;
+//                }
+//                if (pageData.size() == 0) {
+//                    return null;
+//                }
+//                return getData(0);
+//            }
+//            if (comp > 0) {
+//                r = i;
+//            } else {
+//                l = i + 1;
+//            }
+//        }
+        throw Message.getSQLException(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL());
     }
 
 }

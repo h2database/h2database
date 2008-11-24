@@ -42,11 +42,11 @@ public class SelectOrderBy {
     
     public String getSQL() {
         StringBuffer buff = new StringBuffer();
-        if (columnIndexExpr != null) {
-            buff.append(columnIndexExpr.getSQL());
-        } else {
+        if (expression != null) {
             buff.append("=");
             buff.append(expression.getSQL());
+        } else {
+            buff.append(columnIndexExpr.getSQL());
         }
         if (descending) {
             buff.append(" DESC");

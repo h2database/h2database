@@ -1,4 +1,11 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select * from(select 1 from system_range(1, 2) group by sin(x) order by sin(x));
+> 1
+> -
+> 1
+> 1
+> rows (ordered): 2
+
 create table parent as select 1 id, 2 x;
 > ok
 

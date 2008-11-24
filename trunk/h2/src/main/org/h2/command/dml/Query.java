@@ -324,7 +324,6 @@ public abstract class Query extends Prepared {
                 String sql = e.getSQL();
                 expressionSQL.add(sql);
             }
-            o.expression = null;
             o.columnIndexExpr = ValueExpression.get(ValueInt.get(idx + 1));
         }
     }
@@ -344,9 +343,6 @@ public abstract class Query extends Prepared {
             SelectOrderBy o = (SelectOrderBy) orderList.get(i);
             int idx;
             boolean reverse = false;
-            if (o.expression != null) {
-                throw Message.getInternalError();
-            }
             Expression expr = o.columnIndexExpr;
             Value v = expr.getValue(null);
             if (v == ValueNull.INSTANCE) {

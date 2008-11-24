@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The optimizer had problems with function tables (for example CSVREAD and FTL_SEARCH).
+<ul><li>If a query that was used like a table contained group by and was ordered by an expression that
+	is not in the column list, an exception was thrown.
+</li><li>JaQu: tables are now auto-created when running a query.
+</li><li>The optimizer had problems with function tables (for example CSVREAD and FTL_SEARCH).
     A new system property h2.estimatedFunctionTableRows (default 1000) defines how many rows
     can be expected in the table.
 </li><li>The function SUM could overflow when using large values. It returns now a data type that is safe.

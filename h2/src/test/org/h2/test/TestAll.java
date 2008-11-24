@@ -284,6 +284,7 @@ java org.h2.test.TestAll timer
         
 /*
 
+is in-memory scan index re-using ids?
 don't store default values (store a special value)
 build.sh from mac (test in Ubuntu)
 btree: maybe split at the insertion point

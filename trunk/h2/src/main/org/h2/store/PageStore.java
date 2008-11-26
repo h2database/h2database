@@ -251,4 +251,13 @@ public class PageStore implements CacheWriter {
         file.write(data.getBytes(), 0, pageSize);
     }
 
+    /**
+     * Add a page to the free list.
+     * 
+     * @param pageId the page id
+     */
+    public void freePage(int pageId) {
+        int todo;
+    }
+
 }

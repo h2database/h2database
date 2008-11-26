@@ -84,7 +84,7 @@ public class Db {
     }
 
     public <T extends Object> Query<T> from(T alias) {
-    	Class< ? > clazz = alias.getClass();
+        Class< ? > clazz = alias.getClass();
         define(clazz).createTableIfRequired(this);
         return Query.from(this, alias);
     }

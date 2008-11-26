@@ -283,12 +283,24 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
         
 /*
-
+maybe make cmd+enter work for mac?
+docs & h2 console / tools: replace h2.jar with h2*.jar
+create_100_tables.sql (show columns in h2 console for h2 databases)
+postgresql generate_series?
 is in-memory scan index re-using ids?
 don't store default values (store a special value)
 build.sh from mac (test in Ubuntu)
 btree: maybe split at the insertion point
 split files (1 GB max size)
+add a setting (that can be changed at runtime) to call fsync and delay on each commit
+
+drop table emp;
+drop table dept;
+create table emp (empid integer, name varchar(255), deptid integer);
+create table dept (deptid integer, dept_name varchar(255));
+select * from emp natural join dept;
+select deptid, name, dept_name from emp natural join dept;
+(works for MySQL, PostgreSQL)
 
 multithreaded kernel
 

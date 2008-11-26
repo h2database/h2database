@@ -1,5 +1,6 @@
-Sorry I can not include this file because it is GPL licensed, and
-http://ohloh.org says that this may conflict with another license.
+Sorry I can not include this file because 
+http://ohloh.org says that this may conflict 
+with another license.
 
 In the file JdbcMetaData.java in package com.caucho.jdbc
 in method public static JdbcMetaData create(DataSource ds),

@@ -8,6 +8,7 @@ package org.h2.index;
 
 import java.sql.SQLException;
 
+import org.h2.engine.Session;
 import org.h2.result.Row;
 import org.h2.store.DataPageBinary;
 
@@ -152,9 +153,15 @@ abstract class PageData {
      * 
      * @param id the new parent page id
      */
-    void setParentPageId(int id) {
+    void setParentPageId(int id) throws SQLException {
         this.parentPageId = id;
+        remapChildren();
     }
+    
+    /**
+     * Update the parent id of all children.
+     */
+    abstract void remapChildren() throws SQLException;
 
     /**
      * Remove a row.
@@ -163,5 +170,13 @@ abstract class PageData {
      * @return true if this page is now empty
      */
     abstract boolean remove(int key) throws SQLException;
+
+    /**
+     * Get the row for the given key.
+     * 
+     * @param key the key
+     * @return the row
+     */
+    abstract Row getRow(Session session, int key) throws SQLException;
     
 }

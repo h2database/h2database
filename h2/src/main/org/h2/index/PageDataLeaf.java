@@ -9,12 +9,9 @@ package org.h2.index;
 import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
-import org.h2.jdbc.JdbcSQLException;
+import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
-import org.h2.result.SearchRow;
 import org.h2.store.DataPageBinary;
 
 /**
@@ -79,7 +76,7 @@ class PageDataLeaf extends PageData {
     void write() throws SQLException {
         // make sure rows are read
         for (int i = 0; i < entryCount; i++) {
-            getRow(i);
+            getRowAt(i);
         }
         data.reset();
         data.writeInt(parentPageId);
@@ -194,7 +191,7 @@ class PageDataLeaf extends PageData {
      * @param index the index
      * @return the row
      */
-    Row getRow(int index) throws SQLException {
+    Row getRowAt(int index) throws SQLException {
         Row r = rows[index];
         if (r == null) {
             data.setPos(offsets[index]);
@@ -213,7 +210,7 @@ class PageDataLeaf extends PageData {
         int newPageId = index.getPageStore().allocatePage();
         PageDataLeaf p2 = new PageDataLeaf(index, newPageId, parentPageId, index.getPageStore().createDataPage());
         for (int i = splitPoint; i < entryCount;) {
-            p2.addRow(getRow(splitPoint));
+            p2.addRow(getRowAt(splitPoint));
             removeRow(splitPoint);
         }
         return p2;
@@ -221,7 +218,7 @@ class PageDataLeaf extends PageData {
 
     int getLastKey() throws SQLException {
         int todoRemove;
-        return getRow(entryCount - 1).getPos();
+        return getRowAt(entryCount - 1).getPos();
     }
 
     public PageDataLeaf getNextPage() throws SQLException {
@@ -235,6 +232,10 @@ class PageDataLeaf extends PageData {
     PageDataLeaf getFirstLeaf() {
         return this;
     }
+    
+    protected void remapChildren() throws SQLException {
+        int todoUpdateOverflowPages;
+    }
 
     boolean remove(int key) throws SQLException {
         int i = find(key);
@@ -244,29 +245,17 @@ class PageDataLeaf extends PageData {
         if (entryCount == 1) {
             return true;
         }
-//                if (pageData.size() == 1 && !root) {
-//                    // the last row has been deleted
-//                    return oldRow;
-//                }
-//                pageData.remove(i);
-//                updateRealByteCount(false, row);
-//                index.updatePage(session, this);
-//                if (i > 0) {
-//                    // the first row didn't change
-//                    return null;
-//                }
-//                if (pageData.size() == 0) {
-//                    return null;
-//                }
-//                return getData(0);
-//            }
-//            if (comp > 0) {
-//                r = i;
-//            } else {
-//                l = i + 1;
-//            }
-//        }
-        throw Message.getSQLException(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL());
+        removeRow(i);
+        write();
+        return false;
+    }
+
+    Row getRow(Session session, int key) throws SQLException {
+        int index = find(key);
+        if(index >= keys.length) {
+            System.out.println("stop");
+        }
+        return getRowAt(index);
     }
 
 }

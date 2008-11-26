@@ -45,7 +45,7 @@ class PageScanCursor implements Cursor {
                 return false;
             }
         }
-        row = current.getRow(index);
+        row = current.getRowAt(index);
         index++;
         return true;
     }

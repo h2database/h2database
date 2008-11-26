@@ -62,7 +62,6 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         table.setRowCount(rowCount);
     }
 
-
     public void add(Session session, Row row) throws SQLException {
         row.setPos((int) rowCount);
         PageData root = getPage(headPos);
@@ -75,6 +74,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             int id = store.allocatePage();
             page1.setPageId(id);
             page1.setParentPageId(headPos);
+            page2.setParentPageId(headPos);
             PageDataNode newRoot = new PageDataNode(this, rootPageId, Page.ROOT, store.createDataPage());
             newRoot.init(page1, pivot, page2);
             page1.write();
@@ -106,7 +106,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             result = new PageDataNode(this, id, parentPageId, data);
             break;
         default:
-            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "type=" + type);
+            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "page=" + id + " type=" + type);
         }
         result.read();
         return result;
@@ -159,7 +159,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 
     public void truncate(Session session) throws SQLException {
         int invalidateRowCount;
-        int todo;
+        PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
+        root.write();
         rowCount = 0;
     }
 
@@ -168,8 +169,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     public Row getRow(Session session, int key) throws SQLException {
-        int todo;
-        return null;
+        PageData root = getPage(headPos);
+        return root.getRow(session, key);
     }
 
     PageStore getPageStore() {

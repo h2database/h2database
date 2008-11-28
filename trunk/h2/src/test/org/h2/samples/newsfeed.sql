@@ -13,6 +13,43 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(54,
+'New version available: 1.1.104 (beta; 2008-11-28)', '2008-11-28 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>ResultSet.getObject for a lob will return java.sql.Clob / Blob.
+</li><li>The interface CloseListener has a new method 'remove'.
+</li><li>Compatibility for MS SQL Server DATEDIFF(YYYY, .., ..)
+</li><li>The emergency reserve file has been removed.
+</li><li>The H2DatabaseProvider for ActiveObjects is now included.
+</li><li>The H2Platform for Oracle Toplink Essential has been improved.
+</li><li>Build: JAVA_HOME is now automatically detected on Mac OS X.
+</li><li>The cache memory usage calculation is more conservative.
+</li><li>Large databases on FAT file system are now supported.
+</li><li>The database now tries to detect if the web application is stopped.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Fulltext search: a memory leak has been fixed.
+</li><li>A query with group by that was used like a table could throw an exception.
+</li><li>JaQu: tables are now auto-created when running a query.
+</li><li>The optimizer had problems with function tables.
+</li><li>The function SUM could overflow when using large values.
+</li><li>The function AVG could overflow when using large values.
+</li><li>Testing for local connections was very slow on some systems.
+</li><li>Allocating space got slower and slower the larger the database.
+</li><li>ALTER TABLE ALTER COLUMN could throw the wrong exception.
+</li><li>Updatable result sets: the key columns can now be updated.
+</li><li>The Windows service to start H2 didn't work in version 1.1.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(53,
 'New version available: 1.1.103 (beta; 2008-11-07)', '2008-11-07 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -420,32 +457,6 @@ http://www.h2database.com/html/changelog.html
 For future plans, see the 'Roadmap' page at
 http://www.h2database.com/html/roadmap.html
 $$);
-
-INSERT INTO ITEM VALUES(41,
-'New version available: 1.0.71 (2008-04-25)', '2008-04-25 12:00:00',
-'A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click ''Refresh'').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>H2 is now dual-licensed under the Eclipse Public License (EPL) and the
-    old ''H2 License'' (which is basically MPL).
-</li><li>New traditional Chinese translation. Thanks a lot to Derek Chao!
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Sometimes an exception ''File ID mismatch'' or ''try to add a record twice''
-    occurred after large records (8 KB or larger) are updated or deleted.
-    See also http://code.google.com/p/h2database/issues/detail?id=22
-</li><li>H2 Console: The tools can now be translated 
-    (it didn''t work in the last release).
-</li><li>Indexes were not used when enabling the optimization for 
-    IN(SELECT...) (system property h2.optimizeInJoin).
-</li></ul>
-For details, see the ''Change Log'' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the ''Roadmap'' page at
-http://www.h2database.com/html/roadmap.html
-');
 
 SELECT 'newsfeed-rss.xml' FILE,
     XMLSTARTDOC() ||

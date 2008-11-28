@@ -292,14 +292,12 @@ don't store default values (store a special value)
 build.sh from mac (test in Ubuntu)
 btree: maybe split at the insertion point
 split files (1 GB max size)
-add a setting (that can be changed at runtime) to call fsync and delay on each commit
+add a setting (that can be changed at runtime) to call fsync 
+and delay on each commit
 
-drop table emp;
-drop table dept;
-create table emp (empid integer, name varchar(255), deptid integer);
-create table dept (deptid integer, dept_name varchar(255));
-select * from emp natural join dept;
-select deptid, name, dept_name from emp natural join dept;
+drop table test;
+create table test(id int);
+select id from test a natural join test b;
 (works for MySQL, PostgreSQL)
 
 multithreaded kernel

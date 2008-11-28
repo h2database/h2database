@@ -60,7 +60,7 @@ class PageDataNode extends PageData {
         index.getPageStore().writePage(pageId, data);
     }
     
-    void addChild(int x, int childPageId, int key) {
+    private void addChild(int x, int childPageId, int key) {
         int[] newKeys = new int[entryCount + 1];
         int[] newChildPageIds = new int[entryCount + 2];
         if (entryCount > 0) {

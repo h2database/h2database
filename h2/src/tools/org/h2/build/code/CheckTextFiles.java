@@ -26,7 +26,7 @@ public class CheckTextFiles {
     private static final String[] SUFFIX_CHECK = new String[] { "html", "jsp", "js", "css", "bat", "nsi", 
             "java", "txt", "properties", "sql", "xml", "csv", "Driver" };
     private static final String[] SUFFIX_IGNORE = new String[] { "gif", "png", "odg", "ico", "sxd", 
-            "layout", "res", "win", "jar", "task", "svg", "MF", "sh" };
+            "layout", "res", "win", "jar", "task", "svg", "MF", "sh", "DS_Store" };
     
     private boolean failOnError;
     private boolean allowTab, allowCR = true, allowTrailingSpaces = true;

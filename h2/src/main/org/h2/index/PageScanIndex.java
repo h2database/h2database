@@ -30,13 +30,14 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     private TableData tableData;
     private int headPos;
     
+    // TODO cache the row count of all children (row count, group count)
     // TODO remember last page with deleted keys (in the root page?), 
     // and chain such pages
     // TODO order pages so that searching for a key 
     // doesn't seek backwards in the file
+    // TODO use an undo log and maybe redo log (for performance)
+    // TODO file position, content checksums
     private int nextKey;
-    
-    // TODO remember the row count (in the root page?)
     
     public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
@@ -64,10 +65,13 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 
     public void add(Session session, Row row) throws SQLException {
         row.setPos((int) rowCount);
-        PageData root = getPage(headPos);
-        int splitPoint = root.addRow(row);
-        if (splitPoint != 0) {
-            int pivot = root.getKey(splitPoint);
+        while (true) {
+            PageData root = getPage(headPos);
+            int splitPoint = root.addRow(row);
+            if (splitPoint == 0) {
+                break;
+            }
+            int pivot = root.getKey(splitPoint - 1);
             PageData page1 = root;
             PageData page2 = root.split(splitPoint);
             int rootPageId = root.getPageId();
@@ -159,6 +163,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 
     public void truncate(Session session) throws SQLException {
         int invalidateRowCount;
+        int freePages;
         PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
         root.write();
         rowCount = 0;

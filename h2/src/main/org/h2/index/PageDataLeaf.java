@@ -5,7 +5,6 @@
  * Initial Developer: H2 Group
  */
 package org.h2.index;
-
 import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
@@ -13,6 +12,8 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.store.DataPageBinary;
+import org.h2.store.PageStore;
+import org.h2.util.IntArray;
 
 /**
  * A leaf page that contains data of one or multiple rows.
@@ -26,7 +27,8 @@ import org.h2.store.DataPageBinary;
  * The format of an overflow page is:
  * <ul><li>0-3: parent page id (0 for root)
  * </li><li>4-4: page type
- * </li><li>only if there is overflow: 5-8: next overflow page id
+ * </li><li>if there is more data: 5-8: next overflow page id
+ * </li><li>otherwise: 5-6: remaining size
  * </li><li>data
  * </li></ul>
  */
@@ -43,9 +45,14 @@ class PageDataLeaf extends PageData {
     Row[] rows;
     
     /**
-     * The page id of the first overflow page (0 for no overflow).
+     * The page id of the first overflow page (0 if no overflow).
      */
-    int overflowPageId;
+    int firstOverflowPageId;
+    
+    /**
+     * The page ids of all overflow pages (null if no overflow).
+     */
+    int[] overflowPageIds;
     
     /**
      * The start of the data area.
@@ -54,6 +61,7 @@ class PageDataLeaf extends PageData {
     
     PageDataLeaf(PageScanIndex index, int pageId, int parentPageId, DataPageBinary data) {
         super(index, pageId, parentPageId, data);
+        start = 7;
     }
 
     void read() throws SQLException {
@@ -64,7 +72,7 @@ class PageDataLeaf extends PageData {
         keys = new int[entryCount];
         rows = new Row[entryCount];
         if (type == Page.TYPE_DATA_LEAF_WITH_OVERFLOW) {
-            overflowPageId = data.readInt();
+            firstOverflowPageId = data.readInt();
         }
         for (int i = 0; i < entryCount; i++) {
             keys[i] = data.readInt();
@@ -81,15 +89,15 @@ class PageDataLeaf extends PageData {
         data.reset();
         data.writeInt(parentPageId);
         int type;
-        if (overflowPageId == 0) {
+        if (firstOverflowPageId == 0) {
             type = Page.TYPE_DATA_LEAF;
         } else {
             type = Page.TYPE_DATA_LEAF_WITH_OVERFLOW;
         }
         data.writeByte((byte) type);
         data.writeShortInt(entryCount);
-        if (overflowPageId != 0) {
-            data.writeInt(overflowPageId);
+        if (firstOverflowPageId != 0) {
+            data.writeInt(firstOverflowPageId);
         }
         for (int i = 0; i < entryCount; i++) {
             data.writeInt(keys[i]);
@@ -99,18 +107,39 @@ class PageDataLeaf extends PageData {
             data.setPos(offsets[i]);
             rows[i].write(data);
         }
-        int pageSize = index.getPageStore().getPageSize();
-        if (data.length() > pageSize) {
-            if (overflowPageId == 0) {
+        PageStore store = index.getPageStore();
+        int pageSize = store.getPageSize();
+        store.writePage(pageId, data);
+        // don't need to write overflow if we just update the parent page id
+        if (data.length() > pageSize && overflowPageIds != null) {
+            if (firstOverflowPageId == 0) {
                 throw Message.getInternalError();
             }
-            int todoWriteOverflow;
-        } else {
-            if (overflowPageId != 0) {
-                throw Message.getInternalError();
+            DataPageBinary overflow = store.createDataPage();
+            int parent = pageId;
+            int pos = pageSize;
+            int remaining = data.length() - pageSize;
+            for (int i = 0; i < overflowPageIds.length; i++) {
+                overflow.reset();
+                overflow.writeInt(parent);
+                int size;
+                if (remaining > pageSize - 7) {
+                    overflow.writeByte((byte) Page.TYPE_DATA_OVERFLOW_WITH_MORE);
+                    overflow.writeInt(overflowPageIds[i + 1]);
+                    size = pageSize - overflow.length();
+                } else {
+                    overflow.writeByte((byte) Page.TYPE_DATA_OVERFLOW_LAST);
+                    size = remaining;
+                    overflow.writeShortInt(remaining);
+                }
+                overflow.write(data.getBytes(), pos, size);
+                remaining -= size;
+                pos += size;
+                int id = overflowPageIds[i];
+                store.writePage(id, overflow);
+                parent = id;
             }
         }
-        index.getPageStore().writePage(pageId, data);
     }
 
     /**
@@ -121,7 +150,12 @@ class PageDataLeaf extends PageData {
      */
     int addRow(Row row) throws SQLException {
         int rowLength = row.getByteCount(data);
-        int last = entryCount == 0 ? index.getPageStore().getPageSize() : offsets[entryCount - 1];
+        int pageSize = index.getPageStore().getPageSize();
+        int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
+        if (entryCount > 0 && last - rowLength < start + 6) {
+            int todoSplitAtLastInsertionPoint;
+            return (entryCount / 2) + 1;
+        }
         int offset = last - rowLength;
         int[] newOffsets = new int[entryCount + 1];
         int[] newKeys = new int[entryCount + 1];
@@ -149,13 +183,27 @@ class PageDataLeaf extends PageData {
         keys = newKeys;
         rows = newRows;
         if (offset < start) {
-            if (entryCount > 0) {
-                int todoSplitAtLastInsertionPoint;
-                return entryCount / 2;
+            if (entryCount > 1) {
+                throw Message.getInternalError();
             }
-            offset = start + 6;
-            overflowPageId = index.getPageStore().allocatePage();
-            int todoWriteOverflow;
+            // need to write the overflow page id
+            start += 4;
+            int remaining = rowLength - (pageSize - start);
+            // fix offset
+            offset = start;
+            offsets[x] = offset;
+            IntArray array = new IntArray();
+            do {
+                int next = index.getPageStore().allocatePage();
+                array.add(next);
+                remaining -= pageSize - 7;
+                if (remaining > 0) {
+                    remaining += 2;
+                }
+            } while (remaining > 0);
+            overflowPageIds = new int[array.size()];
+            array.toArray(overflowPageIds);
+            firstOverflowPageId = overflowPageIds[0];
         }
         write();
         return 0;
@@ -188,16 +236,40 @@ class PageDataLeaf extends PageData {
     /**
      * Get the row at the given index.
      * 
-     * @param index the index
+     * @param at the index
      * @return the row
      */
-    Row getRowAt(int index) throws SQLException {
-        Row r = rows[index];
+    Row getRowAt(int at) throws SQLException {
+        if (at >= rows.length) {
+            int test;
+            System.out.println("test");
+        }
+        Row r = rows[at];
         if (r == null) {
-            data.setPos(offsets[index]);
-            r = this.index.readRow(data);
-            r.setPos(keys[index]);
-            rows[index] = r;
+            if (firstOverflowPageId != 0) {
+                PageStore store = index.getPageStore();
+                int pageSize = store.getPageSize();
+                data.setPos(pageSize);
+                int next = firstOverflowPageId;
+                while (true) {
+                    DataPageBinary page = store.readPage(next);
+                    page.setPos(4);
+                    int type = page.readByte();
+                    if (type == Page.TYPE_DATA_OVERFLOW_LAST) {
+                        int size = page.readShortInt();
+                        data.write(page.getBytes(), 7, size);
+                        break;
+                    } else {
+                        next = page.readInt();
+                        int size = pageSize - 9;
+                        data.write(page.getBytes(), 9, size);
+                    }
+                }
+            }
+            data.setPos(offsets[at]);
+            r = index.readRow(data);
+            r.setPos(keys[at]);
+            rows[at] = r;
         }
         return r;
     }
@@ -252,9 +324,6 @@ class PageDataLeaf extends PageData {
 
     Row getRow(Session session, int key) throws SQLException {
         int index = find(key);
-        if(index >= keys.length) {
-            System.out.println("stop");
-        }
         return getRowAt(index);
     }
 

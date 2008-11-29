@@ -79,23 +79,25 @@ class PageDataNode extends PageData {
     }
 
     int addRow(Row row) throws SQLException {
-        int x = find(row.getPos());
-        PageData page = index.getPage(childPageIds[x]);
-        int splitPoint = page.addRow(row);
-        if (splitPoint == 0) {
-            return 0;
+        while (true) {
+            int x = find(row.getPos());
+            PageData page = index.getPage(childPageIds[x]);
+            int splitPoint = page.addRow(row);
+            if (splitPoint == 0) {
+                break;
+            }
+            int pivot = page.getKey(splitPoint - 1);
+            PageData page2 = page.split(splitPoint);
+            page.write();
+            page2.write();
+            addChild(x, page2.getPageId(), pivot);
+            int maxEntries = (index.getPageStore().getPageSize() - 11) / 8;
+            if (entryCount >= maxEntries) {
+                int todoSplitAtLastInsertionPoint;
+                return entryCount / 2;
+            }
+            write();
         }
-        int pivot = page.getKey(splitPoint);
-        PageData page2 = page.split(splitPoint);
-        page.write();
-        page2.write();
-        addChild(x, page2.getPageId(), pivot);
-        int maxEntries = (index.getPageStore().getPageSize() - 11) / 8;
-        if (entryCount >= maxEntries) {
-            int todoSplitAtLastInsertionPoint;
-            return entryCount / 2;
-        }
-        write();
         return 0;
     }
 
@@ -107,7 +109,6 @@ class PageDataNode extends PageData {
     PageData split(int splitPoint) throws SQLException {
         int newPageId = index.getPageStore().allocatePage();
         PageDataNode p2 = new PageDataNode(index, newPageId, parentPageId, index.getPageStore().createDataPage());
-        splitPoint++;
         int firstChild = childPageIds[splitPoint];
         for (int i = splitPoint; i < entryCount;) {
             p2.addChild(p2.entryCount, childPageIds[splitPoint + 1], keys[splitPoint]);
@@ -175,7 +176,7 @@ class PageDataNode extends PageData {
                 return null;
             }
             PageDataNode next = (PageDataNode) index.getPage(parentPageId);
-            return next.getNextPage(keys[entryCount - 1]);
+            return next.getNextPage(key);
         }
         PageData page = index.getPage(childPageIds[i]);
         return page.getFirstLeaf();
@@ -202,7 +203,6 @@ class PageDataNode extends PageData {
     }
     
     boolean remove(int key) throws SQLException {
-        int todo;
         int at = find(key);
         // merge is not implemented to allow concurrent usage of btrees
         // TODO maybe implement merge

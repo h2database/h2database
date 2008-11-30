@@ -37,6 +37,8 @@ import org.h2.value.DataType;
  * The table may be stored in a different database.
  */
 public class TableLink extends Table {
+    
+    private static final long ROW_COUNT_APPROXIMATION = 100000;
 
     private String driver, url, user, password, originalSchema, originalTable, qualifiedTableName;
     private TableLinkConnection conn;
@@ -471,6 +473,10 @@ public class TableLink extends Table {
 
     public TableLinkConnection getConnection() {
         return conn;
+    }
+
+    public long getRowCountApproximation() {
+        return ROW_COUNT_APPROXIMATION;
     }
 
 }

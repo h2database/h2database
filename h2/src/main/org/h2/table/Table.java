@@ -242,6 +242,13 @@ public abstract class Table extends SchemaObjectBase {
      */
     public abstract long getRowCount(Session session) throws SQLException;
 
+    /**
+     * Get the approximated row count for this table.
+     *
+     * @return the approximated row count
+     */
+    public abstract long getRowCountApproximation();
+
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw Message.getInternalError();
     }

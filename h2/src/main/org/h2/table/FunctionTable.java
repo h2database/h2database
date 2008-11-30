@@ -175,4 +175,8 @@ public class FunctionTable extends Table {
         return function.getSQL();
     }
 
+    public long getRowCountApproximation() {
+        return rowCount;
+    }
+
 }

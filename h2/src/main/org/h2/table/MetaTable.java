@@ -64,6 +64,11 @@ import org.h2.value.ValueString;
  */
 public class MetaTable extends Table {
 
+    /**
+     * The approximate number of rows of a meta table. 
+     */
+    public static final long ROW_COUNT_APPROXIMATION = 1000;
+
     // TODO INFORMATION_SCHEMA.tables: select table_name 
     // from INFORMATION_SCHEMA.tables where TABLE_TYPE = 'BASE TABLE'
 
@@ -1777,6 +1782,10 @@ public class MetaTable extends Table {
      */
     public static int getMetaTableTypeCount() {
         return META_TABLE_TYPE_COUNT;
+    }
+
+    public long getRowCountApproximation() {
+        return ROW_COUNT_APPROXIMATION;
     }
 
 }

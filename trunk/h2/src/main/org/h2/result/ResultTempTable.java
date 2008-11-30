@@ -56,7 +56,7 @@ public class ResultTempTable implements ResultExternal {
         table.getIndexes().add(index);
     }
     
-    public int  removeRow(Value[] values) throws SQLException {
+    public int removeRow(Value[] values) throws SQLException {
         Row row = convertToRow(values);
         Cursor cursor = find(row);
         if (cursor != null) {

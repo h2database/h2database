@@ -54,6 +54,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
     private boolean needRebuild;
     private int headPos;
     private long lastChange;
+    private long rowCount;
 
     /**
      * Create a new b tree index with the given properties. If the index does
@@ -422,6 +423,14 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
             }
         } while (cursor.previous());
         return cursor;
+    }
+
+    public long getRowCount(Session session) {
+        return rowCount;
+    }
+
+    public long getRowCountApproximation() {
+        return rowCount;
     }
 
 }

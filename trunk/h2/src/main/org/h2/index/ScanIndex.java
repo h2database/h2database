@@ -41,6 +41,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
     private int rowCountDiff;
     private HashMap sessionRowCount;
     private HashSet delta;
+    private long rowCount;
 
     public ScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType) {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
@@ -201,7 +202,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
     }
 
     public double getCost(Session session, int[] masks) {
-        long cost = tableData.getRowCount(session) + Constants.COST_ROW_OFFSET;
+        long cost = tableData.getRowCountApproximation() + Constants.COST_ROW_OFFSET;
         if (storage != null) {
             cost *= 10;
         }
@@ -212,11 +213,11 @@ public class ScanIndex extends BaseIndex implements RowIndex {
         if (database.isMultiVersion()) {
             Integer i = (Integer) sessionRowCount.get(ObjectUtils.getInteger(session.getId()));
             long count = i == null ? 0 : i.intValue();
-            count += super.getRowCount(session);
+            count += rowCount;
             count -= rowCountDiff;
             return count;
         }
-        return super.getRowCount(session);
+        return rowCount;
     }
 
     /**
@@ -275,6 +276,10 @@ public class ScanIndex extends BaseIndex implements RowIndex {
 
     public Iterator getDelta() {
         return delta == null ? Collections.EMPTY_LIST.iterator() : delta.iterator();
+    }
+
+    public long getRowCountApproximation() {
+        return rowCount;
     }
 
 }

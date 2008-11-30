@@ -30,6 +30,7 @@ public class LinkedIndex extends BaseIndex {
 
     private TableLink link;
     private String targetTableName;
+    private long rowCount;
 
     public LinkedIndex(TableLink table, int id, IndexColumn[] columns, IndexType indexType) {
         initBaseIndex(table, id, null, columns, indexType);
@@ -283,6 +284,14 @@ public class LinkedIndex extends BaseIndex {
 
     private SQLException wrapException(String sql, SQLException e) {
         return Message.getSQLException(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_2, new String[] { sql, e.toString() }, e);
+    }
+
+    public long getRowCount(Session session) {
+        return rowCount;
+    }
+
+    public long getRowCountApproximation() {
+        return rowCount;
     }
 
 }

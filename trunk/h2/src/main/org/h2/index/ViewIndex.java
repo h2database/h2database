@@ -265,4 +265,12 @@ public class ViewIndex extends BaseIndex {
         this.recursive = value;
     }
 
+    public long getRowCount(Session session) {
+        return 0;
+    }
+
+    public long getRowCountApproximation() {
+        return 0;
+    }
+
 }

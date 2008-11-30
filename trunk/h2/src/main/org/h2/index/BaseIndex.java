@@ -36,7 +36,6 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     protected int[] columnIds;
     protected Table table;
     protected IndexType indexType;
-    protected long rowCount;
     protected boolean isMultiVersion;
 
     /**
@@ -177,10 +176,6 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
     public Cursor findNext(Session session, SearchRow first, SearchRow last) throws SQLException {
         throw Message.getInternalError();
-    }
-
-    public long getRowCount(Session session) {
-        return rowCount;
     }
 
     public int getLookupCost(long rowCount) {

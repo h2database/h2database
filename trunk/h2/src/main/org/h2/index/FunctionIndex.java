@@ -56,7 +56,7 @@ public class FunctionIndex extends BaseIndex {
         }
         long expectedRows;
         if (functionTable.canGetRowCount()) {
-            expectedRows = functionTable.getRowCount(session);
+            expectedRows = functionTable.getRowCountApproximation();
         } else {
             expectedRows = SysProperties.ESTIMATED_FUNCTION_TABLE_ROWS;
         }
@@ -85,6 +85,14 @@ public class FunctionIndex extends BaseIndex {
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
         throw Message.getUnsupportedException();
+    }
+
+    public long getRowCount(Session session) {
+        return functionTable.getRowCount(session);
+    }
+
+    public long getRowCountApproximation() {
+        return functionTable.getRowCountApproximation();
     }
 
 }

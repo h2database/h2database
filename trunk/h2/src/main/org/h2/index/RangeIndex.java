@@ -81,4 +81,12 @@ public class RangeIndex extends BaseIndex {
         return new RangeCursor(pos, pos);
     }
 
+    public long getRowCount(Session session) {
+        return rangeTable.getRowCountApproximation();
+    }
+
+    public long getRowCountApproximation() {
+        return rangeTable.getRowCountApproximation();
+    }
+
 }

@@ -164,4 +164,8 @@ public class RangeTable extends Table {
         return null;
     }
 
+    public long getRowCountApproximation() {
+        return 100;
+    }
+
 }

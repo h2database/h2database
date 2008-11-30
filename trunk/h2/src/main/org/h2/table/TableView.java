@@ -31,6 +31,8 @@ import org.h2.value.Value;
  */
 public class TableView extends Table {
 
+    private static final long ROW_COUNT_APPROXIMATION = 100;
+
     private String querySQL;
     private ObjectArray tables;
     private final String[] columnNames;
@@ -353,6 +355,10 @@ public class TableView extends Table {
         v.setOwner(owner);
         v.setTemporary(true);
         return v;
+    }
+
+    public long getRowCountApproximation() {
+        return ROW_COUNT_APPROXIMATION;
     }
 
 }

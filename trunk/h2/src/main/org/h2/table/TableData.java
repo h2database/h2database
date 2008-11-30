@@ -684,4 +684,8 @@ public class TableData extends Table implements RecordReader {
         return containsLargeObject;
     }
 
+    public long getRowCountApproximation() {
+        return scanIndex.getRowCountApproximation();
+    }
+
 }

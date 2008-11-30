@@ -49,9 +49,9 @@ public class MetaIndex extends BaseIndex {
 
     public double getCost(Session session, int[] masks) {
         if (scan) {
-            return 10000;
+            return 10 * MetaTable.ROW_COUNT_APPROXIMATION;
         }
-        return getCostRangeIndex(masks, 1000);
+        return getCostRangeIndex(masks, MetaTable.ROW_COUNT_APPROXIMATION);
     }
 
     public void truncate(Session session) throws SQLException {
@@ -88,6 +88,14 @@ public class MetaIndex extends BaseIndex {
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
         throw Message.getUnsupportedException();
+    }
+
+    public long getRowCount(Session session) {
+        return MetaTable.ROW_COUNT_APPROXIMATION;
+    }
+
+    public long getRowCountApproximation() {
+        return MetaTable.ROW_COUNT_APPROXIMATION;
     }
 
 }

@@ -240,10 +240,6 @@ class PageDataLeaf extends PageData {
      * @return the row
      */
     Row getRowAt(int at) throws SQLException {
-        if (at >= rows.length) {
-            int test;
-            System.out.println("test");
-        }
         Row r = rows[at];
         if (r == null) {
             if (firstOverflowPageId != 0) {

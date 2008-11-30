@@ -38,6 +38,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     // TODO use an undo log and maybe redo log (for performance)
     // TODO file position, content checksums
     private int nextKey;
+    private long rowCount;
+    private long rowCountApproximation;
     
     public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
@@ -137,7 +139,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     public double getCost(Session session, int[] masks) throws SQLException {
-        long cost = 10 * tableData.getRowCount(session) + Constants.COST_ROW_OFFSET;
+        long cost = 10 * tableData.getRowCountApproximation() + Constants.COST_ROW_OFFSET;
         return cost;
     }
 
@@ -190,6 +192,15 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
      */
     Row readRow(DataPageBinary data) throws SQLException {
         return tableData.readRow(data);
+    }
+
+    public long getRowCountApproximation() {
+        return rowCountApproximation;
+    }
+    
+    public long getRowCount(Session session) {
+        int todo;
+        return rowCount;
     }
 
 }

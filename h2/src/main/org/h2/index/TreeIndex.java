@@ -25,6 +25,7 @@ public class TreeIndex extends BaseIndex {
 
     private TreeNode root;
     private TableData tableData;
+    private long rowCount;
 
     public TreeIndex(TableData table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
         initBaseIndex(table, id, indexName, columns, indexType);
@@ -293,7 +294,7 @@ public class TreeIndex extends BaseIndex {
     }
 
     public double getCost(Session session, int[] masks) {
-        return getCostRangeIndex(masks, tableData.getRowCount(session));
+        return getCostRangeIndex(masks, tableData.getRowCountApproximation());
     }
 
     public void remove(Session session) {
@@ -412,6 +413,14 @@ public class TreeIndex extends BaseIndex {
             }
         } while (cursor.previous());
         return cursor;
+    }
+
+    public long getRowCount(Session session) {
+        return rowCount;
+    }
+
+    public long getRowCountApproximation() {
+        return rowCount;
     }
 
 }

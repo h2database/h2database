@@ -29,6 +29,7 @@ public class HashIndex extends BaseIndex {
     private ValueHashMap rows;
     private IntIntHashMap intMap;
     private TableData tableData;
+    private long rowCount;
 
     public HashIndex(TableData table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
         initBaseIndex(table, id, indexName, columns, indexType);
@@ -150,6 +151,14 @@ public class HashIndex extends BaseIndex {
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
         throw Message.getUnsupportedException();
+    }
+
+    public long getRowCount(Session session) {
+        return rowCount;
+    }
+
+    public long getRowCountApproximation() {
+        return rowCount;
     }
 
 }

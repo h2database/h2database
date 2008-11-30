@@ -150,6 +150,13 @@ public interface Index extends SchemaObject {
      * @return the row count
      */
     long getRowCount(Session session);
+    
+    /**
+     * Get the approximated row count for this table.
+     *
+     * @return the approximated row count
+     */
+    long getRowCountApproximation();
 
     /**
      * Estimate the cost required to search a number of rows.

@@ -308,4 +308,8 @@ public class MultiVersionIndex implements Index {
         base.setTemporary(temporary);
     }
 
+    public long getRowCountApproximation() {
+        return base.getRowCountApproximation();
+    }
+
 }

@@ -219,7 +219,7 @@ function update() {
         <input type="hidden" name="tool" id="tool" value=""/>
         <input type="hidden" name="args" id="args" value=""/>
         <h4>${text.tools.commandLine}:</h4>
-        java -cp h2.jar org.h2.tools.<span id="toolName"></span>
+        java -cp h2*.jar org.h2.tools.<span id="toolName"></span>
         <span id="toolOptions">${tool}</span>
 </div>
 

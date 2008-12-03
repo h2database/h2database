@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -18,16 +18,16 @@ import org.h2.util.ByteUtils;
  * removes trailing spaces.
  */
 public class CheckTextFiles {
-    
+
     // must contain "+" otherwise this here counts as well
     private static final String COPYRIGHT = "Copyright 2004-2008 " + "H2 Group.";
     private static final String LICENSE = "Multiple-Licensed " + "under the H2 License";
 
-    private static final String[] SUFFIX_CHECK = new String[] { "html", "jsp", "js", "css", "bat", "nsi", 
+    private static final String[] SUFFIX_CHECK = new String[] { "html", "jsp", "js", "css", "bat", "nsi",
             "java", "txt", "properties", "sql", "xml", "csv", "Driver" };
-    private static final String[] SUFFIX_IGNORE = new String[] { "gif", "png", "odg", "ico", "sxd", 
+    private static final String[] SUFFIX_IGNORE = new String[] { "gif", "png", "odg", "ico", "sxd",
             "layout", "res", "win", "jar", "task", "svg", "MF", "sh", "DS_Store" };
-    
+
     private boolean failOnError;
     private boolean allowTab, allowCR = true, allowTrailingSpaces = true;
     private int spacesPerTab = 4;
@@ -39,7 +39,7 @@ public class CheckTextFiles {
     /**
      * This method is called when executing this application from the command
      * line.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String[] args) throws Exception {
@@ -113,7 +113,7 @@ public class CheckTextFiles {
      * copyright, license, incorrect source switches, trailing white space,
      * newline characters, tab characters, and characters codes (only characters
      * below 128 are allowed).
-     * 
+     *
      * @param file the file to check
      * @param fix automatically fix newline characters and trailing spaces
      * @param checkLicense check the license and copyright

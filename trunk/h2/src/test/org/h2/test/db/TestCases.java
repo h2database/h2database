@@ -531,11 +531,11 @@ public class TestCases extends TestBase {
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
-        assertEquals(rs.getInt(1), 1);
-        assertEquals(rs.getString(2), "Hello");
+        assertEquals(1, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
         rs.next();
-        assertEquals(rs.getInt(1), 3);
-        assertEquals(rs.getString(2), "Break");
+        assertEquals(3, rs.getInt(1));
+        assertEquals("Break", rs.getString(2));
         conn.close();
     }
 

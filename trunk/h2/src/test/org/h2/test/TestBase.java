@@ -1010,9 +1010,11 @@ public abstract class TestBase {
         ArrayList list1 = new ArrayList();
         ArrayList list2 = new ArrayList();
         while (rs1.next()) {
-            assertTrue(rs2.next());
             String s1 = rs1.getString(1);
             list1.add(s1);
+            if (!rs2.next()) {
+                fail("expected: " + s1);
+            }
             String s2 = rs2.getString(1);
             list2.add(s2);
         }

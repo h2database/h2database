@@ -202,8 +202,8 @@ function keyDown(event) {
     if(key == null) {
         return false;
     }
-    if (key == 13 && event.ctrlKey) {
-        // ctrl + return
+    if (key == 13 && (event.ctrlKey || event.metaKey)) {
+        // ctrl + return, cmd + return
         document.h2query.submit();
         return false;
     } else if(key == 32 && event.ctrlKey) {
@@ -255,12 +255,13 @@ function keyDown(event) {
             return false;
         }
     }
+    // alert('key:' + key);
     return true;
-     // alert('key:' + key);
     // bs:8 ret:13 lt:37 up:38 rt:39 dn:40 tab:9
     // pgup:33 pgdn:34 home:36 end:35 del:46 shift:16
     // ctrl, alt gr:17 alt:18 caps:20 5(num):12 ins:45
     // pause:19 f1..13:112..123 win-start:91 win-ctx:93 esc:27
+    // cmd:224
 }
 
 function keyUp(event) {

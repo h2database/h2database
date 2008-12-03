@@ -16,6 +16,8 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.DataPageBinary;
 import org.h2.store.PageStore;
+import org.h2.store.Record;
+import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 
@@ -30,14 +32,15 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     private TableData tableData;
     private int headPos;
     
-    // TODO cache the row count of all children (row count, group count)
+    // TODO test that setPageId updates parent, overflow parent
     // TODO remember last page with deleted keys (in the root page?), 
     // and chain such pages
     // TODO order pages so that searching for a key 
     // doesn't seek backwards in the file
     // TODO use an undo log and maybe redo log (for performance)
     // TODO file position, content checksums
-    private int nextKey;
+    // TODO completely re-use keys of deleted rows
+    private int lastKey;
     private long rowCount;
     private long rowCountApproximation;
     
@@ -56,23 +59,31 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             // new table
             headPos = store.allocatePage();
             PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
-            root.write();
+            store.updateRecord(root);
         } else {
-            int todoRowCount;
-            rowCount = getPage(headPos).getLastKey();
+            lastKey = getPage(headPos).getLastKey();
+            rowCount = getPage(headPos).getRowCount();
+            int reuseKeysIfManyDeleted;
         }
         this.headPos = headPos;
+        trace("open " + rowCount);
         table.setRowCount(rowCount);
     }
 
+    public int getHeadPos() {
+        return headPos;
+    }
+
     public void add(Session session, Row row) throws SQLException {
-        row.setPos((int) rowCount);
+        row.setPos(++lastKey);
+        trace("add " + row.getPos());
         while (true) {
             PageData root = getPage(headPos);
             int splitPoint = root.addRow(row);
             if (splitPoint == 0) {
                 break;
             }
+            trace("split " + splitPoint);
             int pivot = root.getKey(splitPoint - 1);
             PageData page1 = root;
             PageData page2 = root.split(splitPoint);
@@ -83,9 +94,9 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             page2.setParentPageId(headPos);
             PageDataNode newRoot = new PageDataNode(this, rootPageId, Page.ROOT, store.createDataPage());
             newRoot.init(page1, pivot, page2);
-            page1.write();
-            page2.write();
-            newRoot.write();
+            store.updateRecord(page1);
+            store.updateRecord(page2);
+            store.updateRecord(newRoot);
             root = newRoot;
         }
         rowCount++;
@@ -98,6 +109,10 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
      * @return the page
      */
     PageData getPage(int id) throws SQLException {
+        Record rec = store.getRecord(id);
+        if (rec != null) {
+            return (PageData) rec;
+        }
         DataPageBinary data = store.readPage(id);
         data.reset();
         int parentPageId = data.readInt();
@@ -123,10 +138,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     public void close(Session session) throws SQLException {
+        trace("close");
         int writeRowCount;
-        if (store != null) {
-            store = null;
-        }
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
@@ -139,7 +152,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     public double getCost(Session session, int[] masks) throws SQLException {
-        long cost = 10 * tableData.getRowCountApproximation() + Constants.COST_ROW_OFFSET;
+        long cost = 10 * (tableData.getRowCountApproximation() + Constants.COST_ROW_OFFSET);
         return cost;
     }
 
@@ -148,27 +161,36 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     public void remove(Session session, Row row) throws SQLException {
+        trace("remove " + row.getPos());
         int invalidateRowCount;
         // setChanged(session);
         if (rowCount == 1) {
             truncate(session);
         } else {
+            int key = row.getPos();
             PageData root = getPage(headPos);
-            root.remove(row.getPos());
+            root.remove(key);
             rowCount--;
+            int todoReuseKeys;
+//            if (key == lastKey - 1) {
+//                lastKey--;
+//            }
         }
     }
 
     public void remove(Session session) throws SQLException {
+        trace("remove");
         int todo;
     }
 
     public void truncate(Session session) throws SQLException {
-        int invalidateRowCount;
+        trace("truncate");
+        store.removeRecord(headPos);
         int freePages;
         PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
-        root.write();
+        store.updateRecord(root);
         rowCount = 0;
+        lastKey = 0;
     }
 
     public void checkRename() throws SQLException {
@@ -199,8 +221,24 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
     
     public long getRowCount(Session session) {
-        int todo;
         return rowCount;
+    }
+    
+    public String getCreateSQL() {
+        return null;
+    }
+    
+    private void trace(String message) {
+        if (headPos != 1) {
+            int test;
+//            System.out.println(message);
+        }
+    }
+    
+    public int getColumnIndex(Column col) {
+        // the scan index cannot use any columns
+        // TODO it can if there is an INT primary key
+        return -1;
     }
 
 }

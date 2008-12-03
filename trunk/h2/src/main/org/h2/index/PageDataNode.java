@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
+import org.h2.store.DataPage;
 import org.h2.store.DataPageBinary;
 
 /**
@@ -19,25 +20,30 @@ import org.h2.store.DataPageBinary;
  * <ul><li>0-3: parent page id
  * </li><li>4-4: page type
  * </li><li>5-6: entry count
- * </li><li>7-10: rightmost child page id
- * </li><li>11- entries: 4 bytes leaf page id, 4 bytes key
+ * </li><li>7-10: row count of all children (-1 if not known)
+ * </li><li>11-14: rightmost child page id
+ * </li><li>15- entries: 4 bytes leaf page id, 4 bytes key
  * </li></ul>
  */
 class PageDataNode extends PageData {
-
+    
     /**
      * The page ids of the children.
      */
-    int[] childPageIds;
+    private int[] childPageIds;
     
+    private int rowCountStored = UNKNOWN_ROWCOUNT; 
+
+    private int rowCount = UNKNOWN_ROWCOUNT; 
+
     PageDataNode(PageScanIndex index, int pageId, int parentPageId, DataPageBinary data) {
         super(index, pageId, parentPageId, data);
-        int todoOptimizationChildrenEntryCount;
     }
 
     void read() {
         data.setPos(5);
         entryCount = data.readShortInt();
+        rowCount = rowCountStored = data.readInt();
         childPageIds = new int[entryCount + 1];
         childPageIds[entryCount] = data.readInt();
         keys = new int[entryCount];
@@ -45,27 +51,17 @@ class PageDataNode extends PageData {
             childPageIds[i] = data.readInt();
             keys[i] = data.readInt();
         }
+        check();
     }
 
-    void write() throws SQLException {
-        data.reset();
-        data.writeInt(parentPageId);
-        data.writeByte((byte) Page.TYPE_DATA_NODE);
-        data.writeShortInt(entryCount);
-        data.writeInt(childPageIds[entryCount]);
-        for (int i = 0; i < entryCount; i++) {
-            data.writeInt(childPageIds[i]);
-            data.writeInt(keys[i]);
-        }
-        index.getPageStore().writePage(pageId, data);
-    }
-    
     private void addChild(int x, int childPageId, int key) {
         int[] newKeys = new int[entryCount + 1];
         int[] newChildPageIds = new int[entryCount + 2];
+        if (childPageIds != null) {
+            System.arraycopy(childPageIds, 0, newChildPageIds, 0, x + 1);
+        }
         if (entryCount > 0) {
             System.arraycopy(keys, 0, newKeys, 0, x);
-            System.arraycopy(childPageIds, 0, newChildPageIds, 0, x + 1);
             if (x < entryCount) {
                 System.arraycopy(keys, x, newKeys, x + 1, entryCount - x);
                 System.arraycopy(childPageIds, x, newChildPageIds, x + 1, entryCount - x + 1);
@@ -88,17 +84,28 @@ class PageDataNode extends PageData {
             }
             int pivot = page.getKey(splitPoint - 1);
             PageData page2 = page.split(splitPoint);
-            page.write();
-            page2.write();
+            index.getPageStore().updateRecord(page);
+            index.getPageStore().updateRecord(page2);
             addChild(x, page2.getPageId(), pivot);
-            int maxEntries = (index.getPageStore().getPageSize() - 11) / 8;
+            int maxEntries = (index.getPageStore().getPageSize() - 15) / 8;
             if (entryCount >= maxEntries) {
                 int todoSplitAtLastInsertionPoint;
                 return entryCount / 2;
             }
-            write();
+            index.getPageStore().updateRecord(this);
         }
+        updateRowCount(1);
         return 0;
+    }
+    
+    private void updateRowCount(int offset) throws SQLException {
+        if (rowCount != UNKNOWN_ROWCOUNT) {
+            rowCount += offset;
+        }
+        if (rowCountStored != UNKNOWN_ROWCOUNT) {
+            rowCountStored = UNKNOWN_ROWCOUNT;
+            index.getPageStore().updateRecord(this);
+        }
     }
 
     Cursor find() throws SQLException {
@@ -126,8 +133,8 @@ class PageDataNode extends PageData {
         for (int i = 0; i < childPageIds.length; i++) {
             int child = childPageIds[i];
             PageData p = index.getPage(child);
-            p.setParentPageId(pageId);
-            p.write();
+            p.setParentPageId(getPos());
+            index.getPageStore().updateRecord(p);
         }
     }
 
@@ -156,6 +163,7 @@ class PageDataNode extends PageData {
         entryCount = 1;
         childPageIds = new int[] { page1.getPageId(), page2.getPageId() };
         keys = new int[] { pivot };
+        check();
     }
     
     int getLastKey() throws SQLException {
@@ -194,9 +202,11 @@ class PageDataNode extends PageData {
         }
         int[] newKeys = new int[entryCount];
         int[] newChildPageIds = new int[entryCount + 1];
-        System.arraycopy(keys, 0, newKeys, 0, i);
+        System.arraycopy(keys, 0, newKeys, 0, Math.min(entryCount, i));
         System.arraycopy(childPageIds, 0, newChildPageIds, 0, i);
-        System.arraycopy(keys, i + 1, newKeys, i, entryCount - i);
+        if (entryCount > i) {
+            System.arraycopy(keys, i + 1, newKeys, i, entryCount - i);
+        }
         System.arraycopy(childPageIds, i + 1, newChildPageIds, i, entryCount - i + 1);
         keys = newKeys;
         childPageIds = newChildPageIds;
@@ -208,6 +218,7 @@ class PageDataNode extends PageData {
         // TODO maybe implement merge
         PageData page = index.getPage(childPageIds[at]);
         boolean empty = page.remove(key);
+        updateRowCount(-1);
         if (!empty) {
             // the first row didn't change - nothing to do
             return false;
@@ -220,15 +231,8 @@ class PageDataNode extends PageData {
             // truncated
             return true;
         }
-        if (at == 0) {
-            // the first child is empty - then the first row of this subtree
-            // has changed
-            removeRow(at);
-        } else {
-            // otherwise the first row didn't change
-            removeRow(at - 1);
-        }
-        write();
+        removeRow(at);
+        index.getPageStore().updateRecord(this);
         return false;
     }
 
@@ -236,6 +240,53 @@ class PageDataNode extends PageData {
         int at = find(key);
         PageData page = index.getPage(childPageIds[at]);
         return page.getRow(session, key);
+    }
+
+    int getRowCount() throws SQLException {
+        if (rowCount == UNKNOWN_ROWCOUNT) {
+            int count = 0;
+            for (int i = 0; i < childPageIds.length; i++) {
+                PageData page = index.getPage(childPageIds[i]);
+                count += page.getRowCount();
+            }
+            rowCount = count;
+        }
+        return rowCount;
+    }
+
+    void setRowCountStored(int rowCount) throws SQLException {
+        this.rowCount = rowCount;
+        if (rowCountStored != rowCount) {
+            rowCountStored = rowCount;
+            index.getPageStore().updateRecord(this);
+        }
+    }
+    
+    private void check() {
+        for (int i = 0; i < childPageIds.length; i++) {
+            if (childPageIds[i] == 0) {
+                throw Message.getInternalError();
+            }
+        }
+    }
+
+    public int getByteCount(DataPage dummy) throws SQLException {
+        return index.getPageStore().getPageSize();
+    }
+
+    public void write(DataPage buff) throws SQLException {
+        check();
+        data.reset();
+        data.writeInt(parentPageId);
+        data.writeByte((byte) Page.TYPE_DATA_NODE);
+        data.writeShortInt(entryCount);
+        data.writeInt(rowCountStored);
+        data.writeInt(childPageIds[entryCount]);
+        for (int i = 0; i < entryCount; i++) {
+            data.writeInt(childPageIds[i]);
+            data.writeInt(keys[i]);
+        }
+        index.getPageStore().writePage(getPos(), data);
     }
     
 }

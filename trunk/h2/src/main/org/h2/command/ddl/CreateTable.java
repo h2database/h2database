@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -15,7 +15,6 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.index.Index;
 import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -63,7 +62,7 @@ public class CreateTable extends SchemaCommand {
 
     /**
      * Add a column to this table.
-     * 
+     *
      * @param column the column to add
      */
     public void addColumn(Column column) {
@@ -76,7 +75,7 @@ public class CreateTable extends SchemaCommand {
     /**
      * Add a constraint statement to this statement.
      * The primary key definition is one possible constraint statement.
-     * 
+     *
      * @param command the statement to add
      */
     public void addConstraintCommand(Prepared command) throws SQLException {
@@ -145,7 +144,7 @@ public class CreateTable extends SchemaCommand {
             }
         }
         int id = getObjectId(true, true);
-        TableData table = getSchema().createTable(tableName, id, columns, persistent, clustered, Index.EMPTY_HEAD);
+        TableData table = getSchema().createTable(tableName, id, columns, persistent, clustered, headPos);
         table.setComment(comment);
         table.setTemporary(temporary);
         table.setGlobalTemporary(globalTemporary);
@@ -219,7 +218,7 @@ public class CreateTable extends SchemaCommand {
     }
 
     /**
-     * Sets the primary key columns, but also check if a primary key 
+     * Sets the primary key columns, but also check if a primary key
      * with different columns is already defined.
      *
      * @param columns the primary key columns

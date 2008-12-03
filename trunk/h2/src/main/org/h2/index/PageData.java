@@ -11,11 +11,17 @@ import java.sql.SQLException;
 import org.h2.engine.Session;
 import org.h2.result.Row;
 import org.h2.store.DataPageBinary;
+import org.h2.store.Record;
 
 /**
  * A page that contains data rows.
  */
-abstract class PageData {
+abstract class PageData extends Record {
+
+    /**
+     * Indicator that the row count is not known.
+     */
+    static final int UNKNOWN_ROWCOUNT = -1;
 
     /**
      * The index.
@@ -23,19 +29,14 @@ abstract class PageData {
     protected final PageScanIndex index; 
     
     /**
-     * The data page.
-     */
-    protected final DataPageBinary data;
-    
-    /**
-     * the page number.
-     */
-    protected int pageId;
-    
-    /**
      * The page number of the parent.
      */
     protected int parentPageId;
+    
+    /**
+     * The data page.
+     */
+    protected final DataPageBinary data;
     
     /**
      * The number of entries.
@@ -49,10 +50,24 @@ abstract class PageData {
     
     PageData(PageScanIndex index, int pageId, int parentPageId, DataPageBinary data) {
         this.index = index;
-        this.pageId = pageId;
         this.parentPageId = parentPageId;
         this.data = data;
+        this.setPos(pageId);
     }
+    
+    /**
+     * Get the real row count. If required, this will read all child pages.
+     * 
+     * @return the row count
+     */
+    abstract int getRowCount() throws SQLException;
+ 
+    /**
+     * Set the stored row count. This will write the page.
+     * 
+     * @param rowCount the stored row count
+     */
+    abstract void setRowCountStored(int rowCount) throws SQLException;
     
     /**
      * Find an entry by key.
@@ -98,11 +113,6 @@ abstract class PageData {
     abstract Cursor find() throws SQLException;
 
     /**
-     * Write the page.
-     */
-    abstract void write() throws SQLException;
-
-    /**
      * Get the key at this position.
      * 
      * @param index the index
@@ -126,12 +136,14 @@ abstract class PageData {
      * 
      * @param id the new page id
      */
-    void setPageId(int id) {
-        this.pageId = id;
+    void setPageId(int id) throws SQLException {
+        index.getPageStore().removeRecord(getPos());
+        setPos(id);
+        remapChildren();
     }
 
     int getPageId() {
-        return pageId;
+        return getPos();
     }
 
     /**
@@ -153,9 +165,8 @@ abstract class PageData {
      * 
      * @param id the new parent page id
      */
-    void setParentPageId(int id) throws SQLException {
+    void setParentPageId(int id) {
         this.parentPageId = id;
-        remapChildren();
     }
     
     /**

@@ -14,6 +14,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
+import org.h2.index.Index;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.util.ObjectArray;
@@ -37,7 +38,7 @@ public abstract class Prepared {
     /**
      * The position of the head record (used for indexes).
      */
-    protected int headPos = -1;
+    protected int headPos = Index.EMPTY_HEAD;
 
     /**
      * The list of parameters.

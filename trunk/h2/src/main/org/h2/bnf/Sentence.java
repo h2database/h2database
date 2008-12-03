@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -18,47 +18,47 @@ import org.h2.util.StringUtils;
  * Used for autocomplete.
  */
 public class Sentence {
-    
+
     /**
      * This token type means the possible choices of the item depend on the context.
      * For example the item represents a table name of the current database.
      */
     public static final int CONTEXT = 0;
-    
+
     /**
      * The token type for a keyword.
      */
     static final int KEYWORD = 1;
-    
+
     /**
      * The token type for a function name.
      */
     static final int FUNCTION = 2;
-    
+
     private static final long MAX_PROCESSING_TIME = 100;
-    
+
     /**
      * The map of next tokens in the form type#tokenName token.
      */
     private HashMap next = new HashMap();
-    
+
     /**
      * The complete query string.
      */
     private String query;
-    
+
     /**
      * The uppercase version of the query string.
      */
     private String queryUpper;
-    
+
     private long stopAt;
     private DbSchema lastMatchedSchema;
     private DbTableOrView lastMatchedTable;
     private DbTableOrView lastTable;
     private HashSet tables;
     private HashMap aliases;
-    
+
     /**
      * Start the timer to make sure processing doesn't take too long.
      */
@@ -69,7 +69,7 @@ public class Sentence {
     /**
      * Check if it's time to stop processing.
      * Processing auto-complete shouldn't take more than a few milliseconds.
-     * 
+     *
      * @return true if it's time to stop processing
      */
     boolean shouldStop() {
@@ -139,20 +139,20 @@ public class Sentence {
     public DbTableOrView getLastTable() {
         return lastTable;
     }
-    
+
     /**
      * Get the last matched schema if the last match was a schema.
-     * 
+     *
      * @return the last schema or null
      */
     public DbSchema getLastMatchedSchema() {
         return lastMatchedSchema;
     }
-    
+
     /**
      * Set the last matched schema if the last match was a schema,
      * or null if it was not.
-     * 
+     *
      * @param schema the last matched schema or null
      */
     public void setLastMatchedSchema(DbSchema schema) {
@@ -161,16 +161,16 @@ public class Sentence {
 
     /**
      * Set the last matched table if the last match was a table.
-     * 
+     *
      * @param table the last matched table or null
      */
     public void setLastMatchedTable(DbTableOrView table) {
         this.lastMatchedTable = table;
     }
-    
+
     /**
      * Get the last matched table if the last match was a table.
-     * 
+     *
      * @return the last table or null
      */
     public DbTableOrView getLastMatchedTable() {
@@ -179,7 +179,7 @@ public class Sentence {
 
     /**
      * Set the query string.
-     * 
+     *
      * @param query the query string
      */
     public void setQuery(String query) {
@@ -187,33 +187,33 @@ public class Sentence {
             this.query = query;
             this.queryUpper = StringUtils.toUpperEnglish(query);
         }
-    }    
-    
+    }
+
     /**
      * Get the query string.
-     * 
+     *
      * @return the query
      */
     public String getQuery() {
         return query;
     }
-    
+
     /**
      * Get the uppercase version of the query string.
-     * 
+     *
      * @return the uppercase query
      */
     public String getQueryUpper() {
         return queryUpper;
     }
-    
+
     /**
      * Get the map of next tokens.
-     * 
+     *
      * @return the next token map
      */
     public HashMap getNext() {
         return next;
     }
-    
+
 }

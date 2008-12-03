@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -95,7 +95,7 @@ public class Session implements SessionInterface {
     public Session() {
         // nothing to do
     }
-    
+
     Session(Database database, User user, int id) {
         this.database = database;
         this.undoLog = new UndoLog(this);
@@ -121,7 +121,7 @@ public class Session implements SessionInterface {
 
     /**
      * Set the value of the given variable for this session.
-     * 
+     *
      * @param name the name of the variable (may not be null)
      * @param value the new value (may not be null)
      */
@@ -149,7 +149,7 @@ public class Session implements SessionInterface {
      * Get the value of the specified user defined variable. This method always
      * returns a value; it returns ValueNull.INSTANCE if the variable doesn't
      * exist.
-     * 
+     *
      * @param name the variable name
      * @return the value, or NULL
      */
@@ -158,12 +158,12 @@ public class Session implements SessionInterface {
         Value v = (Value) variables.get(name);
         return v == null ? ValueNull.INSTANCE : v;
     }
-    
+
     /**
      * Get the list of variable names that are set for this session.
-     * 
+     *
      * @return the list of names
-     */    
+     */
     public String[] getVariableNames() {
         if (variables == null) {
             return new String[0];
@@ -176,7 +176,7 @@ public class Session implements SessionInterface {
     /**
      * Get the local temporary table if one exists with that name, or null if
      * not.
-     * 
+     *
      * @param name the table name
      * @return the table, or null
      */
@@ -196,7 +196,7 @@ public class Session implements SessionInterface {
 
     /**
      * Add a local temporary table to this session.
-     * 
+     *
      * @param table the table to add
      * @throws SQLException if a table with this name already exists
      */
@@ -213,7 +213,7 @@ public class Session implements SessionInterface {
 
     /**
      * Drop and remove the given local temporary table from this session.
-     * 
+     *
      * @param table the table
      */
     public void removeLocalTempTable(Table table) throws SQLException {
@@ -225,7 +225,7 @@ public class Session implements SessionInterface {
     /**
      * Get the local temporary index if one exists with that name, or null if
      * not.
-     * 
+     *
      * @param name the table name
      * @return the table, or null
      */
@@ -245,7 +245,7 @@ public class Session implements SessionInterface {
 
     /**
      * Add a local temporary index to this session.
-     * 
+     *
      * @param index the index to add
      * @throws SQLException if a index with this name already exists
      */
@@ -261,7 +261,7 @@ public class Session implements SessionInterface {
 
     /**
      * Drop and remove the given local temporary index from this session.
-     * 
+     *
      * @param index the index
      */
     public void removeLocalTempTableIndex(Index index) throws SQLException {
@@ -270,7 +270,7 @@ public class Session implements SessionInterface {
             index.removeChildrenAndResources(this);
         }
     }
-    
+
     protected void finalize() {
         if (!SysProperties.runFinalize) {
             return;
@@ -290,7 +290,7 @@ public class Session implements SessionInterface {
 
     /**
      * Change the autocommit setting for this session.
-     * 
+     *
      * @param b the new value
      */
     public void setAutoCommit(boolean b) {
@@ -316,7 +316,7 @@ public class Session implements SessionInterface {
     /**
      * Parse and prepare the given SQL statement. This method also checks the
      * rights.
-     * 
+     *
      * @param sql the SQL statement
      * @return the prepared statement
      */
@@ -326,7 +326,7 @@ public class Session implements SessionInterface {
 
     /**
      * Parse and prepare the given SQL statement.
-     * 
+     *
      * @param sql the SQL statement
      * @param rightsChecked true if the rights have already been checked
      * @return the prepared statement
@@ -340,7 +340,7 @@ public class Session implements SessionInterface {
     /**
      * Parse and prepare the given SQL statement.
      * This method also checks if the connection has been closed.
-     * 
+     *
      * @param sql the SQL statement
      * @return the prepared statement
      */
@@ -376,7 +376,7 @@ public class Session implements SessionInterface {
      * Commit the current transaction. If the statement was not a data
      * definition statement, and if there are temporary tables that should be
      * dropped or truncated at commit, this is done as well.
-     * 
+     *
      * @param ddl if the statement was a data definition statement
      */
     public void commit(boolean ddl) throws SQLException {
@@ -428,7 +428,7 @@ public class Session implements SessionInterface {
         }
         unlockAll();
     }
-    
+
     private void checkCommitRollback() throws SQLException {
         if (commitOrRollbackDisabled && locks.size() > 0) {
             throw Message.getSQLException(ErrorCode.COMMIT_ROLLBACK_NOT_ALLOWED);
@@ -456,12 +456,12 @@ public class Session implements SessionInterface {
             autoCommitAtTransactionEnd = false;
         }
     }
-    
+
     /**
      * Partially roll back the current transaction.
-     * 
+     *
      * @param index the position to which should be rolled back
-     */    
+     */
     public void rollbackTo(int index, boolean trimToSize) throws SQLException {
         while (undoLog.size() > index) {
             UndoLogRecord entry = undoLog.getLast();
@@ -507,7 +507,7 @@ public class Session implements SessionInterface {
     /**
      * Add a lock for the given table. The object is unlocked on commit or
      * rollback.
-     * 
+     *
      * @param table the table that is locked
      */
     public void addLock(Table table) {
@@ -521,7 +521,7 @@ public class Session implements SessionInterface {
 
     /**
      * Add an undo log entry to this session.
-     * 
+     *
      * @param table the table
      * @param type the operation type (see {@link UndoLogRecord})
      * @param row the row
@@ -633,7 +633,7 @@ public class Session implements SessionInterface {
     /**
      * Called when a log entry for this session is added. The session keeps
      * track of the first entry in the log file that is not yet committed.
-     * 
+     *
      * @param logId the log file id
      * @param pos the position of the log entry in the log file
      */
@@ -666,7 +666,7 @@ public class Session implements SessionInterface {
 
     /**
      * Create a savepoint that is linked to the current log position.
-     * 
+     *
      * @param name the savepoint name
      */
     public void addSavepoint(String name) {
@@ -678,11 +678,11 @@ public class Session implements SessionInterface {
 
     /**
      * Undo all operations back to the log position of the given savepoint.
-     * 
+     *
      * @param name the savepoint name
      */
     public void rollbackToSavepoint(String name) throws SQLException {
-        checkCommitRollback();        
+        checkCommitRollback();
         if (savepoints == null) {
             throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
@@ -696,7 +696,7 @@ public class Session implements SessionInterface {
 
     /**
      * Prepare the given transaction.
-     * 
+     *
      * @param transactionName the name of the transaction
      */
     public void prepareCommit(String transactionName) throws SQLException {
@@ -710,7 +710,7 @@ public class Session implements SessionInterface {
 
     /**
      * Commit or roll back the given transaction.
-     * 
+     *
      * @param transactionName the name of the transaction
      * @param commit true for commit, false for rollback
      */
@@ -769,7 +769,7 @@ public class Session implements SessionInterface {
     /**
      * Set the current command of this session. This is done just before
      * executing the statement.
-     * 
+     *
      * @param command the command
      * @param startTime the time execution has been started
      */
@@ -784,7 +784,7 @@ public class Session implements SessionInterface {
     /**
      * Check if the current transaction is canceled by calling
      * Statement.cancel() or because a session timeout was set and expired.
-     * 
+     *
      * @throws SQLException if the transaction is canceled
      */
     public void checkCanceled() throws SQLException {
@@ -827,7 +827,7 @@ public class Session implements SessionInterface {
     /**
      * Create an internal connection. This connection is used when initializing
      * triggers, and when calling user defined functions.
-     * 
+     *
      * @param columnList if the url should be 'jdbc:columnlist:connection'
      * @return the internal connection
      */
@@ -848,7 +848,7 @@ public class Session implements SessionInterface {
     /**
      * Remember that the given LOB value must be un-linked (disconnected from
      * the table) at commit.
-     * 
+     *
      * @param v the value
      */
     public void unlinkAtCommit(ValueLob v) {
@@ -863,7 +863,7 @@ public class Session implements SessionInterface {
 
     /**
      * Do not unlink this LOB value at commit any longer.
-     * 
+     *
      * @param v the value
      */
     public void unlinkAtCommitStop(Value v) {
@@ -878,7 +878,7 @@ public class Session implements SessionInterface {
 
     /**
      * Add a procedure to this session.
-     * 
+     *
      * @param procedure the procedure to add
      */
     public void addProcedure(Procedure procedure) {
@@ -890,7 +890,7 @@ public class Session implements SessionInterface {
 
     /**
      * Remove a procedure from this session.
-     * 
+     *
      * @param name the name of the procedure to remove
      */
     public void removeProcedure(String name) {
@@ -902,7 +902,7 @@ public class Session implements SessionInterface {
     /**
      * Get the procedure with the given name, or null
      * if none exists.
-     * 
+     *
      * @param name the procedure name
      * @return the procedure or null
      */
@@ -925,7 +925,7 @@ public class Session implements SessionInterface {
     public int hashCode() {
         return serialId;
     }
-    
+
     public String toString() {
         return "#" + serialId + " (user: " + user.getName() + ")";
     }
@@ -980,7 +980,7 @@ public class Session implements SessionInterface {
      * Remember the result set and close it as soon as the transaction is
      * committed (if it needs to be closed). This is done to delete temporary
      * files as soon as possible.
-     * 
+     *
      * @param result the temporary result set
      */
     public void addTemporaryResult(LocalResult result) {
@@ -1029,11 +1029,11 @@ public class Session implements SessionInterface {
     public void setWaitForLock(Table table) {
         this.waitForLock = table;
     }
-    
+
     public Table getWaitForLock() {
         return waitForLock;
     }
-    
+
     public int getModificationId() {
         return modificationId;
     }

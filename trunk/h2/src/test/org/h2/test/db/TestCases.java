@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -25,10 +25,10 @@ import org.h2.test.TestBase;
  * Various test cases.
  */
 public class TestCases extends TestBase {
-    
+
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
@@ -66,7 +66,7 @@ public class TestCases extends TestBase {
         testCollation();
         deleteDb("cases");
     }
-    
+
     private void testInvalidDatabaseName() throws SQLException {
         if (config.memory) {
             return;
@@ -78,7 +78,7 @@ public class TestCases extends TestBase {
             assertEquals(ErrorCode.INVALID_DATABASE_NAME_1, e.getErrorCode());
         }
     }
-    
+
     private void testReuseSpace() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");

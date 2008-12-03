@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -23,14 +23,14 @@ public class ValueBytes extends ValueBytesBase {
     /**
      * Get or create a bytes value for the given byte array.
      * Clone the data.
-     * 
+     *
      * @param b the byte array
      * @return the value
      */
     public static ValueBytes get(byte[] b) {
         if (b.length == 0) {
             return EMPTY;
-        }        
+        }
         b = ByteUtils.cloneByteArray(b);
         return getNoCopy(b);
     }
@@ -38,7 +38,7 @@ public class ValueBytes extends ValueBytesBase {
     /**
      * Get or create a bytes value for the given byte array.
      * Do not clone the date.
-     * 
+     *
      * @param b the byte array
      * @return the value
      */

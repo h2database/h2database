@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -20,12 +20,12 @@ import org.h2.table.Table;
  * CREATE SEQUENCE
  */
 public class Sequence extends SchemaObjectBase {
-    
+
     /**
      * The default cache size for sequences.
      */
     public static final int DEFAULT_CACHE_SIZE = 32;
-    
+
     private long value = 1;
     private long valueWithMargin;
     private long increment = 1;
@@ -90,7 +90,7 @@ public class Sequence extends SchemaObjectBase {
 
     /**
      * Get the next value for this sequence.
-     * 
+     *
      * @param session the session
      * @return the next value
      */
@@ -106,7 +106,7 @@ public class Sequence extends SchemaObjectBase {
 
     /**
      * Flush the current value, including the margin, to disk.
-     * 
+     *
      * @param session the session
      */
     public synchronized void flush(Session session) throws SQLException {

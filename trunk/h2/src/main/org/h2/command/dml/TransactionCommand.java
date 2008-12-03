@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -19,32 +19,32 @@ import org.h2.result.LocalResult;
  * Represents a transactional statement.
  */
 public class TransactionCommand extends Prepared {
-    
+
     /**
      * The type of a SET AUTOCOMMIT TRUE statement.
      */
     public static final int AUTOCOMMIT_TRUE = 1;
-    
+
     /**
      * The type of a SET AUTOCOMMIT FALSE statement.
      */
     public static final int AUTOCOMMIT_FALSE = 2;
-    
+
     /**
      * The type of a COMMIT statement.
      */
     public static final int COMMIT = 3;
-    
+
     /**
      * The type of a ROLLBACK statement.
      */
     public static final int ROLLBACK = 4;
-    
+
     /**
      * The type of a CHECKPOINT statement.
      */
     public static final int CHECKPOINT = 5;
-    
+
     /**
      * The type of a SAVEPOINT statement.
      */
@@ -54,37 +54,37 @@ public class TransactionCommand extends Prepared {
      * The type of a ROLLBACK TO SAVEPOINT statement.
      */
     public static final int ROLLBACK_TO_SAVEPOINT = 7;
-    
+
     /**
      * The type of a CHECKPOINT SYNC statement.
      */
     public static final int CHECKPOINT_SYNC = 8;
-    
+
     /**
      * The type of a PREPARE COMMIT statement.
      */
     public static final int PREPARE_COMMIT = 9;
-    
+
     /**
      * The type of a COMMIT TRANSACTION statement.
      */
     public static final int COMMIT_TRANSACTION = 10;
-    
+
     /**
      * The type of a ROLLBACK TRANSACTION statement.
      */
     public static final int ROLLBACK_TRANSACTION = 11;
-    
+
     /**
      * The type of a SHUTDOWN statement.
      */
     public static final int SHUTDOWN = 12;
-    
+
     /**
      * The type of a SHUTDOWN IMMEDIATELY statement.
      */
     public static final int SHUTDOWN_IMMEDIATELY = 13;
-    
+
     /**
      * The type of a BEGIN {WORK|TRANSACTION} statement.
      */
@@ -156,7 +156,7 @@ public class TransactionCommand extends Prepared {
             // close the database, but don't update the persistent setting
             session.getDatabase().setCloseDelay(0);
             Database db = session.getDatabase();
-            // throttle, to allow testing concurrent 
+            // throttle, to allow testing concurrent
             // execution of shutdown and query
             session.throttle();
             Session[] sessions = db.getSessions(false);
@@ -167,7 +167,7 @@ public class TransactionCommand extends Prepared {
                         s.rollback();
                     }
                 } else {
-                    // if not multi-threaded, the session could already own 
+                    // if not multi-threaded, the session could already own
                     // the lock, which would result in a deadlock
                     // the other session can not concurrently do anything
                     // because the current session has locked the database

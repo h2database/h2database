@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -45,7 +45,7 @@ public class CreateCluster extends Tool {
      * </li><li>-password (the password)
      * </li><li>-serverList (the server list)
      * </li></ul>
-     * 
+     *
      * @param args the command line arguments
      * @throws SQLException
      */
@@ -100,7 +100,7 @@ public class CreateCluster extends Tool {
     public void execute(String urlSource, String urlTarget, String user, String password, String serverList) throws SQLException {
         new CreateCluster().process(urlSource, urlTarget, user, password, serverList);
     }
-    
+
     private void process(String urlSource, String urlTarget, String user, String password, String serverList) throws SQLException {
         Connection conn = null;
         Statement stat = null;
@@ -122,9 +122,9 @@ public class CreateCluster extends Tool {
                 throw new SQLException("Target database must not yet exist. Please delete it first");
             }
 
-            // TODO cluster: need to open the database in exclusive mode, 
+            // TODO cluster: need to open the database in exclusive mode,
             // so that other applications
-            // cannot change the data while it is restoring the second database. 
+            // cannot change the data while it is restoring the second database.
             // But there is currently no exclusive mode.
 
             String scriptFile = "backup.sql";

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -20,14 +20,14 @@ import org.h2.util.Tool;
 public class FileViewer extends Tool {
 
     /**
-     * Run the viewer. 
-     * 
+     * Run the viewer.
+     *
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
         new FileViewer().run(args);
     }
-    
+
     private void showUsage() {
         out.println("A text file viewer that support very large files.");
         out.println("java "+getClass().getName() + "\n" +
@@ -38,7 +38,7 @@ public class FileViewer extends Tool {
                 " [-tail]          Display the last lines\n" +
                 " [-lines <x>]     Display only x lines (default: 30)\n" +
                 " [-quiet]         Do not print progress information)");
-        // out.println("See also http://h2database.com/javadoc/" + 
+        // out.println("See also http://h2database.com/javadoc/" +
         // getClass().getName().replace('.', '/') + ".html");
     }
 
@@ -122,7 +122,7 @@ public class FileViewer extends Tool {
             list(pos, "Tail", list);
         }
     }
-    
+
     private long find(RandomAccessFile file, byte[] find, boolean quiet) throws IOException {
         long pos = file.getFilePointer();
         long length = file.length();
@@ -153,7 +153,7 @@ public class FileViewer extends Tool {
     }
 
     private int find(byte[] data, byte[] find, int max) {
-        outer: 
+        outer:
         for (int i = 0; i < max; i++) {
             for (int j = 0; j < find.length; j++) {
                 if (data[i + j] != find[j]) {
@@ -174,7 +174,7 @@ public class FileViewer extends Tool {
         }
         System.out.println("-----------------------------------------------");
     }
-    
+
     private ArrayList readLines(RandomAccessFile file, int maxLines) throws IOException {
         ArrayList lines = new ArrayList();
         ByteArrayOutputStream buff = new ByteArrayOutputStream(100);

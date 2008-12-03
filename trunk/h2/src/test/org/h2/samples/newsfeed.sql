@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
- * Version 1.0, and under the Eclipse Public License, Version 1.0 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -59,17 +59,17 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 <ul><li>New column INFORMATION_SCHEMA.COLUMNS.SEQUENCE_NAME.
 </li><li>Aliases for built-in data types can now be re-mapped.
 </li><li>Improved PostgreSQL compatibility for NEXTVAL and CURRVAL.
-</li><li>The Japanese translation has been completed by Masahiro Ikemoto. 
+</li><li>The Japanese translation has been completed by Masahiro Ikemoto.
 </li><li>New system property h2.browser to set the browser to use.
 </li><li>To start the browser, java.awt.Desktop.browse is now used if available.
 </li><li>Less heap memory is needed when multiple databases are open.
 </li></ul>
 <b>Bugfixes:</b>
-<ul><li>Could not order by a formula when the formula was in the group by list 
+<ul><li>Could not order by a formula when the formula was in the group by list
     but not in the select list.
-</li><li>Date values that match the daylight saving time end were not allowed in 
-    times zones were the daylight saving time ends at midnight, for years larger than 2037. 
-    This is a problem of Java, however a workaround is implemented in H2 that solves 
+</li><li>Date values that match the daylight saving time end were not allowed in
+    times zones were the daylight saving time ends at midnight, for years larger than 2037.
+    This is a problem of Java, however a workaround is implemented in H2 that solves
     most problems (except the problems of java.util.Date itself).
 </li><li>ALTER TABLE used a lot of memory when using multi-version concurrency.
 </li><li>Referential integrity for in-memory databases didn't work in some cases.
@@ -95,7 +95,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 <ul><li>ResultSetMetaData.getColumnName now returns the alias name except for columns.
 </li><li>Temporary files are now deleted when the database is closed, even
     if they were not garbage collected so far.
-</li><li>There was a memory leak when creating and dropping tables and 
+</li><li>There was a memory leak when creating and dropping tables and
     indexes in a loop (persistent database only).
 </li><li>SET LOG 2 was not effective if executed after opening the database.
 </li><li>In-memory databases don't write LOBs to files any longer.
@@ -115,7 +115,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 (You may have to click 'Refresh').
 <br />
 <b>Changes and new functionality:</b>
-<ul><li>OSGi meta data is included in the manifest file. 
+<ul><li>OSGi meta data is included in the manifest file.
 </li><li>Queries with more than 10 tables are now faster.
 </li><li>Opening large database is now faster.
 </li><li>Opening a connection with AUTO_SERVER=TRUE is now fast.
@@ -146,7 +146,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Auto-reconnect didn't work when using auto-server.
 </li><li>The optimization to group using an index didn't work sometimes.
 </li><li>The build didn't work if the directory temp didn't exist before.
-</li><li>WHERE .. IN (SELECT ...) could throw a NullPointerException. 
+</li><li>WHERE .. IN (SELECT ...) could throw a NullPointerException.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html
@@ -162,15 +162,15 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 <br />
 <b>Changes and new functionality:</b>
 <ul><li>In version H2 1.1, some features are now enabled by default.
-</li><li>New auto-reconnect feature. 
-    To enable, append ;AUTO_RECONNECT=TRUE to the database URL. 
+</li><li>New auto-reconnect feature.
+    To enable, append ;AUTO_RECONNECT=TRUE to the database URL.
 </li><li>The H2 Console tool now works with the JDBC-ODBC bridge.
 </li><li>The H2 Console tool now supports command line options.
 </li><li>The h2console.war can now be built using the Java build.
-</li><li>If you want that each connection opens its own database, append 
+</li><li>If you want that each connection opens its own database, append
     ;OPEN_NEW=TRUE to the database URL.
 </li><li>CreateCluster: the property 'serverlist' is now called 'serverList'.
-</li><li>Databases names can now be one character long. 
+</li><li>Databases names can now be one character long.
 </li></ul>
 <b>Bugfixes:</b>
 <ul><li>Connections from a local address other than 'localhost' were not allowed by default.
@@ -191,8 +191,8 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 <br />
 <b>Changes and new functionality:</b>
 <ul><li>Row level locking for MVCC is now enabled.
-</li><li>Multiple processes can now access the same database by appending 
-    ;AUTO_SERVER=TRUE to the database URL. 
+</li><li>Multiple processes can now access the same database by appending
+    ;AUTO_SERVER=TRUE to the database URL.
 </li><li>The database supports the SHOW command for better MySQL and PostgreSQL compatibility.
 </li><li>Result sets with just a unique index can now be updated.
 </li><li>Linked tables can now share the connection.
@@ -202,7 +202,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Temporary linked tables are now supported.
 </li><li>Faster storage re-use algorithm thanks to Greg Dhuse from cleversafe.com.
 </li><li>Faster hash code calculation for large binary arrays.
-</li><li>Multi-Version Concurrency may no longer be used when using 
+</li><li>Multi-Version Concurrency may no longer be used when using
     the multi-threaded kernel feature.
 </li><li>The H2 Console now abbreviates large texts in results.
 </li><li>SET SCHEMA_SEARCH_PATH is now documented.
@@ -210,7 +210,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>The server tool now displays the correct IP address if networked.
 </li></ul>
 <b>Bugfixes:</b>
-<ul><li>Multiple UNION queries could not be used in derived tables. 
+<ul><li>Multiple UNION queries could not be used in derived tables.
 </li><li>It was possible to create tables in read-only databases.
 </li><li>SET SCHEMA did not work for views.
 </li><li>The maximum log file size setting was ignored for large databases.
@@ -242,7 +242,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>The documentation no longer uses a frameset (except the Javadocs).
 </li></ul>
 <b>Bugfixes:</b>
-<ul><li>The H2 Console replaced an empty user name with a single space. 
+<ul><li>The H2 Console replaced an empty user name with a single space.
 </li><li>ResultSet.absolute did not always work with large result sets.
 </li><li>When using DB_CLOSE_DELAY, sometimes a NullPointerException is thrown when
     the database is opened almost at the same time as it is closed automatically.
@@ -254,7 +254,7 @@ http://www.h2database.com/html/changelog.html
 For future plans, see the 'Roadmap' page at
 http://www.h2database.com/html/roadmap.html
 $$);
-    
+
 INSERT INTO ITEM VALUES(47,
 'New version available: 1.0.77 (2008-08-16)', '2008-08-16 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -268,15 +268,15 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li></ul>
 <b>Bugfixes:</b>
 <ul><li>When using remote in-memory databases, large LOB objects did not work.
-</li><li>Timestamp columns such as TIMESTAMP(6) were not compatible to other database. 
+</li><li>Timestamp columns such as TIMESTAMP(6) were not compatible to other database.
 </li><li>Opening a large database was slow if there was a problem opening the previous time.
 </li><li>Oracle compatibility: old style outer join syntax using (+) did work correctly sometimes.
-</li><li>MySQL compatibility: linked tables had lower case column names on some systems. 
+</li><li>MySQL compatibility: linked tables had lower case column names on some systems.
 </li><li>NOT IN(SELECT ...) was incorrect if the subquery returns no rows.
 </li><li>CREATE TABLE AS SELECT did not work correctly in the multi-version concurrency mode.
-</li><li>It has been reported that when using Install4j on some Linux systems and enabling the 'pack200' option, 
-    the h2.jar becomes corrupted by the install process, causing application failure. 
-    A workaround is to add an empty file h2.jar.nopack next to the h2.jar file. 
+</li><li>It has been reported that when using Install4j on some Linux systems and enabling the 'pack200' option,
+    the h2.jar becomes corrupted by the install process, causing application failure.
+    A workaround is to add an empty file h2.jar.nopack next to the h2.jar file.
     The reason for this problem is not known.
 </li></ul>
 For details, see the 'Change Log' at
@@ -285,7 +285,7 @@ http://www.h2database.com/html/changelog.html
 For future plans, see the 'Roadmap' page at
 http://www.h2database.com/html/roadmap.html
 $$);
-    
+
 INSERT INTO ITEM VALUES(46,
 'New version available: 1.0.76 (2008-07-27)', '2008-07-27 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -294,21 +294,21 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 <b>Changes and new functionality:</b>
 <ul><li>Key values can now be changed in updatable result sets.
 </li><li>Changes in updatable result sets are now always visible.
-</li><li>There is a problem with Hibernate when using Boolean columns, see 
+</li><li>There is a problem with Hibernate when using Boolean columns, see
     http://opensource.atlassian.com/projects/hibernate/browse/HHH-3401
 </li><li>The comment of a domain (user defined data type) is now used.
 </li></ul>
 <b>Bugfixes:</b>
-<ul><li>ResultSetMetaData.getColumnClassName now returns the correct 
+<ul><li>ResultSetMetaData.getColumnClassName now returns the correct
     class name for BLOB and CLOB.
-</li><li>Fixed the Oracle mode: Oracle allows multiple rows only where 
-    all columns of the unique index are NULL. 
-</li><li>ORDER BY on tableName.columnName didn't work correctly if the column 
+</li><li>Fixed the Oracle mode: Oracle allows multiple rows only where
+    all columns of the unique index are NULL.
+</li><li>ORDER BY on tableName.columnName didn't work correctly if the column
     name was also used as an alias.
 </li><li>Invalid database names are now detected and a better error message is thrown.
 </li><li>H2 Console: The progress display when opening a database has been improved.
 </li><li>The error message when the server doesn't start has been improved.
-</li><li>Temporary files were sometimes deleted too late when executing large insert, update, 
+</li><li>Temporary files were sometimes deleted too late when executing large insert, update,
     or delete operations.
 </li><li>The database file was growing after deleting many rows, and after large update operations.
 </li></ul>
@@ -354,7 +354,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 (You may have to click 'Refresh').
 <br />
 <b>Changes and new functionality:</b>
-<ul><li>JaQu (Java Query), a tool similar to LINQ (Language Integrated Query) 
+<ul><li>JaQu (Java Query), a tool similar to LINQ (Language Integrated Query)
     is now included. See also
     <a href="http://code.google.com/p/h2database/source/browse/trunk/h2/src/test/org/h2/test/jaqu/SamplesTest.java">
     code examples</a>.
@@ -362,7 +362,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Deadlocks are now detected.
 </li><li>Linked tables: statements executed against the target are list with trace level 3.
 </li><li>RunScript tool: new options to show and check the results of queries.
-</li><li>Improved compatibility with databases that only allow one row with 'NULL' in a unique 
+</li><li>Improved compatibility with databases that only allow one row with 'NULL' in a unique
     index. Use the compatibility mode to enable this feature.
 </li><li>The source code is now switched to Java 1.6 by default.
 </li><li>The ChangePassword tool is now called ChangeFileEncryption.
@@ -389,7 +389,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 <b>Changes and new functionality:</b>
 <ul><li>ParameterMetaData now returns the right data type for most cases.
 </li><li>New column INFORMATION_SCHEMA.CONSTRAINTS.UNIQUE_INDEX_NAME.
-</li><li>Some SET statements no longer commit a transaction. 
+</li><li>Some SET statements no longer commit a transaction.
 </li><li>The table SYSTEM_RANGE now supports parameters.
 </li><li>The SCRIPT command does now emit IF NOT EXISTS for CREATE ROLE.
 </li><li>Improved MySQL compatibility for AUTO_INCREMENT columns.
@@ -400,7 +400,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>A right can now be granted multiple times.
 </li></ul>
 <b>Bugfixes:</b>
-<ul><li>Disconnecting or unmounting drives while the database is open 
+<ul><li>Disconnecting or unmounting drives while the database is open
     now throws the right exception.
 </li><li>The H2 Console could not be shut down from within the tool.
 </li><li>If the password was passed as a char array, it was kept in an internal buffer
@@ -423,28 +423,28 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 <ul><li>SLF4J is now supported by using adding TRACE_LEVEL_FILE=4
         to the database URL.
 </li><li>A subset of the PostgreSQL 'dollar quoting' feature is now supported.
-</li><li>Updates made to updatable rows are now visible within the same result set. 
+</li><li>Updates made to updatable rows are now visible within the same result set.
         DatabaseMetaData.ownUpdatesAreVisible now returns true.
-</li><li>ParameterMetaData now returns the correct data 
+</li><li>ParameterMetaData now returns the correct data
         for INSERT and UPDATE statements.
 </li><li>Shell tool: DESCRIBE now supports an schema name.
 </li><li>The Shell tool now uses java.io.Console to read the password
         when using JDK 1.6
-</li><li>The Japanese translation of the error messages and the H2 Console 
+</li><li>The Japanese translation of the error messages and the H2 Console
         has been completed by Masahiro Ikemoto (Arizona Design Inc.)
-</li><li>Statements can now be canceled remotely 
+</li><li>Statements can now be canceled remotely
         (when using remote connections).
 </li><li>Triggers are no longer executed when executing an changing the table
         structure (ALTER TABLE).
 </li></ul>
 <b>Bugfixes:</b>
-<ul><li>Some databases could not be opened when appending 
+<ul><li>Some databases could not be opened when appending
         ;RECOVER=1 to the database URL.
 </li><li>The recovery tool did not work if the table name contained spaces
         or if there was a comment on the table.
-</li><li>When setting BLOB or CLOB values larger than 65 KB using 
+</li><li>When setting BLOB or CLOB values larger than 65 KB using
         a remote connection, temporary files were kept on the client
-        longer than required (until the connection was closed or the 
+        longer than required (until the connection was closed or the
         object is garbage collected). Now they are removed as soon
         as the PreparedStatement is closed, or when the value is
         overwritten.

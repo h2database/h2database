@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -22,7 +22,7 @@ public class BenchCThread {
             OP_ORDER_STATUS = 2, OP_DELIVERY = 3,
             OP_STOCK_LEVEL = 4;
     private static final BigDecimal ONE = new BigDecimal("1");
-    
+
     private Database db;
     private int warehouseId;
     private int terminalId;
@@ -39,7 +39,7 @@ public class BenchCThread {
         this.random = random;
         warehouseId = random.getInt(1, bench.warehouses);
     }
-    
+
     /**
      * Process the list of operations (a 'deck') in random order.
      */
@@ -147,9 +147,9 @@ public class BenchCThread {
         rs.next();
         BigDecimal discount = rs.getBigDecimal(1);
         // c_last
-        rs.getString(2); 
+        rs.getString(2);
         // c_credit
-        rs.getString(3); 
+        rs.getString(3);
         BigDecimal wTax = rs.getBigDecimal(4);
         rs.close();
         BigDecimal total = new BigDecimal("0");
@@ -172,7 +172,7 @@ public class BenchCThread {
             }
             BigDecimal price = rs.getBigDecimal(1);
             // i_name
-            rs.getString(2); 
+            rs.getString(2);
             String data = rs.getString(3);
             rs.close();
             prep = prepare("SELECT S_QUANTITY, S_DATA, "
@@ -303,15 +303,15 @@ public class BenchCThread {
         rs = db.query(prep);
         rs.next();
         // w_street_1
-        rs.getString(1); 
+        rs.getString(1);
         // w_street_2
-        rs.getString(2); 
+        rs.getString(2);
         // w_city
-        rs.getString(3); 
+        rs.getString(3);
         // w_state
-        rs.getString(4); 
+        rs.getString(4);
         // w_zip
-        rs.getString(5); 
+        rs.getString(5);
         String wName = rs.getString(6);
         rs.close();
         prep = prepare("SELECT D_STREET_1, D_STREET_2, D_CITY, D_STATE, D_ZIP, D_NAME "
@@ -321,15 +321,15 @@ public class BenchCThread {
         rs = db.query(prep);
         rs.next();
         // d_street_1
-        rs.getString(1); 
+        rs.getString(1);
         // d_street_2
-        rs.getString(2); 
+        rs.getString(2);
         // d_city
-        rs.getString(3); 
+        rs.getString(3);
         // d_state
-        rs.getString(4); 
+        rs.getString(4);
         // d_zip
-        rs.getString(5); 
+        rs.getString(5);
         String dName = rs.getString(6);
         rs.close();
         BigDecimal balance;
@@ -367,30 +367,30 @@ public class BenchCThread {
                 rs.next();
             }
             // c_first
-            rs.getString(1); 
+            rs.getString(1);
             // c_middle
-            rs.getString(2); 
+            rs.getString(2);
             cId = rs.getInt(3);
             // c_street_1
-            rs.getString(4); 
+            rs.getString(4);
             // c_street_2
-            rs.getString(5); 
+            rs.getString(5);
             // c_city
-            rs.getString(6); 
+            rs.getString(6);
             // c_state
-            rs.getString(7); 
+            rs.getString(7);
             // c_zip
-            rs.getString(8); 
+            rs.getString(8);
             // c_phone
-            rs.getString(9); 
+            rs.getString(9);
             credit = rs.getString(10);
             // c_credit_lim
-            rs.getString(11); 
+            rs.getString(11);
             // c_discount
-            rs.getBigDecimal(12); 
+            rs.getBigDecimal(12);
             balance = rs.getBigDecimal(13);
             // c_since
-            rs.getTimestamp(14); 
+            rs.getTimestamp(14);
             rs.close();
         } else {
             prep = prepare("SELECT C_FIRST, C_MIDDLE, C_LAST, "
@@ -404,31 +404,31 @@ public class BenchCThread {
             rs = db.query(prep);
             rs.next();
             // c_first
-            rs.getString(1); 
+            rs.getString(1);
             // c_middle
-            rs.getString(2); 
+            rs.getString(2);
             // c_last
-            rs.getString(3); 
+            rs.getString(3);
             // c_street_1
-            rs.getString(4); 
+            rs.getString(4);
             // c_street_2
-            rs.getString(5); 
+            rs.getString(5);
             // c_city
-            rs.getString(6); 
+            rs.getString(6);
             // c_state
-            rs.getString(7); 
+            rs.getString(7);
             // c_zip
-            rs.getString(8); 
+            rs.getString(8);
             // c_phone
-            rs.getString(9); 
+            rs.getString(9);
             credit = rs.getString(10);
             // c_credit_lim
             rs.getString(11);
             // c_discount
-            rs.getBigDecimal(12); 
+            rs.getBigDecimal(12);
             balance = rs.getBigDecimal(13);
             // c_since
-            rs.getTimestamp(14); 
+            rs.getTimestamp(14);
             rs.close();
         }
         balance = balance.add(amount);
@@ -530,11 +530,11 @@ public class BenchCThread {
                 rs.next();
             }
             // c_balance
-            rs.getBigDecimal(1); 
+            rs.getBigDecimal(1);
             // c_first
-            rs.getString(2); 
+            rs.getString(2);
             // c_middle
-            rs.getString(3); 
+            rs.getString(3);
             rs.close();
         } else {
             prep = prepare("SELECT C_BALANCE, C_FIRST, C_MIDDLE, C_LAST "
@@ -546,13 +546,13 @@ public class BenchCThread {
             rs = db.query(prep);
             rs.next();
             // c_balance
-            rs.getBigDecimal(1); 
+            rs.getBigDecimal(1);
             // c_first
-            rs.getString(2); 
+            rs.getString(2);
             // c_middle
-            rs.getString(3); 
+            rs.getString(3);
             // c_last
-            rs.getString(4); 
+            rs.getString(4);
             rs.close();
         }
         prep = prepare("SELECT MAX(O_ID) "
@@ -577,9 +577,9 @@ public class BenchCThread {
             rs.next();
             oId = rs.getInt(1);
             // o_carrier_id
-            rs.getInt(2); 
+            rs.getInt(2);
             // o_entry_d
-            rs.getTimestamp(3); 
+            rs.getTimestamp(3);
             rs.close();
             prep = prepare("SELECT OL_I_ID, OL_SUPPLY_W_ID, OL_QUANTITY, "
                     + "OL_AMOUNT, OL_DELIVERY_D FROM ORDER_LINE "
@@ -590,15 +590,15 @@ public class BenchCThread {
             rs = db.query(prep);
             while (rs.next()) {
                 // o_i_id
-                rs.getInt(1); 
+                rs.getInt(1);
                 // ol_supply_w_id
-                rs.getInt(2); 
+                rs.getInt(2);
                 // ol_quantity
-                rs.getInt(3); 
+                rs.getInt(3);
                 // ol_amount
-                rs.getBigDecimal(4); 
+                rs.getBigDecimal(4);
                 // ol_delivery_d
-                rs.getTimestamp(5); 
+                rs.getTimestamp(5);
             }
             rs.close();
         }
@@ -642,7 +642,7 @@ public class BenchCThread {
                 rs = db.query(prep);
                 rs.next();
                 // o_c_id
-                rs.getInt(1); 
+                rs.getInt(1);
                 rs.close();
                 prep = prepare("UPDATE ORDERS SET O_CARRIER_ID=? "
                         + "WHERE O_ID=? AND O_D_ID=? AND O_W_ID=?");
@@ -720,7 +720,7 @@ public class BenchCThread {
         rs = db.query(prep);
         rs.next();
         // stockCount
-        rs.getInt(1); 
+        rs.getInt(1);
         rs.close();
         db.commit();
     }

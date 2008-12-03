@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -25,22 +25,22 @@ public class TableLinkConnection {
      * The map where the link is kept.
      */
     private HashMap map;
-    
+
     /**
      * The connection information.
      */
     private final String driver, url, user, password;
-    
+
     /**
      * The database connection.
      */
     private Connection conn;
-    
+
     /**
      * How many times the connection is used.
      */
     private int useCounter;
-    
+
     private TableLinkConnection(HashMap map, String driver, String url, String user, String password) {
         this.map = map;
         this.driver = driver;
@@ -48,11 +48,11 @@ public class TableLinkConnection {
         this.user = user;
         this.password = password;
     }
-    
+
     /**
      * Open a new connection.
-     * 
-     * @param map the map where the connection should be stored 
+     *
+     * @param map the map where the connection should be stored
      *      (if shared connections are enabled).
      * @param driver the JDBC driver class name
      * @param url the database URL
@@ -84,34 +84,34 @@ public class TableLinkConnection {
             return result;
         }
     }
-    
+
     private void open() throws SQLException {
         conn = JdbcUtils.getConnection(driver, url, user, password);
     }
-    
+
     public int hashCode() {
-        return ObjectUtils.hashCode(driver) 
-                ^ ObjectUtils.hashCode(url) 
+        return ObjectUtils.hashCode(driver)
+                ^ ObjectUtils.hashCode(url)
                 ^ ObjectUtils.hashCode(user)
                 ^ ObjectUtils.hashCode(password);
     }
-    
+
     public boolean equals(Object o) {
         if (o instanceof TableLinkConnection) {
             TableLinkConnection other = (TableLinkConnection) o;
-            return StringUtils.equals(driver, other.driver) 
+            return StringUtils.equals(driver, other.driver)
                     && StringUtils.equals(url, other.url)
-                    && StringUtils.equals(user, other.user) 
+                    && StringUtils.equals(user, other.user)
                     && StringUtils.equals(password, other.password);
         }
         return false;
     }
-    
+
     /**
-     * Get the connection. 
+     * Get the connection.
      * This method and methods on the statement must be
      * synchronized on this object.
-     * 
+     *
      * @return the connection
      */
     Connection getConnection() {
@@ -128,7 +128,7 @@ public class TableLinkConnection {
             synchronized (map) {
                 map.remove(this);
             }
-        }        
+        }
     }
 
 }

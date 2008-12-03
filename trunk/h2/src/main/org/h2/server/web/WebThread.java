@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -89,7 +89,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     int listenerLastState;
     Socket socket;
     WebServer server;
-    
+
     private Properties attributes;
     private InputStream input;
     private String ifModifiedSince;
@@ -107,7 +107,7 @@ class WebThread extends Thread implements DatabaseEventListener {
 
     /**
      * Set the web session and attributes.
-     * 
+     *
      * @param session the session
      * @param attributes the attributes
      */
@@ -140,7 +140,7 @@ class WebThread extends Thread implements DatabaseEventListener {
 
     /**
      * Process an HTTP request.
-     * 
+     *
      * @param file the file that was requested
      * @param the host address
      * @return the name of the file to return to the client
@@ -622,7 +622,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         }
         return "tools.jsp";
     }
-    
+
     private String adminStartTranslate() {
         Map p = (Map) session.map.get("text");
         String file = server.startTranslate(p);
@@ -640,7 +640,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         String[][] languageArray = server.getLanguageArray();
         String language = (String) attributes.get("language");
         if (language == null) {
-            // if the language is not yet known 
+            // if the language is not yet known
             // use the last header
             language = headerLanguage;
         }
@@ -708,17 +708,17 @@ class WebThread extends Thread implements DatabaseEventListener {
      * This class represents index information for the GUI.
      */
     static class IndexInfo {
-        
+
         /**
          * The index name.
          */
         String name;
-        
+
         /**
          * The index type name.
          */
         String type;
-        
+
         /**
          * The indexed columns.
          */
@@ -1048,8 +1048,8 @@ class WebThread extends Thread implements DatabaseEventListener {
 
     /**
      * Get the formatted login error message.
-     * 
-     * @param e the exception 
+     *
+     * @param e the exception
      * @param isH2 if the current database is a H2 database
      * @return the formatted error message
      */
@@ -1088,7 +1088,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 return "login.jsp";
             }
         }
-        
+
         /**
          * This class is used for the asynchronous login.
          */
@@ -1116,7 +1116,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             public void diskSpaceIsLow(long stillAvailable) {
                 log("No more disk space is available");
             }
-            
+
             public void exceptionThrown(SQLException e, String sql) {
                 log("Exception: " + PageParser.escapeHtml(e.toString()) + " SQL: " + PageParser.escapeHtml(sql));
                 server.traceError(e);
@@ -1870,7 +1870,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         buff.append("</table>");
         return buff.toString();
     }
-    
+
     private String getParameterResultSet(ParameterMetaData meta) throws SQLException {
         StringBuffer buff = new StringBuffer();
         if (meta == null) {
@@ -2061,7 +2061,7 @@ class WebThread extends Thread implements DatabaseEventListener {
 
     /**
      * Save the current connection settings to the properties file.
-     * 
+     *
      * @return the file to open afterwards
      */
     String settingSave() {
@@ -2081,7 +2081,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         if (d == null) {
             return "<i>null</i>";
         } else if (d.length() > SysProperties.WEB_MAX_VALUE_LENGTH) {
-            return "<div style='display: none'>=+</div>" + 
+            return "<div style='display: none'>=+</div>" +
                 PageParser.escapeHtml(d.substring(0, 100) + "... (" + d.length() + ")");
         } else if (d.equals("null") || d.startsWith("= ") || d.startsWith("=+")) {
             return "<div style='display: none'>= </div>" + PageParser.escapeHtml(d);
@@ -2127,7 +2127,7 @@ class WebThread extends Thread implements DatabaseEventListener {
 
     /**
      * Get the current mime type.
-     * 
+     *
      * @return the mime type
      */
     String getMimeType() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -16,17 +16,17 @@ import org.h2.util.DateTimeUtils;
  * Implementation of the TIME data type.
  */
 public class ValueTime extends Value {
-    
+
     /**
      * The precision in digits.
-     */      
+     */
     static final int PRECISION = 6;
-    
+
     /**
      * The display size of the textual representation of a time.
      * Example: 10:00:00
      */
-    static final int DISPLAY_SIZE = 8; 
+    static final int DISPLAY_SIZE = 8;
 
     private final Time value;
 
@@ -36,7 +36,7 @@ public class ValueTime extends Value {
 
     /**
      * Parse a string to a java.sql.Time object.
-     * 
+     *
      * @param s the string to parse
      * @return the time
      */
@@ -90,7 +90,7 @@ public class ValueTime extends Value {
     /**
      * Get or create a time value for the given time.
      * Clone the time.
-     * 
+     *
      * @param time the time
      * @return the value
      */
@@ -102,7 +102,7 @@ public class ValueTime extends Value {
     /**
      * Get or create a time value for the given time.
      * Do not clone the time.
-     * 
+     *
      * @param time the time
      * @return the value
      */

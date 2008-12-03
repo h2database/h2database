@@ -29,10 +29,10 @@ public class CheckTextFiles {
             "layout", "res", "win", "jar", "task", "svg", "MF", "sh", "DS_Store" };
 
     private boolean failOnError;
-    private boolean allowTab, allowCR = true, allowTrailingSpaces = true;
+    private boolean allowTab, allowCR = true, allowTrailingSpaces;
     private int spacesPerTab = 4;
     private boolean autoFix = true;
-    private boolean useCRLF = true;
+    private boolean useCRLF;
     private String[] suffixIgnoreLicense = new String[] { "bat", "nsi", "txt", "properties", "xml", "java.sql.Driver", "task", "sh" };
     private boolean hasError;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -24,14 +24,14 @@ import org.h2.message.Message;
  * This is a utility class with JDBC helper functions.
  */
 public class JdbcUtils {
-    
+
     private JdbcUtils() {
         // utility class
     }
 
     /**
      * Close a statement without throwing an exception.
-     * 
+     *
      * @param stat the statement or null
      */
     public static void closeSilently(Statement stat) {
@@ -46,7 +46,7 @@ public class JdbcUtils {
 
     /**
      * Close a connection without throwing an exception.
-     * 
+     *
      * @param conn the connection or null
      */
     public static void closeSilently(Connection conn) {
@@ -58,10 +58,10 @@ public class JdbcUtils {
             }
         }
     }
-    
+
     /**
      * Close a result set without throwing an exception.
-     * 
+     *
      * @param rs the result set or null
      */
     public static void closeSilently(ResultSet rs) {
@@ -77,7 +77,7 @@ public class JdbcUtils {
     /**
      * Get the result set containing the generated keys from the given
      * statement. This method returns null for Java versions older than 1.4.
-     * 
+     *
      * @param stat the statement
      * @return the result set or null
      */
@@ -91,7 +91,7 @@ public class JdbcUtils {
 
     /**
      * Close an XA connection set without throwing an exception.
-     * 
+     *
      * @param conn the XA connection or null
      */
 //## Java 1.4 begin ##
@@ -108,7 +108,7 @@ public class JdbcUtils {
 
     /**
      * Open a new database connection with the given settings.
-     * 
+     *
      * @param driver the driver class name
      * @param url the database URL
      * @param user the user name
@@ -128,12 +128,12 @@ public class JdbcUtils {
 
     /**
      * Open a new database connection with the given settings.
-     * 
+     *
      * @param driver the driver class name
      * @param url the database URL
      * @param prop the properties containing at least the user name and password
      * @return the database connection
-     */    
+     */
     public static Connection getConnection(String driver, String url, Properties prop) throws SQLException {
         if (StringUtils.isNullOrEmpty(driver)) {
             JdbcDriverUtils.load(url);

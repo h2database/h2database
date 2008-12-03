@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -24,12 +24,12 @@ import org.h2.util.StringUtils;
  * This class is used by the H2 Console, to support auto-complete.
  */
 public class DbContextRule implements Rule {
-    
+
     static final int COLUMN = 0, TABLE = 1, TABLE_ALIAS = 2;
     static final int NEW_TABLE_ALIAS = 3;
     static final int COLUMN_ALIAS = 4, SCHEMA = 5;
     private static final boolean SUGGEST_TABLE_ALIAS = false;
-    
+
     private DbContents contents;
     private int type;
 
@@ -37,7 +37,7 @@ public class DbContextRule implements Rule {
         this.contents = contents;
         this.type = type;
     }
-    
+
     public String toString() {
         switch (type) {
         case SCHEMA:
@@ -172,7 +172,7 @@ public class DbContextRule implements Rule {
 //            return false;
 //        }
 //        for(int i=0; i<b.length(); i++) {
-//            if(Character.toUpperCase(a.charAt(i)) 
+//            if(Character.toUpperCase(a.charAt(i))
 //                    != Character.toUpperCase(b.charAt(i))) {
 //                return false;
 //            }
@@ -315,7 +315,7 @@ public class DbContextRule implements Rule {
         sentence.setQuery(s);
         return true;
     }
-    
+
     private String matchSchema(Sentence sentence) {
         String query = sentence.getQuery();
         String up = sentence.getQueryUpper();

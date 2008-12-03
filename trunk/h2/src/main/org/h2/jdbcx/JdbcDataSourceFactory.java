@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -22,34 +22,34 @@ import org.h2.message.TraceSystem;
 
 /**
  * This class is used to create new DataSource objects.
- * An application should not use this class directly. 
+ * An application should not use this class directly.
  */
-public class JdbcDataSourceFactory 
+public class JdbcDataSourceFactory
 //## Java 1.4 begin ##
-implements ObjectFactory 
+implements ObjectFactory
 //## Java 1.4 end ##
 {
-    
+
     private static TraceSystem traceSystem;
     private Trace trace;
-    
+
     static {
         org.h2.Driver.load();
         traceSystem = new TraceSystem(SysProperties.CLIENT_TRACE_DIRECTORY + "h2datasource" + Constants.SUFFIX_TRACE_FILE, false);
         traceSystem.setLevelFile(SysProperties.DATASOURCE_TRACE_LEVEL);
     }
-    
+
     /**
      * The public constructor to create new factory objects.
      */
     public JdbcDataSourceFactory() {
         trace = traceSystem.getTrace("JDBCX");
     }
-    
+
     /**
      * Creates a new object using the specified location or reference
      * information.
-     * 
+     *
      * @param obj the reference (this factory only supports objects of type
      *            javax.naming.Reference)
      * @param name unused
@@ -75,14 +75,14 @@ implements ObjectFactory
         }
         return null;
     }
-//## Java 1.4 end ##    
-    
+//## Java 1.4 end ##
+
     TraceSystem getTraceSystem() {
         return traceSystem;
     }
-    
+
     Trace getTrace() {
         return trace;
     }
-    
+
 }

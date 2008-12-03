@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -26,17 +26,17 @@ import org.h2.value.Value;
  * An entry in a undo log.
  */
 public class UndoLogRecord {
-    
+
     /**
      * Operation type meaning the row was inserted.
      */
     public static final short INSERT = 0;
-    
+
     /**
      * Operation type meaning the row was deleted.
      */
     public static final short DELETE = 1;
-    
+
     private static final int IN_MEMORY = 0, STORED = 1, IN_MEMORY_READ_POS = 2;
     private Table table;
     private Row row;
@@ -46,7 +46,7 @@ public class UndoLogRecord {
 
     /**
      * Create a new undo log record
-     * 
+     *
      * @param table the table
      * @param op the operation type
      * @param row the row that was deleted or inserted
@@ -60,7 +60,7 @@ public class UndoLogRecord {
 
     /**
      * Check if the log record is stored in the file.
-     * 
+     *
      * @return true if it is
      */
     boolean isStored() {
@@ -70,7 +70,7 @@ public class UndoLogRecord {
     /**
      * Check if this undo log record can be store. Only record can be stored if
      * the table has a unique index.
-     * 
+     *
      * @return if it can be stored
      */
     boolean canStore() {
@@ -80,7 +80,7 @@ public class UndoLogRecord {
     /**
      * Un-do the operation. If the row was inserted before, it is deleted now,
      * and vice versa.
-     * 
+     *
      * @param session the session
      */
     public void undo(Session session) throws SQLException {
@@ -116,8 +116,8 @@ public class UndoLogRecord {
             try {
                 row.setPos(0);
                 table.addRow(session, row);
-                // reset session id, otherwise other session think 
-                // that this row was inserted by this session                
+                // reset session id, otherwise other session think
+                // that this row was inserted by this session
                 row.commit();
             } catch (SQLException e) {
                 if (session.getDatabase().getLockMode() == Constants.LOCK_MODE_OFF
@@ -136,7 +136,7 @@ public class UndoLogRecord {
 
     /**
      * Save the row in the file using the data page as a buffer.
-     * 
+     *
      * @param buff the data page that is used as a buffer
      * @param file the file
      */
@@ -159,7 +159,7 @@ public class UndoLogRecord {
 
     /**
      * Go to the right position in the file.
-     * 
+     *
      * @param file the file
      */
     void seek(FileStore file) throws SQLException {
@@ -168,7 +168,7 @@ public class UndoLogRecord {
 
     /**
      * Load an undo log record row using the data page as a buffer.
-     * 
+     *
      * @param buff the data page that is used as a buffer
      * @param file the source file
      */
@@ -200,7 +200,7 @@ public class UndoLogRecord {
 
     /**
      * Get the table.
-     * 
+     *
      * @return the table
      */
     public Table getTable() {
@@ -218,10 +218,10 @@ public class UndoLogRecord {
             index.commit(operation, row);
         }
     }
-    
+
     /**
      * Get the row that was deleted or inserted.
-     * 
+     *
      * @return the row
      */
     public Row getRow() {

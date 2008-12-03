@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -17,14 +17,14 @@ import java.util.ArrayList;
  * version, or enable / disable other blocks of source code in Java files.
  */
 public class SwitchSource {
-    
+
     private ArrayList enable = new ArrayList();
     private ArrayList disable = new ArrayList();
 
     /**
      * This method is called when executing this application from the command
      * line.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String[] args) throws IOException {
@@ -83,7 +83,7 @@ public class SwitchSource {
             process(new File(dir));
         }
     }
-    
+
     private void showUsage() {
         System.out.println("Switched source code to a specific Java version.");
         System.out.println("java "+getClass().getName() + "\n" +
@@ -93,7 +93,7 @@ public class SwitchSource {
             " [+MODE]     Enable code labeled MODE\n" +
             " [-MODE]     Disable code labeled MODE");
     }
-    
+
     private void process(File f) throws IOException {
         String name = f.getName();
         if (name.startsWith(".svn")) {
@@ -110,7 +110,7 @@ public class SwitchSource {
 
     private void processFile(File f) throws IOException {
         RandomAccessFile read = new RandomAccessFile(f, "r");
-        byte[] buffer;        
+        byte[] buffer;
         try {
             long len = read.length();
             if (len >= Integer.MAX_VALUE) {
@@ -159,8 +159,8 @@ public class SwitchSource {
             fileBack.delete();
             // System.out.println(name);
         }
-    }    
-    
+    }
+
     private static String replaceAll(String s, String before, String after) {
         int index = 0;
         while (true) {
@@ -171,6 +171,6 @@ public class SwitchSource {
             s = s.substring(0, next) + after + s.substring(next + before.length());
             index = next + after.length();
         }
-    }    
+    }
 
 }

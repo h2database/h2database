@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -41,7 +41,7 @@ public abstract class DbObjectBase implements DbObject {
 
     /**
      * Initialize some attributes of this object.
-     * 
+     *
      * @param database the database
      * @param id the object id
      * @param name the name
@@ -58,7 +58,7 @@ public abstract class DbObjectBase implements DbObject {
     /**
      * Build a SQL statement to re-create the object, or to create a copy of the
      * object with a different name or referencing a different table
-     * 
+     *
      * @param table
      *            the new table name
      * @param quotedName
@@ -91,7 +91,7 @@ public abstract class DbObjectBase implements DbObject {
     /**
      * Remove all dependent objects and free all resources (files, blocks in
      * files) of this object.
-     * 
+     *
      * @param session the session
      */
     public abstract void removeChildrenAndResources(Session session) throws SQLException;
@@ -174,7 +174,7 @@ public abstract class DbObjectBase implements DbObject {
     /**
      * Get the sort order id for this object type. Objects are created in this
      * order when opening a database.
-     * 
+     *
      * @param type the database object type
      * @return the sort index
      */

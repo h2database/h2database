@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -39,22 +39,22 @@ public class AlterTableAddConstraint extends SchemaCommand {
      * The type of a ALTER TABLE ADD CHECK statement.
      */
     public static final int CHECK = 0;
-    
+
     /**
      * The type of a ALTER TABLE ADD UNIQUE statement.
      */
     public static final int UNIQUE = 1;
-    
+
     /**
      * The type of a ALTER TABLE ADD FOREIGN KEY statement.
      */
     public static final int REFERENTIAL = 2;
-    
+
     /**
      * The type of a ALTER TABLE ADD PRIMARY KEY statement.
      */
     public static final int PRIMARY_KEY = 3;
-    
+
     private int type;
     private String constraintName;
     private String tableName;
@@ -93,7 +93,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
 
     /**
      * Try to execute the statement.
-     * 
+     *
      * @return the update count
      */
     public int tryUpdate() throws SQLException {
@@ -379,7 +379,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
 
     /**
      * Set the referenced table.
-     * 
+     *
      * @param refSchema the schema
      * @param ref the table name
      */

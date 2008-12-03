@@ -30,10 +30,10 @@ TableFilter,
 
 Auto Upgrade
 -----------------
-file conversion should be done automatically when the new engine connects.  
+file conversion should be done automatically when the new engine connects.
 
 auto-upgrade application:
-check if new version is available 
+check if new version is available
 (option: digital signature)
 if yes download new version
 (option: http, https, ftp)

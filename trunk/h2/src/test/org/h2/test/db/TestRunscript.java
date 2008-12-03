@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -27,7 +27,7 @@ public class TestRunscript extends TestBase implements Trigger {
 
     /**
      * This method is called via reflection from the database.
-     * 
+     *
      * @param a the value
      * @return the absolute value
      */
@@ -94,7 +94,7 @@ public class TestRunscript extends TestBase implements Trigger {
         deleteDb("runscriptRestore");
         FileUtils.delete(baseDir + "/backup.2.sql");
         FileUtils.delete(baseDir + "/backup.3.sql");
-        
+
     }
 
     public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {

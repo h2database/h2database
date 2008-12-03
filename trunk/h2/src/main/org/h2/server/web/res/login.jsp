@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
 Copyright 2004-2008 H2 Group.
-Multiple-Licensed under the H2 License, Version 1.0, 
+Multiple-Licensed under the H2 License, Version 1.0,
 and under the Eclipse Public License, Version 1.0
 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
@@ -92,39 +92,39 @@ Initial Developer: H2 Group
         <div id="url" style="display: none">
             <h2>H2 Database URLs</h2>
             <h3>Embedded</h3>
-            <p>            
-            The URL <code>jdbc:h2:~/test</code> means the database is stored in 
-            the user home directory in files starting with 'test'. 
+            <p>
+            The URL <code>jdbc:h2:~/test</code> means the database is stored in
+            the user home directory in files starting with 'test'.
             Absolute locations like <code>jdbc:h2:/data/db/test</code> are supported.
-            In embedded mode, the database runs in the same process as the application. 
-            Only one process may access a database at any time. 
+            In embedded mode, the database runs in the same process as the application.
+            Only one process may access a database at any time.
             Databases are automatically created if they don't exist.
             <b>Warning</b>: If no path is used (for example jdbc:h2:test),
-            then the database is stored in the current working directory 
+            then the database is stored in the current working directory
             (the directory where the application was started).
             URLs of the form jdbc:h2:data/test are relative to
             the current working directory. It is recommended to use locations relative to ~
             or absolute locations.
-            </p>            
-            
+            </p>
+
             <h4>Remote (client/server)</h4>
-            <p>            
+            <p>
             The URL <code>jdbc:h2:tcp://localhost/~/test</code> means connect
             over TCP/IP to the H2 TCP server running on this computer, and open a database
             called test in the user home directory. The server must be started first.
             Any number of clients can connect to the same database.
             The same location rules as for embedded databases apply.
-            </p>            
-            
+            </p>
+
             <h4>In-Memory</h4>
-            <p>            
-            The URL <code>jdbc:h2:mem:test</code> means open an in-memory database 
+            <p>
+            The URL <code>jdbc:h2:mem:test</code> means open an in-memory database
             named 'test'. Data is not persisted, and lost when the last connection to the database
             is closed. Multiple threads can access the same database, but data is only visible
             within the same process.
-            </p>            
+            </p>
 
-            <p>            
+            <p>
             For more information, see <a target="_blank" href="http://www.h2database.com/html/features.html#database_url">Database URL Overview</a>.
             </p>
         </div>

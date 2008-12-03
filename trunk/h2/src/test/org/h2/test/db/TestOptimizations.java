@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -29,7 +29,7 @@ public class TestOptimizations extends TestBase {
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
@@ -55,7 +55,7 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(false);
         deleteDb("optimizations");
     }
-    
+
     private void testInSelectJoin() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
@@ -72,7 +72,7 @@ public class TestOptimizations extends TestBase {
         rs = prep.executeQuery();
         assertTrue(rs.next());
         assertFalse(rs.next());
-        
+
         boolean old = SysProperties.optimizeInJoin;
         SysProperties.optimizeInJoin = true;
 
@@ -85,7 +85,7 @@ public class TestOptimizations extends TestBase {
         assertTrue(rs.next());
         assertFalse(rs.next());
         conn.close();
-        
+
         SysProperties.optimizeInJoin = old;
     }
 
@@ -100,7 +100,7 @@ public class TestOptimizations extends TestBase {
         stat.execute("create table item(id int primary key)");
         stat.execute("insert into item values(1)");
         stat.execute("create alias opt for \"" +
-                getClass().getName() + 
+                getClass().getName() +
                 ".optimizeInJoinSelect\"");
         PreparedStatement prep = conn.prepareStatement(
                 "select * from item where id in (select x from opt())");
@@ -109,11 +109,11 @@ public class TestOptimizations extends TestBase {
         assertEquals(1, rs.getInt(1));
         assertFalse(rs.next());
         conn.close();
-        
+
         SysProperties.optimizeInJoin = old;
-        
+
     }
-    
+
     /**
      * This method is called via reflection from the database.
      */
@@ -141,10 +141,10 @@ public class TestOptimizations extends TestBase {
             fail("Expected using the primary key, got: " + plan);
         }
         conn.close();
-        
+
         SysProperties.optimizeInJoin = old;
     }
-    
+
     private void testMinMaxNullOptimization() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");

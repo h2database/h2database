@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -52,7 +52,7 @@ class Database {
 
     /**
      * Get the database name.
-     * 
+     *
      * @return the database name
      */
     String getName() {
@@ -61,7 +61,7 @@ class Database {
 
     /**
      * Get the total measured time.
-     * 
+     *
      * @return the time
      */
     int getTotalTime() {
@@ -70,7 +70,7 @@ class Database {
 
     /**
      * Get the result array.
-     * 
+     *
      * @return the result array
      */
     ArrayList getResults() {
@@ -79,7 +79,7 @@ class Database {
 
     /**
      * Get the random number generator.
-     * 
+     *
      * @return the generator
      */
     Random getRandom() {
@@ -139,7 +139,7 @@ class Database {
 
     /**
      * Parse a database configuration and create a database object from it.
-     * 
+     *
      * @param test the test application
      * @param id the database id
      * @param dbString the configuration string
@@ -169,17 +169,17 @@ class Database {
 
     /**
      * Get the database connection. The connection must be opened first.
-     * 
+     *
      * @return the connection
      */
     Connection getConnection() {
         return conn;
     }
-    
+
     /**
-     * Open a new database connection. This connection must be closed 
+     * Open a new database connection. This connection must be closed
      * by calling conn.close().
-     * 
+     *
      * @return the opened connection
      */
     Connection openNewConnection() throws SQLException {
@@ -233,7 +233,7 @@ class Database {
 
     /**
      * Initialize the SQL statement translation of this database.
-     * 
+     *
      * @param prop the properties with the translations to use
      */
     void setTranslations(Properties prop) {
@@ -253,7 +253,7 @@ class Database {
 
     /**
      * Prepare a SQL statement.
-     * 
+     *
      * @param sql the SQL statement
      * @return the prepared statement
      */
@@ -274,7 +274,7 @@ class Database {
 
     /**
      * Start the benchmark.
-     * 
+     *
      * @param bench the benchmark
      * @param action the action
      */
@@ -297,7 +297,7 @@ class Database {
 
     /**
      * Drop a table. Errors are ignored.
-     * 
+     *
      * @param table the table name
      */
     void dropTable(String table) {
@@ -310,7 +310,7 @@ class Database {
 
     /**
      * Execute an SQL statement.
-     * 
+     *
      * @param prep the prepared statement
      * @param trace the trace message
      */
@@ -319,10 +319,10 @@ class Database {
         prep.executeUpdate();
         executedStatements++;
     }
-    
+
     /**
      * Execute an SQL statement.
-     * 
+     *
      * @param sql the SQL statement
      */
     void update(String sql) throws SQLException {
@@ -337,7 +337,7 @@ class Database {
 
     /**
      * Enable or disable auto-commit.
-     * 
+     *
      * @param b false to disable
      */
     void setAutoCommit(boolean b) throws SQLException {
@@ -360,7 +360,7 @@ class Database {
 
     /**
      * Print trace information if trace is enabled.
-     * 
+     *
      * @param action the action
      * @param i the current value
      * @param max the maximum value
@@ -380,7 +380,7 @@ class Database {
     /**
      * If data collection is enabled, add the currently used memory size to the
      * log.
-     * 
+     *
      * @param bench the benchmark
      * @param action the action
      */
@@ -390,7 +390,7 @@ class Database {
 
     /**
      * If data collection is enabled, add this information to the log.
-     * 
+     *
      * @param action the action
      * @param scale the scale
      * @param value the value
@@ -403,7 +403,7 @@ class Database {
 
     /**
      * Execute a query.
-     * 
+     *
      * @param prep the prepared statement
      * @return the result set
      */
@@ -420,7 +420,7 @@ class Database {
 
     /**
      * Execute a query and read all rows.
-     * 
+     *
      * @param prep the prepared statement
      */
     void queryReadResult(PreparedStatement prep) throws SQLException {
@@ -436,7 +436,7 @@ class Database {
 
     /**
      * Get the number of executed statements.
-     * 
+     *
      * @return the number of statements
      */
     int getExecutedStatements() {
@@ -445,7 +445,7 @@ class Database {
 
     /**
      * Get the database id.
-     * 
+     *
      * @return the id
      */
     int getId() {

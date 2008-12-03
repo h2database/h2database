@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -80,7 +80,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     public void setFile(Expression file) {
         this.file = file;
     }
-    
+
     protected String getFileName() throws SQLException {
         if (file != null && fileName == null) {
             fileName = file.optimize(session).getValue(session).getString();
@@ -110,7 +110,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         byte[] magic = Database.getMagic(true);
         Database db = session.getDatabase();
         // script files are always in text format
-        String fileName = getFileName();        
+        String fileName = getFileName();
         store = FileStore.open(db, fileName, "rw", magic, cipher, key);
         store.setCheckedWriting(false);
         store.init();
@@ -120,7 +120,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
      * Open the output stream.
      */
     void openOutput() throws SQLException {
-        String fileName = getFileName();        
+        String fileName = getFileName();
         if (fileName == null) {
             return;
         }
@@ -140,7 +140,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
      * Open the input stream.
      */
     void openInput() throws SQLException {
-        String fileName = getFileName();        
+        String fileName = getFileName();
         if (fileName == null) {
             return;
         }
@@ -228,7 +228,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     public String createTempFile() throws SQLException {
         return session.getDatabase().createTempFile();
     }
-    
+
     public TempFileDeleter getTempFileDeleter() {
         return session.getDatabase().getTempFileDeleter();
     }
@@ -252,7 +252,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     public SmallLRUCache getLobFileListCache() {
         return null;
     }
-    
+
     public Trace getTrace() {
         return session.getDatabase().getTrace(Trace.DATABASE);
     }

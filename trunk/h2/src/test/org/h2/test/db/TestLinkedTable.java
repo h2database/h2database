@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -22,10 +22,10 @@ import org.h2.test.TestBase;
  * Tests the linked table feature (CREATE LINKED TABLE).
  */
 public class TestLinkedTable extends TestBase {
-    
+
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
@@ -49,9 +49,9 @@ public class TestLinkedTable extends TestBase {
     // this is not a bug, it is the documented behavior
 //    private void testLinkAutoAdd() throws SQLException {
 //        Class.forName("org.h2.Driver");
-//        Connection ca = 
+//        Connection ca =
 //            DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
-//        Connection cb = 
+//        Connection cb =
 //            DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
 //        Statement sa = ca.createStatement();
 //        Statement sb = cb.createStatement();
@@ -65,7 +65,7 @@ public class TestLinkedTable extends TestBase {
 //        ca.close();
 //        cb.close();
 //    }
-    
+
     private void testSharedConnection() throws SQLException {
         if (config.memory || !SysProperties.SHARE_LINKED_CONNECTIONS) {
             return;
@@ -86,7 +86,7 @@ public class TestLinkedTable extends TestBase {
         sb.execute("DROP ALL OBJECTS");
         cb.close();
     }
-    
+
     private void testMultipleSchemas() throws SQLException {
         org.h2.Driver.load();
         Connection ca = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
@@ -113,7 +113,7 @@ public class TestLinkedTable extends TestBase {
         ca.close();
         cb.close();
     }
-    
+
     private void testReadOnlyLinkedTable() throws SQLException {
         org.h2.Driver.load();
         Connection ca = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");

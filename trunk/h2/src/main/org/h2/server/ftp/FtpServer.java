@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -41,17 +41,17 @@ public class FtpServer implements Service {
      * The default root directory name used by the FTP server.
      */
     public static final String DEFAULT_ROOT = "ftp";
-    
+
     /**
      * The default user name that is allowed to read data.
      */
     public static final String DEFAULT_READ = "guest";
-    
+
     /**
      * The default user name that is allowed to read and write data.
      */
     public static final String DEFAULT_WRITE = "sa";
-    
+
     /**
      * The default password of the user that is allowed to read and write data.
      */
@@ -107,7 +107,7 @@ public class FtpServer implements Service {
 
     /**
      * Create a socket to listen for incoming data connections.
-     * 
+     *
      * @return the server socket
      */
     ServerSocket createDataSocket() throws SQLException {
@@ -145,7 +145,7 @@ public class FtpServer implements Service {
     /**
      * Get the last modified date of a date and format it as required by the FTP
      * protocol.
-     * 
+     *
      * @param fileName the file name
      * @return the last modified date of this file
      */
@@ -157,7 +157,7 @@ public class FtpServer implements Service {
 
     /**
      * Get the full file name of this relative path.
-     * 
+     *
      * @param path the relative path
      * @return the file name
      */
@@ -181,7 +181,7 @@ public class FtpServer implements Service {
 
     /**
      * Get the directory listing for this directory.
-     * 
+     *
      * @param directory the directory to list
      * @param listDirectories if sub-directories should be listed
      * @return the list
@@ -200,7 +200,7 @@ public class FtpServer implements Service {
 
     /**
      * Check if this user name is allowed to write.
-     * 
+     *
      * @param userName the user name
      * @param password the password
      * @return true if this user may write
@@ -211,7 +211,7 @@ public class FtpServer implements Service {
 
     /**
      * Check if this user name is allowed to read.
-     * 
+     *
      * @param userName the user name
      * @return true if this user may read
      */
@@ -246,7 +246,7 @@ public class FtpServer implements Service {
     public String getURL() {
         return "ftp://" + NetUtils.getLocalAddress() + ":" + port;
     }
-    
+
     public int getPort() {
         return port;
     }
@@ -299,7 +299,7 @@ public class FtpServer implements Service {
 
     /**
      * Write trace information if trace is enabled.
-     * 
+     *
      * @param s the message to write
      */
     void trace(String s) {
@@ -310,7 +310,7 @@ public class FtpServer implements Service {
 
     /**
      * Write the stack trace if trace is enabled.
-     * 
+     *
      * @param e the exception
      */
     void traceError(Throwable e) {
@@ -325,7 +325,7 @@ public class FtpServer implements Service {
 
     /**
      * Start a task.
-     * 
+     *
      * @param path the name of the task file
      */
     void startTask(String path) throws IOException {
@@ -397,7 +397,7 @@ public class FtpServer implements Service {
 
     /**
      * Stop a running task.
-     * 
+     *
      * @param processName the task name
      */
     void stopTask(String processName) {

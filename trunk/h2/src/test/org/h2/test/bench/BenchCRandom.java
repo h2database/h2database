@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -19,7 +19,7 @@ public class BenchCRandom {
 
     /**
      * Get a non-uniform random integer value between min and max.
-     * 
+     *
      * @param a the bit mask
      * @param min the minimum value
      * @param max the maximum value
@@ -33,7 +33,7 @@ public class BenchCRandom {
 
     /**
      * Get a random integer value between min and max.
-     * 
+     *
      * @param min the minimum value
      * @param max the maximum value
      * @return the random value
@@ -41,11 +41,11 @@ public class BenchCRandom {
     int getInt(int min, int max) {
         return max <= min ? min : (random.nextInt(max - min) + min);
     }
-    
+
     /**
      * Generate a boolean array with this many items set to true (randomly
      * distributed).
-     * 
+     *
      * @param length the size of the array
      * @param trueCount the number of true elements
      * @return the boolean array
@@ -63,7 +63,7 @@ public class BenchCRandom {
 
     /**
      * Replace a random part of the string with another text.
-     * 
+     *
      * @param text the original text
      * @param replacement the replacement
      * @return the patched string
@@ -77,7 +77,7 @@ public class BenchCRandom {
 
     /**
      * Get a random number string.
-     * 
+     *
      * @param min the minimum value
      * @param max the maximum value
      * @return the number string
@@ -93,7 +93,7 @@ public class BenchCRandom {
 
     /**
      * Get random address data.
-     * 
+     *
      * @return the address
      */
     String[] getAddress() {
@@ -107,7 +107,7 @@ public class BenchCRandom {
 
     /**
      * Get a random string.
-     * 
+     *
      * @param min the minimum size
      * @param max the maximum size
      * @return the string
@@ -118,7 +118,7 @@ public class BenchCRandom {
 
     /**
      * Get a random string.
-     * 
+     *
      * @param len the size
      * @return the string
      */
@@ -132,7 +132,7 @@ public class BenchCRandom {
 
     /**
      * Generate a random permutation if the values 0 .. length.
-     * 
+     *
      * @param length the number of elements
      * @return the random permutation
      */
@@ -152,7 +152,7 @@ public class BenchCRandom {
 
     /**
      * Create a big decimal value.
-     * 
+     *
      * @param value the value
      * @param scale the scale
      * @return the big decimal object
@@ -163,7 +163,7 @@ public class BenchCRandom {
 
     /**
      * Generate a last name composed of three elements
-     * 
+     *
      * @param i the last name index
      * @return the name
      */

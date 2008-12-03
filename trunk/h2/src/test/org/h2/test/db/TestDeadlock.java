@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -26,22 +26,22 @@ public class TestDeadlock extends TestBase {
      * The second connection.
      */
     Connection c2;
-    
+
     /**
      * The third connection.
      */
     Connection c3;
     private volatile SQLException lastException;
-    
+
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
         TestBase.createCaller().init().test();
     }
-    
+
     public void test() throws Exception {
         deleteDb("deadlock");
         testDiningPhilosophers();
@@ -50,7 +50,7 @@ public class TestDeadlock extends TestBase {
         testNoDeadlock();
         deleteDb("deadlock");
     }
-    
+
     private void initTest() throws SQLException {
         c1 = getConnection("deadlock");
         c2 = getConnection("deadlock");
@@ -63,24 +63,24 @@ public class TestDeadlock extends TestBase {
         c3.setAutoCommit(false);
         lastException = null;
     }
-    
+
     private void end() throws SQLException {
         c1.close();
         c2.close();
         c3.close();
     }
-    
+
     /**
      * This class wraps exception handling to simplify creating small threads
      * that execute a statement.
      */
     abstract class DoIt extends Thread {
-        
+
         /**
          * The operation to execute.
          */
         abstract void execute() throws SQLException;
-        
+
         public void run() {
             try {
                 execute();
@@ -89,7 +89,7 @@ public class TestDeadlock extends TestBase {
             }
         }
     }
-    
+
     /**
      * Add the exception to the list of exceptions.
      */
@@ -100,7 +100,7 @@ public class TestDeadlock extends TestBase {
             lastException = e;
         }
     }
-    
+
     private void testNoDeadlock() throws Exception {
         initTest();
         c1.createStatement().execute("CREATE TABLE TEST_A(ID INT PRIMARY KEY)");
@@ -143,7 +143,7 @@ public class TestDeadlock extends TestBase {
         end();
 
     }
-    
+
     private void testThreePhilosophers() throws Exception {
         if (config.mvcc) {
             return;
@@ -218,7 +218,7 @@ public class TestDeadlock extends TestBase {
         c1.createStatement().execute("DROP TABLE TEST");
         end();
     }
-    
+
     private void testDiningPhilosophers() throws Exception {
         if (config.mvcc) {
             return;
@@ -247,7 +247,7 @@ public class TestDeadlock extends TestBase {
         c1.createStatement().execute("DROP TABLE T1, T2");
         end();
     }
-    
+
     private void checkDeadlock() throws SQLException {
         assertTrue(lastException != null);
         assertKnownException(lastException);

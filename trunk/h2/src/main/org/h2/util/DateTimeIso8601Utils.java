@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: Robert Rathsack (firstName dot lastName at gmx dot de)
@@ -27,7 +27,7 @@ public class DateTimeIso8601Utils {
 
     /**
      * Return the day of week. Week starts at Monday.
-     * 
+     *
      * @param date the date object which day of week should be calculated
      * @return the day of the week, Monday as 1 to Sunday as 7
      */
@@ -43,7 +43,7 @@ public class DateTimeIso8601Utils {
      * as this week which contains at least 4 days. The week starts at Monday.
      * Therefore December 29th - 31th could belong to the next year and January
      * 1st - 3th could belong to the previous year.
-     * 
+     *
      * @param date the date object which week of year should be calculated
      * @return the week of the year
      */
@@ -57,7 +57,7 @@ public class DateTimeIso8601Utils {
 
     /**
      * Returns the year according to the ISO week definition.
-     * 
+     *
      * @param date the date object which year should be calculated
      * @return the year
      */

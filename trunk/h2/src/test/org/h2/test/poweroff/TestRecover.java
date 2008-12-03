@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -47,19 +47,19 @@ public class TestRecover {
 
     private Random random;
 
-    // private static final String DIR = 
+    // private static final String DIR =
     //     System.getProperty("test.dir", "/temp/derby");
-    // private static final String URL = 
-    //     System.getProperty("test.url", 
+    // private static final String URL =
+    //     System.getProperty("test.url",
     //         "jdbc:derby:/temp/derby/data/test;create=true");
-    // private static final String DRIVER = 
-    //     System.getProperty("test.driver", 
+    // private static final String DRIVER =
+    //     System.getProperty("test.driver",
     //         "org.apache.derby.jdbc.EmbeddedDriver");
 
     /**
      * This method is called when executing this application from the command
      * line.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String[] args) throws Exception {

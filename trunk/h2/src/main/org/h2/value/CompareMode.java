@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -19,13 +19,13 @@ import org.h2.util.StringUtils;
  * and comparison using a collator.
  */
 public class CompareMode {
-    
+
     /**
-     * This constant means there is no collator set, 
+     * This constant means there is no collator set,
      * and the default string comparison is to be used.
      */
     public static final String OFF = "OFF";
-    
+
     private final Collator collator;
     private final String name;
     private final SmallLRUCache collationKeys;
@@ -34,7 +34,7 @@ public class CompareMode {
      * Create a new compare mode with the given collator and cache size.
      * The cache is used to speed up comparison when using a collator;
      * CollationKey objects are cached.
-     * 
+     *
      * @param collator the collator or null
      * @param name the collation name or null
      * @param cacheSize the number of entries in the CollationKey cache
@@ -51,7 +51,7 @@ public class CompareMode {
 
     /**
      * Compare two characters in a string.
-     * 
+     *
      * @param a the first string
      * @param ai the character index in the first string
      * @param b the second string
@@ -74,7 +74,7 @@ public class CompareMode {
 
     /**
      * Compare two strings.
-     * 
+     *
      * @param a the first string
      * @param b the second string
      * @param ignoreCase true if a case-insensitive comparison should be made
@@ -117,7 +117,7 @@ public class CompareMode {
 
     /**
      * Get the collation name.
-     * 
+     *
      * @param l the locale
      * @return the name of the collation
      */
@@ -135,7 +135,7 @@ public class CompareMode {
     /**
      * Get the collator object for the given language name or language / country
      * combination.
-     * 
+     *
      * @param name the language name
      * @return the collator
      */

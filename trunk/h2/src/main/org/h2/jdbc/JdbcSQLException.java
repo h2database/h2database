@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -164,7 +164,7 @@ public class JdbcSQLException extends SQLException {
     /**
      * Returns the class name, the message, and in the server mode, the stack
      * trace of the server
-     * 
+     *
      * @return the string representation
      */
     public String toString() {
@@ -176,7 +176,7 @@ public class JdbcSQLException extends SQLException {
 
     /**
      * Get the error related payload object.
-     * 
+     *
      * @return the payload
      */
     public Object getPayload() {
@@ -185,7 +185,7 @@ public class JdbcSQLException extends SQLException {
 
     /**
      * Set the error related payload object.
-     * 
+     *
      * @param payload the new payload
      */
     public void setPayload(Object payload) {

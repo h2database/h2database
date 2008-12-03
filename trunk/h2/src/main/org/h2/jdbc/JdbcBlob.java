@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -120,7 +120,7 @@ public class JdbcBlob extends TraceObject implements Blob {
 
     /**
      * [Not supported] Sets some bytes of the object.
-     * 
+     *
      * @param pos the write position
      * @param bytes the bytes to set
      * @return how many bytes have been written
@@ -133,7 +133,7 @@ public class JdbcBlob extends TraceObject implements Blob {
 
     /**
      * [Not supported] Sets some bytes of the object.
-     * 
+     *
      * @param pos the write position
      * @param bytes the bytes to set
      * @param offset the bytes offset
@@ -164,7 +164,7 @@ public class JdbcBlob extends TraceObject implements Blob {
 
     /**
      * [Not supported] Returns an output stream.
-     * 
+     *
      * @param pos where to start writing
      * @return the output stream to write into
      * @throws SQLException
@@ -259,7 +259,7 @@ public class JdbcBlob extends TraceObject implements Blob {
         }
         throw Message.getUnsupportedException();
     }
-    
+
     /**
      * Release all resources of this object.
      */
@@ -270,7 +270,7 @@ public class JdbcBlob extends TraceObject implements Blob {
 
     /**
      * [Not supported] Returns the input stream, starting from an offset.
-     * 
+     *
      * @param pos where to start reading
      * @param length the number of bytes that will be read
      * @return the input stream to read

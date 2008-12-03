@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -16,14 +16,14 @@ import org.h2.util.FileUtils;
  * A file that may be split into multiple smaller files.
  */
 public class FileObjectSplit implements FileObject {
-    
+
     private final String name;
     private final String mode;
     private final long maxLength;
     private FileObject[] list;
     private long filePointer;
     private long length;
-    
+
     FileObjectSplit(String name, String mode, FileObject[] list, long length, long maxLength) {
         this.name = name;
         this.mode = mode;
@@ -31,7 +31,7 @@ public class FileObjectSplit implements FileObject {
         this.length = length;
         this.maxLength = maxLength;
     }
-    
+
     public void close() throws IOException {
         for (int i = 0; i < list.length; i++) {
             list[i].close();
@@ -45,7 +45,7 @@ public class FileObjectSplit implements FileObject {
     public long length() throws IOException {
         return length;
     }
-    
+
     private int read(byte[] b, int off, int len) throws IOException {
         long offset = filePointer % maxLength;
         int l = (int) Math.min(len, maxLength - offset);
@@ -70,7 +70,7 @@ public class FileObjectSplit implements FileObject {
     public void seek(long pos) throws IOException {
         filePointer = pos;
     }
-    
+
     private FileObject getFileObject() throws IOException {
         int id = (int) (filePointer / maxLength);
         while (id >= list.length) {
@@ -138,7 +138,7 @@ public class FileObjectSplit implements FileObject {
             off += l;
         }
     }
-    
+
     private int writePart(byte[] b, int off, int len) throws IOException {
         long offset = filePointer % maxLength;
         int l = (int) Math.min(len, maxLength - offset);

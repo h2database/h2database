@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -17,7 +17,7 @@ import org.h2.table.Table;
  * to optimize a statement.
  */
 public class ExpressionVisitor {
-    
+
     /**
      * Is the value independent on unset parameters or on columns of a higher
      * level query, or sequence values (that means can it be evaluated right
@@ -76,18 +76,18 @@ public class ExpressionVisitor {
 
     /**
      * Create a new visitor object with the given type.
-     * 
+     *
      * @param type the visitor type
      * @return the new visitor
      */
     public static ExpressionVisitor get(int type) {
         return new ExpressionVisitor(type);
     }
-    
+
     /**
      * Add a new dependency to the set of dependencies.
      * This is used for GET_DEPENDENCIES visitors.
-     * 
+     *
      * @param obj the additional dependency.
      */
     public void addDependency(DbObject obj) {
@@ -97,7 +97,7 @@ public class ExpressionVisitor {
     /**
      * Get the dependency set.
      * This is used for GET_DEPENDENCIES visitors.
-     * 
+     *
      * @return the set
      */
     public HashSet getDependencies() {
@@ -107,7 +107,7 @@ public class ExpressionVisitor {
     /**
      * Set all dependencies.
      * This is used for GET_DEPENDENCIES visitors.
-     * 
+     *
      * @param dependencies the dependency set
      */
     public void setDependencies(HashSet dependencies) {
@@ -116,7 +116,7 @@ public class ExpressionVisitor {
 
     /**
      * Increment or decrement the query level.
-     * 
+     *
      * @param offset 1 to increment, -1 to decrement
      */
     public void incrementQueryLevel(int offset) {
@@ -126,17 +126,17 @@ public class ExpressionVisitor {
     /**
      * Get the column resolver.
      * This is used for NOT_FROM_RESOLVER visitors.
-     * 
+     *
      * @return the column resolver
      */
     public ColumnResolver getResolver() {
         return resolver;
     }
-    
+
     /**
      * Set the column resolver.
      * This is used for NOT_FROM_RESOLVER visitors.
-     * 
+     *
      * @param resolver
      */
     public void setResolver(ColumnResolver resolver) {
@@ -153,7 +153,7 @@ public class ExpressionVisitor {
     public void addDataModificationId(long value) {
         maxDataModificationId = Math.max(maxDataModificationId, value);
     }
-    
+
     /**
      * Get the last data modification.
      * This is used for SET_MAX_DATA_MODIFICATION_ID visitors.
@@ -194,7 +194,7 @@ public class ExpressionVisitor {
 
     /**
      * Get the visitor type.
-     * 
+     *
      * @return the type
      */
     public int getType() {

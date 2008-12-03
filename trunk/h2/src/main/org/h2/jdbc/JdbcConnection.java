@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -69,7 +69,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     private String user;
 
     // ResultSet.HOLD_CURSORS_OVER_COMMIT
-    private int holdability = 1; 
+    private int holdability = 1;
 
     private SessionInterface session;
     private CommandInterface commit, rollback;
@@ -78,7 +78,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     private CommandInterface setLockMode, getLockMode;
     private CommandInterface setQueryTimeout, getQueryTimeout;
     private Exception openStackTrace;
-    
+
     //## Java 1.4 begin ##
     private int savepointId;
     //## Java 1.4 end ##
@@ -181,7 +181,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     /**
      * Creates a statement with the specified result set type, concurrency, and
      * holdability.
-     * 
+     *
      * @return the statement
      * @throws SQLException if the connection is closed or the result set type,
      *             concurrency, or holdability are not supported
@@ -226,7 +226,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     /**
      * Prepare a statement that will automatically close when the result set is
      * closed. This method is used to retrieve database meta data.
-     * 
+     *
      * @param sql the SQL statement.
      * @return the prepared statement
      */
@@ -593,7 +593,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     /**
      * Changes the current transaction isolation level. Calling this method will
      * commit an open transaction, even if the new level is the same as the old
-     * one, except if the level is not supported. Internally, this method calls 
+     * one, except if the level is not supported. Internally, this method calls
      * SET LOCK_MODE. The following isolation levels are supported:
      * <ul>
      * <li> Connection.TRANSACTION_READ_UNCOMMITTED = SET LOCK_MODE 0: No
@@ -606,7 +606,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      * This setting is not persistent. Please note that using
      * TRANSACTION_READ_UNCOMMITTED while at the same time using multiple
      * connections may result in inconsistent transactions.
-     * 
+     *
      * @param level the new transaction isolation level:
      *            Connection.TRANSACTION_READ_UNCOMMITTED,
      *            Connection.TRANSACTION_READ_COMMITTED, or
@@ -939,7 +939,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     /**
      * Creates a prepared statement with the specified result set type,
      * concurrency, and holdability.
-     * 
+     *
      * @return the prepared statement
      * @throws SQLException if the connection is closed or the result set type,
      *             concurrency, or holdability are not supported
@@ -1034,7 +1034,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Prepare an command. This will parse the SQL statement.
-     * 
+     *
      * @param sql the SQL statement
      * @param fetchSize the fetch size (used in remote connections)
      * @return the command
@@ -1110,7 +1110,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Convert JDBC escape sequences in the SQL statement.
-     * 
+     *
      * @param sql the SQL statement with or without JDBC escape sequences
      * @return the SQL statement without JDBC escape sequences
      */
@@ -1239,7 +1239,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     private void checkHoldability(int resultSetHoldability) throws SQLException {
-        // TODO compatibility / correctness: DBPool uses 
+        // TODO compatibility / correctness: DBPool uses
         // ResultSet.HOLD_CURSORS_OVER_COMMIT
         //## Java 1.4 begin ##
         if (resultSetHoldability != ResultSet.HOLD_CURSORS_OVER_COMMIT
@@ -1251,7 +1251,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Check if this connection is closed.
-     * 
+     *
      * @throws SQLException if the connection or session is closed
      */
     void checkClosed() throws SQLException {
@@ -1389,7 +1389,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      * [Not supported] Create a new empty Array object.
      */
 /*## Java 1.6 begin ##
-    public Array createArrayOf(String typeName, Object[] elements) 
+    public Array createArrayOf(String typeName, Object[] elements)
             throws SQLException {
         throw Message.getUnsupportedException();
     }
@@ -1399,7 +1399,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      * [Not supported] Create a new empty Struct object.
      */
 /*## Java 1.6 begin ##
-    public Struct createStruct(String typeName, Object[] attributes) 
+    public Struct createStruct(String typeName, Object[] attributes)
             throws SQLException {
         throw Message.getUnsupportedException();
     }
@@ -1427,7 +1427,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      * [Not supported] Set a client property.
      */
 /*## Java 1.6 begin ##
-    public void setClientInfo(String name, String value) 
+    public void setClientInfo(String name, String value)
             throws SQLClientInfoException {
         throw new SQLClientInfoException();
     }
@@ -1484,7 +1484,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Create a clob value from this reader.
-     * 
+     *
      * @param x the reader
      * @param length the length (if smaller or equal to 0, all data until the
      *            end of file is read)
@@ -1503,7 +1503,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Create a blob value from this input stream.
-     * 
+     *
      * @param x the input stream
      * @param length the length (if smaller or equal to 0, all data until the
      *            end of file is read)
@@ -1532,11 +1532,11 @@ public class JdbcConnection extends TraceObject implements Connection {
     public String toString() {
         return getTraceObjectName() + ": url=" + url + " user=" + user;
     }
-    
+
     /**
      * Convert an object to the default Java object for the given SQL type. For
      * example, LOB objects are converted to java.sql.Clob / java.sql.Blob.
-     * 
+     *
      * @param v the value
      * @return the object
      */

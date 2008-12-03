@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -34,7 +34,7 @@ public class Rownum extends Expression {
     }
 
     public void mapColumns(ColumnResolver resolver, int level) {
-        // nothing to do        
+        // nothing to do
     }
 
     public Expression optimize(Session session) {
@@ -42,7 +42,7 @@ public class Rownum extends Expression {
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        // nothing to do        
+        // nothing to do
     }
 
     public int getScale() {

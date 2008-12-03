@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -22,7 +22,7 @@ import org.h2.test.TestBase;
 public class TestTriggersConstraints extends TestBase implements Trigger {
 
     private static boolean mustNotCallTrigger;
-    
+
     private String triggerName;
 
     public void test() throws SQLException {
@@ -32,7 +32,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         testConstraints();
         deleteDb("trigger");
     }
-    
+
     /**
      * A test trigger implementation.
      */
@@ -47,7 +47,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             // nothing to do
         }
     }
-    
+
     private void testTriggerAlterTable() throws SQLException {
         Connection conn = getConnection("trigger");
         Statement stat = conn.createStatement();
@@ -176,7 +176,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             checkCommit(conn);
         }
     }
-    
+
     private void checkCommit(Connection conn) {
         try {
             conn.commit();
@@ -197,7 +197,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             } catch (Exception e2) {
                 throw new Error("Unexpected: " + e.toString());
             }
-        }        
+        }
     }
 
     public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -41,27 +41,27 @@ import org.h2.value.ValueString;
  * Implements the integrated aggregate functions, such as COUNT, MAX, SUM.
  */
 public class Aggregate extends Expression {
-    
+
     /**
      * The aggregate type for COUNT(*).
      */
     public static final int COUNT_ALL = 0;
-    
+
     /**
      * The aggregate type for COUNT(expression).
      */
     public static final int COUNT = 1;
-    
+
     /**
      * The aggregate type for GROUP_CONCAT(...).
      */
     public static final int GROUP_CONCAT = 2;
-    
+
     /**
      * The aggregate type for SUM(expression).
      */
     static final int SUM = 3;
-    
+
     /**
      * The aggregate type for MIN(expression).
      */
@@ -71,47 +71,47 @@ public class Aggregate extends Expression {
      * The aggregate type for MAX(expression).
      */
     static final int MAX = 5;
-    
+
     /**
      * The aggregate type for AVG(expression).
      */
     static final int AVG = 6;
-    
+
     /**
      * The aggregate type for STDDEV_POP(expression).
      */
     static final int STDDEV_POP = 7;
-    
+
     /**
      * The aggregate type for STDDEV_SAMP(expression).
      */
     static final int STDDEV_SAMP = 8;
-    
+
     /**
      * The aggregate type for VAR_POP(expression).
      */
     static final int VAR_POP = 9;
-    
+
     /**
      * The aggregate type for VAR_SAMP(expression).
      */
     static final int VAR_SAMP = 10;
-    
+
     /**
      * The aggregate type for BOOL_OR(expression).
      */
     static final int BOOL_OR = 11;
-    
+
     /**
      * The aggregate type for BOOL_AND(expression).
      */
     static final int BOOL_AND = 12;
-    
+
     /**
      * The aggregate type for SELECTIVITY(expression).
      */
     static final int SELECTIVITY = 13;
-    
+
     private static final HashMap AGGREGATES = new HashMap();
 
     private final int type;
@@ -129,7 +129,7 @@ public class Aggregate extends Expression {
 
     /**
      * Create a new aggregate object.
-     * 
+     *
      * @param type the aggregate type
      * @param on the aggregated expression
      * @param select the select statement
@@ -174,7 +174,7 @@ public class Aggregate extends Expression {
     /**
      * Get the aggregate type for this name, or -1 if no aggregate has been
      * found.
-     * 
+     *
      * @param name the aggregate function name
      * @return -1 if no aggregate function has been found, or the aggregate type
      */
@@ -185,7 +185,7 @@ public class Aggregate extends Expression {
 
     /**
      * Set the order for GROUP_CONCAT.
-     * 
+     *
      * @param orderBy the order by list
      */
     public void setOrder(ObjectArray orderBy) {
@@ -194,7 +194,7 @@ public class Aggregate extends Expression {
 
     /**
      * Set the separator for GROUP_CONCAT.
-     * 
+     *
      * @param separator the separator expression
      */
     public void setSeparator(Expression separator) {
@@ -223,7 +223,7 @@ public class Aggregate extends Expression {
             // this is a different level (the enclosing query)
             return;
         }
-        
+
         int groupRowId = select.getCurrentGroupRowId();
         if (lastGroupRowId == groupRowId) {
             // already visited
@@ -455,7 +455,7 @@ public class Aggregate extends Expression {
     public int getDisplaySize() {
         return displaySize;
     }
-    
+
     private String getSQLGroupConcat() {
         StringBuffer buff = new StringBuffer();
         buff.append("GROUP_CONCAT(");

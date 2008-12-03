@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -24,7 +24,7 @@ public class TestValue extends TestBase {
         testDouble(false);
         testDouble(true);
     }
-    
+
     private void testDouble(boolean useFloat) throws SQLException {
         double[] d = new double[]{
                 Double.NEGATIVE_INFINITY,
@@ -46,7 +46,7 @@ public class TestValue extends TestBase {
             assertTrue(values[i].compareTypeSave(values[i+1], null) < 0);
             assertTrue(values[i + 1].compareTypeSave(values[i], null) > 0);
             assertTrue(!values[i].equals(values[i+1]));
-        }        
+        }
     }
 
     private void testUUID() {

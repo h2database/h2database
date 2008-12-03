@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -19,22 +19,22 @@ import org.h2.util.MathUtils;
  * Implementation of the DECIMAL data type.
  */
 public class ValueDecimal extends Value {
-    
+
     /**
      * The default precision for a decimal value.
      */
     static final int DEFAULT_PRECISION = 65535;
-    
+
     /**
      * The default scale for a decimal value.
      */
     static final int DEFAULT_SCALE = 32767;
-    
+
     /**
      * The default display size for a decimal value.
      */
     static final int DEFAULT_DISPLAY_SIZE = 65535;
-    
+
     private static final int DIVIDE_SCALE_ADD = 25;
     private static final BigDecimal DEC_ZERO = new BigDecimal("0");
     private static final BigDecimal DEC_ONE = new BigDecimal("1");
@@ -181,7 +181,7 @@ public class ValueDecimal extends Value {
 
     /**
      * Get or create big decimal value for the given big decimal.
-     * 
+     *
      * @param dec the bit decimal
      * @return the value
      */

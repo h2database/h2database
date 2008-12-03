@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -16,10 +16,10 @@ import org.h2.constant.SysProperties;
  * The effect is similar to calling String.intern(), but faster.
  */
 public class StringCache {
-    
+
     private static final boolean ENABLED = true;
     private static SoftReference softCache = new SoftReference(null);
-    
+
     private StringCache() {
         // utility class
     }
@@ -34,7 +34,7 @@ public class StringCache {
 //        } else if (s.length() == 0) {
 //            return "";
 //        }
-//        if (!Constants.USE_OBJECT_CACHE 
+//        if (!Constants.USE_OBJECT_CACHE
 //                || !ENABLED || s.length() > MAX_CACHE_SIZE / 10) {
 //            return s;
 //        }
@@ -62,7 +62,7 @@ public class StringCache {
      * Get the string from the cache if possible. If the string has not been
      * found, it is added to the cache. If there is such a string in the cache,
      * that one is returned.
-     * 
+     *
      * @param s the original string
      * @return a string with the same content, if possible from the cache
      */
@@ -102,7 +102,7 @@ public class StringCache {
      * a new one with only this content. This solves out of memory problems if
      * the string is a substring of another, large string. In Java, strings are
      * shared, which could lead to memory problems. This avoid such problems.
-     * 
+     *
      * @param s the string
      * @return a string that is guaranteed not be a substring of a large string
      */
@@ -129,10 +129,10 @@ public class StringCache {
                 return cached;
             }
         }
-        // create a new object that is not shared 
+        // create a new object that is not shared
         // (to avoid out of memory if it is a substring of a big String)
         // NOPMD
-        s = new String(s); 
+        s = new String(s);
         cache[index] = s;
         return s;
     }

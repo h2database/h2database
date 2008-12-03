@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -23,7 +23,7 @@ public class WebClient {
 
     /**
      * Open an URL and get the HTML data.
-     * 
+     *
      * @param url the HTTP URL
      * @return the HTML as a string
      */
@@ -44,7 +44,7 @@ public class WebClient {
 
     /**
      * Read the session ID from a URL.
-     * 
+     *
      * @param url the URL
      */
     void readSessionId(String url) {
@@ -62,7 +62,7 @@ public class WebClient {
 
     /**
      * Read the specified HTML page.
-     * 
+     *
      * @param url the base URL
      * @param page the page to read
      * @return the HTML page

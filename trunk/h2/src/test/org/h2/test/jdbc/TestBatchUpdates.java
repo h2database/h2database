@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -26,9 +26,9 @@ public class TestBatchUpdates extends TestBase {
 
     private static final String COFFEE_UPDATE = "UPDATE TEST SET PRICE=PRICE*20 WHERE TYPE_ID=?";
     private static final String COFFEE_SELECT = "SELECT PRICE FROM TEST WHERE KEY_ID=?";
-    // private static final String COFFEE_QUERY = 
+    // private static final String COFFEE_QUERY =
     //  "SELECT C_NAME,PRICE FROM TEST WHERE TYPE_ID=?";
-    // private static final String COFFEE_DELETE = 
+    // private static final String COFFEE_DELETE =
     //  "DELETE FROM TEST WHERE KEY_ID=?";
     private static final String COFFEE_INSERT1 = "INSERT INTO TEST VALUES(9,'COFFEE-9',9.0,5)";
     private static final String COFFEE_DELETE1 = "DELETE FROM TEST WHERE KEY_ID=9";
@@ -73,7 +73,7 @@ public class TestBatchUpdates extends TestBase {
 
     /**
      * This method is called by the database.
-     * 
+     *
      * @param message the message (currently not used)
      * @param f the float
      * @return the float converted to an int

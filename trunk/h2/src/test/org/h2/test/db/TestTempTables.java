@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -20,13 +20,13 @@ public class TestTempTables extends TestBase {
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
         TestBase.createCaller().init().test();
     }
-    
+
     public void test() throws SQLException {
         deleteDb("tempTables");
         Connection c1 = getConnection("tempTables");
@@ -50,7 +50,7 @@ public class TestTempTables extends TestBase {
         conn1.createStatement().executeUpdate("drop table test");
         conn1.createStatement().executeUpdate("drop table test");
     }
-    
+
     private void testTables(Connection c1, Connection c2) throws SQLException {
         Statement s1 = c1.createStatement();
         Statement s2 = c2.createStatement();

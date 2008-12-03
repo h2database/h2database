@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -124,9 +124,9 @@ public class ConditionAndOr extends Condition {
     }
 
     public Expression optimize(Session session) throws SQLException {
-        // TODO NULL: see wikipedia, 
+        // TODO NULL: see wikipedia,
         // http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
-        // TODO test if all optimizations are switched off against all on 
+        // TODO test if all optimizations are switched off against all on
         // (including performance)
         left = left.optimize(session);
         right = right.optimize(session);
@@ -136,7 +136,7 @@ public class ConditionAndOr extends Condition {
             left = right;
             right = t;
         }
-        // this optimization does not work in the following case, 
+        // this optimization does not work in the following case,
         // but NOT is optimized before:
         // CREATE TABLE TEST(A INT, B INT);
         // INSERT INTO TEST VALUES(1, NULL);
@@ -155,7 +155,7 @@ public class ConditionAndOr extends Condition {
                 }
             }
         }
-        // TODO optimization: convert ((A=1 AND B=2) OR (A=1 AND B=3)) to 
+        // TODO optimization: convert ((A=1 AND B=2) OR (A=1 AND B=3)) to
         // (A=1 AND (B=2 OR B=3))
         // TODO optimization: convert .. OR .. to UNION if the cost is lower
         Value l = left.isConstant() ? left.getValue(session) : null;
@@ -252,7 +252,7 @@ public class ConditionAndOr extends Condition {
 
     /**
      * Get the left or the right sub-expression of this condition.
-     * 
+     *
      * @param left true to get the left sub-expression, false to get the right
      *            sub-expression.
      * @return the sub-expression

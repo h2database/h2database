@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -14,52 +14,52 @@ import org.h2.value.Transfer;
  * A result set column of a remote result.
  */
 public class ResultColumn {
-    
+
     /**
      * The column alias.
      */
     String alias;
-    
+
     /**
      * The schema name or null.
      */
     String schemaName;
-    
+
     /**
      * The table name or null.
      */
     String tableName;
-    
+
     /**
      * The column name or null.
      */
     String columnName;
-    
+
     /**
      * The value type of this column.
      */
     int columnType;
-    
+
     /**
      * The precision.
      */
     long precision;
-    
+
     /**
      * The scale.
      */
     int scale;
-    
+
     /**
      * The expected display size.
      */
     int displaySize;
-    
+
     /**
      * True if this is an autoincrement column.
      */
     boolean autoIncrement;
-    
+
     /**
      * True if this column is nullable.
      */
@@ -67,7 +67,7 @@ public class ResultColumn {
 
     /**
      * Read an object from the given transfer object.
-     * 
+     *
      * @param in the object from where to read the data
      */
     ResultColumn(Transfer in) throws IOException {
@@ -85,7 +85,7 @@ public class ResultColumn {
 
     /**
      * Write a result column to the given output.
-     * 
+     *
      * @param out the object to where to write the data
      * @param result the result
      * @param i the column index
@@ -102,5 +102,5 @@ public class ResultColumn {
         out.writeBoolean(result.isAutoIncrement(i));
         out.writeInt(result.getNullable(i));
     }
-    
+
 }

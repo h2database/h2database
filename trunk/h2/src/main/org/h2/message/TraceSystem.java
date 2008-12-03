@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -35,12 +35,12 @@ public class TraceSystem implements TraceWriter {
      * This trace level means nothing should be written.
      */
     public static final int OFF = 0;
-    
+
     /**
      * This trace level means only errors should be written.
      */
     public static final int ERROR = 1;
-    
+
     /**
      * This trace level means errors and informational messages should be
      * written.
@@ -51,13 +51,13 @@ public class TraceSystem implements TraceWriter {
      * This trace level means all type of messages should be written.
      */
     public static final int DEBUG = 3;
-    
+
     /**
      * This trace level means all type of messages should be written, but
      * instead of using the trace file the messages should be written to SLF4J.
      */
     public static final int ADAPTER = 4;
-    
+
     /**
      * The default level for system out trace messages.
      */
@@ -73,10 +73,10 @@ public class TraceSystem implements TraceWriter {
      * there could be a .old file of the same size.
      */
     private static final int DEFAULT_MAX_FILE_SIZE = 64 * 1024 * 1024;
-    
+
     private static final int CHECK_FILE_TIME = 4000;
     private static final int CHECK_SIZE_EACH_WRITES = 128;
-    
+
     private int levelSystemOut = DEFAULT_TRACE_LEVEL_SYSTEM_OUT;
     private int levelFile = DEFAULT_TRACE_LEVEL_FILE;
     private int maxFileSize = DEFAULT_MAX_FILE_SIZE;
@@ -94,7 +94,7 @@ public class TraceSystem implements TraceWriter {
 
     /**
      * Create a new trace system object.
-     * 
+     *
      * @param fileName the file name
      * @param init if the trace system should be initialized
      */
@@ -110,10 +110,10 @@ public class TraceSystem implements TraceWriter {
             }
         }
     }
-    
+
     /**
      * Write the exception to the driver manager log writer if configured.
-     * 
+     *
      * @param e the exception
      */
     public static void traceThrowable(Throwable e) {
@@ -126,7 +126,7 @@ public class TraceSystem implements TraceWriter {
     /**
      * Allow to manually enable the trace option by placing a specially named
      * file in the right folder.
-     * 
+     *
      * @param value the new value
      */
     public void setManualEnabling(boolean value) {
@@ -135,7 +135,7 @@ public class TraceSystem implements TraceWriter {
 
     /**
      * Get or create a trace object for this module.
-     * 
+     *
      * @param module the module name
      * @return the trace object
      */
@@ -155,7 +155,7 @@ public class TraceSystem implements TraceWriter {
 
     /**
      * Set the trace file name.
-     * 
+     *
      * @param name the file name
      */
     public void setFileName(String name) {
@@ -164,7 +164,7 @@ public class TraceSystem implements TraceWriter {
 
     /**
      * Set the maximum trace file size in bytes.
-     * 
+     *
      * @param max the maximum size
      */
     public void setMaxFileSize(int max) {
@@ -173,7 +173,7 @@ public class TraceSystem implements TraceWriter {
 
     /**
      * Set the trace level to use for System.out
-     * 
+     *
      * @param level the new level
      */
     public void setLevelSystemOut(int level) {
@@ -182,7 +182,7 @@ public class TraceSystem implements TraceWriter {
 
     /**
      * Set the file trace level.
-     * 
+     *
      * @param level the new level
      */
     public void setLevelFile(int level) {

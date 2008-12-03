@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -73,7 +73,7 @@ implements Trigger, CloseListener
     /**
      * Create a new full text index for a table and column list. Each table may
      * only have one index at any time.
-     * 
+     *
      * @param conn the connection
      * @param schema the schema name of the table
      * @param table the table name
@@ -140,13 +140,13 @@ implements Trigger, CloseListener
      * It also adds a schema FTL to the database where bookkeeping information
      * is stored. This function may be called from a Java application, or by
      * using the SQL statements:
-     * 
+     *
      * <pre>
-     *  CREATE ALIAS IF NOT EXISTS FTL_INIT FOR 
+     *  CREATE ALIAS IF NOT EXISTS FTL_INIT FOR
      *      &quot;org.h2.fulltext.FullTextLucene.init&quot;;
      *  CALL FTL_INIT();
      * </pre>
-     * 
+     *
      * @param conn
      */
     //## Java 1.4 begin ##
@@ -175,7 +175,7 @@ implements Trigger, CloseListener
         init(conn);
         this.schemaName = schemaName;
         this.tableName = tableName;
-        this.indexPath = getIndexPath(conn);        
+        this.indexPath = getIndexPath(conn);
         this.indexer = getIndexModifier(conn);
         ArrayList keyList = new ArrayList();
         DatabaseMetaData meta = conn.getMetaData();
@@ -250,7 +250,7 @@ implements Trigger, CloseListener
      * <li>KEYS (array of values): Comma separated list of values. Example: (1)
      * </li>
      * </ul>
-     * 
+     *
      * @param conn the connection
      * @param text the search query
      * @param limit the maximum number of rows or 0 for no limit
@@ -262,7 +262,7 @@ implements Trigger, CloseListener
         return search(conn, text, limit, offset, true);
     }
     //## Java 1.4 end ##
-    
+
     /**
      * Searches from the full text index for this database.
      * The returned result set has the following column:
@@ -276,12 +276,12 @@ implements Trigger, CloseListener
      * @param limit the maximum number of rows or 0 for no limit
      * @param offset the offset or 0 for no offset
      * @return the result set
-     */    
+     */
     //## Java 1.4 begin ##
     public static ResultSet search(Connection conn, String text, int limit, int offset) throws SQLException {
         return search(conn, text, limit, offset, false);
     }
-    
+
     private static ResultSet search(Connection conn, String text, int limit, int offset, boolean data) throws SQLException {
         SimpleResultSet result = createResultSet(data);
         if (conn.getMetaData().getURL().startsWith("jdbc:columnlist:")) {
@@ -316,7 +316,7 @@ implements Trigger, CloseListener
                     String tableName = expr.getColumnName();
                     q = q.substring(idx + " WHERE ".length());
                     Object[][] columnData = parseKey(conn, q);
-                    Object[] row = new Object[] {  
+                    Object[] row = new Object[] {
                         schemaName,
                         tableName,
                         columnData[0],
@@ -545,7 +545,7 @@ implements Trigger, CloseListener
         }
         return indexer;
     }
-    
+
     private static String getIndexPath(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("CALL DATABASE_PATH()");
@@ -574,7 +574,7 @@ implements Trigger, CloseListener
             index[i] = found;
         }
     }
-    
+
     public void close() throws SQLException {
         try {
             if (indexer != null) {
@@ -587,7 +587,7 @@ implements Trigger, CloseListener
             throw convertException(e);
         }
     }
-    
+
     public void remove() throws SQLException {
         // ignore
     }

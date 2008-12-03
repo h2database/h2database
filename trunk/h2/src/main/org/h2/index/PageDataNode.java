@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -26,15 +26,15 @@ import org.h2.store.DataPageBinary;
  * </li></ul>
  */
 class PageDataNode extends PageData {
-    
+
     /**
      * The page ids of the children.
      */
     private int[] childPageIds;
-    
-    private int rowCountStored = UNKNOWN_ROWCOUNT; 
 
-    private int rowCount = UNKNOWN_ROWCOUNT; 
+    private int rowCountStored = UNKNOWN_ROWCOUNT;
+
+    private int rowCount = UNKNOWN_ROWCOUNT;
 
     PageDataNode(PageScanIndex index, int pageId, int parentPageId, DataPageBinary data) {
         super(index, pageId, parentPageId, data);
@@ -97,7 +97,7 @@ class PageDataNode extends PageData {
         updateRowCount(1);
         return 0;
     }
-    
+
     private void updateRowCount(int offset) throws SQLException {
         if (rowCount != UNKNOWN_ROWCOUNT) {
             rowCount += offset;
@@ -128,7 +128,7 @@ class PageDataNode extends PageData {
         p2.remapChildren();
         return p2;
     }
-    
+
     protected void remapChildren() throws SQLException {
         for (int i = 0; i < childPageIds.length; i++) {
             int child = childPageIds[i];
@@ -154,7 +154,7 @@ class PageDataNode extends PageData {
 
     /**
      * Initialize the page.
-     * 
+     *
      * @param page1 the first child page
      * @param pivot the pivot key
      * @param page2 the last child page
@@ -165,7 +165,7 @@ class PageDataNode extends PageData {
         keys = new int[] { pivot };
         check();
     }
-    
+
     int getLastKey() throws SQLException {
         int todoRemove;
         return index.getPage(childPageIds[entryCount]).getLastKey();
@@ -173,7 +173,7 @@ class PageDataNode extends PageData {
 
     /**
      * Get the next leaf page.
-     * 
+     *
      * @param key the last key of the current page
      * @return the next leaf page
      */
@@ -189,12 +189,12 @@ class PageDataNode extends PageData {
         PageData page = index.getPage(childPageIds[i]);
         return page.getFirstLeaf();
     }
-    
+
     PageDataLeaf getFirstLeaf() throws SQLException {
         int child = childPageIds[0];
         return index.getPage(child).getFirstLeaf();
     }
-    
+
     private void removeRow(int i) throws SQLException {
         entryCount--;
         if (entryCount <= 0) {
@@ -211,7 +211,7 @@ class PageDataNode extends PageData {
         keys = newKeys;
         childPageIds = newChildPageIds;
     }
-    
+
     boolean remove(int key) throws SQLException {
         int at = find(key);
         // merge is not implemented to allow concurrent usage of btrees
@@ -261,7 +261,7 @@ class PageDataNode extends PageData {
             index.getPageStore().updateRecord(this);
         }
     }
-    
+
     private void check() {
         for (int i = 0; i < childPageIds.length; i++) {
             if (childPageIds[i] == 0) {
@@ -288,5 +288,5 @@ class PageDataNode extends PageData {
         }
         index.getPageStore().writePage(getPos(), data);
     }
-    
+
 }

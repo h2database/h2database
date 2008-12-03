@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -21,13 +21,13 @@ public class TestMultiThreaded extends TestBase {
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
         TestBase.createCaller().init().test();
     }
-    
+
     /**
      * Processes random operations.
      */
@@ -37,7 +37,7 @@ public class TestMultiThreaded extends TestBase {
         private Random random;
         private volatile Throwable exception;
         private boolean stop;
-        
+
         Processor(Connection conn, int id) throws SQLException {
             this.id = id;
             stat = conn.createStatement();
@@ -54,18 +54,18 @@ public class TestMultiThreaded extends TestBase {
                     switch(random.nextInt(6)) {
                     case 0:
                         // insert a row for this connection
-                        traceThread("insert " + id + " count: " + count);                              
+                        traceThread("insert " + id + " count: " + count);
                         stat.execute("INSERT INTO TEST(NAME) VALUES('"+ id +"')");
-                        traceThread("insert done");                              
+                        traceThread("insert done");
                         count++;
                         break;
                     case 1:
                         // delete a row for this connection
                         if (count > 0) {
-                            traceThread("delete " + id + " count: " + count);                         
+                            traceThread("delete " + id + " count: " + count);
                             int updateCount = stat.executeUpdate(
                                     "DELETE FROM TEST WHERE NAME = '"+ id +"' AND ROWNUM()<2");
-                            traceThread("delete done");                              
+                            traceThread("delete done");
                             if (updateCount != 1) {
                                 throw new Error("Expected: 1 Deleted: " + updateCount);
                             }
@@ -74,9 +74,9 @@ public class TestMultiThreaded extends TestBase {
                         break;
                     case 2:
                         // select the number of rows of this connection
-                        traceThread("select " + id + " count: " + count);                            
+                        traceThread("select " + id + " count: " + count);
                         rs = stat.executeQuery("SELECT COUNT(*) FROM TEST WHERE NAME = '"+ id +"'");
-                        traceThread("select done");                              
+                        traceThread("select done");
                         rs.next();
                         int got = rs.getInt(1);
                         if (got != count) {
@@ -84,19 +84,19 @@ public class TestMultiThreaded extends TestBase {
                         }
                         break;
                     case 3:
-                        traceThread("insert");                              
+                        traceThread("insert");
                         stat.execute("INSERT INTO TEST(NAME) VALUES(NULL)");
-                        traceThread("insert done");                              
+                        traceThread("insert done");
                         break;
                     case 4:
-                        traceThread("delete");                              
+                        traceThread("delete");
                         stat.execute("DELETE FROM TEST WHERE NAME IS NULL");
-                        traceThread("delete done");                              
+                        traceThread("delete done");
                         break;
                     case 5:
-                        traceThread("select");                              
+                        traceThread("select");
                         rs = stat.executeQuery("SELECT * FROM TEST WHERE NAME IS NULL");
-                        traceThread("select done");                              
+                        traceThread("select done");
                         while (rs.next()) {
                             rs.getString(1);
                         }
@@ -107,7 +107,7 @@ public class TestMultiThreaded extends TestBase {
                 exception = e;
             }
         }
-        
+
         private void traceThread(String s) {
             if (config.traceTest) {
                 trace(id + " " + s);

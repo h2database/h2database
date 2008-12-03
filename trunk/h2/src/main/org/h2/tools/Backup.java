@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -27,7 +27,7 @@ import org.h2.util.Tool;
  * Backs up a H2 database by creating a .zip file from the database files.
  */
 public class Backup extends Tool {
-    
+
     private void showUsage() {
         out.println("Creates a backup of a database.");
         out.println("java "+getClass().getName() + "\n" +
@@ -96,7 +96,7 @@ public class Backup extends Tool {
     public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
         new Backup().process(zipFileName, directory, db, quiet);
     }
-    
+
     private void process(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
         ArrayList list = FileLister.getDatabaseFiles(directory, db, true);
         if (list.size() == 0) {

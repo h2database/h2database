@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  */
@@ -47,7 +47,7 @@ class Statement {
 
     /**
      * Execute the statement.
-     * 
+     *
      * @return the object returned if this was a method call
      */
     Object execute() throws Exception {
@@ -127,7 +127,7 @@ class Statement {
 
     /**
      * This statement is an assignment.
-     * 
+     *
      * @param className the class of the variable
      * @param variableName the variable name
      */
@@ -139,7 +139,7 @@ class Statement {
 
     /**
      * This statement is a static method call.
-     * 
+     *
      * @param className the class name
      */
     void setStaticCall(String className) {
@@ -150,7 +150,7 @@ class Statement {
     /**
      * This statement is a method call, and the result is assigned to a
      * variable.
-     * 
+     *
      * @param variableName the variable name
      * @param object the object
      * @param methodName the method name

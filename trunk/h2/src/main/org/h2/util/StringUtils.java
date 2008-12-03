@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -25,14 +25,14 @@ import org.h2.message.Message;
  * A few String utility functions.
  */
 public class StringUtils {
-    
+
     private StringUtils() {
         // utility class
     }
 
     /**
      * Check if two strings are equal. Here, null is equal to null.
-     * 
+     *
      * @param a the first value
      * @param b the second value
      * @return true if both are null or both are equal
@@ -46,7 +46,7 @@ public class StringUtils {
 
     /**
      * Convert a string to uppercase using the English locale.
-     * 
+     *
      * @param s the test to convert
      * @return the uppercase text
      */
@@ -56,7 +56,7 @@ public class StringUtils {
 
     /**
      * Convert a string to lowercase using the English locale.
-     * 
+     *
      * @param s the text to convert
      * @return the lowercase text
      */
@@ -68,7 +68,7 @@ public class StringUtils {
      * Convert a string to a SQL literal. Null is converted to NULL. The text is
      * enclosed in single quotes. If there are any special characters, the method
      * STRINGDECODE is used.
-     * 
+     *
      * @param s the text to convert.
      * @return the SQL literal
      */
@@ -97,7 +97,7 @@ public class StringUtils {
      * Convert a string to the Java literal using the correct escape sequences.
      * The literal is not enclosed in double quotes. The result can be used in
      * properties files or in Java source code.
-     * 
+     *
      * @param s the text to convert
      * @return the Java representation
      */
@@ -157,7 +157,7 @@ public class StringUtils {
     /**
      * Add an asterisk ('[*]') at the given position. This format is used to
      * show where parsing failed in a statement.
-     * 
+     *
      * @param s the text
      * @param index the position
      * @return the text with asterisk
@@ -176,7 +176,7 @@ public class StringUtils {
     /**
      * Decode a text that is encoded as a Java string literal. The Java
      * properties file format and Java source code format is supported.
-     * 
+     *
      * @param s the encoded string
      * @return the string
      */
@@ -258,7 +258,7 @@ public class StringUtils {
     /**
      * Convert a string to the Java literal and enclose it with double quotes.
      * Null will result in 'null'.
-     * 
+     *
      * @param s the text to convert
      * @return the Java representation
      */
@@ -272,7 +272,7 @@ public class StringUtils {
     /**
      * Convert the text to UTF-8 format. For the Unicode characters
      * 0xd800-0xdfff only one byte is returned.
-     * 
+     *
      * @param s the text
      * @return the UTF-8 representation
      */
@@ -286,7 +286,7 @@ public class StringUtils {
 
     /**
      * Convert a UTF-8 representation of a text to the text.
-     * 
+     *
      * @param utf8 the UTF-8 representation
      * @return the text
      */
@@ -301,7 +301,7 @@ public class StringUtils {
     /**
      * Convert a UTF-8 representation of a text to the text using the given
      * offset and length.
-     * 
+     *
      * @param bytes the UTF-8 representation
      * @param offset the offset in the bytes array
      * @param length the number of bytes
@@ -318,7 +318,7 @@ public class StringUtils {
     /**
      * Convert a string array to the Java source code that represents this
      * array. Null will be converted to 'null'.
-     * 
+     *
      * @param array the string array
      * @return the Java source code (including new String[]{})
      */
@@ -341,7 +341,7 @@ public class StringUtils {
     /**
      * Convert an int array to the Java source code that represents this array.
      * Null will be converted to 'null'.
-     * 
+     *
      * @param array the int array
      * @return the Java source code (including new int[]{})
      */
@@ -363,7 +363,7 @@ public class StringUtils {
 
     /**
      * Enclose a string with '(' and ')' if this is not yet done.
-     * 
+     *
      * @param s the string
      * @return the enclosed string
      */
@@ -376,7 +376,7 @@ public class StringUtils {
 
     /**
      * Remove enclosing '(' and ')' if this text is enclosed.
-     * 
+     *
      * @param s the potentially enclosed string
      * @return the string
      */
@@ -389,7 +389,7 @@ public class StringUtils {
 
     /**
      * Encode the string as an URL.
-     * 
+     *
      * @param s the string to encode
      * @return the encoded string
      */
@@ -417,7 +417,7 @@ public class StringUtils {
 
     /**
      * Decode the URL to a string.
-     * 
+     *
      * @param encoded the encoded URL
      * @return the decoded string
      */
@@ -446,7 +446,7 @@ public class StringUtils {
      * Split a string into an array of strings using the given separator. A null
      * string will result in a null array, and an empty string in a zero element
      * array.
-     * 
+     *
      * @param s the string to split
      * @param separatorChar the separator character
      * @param trim whether each element should be trimmed
@@ -484,7 +484,7 @@ public class StringUtils {
      * Combine an array of strings to one array using the given separator
      * character. A backslash and the separator character and escaped using a
      * backslash.
-     * 
+     *
      * @param list the string array
      * @param separatorChar the separator character
      * @return the combined string
@@ -512,7 +512,7 @@ public class StringUtils {
 
     /**
      * Formats a date using a format string.
-     * 
+     *
      * @param date the date to format
      * @param format the format string
      * @param locale the locale
@@ -528,7 +528,7 @@ public class StringUtils {
 
     /**
      * Parses a date using a format string.
-     * 
+     *
      * @param date the date to parse
      * @param format the parsing format
      * @param locale the locale
@@ -729,7 +729,7 @@ public class StringUtils {
 
     /**
      * Replace all occurrences of the before string with the after string.
-     * 
+     *
      * @param s the string
      * @param before the old text
      * @param after the new text
@@ -754,7 +754,7 @@ public class StringUtils {
     /**
      * Enclose a string with double quotes. A double quote inside the string is
      * escaped using a double quote.
-     * 
+     *
      * @param s the text
      * @return the double quoted text
      */
@@ -782,7 +782,7 @@ public class StringUtils {
 
     /**
      * In a string, replace block comment marks with /++ .. ++/.
-     * 
+     *
      * @param sql the string
      * @return the resulting string
      */
@@ -806,7 +806,7 @@ public class StringUtils {
 
     /**
      * Pad a string. This method is used for the SQL function RPAD and LPAD.
-     * 
+     *
      * @param string the original string
      * @param n the target length
      * @param padding the padding string
@@ -845,7 +845,7 @@ public class StringUtils {
     /**
      * Create a new char array and copy all the data. If the size of the byte
      * array is zero, the same array is returned.
-     * 
+     *
      * @param chars the char array (may be null)
      * @return a new char array
      */
@@ -861,14 +861,14 @@ public class StringUtils {
         System.arraycopy(chars, 0, copy, 0, len);
         return copy;
     }
-    
+
     /**
      * Trim a character from a string.
-     * 
+     *
      * @param s the string
      * @param leading if leading characters should be removed
      * @param trailing if trailing characters should be removed
-     * @param sp what to remove (only the first character is used) 
+     * @param sp what to remove (only the first character is used)
      *      or null for a space
      * @return the trimmed string
      */

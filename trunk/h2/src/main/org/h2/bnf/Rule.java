@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -55,7 +55,7 @@ public interface Rule {
      * Remove a token from a sentence. Used for autocomplete support.
      * If there was a match, the query in the sentence is updated
      * (the matched token is removed).
-     * 
+     *
      * @param sentence
      *            the sentence context
      * @return false if not a match or a partial match, true if a full match

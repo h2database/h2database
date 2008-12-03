@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -14,12 +14,12 @@ import java.io.Reader;
  * Helper class for the java file parser.
  */
 public class Tokenizer {
-    
+
     /**
      * This token type means no more tokens are available.
      */
     static final int TYPE_EOF = -1;
-    
+
     private static final int TYPE_WORD = -2;
     private static final int TYPE_NOTHING = -3;
     private static final byte WHITESPACE = 1;
@@ -100,7 +100,7 @@ public class Tokenizer {
 
     /**
      * Read the next token and get the token type.
-     * 
+     *
      * @return the token type
      */
     int nextToken() throws IOException {
@@ -179,7 +179,7 @@ public class Tokenizer {
                 if (peekChar == '\\') {
                     c = read();
                     // to allow \377, but not \477
-                    int first = c; 
+                    int first = c;
                     if (c >= '0' && c <= '7') {
                         c = c - '0';
                         int c2 = read();

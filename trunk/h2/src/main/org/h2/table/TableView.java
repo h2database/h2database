@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -57,7 +57,7 @@ public class TableView extends Table {
 
     /**
      * Re-compile the query, updating the SQL statement.
-     * 
+     *
      * @param session the session
      * @return the query
      */
@@ -126,7 +126,7 @@ public class TableView extends Table {
 
     /**
      * Check if this view is currently invalid.
-     * 
+     *
      * @return true if it is
      */
     public boolean getInvalid() {
@@ -276,7 +276,7 @@ public class TableView extends Table {
 
     /**
      * Re-compile the view query.
-     * 
+     *
      * @param session the session
      */
     public void recompile(Session session) throws SQLException {
@@ -337,7 +337,7 @@ public class TableView extends Table {
 
     /**
      * Create a temporary view out of the given query.
-     * 
+     *
      * @param session the session
      * @param owner the owner of the query
      * @param query the query

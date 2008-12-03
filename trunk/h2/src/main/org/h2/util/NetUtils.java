@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -29,7 +29,7 @@ public class NetUtils {
     private static InetAddress bindAddress;
     private static String cachedLocalAddress;
     private static long cachedLocalAddressTime;
-    
+
     private NetUtils() {
         // utility class
     }
@@ -37,7 +37,7 @@ public class NetUtils {
     /**
      * Create a loopback socket (a socket that is connected to localhost) on
      * this port.
-     * 
+     *
      * @param port the port
      * @param ssl if SSL should be used
      * @return the socket
@@ -52,7 +52,7 @@ public class NetUtils {
 
     /**
      * Create a client socket that is connected to the given address and port.
-     * 
+     *
      * @param server to connect to (including an optional port)
      * @param defaultPort the default port (if not specified in the server
      *            address)
@@ -77,7 +77,7 @@ public class NetUtils {
 
     /**
      * Create a client socket that is connected to the given address and port.
-     * 
+     *
      * @param address the address to connect to
      * @param port the port
      * @param ssl if SSL should be used
@@ -88,7 +88,7 @@ public class NetUtils {
             return SecureSocketFactory.createSocket(address, port);
         }
         Socket socket = new Socket();
-        socket.connect(new InetSocketAddress(address, port), 
+        socket.connect(new InetSocketAddress(address, port),
                 SysProperties.SOCKET_CONNECT_TIMEOUT);
         return socket;
     }
@@ -96,7 +96,7 @@ public class NetUtils {
     /**
      * Create a server socket. The system property h2.bindAddress is used if
      * set.
-     * 
+     *
      * @param port the port to listen on
      * @param ssl if SSL should be used
      * @return the server socket
@@ -149,7 +149,7 @@ public class NetUtils {
 
     /**
      * Check if a socket is connected to a local address.
-     * 
+     *
      * @param socket the socket
      * @return true if it is
      */
@@ -175,7 +175,7 @@ public class NetUtils {
 
     /**
      * Close a server socket and ignore any exceptions.
-     * 
+     *
      * @param socket the socket
      * @return null
      */
@@ -193,7 +193,7 @@ public class NetUtils {
     /**
      * Get the local host address as a string.
      * For performance, the result is cached for one second.
-     * 
+     *
      * @return the local host address
      */
     public static synchronized String getLocalAddress() {

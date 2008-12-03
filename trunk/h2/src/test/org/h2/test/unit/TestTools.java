@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -41,15 +41,15 @@ import org.h2.util.FileUtils;
 public class TestTools extends TestBase {
 
     private Server server;
-    
+
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
         TestBase.createCaller().init().test();
-    }    
+    }
 
     public void test() throws Exception {
         if (config.networked) {
@@ -110,9 +110,9 @@ public class TestTools extends TestBase {
         }
 
         result = runServer(new String[]{
-                "-web", "-webPort", "9002", "-webAllowOthers", "-webSSL", 
+                "-web", "-webPort", "9002", "-webAllowOthers", "-webSSL",
                 "-pg", "-pgAllowOthers", "-pgPort", "9003",
-                "-ftp", "-ftpPort", "9004", "-ftpDir", ".", "-ftpRead", "guest", "-ftpWrite", "sa", "-ftpWritePassword", "sa", "-ftpTask", 
+                "-ftp", "-ftpPort", "9004", "-ftpDir", ".", "-ftpRead", "guest", "-ftpWrite", "sa", "-ftpWritePassword", "sa", "-ftpTask",
                 "-tcp", "-tcpAllowOthers", "-tcpPort", "9006", "-tcpPassword", "abc"}, 0);
         Server stop = server;
         assertTrue(result.indexOf("https://") >= 0);
@@ -125,7 +125,7 @@ public class TestTools extends TestBase {
         assertTrue(result.indexOf(":9004") >= 0);
         assertTrue(result.indexOf("tcp://") >= 0);
         assertTrue(result.indexOf(":9006") >= 0);
-        
+
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
         conn.close();
 
@@ -267,7 +267,7 @@ public class TestTools extends TestBase {
 
         conn.close();
         Recover.main(new String[]{"-dir", baseDir, "-db", "toolsRecover"});
-        
+
         // deleteDb would delete the .lob.db directory as well
         // deleteDb("toolsRecover");
         ArrayList list = FileLister.getDatabaseFiles(baseDir, "toolsRecover", true);
@@ -277,7 +277,7 @@ public class TestTools extends TestBase {
                 FileUtils.delete(fileName);
             }
         }
-        
+
         conn = DriverManager.getConnection(url, "another", "another");
         stat = conn.createStatement();
         stat.execute("runscript from '" + baseDir + "/toolsRecover.data.sql'");

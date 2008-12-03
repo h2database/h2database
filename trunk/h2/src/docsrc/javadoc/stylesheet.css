@@ -1,6 +1,6 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
- * Version 1.0, and under the Eclipse Public License, Version 1.0 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -131,18 +131,18 @@ a:hover {
 }
 
 table.content {
-    width: 100%; 
-    height: 100%; 
+    width: 100%;
+    height: 100%;
     border: 0px;
 }
 
 tr.content {
-    border:0px; 
+    border:0px;
     border-left:1px solid #aca899;
 }
 
 td.content {
-    border:0px; 
+    border:0px;
     border-left:1px solid #aca899;
 }
 

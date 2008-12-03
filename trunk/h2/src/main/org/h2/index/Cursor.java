@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -51,13 +51,13 @@ public interface Cursor {
      * @return true if another row is available
      */
     boolean next() throws SQLException;
-    
+
     /**
      * Skip to the previous row if one is available.
      * No filtering is made here.
      *
      * @return true if another row is available
      */
-    boolean previous() throws SQLException;    
+    boolean previous() throws SQLException;
 
 }

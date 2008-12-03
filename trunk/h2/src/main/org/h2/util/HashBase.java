@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -60,7 +60,7 @@ public abstract class HashBase {
 
     /**
      * Get the size of the map.
-     * 
+     *
      * @return the size
      */
     public int size() {
@@ -94,7 +94,7 @@ public abstract class HashBase {
 
     /**
      * Clear the map and reset the level to the specified value.
-     * 
+     *
      * @param newLevel the new level
      */
     protected void reset(int newLevel) {
@@ -110,7 +110,7 @@ public abstract class HashBase {
 
     /**
      * Calculate the index for this hash code.
-     * 
+     *
      * @param hash the hash code
      * @return the index
      */

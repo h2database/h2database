@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -21,27 +21,27 @@ public class SqlStatement {
     private Db db;
     private String sql = "";
     private ArrayList params = new ArrayList();
-    
+
     SqlStatement(Db db) {
         this.db = db;
     }
-    
+
     void setSQL(String sql) {
         this.sql = sql;
     }
-    
+
     void appendSQL(String s) {
         sql += s;
     }
-    
+
     String getSQL() {
         return sql;
     }
-    
+
     void addParameter(Object o) {
         params.add(o);
     }
-    
+
     ResultSet executeQuery() {
         try {
             return prepare().executeQuery();
@@ -57,7 +57,7 @@ public class SqlStatement {
             throw new RuntimeException(e);
         }
     }
-    
+
     private void setValue(PreparedStatement prep, int parameterIndex, Object x) {
         try {
             prep.setObject(parameterIndex, x);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -15,7 +15,7 @@ public class IndexType {
 
     /**
      * Create a primary key index.
-     * 
+     *
      * @param persistent if the index is persistent
      * @param hash if a hash index should be used
      * @return the index type
@@ -31,7 +31,7 @@ public class IndexType {
 
     /**
      * Create a unique index.
-     * 
+     *
      * @param persistent if the index is persistent
      * @param hash if a hash index should be used
      * @return the index type
@@ -46,7 +46,7 @@ public class IndexType {
 
     /**
      * Create a non-unique index.
-     * 
+     *
      * @param persistent if the index is persistent
      * @return the index type
      */
@@ -58,7 +58,7 @@ public class IndexType {
 
     /**
      * Create a scan pseudo-index.
-     * 
+     *
      * @param persistent if the index is persistent
      * @return the index type
      */
@@ -71,7 +71,7 @@ public class IndexType {
 
     /**
      * Sets if this index belongs to a constraint.
-     * 
+     *
      * @param belongsToConstraint if the index belongs to a constraint
      */
     public void setBelongsToConstraint(boolean belongsToConstraint) {
@@ -81,7 +81,7 @@ public class IndexType {
     /**
      * If the index is created because of a constraint. Such indexes are to be
      * dropped once the constraint is dropped.
-     * 
+     *
      * @return if the index belongs to a constraint
      */
     public boolean getBelongsToConstraint() {
@@ -90,43 +90,43 @@ public class IndexType {
 
     /**
      * Is this a hash index?
-     * 
+     *
      * @return true if it is a hash index
      */
     public boolean getHash() {
         return hash;
     }
-    
+
     /**
      * Is this index persistent?
-     * 
+     *
      * @return true if it is persistent
      */
     public boolean getPersistent() {
         return persistent;
     }
-    
+
     /**
      * Does this index belong to a primary key constraint?
-     * 
+     *
      * @return true if it references a primary key constraint
      */
     public boolean getPrimaryKey() {
         return primaryKey;
     }
-    
+
     /**
      * Is this a unique index?
-     * 
+     *
      * @return true if it is
      */
     public boolean getUnique() {
         return unique;
     }
-    
+
     /**
      * Get the SQL snippet to create such an index.
-     * 
+     *
      * @return the SQL snippet
      */
     public String getSQL() {
@@ -150,7 +150,7 @@ public class IndexType {
 
     /**
      * Is this a table scan pseudo-index?
-     * 
+     *
      * @return true if it is
      */
     public boolean getScan() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -13,7 +13,7 @@ import java.sql.SQLException;
  * database URL.
  */
 public class JdbcDriverUtils {
-    
+
     private static final String[] DRIVERS = {
         "jdbc:h2:", "org.h2.Driver",
         "jdbc:Cache:", "com.intersys.jdbc.CacheDriver",
@@ -41,7 +41,7 @@ public class JdbcDriverUtils {
         "jdbc:sqlserver:", "com.microsoft.sqlserver.jdbc.SQLServerDriver",
         "jdbc:teradata:", "com.ncr.teradata.TeraDriver",
     };
-    
+
     private JdbcDriverUtils() {
         // utility class
     }
@@ -49,7 +49,7 @@ public class JdbcDriverUtils {
     /**
      * Get the driver class name for the given URL, or null if the URL is
      * unknown.
-     * 
+     *
      * @param url the database URL
      * @return the driver class name
      */
@@ -65,7 +65,7 @@ public class JdbcDriverUtils {
 
     /**
      * Load the driver class for the given URL, if the database URL is known.
-     * 
+     *
      * @param url the database URL
      */
     public static void load(String url) throws SQLException {
@@ -74,7 +74,7 @@ public class JdbcDriverUtils {
             ClassUtils.loadUserClass(driver);
         }
     }
-    
+
     static boolean isShutdown() {
         return DRIVERS == null;
     }

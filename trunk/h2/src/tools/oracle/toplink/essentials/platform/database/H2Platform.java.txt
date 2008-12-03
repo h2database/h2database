@@ -46,7 +46,7 @@ import oracle.toplink.essentials.queryframework.ValueReadQuery;
  * @author Marcio Borges (http://www.marciowb.net/blog/2008_08_01_)
  */
 public class H2Platform extends DatabasePlatform {
-    
+
     protected Hashtable buildFieldTypes() {
         Hashtable fieldTypeMapping;
         fieldTypeMapping = super.buildFieldTypes();
@@ -118,15 +118,15 @@ public class H2Platform extends DatabasePlatform {
     public boolean shouldUseJDBCOuterJoinSyntax() {
         return false;
     }
-    
+
     public boolean supportsIdentity() {
         return true;
     }
-    
+
     public ValueReadQuery buildSelectQueryForIdentity() {
         return new ValueReadQuery("SELECT IDENTITY()");
     }
-    
+
     public void printFieldIdentityClause(Writer writer) throws ValidationException {
         try {
             writer.write(" IDENTITY");

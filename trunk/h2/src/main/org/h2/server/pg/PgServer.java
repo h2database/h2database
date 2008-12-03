@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -36,7 +36,7 @@ import org.h2.util.Tool;
 public class PgServer implements Service {
 
     // also in the docs
-    public static final int DEFAULT_PORT = 5435; 
+    public static final int DEFAULT_PORT = 5435;
 
     private int port = PgServer.DEFAULT_PORT;
     private boolean stop;
@@ -87,7 +87,7 @@ public class PgServer implements Service {
 
     /**
      * Print a message if the trace flag is enabled.
-     * 
+     *
      * @param s the message
      */
     void trace(String s) {
@@ -98,7 +98,7 @@ public class PgServer implements Service {
 
     /**
      * Remove a thread from the list.
-     * 
+     *
      * @param t the thread to remove
      */
     synchronized void remove(PgServerThread t) {
@@ -107,7 +107,7 @@ public class PgServer implements Service {
 
     /**
      * Print the stack trace if the trace flag is enabled.
-     * 
+     *
      * @param e the exception
      */
     void traceError(Exception e) {
@@ -119,7 +119,7 @@ public class PgServer implements Service {
     public String getURL() {
         return "pg://" + NetUtils.getLocalAddress() + ":" + port;
     }
-    
+
     public int getPort() {
         return port;
     }
@@ -236,7 +236,7 @@ public class PgServer implements Service {
      * The Java implementation of the PostgreSQL function pg_get_indexdef. The
      * method is used to get CREATE INDEX command for an index, or the column
      * definition of one column in the index.
-     * 
+     *
      * @param conn the connection
      * @param indexId the index id
      * @param ordinalPosition the ordinal position (null if the SQL statement
@@ -268,7 +268,7 @@ public class PgServer implements Service {
     /**
      * Get the name of the current schema.
      * This method is called by the database.
-     * 
+     *
      * @param conn the connection
      * @return the schema name
      */
@@ -281,7 +281,7 @@ public class PgServer implements Service {
     /**
      * Get the name of this encoding code.
      * This method is called by the database.
-     * 
+     *
      * @param code the encoding code
      * @return the encoding name
      */
@@ -301,7 +301,7 @@ public class PgServer implements Service {
     /**
      * Get the version. This method must return PostgreSQL to keep some clients
      * happy. This method is called by the database.
-     * 
+     *
      * @return the server name and version
      */
     public static String getVersion() {
@@ -311,7 +311,7 @@ public class PgServer implements Service {
     /**
      * Get the current system time.
      * This method is called by the database.
-     * 
+     *
      * @return the current system time
      */
     public static Timestamp getStartTime() {
@@ -321,7 +321,7 @@ public class PgServer implements Service {
     /**
      * Get the user name for this id.
      * This method is called by the database.
-     * 
+     *
      * @param conn the connection
      * @param id the user id
      * @return the user name
@@ -339,7 +339,7 @@ public class PgServer implements Service {
     /**
      * Check if the this session has the given database privilege.
      * This method is called by the database.
-     * 
+     *
      * @param id the session id
      * @param privilege the privilege to check
      * @return true
@@ -351,7 +351,7 @@ public class PgServer implements Service {
     /**
      * Check if the current session has access to this table.
      * This method is called by the database.
-     * 
+     *
      * @param table the table name
      * @param privilege the privilege to check
      * @return true
@@ -363,7 +363,7 @@ public class PgServer implements Service {
     /**
      * Get the current transaction id.
      * This method is called by the database.
-     * 
+     *
      * @param table the table name
      * @param id the id
      * @return 1

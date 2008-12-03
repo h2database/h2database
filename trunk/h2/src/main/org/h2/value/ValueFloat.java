@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -17,17 +17,17 @@ import org.h2.util.ObjectUtils;
  * Implementation of the REAL data type.
  */
 public class ValueFloat extends Value {
-    
+
     /**
      * The precision in digits.
-     */    
+     */
     static final int PRECISION = 7;
-    
+
     /**
      * The maximum display size of a float.
      * Example: -1.12345676E-20
      */
-    static final int DISPLAY_SIZE = 15; 
+    static final int DISPLAY_SIZE = 15;
 
     private static final float FLOAT_ZERO = 0.0F;
     private static final float FLOAT_ONE = 1.0F;
@@ -124,7 +124,7 @@ public class ValueFloat extends Value {
 
     /**
      * Get or create float value for the given float.
-     * 
+     *
      * @param d the float
      * @return the value
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -56,7 +56,7 @@ public abstract class Prepared {
     private Command command;
     private int objectId;
     private int currentRowNumber;
-    
+
     /**
      * Create a new object.
      *
@@ -109,7 +109,7 @@ public abstract class Prepared {
     /**
      * Get the meta data modification id of the database when this statement was
      * compiled.
-     * 
+     *
      * @return the meta data modification id
      */
     long getModificationMetaId() {
@@ -145,7 +145,7 @@ public abstract class Prepared {
 
     /**
      * Check if all parameters have been set.
-     * 
+     *
      * @throws SQLException if any parameter has not been set
      */
     protected void checkParameters() throws SQLException {
@@ -218,12 +218,12 @@ public abstract class Prepared {
     public String getSQL() {
         return sqlStatement;
     }
-    
+
     /**
      * Get the object id to use for the database object that is created in this
      * statement. This id is only set when the object is persistent.
      * If not set, this method returns 0.
-     * 
+     *
      * @return the object id or 0 if not set
      */
     protected int getCurrentObjectId() {
@@ -233,7 +233,7 @@ public abstract class Prepared {
     /**
      * Get the current object id, or get a new id from the database. The object
      * id is used when creating new database object (CREATE statement).
-     * 
+     *
      * @param needFresh if a fresh id is required
      * @param dataFile if the object id is used for the
      * @return the object id
@@ -300,7 +300,7 @@ public abstract class Prepared {
     /**
      * Print information about the statement executed if info trace level is
      * enabled.
-     * 
+     *
      * @param startTime when the statement was started
      * @param count the update count
      */

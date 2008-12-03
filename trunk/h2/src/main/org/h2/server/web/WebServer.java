@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -91,13 +91,13 @@ public class WebServer implements Service {
         // this will be listed on top for new installations
         "Generic H2 (Embedded)|org.h2.Driver|jdbc:h2:~/test|sa",
     };
-    
+
     private static int ticker;
-    
+
     /**
      * The session timeout is 30 min.
      */
-    private static final long SESSION_TIMEOUT = 30 * 60 * 1000; 
+    private static final long SESSION_TIMEOUT = 30 * 60 * 1000;
 
     /*
     String[] list = Locale.getISOLanguages();
@@ -133,7 +133,7 @@ public class WebServer implements Service {
 
     /**
      * Read the given file from the file system or from the resources.
-     * 
+     *
      * @param file the file name
      * @return the data
      */
@@ -150,7 +150,7 @@ public class WebServer implements Service {
 
     /**
      * Remove this web thread from the set of running threads.
-     * 
+     *
      * @param t the thread to remove
      */
     synchronized void remove(WebThread t) {
@@ -164,7 +164,7 @@ public class WebServer implements Service {
 
     /**
      * Get the web session object for the given session id.
-     * 
+     *
      * @param sessionId the session id
      * @return the web session or null
      */
@@ -192,7 +192,7 @@ public class WebServer implements Service {
 
     /**
      * Create a new web session id and object.
-     * 
+     *
      * @param hostAddr the host address
      * @return the web session object
      */
@@ -206,7 +206,7 @@ public class WebServer implements Service {
         session.put("ip", hostAddr);
         session.put("language", DEFAULT_LANGUAGE);
         sessions.put(newId, session);
-        // always read the english translation, 
+        // always read the english translation,
         // so that untranslated text appears at least in english
         readTranslations(session, DEFAULT_LANGUAGE);
         return getSession(newId);
@@ -262,7 +262,7 @@ public class WebServer implements Service {
         }
 //            if(driverList != null) {
 //                try {
-//                    String[] drivers = 
+//                    String[] drivers =
 //                        StringUtils.arraySplit(driverList, ',', false);
 //                    URL[] urls = new URL[drivers.length];
 //                    for(int i=0; i<drivers.length; i++) {
@@ -288,7 +288,7 @@ public class WebServer implements Service {
     public String getURL() {
         return url;
     }
-    
+
     private void updateURL() {
         url = (ssl ? "https" : "http") + "://" + NetUtils.getLocalAddress() + ":" + port;
     }
@@ -371,7 +371,7 @@ public class WebServer implements Service {
 
     /**
      * Write trace information if trace is enabled.
-     * 
+     *
      * @param s the message to write
      */
     void trace(String s) {
@@ -382,7 +382,7 @@ public class WebServer implements Service {
 
     /**
      * Write the stack trace if trace is enabled.
-     * 
+     *
      * @param e the exception
      */
     void traceError(Exception e) {
@@ -391,7 +391,7 @@ public class WebServer implements Service {
 
     /**
      * Check if this language is supported / translated.
-     * 
+     *
      * @param language the language
      * @return true if a translation is available
      */
@@ -402,7 +402,7 @@ public class WebServer implements Service {
     /**
      * Read the translation for this language and save them in the 'text'
      * property of this session.
-     * 
+     *
      * @param session the session
      * @param language the language
      */
@@ -474,7 +474,7 @@ public class WebServer implements Service {
 
     /**
      * Get the connection information for this setting.
-     * 
+     *
      * @param name the setting name
      * @return the connection information
      */
@@ -484,7 +484,7 @@ public class WebServer implements Service {
 
     /**
      * Update a connection information setting.
-     * 
+     *
      * @param info the connection information
      */
     void updateSetting(ConnectionInfo info) {
@@ -494,7 +494,7 @@ public class WebServer implements Service {
 
     /**
      * Remove a connection information setting from the list
-     * 
+     *
      * @param name the setting to remove
      */
     void removeSetting(String name) {
@@ -518,7 +518,7 @@ public class WebServer implements Service {
 
     /**
      * Get the list of connection information setting names.
-     * 
+     *
      * @return the connection info names
      */
     String[] getSettingNames() {
@@ -532,7 +532,7 @@ public class WebServer implements Service {
 
     /**
      * Get the list of connection info objects.
-     * 
+     *
      * @return the list
      */
     synchronized ArrayList getSettings() {
@@ -603,7 +603,7 @@ public class WebServer implements Service {
 
     /**
      * Open a database connection.
-     * 
+     *
      * @param driver the driver class name
      * @param url the database URL
      * @param user the user name
@@ -657,7 +657,7 @@ public class WebServer implements Service {
 
     /**
      * Create a session with a given connection.
-     * 
+     *
      * @param conn the connection
      * @return the URL of the web site to access this connection
      */
@@ -669,25 +669,25 @@ public class WebServer implements Service {
         String s = (String) session.get("sessionId");
         return url + "/frame.jsp?jsessionid=" + s;
     }
-    
+
     /**
      * The translate thread reads and writes the file translation.properties
      * once a second.
      */
     private static class TranslateThread extends Thread {
-        
+
         private final File file = new File("translation.properties");
         private final Map translation;
         private volatile boolean stopNow;
-        
+
         TranslateThread(Map translation) {
             this.translation = translation;
         }
-        
+
         public String getFileName() {
             return file.getAbsolutePath();
         }
-        
+
         public void stopNow() {
             this.stopNow = true;
             try {
@@ -696,7 +696,7 @@ public class WebServer implements Service {
                 // ignore
             }
         }
-        
+
         public void run() {
             while (!stopNow) {
                 try {
@@ -717,12 +717,12 @@ public class WebServer implements Service {
                 }
             }
         }
-        
+
     }
-    
+
     /**
      * Start the translation thread that reads the file once a second.
-     * 
+     *
      * @param translation the translation map
      * @return the name of the file to translate
      */

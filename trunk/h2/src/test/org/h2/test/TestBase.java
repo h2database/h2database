@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -41,7 +41,7 @@ public abstract class TestBase {
      * The test configuration.
      */
     public TestAll config;
-    
+
     /**
      * The time when the test was started.
      */
@@ -49,13 +49,13 @@ public abstract class TestBase {
 
     /**
      * Get the test directory for this test.
-     * 
+     *
      * @param name the directory name suffix
      */
     public static String getTestDir(String name) {
         return BASE_TEST_DIR + "/test" + name;
     }
-    
+
     /**
      * Start the TCP server if enabled in the configuration.
      */
@@ -65,7 +65,7 @@ public abstract class TestBase {
 
     /**
      * Initialize the test configuration using the default settings.
-     * 
+     *
      * @return itself
      */
     public TestBase init() {
@@ -76,7 +76,7 @@ public abstract class TestBase {
 
     /**
      * Initialize the test configuration.
-     * 
+     *
      * @param conf the configuration
      * @return itself
      */
@@ -88,7 +88,7 @@ public abstract class TestBase {
 
     /**
      * Run a test case using the given seed value.
-     * 
+     *
      * @param seed the random seed value
      */
     public void testCase(int seed) throws Exception {
@@ -99,7 +99,7 @@ public abstract class TestBase {
      * This method is initializes the test, runs the test by calling the test()
      * method, and prints status information. It also catches exceptions so that
      * the tests can continue.
-     * 
+     *
      * @param conf the test configuration
      */
     public void runTest(TestAll conf) {
@@ -127,7 +127,7 @@ public abstract class TestBase {
     /**
      * Open a database connection in admin mode. The default user name and
      * password is used.
-     * 
+     *
      * @param name the database name
      * @return the connection
      */
@@ -137,7 +137,7 @@ public abstract class TestBase {
 
     /**
      * Open a database connection.
-     * 
+     *
      * @param name the database name
      * @param user the user name to use
      * @param password the password to use
@@ -146,11 +146,11 @@ public abstract class TestBase {
     protected Connection getConnection(String name, String user, String password) throws SQLException {
         return getConnectionInternal(getURL(name, false), user, password);
     }
-    
+
     /**
      * Get the password to use to login for the given user password. The file
      * password is added if required.
-     * 
+     *
      * @param userPassword the password of this user
      * @return the login password
      */
@@ -161,7 +161,7 @@ public abstract class TestBase {
     /**
      * Get the login password. This is usually the user password. If file
      * encryption is used it is combined with the file password.
-     * 
+     *
      * @return the login password
      */
     protected String getPassword() {
@@ -181,7 +181,7 @@ public abstract class TestBase {
     /**
      * Get the database URL for the given database name using the current
      * configuration options.
-     * 
+     *
      * @param name the database name
      * @param admin true if the current user is an admin
      * @return the database URL
@@ -267,7 +267,7 @@ public abstract class TestBase {
 
     /**
      * Get the small or the big value depending on the configuration.
-     * 
+     *
      * @param small the value to return if the current test mode is 'small'
      * @param big the value to return if the current test mode is 'big'
      * @return small or big, depending on the configuration
@@ -282,7 +282,7 @@ public abstract class TestBase {
 
     /**
      * Write a message to system out if trace is enabled.
-     * 
+     *
      * @param x the value to write
      */
     protected void trace(int x) {
@@ -291,7 +291,7 @@ public abstract class TestBase {
 
     /**
      * Write a message to system out if trace is enabled.
-     * 
+     *
      * @param s the message to write
      */
     public void trace(String s) {
@@ -312,7 +312,7 @@ public abstract class TestBase {
     /**
      * Print the currently used memory, the message and the given time in
      * milliseconds.
-     * 
+     *
      * @param s the message
      * @param time the time in millis
      */
@@ -324,7 +324,7 @@ public abstract class TestBase {
 
     /**
      * Get the number of megabytes heap memory in use.
-     * 
+     *
      * @return the used megabytes
      */
     public static int getMemoryUsed() {
@@ -344,7 +344,7 @@ public abstract class TestBase {
 
     /**
      * Called if the test reached a point that was not expected.
-     * 
+     *
      * @throws AssertionError always throws an AssertionError
      */
     protected void fail() {
@@ -353,7 +353,7 @@ public abstract class TestBase {
 
     /**
      * Called if the test reached a point that was not expected.
-     * 
+     *
      * @param string the error message
      * @throws AssertionError always throws an AssertionError
      */
@@ -364,7 +364,7 @@ public abstract class TestBase {
 
     /**
      * Log an error message.
-     * 
+     *
      * @param s the message
      * @param e the exception
      */
@@ -393,7 +393,7 @@ public abstract class TestBase {
 
     /**
      * Print a message to system out.
-     * 
+     *
      * @param s the message
      */
     protected void println(String s) {
@@ -403,7 +403,7 @@ public abstract class TestBase {
 
     /**
      * Print a message, prepended with the specified time in milliseconds.
-     * 
+     *
      * @param millis the time in milliseconds
      * @param s the message
      */
@@ -413,28 +413,28 @@ public abstract class TestBase {
 
     /**
      * Print the current time and a message to system out.
-     * 
+     *
      * @param s the message
-     */    
+     */
     protected void printTime(String s) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         println(dateFormat.format(new java.util.Date()) + " " + s);
     }
-    
+
     /**
      * Format the time in the format hh:mm:ss.1234 where 1234 is milliseconds.
-     * 
+     *
      * @param millis the time in milliseconds
      * @return the formatted time
      */
     static String formatTime(long millis) {
-        return new java.sql.Time(java.sql.Time.valueOf("0:0:0").getTime() + millis).toString() 
+        return new java.sql.Time(java.sql.Time.valueOf("0:0:0").getTime() + millis).toString()
         + "." + ("" + (1000 + (millis % 1000))).substring(1);
-    }    
+    }
 
     /**
      * Delete all database files for this database.
-     * 
+     *
      * @param name the database name
      */
     protected void deleteDb(String name) throws SQLException {
@@ -443,7 +443,7 @@ public abstract class TestBase {
 
     /**
      * Delete all database files for a database.
-     * 
+     *
      * @param dir the directory where the database files are located
      * @param name the database name
      */
@@ -453,14 +453,14 @@ public abstract class TestBase {
 
     /**
      * This method will be called by the test framework.
-     * 
+     *
      * @throws Exception if an exception in the test occurs
      */
     public abstract void test() throws Exception;
 
     /**
      * Check if two values are equal, and if not throw an exception.
-     * 
+     *
      * @param message the message to print in case of error
      * @param expected the expected value
      * @param actual the actual value
@@ -471,10 +471,10 @@ public abstract class TestBase {
             fail("Expected: " + expected + " actual: " + actual + " message: " + message);
         }
     }
-    
+
     /**
      * Check if two values are equal, and if not throw an exception.
-     * 
+     *
      * @param expected the expected value
      * @param actual the actual value
      * @throws AssertionError if the values are not equal
@@ -487,7 +487,7 @@ public abstract class TestBase {
 
     /**
      * Check if two values are equal, and if not throw an exception.
-     * 
+     *
      * @param expected the expected value
      * @param actual the actual value
      * @throws AssertionError if the values are not equal
@@ -503,7 +503,7 @@ public abstract class TestBase {
 
     /**
      * Check if two values are equal, and if not throw an exception.
-     * 
+     *
      * @param expected the expected value
      * @param actual the actual value
      * @throws AssertionError if the values are not equal
@@ -537,11 +537,11 @@ public abstract class TestBase {
     /**
      * Check if the first value is larger or equal than the second value, and if
      * not throw an exception.
-     * 
+     *
      * @param a the first value
      * @param b the second value (must be smaller than the first value)
      * @throws AssertionError if the first value is smaller
-     */    
+     */
     protected void assertSmaller(long a, long b) {
         if (a >= b) {
             fail("a: " + a + " is not smaller than b: " + b);
@@ -550,33 +550,33 @@ public abstract class TestBase {
 
     /**
      * Check that a result contains the given substring.
-     * 
+     *
      * @param result the result value
      * @param contains the term that should appear in the result
      * @throws AssertionError if the term was not found
-     */   
+     */
     protected void assertContains(String result, String contains) {
         if (result.indexOf(contains) < 0) {
             fail(result + " does not contain: " + contains);
         }
     }
-    
+
     /**
      * Check that a text starts with the expected characters..
-     * 
+     *
      * @param text the text
      * @param  expectedStart the expected prefix
      * @throws AssertionError if the text does not start with the expected characters
-     */  
+     */
     protected void assertStartsWith(String text, String expectedStart) {
         if (!text.startsWith(expectedStart)) {
             fail(text + " does not start with: " + expectedStart);
         }
     }
-    
+
     /**
      * Check if two values are equal, and if not throw an exception.
-     * 
+     *
      * @param expected the expected value
      * @param actual the actual value
      * @throws AssertionError if the values are not equal
@@ -589,7 +589,7 @@ public abstract class TestBase {
 
     /**
      * Check if two values are equal, and if not throw an exception.
-     * 
+     *
      * @param expected the expected value
      * @param actual the actual value
      * @throws AssertionError if the values are not equal
@@ -598,7 +598,7 @@ public abstract class TestBase {
         if (expected != actual) {
             if (Double.isNaN(expected) && Double.isNaN(actual)) {
                 // if both a NaN, then there is no error
-            } else {                
+            } else {
                 fail("Expected: " + expected + " actual: " + actual);
             }
         }
@@ -606,7 +606,7 @@ public abstract class TestBase {
 
     /**
      * Check if two values are equal, and if not throw an exception.
-     * 
+     *
      * @param expected the expected value
      * @param actual the actual value
      * @throws AssertionError if the values are not equal
@@ -623,7 +623,7 @@ public abstract class TestBase {
 
     /**
      * Check if two values are equal, and if not throw an exception.
-     * 
+     *
      * @param expected the expected value
      * @param actual the actual value
      * @throws AssertionError if the values are not equal
@@ -633,10 +633,10 @@ public abstract class TestBase {
             fail("Boolean expected: " + expected + " actual: " + actual);
         }
     }
-    
+
     /**
      * Check that the passed boolean is true.
-     * 
+     *
      * @param condition the condition
      * @throws AssertionError if the condition is false
      */
@@ -646,7 +646,7 @@ public abstract class TestBase {
 
     /**
      * Check that the passed boolean is true.
-     * 
+     *
      * @param message the message to print if the condition is false
      * @param condition the condition
      * @throws AssertionError if the condition is false
@@ -659,17 +659,17 @@ public abstract class TestBase {
 
     /**
      * Check that the passed boolean is false.
-     * 
+     *
      * @param value the condition
      * @throws AssertionError if the condition is true
      */
     protected void assertFalse(boolean value) {
         assertFalse("Expected: false got: true", value);
     }
-    
+
     /**
      * Check that the passed boolean is false.
-     * 
+     *
      * @param message the message to print if the condition is false
      * @param value the condition
      * @throws AssertionError if the condition is true
@@ -677,12 +677,12 @@ public abstract class TestBase {
     protected void assertFalse(String message, boolean value) {
         if (value) {
             fail(message);
-        }        
+        }
     }
-    
+
     /**
      * Check that the result set row count matches.
-     * 
+     *
      * @param rs the result set
      * @param expected the number of expected rows
      * @throws AssertionError if a different number of rows have been found
@@ -697,7 +697,7 @@ public abstract class TestBase {
 
     /**
      * Check that the result set of a query is exactly this value.
-     * 
+     *
      * @param stat the statement
      * @param sql the SQL statement to execute
      * @param expected the expected result value
@@ -709,10 +709,10 @@ public abstract class TestBase {
         assertEquals(expected, rs.getInt(1));
         assertFalse(rs.next());
     }
-    
+
     /**
      * Check that the result set of a query is exactly this value.
-     * 
+     *
      * @param stat the statement
      * @param sql the SQL statement to execute
      * @param expected the expected result value
@@ -730,7 +730,7 @@ public abstract class TestBase {
 
     /**
      * Check if the result set meta data is correct.
-     * 
+     *
      * @param rs the result set
      * @param columnCount the expected column count
      * @param labels the expected column labels
@@ -803,7 +803,7 @@ public abstract class TestBase {
     /**
      * Check if a result set contains the expected data.
      * The sort order is significant
-     * 
+     *
      * @param rs the result set
      * @param data the expected data
      * @throws AssertionError if there is a mismatch
@@ -815,7 +815,7 @@ public abstract class TestBase {
     /**
      * Check if a result set contains the expected data.
      * The sort order is not significant
-     * 
+     *
      * @param rs the result set
      * @param data the expected data
      * @throws AssertionError if there is a mismatch
@@ -826,7 +826,7 @@ public abstract class TestBase {
 
     /**
      * Check if a result set contains the expected data.
-     * 
+     *
      * @param ordered if the sort order is significant
      * @param rs the result set
      * @param data the expected data
@@ -914,7 +914,7 @@ public abstract class TestBase {
      * Simulate a database crash. This method will also close the database
      * files, but the files are in a state as the power was switched off. It
      * doesn't throw an exception.
-     * 
+     *
      * @param conn the database connection
      */
     protected void crash(Connection conn) throws SQLException {
@@ -935,7 +935,7 @@ public abstract class TestBase {
 
     /**
      * Read a string from the reader. This method reads until end of file.
-     * 
+     *
      * @param reader the reader
      * @return the string read
      */
@@ -962,7 +962,7 @@ public abstract class TestBase {
     /**
      * Check that a given exception is not an unexpected 'general error'
      * exception.
-     * 
+     *
      * @param e the error
      */
     protected void assertKnownException(SQLException e) {
@@ -972,7 +972,7 @@ public abstract class TestBase {
     /**
      * Check that a given exception is not an unexpected 'general error'
      * exception.
-     * 
+     *
      * @param message the message
      * @param e the exception
      */
@@ -984,7 +984,7 @@ public abstract class TestBase {
 
     /**
      * Check if two values are equal, and if not throw an exception.
-     * 
+     *
      * @param expected the expected value
      * @param actual the actual value
      * @throws AssertionError if the values are not equal
@@ -996,10 +996,10 @@ public abstract class TestBase {
             assertEquals(expected.intValue(), actual.intValue());
         }
     }
-    
+
     /**
      * Check if two databases contain the same met data.
-     * 
+     *
      * @param stat1 the connection to the first database
      * @param stat2 the connection to the second database
      * @throws AssertionError if the databases don't match
@@ -1030,7 +1030,7 @@ public abstract class TestBase {
 
     /**
      * Create a new object of the calling class.
-     * 
+     *
      * @return the new test
      */
     public static TestBase createCaller() {

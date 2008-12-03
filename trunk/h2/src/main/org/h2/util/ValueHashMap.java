@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -25,7 +25,7 @@ public class ValueHashMap extends HashBase {
     /**
      * Create a new value hash map using the given data handler.
      * The data handler is used to compare values.
-     * 
+     *
      * @param handler the data handler
      */
     public ValueHashMap(DataHandler handler) {
@@ -56,7 +56,7 @@ public class ValueHashMap extends HashBase {
 
     /**
      * Add or update a key value pair.
-     * 
+     *
      * @param key the key
      * @param value the new value
      */
@@ -95,7 +95,7 @@ public class ValueHashMap extends HashBase {
 
     /**
      * Remove a key value pair.
-     * 
+     *
      * @param key the key
      */
     public void remove(Value key) throws SQLException {
@@ -125,7 +125,7 @@ public class ValueHashMap extends HashBase {
     /**
      * Get the value for this key. This method returns null if the key was not
      * found.
-     * 
+     *
      * @param key the key
      * @return the value for the given key
      */
@@ -150,7 +150,7 @@ public class ValueHashMap extends HashBase {
 
     /**
      * Get the list of keys.
-     * 
+     *
      * @return all keys
      */
     public ObjectArray keys() {
@@ -166,7 +166,7 @@ public class ValueHashMap extends HashBase {
 
     /**
      * Get the list of values.
-     * 
+     *
      * @return all values
      */
     public ObjectArray values() {

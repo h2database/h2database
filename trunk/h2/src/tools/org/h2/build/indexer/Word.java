@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -15,12 +15,12 @@ import java.util.HashMap;
  * Represents a word of the full text index.
  */
 public class Word {
-    
+
     /**
      * The word text.
      */
     String name;
-    
+
     private HashMap pages = new HashMap();
     private ArrayList weightList;
 
@@ -30,7 +30,7 @@ public class Word {
 
     /**
      * Add a page to this word.
-     * 
+     *
      * @param page the page
      * @param weight the weight of this word in this page
      */

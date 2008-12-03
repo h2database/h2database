@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -15,18 +15,18 @@ import org.slf4j.LoggerFactory;
  * 1.4 logging, x4juli, and Simple Log. To use SLF4J, you need to add the
  * required jar files to the classpath, and set the trace level to 4 when opening
  * a database:
- * 
+ *
  * <pre>
  * jdbc:h2:&tilde;/test;TRACE_LEVEL_FILE=4
  * </pre>
- * 
+ *
  * The logger name is 'h2database'.
  */
 public class TraceWriterAdapter implements TraceWriter {
-    
+
     private String name;
     private Logger logger = LoggerFactory.getLogger("h2database");
-    
+
     public void setName(String name) {
         this.name = name;
     }

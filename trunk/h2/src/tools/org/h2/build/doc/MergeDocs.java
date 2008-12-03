@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -25,7 +25,7 @@ public class MergeDocs {
     /**
      * This method is called when executing this application from the command
      * line.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String[] args) throws Exception {
@@ -36,7 +36,7 @@ public class MergeDocs {
         // the order of pages is important here
         String[] pages = { "quickstart.html", "installation.html", "tutorial.html", "features.html",
                 "performance.html", "advanced.html", "grammar.html", "functions.html", "datatypes.html", "build.html",
-                "history.html", "faq.html" };    
+                "history.html", "faq.html" };
         StringBuffer buff = new StringBuffer();
         for (int i = 0; i < pages.length; i++) {
             String fileName = pages[i];

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -13,7 +13,7 @@ package org.h2.message;
  * that uses SLF4J (Simple Logging Facade for Java).
  */
 interface TraceWriter {
-    
+
     /**
      * Set the name of the database or trace object.
      */
@@ -21,7 +21,7 @@ interface TraceWriter {
 
     /**
      * Write a message.
-     * 
+     *
      * @param level the trace level
      * @param module the name of the module
      * @param s the message
@@ -31,7 +31,7 @@ interface TraceWriter {
 
     /**
      * Check the given trace / log level is enabled.
-     * 
+     *
      * @param level the level
      * @return true if the level is enabled
      */

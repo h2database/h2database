@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -17,7 +17,7 @@ import org.h2.message.Message;
 public class ByteUtils {
 
     private static final char[] HEX = "0123456789abcdef".toCharArray();
-    
+
     private ByteUtils() {
         // utility class
     }
@@ -29,7 +29,7 @@ public class ByteUtils {
     /**
      * Read a long value from the byte array at the given position. The most
      * significant byte is read first.
-     * 
+     *
      * @param buff the byte array
      * @param pos the position
      * @return the value
@@ -43,7 +43,7 @@ public class ByteUtils {
      * array, starting with the given index. This methods returns -1 if the
      * pattern has not been found, and the start position if the pattern is
      * empty.
-     * 
+     *
      * @param bytes the byte array
      * @param pattern the pattern
      * @param start the start index from where to search
@@ -70,7 +70,7 @@ public class ByteUtils {
 
     /**
      * Convert a hex encoded string to a byte array.
-     * 
+     *
      * @param s the hex encoded string
      * @return the byte array
      */
@@ -102,7 +102,7 @@ public class ByteUtils {
 
     /**
      * Calculate the hash code of the given byte array.
-     * 
+     *
      * @param value the byte array
      * @return the hash code
      */
@@ -128,7 +128,7 @@ public class ByteUtils {
 
     /**
      * Convert a byte array to a hex encoded string.
-     * 
+     *
      * @param value the byte array
      * @return the hex encoded string
      */
@@ -138,7 +138,7 @@ public class ByteUtils {
 
     /**
      * Convert a byte array to a hex encoded string.
-     * 
+     *
      * @param value the byte array
      * @param len the number of bytes to encode
      * @return the hex encoded string
@@ -158,7 +158,7 @@ public class ByteUtils {
      * Compare two byte arrays. This method will always loop over all bytes and
      * doesn't use conditional operations in the loop to make sure an attacker
      * can not use a timing attack when trying out passwords.
-     * 
+     *
      * @param test the first array
      * @param good the second array
      * @return true if both byte arrays contain the same bytes
@@ -184,7 +184,7 @@ public class ByteUtils {
 
     /**
      * Set all elements of the array to zero.
-     * 
+     *
      * @param buff the byte array
      */
     public static void clear(byte[] buff) {
@@ -198,7 +198,7 @@ public class ByteUtils {
      * first array is smaller than the second array, -1 is returned. If the
      * content or length of the second array is smaller than the first array, 1
      * is returned. If the contents and lengths are the same, 0 is returned.
-     * 
+     *
      * @param data1 the first byte array (must not be null)
      * @param data2 the second byte array (must not be null)
      * @return the result of the comparison (-1, 1 or 0)
@@ -219,7 +219,7 @@ public class ByteUtils {
     /**
      * Copy the contents of the source array to the target array. If the size if
      * the target array is too small, a larger array is created.
-     * 
+     *
      * @param source the source array
      * @param target the target array
      * @return the target array or a new one if the target array was too small
@@ -236,7 +236,7 @@ public class ByteUtils {
     /**
      * Create a new byte array and copy all the data. If the size of the byte
      * array is zero, the same array is returned.
-     * 
+     *
      * @param b the byte array (may not be null)
      * @return a new byte array
      */
@@ -257,7 +257,7 @@ public class ByteUtils {
      * Create an array of bytes with the given size. If this is not possible
      * because not enough memory is available, an OutOfMemoryError with the
      * requested size in the message is thrown.
-     * 
+     *
      * @param len the number of bytes requested
      * @return the byte array
      * @throws OutOfMemoryError
@@ -270,6 +270,6 @@ public class ByteUtils {
             e2.initCause(e);
             throw e2;
         }
-    } 
+    }
 
 }

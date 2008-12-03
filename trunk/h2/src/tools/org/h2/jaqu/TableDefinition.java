@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -19,7 +19,7 @@ import org.h2.jaqu.util.Utils;
 /**
  * A table definition contains the index definitions of a table, the field
  * definitions, the table name, and other meta data.
- * 
+ *
  * @param <T> the table type
  */
 //## Java 1.5 begin ##
@@ -36,7 +36,7 @@ class TableDefinition<T> {
         String[] columnNames;
     }
 //## Java 1.5 end ##
-    
+
     /**
      * The meta data of a field.
      */
@@ -46,7 +46,7 @@ class TableDefinition<T> {
         Field field;
         String dataType;
         int maxLength;
-        
+
         Object getValue(Object obj) {
             try {
                 return field.get(obj);
@@ -54,12 +54,12 @@ class TableDefinition<T> {
                 throw new RuntimeException(e);
             }
         }
-        
+
         void initWithNewObject(Object obj) {
             Object o = Utils.newObject(field.getType());
             setValue(obj, o);
         }
-        
+
         void setValue(Object obj, Object o) {
             try {
                 o = Utils.convert(o, field.getType());
@@ -68,7 +68,7 @@ class TableDefinition<T> {
                 throw new RuntimeException(e);
             }
         }
-        
+
         @SuppressWarnings("unchecked")
         X read(ResultSet rs, int columnIndex) {
             try {
@@ -78,11 +78,11 @@ class TableDefinition<T> {
             }
         }
     }
-    
+
     String tableName;
     private Class<T> clazz;
     private ArrayList<FieldDefinition> fields = Utils.newArrayList();
-    private IdentityHashMap<Object, FieldDefinition> fieldMap = 
+    private IdentityHashMap<Object, FieldDefinition> fieldMap =
             Utils.newIdentityHashMap();
     private String[] primaryKeyColumnNames;
     private ArrayList<IndexDefinition> indexes = Utils.newArrayList();
@@ -91,7 +91,7 @@ class TableDefinition<T> {
         this.clazz = clazz;
         tableName = clazz.getSimpleName();
     }
-    
+
     void setTableName(String tableName) {
         this.tableName = tableName;
     }
@@ -99,12 +99,12 @@ class TableDefinition<T> {
     void setPrimaryKey(Object[] primaryKeyColumns) {
         this.primaryKeyColumnNames = mapColumnNames(primaryKeyColumns);
     }
-    
+
     <A> String getColumnName(A fieldObject) {
         FieldDefinition def = fieldMap.get(fieldObject);
         return def == null ? null : def.columnName;
     }
-    
+
     private String[] mapColumnNames(Object[] columns) {
         int len = columns.length;
         String[] columnNames = new String[len];
@@ -113,14 +113,14 @@ class TableDefinition<T> {
         }
         return columnNames;
     }
-    
+
     void addIndex(Object[] columns) {
         IndexDefinition index = new IndexDefinition();
         index.indexName = tableName + "_" + indexes.size();
         index.columnNames = mapColumnNames(columns);
         indexes.add(index);
     }
-    
+
     public void setMaxLength(Object column, int maxLength) {
         String columnName = getColumnName(column);
         for (FieldDefinition f: fields) {
@@ -141,7 +141,7 @@ class TableDefinition<T> {
             fields.add(fieldDef);
         }
     }
-    
+
     private String getDataType(Field field) {
         Class< ? > clazz = field.getType();
         if (clazz == Integer.class) {
@@ -164,7 +164,7 @@ class TableDefinition<T> {
         return "VARCHAR";
         // TODO add more data types
     }
-    
+
     void insert(Db db, Object obj) {
         SqlStatement stat = new SqlStatement(db);
         StringBuilder buff = new StringBuilder("INSERT INTO ");
@@ -178,7 +178,7 @@ class TableDefinition<T> {
             FieldDefinition field = fields.get(i);
             Object value = field.getValue(obj);
             stat.addParameter(value);
-        }        
+        }
         buff.append(')');
         stat.setSQL(buff.toString());
         stat.executeUpdate();
@@ -208,7 +208,7 @@ class TableDefinition<T> {
             for (int i = 0; i < primaryKeyColumnNames.length; i++) {
                 if (i > 0) {
                     buff.append(", ");
-                }                
+                }
                 buff.append(primaryKeyColumnNames[i]);
             }
             buff.append(')');
@@ -224,7 +224,7 @@ class TableDefinition<T> {
         fieldMap.clear();
         initObject(obj, fieldMap);
     }
-    
+
     void initObject(Object obj, Map<Object, FieldDefinition> map) {
         for (FieldDefinition def : fields) {
             def.initWithNewObject(obj);
@@ -232,7 +232,7 @@ class TableDefinition<T> {
         }
     }
 
-    void initSelectObject(SelectTable table, Object obj, 
+    void initSelectObject(SelectTable table, Object obj,
             Map<Object, SelectColumn> map) {
         for (FieldDefinition def : fields) {
             def.initWithNewObject(obj);
@@ -248,7 +248,7 @@ class TableDefinition<T> {
             def.setValue(item, o);
         }
     }
-    
+
     <X> SqlStatement getSelectList(Query query, X x) {
         SqlStatement selectList = new SqlStatement(query.getDb());
         for (int i = 0; i < fields.size(); i++) {
@@ -261,7 +261,7 @@ class TableDefinition<T> {
         }
         return selectList;
     }
-    
+
     <U, X> void copyAttributeValues(Query query, X to, X map) {
         for (FieldDefinition def : fields) {
             Object obj = def.getValue(map);

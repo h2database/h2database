@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -36,7 +36,7 @@ public class FileSystemDatabase extends FileSystem {
     private String url;
     private HashMap preparedMap = new HashMap();
     private boolean log;
-    
+
     private FileSystemDatabase(String url, Connection conn, boolean log) throws SQLException {
         this.url = url;
         this.conn = conn;
@@ -429,7 +429,7 @@ public class FileSystemDatabase extends FileSystem {
 
     /**
      * Update a file in the file system.
-     * 
+     *
      * @param fileName the file name
      * @param b the data
      * @param len the number of bytes

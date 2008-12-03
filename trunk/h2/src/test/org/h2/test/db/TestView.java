@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -23,7 +23,7 @@ public class TestView extends TestBase {
         testManyViews();
         deleteDb("view");
     }
-    
+
     private void testUnionReconnect() throws SQLException {
         if (config.memory) {
             return;
@@ -34,9 +34,9 @@ public class TestView extends TestBase {
         stat.execute("create table t1(k smallint, ts timestamp(6))");
         stat.execute("create table t2(k smallint, ts timestamp(6))");
         stat.execute("create table t3(k smallint, ts timestamp(6))");
-        stat.execute("create view v_max_ts as select " + 
-                "max(ts) from (select max(ts) as ts from t1 " + 
-                "union select max(ts) as ts from t2 " + 
+        stat.execute("create view v_max_ts as select " +
+                "max(ts) from (select max(ts) as ts from t1 " +
+                "union select max(ts) as ts from t2 " +
                 "union select max(ts) as ts from t3)");
         stat.execute("create view v_test as select max(ts) as ts from t1 " +
                 "union select max(ts) as ts from t2 " +
@@ -48,7 +48,7 @@ public class TestView extends TestBase {
         conn.close();
         deleteDb("view");
     }
-    
+
     private void testManyViews() throws SQLException {
         deleteDb("view");
         Connection conn = getConnection("view");

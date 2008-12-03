@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -25,7 +25,7 @@ import org.h2.test.unit.SelfDestructor;
 public class TestKill extends TestBase {
 
     private static final String DIR = TestBase.getTestDir("kill");
-    
+
     private Connection conn;
     private int accounts = 10;
     private Random random = new Random(1);
@@ -39,9 +39,9 @@ public class TestKill extends TestBase {
         String user = getUser();
         String password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);
-        String[] procDef = new String[] { 
-                "java", selfDestruct, 
-                "-cp", "bin" + File.pathSeparator + ".", 
+        String[] procDef = new String[] {
+                "java", selfDestruct,
+                "-cp", "bin" + File.pathSeparator + ".",
                 "org.h2.test.synth.TestKillProcess", url, user,
                 password, baseDir, "" + accounts };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -18,19 +18,19 @@ import org.h2.test.TestBase;
  * This class tests the JdbcConnectionPool.
  */
 public class TestConnectionPool extends TestBase {
-    
+
     public void test() throws Exception {
         deleteDb("connectionPool");
         testConnect();
         testThreads();
         deleteDb("connectionPool");
     }
-    
+
     private void testThreads() throws Exception {
         final int len = getSize(4, 20);
         final JdbcConnectionPool man = getConnectionPool(len - 2);
         final boolean[] stop = new boolean[1];
-        
+
         /**
          * This class gets and returns connections from the pool.
          */
@@ -41,7 +41,7 @@ public class TestConnectionPool extends TestBase {
                         Connection conn = man.getConnection();
                         if (man.getActiveConnections() >= len + 1) {
                             throw new Exception("a: " + man.getActiveConnections()  + " is not smaller than b: " + len + 1);
-                        }                        
+                        }
                         Statement stat = conn.createStatement();
                         stat.execute("SELECT 1 FROM DUAL");
                         conn.close();
@@ -65,7 +65,7 @@ public class TestConnectionPool extends TestBase {
         assertEquals(0, man.getActiveConnections());
         man.dispose();
     }
-    
+
     private JdbcConnectionPool getConnectionPool(int poolSize) throws SQLException {
         JdbcDataSource ds = new JdbcDataSource();
         ds.setURL(getURL("connectionPool", true));
@@ -75,7 +75,7 @@ public class TestConnectionPool extends TestBase {
         pool.setMaxConnections(poolSize);
         return pool;
     }
-    
+
     private void testConnect() throws SQLException {
         JdbcConnectionPool man = getConnectionPool(3);
         for (int i = 0; i < 100; i++) {

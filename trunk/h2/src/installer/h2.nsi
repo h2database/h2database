@@ -7,7 +7,7 @@
   CRCCheck on
 
   InstallDir "$PROGRAMFILES\H2"
-  
+
   InstallDirRegKey HKCU "Software\H2" ""
 
 ;--------------------------------
@@ -25,31 +25,31 @@
 ;Language Selection Dialog Settings
 
   ;Remember the installer language
-  !define MUI_LANGDLL_REGISTRY_ROOT "HKCU" 
-  !define MUI_LANGDLL_REGISTRY_KEY "Software\H2" 
+  !define MUI_LANGDLL_REGISTRY_ROOT "HKCU"
+  !define MUI_LANGDLL_REGISTRY_KEY "Software\H2"
   !define MUI_LANGDLL_REGISTRY_VALUENAME "Installer Language"
-  
+
 ;--------------------------------
 ;Pages
 
   !insertmacro MUI_PAGE_DIRECTORY
-  
+
   ;Start Menu Folder Page Configuration
-  !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU" 
-  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\H2" 
+  !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU"
+  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\H2"
   !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
   !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\docs\index.html"
-   
+
   !insertmacro MUI_PAGE_STARTMENU Application $STARTMENU_FOLDER
   !insertmacro MUI_PAGE_INSTFILES
-  !insertmacro MUI_PAGE_FINISH  
-  
+  !insertmacro MUI_PAGE_FINISH
+
   !insertmacro MUI_UNPAGE_CONFIRM
   !insertmacro MUI_UNPAGE_INSTFILES
 
 ;--------------------------------
 ;Languages
- 
+
   !insertmacro MUI_LANGUAGE "English" # first language is the default language
   !insertmacro MUI_LANGUAGE "German"
   !insertmacro MUI_LANGUAGE "Spanish"
@@ -101,11 +101,11 @@
 
 ;--------------------------------
 ;Reserve Files
-  
+
   ;These files should be inserted before other files in the data block
   ;Keep these lines before any File command
   ;Only for solid compression (by default, solid compression is enabled for BZIP2 and LZMA)
-  
+
   !insertmacro MUI_RESERVEFILE_LANGDLL
 
 ;--------------------------------
@@ -122,10 +122,10 @@ Section "All"
   SetOutPath "$INSTDIR\service"
   File /r /x CVS /x .cvsignore /x .svn ..\..\service\*.*
   SetOutPath "$INSTDIR"
-  File /r /x CVS /x .cvsignore ..\..\build.bat  
-  File /r /x CVS /x .cvsignore ..\..\build.sh  
-  File /r /x CVS /x .cvsignore ..\..\build.xml  
-  
+  File /r /x CVS /x .cvsignore ..\..\build.bat
+  File /r /x CVS /x .cvsignore ..\..\build.sh
+  File /r /x CVS /x .cvsignore ..\..\build.xml
+
   WriteRegStr HKCU "Software\H2" "" $INSTDIR
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\H2" "DisplayName" "H2"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\H2" "UninstallString" "$INSTDIR\Uninstall.exe"
@@ -135,7 +135,7 @@ Section "All"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\H2" "NoRepair" "1"
 
   WriteUninstaller "$INSTDIR\Uninstall.exe"
-  
+
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   SetOutPath "$INSTDIR\bin"
   CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
@@ -157,19 +157,19 @@ Section "Uninstall"
   Delete "$INSTDIR\Uninstall.exe"
 
   !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
-    
+
   Delete "$SMPROGRAMS\$MUI_TEMP\*.lnk"
-  
+
   ;Delete empty start menu parent diretories
   StrCpy $MUI_TEMP "$SMPROGRAMS\$MUI_TEMP"
- 
+
   startMenuDeleteLoop:
     ClearErrors
     RMDir $MUI_TEMP
     GetFullPathName $MUI_TEMP "$MUI_TEMP\.."
-    
+
     IfErrors startMenuDeleteLoopDone
-  
+
     StrCmp $MUI_TEMP $SMPROGRAMS startMenuDeleteLoopDone startMenuDeleteLoop
   startMenuDeleteLoopDone:
 

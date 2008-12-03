@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -28,9 +28,9 @@ import org.h2.value.ValueString;
  * Pattern matching comparison expression: WHERE NAME LIKE ?
  */
 public class CompareLike extends Condition {
-    
+
     private static final int MATCH = 0, ONE = 1, ANY = 2;
-    
+
     private final CompareMode compareMode;
     private final boolean regexp;
     private Expression left;
@@ -263,7 +263,7 @@ public class CompareLike extends Condition {
 
     /**
      * Test if the value matches the pattern.
-     * 
+     *
      * @param pattern the pattern
      * @param value the value
      * @param escape the escape character

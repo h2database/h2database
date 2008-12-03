@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -33,11 +33,11 @@ public class Server implements Runnable, ShutdownHandler {
     private Service service;
     private Server web, tcp, pg, ftp;
     private ShutdownHandler shutdownHandler;
-    
+
     public Server() {
         // nothing to do
     }
-    
+
     private Server(Service service, String[] args) throws SQLException {
         this.service = service;
         try {
@@ -91,10 +91,10 @@ public class Server implements Runnable, ShutdownHandler {
      * <ul>
      * <li>-help or -? (print the list of options) </li>
      * <li>-web (start the Web Server and H2 Console) </li>
-     * <li>-browser (start a browser and open a page to connect to the 
+     * <li>-browser (start a browser and open a page to connect to the
      *     Web Server) </li>
      * <li>-tcp (start the TCP Server) </li>
-     * <li>-tcpShutdown {url} (shutdown the running TCP Server, 
+     * <li>-tcpShutdown {url} (shutdown the running TCP Server,
      *     URL example: tcp://localhost:9094) </li>
      * <li>-pg (start the PG Server) </li>
      * <li>-ftp (start the FTP Server) </li>
@@ -127,7 +127,7 @@ public class Server implements Runnable, ShutdownHandler {
      * <li>-ftpWrite {writeUserName} </li>
      * <li>-ftpWritePassword {password} </li>
      * </ul>
-     * 
+     *
      * @param args the command line arguments
      * @throws SQLException
      */
@@ -331,11 +331,11 @@ public class Server implements Runnable, ShutdownHandler {
      * connections are killed. After calling the method with force=false, it is
      * not possible to call it again with force=true because new connections are
      * not allowed. Example:
-     * 
+     *
      * <pre>
      * Server.shutdownTcpServer(&quot;tcp://localhost:9094&quot;, password, true);
      * </pre>
-     * 
+     *
      * @param url example: tcp://localhost:9094
      * @param password the password to use ("" for no password)
      * @param force the shutdown (don't wait)
@@ -368,12 +368,12 @@ public class Server implements Runnable, ShutdownHandler {
 
     /**
      * Create a new web server, but does not start it yet. Example:
-     * 
+     *
      * <pre>
      * Server server = Server.createWebServer(
      *     new String[] { &quot;-trace&quot; }).start();
      * </pre>
-     * 
+     *
      * @param args
      * @return the server
      */
@@ -386,12 +386,12 @@ public class Server implements Runnable, ShutdownHandler {
 
     /**
      * Create a new ftp server, but does not start it yet. Example:
-     * 
+     *
      * <pre>
      * Server server = Server.createFtpServer(
      *     new String[] { &quot;-trace&quot; }).start();
      * </pre>
-     * 
+     *
      * @param args
      * @return the server
      */
@@ -401,12 +401,12 @@ public class Server implements Runnable, ShutdownHandler {
 
     /**
      * Create a new TCP server, but does not start it yet. Example:
-     * 
+     *
      * <pre>
      * Server server = Server.createTcpServer(
      *     new String[] { &quot;-tcpAllowOthers&quot; }).start();
      * </pre>
-     * 
+     *
      * @param args
      * @return the server
      */
@@ -418,7 +418,7 @@ public class Server implements Runnable, ShutdownHandler {
      * Create a new PG server, but does not start it yet.
      * Example:
      * <pre>
-     * Server server = 
+     * Server server =
      *     Server.createPgServer(new String[]{
      *         "-pgAllowOthers"}).start();
      * </pre>
@@ -448,7 +448,7 @@ public class Server implements Runnable, ShutdownHandler {
         }
         if (isRunning(true)) {
             return this;
-        }        
+        }
         throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
     }
 
@@ -500,16 +500,16 @@ public class Server implements Runnable, ShutdownHandler {
 
     /**
      * Gets the URL of this server.
-     * 
+     *
      * @return the url
      */
     public String getURL() {
         return service.getURL();
     }
-    
+
     /**
      * Gets the port this server is listening on.
-     * 
+     *
      * @return the port
      */
     public int getPort() {
@@ -555,12 +555,12 @@ public class Server implements Runnable, ShutdownHandler {
     public Service getService() {
         return service;
     }
-    
+
     /**
      * Start a web server and a browser that uses the given connection. The
      * current transaction is preserved. This is specially useful to manually
      * inspect the database when debugging.
-     * 
+     *
      * @param conn the database connection (the database must be open)
      */
     public static void startWebServer(Connection conn) throws SQLException {

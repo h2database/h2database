@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -27,17 +27,17 @@ public class Right extends DbObjectBase {
      * The right bit mask that means: deleting rows from a table is allowed.
      */
     public static final int DELETE = 2;
-    
+
     /**
      * The right bit mask that means: inserting rows into a table is allowed.
      */
     public static final int INSERT = 4;
-    
+
     /**
      * The right bit mask that means: updating data is allowed.
      */
     public static final int UPDATE = 8;
-    
+
     /**
      * The right bit mask that means: select, insert, update, delete, and update
      * for this object is allowed.

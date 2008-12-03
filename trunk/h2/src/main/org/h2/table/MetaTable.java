@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -65,11 +65,11 @@ import org.h2.value.ValueString;
 public class MetaTable extends Table {
 
     /**
-     * The approximate number of rows of a meta table. 
+     * The approximate number of rows of a meta table.
      */
     public static final long ROW_COUNT_APPROXIMATION = 1000;
 
-    // TODO INFORMATION_SCHEMA.tables: select table_name 
+    // TODO INFORMATION_SCHEMA.tables: select table_name
     // from INFORMATION_SCHEMA.tables where TABLE_TYPE = 'BASE TABLE'
 
     private static final int TABLES = 0;
@@ -101,14 +101,14 @@ public class MetaTable extends Table {
     private static final int LOCKS = 26;
     private static final int SESSION_STATE = 27;
     private static final int META_TABLE_TYPE_COUNT = SESSION_STATE + 1;
-    
+
     private final int type;
     private final int indexColumn;
     private MetaIndex index;
 
     /**
      * Create a new metadata table.
-     * 
+     *
      * @param schema the schema
      * @param id the object id
      * @param type the meta table type
@@ -591,7 +591,7 @@ public class MetaTable extends Table {
     /**
      * Generate the data for the given metadata table using the given first and
      * last row filters.
-     * 
+     *
      * @param session the session
      * @param first the first row to return
      * @param last the last row to return
@@ -632,21 +632,21 @@ public class MetaTable extends Table {
                 }
                 add(rows, new String[] {
                         // TABLE_CATALOG
-                        catalog, 
+                        catalog,
                         // TABLE_SCHEMA
-                        identifier(table.getSchema().getName()), 
+                        identifier(table.getSchema().getName()),
                         // TABLE_NAME
-                        tableName, 
+                        tableName,
                         // TABLE_TYPE
-                        table.getTableType(), 
+                        table.getTableType(),
                         // STORAGE_TYPE
-                        storageType, 
+                        storageType,
                         // SQL
-                        table.getCreateSQL(), 
+                        table.getCreateSQL(),
                         // REMARKS
-                        replaceNullWithEmpty(table.getComment()), 
+                        replaceNullWithEmpty(table.getComment()),
                         // ID
-                        "" + table.getId() 
+                        "" + table.getId()
                 });
             }
             break;
@@ -666,49 +666,49 @@ public class MetaTable extends Table {
                     Sequence sequence = c.getSequence();
                     add(rows, new String[]{
                             // TABLE_CATALOG
-                            catalog, 
+                            catalog,
                             // TABLE_SCHEMA
-                            identifier(table.getSchema().getName()), 
+                            identifier(table.getSchema().getName()),
                             // TABLE_NAME
-                            tableName, 
+                            tableName,
                             // COLUMN_NAME
-                            identifier(c.getName()), 
+                            identifier(c.getName()),
                             // ORDINAL_POSITION
                             String.valueOf(j + 1),
                             // COLUMN_DEFAULT
-                            c.getDefaultSQL(), 
+                            c.getDefaultSQL(),
                             // IS_NULLABLE
-                            c.getNullable() ? "YES" : "NO", 
+                            c.getNullable() ? "YES" : "NO",
                             // DATA_TYPE
                             "" + DataType.convertTypeToSQLType(c.getType()),
                             // CHARACTER_MAXIMUM_LENGTH
-                            "" + c.getPrecisionAsInt(), 
+                            "" + c.getPrecisionAsInt(),
                             // CHARACTER_OCTET_LENGTH
-                            "" + c.getPrecisionAsInt(), 
+                            "" + c.getPrecisionAsInt(),
                             // NUMERIC_PRECISION
-                            "" + c.getPrecisionAsInt(), 
+                            "" + c.getPrecisionAsInt(),
                             // NUMERIC_PRECISION_RADIX
-                            "10", 
+                            "10",
                             // NUMERIC_SCALE
-                            "" + c.getScale(), 
+                            "" + c.getScale(),
                             // CHARACTER_SET_NAME
-                            Constants.CHARACTER_SET_NAME, 
+                            Constants.CHARACTER_SET_NAME,
                             // COLLATION_NAME
-                            collation, 
+                            collation,
                             // TYPE_NAME
-                            identifier(DataType.getDataType(c.getType()).name), 
+                            identifier(DataType.getDataType(c.getType()).name),
                             // NULLABLE
-                            "" + (c.getNullable() ? DatabaseMetaData.columnNullable : DatabaseMetaData.columnNoNulls) , 
+                            "" + (c.getNullable() ? DatabaseMetaData.columnNullable : DatabaseMetaData.columnNoNulls) ,
                             // IS_COMPUTED
-                            "" + (c.getComputed() ? "TRUE" : "FALSE"), 
+                            "" + (c.getComputed() ? "TRUE" : "FALSE"),
                             // SELECTIVITY
-                            "" + (c.getSelectivity()), 
+                            "" + (c.getSelectivity()),
                             // CHECK_CONSTRAINT
-                            c.getCheckConstraintSQL(session, c.getName()),  
+                            c.getCheckConstraintSQL(session, c.getName()),
                             // SEQUENCE_NAME
                             sequence == null ? null : sequence.getName(),
                             // REMARKS
-                            replaceNullWithEmpty(c.getComment()) 
+                            replaceNullWithEmpty(c.getComment())
                     });
                 }
             }
@@ -734,43 +734,43 @@ public class MetaTable extends Table {
                         Column column = idxCol.column;
                         add(rows, new String[] {
                                 // TABLE_CATALOG
-                                catalog, 
+                                catalog,
                                 // TABLE_SCHEMA
-                                identifier(table.getSchema().getName()), 
+                                identifier(table.getSchema().getName()),
                                 // TABLE_NAME
-                                tableName, 
+                                tableName,
                                 // NON_UNIQUE
-                                index.getIndexType().getUnique() ? "FALSE" : "TRUE", 
+                                index.getIndexType().getUnique() ? "FALSE" : "TRUE",
                                         // INDEX_NAME
-                                identifier(index.getName()), 
+                                identifier(index.getName()),
                                 // ORDINAL_POSITION
-                                "" + (k+1), 
+                                "" + (k+1),
                                 // COLUMN_NAME
                                 identifier(column.getName()),
                                 // CARDINALITY
                                 "0",
                                 // PRIMARY_KEY
-                                index.getIndexType().getPrimaryKey() ? "TRUE" : "FALSE", 
+                                index.getIndexType().getPrimaryKey() ? "TRUE" : "FALSE",
                                 // INDEX_TYPE_NAME
-                                index.getIndexType().getSQL(), 
+                                index.getIndexType().getSQL(),
                                 // IS_GENERATED
                                 index.getIndexType().getBelongsToConstraint() ? "TRUE" : "FALSE",
                                 // INDEX_TYPE
-                                "" + DatabaseMetaData.tableIndexOther, 
+                                "" + DatabaseMetaData.tableIndexOther,
                                 // ASC_OR_DESC
-                                (idxCol.sortType & SortOrder.DESCENDING) != 0 ? "D" : "A", 
+                                (idxCol.sortType & SortOrder.DESCENDING) != 0 ? "D" : "A",
                                 // PAGES
-                                "0", 
+                                "0",
                                 // FILTER_CONDITION
-                                "", 
+                                "",
                                 // REMARKS
-                                replaceNullWithEmpty(index.getComment()), 
+                                replaceNullWithEmpty(index.getComment()),
                                 // SQL
-                                index.getSQL(), 
+                                index.getSQL(),
                                 // ID
-                                "" + index.getId(), 
+                                "" + index.getId(),
                                 // SORT_TYPE
-                                "" + idxCol.sortType, 
+                                "" + idxCol.sortType,
                             });
                     }
                 }
@@ -880,33 +880,33 @@ public class MetaTable extends Table {
                 }
                 add(rows, new String[] {
                         // TYPE_NAME
-                        t.name, 
+                        t.name,
                         // DATA_TYPE
-                        String.valueOf(t.sqlType), 
+                        String.valueOf(t.sqlType),
                         // PRECISION
-                        String.valueOf(t.maxPrecision), 
+                        String.valueOf(t.maxPrecision),
                         // PREFIX
-                        t.prefix, 
+                        t.prefix,
                         // SUFFIX
-                        t.suffix, 
+                        t.suffix,
                         // PARAMS
-                        t.params, 
+                        t.params,
                         // AUTO_INCREMENT
-                        String.valueOf(t.autoIncrement), 
+                        String.valueOf(t.autoIncrement),
                         // MINIMUM_SCALE
-                        String.valueOf(t.minScale), 
+                        String.valueOf(t.minScale),
                         // MAXIMUM_SCALE
-                        String.valueOf(t.maxScale), 
+                        String.valueOf(t.maxScale),
                         // RADIX
-                        t.decimal ? "10" : null, 
+                        t.decimal ? "10" : null,
                         // POS
-                        String.valueOf(t.sqlTypePos), 
+                        String.valueOf(t.sqlTypePos),
                         // CASE_SENSITIVE
-                        String.valueOf(t.caseSensitive), 
+                        String.valueOf(t.caseSensitive),
                         // NULLABLE
-                        "" + DatabaseMetaData.typeNullable, 
+                        "" + DatabaseMetaData.typeNullable,
                         // SEARCHABLE
-                        "" + DatabaseMetaData.typeSearchable 
+                        "" + DatabaseMetaData.typeSearchable
                 });
             }
             break;
@@ -920,17 +920,17 @@ public class MetaTable extends Table {
                 for (int i = 0; rs.next(); i++) {
                     add(rows, new String[] {
                         // ID
-                        String.valueOf(i), 
+                        String.valueOf(i),
                         // SECTION
-                        rs.getString(1).trim(), 
+                        rs.getString(1).trim(),
                         // TOPIC
-                        rs.getString(2).trim(), 
+                        rs.getString(2).trim(),
                         // SYNTAX
-                        rs.getString(3).trim(), 
+                        rs.getString(3).trim(),
                         // TEXT
-                        rs.getString(4).trim(), 
+                        rs.getString(4).trim(),
                         // EXAMPLE
-                        rs.getString(5).trim(), 
+                        rs.getString(5).trim(),
                     });
                 }
             } catch (IOException e) {
@@ -944,21 +944,21 @@ public class MetaTable extends Table {
                 Sequence s = (Sequence) sequences.get(i);
                 add(rows, new String[] {
                         // SEQUENCE_CATALOG
-                        catalog, 
+                        catalog,
                         // SEQUENCE_SCHEMA
-                        identifier(s.getSchema().getName()), 
+                        identifier(s.getSchema().getName()),
                         // SEQUENCE_NAME
-                        identifier(s.getName()), 
+                        identifier(s.getName()),
                         // CURRENT_VALUE
-                        String.valueOf(s.getCurrentValue()), 
+                        String.valueOf(s.getCurrentValue()),
                         // INCREMENT
-                        String.valueOf(s.getIncrement()), 
+                        String.valueOf(s.getIncrement()),
                         // IS_GENERATED
-                        s.getBelongsToTable() ? "TRUE" : "FALSE", 
+                        s.getBelongsToTable() ? "TRUE" : "FALSE",
                                 // REMARKS
-                        replaceNullWithEmpty(s.getComment()), 
+                        replaceNullWithEmpty(s.getComment()),
                         // CACHE
-                        String.valueOf(s.getCacheSize()), 
+                        String.valueOf(s.getCacheSize()),
                         // ID
                         "" + s.getId()
                     });
@@ -971,11 +971,11 @@ public class MetaTable extends Table {
                 User u = (User) users.get(i);
                 add(rows, new String[] {
                         // NAME
-                        identifier(u.getName()), 
+                        identifier(u.getName()),
                         // ADMIN
-                        String.valueOf(u.getAdmin()), 
+                        String.valueOf(u.getAdmin()),
                         // REMARKS
-                        replaceNullWithEmpty(u.getComment()), 
+                        replaceNullWithEmpty(u.getComment()),
                         // ID
                         "" + u.getId()
                 });
@@ -988,11 +988,11 @@ public class MetaTable extends Table {
                 Role r = (Role) roles.get(i);
                 add(rows, new String[] {
                         // NAME
-                        identifier(r.getName()), 
+                        identifier(r.getName()),
                         // REMARKS
-                        replaceNullWithEmpty(r.getComment()), 
+                        replaceNullWithEmpty(r.getComment()),
                         // ID
-                        "" + r.getId() 
+                        "" + r.getId()
                 });
             }
             break;
@@ -1012,36 +1012,36 @@ public class MetaTable extends Table {
                     }
                     add(rows, new String[] {
                             // GRANTEE
-                            identifier(grantee.getName()), 
+                            identifier(grantee.getName()),
                             // GRANTEETYPE
-                            type, 
+                            type,
                             // GRANTEDROLE
-                            "", 
+                            "",
                             // RIGHTS
-                            r.getRights(), 
+                            r.getRights(),
                             // TABLE_SCHEMA
-                            identifier(granted.getSchema().getName()), 
+                            identifier(granted.getSchema().getName()),
                             // TABLE_NAME
-                            identifier(granted.getName()), 
+                            identifier(granted.getName()),
                             // ID
-                            "" + r.getId() 
+                            "" + r.getId()
                     });
                 } else {
                     add(rows, new String[] {
                             // GRANTEE
-                            identifier(grantee.getName()), 
+                            identifier(grantee.getName()),
                             // GRANTEETYPE
-                            type, 
+                            type,
                             // GRANTEDROLE
-                            identifier(role.getName()), 
+                            identifier(role.getName()),
                             // RIGHTS
-                            "", 
+                            "",
                             // TABLE_SCHEMA
-                            "", 
+                            "",
                             // TABLE_NAME
-                            "", 
+                            "",
                             // ID
-                            "" + r.getId() 
+                            "" + r.getId()
                     });
                 }
             }
@@ -1058,23 +1058,23 @@ public class MetaTable extends Table {
                             : DatabaseMetaData.procedureReturnsResult;
                     add(rows, new String[] {
                             // ALIAS_CATALOG
-                            catalog, 
+                            catalog,
                             // ALIAS_SCHEMA
-                            Constants.SCHEMA_MAIN, 
+                            Constants.SCHEMA_MAIN,
                             // ALIAS_NAME
-                            identifier(alias.getName()), 
+                            identifier(alias.getName()),
                             // JAVA_CLASS
-                            alias.getJavaClassName(), 
+                            alias.getJavaClassName(),
                             // JAVA_METHOD
-                            alias.getJavaMethodName(), 
+                            alias.getJavaMethodName(),
                             // DATA_TYPE
-                            ""+DataType.convertTypeToSQLType(method.getDataType()), 
+                            ""+DataType.convertTypeToSQLType(method.getDataType()),
                             // COLUMN_COUNT INT
-                            ""+ method.getColumnClasses().length, 
+                            ""+ method.getColumnClasses().length,
                             // RETURNS_RESULT SMALLINT
-                            ""+ returnsResult, 
+                            ""+ returnsResult,
                             // REMARKS
-                            replaceNullWithEmpty(alias.getComment()), 
+                            replaceNullWithEmpty(alias.getComment()),
                             // ID
                             "" + alias.getId()
                     });
@@ -1086,25 +1086,25 @@ public class MetaTable extends Table {
                 int returnsResult = DatabaseMetaData.procedureReturnsResult;
                 add(rows, new String[] {
                         // ALIAS_CATALOG
-                        catalog, 
+                        catalog,
                         // ALIAS_SCHEMA
-                        Constants.SCHEMA_MAIN, 
+                        Constants.SCHEMA_MAIN,
                         // ALIAS_NAME
-                        identifier(agg.getName()), 
+                        identifier(agg.getName()),
                         // JAVA_CLASS
-                        agg.getJavaClassName(), 
+                        agg.getJavaClassName(),
                         // JAVA_METHOD
-                        "", 
+                        "",
                         // DATA_TYPE
-                        ""+DataType.convertTypeToSQLType(Value.NULL), 
+                        ""+DataType.convertTypeToSQLType(Value.NULL),
                         // COLUMN_COUNT INT
-                        "1", 
+                        "1",
                         // RETURNS_RESULT SMALLINT
-                        ""+ returnsResult, 
+                        ""+ returnsResult,
                         // REMARKS
-                        replaceNullWithEmpty(agg.getComment()), 
+                        replaceNullWithEmpty(agg.getComment()),
                         // ID
-                        "" + agg.getId() 
+                        "" + agg.getId()
                 });
             }
             break;
@@ -1125,37 +1125,37 @@ public class MetaTable extends Table {
                                 : DatabaseMetaData.columnNullable;
                         add(rows, new String[] {
                                 // ALIAS_CATALOG
-                                catalog, 
+                                catalog,
                                 // ALIAS_SCHEMA
-                                Constants.SCHEMA_MAIN, 
+                                Constants.SCHEMA_MAIN,
                                 // ALIAS_NAME
-                                identifier(alias.getName()), 
+                                identifier(alias.getName()),
                                 // JAVA_CLASS
-                                alias.getJavaClassName(), 
+                                alias.getJavaClassName(),
                                 // JAVA_METHOD
-                                alias.getJavaMethodName(), 
+                                alias.getJavaMethodName(),
                                 // COLUMN_COUNT
                                 "" + method.getParameterCount(),
                                 // POS INT
-                                "" + k, 
+                                "" + k,
                                 // COLUMN_NAME
-                                "P" + (k+1), 
+                                "P" + (k+1),
                                 // DATA_TYPE
-                                "" + DataType.convertTypeToSQLType(dt.type), 
+                                "" + DataType.convertTypeToSQLType(dt.type),
                                 // TYPE_NAME
-                                dt.name, 
+                                dt.name,
                                 // PRECISION
-                                "" + dt.defaultPrecision, 
+                                "" + dt.defaultPrecision,
                                 // SCALE
-                                "" + dt.defaultScale, 
+                                "" + dt.defaultScale,
                                 // RADIX
-                                "10", 
+                                "10",
                                 // NULLABLE SMALLINT
-                                "" + nullable, 
+                                "" + nullable,
                                 // COLUMN_TYPE
-                                "" + DatabaseMetaData.procedureColumnIn, 
+                                "" + DatabaseMetaData.procedureColumnIn,
                                 // REMARKS
-                                "" 
+                                ""
                         });
                     }
                 }
@@ -1169,21 +1169,21 @@ public class MetaTable extends Table {
                 Schema schema = (Schema) schemas.get(i);
                 add(rows, new String[] {
                         // CATALOG_NAME
-                        catalog, 
+                        catalog,
                         // SCHEMA_NAME
-                        identifier(schema.getName()), 
+                        identifier(schema.getName()),
                         // SCHEMA_OWNER
-                        identifier(schema.getOwner().getName()), 
+                        identifier(schema.getOwner().getName()),
                         // DEFAULT_CHARACTER_SET_NAME
-                        Constants.CHARACTER_SET_NAME, 
+                        Constants.CHARACTER_SET_NAME,
                         // DEFAULT_COLLATION_NAME
-                        collation, 
+                        collation,
                         // IS_DEFAULT
-                        Constants.SCHEMA_MAIN.equals(schema.getName()) ? "TRUE" : "FALSE", 
+                        Constants.SCHEMA_MAIN.equals(schema.getName()) ? "TRUE" : "FALSE",
                         // REMARKS
-                        replaceNullWithEmpty(schema.getComment()), 
+                        replaceNullWithEmpty(schema.getComment()),
                         // ID
-                        "" + schema.getId() 
+                        "" + schema.getId()
                 });
             }
             break;
@@ -1232,9 +1232,9 @@ public class MetaTable extends Table {
                 Locale l = locales[i];
                 add(rows, new String[] {
                         // NAME
-                        CompareMode.getName(l), 
+                        CompareMode.getName(l),
                         // KEY
-                        l.toString(), 
+                        l.toString(),
                 });
             }
             break;
@@ -1253,23 +1253,23 @@ public class MetaTable extends Table {
                 TableView view = (TableView) table;
                 add(rows, new String[]{
                         // TABLE_CATALOG
-                        catalog, 
+                        catalog,
                         // TABLE_SCHEMA
-                        identifier(table.getSchema().getName()), 
+                        identifier(table.getSchema().getName()),
                         // TABLE_NAME
-                        tableName, 
+                        tableName,
                         // VIEW_DEFINITION
-                        table.getCreateSQL(), 
+                        table.getCreateSQL(),
                         // CHECK_OPTION
-                        "NONE", 
+                        "NONE",
                         // IS_UPDATABLE
-                        "NO", 
+                        "NO",
                         // STATUS
-                        view.getInvalid() ? "INVALID" : "VALID", 
+                        view.getInvalid() ? "INVALID" : "VALID",
                         // REMARKS
-                        replaceNullWithEmpty(view.getComment()), 
+                        replaceNullWithEmpty(view.getComment()),
                         // ID
-                        "" + view.getId() 
+                        "" + view.getId()
                 });
             }
             break;
@@ -1280,9 +1280,9 @@ public class MetaTable extends Table {
                 InDoubtTransaction prep = (InDoubtTransaction) prepared.get(i);
                 add(rows, new String[] {
                         // TRANSACTION
-                        prep.getTransaction(), 
+                        prep.getTransaction(),
                         // STATE
-                        prep.getState(), 
+                        prep.getState(),
                 });
             }
             break;
@@ -1308,33 +1308,33 @@ public class MetaTable extends Table {
                 for (int j = 0; j < cols.length; j++) {
                     add(rows, new String[] {
                             // PKTABLE_CATALOG
-                            catalog, 
+                            catalog,
                             // PKTABLE_SCHEMA
-                            identifier(refTab.getSchema().getName()), 
+                            identifier(refTab.getSchema().getName()),
                             // PKTABLE_NAME
-                            identifier(refTab.getName()), 
+                            identifier(refTab.getName()),
                             // PKCOLUMN_NAME
-                            identifier(refCols[j].column.getName()), 
+                            identifier(refCols[j].column.getName()),
                             // FKTABLE_CATALOG
-                            catalog, 
+                            catalog,
                             // FKTABLE_SCHEMA
-                            identifier(tab.getSchema().getName()), 
+                            identifier(tab.getSchema().getName()),
                             // FKTABLE_NAME
-                            identifier(tab.getName()), 
+                            identifier(tab.getName()),
                             // FKCOLUMN_NAME
-                            identifier(cols[j].column.getName()), 
+                            identifier(cols[j].column.getName()),
                             // ORDINAL_POSITION
-                            String.valueOf(j + 1), 
+                            String.valueOf(j + 1),
                             // UPDATE_RULE SMALLINT
-                            String.valueOf(update), 
+                            String.valueOf(update),
                             // DELETE_RULE SMALLINT
-                            String.valueOf(delete), 
+                            String.valueOf(delete),
                             // FK_NAME
-                            identifier(ref.getName()), 
+                            identifier(ref.getName()),
                             // PK_NAME
-                            null, 
+                            null,
                             // DEFERRABILITY
-                            "" + DatabaseMetaData.importedKeyNotDeferrable, 
+                            "" + DatabaseMetaData.importedKeyNotDeferrable,
                     });
                 }
             }
@@ -1377,31 +1377,31 @@ public class MetaTable extends Table {
                 }
                 add(rows, new String[] {
                         // CONSTRAINT_CATALOG
-                        catalog, 
+                        catalog,
                         // CONSTRAINT_SCHEMA
-                        identifier(constraint.getSchema().getName()), 
+                        identifier(constraint.getSchema().getName()),
                         // CONSTRAINT_NAME
-                        identifier(constraint.getName()), 
+                        identifier(constraint.getName()),
                         // CONSTRAINT_TYPE
-                        type, 
+                        type,
                         // TABLE_CATALOG
-                        catalog, 
+                        catalog,
                         // TABLE_SCHEMA
-                        identifier(table.getSchema().getName()), 
+                        identifier(table.getSchema().getName()),
                         // TABLE_NAME
-                        tableName, 
+                        tableName,
                         // UNIQUE_INDEX_NAME
-                        uniqueIndexName, 
+                        uniqueIndexName,
                         // CHECK_EXPRESSION
-                        checkExpression, 
+                        checkExpression,
                         // COLUMN_LIST
-                        columnList, 
+                        columnList,
                         // REMARKS
-                        replaceNullWithEmpty(constraint.getComment()), 
+                        replaceNullWithEmpty(constraint.getComment()),
                         // SQL
-                        constraint.getCreateSQL(), 
+                        constraint.getCreateSQL(),
                         // ID
-                        "" + constraint.getId() 
+                        "" + constraint.getId()
                     });
             }
             break;
@@ -1413,19 +1413,19 @@ public class MetaTable extends Table {
                 ValueExpression expr = constant.getValue();
                 add(rows, new String[] {
                         // CONSTANT_CATALOG
-                        catalog, 
+                        catalog,
                         // CONSTANT_SCHEMA
-                        identifier(constant.getSchema().getName()), 
+                        identifier(constant.getSchema().getName()),
                         // CONSTANT_NAME
-                        identifier(constant.getName()), 
+                        identifier(constant.getName()),
                         // CONSTANT_TYPE
-                        "" + DataType.convertTypeToSQLType(expr.getType()), 
+                        "" + DataType.convertTypeToSQLType(expr.getType()),
                         // REMARKS
-                        replaceNullWithEmpty(constant.getComment()), 
+                        replaceNullWithEmpty(constant.getComment()),
                         // SQL
-                        expr.getSQL(), 
+                        expr.getSQL(),
                         // ID
-                        "" + constant.getId() 
+                        "" + constant.getId()
                     });
             }
             break;
@@ -1437,33 +1437,33 @@ public class MetaTable extends Table {
                 Column col = dt.getColumn();
                 add(rows, new String[] {
                         // DOMAIN_CATALOG
-                        catalog, 
+                        catalog,
                         // DOMAIN_SCHEMA
-                        Constants.SCHEMA_MAIN, 
+                        Constants.SCHEMA_MAIN,
                         // DOMAIN_NAME
-                        identifier(dt.getName()), 
+                        identifier(dt.getName()),
                         // COLUMN_DEFAULT
-                        col.getDefaultSQL(), 
+                        col.getDefaultSQL(),
                         // IS_NULLABLE
-                        col.getNullable() ? "YES" : "NO", 
+                        col.getNullable() ? "YES" : "NO",
                         // DATA_TYPE
-                        "" + col.getDataType().sqlType, 
+                        "" + col.getDataType().sqlType,
                         // PRECISION INT
-                        "" + col.getPrecisionAsInt(), 
+                        "" + col.getPrecisionAsInt(),
                         // SCALE INT
-                        "" + col.getScale(), 
+                        "" + col.getScale(),
                         // TYPE_NAME
-                        col.getDataType().name, 
+                        col.getDataType().name,
                         // SELECTIVITY INT
-                        "" + col.getSelectivity(), 
+                        "" + col.getSelectivity(),
                         // CHECK_CONSTRAINT
-                        "" + col.getCheckConstraintSQL(session, "VALUE"), 
+                        "" + col.getCheckConstraintSQL(session, "VALUE"),
                         // REMARKS
-                        replaceNullWithEmpty(dt.getComment()), 
+                        replaceNullWithEmpty(dt.getComment()),
                         // SQL
-                        "" + dt.getCreateSQL(), 
+                        "" + dt.getCreateSQL(),
                         // ID
-                        "" + dt.getId() 
+                        "" + dt.getId()
                 });
             }
             break;
@@ -1475,33 +1475,33 @@ public class MetaTable extends Table {
                 Table table = trigger.getTable();
                 add(rows, new String[] {
                         // TRIGGER_CATALOG
-                        catalog, 
+                        catalog,
                         // TRIGGER_SCHEMA
-                        identifier(trigger.getSchema().getName()), 
+                        identifier(trigger.getSchema().getName()),
                         // TRIGGER_NAME
-                        identifier(trigger.getName()), 
+                        identifier(trigger.getName()),
                         // TRIGGER_TYPE
-                        trigger.getTypeNameList(), 
+                        trigger.getTypeNameList(),
                         // TABLE_CATALOG
-                        catalog, 
+                        catalog,
                         // TABLE_SCHEMA
-                        identifier(table.getSchema().getName()), 
+                        identifier(table.getSchema().getName()),
                         // TABLE_NAME
-                        identifier(table.getName()), 
+                        identifier(table.getName()),
                         // BEFORE BIT
-                        "" + trigger.getBefore(), 
+                        "" + trigger.getBefore(),
                         // JAVA_CLASS
-                        trigger.getTriggerClassName(), 
+                        trigger.getTriggerClassName(),
                         // QUEUE_SIZE INT
-                        "" + trigger.getQueueSize(), 
+                        "" + trigger.getQueueSize(),
                         // NO_WAIT BIT
-                        "" + trigger.getNoWait(), 
+                        "" + trigger.getNoWait(),
                         // REMARKS
-                        replaceNullWithEmpty(trigger.getComment()), 
+                        replaceNullWithEmpty(trigger.getComment()),
                         // SQL
-                        trigger.getCreateSQL(), 
+                        trigger.getCreateSQL(),
                         // ID
-                        "" + trigger.getId() 
+                        "" + trigger.getId()
                 });
             }
             break;
@@ -1515,15 +1515,15 @@ public class MetaTable extends Table {
                     Command command = s.getCurrentCommand();
                     add(rows, new String[] {
                             // ID
-                            "" + s.getId(), 
+                            "" + s.getId(),
                             // USER_NAME
-                            s.getUser().getName(), 
+                            s.getUser().getName(),
                             // SESSION_START
-                            new Timestamp(s.getSessionStart()).toString(), 
+                            new Timestamp(s.getSessionStart()).toString(),
                             // STATEMENT
-                            command == null ? null : command.toString(), 
+                            command == null ? null : command.toString(),
                             // STATEMENT_START
-                            new Timestamp(s.getCurrentCommandStart()).toString() 
+                            new Timestamp(s.getCurrentCommandStart()).toString()
                     });
                 }
             }
@@ -1540,13 +1540,13 @@ public class MetaTable extends Table {
                         Table table = locks[j];
                         add(rows, new String[] {
                                 // TABLE_SCHEMA
-                                table.getSchema().getName(), 
+                                table.getSchema().getName(),
                                 // TABLE_NAME
-                                table.getName(), 
+                                table.getName(),
                                 // SESSION_ID
-                                "" + s.getId(), 
+                                "" + s.getId(),
                                 // LOCK_TYPE
-                                table.isLockedExclusivelyBy(s) ? "WRITE" : "READ", 
+                                table.isLockedExclusivelyBy(s) ? "WRITE" : "READ",
                         });
                     }
                 }
@@ -1673,38 +1673,38 @@ public class MetaTable extends Table {
         if (column == null) {
             add(rows, new String[] {
                     // GRANTOR
-                    null, 
+                    null,
                     // GRANTEE
-                    identifier(grantee.getName()), 
+                    identifier(grantee.getName()),
                     // TABLE_CATALOG
-                    catalog, 
+                    catalog,
                     // TABLE_SCHEMA
-                    identifier(table.getSchema().getName()), 
+                    identifier(table.getSchema().getName()),
                     // TABLE_NAME
-                    identifier(table.getName()), 
+                    identifier(table.getName()),
                     // PRIVILEGE_TYPE
-                    right, 
+                    right,
                     // IS_GRANTABLE
-                    isGrantable 
+                    isGrantable
             });
         } else {
             add(rows, new String[] {
                     // GRANTOR
-                    null, 
+                    null,
                     // GRANTEE
-                    identifier(grantee.getName()), 
+                    identifier(grantee.getName()),
                     // TABLE_CATALOG
-                    catalog, 
+                    catalog,
                     // TABLE_SCHEMA
-                    identifier(table.getSchema().getName()), 
+                    identifier(table.getSchema().getName()),
                     // TABLE_NAME
-                    identifier(table.getName()), 
+                    identifier(table.getName()),
                     // COLUMN_NAME
-                    identifier(column), 
+                    identifier(column),
                     // PRIVILEGE_TYPE
-                    right, 
+                    right,
                     // IS_GRANTABLE
-                    isGrantable 
+                    isGrantable
             });
         }
     }
@@ -1777,7 +1777,7 @@ public class MetaTable extends Table {
     /**
      * Get the number of meta table types. Supported meta table
      * types are 0 .. this value - 1.
-     * 
+     *
      * @return the number of meta table types
      */
     public static int getMetaTableTypeCount() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -33,15 +33,15 @@ import org.h2.util.StringUtils;
  * A tool to losslessly compress data, and expand the compressed data again.
  */
 public class CompressTool {
-    
+
     private static CompressTool instance = new CompressTool();
     private static byte[] buffer;
     private static final int MAX_BUFFER_SIZE = 64 * 1024 * 1024;
-    
+
     private CompressTool() {
         // don't allow construction
     }
-    
+
     private static byte[] getBuffer(int min) {
         if (min > MAX_BUFFER_SIZE) {
             return ByteUtils.newBytes(min);
@@ -50,21 +50,21 @@ public class CompressTool {
             buffer = ByteUtils.newBytes(min);
         }
         return buffer;
-    }    
-    
+    }
+
     /**
      * Get the singleton.
-     * 
+     *
      * @return the singleton
      */
     public static CompressTool getInstance() {
         return instance;
     }
-    
+
     /**
      * Compressed the data using the specified algorithm. If no algorithm is
      * supplied, LZF is used
-     * 
+     *
      * @param in the byte array with the original data
      * @param algorithm the algorithm (LZF, DEFLATE)
      * @return the compressed data
@@ -98,14 +98,14 @@ public class CompressTool {
         }
         return newLen;
     }
-    
+
     /**
      * Expands the compressed  data.
-     * 
+     *
      * @param in the byte array with the compressed data
      * @return the uncompressed data
      * @throws SQLException if a error occurs
-     */    
+     */
     public byte[] expand(byte[] in) throws SQLException {
         int algorithm = in[0];
         Compressor compress = getCompressor(algorithm);
@@ -221,7 +221,7 @@ public class CompressTool {
         compress.setOptions(options);
         return compress;
     }
-    
+
     /**
      * INTERNAL
      */

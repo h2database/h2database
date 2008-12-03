@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -46,13 +46,13 @@ import org.h2.value.ValueNull;
 /**
  * This class represents a simple SELECT statement.
  *
- * For each select statement, 
+ * For each select statement,
  * visibleColumnCount &lt;= distinctColumnCount &lt;= expressionCount.
- * The expression list count could include ORDER BY and GROUP BY expressions 
+ * The expression list count could include ORDER BY and GROUP BY expressions
  * that are not in the select list.
  *
  * The call sequence is init(), mapColumns() if it's a subquery, prepare().
- * 
+ *
  * @author Thomas Mueller
  * @author Joel Turkel (Group sorted query)
  */
@@ -86,12 +86,12 @@ public class Select extends Query {
 
     /**
      * Add a table to the query.
-     * 
+     *
      * @param filter the table to add
      * @param isTop if the table can be the first table in the query plan
      */
     public void addTableFilter(TableFilter filter, boolean isTop) {
-        // TODO compatibility: it seems oracle doesn't check on 
+        // TODO compatibility: it seems oracle doesn't check on
         // duplicate aliases; do other databases check it?
         // String alias = filter.getAlias();
         // if(filterNames.contains(alias)) {
@@ -127,7 +127,7 @@ public class Select extends Query {
     public HashMap getCurrentGroup() {
         return currentGroup;
     }
-    
+
     public int getCurrentGroupRowId() {
         return currentGroupRowId;
     }
@@ -138,7 +138,7 @@ public class Select extends Query {
 
     /**
      * Add a condition to the list of conditions.
-     * 
+     *
      * @param cond the condition to add
      */
     public void addCondition(Expression cond) {
@@ -207,7 +207,7 @@ public class Select extends Query {
         row = keepOnlyDistinct(row, columnCount);
         result.addRow(row);
     }
-    
+
     private Value[] keepOnlyDistinct(Value[] row, int columnCount) {
         if (columnCount == distinctColumnCount) {
             return row;
@@ -217,7 +217,7 @@ public class Select extends Query {
         ObjectUtils.arrayCopy(row, r2, distinctColumnCount);
         return r2;
     }
-    
+
     private boolean isHavingNullOrFalse(Value[] row) throws SQLException {
         if (havingIndex >= 0) {
             Value v = row[havingIndex];
@@ -269,7 +269,7 @@ public class Select extends Query {
                     continue outerLoop;
                 }
             }
-            // We didn't find a matching index column 
+            // We didn't find a matching index column
             // for one group by expression
             return false;
         }
@@ -371,7 +371,7 @@ public class Select extends Query {
      * avoid running a separate ORDER BY if an index can be used. This is
      * specially important for large result sets, if only the first few rows are
      * important (LIMIT is used)
-     * 
+     *
      * @return the index if one is found
      */
     private Index getSortIndex() throws SQLException {
@@ -431,7 +431,7 @@ public class Select extends Query {
                     break;
                 }
                 if (idxCol.sortType != sortTypes[j]) {
-                    // TODO NULL FIRST for ascending and NULLS LAST 
+                    // TODO NULL FIRST for ascending and NULLS LAST
                     // for descending would actually match the default
                     ok = false;
                     break;
@@ -446,7 +446,7 @@ public class Select extends Query {
 
     private void queryDistinct(LocalResult result, long limitRows) throws SQLException {
         if (limitRows != 0 && offset != null) {
-            // limitRows must be long, otherwise we get an int overflow 
+            // limitRows must be long, otherwise we get an int overflow
             // if limitRows is at or near Integer.MAX_VALUE
             limitRows += offset.getValue(session).getInt();
         }
@@ -483,7 +483,7 @@ public class Select extends Query {
 
     private void queryFlat(int columnCount, LocalResult result, long limitRows) throws SQLException {
         if (limitRows != 0 && offset != null) {
-            // limitRows must be long, otherwise we get an int overflow 
+            // limitRows must be long, otherwise we get an int overflow
             // if limitRows is at or near Integer.MAX_VALUE
             limitRows += offset.getValue(session).getInt();
         }
@@ -570,7 +570,7 @@ public class Select extends Query {
     }
 
     private void expandColumnList() throws SQLException {
-        // TODO this works: select distinct count(*) 
+        // TODO this works: select distinct count(*)
         // from system_columns group by table
         for (int i = 0; i < expressions.size(); i++) {
             Expression expr = (Expression) expressions.get(i);
@@ -646,8 +646,8 @@ public class Select extends Query {
             havingIndex = -1;
         }
 
-        // first the select list (visible columns), 
-        // then 'ORDER BY' expressions, 
+        // first the select list (visible columns),
+        // then 'ORDER BY' expressions,
         // then 'HAVING' expressions,
         // and 'GROUP BY' expressions at the end
         if (group != null) {
@@ -840,7 +840,7 @@ public class Select extends Query {
                     addCondition(on);
                 }
             }
-            // this is only important for subqueries, so they know 
+            // this is only important for subqueries, so they know
             // the result columns are evaluatable
             for (int i = 0; i < expressions.size(); i++) {
                 Expression e = (Expression) expressions.get(i);
@@ -937,7 +937,7 @@ public class Select extends Query {
                 }
                 SelectOrderBy o = (SelectOrderBy) orderList.get(i);
                 buff.append(StringUtils.unEnclose(o.getSQL()));
-            }            
+            }
         }
         if (limit != null) {
             buff.append("\nLIMIT ");
@@ -1013,9 +1013,9 @@ public class Select extends Query {
 
     /**
      * Check if this is an aggregate query with direct lookup, for example a
-     * query of the type SELECT COUNT(*) FROM TEST or 
+     * query of the type SELECT COUNT(*) FROM TEST or
      * SELECT MAX(ID) FROM TEST.
-     * 
+     *
      * @return true if a direct lookup is possible
      */
     public boolean isQuickAggregateQuery() {

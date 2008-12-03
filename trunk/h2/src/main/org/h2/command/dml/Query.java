@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -54,7 +54,7 @@ public abstract class Query extends Prepared {
     private long lastEvaluated;
     private LocalResult lastResult;
     private Value[] lastParameters;
-    
+
     public Query(Session session) {
         super(session);
     }
@@ -117,7 +117,7 @@ public abstract class Query extends Prepared {
 
     /**
      * Map the columns to the given column resolver.
-     * 
+     *
      * @param resolver
      *            the resolver
      * @param level
@@ -244,7 +244,7 @@ public abstract class Query extends Prepared {
 
     /**
      * Init the order by list.
-     * 
+     *
      * @param expressions the select list expressions
      * @param expressionSQL the select list SQL snippets
      * @param orderList the order by list
@@ -289,9 +289,9 @@ public abstract class Query extends Prepared {
                         Expression ec2 = ec.getNonAliasExpression();
                         if (ec2 instanceof ExpressionColumn) {
                             ExpressionColumn c2 = (ExpressionColumn) ec2;
-                            String ta = exprCol.getSQL(); 
+                            String ta = exprCol.getSQL();
                             // exprCol.getTableAlias();
-                            String tb = c2.getSQL(); 
+                            String tb = c2.getSQL();
                             // getTableAlias();
                             found = col.equals(c2.getColumnName());
                             if (!StringUtils.equals(ta, tb)) {
@@ -331,7 +331,7 @@ public abstract class Query extends Prepared {
     /**
      * Create a {@link SortOrder} object given the list of {@link SelectOrderBy}
      * objects. The expression list is extended if necessary.
-     * 
+     *
      * @param orderList a list of {@link SelectOrderBy} elements
      * @param expressionCount the number of columns in the query
      * @return the {@link SortOrder} object
@@ -385,7 +385,7 @@ public abstract class Query extends Prepared {
 
     /**
      * Add a parameter to the parameter list.
-     * 
+     *
      * @param param the parameter to add
      */
     void addParameter(Parameter param) {
@@ -407,7 +407,7 @@ public abstract class Query extends Prepared {
 
     /**
      * Visit all expressions and subqueries in this query using the visitor pattern.
-     * 
+     *
      * @param expressionVisitorType the visitor type
      * @return true if no component returned false
      */

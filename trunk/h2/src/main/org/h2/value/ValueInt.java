@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -18,17 +18,17 @@ import org.h2.util.ObjectUtils;
  * Implementation of the INT data type.
  */
 public class ValueInt extends Value {
-    
+
     /**
      * The precision in digits.
      */
     public static final int PRECISION = 10;
-    
+
     /**
      * The maximum display size of an int.
      * Example: -2147483648
      */
-    public static final int DISPLAY_SIZE = 11; 
+    public static final int DISPLAY_SIZE = 11;
 
     private static final int STATIC_SIZE = 128;
     // must be a power of 2
@@ -37,20 +37,20 @@ public class ValueInt extends Value {
     private static final ValueInt[] DYNAMIC_CACHE = new ValueInt[DYNAMIC_SIZE];
 
     private final int value;
-    
+
     static {
         for (int i = 0; i < STATIC_SIZE; i++) {
             STATIC_CACHE[i] = new ValueInt(i);
         }
     }
-    
+
     private ValueInt(int value) {
         this.value = value;
     }
 
     /**
      * Get or create an int value for the given int.
-     * 
+     *
      * @param i the int
      * @return the value
      */

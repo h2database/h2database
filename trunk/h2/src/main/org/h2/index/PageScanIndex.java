@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -27,15 +27,15 @@ import org.h2.table.TableData;
  * primary key or indexes are defined.
  */
 public class PageScanIndex extends BaseIndex implements RowIndex {
-    
+
     private PageStore store;
     private TableData tableData;
     private int headPos;
-    
+
     // TODO test that setPageId updates parent, overflow parent
-    // TODO remember last page with deleted keys (in the root page?), 
+    // TODO remember last page with deleted keys (in the root page?),
     // and chain such pages
-    // TODO order pages so that searching for a key 
+    // TODO order pages so that searching for a key
     // doesn't seek backwards in the file
     // TODO use an undo log and maybe redo log (for performance)
     // TODO file position, content checksums
@@ -43,7 +43,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     private int lastKey;
     private long rowCount;
     private long rowCountApproximation;
-    
+
     public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
         if (database.isMultiVersion()) {
@@ -104,7 +104,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 
     /**
      * Read the given page.
-     * 
+     *
      * @param id the page id
      * @return the page
      */
@@ -205,10 +205,10 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     PageStore getPageStore() {
         return store;
     }
-    
+
     /**
      * Read a row from the data page at the given position.
-     * 
+     *
      * @param data the data page
      * @return the row
      */
@@ -219,22 +219,22 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     public long getRowCountApproximation() {
         return rowCountApproximation;
     }
-    
+
     public long getRowCount(Session session) {
         return rowCount;
     }
-    
+
     public String getCreateSQL() {
         return null;
     }
-    
+
     private void trace(String message) {
         if (headPos != 1) {
             int test;
 //            System.out.println(message);
         }
     }
-    
+
     public int getColumnIndex(Column col) {
         // the scan index cannot use any columns
         // TODO it can if there is an INT primary key

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -24,34 +24,34 @@ import org.h2.message.TraceSystem;
  * This class is used by the H2 Console.
  */
 class WebSession {
-    
+
     private static final int MAX_HISTORY = 1000;
-    
+
     /**
      * The last time this client sent a request.
      */
     long lastAccess;
-    
+
     /**
      * The session attribute map.
      */
     HashMap map = new HashMap();
-    
+
     /**
      * The current locale.
      */
     Locale locale;
-    
+
     /**
      * The currently executing statement.
      */
     Statement executingStatement;
-    
+
     /**
      * The current updatable result set.
      */
     ResultSet result;
-    
+
     private WebServer server;
 
     private ArrayList commandHistory = new ArrayList();
@@ -74,7 +74,7 @@ class WebSession {
 
     /**
      * Put an attribute value in the map.
-     * 
+     *
      * @param key the key
      * @param value the new value
      */
@@ -84,7 +84,7 @@ class WebSession {
 
     /**
      * Get the value for the given key.
-     * 
+     *
      * @param key the key
      * @return the value
      */
@@ -97,7 +97,7 @@ class WebSession {
 
     /**
      * Remove a session attribute from the map.
-     * 
+     *
      * @param key the key
      */
     void remove(String key) {
@@ -106,7 +106,7 @@ class WebSession {
 
     /**
      * Get the BNF object.
-     * 
+     *
      * @return the BNF object
      */
     Bnf getBnf() {
@@ -153,7 +153,7 @@ class WebSession {
 
     /**
      * Get the SQL statement from history.
-     * 
+     *
      * @param id the history id
      * @return the SQL statement
      */
@@ -163,7 +163,7 @@ class WebSession {
 
     /**
      * Add a SQL statement to the history.
-     * 
+     *
      * @param sql the SQL statement
      */
     void addCommand(String sql) {
@@ -186,7 +186,7 @@ class WebSession {
 
     /**
      * Get the list of SQL statements in the history.
-     * 
+     *
      * @return the commands
      */
     ArrayList getCommands() {
@@ -195,7 +195,7 @@ class WebSession {
 
     /**
      * Update session meta data information and get the information in a map.
-     * 
+     *
      * @return a map containing the session meta data
      */
     HashMap getInfo() {
@@ -234,14 +234,14 @@ class WebSession {
     DbContents getContents() {
         return contents;
     }
-    
+
     /**
      * Shutdown the server when disconnecting.
      */
     void setShutdownServerOnDisconnect() {
         this.shutdownServerOnDisconnect = true;
     }
-    
+
     boolean getShutdownServerOnDisconnect() {
         return shutdownServerOnDisconnect;
     }

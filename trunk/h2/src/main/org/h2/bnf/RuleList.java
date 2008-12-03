@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -17,7 +17,7 @@ public class RuleList implements Rule {
     private boolean or;
     private ArrayList list;
     private boolean mapSet;
-    
+
     RuleList(Rule first, Rule next, boolean or) {
         list = new ArrayList();
         if (first instanceof RuleList && ((RuleList) first).or == or) {
@@ -32,7 +32,7 @@ public class RuleList implements Rule {
         }
         this.or = or;
     }
-    
+
     public String toString() {
         StringBuffer buff = new StringBuffer();
         if (or) {
@@ -81,7 +81,7 @@ public class RuleList implements Rule {
     public String name() {
         return null;
     }
-    
+
     public Rule last() {
         return get(list.size() - 1);
     }

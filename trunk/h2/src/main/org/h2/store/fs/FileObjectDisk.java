@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -16,7 +16,7 @@ import org.h2.util.FileUtils;
  * This class is extends a java.io.RandomAccessFile.
  */
 public class FileObjectDisk extends RandomAccessFile implements FileObject {
-    
+
     private final String name;
 
     FileObjectDisk(String fileName, String mode) throws FileNotFoundException {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -21,29 +21,29 @@ import org.h2.value.ValueNull;
  * A sort order represents an ORDER BY clause in a query.
  */
 public class SortOrder {
-    
+
     /**
      * This bit mask means the values should be sorted in ascending order.
      */
     public static final int ASCENDING = 0;
-    
+
     /**
      * This bit mask means the values should be sorted in descending order.
      */
     public static final int DESCENDING = 1;
-    
+
     /**
      * This bit mask means NULLs should be sorted before other data, no matter
      * if ascending or descending order is used.
      */
     public static final int NULLS_FIRST = 2;
-    
+
     /**
      * This bit mask means NULLs should be sorted after other data, no matter
      * if ascending or descending order is used.
      */
     public static final int NULLS_LAST = 4;
-    
+
     /**
      * The default sort order for NULL.
      */
@@ -56,7 +56,7 @@ public class SortOrder {
 
     /**
      * Construct a new sort order object.
-     * 
+     *
      * @param database the database
      * @param index the column index list
      * @param sortType the sort order bit masks
@@ -71,7 +71,7 @@ public class SortOrder {
     /**
      * Create the SQL snippet that describes this sort order.
      * This is the SQL snippet that usually appears after the ORDER BY clause.
-     * 
+     *
      * @param list the expression list
      * @param visible the number of columns in the select list
      * @return the SQL snippet
@@ -104,7 +104,7 @@ public class SortOrder {
 
     /**
      * Compare two expressions where one of them is NULL.
-     * 
+     *
      * @param aNull whether the first expression is null
      * @param bNull whether the second expression is null
      * @param sortType the sort bit mask to use
@@ -125,7 +125,7 @@ public class SortOrder {
 
     /**
      * Compare two expression lists.
-     * 
+     *
      * @param a the first expression list
      * @param b the second expression list
      * @return the result of the comparison
@@ -153,7 +153,7 @@ public class SortOrder {
 
     /**
      * Sort a list of rows.
-     * 
+     *
      * @param rows the list of rows
      */
     public void sort(ObjectArray rows) throws SQLException {
@@ -211,7 +211,7 @@ public class SortOrder {
 
     /**
      * Get the column index list.
-     * 
+     *
      * @return the list
      */
     public int[] getIndexes() {
@@ -220,7 +220,7 @@ public class SortOrder {
 
     /**
      * Get the sort order bit masks.
-     * 
+     *
      * @return the list
      */
     public int[] getSortTypes() {

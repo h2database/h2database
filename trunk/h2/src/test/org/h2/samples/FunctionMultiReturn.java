@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -27,7 +27,7 @@ public class FunctionMultiReturn {
     /**
      * This method is called when executing this sample application from the
      * command line.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String[] args) throws Exception {
@@ -85,7 +85,7 @@ public class FunctionMultiReturn {
      * Convert polar coordinates to cartesian coordinates. The function may be
      * called twice, once to retrieve the result columns (with null parameters),
      * and the second time to return the data.
-     * 
+     *
      * @param r the distance from the point 0/0
      * @param alpha the angle
      * @return a result set with two columns: x and y
@@ -106,7 +106,7 @@ public class FunctionMultiReturn {
      * Convert polar coordinates to cartesian coordinates. The function may be
      * called twice, once to retrieve the result columns (with null parameters),
      * and the second time to return the data.
-     * 
+     *
      * @param r the distance from the point 0/0
      * @param alpha the angle
      * @return an array two values: x and y
@@ -121,7 +121,7 @@ public class FunctionMultiReturn {
      * Convert a set of polar coordinates to cartesian coordinates. The function
      * may be called twice, once to retrieve the result columns (with null
      * parameters), and the second time to return the data.
-     * 
+     *
      * @param conn the connection
      * @param query the query
      * @return a result set with the coordinates

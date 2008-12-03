@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -18,42 +18,42 @@ public class Trace {
      * The trace module name for commands.
      */
     public static final String COMMAND = "command";
-    
+
     /**
      * The trace module name for constraints.
      */
     public static final String CONSTRAINT = "constraint";
-    
+
     /**
      * The trace module name for databases.
      */
     public static final String DATABASE = "database";
-    
+
     /**
      * The trace module name for functions.
      */
     public static final String FUNCTION = "function";
-    
+
     /**
      * The trace module name for file locks.
      */
     public static final String FILE_LOCK = "fileLock";
-    
+
     /**
      * The trace module name for indexes.
      */
     public static final String INDEX = "index";
-    
+
     /**
      * The trace module name for the JDBC API.
      */
     public static final String JDBC = "jdbc";
-    
+
     /**
      * The trace module name for locks.
      */
     public static final String LOCK = "lock";
-    
+
     /**
      * The trace module name for the transaction log.
      */
@@ -63,32 +63,32 @@ public class Trace {
      * The trace module name for schemas.
      */
     public static final String SCHEMA = "schema";
-    
+
     /**
      * The trace module name for sessions.
      */
     public static final String SESSION = "session";
-    
+
     /**
      * The trace module name for sequences.
      */
     public static final String SEQUENCE = "sequence";
-    
+
     /**
      * The trace module name for settings.
      */
     public static final String SETTING = "setting";
-    
+
     /**
      * The trace module name for tables.
      */
     public static final String TABLE = "table";
-    
+
     /**
      * The trace module name for triggers.
      */
     public static final String TRIGGER = "trigger";
-    
+
     /**
      * The trace module name for users.
      */
@@ -106,7 +106,7 @@ public class Trace {
 
     /**
      * Check if the trace level is equal or higher than INFO.
-     * 
+     *
      * @return true if it is
      */
     public boolean isInfoEnabled() {
@@ -115,7 +115,7 @@ public class Trace {
 
     /**
      * Check if the trace level is equal or higher than DEBUG.
-     * 
+     *
      * @return true if it is
      */
     public boolean isDebugEnabled() {
@@ -124,7 +124,7 @@ public class Trace {
 
     /**
      * Write a message with trace level ERROR to the trace system.
-     * 
+     *
      * @param s the message
      */
     public void error(String s) {
@@ -133,7 +133,7 @@ public class Trace {
 
     /**
      * Write a message with trace level ERROR to the trace system.
-     * 
+     *
      * @param s the message
      * @param t the exception
      */
@@ -143,7 +143,7 @@ public class Trace {
 
     /**
      * Write a message with trace level INFO to the trace system.
-     * 
+     *
      * @param s the message
      */
     public void info(String s) {
@@ -152,7 +152,7 @@ public class Trace {
 
     /**
      * Write a message with trace level INFO to the trace system.
-     * 
+     *
      * @param s the message
      * @param t the exception
      */
@@ -162,7 +162,7 @@ public class Trace {
 
     /**
      * Write Java source code with trace level DEBUG to the trace system.
-     * 
+     *
      * @param java the source code
      */
     public void debugCode(String java) {
@@ -171,7 +171,7 @@ public class Trace {
 
     /**
      * Write Java source code with trace level INFO to the trace system.
-     * 
+     *
      * @param java the source code
      */
     public void infoCode(String java) {
@@ -180,7 +180,7 @@ public class Trace {
 
     /**
      * Write a SQL statement with trace level INFO to the trace system.
-     * 
+     *
      * @param sql the SQL statement
      * @param params the parameters used, in the for {1:...}
      * @param count the update count
@@ -193,9 +193,9 @@ public class Trace {
         boolean space = false;
         if (params.length() > 0) {
             // This looks like a bug, but it is intentional:
-            // If there are no parameters, the SQL statement is 
+            // If there are no parameters, the SQL statement is
             // the rest of the line. If there are parameters, they
-            // are appended at the end of the line. Knowing the size 
+            // are appended at the end of the line. Knowing the size
             // of the statement simplifies separating the SQL statement
             // from the parameters (no need to parse).
             space = true;
@@ -225,7 +225,7 @@ public class Trace {
 
     /**
      * Write a message with trace level DEBUG to the trace system.
-     * 
+     *
      * @param s the message
      */
     public void debug(String s) {
@@ -234,7 +234,7 @@ public class Trace {
 
     /**
      * Write a message with trace level DEBUG to the trace system.
-     * 
+     *
      * @param s the message
      * @param t the exception
      */

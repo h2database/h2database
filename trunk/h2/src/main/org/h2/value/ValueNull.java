@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -26,7 +26,7 @@ public class ValueNull extends Value {
      * The main NULL instance.
      */
     public static final ValueNull INSTANCE = new ValueNull();
-    
+
     /**
      * This special instance is used as a marker for deleted entries in a map.
      * It should not be used anywhere else.
@@ -37,10 +37,10 @@ public class ValueNull extends Value {
      * The precision of NULL.
      */
     private static final int PRECISION = 1;
-    
+
     /**
      * The display size of the textual representation of NULL.
-     */    
+     */
     private static final int DISPLAY_SIZE = 4;
 
     private ValueNull() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -27,16 +27,16 @@ public class TestShell extends TestBase {
      * The output stream of the tool.
      */
     PrintStream toolOut;
-    
+
     /**
      * The input stream of the tool.
      */
     InputStream toolIn;
-    
+
     private PrintStream testOut;
     private PipedInputStream testIn;
     private LineNumberReader lineReader;
-    
+
     public void test() throws IOException {
         testIn = new PipedInputStream();
         PipedOutputStream out = new PipedOutputStream(testIn);
@@ -58,7 +58,7 @@ public class TestShell extends TestBase {
             }
         }).start();
         InputStreamReader reader = new InputStreamReader(testIn);
-        lineReader = new LineNumberReader(reader); 
+        lineReader = new LineNumberReader(reader);
         read("");
         read("Welcome to H2 Shell");
         read("Exit with");
@@ -99,7 +99,7 @@ public class TestShell extends TestBase {
         testOut.println("exit");
         read("sql>");
     }
-    
+
     private String read(String expectedStart) throws IOException {
         String line = lineReader.readLine();
         // System.out.println(": " + line);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -26,16 +26,16 @@ import org.h2.util.StringUtils;
 
 /**
  * CSVREAD and CSVWRITE tests.
- * 
+ *
  * @author Thomas Mueller
  * @author Sylvain Cuaz (testNull)
- * 
+ *
  */
 public class TestCsv extends TestBase {
-    
+
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
@@ -54,7 +54,7 @@ public class TestCsv extends TestBase {
         testPipe();
         deleteDb("csv");
     }
-    
+
     private void testSpaceSeparated() throws SQLException {
         deleteDb("csv");
         File f = new File(baseDir + "/testSpace.csv");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -17,7 +17,7 @@ public class MemoryUtils {
     private static final int GC_DELAY = 50;
     private static final int MAX_GC = 8;
     private static volatile byte[] reserveMemory;
-    
+
     private MemoryUtils() {
         // utility class
     }
@@ -62,7 +62,7 @@ public class MemoryUtils {
             }
         }
     }
-    
+
     /**
      * Allocate a little main memory that is freed up when if no memory is
      * available, so that rolling back a large transaction is easier.
@@ -72,7 +72,7 @@ public class MemoryUtils {
             reserveMemory = new byte[SysProperties.RESERVE_MEMORY];
         }
     }
-    
+
     /**
      * Free up the reserve memory.
      */
@@ -84,11 +84,11 @@ public class MemoryUtils {
      * Check if the classloader or virtual machine is shut down. In this case
      * static references are set to null, which can cause NullPointerExceptions
      * and can be confusing because it looks like a bug in the application.
-     * 
+     *
      * @return true if static references are set to null
      */
     public static boolean isShutdown() {
         return StringCache.isShutdown() || JdbcDriverUtils.isShutdown() || Resources.isShutdown();
-    }    
+    }
 
 }

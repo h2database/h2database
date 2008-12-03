@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -59,7 +59,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
     /**
      * Create a new b tree index with the given properties. If the index does
      * not yet exist, a new empty one is created.
-     * 
+     *
      * @param session the session
      * @param table the base table
      * @param id the object id
@@ -136,7 +136,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     /**
      * Update a page in the storage.
-     * 
+     *
      * @param session the session
      * @param p the page to update
      */
@@ -150,7 +150,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     /**
      * Delete a page from the storage.
-     * 
+     *
      * @param session the session
      * @param p the page to remove
      */
@@ -162,7 +162,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     /**
      * Add a page to the storage.
-     * 
+     *
      * @param session the session
      * @param p the page to add
      */
@@ -172,7 +172,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     /**
      * Get or read a page from the storage.
-     * 
+     *
      * @param session the session
      * @param i the page position
      * @return the page
@@ -183,7 +183,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     /**
      * Write all changed paged to disk and mark the index as valid.
-     * 
+     *
      * @param session the session
      */
     public void flush(Session session) throws SQLException {
@@ -236,7 +236,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     /**
      * Create a search row for this row.
-     * 
+     *
      * @param row the row
      * @return the search row
      */
@@ -310,7 +310,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     /**
      * Read an array of rows from a data page.
-     * 
+     *
      * @param s the data page
      * @return the array of rows
      */
@@ -337,7 +337,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     /**
      * Get a row from the data file.
-     * 
+     *
      * @param session the session
      * @param pos the position in the data file
      * @return the row
@@ -384,7 +384,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     /**
      * Get the last change time or 0 if the index has not been changed.
-     * 
+     *
      * @return the last change time or 0
      */
     public long getLastChange() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -26,18 +26,18 @@ public class FileObjectMemory implements FileObject {
     private static final CompressLZF LZF = new CompressLZF();
     private static final byte[] BUFFER = new byte[BLOCK_SIZE * 2];
     private static final byte[] COMPRESSED_BLOCK;
-    
+
 //## Java 1.4 begin ##
     private static final Cache COMPRESS_LATER = new Cache(CACHE_SIZE);
 //## Java 1.4 end ##
-    
+
     private String name;
     private final boolean compress;
     private long length;
     private long pos;
     private byte[][] data;
     private long lastModified;
-    
+
     /**
      * This small cache compresses the data if an element leaves the cache.
      */
@@ -45,7 +45,7 @@ public class FileObjectMemory implements FileObject {
     static class Cache extends LinkedHashMap {
         private static final long serialVersionUID = 5549197956072850355L;
         private int size;
-      
+
         Cache(int size) {
             this.size = size;
         }
@@ -64,12 +64,12 @@ public class FileObjectMemory implements FileObject {
      * Represents a compressed item.
      */
     static class CompressItem {
-        
+
         /**
          * The file data.
          */
         byte[][] data;
-        
+
         /**
          * The page to compress.
          */
@@ -88,14 +88,14 @@ public class FileObjectMemory implements FileObject {
         }
     }
 //## Java 1.4 end ##
-    
+
     FileObjectMemory(String name, boolean compress) {
         this.name = name;
         this.compress = compress;
         data = new byte[0][];
         touch();
     }
-    
+
     private static void compressLater(byte[][] data, int page) {
 //## Java 1.4 begin ##
         CompressItem c = new CompressItem();
@@ -106,7 +106,7 @@ public class FileObjectMemory implements FileObject {
         }
 //## Java 1.4 end ##
     }
-    
+
     private static void expand(byte[][] data, int page) {
         byte[] d = data[page];
         if (d.length == BLOCK_SIZE) {
@@ -121,7 +121,7 @@ public class FileObjectMemory implements FileObject {
 
     /**
      * Compress the data in a byte array.
-     * 
+     *
      * @param data the page array
      * @param page which page to compress
      */
@@ -136,22 +136,22 @@ public class FileObjectMemory implements FileObject {
             }
         }
     }
-    
+
     static {
         byte[] n = new byte[BLOCK_SIZE];
         int len = LZF.compress(n, BLOCK_SIZE, BUFFER, 0);
         COMPRESSED_BLOCK = new byte[len];
         System.arraycopy(BUFFER, 0, COMPRESSED_BLOCK, 0, len);
     }
-    
+
     private void touch() {
         lastModified = System.currentTimeMillis();
     }
-    
+
     public long length() {
         return length;
     }
-    
+
     public void setFileLength(long newLength) {
         touch();
         if (newLength < length) {
@@ -173,7 +173,7 @@ public class FileObjectMemory implements FileObject {
             changeLength(newLength);
         }
     }
-    
+
     public void seek(long pos) {
         this.pos = (int) pos;
     }
@@ -224,7 +224,7 @@ public class FileObjectMemory implements FileObject {
             len -= l;
         }
     }
-    
+
     public void write(byte[] b, int off, int len) throws IOException {
         touch();
         readWrite(b, off, len, true);
@@ -233,7 +233,7 @@ public class FileObjectMemory implements FileObject {
     public void readFully(byte[] b, int off, int len) throws IOException {
         readWrite(b, off, len, false);
     }
-    
+
     public long getFilePointer() {
         return pos;
     }

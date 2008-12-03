@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -24,18 +24,18 @@ import org.h2.value.ValueTimestamp;
  * This utility class contains time conversion functions.
  */
 public class DateTimeUtils {
-    
+
     private static final int DEFAULT_YEAR = 1970;
     private static final int DEFAULT_MONTH = 1;
     private static final int DEFAULT_DAY = 1;
     private static final int DEFAULT_HOUR = 0;
-    
+
     private static Calendar calendar = Calendar.getInstance();
-    
+
     private DateTimeUtils() {
         // utility class
     }
-    
+
     /**
      * Reset the calendar, for example after changing the default timezone.
      */
@@ -45,7 +45,7 @@ public class DateTimeUtils {
 
     /**
      * Convert the timestamp to the specified time zone.
-     * 
+     *
      * @param x the timestamp
      * @param calendar the calendar
      * @return the timestamp using the correct time zone
@@ -62,7 +62,7 @@ public class DateTimeUtils {
 
     /**
      * Clone a time object and reset the day to 1970-01-01.
-     * 
+     *
      * @param value the time value
      * @return the time value without the date component
      */
@@ -81,7 +81,7 @@ public class DateTimeUtils {
     /**
      * Clone a date object and reset the hour, minutes, seconds, and
      * milliseconds to zero.
-     * 
+     *
      * @param value the date value
      * @return the date value at midnight
      */
@@ -101,7 +101,7 @@ public class DateTimeUtils {
 
     /**
      * Convert the date from the specified time zone to UTC.
-     * 
+     *
      * @param x the date
      * @param source the calendar
      * @return the date in UTC
@@ -112,7 +112,7 @@ public class DateTimeUtils {
 
     /**
      * Convert the time from the specified time zone to UTC.
-     * 
+     *
      * @param x the time
      * @param source the calendar
      * @return the time in UTC
@@ -123,7 +123,7 @@ public class DateTimeUtils {
 
     /**
      * Convert the timestamp from the specified time zone to UTC.
-     * 
+     *
      * @param x the time
      * @param source the calendar
      * @return the timestamp in UTC
@@ -137,7 +137,7 @@ public class DateTimeUtils {
 
     /**
      * Convert the date value to UTC using the given calendar.
-     * 
+     *
      * @param source the source calendar
      * @param x the date
      * @return the UTC number of milliseconds.
@@ -180,7 +180,7 @@ public class DateTimeUtils {
 
     /**
      * Convert the date to the specified time zone.
-     * 
+     *
      * @param x the date
      * @param calendar the calendar
      * @return the date using the correct time zone
@@ -191,7 +191,7 @@ public class DateTimeUtils {
 
     /**
      * Convert the time to the specified time zone.
-     * 
+     *
      * @param x the time
      * @param calendar the calendar
      * @return the time using the correct time zone
@@ -204,7 +204,7 @@ public class DateTimeUtils {
      * Parse a date, time or timestamp value. This method supports the format
      * +/-year-month-day hour:minute:seconds.fractional and an optional timezone
      * part.
-     * 
+     *
      * @param original the original string
      * @param type the value type (Value.TIME, TIMESTAMP, or DATE)
      * @param errorCode the error code to use if an error occurs
@@ -286,7 +286,7 @@ public class DateTimeUtils {
             try {
                 time = getTime(false, tz, year, month, day, hour, minute, second, type != Value.TIMESTAMP, nano);
             } catch (IllegalArgumentException e) {
-                // special case: if the time simply doesn't exist because of 
+                // special case: if the time simply doesn't exist because of
                 // daylight saving time changes, use the lenient version
                 String message = e.toString();
                 if (message.indexOf("HOUR_OF_DAY") > 0) {
@@ -304,8 +304,8 @@ public class DateTimeUtils {
                     if (day < 1 || day > maxDay) {
                         throw e;
                     }
-                    // DAY_OF_MONTH is thrown for years > 2037 
-                    // using the timezone Brasilia and others, 
+                    // DAY_OF_MONTH is thrown for years > 2037
+                    // using the timezone Brasilia and others,
                     // for example for 2042-10-12 00:00:00.
                     hour += 6;
                     time = getTime(true, tz, year, month, day, hour, minute, second, type != Value.TIMESTAMP, nano);
@@ -348,7 +348,7 @@ public class DateTimeUtils {
                 c.set(Calendar.YEAR, year);
             }
             // january is 0
-            c.set(Calendar.MONTH, month - 1); 
+            c.set(Calendar.MONTH, month - 1);
             c.set(Calendar.DAY_OF_MONTH, day);
             c.set(Calendar.HOUR_OF_DAY, hour);
             c.set(Calendar.MINUTE, minute);
@@ -363,7 +363,7 @@ public class DateTimeUtils {
     /**
      * Get the specified field of a date, however with years normalized to
      * positive or negative, and month starting with 1.
-     * 
+     *
      * @param d the date
      * @param field the field type
      * @return the value

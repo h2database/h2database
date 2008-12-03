@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -28,7 +28,7 @@ public class ValueResultSet extends Value {
     /**
      * Create a result set value for the given result set.
      * The result set will be wrapped.
-     * 
+     *
      * @param rs the result set
      * @return the value
      */
@@ -40,7 +40,7 @@ public class ValueResultSet extends Value {
     /**
      * Create a result set value for the given result set. The result set will
      * be fully read in memory.
-     * 
+     *
      * @param rs the result set
      * @param maxrows the maximum number of rows to read (0 to just read the
      *            meta data)

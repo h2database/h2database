@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -18,12 +18,12 @@ import org.h2.util.DateTimeUtils;
  * Implementation of the DATE data type.
  */
 public class ValueDate extends Value {
-    
+
     /**
      * The precision in digits.
      */
     static final int PRECISION = 8;
-    
+
     /**
      * The display size of the textual representation of a date.
      * Example: 2000-01-02
@@ -38,7 +38,7 @@ public class ValueDate extends Value {
 
     /**
      * Parse a string to a java.sql.Date object.
-     * 
+     *
      * @param s the string to parse
      * @return the date
      */
@@ -72,7 +72,7 @@ public class ValueDate extends Value {
     public String getString() {
         String s = value.toString();
         long time = value.getTime();
-        // special case: java.sql.Date doesn't format 
+        // special case: java.sql.Date doesn't format
         // years below year 1 (BC) correctly
         if (time < ValueTimestamp.YEAR_ONE) {
             int year = DateTimeUtils.getDatePart(value, Calendar.YEAR);
@@ -103,7 +103,7 @@ public class ValueDate extends Value {
     /**
      * Get or create a date value for the given date.
      * Clone the date.
-     * 
+     *
      * @param date the date
      * @return the value
      */
@@ -115,7 +115,7 @@ public class ValueDate extends Value {
     /**
      * Get or create a date value for the given date.
      * Do not clone the date.
-     * 
+     *
      * @param date the date
      * @return the value
      */

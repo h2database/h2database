@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -45,7 +45,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
 
 //## Java 1.4 begin ##
     private static int nextTransactionId;
-    
+
     private JdbcDataSourceFactory factory;
     private String url, user;
     private char[] password;
@@ -85,7 +85,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
     /**
      * Close the physical connection.
      * This method is usually called by the connection pool.
-     * 
+     *
      * @throws SQLException
      */
 //## Java 1.4 begin ##
@@ -104,7 +104,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
     /**
      * Get a new connection. This method is usually called by the connection
      * pool when there are no more connections in the pool.
-     * 
+     *
      * @return the connection
      * @throws SQLException
      */
@@ -255,7 +255,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * Prepare a transaction.
      *
      * @param xid the transaction id
-     * @throws XAException     
+     * @throws XAException
      */
 //## Java 1.4 begin ##
     public int prepare(Xid xid) throws XAException {
@@ -439,7 +439,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
         }
         return conn;
     }
-    
+
     private XAException convertException(SQLException e) {
         XAException xa = new XAException(e.getMessage());
         xa.initCause(e);

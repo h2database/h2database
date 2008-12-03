@@ -40,7 +40,7 @@
 		</java>
 		<javac srcdir="bin" destdir="bin" debug="true" debuglevel="lines,source" includes="org/h2/**"/>
     </target>
-    
+
     <target name="download" depends="init" unless="ext.present">
         <get dest="ext/servlet-api-2.4.jar"
             src="http://repo1.maven.org/maven2/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar" />
@@ -61,7 +61,7 @@
 	  			<available file="ext/slf4j-api-1.5.0.jar"/>
 	  			<available file="ext/org.osgi.core-1.2.0.jar"/>
 			</and>
-		</condition>	    
+		</condition>
 	</target>
 
 	<target name="jar" depends="compile, manifest">
@@ -88,18 +88,18 @@
 			<attribute name="Build-Jdk" value="${java.specification.version}"/>
 		</manifest>
 	</target>
-    
+
 	<target name="resources" depends="clean">
 	    <mkdir dir="bin/org/h2/util"/>
-	    <zip destfile="bin/org/h2/util/data.zip" 
-	        basedir="src/main" 
+	    <zip destfile="bin/org/h2/util/data.zip"
+	        basedir="src/main"
 	        compress="false"
 	        excludes="**/*.java,**/package.html,**/java.sql.Driver" />
 	</target>
 
 	<target name="switchSourcePrepare" depends="clean">
-		<javac source="1.4" srcdir="src/tools" destdir="bin" 
-		    debug="true" debuglevel="lines,source" 
+		<javac source="1.4" srcdir="src/tools" destdir="bin"
+		    debug="true" debuglevel="lines,source"
 		    includes="org/h2/build/code/SwitchSource.java"/>
 	</target>
 

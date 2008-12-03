@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -33,7 +33,7 @@ public class ResultTempTable implements ResultExternal {
     private SortOrder sort;
     private Index index;
     private Cursor cursor;
-    
+
     public ResultTempTable(Session session, SortOrder sort) throws SQLException {
         this.session = session;
         this.sort = sort;
@@ -55,7 +55,7 @@ public class ResultTempTable implements ResultExternal {
         index = new BtreeIndex(session, table, indexId, tableName, indexCols, indexType, Index.EMPTY_HEAD);
         table.getIndexes().add(index);
     }
-    
+
     public int removeRow(Value[] values) throws SQLException {
         Row row = convertToRow(values);
         Cursor cursor = find(row);
@@ -65,11 +65,11 @@ public class ResultTempTable implements ResultExternal {
         }
         return (int) table.getRowCount(session);
     }
-    
+
     public boolean contains(Value[] values) throws SQLException {
         return find(convertToRow(values)) != null;
     }
-    
+
     public int addRow(Value[] values) throws SQLException {
         Row row = convertToRow(values);
         Cursor cursor = find(row);
@@ -78,7 +78,7 @@ public class ResultTempTable implements ResultExternal {
         }
         return (int) table.getRowCount(session);
     }
-    
+
     public void addRows(ObjectArray rows) throws SQLException {
         if (sort != null) {
             sort.sort(rows);
@@ -86,7 +86,7 @@ public class ResultTempTable implements ResultExternal {
         for (int i = 0; i < rows.size(); i++) {
             Value[] values = (Value[]) rows.get(i);
             addRow(values);
-        }        
+        }
     }
 
     public void close() {
@@ -120,12 +120,12 @@ public class ResultTempTable implements ResultExternal {
     public void reset() throws SQLException {
         cursor = index.find(session, null, null);
     }
-    
+
     private Row convertToRow(Value[] values) {
         ValueArray data = ValueArray.get(values);
         return new Row(new Value[]{data}, data.getMemory());
-    }    
-    
+    }
+
     private Cursor find(Row row) throws SQLException {
         Cursor cursor = index.find(session, row, row);
         while (cursor.next()) {
@@ -137,6 +137,6 @@ public class ResultTempTable implements ResultExternal {
         }
         return null;
     }
-    
+
 }
 

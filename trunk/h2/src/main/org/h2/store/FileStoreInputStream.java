@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -27,7 +27,7 @@ public class FileStoreInputStream extends InputStream {
     private CompressTool compress;
     private boolean endOfFile;
     private boolean alwaysClose;
-    
+
     public FileStoreInputStream(FileStore store, DataHandler handler, boolean compression, boolean alwaysClose) throws SQLException {
         this.store = store;
         this.alwaysClose = alwaysClose;
@@ -49,7 +49,7 @@ public class FileStoreInputStream extends InputStream {
     public int available() {
         return remainingInBuffer <= 0 ? 0 : remainingInBuffer;
     }
-    
+
     public int read(byte[] buff) throws IOException {
         return read(buff, 0, buff.length);
     }

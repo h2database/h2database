@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -21,7 +21,7 @@ import org.h2.util.ObjectUtils;
 import org.h2.util.Permutations;
 
 /**
- * The optimizer is responsible to find the best execution plan 
+ * The optimizer is responsible to find the best execution plan
  * for a given query.
  */
 public class Optimizer {
@@ -31,7 +31,7 @@ public class Optimizer {
     private static final int MAX_GENETIC = 500;
     private long start;
     private BitSet switched;
-    
+
     //  possible plans for filters:
     //  1 filter 1 plan
     //  2 filters 2 plans
@@ -47,22 +47,22 @@ public class Optimizer {
     // 2 of 2, 3, 4, 5, 6 filters: 2, 6, 12, 20, 30
     // 3 of 3, 4, 5, 6 filters: 6, 24, 75, 120
     // 4 of 4, 5, 6 filters: 24, 120, 260
-    
+
     private TableFilter[] filters;
     private Expression condition;
     private Session session;
-    
+
     private Plan bestPlan;
     private TableFilter topFilter;
     private double cost;
     private Random random;
-    
+
     Optimizer(TableFilter[] filters, Expression condition, Session session) {
         this.filters = filters;
         this.condition = condition;
         this.session = session;
     }
-    
+
     private int getMaxBruteForceFilters(int filterCount) {
         int i = 0, j = filterCount;
         BigInteger total = new BigInteger("" + filterCount);
@@ -73,9 +73,9 @@ public class Optimizer {
         }
         return i;
     }
-    
+
     private void calculateBestPlan() throws SQLException {
-        start = System.currentTimeMillis();        
+        start = System.currentTimeMillis();
         cost = -1;
         if (filters.length == 1) {
             testPlan(filters);
@@ -88,7 +88,7 @@ public class Optimizer {
             // TODO optimizer: how to use rule based optimizer?
         }
     }
-    
+
     private boolean canStop(int x) {
         if ((x & 127) == 0) {
             long t = System.currentTimeMillis() - start;
@@ -99,7 +99,7 @@ public class Optimizer {
         }
         return false;
     }
-    
+
     private void calculateBruteForceAll() throws SQLException {
         TableFilter[] list = new TableFilter[filters.length];
         Permutations p = new Permutations(filters, list);
@@ -107,7 +107,7 @@ public class Optimizer {
             testPlan(list);
         }
     }
-    
+
     private void calculateBruteForceSome() throws SQLException {
         int bruteForce = getMaxBruteForceFilters(filters.length);
         TableFilter[] list = new TableFilter[filters.length];
@@ -129,7 +129,7 @@ public class Optimizer {
                         if (i == filters.length - 1) {
                             bestPart = j;
                             break;
-                        }                        
+                        }
                         list[i] = filters[j];
                         Plan part = new Plan(list, i+1, condition);
                         double costNow = part.calculateCost(session);
@@ -145,9 +145,9 @@ public class Optimizer {
             testPlan(list);
         }
     }
-    
+
     private void calculateGenetic() throws SQLException {
-        TableFilter[] best = new TableFilter[filters.length];        
+        TableFilter[] best = new TableFilter[filters.length];
         TableFilter[] list = new TableFilter[filters.length];
         for (int x = 0; x < MAX_GENETIC; x++) {
             if (canStop(x)) {
@@ -171,8 +171,8 @@ public class Optimizer {
                 ObjectUtils.arrayCopy(list, best, filters.length);
             }
         }
-    }    
-    
+    }
+
     private boolean testPlan(TableFilter[] list) throws SQLException {
         Plan p = new Plan(list, list.length, condition);
         double costNow = p.calculateCost(session);
@@ -183,7 +183,7 @@ public class Optimizer {
         }
         return false;
     }
-    
+
     private void shuffleAll(TableFilter[] f) {
         for (int i = 0; i < f.length - 1; i++) {
             int j = i + random.nextInt(f.length - i);
@@ -244,7 +244,7 @@ public class Optimizer {
     public TableFilter getTopFilter() {
         return topFilter;
     }
-    
+
     double getCost() {
         return cost;
     }

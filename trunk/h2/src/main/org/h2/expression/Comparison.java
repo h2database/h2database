@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -29,12 +29,12 @@ public class Comparison extends Condition {
      * The comparison type meaning = as in ID=1.
      */
     public static final int EQUAL = 0;
-    
+
     /**
      * The comparison type meaning &gt;= as in ID&gt;=1.
      */
     public static final int BIGGER_EQUAL = 1;
-    
+
     /**
      * The comparison type meaning &gt; as in ID&gt;1.
      */
@@ -44,22 +44,22 @@ public class Comparison extends Condition {
      * The comparison type meaning &lt;= as in ID&lt;=1.
      */
     public static final int SMALLER_EQUAL = 3;
-    
+
     /**
      * The comparison type meaning &lt; as in ID&lt;1.
      */
     public static final int SMALLER = 4;
-    
+
     /**
      * The comparison type meaning &lt;&gt; as in ID&lt;&gt;1.
      */
     public static final int NOT_EQUAL = 5;
-    
+
     /**
      * The comparison type meaning IS NULL as in NAME IS NULL.
      */
     public static final int IS_NULL = 6;
-    
+
     /**
      * The comparison type meaning IS NOT NULL as in NAME IS NOT NULL.
      */
@@ -128,7 +128,7 @@ public class Comparison extends Condition {
         function.doneWithParameters();
         return function.optimize(session);
     }
-    
+
     public Expression optimize(Session session) throws SQLException {
         left = left.optimize(session);
         if (right == null) {
@@ -225,7 +225,7 @@ public class Comparison extends Condition {
 
     /**
      * Compare two values, given the values are not NULL.
-     * 
+     *
      * @param database the database
      * @param l the first value
      * @param r the second value
@@ -418,7 +418,7 @@ public class Comparison extends Condition {
     /**
      * Get an additional condition if possible. Example: given two conditions
      * A=B and B=C, the new condition A=C is returned.
-     * 
+     *
      * @param session the session
      * @param other the second condition
      * @return null or the third condition
@@ -447,7 +447,7 @@ public class Comparison extends Condition {
 
     /**
      * Get the left or the right sub-expression of this condition.
-     * 
+     *
      * @param left true to get the left sub-expression, false to get the right
      *            sub-expression.
      * @return the sub-expression

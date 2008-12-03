@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -33,7 +33,7 @@ public class TestPerformance {
      * Whether data should be collected.
      */
     boolean collect;
-    
+
     /**
      * The flag used to enable or disable trace messages.
      */
@@ -41,7 +41,7 @@ public class TestPerformance {
 
     /**
      * This method is called when executing this sample application.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String[] args) throws Exception {
@@ -188,7 +188,7 @@ public class TestPerformance {
 //
 //        }
 
-//        PrintWriter writer = 
+//        PrintWriter writer =
 //            new PrintWriter(new FileWriter("benchmark.html"));
 //        writer.println("<table><tr><th>Test Case</th><th>Unit</th>");
 //        for(int j=0; j<dbs.size(); j++) {
@@ -233,7 +233,7 @@ public class TestPerformance {
             runDatabase(db, tests, 1);
             collect = true;
             runDatabase(db, tests, size);
-            conn.close();            
+            conn.close();
             db.log("Executed statements", "#", db.getExecutedStatements());
             db.log("Total time", "ms", db.getTotalTime());
             int statPerSec = db.getExecutedStatements() * 1000 / db.getTotalTime();
@@ -258,7 +258,7 @@ public class TestPerformance {
 
     /**
      * Print a message to system out if trace is enabled.
-     * 
+     *
      * @param s the message
      */
     void trace(String s) {

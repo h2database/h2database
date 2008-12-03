@@ -1,10 +1,10 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
- * Version 1.0, and under the Eclipse Public License, Version 1.0 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
- 
+
 -------------------------------------------------------------------------------
 -- Optimize Count Star
 -------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ EXPLAIN SELECT MIN(VALUE), MAX(VALUE) FROM TEST;
 ;
 
 DROP TABLE TEST;
-    
+
 -------------------------------------------------------------------------------
 -- Optimize Grouped Min Max
 -------------------------------------------------------------------------------
@@ -127,8 +127,8 @@ FROM (SELECT DISTINCT TYPE FROM TEST) T ORDER BY TYPE;
 ;
 
 -- Display the query plan
-EXPLAIN SELECT TYPE, (SELECT VALUE FROM TEST T2 WHERE T.TYPE = T2.TYPE 
-ORDER BY TYPE, VALUE LIMIT 1) MIN 
+EXPLAIN SELECT TYPE, (SELECT VALUE FROM TEST T2 WHERE T.TYPE = T2.TYPE
+ORDER BY TYPE, VALUE LIMIT 1) MIN
 FROM (SELECT DISTINCT TYPE FROM TEST) T ORDER BY TYPE;
 --> SELECT TYPE, (SELECT VALUE
 -->    FROM PUBLIC.TEST T2 /* PUBLIC.IDX_TEST_TYPE_VALUE: TYPE = T.TYPE */

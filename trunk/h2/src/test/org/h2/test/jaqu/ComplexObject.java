@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -21,7 +21,7 @@ import org.h2.jaqu.Table;
 /**
  * A table containing all possible data types.
  */
-//## Java 1.5 begin ##    
+//## Java 1.5 begin ##
 public class ComplexObject implements Table {
     public Integer id;
     public Long amount;
@@ -30,7 +30,7 @@ public class ComplexObject implements Table {
     public Date birthday;
     public Time time;
     public Timestamp created;
-    
+
     static ComplexObject build(Integer id, boolean isNull) {
         ComplexObject obj = new ComplexObject();
         obj.id = id;
@@ -42,14 +42,14 @@ public class ComplexObject implements Table {
         obj.created = isNull ? null : Timestamp.valueOf("2002-02-02 02:02:02");
         return obj;
     }
-    
+
     public void define() {
-        primaryKey(id);        
+        primaryKey(id);
     }
 
     public static List<ComplexObject> getList() {
         return Arrays.asList(new ComplexObject[] { build(0, true), build(1, false) });
     }
-    
+
 }
 //## Java 1.5 end ##

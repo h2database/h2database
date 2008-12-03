@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -38,7 +38,7 @@ public class MultiVersionCursor implements Cursor {
         needNewDelta = true;
         needNewBase = true;
     }
-    
+
     /**
      * Load the current row.
      */
@@ -68,7 +68,7 @@ public class MultiVersionCursor implements Cursor {
             }
         }
     }
-    
+
     private boolean step(Cursor cursor) throws SQLException {
         return reverse ? cursor.previous() : cursor.next();
     }
@@ -145,7 +145,7 @@ public class MultiVersionCursor implements Cursor {
                 }
                 int compare = index.compareRows(deltaRow, baseRow);
                 if (compare == 0) {
-                    // can't use compareKeys because the 
+                    // can't use compareKeys because the
                     // version would be compared as well
                     int k1 = deltaRow.getPos();
                     int k2 = baseRow.getPos();
@@ -181,7 +181,7 @@ public class MultiVersionCursor implements Cursor {
             }
         }
     }
-    
+
     public boolean previous() throws SQLException {
         reverse = true;
         try {
@@ -189,6 +189,6 @@ public class MultiVersionCursor implements Cursor {
         } finally {
             reverse = false;
         }
-    }    
+    }
 
 }

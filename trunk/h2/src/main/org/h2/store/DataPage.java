@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -107,7 +107,7 @@ public abstract class DataPage {
      * @param x the value
      */
     public abstract void writeInt(int x);
-    
+
     /**
      * Read an integer at the current position.
      * The current position is incremented.
@@ -166,7 +166,7 @@ public abstract class DataPage {
     /**
      * Create a new data page for the given handler. The
      * handler will decide what type of buffer is created.
-     * 
+     *
      * @param handler the data handler
      * @param capacity the initial capacity of the buffer
      * @return the data page
@@ -181,7 +181,7 @@ public abstract class DataPage {
     /**
      * Create a new data page using the given data for the given handler. The
      * handler will decide what type of buffer is created.
-     * 
+     *
      * @param handler the data handler
      * @param buff the data
      * @return the data page
@@ -196,7 +196,7 @@ public abstract class DataPage {
     /**
      * Check if there is still enough capacity in the buffer.
      * This method extends the buffer if required.
-     * 
+     *
      * @param plus the number of additional bytes required
      */
     public void checkCapacity(int plus) {
@@ -212,7 +212,7 @@ public abstract class DataPage {
     /**
      * Get the current write position of this data page, which is the current
      * length.
-     * 
+     *
      * @return the length
      */
     public int length() {
@@ -221,7 +221,7 @@ public abstract class DataPage {
 
     /**
      * Get the byte array used for this page.
-     * 
+     *
      * @return the byte array
      */
     public byte[] getBytes() {
@@ -238,7 +238,7 @@ public abstract class DataPage {
     /**
      * Append the contents of the given data page to this page.
      * The filler is not appended.
-     * 
+     *
      * @param page the page that will be appended
      */
     public void writeDataPageNoSize(DataPage page) {
@@ -252,7 +252,7 @@ public abstract class DataPage {
     /**
      * Read a data page from this page. The data from the current position to
      * the end of the page is copied.
-     * 
+     *
      * @return the new page
      */
     public DataPage readDataPageNoSize() {
@@ -265,7 +265,7 @@ public abstract class DataPage {
 
     /**
      * Append a number of bytes to this data page.
-     * 
+     *
      * @param buff the data
      * @param off the offset in the data
      * @param len the length in bytes
@@ -279,7 +279,7 @@ public abstract class DataPage {
     /**
      * Copy a number of bytes to the given buffer from the current position. The
      * current position is incremented accordingly.
-     * 
+     *
      * @param buff the output buffer
      * @param off the offset in the output buffer
      * @param len the number of bytes to copy
@@ -291,7 +291,7 @@ public abstract class DataPage {
 
     /**
      * Append one single byte.
-     * 
+     *
      * @param x the value
      */
     public void writeByte(byte x) {
@@ -300,7 +300,7 @@ public abstract class DataPage {
 
     /**
      * Read one single byte.
-     * 
+     *
      * @return the value
      */
     public int readByte() {
@@ -309,7 +309,7 @@ public abstract class DataPage {
 
     /**
      * Read a long value. This method reads two int values and combines them.
-     * 
+     *
      * @return the long value
      */
     public long readLong() {
@@ -318,17 +318,17 @@ public abstract class DataPage {
 
     /**
      * Append a long value. This method writes two int values.
-     * 
+     *
      * @param x the value
      */
     public void writeLong(long x) {
         writeInt((int) (x >>> 32));
         writeInt((int) x);
     }
-    
+
     /**
      * Append a value.
-     * 
+     *
      * @param v the value
      */
     public void writeValue(Value v) throws SQLException {
@@ -438,7 +438,7 @@ public abstract class DataPage {
 
     /**
      * Calculate the number of bytes required to encode the given value.
-     * 
+     *
      * @param v the value
      * @return the number of bytes required to store this value
      */
@@ -512,7 +512,7 @@ public abstract class DataPage {
 
     /**
      * Read a value.
-     * 
+     *
      * @return the value
      */
     public Value readValue() throws SQLException {
@@ -605,7 +605,7 @@ public abstract class DataPage {
             throw Message.getInternalError("type=" + dataType);
         }
     }
-    
+
     /**
      * Fill up the buffer with empty space and an (initially empty) checksum
      * until the size is a multiple of Constants.FILE_BLOCK_SIZE.
@@ -618,7 +618,7 @@ public abstract class DataPage {
 
     /**
      * Set the current read / write position.
-     * 
+     *
      * @param pos the new position
      */
     public void setPos(int pos) {

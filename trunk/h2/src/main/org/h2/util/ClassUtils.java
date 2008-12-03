@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -44,14 +44,14 @@ public class ClassUtils {
         ALLOWED_CLASS_NAME_PREFIXES = new String[prefixes.size()];
         prefixes.toArray(ALLOWED_CLASS_NAME_PREFIXES);
     }
-    
+
     private ClassUtils() {
         // utility class
     }
 
     /**
      * Load a class without performing access rights checking.
-     * 
+     *
      * @param className the name of the class
      * @return the class object
      */
@@ -63,7 +63,7 @@ public class ClassUtils {
      * Load a class, but check if it is allowed to load this class first. To
      * perform access rights checking, the system property h2.allowedClasses
      * needs to be set to a list of class file name prefixes.
-     * 
+     *
      * @param className the name of the class
      * @return the class object
      */
@@ -88,14 +88,14 @@ public class ClassUtils {
             throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className }, e);
         }
     }
-    
+
     /**
      * Checks if the given method takes a variable number of arguments. For Java
      * 1.4 and older, false is returned. Example:
      * <pre>
      * public static double mean(double... values)
      * </pre>
-     * 
+     *
      * @param m the method to test
      * @return true if the method takes a variable number of arguments.
      */

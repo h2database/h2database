@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -16,12 +16,12 @@ class Command {
     private static final int CONNECT = 0, RESET = 1, DISCONNECT = 2, CREATE_TABLE = 3, INSERT = 4, DROP_TABLE = 5, SELECT = 6,
             DELETE = 7, UPDATE = 8, COMMIT = 9, ROLLBACK = 10, AUTOCOMMIT_ON = 11, AUTOCOMMIT_OFF = 12,
             CREATE_INDEX = 13, DROP_INDEX = 14, END = 15;
-    
+
     /**
      * The select list.
      */
     String[] selectList;
-    
+
     private TestSynth config;
     private int type;
     private Table table;
@@ -34,7 +34,7 @@ class Command {
     private String order;
     private String join = "";
     private Result result;
-    
+
         private Command(TestSynth config, int type) {
         this.config = config;
         this.type = type;
@@ -88,7 +88,7 @@ class Command {
 
     /**
      * Create a connect command.
-     * 
+     *
      * @param config the configuration
      * @return the command
      */
@@ -98,7 +98,7 @@ class Command {
 
     /**
      * Create a reset command.
-     * 
+     *
      * @param config the configuration
      * @return the command
      */
@@ -108,17 +108,17 @@ class Command {
 
     /**
      * Create a disconnect command.
-     * 
+     *
      * @param config the configuration
      * @return the command
      */
     static Command getDisconnect(TestSynth config) {
         return new Command(config, DISCONNECT);
     }
-    
+
     /**
      * Create an end command.
-     * 
+     *
      * @param config the configuration
      * @return the command
      */
@@ -128,7 +128,7 @@ class Command {
 
     /**
      * Create a create table command.
-     * 
+     *
      * @param config the configuration
      * @return the command
      */
@@ -138,7 +138,7 @@ class Command {
 
     /**
      * Create a create index command.
-     * 
+     *
      * @param config the configuration
      * @return the command
      */
@@ -148,7 +148,7 @@ class Command {
 
     /**
      * Create a random select command.
-     * 
+     *
      * @param config the configuration
      * @return the command
      */
@@ -169,7 +169,7 @@ class Command {
 //            Table t2 = config.randomTable();
 //            String alias = "J" + i;
 //            command.addSubqueryTable(alias, t2);
-//            Expression joinOn = 
+//            Expression joinOn =
 //                Expression.getRandomJoinOn(config, command, alias);
 //            if (config.random().getBoolean(50)) {
 //                // regular join
@@ -180,7 +180,7 @@ class Command {
 //                globalJoinCondition += " (" + joinOn.getSQL() + ") ";
 //                command.addJoin(", " + t2.getName() + " " + alias);
 //            } else {
-//                String join = " JOIN " + t2.getName() + 
+//                String join = " JOIN " + t2.getName() +
 //                    " " + alias + " ON " + joinOn.getSQL();
 //                if (config.random().getBoolean(20)) {
 //                    command.addJoin(" LEFT OUTER" + join);
@@ -189,7 +189,7 @@ class Command {
 //                }
 //            }
 //        }
-//        command.selectList = 
+//        command.selectList =
 //            Expression.getRandomSelectList(config, command);
 //        // TODO group by, having
 //        String cond = Expression.getRandomCondition(config, command).getSQL();
@@ -207,7 +207,7 @@ class Command {
 
     /**
      * Create a random delete command.
-     * 
+     *
      * @param config the configuration
      * @param table the table
      * @return the command
@@ -220,7 +220,7 @@ class Command {
 
     /**
      * Create a random update command.
-     * 
+     *
      * @param config the configuration
      * @param table the table
      * @return the command
@@ -233,11 +233,11 @@ class Command {
 
     /**
      * Create a random insert command.
-     * 
+     *
      * @param config the configuration
      * @param table the table
      * @return the command
-     */    
+     */
     static Command getRandomInsert(TestSynth config, Table table) {
         Command command = new Command(config, Command.INSERT, table);
         command.prepareInsert();
@@ -246,7 +246,7 @@ class Command {
 
     /**
      * Add a subquery table to the command.
-     * 
+     *
      * @param alias the table alias
      * @param t the table
      */
@@ -300,10 +300,10 @@ class Command {
         }
         return db.select(sql);
     }
-    
+
     /**
      * Run the command against the specified database.
-     * 
+     *
      * @param db the database
      * @return the result
      */
@@ -385,7 +385,7 @@ class Command {
 
     /**
      * Get a random table alias name.
-     * 
+     *
      * @return the alias name
      */
     String getRandomTableAlias() {
@@ -396,10 +396,10 @@ class Command {
         int i = config.random().getInt(list.length);
         return (String) list[i];
     }
-    
+
     /**
      * Get the table with the specified alias.
-     * 
+     *
      * @param alias the alias or null if there is only one table
      * @return the table
      */

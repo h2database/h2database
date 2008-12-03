@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -121,7 +121,7 @@ public class MultiVersionIndex implements Index {
     public boolean needRebuild() {
         return base.needRebuild();
     }
-    
+
     private boolean removeIfExists(Session session, Row row) throws SQLException {
         // maybe it was inserted by the same session just before
         Cursor c = delta.find(session, row, row);
@@ -149,7 +149,7 @@ public class MultiVersionIndex implements Index {
             }
         }
     }
-    
+
     public void remove(Session session) throws SQLException {
         synchronized (sync) {
             base.remove(session);

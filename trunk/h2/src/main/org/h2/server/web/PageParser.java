@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -21,7 +21,7 @@ public class PageParser {
     private Map settings;
     private int len;
     private StringBuffer result;
-    
+
     private PageParser(String page, Map settings, int pos) {
         this.page = page;
         this.pos = pos;
@@ -32,7 +32,7 @@ public class PageParser {
 
     /**
      * Replace the tags in the HTML page with the given settings.
-     * 
+     *
      * @param page the HTML page
      * @param settings the settings
      * @return the converted page
@@ -250,7 +250,7 @@ public class PageParser {
                     convertSpace = true;
                 }
                 continue;
-            } 
+            }
             convertSpace = false;
             switch (c) {
             case '$':
@@ -296,7 +296,7 @@ public class PageParser {
 
     /**
      * Escape text as a the javascript string.
-     * 
+     *
      * @param s the text
      * @return the javascript string
      */

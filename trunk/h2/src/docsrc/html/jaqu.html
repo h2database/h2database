@@ -1,8 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<!-- 
+<!--
 Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
 and under the Eclipse Public License, Version 1.0
-(http://h2database.com/html/license.html). 
+(http://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -19,51 +19,51 @@ JaQu
 
 <h2>What is JaQu</h2>
 <p>
-JaQu stands for Java Query and allows to access databases using pure Java. 
+JaQu stands for Java Query and allows to access databases using pure Java.
 JaQu provides a fluent interface (or internal DSL) for building SQL statements.
 JaQu replaces SQL, JDBC, and object/relation frameworks such as Hibernate.
-JaQu is something like LINQ for Java (LINQ stands for "language integrated query" and is a 
+JaQu is something like LINQ for Java (LINQ stands for "language integrated query" and is a
 Microsoft .NET technology). The following JaQu code:
 </p>
 <pre>
 Product p = new Product();
-List&lt;Product> soldOutProducts = 
+List&lt;Product> soldOutProducts =
   db.from(p).where(p.unitsInStock).is(0).select();
 </pre>
 <p>
 stands for the SQL statement:
 </p>
 <pre>
-SELECT * FROM PRODUCTS P 
+SELECT * FROM PRODUCTS P
 WHERE P.UNITS_IN_STOCK = 0
 </pre>
 
 <h2>Advantages and Differences to other Data Access Tools</h2>
 <p>
-Unlike SQL, JaQu can be easily integrated in Java applications. Because JaQu is pure Java, 
-Javadoc and auto-complete are supported. Type checking is performed by the compiler. 
-JaQu fully protects against SQL injection. 
+Unlike SQL, JaQu can be easily integrated in Java applications. Because JaQu is pure Java,
+Javadoc and auto-complete are supported. Type checking is performed by the compiler.
+JaQu fully protects against SQL injection.
 </p>
 <p>
 JaQu is much smaller than object/relation mapping tools such as Hibernate.
-Unlike iBatis and Hibernate, no XML or annotation based configuration is required; 
+Unlike iBatis and Hibernate, no XML or annotation based configuration is required;
 instead the configuration (if required at all) is done in pure Java, in the application itself.
 </p>
 <p>
-JaQu does not require or contain any data caching mechanism. Like JDBC and iBatis, 
+JaQu does not require or contain any data caching mechanism. Like JDBC and iBatis,
 JaQu provides full control over when and what SQL statements are executed.
 </p>
 
 <h3>Restrictions</h3>
 <p>
-Primitive types (eg. boolean, int, long, double) are not supported. Instead, 
+Primitive types (eg. boolean, int, long, double) are not supported. Instead,
 Boolean, Integer, Long, and Double must be used.
 </p>
 
 <h3>Why in Java?</h3>
 <p>
 Most people use Java in their application. Mixing Java and another language (for example Scala or Groovy)
-in the same application is complicated. It would be required to split the code to access the database 
+in the same application is complicated. It would be required to split the code to access the database
 and the application code.
 </p>
 
@@ -84,7 +84,7 @@ To create the JaQu jar file, run: <code>build jarJaqu</code>. This will create t
 <h2>Requirements</h2>
 <p>
 JaQu requires Java 1.5. Annotations are not need.
-Currently, JaQu is only tested with the H2 database engine, however in theory it should 
+Currently, JaQu is only tested with the H2 database engine, however in theory it should
 work with any database that supports the JDBC API.
 </p>
 
@@ -98,11 +98,11 @@ import static org.h2.jaqu.Function.*;
 
 public class Test {
    Db db;
-   
+
    public static void main(String[] args) throws Exception {
        new SamplesTest().test();
    }
-   
+
    public void test() throws Exception {
        db = Db.open("jdbc:h2:mem:", "sa", "sa");
        db.insertAll(Product.getProductList());
@@ -192,7 +192,7 @@ public class Test {
                total = o.total;
            }});
    }
-   
+
    private void testLength() throws Exception {
        Product p = new Product();
        List&lt;Integer> lengths = db.from(p).
@@ -200,7 +200,7 @@ public class Test {
            orderBy(1).
            selectDistinct(length(p.productName));
    }
-   
+
    private void testCount() throws Exception {
        long count = db.from(new Product()).selectCount();
    }
@@ -209,7 +209,7 @@ public class Test {
        public String category;
        public Long productCount;
    }
-   
+
    private void testGroup() throws Exception {
        final Product p = new Product();
        List&lt;ProductGroup> list =
@@ -228,7 +228,7 @@ public class Test {
 <h2>Configuration</h2>
 <p>
 JaQu does not require any kind of configuration is you want to use the default mapping.
-To define table indices, or if you want to map a class to a table with a different name, 
+To define table indices, or if you want to map a class to a table with a different name,
 or a field to a column with another name, create a function called 'define' in the data class.
 Example:
 </p>
@@ -240,7 +240,7 @@ public class Product implements Table {
     public String category;
     public Double unitPrice;
     public Integer unitsInStock;
-    
+
     public void define() {
         tableName("Product");
         primaryKey(productId);
@@ -248,12 +248,12 @@ public class Product implements Table {
     }
 </pre>
 <p>
-The method 'define()' contains the mapping definition. It is called once 
+The method 'define()' contains the mapping definition. It is called once
 when the class is used for the first time. Like annotations, the mapping is defined in the class itself.
 Unlike when using annotations, the compiler can check the syntax even for multi-column
 objects (multi-column indexes, multi-column primary keys and so on).
 This solution is very flexible because the definition is written in regular Java code:
-Unlike when using annotations, your code can select the right configuration depending 
+Unlike when using annotations, your code can select the right configuration depending
 on the environment if required. Unlike XML mapping configuration, the configuration
 is integrated in the class itself.
 </p>

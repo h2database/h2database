@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -19,57 +19,57 @@ import org.h2.util.StringUtils;
  * This class is used by the H2 Console.
  */
 public class DbContents {
-    
+
     /**
      * The list of schemas.
      */
     DbSchema[] schemas;
-    
+
     /**
      * The default schema.
      */
     DbSchema defaultSchema;
-    
+
     /**
      * True if this is an Oracle database.
      */
     boolean isOracle;
-    
+
     /**
      * True if this is a H2 database.
      */
     boolean isH2;
-    
+
     /**
      * True if this is a PostgreSQL database.
      */
     boolean isPostgreSQL;
-    
+
     /**
      * True if this is a MySQL database.
      */
     boolean isMySQL;
-    
+
     /**
      * True if this is an Apache Derby database.
      */
     boolean isDerby;
-    
+
     /**
      * True if this is a Firebird database.
      */
     boolean isFirebird;
-    
+
     /**
      * True if this is an SQLite database.
      */
     boolean isSQLite;
-    
+
     /**
      * Get the column index of a column in a result set. If the column is not
      * found, the default column index is returned.
      * This is a workaround for a JDBC-ODBC bridge problem.
-     * 
+     *
      * @param rs the result set
      * @param columnName the column name
      * @param defaultColumnIndex the default column index
@@ -85,7 +85,7 @@ public class DbContents {
 
     /**
      * Read the contents of this database from the database meta data.
-     * 
+     *
      * @param meta the database meta data
      */
     void readContents(DatabaseMetaData meta) throws SQLException {
@@ -184,7 +184,7 @@ public class DbContents {
      * Add double quotes around an identifier if required.
      * For the H2 database, only keywords are quoted; for other databases,
      * all identifiers are.
-     * 
+     *
      * @param identifier the identifier
      * @return the quoted identifier
      */

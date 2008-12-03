@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -17,23 +17,23 @@ import org.h2.util.ObjectUtils;
  * Implementation of the DOUBLE data type.
  */
 public class ValueDouble extends Value {
-    
+
     /**
      * The precision in digits.
-     */    
+     */
     public static final int PRECISION = 17;
-    
+
     /**
      * The maximum display size of a double.
      * Example: -3.3333333333333334E-100
      */
-    public static final int DISPLAY_SIZE = 24; 
+    public static final int DISPLAY_SIZE = 24;
 
     private static final double DOUBLE_ZERO = 0.0;
     private static final double DOUBLE_ONE = 1.0;
     private static final ValueDouble ZERO = new ValueDouble(DOUBLE_ZERO);
     private static final ValueDouble ONE = new ValueDouble(DOUBLE_ONE);
-    
+
     private final double value;
 
     private ValueDouble(double value) {
@@ -124,7 +124,7 @@ public class ValueDouble extends Value {
 
     /**
      * Get or create double value for the given double.
-     * 
+     *
      * @param d the double
      * @return the value
      */

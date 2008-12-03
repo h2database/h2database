@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -12,7 +12,7 @@ package org.h2.jaqu;
  */
 //## Java 1.5 begin ##
 public class Define {
-    
+
     private static TableDefinition currentTableDefinition;
     private static Table currentTable;
 
@@ -25,12 +25,12 @@ public class Define {
         checkInDefine();
         currentTableDefinition.addIndex(columns);
     }
-    
+
     public static void maxLength(Object column, int length) {
         checkInDefine();
         currentTableDefinition.setMaxLength(column, length);
     }
-    
+
     public static void tableName(String tableName) {
         currentTableDefinition.setTableName(tableName);
     }
@@ -42,7 +42,7 @@ public class Define {
         table.define();
         currentTable = null;
     }
-    
+
     private static void checkInDefine() {
         if (currentTable == null) {
             throw new RuntimeException("This method may only be called " +

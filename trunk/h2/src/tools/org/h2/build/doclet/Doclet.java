@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -40,14 +40,14 @@ public class Doclet {
     /**
      * This method is called by the javadoc framework and is required for all
      * doclets.
-     * 
+     *
      * @param root the root
      * @return true if successful
      */
     public static boolean start(RootDoc root) throws IOException {
         return new Doclet().startDoc(root);
     }
-    
+
     private boolean startDoc(RootDoc root) throws IOException {
         ClassDoc[] classes = root.classes();
         String[][] options = root.options();
@@ -83,7 +83,7 @@ public class Doclet {
         String className = getClass(clazz);
         FileWriter out = new FileWriter(fileName);
         PrintWriter writer = new PrintWriter(new BufferedWriter(out));
-        writer.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" " + 
+        writer.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" " +
                 "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">");
         String language = "en";
         writer.println("<html xmlns=\"http://www.w3.org/1999/xhtml\" " +
@@ -357,7 +357,7 @@ public class Doclet {
         String raw = method.getRawCommentText();
         if (firstSentence != null && firstSentence.startsWith("INTERNAL")) {
             return true;
-        }        
+        }
         if ((firstSentence == null || firstSentence.trim().length() == 0) && raw.indexOf("{@inheritDoc}") < 0) {
             if (!doesOverride(method)) {
                 boolean setterOrGetter = name.startsWith("set") && method.parameters().length == 1;
@@ -371,20 +371,20 @@ public class Doclet {
         }
         return false;
     }
-    
+
     private void addError(String s) {
         if (errors.add(s)) {
             System.out.println(s);
             errorCount++;
         }
     }
-    
+
     private boolean doesOverride(MethodDoc method) {
         ClassDoc clazz = method.containingClass();
         int parameterCount = method.parameters().length;
         return foundMethod(clazz, false, method.name(), parameterCount);
     }
-    
+
     private boolean foundMethod(ClassDoc clazz, boolean include, String methodName, int parameterCount) {
         if (include) {
             MethodDoc[] ms = clazz.methods();

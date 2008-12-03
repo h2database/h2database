@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -25,10 +25,10 @@ import org.h2.util.Tool;
  * This is required because the find command truncates lines.
  */
 public class ConvertTraceFile extends Tool {
-    
+
     private HashMap stats = new HashMap();
     private long timeTotal;
-    
+
     /**
      * This class holds statistics about a SQL statement.
      */
@@ -37,7 +37,7 @@ public class ConvertTraceFile extends Tool {
         int executeCount;
         long time;
         long resultCount;
-        
+
         public int compareTo(Object o) {
             Stat other = (Stat) o;
             if (other == this) {
@@ -73,7 +73,7 @@ public class ConvertTraceFile extends Tool {
      * <li>-script filename (the default is test.sql) </li>
      * <li>-javaClass className (the default is Test) </li>
      * </ul>
-     * 
+     *
      * @param args the command line arguments
      * @throws Exception
      */
@@ -206,11 +206,11 @@ public class ConvertTraceFile extends Tool {
         }
         scriptWriter.close();
     }
-    
+
     private String padNumberLeft(long number, int digits) {
         return StringUtils.pad(String.valueOf(number), digits, " ", false);
     }
-    
+
     private void addToStats(String sql, int resultCount, int time) {
         Stat stat = (Stat) stats.get(sql);
         if (stat == null) {

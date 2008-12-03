@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -38,7 +38,7 @@ public class Shell {
      * The system output stream.
      */
     PrintStream out = System.out;
-    
+
     private PrintStream err = System.err;
     private InputStream in = System.in;
     private Connection conn;
@@ -46,9 +46,9 @@ public class Shell {
     private boolean listMode;
     private int maxColumnSize = 100;
     // Windows: '\u00b3';
-    private char boxVertical = '|'; 
+    private char boxVertical = '|';
     private BufferedReader reader;
-    
+
     /**
      * The command line interface for this tool. The options must be split into
      * strings like this: "-user", "sa",... Options are case sensitive. The
@@ -61,14 +61,14 @@ public class Shell {
      * <li>-driver driver the JDBC driver class name (not required for most
      * databases) </li>
      * </ul>
-     * 
+     *
      * @param args the command line arguments
      * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
         new Shell().run(args);
     }
-    
+
     private void showUsage() {
         println("An interactive command line database tool.");
         println("java "+getClass().getName() + "\n" +
@@ -78,11 +78,11 @@ public class Shell {
                 " [-driver <class>]  The JDBC driver class to use (not required in most cases)");
         println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
-    
+
     /**
      * Redirects the input and output. By default, System.in, out and err are
      * used.
-     * 
+     *
      * @param in the input stream to use
      * @param out the output stream to use
      * @param err the output error stream to use
@@ -92,10 +92,10 @@ public class Shell {
         this.out = out;
         this.err = err;
     }
-    
+
     /**
      * Run the shell tool with the given command line settings.
-     * 
+     *
      * @param args the command line settings
      */
     public void run(String[] args) throws SQLException {
@@ -125,7 +125,7 @@ public class Shell {
         }
         promptLoop();
     }
-    
+
     private void showHelp() {
         println("Commands are case insensitive; SQL statements end with ';'");
         println("help or ?      Display this help");
@@ -191,12 +191,12 @@ public class Shell {
                         PreparedStatement prep = null;
                         ResultSet rs = null;
                         try {
-                            String sql = "SELECT CAST(COLUMN_NAME AS VARCHAR(32)) \"Column Name\", " + 
-                                "CAST(TYPE_NAME AS VARCHAR(14)) \"Type\", " + 
-                                "NUMERIC_PRECISION \"Precision\", " + 
-                                "CAST(IS_NULLABLE AS VARCHAR(8)) \"Nullable\", " + 
-                                "CAST(COLUMN_DEFAULT AS VARCHAR(20)) \"Default\" " + 
-                                "FROM INFORMATION_SCHEMA.COLUMNS " + 
+                            String sql = "SELECT CAST(COLUMN_NAME AS VARCHAR(32)) \"Column Name\", " +
+                                "CAST(TYPE_NAME AS VARCHAR(14)) \"Type\", " +
+                                "NUMERIC_PRECISION \"Precision\", " +
+                                "CAST(IS_NULLABLE AS VARCHAR(8)) \"Nullable\", " +
+                                "CAST(COLUMN_DEFAULT AS VARCHAR(20)) \"Default\" " +
+                                "FROM INFORMATION_SCHEMA.COLUMNS " +
                                 "WHERE UPPER(TABLE_NAME)=?";
                             if (schemaName != null) {
                                 sql += " AND UPPER(TABLE_SCHEMA)=?";
@@ -322,12 +322,12 @@ public class Shell {
         stat = conn.createStatement();
         println("Connected");
     }
-    
+
     private void print(String s) {
         out.print(s);
         out.flush();
     }
-    
+
     private void println(String s) {
         out.println(s);
         out.flush();
@@ -345,7 +345,7 @@ public class Shell {
             // ignore, use the default solution
         }
         /**
-         * This thread hides the password by repeatedly printing 
+         * This thread hides the password by repeatedly printing
          * backspace, backspace, &gt;, &lt;.
          */
         class PasswordHider extends Thread {
@@ -374,7 +374,7 @@ public class Shell {
         print("\b\b");
         return p;
     }
-    
+
     private String readLine(String defaultValue) throws IOException {
         String s = readLine();
         return s.length() == 0 ? defaultValue : s;
@@ -387,7 +387,7 @@ public class Shell {
         }
         return line;
     }
-    
+
     private void execute(String sql) {
         long time = System.currentTimeMillis();
         boolean result;
@@ -416,7 +416,7 @@ public class Shell {
             JdbcUtils.closeSilently(rs);
         }
     }
-    
+
     private int printResult(ResultSet rs, boolean listMode) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         int longest = 0;

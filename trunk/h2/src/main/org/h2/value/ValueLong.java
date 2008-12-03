@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -24,18 +24,18 @@ public class ValueLong extends Value {
      * The precision in digits.
      */
     public static final int PRECISION = 19;
-    
+
     /**
      * The maximum display size of a long.
      * Example: 9223372036854775808
-     */    
-    public static final int DISPLAY_SIZE = 20; 
-    
+     */
+    public static final int DISPLAY_SIZE = 20;
+
     private static final int STATIC_SIZE = 100;
     private static final ValueLong[] STATIC_CACHE;
     private static final BigInteger MIN = new BigInteger("" + Long.MIN_VALUE);
     private static final BigInteger MAX = new BigInteger("" + Long.MAX_VALUE);
-    
+
     private final long value;
 
     static {
@@ -57,7 +57,7 @@ public class ValueLong extends Value {
             int so = other.value == 0 ? 0 : (other.value < 0 ? -1 : 1);
             int sr = result == 0 ? 0 : (result < 0 ? -1 : 1);
             // if the operands have different signs overflow can not occur
-            // if the operands have the same sign, 
+            // if the operands have the same sign,
             // and the result has a different sign, then it is an overflow
             // it can not be an overflow when one of the operands is 0
             if (sv != so || sr == so || sv == 0 || so == 0) {
@@ -182,7 +182,7 @@ public class ValueLong extends Value {
 
     /**
      * Get or create a long value for the given long.
-     * 
+     *
      * @param i the long
      * @return the value
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -39,97 +39,97 @@ public abstract class Value {
      * The data type is unknown at this time.
      */
     public static final int UNKNOWN = -1;
-    
+
     /**
      * The value type for NULL.
      */
     public static final int NULL = 0;
-    
+
     /**
      * The value type for BOOLEAN values.
      */
     public static final int BOOLEAN = 1;
-    
+
     /**
      * The value type for BYTE values.
      */
     public static final int BYTE = 2;
-    
+
     /**
      * The value type for SHORT values.
      */
     public static final int SHORT = 3;
-    
+
     /**
      * The value type for INT values.
      */
     public static final int INT = 4;
-    
+
     /**
      * The value type for LONG values.
      */
     public static final int LONG = 5;
-    
+
     /**
      * The value type for DECIMAL values.
      */
     public static final int DECIMAL = 6;
-    
+
     /**
      * The value type for DOUBLE values.
      */
     public static final int DOUBLE = 7;
-    
+
     /**
      * The value type for FLOAT values.
      */
     public static final int FLOAT = 8;
-    
+
     /**
      * The value type for INT values.
      */
     public static final int TIME = 9;
-    
+
     /**
      * The value type for DATE values.
      */
     public static final int DATE = 10;
-    
+
     /**
      * The value type for TIMESTAMP values.
      */
     public static final int TIMESTAMP = 11;
-    
+
     /**
      * The value type for BYTES values.
      */
     public static final int BYTES = 12;
-    
+
     /**
      * The value type for STRING values.
      */
     public static final int STRING = 13;
-    
+
     /**
      * The value type for case insensitive STRING values.
      */
     public static final int STRING_IGNORECASE = 14;
-    
+
     /**
      * The value type for BLOB values.
      */
     public static final int BLOB = 15;
-    
+
     /**
      * The value type for CLOB values.
      */
     public static final int CLOB = 16;
-    
+
     /**
      * The value type for ARRAY values.
      */
     public static final int ARRAY = 17;
-    
+
     /**
      * The value type for RESULT_SET values.
      */
@@ -138,17 +138,17 @@ public abstract class Value {
      * The value type for JAVA_OBJECT values.
      */
     public static final int JAVA_OBJECT = 19;
-    
+
     /**
      * The value type for UUID values.
      */
     public static final int UUID = 20;
-    
+
     /**
      * The value type for string values with a fixed size.
      */
     public static final int STRING_FIXED = 21;
-    
+
     /**
      * The number of value types.
      */
@@ -219,7 +219,7 @@ public abstract class Value {
 
     /**
      * Compare the value with another value of the same type.
-     * 
+     *
      * @param v the other value
      * @param mode the compare mode
      * @return 0 if both values are equal, -1 if the other value is smaller, and
@@ -240,8 +240,8 @@ public abstract class Value {
     public abstract boolean equals(Object other);
 
     /**
-     * Get the order of this value type. 
-     * 
+     * Get the order of this value type.
+     *
      * @param type the value type
      * @return the order number
      */
@@ -302,7 +302,7 @@ public abstract class Value {
      * Get the higher value order type of two value types. If values need to be
      * converted to match the other operands value type, the value with the
      * lower order is converted to the value with the higher order.
-     * 
+     *
      * @param t1 the first value type
      * @param t2 the second value type
      * @return the higher value type of the two
@@ -323,7 +323,7 @@ public abstract class Value {
      * Check if a value is in the cache that is equal to this value. If yes,
      * this value should be used to save memory. If the value is not in the
      * cache yet, it is added.
-     * 
+     *
      * @param v the value to look for
      * @return the value in the cache or the value passed
      */
@@ -425,7 +425,7 @@ public abstract class Value {
 
     /**
      * Add a value and return the result.
-     * 
+     *
      * @param v the value to add
      * @return the result
      */
@@ -439,7 +439,7 @@ public abstract class Value {
 
     /**
      * Return -value if this value support arithmetic operations.
-     * 
+     *
      * @return the negative
      */
     public Value negate() throws SQLException {
@@ -448,7 +448,7 @@ public abstract class Value {
 
     /**
      * Subtract a value and return the result.
-     * 
+     *
      * @param v the value to subtract
      * @return the result
      */
@@ -458,7 +458,7 @@ public abstract class Value {
 
     /**
      * Divide by a value and return the result.
-     * 
+     *
      * @param v the value to divide by
      * @return the result
      */
@@ -468,7 +468,7 @@ public abstract class Value {
 
     /**
      * Multiply with a value and return the result.
-     * 
+     *
      * @param v the value to multiply with
      * @return the result
      */
@@ -478,7 +478,7 @@ public abstract class Value {
 
     /**
      * Compare a value to the specified type.
-     * 
+     *
      * @param type the value type
      * @return the value
      */
@@ -786,7 +786,7 @@ public abstract class Value {
     /**
      * Compare this value against another value given that the values are of the
      * same data type.
-     * 
+     *
      * @param v the other value
      * @param mode the compare mode
      * @return 0 if both values are equal, -1 if the other value is smaller, and
@@ -803,7 +803,7 @@ public abstract class Value {
 
     /**
      * Compare two values and return true if they contain the same data.
-     * 
+     *
      * @param v the value to compare against
      * @return true if both values are the same     * @throws SQLException
      */
@@ -823,7 +823,7 @@ public abstract class Value {
     /**
      * Compare this value against another value using the specified compare
      * mode.
-     * 
+     *
      * @param v the other value
      * @param mode the compare mode
      * @return 0 if both values are equal, -1 if the other value is smaller, and
@@ -848,7 +848,7 @@ public abstract class Value {
 
     /**
      * Convert the scale.
-     * 
+     *
      * @param onlyToSmallerScale if the scale should not reduced
      * @param targetScale the requested scale
      * @return the value
@@ -859,7 +859,7 @@ public abstract class Value {
 
     /**
      * Convert the precision to the requested value.
-     * 
+     *
      * @param precision the new precision
      * @return the new value
      */
@@ -912,7 +912,7 @@ public abstract class Value {
     /**
      * Link a large value to a given table. For values that are kept fully in
      * memory this method has no effect.
-     * 
+     *
      * @param handler the data handler
      * @param tableId the table to link to
      * @return the new value or itself
@@ -924,7 +924,7 @@ public abstract class Value {
     /**
      * Check if this value is linked to a specific table. For values that are
      * kept fully in memory, this method returns false.
-     * 
+     *
      * @return true if it is
      */
     public boolean isLinked() {
@@ -942,7 +942,7 @@ public abstract class Value {
     /**
      * Check if this value is stored in it's own file. For values that are
      * kept fully in memory, this method returns false.
-     * 
+     *
      * @return true if it is
      */
     public boolean isFileBased() {
@@ -959,7 +959,7 @@ public abstract class Value {
 
     /**
      * Check if the precision is smaller or equal than the given precision.
-     * 
+     *
      * @param precision the maximum precision
      * @return true if the precision of this value is smaller or equal to the
      *         given precision
@@ -967,11 +967,11 @@ public abstract class Value {
     public boolean checkPrecision(long precision) {
         return getPrecision() <= precision;
     }
-    
+
     /**
      * Get a medium size SQL expression for debugging or tracing. If the precision is
      * too large, only a subset of the value is returned.
-     * 
+     *
      * @return the SQL expression
      */
     public String getTraceSQL() {

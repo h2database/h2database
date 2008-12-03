@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: Jason Brittain (jason.brittain at gmail.com)
@@ -16,21 +16,21 @@ import org.h2.util.StringUtils;
 
 /**
  * This class implements some MySQL-specific functions.
- * 
+ *
  * @author Jason Brittain
  * @author Thomas Mueller
  */
 public class FunctionsMySQL {
-    
+
     /**
      * The date format of a MySQL formatted date/time.
      * Example: 2008-09-25 08:40:59
      */
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
-    
+
     /**
      * Format replacements for MySQL date formats.
-     * See 
+     * See
      * http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_date-format
      */
     private static final String[] FORMAT_REPLACE = new String[] {
@@ -63,7 +63,7 @@ public class FunctionsMySQL {
     /**
      * Register the functionality in the database.
      * Nothing happens if the functions are already registered.
-     * 
+     *
      * @param conn the connection
      */
     public static void register(Connection conn) throws SQLException {
@@ -76,38 +76,38 @@ public class FunctionsMySQL {
         for (int i = 0; i < init.length; i += 2) {
             String alias = init[i], method = init[i + 1];
             stat.execute(
-                    "CREATE ALIAS IF NOT EXISTS " + alias + 
+                    "CREATE ALIAS IF NOT EXISTS " + alias +
                     " FOR \"" + FunctionsMySQL.class.getName() + "." + method + "\"");
         }
     }
 
     /**
      * Get the seconds since 1970-01-01 00:00:00 UTC.
-     * See 
+     * See
      * http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_unix-timestamp
-     * 
+     *
      * @return the current timestamp in seconds (not milliseconds).
      */
     public static int unixTimestamp() {
         return (int) (System.currentTimeMillis() / 1000L);
     }
-    
+
     /**
      * Get the seconds since 1970-01-01 00:00:00 UTC of the given timestamp.
-     * See 
+     * See
      * http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_unix-timestamp
-     * 
+     *
      * @param timestamp the timestamp
      * @return the current timestamp in seconds (not milliseconds).
      */
     public static int unixTimestamp(java.sql.Timestamp timestamp) throws SQLException {
         return (int) (timestamp.getTime() / 1000L);
     }
-        
+
     /**
-     * See 
+     * See
      * http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_from-unixtime
-     * 
+     *
      * @param seconds The current timestamp in seconds.
      * @return a formatted date/time String in the format "yyyy-MM-dd HH:mm:ss".
      */
@@ -117,9 +117,9 @@ public class FunctionsMySQL {
     }
 
     /**
-     * See 
+     * See
      * http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_from-unixtime
-     * 
+     *
      * @param seconds The current timestamp in seconds.
      * @param format The format of the date/time String to return.
      * @return a formatted date/time String in the given format.
@@ -129,7 +129,7 @@ public class FunctionsMySQL {
         SimpleDateFormat formatter = new SimpleDateFormat(format);
         return formatter.format(new Date(seconds * 1000L));
     }
-    
+
     private static String convertToSimpleDateFormat(String format) {
         String[] replace = FORMAT_REPLACE;
         for (int i = 0; i < replace.length; i += 2) {
@@ -137,13 +137,13 @@ public class FunctionsMySQL {
         }
         return format;
     }
-        
+
     /**
      * See
      * http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_date
      * This function is dependent on the exact formatting of the MySQL date/time
      * string.
-     * 
+     *
      * @param dateTime The date/time String from which to extract just the date
      *            part.
      * @return the date part of the given date/time String argument.
@@ -158,5 +158,5 @@ public class FunctionsMySQL {
         }
         return dateTime;
     }
-        
+
 }

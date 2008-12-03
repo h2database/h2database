@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -73,7 +73,7 @@ public class TestMvcc1 extends TestBase {
         // TODO Prio 2: snapshot isolation (currently read-committed, not
         //     repeatable read)
 
-        // TODO test: one thread appends, the other 
+        // TODO test: one thread appends, the other
         //     selects new data (select * from test where id > ?) and deletes
 
         deleteDb("mvcc1");
@@ -83,7 +83,7 @@ public class TestMvcc1 extends TestBase {
         s2 = c2.createStatement();
         c1.setAutoCommit(false);
         c2.setAutoCommit(false);
-        
+
         // update same key problem
         s1.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR, PRIMARY KEY(ID))");
         s1.execute("INSERT INTO TEST VALUES(1, 'Hello')");
@@ -95,7 +95,7 @@ public class TestMvcc1 extends TestBase {
         s1.execute("DROP TABLE TEST");
         c1.commit();
         c2.commit();
-        
+
         // referential integrity problem
         s1.execute("create table a (id integer identity not null, code varchar(10) not null, primary key(id))");
         s1.execute("create table b (name varchar(100) not null, a integer, primary key(name), foreign key(a) references a(id))");
@@ -111,7 +111,7 @@ public class TestMvcc1 extends TestBase {
         s1.execute("drop table a, b");
         c2.commit();
 
-        // it should not be possible to drop a table 
+        // it should not be possible to drop a table
         // when an uncommitted transaction changed something
         s1.execute("create table test(id int primary key)");
         s1.execute("insert into test values(1)");
@@ -136,7 +136,7 @@ public class TestMvcc1 extends TestBase {
         c2.commit();
         s2.execute("drop table test");
         c2.rollback();
-        
+
         // select for update should do an exclusive lock, even with mvcc
         s1.execute("create table test(id int primary key, name varchar(255))");
         s1.execute("insert into test values(1, 'y')");

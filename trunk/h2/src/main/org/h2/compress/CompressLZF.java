@@ -1,11 +1,11 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Copyright (c) 2000-2005 Marc Alexander Lehmann <schmorp@schmorp.de>
  * Copyright (c) 2005 Oren J. Maurice <oymaurice@hazorea.org.il>
  *
- * Redistribution and use in source and binary forms, with or without 
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
  *   1.  Redistributions of source code must retain the above copyright notice,
@@ -21,7 +21,7 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ''AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
  * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
@@ -38,13 +38,13 @@ package org.h2.compress;
  * LZF is optimized for speed.
  */
 public class CompressLZF implements Compressor {
-    
+
     private static final int HASH_SIZE = 1 << 14;
     private static final int[] EMPTY = new int[HASH_SIZE];
     private static final int MAX_LITERAL = 1 << 5;
     private static final int MAX_OFF = 1 << 13;
     private static final int MAX_REF = (1 << 8) + (1 << 3);
-    
+
     private int[] hashTab;
 
     public void setOptions(String options) {

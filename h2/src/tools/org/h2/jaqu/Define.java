@@ -26,6 +26,11 @@ public class Define {
         currentTableDefinition.addIndex(columns);
     }
     
+    public static void maxLength(Object column, int length) {
+        checkInDefine();
+        currentTableDefinition.setMaxLength(column, length);
+    }
+    
     public static void tableName(String tableName) {
         currentTableDefinition.setTableName(tableName);
     }

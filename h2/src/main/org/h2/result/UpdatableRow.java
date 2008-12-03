@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -40,7 +40,7 @@ public class UpdatableRow {
     /**
      * Construct a new object that is linked to the result set. The constructor
      * reads the database meta data to find out if the result set is updatable.
-     * 
+     *
      * @param conn the database connection
      * @param result the result
      * @param session the session
@@ -92,7 +92,7 @@ public class UpdatableRow {
 
     /**
      * Check if this result set is updatable.
-     * 
+     *
      * @return true if it is
      */
     public boolean isUpdatable() {
@@ -169,7 +169,7 @@ public class UpdatableRow {
 
     /**
      * Re-reads a row from the database and updates the values in the array.
-     * 
+     *
      * @param row the values that contain the key
      * @return the row
      */
@@ -196,7 +196,7 @@ public class UpdatableRow {
 
     /**
      * Delete the given row in the database.
-     * 
+     *
      * @param current the row
      * @throws SQLException if this row has already been deleted
      */
@@ -216,7 +216,7 @@ public class UpdatableRow {
 
     /**
      * Update a row in the database.
-     * 
+     *
      * @param current the old row
      * @param updateRow the new row
      * @throws SQLException if the row has been deleted
@@ -250,7 +250,7 @@ public class UpdatableRow {
 
     /**
      * Insert a new row into the database.
-     * 
+     *
      * @param row the new row
      * @throws SQLException if the row could not be inserted
      */

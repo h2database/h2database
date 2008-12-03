@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -21,7 +21,7 @@ public class SelfDestructor extends Thread {
     /**
      * Start the countdown. If the self-destruct system property is set, this
      * value is used, otherwise the given default value is used.
-     * 
+     *
      * @param defaultMinutes the default number of minutes after which the
      *            current process is killed.
      */
@@ -83,7 +83,7 @@ public class SelfDestructor extends Thread {
                         // ignore
                     }
                     System.out.println("Killing the process now");
-                    
+
                     Runtime.getRuntime().halt(1);
                 }
             };

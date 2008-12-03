@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -42,16 +42,16 @@ public class TableFilter implements ColumnResolver {
     private IndexColumn[] indexColumns;
     private Cursor cursor;
     private int scanCount;
-    
+
     /**
      * Indicates that this filter is used in the plan.
      */
-    private boolean used; 
+    private boolean used;
 
     // conditions that can be used for direct index lookup (start or end)
     private final ObjectArray indexConditions = new ObjectArray();
 
-    // conditions that can't be used for index lookup, 
+    // conditions that can't be used for index lookup,
     // but for row filter for this table (ID=ID, NAME LIKE '%X%')
     private Expression filterCondition;
 
@@ -69,7 +69,7 @@ public class TableFilter implements ColumnResolver {
 
     /**
      * Create a new table filter object.
-     * 
+     *
      * @param session the session
      * @param table the table from where to read data
      * @param alias the alias name
@@ -97,7 +97,7 @@ public class TableFilter implements ColumnResolver {
 
     /**
      * Lock the table. This will also lock joined tables.
-     * 
+     *
      * @param session the session
      * @param exclusive true if an exclusive lock is required
      * @param force lock even in the MVCC mode
@@ -111,7 +111,7 @@ public class TableFilter implements ColumnResolver {
 
     /**
      * Get the best plan item (index, cost) to use use for the current join order.
-     * 
+     *
      * @param session the session
      * @return the best plan item
      */
@@ -160,9 +160,9 @@ public class TableFilter implements ColumnResolver {
 
     /**
      * Set what plan item (index, cost) to use use.
-     * 
+     *
      * @param item the plan item
-     */    
+     */
     public void setPlanItem(PlanItem item) {
         setIndex(item.getIndex());
         if (join != null) {
@@ -204,7 +204,7 @@ public class TableFilter implements ColumnResolver {
 
     /**
      * Start the query. This will reset the scan counts.
-     * 
+     *
      * @param session the session
      */
     public void startQuery(Session session) {
@@ -225,7 +225,7 @@ public class TableFilter implements ColumnResolver {
         state = BEFORE_FIRST;
         foundOne = false;
     }
-    
+
     private Value getMax(Value a, Value b, boolean bigger) throws SQLException {
         if (a == null) {
             return b;
@@ -241,7 +241,7 @@ public class TableFilter implements ColumnResolver {
 
     /**
      * Check if there are more rows to read.
-     * 
+     *
      * @return true if there are
      */
     public boolean next() throws SQLException {
@@ -373,7 +373,7 @@ public class TableFilter implements ColumnResolver {
 
     /**
      * Get the current row.
-     * 
+     *
      * @return the current row, or null
      */
     public Row get() throws SQLException {
@@ -392,7 +392,7 @@ public class TableFilter implements ColumnResolver {
 
     /**
      * Set the current row.
-     * 
+     *
      * @param current the current row
      */
     public void set(Row current) {
@@ -405,7 +405,7 @@ public class TableFilter implements ColumnResolver {
     /**
      * Get the table alias name. If no alias is specified, the table name is
      * returned.
-     * 
+     *
      * @return the alias name
      */
     public String getTableAlias() {
@@ -417,7 +417,7 @@ public class TableFilter implements ColumnResolver {
 
     /**
      * Add an index condition.
-     * 
+     *
      * @param condition the index condition
      */
     public void addIndexCondition(IndexCondition condition) {
@@ -426,7 +426,7 @@ public class TableFilter implements ColumnResolver {
 
     /**
      * Add a filter condition.
-     * 
+     *
      * @param condition the condition
      * @param join if this is in fact a join condition
      */
@@ -448,7 +448,7 @@ public class TableFilter implements ColumnResolver {
 
     /**
      * Add a joined table.
-     * 
+     *
      * @param filter the joined table filter
      * @param outer if this is an outer join
      * @param on the join condition
@@ -483,7 +483,7 @@ public class TableFilter implements ColumnResolver {
 
     /**
      * Check if this is an outer joined table.
-     * 
+     *
      * @return true if it is
      */
     public boolean isJoinOuter() {
@@ -492,7 +492,7 @@ public class TableFilter implements ColumnResolver {
 
     /**
      * Get the query execution plan text to use for this table filter.
-     * 
+     *
      * @param join if this is a joined table
      * @return the SQL statement snippet
      */
@@ -589,7 +589,7 @@ public class TableFilter implements ColumnResolver {
 
     /**
      * Set the session of this table filter.
-     * 
+     *
      * @param session
      */
     void setSession(Session session) {
@@ -635,7 +635,7 @@ public class TableFilter implements ColumnResolver {
     /**
      * Optimize the full condition. This will add the full condition to the
      * filter condition.
-     * 
+     *
      * @param fromOuterJoin if this method was called from an outer joined table
      */
     void optimizeFullCondition(boolean fromOuterJoin) {
@@ -650,7 +650,7 @@ public class TableFilter implements ColumnResolver {
     /**
      * Update the filter and join conditions of this and all joined tables with
      * the information that the given table filter can now return rows or not.
-     * 
+     *
      * @param filter the table filter
      * @param b the new flag
      */
@@ -678,7 +678,7 @@ public class TableFilter implements ColumnResolver {
      * Get the system columns that this table understands. This is used for
      * compatibility with other databases. The columns are only returned if the
      * current mode supports system columns.
-     * 
+     *
      * @return the system columns
      */
     public Column[] getSystemColumns() {
@@ -721,7 +721,7 @@ public class TableFilter implements ColumnResolver {
     public Expression optimize(ExpressionColumn expressionColumn, Column column) {
         return expressionColumn;
     }
-    
+
     public String toString() {
         return alias != null ? alias : "" + table;
     }

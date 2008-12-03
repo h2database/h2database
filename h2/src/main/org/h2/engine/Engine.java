@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -57,7 +57,7 @@ public class Engine {
             database = new Database(name, ci, cipher);
             opened = true;
             if (database.getAllUsers().size() == 0) {
-                // users is the last thing we add, so if no user is around, 
+                // users is the last thing we add, so if no user is around,
                 // the database is not initialized correctly
                 user = new User(database, database.allocateObjectId(false, true), ci.getUserName(), false);
                 user.setAdmin(true);
@@ -100,7 +100,7 @@ public class Engine {
 
     /**
      * Open a database connection with the given connection information.
-     * 
+     *
      * @param ci the connection information
      * @return the session
      */
@@ -116,7 +116,7 @@ public class Engine {
             throw e;
         }
     }
-    
+
     private synchronized Session openSession(ConnectionInfo ci) throws SQLException {
         boolean ifExists = ci.removeProperty("IFEXISTS", false);
         boolean ignoreUnknownSetting = ci.removeProperty("IGNORE_UNKNOWN_SETTINGS", false);
@@ -178,13 +178,13 @@ public class Engine {
     /**
      * Called after a database has been closed, to remove the object from the
      * list of open databases.
-     * 
+     *
      * @param name the database name
      */
     public void close(String name) {
         databases.remove(name);
     }
-    
+
     /**
      * This method is called after validating user name and password. If user
      * name and password were correct, the sleep time is reset, otherwise this
@@ -192,12 +192,12 @@ public class Engine {
      * harder) and then throws a 'wrong user or password' exception. The delay
      * is a bit randomized to protect against timing attacks. Also the delay
      * doubles after each unsuccessful logins, to make brute force attacks harder.
-     * 
+     *
      * There is only one exception both for wrong user and for wrong password,
      * to make it harder to get the list of user names. This method must only be
-     * called from one place, so it is not possible from the stack trace to see 
+     * called from one place, so it is not possible from the stack trace to see
      * if the user name was wrong or the password.
-     * 
+     *
      * @param correct if the user name or the password was correct
      * @throws SQLException the exception 'wrong user or password'
      */
@@ -206,7 +206,7 @@ public class Engine {
         if (correct) {
             long delay = wrongPasswordDelay;
             if (delay > min && delay > 0) {
-                // the first correct password must be blocked, 
+                // the first correct password must be blocked,
                 // otherwise parallel attacks are possible
                 synchronized (wrongPasswordSync) {
                     // delay up to the last delay
@@ -245,6 +245,6 @@ public class Engine {
                 throw Message.getSQLException(ErrorCode.WRONG_USER_OR_PASSWORD);
             }
         }
-    }    
+    }
 
 }

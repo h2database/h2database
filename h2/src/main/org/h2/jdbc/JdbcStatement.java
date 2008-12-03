@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -129,12 +129,12 @@ public class JdbcStatement extends TraceObject implements Statement {
     /**
      * Executes an arbitrary statement. If another result set exists for this
      * statement, this will be closed (even if this statement fails).
-     * 
+     *
      * If the statement is a create or drop and does not throw an exception, the
      * current transaction (if any) is committed after executing the statement.
      * If auto commit is on, and the statement is not a select, this statement
      * will be committed.
-     * 
+     *
      * @return true if a result set is available, false if not
      */
     public boolean execute(String sql) throws SQLException {
@@ -277,7 +277,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * set. This call also closes the current result set (if there is one).
      * Returns true if there is a next result set (that means - it always
      * returns false).
-     * 
+     *
      * @return false
      * @throws SQLException if this object is closed.
      */
@@ -549,7 +549,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * Changing the value will affect all statements of this connection. This
      * method does not commit a transaction, and rolling back a transaction does
      * not affect this setting.
-     * 
+     *
      * @param seconds the timeout in seconds - 0 means no timeout, values
      *            smaller 0 will throw an exception
      * @throws SQLException if this object is closed
@@ -639,7 +639,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     /**
      * Return a result set that contains the last generated autoincrement key
      * for this connection.
-     * 
+     *
      * @return the result set with one row and one column containing the key
      * @throws SQLException if this object is closed
      */
@@ -823,7 +823,7 @@ public class JdbcStatement extends TraceObject implements Statement {
 
     /**
      * Check if the statement is closed.
-     * 
+     *
      * @throws SQLException if it is closed
      */
     void checkClosed() throws SQLException {

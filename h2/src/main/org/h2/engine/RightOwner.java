@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -36,7 +36,7 @@ public abstract class RightOwner extends DbObjectBase {
 
     /**
      * Check if a role has been granted for this right owner.
-     * 
+     *
      * @param grantedRole the role
      * @return true if the role has been granted
      */
@@ -62,7 +62,7 @@ public abstract class RightOwner extends DbObjectBase {
     /**
      * Check if a right is already granted to this object or to objects that
      * were granted to this object.
-     * 
+     *
      * @param table the table to check
      * @param rightMask the right mask to check
      * @return true if the right was already granted
@@ -92,7 +92,7 @@ public abstract class RightOwner extends DbObjectBase {
     /**
      * Grant a right for the given table. Only one right object per table is
      * supported.
-     * 
+     *
      * @param table the table
      * @param right the right
      */
@@ -105,7 +105,7 @@ public abstract class RightOwner extends DbObjectBase {
 
     /**
      * Revoke the right for the given table.
-     * 
+     *
      * @param table the table
      */
     public void revokeRight(Table table) {
@@ -120,7 +120,7 @@ public abstract class RightOwner extends DbObjectBase {
 
     /**
      * Grant a role to this object.
-     * 
+     *
      * @param role the role
      * @param right the right to grant
      */
@@ -133,7 +133,7 @@ public abstract class RightOwner extends DbObjectBase {
 
     /**
      * Remove the right for the given role.
-     * 
+     *
      * @param role the role to revoke
      * @throws SQLException if the right has not been granted
      */
@@ -153,7 +153,7 @@ public abstract class RightOwner extends DbObjectBase {
 
     /**
      * Get the 'grant table' right of this object.
-     * 
+     *
      * @param table the granted table
      * @return the right or null if the right has not been granted
      */
@@ -166,7 +166,7 @@ public abstract class RightOwner extends DbObjectBase {
 
     /**
      * Get the 'grant role' right of this object.
-     * 
+     *
      * @param role the granted role
      * @return the right or null if the right has not been granted
      */

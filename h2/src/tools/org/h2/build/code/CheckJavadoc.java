@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 /**
- * This tool checks that for each .java file there is a package.html file, 
+ * This tool checks that for each .java file there is a package.html file,
  * that for each .java file there is at least one (class level) javadoc comment,
  * and that lines with comments are not too long.
  */
@@ -23,7 +23,7 @@ public class CheckJavadoc {
     /**
      * This method is called when executing this application from the command
      * line.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String[] args) throws Exception {
@@ -82,7 +82,7 @@ public class CheckJavadoc {
         }
         int open = text.indexOf('{');
         if (open < 0 || open < comment) {
-            System.out.println("No '{' or '{' before the first Javadoc comment: " + 
+            System.out.println("No '{' or '{' before the first Javadoc comment: " +
                     file.getAbsolutePath());
             errorCount++;
         }
@@ -103,7 +103,7 @@ public class CheckJavadoc {
                     System.out.println("Long line : " + file.getAbsolutePath()
                             + " (" + file.getName() + ":" + lineNumber + ")");
                     errorCount++;
-                }                
+                }
                 if (line.endsWith("*/")) {
                     inComment = false;
                 }

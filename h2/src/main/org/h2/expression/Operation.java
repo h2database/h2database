@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -22,37 +22,37 @@ import org.h2.value.ValueString;
  * A mathematical expression, or string concatenation.
  */
 public class Operation extends Expression {
-    
+
     /**
      * This operation represents a string concatenation as in 'Hello' || 'World'.
      */
     public static final int CONCAT = 0;
-    
+
     /**
      * This operation represents an addition as in 1 + 2.
      */
     public static final int PLUS = 1;
-    
+
     /**
      * This operation represents a subtraction as in 2 - 1.
      */
     public static final int MINUS = 2;
-    
+
     /**
      * This operation represents a multiplication as in 2 * 3.
      */
     public static final int MULTIPLY = 3;
-    
+
     /**
      * This operation represents a division as in 4 * 2.
      */
     public static final int DIVIDE = 4;
-    
+
     /**
      * This operation represents a negation as in - ID.
      */
     public static final int NEGATE = 5;
-    
+
     private int opType;
     private Expression left, right;
     private int dataType;

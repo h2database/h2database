@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -76,7 +76,7 @@ implements ParameterMetaData
     /**
      * Returns the parameter type.
      * java.sql.Types.VARCHAR is returned if the data type is not known.
-     * 
+     *
      * @param param the column index (1,2,...)
      * @return the data type
      */
@@ -234,12 +234,12 @@ implements ParameterMetaData
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
-    
+
     /**
      * INTERNAL
      */
     public String toString() {
         return getTraceObjectName() + ": parameterCount=" + paramCount;
-    }    
+    }
 
 }

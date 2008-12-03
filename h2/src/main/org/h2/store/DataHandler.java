@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -123,10 +123,10 @@ public interface DataHandler {
      * @return the file name
      */
     String createTempFile() throws SQLException;
-    
+
     /**
      * Get the temp file deleter mechanism.
-     * 
+     *
      * @return the temp file deleter
      */
     TempFileDeleter getTempFileDeleter();
@@ -154,7 +154,7 @@ public interface DataHandler {
 
     /**
      * Get the trace writer.
-     * 
+     *
      * @return the trace writer
      */
     Trace getTrace();

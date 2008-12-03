@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -65,7 +65,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     private CommandInterface command;
     private ObjectArray batchParameters;
 
-    JdbcPreparedStatement(JdbcConnection conn, String sql, int resultSetType, int id, 
+    JdbcPreparedStatement(JdbcConnection conn, String sql, int resultSetType, int id,
                 boolean closeWithResultSet) throws SQLException {
         super(conn, resultSetType, id, closeWithResultSet);
         setTrace(session.getTrace(), TraceObject.PREPARED_STATEMENT, id);
@@ -76,7 +76,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * Executes a query (select statement) and returns the result set. If
      * another result set exists for this statement, this will be closed (even
      * if this statement fails).
-     * 
+     *
      * @return the result set
      * @throws SQLException if this object is closed or invalid
      */
@@ -109,11 +109,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * Executes a statement (insert, update, delete, create, drop, commit,
      * rollback) and returns the update count. If another result set exists for
      * this statement, this will be closed (even if this statement fails).
-     * 
+     *
      * If the statement is a create or drop and does not throw an exception, the
      * current transaction (if any) is committed after executing the statement.
      * If auto commit is on, this statement will be committed.
-     * 
+     *
      * @return the update count (number of row affected by an insert, update or
      *         delete, or 0 if no rows or the statement was a create, drop,
      *         commit or rollback)
@@ -147,7 +147,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * statement, this will be closed (even if this statement fails). If auto
      * commit is on, and the statement is not a select, this statement will be
      * committed.
-     * 
+     *
      * @return true if a result set is available, false if not
      * @throws SQLException if this object is closed or invalid
      */
@@ -417,7 +417,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * Sets the value of a parameter. The object is converted, if required, to
      * the specified data type before sending to the database.
-     * 
+     *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value, null is allowed
      * @param targetSqlType the type as defined in java.sql.Types
@@ -443,7 +443,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * Sets the value of a parameter. The object is converted, if required, to
      * the specified data type before sending to the database.
-     * 
+     *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value, null is allowed
      * @param targetSqlType the type as defined in java.sql.Types
@@ -586,7 +586,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * Sets the date using a specified time zone. The value will be converted to
      * the local time zone.
-     * 
+     *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
      * @param calendar the calendar
@@ -610,7 +610,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * Sets the time using a specified time zone. The value will be converted to
      * the local time zone.
-     * 
+     *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
      * @param calendar the calendar
@@ -634,7 +634,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * Sets the timestamp using a specified time zone. The value will be
      * converted to the local time zone.
-     * 
+     *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
      * @param calendar the calendar
@@ -966,7 +966,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * Gets the result set metadata of the query returned when the statement is
      * executed. If this is not a query, this method returns null.
-     * 
+     *
      * @return the meta data or null if this is not a query
      * @throws SQLException if this object is closed
      */

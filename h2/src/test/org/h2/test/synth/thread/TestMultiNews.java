@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -18,7 +18,7 @@ import java.sql.Statement;
  */
 public class TestMultiNews extends TestMultiThread {
 
-    private static final String PREFIX_URL = 
+    private static final String PREFIX_URL =
         "http://feeds.wizbangblog.com/WizbangFullFeed?m=";
 
     private int len = 10000;
@@ -103,15 +103,15 @@ public class TestMultiNews extends TestMultiThread {
             }
             String comment = buff.toString();
             // FID
-            prep.setInt(1, i); 
+            prep.setInt(1, i);
             // COMMENTS
-            prep.setString(2, comment); 
+            prep.setString(2, comment);
             // LINK
-            prep.setString(3, PREFIX_URL + i); 
+            prep.setString(3, PREFIX_URL + i);
             // STATE
-            prep.setInt(4, 0); 
+            prep.setInt(4, 0);
             // VALUE
-            prep.setString(5, PREFIX_URL + i); 
+            prep.setString(5, PREFIX_URL + i);
             prep.execute();
             prep2.setString(1, comment);
             prep2.execute();

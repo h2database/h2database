@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -15,12 +15,12 @@ import org.h2.jaqu.util.Utils;
 
 /**
  * This class represents a table in a query.
- * 
+ *
  * @param <T> the table class
  */
 //## Java 1.5 begin ##
 class SelectTable <T> {
-    
+
     private static int asCounter;
     private Query query;
     private Class<T> clazz;
@@ -45,7 +45,7 @@ class SelectTable <T> {
     TableDefinition getAliasDefinition() {
         return aliasDef;
     }
-    
+
     void appendSQL(SqlStatement stat) {
         if (query.isJoin()) {
             stat.appendSQL(aliasDef.tableName + " AS " + as);
@@ -53,7 +53,7 @@ class SelectTable <T> {
             stat.appendSQL(aliasDef.tableName);
         }
     }
-    
+
     void appendSQLAsJoin(SqlStatement stat, Query query) {
         if (outerJoin) {
             stat.appendSQL(" LEFT OUTER JOIN ");
@@ -81,7 +81,7 @@ class SelectTable <T> {
     String getAs() {
         return as;
     }
-    
+
     void addConditionToken(Token condition) {
         joinConditions.add(condition);
     }
@@ -93,6 +93,6 @@ class SelectTable <T> {
     void setCurrent(T current) {
         this.current = current;
     }
-    
+
 }
 //## Java 1.5 end ##

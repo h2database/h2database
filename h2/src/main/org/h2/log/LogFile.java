@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -39,7 +39,7 @@ import org.h2.util.ObjectArray;
  * Record format:
  * <pre>
  * int block size
- * byte 'D' (delete) / 'I' (insert) / 'C' (commit) / 
+ * byte 'D' (delete) / 'I' (insert) / 'C' (commit) /
  *      'R' (rollback) / 'P' (prepare commit) / 'T' (truncate)
  * int session
  * [delete/insert only:]
@@ -56,7 +56,7 @@ public class LogFile {
      * The size of the smallest possible transaction log entry in bytes.
      */
     public static final int BLOCK_SIZE = 16;
-    
+
     private static final int BUFFER_SIZE = 8 * 1024;
 
     private LogSystem logSystem;
@@ -98,7 +98,7 @@ public class LogFile {
 
     /**
      * Open the file if it is in fact a log file for this database.
-     * 
+     *
      * @param log the log system
      * @param fileNamePrefix the expected file name prefix
      * @param fileName the file name
@@ -128,7 +128,7 @@ public class LogFile {
 
     /**
      * Get the name of this transaction log file.
-     * 
+     *
      * @return the file name
      */
     public String getFileName() {
@@ -155,7 +155,7 @@ public class LogFile {
         buff.fill(size);
         buff.setInt(0, blockCount);
         buff.updateChecksum();
-        // IOLogger.getInstance().logWrite(this.fileName, 
+        // IOLogger.getInstance().logWrite(this.fileName,
         //     file.getFilePointer(), buff.length());
         if (rec != null) {
             unwritten.add(rec);
@@ -177,7 +177,7 @@ public class LogFile {
 
     /**
      * Write a commit entry for this session.
-     * 
+     *
      * @param session the session
      */
     void commit(Session session) throws SQLException {
@@ -194,7 +194,7 @@ public class LogFile {
 
     /**
      * Write a prepare commit entry for this session.
-     * 
+     *
      * @param session the session
      * @param transaction the transaction name
      */
@@ -397,7 +397,7 @@ public class LogFile {
 
     /**
      * Go to the specified location in the file.
-     * 
+     *
      * @param pos the position
      */
     void go(int pos) throws SQLException {
@@ -407,7 +407,7 @@ public class LogFile {
     /**
      * Undo the changes of this transaction log entry. This method is called
      * when opening the database.
-     * 
+     *
      * @param pos the position of the log entry
      */
     void undo(int pos) throws SQLException {
@@ -441,7 +441,7 @@ public class LogFile {
 
     /**
      * Close the log file.
-     * 
+     *
      * @param delete if the file should be deleted shortly afterwards
      */
     void close(boolean delete) throws SQLException {
@@ -474,7 +474,7 @@ public class LogFile {
 
     /**
      * Write a file summary (storage allocation table) to the log file.
-     * 
+     *
      * @param dataFile if his summary is for the data file
      * @param summary the summary
      */
@@ -484,11 +484,11 @@ public class LogFile {
         buff.writeByte((byte) 'S');
         buff.writeInt(0);
         // storageId
-        buff.writeInt(0); 
+        buff.writeInt(0);
         // recordId
-        buff.writeInt(0); 
+        buff.writeInt(0);
         // blockCount
-        buff.writeInt(0); 
+        buff.writeInt(0);
         buff.writeByte((byte) (dataFile ? 'D' : 'I'));
         if (summary == null) {
             buff.writeInt(0);
@@ -502,7 +502,7 @@ public class LogFile {
 
     /**
      * Append a truncate entry to the transaction log file.
-     * 
+     *
      * @param session the session
      * @param storageId the id of the storage that was truncated
      * @param recordId the record id
@@ -522,7 +522,7 @@ public class LogFile {
 
     /**
      * Add a record to the transaction log file.
-     * 
+     *
      * @param session the session
      * @param storageId the storage id
      * @param record the record
@@ -613,7 +613,7 @@ public class LogFile {
 
     /**
      * Commit or roll back a prepared transaction.
-     * 
+     *
      * @param commit if the transaction should be committed (true) or rolled
      *            back (false)
      * @param pos the position of the prepare log entry

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -23,15 +23,15 @@ import org.h2.test.TestBase;
 public class TestOutOfMemory extends TestBase {
 
     private LinkedList list = new LinkedList();
-    
+
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
         TestBase.createCaller().init().test();
-    }    
+    }
 
     public void test() throws SQLException {
         if (config.memory || config.mvcc) {
@@ -86,7 +86,7 @@ public class TestOutOfMemory extends TestBase {
                     if (max < 128) {
                         break;
                     }
-                } 
+                }
                 if (eat == freeTry) {
                     div += 1;
                 } else {

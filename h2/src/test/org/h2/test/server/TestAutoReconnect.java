@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -30,53 +30,53 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
     private Connection connServer;
     private Connection conn;
     private String state;
-    
+
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
         TestBase.createCaller().init().test();
     }
-    
+
     private void restart() throws SQLException {
         if (autoServer) {
             if (connServer != null) {
                 connServer.createStatement().execute("SHUTDOWN");
                 connServer.close();
             }
-            connServer = DriverManager.getConnection(url); 
+            connServer = DriverManager.getConnection(url);
         } else {
             server.stop();
             server.start();
         }
     }
-    
+
     public void test() throws Exception {
         testReconnect(true);
         testReconnect(false);
         deleteDb("autoReconnect");
     }
-    
+
     private void testReconnect(boolean autoServer) throws Exception {
         this.autoServer = autoServer;
         deleteDb("autoReconnect");
         if (autoServer) {
-            url = "jdbc:h2:" + baseDir + "/autoReconnect;" + 
-                "FILE_LOCK=SOCKET;" + 
+            url = "jdbc:h2:" + baseDir + "/autoReconnect;" +
+                "FILE_LOCK=SOCKET;" +
                 "AUTO_SERVER=TRUE;OPEN_NEW=TRUE";
             restart();
         } else {
             server = Server.createTcpServer(new String[]{"-tcpPort", "8181"}).start();
-            url = "jdbc:h2:tcp://localhost:8181/" + baseDir + "/autoReconnect;" + 
+            url = "jdbc:h2:tcp://localhost:8181/" + baseDir + "/autoReconnect;" +
                 "FILE_LOCK=SOCKET;AUTO_RECONNECT=TRUE";
         }
-        
+
         // test the database event listener
         conn = DriverManager.getConnection(url + ";DATABASE_EVENT_LISTENER='" + getClass().getName() + "'");
         conn.close();
-        
+
         // test the database event listener object
         Properties prop = new Properties();
         state = null;
@@ -99,11 +99,11 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
         stat.execute("SELECT * FROM TEST");
         assertEquals("state " + DatabaseEventListener.STATE_RECONNECTED, state);
         conn.close();
-        
+
         if (postgreDriver != null) {
             DriverManager.registerDriver(postgreDriver);
         }
-        
+
         conn = DriverManager.getConnection(url);
         restart();
         stat = conn.createStatement();
@@ -166,7 +166,7 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
         }
         restart();
         rs.close();
-        
+
         conn.setAutoCommit(false);
         restart();
         try {
@@ -175,7 +175,7 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
         } catch (SQLException e) {
             assertKnownException(e);
         }
-        
+
         conn.close();
         if (autoServer) {
             connServer.close();

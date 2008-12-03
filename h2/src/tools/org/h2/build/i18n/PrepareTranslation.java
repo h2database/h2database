@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -47,7 +47,7 @@ public class PrepareTranslation {
     /**
      * This method is called when executing this application from the command
      * line.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String[] args) throws Exception {
@@ -145,7 +145,7 @@ public class PrepareTranslation {
             for (int j = 0; j < fileNames.size(); j++) {
                 String n = (String) fileNames.get(j);
                 if ("frame".equals(n)) {
-                    // don't translate 'frame.html' to 'frame_ja.html', 
+                    // don't translate 'frame.html' to 'frame_ja.html',
                     // otherwise we can't switch back to English
                     continue;
                 }
@@ -164,7 +164,7 @@ public class PrepareTranslation {
             writer.close();
         }
     }
-    
+
     private static boolean exclude(String fileName) {
         for (int i = 0; i < EXCLUDE.length; i++) {
             if (fileName.endsWith(EXCLUDE[i])) {
@@ -456,8 +456,8 @@ public class PrepareTranslation {
                     if (AUTO_TRANSLATE) {
                         toTranslate.add(key);
                     } else {
-                        // System.out.println(trans.getName() + 
-                        // ": key " + key + " not found in " + 
+                        // System.out.println(trans.getName() +
+                        // ": key " + key + " not found in " +
                         // "translation file; added # 'translation'");
                         t = "#" + now;
                         p.put(key, t);
@@ -597,8 +597,8 @@ public class PrepareTranslation {
      */
     private String translate(String text, String sourceLanguage, String targetLanguage) throws Exception {
         Thread.sleep(4000);
-        String url = "http://translate.google.com/translate_t?langpair=" + 
-                sourceLanguage + "|" + targetLanguage + 
+        String url = "http://translate.google.com/translate_t?langpair=" +
+                sourceLanguage + "|" + targetLanguage +
                 "&text=" + URLEncoder.encode(text, "UTF-8");
         HttpURLConnection conn = (HttpURLConnection) (new URL(url)).openConnection();
         conn.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; Java)");

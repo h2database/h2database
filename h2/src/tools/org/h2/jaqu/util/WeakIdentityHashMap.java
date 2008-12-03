@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -17,7 +17,7 @@ import java.util.Set;
  * This hash map uses weak references, so that elements that are no longer
  * referenced elsewhere can be garbage collected. It also uses object identity
  * to compare keys.
- * 
+ *
  * @param <K> the keys
  * @param <V> the value
  */
@@ -29,11 +29,11 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
     private int maxSize, minSize, maxDeleted;
     private WeakReference<K>[] keys;
     private V[] values;
-    
+
     public WeakIdentityHashMap() {
         reset(2);
     }
-    
+
     public int size() {
         return size;
     }
@@ -58,7 +58,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
     private int getIndex(Object key) {
         return System.identityHashCode(key) & mask;
     }
-    
+
     private void reset(int newLevel) {
         minSize = size * 3 / 4;
         size = 0;
@@ -138,7 +138,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
         // not found
         return null;
     }
-    
+
     private void delete(int index) {
         keys[index] = DELETED_KEY;
         values[index] = null;

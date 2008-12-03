@@ -1,5 +1,5 @@
-/* 
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+/*
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -18,7 +18,7 @@ public class IntHashMap {
     /**
      * Get the value for the given key. This method returns null if the
      * entry has not been found.
-     * 
+     *
      * @param key the key
      * @return the value or null
      */
@@ -28,7 +28,7 @@ public class IntHashMap {
 
     /**
      * Store the given key-value pair. The value is overwritten or added.
-     * 
+     *
      * @param key the key
      * @param value the value
      */
@@ -38,7 +38,7 @@ public class IntHashMap {
 
     /**
      * Remove the key-value pair with the given key.
-     * 
+     *
      * @param key the key
      */
     public void remove(int key) {
@@ -54,7 +54,7 @@ public class IntHashMap {
 
     /**
      * Get all values  from the map.
-     * 
+     *
      * @return the values
      */
     public Collection values() {

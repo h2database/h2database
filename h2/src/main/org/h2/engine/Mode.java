@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -21,18 +21,18 @@ public class Mode {
      * The name of the default mode.
      */
     public static final String REGULAR = "REGULAR";
-    
+
     private static final HashMap MODES = new HashMap();
 
     // Modes are also documented in the features section
-    
+
     /**
      * Concatenation of a NULL with another value results in NULL. Usually, the
      * NULL is treated as an empty string if only one of the operators is NULL,
      * and NULL is only returned if both values are NULL.
      */
     public boolean nullConcatIsNull;
-    
+
     /**
      * When inserting data, if a column is defined to be NOT NULL and NULL is
      * inserted, then a 0 (or empty string, or the current timestamp for
@@ -40,40 +40,40 @@ public class Mode {
      * and an exception is thrown.
      */
     public boolean convertInsertNullToZero;
-    
+
     /**
      * When converting the scale of decimal data, the number is only converted
      * if the new scale is smaller then current scale. Usually, the scale is
      * converted and 0s are added if required.
      */
     public boolean convertOnlyToSmallerScale;
-    
+
     /**
      * When converting a floating point number to a integer, the fractional
      * digits should not be truncated, but the value should be rounded.
      */
     public boolean roundWhenConvertToLong;
-    
+
     /**
      * The identifiers should be returned in lower case.
      */
     public boolean lowerCaseIdentifiers;
-    
+
     /**
      * Creating indexes in the CREATE TABLE statement should be supported.
      */
     public boolean indexDefinitionInCreateTable;
-    
+
     /**
      * The system columns 'CTID' and 'OID' should be supported.
      */
     public boolean systemColumns;
-    
+
     /**
-     * Identifiers may be quoted using square brackets as in [Test]. 
+     * Identifiers may be quoted using square brackets as in [Test].
      */
     public boolean squareBracketQuotedNames;
-    
+
     /**
      * When using unique indexes, multiple rows with NULL in one of the columns
      * are allowed by default. However many databases view NULL as distinct in
@@ -152,7 +152,7 @@ public class Mode {
         add(mode);
 
     }
-    
+
     private Mode(String name) {
         this.name = name;
     }
@@ -163,7 +163,7 @@ public class Mode {
 
     /**
      * Get the mode with the given name.
-     * 
+     *
      * @param name the name of the mode
      * @return the mode object
      */

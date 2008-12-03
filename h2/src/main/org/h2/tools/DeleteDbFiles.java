@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -71,7 +71,7 @@ public class DeleteDbFiles extends Tool {
         }
         process(dir, db, quiet);
     }
-    
+
     /**
      * Deletes the database files.
      *
@@ -82,7 +82,7 @@ public class DeleteDbFiles extends Tool {
      */
     public static void execute(String dir, String db, boolean quiet) throws SQLException {
         new DeleteDbFiles().process(dir, db, quiet);
-    }    
+    }
 
     /**
      * Deletes the database files.
@@ -113,7 +113,7 @@ public class DeleteDbFiles extends Tool {
                 FileSystem.getInstance(fileName).deleteRecursive(fileName);
             } catch (SQLException e) {
                 if (!quiet) {
-                    throw e; 
+                    throw e;
                 }
             }
         } else if (quiet || fileName.endsWith(Constants.SUFFIX_TEMP_FILE) || fileName.endsWith(Constants.SUFFIX_TRACE_FILE)) {

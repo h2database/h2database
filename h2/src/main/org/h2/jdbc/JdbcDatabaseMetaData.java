@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -98,7 +98,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Gets the list of tables in the database. The result set is sorted by
      * TABLE_TYPE, TABLE_SCHEM, and TABLE_NAME.
-     * 
+     *
      * <ul>
      * <li>1 TABLE_CAT (String) table catalog </li>
      * <li>2 TABLE_SCHEM (String) table schema </li>
@@ -108,7 +108,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>6 SQL (String) the create table statement or NULL for systems tables
      * </li>
      * </ul>
-     * 
+     *
      * @param catalog null (to get all objects) or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name
      *            (uppercase for unquoted names)
@@ -167,7 +167,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Gets the list of columns. The result set is sorted by TABLE_SCHEM,
      * TABLE_NAME, and ORDINAL_POSITION.
-     * 
+     *
      * <ul>
      * <li>1 TABLE_CAT (String) table catalog </li>
      * <li>2 TABLE_SCHEM (String) table schema </li>
@@ -189,7 +189,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>17 ORDINAL_POSITION (int) the column index (1,2,...) </li>
      * <li>18 IS_NULLABLE (String) "NO" or "YES" </li>
      * </ul>
-     * 
+     *
      * @param catalog null (to get all objects) or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name
      *            (uppercase for unquoted names)
@@ -251,7 +251,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * there is one) is also listed, with the name PRIMARY_KEY. The result set
      * is sorted by NON_UNIQUE ('false' first), TYPE, TABLE_SCHEM, INDEX_NAME,
      * and ORDINAL_POSITION.
-     * 
+     *
      * <ul>
      * <li>1 TABLE_CAT (String) table catalog </li>
      * <li>2 TABLE_SCHEM (String) table schema </li>
@@ -270,7 +270,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>14 SORT_TYPE (int) the sort type bit map: 1=DESCENDING,
      * 2=NULLS_FIRST, 4=NULLS_LAST </li>
      * </ul>
-     * 
+     *
      * @param catalog null (to get all objects) or the catalog name
      * @param schema schema name (must be specified)
      * @param tableName table name (must be specified)
@@ -305,7 +305,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "COLUMN_NAME, "
                     + "ASC_OR_DESC, "
                     // TODO meta data for number of unique values in an index
-                    + "CARDINALITY, " 
+                    + "CARDINALITY, "
                     + "PAGES, "
                     + "FILTER_CONDITION, "
                     + "SORT_TYPE "
@@ -327,7 +327,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Gets the primary key columns for a table. The result set is sorted by
      * TABLE_SCHEM, and COLUMN_NAME (and not by KEY_SEQ).
-     * 
+     *
      * <ul>
      * <li>1 TABLE_CAT (String) table catalog </li>
      * <li>2 TABLE_SCHEM (String) table schema </li>
@@ -336,7 +336,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>5 KEY_SEQ (short) the column index of this column (1,2,...) </li>
      * <li>6 PK_NAME (String) always 'PRIMARY_KEY' </li>
      * </ul>
-     * 
+     *
      * @param catalog null (to get all objects) or the catalog name
      * @param schema schema name (must be specified)
      * @param tableName table name (must be specified)
@@ -411,7 +411,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Returns the user name as passed to DriverManager.getConnection(url, user,
      * password).
-     * 
+     *
      * @return the user name
      */
     public String getUserName() throws SQLException {
@@ -439,7 +439,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Checks is NULL values are sorted high (bigger than any non-null values).
-     * 
+     *
      * @return false by default; true if the system property h2.sortNullsHigh is
      *         set to true
      */
@@ -450,7 +450,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Checks is NULL values are sorted low (smaller than any non-null values).
-     * 
+     *
      * @return true by default; false if the system property h2.sortNullsHigh is
      *         set to true
      */
@@ -462,7 +462,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Checks is NULL values are sorted at the beginning (no matter if ASC or
      * DESC is used).
-     * 
+     *
      * @return false
      */
     public boolean nullsAreSortedAtStart() {
@@ -473,7 +473,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Checks is NULL values are sorted at the end (no matter if ASC or DESC is
      * used).
-     * 
+     *
      * @return false
      */
     public boolean nullsAreSortedAtEnd() {
@@ -496,7 +496,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * PROCEDURE_NAME, and NUM_INPUT_PARAMS. There are potentially multiple
      * procedures with the same name, each with a different number of input
      * parameters.
-     * 
+     *
      * <ul>
      * <li>1 PROCEDURE_CAT (String) catalog </li>
      * <li>2 PROCEDURE_SCHEM (String) schema </li>
@@ -508,7 +508,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>8 PROCEDURE_TYPE (short) if this procedure returns a result
      * (procedureNoResult or procedureReturnsResult) </li>
      * </ul>
-     * 
+     *
      * @return the procedures.
      * @throws SQLException if the connection is closed
      */
@@ -550,7 +550,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * PROCEDURE_SCHEM, PROCEDURE_NAME, NUM_INPUT_PARAMS, and POS.
      * There are potentially multiple procedures with the same name, each with a
      * different number of input parameters.
-     * 
+     *
      * <ul>
      * <li>1 PROCEDURE_CAT (String) catalog </li>
      * <li>2 PROCEDURE_SCHEM (String) schema </li>
@@ -568,7 +568,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>14 NUM_INPUT_PARAMS (int) the parameter count </li>
      * <li>15 POS (int) the parameter index </li>
      * </ul>
-     * 
+     *
      * @throws SQLException if the connection is closed
      */
     public ResultSet getProcedureColumns(String catalog, String schemaPattern,
@@ -698,7 +698,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Gets the list of column privileges. The result set is sorted by
      * COLUMN_NAME and PRIVILEGE
-     * 
+     *
      * <ul>
      * <li>1 TABLE_CAT (String) table catalog </li>
      * <li>2 TABLE_SCHEM (String) table schema </li>
@@ -711,7 +711,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>8 IS_GRANTABLE (String) YES means the grantee can grant access to
      * others </li>
      * </ul>
-     * 
+     *
      * @param catalog null (to get all objects) or the catalog name
      * @param schema null (to get all objects) or a schema name (uppercase for
      *            unquoted names)
@@ -760,7 +760,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Gets the list of table privileges. The result set is sorted by
      * TABLE_SCHEM, TABLE_NAME, and PRIVILEGE.
-     * 
+     *
      * <ul>
      * <li>1 TABLE_CAT (String) table catalog </li>
      * <li>2 TABLE_SCHEM (String) table schema </li>
@@ -772,7 +772,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>7 IS_GRANTABLE (String) YES means the grantee can grant access to
      * others </li>
      * </ul>
-     * 
+     *
      * @param catalog null (to get all objects) or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name
      *            (uppercase for unquoted names)
@@ -865,9 +865,9 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "AND I.PRIMARY_KEY = TRUE "
                     + "ORDER BY SCOPE");
             // SCOPE
-            prep.setInt(1, DatabaseMetaData.bestRowSession); 
+            prep.setInt(1, DatabaseMetaData.bestRowSession);
             // PSEUDO_COLUMN
-            prep.setInt(2, DatabaseMetaData.bestRowNotPseudo); 
+            prep.setInt(2, DatabaseMetaData.bestRowNotPseudo);
             prep.setString(3, getCatalogPattern(catalog));
             prep.setString(4, getSchemaPattern(schema));
             prep.setString(5, tableName);
@@ -928,7 +928,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Gets the list of primary key columns that are referenced by a table. The
      * result set is sorted by PKTABLE_CAT, PKTABLE_SCHEM, PKTABLE_NAME,
      * FK_NAME, KEY_SEQ.
-     * 
+     *
      * <ul>
      * <li>1 PKTABLE_CAT (String) primary catalog </li>
      * <li>2 PKTABLE_SCHEM (String) primary schema </li>
@@ -948,7 +948,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>14 DEFERRABILITY (short) deferrable or not (always
      * importedKeyNotDeferrable) </li>
      * </ul>
-     * 
+     *
      * @param catalog null (to get all objects) or the catalog name
      * @param schema the schema name of the foreign table
      * @param tableName the name of the foreign table
@@ -997,7 +997,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Gets the list of foreign key columns that reference a table. The result
      * set is sorted by FKTABLE_CAT, FKTABLE_SCHEM, FKTABLE_NAME, FK_NAME,
      * KEY_SEQ.
-     * 
+     *
      * <ul>
      * <li>1 PKTABLE_CAT (String) primary catalog </li>
      * <li>2 PKTABLE_SCHEM (String) primary schema </li>
@@ -1017,7 +1017,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>14 DEFERRABILITY (short) deferrable or not (always
      * importedKeyNotDeferrable) </li>
      * </ul>
-     * 
+     *
      * @param catalog null (to get all objects) or the catalog name
      * @param schema the schema name of the primary table
      * @param tableName the name of the primary table
@@ -1068,7 +1068,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * the list of primary key columns that are references by a table. The
      * result set is sorted by FKTABLE_CAT, FKTABLE_SCHEM, FKTABLE_NAME,
      * FK_NAME, KEY_SEQ.
-     * 
+     *
      * <ul>
      * <li>1 PKTABLE_CAT (String) primary catalog </li>
      * <li>2 PKTABLE_SCHEM (String) primary schema </li>
@@ -1088,7 +1088,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>14 DEFERRABILITY (short) deferrable or not (always
      * importedKeyNotDeferrable) </li>
      * </ul>
-     * 
+     *
      * @param primaryCatalog ignored
      * @param primarySchema the schema name of the primary table (must be
      *            specified)
@@ -1201,7 +1201,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Gets the list of data types. The result set is sorted by DATA_TYPE and
      * afterwards by how closely the data type maps to the corresponding JDBC
      * SQL type (best match first).
-     * 
+     *
      * <ul>
      * <li>1 TYPE_NAME (String) type name </li>
      * <li>2 DATA_TYPE (short) SQL data type - see also java.sql.Types </li>
@@ -1223,7 +1223,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>17 SQL_DATETIME_SUB (int) unused </li>
      * <li>18 NUM_PREC_RADIX (int) 2 for binary, 10 for decimal </li>
      * </ul>
-     * 
+     *
      * @return the list of data types
      * @throws SQLException if the connection is closed
      */
@@ -2076,7 +2076,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns whether own inserts are visible.
-     * 
+     *
      * @return false
      */
     public boolean ownInsertsAreVisible(int type) {
@@ -2086,7 +2086,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns whether other updates are visible.
-     * 
+     *
      * @return false
      */
     public boolean othersUpdatesAreVisible(int type) {
@@ -2096,7 +2096,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns whether other deletes are visible.
-     * 
+     *
      * @return false
      */
     public boolean othersDeletesAreVisible(int type) {
@@ -2106,7 +2106,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns whether other inserts are visible.
-     * 
+     *
      * @return false
      */
     public boolean othersInsertsAreVisible(int type) {
@@ -2116,7 +2116,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns whether updates are detected.
-     * 
+     *
      * @return false
      */
     public boolean updatesAreDetected(int type) {
@@ -2126,7 +2126,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns whether deletes are detected.
-     * 
+     *
      * @return false
      */
     public boolean deletesAreDetected(int type) {
@@ -2136,7 +2136,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns whether inserts are detected.
-     * 
+     *
      * @return false
      */
     public boolean insertsAreDetected(int type) {
@@ -2146,7 +2146,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns whether batch updates are supported.
-     * 
+     *
      * @return true
      */
     public boolean supportsBatchUpdates() {
@@ -2156,7 +2156,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns whether the maximum row size includes blobs.
-     * 
+     *
      * @return false
      */
     public boolean doesMaxRowSizeIncludeBlobs() {
@@ -2166,7 +2166,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the default transaction isolation level.
-     * 
+     *
      * @return Connection.TRANSACTION_READ_COMMITTED
      */
     public int getDefaultTransactionIsolation() {
@@ -2177,7 +2177,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Checks if for CREATE TABLE Test(ID INT), getTables returns Test as the
      * table name.
-     * 
+     *
      * @return false
      */
     public boolean supportsMixedCaseIdentifiers() {
@@ -2188,7 +2188,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Checks if a table created with CREATE TABLE "Test"(ID INT) is a different
      * table than a table created with CREATE TABLE TEST(ID INT).
-     * 
+     *
      * @return true
      */
     public boolean supportsMixedCaseQuotedIdentifiers() {
@@ -2199,7 +2199,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Checks if for CREATE TABLE Test(ID INT), getTables returns TEST as the
      * table name.
-     * 
+     *
      * @return true
      */
     public boolean storesUpperCaseIdentifiers() {
@@ -2210,7 +2210,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Checks if for CREATE TABLE Test(ID INT), getTables returns test as the
      * table name.
-     * 
+     *
      * @return false
      */
     public boolean storesLowerCaseIdentifiers() {
@@ -2221,7 +2221,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Checks if for CREATE TABLE Test(ID INT), getTables returns Test as the
      * table name.
-     * 
+     *
      * @return false
      */
     public boolean storesMixedCaseIdentifiers() {
@@ -2232,7 +2232,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Checks if for CREATE TABLE "Test"(ID INT), getTables returns TEST as the
      * table name.
-     * 
+     *
      * @return false
      */
     public boolean storesUpperCaseQuotedIdentifiers() {
@@ -2243,7 +2243,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Checks if for CREATE TABLE "Test"(ID INT), getTables returns test as the
      * table name.
-     * 
+     *
      * @return false
      */
     public boolean storesLowerCaseQuotedIdentifiers() {
@@ -2254,7 +2254,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Checks if for CREATE TABLE "Test"(ID INT), getTables returns Test as the
      * table name.
-     * 
+     *
      * @return true
      */
     public boolean storesMixedCaseQuotedIdentifiers() {
@@ -2264,7 +2264,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum length for hex values (characters).
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxBinaryLiteralLength() {
@@ -2274,7 +2274,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum length for literals.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxCharLiteralLength() {
@@ -2284,7 +2284,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum length for column names.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxColumnNameLength() {
@@ -2294,7 +2294,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum number of columns in GROUP BY.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxColumnsInGroupBy() {
@@ -2304,7 +2304,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum number of columns in CREATE INDEX.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxColumnsInIndex() {
@@ -2314,7 +2314,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum number of columns in ORDER BY.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxColumnsInOrderBy() {
@@ -2324,7 +2324,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum number of columns in SELECT.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxColumnsInSelect() {
@@ -2334,7 +2334,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum number of columns in CREATE TABLE.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxColumnsInTable() {
@@ -2344,7 +2344,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum number of open connection.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxConnections() {
@@ -2354,7 +2354,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum length for a cursor name.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxCursorNameLength() {
@@ -2364,7 +2364,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum length for an index (in bytes).
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxIndexLength() {
@@ -2374,7 +2374,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum length for a schema name.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxSchemaNameLength() {
@@ -2384,7 +2384,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum length for a procedure name.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxProcedureNameLength() {
@@ -2394,7 +2394,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum length for a catalog name.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxCatalogNameLength() {
@@ -2404,7 +2404,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum size of a row (in bytes).
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxRowSize() {
@@ -2414,7 +2414,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum length of a statement.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxStatementLength() {
@@ -2424,7 +2424,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum number of open statements.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxStatements() {
@@ -2434,7 +2434,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum length for a table name.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxTableNameLength() {
@@ -2444,7 +2444,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum number of tables in a SELECT.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxTablesInSelect() {
@@ -2454,7 +2454,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns the maximum length for a user name.
-     * 
+     *
      * @return 0 for limit is unknown
      */
     public int getMaxUserNameLength() {
@@ -2464,7 +2464,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Does the database support savepoints.
-     * 
+     *
      * @return true
      */
     public boolean supportsSavepoints() {
@@ -2474,7 +2474,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Does the database support named parameters.
-     * 
+     *
      * @return false
      */
     public boolean supportsNamedParameters() {
@@ -2484,7 +2484,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Does the database support multiple open result sets.
-     * 
+     *
      * @return true
      */
     public boolean supportsMultipleOpenResults() {
@@ -2494,7 +2494,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Does the database support getGeneratedKeys.
-     * 
+     *
      * @return true
      */
     public boolean supportsGetGeneratedKeys() {
@@ -2578,7 +2578,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Does this database supports a result set holdability.
-     * 
+     *
      * @param holdability ResultSet.HOLD_CURSORS_OVER_COMMIT or
      *            CLOSE_CURSORS_AT_COMMIT
      * @return true if the holdability is ResultSet.CLOSE_CURSORS_AT_COMMIT
@@ -2592,7 +2592,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Gets the result set holdability.
-     * 
+     *
      * @return ResultSet.CLOSE_CURSORS_AT_COMMIT
      */
     //## Java 1.4 begin ##
@@ -2604,7 +2604,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Gets the major version of the database.
-     * 
+     *
      * @return the major version
      */
     public int getDatabaseMajorVersion() {
@@ -2614,7 +2614,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Gets the minor version of the database.
-     * 
+     *
      * @return the minor version
      */
     public int getDatabaseMinorVersion() {
@@ -2624,7 +2624,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Gets the major version of the supported JDBC API.
-     * 
+     *
      * @return the major version
      */
     public int getJDBCMajorVersion() {
@@ -2634,7 +2634,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Gets the minor version of the supported JDBC API.
-     * 
+     *
      * @return the minor version
      */
     public int getJDBCMinorVersion() {
@@ -2644,7 +2644,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Gets the SQL State type.
-     * 
+     *
      * @return DatabaseMetaData.sqlStateSQL99
      */
 //## Java 1.4 begin ##
@@ -2656,7 +2656,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Does the database make a copy before updating.
-     * 
+     *
      * @return false
      */
     public boolean locatorsUpdateCopy() {
@@ -2666,7 +2666,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Does the database support statement pooling.
-     * 
+     *
      * @return false
      */
     public boolean supportsStatementPooling() {
@@ -2695,7 +2695,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Get the lifetime of a rowid.
-     * 
+     *
      * @return ROWID_UNSUPPORTED
      */
 /*## Java 1.6 begin ##
@@ -2718,7 +2718,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns whether the database supports calling functions using the call syntax.
-     * 
+     *
      * @return true
      */
     public boolean supportsStoredFunctionsUsingCallSyntax() {
@@ -2728,7 +2728,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Returns whether an exception while auto commit is on closes all result sets.
-     * 
+     *
      * @return false
      */
     public boolean autoCommitFailureClosesAllResultSets() {
@@ -2768,8 +2768,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * [Not supported] Gets the list of function columns.
      */
 /*## Java 1.6 begin ##
-    public ResultSet getFunctionColumns(String catalog, String schemaPattern, 
-            String functionNamePattern, String columnNamePattern) 
+    public ResultSet getFunctionColumns(String catalog, String schemaPattern,
+            String functionNamePattern, String columnNamePattern)
             throws SQLException {
         debugCodeCall("getFunctionColumns");
         throw Message.getUnsupportedException();
@@ -2780,7 +2780,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * [Not supported] Gets the list of functions.
      */
 /*## Java 1.6 begin ##
-    public ResultSet getFunctions(String catalog, String schemaPattern, 
+    public ResultSet getFunctions(String catalog, String schemaPattern,
             String functionNamePattern) throws SQLException {
         debugCodeCall("getFunctions");
         throw Message.getUnsupportedException();

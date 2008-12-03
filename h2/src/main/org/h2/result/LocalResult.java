@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -45,17 +45,17 @@ public class LocalResult implements ResultInterface {
     private int diskOffset;
     private boolean distinct;
     private boolean closed;
-    
+
     /**
      * Construct a local result object.
      */
     public LocalResult() {
         // nothing to do
     }
-    
+
     /**
      * Construct a local result object.
-     * 
+     *
      * @param session the session
      * @param expressions the expression array
      * @param visibleColumnCount the number of visible columns
@@ -72,10 +72,10 @@ public class LocalResult implements ResultInterface {
         rowId = -1;
         this.expressions = expressions;
     }
-    
+
     /**
      * Construct a local result object.
-     * 
+     *
      * @param session the session
      * @param expressionList the expression list
      * @param visibleColumnCount the number of visible columns
@@ -86,7 +86,7 @@ public class LocalResult implements ResultInterface {
 
     /**
      * Construct a local result set by reading all data from a regular result set.
-     * 
+     *
      * @param session the session
      * @param rs the result set
      * @param maxrows the maximum number of rows to read (0 for no limit)
@@ -125,11 +125,11 @@ public class LocalResult implements ResultInterface {
         }
         return cols;
     }
-    
+
     /**
      * Create a shallow copy of the result set. The data and a temporary table
      * (if there is any) is not copied.
-     * 
+     *
      * @param session the session
      * @return the copy
      */
@@ -164,7 +164,7 @@ public class LocalResult implements ResultInterface {
 
     /**
      * Set the sort order.
-     * 
+     *
      * @param sort the sort order
      */
     public void setSortOrder(SortOrder sort) {
@@ -181,7 +181,7 @@ public class LocalResult implements ResultInterface {
 
     /**
      * Remove the row from the result set if it exists.
-     * 
+     *
      * @param values the row
      */
     public void removeDistinct(Value[] values) throws SQLException {
@@ -199,7 +199,7 @@ public class LocalResult implements ResultInterface {
 
     /**
      * Check if this result set contains the given row.
-     * 
+     *
      * @param values the row
      * @return true if the row exists
      */
@@ -252,7 +252,7 @@ public class LocalResult implements ResultInterface {
 
     /**
      * Add a row to this object.
-     * 
+     *
      * @param values the row to add
      */
     public void addRow(Value[] values) throws SQLException {
@@ -344,7 +344,7 @@ public class LocalResult implements ResultInterface {
 
     /**
      * Set the number of rows that this result will return at the maximum.
-     * 
+     *
      * @param limit the limit
      */
     public void setLimit(int limit) {
@@ -366,10 +366,10 @@ public class LocalResult implements ResultInterface {
             }
         }
     }
-    
+
     /**
      * Check if this result set is buffered using a temporary file.
-     * 
+     *
      * @return true if it is
      */
     public boolean needToClose() {
@@ -426,7 +426,7 @@ public class LocalResult implements ResultInterface {
 
     /**
      * Set the offset of the first row to return.
-     * 
+     *
      * @param offset the offset
      */
     public void setOffset(int offset) {
@@ -463,7 +463,7 @@ public class LocalResult implements ResultInterface {
 
     /**
      * Check if this result set is closed.
-     * 
+     *
      * @return true if it is
      */
     public boolean isClosed() {

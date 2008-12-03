@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -16,11 +16,11 @@ import java.util.Vector;
 import org.h2.message.TraceSystem;
 
 /**
- * Sorted properties file. 
+ * Sorted properties file.
  * This implementation requires that store() internally calls keys().
  */
 public class SortedProperties extends Properties {
-    
+
     private static final long serialVersionUID = 5657650728102821923L;
 
     public synchronized Enumeration keys() {
@@ -31,7 +31,7 @@ public class SortedProperties extends Properties {
 
     /**
      * Get a boolean property value from a properties object.
-     * 
+     *
      * @param prop the properties object
      * @param key the key
      * @param def the default value
@@ -49,7 +49,7 @@ public class SortedProperties extends Properties {
 
     /**
      * Get an int property value from a properties object.
-     * 
+     *
      * @param prop the properties object
      * @param key the key
      * @param def the default value
@@ -67,7 +67,7 @@ public class SortedProperties extends Properties {
 
     /**
      * Load a properties object from a file.
-     * 
+     *
      * @param fileName the name of the properties file
      * @return the properties object
      */
@@ -83,5 +83,5 @@ public class SortedProperties extends Properties {
         }
         return prop;
     }
-    
+
 }

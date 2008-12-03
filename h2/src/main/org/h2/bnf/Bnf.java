@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -43,7 +43,7 @@ public class Bnf {
     private Rule lastRepeat;
     private ArrayList statements;
     private String currentTopic;
-    
+
     Bnf() {
         random.setSeed(1);
     }
@@ -137,7 +137,7 @@ public class Bnf {
 
     /**
      * Get the HTML documentation for a given syntax.
-     * 
+     *
      * @param bnf the BNF syntax
      * @return the HTML formatted text
      */
@@ -280,7 +280,7 @@ public class Bnf {
      * key: 1#SELECT, value: ELECT
      * key: 1#SET, value: ET
      * </pre>
-     * 
+     *
      * @param query the start of the statement
      * @return the map of possible token types / tokens
      */
@@ -312,7 +312,7 @@ public class Bnf {
     /**
      * Update a topic with a context specific rule.
      * This is used for autocomplete support.
-     * 
+     *
      * @param topic the topic
      * @param rule the database context rule
      */
@@ -330,7 +330,7 @@ public class Bnf {
 
     /**
      * Get the list of possible statements.
-     * 
+     *
      * @return the list of statements
      */
     public ArrayList getStatements() {

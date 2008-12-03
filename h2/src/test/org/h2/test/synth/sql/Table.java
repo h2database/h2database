@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -26,7 +26,7 @@ class Table {
 
     /**
      * Create a new random table.
-     * 
+     *
      * @param config the configuration
      * @return the table
      */
@@ -69,7 +69,7 @@ class Table {
 
     /**
      * Create a new random index.
-     * 
+     *
      * @return the index
      */
     Index newRandomIndex() {
@@ -83,7 +83,7 @@ class Table {
 
     /**
      * Get the DROP TABLE statement for this table.
-     * 
+     *
      * @return the SQL statement
      */
     String getDropSQL() {
@@ -92,7 +92,7 @@ class Table {
 
     /**
      * Get the CREATE TABLE statement for this table.
-     * 
+     *
      * @return the SQL statement
      */
     String getCreateSQL() {
@@ -134,7 +134,7 @@ class Table {
 
     /**
      * Get the INSERT statement for this table.
-     * 
+     *
      * @return the SQL statement
      */
     String getInsertSQL(Column[] c, Value[] v) {
@@ -162,7 +162,7 @@ class Table {
 
     /**
      * Get the table name.
-     * 
+     *
      * @return the name
      */
     String getName() {
@@ -171,7 +171,7 @@ class Table {
 
     /**
      * Get a random column that can be used in a condition.
-     * 
+     *
      * @return the column
      */
     Column getRandomConditionColumn() {
@@ -197,7 +197,7 @@ class Table {
 
     /**
      * Get a random column of the specified type.
-     * 
+     *
      * @param type the type
      * @return the column or null if no such column was found
      */
@@ -216,7 +216,7 @@ class Table {
 
     /**
      * Get a number of random column from this table.
-     * 
+     *
      * @param len the column count
      * @return the columns
      */
@@ -244,7 +244,7 @@ class Table {
 
     /**
      * Add this index to the table.
-     * 
+     *
      * @param index the index to add
      */
     void addIndex(Index index) {
@@ -253,7 +253,7 @@ class Table {
 
     /**
      * Remove an index from the table.
-     * 
+     *
      * @param index the index to remove
      */
     void removeIndex(Index index) {

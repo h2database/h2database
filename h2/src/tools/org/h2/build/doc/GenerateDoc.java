@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -40,7 +40,7 @@ public class GenerateDoc {
     /**
      * This method is called when executing this application from the command
      * line.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String[] args) throws Exception {
@@ -79,13 +79,13 @@ public class GenerateDoc {
         map("functionsAll",
                 "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION LIKE 'Functions%' ORDER BY SECTION, ID");
         map("dataTypes", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION LIKE 'Data Types%' ORDER BY SECTION, ID");
-        map("informationSchema", "SELECT TABLE_NAME TOPIC, GROUP_CONCAT(COLUMN_NAME " + 
+        map("informationSchema", "SELECT TABLE_NAME TOPIC, GROUP_CONCAT(COLUMN_NAME " +
                 "ORDER BY ORDINAL_POSITION SEPARATOR ', ') SYNTAX FROM INFORMATION_SCHEMA.COLUMNS " +
                 "WHERE TABLE_SCHEMA='INFORMATION_SCHEMA' GROUP BY TABLE_NAME ORDER BY TABLE_NAME");
         processAll("");
         conn.close();
     }
-    
+
     private void processAll(String dir) throws Exception {
         if (dir.endsWith(".svn")) {
             return;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -38,55 +38,55 @@ import java.util.zip.ZipOutputStream;
 /**
  * This class is a complete pure Java build tool. It allows to build this
  * project without any external dependencies except a JDK.
- * Advantages: ability to debug the build, extensible, flexible, 
+ * Advantages: ability to debug the build, extensible, flexible,
  * no XML, a bit faster.
  */
 public class BuildBase {
-    
+
     /**
      * A list of files.
      */
     public static class FileList extends ArrayList implements List {
-        
+
         private static final long serialVersionUID = -3241001695597802578L;
 
         /**
          * Remove the files that match from the list.
          * Patterns must start or end with a *.
-         * 
+         *
          * @param pattern the pattern of the file names to remove
          * @return the new file list
          */
         public FileList exclude(String pattern) {
             return filterFiles(this, false, pattern);
         }
-        
+
         /**
          * Only keep the files that match.
          * Patterns must start or end with a *.
-         * 
+         *
          * @param pattern the pattern of the file names to keep
          * @return the new file list
          */
         public FileList keep(String pattern) {
             return filterFiles(this, true, pattern);
         }
-        
+
     }
-    
+
     /**
      * The output stream (System.out).
      */
     protected PrintStream out = System.out;
-    
+
     /**
      * If output should be disabled.
      */
     protected boolean quiet;
-    
+
     /**
      * This method should be called by the main method.
-     * 
+     *
      * @param args the command line parameters
      */
     protected void run(String[] args) {
@@ -114,7 +114,7 @@ public class BuildBase {
         }
         println("Done in " + (System.currentTimeMillis() - time) + " ms");
     }
-    
+
     private Object invoke(Method m, Object instance, Object[] args) {
         try {
             try {
@@ -126,7 +126,7 @@ public class BuildBase {
             throw e instanceof Error ? ((Error) e) : new Error(e);
         }
     }
-    
+
     /**
      * This method is called if no other target is specified in the command line.
      * The default behavior is to call projectHelp().
@@ -135,7 +135,7 @@ public class BuildBase {
     protected void all() {
         projectHelp();
     }
-    
+
     /**
      * Emit a beep.
      */
@@ -159,11 +159,11 @@ public class BuildBase {
         }
         out.println();
     }
-    
+
     private boolean isWindows() {
         return System.getProperty("os.name").toLowerCase().indexOf("windows") >= 0;
     }
-    
+
     /**
      * Execute a script in a separate process.
      * In Windows, the batch file with this name (.bat) is run.
@@ -181,7 +181,7 @@ public class BuildBase {
 
     /**
      * Execute a program in a separate process.
-     * 
+     *
      * @param command the program to run
      * @param args the command line parameters
      * @return the exit value
@@ -207,7 +207,7 @@ public class BuildBase {
             throw new Error("Error: " + e, e);
         }
     }
-    
+
     private void copyInThread(final InputStream in, final OutputStream out) {
         new Thread() {
             public void run() {
@@ -227,10 +227,10 @@ public class BuildBase {
             }
         } .start();
     }
-    
+
     /**
      * Read a final static field in a class using reflection.
-     * 
+     *
      * @param className the name of the class
      * @param fieldName the field name
      * @return the value as a string
@@ -247,7 +247,7 @@ public class BuildBase {
 
     /**
      * Reads the value from a static method of a class using reflection.
-     * 
+     *
      * @param className the name of the class
      * @param methodName the field name
      * @return the value as a string
@@ -264,7 +264,7 @@ public class BuildBase {
 
     /**
      * Copy files to the specified target directory.
-     * 
+     *
      * @param targetDir the target directory
      * @param files the list of files to copy
      * @param baseDir the base directory
@@ -282,7 +282,7 @@ public class BuildBase {
             writeFile(t, data);
         }
     }
-    
+
     private PrintStream filter(PrintStream out, final String[] exclude) {
         return new PrintStream(new FilterOutputStream(out) {
             private ByteArrayOutputStream buff = new ByteArrayOutputStream();
@@ -321,14 +321,14 @@ public class BuildBase {
             }
         });
     }
-    
+
     /**
      * Run a Javadoc task.
-     * 
+     *
      * @param args the command line arguments to pass
      */
     protected void javadoc(String[] args) {
-        int result;        
+        int result;
         PrintStream old = System.out;
         try {
             println("Javadoc");
@@ -353,7 +353,7 @@ public class BuildBase {
             throw new Error("An error occurred");
         }
     }
-    
+
     private String convertBytesToString(byte[] value) {
         StringBuffer buff = new StringBuffer(value.length * 2);
         for (int i = 0; i < value.length; i++) {
@@ -363,7 +363,7 @@ public class BuildBase {
         }
         return buff.toString();
     }
-    
+
     private String getSHA1(byte[] data) {
         MessageDigest md;
         try {
@@ -371,14 +371,14 @@ public class BuildBase {
             return convertBytesToString(md.digest(data));
         } catch (NoSuchAlgorithmException e) {
             throw new Error(e);
-        } 
+        }
     }
-    
+
     /**
      * Download a file if it does not yet exist.
      * If no checksum is used (that is, if the parameter is null), the
      * checksum is printed. For security, checksums should always be used.
-     * 
+     *
      * @param target the target file name
      * @param fileURL the source url of the file
      * @param sha1Checksum the SHA-1 checksum or null
@@ -418,17 +418,17 @@ public class BuildBase {
         if (sha1Checksum == null) {
             println("SHA1 checksum: " + got);
         } else {
-            
+
             if (!got.equals(sha1Checksum)) {
                 throw new Error("SHA1 checksum mismatch");
             }
         }
         writeFile(targetFile, data);
     }
-    
+
     /**
      * Get the list of files in the given directory and all subdirectories.
-     * 
+     *
      * @param dir the source directory
      * @return the file list
      */
@@ -437,7 +437,7 @@ public class BuildBase {
         addFiles(list, new File(dir));
         return list;
     }
-    
+
     private void addFiles(List list, File file) {
         if (file.getName().startsWith(".svn")) {
             // ignore
@@ -451,10 +451,10 @@ public class BuildBase {
             list.add(file);
         }
     }
-    
+
     /**
      * Filter a list of file names.
-     * 
+     *
      * @param files the original list
      * @param keep if matching file names should be kept or removed
      * @param pattern the file name pattern
@@ -484,7 +484,7 @@ public class BuildBase {
         }
         return list;
     }
-    
+
     private String removeBase(String basePath, String path) {
         if (path.startsWith(basePath)) {
             path = path.substring(basePath.length());
@@ -495,10 +495,10 @@ public class BuildBase {
         }
         return path;
     }
-    
+
     /**
      * Create or overwrite a file.
-     * 
+     *
      * @param file the file
      * @param data the data to write
      */
@@ -512,10 +512,10 @@ public class BuildBase {
             throw new Error("Error writing to file " + file, e);
         }
     }
-    
+
     /**
      * Read a file. The maximum file size is Integer.MAX_VALUE.
-     * 
+     *
      * @param file the file
      * @return the data
      */
@@ -534,10 +534,10 @@ public class BuildBase {
             throw new Error("Error reading from file " + file, e);
         }
     }
-    
+
     /**
      * Get the file name suffix.
-     * 
+     *
      * @param fileName the file name
      * @return the suffix or an empty string if there is none
      */
@@ -545,10 +545,10 @@ public class BuildBase {
         int idx = fileName.lastIndexOf('.');
         return idx < 0 ? "" : fileName.substring(idx);
     }
-    
+
     /**
      * Create a jar file.
-     * 
+     *
      * @param destFile the target file name
      * @param files the file list
      * @param basePath the base path
@@ -562,7 +562,7 @@ public class BuildBase {
 
     /**
      * Create a zip file.
-     * 
+     *
      * @param destFile the target file name
      * @param files the file list
      * @param basePath the base path
@@ -625,16 +625,16 @@ public class BuildBase {
             throw new Error("Error creating file " + destFile, e);
         }
     }
-    
+
     /**
      * Get the current java specification version (for example, 1.4).
-     * 
+     *
      * @return the java specification version
      */
     protected String getJavaSpecVersion() {
         return System.getProperty("java.specification.version");
     }
-    
+
     private List getPaths(List files) {
         ArrayList list = new ArrayList(files.size());
         for (int i = 0; i < files.size(); i++) {
@@ -642,10 +642,10 @@ public class BuildBase {
         }
         return list;
     }
-    
+
     /**
      * Compile the files.
-     * 
+     *
      * @param args the command line parameters
      * @param files the file list
      */
@@ -677,10 +677,10 @@ public class BuildBase {
             throw new Error("An error occurred");
         }
     }
-    
+
     /**
      * Call the main method of the given Java class using reflection.
-     * 
+     *
      * @param className the class name
      * @param args the command line parameters to pass
      */
@@ -696,10 +696,10 @@ public class BuildBase {
             throw new Error(e);
         }
     }
-    
+
     /**
      * Create the directory including the parent directories if they don't exist.
-     * 
+     *
      * @param dir the directory to create
      */
     protected void mkdir(String dir) {
@@ -712,7 +712,7 @@ public class BuildBase {
             mkdirs(f);
         }
     }
-    
+
     private void mkdirs(File f) {
         if (!f.exists()) {
             if (!f.mkdirs()) {
@@ -720,20 +720,20 @@ public class BuildBase {
             }
         }
     }
-    
+
     /**
      * Delete all files in the given directory and all subdirectories.
-     *  
+     *
      * @param dir the name of the directory
      */
     protected void delete(String dir) {
         println("Deleting " + dir);
         delete(new File(dir));
     }
-    
+
     /**
      * Delete all files in the list.
-     *  
+     *
      * @param files the name of the files to delete
      */
     protected void delete(FileList files) {
@@ -757,10 +757,10 @@ public class BuildBase {
             }
         }
     }
-    
+
     /**
      * Replace each substring in a given string. Regular expression is not used.
-     * 
+     *
      * @param s the original text
      * @param before the old substring
      * @param after the new substring
@@ -777,10 +777,10 @@ public class BuildBase {
             index = next + after.length();
         }
     }
-    
+
     /**
      * Print a line to the output unless the quiet mode is enabled.
-     * 
+     *
      * @param s the text to write
      */
     protected void println(String s) {
@@ -788,10 +788,10 @@ public class BuildBase {
             out.println(s);
         }
     }
-    
+
     /**
      * Print a message to the output unless the quiet mode is enabled.
-     * 
+     *
      * @param s the message to write
      */
     protected void print(String s) {

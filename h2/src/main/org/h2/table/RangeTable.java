@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -29,13 +29,13 @@ public class RangeTable extends Table {
      * The name of the range table.
      */
     public static final String NAME = "SYSTEM_RANGE";
-    
+
     private Expression min, max;
     private boolean optimized;
-    
+
     /**
      * Create a new range with the given start and end expressions.
-     * 
+     *
      * @param schema the schema (always the main schema)
      * @param min the start expression
      * @param max the end expression
@@ -117,10 +117,10 @@ public class RangeTable extends Table {
     public Index getScanIndex(Session session) {
         return new RangeIndex(this, IndexColumn.wrap(columns));
     }
-    
+
     /**
      * Calculate and get the start value of this range.
-     * 
+     *
      * @param session the session
      * @return the start value
      */
@@ -131,7 +131,7 @@ public class RangeTable extends Table {
 
     /**
      * Calculate and get the end value of this range.
-     * 
+     *
      * @param session the session
      * @return the end value
      */
@@ -139,7 +139,7 @@ public class RangeTable extends Table {
         optimize(session);
         return max.getValue(session).getLong();
     }
-    
+
     private void optimize(Session s) throws SQLException {
         if (!optimized) {
             min = min.optimize(s);

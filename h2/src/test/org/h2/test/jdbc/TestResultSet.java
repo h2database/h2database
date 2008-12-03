@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -33,25 +33,25 @@ import org.h2.test.TestBase;
  * Tests for the ResultSet implementation.
  */
 public class TestResultSet extends TestBase {
-    
+
     private Connection conn;
     private Statement stat;
-    
+
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
         TestBase.createCaller().init().test();
-    }    
+    }
 
     public void test() throws SQLException {
         deleteDb("resultSet");
         conn = getConnection("resultSet");
 
         stat = conn.createStatement();
-        
+
         testAbsolute();
         testFetchSize();
         testOwnUpdates();
@@ -81,7 +81,7 @@ public class TestResultSet extends TestBase {
         deleteDb("resultSet");
 
     }
-    
+
     private void testAbsolute() throws SQLException {
         // stat.execute("SET MAX_MEMORY_ROWS 90");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
@@ -95,7 +95,7 @@ public class TestResultSet extends TestBase {
         }
         stat.execute("DROP TABLE TEST");
     }
-    
+
     private void testFetchSize() throws SQLException {
         if (!config.networked || config.memory) {
             return;
@@ -108,7 +108,7 @@ public class TestResultSet extends TestBase {
         b = rs.getFetchSize();
         assertEquals(a + 1, b);
     }
-    
+
     private void testOwnUpdates() throws SQLException {
         DatabaseMetaData meta = conn.getMetaData();
         for (int i = 0; i < 3; i++) {
@@ -117,7 +117,7 @@ public class TestResultSet extends TestBase {
             assertFalse(meta.ownDeletesAreVisible(type));
             assertFalse(meta.ownInsertsAreVisible(type));
         }
-        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, 
+        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                 ResultSet.CONCUR_UPDATABLE);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
@@ -131,9 +131,9 @@ public class TestResultSet extends TestBase {
         assertEquals("Hallo", rs.getString(2));
         stat.execute("DROP TABLE TEST");
     }
-    
+
     private void testUpdatePrimaryKey() throws SQLException {
-        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, 
+        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                 ResultSet.CONCUR_UPDATABLE);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
@@ -142,15 +142,15 @@ public class TestResultSet extends TestBase {
         rs.updateInt(1, 2);
         rs.updateRow();
         rs.updateInt(1, 3);
-        rs.updateRow();      
+        rs.updateRow();
         stat.execute("DROP TABLE TEST");
     }
-    
+
     private void checkPrecision(int expected, String sql) throws SQLException {
         ResultSetMetaData meta = stat.executeQuery(sql).getMetaData();
         assertEquals(expected, meta.getPrecision(1));
     }
-    
+
     private void testSubstringPrecision() throws SQLException {
         trace("testSubstringPrecision");
         stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR(10))");

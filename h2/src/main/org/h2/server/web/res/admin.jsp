@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<!-- 
+<!--
 Copyright 2004-2008 H2 Group.
-Multiple-Licensed under the H2 License, Version 1.0, 
+Multiple-Licensed under the H2 License, Version 1.0,
 and under the Eclipse Public License, Version 1.0
 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
@@ -25,7 +25,7 @@ Initial Developer: H2 Group
         ${text.adminTitle}
     </h1>
     <p>
-        <a href="index.do?jsessionid=${sessionId}">${text.adminLogout}</a> 
+        <a href="index.do?jsessionid=${sessionId}">${text.adminLogout}</a>
     </p>
     <hr />
     <form name="admin" method="post" action="adminSave.do?jsessionid=${sessionId}">
@@ -40,7 +40,7 @@ Initial Developer: H2 Group
             <input type="radio" name="allowOthers" value="false" />
         </c:if>
         ${text.adminLocal}<br />
-        
+
         <c:if test="allowOthers=='true'">
             <input type="radio" name="allowOthers" value="true" checked="checked" />
         </c:if>

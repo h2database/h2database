@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -25,7 +25,7 @@ public class SmallMap {
 
     /**
      * Create a map with the given maximum number of entries.
-     * 
+     *
      * @param maxElements the maximum number of entries
      */
     public SmallMap(int maxElements) {
@@ -35,7 +35,7 @@ public class SmallMap {
     /**
      * Add an object to the map. If the size of the map is larger than twice the
      * maximum size, objects with a low id are removed.
-     * 
+     *
      * @param id the object id
      * @param o the object
      * @return the id
@@ -61,7 +61,7 @@ public class SmallMap {
 
     /**
      * Remove an object from the map.
-     * 
+     *
      * @param id the id of the object to remove
      */
     public void freeObject(int id) {
@@ -74,7 +74,7 @@ public class SmallMap {
 
     /**
      * Get an object from the map if it is stored.
-     * 
+     *
      * @param id the id of the object
      * @param ifAvailable only return it if available, otherwise return null
      * @return the object or null

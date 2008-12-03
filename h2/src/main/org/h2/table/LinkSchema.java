@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -24,10 +24,10 @@ public class LinkSchema {
     private LinkSchema() {
         // utility class
     }
-    
+
     /**
      * Link all tables of a schema to the database.
-     * 
+     *
      * @param conn the connection to the database where the links are to be created
      * @param targetSchema the schema name where the objects should be created
      * @param driver the driver class name of the linked database

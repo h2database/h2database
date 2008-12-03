@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -23,11 +23,11 @@ import java.util.Map;
  */
 public class Utils {
 //## Java 1.5 begin ##
-    
+
     private static volatile long counter;
-    
+
     private static final boolean MAKE_ACCESSIBLE = true;
-    
+
     public static <T> ArrayList<T> newArrayList() {
         return new ArrayList<T>();
     }
@@ -44,11 +44,11 @@ public class Utils {
     public static <A, B> WeakIdentityHashMap<A, B> newWeakIdentityHashMap() {
         return new WeakIdentityHashMap<A, B>();
     }
-    
+
     public static <A, B> IdentityHashMap<A, B> newIdentityHashMap() {
         return new IdentityHashMap<A, B>();
     }
-    
+
     @SuppressWarnings("unchecked")
     public static <T> T newObject(Class<T> clazz) {
         if (clazz == Integer.class) {
@@ -110,7 +110,7 @@ public class Utils {
                     }
                 }
             }
-            throw new RuntimeException("Exception trying to create " + 
+            throw new RuntimeException("Exception trying to create " +
                     clazz.getName() + ": " + e, e);
         }
     }
@@ -147,7 +147,7 @@ public class Utils {
                 return n.floatValue();
             }
         }
-        throw new RuntimeException("Can not convert the value " + o + 
+        throw new RuntimeException("Can not convert the value " + o +
                 " from " + currentType + " to " + targetType);
     }
 

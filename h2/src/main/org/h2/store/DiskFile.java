@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -62,20 +62,20 @@ public class DiskFile implements CacheWriter {
      * The number of bits to shift to divide a position to get the page number.
      */
     public static final int BLOCK_PAGE_PAGE_SHIFT = 6;
-    
+
     /**
      * The size of a page in blocks.
      * Each page contains blocks from the same storage.
      */
     public static final int BLOCKS_PER_PAGE = 1 << BLOCK_PAGE_PAGE_SHIFT;
-    
+
     /**
      * The size of a block in bytes.
      * A block is the minimum row size.
      */
     public static final int BLOCK_SIZE = 128;
 
-    // TODO storage: header should probably be 4 KB or so 
+    // TODO storage: header should probably be 4 KB or so
     // (to match block size of operating system)
     private static final int OFFSET = FileStore.HEADER_LENGTH;
     private static final int FREE_PAGE = -1;
@@ -91,7 +91,7 @@ public class DiskFile implements CacheWriter {
             return comp;
         }
     };
-    
+
     private Database database;
     private String fileName;
     private FileStore file;
@@ -118,7 +118,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Create a new disk file.
-     * 
+     *
      * @param database the database
      * @param fileName the file name
      * @param mode the file opening mode ("r", "rw", "rws", "rwd")
@@ -201,7 +201,7 @@ public class DiskFile implements CacheWriter {
             }
         }
         // now, for each current owner, remove those
-        // this is much faster than removing them individually 
+        // this is much faster than removing them individually
         // as this would cause O(n^2) behavior
         for (Iterator it = owners.iterator(); it.hasNext();) {
             int owner = ((Integer) it.next()).intValue();
@@ -216,7 +216,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Get the 'storage allocation table' of this file.
-     * 
+     *
      * @return the table
      */
     public byte[] getSummary() throws SQLException {
@@ -270,7 +270,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Check if a page is free, that is, if all blocks of the page are not in use.
-     * 
+     *
      * @param page the page id
      * @return true if no blocks are used
      */
@@ -286,7 +286,7 @@ public class DiskFile implements CacheWriter {
     /**
      * Initialize the the 'storage allocation table' of this file from a given
      * byte array.
-     * 
+     *
      * @param summary the storage allocation table
      */
     public void initFromSummary(byte[] summary) {
@@ -325,12 +325,12 @@ public class DiskFile implements CacheWriter {
                         if (mask != used.getByte(x)) {
                             throw Message.getInternalError("Redo failure, block: " + x + " expected: " + used.getByte(x) + " got: " + mask);
                         }
-                    }                    
+                    }
                 } else {
                     for (int x = 0; x < b2; x += 8) {
                         int mask = in.read();
                         used.setByte(x, mask);
-                    }                    
+                    }
                 }
                 stage++;
                 int len = in.readInt();
@@ -475,7 +475,7 @@ public class DiskFile implements CacheWriter {
 //                if (writeRecord == null && writeIndex < list.size()) {
 //                    writeRecord = (Record) list.get(writeIndex++);
 //                }
-//                if (writeRecord != null && 
+//                if (writeRecord != null &&
 //                       (deletePos < 0 || writeRecord.getPos() < deletePos)) {
 //                    writeBack(writeRecord);
 //                    writeRecord = null;
@@ -528,7 +528,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Get the record if it is stored in the file, or null if not.
-     * 
+     *
      * @param session the session
      * @param pos the block id
      * @param reader the record reader that can parse the data
@@ -549,7 +549,7 @@ public class DiskFile implements CacheWriter {
                 file.readFully(buff, 0, BLOCK_SIZE);
                 DataPage s = DataPage.create(database, buff);
                 // blockCount
-                s.readInt(); 
+                s.readInt();
                 int id = s.readInt();
                 if (id != storageId) {
                     return null;
@@ -563,7 +563,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Get a record from the cache or read it from the file if required.
-     * 
+     *
      * @param session the session
      * @param pos the block id
      * @param reader the record reader that can parse the data
@@ -615,7 +615,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Allocate space in the file.
-     * 
+     *
      * @param storage the storage
      * @param blockCount the number of blocks required
      * @return the position of the first entry
@@ -737,7 +737,7 @@ public class DiskFile implements CacheWriter {
      * Called after a session deleted a row. This sets the last uncommitted
      * delete id in the session. This is used to make sure empty space is not
      * re-used before the change is committed.
-     * 
+     *
      * @param session the session
      */
     void uncommittedDelete(Session session) {
@@ -752,7 +752,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Free a page, that is, reset the page owner.
-     * 
+     *
      * @param page the page
      */
     void freePage(int page) throws SQLException {
@@ -767,7 +767,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Calculate the page number from a block number.
-     * 
+     *
      * @param pos the block number
      * @return the page number
      */
@@ -777,7 +777,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Get the storage id of a page.
-     * 
+     *
      * @param page the page id
      * @return the storage id
      */
@@ -790,7 +790,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Set the owner of a page.
-     * 
+     *
      * @param page the page id
      * @param storageId the storage id of this page
      */
@@ -831,7 +831,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Mark a number of blocks as used.
-     * 
+     *
      * @param pos the first block id
      * @param blockCount the number of blocks
      */
@@ -879,7 +879,7 @@ public class DiskFile implements CacheWriter {
     /**
      * Write a record to the file immediately.
      * This method is called by the cache, and when flushing pending changes.
-     * 
+     *
      * @param obj the record to write
      */
     public void writeBack(CacheObject obj) throws SQLException {
@@ -904,7 +904,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Get the usage bits. The bit field must be synchronized externally.
-     * 
+     *
      * @return the bit field of used blocks.
      */
     BitField getUsed() {
@@ -913,7 +913,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Update a record.
-     * 
+     *
      * @param session the session
      * @param record the record
      */
@@ -962,7 +962,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Copy a number of bytes at the specified location to the output stream.
-     * 
+     *
      * @param pos the position
      * @param out the output stream
      * @return the new position, or -1 if there is no more data to copy
@@ -1019,7 +1019,7 @@ public class DiskFile implements CacheWriter {
     /**
      * Remove a record from the cache and mark it as deleted. This writes the
      * old data to the transaction log.
-     * 
+     *
      * @param session the session
      * @param pos the block id
      * @param record the record
@@ -1040,7 +1040,7 @@ public class DiskFile implements CacheWriter {
      * Add a record to the file. The position of the record must already be set
      * before. This method will write the change to the transaction log and will
      * update the cache.
-     * 
+     *
      * @param session the session
      * @param record the record
      */
@@ -1055,7 +1055,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Get the cache. The cache must be synchronized externally.
-     * 
+     *
      * @return the cache
      */
     public Cache getCache() {
@@ -1064,7 +1064,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Free up a number of blocks.
-     * 
+     *
      * @param pos the position of the first block
      * @param blockCount the number of blocks
      */
@@ -1076,7 +1076,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Get the overhead for each record in bytes.
-     * 
+     *
      * @return the overhead
      */
     int getRecordOverhead() {
@@ -1085,7 +1085,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Remove all rows for this storage.
-     * 
+     *
      * @param session the session
      * @param storage the storage
      * @param pages the page id array
@@ -1115,10 +1115,10 @@ public class DiskFile implements CacheWriter {
                 }
                 deleted.setRange(page * BLOCKS_PER_PAGE, BLOCKS_PER_PAGE, true);
                 setUnused(session, page * BLOCKS_PER_PAGE, BLOCKS_PER_PAGE);
-                // the truncate entry must be written after changing the 
-                // in-memory structures (page owner, in-use bit set), because 
+                // the truncate entry must be written after changing the
+                // in-memory structures (page owner, in-use bit set), because
                 // the log file could change just after the truncate record
-                // and before the flags are reset - this would result in 
+                // and before the flags are reset - this would result in
                 // incorrect in use bits written
                 if (logChanges) {
                     log.addTruncate(session, this, storageId, page * BLOCKS_PER_PAGE, BLOCKS_PER_PAGE);
@@ -1140,7 +1140,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Check if this is the data file.
-     * 
+     *
      * @return true if this is the data file
      */
     public boolean isDataFile() {
@@ -1150,7 +1150,7 @@ public class DiskFile implements CacheWriter {
     /**
      * Set whether changes should be written to the transaction log before they
      * are applied in the file.
-     * 
+     *
      * @param logChanges the new value
      */
     public void setLogChanges(boolean logChanges) {
@@ -1161,7 +1161,7 @@ public class DiskFile implements CacheWriter {
 
     /**
      * Add a redo-log entry to the redo buffer.
-     * 
+     *
      * @param storage the storage
      * @param recordId the record id of the entry
      * @param blockCount the number of blocks
@@ -1212,11 +1212,11 @@ public class DiskFile implements CacheWriter {
             }
             redoBuffer.sort(REDO_LOG_COMPARATOR);
             // first write all deleted entries
-            // because delete entries are always 1 block, 
+            // because delete entries are always 1 block,
             // while not-deleted entries can be many blocks
-            // so for example: 
-            // (A) block: 1 (delete) 
-            // (B) block: 2 (delete) 
+            // so for example:
+            // (A) block: 1 (delete)
+            // (B) block: 2 (delete)
             // (C) block: 1 ('Hello', 2 blocks long)
             // needs to be written in this order and not (A) (C) (B)
             RedoLogRecord last = null;
@@ -1277,7 +1277,7 @@ public class DiskFile implements CacheWriter {
     public String toString() {
         return getClass().getName() + ":" + fileName;
     }
-    
+
     public Trace getTrace() {
         return database.getTrace(Trace.DATABASE);
     }

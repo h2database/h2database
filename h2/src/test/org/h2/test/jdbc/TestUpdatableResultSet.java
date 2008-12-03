@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -35,7 +35,7 @@ public class TestUpdatableResultSet extends TestBase {
         testUpdateResetRead();
         deleteDb("updatableResultSet");
     }
-    
+
     private void testUpdateLob() throws SQLException {
         deleteDb("updatableResultSet");
         Connection conn = getConnection("updatableResultSet");
@@ -54,7 +54,7 @@ public class TestUpdatableResultSet extends TestBase {
         rs.next();
         assertEquals("hello", rs.getObject(1).toString());
         rs.updateInt(2, 1);
-        rs.updateRow(); 
+        rs.updateRow();
         rs.close();
         stat = conn.createStatement();
         rs = stat.executeQuery("SELECT object,id,number FROM object_index WHERE id =1");
@@ -62,7 +62,7 @@ public class TestUpdatableResultSet extends TestBase {
         assertEquals("hello", rs.getObject(1).toString());
         conn.close();
     }
-    
+
     private void testUpdateResetRead() throws SQLException {
         deleteDb("updatableResultSet");
         Connection conn = getConnection("updatableResultSet");
@@ -264,7 +264,7 @@ public class TestUpdatableResultSet extends TestBase {
         rs.updateObject("O_I", new Integer(10));
         rs.updateShort("SH", Short.MIN_VALUE);
         // auml, ouml, uuml
-        rs.updateCharacterStream("CL", new StringReader("\u00ef\u00f6\u00fc"), 0); 
+        rs.updateCharacterStream("CL", new StringReader("\u00ef\u00f6\u00fc"), 0);
         rs.updateBinaryStream("BL", new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }), 0);
         rs.insertRow();
 

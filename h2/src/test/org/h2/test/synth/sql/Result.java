@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -21,7 +21,7 @@ import org.h2.test.TestBase;
  */
 class Result implements Comparable {
     static final int SUCCESS = 0, BOOLEAN = 1, INT = 2, EXCEPTION = 3, RESULT_SET = 4;
-    
+
     String sql;
 
     private int type;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  */
@@ -59,7 +59,7 @@ public class Player {
      * <li><code>-log</code> to enable logging the executed statement to
      * System.out
      * </ul>
-     * 
+     *
      * @param args the arguments of the application
      */
     public static void main(String[] args) throws IOException {
@@ -68,7 +68,7 @@ public class Player {
 
     /**
      * Execute a trace file.
-     * 
+     *
      * @param fileName
      * @param log print debug information
      * @param checkResult if the result of each method should be compared
@@ -113,7 +113,7 @@ public class Player {
 
     /**
      * Write trace information if trace is enabled.
-     * 
+     *
      * @param s the message to write
      */
     void trace(String s) {
@@ -136,11 +136,11 @@ public class Player {
             trace("error: " + e.toString());
         }
     }
-    
+
     /**
      * Get the class for the given class name.
      * Only a limited set of classes is supported.
-     * 
+     *
      * @param className the class name
      * @return the class
      */
@@ -157,7 +157,7 @@ public class Player {
 
     /**
      * Assign an object to a variable.
-     * 
+     *
      * @param variableName the variable name
      * @param obj the object
      */
@@ -167,7 +167,7 @@ public class Player {
 
     /**
      * Get an object.
-     * 
+     *
      * @param name the variable name
      * @return the object
      */

@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 
 /**
  * Metadata for the H2 database.
- * For details, see 
+ * For details, see
  * http://wondering.ru/java/H2ejb3onResinSupport1.0.zip
  */
 public class H2MetaData extends JdbcMetaData {

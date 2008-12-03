@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -89,7 +89,7 @@ public class FtpData extends Thread {
 
     /**
      * Read a file from a client.
-     * 
+     *
      * @param fs the target file system
      * @param fileName the target file name
      */
@@ -109,7 +109,7 @@ public class FtpData extends Thread {
     /**
      * Send a file to the client. This method waits until the client has
      * connected.
-     * 
+     *
      * @param fs the source file system
      * @param fileName the source file name
      * @param skip the number of bytes to skip
@@ -130,7 +130,7 @@ public class FtpData extends Thread {
 
     /**
      * Wait until the client has connected, and then send the data to him.
-     * 
+     *
      * @param data the data to send
      */
     synchronized void send(byte[] data) throws IOException {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -13,18 +13,18 @@ import java.sql.SQLException;
  * Implementation of the BOOLEAN data type.
  */
 public class ValueBoolean extends Value {
-    
+
     /**
      * The precision in digits.
-     */    
+     */
     public static final int PRECISION = 1;
-    
+
     /**
      * The maximum display size of a boolean.
      * Example: FALSE
      */
     public static final int DISPLAY_SIZE = 5;
-    
+
     private static final ValueBoolean TRUE = new ValueBoolean(true);
     private static final ValueBoolean FALSE = new ValueBoolean(false);
 
@@ -78,7 +78,7 @@ public class ValueBoolean extends Value {
 
     /**
      * Get the boolean value for the given boolean.
-     * 
+     *
      * @param b the boolean
      * @return the value
      */

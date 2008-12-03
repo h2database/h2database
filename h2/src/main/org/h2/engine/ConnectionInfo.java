@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -43,7 +43,7 @@ public class ConnectionInfo implements Cloneable {
     private boolean ssl;
     private boolean persistent;
     private boolean unnamed;
-    
+
     static {
         ObjectArray list = SetTypes.getSettings();
         for (int i = 0; i < list.size(); i++) {
@@ -52,7 +52,7 @@ public class ConnectionInfo implements Cloneable {
         // TODO document these settings
         String[] connectionTime = new String[] { "ACCESS_MODE_LOG", "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS",
-                "PASSWORD", "RECOVER", "STORAGE", "USER", "DATABASE_EVENT_LISTENER_OBJECT", "AUTO_SERVER", 
+                "PASSWORD", "RECOVER", "STORAGE", "USER", "DATABASE_EVENT_LISTENER_OBJECT", "AUTO_SERVER",
                 "AUTO_RECONNECT", "OPEN_NEW" };
         for (int i = 0; i < connectionTime.length; i++) {
             String key = connectionTime[i];
@@ -65,7 +65,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Create a connection info object.
-     * 
+     *
      * @param name the database name (including tags)
      */
     public ConnectionInfo(String name) {
@@ -75,7 +75,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Create a connection info object.
-     * 
+     *
      * @param u the database URL (must start with jdbc:h2:)
      * @param info the connection properties
      */
@@ -92,7 +92,7 @@ public class ConnectionInfo implements Cloneable {
         name = url.substring(Constants.START_URL.length());
         parseName();
     }
-    
+
     public Object clone() throws CloneNotSupportedException {
         ConnectionInfo clone = (ConnectionInfo) super.clone();
         clone.prop = (Properties) prop.clone();
@@ -128,7 +128,7 @@ public class ConnectionInfo implements Cloneable {
     /**
      * Set the base directory of persistent databases, unless the database is in
      * the user home folder (~).
-     * 
+     *
      * @param dir the new base directory
      */
     public void setBaseDir(String dir) {
@@ -141,7 +141,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Check if this is a remote connection.
-     * 
+     *
      * @return true if it is
      */
     public boolean isRemote() {
@@ -150,7 +150,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Check if the referenced database is persistent.
-     * 
+     *
      * @return true if it is
      */
     boolean isPersistent() {
@@ -159,7 +159,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Check if the referenced database is an unnamed in-memory database.
-     * 
+     *
      * @return true if it is
      */
     boolean isUnnamedInMemory() {
@@ -206,7 +206,7 @@ public class ConnectionInfo implements Cloneable {
             }
         }
     }
-    
+
     /**
      * Removes the database event listener object.
      */
@@ -218,7 +218,7 @@ public class ConnectionInfo implements Cloneable {
      * Return the database event listener object set as a Java object. If the
      * event listener is not set or set as a string (the class name), then this
      * method returns null.
-     * 
+     *
      * @return the database event listener object or null
      */
     DatabaseEventListener getDatabaseEventListenerObject() throws SQLException {
@@ -275,7 +275,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Remove a boolean property if it is set and return the value.
-     * 
+     *
      * @param key the property name
      * @param defaultValue the default value
      * @return the value
@@ -287,11 +287,11 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Remove a String property if it is set and return the value.
-     * 
+     *
      * @param key the property name
      * @param defaultValue the default value
      * @return the value
-     */    
+     */
     String removeProperty(String key, String defaultValue) {
         if (SysProperties.CHECK && !KNOWN_SETTINGS.contains(key)) {
             throw Message.getInternalError(key);
@@ -302,7 +302,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Get the unique and normalized database name (excluding settings).
-     * 
+     *
      * @return the database name
      */
     String getName() throws SQLException {
@@ -320,7 +320,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Get the file password hash if it is set.
-     * 
+     *
      * @return the password hash or null
      */
     byte[] getFilePasswordHash() {
@@ -329,7 +329,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Get the name of the user.
-     * 
+     *
      * @return the user name
      */
     public String getUserName() {
@@ -338,7 +338,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Get the user password hash.
-     * 
+     *
      * @return the password hash
      */
     byte[] getUserPasswordHash() {
@@ -347,7 +347,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Get the property keys.
-     * 
+     *
      * @return the property keys
      */
     String[] getKeys() {
@@ -358,7 +358,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Get the value of the given property.
-     * 
+     *
      * @param key the property key
      * @return the value as a String
      */
@@ -372,7 +372,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Get the value of the given property.
-     * 
+     *
      * @param key the property key
      * @param defaultValue the default value
      * @return the value as a String
@@ -387,7 +387,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Get the value of the given property.
-     * 
+     *
      * @param setting the setting id
      * @param defaultValue the default value
      * @return the value as a String
@@ -400,7 +400,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Get the value of the given property.
-     * 
+     *
      * @param setting the setting id
      * @param defaultValue the default value
      * @return the value as an integer
@@ -417,7 +417,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Check if this is a remote connection with SSL enabled.
-     * 
+     *
      * @return true if it is
      */
     boolean isSSL() {
@@ -427,7 +427,7 @@ public class ConnectionInfo implements Cloneable {
     /**
      * Overwrite the user name. The user name is case-insensitive and stored in
      * uppercase. English conversion is used.
-     * 
+     *
      * @param name the user name
      */
     public void setUserName(String name) {
@@ -436,7 +436,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Set the user password hash.
-     * 
+     *
      * @param hash the new hash value
      */
     public void setUserPasswordHash(byte[] hash) {
@@ -445,7 +445,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Set the file password hash.
-     * 
+     *
      * @param hash the new hash value
      */
     public void setFilePasswordHash(byte[] hash) {
@@ -454,7 +454,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Overwrite a property.
-     * 
+     *
      * @param key the property name
      * @param value the value
      */
@@ -467,7 +467,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Get the database URL.
-     * 
+     *
      * @return the URL
      */
     public String getURL() {
@@ -476,7 +476,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Get the complete original database URL.
-     * 
+     *
      * @return the database URL
      */
     public String getOriginalURL() {
@@ -485,7 +485,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Set the original database URL.
-     * 
+     *
      * @param url the database url
      */
     public void setOriginalURL(String url) {
@@ -494,7 +494,7 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Check if this database URL references a text based database explicitly.
-     * 
+     *
      * @return true if the storage has been set to text
      */
     boolean getTextStorage() throws SQLException {
@@ -510,17 +510,17 @@ public class ConnectionInfo implements Cloneable {
 
     /**
      * Generate an URL format exception.
-     * 
+     *
      * @return the exception
      */
     SQLException getFormatException() {
         String format = Constants.URL_FORMAT;
         return Message.getSQLException(ErrorCode.URL_FORMAT_ERROR_2, new String[] { format, url });
     }
-    
+
     /**
      * Switch to server mode, and set the server name and database key.
-     * 
+     *
      * @param serverKey the server name, '/', and the security key
      */
     public void setServerKey(String serverKey) {

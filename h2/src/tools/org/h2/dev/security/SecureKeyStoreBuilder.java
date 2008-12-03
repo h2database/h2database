@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -22,14 +22,14 @@ import org.h2.util.ByteUtils;
  * Tool to generate source code for the SecureSocketFactory. First, create a
  * keystore using:
  * <pre>
- * keytool -genkey -alias h2 -keyalg RSA -dname &quot;cn=H2&quot; -validity 25000 
+ * keytool -genkey -alias h2 -keyalg RSA -dname &quot;cn=H2&quot; -validity 25000
  *      -keypass h2pass -keystore h2.keystore -storepass h2pass
  * </pre>
  * Then run this application to generate the source code. Then replace the code
  * in the function SecureSocketFactory.getKeyStore as specified
  */
 public class SecureKeyStoreBuilder {
-    
+
     private SecureKeyStoreBuilder() {
         // utility class
     }
@@ -37,7 +37,7 @@ public class SecureKeyStoreBuilder {
     /**
      * This method is called when executing this application from the command
      * line.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String[] args) throws Exception {
@@ -45,7 +45,7 @@ public class SecureKeyStoreBuilder {
         KeyStore store = SecureSocketFactory.getKeyStore(password);
         printKeystore(store, password);
     }
-        
+
     private static void printKeystore(KeyStore store, String password) throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException, CertificateEncodingException {
         System.out.println("KeyStore store = KeyStore.getInstance(\""+store.getType()+"\");");
         System.out.println("store.load(null, password.toCharArray());");
@@ -76,9 +76,9 @@ public class SecureKeyStoreBuilder {
             }
             System.out.println("};");
             System.out.println("store.setKeyEntry(\""+alias+"\", privateKey, password.toCharArray(), certs);");
-        }          
+        }
     }
-    
+
 //     private void listCipherSuites(SSLServerSocketFactory f) {
 //        String[] def = f.getDefaultCipherSuites();
 //        for (int i = 0; i < def.length; i++) {

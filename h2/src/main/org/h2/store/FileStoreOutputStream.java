@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -22,7 +22,7 @@ public class FileStoreOutputStream extends OutputStream {
     private DataPage page;
     private String compressionAlgorithm;
     private CompressTool compress;
-    
+
     public FileStoreOutputStream(FileStore store, DataHandler handler, String compressionAlgorithm) {
         this.store = store;
         if (compressionAlgorithm != null) {
@@ -78,5 +78,5 @@ public class FileStoreOutputStream extends OutputStream {
     public void write(int b) throws IOException {
         throw new IOException("this method is not implemented");
     }
-    
+
 }

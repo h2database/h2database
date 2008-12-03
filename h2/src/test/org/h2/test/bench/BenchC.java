@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -20,7 +20,7 @@ import java.sql.Types;
  * See also http://www.tpc.org
  */
 public class BenchC implements Bench {
-    
+
         private static final String[] TABLES = new String[] { "WAREHOUSE", "DISTRICT", "CUSTOMER", "HISTORY", "ORDERS",
             "NEW_ORDER", "ITEM", "STOCK", "ORDER_LINE", "RESULTS" };
     private static final String[] CREATE_SQL = new String[] {
@@ -43,24 +43,24 @@ public class BenchC implements Bench {
                     + " C_DISCOUNT DECIMAL(4, 4),\n" + " C_BALANCE DECIMAL(12, 2),\n"
                     + " C_YTD_PAYMENT DECIMAL(12, 2),\n" + " C_PAYMENT_CNT DECIMAL(4),\n"
                     + " C_DELIVERY_CNT DECIMAL(4),\n" + " C_DATA VARCHAR(500),\n"
-                    + " PRIMARY KEY (C_W_ID, C_D_ID, C_ID))", 
+                    + " PRIMARY KEY (C_W_ID, C_D_ID, C_ID))",
             // + " FOREIGN KEY (C_W_ID, C_D_ID)\n"
             // + " REFERENCES DISTRICT(D_W_ID, D_ID))",
             "CREATE INDEX CUSTOMER_NAME ON CUSTOMER(C_LAST, C_D_ID, C_W_ID)",
             "CREATE TABLE  HISTORY(\n" + " H_C_ID INT,\n" + " H_C_D_ID INT,\n" + " H_C_W_ID INT,\n" + " H_D_ID INT,\n"
-                    + " H_W_ID INT,\n" + " H_DATE TIMESTAMP,\n" + " H_AMOUNT DECIMAL(6, 2),\n" + " H_DATA VARCHAR(24))", 
+                    + " H_W_ID INT,\n" + " H_DATE TIMESTAMP,\n" + " H_AMOUNT DECIMAL(6, 2),\n" + " H_DATA VARCHAR(24))",
             // + " FOREIGN KEY(H_C_W_ID, H_C_D_ID, H_C_ID)\n"
             // + " REFERENCES CUSTOMER(C_W_ID, C_D_ID, C_ID),\n"
             // + " FOREIGN KEY(H_W_ID, H_D_ID)\n"
             // + " REFERENCES DISTRICT(D_W_ID, D_ID))",
             "CREATE TABLE  ORDERS(\n" + " O_ID INT NOT NULL,\n" + " O_D_ID INT NOT NULL,\n" + " O_W_ID INT NOT NULL,\n"
                     + " O_C_ID INT,\n" + " O_ENTRY_D TIMESTAMP,\n" + " O_CARRIER_ID INT,\n" + " O_OL_CNT INT,\n"
-                    + " O_ALL_LOCAL DECIMAL(1),\n" + " PRIMARY KEY(O_W_ID, O_D_ID, O_ID))", 
+                    + " O_ALL_LOCAL DECIMAL(1),\n" + " PRIMARY KEY(O_W_ID, O_D_ID, O_ID))",
             // + " FOREIGN KEY(O_W_ID, O_D_ID, O_C_ID)\n"
             // + " REFERENCES CUSTOMER(C_W_ID, C_D_ID, C_ID))",
             "CREATE INDEX ORDERS_OID ON ORDERS(O_ID)",
             "CREATE TABLE  NEW_ORDER(\n" + " NO_O_ID INT NOT NULL,\n" + " NO_D_ID INT NOT NULL,\n"
-                    + " NO_W_ID INT NOT NULL,\n" + " PRIMARY KEY(NO_W_ID, NO_D_ID, NO_O_ID))", 
+                    + " NO_W_ID INT NOT NULL,\n" + " PRIMARY KEY(NO_W_ID, NO_D_ID, NO_O_ID))",
             // + " FOREIGN KEY(NO_W_ID, NO_D_ID, NO_O_ID)\n"
             // + " REFERENCES ORDER(O_W_ID, O_D_ID, O_ID))",
             "CREATE TABLE  ITEM(\n" + " I_ID INT NOT NULL,\n" + " I_IM_ID INT,\n" + " I_NAME VARCHAR(24),\n"
@@ -71,7 +71,7 @@ public class BenchC implements Bench {
                     + " S_DIST_06 CHAR(24),\n" + " S_DIST_07 CHAR(24),\n" + " S_DIST_08 CHAR(24),\n"
                     + " S_DIST_09 CHAR(24),\n" + " S_DIST_10 CHAR(24),\n" + " S_YTD DECIMAL(8),\n"
                     + " S_ORDER_CNT DECIMAL(4),\n" + " S_REMOTE_CNT DECIMAL(4),\n" + " S_DATA VARCHAR(50),\n"
-                    + " PRIMARY KEY(S_W_ID, S_I_ID))", 
+                    + " PRIMARY KEY(S_W_ID, S_I_ID))",
             // + " FOREIGN KEY(S_W_ID)\n"
             // + " REFERENCES WAREHOUSE(W_ID),\n"
             // + " FOREIGN KEY(S_I_ID)\n" + " REFERENCES ITEM(I_ID))",
@@ -79,7 +79,7 @@ public class BenchC implements Bench {
                     + " OL_W_ID INT NOT NULL,\n" + " OL_NUMBER INT NOT NULL,\n" + " OL_I_ID INT,\n"
                     + " OL_SUPPLY_W_ID INT,\n" + " OL_DELIVERY_D TIMESTAMP,\n" + " OL_QUANTITY DECIMAL(2),\n"
                     + " OL_AMOUNT DECIMAL(6, 2),\n" + " OL_DIST_INFO CHAR(24),\n"
-                    + " PRIMARY KEY (OL_W_ID, OL_D_ID, OL_O_ID, OL_NUMBER))", 
+                    + " PRIMARY KEY (OL_W_ID, OL_D_ID, OL_O_ID, OL_NUMBER))",
             // + " FOREIGN KEY(OL_W_ID, OL_D_ID, OL_O_ID)\n"
             // + " REFERENCES ORDER(O_W_ID, O_D_ID, O_ID),\n"
             // + " FOREIGN KEY(OL_SUPPLY_W_ID, OL_I_ID)\n"

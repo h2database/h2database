@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -81,9 +81,9 @@ import org.h2.value.ValueLob;
  * @since 2004-04-15 22:49
  */
 public class Database implements DataHandler {
-    
+
     private static int initialPowerOffCount;
-    
+
     private final boolean persistent;
     private final String databaseName;
     private final String databaseShortName;
@@ -104,7 +104,7 @@ public class Database implements DataHandler {
     private Session exclusiveSession;
     private final BitField objectIds = new BitField();
     private final Object lobSyncObject = new Object();
-    
+
     private boolean textStorage;
     private Schema mainSchema;
     private Schema infoSchema;
@@ -254,7 +254,7 @@ public class Database implements DataHandler {
 
     /**
      * Check if the storage mode of the given database file is 'text'.
-     * 
+     *
      * @param fileName the file name of the database file
      * @param defaultValue the value to use if the file doesn't exist or is too
      *            small
@@ -283,7 +283,7 @@ public class Database implements DataHandler {
 
     /**
      * Get the file header (the 'magic bytes').
-     * 
+     *
      * @param textStorage if the header of a text storage should be returned
      * @return the magic bytes
      */
@@ -300,7 +300,7 @@ public class Database implements DataHandler {
 
     /**
      * Check if two values are equal with the current comparison mode.
-     * 
+     *
      * @param a the first value
      * @param b the second value
      * @return true if both objects are equal
@@ -320,7 +320,7 @@ public class Database implements DataHandler {
     /**
      * Compare two values with the current comparison mode. The values may not
      * be of the same type.
-     * 
+     *
      * @param a the first value
      * @param b the second value
      * @return 0 if both values are equal, -1 if the first value is smaller, and
@@ -333,7 +333,7 @@ public class Database implements DataHandler {
     /**
      * Compare two values with the current comparison mode. The values must be
      * of the same type.
-     * 
+     *
      * @param a the first value
      * @param b the second value
      * @return 0 if both values are equal, -1 if the first value is smaller, and
@@ -425,7 +425,7 @@ public class Database implements DataHandler {
 
     /**
      * Check if a database with the given name exists.
-     * 
+     *
      * @param name the name of the database (including path)
      * @return true if one exists
      */
@@ -435,7 +435,7 @@ public class Database implements DataHandler {
 
     /**
      * Get the trace object for the given module.
-     * 
+     *
      * @param module the module name
      * @return the trace object
      */
@@ -459,7 +459,7 @@ public class Database implements DataHandler {
 
     /**
      * Check if the file password hash is correct.
-     * 
+     *
      * @param cipher the cipher algorithm
      * @param hash the hash code
      * @return true if the cipher algorithm and the password match
@@ -508,7 +508,7 @@ public class Database implements DataHandler {
             if (FileUtils.exists(dataFileName)) {
                 // if it is already read-only because ACCESS_MODE_DATA=r
                 readOnly = readOnly | FileUtils.isReadOnly(dataFileName);
-            }            
+            }
             if (readOnly) {
                 traceSystem = new TraceSystem(null, false);
             } else {
@@ -538,7 +538,7 @@ public class Database implements DataHandler {
                 lobFilesInDirectories &= !ValueLob.existsLobFile(getDatabasePath());
                 lobFilesInDirectories |= FileUtils.exists(databaseName + Constants.SUFFIX_LOBS_DIRECTORY);
             }
-            dummy = DataPage.create(this, 0);            
+            dummy = DataPage.create(this, 0);
             deleteOldTempFiles();
             log = new LogSystem(this, databaseName, readOnly, accessModeLog);
             openFileData();
@@ -628,14 +628,14 @@ public class Database implements DataHandler {
 
     private void startServer(String key) throws SQLException {
         server = Server.createTcpServer(new String[]{
-                "-tcpPort", "0", 
-                "-tcpAllowOthers", "true", 
+                "-tcpPort", "0",
+                "-tcpAllowOthers", "true",
                 "-key", key, databaseName});
         server.start();
         String address = NetUtils.getLocalAddress() + ":" + server.getPort();
         lock.addProperty("server", address);
     }
-    
+
     private void stopServer() {
         if (server != null) {
             Server s = server;
@@ -669,7 +669,7 @@ public class Database implements DataHandler {
                 }
             }
         } while (recompileSuccessful);
-        // when opening a database, views are initialized before indexes, 
+        // when opening a database, views are initialized before indexes,
         // so they may not have the optimal plan yet
         // this is not a problem, it is just nice to see the newest plan
         ObjectArray list = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
@@ -718,7 +718,7 @@ public class Database implements DataHandler {
 
     /**
      * Remove the storage object from the file.
-     * 
+     *
      * @param id the storage id
      * @param file the file
      */
@@ -735,7 +735,7 @@ public class Database implements DataHandler {
     /**
      * Get the storage object for the given file. An new object is created if
      * required.
-     * 
+     *
      * @param id the storage id
      * @param file the file
      * @return the storage object
@@ -776,7 +776,7 @@ public class Database implements DataHandler {
 
     /**
      * Remove the given object from the meta data.
-     * 
+     *
      * @param session the session
      * @param id the id of the object to remove
      */
@@ -827,7 +827,7 @@ public class Database implements DataHandler {
 
     /**
      * Add a schema object to the database.
-     * 
+     *
      * @param session the session
      * @param obj the object to add
      */
@@ -844,7 +844,7 @@ public class Database implements DataHandler {
 
     /**
      * Add an object to the database.
-     * 
+     *
      * @param session the session
      * @param obj the object to add
      */
@@ -869,21 +869,21 @@ public class Database implements DataHandler {
         }
         map.put(name, obj);
     }
-    
+
     /**
      * Get the user defined aggregate function if it exists, or null if not.
-     * 
+     *
      * @param name the name of the user defined aggregate function
      * @return the aggregate function or null
      */
     public UserAggregate findAggregate(String name) {
         return (UserAggregate) aggregates.get(name);
     }
-    
+
     /**
      * Get the comment for the given database object if one exists, or null if
      * not.
-     * 
+     *
      * @param object the database object
      * @return the comment or null
      */
@@ -894,20 +894,20 @@ public class Database implements DataHandler {
         String key = Comment.getKey(object);
         return (Comment) comments.get(key);
     }
-    
+
     /**
      * Get the user defined function if it exists, or null if not.
-     * 
+     *
      * @param name the name of the user defined function
      * @return the function or null
      */
     public FunctionAlias findFunctionAlias(String name) {
         return (FunctionAlias) functionAliases.get(name);
     }
-    
+
     /**
      * Get the role if it exists, or null if not.
-     * 
+     *
      * @param roleName the name of the role
      * @return the role or null
      */
@@ -917,7 +917,7 @@ public class Database implements DataHandler {
 
     /**
      * Get the schema if it exists, or null if not.
-     * 
+     *
      * @param schemaName the name of the schema
      * @return the schema or null
      */
@@ -927,7 +927,7 @@ public class Database implements DataHandler {
 
     /**
      * Get the setting if it exists, or null if not.
-     * 
+     *
      * @param name the name of the setting
      * @return the setting or null
      */
@@ -937,17 +937,17 @@ public class Database implements DataHandler {
 
     /**
      * Get the user if it exists, or null if not.
-     * 
+     *
      * @param name the name of the user
      * @return the user or null
      */
     public User findUser(String name) {
         return (User) users.get(name);
     }
-    
+
     /**
      * Get the user defined data type if it exists, or null if not.
-     * 
+     *
      * @param name the name of the user defined data type
      * @return the user defined data type or null
      */
@@ -958,7 +958,7 @@ public class Database implements DataHandler {
     /**
      * Get user with the given name. This method throws an exception if the user
      * does not exist.
-     * 
+     *
      * @param name the user name
      * @return the user
      * @throws SQLException if the user does not exist
@@ -973,7 +973,7 @@ public class Database implements DataHandler {
 
     /**
      * Create a session for the given user.
-     * 
+     *
      * @param user the user
      * @return the session
      * @throws SQLException if the database is in exclusive mode
@@ -994,7 +994,7 @@ public class Database implements DataHandler {
 
     /**
      * Remove a session. This method is called after the user has disconnected.
-     * 
+     *
      * @param session the session
      */
     public synchronized void removeSession(Session session) {
@@ -1026,7 +1026,7 @@ public class Database implements DataHandler {
 
     /**
      * Close the database.
-     * 
+     *
      * @param fromShutdownHook true if this method is called from the shutdown
      *            hook
      */
@@ -1095,7 +1095,7 @@ public class Database implements DataHandler {
                     trigger.close();
                 }
                 meta.close(systemSession);
-                systemSession.commit(true);                
+                systemSession.commit(true);
                 indexSummaryValid = true;
             }
         } catch (SQLException e) {
@@ -1195,7 +1195,7 @@ public class Database implements DataHandler {
             if (pageStore != null) {
                 pageStore.close();
                 pageStore = null;
-            }            
+            }
         } catch (SQLException e) {
             traceSystem.getTrace(Trace.DATABASE).error("close", e);
         }
@@ -1236,37 +1236,37 @@ public class Database implements DataHandler {
         objectIds.set(i);
         return i;
     }
-    
+
     public ObjectArray getAllAggregates() {
         return new ObjectArray(aggregates.values());
     }
-    
+
     public ObjectArray getAllComments() {
         return new ObjectArray(comments.values());
     }
-    
+
     public ObjectArray getAllFunctionAliases() {
         return new ObjectArray(functionAliases.values());
     }
-    
+
     public int getAllowLiterals() {
         if (starting) {
             return Constants.ALLOW_LITERALS_ALL;
         }
         return allowLiterals;
     }
-    
+
     public ObjectArray getAllRights() {
         return new ObjectArray(rights.values());
     }
-    
+
     public ObjectArray getAllRoles() {
         return new ObjectArray(roles.values());
     }
 
     /**
      * Get all schema objects of the given type.
-     * 
+     *
      * @param type the object type
      * @return all objects of that type
      */
@@ -1282,11 +1282,11 @@ public class Database implements DataHandler {
     public ObjectArray getAllSchemas() {
         return new ObjectArray(schemas.values());
     }
-    
+
     public ObjectArray getAllSettings() {
         return new ObjectArray(settings.values());
     }
-    
+
     public ObjectArray getAllStorages() {
         return new ObjectArray(storageMap.values());
     }
@@ -1298,11 +1298,11 @@ public class Database implements DataHandler {
     public ObjectArray getAllUsers() {
         return new ObjectArray(users.values());
     }
-    
+
     public String getCacheType() {
         return cacheType;
     }
-    
+
     public int getChecksum(byte[] data, int start, int end) {
         int x = 0;
         while (start < end) {
@@ -1310,15 +1310,15 @@ public class Database implements DataHandler {
         }
         return x;
     }
-    
+
     public String getCluster() {
         return cluster;
     }
-    
+
     public CompareMode getCompareMode() {
         return compareMode;
     }
-    
+
     public String getDatabasePath() {
         if (persistent) {
             return FileUtils.getAbsolutePath(databaseName);
@@ -1340,7 +1340,7 @@ public class Database implements DataHandler {
 
     /**
      * Get all sessions that are currently connected to the database.
-     * 
+     *
      * @param includingSystemSession if the system session should also be
      *            included
      * @return the list of sessions
@@ -1357,7 +1357,7 @@ public class Database implements DataHandler {
 
     /**
      * Update an object in the system table.
-     * 
+     *
      * @param session the session
      * @param obj the database object
      */
@@ -1369,7 +1369,7 @@ public class Database implements DataHandler {
 
     /**
      * Rename a schema object.
-     * 
+     *
      * @param session the session
      * @param obj the object
      * @param newName the new name
@@ -1398,7 +1398,7 @@ public class Database implements DataHandler {
 
     /**
      * Rename a database object.
-     * 
+     *
      * @param session the session
      * @param obj the object
      * @param newName the new name
@@ -1471,7 +1471,7 @@ public class Database implements DataHandler {
 
     /**
      * Get or create the specified storage object.
-     * 
+     *
      * @param reader the record reader
      * @param id the object id
      * @param dataFile true if the data is in the data file
@@ -1491,7 +1491,7 @@ public class Database implements DataHandler {
 
     /**
      * Get the schema. If the schema does not exist, an exception is thrown.
-     * 
+     *
      * @param schemaName the name of the schema
      * @return the schema
      * @throws SQLException no schema with that name exists
@@ -1506,7 +1506,7 @@ public class Database implements DataHandler {
 
     /**
      * Remove the object from the database.
-     * 
+     *
      * @param session the session
      * @param obj the object to remove
      */
@@ -1530,7 +1530,7 @@ public class Database implements DataHandler {
 
     /**
      * Get the first table that depends on this object.
-     * 
+     *
      * @param obj the object to find
      * @param except the table to exclude (or null)
      * @return the first dependent table, or null
@@ -1579,7 +1579,7 @@ public class Database implements DataHandler {
 
     /**
      * Remove an object from the system table.
-     * 
+     *
      * @param session the session
      * @param obj the object to be removed
      */
@@ -1621,7 +1621,7 @@ public class Database implements DataHandler {
 
     /**
      * Check if this database disk-based.
-     * 
+     *
      * @return true if it is disk-based, false it it is in-memory only.
      */
     public boolean isPersistent() {
@@ -1659,7 +1659,7 @@ public class Database implements DataHandler {
 
     /**
      * Get a unique temporary table name.
-     * 
+     *
      * @param sessionId the session id
      * @return a unique name
      */
@@ -1681,7 +1681,7 @@ public class Database implements DataHandler {
     public void setCluster(String cluster) {
         this.cluster = cluster;
     }
-    
+
     public void checkWritingAllowed() throws SQLException {
         if (readOnly) {
             throw Message.getSQLException(ErrorCode.DATABASE_IS_READ_ONLY);
@@ -1708,7 +1708,7 @@ public class Database implements DataHandler {
      * because the hard drive otherwise may delete the file a bit before the
      * data is written to the new file, which can cause problems when
      * recovering.
-     * 
+     *
      * @param fileName the name of the file to be deleted
      */
     public void deleteLogFileLater(String fileName) throws SQLException {
@@ -1750,13 +1750,13 @@ public class Database implements DataHandler {
     /**
      * Set the progress of a long running operation.
      * This method calls the {@link DatabaseEventListener} if one is registered.
-     * 
+     *
      * @param state the {@link DatabaseEventListener} state
      * @param name the object name
      * @param x the current position
      * @param max the highest value
      */
-    
+
     public void setProgress(int state, String name, int x, int max) {
         if (eventListener != null) {
             try {
@@ -1766,11 +1766,11 @@ public class Database implements DataHandler {
             }
         }
     }
-    
+
     /**
      * This method is called after an exception occurred, to inform the database
      * event listener (if one is set).
-     * 
+     *
      * @param e the exception
      * @param sql the SQL statement
      */
@@ -1893,7 +1893,7 @@ public class Database implements DataHandler {
 
     /**
      * Check if the database is in the process of closing.
-     * 
+     *
      * @return true if the database is closing
      */
     public boolean isClosing() {
@@ -1931,10 +1931,10 @@ public class Database implements DataHandler {
     public void setLobCompressionAlgorithm(String stringValue) {
         this.lobCompressionAlgorithm = stringValue;
     }
-    
+
     /**
      * Called when the size if the data or index file has been changed.
-     * 
+     *
      * @param length the new file size
      */
     public void notifyFileSize(long length) {
@@ -1943,7 +1943,7 @@ public class Database implements DataHandler {
 
     public synchronized void setMaxLogSize(long value) {
         getLog().setMaxLogSize(value);
-    }    
+    }
 
     public void setAllowLiterals(int value) {
         this.allowLiterals = value;
@@ -1992,7 +1992,7 @@ public class Database implements DataHandler {
     /**
      * Check if the database is currently opening. This is true until all stored
      * SQL statements have been executed.
-     * 
+     *
      * @return true if the database is still starting
      */
     public boolean isStarting() {
@@ -2001,7 +2001,7 @@ public class Database implements DataHandler {
 
     /**
      * Check if multi version concurrency is enabled for this database.
-     * 
+     *
      * @return true if it is enabled
      */
     public boolean isMultiVersion() {
@@ -2064,16 +2064,16 @@ public class Database implements DataHandler {
 
     /**
      * Checks if the system table (containing the catalog) is locked.
-     * 
+     *
      * @return true if it is currently locked
      */
     public boolean isSysTableLocked() {
         return meta.isLockedExclusively();
     }
-    
+
     /**
      * Open a new connection or get an existing connection to another database.
-     * 
+     *
      * @param driver the database driver or null
      * @param url the database URL
      * @param user the user name
@@ -2086,7 +2086,7 @@ public class Database implements DataHandler {
         }
         return TableLinkConnection.open(linkConnections, driver, url, user, password);
     }
-    
+
     public String toString() {
         return databaseShortName + ":" + super.toString();
     }

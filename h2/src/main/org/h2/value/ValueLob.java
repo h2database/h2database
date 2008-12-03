@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -33,20 +33,20 @@ import org.h2.util.StringUtils;
 /**
  * Implementation of the BLOB and CLOB data types. Small objects are kept in
  * memory and stored in the data page of the record.
- * 
+ *
  * Large objects are stored in their own files. When large objects are set in a
  * prepared statement, they are first stored as 'temporary' files. Later, when
  * they are used in a record, and when the record is stored, the lob files are
  * linked: the file is renamed using the file format (tableId).(objectId). There
  * is one exception: large variables are stored in the file (-1).(objectId).
- * 
+ *
  * When lobs are deleted, they are first renamed to a temp file, and if the
  * delete operation is committed the file is deleted.
- * 
+ *
  * Data compression is supported.
  */
 public class ValueLob extends Value {
-    // TODO lob: concatenate function for blob and clob 
+    // TODO lob: concatenate function for blob and clob
     // (to create a large blob from pieces)
     // and a getpart function (to get it in pieces) and make sure a file is created!
 
@@ -54,7 +54,7 @@ public class ValueLob extends Value {
      * The 'table id' to use for session variables.
      */
     public static final int TABLE_ID_SESSION_VARIABLE = -1;
-    
+
     /**
      * This counter is used to calculate the next directory to store lobs. It is
      * better than using a random number because less directories are created.
@@ -106,7 +106,7 @@ public class ValueLob extends Value {
 
     /**
      * Create a small lob using the given byte array.
-     * 
+     *
      * @param type the type (Value.BLOB or CLOB)
      * @param small the byte array
      * @return the lob value
@@ -128,7 +128,7 @@ public class ValueLob extends Value {
 
     /**
      * Create a LOB value with the given parameters.
-     * 
+     *
      * @param type the data type
      * @param handler the file handler
      * @param tableId the table object id
@@ -144,7 +144,7 @@ public class ValueLob extends Value {
 
     /**
      * Create a CLOB value from a stream.
-     * 
+     *
      * @param in the reader
      * @param length the number of characters to read, or -1 for no limit
      * @param handler the data handler
@@ -289,7 +289,7 @@ public class ValueLob extends Value {
             }
             if (objectId > Integer.MAX_VALUE / SysProperties.LOB_FILES_PER_DIRECTORY) {
                 // this directory path is full: start from zero
-                // (this can happen only theoretically, 
+                // (this can happen only theoretically,
                 // for example if the random number generator is broken)
                 objectId = 0;
             } else {
@@ -335,7 +335,7 @@ public class ValueLob extends Value {
 
     /**
      * Create a BLOB value from a stream.
-     * 
+     *
      * @param in the input stream
      * @param length the number of characters to read, or -1 for no limit
      * @param handler the data handler
@@ -424,7 +424,7 @@ public class ValueLob extends Value {
     /**
      * Convert a lob to another data type. The data is fully read in memory
      * except when converting to BLOB or CLOB.
-     * 
+     *
      * @param t the new type
      * @return the converted value
      */
@@ -447,7 +447,7 @@ public class ValueLob extends Value {
 
     /**
      * Get the current file name where the lob is saved.
-     * 
+     *
      * @return the file name or null
      */
     public String getFileName() {
@@ -521,7 +521,7 @@ public class ValueLob extends Value {
 
     /**
      * Get the current table id of this lob.
-     * 
+     *
      * @return the table id
      */
     public int getTableId() {
@@ -530,7 +530,7 @@ public class ValueLob extends Value {
 
     /**
      * Get the current object id of this lob.
-     * 
+     *
      * @return the object id
      */
     public int getObjectId() {
@@ -686,7 +686,7 @@ public class ValueLob extends Value {
 
     /**
      * Get the data if this a small lob value.
-     * 
+     *
      * @return the data
      */
     public byte[] getSmall() {
@@ -708,7 +708,7 @@ public class ValueLob extends Value {
     /**
      * Store the lob data to a file if the size of the buffer it larger than the
      * maximum size for an in-place lob.
-     * 
+     *
      * @param handler the data handler
      */
     public void convertToFileIfRequired(DataHandler handler) throws SQLException {
@@ -730,7 +730,7 @@ public class ValueLob extends Value {
 
     /**
      * Remove all lobs for a given table id.
-     * 
+     *
      * @param handler the data handler
      * @param tableId the table id
      */
@@ -750,10 +750,10 @@ public class ValueLob extends Value {
             }
         }
     }
-    
+
     /**
      * Check if a lob file exists for this database.
-     * 
+     *
      * @param prefix the file name prefix
      * @return true if a lob file exists
      */
@@ -785,7 +785,7 @@ public class ValueLob extends Value {
 
     /**
      * Check if this lob value is compressed.
-     * 
+     *
      * @return true if it is
      */
     public boolean useCompression() {
@@ -819,7 +819,7 @@ public class ValueLob extends Value {
 
     /**
      * Set the file name of this lob value.
-     * 
+     *
      * @param fileName the file name
      * @param linked if the lob is linked
      */

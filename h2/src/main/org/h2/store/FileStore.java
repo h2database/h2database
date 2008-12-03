@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -32,7 +32,7 @@ public class FileStore {
      * The size of the file header in bytes.
      */
     public static final int HEADER_LENGTH = 3 * Constants.FILE_BLOCK_SIZE;
-    
+
     /**
      * An empty buffer to speed up extending the file (it seems that writing 0
      * bytes is faster then calling setLength).
@@ -43,13 +43,13 @@ public class FileStore {
      * The file name.
      */
     protected String name;
-    
+
     /**
      * The callback object is responsible to check access rights, and free up
      * disk space if required.
      */
     protected DataHandler handler;
-    
+
     private byte[] magic;
     private FileObject file;
     private long filePos;
@@ -59,10 +59,10 @@ public class FileStore {
     private boolean synchronousMode;
     private String mode;
     private TempFileDeleter tempFileDeleter;
-    
+
     /**
      * Create a new file using the given settings.
-     * 
+     *
      * @param handler the callback object
      * @param name the file name
      * @param mode the access mode ("r", "rw", "rws", "rwd")
@@ -95,20 +95,20 @@ public class FileStore {
 
     /**
      * Open a non encrypted file store with the given settings.
-     * 
+     *
      * @param handler the data handler
      * @param name the file name
      * @param mode the access mode (r, rw, rws, rwd)
      * @param magic the file header magic bytes
      * @return the created object
-     */    
+     */
     public static FileStore open(DataHandler handler, String name, String mode, byte[] magic) throws SQLException {
         return open(handler, name, mode, magic, null, null, 0);
     }
 
     /**
      * Open an encrypted file store with the given settings.
-     * 
+     *
      * @param handler the data handler
      * @param name the file name
      * @param mode the access mode (r, rw, rws, rwd)
@@ -123,7 +123,7 @@ public class FileStore {
 
     /**
      * Open an encrypted file store with the given settings.
-     * 
+     *
      * @param handler the data handler
      * @param name the file name
      * @param mode the access mode (r, rw, rws, rwd)
@@ -146,7 +146,7 @@ public class FileStore {
 
     /**
      * Generate the random salt bytes if required.
-     * 
+     *
      * @return the random salt or the magic
      */
     protected byte[] generateSalt() {
@@ -155,7 +155,7 @@ public class FileStore {
 
     /**
      * Initialize the key using the given salt.
-     * 
+     *
      * @param salt the salt
      */
     protected void initKey(byte[] salt) {
@@ -254,7 +254,7 @@ public class FileStore {
 
     /**
      * Read a number of bytes without decrypting.
-     * 
+     *
      * @param b the target buffer
      * @param off the offset
      * @param len the number of bytes to read
@@ -265,7 +265,7 @@ public class FileStore {
 
     /**
      * Read a number of bytes.
-     * 
+     *
      * @param b the target buffer
      * @param off the offset
      * @param len the number of bytes to read
@@ -288,7 +288,7 @@ public class FileStore {
 
     /**
      * Go to the specified file location.
-     * 
+     *
      * @param pos the location
      */
     public void seek(long pos) throws SQLException {
@@ -307,7 +307,7 @@ public class FileStore {
 
     /**
      * Write a number of bytes without encrypting.
-     * 
+     *
      * @param b the source buffer
      * @param off the offset
      * @param len the number of bytes to write
@@ -318,7 +318,7 @@ public class FileStore {
 
     /**
      * Write a number of bytes.
-     * 
+     *
      * @param b the source buffer
      * @param off the offset
      * @param len the number of bytes to write
@@ -374,7 +374,7 @@ public class FileStore {
 
     /**
      * Set the length of the file. This will expand or shrink the file.
-     * 
+     *
      * @param newLength the new file size
      */
     public void setLength(long newLength) throws SQLException {
@@ -405,7 +405,7 @@ public class FileStore {
 
     /**
      * Get the file size in bytes.
-     * 
+     *
      * @return the file size
      */
     public long length() throws SQLException {
@@ -431,7 +431,7 @@ public class FileStore {
 
     /**
      * Get the current location of the file pointer.
-     * 
+     *
      * @return the location
      */
     public long getFilePointer() throws SQLException {
@@ -483,7 +483,7 @@ public class FileStore {
 
     /**
      * Check if the file is encrypted.
-     * 
+     *
      * @return true if it is
      */
     public boolean isEncrypted() {

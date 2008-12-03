@@ -125,8 +125,8 @@ A few problems have been identified: Leaving autocommit on is a problem for Derb
 If it is switched off during the whole test, the results are about 20% better for Derby.
 Derby supports a testing mode (system property derby.system.durability=test) where durability is
 disabled. According to the documentation, this setting should be used for testing only,
-as the database may not recover after a crash. Enabling this setting improves performance 
-by a factor of 2.6 (embedded mode) or 1.4 (server mode). Even if enabled, Derby is still less 
+as the database may not recover after a crash. Enabling this setting improves performance
+by a factor of 2.6 (embedded mode) or 1.4 (server mode). Even if enabled, Derby is still less
 than half as fast as H2 in default mode.
 </p>
 
@@ -319,7 +319,7 @@ Unfortunately, it is only possible to profile the application from start to end.
 <h2>Database Profiling</h2>
 <p>
 The ConvertTraceFile tool generates SQL statement statistics at the end of the SQL script file.
-The format used is similar to the profiling data generated when using java -Xrunhprof. 
+The format used is similar to the profiling data generated when using java -Xrunhprof.
 As an example, execute the the following script using the H2 Console:
 </p>
 <pre>
@@ -333,7 +333,7 @@ SET TRACE_LEVEL_FILE 0;
 Now convert the .trace.db file using the ConvertTraceFile tool:
 </p>
 <pre>
-java -cp h2*.jar org.h2.tools.ConvertTraceFile 
+java -cp h2*.jar org.h2.tools.ConvertTraceFile
   -traceFile "~/test.trace.db" -script "~/test.sql"
 </pre>
 <p>
@@ -435,8 +435,8 @@ This command should be run from time to time to improve the query plans generate
 
 <h3>Optimization Examples</h3>
 <p>
-See <code>src/test/org/h2/samples/optimizations.sql</code> for a few examples of queries 
-that benefit from special optimizations built into the database. 
+See <code>src/test/org/h2/samples/optimizations.sql</code> for a few examples of queries
+that benefit from special optimizations built into the database.
 </p>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

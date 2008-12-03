@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -35,35 +35,35 @@ public interface DbInterface {
 
     /**
      * Create the specified table.
-     * 
+     *
      * @param table the table to create
      */
     void createTable(Table table) throws SQLException;
 
     /**
      * Drop the specified table.
-     * 
+     *
      * @param table the table to drop
      */
     void dropTable(Table table) throws SQLException;
 
     /**
      * Create an index.
-     * 
+     *
      * @param index the index to create
      */
     void createIndex(Index index) throws SQLException;
 
     /**
      * Drop an index.
-     * 
+     *
      * @param index the index to drop
      */
     void dropIndex(Index index) throws SQLException;
 
     /**
      * Insert a row into a table.
-     * 
+     *
      * @param table the table
      * @param c the column list
      * @param v the values
@@ -73,14 +73,14 @@ public interface DbInterface {
 
     /**
      * Execute a query.
-     * 
+     *
      * @param sql the SQL statement
      */
     Result select(String sql) throws SQLException;
 
     /**
      * Delete a number of rows.
-     * 
+     *
      * @param table the table
      * @param condition the condition
      * @return the result
@@ -89,8 +89,8 @@ public interface DbInterface {
 
     /**
      * Update the given table with the new values.
-     * 
-     * @param table the table 
+     *
+     * @param table the table
      * @param columns the columns to update
      * @param values the new values
      * @param condition the condition
@@ -100,7 +100,7 @@ public interface DbInterface {
 
     /**
      * Enable or disable autocommit.
-     * 
+     *
      * @param b the new value
      */
     void setAutoCommit(boolean b) throws SQLException;

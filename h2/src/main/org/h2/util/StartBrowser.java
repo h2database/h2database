@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -15,14 +15,14 @@ import org.h2.constant.SysProperties;
  * This tool starts the browser with a specific URL.
  */
 public class StartBrowser {
-    
+
     private StartBrowser() {
         // utility class
     }
 
     /**
      * Open a new browser tab or window with the given URL.
-     * 
+     *
      * @param url the URL to open
      */
     public static void openURL(String url) {
@@ -38,7 +38,7 @@ public class StartBrowser {
                 }
                 return;
             }
-            
+
             try {
                 Class desktopClass = Class.forName("java.awt.Desktop");
                 // Desktop.isDesktopSupported()
@@ -58,7 +58,7 @@ public class StartBrowser {
             } catch (Exception e) {
                 // ignore
             }
-            
+
             if (osName.indexOf("windows") >= 0) {
                 rt.exec(new String[] { "rundll32", "url.dll,FileProtocolHandler", url });
             } else if (osName.indexOf("mac") >= 0) {

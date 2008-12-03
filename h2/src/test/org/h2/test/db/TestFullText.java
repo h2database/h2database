@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -21,10 +21,10 @@ import org.h2.test.TestBase;
  * Fulltext search tests.
  */
 public class TestFullText extends TestBase {
-    
+
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
@@ -57,7 +57,7 @@ public class TestFullText extends TestBase {
         deleteDb("fullText");
         deleteDb("fullTextReopen");
     }
-    
+
     private void testCreateDrop() throws SQLException {
         deleteDb("fullText");
         FileSystem.getInstance(baseDir).deleteRecursive(baseDir + "/fullText");
@@ -73,7 +73,7 @@ public class TestFullText extends TestBase {
         deleteDb("fullText");
         FileSystem.getInstance(baseDir).deleteRecursive(baseDir + "/fullText");
     }
-    
+
     private void testReopen(boolean lucene) throws SQLException {
         String prefix = lucene ? "FTL" : "FT";
         deleteDb("fullTextReopen");
@@ -87,7 +87,7 @@ public class TestFullText extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello World')");
         stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
         conn.close();
-        
+
         conn = getConnection("fullTextReopen");
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");

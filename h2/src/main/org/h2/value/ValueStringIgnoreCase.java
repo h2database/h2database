@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -51,7 +51,7 @@ public class ValueStringIgnoreCase extends ValueStringBase {
     /**
      * Get or create a case insensitive string value for the given string.
      * The value will have the same case as the passed string.
-     * 
+     *
      * @param s the string
      * @return the value
      */
@@ -64,7 +64,7 @@ public class ValueStringIgnoreCase extends ValueStringBase {
             return obj;
         }
         ValueStringIgnoreCase cache = (ValueStringIgnoreCase) Value.cache(obj);
-        // the cached object could have the wrong case 
+        // the cached object could have the wrong case
         // (it would still be 'equal', but we don't like to store it)
         if (cache.value.equals(s)) {
             return cache;

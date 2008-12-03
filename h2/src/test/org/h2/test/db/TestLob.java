@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -35,15 +35,15 @@ import org.h2.util.StringUtils;
  * Tests LOB and CLOB data types.
  */
 public class TestLob extends TestBase {
-    
+
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
         TestBase.createCaller().init().test();
-    }    
+    }
 
     public void test() throws Exception {
         testLobServerMemory();
@@ -73,7 +73,7 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
     }
-    
+
     private void testLobDeleteTemp() throws SQLException {
         deleteDb("lob");
         Connection conn = getConnection("lob");
@@ -84,7 +84,7 @@ public class TestLob extends TestBase {
         conn.close();
         assertEquals(0, new File(baseDir + "/lob.lobs.db").listFiles().length);
     }
-    
+
     private void testLobServerMemory() throws SQLException {
         deleteDb("lob");
         Connection conn = getConnection("lob");
@@ -96,7 +96,7 @@ public class TestLob extends TestBase {
         prep.execute();
         conn.close();
     }
-    
+
     private void testLobDelete() throws SQLException {
         if (config.memory) {
             return;
@@ -123,7 +123,7 @@ public class TestLob extends TestBase {
         }
         conn.close();
     }
-    
+
     private void collectAndWait() {
         for (int i = 0; i < 3; i++) {
             System.gc();
@@ -211,7 +211,7 @@ public class TestLob extends TestBase {
             }
             in.close();
             if (len > 0) {
-                // in Linux, it seems it is still possible to read in files 
+                // in Linux, it seems it is still possible to read in files
                 // even if they are deleted
                 if (System.getProperty("os.name").indexOf("Windows") > 0) {
                     fail("Error expected; len=" + len);
@@ -747,7 +747,7 @@ public class TestLob extends TestBase {
                 Object obj = rs.getObject(2);
                 if (obj instanceof Clob) {
                     obj = ((Clob) obj).getCharacterStream();
-                }                
+                }
                 checkReader((Reader) obj, getRandomReader(size, id), -1);
             } else {
                 InputStream in = rs.getBinaryStream(2);

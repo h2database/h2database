@@ -1,5 +1,5 @@
-# Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
-# Version 1.0, and under the Eclipse Public License, Version 1.0 
+# Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
+# Version 1.0, and under the Eclipse Public License, Version 1.0
 # (http://h2database.com/html/license.html).
 # Initial Developer: H2 Group
 "SECTION","TOPIC","SYNTAX","TEXT","EXAMPLE"
@@ -140,7 +140,7 @@ ALTER SEQUENCE sequenceName
 [INCREMENT BY long]
 ","
 Changes the next value and / or the increment of a sequence.
-This command can be used inside a transaction, 
+This command can be used inside a transaction,
 that means it does not commit the current transaction;
 however the new value is by other transactions immediately,
 and rolling back this command has no effect.
@@ -416,14 +416,14 @@ statements (however this is not possible on rollback), however
 in this case multi-row unique key updates may not always work.
 Linked tables to the same database share one connection.
 If a query is used instead of the original table name, the table is read only.
-To use JNDI to get the connection, the driver class must be a 
-javax.naming.Context (for example javax.naming.InitialContext), and the 
-URL must be the resource name (for example java:comp/env/jdbc/Test). 
+To use JNDI to get the connection, the driver class must be a
+javax.naming.Context (for example javax.naming.InitialContext), and the
+URL must be the resource name (for example java:comp/env/jdbc/Test).
 The current user owner must have admin rights.
 ","
 CREATE LINKED TABLE LINK('org.h2.Driver', 'jdbc:h2:test2', 'sa', 'sa', 'TEST');
 CREATE LINKED TABLE LINK('', 'jdbc:h2:test2', 'sa', 'sa', '(SELECT * FROM TEST WHERE ID>0)');
-CREATE LINKED TABLE LINK('javax.naming.InitialContext', 
+CREATE LINKED TABLE LINK('javax.naming.InitialContext',
   'java:comp/env/jdbc/Test', NULL, NULL, '(SELECT * FROM TEST WHERE ID>0)');
 "
 
@@ -968,10 +968,10 @@ Enabled or disables writing to the log file.
 0: logging is disabled (faster)
 1: logging of the data is enabled, but logging of the index changes is disabled (default)
 2: logging of both data and index changes are enabled
-Logging can be disabled to improve the performance when durability is not important, 
+Logging can be disabled to improve the performance when durability is not important,
 for example while running tests or when loading the database.
-Warning: It may not be possible to recover the database if logging is disabled and 
-the application terminates abnormally. If logging of index changes is enabled, 
+Warning: It may not be possible to recover the database if logging is disabled and
+the application terminates abnormally. If logging of index changes is enabled,
 opening a database that was crashed becomes faster because the indexes don't need to be rebuilt.
 Admin rights are required to execute this command.
 This setting can be appended to the database URL: jdbc:h2:test;LOG=2
@@ -1306,7 +1306,7 @@ NAME DESC NULLS LAST
 "Other Grammar","Index Column","
 columnName [ASC | DESC] [NULLS {FIRST | LAST}]
 ","
-Indexes this column in ascending or descending order. 
+Indexes this column in ascending or descending order.
 Usually it is not required to specify the order; however doing
 so will speed up large queries that order the column in the same way.
 ","
@@ -1500,7 +1500,7 @@ Two single quotes can be used to create a single quote inside a string.
 "Other Grammar","Dollar Quoted String","
 $$anythingExceptTwoDollarSigns$$
 ","
-A string starts and ends with two dollar signs. 
+A string starts and ends with two dollar signs.
 Two dollar signs are not allowed within the text.
 A whitespace is required before the first set of dollar signs.
 No escaping is required within the text.
@@ -1806,11 +1806,11 @@ BLOB
 ","
 CLOB is like VARCHAR, but intended for very large values.
 Unlike when using VARCHAR, large CLOB objects are not kept fully in-memory.
-CLOB should be used for documents and texts with arbitrary size such as 
+CLOB should be used for documents and texts with arbitrary size such as
 XML or HTML documents, text files, or memo fields of unlimited size.
-VARCHAR should be used for text with relatively short average size (for example 
-shorter than 200 characters). Short CLOB values are stored inline, but there is an 
-overhead compared to VARCHAR. 
+VARCHAR should be used for text with relatively short average size (for example
+shorter than 200 characters). Short CLOB values are stored inline, but there is an
+overhead compared to VARCHAR.
 Use PreparedStatement.setCharacterStream to store values.
 ","
 CLOB
@@ -1957,7 +1957,7 @@ VAR_SAMP(X)
 "Functions (Numeric)","ABS","
 ABS({int | long | decimal | double}): value
 ","
-See also Java Math.abs. 
+See also Java Math.abs.
 Please note that Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE and
 Math.abs(Long.MIN_VALUE) == Long.MIN_VALUE.
 ","
@@ -2660,7 +2660,7 @@ DAY_OF_YEAR(CREATED)
 
 "Functions (Time and Date)","EXTRACT","
 EXTRACT(
-{YEAR | YY | MONTH | MM | DAY | DD | DAY_OF_YEAR | DOY | 
+{YEAR | YY | MONTH | MM | DAY | DD | DAY_OF_YEAR | DOY |
 HOUR | HH | MINUTE | MI | SECOND | SS | MILLISECOND | MS}
 FROM timestamp): int
 ","

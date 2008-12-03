@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -25,7 +25,7 @@ import org.h2.value.ValueLob;
  * automatically.
  */
 public class RowList {
-    
+
     private final Session session;
     private final ObjectArray list = new ObjectArray();
     private int size;
@@ -37,10 +37,10 @@ public class RowList {
     private int memory, maxMemory;
     private boolean written;
     private boolean readUncached;
-    
+
     /**
      * Construct a new row list for this session.
-     * 
+     *
      * @param session the session
      */
     public RowList(Session session) {
@@ -49,7 +49,7 @@ public class RowList {
             maxMemory = session.getDatabase().getMaxOperationMemory();
         }
     }
-    
+
     private void writeRow(DataPage buff, Row r) throws SQLException {
         buff.checkCapacity(1 + buff.getIntLen() * 7);
         buff.writeByte((byte) 1);
@@ -63,7 +63,7 @@ public class RowList {
         for (int i = 0; i < r.getColumnCount(); i++) {
             Value v = r.getValue(i);
             if (v.getType() == Value.CLOB || v.getType() == Value.BLOB) {
-                // need to keep a reference to temporary lobs, 
+                // need to keep a reference to temporary lobs,
                 // otherwise the temp file is deleted
                 ValueLob lob = (ValueLob) v;
                 if (lob.getSmall() == null && lob.getTableId() == 0) {
@@ -77,7 +77,7 @@ public class RowList {
             buff.writeValue(v);
         }
     }
-    
+
     private void writeAllRows() throws SQLException {
         if (file == null) {
             Database db = session.getDatabase();
@@ -87,7 +87,7 @@ public class RowList {
             file.seek(FileStore.HEADER_LENGTH);
             rowBuff = DataPage.create(db, Constants.DEFAULT_DATA_PAGE_SIZE);
             file.seek(FileStore.HEADER_LENGTH);
-        }        
+        }
         DataPage buff = rowBuff;
         initBuffer(buff);
         for (int i = 0; i < list.size(); i++) {
@@ -103,24 +103,24 @@ public class RowList {
         list.clear();
         memory = 0;
     }
-    
+
     private void initBuffer(DataPage buff) {
         buff.reset();
         buff.writeInt(0);
     }
-    
+
     private void flushBuffer(DataPage buff) throws SQLException {
         buff.checkCapacity(1);
         buff.writeByte((byte) 0);
         buff.fillAligned();
         buff.setInt(0, buff.length() / Constants.FILE_BLOCK_SIZE);
-        buff.updateChecksum();            
+        buff.updateChecksum();
         file.write(buff.getBytes(), 0, buff.length());
     }
-    
+
     /**
      * Add a row to the list.
-     * 
+     *
      * @param r the row to add
      */
     public void add(Row r) throws SQLException {
@@ -131,7 +131,7 @@ public class RowList {
         }
         size++;
     }
-    
+
     /**
      * Remove all rows from the list.
      */
@@ -147,16 +147,16 @@ public class RowList {
             file.seek(FileStore.HEADER_LENGTH);
         }
     }
-    
+
     /**
      * Check if there are more rows in this list.
-     * 
+     *
      * @return true it there are more rows
      */
     public boolean hasNext() {
         return index < size;
     }
-    
+
     private Row readRow(DataPage buff) throws SQLException {
         if (buff.readByte() == 0) {
             return null;
@@ -176,7 +176,7 @@ public class RowList {
             Value v = buff.readValue();
             if (v.isLinked()) {
                 ValueLob lob = (ValueLob) v;
-                // the table id is 0 if it was linked when writing 
+                // the table id is 0 if it was linked when writing
                 // a temporary entry
                 if (lob.getTableId() == 0) {
                     session.unlinkAtCommit(lob);
@@ -201,7 +201,7 @@ public class RowList {
 
     /**
      * Get the next row from the list.
-     * 
+     *
      * @return the next row
      */
     public Row next() throws SQLException {
@@ -235,23 +235,23 @@ public class RowList {
         }
         return r;
     }
-    
+
     /**
      * Get the number of rows in this list.
-     * 
+     *
      * @return the number of rows
      */
     public int size() {
         return size;
     }
-    
+
     /**
      * Do not use the cache.
      */
     public void invalidateCache() {
         readUncached = true;
     }
-    
+
     /**
      * Close the result list and delete the temporary file.
      */
@@ -261,7 +261,7 @@ public class RowList {
             file.closeAndDeleteSilently();
             file = null;
             rowBuff = null;
-        }        
+        }
     }
 
 }

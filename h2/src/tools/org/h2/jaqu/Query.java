@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -23,7 +23,7 @@ import org.h2.jaqu.util.Utils;
  */
 //## Java 1.5 begin ##
 public class Query<T> {
-    
+
     private Db db;
     private SelectTable<T> from;
     private ArrayList<Token> conditions = Utils.newArrayList();
@@ -31,11 +31,11 @@ public class Query<T> {
     private final HashMap<Object, SelectColumn> aliasMap = Utils.newHashMap();
     private ArrayList<OrderExpression> orderByList = Utils.newArrayList();
     private Object[] groupByExpressions;
-    
+
     Query(Db db) {
         this.db = db;
     }
-    
+
     static <T> Query<T> from(Db db, T alias) {
         Query<T> query = new Query<T>(db);
         TableDefinition def = db.define(alias.getClass());
@@ -43,7 +43,7 @@ public class Query<T> {
         def.initSelectObject(query.from, alias, query.aliasMap);
         return query;
     }
-    
+
     public long selectCount() {
         SqlStatement selectList = new SqlStatement(db);
         selectList.setSQL("COUNT(*)");
@@ -64,22 +64,22 @@ public class Query<T> {
     public List<T> selectDistinct() {
         return select(true);
     }
-    
+
     public <X, Z> X selectFirst(Z x) {
         List<X> list = (List<X>) select(x);
         return list.isEmpty() ? null : list.get(0);
     }
-    
+
     public String getSQL() {
         SqlStatement selectList = new SqlStatement(db);
-        selectList.setSQL("*");        
+        selectList.setSQL("*");
         return prepare(selectList, false).getSQL().trim();
     }
 
     private List<T> select(boolean distinct) {
         List<T> result = Utils.newArrayList();
         SqlStatement selectList = new SqlStatement(db);
-        selectList.setSQL("*");           
+        selectList.setSQL("*");
         ResultSet rs = prepare(selectList, distinct).executeQuery();
         try {
             while (rs.next()) {
@@ -92,7 +92,7 @@ public class Query<T> {
         }
         return result;
     }
-    
+
     public int delete() {
         SqlStatement stat = new SqlStatement(db);
         stat.appendSQL("DELETE FROM ");
@@ -104,7 +104,7 @@ public class Query<T> {
     public <X, Z> List<X> selectDistinct(Z x) {
         return select(x, true);
     }
-    
+
     public <X, Z> List<X> select(Z x) {
         return select(x, false);
     }
@@ -117,7 +117,7 @@ public class Query<T> {
         clazz = clazz.getSuperclass();
         return select((Class<X>) clazz, (X) x, distinct);
     }
-    
+
     private <X> List<X> select(Class<X> clazz, X x, boolean distinct) {
         TableDefinition<X> def = db.define(clazz);
         SqlStatement selectList = def.getSelectList(this, x);
@@ -134,7 +134,7 @@ public class Query<T> {
         }
         return result;
     }
-    
+
     private <X> List<X> getSimple(X x, boolean distinct) {
         SqlStatement selectList = new SqlStatement(db);
         appendSQL(selectList, x);
@@ -154,28 +154,28 @@ public class Query<T> {
         }
         return result;
     }
-    
+
     public <A> QueryCondition<T, A> where(A x) {
         return new QueryCondition<T, A>(this, x);
     }
-    
+
     public QueryWhere<T> whereTrue(Boolean condition) {
         Token token = new Function("", condition);
         addConditionToken(token);
         return new QueryWhere<T>(this);
     }
 //## Java 1.5 end ##
-    
+
     /**
      * Order by a number of columns.
-     * 
+     *
      * @param expressions the columns
      * @return the query
      */
 //## Java 1.5 begin ##
     public Query<T> orderBy(Object... expressions) {
         for (Object expr : expressions) {
-            OrderExpression<Object> e = 
+            OrderExpression<Object> e =
                 new OrderExpression<Object>(this, expr, false, false, false);
             addOrderBy(e);
         }
@@ -183,7 +183,7 @@ public class Query<T> {
     }
 
     public Query<T> orderByDesc(Object expr) {
-        OrderExpression<Object> e = 
+        OrderExpression<Object> e =
             new OrderExpression<Object>(this, expr, true, false, false);
         addOrderBy(e);
         return this;
@@ -216,7 +216,7 @@ public class Query<T> {
     void addConditionToken(Token condition) {
         conditions.add(condition);
     }
-    
+
     void appendWhere(SqlStatement stat) {
         if (!conditions.isEmpty()) {
             stat.appendSQL(" WHERE ");
@@ -226,7 +226,7 @@ public class Query<T> {
             }
         }
     }
-    
+
     SqlStatement prepare(SqlStatement selectList, boolean distinct) {
         SqlStatement stat = selectList;
         String selectSQL = stat.getSQL();
@@ -270,7 +270,7 @@ public class Query<T> {
 
     /**
      * Join another table.
-     * 
+     *
      * @param alias an alias for the table to join
      * @return the joined query
      */

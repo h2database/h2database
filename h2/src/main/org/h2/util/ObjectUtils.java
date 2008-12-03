@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -20,21 +20,21 @@ import org.h2.message.Message;
  * Starting with Java 1.5, some objects are re-used.
  */
 public class ObjectUtils {
-    
+
     /**
      * The maximum number of elements to copy using a Java loop. This value was
      * found by running tests using the Sun JDK 1.4 and JDK 1.6 on Windows XP.
      * The biggest difference is for size smaller than 40 (more than 50% saving).
      */
     private static final int MAX_JAVA_LOOP_COPY = 100;
-    
+
     private ObjectUtils() {
         // utility class
     }
 
     /**
      * Create a new object or get a cached object for the given value.
-     * 
+     *
      * @param x the value
      * @return the object
      */
@@ -45,12 +45,12 @@ public class ObjectUtils {
         }
 //## Java 1.5 end ##
         // NOPMD
-        return new Integer(x); 
+        return new Integer(x);
     }
 
     /**
      * Create a new object or get a cached object for the given value.
-     * 
+     *
      * @param x the value
      * @return the object
      */
@@ -65,7 +65,7 @@ public class ObjectUtils {
 
     /**
      * Create a new object or get a cached object for the given value.
-     * 
+     *
      * @param x the value
      * @return the object
      */
@@ -76,12 +76,12 @@ public class ObjectUtils {
         }
 //## Java 1.5 end ##
         // NOPMD
-        return new Long(x); 
+        return new Long(x);
     }
 
     /**
      * Create a new object or get a cached object for the given value.
-     * 
+     *
      * @param x the value
      * @return the object
      */
@@ -92,12 +92,12 @@ public class ObjectUtils {
         }
 //## Java 1.5 end ##
         // NOPMD
-        return new Short(x); 
+        return new Short(x);
     }
 
     /**
      * Create a new object or get a cached object for the given value.
-     * 
+     *
      * @param x the value
      * @return the object
      */
@@ -108,12 +108,12 @@ public class ObjectUtils {
         }
 //## Java 1.5 end ##
         // NOPMD
-        return new Byte(x); 
+        return new Byte(x);
     }
 
     /**
      * Create a new object or get a cached object for the given value.
-     * 
+     *
      * @param x the value
      * @return the object
      */
@@ -128,7 +128,7 @@ public class ObjectUtils {
 
     /**
      * Create a new object or get a cached object for the given value.
-     * 
+     *
      * @param x the value
      * @return the object
      */
@@ -140,10 +140,10 @@ public class ObjectUtils {
 //## Java 1.5 end ##
         return new Double(x);
     }
-    
+
     /**
      * Serialize the object to a byte array.
-     * 
+     *
      * @param obj the object to serialize
      * @return the byte array
      */
@@ -160,7 +160,7 @@ public class ObjectUtils {
 
     /**
      * De-serialize the byte array to an object.
-     * 
+     *
      * @param data the byte array
      * @return the object
      * @throws SQLException
@@ -175,12 +175,12 @@ public class ObjectUtils {
             throw Message.getSQLException(ErrorCode.DESERIALIZATION_FAILED_1, new String[] { e.toString() }, e);
         }
     }
-    
+
     /**
      * Copy the elements of the source array to the target array.
      * System.arraycopy is used for larger arrays, but for very small arrays it
      * is faster to use a regular loop.
-     * 
+     *
      * @param source the source array
      * @param target the target array
      * @param size the number of elements to copy
@@ -197,7 +197,7 @@ public class ObjectUtils {
 
     /**
      * Calculate the hash code of the given object. The object may be null.
-     * 
+     *
      * @param o the object
      * @return the hash code, or 0 if the object is null
      */

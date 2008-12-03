@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -29,17 +29,17 @@ public class AlterUser extends DefineCommand {
      * The command type to set the password.
      */
     public static final int SET_PASSWORD = 0;
-    
+
     /**
      * The command type to rename the user.
      */
     public static final int RENAME = 1;
-    
+
     /**
      * The command type to change the admin flag.
      */
     public static final int ADMIN = 2;
-    
+
     private int type;
     private User user;
     private String newName;
@@ -79,7 +79,7 @@ public class AlterUser extends DefineCommand {
     public void setPassword(Expression password) {
         this.password = password;
     }
-    
+
     private char[] getCharArray(Expression e) throws SQLException {
         return e.getValue(session).getString().toCharArray();
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -113,7 +113,7 @@ public interface DbObject {
     /**
      * Get the list of dependent children (for tables, this includes indexes and
      * so on).
-     * 
+     *
      * @return the list of children
      */
     ObjectArray getChildren();
@@ -142,7 +142,7 @@ public interface DbObject {
     /**
      * Construct a CREATE ... SQL statement for this object when creating a copy
      * of it.
-     * 
+     *
      * @param table the new table
      * @param quotedName the quoted name
      * @return the SQL statement

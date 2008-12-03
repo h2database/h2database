@@ -14,7 +14,7 @@ import org.hibernate.util.ReflectHelper;
 
 /**
  * A dialect compatible with the H2 database.
- * 
+ *
  * @author Thomas Mueller
  *
  */
@@ -23,7 +23,7 @@ public class H2Dialect extends Dialect {
     private String querySequenceString;
     public H2Dialect() {
         super();
-               
+
         querySequenceString = "select sequence_name from information_schema.sequences";
         try {
             // HHH-2300
@@ -48,7 +48,7 @@ public class H2Dialect extends Dialect {
         registerColumnType(Types.INTEGER, "integer");
         registerColumnType(Types.LONGVARBINARY, "longvarbinary");
         registerColumnType(Types.LONGVARCHAR, "longvarchar");
-        registerColumnType(Types.REAL, "real");        
+        registerColumnType(Types.REAL, "real");
         registerColumnType(Types.SMALLINT, "smallint");
         registerColumnType(Types.TINYINT, "tinyint");
         registerColumnType(Types.TIME, "time");
@@ -58,7 +58,7 @@ public class H2Dialect extends Dialect {
         registerColumnType(Types.NUMERIC, "numeric");
         registerColumnType(Types.BLOB, "blob");
         registerColumnType(Types.CLOB, "clob");
-        
+
         // select topic, syntax from information_schema.help
         // where section like 'Function%' order by section, topic
 
@@ -196,10 +196,10 @@ public class H2Dialect extends Dialect {
             append(hasOffset ? " limit ? offset ?" : " limit ?").
             toString();
     }
-    
+
     public boolean bindLimitParametersInReverseOrder() {
         return true;
-    }    
+    }
 
     public boolean bindLimitParametersFirst() {
         return false;
@@ -268,7 +268,7 @@ public class H2Dialect extends Dialect {
     public boolean supportsTemporaryTables() {
         return true;
     }
-    
+
     public String getCreateTemporaryTableString() {
         return "create temporary table if not exists";
     }
@@ -276,15 +276,15 @@ public class H2Dialect extends Dialect {
     public boolean supportsCurrentTimestampSelection() {
         return true;
     }
-    
+
     public boolean isCurrentTimestampSelectStringCallable() {
         return false;
     }
-    
+
     public String getCurrentTimestampSelectString() {
         return "call current_timestamp()";
-    }    
-    
+    }
+
     public boolean supportsUnionAll() {
         return true;
     }

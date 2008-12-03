@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -52,7 +52,7 @@ public class Cache2Q implements Cache {
         headMain.next = headMain.previous = headMain;
         headIn.next = headIn.previous = headIn;
         headOut.next = headOut.previous = headOut;
-        // first set to null - avoiding out of memory        
+        // first set to null - avoiding out of memory
         values = null;
         values = new CacheObject[len];
         sizeIn = sizeOut = sizeMain = 0;

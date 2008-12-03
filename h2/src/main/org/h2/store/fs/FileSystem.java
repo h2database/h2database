@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -20,17 +20,17 @@ public abstract class FileSystem {
      * The prefix used for an in-memory file system.
      */
     public static final String PREFIX_MEMORY = "memFS:";
-    
+
     /**
      * The prefix used for a compressed in-memory file system.
      */
     public static final String PREFIX_MEMORY_LZF = "memLZF:";
-    
+
     /**
      * The prefix used for a database based file system.
      */
     public static final String PREFIX_DB = "jdbc:";
-    
+
     /**
      * The prefix used for a read-only zip-file based file system.
      */
@@ -115,7 +115,7 @@ public abstract class FileSystem {
 
     /**
      * Create a new temporary file.
-     * 
+     *
      * @param prefix the prefix of the file name (including directory name if
      *            required)
      * @param suffix the suffix
@@ -248,7 +248,7 @@ public abstract class FileSystem {
 
     /**
      * Create an output stream to write into the file.
-     * 
+     *
      * @param fileName the file name
      * @param append if true, the file will grow, if false, the file will be
      *            truncated first
@@ -281,5 +281,5 @@ public abstract class FileSystem {
     public void close() {
         // do nothing
     }
-    
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -62,7 +62,7 @@ public class TestPreparedStatement extends TestBase {
         conn.close();
         deleteDb("preparedStatement");
     }
-    
+
     private void testLobTempFiles(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB)");
@@ -99,7 +99,7 @@ public class TestPreparedStatement extends TestBase {
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
     }
-    
+
     private String getString(int i) {
         return new String(new char[100000]).replace('\0', (char) ('0' + i));
     }
@@ -405,7 +405,7 @@ public class TestPreparedStatement extends TestBase {
         } catch (SQLException e) {
             assertKnownException(e);
         }
-        
+
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST3(ID INT, NAME VARCHAR(255), DATA DECIMAL(10,2))");
         PreparedStatement prep1 = conn.prepareStatement("UPDATE TEST3 SET ID=?, NAME=?, DATA=?");

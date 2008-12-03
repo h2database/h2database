@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -17,12 +17,12 @@ import org.h2.message.Message;
  * A deleted record has key=0 and value=DELETED
  */
 public class IntIntHashMap extends HashBase {
-    
+
     /**
      * The value indicating that the entry has not been found.
      */
     public static final int NOT_FOUND = -1;
-    
+
     private static final int DELETED = 1;
     private int[] keys;
     private int[] values;
@@ -36,7 +36,7 @@ public class IntIntHashMap extends HashBase {
 
     /**
      * Store the given key-value pair. The value is overwritten or added.
-     * 
+     *
      * @param key the key
      * @param value the value (-1 is not supported)
      */
@@ -85,7 +85,7 @@ public class IntIntHashMap extends HashBase {
 
     /**
      * Remove the key-value pair with the given key.
-     * 
+     *
      * @param key the key
      */
     public void remove(int key) {
@@ -134,7 +134,7 @@ public class IntIntHashMap extends HashBase {
     /**
      * Get the value for the given key. This method returns NOT_FOUND if the
      * entry has not been found.
-     * 
+     *
      * @param key the key
      * @return the value or NOT_FOUND
      */

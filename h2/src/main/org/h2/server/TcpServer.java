@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -53,7 +53,7 @@ public class TcpServer implements Service {
      * The default port to use for the TCP server.
      */
     public static final int DEFAULT_PORT = 9092;
-    
+
     private static final int SHUTDOWN_NORMAL = 0;
     private static final int SHUTDOWN_FORCE = 1;
 
@@ -109,7 +109,7 @@ public class TcpServer implements Service {
 
     /**
      * Add a connection to the management database.
-     * 
+     *
      * @param id the connection id
      * @param url the database URL
      * @param user the user name
@@ -127,7 +127,7 @@ public class TcpServer implements Service {
 
     /**
      * Remove a connection from the management database.
-     * 
+     *
      * @param id the connection id
      */
     synchronized void removeConnection(int id) {
@@ -205,7 +205,7 @@ public class TcpServer implements Service {
     /**
      * Check if this socket may connect to this server. Remote connections are
      * not allowed if the flag allowOthers is set.
-     * 
+     *
      * @param socket the socket
      * @return true if this client may connect
      */
@@ -308,7 +308,7 @@ public class TcpServer implements Service {
     /**
      * Stop a running server. This method is called via reflection from the
      * STOP_SERVER function.
-     * 
+     *
      * @param port the port where the server runs
      * @param password the password
      * @param shutdownMode the shutdown mode, SHUTDOWN_NORMAL or SHUTDOWN_FORCE.
@@ -337,7 +337,7 @@ public class TcpServer implements Service {
 
     /**
      * Remove a thread from the list.
-     * 
+     *
      * @param t the thread to remove
      */
     void remove(TcpServerThread t) {
@@ -346,7 +346,7 @@ public class TcpServer implements Service {
 
     /**
      * Get the configured base directory.
-     * 
+     *
      * @return the base directory
      */
     String getBaseDir() {
@@ -355,7 +355,7 @@ public class TcpServer implements Service {
 
     /**
      * Print a message if the trace flag is enabled.
-     * 
+     *
      * @param s the message
      */
     void trace(String s) {
@@ -365,7 +365,7 @@ public class TcpServer implements Service {
     }
     /**
      * Print a stack trace if the trace flag is enabled.
-     * 
+     *
      * @param e the exception
      */
     void traceError(Throwable e) {
@@ -391,8 +391,8 @@ public class TcpServer implements Service {
     }
 
     /**
-     * Stop the TCP server with the given URL. 
-     * 
+     * Stop the TCP server with the given URL.
+     *
      * @param url the database URL
      * @param password the password
      * @param force if the server should be stopped immediately
@@ -446,7 +446,7 @@ public class TcpServer implements Service {
 
     /**
      * Cancel a running statement.
-     * 
+     *
      * @param sessionId the session id
      * @param statementId the statement id
      */
@@ -464,7 +464,7 @@ public class TcpServer implements Service {
      * If no key is set, return the original database name. If a key is set,
      * check if the key matches. If yes, return the correct database name. If
      * not, throw an exception.
-     * 
+     *
      * @param db the key to test (or database name if no key is used)
      * @return the database name
      * @throws SQLException if a key is set but doesn't match

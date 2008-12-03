@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -161,7 +161,7 @@ public class ErrorCode {
     public static final int REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1 = 23003;
 
     // 3B: savepoint exception
-    
+
     /**
      * The error with code <code>40001</code> is thrown when the database
      * engine has detected a deadlock. The transaction of this session has been
@@ -522,7 +522,7 @@ public class ErrorCode {
      * Connection conn;
      * conn = DriverManager.getConnection(&quot;jdbc:h2:&tilde;/test&quot;);
      * conn = null;
-     * The connection was not closed by the application and is 
+     * The connection was not closed by the application and is
      * garbage collected
      * </pre>
      * Correct:
@@ -547,12 +547,12 @@ public class ErrorCode {
      * database in embedded mode if this database is already in use in another
      * process (or in a different class loader). Multiple connections to the
      * same database are supported in the following cases:
-     * <ul><li>In embedded mode (URL of the form jdbc:h2:~/test) if all 
-     * connections are opened within the same process and class loader. 
+     * <ul><li>In embedded mode (URL of the form jdbc:h2:~/test) if all
+     * connections are opened within the same process and class loader.
      * </li><li>In server and cluster mode (URL of the form
-     * jdbc:h2:tcp://localhost/test) using remote connections. 
+     * jdbc:h2:tcp://localhost/test) using remote connections.
      * </li></ul>
-     * The mixed mode is also supported. This mode requires to start a server 
+     * The mixed mode is also supported. This mode requires to start a server
      * in the same process where the database is open in embedded mode.
      */
     public static final int DATABASE_ALREADY_OPEN_1 = 90020;
@@ -982,7 +982,7 @@ public class ErrorCode {
      * netstat -ano
      * </pre>
      * The column PID is the process id as listed in the Task Manager.
-     * For Linux, use: 
+     * For Linux, use:
      * <pre>
      * netstat -npl
      * </pre>
@@ -1115,17 +1115,17 @@ public class ErrorCode {
      * this name and the same number of parameters.
      * Example of wrong usage:
      * <pre>
-     * CREATE ALIAS GET_LONG FOR 
+     * CREATE ALIAS GET_LONG FOR
      *      "java.lang.Long.getLong";
      * </pre>
      * Correct:
      * <pre>
-     * CREATE ALIAS GET_LONG FOR 
+     * CREATE ALIAS GET_LONG FOR
      *      "java.lang.Long.getLong(java.lang.String, java.lang.Long)";
      * </pre>
      */
     public static final int METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2 = 90073;
-    
+
     /**
      * The error with code <code>90074</code> is thrown when
      * trying to grant a role that has already been granted.
@@ -1596,7 +1596,7 @@ public class ErrorCode {
      * </pre>
      * Or, when starting the server from an application, use:
      * <pre>
-     * Server server = Server.createTcpServer(new String[] { 
+     * Server server = Server.createTcpServer(new String[] {
      *          "-tcpAllowOthers" });
      * server.start();
      * </pre>
@@ -1736,7 +1736,7 @@ public class ErrorCode {
      * The error with code <code>90130</code> is thrown when
      * an execute method of PreparedStatement was called with a SQL statement.
      * This is not allowed according to the JDBC specification. Instead, use
-     * an execute method of Statement. 
+     * an execute method of Statement.
      * Example of wrong usage:
      * <pre>
      * PreparedStatement prep = conn.prepareStatement("SELECT * FROM TEST");
@@ -1823,15 +1823,15 @@ public class ErrorCode {
      * </pre>
      */
     public static final int CAN_ONLY_ASSIGN_TO_VARIABLE_1 = 90137;
-    
+
     /**
      * The error with code <code>90138</code> is thrown when
-     * 
+     *
      * trying to open a persistent database using an incorrect database name.
      * The name of a persistent database contains the path and file name prefix
      * where the data is stored. The file name part of a database name must be
      * at least two characters.
-     * 
+     *
      * Example of wrong usage:
      * <pre>
      * DriverManager.getConnection("jdbc:h2:~/t");
@@ -1844,7 +1844,7 @@ public class ErrorCode {
      * </pre>
      */
     public static final int INVALID_DATABASE_NAME_1 = 90138;
-    
+
     /**
      * The error with code <code>90139</code> is thrown when
      * the specified public static Java method was not found in the class.
@@ -1856,7 +1856,7 @@ public class ErrorCode {
     public static final int PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1 = 90139;
 
     // next is 90140
-    
+
     private ErrorCode() {
         // utility class
     }

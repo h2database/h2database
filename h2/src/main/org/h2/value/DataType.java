@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -36,15 +36,15 @@ import org.h2.util.StringUtils;
  * and can convert between Java objects and Values.
  */
 public class DataType {
-    
+
     /**
-     * This constant is used for JDK 1.3 compatibility 
+     * This constant is used for JDK 1.3 compatibility
      * and equal to java.sql.Types.BOOLEAN
      */
     public static final int TYPE_BOOLEAN = 16;
 
     /**
-     * This constant is used for JDK 1.3 compatibility 
+     * This constant is used for JDK 1.3 compatibility
      * and equal to java.sql.Types.DATALINK
      */
     public static final int TYPE_DATALINK = 70;
@@ -52,22 +52,22 @@ public class DataType {
     private static final ObjectArray TYPES = new ObjectArray();
     private static final HashMap TYPES_BY_NAME = new HashMap();
     private static final DataType[] TYPES_BY_VALUE_TYPE = new DataType[Value.TYPE_COUNT];
-    
+
     /**
      * The value type of this data type.
      */
     public int type;
-    
+
     /**
      * The data type name.
      */
     public String name;
-    
+
     /**
      * The SQL type.
      */
     public int sqlType;
-    
+
     /**
      * The SQL type name.
      */
@@ -83,77 +83,77 @@ public class DataType {
      * The maximum supported precision.
      */
     public int maxPrecision;
-    
+
     /**
      * The lowest possible scale.
      */
     public int minScale;
-    
+
     /**
      * The highest possible scale.
      */
     public int maxScale;
-    
+
     /**
      * If this is a numeric type.
      */
     public boolean decimal;
-    
+
     /**
      * The prefix required for the SQL literal representation.
      */
     public String prefix;
-    
+
     /**
      * The suffix required for the SQL literal representation.
      */
     public String suffix;
-    
+
     /**
      * The list of parameters used in the column definition.
      */
     public String params;
-    
+
     /**
      * If this is an autoincrement type.
      */
     public boolean autoIncrement;
-    
+
     /**
      * If this data type is an autoincrement type.
      */
     public boolean caseSensitive;
-    
+
     /**
      * If the precision parameter is supported.
      */
     public boolean supportsPrecision;
-    
+
     /**
      * If the scale parameter is supported.
      */
     public boolean supportsScale;
-    
+
     /**
      * The default precision.
      */
     public long defaultPrecision;
-    
+
     /**
      * The default scale.
      */
     public int defaultScale;
-    
+
     /**
      * The default display size.
      */
     public int defaultDisplaySize;
-    
+
     /**
      * If this data type should not be listed in the database meta data.
      */
     public boolean hidden;
-    
+
     /**
      * The number of bytes required for an object.
      */
@@ -408,7 +408,7 @@ public class DataType {
 
     /**
      * Get the list of data types.
-     * 
+     *
      * @return the list
      */
     public static ObjectArray getTypes() {
@@ -417,7 +417,7 @@ public class DataType {
 
     /**
      * Read a value from the given result set.
-     * 
+     *
      * @param session the session
      * @param rs the result set
      * @param columnIndex the column index (1 based)
@@ -561,7 +561,7 @@ public class DataType {
 
     /**
      * Get the name of the Java class for the given value type.
-     * 
+     *
      * @param type the value type
      * @return the class name
      */
@@ -569,60 +569,60 @@ public class DataType {
         switch(type) {
         case Value.BOOLEAN:
             // "java.lang.Boolean";
-            return Boolean.class.getName(); 
+            return Boolean.class.getName();
         case Value.BYTE:
             // "java.lang.Byte";
-            return Byte.class.getName(); 
+            return Byte.class.getName();
         case Value.SHORT:
             // "java.lang.Short";
-            return Short.class.getName(); 
+            return Short.class.getName();
         case Value.INT:
             // "java.lang.Integer";
-            return Integer.class.getName(); 
+            return Integer.class.getName();
         case Value.LONG:
             // "java.lang.Long";
-            return Long.class.getName(); 
+            return Long.class.getName();
         case Value.DECIMAL:
             // "java.math.BigDecimal";
-            return BigDecimal.class.getName(); 
+            return BigDecimal.class.getName();
         case Value.TIME:
             // "java.sql.Time";
-            return Time.class.getName(); 
+            return Time.class.getName();
         case Value.DATE:
             // "java.sql.Date";
-            return Date.class.getName(); 
+            return Date.class.getName();
         case Value.TIMESTAMP:
             // "java.sql.Timestamp";
-            return Timestamp.class.getName(); 
+            return Timestamp.class.getName();
         case Value.BYTES:
         case Value.UUID:
             // "[B", not "byte[]";
-            return byte[].class.getName(); 
+            return byte[].class.getName();
         case Value.STRING:
         case Value.STRING_IGNORECASE:
         case Value.STRING_FIXED:
             // "java.lang.String";
-            return String.class.getName(); 
+            return String.class.getName();
         case Value.BLOB:
             // "java.io.InputStream";
-            return java.io.InputStream.class.getName(); 
+            return java.io.InputStream.class.getName();
         case Value.CLOB:
             // "java.io.Reader";
-            return java.io.Reader.class.getName(); 
+            return java.io.Reader.class.getName();
         case Value.DOUBLE:
             // "java.lang.Double";
-            return Double.class.getName(); 
+            return Double.class.getName();
         case Value.FLOAT:
             // "java.lang.Float";
-            return Float.class.getName(); 
+            return Float.class.getName();
         case Value.NULL:
             return null;
         case Value.JAVA_OBJECT:
             // "java.lang.Object";
-            return Object.class.getName(); 
+            return Object.class.getName();
         case Value.UNKNOWN:
             // anything
-            return Object.class.getName(); 
+            return Object.class.getName();
         case Value.ARRAY:
             return Array.class.getName();
         case Value.RESULT_SET:
@@ -634,7 +634,7 @@ public class DataType {
 
     /**
      * Get the data type object for the given value type.
-     * 
+     *
      * @param type the value type
      * @return the data type object
      */
@@ -648,7 +648,7 @@ public class DataType {
 
     /**
      * Convert a value type to a SQL type.
-     * 
+     *
      * @param type the value type
      * @return the SQL type
      */
@@ -658,7 +658,7 @@ public class DataType {
 
     /**
      * Convert a SQL type to a value type.
-     * 
+     *
      * @param sqlType the SQL type
      * @return the value type
      */
@@ -716,7 +716,7 @@ public class DataType {
 
     /**
      * Get the value type for the given Java class.
-     * 
+     *
      * @param x the Java class
      * @return the value type
      */
@@ -776,7 +776,7 @@ public class DataType {
 
     /**
      * Convert a Java object to a value.
-     * 
+     *
      * @param session the session
      * @param x the value
      * @param type the value type
@@ -852,7 +852,7 @@ public class DataType {
 
     /**
      * Get a data type object from a type name.
-     * 
+     *
      * @param s the type name
      * @return the data type object
      */
@@ -862,7 +862,7 @@ public class DataType {
 
     /**
      * Check if the given value type is a large object (BLOB or CLOB).
-     * 
+     *
      * @param type the value type
      * @return true if the value type is a lob type
      */
@@ -875,7 +875,7 @@ public class DataType {
 
     /**
      * Check if the given value type supports the add operation.
-     * 
+     *
      * @param type the value type
      * @return true if add is supported
      */
@@ -896,7 +896,7 @@ public class DataType {
 
     /**
      * Get the data type that will not overflow when calling 'add' 2 billion times.
-     * 
+     *
      * @param type the value type
      * @return the data type that supports adding
      */
@@ -919,7 +919,7 @@ public class DataType {
 
     /**
      * Get the default value in the form of a Java object for the given Java class.
-     * 
+     *
      * @param clazz the Java class
      * @return the default object
      */
@@ -947,7 +947,7 @@ public class DataType {
 
     /**
      * Convert a value to the specified class.
-     * 
+     *
      * @param session the session
      * @param conn the database connection
      * @param v the value

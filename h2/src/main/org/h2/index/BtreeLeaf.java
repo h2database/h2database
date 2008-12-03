@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -181,7 +181,7 @@ public class BtreeLeaf extends BtreePage {
         cursor.pop();
         nextUpper(cursor);
     }
-    
+
     void previous(BtreeCursor cursor, int i) throws SQLException {
         i--;
         if (i >= 0) {
@@ -206,7 +206,7 @@ public class BtreeLeaf extends BtreePage {
         SearchRow row = (SearchRow) pageData.get(0);
         cursor.setCurrentRow(row);
     }
-    
+
     void last(BtreeCursor cursor) throws SQLException {
         int last = pageData.size() - 1;
         if (last < 0) {
@@ -230,7 +230,7 @@ public class BtreeLeaf extends BtreePage {
             upper.page.next(cursor, upper.position);
         }
     }
-    
+
     private void previousUpper(BtreeCursor cursor) throws SQLException {
         BtreePosition upper = cursor.pop();
         if (upper == null) {
@@ -239,7 +239,7 @@ public class BtreeLeaf extends BtreePage {
             cursor.push(upper.page, upper.position);
             upper.page.previous(cursor, upper.position);
         }
-    }    
+    }
 
     public void prepareWrite() throws SQLException {
         if (getRealByteCount() >= DiskFile.BLOCK_SIZE * BLOCKS_PER_PAGE) {

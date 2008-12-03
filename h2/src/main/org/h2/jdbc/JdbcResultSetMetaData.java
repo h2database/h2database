@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -27,7 +27,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
     private final ResultInterface result;
     private final int columnCount;
 
-    JdbcResultSetMetaData(JdbcResultSet rs, JdbcPreparedStatement prep, ResultInterface result, 
+    JdbcResultSetMetaData(JdbcResultSet rs, JdbcPreparedStatement prep, ResultInterface result,
                 String catalog, Trace trace, int id) {
         setTrace(trace, TraceObject.RESULT_SET_META_DATA, id);
         this.catalog = catalog;
@@ -252,7 +252,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * table. Otherwise, it returns ResultSetMetaData.columnNoNulls if the
      * column is not nullable, and ResultSetMetaData.columnNullable if it is
      * nullable.
-     * 
+     *
      * @param column the column index (1,2,...)
      * @return ResultSetMetaData.column*
      * @throws SQLException if the result set is closed or invalid
@@ -447,7 +447,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
         throw Message.getUnsupportedException();
     }
 ## Java 1.6 end ##*/
-    
+
     /**
      * INTERNAL
      */

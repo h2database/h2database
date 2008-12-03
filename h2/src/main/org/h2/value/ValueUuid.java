@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -17,18 +17,18 @@ import org.h2.util.StringUtils;
  * Implementation of the UUID data type.
  */
 public class ValueUuid extends Value {
-    
+
     /**
      * The precision of this value in number of bytes.
      */
-    private static final int PRECISION = 16; 
-    
+    private static final int PRECISION = 16;
+
     /**
      * The display size of the textual representation of a UUID.
      * Example: cd38d882-7ada-4589-b5fb-7da0ca559d9a
      */
-    private static final int DISPLAY_SIZE = 36; 
-    
+    private static final int DISPLAY_SIZE = 36;
+
     private final long high, low;
 
     private ValueUuid(long high, long low) {
@@ -42,22 +42,22 @@ public class ValueUuid extends Value {
 
     /**
      * Create a new UUID using the pseudo random number generator.
-     * 
+     *
      * @return the new UUID
      */
     public static ValueUuid getNewRandom() {
         long high = RandomUtils.getSecureLong();
         long low = RandomUtils.getSecureLong();
         // version 4 (random)
-        high = (high & (~0xf000L)) | 0x4000L; 
+        high = (high & (~0xf000L)) | 0x4000L;
         // variant (Leach-Salz)
-        low = (low & 0x3fffffffffffffffL) | 0x8000000000000000L; 
+        low = (low & 0x3fffffffffffffffL) | 0x8000000000000000L;
         return new ValueUuid(high, low);
     }
 
     /**
      * Get or create a UUID for the given 32 bytes.
-     * 
+     *
      * @param binary the byte array (must be at least 32 bytes long)
      * @return the UUID
      */
@@ -72,7 +72,7 @@ public class ValueUuid extends Value {
 
     /**
      * Get or create a UUID for the given high and low order values.
-     * 
+     *
      * @param high the most significant bits
      * @param low the least significant bits
      * @return the UUID
@@ -83,7 +83,7 @@ public class ValueUuid extends Value {
 
     /**
      * Get or create a UUID for the given text representation.
-     * 
+     *
      * @param s the text representation of the UUID
      * @return the UUID
      */
@@ -175,7 +175,7 @@ public class ValueUuid extends Value {
 
     /**
      * Get the most significant 64 bits of this UUID.
-     * 
+     *
      * @return the high order bits
      */
     public long getHigh() {
@@ -184,7 +184,7 @@ public class ValueUuid extends Value {
 
     /**
      * Get the least significant 64 bits of this UUID.
-     * 
+     *
      * @return the low order bits
      */
     public long getLow() {

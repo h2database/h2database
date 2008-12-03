@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -51,7 +51,7 @@ public class SysProperties {
      * It is usually set by the system, and used to build absolute file names.
      */
     public static final String FILE_SEPARATOR = getStringSetting("file.separator", "/");
-    
+
     /**
      * System property <code>java.specification.version</code>.<br />
      * It is set by the system. Examples: 1.4, 1.5, 1.6.
@@ -117,7 +117,7 @@ public class SysProperties {
      * SSL_DH_anon_WITH_RC4_128_MD5 should be enabled.
      */
     public static final boolean ENABLE_ANONYMOUS_SSL = getBooleanSetting("h2.enableAnonymousSSL", true);
-    
+
     /**
      * System property <code>h2.bindAddress</code> (default: *).<br />
      * Comma separated list of class names or prefixes.
@@ -188,7 +188,7 @@ public class SysProperties {
      * The default value for the LOCK_MODE setting.
      */
     public static final int DEFAULT_LOCK_MODE = getIntSetting("h2.defaultLockMode", Constants.LOCK_MODE_READ_COMMITTED);
-    
+
     /**
      * System property <code>h2.delayWrongPasswordMin</code> (default: 250).<br />
      * The minimum delay in milliseconds before an exception is thrown for using
@@ -197,7 +197,7 @@ public class SysProperties {
      * logins will double the time until DELAY_WRONG_PASSWORD_MAX.
      */
     public static final int DELAY_WRONG_PASSWORD_MIN = getIntSetting("h2.delayWrongPasswordMin", 250);
-    
+
     /**
      * System property <code>h2.delayWrongPasswordMax</code> (default: 4000).<br />
      * The maximum delay in milliseconds before an exception is thrown for using
@@ -245,7 +245,7 @@ public class SysProperties {
      * In version 1.1, it is enabled by default.
      * </p>
      */
-    // TODO: when removing this property, also remove 
+    // TODO: when removing this property, also remove
     // DataHandler.allocateObjectId, createTempFile it
     public static final boolean LOB_FILES_IN_DIRECTORIES = getBooleanSetting("h2.lobFilesInDirectories", Constants.VERSION > 1.0);
 
@@ -344,7 +344,7 @@ public class SysProperties {
      * </p>
      */
     public static final boolean OLD_COMMAND_LINE_OPTIONS = getBooleanSetting("h2.oldCommandLineOptions", Constants.VERSION < 1.1);
-    
+
     /**
      * System property <code>h2.optimizeDropDependencies</code> (default:
      * true).<br />
@@ -427,7 +427,7 @@ public class SysProperties {
      * added so an index on A can be used.
      */
     public static final boolean OPTIMIZE_TWO_EQUALS = getBooleanSetting("h2.optimizeTwoEquals", true);
-    
+
     /**
      * System property <code>h2.overflowExceptions</code> (default: true).<br />
      * Throw an exception on integer overflows.
@@ -459,7 +459,7 @@ public class SysProperties {
      * transaction is easier.
      */
     public static final int RESERVE_MEMORY = getIntSetting("h2.reserveMemory", 512 * 1024);
-    
+
     /**
      * System property <code>h2.returnLobObjects</code>.<br />
      * When true, ResultSet.getObject for CLOB or BLOB will return a
@@ -507,12 +507,12 @@ public class SysProperties {
     public static final int SERVER_CACHED_OBJECTS = getIntSetting("h2.serverCachedObjects", 64);
 
     /**
-     * System property <code>h2.serverResultSetFetchSize</code> 
+     * System property <code>h2.serverResultSetFetchSize</code>
      * (default: 100).<br />
      * The default result set fetch size when using the server mode.
      */
     public static final int SERVER_RESULT_SET_FETCH_SIZE = getIntSetting("h2.serverResultSetFetchSize", 100);
-    
+
     /**
      * System property <code>h2.shareLinkedConnections</code>.<br />
      * Linked connections should be shared, that means connections to the same
@@ -526,13 +526,13 @@ public class SysProperties {
      * </p>
      */
     public static final boolean SHARE_LINKED_CONNECTIONS = getBooleanSetting("h2.shareLinkedConnections", Constants.VERSION > 1.0);
-    
+
     /**
      * System property <code>h2.socketConnectTimeout</code> (default: 2000).<br />
      * The timeout in milliseconds to connect to a server.
      */
     public static final int SOCKET_CONNECT_TIMEOUT = getIntSetting("h2.socketConnectTimeout", 2000);
-    
+
     /**
      * System property <code>h2.sortNullsHigh</code> (default: false).<br />
      * Invert the default sorting behavior for NULL values, such that NULL
@@ -571,7 +571,7 @@ public class SysProperties {
     private SysProperties() {
         // utility class
     }
-    
+
     private static boolean getBooleanSetting(String name, boolean defaultValue) {
         String s = getProperty(name);
         if (s != null) {
@@ -615,7 +615,7 @@ public class SysProperties {
         }
         return defaultValue;
     }
-    
+
     /**
      * INTERNAL
      */

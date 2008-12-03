@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -25,7 +25,7 @@ public class TestMvcc3 extends TestBase {
         testRollback();
         deleteDb("mvcc3");
     }
-    
+
     private void testCreateTableAsSelect() throws SQLException {
         if (!config.mvcc) {
             return;
@@ -40,14 +40,14 @@ public class TestMvcc3 extends TestBase {
         rs.next();
         assertEquals("Hello", rs.getString(1));
         c1.close();
-        c2.close();        
+        c2.close();
     }
-    
+
     private void testRollback() throws SQLException {
         if (!config.mvcc) {
             return;
         }
-        
+
         deleteDb("mvcc3");
         Connection conn = getConnection("mvcc3");
         Statement stat = conn.createStatement();
@@ -61,21 +61,21 @@ public class TestMvcc3 extends TestBase {
         }
         conn.setAutoCommit(false);
         conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-        
+
         Connection conn2 = getConnection("mvcc3");
         conn2.setAutoCommit(false);
         conn2.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 
         conn.createStatement().executeUpdate("UPDATE TEST SET VAL='Updated' WHERE ID = 1");
         conn.rollback();
-        
+
         ResultSet rs = conn2.createStatement().executeQuery("SELECT * FROM TEST");
         assertTrue(rs.next());
         assertEquals("Value", rs.getString(2));
         assertTrue(rs.next());
         assertEquals("Value", rs.getString(2));
         assertFalse(rs.next());
-        
+
         conn.createStatement().executeUpdate("UPDATE TEST SET VAL='Updated' WHERE ID = 1");
         conn.commit();
         rs = conn2.createStatement().executeQuery("SELECT * FROM TEST ORDER BY ID");
@@ -90,7 +90,7 @@ public class TestMvcc3 extends TestBase {
         conn.close();
         conn2.close();
     }
-    
+
     private void testDisableAutoCommit() throws SQLException {
         if (!config.mvcc) {
             return;
@@ -109,26 +109,26 @@ public class TestMvcc3 extends TestBase {
         assertEquals(1, rs.getInt(1));
         conn.close();
     }
-    
+
     private void testSequence() throws SQLException {
         if (config.memory) {
             return;
         }
-        
+
         deleteDb("mvcc3");
         Connection conn;
         ResultSet rs;
-        
+
         conn = getConnection("mvcc3");
         conn.createStatement().execute("create sequence abc");
         conn.close();
-        
+
         conn = getConnection("mvcc3");
         rs = conn.createStatement().executeQuery("call abc.nextval");
         rs.next();
         assertEquals(1, rs.getInt(1));
         conn.close();
-        
+
         conn = getConnection("mvcc3");
         rs = conn.createStatement().executeQuery("call abc.currval");
         rs.next();

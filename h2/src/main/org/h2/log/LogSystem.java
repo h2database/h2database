@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -50,7 +50,7 @@ public class LogSystem {
     private HashMap sessions = new HashMap();
     private DataPage rowBuff;
     private ObjectArray undo;
-    // TODO log file / deleteOldLogFilesAutomatically: 
+    // TODO log file / deleteOldLogFilesAutomatically:
     // make this a setting, so they can be backed up
     private boolean deleteOldLogFilesAutomatically = true;
     private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE;
@@ -65,7 +65,7 @@ public class LogSystem {
     /**
      * Create new transaction log object. This will not open or create files
      * yet.
-     * 
+     *
      * @param database the database
      * @param fileNamePrefix the name of the database file
      * @param readOnly if the log should be opened in read-only mode
@@ -85,7 +85,7 @@ public class LogSystem {
 
     /**
      * Set the maximum log file size in megabytes.
-     * 
+     *
      * @param maxSize the new maximum log file size
      */
     public void setMaxLogSize(long maxSize) {
@@ -94,7 +94,7 @@ public class LogSystem {
 
     /**
      * Get the maximum log file size.
-     * 
+     *
      * @return the maximum size
      */
     public long getMaxLogSize() {
@@ -103,7 +103,7 @@ public class LogSystem {
 
     /**
      * Check if there are any in-doubt transactions.
-     * 
+     *
      * @return true if there are
      */
     public boolean containsInDoubtTransactions() {
@@ -122,7 +122,7 @@ public class LogSystem {
             file.flush();
         }
         if (containsInDoubtTransactions()) {
-            // if there are any in-doubt transactions 
+            // if there are any in-doubt transactions
             // (even if they are resolved), can't update or delete the log files
             return;
         }
@@ -200,7 +200,7 @@ public class LogSystem {
             for (int i = 0; i < activeLogs.size(); i++) {
                 LogFile l = (LogFile) activeLogs.get(i);
                 try {
-                    // if there are any in-doubt transactions 
+                    // if there are any in-doubt transactions
                     // (even if they are resolved), can't delete the log files
                     if (l.getFirstUncommittedPos() == LOG_WRITTEN && !containsInDoubtTransactions()) {
                         closeOldFile(l);
@@ -223,7 +223,7 @@ public class LogSystem {
 
     /**
      * Add an undo log entry. This method is called when opening the database.
-     * 
+     *
      * @param log the log file
      * @param logRecordId the log record id
      * @param sessionId the session id
@@ -301,7 +301,7 @@ public class LogSystem {
                 l = LogFile.openIfLogFile(this, fileNamePrefix, s);
             } catch (SQLException e) {
                 database.getTrace(Trace.LOG).debug("Error opening log file, header corrupt: "+s, e);
-                // this can happen if the system crashes just 
+                // this can happen if the system crashes just
                 // after creating a new file (before writing the header)
                 // rename it, so that it doesn't get in the way the next time
                 FileUtils.delete(s + ".corrupt");
@@ -326,7 +326,7 @@ public class LogSystem {
 
     /**
      * Get the storage object.
-     * 
+     *
      * @param id the storage id
      * @return the storage
      */
@@ -349,7 +349,7 @@ public class LogSystem {
 
     /**
      * Check if the session contains uncommitted log entries at the given position.
-     * 
+     *
      * @param sessionId the session id
      * @param logId the log file id
      * @param pos the position in the log file
@@ -366,7 +366,7 @@ public class LogSystem {
 
     /**
      * Set the last commit record for a session.
-     * 
+     *
      * @param sessionId the session id
      * @param logId the log file id
      * @param pos the position in the log file
@@ -381,7 +381,7 @@ public class LogSystem {
     /**
      * Get the session state for this session. A new object is created if there
      * is no session state yet.
-     * 
+     *
      * @param sessionId the session id
      * @return the session state object
      */
@@ -399,7 +399,7 @@ public class LogSystem {
     /**
      * This method is called when a 'prepare commit' log entry is read when
      * opening the database.
-     * 
+     *
      * @param log the log file
      * @param sessionId the session id
      * @param pos the position in the log file
@@ -408,7 +408,7 @@ public class LogSystem {
      */
     void setPreparedCommitForSession(LogFile log, int sessionId, int pos, String transaction, int blocks) {
         SessionState state = getOrAddSessionState(sessionId);
-        // this is potentially a commit, so 
+        // this is potentially a commit, so
         // don't roll back the action before it (currently)
         setLastCommitForSession(sessionId, log.getId(), pos);
         state.inDoubtTransaction = new InDoubtTransaction(log, sessionId, pos, transaction, blocks);
@@ -416,7 +416,7 @@ public class LogSystem {
 
     /**
      * Get the list of in-doubt transactions.
-     * 
+     *
      * @return the list
      */
     public ObjectArray getInDoubtTransactions() {
@@ -427,7 +427,7 @@ public class LogSystem {
      * Remove a session from the session state map. This is done when opening
      * the database, when all records of this session have been applied to the
      * files.
-     * 
+     *
      * @param sessionId the session id
      */
     void removeSession(int sessionId) {
@@ -436,7 +436,7 @@ public class LogSystem {
 
     /**
      * Prepare a transaction.
-     * 
+     *
      * @param session the session
      * @param transaction the name of the transaction
      */
@@ -454,7 +454,7 @@ public class LogSystem {
 
     /**
      * Commit the current transaction of the given session.
-     * 
+     *
      * @param session the session
      */
     public void commit(Session session) throws SQLException {
@@ -487,7 +487,7 @@ public class LogSystem {
 
     /**
      * Add a truncate entry.
-     * 
+     *
      * @param session the session
      * @param file the disk file
      * @param storageId the storage id
@@ -516,7 +516,7 @@ public class LogSystem {
 
     /**
      * Add an log entry to the last transaction log file.
-     * 
+     *
      * @param session the session
      * @param file the file
      * @param record the record to log
@@ -567,7 +567,7 @@ public class LogSystem {
 
     /**
      * Get all active log files.
-     * 
+     *
      * @return the list of log files
      */
     public ObjectArray getActiveLogFiles() {
@@ -611,7 +611,7 @@ public class LogSystem {
 
     /**
      * Enable or disable-flush-on-each-commit.
-     * 
+     *
      * @param b the new value
      */
     public void setFlushOnEachCommit(boolean b) {
@@ -620,7 +620,7 @@ public class LogSystem {
 
     /**
      * Check if flush-on-each-commit is enabled.
-     * 
+     *
      * @return true if it is
      */
     boolean getFlushOnEachCommit() {
@@ -644,16 +644,16 @@ public class LogSystem {
 
     /**
      * Enable or disable the transaction log
-     * 
+     *
      * @param disabled true if the log should be switched off
      */
     public void setDisabled(boolean disabled) {
         this.disabled = disabled;
     }
-    
+
     /**
      * Set the read only flag for this log system.
-     * 
+     *
      * @param readOnly the new value
      */
     void setReadOnly(boolean readOnly) {
@@ -663,7 +663,7 @@ public class LogSystem {
     /**
      * Add a redo log entry to the file. This method is called when re-applying
      * the log entries (when opening a database).
-     * 
+     *
      * @param storage the target storage
      * @param recordId the record id
      * @param blockCount the number of blocks
@@ -683,7 +683,7 @@ public class LogSystem {
 
     /**
      * Increment or decrement the flag to keep (not delete) old log files.
-     * 
+     *
      * @param incrementDecrement (1 to increment, -1 to decrement)
      */
     public synchronized void updateKeepFiles(int incrementDecrement) {

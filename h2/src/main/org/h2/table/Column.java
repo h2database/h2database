@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -41,17 +41,17 @@ import org.h2.value.ValueUuid;
  * This class represents a column in a table.
  */
 public class Column {
-    
+
     /**
      * This column is not nullable.
      */
     public static final int NOT_NULLABLE = ResultSetMetaData.columnNoNulls;
-    
+
     /**
      * This column is nullable.
      */
     public static final int NULLABLE = ResultSetMetaData.columnNullable;
-    
+
     /**
      * It is not know whether this column is nullable.
      */
@@ -84,7 +84,7 @@ public class Column {
     public Column(String name, int type) {
         this(name, type, -1, -1, -1);
     }
-    
+
     public Column(String name, int type, long precision, int scale, int displaySize) {
         this.name = name;
         this.type = type;
@@ -111,7 +111,7 @@ public class Column {
         }
         return table == other.table && name.equals(other.name);
     }
-    
+
     public int hashCode() {
         if (table == null || name == null) {
             return 0;
@@ -143,7 +143,7 @@ public class Column {
 
     /**
      * Compute the value of this computed column.
-     * 
+     *
      * @param session the session
      * @param row the row
      * @return the value
@@ -159,7 +159,7 @@ public class Column {
     /**
      * Set the default value in the form of a computed expression of other
      * columns.
-     * 
+     *
      * @param expression the computed expression
      */
     public void setComputedExpression(Expression expression) {
@@ -169,7 +169,7 @@ public class Column {
 
     /**
      * Set the table and column id.
-     * 
+     *
      * @param table the table
      * @param columnId the column index
      */
@@ -184,7 +184,7 @@ public class Column {
 
     /**
      * Set the default expression.
-     * 
+     *
      * @param session the session
      * @param defaultExpression the default expression
      */
@@ -235,7 +235,7 @@ public class Column {
      * Validate the value, convert it if required, and update the sequence value
      * if required. If the value is null, the default value (NULL if no default
      * is set) is returned. Check constraints are validated as well.
-     * 
+     *
      * @param session the session
      * @param value the value or null
      */
@@ -326,7 +326,7 @@ public class Column {
     /**
      * Convert the auto-increment flag to a sequence that is linked with this
      * table.
-     * 
+     *
      * @param session the session
      * @param schema the schema where the sequence should be generated
      * @param id the object id
@@ -365,7 +365,7 @@ public class Column {
 
     /**
      * Prepare all expressions of this column.
-     * 
+     *
      * @param session the session
      */
     public void prepareExpression(Session session) throws SQLException {
@@ -466,7 +466,7 @@ public class Column {
 
     /**
      * Set the autoincrement flag and related properties of this column.
-     * 
+     *
      * @param autoInc the new autoincrement flag
      * @param start the sequence start value
      * @param increment the sequence increment
@@ -488,7 +488,7 @@ public class Column {
     /**
      * Rename the column. This method will only set the column name to the new
      * value.
-     * 
+     *
      * @param newName the new column name
      */
     public void rename(String newName) {
@@ -506,7 +506,7 @@ public class Column {
     /**
      * Get the selectivity of the column. Selectivity 100 means values are
      * unique, 10 means every distinct value appears 10 times on average.
-     * 
+     *
      * @return the selectivity
      */
     public int getSelectivity() {
@@ -526,7 +526,7 @@ public class Column {
     /**
      * Add a check constraint expression to this column. An existing check
      * constraint constraint is added using AND.
-     * 
+     *
      * @param session the session
      * @param expr the (additional) constraint
      */
@@ -556,7 +556,7 @@ public class Column {
 
     /**
      * Get the check constraint expression for this column if set.
-     * 
+     *
      * @param session the session
      * @param asColumnName the column name to use
      * @return the constraint expression
@@ -591,7 +591,7 @@ public class Column {
 
     /**
      * Get the check constraint SQL snippet.
-     * 
+     *
      * @param session the session
      * @param asColumnName the column name to use
      * @return the SQL snippet
@@ -616,7 +616,7 @@ public class Column {
     /**
      * Visit the default expression, the check constraint, and the sequence (if
      * any).
-     * 
+     *
      * @param visitor the visitor
      * @return true if every visited expression returned true, or if there are
      *         no expressions

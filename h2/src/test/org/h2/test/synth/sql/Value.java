@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -33,7 +33,7 @@ public class Value {
 
     /**
      * Convert the value to a SQL string.
-     * 
+     *
      * @return the SQL string
      */
     String getSQL() {
@@ -134,7 +134,7 @@ public class Value {
 
     /**
      * Read a value from a result set.
-     * 
+     *
      * @param config the configuration
      * @param rs the result set
      * @param index the column index
@@ -199,7 +199,7 @@ public class Value {
 
     /**
      * Generate a random value.
-     * 
+     *
      * @param config the configuration
      * @param type the value type
      * @param precision the precision
@@ -289,7 +289,7 @@ public class Value {
 //    private int compareTo(Object o) {
 //        Value v = (Value) o;
 //        if (type != v.type) {
-//            throw new Error("compare " + type + 
+//            throw new Error("compare " + type +
 //                    " " + v.type + " " + data + " " + v.data);
 //        }
 //        if (data == null) {

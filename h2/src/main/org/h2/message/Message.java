@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -68,7 +68,7 @@ public class Message {
 
     /**
      * Gets the SQL exception object for a specific error code.
-     * 
+     *
      * @param errorCode the error code
      * @param p1 the first parameter of the message
      * @return the SQLException object
@@ -91,7 +91,7 @@ public class Message {
 
     /**
      * Gets the SQL exception object for a specific error code.
-     * 
+     *
      * @param errorCode the error code
      * @param params the list of parameters of the message
      * @param cause the cause of the exception
@@ -105,7 +105,7 @@ public class Message {
 
     /**
      * Gets the SQL exception object for a specific error code.
-     * 
+     *
      * @param errorCode the error code
      * @param params the list of parameters of the message
      * @return the SQLException object
@@ -116,7 +116,7 @@ public class Message {
 
     /**
      * Constructs a syntax error SQL exception.
-     * 
+     *
      * @param sql the SQL statement
      * @param index the position of the error in the SQL statement
      * @return the SQLException object
@@ -128,7 +128,7 @@ public class Message {
 
     /**
      * Constructs a syntax error SQL exception.
-     * 
+     *
      * @param sql the SQL statement
      * @param index the position of the error in the SQL statement
      * @param expected the expected keyword at the given position
@@ -141,7 +141,7 @@ public class Message {
 
     /**
      * Gets the SQL exception object for a specific error code.
-     * 
+     *
      * @param errorCode the error code
      * @return the SQLException object
      */
@@ -151,7 +151,7 @@ public class Message {
 
     /**
      * Gets a SQL exception meaning this feature is not supported.
-     * 
+     *
      * @return the SQLException object
      */
     public static JdbcSQLException getUnsupportedException() {
@@ -160,7 +160,7 @@ public class Message {
 
     /**
      * Gets a SQL exception meaning this value is invalid.
-     * 
+     *
      * @param value the value passed
      * @param param the name of the parameter
      * @return the SQLException object
@@ -171,7 +171,7 @@ public class Message {
 
     /**
      * Gets an internal error.
-     * 
+     *
      * @param s the message
      * @return the RuntimeException object
      */
@@ -183,7 +183,7 @@ public class Message {
 
     /**
      * Gets an internal error.
-     * 
+     *
      * @param s the message
      * @param e the root cause
      * @return the error object
@@ -199,7 +199,7 @@ public class Message {
 
     /**
      * Attach a SQL statement to the exception if this is not already done.
-     * 
+     *
      * @param e the original SQL exception
      * @param sql the SQL statement
      * @return the error object
@@ -217,7 +217,7 @@ public class Message {
 
     /**
      * Convert an exception to a SQL exception using the default mapping.
-     * 
+     *
      * @param e the root cause
      * @param sql the SQL statement or null if it is not known
      * @return the SQL exception object
@@ -232,7 +232,7 @@ public class Message {
 
     /**
      * Convert an exception to a SQL exception using the default mapping.
-     * 
+     *
      * @param e the root cause
      * @return the SQL exception object
      */
@@ -259,7 +259,7 @@ public class Message {
 
     /**
      * Convert an IO exception to a SQL exception.
-     * 
+     *
      * @param e the root cause
      * @param message the message
      * @return the SQL exception object
@@ -273,7 +273,7 @@ public class Message {
 
     /**
      * Gets an internal error.
-     * 
+     *
      * @return the RuntimeException object
      */
     public static RuntimeException getInternalError() {
@@ -282,7 +282,7 @@ public class Message {
 
     /**
      * Convert an exception to an internal runtime exception.
-     * 
+     *
      * @param e the root cause
      * @return the error object
      */
@@ -292,7 +292,7 @@ public class Message {
 
     /**
      * Convert an exception to an IO exception.
-     * 
+     *
      * @param e the root cause
      * @return the IO exception
      */

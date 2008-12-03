@@ -53,7 +53,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
-</li><li>Option for Java functions: [DETERMINISTIC] FOR ... 
+</li><li>Option for Java functions: [DETERMINISTIC] FOR ...
 </li><li>Improved fulltext search (supports LOBs).
 </li><li>Support mixed clustering mode (one embedded, the other server mode)
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
@@ -116,7 +116,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>The HELP information schema can be directly exposed in the Console
 </li><li>Maybe use the 0x1234 notation for binary fields, see MS SQL Server
 </li><li>Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html, http://philip.greenspun.com/sql/trees.html
-</li><li>SQL Server 2005, Oracle: Support COUNT(*) OVER(). See http://www.orafusion.com/art_anlytc.htm 
+</li><li>SQL Server 2005, Oracle: Support COUNT(*) OVER(). See http://www.orafusion.com/art_anlytc.htm
 </li><li>RANK() and DENSE_RANK(), Partition using OVER()
 </li><li>SQL 2003 (http://www.wiscorp.com/sql_2003_standard.zip)
 </li><li>http://www.jpackage.org
@@ -335,7 +335,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support very large deletes and updates.
 </li><li>Doclet (javadocs): constructors are not listed.
 </li><li>Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup).
-</li><li>Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object); 
+</li><li>Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object);
 </li><li>MVCC should not be memory bound (uncommitted data is kept in memory in the delta index; maybe using a regular btree index solves the problem).
 </li><li>Support CREATE TEMPORARY LINKED TABLE.
 </li><li>MySQL compatibility: SELECT @variable := x FROM SYSTEM_RANGE(1, 50);
@@ -343,15 +343,15 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support flashback queries as in Oracle.
 </li><li>Import / Export of fixed with text files.
 </li><li>Support for OUT parameters in user-defined procedures.
-</li><li>Support getGeneratedKeys to return multiple rows when used with batch updates. 
-    This is supported by MySQL, but not Derby. Both PostgreSQL and HSQLDB don't support getGeneratedKeys. 
-    Also support it when using INSERT ... SELECT. 
+</li><li>Support getGeneratedKeys to return multiple rows when used with batch updates.
+    This is supported by MySQL, but not Derby. Both PostgreSQL and HSQLDB don't support getGeneratedKeys.
+    Also support it when using INSERT ... SELECT.
 </li><li>HSQLDB compatibility: automatic data type for SUM if value is the value is too big (by default use the same type as the data).
 </li><li>Improve the optimizer to select the right index for special cases: where id between 2 and 4 and booleanColumn
 </li><li>Enable warning for 'Local variable declaration hides another field or variable'.
 </li><li>Linked tables: make hidden columns available (Oracle: rowid and ora_rowscn columns).
 </li><li>Support merge join.
-</li><li>H2 Console: in-place autocomplete. 
+</li><li>H2 Console: in-place autocomplete.
 </li><li>Oracle: support DECODE method (convert to CASE WHEN).
 </li><li>Support large databases: split LOB (BLOB, CLOB) to multiple directories / disks (similar to tablespaces).
 </li><li>Support to assign a primary key index a user defined name.

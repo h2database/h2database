@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -25,22 +25,22 @@ public class TestSynth extends TestBase {
      * A H2 database connection.
      */
     static final int H2 = 0;
-    
+
     /**
      * An in-memory H2 database connection.
      */
     static final int H2_MEM = 1;
-    
+
     /**
      * An HSQLDB database connection.
      */
     static final int HSQLDB = 2;
-    
+
     /**
      * A MySQL database connection.
      */
     static final int MYSQL = 3;
-    
+
     /**
      * A PostgreSQL database connection.
      */
@@ -57,7 +57,7 @@ public class TestSynth extends TestBase {
 
     /**
      * Check whether this database is of the specified type.
-     * 
+     *
      * @param isType the database type
      * @return true if it is
      */
@@ -67,7 +67,7 @@ public class TestSynth extends TestBase {
 
     /**
      * Get the random number generator.
-     * 
+     *
      * @return the random number generator
      */
     RandomGen random() {
@@ -76,7 +76,7 @@ public class TestSynth extends TestBase {
 
     /**
      * Get a random identifier.
-     * 
+     *
      * @return the random identifier
      */
     String randomIdentifier() {
@@ -234,7 +234,7 @@ public class TestSynth extends TestBase {
 
     /**
      * Get a random table.
-     * 
+     *
      * @return the table
      */
     Table randomTable() {
@@ -243,7 +243,7 @@ public class TestSynth extends TestBase {
 
     /**
      * Print this message if the log is enabled.
-     * 
+     *
      * @param id the id
      * @param s the message
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -47,33 +47,33 @@ public class AlterTableAlterColumn extends SchemaCommand {
      * The type of a ALTER TABLE ALTER COLUMN SET NOT NULL statement.
      */
     public static final int NOT_NULL = 0;
-    
+
     /**
      * The type of a ALTER TABLE ALTER COLUMN SET NULL statement.
      */
     public static final int NULL = 1;
-    
+
     /**
      * The type of a ALTER TABLE ALTER COLUMN SET DEFAULT statement.
      */
     public static final int DEFAULT = 2;
-    
+
     /**
      * The type of a ALTER TABLE ALTER COLUMN statement that changes the column
      * data type.
      */
     public static final int CHANGE_TYPE = 3;
-    
+
     /**
      * The type of a ALTER TABLE ADD statement.
      */
     public static final int ADD = 4;
-    
+
     /**
      * The type of a ALTER TABLE DROP COLUMN statement.
      */
     public static final int DROP = 5;
-    
+
     /**
      * The type of a ALTER TABLE ALTER COLUMN SELECTIVITY statement.
      */

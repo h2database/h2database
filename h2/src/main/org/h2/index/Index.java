@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -101,7 +101,7 @@ public interface Index extends SchemaObject {
     /**
      * Check if the index can directly look up the lowest or highest value of a
      * column.
-     * 
+     *
      * @return true if it can
      */
     boolean canGetFirstOrLast();
@@ -116,7 +116,7 @@ public interface Index extends SchemaObject {
     /**
      * Find a row or a list of rows that is larger and create a cursor to
      * iterate over the result.
-     * 
+     *
      * @param session the session
      * @param higherThan the lower limit (excluding)
      * @param last the last row, or null for no limit
@@ -127,7 +127,7 @@ public interface Index extends SchemaObject {
 
     /**
      * Find the lowest or highest value of a column.
-     * 
+     *
      * @param session the session
      * @param first true if the first (lowest for ascending indexes) or last
      *            value should be returned
@@ -150,7 +150,7 @@ public interface Index extends SchemaObject {
      * @return the row count
      */
     long getRowCount(Session session);
-    
+
     /**
      * Get the approximated row count for this table.
      *
@@ -169,7 +169,7 @@ public interface Index extends SchemaObject {
     /**
      * Estimate the cost required to search one row, and then iterate over the
      * given number of rows.
-     * 
+     *
      * @param masks the search mask
      * @param rowCount the row count
      * @return the estimated cost
@@ -189,7 +189,7 @@ public interface Index extends SchemaObject {
      * Check if one of the columns is NULL and multiple rows with NULL are
      * allowed using the current compatibility mode for unique indexes. Note:
      * NULL behavior is complicated in SQL.
-     * 
+     *
      * @param newRow
      * @return true if one of the columns is null and multiple nulls in unique
      *         indexes are allowed
@@ -251,7 +251,7 @@ public interface Index extends SchemaObject {
     /**
      * Commit the operation for a row. This is only important for multi-version
      * indexes.
-     * 
+     *
      * @param operation the operation type
      * @param row the row
      */

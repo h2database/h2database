@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -35,8 +35,8 @@ public class TestKillRestart extends TestBase {
         //        "killRestart;CACHE_SIZE=2048;WRITE_DELAY=0;STORAGE=TEXT", true);
         String user = getUser(), password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);
-        String[] procDef = new String[] { "java", selfDestruct, 
-                "-cp", "bin" + File.pathSeparator + ".", 
+        String[] procDef = new String[] { "java", selfDestruct,
+                "-cp", "bin" + File.pathSeparator + ".",
                 getClass().getName(), "-url", url, "-user", user,
                 "-password", password };
 
@@ -70,7 +70,7 @@ public class TestKillRestart extends TestBase {
     /**
      * This method is called when executing this application from the command
      * line.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String[] args) throws SQLException {

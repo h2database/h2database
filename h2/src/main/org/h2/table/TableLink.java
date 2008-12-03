@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -37,7 +37,7 @@ import org.h2.value.DataType;
  * The table may be stored in a different database.
  */
 public class TableLink extends Table {
-    
+
     private static final long ROW_COUNT_APPROXIMATION = 100000;
 
     private String driver, url, user, password, originalSchema, originalTable, qualifiedTableName;
@@ -49,7 +49,7 @@ public class TableLink extends Table {
     private SQLException connectException;
     private boolean storesLowerCase;
     private boolean storesMixedCase;
-    private boolean supportsMixedCaseIdentifiers;        
+    private boolean supportsMixedCaseIdentifiers;
     private boolean globalTemporary;
     private boolean readOnly;
 
@@ -89,12 +89,12 @@ public class TableLink extends Table {
             }
         }
     }
-    
+
     private void readMetaData() throws SQLException {
         DatabaseMetaData meta = conn.getConnection().getMetaData();
         storesLowerCase = meta.storesLowerCaseIdentifiers();
         storesMixedCase = meta.storesMixedCaseIdentifiers();
-        supportsMixedCaseIdentifiers = meta.supportsMixedCaseIdentifiers();        
+        supportsMixedCaseIdentifiers = meta.supportsMixedCaseIdentifiers();
         ResultSet rs = meta.getTables(null, originalSchema, originalTable, null);
         if (rs.next() && rs.next()) {
             throw Message.getSQLException(ErrorCode.SCHEMA_NAME_MUST_MATCH, originalTable);
@@ -115,7 +115,7 @@ public class TableLink extends Table {
                 schema = thisSchema;
             }
             if (!StringUtils.equals(catalog, thisCatalog) || !StringUtils.equals(schema, thisSchema)) {
-                // if the table exists in multiple schemas or tables, 
+                // if the table exists in multiple schemas or tables,
                 // use the alternative solution
                 columnMap.clear();
                 columnList.clear();
@@ -217,8 +217,8 @@ public class TableLink extends Table {
             while (rs.next()) {
                 if (rs.getShort("TYPE") == DatabaseMetaData.tableIndexStatistic) {
                     // ignore index statistics
-                    continue; 
-                }                
+                    continue;
+                }
                 String newIndex = rs.getString("INDEX_NAME");
                 if (pkName.equals(newIndex)) {
                     continue;
@@ -244,13 +244,13 @@ public class TableLink extends Table {
             addIndex(list, indexType);
         }
     }
-    
+
     private String convertColumnName(String columnName) {
         if ((storesMixedCase || storesLowerCase) && columnName.equals(StringUtils.toLowerEnglish(columnName))) {
             columnName = StringUtils.toUpperEnglish(columnName);
         } else if (storesMixedCase && !supportsMixedCaseIdentifiers) {
             // TeraData
-            columnName = StringUtils.toUpperEnglish(columnName);            
+            columnName = StringUtils.toUpperEnglish(columnName);
         }
         return columnName;
     }
@@ -317,7 +317,7 @@ public class TableLink extends Table {
     public Index getScanIndex(Session session) {
         return linkedIndex;
     }
-    
+
     private void checkReadOnly() throws SQLException {
         if (readOnly) {
             throw Message.getSQLException(ErrorCode.DATABASE_IS_READ_ONLY);
@@ -360,7 +360,7 @@ public class TableLink extends Table {
     /**
      * Get a prepared statement object for the given statement. Prepared
      * statements are kept in a hash map to avoid re-creating them.
-     * 
+     *
      * @param sql the SQL statement.
      * @return the prepared statement
      */
@@ -417,7 +417,7 @@ public class TableLink extends Table {
         prepared = null;
         invalidate();
     }
-    
+
     public boolean isOracle() {
         return url.startsWith("jdbc:oracle:");
     }

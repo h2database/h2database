@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -42,17 +42,17 @@ public class SelectUnion extends Query {
      * The type of a UNION ALL statement.
      */
     public static final int UNION_ALL = 1;
-    
+
     /**
      * The type of an EXCEPT statement.
      */
     public static final int EXCEPT = 2;
-    
+
     /**
      * The type of an INTERSECT statement.
      */
     public static final int INTERSECT = 3;
-    
+
     private int unionType;
     private Query left, right;
     private ObjectArray expressions;
@@ -235,7 +235,7 @@ public class SelectUnion extends Query {
             orderList = null;
         }
     }
-    
+
     public double getCost() {
         return left.getCost() + right.getCost();
     }

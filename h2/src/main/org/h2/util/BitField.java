@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -18,7 +18,7 @@ public class BitField {
 
     /**
      * Get the index of the last bit that is set.
-     * 
+     *
      * @return the index of the last enabled bit
      */
     public int getLastSetBit() {
@@ -34,7 +34,7 @@ public class BitField {
 
     /**
      * Get the index of the next bit that is set.
-     * 
+     *
      * @param fromIndex where to start searching
      * @return the index of the next enabled bit
      */
@@ -51,14 +51,14 @@ public class BitField {
                 if (get(j)) {
                     return j;
                 }
-            }            
+            }
         }
         return -1;
     }
 
     /**
      * Get the index of the next bit that is not set.
-     * 
+     *
      * @param fromIndex where to start searching
      * @return the index of the next disabled bit
      */
@@ -81,7 +81,7 @@ public class BitField {
 
     /**
      * Get the bit mask of the bits at the given index.
-     * 
+     *
      * @param i the index (must be a multiple of 64)
      * @return the bit mask as a long
      */
@@ -95,7 +95,7 @@ public class BitField {
 
     /**
      * Get the bit at the given index.
-     * 
+     *
      * @param i the index
      * @return true if the bit is enabled
      */
@@ -106,11 +106,11 @@ public class BitField {
         }
         return (data[addr] & getBitMask(i)) != 0;
     }
-    
+
     /**
      * Get the next 8 bits at the given index.
      * The index must be a multiple of 8.
-     * 
+     *
      * @param i the index
      * @return the next 8 bits
      */
@@ -121,11 +121,11 @@ public class BitField {
         }
         return (int) (data[addr] >>> (i & (7 << 3)) & 255);
     }
-    
+
     /**
      * Combine the next 8 bits at the given index with OR.
      * The index must be a multiple of 8.
-     * 
+     *
      * @param i the index
      * @param x the next 8 bits (0 - 255)
      */
@@ -137,7 +137,7 @@ public class BitField {
 
     /**
      * Set bit at the given index to 'true'.
-     * 
+     *
      * @param i the index
      */
     public void set(int i) {
@@ -148,7 +148,7 @@ public class BitField {
 
     /**
      * Set bit at the given index to 'false'.
-     * 
+     *
      * @param i the index
      */
     public void clear(int i) {
@@ -172,7 +172,7 @@ public class BitField {
             expandCapacity(size);
         }
     }
-    
+
     private void expandCapacity(int size) {
         while (size >= data.length) {
             int newSize = data.length == 0 ? 1 : data.length * 2;
@@ -184,7 +184,7 @@ public class BitField {
 
     /**
      * Enable or disable a number of bits.
-     * 
+     *
      * @param start the index of the first bit to enable or disable
      * @param len the number of bits to enable or disable
      */

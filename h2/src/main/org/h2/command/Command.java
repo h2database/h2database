@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -46,7 +46,7 @@ public abstract class Command implements CommandInterface {
     private volatile boolean cancel;
 
     private final String sql;
-    
+
     public Command(Parser parser, String sql) {
         this.session = parser.getSession();
         this.sql = sql;
@@ -91,7 +91,7 @@ public abstract class Command implements CommandInterface {
 
     /**
      * Execute an updating statement, if this is possible.
-     * 
+     *
      * @return the update count
      * @throws SQLException if the command is not an updating statement
      */
@@ -101,7 +101,7 @@ public abstract class Command implements CommandInterface {
 
     /**
      * Execute a query statement, if this is possible.
-     * 
+     *
      * @param maxrows the maximum number of rows returned
      * @return the local result set
      * @throws SQLException if the command is not a query
@@ -125,7 +125,7 @@ public abstract class Command implements CommandInterface {
     /**
      * Execute a query and return a local result set.
      * This method prepares everything and calls {@link #query(int)} finally.
-     * 
+     *
      * @param maxrows the maximum number of rows to return
      * @return the local result set
      */
@@ -158,7 +158,7 @@ public abstract class Command implements CommandInterface {
 
     /**
      * Check if this command has been canceled, and throw an exception if yes.
-     * 
+     *
      * @throws SQLException if the statement has been canceled
      */
     public void checkCanceled() throws SQLException {

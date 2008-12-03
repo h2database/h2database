@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -86,7 +86,7 @@ public class TableData extends Table implements RecordReader {
     public int getHeadPos() {
         return scanIndex.getHeadPos();
     }
-    
+
     public void close(Session session) throws SQLException {
         for (int i = 0; i < indexes.size(); i++) {
             Index index = (Index) indexes.get(i);
@@ -96,7 +96,7 @@ public class TableData extends Table implements RecordReader {
 
     /**
      * Read the given row.
-     * 
+     *
      * @param session the session
      * @param key the position of the row in the file
      * @return the row
@@ -217,7 +217,7 @@ public class TableData extends Table implements RecordReader {
                     index.remove(session);
                 } catch (SQLException e2) {
                     // this could happen, for example on failure in the storage
-                    // but if that is not the case it means 
+                    // but if that is not the case it means
                     // there is something wrong with the database
                     trace.error("Could not remove index", e);
                     throw e2;
@@ -233,7 +233,7 @@ public class TableData extends Table implements RecordReader {
                 session.addLocalTempTableIndex(index);
             } else {
                 database.addSchemaObject(session, index);
-            }            
+            }
             // Need to update, because maybe the index is rebuilt at startup,
             // and so the head pos may have changed, which needs to be stored now.
             // addSchemaObject doesn't update the sys table at startup
@@ -368,7 +368,7 @@ public class TableData extends Table implements RecordReader {
             }
         }
     }
-    
+
     private void doLock(Session session, int lockMode, boolean exclusive) throws SQLException {
         long max = System.currentTimeMillis() + session.getLockTimeout();
         boolean checkDeadlock = false;
@@ -393,15 +393,15 @@ public class TableData extends Table implements RecordReader {
                 if (lockExclusive == null) {
                     if (lockMode == Constants.LOCK_MODE_READ_COMMITTED) {
                         if (!database.isMultiThreaded() && !database.isMultiVersion()) {
-                            // READ_COMMITTED: a read lock is acquired, 
-                            // but released immediately after the operation 
+                            // READ_COMMITTED: a read lock is acquired,
+                            // but released immediately after the operation
                             // is complete.
                             // When allowing only one thread, no lock is
                             // required.
                             // Row level locks work like read committed.
                             return;
                         }
-                    } 
+                    }
                     if (!lockShared.contains(session)) {
                         traceLock(session, exclusive, "ok");
                         session.addLock(this);
@@ -448,7 +448,7 @@ public class TableData extends Table implements RecordReader {
             }
         }
     }
-    
+
     private String getDeadlockDetails(ObjectArray sessions) {
         StringBuffer buff = new StringBuffer();
         for (int i = 0; i < sessions.size(); i++) {
@@ -476,7 +476,7 @@ public class TableData extends Table implements RecordReader {
         }
         return buff.toString();
     }
-    
+
     public ObjectArray checkDeadlock(Session session, Session clash) {
         // only one deadlock check at any given time
         synchronized (TableData.class) {
@@ -585,10 +585,10 @@ public class TableData extends Table implements RecordReader {
     public Record read(Session session, DataPage s) throws SQLException {
         return readRow(s);
     }
-    
+
     /**
      * Read a row from the data page.
-     * 
+     *
      * @param s the data page
      * @return the row
      */
@@ -604,7 +604,7 @@ public class TableData extends Table implements RecordReader {
 
     /**
      * Set the row count of this table.
-     * 
+     *
      * @param count the row count
      */
     public void setRowCount(long count) {
@@ -636,7 +636,7 @@ public class TableData extends Table implements RecordReader {
         lockShared = null;
         invalidate();
     }
-    
+
     public String toString() {
         return getSQL();
     }

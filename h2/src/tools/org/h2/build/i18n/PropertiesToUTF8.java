@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -33,7 +33,7 @@ import org.h2.util.StringUtils;
  * a properties file and vice versa.
  */
 public class PropertiesToUTF8 {
-    
+
     private PropertiesToUTF8() {
         // utility class
     }
@@ -41,7 +41,7 @@ public class PropertiesToUTF8 {
     /**
      * This method is called when executing this application from the command
      * line.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String[] args) throws Exception {
@@ -51,7 +51,7 @@ public class PropertiesToUTF8 {
 
     /**
      * Convert a properties file to a UTF-8 text file.
-     * 
+     *
      * @param source the name of the properties file
      * @param target the target file name
      */
@@ -76,7 +76,7 @@ public class PropertiesToUTF8 {
     /**
      * Convert a translation file (in UTF-8) to a properties file (without
      * special characters).
-     * 
+     *
      * @param source the source file name
      * @param target the target file name
      */
@@ -166,7 +166,7 @@ public class PropertiesToUTF8 {
 
     /**
      * Store a properties file.
-     * 
+     *
      * @param p the properties
      * @param fileName the file name
      */

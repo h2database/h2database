@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -27,9 +27,9 @@ public class Plan {
 
     /**
      * Create a query plan with the given order.
-     * 
+     *
      * @param filters the tables of the query
-     * @param count the number of table items 
+     * @param count the number of table items
      * @param condition the condition in the WHERE clause
      */
     public Plan(TableFilter[] filters, int count, Expression condition) {
@@ -58,17 +58,17 @@ public class Plan {
 
     /**
      * Get the plan item for the given table.
-     * 
+     *
      * @param filter the table
      * @return the plan item
      */
     public PlanItem getItem(TableFilter filter) {
         return (PlanItem) planItems.get(filter);
     }
-    
+
     /**
      * The the list of tables.
-     * 
+     *
      * @return the list of tables
      */
     public TableFilter[] getFilters() {
@@ -98,7 +98,7 @@ public class Plan {
 
     /**
      * Calculate the cost of this query plan.
-     * 
+     *
      * @param session the session
      * @return the cost
      */
@@ -120,7 +120,7 @@ public class Plan {
             }
         }
         if (invalidPlan) {
-            cost = Double.POSITIVE_INFINITY; 
+            cost = Double.POSITIVE_INFINITY;
         }
         for (int i = 0; i < allFilters.length; i++) {
             setEvaluatable(allFilters[i], false);

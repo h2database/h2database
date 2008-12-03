@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -22,7 +22,7 @@ public class SecurePassword {
     /**
      * This method is called when executing this sample application from the
      * command line.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String[] args) throws Exception {
@@ -35,7 +35,7 @@ public class SecurePassword {
         // This is the normal, but 'unsafe' way to connect:
         // the password may reside in the main memory for an undefined time,
         // or even written to disk (swap file):
-        // Connection conn = 
+        // Connection conn =
         //     DriverManager.getConnection(url, user, new String(password));
 
         // This is the most safe way to connect: the password is overwritten after use

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -33,14 +33,14 @@ import org.h2.message.Message;
 public class IOUtils {
 
     private static final int BUFFER_BLOCK_SIZE = 4 * 1024;
-    
+
     private IOUtils() {
         // utility class
     }
 
     /**
      * Close an output stream without throwing an exception.
-     * 
+     *
      * @param out the output stream or null
      */
     public static void closeSilently(OutputStream out) {
@@ -56,7 +56,7 @@ public class IOUtils {
 
     /**
      * Skip a number of bytes in an input stream.
-     * 
+     *
      * @param in the input stream
      * @param skip the number of bytes to skip
      * @throws EOFException if the end of file has been reached before all bytes
@@ -75,7 +75,7 @@ public class IOUtils {
 
     /**
      * Skip a number of characters in a reader.
-     * 
+     *
      * @param reader the reader
      * @param skip the number of characters to skip
      * @throws EOFException if the end of file has been reached before all
@@ -95,7 +95,7 @@ public class IOUtils {
     /**
      * Copy all data from the input stream to the output stream and close both
      * streams. Exceptions while closing are ignored.
-     * 
+     *
      * @param in the input stream
      * @param out the output stream
      * @return the number of bytes copied
@@ -113,7 +113,7 @@ public class IOUtils {
     /**
      * Copy all data from the input stream to the output stream and close the
      * input stream. Exceptions while closing are ignored.
-     * 
+     *
      * @param in the input stream
      * @param out the output stream
      * @return the number of bytes copied
@@ -129,7 +129,7 @@ public class IOUtils {
     /**
      * Copy all data from the input stream to the output stream. Both streams
      * are kept open.
-     * 
+     *
      * @param in the input stream
      * @param out the output stream
      * @return the number of bytes copied
@@ -151,7 +151,7 @@ public class IOUtils {
     /**
      * Copy all data from the reader to the writer and close the reader.
      * Exceptions while closing are ignored.
-     * 
+     *
      * @param in the reader
      * @param out the writer
      * @return the number of characters copied
@@ -176,7 +176,7 @@ public class IOUtils {
 
     /**
      * Close an input stream without throwing an exception.
-     * 
+     *
      * @param in the input stream or null
      */
     public static void closeSilently(InputStream in) {
@@ -192,7 +192,7 @@ public class IOUtils {
 
     /**
      * Close a reader without throwing an exception.
-     * 
+     *
      * @param reader the reader or null
      */
     public static void closeSilently(Reader reader) {
@@ -207,7 +207,7 @@ public class IOUtils {
 
     /**
      * Close a writer without throwing an exception.
-     * 
+     *
      * @param writer the writer or null
      */
     public static void closeSilently(Writer writer) {
@@ -223,7 +223,7 @@ public class IOUtils {
 
     /**
      * Read a number of bytes from an input stream and close the stream.
-     * 
+     *
      * @param in the input stream
      * @param length the maximum number of bytes to read, or -1 to read until
      *            the end of file
@@ -254,7 +254,7 @@ public class IOUtils {
 
     /**
      * Read a number of characters from a reader and close it.
-     * 
+     *
      * @param in the reader
      * @param length the maximum number of characters to read, or -1 to read
      *            until the end of file
@@ -287,7 +287,7 @@ public class IOUtils {
      * Try to read the given number of bytes to the buffer. This method reads
      * until the maximum number of bytes have been read or until the end of
      * file.
-     * 
+     *
      * @param in the input stream
      * @param buffer the output buffer
      * @param off the offset in the buffer
@@ -313,7 +313,7 @@ public class IOUtils {
      * Try to read the given number of characters to the buffer. This method
      * reads until the maximum number of characters have been read or until the
      * end of file.
-     * 
+     *
      * @param in the reader
      * @param buffer the output buffer
      * @param max the number of characters to read at most
@@ -341,7 +341,7 @@ public class IOUtils {
     /**
      * Create a reader to read from an input stream using the UTF-8 format. If
      * the input stream is null, this method returns null.
-     * 
+     *
      * @param in the input stream or null
      * @return the reader
      */
@@ -353,11 +353,11 @@ public class IOUtils {
             throw Message.convert(e);
         }
     }
-    
+
     /**
      * Create a buffered writer to write to an output stream using the UTF-8
      * format. If the output stream is null, this method returns null.
-     * 
+     *
      * @param out the output stream or null
      * @return the writer
      */
@@ -367,13 +367,13 @@ public class IOUtils {
         } catch (UnsupportedEncodingException e) {
             throw Message.convert(e);
         }
-    }    
+    }
 
     /**
      * Create an input stream to read from a string. The string is converted to
      * a byte array using UTF-8 encoding.
      * If the string is null, this method returns null.
-     * 
+     *
      * @param s the string
      * @return the input stream
      */
@@ -387,7 +387,7 @@ public class IOUtils {
     /**
      * Create a reader to read from a string.
      * If the string is null, this method returns null.
-     * 
+     *
      * @param s the string or null
      * @return the reader
      */
@@ -398,7 +398,7 @@ public class IOUtils {
     /**
      * Wrap an input stream in a reader. The bytes are converted to characters
      * using the US-ASCII character set.
-     * 
+     *
      * @param in the input stream
      * @return the reader
      */

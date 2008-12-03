@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -26,7 +26,7 @@ public class ValueArray extends Value {
     /**
      * Get or create a array value for the given value array.
      * Do not clone the data.
-     * 
+     *
      * @param list the value array
      * @return the value
      */
@@ -114,7 +114,7 @@ public class ValueArray extends Value {
         buff.append(')');
         return buff.toString();
     }
-    
+
     public String getTraceSQL() {
         StringBuffer buff = new StringBuffer();
         buff.append('(');

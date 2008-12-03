@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -29,7 +29,7 @@ public class Profile extends Thread {
     private int lastIndex;
     private long lastTime;
     private BufferedWriter trace;
-    
+
     private Profile() {
         FileReader reader = null;
         try {
@@ -65,7 +65,7 @@ public class Profile extends Thread {
     /**
      * This method is called by an instrumented application whenever a line of
      * code is executed.
-     * 
+     *
      * @param i the line number that is executed
      */
     public static void visit(int i) {
@@ -117,7 +117,7 @@ public class Profile extends Thread {
             }
         }
     }
-    
+
     private void closeSilently(Writer writer) {
         if (writer != null) {
             try {

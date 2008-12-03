@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -24,14 +24,14 @@ public interface ResultExternal {
 
     /**
      * Get the next row from the result.
-     * 
+     *
      * @return the next row or null
      */
     Value[] next() throws SQLException;
 
     /**
      * Add a number of rows to the result.
-     * 
+     *
      * @param rows the list of rows to add
      */
     void addRows(ObjectArray rows) throws SQLException;
@@ -49,7 +49,7 @@ public interface ResultExternal {
     /**
      * Remove the row with the given values from this object if such a row
      * exists.
-     * 
+     *
      * @param values the row
      * @return the new row count
      */
@@ -57,7 +57,7 @@ public interface ResultExternal {
 
     /**
      * Check if the given row exists in this object.
-     * 
+     *
      * @param values the row
      * @return true if it exists
      */
@@ -65,7 +65,7 @@ public interface ResultExternal {
 
     /**
      * Add a row to this object.
-     * 
+     *
      * @param values the row to add
      * @return the new number of rows in this object
      */

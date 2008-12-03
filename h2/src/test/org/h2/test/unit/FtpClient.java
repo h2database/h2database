@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -41,7 +41,7 @@ public class FtpClient {
 
     /**
      * Open an FTP connection.
-     * 
+     *
      * @param url the FTP URL
      * @return the ftp client object
      */
@@ -87,7 +87,7 @@ public class FtpClient {
 
     /**
      * Login to this FTP server (USER, PASS, SYST, SITE, STRU F, TYPE I).
-     * 
+     *
      * @param userName the user name
      * @param password the password
      */
@@ -119,7 +119,7 @@ public class FtpClient {
 
     /**
      * Change the working directory (CWD).
-     * 
+     *
      * @param dir the new directory
      */
     void changeWorkingDirectory(String dir) throws IOException {
@@ -137,7 +137,7 @@ public class FtpClient {
 
     /**
      * Delete a file (DELE).
-     * 
+     *
      * @param fileName the name of the file to delete
      */
     void delete(String fileName) throws IOException {
@@ -147,7 +147,7 @@ public class FtpClient {
 
     /**
      * Create a directory (MKD).
-     * 
+     *
      * @param dir the directory to create
      */
     void makeDirectory(String dir) throws IOException {
@@ -157,7 +157,7 @@ public class FtpClient {
 
     /**
      * Change the transfer mode (MODE).
-     * 
+     *
      * @param mode the mode
      */
     void mode(String mode) throws IOException {
@@ -167,14 +167,14 @@ public class FtpClient {
 
     /**
      * Change the modified time of a file (MDTM).
-     * 
+     *
      * @param fileName the file name
      */
     void modificationTime(String fileName) throws IOException {
         send("MDTM " + fileName);
         readCode(213);
     }
-    
+
     /**
      * Issue a no-operation statement (NOOP).
      */
@@ -229,7 +229,7 @@ public class FtpClient {
 
     /**
      * Rename a file (RNFR / RNTO).
-     * 
+     *
      * @param fromFileName the old file name
      * @param toFileName the new file name
      */
@@ -242,7 +242,7 @@ public class FtpClient {
 
     /**
      * Read a file ([REST] RETR).
-     * 
+     *
      * @param fileName the file name
      * @param out the output stream
      * @param restartAt restart at the given position (0 if no restart is required).
@@ -260,7 +260,7 @@ public class FtpClient {
 
     /**
      * Remove a directory (RMD).
-     * 
+     *
      * @param dir the directory to remove
      */
     void removeDirectory(String dir) throws IOException {
@@ -270,7 +270,7 @@ public class FtpClient {
 
     /**
      * Get the size of a file (SIZE).
-     * 
+     *
      * @param fileName the file name
      * @return the size
      */
@@ -283,7 +283,7 @@ public class FtpClient {
 
     /**
      * Store a file (STOR).
-     * 
+     *
      * @param fileName the file name
      * @param in the input stream
      */
@@ -297,7 +297,7 @@ public class FtpClient {
 
     /**
      * Get the directory listing (NLST).
-     * 
+     *
      * @param dir the directory
      * @return the listing
      */
@@ -314,7 +314,7 @@ public class FtpClient {
 
     /**
      * Get the directory listing (LIST).
-     * 
+     *
      * @param dir the directory
      * @return the listing
      */

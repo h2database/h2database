@@ -40,12 +40,12 @@ import org.jpox.store.rdbms.table.Table;
 /**
  * Provides methods for adapting SQL language elements to the H2 Database Engine.
  *
- * @version $Revision: 1.1 $ 
+ * @version $Revision: 1.1 $
  */
 class H2Adapter extends DatabaseAdapter
 {
     private String schemaName;
-    
+
     /**
      * Constructs a H2 adapter based on the given JDBC metadata.
      * @param dictionary The Dictionary to use
@@ -97,7 +97,7 @@ class H2Adapter extends DatabaseAdapter
     {
         return super.getConnection(ds,userName,password,Connection.TRANSACTION_SERIALIZABLE);
     }
-    
+
     /**
      * Accessor for the maximum table name length permitted on this
      * datastore.
@@ -172,7 +172,7 @@ class H2Adapter extends DatabaseAdapter
 
     /**
      * Accessor for whether the adapter supports the transaction isolation level
-     * 
+     *
      * @param isolationLevel the isolation level
      * @return Whether the transaction isolation level setting is supported.
      */
@@ -197,7 +197,7 @@ class H2Adapter extends DatabaseAdapter
 
     /**
      * Accessor for the Schema Name for this datastore.
-     * 
+     *
      * @param conn Connection to the datastore
      * @return The schema name
      **/
@@ -344,7 +344,7 @@ class H2Adapter extends DatabaseAdapter
      * @param table The table in the expression
      * @param rangeVar range variable to assign to the expression.
      * @return The expression.
-     **/ 
+     **/
     public LogicSetExpression newTableExpression(QueryExpression qs, DatastoreContainerObject table, DatastoreIdentifier rangeVar)
     {
         return new TableExprAsJoins(qs, table, rangeVar);

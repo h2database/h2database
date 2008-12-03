@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -43,7 +43,7 @@ class FullTextSettings {
 
     /**
      * Get the index information for the given index id.
-     * 
+     *
      * @param indexId the index id
      * @return the index info
      */
@@ -53,7 +53,7 @@ class FullTextSettings {
 
     /**
      * Add an index.
-     * 
+     *
      * @param index the index
      */
     void addIndexInfo(IndexInfo index) {
@@ -63,7 +63,7 @@ class FullTextSettings {
     /**
      * Convert a word to uppercase. This method returns null if the word is in
      * the ignore list.
-     * 
+     *
      * @param word the word to convert and check
      * @return the uppercase version of the word or null
      */
@@ -78,7 +78,7 @@ class FullTextSettings {
 
     /**
      * Get or create the fulltext settings for this database.
-     * 
+     *
      * @param conn the connection
      * @return the settings
      */
@@ -129,7 +129,7 @@ class FullTextSettings {
 
     /**
      * Remove an index from the settings.
-     * 
+     *
      * @param index the index to remove
      */
     void removeIndexInfo(IndexInfo index) {

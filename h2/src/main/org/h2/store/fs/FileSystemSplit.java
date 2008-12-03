@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -28,7 +28,7 @@ public class FileSystemSplit extends FileSystem {
     public static FileSystemSplit getInstance() {
         return INSTANCE;
     }
-    
+
     public boolean canWrite(String fileName) {
         fileName = translateFileName(fileName);
         return getFileSystem(fileName).canWrite(fileName);
@@ -190,7 +190,7 @@ public class FileSystemSplit extends FileSystem {
         }
         return input;
     }
-    
+
     public FileObject openFileObject(String fileName, String mode) throws IOException {
         fileName = translateFileName(fileName);
         ArrayList list = new ArrayList();
@@ -268,7 +268,7 @@ public class FileSystemSplit extends FileSystem {
         }
         return true;
     }
-    
+
     private String translateFileName(String fileName) {
         if (!fileName.startsWith(FileSystem.PREFIX_SPLIT)) {
             throw Message.getInternalError(fileName + " doesn't start with " + FileSystem.PREFIX_SPLIT);
@@ -286,10 +286,10 @@ public class FileSystemSplit extends FileSystem {
         }
         return fileName;
     }
-    
+
     /**
      * Get the file name of a part file.
-     * 
+     *
      * @param fileName the file name
      * @param id the part id
      * @return the file name including the part id
@@ -300,7 +300,7 @@ public class FileSystemSplit extends FileSystem {
         }
         return fileName;
     }
-    
+
     private FileSystem getFileSystem(String fileName) {
         return FileSystem.getInstance(fileName);
     }

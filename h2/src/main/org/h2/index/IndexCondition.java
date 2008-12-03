@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -23,39 +23,39 @@ import org.h2.value.Value;
  * expression that maps to each index condition.
  */
 public class IndexCondition {
-    
+
     /**
      * A bit of a search mask meaning 'equal'.
      */
     public static final int EQUALITY = 1;
-    
+
     /**
      * A bit of a search mask meaning 'larger or equal'.
      */
     public static final int START = 2;
-    
+
     /**
      * A bit of a search mask meaning 'smaller or equal'.
      */
     public static final int END = 4;
-    
+
     /**
      * A search mask meaning 'between'.
      */
     public static final int RANGE = START | END;
-    
+
     /**
      * A bit of a search mask meaning 'the condition is always false'.
      */
     public static final int ALWAYS_FALSE = 8;
-    
+
     private Column column;
     private Expression expression;
     private int compareType;
 
     /**
      * Create an index condition with the given parameters.
-     * 
+     *
      * @param compareType the comparison type
      * @param column the column
      * @param expression the expression
@@ -68,7 +68,7 @@ public class IndexCondition {
 
     /**
      * Get the current value of the expression.
-     * 
+     *
      * @param session the session
      * @return the value
      */
@@ -78,7 +78,7 @@ public class IndexCondition {
 
     /**
      * Get the SQL snippet of this comparison.
-     * 
+     *
      * @return the SQL snippet
      */
     public String getSQL() {
@@ -112,7 +112,7 @@ public class IndexCondition {
 
     /**
      * Get the comparison bit mask.
-     * 
+     *
      * @return the mask
      */
     public int getMask() {
@@ -134,7 +134,7 @@ public class IndexCondition {
 
     /**
      * Check if the result is always false.
-     * 
+     *
      * @return true if the result will always be false
      */
     public boolean isAlwaysFalse() {
@@ -144,7 +144,7 @@ public class IndexCondition {
     /**
      * Check if this index condition is of the type column larger or equal to
      * value.
-     * 
+     *
      * @return true if this is a start condition
      */
     public boolean isStart() {
@@ -161,7 +161,7 @@ public class IndexCondition {
     /**
      * Check if this index condition is of the type column smaller or equal to
      * value.
-     * 
+     *
      * @return true if this is a end condition
      */
     public boolean isEnd() {
@@ -177,7 +177,7 @@ public class IndexCondition {
 
     /**
      * Get the referenced column.
-     * 
+     *
      * @return the column
      */
     public Column getColumn() {
@@ -186,7 +186,7 @@ public class IndexCondition {
 
     /**
      * Check if the expression can be evaluated.
-     * 
+     *
      * @return true if it can be evaluated
      */
     public boolean isEvaluatable() {

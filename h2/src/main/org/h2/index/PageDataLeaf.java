@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -39,27 +39,27 @@ class PageDataLeaf extends PageData {
      * The row offsets.
      */
     int[] offsets;
-    
+
     /**
      * The rows.
      */
     Row[] rows;
-    
+
     /**
      * The page id of the first overflow page (0 if no overflow).
      */
     int firstOverflowPageId;
-    
+
     /**
      * The page ids of all overflow pages (null if no overflow).
      */
     int[] overflowPageIds;
-    
+
     /**
      * The start of the data area.
      */
     int start;
-    
+
     PageDataLeaf(PageScanIndex index, int pageId, int parentPageId, DataPageBinary data) {
         super(index, pageId, parentPageId, data);
         start = 7;
@@ -81,11 +81,11 @@ class PageDataLeaf extends PageData {
         }
         start = data.length();
     }
-    
+
     /**
      * Add a row if possible. If it is possible this method returns 0, otherwise
      * the split point. It is always possible to add one row.
-     * 
+     *
      * @return the split point of this page, or 0 if no split is required
      */
     int addRow(Row row) throws SQLException {
@@ -148,7 +148,7 @@ class PageDataLeaf extends PageData {
         index.getPageStore().updateRecord(this);
         return 0;
     }
-    
+
     private void removeRow(int i) throws SQLException {
         entryCount--;
         if (entryCount <= 0) {
@@ -172,10 +172,10 @@ class PageDataLeaf extends PageData {
     Cursor find() {
         return new PageScanCursor(this, 0);
     }
-    
+
     /**
      * Get the row at the given index.
-     * 
+     *
      * @param at the index
      * @return the row
      */
@@ -213,7 +213,7 @@ class PageDataLeaf extends PageData {
     int getEntryCount() {
         return entryCount;
     }
-    
+
     PageData split(int splitPoint) throws SQLException {
         int newPageId = index.getPageStore().allocatePage();
         PageDataLeaf p2 = new PageDataLeaf(index, newPageId, parentPageId, index.getPageStore().createDataPage());
@@ -243,7 +243,7 @@ class PageDataLeaf extends PageData {
     PageDataLeaf getFirstLeaf() {
         return this;
     }
-    
+
     protected void remapChildren() throws SQLException {
         if (firstOverflowPageId == 0) {
             return;

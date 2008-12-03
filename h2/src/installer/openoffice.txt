@@ -12,7 +12,7 @@ sub H2Pdf
     FileProperties(0).Name = "FilterName"
     FileProperties(0).Value = "HTML (StarWriter)"
     FileProperties(1).Name = "UpdateDocMode"
-    FileProperties(1).Value = 3 'full update 
+    FileProperties(1).Value = 3 'full update
     document = StarDesktop.loadComponentFromURL(Url, "_blank", 0, FileProperties)
     docs = ThisComponent.CurrentController.Frame
     dispatcher = createUnoService("com.sun.star.frame.DispatchHelper")
@@ -23,11 +23,11 @@ sub H2Pdf
     BodyStyle = ParagraphStyles.getByName("Text body")
     BodyStyle.ParaOrphans = 2
     BodyStyle.ParaWidows = 2
-    
+
     HeadingStyle = ParagraphStyles.getByName("Heading 1")
     HeadingStyle.BreakType = 3 ' Insert Page Break Before
     HeadingStyle.ParaKeepTogether = false
-    
+
     images = document.GraphicObjects
     For i = 0 to images.getCount() - 1
         image = images.getByIndex(i)
@@ -40,22 +40,22 @@ sub H2Pdf
     dispatcher.executeDispatch(docs, ".uno:UpdateAll", "", 0, Array())
 
     PageStyles = StyleFamilies.getByName("PageStyles")
-    
+
     Standard = PageStyles.getByName("HTML")
     Standard.FooterIsOn = True
-    
+
     dispatcher.executeDispatch(docs, ".uno:UpdateAll", "", 0, Array())
-    
-    oText = Standard.FooterText  
+
+    oText = Standard.FooterText
     oText.setString("")
-    PageNumber = document.createInstance("com.sun.star.text.TextField.PageNumber") 
+    PageNumber = document.createInstance("com.sun.star.text.TextField.PageNumber")
     PageNumber.NumberingType = 4 ' magic constant: 4=Arabic numbers
     PageNumber.SubType = 1 ' magic constant: use current page number
 
-    PageCount = document.createInstance("com.sun.star.text.TextField.PageCount") 
+    PageCount = document.createInstance("com.sun.star.text.TextField.PageCount")
     PageCount.NumberingType = 4 ' magic constant: 4=Arabic numbers
 
-    FooterCursor = oText.Text.createTextCursor() 
+    FooterCursor = oText.Text.createTextCursor()
     oText.insertString(FooterCursor, Chr(09)& Chr(09), False)
     oText.insertTextContent(FooterCursor, PageNumber, False)
     oText.insertString(FooterCursor, " of ", False)
@@ -65,14 +65,14 @@ sub H2Pdf
     Cursor.gotoStart(false)
     Cursor.gotoNextParagraph(false)
     Cursor.gotoNextParagraph(false)
-    
+
     dispatcher.executeDispatch(docs, ".uno:UpdateAll", "", 0, Array())
-    
+
     toc = document.createInstance("com.sun.star.text.ContentIndex")
-    toc.Title= "Table of Contents" 
-    toc.CreateFromOutline = True 
+    toc.Title= "Table of Contents"
+    toc.CreateFromOutline = True
     toc.Level = 4
-    toc.IsProtected = false 
+    toc.IsProtected = false
     document.Text.insertTextContent(Cursor, toc, false)
 
     Cursor.gotoStart(false)
@@ -83,10 +83,10 @@ sub H2Pdf
             Cursor.BreakType = 4 ' Insert Page Break After
         end if
     wend
-    
+
     dim linkStart(0) As New com.sun.star.beans.PropertyValue
     dim linkEnd(0) As New com.sun.star.beans.PropertyValue
-    
+
     For i = 1 To 4
         oLevel = toc.LevelFormat.getByIndex(i)
         x = DimArray(5)
@@ -95,30 +95,30 @@ sub H2Pdf
         linkStart(0).Name = "TokenType"
         linkStart(0).Value = "TokenHyperlinkStart"
         linkStart(0).Handle = -1
-        linkStart(0).State = com.sun.star.beans.PropertyState.DIRECT_VALUE 
+        linkStart(0).State = com.sun.star.beans.PropertyState.DIRECT_VALUE
         linkEnd(0).Name = "TokenType"
         linkEnd(0).Value = "TokenHyperlinkEnd"
         linkEnd(0).Handle = -1
-        linkEnd(0).State = com.sun.star.beans.PropertyState.DIRECT_VALUE 
-        toc.LevelFormat.replaceByIndex(i, x) 
+        linkEnd(0).State = com.sun.star.beans.PropertyState.DIRECT_VALUE
+        toc.LevelFormat.replaceByIndex(i, x)
     next
-    
+
     dispatcher.executeDispatch(docs, ".uno:UpdateAll", "", 0, Array())
     toc.update()
     dispatcher.executeDispatch(docs, ".uno:UpdateAll", "", 0, Array())
     toc.update()
     dispatcher.executeDispatch(docs, ".uno:UpdateAll", "", 0, Array())
-    
+
     pdfTemp = BaseDir & "h2web/h2temp.pdf"
     pdf = BaseDir & "h2web/h2.pdf"
 
     dim pdfProperties(1) as new com.sun.star.beans.PropertyValue
     pdfProperties(0).Name = "FilterName"
     pdfProperties(0).Value = "writer_pdf_Export"
-    document.storeToURL(pdfTemp, pdfProperties())     
+    document.storeToURL(pdfTemp, pdfProperties())
 
     fileAccessService = createUnoService("com.sun.star.ucb.SimpleFileAccess")
     fileAccessService.move(pdfTemp, pdf)
-    
-    ThisComponent.close(true) 
+
+    ThisComponent.close(true)
 end sub

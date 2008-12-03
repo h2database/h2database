@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -16,27 +16,27 @@ import java.util.ArrayList;
  * This class is used by the H2 Console.
  */
 public class DbSchema {
-    
+
     /**
      * The database content container.
      */
     DbContents contents;
-    
+
     /**
      * The schema name.
      */
     String name;
-    
+
     /**
      * The quoted schema name.
      */
     String quotedName;
-    
+
     /**
      * The table list.
      */
     DbTableOrView[] tables;
-    
+
     /**
      * True if this is the default schema for this database.
      */
@@ -51,7 +51,7 @@ public class DbSchema {
 
     /**
      * Read all tables for this schema from the database meta data.
-     * 
+     *
      * @param meta the database meta data
      * @param tableTypes the table types to read
      */

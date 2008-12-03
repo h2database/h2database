@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -47,7 +47,7 @@ public class ParameterRemote implements ParameterInterface {
             throw Message.getSQLException(ErrorCode.PARAMETER_NOT_SET_1, "#" + (index + 1));
         }
     }
-    
+
     public int getType() {
         return value == null ? dataType : value.getType();
     }
@@ -66,7 +66,7 @@ public class ParameterRemote implements ParameterInterface {
 
     /**
      * Write the parameter meta data from the transfer object.
-     * 
+     *
      * @param transfer the transfer object
      */
     public void readMetaData(Transfer transfer) throws IOException {
@@ -75,10 +75,10 @@ public class ParameterRemote implements ParameterInterface {
         scale = transfer.readInt();
         nullable = transfer.readInt();
     }
-    
+
     /**
      * Write the parameter meta data to the transfer object.
-     * 
+     *
      * @param transfer the transfer object
      * @param p the parameter
      */

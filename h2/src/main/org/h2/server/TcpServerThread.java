@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -62,7 +62,7 @@ public class TcpServerThread implements Runnable {
         try {
             transfer.init();
             trace("Connect");
-            // TODO server: should support a list of allowed databases 
+            // TODO server: should support a list of allowed databases
             // and a list of allowed clients
             try {
                 clientVersion = transfer.readInt();
@@ -359,7 +359,7 @@ public class TcpServerThread implements Runnable {
             close();
         }
     }
-    
+
     private int getState(int oldModificationId) {
         if (session.getModificationId() == oldModificationId) {
             return SessionRemote.STATUS_OK;
@@ -389,7 +389,7 @@ public class TcpServerThread implements Runnable {
 
     /**
      * Cancel a running statement.
-     * 
+     *
      * @param sessionId the session id
      * @param statementId the statement to cancel
      */

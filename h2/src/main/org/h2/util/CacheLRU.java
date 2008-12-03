@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -265,7 +265,7 @@ public class CacheLRU implements Cache {
     public String getTypeName() {
         return TYPE_NAME;
     }
-    
+
     public int  getMaxSize() {
         return maxSize;
     }
@@ -304,7 +304,7 @@ public class CacheLRU implements Cache {
 ////System.out.println("cache write "+entry.getPos());
 //                writer.writeBack(entry);
 //            } catch(SQLException e) {
-//                // printStackTrace not needed 
+//                // printStackTrace not needed
 //                // if we use our own hashtable
 //                e.printStackTrace();
 //            }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -34,7 +34,7 @@ public abstract class Expression {
     /**
      * Return the data type. The data type may not be known before the
      * optimization phase.
-     * 
+     *
      * @return the type
      */
     public abstract int getType();
@@ -96,10 +96,10 @@ public abstract class Expression {
 
     /**
      * Update an aggregate value.
-     * This method is called at statement execution time. 
+     * This method is called at statement execution time.
      * It is usually called once for each row, but if the expression is used multiple
      * times (for example in the column list, and as part of the HAVING expression)
-     * it is called multiple times - the row counter needs to be used to make sure 
+     * it is called multiple times - the row counter needs to be used to make sure
      * the internal state is only updated once.
      *
      * @param session the session

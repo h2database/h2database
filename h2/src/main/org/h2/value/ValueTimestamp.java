@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -21,18 +21,18 @@ import org.h2.util.MathUtils;
  * Implementation of the TIMESTAMP data type.
  */
 public class ValueTimestamp extends Value {
-    
+
     /**
      * The precision in digits.
-     */    
+     */
     static final int PRECISION = 23;
-    
+
     /**
      * The display size of the textual representation of a timestamp.
      * Example: 2001-01-01 23:59:59.000
      */
-    static final int DISPLAY_SIZE = 23; 
-    
+    static final int DISPLAY_SIZE = 23;
+
     /**
      * The default scale for timestamps.
      */
@@ -46,7 +46,7 @@ public class ValueTimestamp extends Value {
     static final long YEAR_ONE = java.sql.Date.valueOf("0001-01-02").getTime();
 
     private final Timestamp value;
-    
+
     private ValueTimestamp(Timestamp value) {
         this.value = value;
     }
@@ -65,7 +65,7 @@ public class ValueTimestamp extends Value {
 
     /**
      * Parse a string to a java.sql.Timestamp object.
-     * 
+     *
      * @param s the string to parse
      * @return the timestamp
      */
@@ -86,7 +86,7 @@ public class ValueTimestamp extends Value {
     public String getString() {
         String s = value.toString();
         long time = value.getTime();
-        // special case: java.sql.Timestamp doesn't format 
+        // special case: java.sql.Timestamp doesn't format
         // years below year 1 (BC) correctly
         if (time < YEAR_ONE) {
             int year = DateTimeUtils.getDatePart(value, Calendar.YEAR);
@@ -121,7 +121,7 @@ public class ValueTimestamp extends Value {
     /**
      * Get or create a timestamp value for the given timestamp.
      * Clone the timestamp.
-     * 
+     *
      * @param timestamp the timestamp
      * @return the value
      */
@@ -133,7 +133,7 @@ public class ValueTimestamp extends Value {
     /**
      * Get or create a timestamp value for the given timestamp.
      * Do not clone the timestamp.
-     * 
+     *
      * @param timestamp the timestamp
      * @return the value
      */

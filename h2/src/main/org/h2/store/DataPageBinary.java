@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -14,11 +14,11 @@ import java.sql.SQLException;
  */
 public class DataPageBinary extends DataPage {
 //    private final static boolean UTF8 = true;
-    
+
     public DataPageBinary(DataHandler handler, byte[] data) {
         super(handler, data);
     }
-    
+
     public void updateChecksum() {
         if (CHECKSUM) {
             int x = handler.getChecksum(data, 0, pos - 2);
@@ -68,7 +68,7 @@ public class DataPageBinary extends DataPage {
         byte[] buff = data;
         return (buff[pos++] << 24) + ((buff[pos++] & 0xff) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos++] & 0xff);
     }
-    
+
     /**
      * Write a short integer at the current position.
      * The current position is incremented.
@@ -80,7 +80,7 @@ public class DataPageBinary extends DataPage {
         buff[pos++] = (byte) (x >> 8);
         buff[pos++] = (byte) x;
     }
-    
+
     /**
      * Read an short integer at the current position.
      * The current position is incremented.
@@ -97,12 +97,12 @@ public class DataPageBinary extends DataPage {
 //    }
 
 //    private String readStringChar() {
-//        int len = ((data[pos++] & 0xff) << 24) + 
-//            ((data[pos++] & 0xff) << 16) + 
+//        int len = ((data[pos++] & 0xff) << 24) +
+//            ((data[pos++] & 0xff) << 16) +
 //            ((data[pos++] & 0xff) << 8) + (data[pos++] & 0xff);
 //        char[] chars = new char[len];
 //        for(int i=0; i<len; i++) {
-//            chars[i] = (char)(((data[pos++] & 0xff) << 8) + 
+//            chars[i] = (char)(((data[pos++] & 0xff) << 8) +
 //            (data[pos++] & 0xff));
 //        }
 //        return new String(chars);
@@ -121,7 +121,7 @@ public class DataPageBinary extends DataPage {
 //            data[pos++] = (byte)c;
 //        }
 //    }
-    
+
     private static int getStringLenUTF8(String s) {
         int plus = 4, len = s.length();
         for (int i = 0; i < len; i++) {
@@ -134,7 +134,7 @@ public class DataPageBinary extends DataPage {
         }
         return len + plus;
     }
-    
+
     private void writeStringUTF8(String s) {
         int len = s.length();
         checkCapacity(len * 3 + 4);

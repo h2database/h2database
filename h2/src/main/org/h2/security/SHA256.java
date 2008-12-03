@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -37,7 +37,7 @@ public class SHA256 {
      * hash code, the data and all internal buffers are filled with zeros to avoid
      * keeping insecure data in memory longer than required (and possibly
      * swapped to disk).
-     * 
+     *
      * @param data the data to hash
      * @param salt the salt to use
      * @return the hash code
@@ -55,11 +55,11 @@ public class SHA256 {
      * array using UTF-16. After generating the hash code, the password array
      * and all internal buffers are filled with zeros to avoid keeping the plain text
      * password in memory longer than required (and possibly swapped to disk).
-     * 
+     *
      * @param userName the user name
      * @param password the password
      * @return the hash code
-     */    
+     */
     public byte[] getKeyPasswordHash(String userName, char[] password) {
         String user = userName + "@";
         byte[] buff = new byte[2 * (user.length() + password.length)];
@@ -80,7 +80,7 @@ public class SHA256 {
 
     /**
      * Calculate the hash code for the given data.
-     * 
+     *
      * @param data the data to hash
      * @param nullData if the data should be filled with zeros after calculating
      *            the hash code

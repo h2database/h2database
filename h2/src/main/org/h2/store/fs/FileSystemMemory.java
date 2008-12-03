@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -51,7 +51,7 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public boolean createNewFile(String fileName) {
-        synchronized (memoryFiles) {        
+        synchronized (memoryFiles) {
             if (exists(fileName)) {
                 return false;
             }
@@ -74,7 +74,7 @@ public class FileSystemMemory extends FileSystem {
         }
     }
 
-    public boolean tryDelete(String fileName) {    
+    public boolean tryDelete(String fileName) {
         fileName = normalize(fileName);
         synchronized (memoryFiles) {
             memoryFiles.remove(fileName);
@@ -196,7 +196,7 @@ public class FileSystemMemory extends FileSystem {
     public OutputStream openFileOutputStream(String fileName, boolean append) throws SQLException {
         try {
             FileObjectMemory obj = getMemoryFile(fileName);
-            obj.seek(0);            
+            obj.seek(0);
             return new FileObjectOutputStream(obj, append);
         } catch (IOException e) {
             throw Message.convertIOException(e, fileName);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -49,12 +49,12 @@ public class FullText implements Trigger, CloseListener {
 
     private static final String TRIGGER_PREFIX = "FT_";
     private static final String SCHEMA = "FT";
-    
+
     /**
      * The column name of the result set returned by the search method.
      */
     private static final String FIELD_QUERY = "QUERY";
-    
+
     /**
      * A column name of the result set returned by the searchData method.
      */
@@ -102,11 +102,11 @@ public class FullText implements Trigger, CloseListener {
         createTrigger(conn, schema, table);
         indexExistingRows(conn, schema, table);
     }
-    
+
     /**
      * Drop an existing full text index for a table. This method returns
      * silently if no index for this table exists.
-     * 
+     *
      * @param conn the connection
      * @param schema the schema name of the table (case sensitive)
      * @param table the table name (case sensitive)
@@ -127,7 +127,7 @@ public class FullText implements Trigger, CloseListener {
         prep.setInt(1, indexId);
         prep.execute();
         createOrDropTrigger(conn, schema, table, false);
-        prep = conn.prepareStatement("DELETE FROM " + SCHEMA + 
+        prep = conn.prepareStatement("DELETE FROM " + SCHEMA +
                 ".ROWS WHERE INDEXID=? AND ROWNUM<10000");
         while (true) {
             prep.setInt(1, indexId);
@@ -144,12 +144,12 @@ public class FullText implements Trigger, CloseListener {
                 break;
             }
         }
-    }    
+    }
 
     private static void createTrigger(Connection conn, String schema, String table) throws SQLException {
         createOrDropTrigger(conn, schema, table, true);
     }
-    
+
     private static void createOrDropTrigger(Connection conn, String schema, String table, boolean create) throws SQLException {
         Statement stat = conn.createStatement();
         String trigger = StringUtils.quoteIdentifier(schema) + "."
@@ -211,7 +211,7 @@ public class FullText implements Trigger, CloseListener {
      * common words that must not be indexed. The default ignore list is empty.
      * If indexes already exist at the time this list is changed, reindex must
      * be called.
-     * 
+     *
      * @param conn the connection
      * @param commaSeparatedList the list
      */
@@ -273,7 +273,7 @@ public class FullText implements Trigger, CloseListener {
      * the following Java functions to the database:
      * <ul>
      * <li>FT_CREATE_INDEX(schemaNameString, tableNameString, columnListString)
-     * </li><li>FT_SEARCH(queryString, limitInt, offsetInt): result set 
+     * </li><li>FT_SEARCH(queryString, limitInt, offsetInt): result set
      * </li><li>FT_REINDEX()
      * </li><li>FT_DROP_ALL()
      * </li></ul>
@@ -281,11 +281,11 @@ public class FullText implements Trigger, CloseListener {
      * information is stored. This function may be called from a Java
      * application, or by using the SQL statements:
      * <pre>
-     * CREATE ALIAS IF NOT EXISTS FULLTEXT_INIT FOR 
+     * CREATE ALIAS IF NOT EXISTS FULLTEXT_INIT FOR
      *      &quot;org.h2.fulltext.FullText.init&quot;;
      * CALL FULLTEXT_INIT();
      * </pre>
-     * 
+     *
      * @param conn the connection
      */
     public static void init(Connection conn) throws SQLException {
@@ -475,7 +475,7 @@ public class FullText implements Trigger, CloseListener {
 
     /**
      * Convert the object to a string.
-     * 
+     *
      * @param data the object
      * @param type the SQL type
      * @return the string
@@ -573,7 +573,7 @@ public class FullText implements Trigger, CloseListener {
             return "";
         }
     }
-    
+
     private static void addWords(FullTextSettings setting, HashSet set, String text) {
         StringTokenizer tokenizer = new StringTokenizer(text, " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]");
         while (tokenizer.hasMoreTokens()) {
@@ -667,7 +667,7 @@ public class FullText implements Trigger, CloseListener {
      * <li>KEYS (array of values): Comma separated list of values. Example: (1)
      * </li>
      * </ul>
-     * 
+     *
      * @param conn the connection
      * @param text the search query
      * @param limit the maximum number of rows or 0 for no limit
@@ -695,10 +695,10 @@ public class FullText implements Trigger, CloseListener {
     public static ResultSet search(Connection conn, String text, int limit, int offset) throws SQLException {
         return search(conn, text, limit, offset, false);
     }
-    
+
     /**
      * Create an empty search result and initialize the columns.
-     * 
+     *
      * @param data true if the result set should contain the primary key data as
      *            an array.
      * @return the empty result set
@@ -766,7 +766,7 @@ public class FullText implements Trigger, CloseListener {
                 IndexInfo index = setting.getIndexInfo(indexId);
                 if (data) {
                     Object[][] columnData = parseKey(conn, key);
-                    Object[] row = new Object[] {  
+                    Object[] row = new Object[] {
                         index.schemaName,
                         index.tableName,
                         columnData[0],
@@ -794,7 +794,7 @@ public class FullText implements Trigger, CloseListener {
 
     /**
      * Parse a primary key condition into the primary key columns.
-     * 
+     *
      * @param conn the database connection
      * @param key the primary key condition as a string
      * @return an array containing the column name list and the data list
@@ -816,7 +816,7 @@ public class FullText implements Trigger, CloseListener {
         };
         return columnData;
     }
-    
+
     private static void addColumnData(ArrayList columns, ArrayList data, Expression expr) {
         if (expr instanceof ConditionAndOr) {
             ConditionAndOr and = (ConditionAndOr) expr;
@@ -837,13 +837,13 @@ public class FullText implements Trigger, CloseListener {
             }
         }
     }
-    
+
     public void close() throws SQLException {
         setting.removeIndexInfo(index);
-    }    
-    
+    }
+
     public void remove() throws SQLException {
         setting.removeIndexInfo(index);
-    }    
+    }
 
 }

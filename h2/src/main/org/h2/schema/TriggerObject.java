@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -71,7 +71,7 @@ public class TriggerObject extends SchemaObjectBase {
 
     /**
      * Set the trigger class name and load the class if possible.
-     * 
+     *
      * @param session the session
      * @param triggerClassName the name of the trigger class
      * @param force whether exceptions (due to missing class or access rights)
@@ -92,7 +92,7 @@ public class TriggerObject extends SchemaObjectBase {
      * Call the trigger class if required. This method does nothing if the
      * trigger is not defined for the given action. This method is called before
      * or after any rows have been processed, once for each statement.
-     * 
+     *
      * @param session the session
      * @param beforeAction if this method is called before applying the changes
      */
@@ -130,7 +130,7 @@ public class TriggerObject extends SchemaObjectBase {
      * method does nothing if the trigger is not defined for the given action.
      * This method is called before or after a row is processed, possibly many
      * times for each statement.
-     * 
+     *
      * @param session the session
      * @param oldRow the old row
      * @param newRow the new row
@@ -197,7 +197,7 @@ public class TriggerObject extends SchemaObjectBase {
 
     /**
      * Set the trigger type.
-     * 
+     *
      * @param typeMask the type
      */
     public void setTypeMask(int typeMask) {
@@ -302,7 +302,7 @@ public class TriggerObject extends SchemaObjectBase {
 
     /**
      * Get the table of this trigger.
-     * 
+     *
      * @return the table
      */
     public Table getTable() {
@@ -311,7 +311,7 @@ public class TriggerObject extends SchemaObjectBase {
 
     /**
      * Check if this is a before trigger.
-     * 
+     *
      * @return true if it is
      */
     public boolean getBefore() {
@@ -320,7 +320,7 @@ public class TriggerObject extends SchemaObjectBase {
 
     /**
      * Get the trigger class name.
-     * 
+     *
      * @return the class name
      */
     public String getTriggerClassName() {

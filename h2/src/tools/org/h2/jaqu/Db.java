@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -25,26 +25,26 @@ import org.h2.util.JdbcUtils;
  */
 //## Java 1.5 begin ##
 public class Db {
-    
-    private static final WeakIdentityHashMap<Object, Token> TOKENS = 
+
+    private static final WeakIdentityHashMap<Object, Token> TOKENS =
         Utils.newWeakIdentityHashMap();
-    
+
     private final Connection conn;
     private final Map<Class, TableDefinition> classMap = Utils.newHashMap();
-    
+
     Db(Connection conn) {
         this.conn = conn;
     }
-    
+
     static <X> X registerToken(X x, Token token) {
         TOKENS.put(x, token);
         return x;
     }
-    
+
     static Token getToken(Object x) {
         return TOKENS.get(x);
     }
-    
+
     private static <T> T instance(Class<T> clazz) {
         try {
             return clazz.newInstance();
@@ -73,7 +73,7 @@ public class Db {
             throw convert(e);
         }
     }
-    
+
     private static Error convert(Exception e) {
         return new Error(e);
     }
@@ -88,11 +88,11 @@ public class Db {
         define(clazz).createTableIfRequired(this);
         return Query.from(this, alias);
     }
-    
+
     <T> void createTable(Class<T> clazz) {
         define(clazz).createTableIfRequired(this);
     }
-    
+
     <T> TableDefinition<T> define(Class<T> clazz) {
         TableDefinition def = classMap.get(clazz);
         if (def == null) {
@@ -107,7 +107,7 @@ public class Db {
         }
         return def;
     }
-    
+
     public void close() {
         try {
             conn.close();
@@ -115,7 +115,7 @@ public class Db {
             throw new Error(e);
         }
     }
-    
+
     public <A> TestCondition<A> test(A x) {
         return new TestCondition<A>(x);
     }
@@ -133,7 +133,7 @@ public class Db {
             throw new RuntimeException(e);
         }
     }
-    
+
     TableDefinition getTableDefinition(Class< ? > clazz) {
         return classMap.get(clazz);
     }
@@ -145,7 +145,7 @@ public class Db {
             throw new RuntimeException(e);
         }
     }
-    
+
     int executeUpdate(String sql) {
         try {
             return conn.createStatement().executeUpdate(sql);
@@ -157,7 +157,7 @@ public class Db {
 //    <X> FieldDefinition<X> getFieldDefinition(X x) {
 //        return aliasMap.get(x).getFieldDefinition();
 //    }
-//    
+//
 //    <X> SelectColumn<X> getSelectColumn(X x) {
 //        return aliasMap.get(x);
 //    }

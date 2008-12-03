@@ -82,7 +82,7 @@ or by using Statement.setMaxRows(max).
 
 <h3>Large Result Sets and External Sorting</h3>
 <p>
-For large result set, the result is buffered to disk. The threshold can be defined using the statement SET MAX_MEMORY_ROWS. 
+For large result set, the result is buffered to disk. The threshold can be defined using the statement SET MAX_MEMORY_ROWS.
 If ORDER BY is used, the sorting is done using an external sort algorithm. In this case, each block of rows is sorted using
 quick sort, then written to disk; when reading the data, the blocks are merged together.
 </p>
@@ -113,8 +113,8 @@ CREATE LINKED TABLE LINK('org.postgresql.Driver', 'jdbc:postgresql:test', 'sa', 
 </pre>
 <p>
 You can then access the table in the usual way.
-Whenever the linked table is accessed, the database issues specific queries over JDBC. 
-Using the example above, if you issue the query <code>SELECT * FROM LINK WHERE ID=1</code>, 
+Whenever the linked table is accessed, the database issues specific queries over JDBC.
+Using the example above, if you issue the query <code>SELECT * FROM LINK WHERE ID=1</code>,
 then the following query is run against the PostgreSQL database: <code>SELECT * FROM TEST WHERE ID=?</code>.
 The same happens for insert and update statements. Only simple statements are executed against the
 target database, that means no joins. Prepared statements are used where possible.
@@ -128,7 +128,7 @@ NULL and values that are not set in the insert statement are both inserted as NU
 This may not have the desired effect if a default value in the target table is other than NULL.
 </p>
 <p>
-If multiple linked tables point to the same database (using the same database URL), the connection 
+If multiple linked tables point to the same database (using the same database URL), the connection
 is shared. To disable this, set the system property h2.shareLinkedConnections to false.
 </p>
 <p>
@@ -359,9 +359,9 @@ for example CURRENT_TIMESTAMP.
 <br /><a name="standards_compliance"></a>
 <h2>Standards Compliance</h2>
 <p>
-This database tries to be as much standard compliant as possible. For the SQL language, ANSI/ISO is the main 
+This database tries to be as much standard compliant as possible. For the SQL language, ANSI/ISO is the main
 standard. There are several versions that refer to the release date: SQL-92, SQL:1999, and SQL:2003.
-Unfortunately, the standard documentation is not freely available. Another problem is that important features 
+Unfortunately, the standard documentation is not freely available. Another problem is that important features
 are not standardized. Whenever this is the case, this database tries to be compatible to other databases.
 </p>
 
@@ -541,7 +541,7 @@ An implementation of the ADO.NET interface is available in the open source proje
     <code>ikvmc.exe -target:library -version:1.0.69.0 h2*.jar</code>
 </li></ul>
 <p>
-If you want your C# application use H2, you need to add the h2.dll and the 
+If you want your C# application use H2, you need to add the h2.dll and the
 IKVM.OpenJDK.ClassLibrary.dll to your C# solution. Here some sample code:
 </p>
 <pre>
@@ -561,7 +561,7 @@ class Test
             Console.WriteLine(rs.getString(1));
         }
     }
-} 
+}
 </pre>
 
 <br /><a name="acid"></a>
@@ -650,7 +650,7 @@ By default, MySQL calls fsync for each commit. When using one of those methods, 
 per second can be achieved, which is consistent with the RPM rate of the hard drive used.
 Unfortunately, even when calling FileDescriptor.sync() or FileChannel.force(),
 data is not always persisted to the hard drive, because most hard drives do not obey
-fsync(): see 
+fsync(): see
 <a href="http://hardware.slashdot.org/article.pl?sid=05/05/13/0529252">Your Hard Drive Lies to You</a>.
 In Mac OS X, fsync does not flush hard drive buffers. See
 <a href="http://lists.apple.com/archives/darwin-dev/2005/Feb/msg00072.html">Bad fsync?</a>.
@@ -979,14 +979,14 @@ database operations take about 2.2 times longer when using XTEA, and 2.5 times l
 
 <h3>Wrong Password Delay</h3>
 <p>
-To protect against remote brute force password attacks, the delay after each unsuccessful 
+To protect against remote brute force password attacks, the delay after each unsuccessful
 login gets double as long. Use the system properties h2.delayWrongPasswordMin
-and h2.delayWrongPasswordMax to change the minimum (the default is 250 milliseconds) 
-or maximum delay (the default is 4000 milliseconds, or 4 seconds). The delay only 
-applies for those using the wrong password. Normally there is no delay for a user that knows the correct 
-password, with one exception: after using the wrong password, there is a delay of up (randomly distributed) 
+and h2.delayWrongPasswordMax to change the minimum (the default is 250 milliseconds)
+or maximum delay (the default is 4000 milliseconds, or 4 seconds). The delay only
+applies for those using the wrong password. Normally there is no delay for a user that knows the correct
+password, with one exception: after using the wrong password, there is a delay of up (randomly distributed)
 the same delay as for a wrong password. This is to protect against parallel brute force attacks,
-so that an attacker needs to wait for the whole delay. Delays are synchronized. This is also required 
+so that an attacker needs to wait for the whole delay. Delays are synchronized. This is also required
 to protect against parallel attacks.
 </p>
 
@@ -1005,8 +1005,8 @@ Remote SSL/TLS connections are supported using the Java Secure Socket Extension
 The default cipher suite is <code>SSL_DH_anon_WITH_RC4_128_MD5</code>.
 </p>
 <p>
-To use your own keystore, set the system properties <code>javax.net.ssl.keyStore</code> and 
-<code>javax.net.ssl.keyStorePassword</code> before starting the H2 server and client. 
+To use your own keystore, set the system properties <code>javax.net.ssl.keyStore</code> and
+<code>javax.net.ssl.keyStorePassword</code> before starting the H2 server and client.
 See also <a href="http://java.sun.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#CustomizingStores">
 Customizing the Default Key and Trust Stores, Store Types, and Store Passwords</a>
 for more information.
@@ -1090,24 +1090,24 @@ This database has the following known limitations:
 <li>The maximum file size is currently 256 GB for the data, and 256 GB for the index.
 This number is excluding BLOB and CLOB data:
 Every CLOB or BLOB can be up to 256 GB as well.
-</li><li>The maximum file size for FAT or FAT32 file systems is 4 GB. That means when using FAT or FAT32, 
-the limit is 4 GB for the data. This is the limitation of the file system, and this database does not provide a 
+</li><li>The maximum file size for FAT or FAT32 file systems is 4 GB. That means when using FAT or FAT32,
+the limit is 4 GB for the data. This is the limitation of the file system, and this database does not provide a
 workaround for this problem. The suggested solution is to use another file system.
 </li><li>There is a limit on the complexity of SQL statements.
 Statements of the following form will result in a stack overflow exception:
 <pre>
-SELECT * FROM DUAL WHERE X = 1 
-OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2 
+SELECT * FROM DUAL WHERE X = 1
+OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
 -- repeat previous line 500 times --
 </pre>
-</li><li>There is no limit for the following entities, except the memory and storage capacity: 
-    maximum identifier length, maximum number of tables, maximum number of columns, 
-    maximum number of indexes, maximum number of parameters, 
+</li><li>There is no limit for the following entities, except the memory and storage capacity:
+    maximum identifier length, maximum number of tables, maximum number of columns,
+    maximum number of indexes, maximum number of parameters,
     maximum number of triggers, and maximum number of other database objects.
-</li><li>For limitations on data types, see the documentation of the respective Java data type 
+</li><li>For limitations on data types, see the documentation of the respective Java data type
     or the data type documentation of this database.
 </li></ul>
-    
+
 <br /><a name="glossary_links"></a>
 <h2>Glossary and Links</h2>
 <table><tr><th>Term</th><th>Description</th></tr>

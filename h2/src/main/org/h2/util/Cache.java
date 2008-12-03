@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -37,7 +37,7 @@ public interface Cache {
     /**
      * Add an element to the cache. Other items may fall out of the cache
      * because of this. It is not allowed to add the same record twice.
-     * 
+     *
      * @param r the object
      */
     void put(CacheObject r) throws SQLException;
@@ -84,14 +84,14 @@ public interface Cache {
 
     /**
      * Get the maximum size in words (4 bytes).
-     * 
+     *
      * @return the maximum size in number of double words (4 bytes)
      */
     int getMaxSize();
-    
+
     /**
      * Get the used size in words (4 bytes).
-     * 
+     *
      * @return the current size in number of double words (4 bytes)
      */
     int getSize();

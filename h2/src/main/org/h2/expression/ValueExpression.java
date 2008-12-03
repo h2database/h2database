@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -23,7 +23,7 @@ public class ValueExpression extends Expression {
      * The expression represents ValueNull.INSTANCE.
      */
     public static final ValueExpression NULL = new ValueExpression(ValueNull.INSTANCE);
-    
+
     /**
      * This special expression represents the default value. It is used for
      * UPDATE statements of the form SET COLUMN = DEFAULT. The value is
@@ -39,7 +39,7 @@ public class ValueExpression extends Expression {
 
     /**
      * Create a new expression with the given value.
-     * 
+     *
      * @param value the value
      * @return the expression
      */
@@ -72,7 +72,7 @@ public class ValueExpression extends Expression {
     }
 
     public void mapColumns(ColumnResolver resolver, int level) {
-        // nothing to do        
+        // nothing to do
     }
 
     public Expression optimize(Session session) {
@@ -88,7 +88,7 @@ public class ValueExpression extends Expression {
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        // nothing to do        
+        // nothing to do
     }
 
     public int getScale() {

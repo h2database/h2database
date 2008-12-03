@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -43,7 +43,7 @@ import org.h2.util.RandomUtils;
  * This is sometimes called 'Fuzz Testing'.
  */
 public class TestCrashAPI extends TestBase {
-    
+
     private static final Class[] INTERFACES = { Connection.class, PreparedStatement.class, Statement.class,
             ResultSet.class, ResultSetMetaData.class, Savepoint.class,
             ParameterMetaData.class, Clob.class, Blob.class, Array.class, CallableStatement.class };
@@ -72,9 +72,9 @@ public class TestCrashAPI extends TestBase {
         }
         // can not use FILE_LOCK=NO, otherwise something could be written into
         // the database in the finalize method
-        
+
         // ";STORAGE=TEXT";
-        String add = ""; 
+        String add = "";
 
 //         int testing;
         // add = ";STORAGE=TEXT";
@@ -90,7 +90,7 @@ public class TestCrashAPI extends TestBase {
         // }
 
         String url = getURL(DIR + "/crashApi" + seed, true) + add;
-        
+
 //        int test;
 //        url += ";DB_CLOSE_ON_EXIT=FALSE";
 //      int test;
@@ -233,9 +233,9 @@ public class TestCrashAPI extends TestBase {
         StringWriter writer = new StringWriter();
         t.printStackTrace(new PrintWriter(writer));
         String s = writer.toString();
-        TestBase.logError("new TestCrashAPI().init(test).testCase(" + 
-                seed + "); // Bug " + s.hashCode() + " id=" + id + 
-                " callCount=" + callCount + " openCount=" + openCount + 
+        TestBase.logError("new TestCrashAPI().init(test).testCase(" +
+                seed + "); // Bug " + s.hashCode() + " id=" + id +
+                " callCount=" + callCount + " openCount=" + openCount +
                 " " + t.getMessage(), t);
     }
 

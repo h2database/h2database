@@ -1820,7 +1820,7 @@ Databases in zip files: large queries are now supported. Temp files are created 
 Invalid inline views threw confusing SQL exceptions.
 
 @changelog_1233_li
-The Japanese translation of the error messages and the  H2 Console has been improved. Thanks a lot to Masahiro IKEMOTO.
+The Japanese translation of the error messages and the H2 Console has been improved. Thanks a lot to Masahiro IKEMOTO.
 
 @changelog_1234_li
 Optimization for MIN() and MAX() when using MVCC.
@@ -3794,7 +3794,7 @@ PostgreSQL Compatibility Mode
 To use the PostgreSQL mode, use the database URL <code>jdbc:h2:~/test;MODE=PostgreSQL</code> or the SQL statement <code>SET MODE PostgreSQL</code> .
 
 @features_1471_li
-Concatenation of a NULL with another value results in NULL. Usually, the NULL is treated as an empty    string if only one of the operators is NULL, and NULL is only returned if both values are NULL.
+Concatenation of a NULL with another value results in NULL. Usually, the NULL is treated as an empty   string if only one of the operators is NULL, and NULL is only returned if both values are NULL.
 
 @features_1472_li
 When converting a floating point number to a integer, the fractional   digits should not be truncated, but the value should be rounded.
@@ -4646,19 +4646,19 @@ means each entity that creates or contributes to the creation of Modifications.
 1.2. "Contributor Version"
 
 @license_1017_p
-means the combination of the Original Code, prior Modifications used by a Contributor,  and the Modifications made by that particular Contributor.
+means the combination of the Original Code, prior Modifications used by a Contributor, and the Modifications made by that particular Contributor.
 
 @license_1018_b
 1.3. "Covered Code"
 
 @license_1019_p
-means the Original Code or Modifications or the combination of the Original Code and  Modifications, in each case including portions thereof.
+means the Original Code or Modifications or the combination of the Original Code and Modifications, in each case including portions thereof.
 
 @license_1020_b
 1.4. "Electronic Distribution Mechanism"
 
 @license_1021_p
-means a mechanism generally accepted in the software development community for the  electronic transfer of data.
+means a mechanism generally accepted in the software development community for the electronic transfer of data.
 
 @license_1022_b
 1.5. "Executable"
@@ -4670,13 +4670,13 @@ means Covered Code in any form other than Source Code.
 1.6. "Initial Developer"
 
 @license_1025_p
-means the individual or entity identified as the Initial Developer in the Source Code  notice required by <a href="#exhibit-a">Exhibit A</a> .
+means the individual or entity identified as the Initial Developer in the Source Code notice required by <a href="#exhibit-a">Exhibit A</a> .
 
 @license_1026_b
 1.7. "Larger Work"
 
 @license_1027_p
-means a work which combines Covered Code or portions thereof with code not governed  by the terms of this License.
+means a work which combines Covered Code or portions thereof with code not governed by the terms of this License.
 
 @license_1028_b
 1.8. "License"
@@ -4688,7 +4688,7 @@ means this document.
 1.8.1. "Licensable"
 
 @license_1031_p
-means having the right to grant, to the maximum extent possible, whether at the  time of the initial grant or subsequently acquired, any and all of the rights  conveyed herein.
+means having the right to grant, to the maximum extent possible, whether at the time of the initial grant or subsequently acquired, any and all of the rights conveyed herein.
 
 @license_1032_b
 1.9. "Modifications"
@@ -4706,25 +4706,25 @@ means any addition to or deletion from the substance or structure of either the 
 1.10. "Original Code"
 
 @license_1037_p
-means Source Code of computer software code which is described in the Source Code  notice required by <a href="#exhibit-a">Exhibit A</a> as Original Code, and which,  at the time of its release under this License is not already Covered Code governed  by this License.
+means Source Code of computer software code which is described in the Source Code notice required by <a href="#exhibit-a">Exhibit A</a> as Original Code, and which, at the time of its release under this License is not already Covered Code governed by this License.
 
 @license_1038_b
 1.10.1. "Patent Claims"
 
 @license_1039_p
-means any patent claim(s), now owned or hereafter acquired, including without  limitation, method, process, and apparatus claims, in any patent Licensable by  grantor.
+means any patent claim(s), now owned or hereafter acquired, including without limitation, method, process, and apparatus claims, in any patent Licensable by grantor.
 
 @license_1040_b
 1.11. "Source Code"
 
 @license_1041_p
-means the preferred form of the Covered Code for making modifications to it,  including all modules it contains, plus any associated interface definition files,  scripts used to control compilation and installation of an Executable, or source  code differential comparisons against either the Original Code or another well known,  available Covered Code of the Contributor's choice. The Source Code can be in a  compressed or archival form, provided the appropriate decompression or de-archiving  software is widely available for no charge.
+means the preferred form of the Covered Code for making modifications to it, including all modules it contains, plus any associated interface definition files, scripts used to control compilation and installation of an Executable, or source code differential comparisons against either the Original Code or another well known, available Covered Code of the Contributor's choice. The Source Code can be in a compressed or archival form, provided the appropriate decompression or de-archiving software is widely available for no charge.
 
 @license_1042_b
 1.12. "You" (or "Your")
 
 @license_1043_p
-means an individual or a legal entity exercising rights under, and complying with  all of the terms of, this License or a future version of this License issued under <a href="#section-6.1">Section 6.1.</a> For legal entities, "You" includes any entity  which controls, is controlled by, or is under common control with You. For purposes of  this definition, "control" means (a) the power, direct or indirect, to cause the  direction or management of such entity, whether by contract or otherwise, or (b)  ownership of more than fifty percent (50%) of the outstanding shares or beneficial  ownership of such entity.
+means an individual or a legal entity exercising rights under, and complying with all of the terms of, this License or a future version of this License issued under <a href="#section-6.1">Section 6.1.</a> For legal entities, "You" includes any entity which controls, is controlled by, or is under common control with You. For purposes of this definition, "control" means (a) the power, direct or indirect, to cause the direction or management of such entity, whether by contract or otherwise, or (b) ownership of more than fifty percent (50%) of the outstanding shares or beneficial ownership of such entity.
 
 @license_1044_h3
 2. Source Code License
@@ -4736,16 +4736,16 @@ means an individual or a legal entity exercising rights under, and complying wit
 The Initial Developer hereby grants You a world-wide, royalty-free, non-exclusive license, subject to third party intellectual property claims:
 
 @license_1047_p
-2.1.a. under intellectual property rights (other than patent or  trademark) Licensable by Initial Developer to use, reproduce, modify, display, perform,  sublicense and distribute the Original Code (or portions thereof) with or without  Modifications, and/or as part of a Larger Work; and
+2.1.a. under intellectual property rights (other than patent or trademark) Licensable by Initial Developer to use, reproduce, modify, display, perform, sublicense and distribute the Original Code (or portions thereof) with or without Modifications, and/or as part of a Larger Work; and
 
 @license_1048_p
-2.1.b. under Patents Claims infringed by the making, using or selling  of Original Code, to make, have made, use, practice, sell, and offer for sale, and/or  otherwise dispose of the Original Code (or portions thereof).
+2.1.b. under Patents Claims infringed by the making, using or selling of Original Code, to make, have made, use, practice, sell, and offer for sale, and/or otherwise dispose of the Original Code (or portions thereof).
 
 @license_1049_p
-2.1.c. the licenses granted in this Section 2.1  ( <a href="#section-2.1-a">a</a> ) and ( <a href="#section-2.1-b">b</a> ) are effective on  the date Initial Developer first distributes Original Code under the terms of this  License.
+2.1.c. the licenses granted in this Section 2.1 ( <a href="#section-2.1-a">a</a> ) and ( <a href="#section-2.1-b">b</a> ) are effective on the date Initial Developer first distributes Original Code under the terms of this License.
 
 @license_1050_p
-2.1.d. Notwithstanding Section 2.1 ( <a href="#section-2.1-b">b</a> )  above, no patent license is granted: 1) for code that You delete from the Original Code;  2) separate from the Original Code; or 3) for infringements caused by: i) the  modification of the Original Code or ii) the combination of the Original Code with other  software or devices.
+2.1.d. Notwithstanding Section 2.1 ( <a href="#section-2.1-b">b</a> ) above, no patent license is granted: 1) for code that You delete from the Original Code; 2) separate from the Original Code; or 3) for infringements caused by: i) the modification of the Original Code or ii) the combination of the Original Code with other software or devices.
 
 @license_1051_h4
 2.2. Contributor Grant
@@ -4754,16 +4754,16 @@ The Initial Developer hereby grants You a world-wide, royalty-free, non-exclusiv
 Subject to third party intellectual property claims, each Contributor hereby grants You a world-wide, royalty-free, non-exclusive license
 
 @license_1053_p
-2.2.a. under intellectual property rights (other than patent or trademark)  Licensable by Contributor, to use, reproduce, modify, display, perform, sublicense and  distribute the Modifications created by such Contributor (or portions thereof) either on  an unmodified basis, with other Modifications, as Covered Code and/or as part of a Larger  Work; and
+2.2.a. under intellectual property rights (other than patent or trademark) Licensable by Contributor, to use, reproduce, modify, display, perform, sublicense and distribute the Modifications created by such Contributor (or portions thereof) either on an unmodified basis, with other Modifications, as Covered Code and/or as part of a Larger Work; and
 
 @license_1054_p
-2.2.b. under Patent Claims infringed by the making, using, or selling of  Modifications made by that Contributor either alone and/or in combination with its  Contributor Version (or portions of such combination), to make, use, sell, offer for  sale, have made, and/or otherwise dispose of: 1) Modifications made by that Contributor  (or portions thereof); and 2) the combination of Modifications made by that Contributor  with its Contributor Version (or portions of such combination).
+2.2.b. under Patent Claims infringed by the making, using, or selling of Modifications made by that Contributor either alone and/or in combination with its Contributor Version (or portions of such combination), to make, use, sell, offer for sale, have made, and/or otherwise dispose of: 1) Modifications made by that Contributor (or portions thereof); and 2) the combination of Modifications made by that Contributor with its Contributor Version (or portions of such combination).
 
 @license_1055_p
-2.2.c. the licenses granted in Sections 2.2  ( <a href="#section-2.2-a">a</a> ) and 2.2 ( <a href="#section-2.2-b">b</a> ) are effective  on the date Contributor first makes Commercial Use of the Covered Code.
+2.2.c. the licenses granted in Sections 2.2 ( <a href="#section-2.2-a">a</a> ) and 2.2 ( <a href="#section-2.2-b">b</a> ) are effective on the date Contributor first makes Commercial Use of the Covered Code.
 
 @license_1056_p
-2.2.c. Notwithstanding Section 2.2 ( <a href="#section-2.2-b">b</a> )  above, no patent license is granted: 1) for any code that Contributor has deleted from  the Contributor Version; 2) separate from the Contributor Version; 3) for infringements  caused by: i) third party modifications of Contributor Version or ii) the combination of  Modifications made by that Contributor with other software (except as part of the  Contributor Version) or other devices; or 4) under Patent Claims infringed by Covered Code  in the absence of Modifications made by that Contributor.
+2.2.c. Notwithstanding Section 2.2 ( <a href="#section-2.2-b">b</a> ) above, no patent license is granted: 1) for any code that Contributor has deleted from the Contributor Version; 2) separate from the Contributor Version; 3) for infringements caused by: i) third party modifications of Contributor Version or ii) the combination of Modifications made by that Contributor with other software (except as part of the Contributor Version) or other devices; or 4) under Patent Claims infringed by Covered Code in the absence of Modifications made by that Contributor.
 
 @license_1057_h3
 3. Distribution Obligations
@@ -4889,10 +4889,10 @@ Covered code is provided under this license on an "as is" basis, without warrant
 8.2. If You initiate litigation by asserting a patent infringement claim (excluding declaratory judgment actions) against Initial Developer or a Contributor (the Initial Developer or Contributor against whom You file such action is referred to as "Participant") alleging that:
 
 @license_1098_p
-8.2.a. such Participant's Contributor Version directly or indirectly  infringes any patent, then any and all rights granted by such Participant to You under  Sections <a href="#section-2.1">2.1</a> and/or <a href="#section-2.2">2.2</a> of this  License shall, upon 60 days notice from Participant terminate prospectively, unless if  within 60 days after receipt of notice You either: (i) agree in writing to pay  Participant a mutually agreeable reasonable royalty for Your past and future use of  Modifications made by such Participant, or (ii) withdraw Your litigation claim with  respect to the Contributor Version against such Participant. If within 60 days of  notice, a reasonable royalty and payment arrangement are not mutually agreed upon in  writing by the parties or the litigation claim is not withdrawn, the rights granted by  Participant to You under Sections <a href="#section-2.1">2.1</a> and/or <a href="#section-2.2">2.2</a> automatically terminate at the expiration of the 60 day  notice period specified above.
+8.2.a. such Participant's Contributor Version directly or indirectly infringes any patent, then any and all rights granted by such Participant to You under Sections <a href="#section-2.1">2.1</a> and/or <a href="#section-2.2">2.2</a> of this License shall, upon 60 days notice from Participant terminate prospectively, unless if within 60 days after receipt of notice You either: (i) agree in writing to pay Participant a mutually agreeable reasonable royalty for Your past and future use of Modifications made by such Participant, or (ii) withdraw Your litigation claim with respect to the Contributor Version against such Participant. If within 60 days of notice, a reasonable royalty and payment arrangement are not mutually agreed upon in writing by the parties or the litigation claim is not withdrawn, the rights granted by Participant to You under Sections <a href="#section-2.1">2.1</a> and/or <a href="#section-2.2">2.2</a> automatically terminate at the expiration of the 60 day notice period specified above.
 
 @license_1099_p
-8.2.b. any software, hardware, or device, other than such Participant's  Contributor Version, directly or indirectly infringes any patent, then any rights  granted to You by such Participant under Sections 2.1( <a href="#section-2.1-b">b</a> )  and 2.2( <a href="#section-2.2-b">b</a> ) are revoked effective as of the date You first  made, used, sold, distributed, or had made, Modifications made by that Participant.
+8.2.b. any software, hardware, or device, other than such Participant's Contributor Version, directly or indirectly infringes any patent, then any rights granted to You by such Participant under Sections 2.1( <a href="#section-2.1-b">b</a> ) and 2.2( <a href="#section-2.2-b">b</a> ) are revoked effective as of the date You first made, used, sold, distributed, or had made, Modifications made by that Participant.
 
 @license_1100_p
 8.3. If You assert a patent infringement claim against Participant alleging that such Participant's Contributor Version directly or indirectly infringes any patent where such claim is resolved (such as by license or settlement) prior to the initiation of patent infringement litigation, then the reasonable value of the licenses granted by such Participant under Sections <a href="#section-2.1">2.1</a> or <a href="#section-2.2">2.2</a> shall be taken into account in determining the amount or value of any payment or license.
@@ -4925,7 +4925,7 @@ Swiss</em> law provisions (except to the extent applicable law, if any, provides
 Switzerland</em> , any litigation relating to this License shall be subject to the jurisdiction of
 
 @license_1110_em
-Switzerland</em> ,  with the losing party responsible for costs, including without limitation, court costs and reasonable attorneys' fees and expenses. The application of the United Nations Convention on Contracts for the International Sale of Goods is expressly excluded. Any law or regulation which provides that the language of a contract shall be construed against the drafter shall not apply to this License.
+Switzerland</em> , with the losing party responsible for costs, including without limitation, court costs and reasonable attorneys' fees and expenses. The application of the United Nations Convention on Contracts for the International Sale of Goods is expressly excluded. Any law or regulation which provides that the language of a contract shall be construed against the drafter shall not apply to this License.
 
 @license_1111_h3
 12. Responsibility for Claims

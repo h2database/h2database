@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -47,7 +47,7 @@ public abstract class Table extends SchemaObjectBase {
      * The table type that means this table is a regular persistent table.
      */
     public static final int TYPE_CACHED = 0;
-    
+
     /**
      * The table type that means this table is a regular persistent table.
      */
@@ -57,17 +57,17 @@ public abstract class Table extends SchemaObjectBase {
      * The table type name for linked tables.
      */
     public static final String TABLE_LINK = "TABLE LINK";
-    
+
     /**
      * The table type name for system tables.
      */
     public static final String SYSTEM_TABLE = "SYSTEM TABLE";
-    
+
     /**
      * The table type name for regular data tables.
      */
     public static final String TABLE = "TABLE";
-    
+
     /**
      * The table type name for views.
      */
@@ -97,7 +97,7 @@ public abstract class Table extends SchemaObjectBase {
         initSchemaObjectBase(schema, id, name, Trace.TABLE);
         this.persistent = persistent;
     }
-    
+
     public void rename(String newName) throws SQLException {
         super.rename(newName);
         for (int i = 0; constraints != null && i < constraints.size(); i++) {
@@ -255,7 +255,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Add all objects that this table depends on to the hash set.
-     * 
+     *
      * @param dependencies the current set of dependencies
      */
     public void addDependencies(HashSet dependencies) {
@@ -324,7 +324,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Rename a column of this table.
-     * 
+     *
      * @param column the column to rename
      * @param newName the new column name
      */
@@ -345,7 +345,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Check if the table is exclusively locked by this session.
-     * 
+     *
      * @param session the session
      * @return true if it is
      */
@@ -355,7 +355,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Update a list of rows in this table.
-     * 
+     *
      * @param prepared the prepared statement
      * @param session the session
      * @param rows a list of row pairs of the form old row, new row, old row,
@@ -405,7 +405,7 @@ public abstract class Table extends SchemaObjectBase {
             }
         }
         database.removeMeta(session, getId());
-        // must delete sequences later (in case there is a power failure 
+        // must delete sequences later (in case there is a power failure
         // before removing the table object)
         while (sequences != null && sequences.size() > 0) {
             Sequence sequence = (Sequence) sequences.get(0);
@@ -423,7 +423,7 @@ public abstract class Table extends SchemaObjectBase {
     /**
      * Check that this column is not referenced by a referential constraint or
      * multi-column index.
-     * 
+     *
      * @param col the column
      * @throws SQLException if the column is referenced
      */
@@ -455,7 +455,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Get a new simple row object.
-     * 
+     *
      * @param singleColumn if only one value need to be stored
      * @return the simple row object
      */
@@ -488,7 +488,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Get the column at the given index.
-     * 
+     *
      * @param index the column index (0, 1,...)
      * @return the column
      */
@@ -498,7 +498,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Get the column with the given name.
-     * 
+     *
      * @param columnName the column name
      * @return the column
      * @throws SQLException if the column was not found
@@ -513,7 +513,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Get the best plan for the given search mask.
-     * 
+     *
      * @param session the session
      * @param masks null means 'always false'
      * @return the plan item
@@ -536,7 +536,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Get the primary key index if there is one, or null if there is none.
-     * 
+     *
      * @return the primary key index or null
      */
     public Index findPrimaryKey() {
@@ -562,7 +562,7 @@ public abstract class Table extends SchemaObjectBase {
      * Validate all values in this row, convert the values if required, and
      * update the sequence values if required. This call will also set the
      * default values if required and set the computed column if there are any.
-     * 
+     *
      * @param session the session
      * @param row the row
      */
@@ -598,7 +598,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Remove the given index from the list.
-     * 
+     *
      * @param index the index to remove
      */
     public void removeIndex(Index index) {
@@ -616,7 +616,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Remove the given view from the list.
-     * 
+     *
      * @param view the view to remove
      */
     void removeView(TableView view) {
@@ -625,7 +625,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Remove the given constraint from the list.
-     * 
+     *
      * @param constraint the constraint to remove
      */
     public void removeConstraint(Constraint constraint) {
@@ -634,7 +634,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Remove a sequence from the table. Sequences are used as identity columns.
-     * 
+     *
      * @param session the session
      * @param sequence the sequence to remove
      */
@@ -644,16 +644,16 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Remove the given trigger from the list.
-     * 
+     *
      * @param trigger the trigger to remove
      */
     public void removeTrigger(TriggerObject trigger) {
         remove(triggers, trigger);
     }
-    
+
     /**
      * Add a view to this table.
-     * 
+     *
      * @param view the view to add
      */
     public void addView(TableView view) {
@@ -662,7 +662,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Add a constraint to the table.
-     * 
+     *
      * @param constraint the constraint to add
      */
     public void addConstraint(Constraint constraint) {
@@ -677,7 +677,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Add a sequence to this table.
-     * 
+     *
      * @param sequence the sequence to add
      */
     public void addSequence(Sequence sequence) {
@@ -686,7 +686,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Add a trigger to this table.
-     * 
+     *
      * @param trigger the trigger to add
      */
     public void addTrigger(TriggerObject trigger) {
@@ -710,18 +710,18 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Fire the before update triggers for this table.
-     * 
+     *
      * @param session the session
      */
     public void fireBefore(Session session) throws SQLException {
-        // TODO trigger: for sql server compatibility, 
+        // TODO trigger: for sql server compatibility,
         // should send list of rows, not just 'the event'
         fire(session, true);
     }
 
     /**
      * Fire the after update triggers for this table.
-     * 
+     *
      * @param session the session
      */
     public void fireAfter(Session session) throws SQLException {
@@ -740,7 +740,7 @@ public abstract class Table extends SchemaObjectBase {
     /**
      * Check if row based triggers or constraints are defined.
      * In this case the fire after and before row methods need to be called.
-     *  
+     *
      *  @return if there are any triggers or rows defined
      */
     public boolean fireRow() {
@@ -749,7 +749,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Fire all triggers that need to be called before a row is updated.
-     *  
+     *
      *  @param session the session
      *  @param oldRow the old data or null for an insert
      *  @param newRow the new data or null for a delete
@@ -772,7 +772,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Fire all triggers that need to be called after a row is updated.
-     *  
+     *
      *  @param session the session
      *  @param oldRow the old data or null for an insert
      *  @param newRow the new data or null for a delete
@@ -797,7 +797,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Check if this table can be truncated.
-     * 
+     *
      * @return true if it can
      */
     public boolean canTruncate() {
@@ -806,7 +806,7 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Enable or disable foreign key constraint checking for this table.
-     * 
+     *
      * @param session the session
      * @param enabled true if checking should be enabled
      * @param checkExisting true if existing rows must be checked during this call
@@ -829,7 +829,7 @@ public abstract class Table extends SchemaObjectBase {
     /**
      * Get the index that has the given column as the first element.
      * This method returns null if no matching index is found.
-     * 
+     *
      * @param column the column
      * @param first if the min value should be returned
      * @return the index or null
@@ -871,7 +871,7 @@ public abstract class Table extends SchemaObjectBase {
     /**
      * If the index is still required by a constraint, transfer the ownership to
      * it. Otherwise, the index is removed.
-     * 
+     *
      * @param session the session
      * @param index the index that is no longer required
      */
@@ -896,7 +896,7 @@ public abstract class Table extends SchemaObjectBase {
      * session (the 'clash session'). In this case the method must return an
      * empty object array. Once a deadlock has been detected, the methods must
      * add the session to the list.
-     * 
+     *
      * @param session the session to be tested for
      * @param clash the originating session, and null when starting verification
      * @return an object array with the sessions involved in the deadlock

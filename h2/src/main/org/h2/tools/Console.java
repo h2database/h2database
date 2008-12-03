@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -44,7 +44,7 @@ import org.h2.util.StartBrowser;
  * This tool starts the H2 Console (web-) server, as well as the TCP and PG
  * server. For JDK 1.6, a system tray icon is created, for platforms that
  * support it. Otherwise, a small window opens.
- * 
+ *
  * @author Thomas Mueller, Ridvan Agar
  */
 public class Console implements
@@ -69,7 +69,7 @@ ShutdownHandler {
      * The command line options are the same as in the Server tool,
      * but this tool will always start the TCP, TCP and PG server.
      * Options are case sensitive.
-     * 
+     *
      * The command line interface for this tool. The options must be split into
      * strings like this: "-baseDir", "/temp/data",... By default, -tcp, -web,
      * -browser and -pg are started. If there is a problem starting a service,
@@ -79,14 +79,14 @@ ShutdownHandler {
      * <li>-help or -? (print the list of options) </li>
      * <li>-web (start the Web Server and H2 Console) </li>
      * <li>-tool (start the icon or window that allows to start a browser)</li>
-     * <li>-browser (start a browser and open a page to connect to the 
+     * <li>-browser (start a browser and open a page to connect to the
      *     Web Server) </li>
      * <li>-tcp (start the TCP Server) </li>
      * <li>-pg (start the PG Server) </li>
      * </ul>
-     * For each Server, additional options are available. 
+     * For each Server, additional options are available.
      * Those options are the same as in the Server tool.
-     * 
+     *
      * @param args the command line arguments
      */
     public static void main(String[] args) {
@@ -95,7 +95,7 @@ ShutdownHandler {
             System.exit(exitCode);
         }
     }
-    
+
     private void showUsage(PrintStream out) {
         out.println("Starts H2 Console");
         out.println("By default, -web, -tool, -browser, -tcp, and -pg are started. Options are case sensitive.");
@@ -113,7 +113,7 @@ ShutdownHandler {
         boolean tcpStart = false, pgStart = false, webStart = false, toolStart = false;
         boolean browserStart = false;
         boolean startDefaultServers = true;
-        
+
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg == null) {
@@ -203,7 +203,7 @@ ShutdownHandler {
         }
         return exitCode;
     }
-    
+
     private void printProblem(SQLException e, Server server) {
         if (server == null) {
             e.printStackTrace();
@@ -308,7 +308,7 @@ ShutdownHandler {
              tray.getClass().
                 getMethod("add", new Class[] { Class.forName("java.awt.TrayIcon") }).
                 invoke(tray, new Object[] { trayIcon });
-             
+
              return true;
         } catch (Exception e) {
             return false;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -25,101 +25,101 @@ import org.h2.util.StringUtils;
  * The base class for objects that can print trace information about themselves.
  */
 public class TraceObject {
-    
+
     /**
      * The trace type id  for callable statements.
      */
     protected static final int CALLABLE_STATEMENT = 0;
-    
+
     /**
      * The trace type id  for connections.
      */
     protected static final int CONNECTION = 1;
-    
+
     /**
      * The trace type id  for database meta data objects.
      */
     protected static final int DATABASE_META_DATA = 2;
-    
+
     /**
      * The trace type id  for prepared statements.
      */
     protected static final int PREPARED_STATEMENT = 3;
-    
+
     /**
      * The trace type id  for result sets.
      */
     protected static final int RESULT_SET = 4;
-    
+
     /**
      * The trace type id  for result set meta data objects.
      */
     protected static final int RESULT_SET_META_DATA = 5;
-    
+
     /**
      * The trace type id  for savepoint objects.
      */
     protected static final int SAVEPOINT = 6;
-    
+
     /**
      * The trace type id  for sql exceptions.
      */
     protected static final int SQL_EXCEPTION = 7;
-    
+
     /**
      * The trace type id  for statements.
      */
     protected static final int STATEMENT = 8;
-    
+
     /**
      * The trace type id  for blobs.
      */
     protected static final int BLOB = 9;
-    
+
     /**
      * The trace type id  for clobs.
      */
     protected static final int CLOB = 10;
-    
+
     /**
      * The trace type id  for parameter meta data objects.
      */
     protected static final int PARAMETER_META_DATA = 11;
-    
+
     /**
      * The trace type id  for data sources.
      */
     protected static final int DATA_SOURCE = 12;
-    
+
     /**
      * The trace type id  for XA data sources.
      */
     protected static final int XA_DATA_SOURCE = 13;
-    
+
     /**
      * The trace type id  for transaction ids.
      */
     protected static final int XID = 14;
-    
+
     /**
      * The trace type id  for array objects.
      */
     protected static final int ARRAY = 15;
-    
+
     private static final int LAST = ARRAY + 1;
     private static final int[] ID = new int[LAST];
     private static final String[] PREFIX = {
         "call", "conn", "dbMeta", "prep", "rs", "rsMeta", "sp", "ex", "stat", "blob", "clob", "pMeta",
         "ds", "xads", "xid", "ar"
     };
-    
+
     private Trace trace;
     private int type;
     private int id;
 
     /**
      * Set the options to use when writing trace message.
-     * 
+     *
      * @param trace the trace object
      * @param type the trace object type
      * @param id the trace object id
@@ -146,7 +146,7 @@ public class TraceObject {
 
     /**
      * Get the next trace object id for this object type.
-     * 
+     *
      * @param type the object type
      * @return the new trace object id
      */
@@ -156,7 +156,7 @@ public class TraceObject {
 
     /**
      * Check if the debug trace level is enabled.
-     * 
+     *
      * @return true if it is
      */
     protected boolean isDebugEnabled() {
@@ -165,7 +165,7 @@ public class TraceObject {
 
     /**
      * Check if info trace level is enabled.
-     * 
+     *
      * @return true if it is
      */
     protected boolean isInfoEnabled() {
@@ -173,9 +173,9 @@ public class TraceObject {
     }
 
     /**
-     * Write trace information as an assignment in the form 
+     * Write trace information as an assignment in the form
      * className prefixId = objectName.value.
-     * 
+     *
      * @param className the class name of the result
      * @param type the prefix type
      * @param id the trace object id of the created object
@@ -190,7 +190,7 @@ public class TraceObject {
     /**
      * Write trace information as a method call in the form
      * objectName.methodName().
-     * 
+     *
      * @param methodName the method name
      */
     protected void debugCodeCall(String methodName) {
@@ -203,7 +203,7 @@ public class TraceObject {
      * Write trace information as a method call in the form
      * objectName.methodName(param) where the parameter is formatted as a long
      * value.
-     * 
+     *
      * @param methodName the method name
      * @param param one single long parameter
      */
@@ -217,7 +217,7 @@ public class TraceObject {
      * Write trace information as a method call in the form
      * objectName.methodName(param) where the parameter is formatted as a Java
      * string.
-     * 
+     *
      * @param methodName the method name
      * @param param one single string parameter
      */
@@ -229,7 +229,7 @@ public class TraceObject {
 
     /**
      * Write trace information in the form objectName.text.
-     * 
+     *
      * @param text the trace text
      */
     protected void debugCode(String text) {
@@ -240,7 +240,7 @@ public class TraceObject {
 
     /**
      * Format a string as a Java string literal.
-     * 
+     *
      * @param s the string to convert
      * @return the Java string literal
      */
@@ -250,7 +250,7 @@ public class TraceObject {
 
     /**
      * Format a time to the Java source code that represents this object.
-     * 
+     *
      * @param x the time to convert
      * @return the Java source code
      */
@@ -263,7 +263,7 @@ public class TraceObject {
 
     /**
      * Format a timestamp to the Java source code that represents this object.
-     * 
+     *
      * @param x the timestamp to convert
      * @return the Java source code
      */
@@ -276,7 +276,7 @@ public class TraceObject {
 
     /**
      * Format a date to the Java source code that represents this object.
-     * 
+     *
      * @param x the date to convert
      * @return the Java source code
      */
@@ -289,7 +289,7 @@ public class TraceObject {
 
     /**
      * Format a big decimal to the Java source code that represents this object.
-     * 
+     *
      * @param x the big decimal to convert
      * @return the Java source code
      */
@@ -302,7 +302,7 @@ public class TraceObject {
 
     /**
      * Format a byte array to the Java source code that represents this object.
-     * 
+     *
      * @param x the byte array to convert
      * @return the Java source code
      */
@@ -316,7 +316,7 @@ public class TraceObject {
     /**
      * Format a string array to the Java source code that represents this
      * object.
-     * 
+     *
      * @param s the string array to convert
      * @return the Java source code
      */
@@ -326,7 +326,7 @@ public class TraceObject {
 
     /**
      * Format an int array to the Java source code that represents this object.
-     * 
+     *
      * @param s the int array to convert
      * @return the Java source code
      */
@@ -336,7 +336,7 @@ public class TraceObject {
 
     /**
      * Format a map to the Java source code that represents this object.
-     * 
+     *
      * @param map the map to convert
      * @return the Java source code
      */
@@ -367,7 +367,7 @@ public class TraceObject {
 
     /**
      * Log an exception and convert it to a SQL exception if required.
-     * 
+     *
      * @param e the exception
      * @return the SQL exception object
      */
@@ -391,7 +391,7 @@ public class TraceObject {
         } else {
             if (e instanceof SQLException) {
                 SQLException e2 = (SQLException) e;
-                int errorCode = e2.getErrorCode(); 
+                int errorCode = e2.getErrorCode();
                 if (errorCode >= 23000 && errorCode < 24000) {
                     trace.info("SQLException", e);
                 } else {

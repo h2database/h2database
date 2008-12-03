@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -24,15 +24,15 @@ public class TestLogFile extends TestBase {
 
     private static final int MAX_LOG_SIZE = 1;
     private Connection conn;
-    
+
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
         TestBase.createCaller().init().test();
-    }    
+    }
 
     private long reconnect(int maxFiles) throws SQLException {
         if (conn != null) {
@@ -61,7 +61,7 @@ public class TestLogFile extends TestBase {
             reconnect(0);
             insert();
             // data, index, log
-            int maxFiles = 3; 
+            int maxFiles = 3;
             for (int i = 0; i < 3; i++) {
                 long length = reconnect(maxFiles);
                 insert();

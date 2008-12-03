@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -35,7 +35,7 @@ public abstract class TestHalt extends TestBase {
      * This bit flag means insert operations should be performed.
      */
     protected static final int OP_INSERT = 1;
-    
+
     /**
      * This bit flag means delete operations should be performed.
      */
@@ -45,27 +45,27 @@ public abstract class TestHalt extends TestBase {
      * This bit flag means update operations should be performed.
      */
     protected static final int OP_UPDATE = 4;
-    
+
     /**
      * This bit flag means select operations should be performed.
      */
     protected static final int OP_SELECT = 8;
-    
+
     /**
      * This bit flag means operations should be written to the log file immediately.
      */
     protected static final int FLAG_NO_DELAY = 1;
-    
+
     /**
      * This bit flag means the test should use LOB values.
      */
     protected static final int FLAG_LOBS = 2;
-    
+
     /**
      * The test directory.
      */
     static final String DIR = TestBase.getTestDir("halt");
-    
+
     private static final String DATABASE_NAME = "halt";
     private static final String TRACE_FILE_NAME = "haltTrace.trace.db";
 
@@ -73,22 +73,22 @@ public abstract class TestHalt extends TestBase {
      * The current operations bit mask.
      */
     protected int operations;
-    
+
     /**
      * The current flags bit mask.
      */
     protected int flags;
-    
+
     /**
      * The current test value, for example the number of rows.
      */
     protected int value;
-    
+
     /**
      * The database connection.
      */
     protected Connection conn;
-    
+
     /**
      * The pseudo random number generator used for this test.
      */
@@ -144,7 +144,7 @@ public abstract class TestHalt extends TestBase {
 
     /**
      * Start the program.
-     * 
+     *
      * @param args the command line arguments
      */
     protected void start(String[] args) throws Exception {
@@ -187,7 +187,7 @@ public abstract class TestHalt extends TestBase {
 
     /**
      * Print a trace message to the trace file.
-     * 
+     *
      * @param s the message
      */
     protected void traceOperation(String s) {
@@ -196,7 +196,7 @@ public abstract class TestHalt extends TestBase {
 
     /**
      * Print a trace message to the trace file.
-     * 
+     *
      * @param s the message
      * @param e the exception or null
      */
@@ -240,8 +240,8 @@ public abstract class TestHalt extends TestBase {
             // String classPath = "-cp
             // .;D:/data/java/hsqldb.jar;D:/data/java/derby.jar";
             String selfDestruct = SelfDestructor.getPropertyString(60);
-            String[] procDef = new String[] { "java", selfDestruct, 
-                    "-cp", "bin" + File.pathSeparator + ".", 
+            String[] procDef = new String[] { "java", selfDestruct,
+                    "-cp", "bin" + File.pathSeparator + ".",
                     getClass().getName(), "" + operations, "" + flags, "" + value};
             traceOperation("start: " + StringUtils.arrayCombine(procDef, ' '));
             Process p = Runtime.getRuntime().exec(procDef);
@@ -341,7 +341,7 @@ public abstract class TestHalt extends TestBase {
 
     /**
      * Create a random string with the specified length.
-     * 
+     *
      * @param len the number of characters
      * @return the random string
      */

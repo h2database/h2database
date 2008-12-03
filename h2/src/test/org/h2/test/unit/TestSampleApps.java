@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -26,7 +26,7 @@ public class TestSampleApps extends TestBase {
         testApp(org.h2.tools.RunScript.class, new String[] { "-url", url, "-user", "sa", "-password", "sa", "-script",
                 "src/test/org/h2/samples/optimizations.sql", "-checkResults" }, "");
         deleteDb("optimizations");
-        
+
         testApp(org.h2.samples.Compact.class, null, "Compacting...\nDone.");
         testApp(org.h2.samples.CsvSample.class, null, "NAME: Bob Meier\n" + "EMAIL: bob.meier@abcde.abc\n"
                 + "PHONE: +41123456789\n\n" + "NAME: John Jones\n" + "EMAIL: john.jones@abcde.abc\n"
@@ -43,7 +43,7 @@ public class TestSampleApps extends TestBase {
         // tools
         testApp(org.h2.tools.ChangeFileEncryption.class, new String[] { "-help" },
                 "Allows changing the database file encryption password or algorithm*");
-        testApp(org.h2.tools.ChangeFileEncryption.class, null, 
+        testApp(org.h2.tools.ChangeFileEncryption.class, null,
                 "Allows changing the database file encryption password or algorithm*");
         testApp(org.h2.tools.DeleteDbFiles.class, new String[] { "-help" },
                 "Deletes all files belonging to a database.*");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -22,7 +22,7 @@ import org.h2.util.ObjectArray;
  */
 public class UndoLog {
     private Database database;
-    // TODO undo log entry: a chain would probably be faster 
+    // TODO undo log entry: a chain would probably be faster
     //  and use less memory than an array
     private ObjectArray records = new ObjectArray();
     private FileStore file;
@@ -31,7 +31,7 @@ public class UndoLog {
 
     /**
      * Create a new undo log for the given session.
-     * 
+     *
      * @param session the session
      */
     public UndoLog(Session session) {
@@ -40,7 +40,7 @@ public class UndoLog {
 
     /**
      * Get the number of active rows in this undo log.
-     * 
+     *
      * @return the number of rows
      */
     public int size() {
@@ -66,7 +66,7 @@ public class UndoLog {
 
     /**
      * Get the last record and remove it from the list of operations.
-     * 
+     *
      * @return the last record
      */
     public UndoLogRecord getLast() throws SQLException {
@@ -89,12 +89,12 @@ public class UndoLog {
         }
         return entry;
     }
-    
+
     /**
      * Remove the last record from the list of operations.
-     * 
+     *
      * @param trimToSize if the undo array should shrink to conserve memory
-     */    
+     */
     public void removeLast(boolean trimToSize) {
         int i = records.size() - 1;
         UndoLogRecord r = (UndoLogRecord) records.remove(i);
@@ -108,7 +108,7 @@ public class UndoLog {
 
     /**
      * Append an undo log entry to the log.
-     * 
+     *
      * @param entry the entry
      */
     public void add(UndoLogRecord entry) throws SQLException {

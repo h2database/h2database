@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -58,7 +58,7 @@ public class SecureSocketFactory {
 
     /**
      * Create a secure client socket that is connected to the given address and port.
-     * 
+     *
      * @param address the address to connect to
      * @param port the port
      * @return the socket
@@ -69,7 +69,7 @@ public class SecureSocketFactory {
         setKeystore();
         SSLSocketFactory f = (SSLSocketFactory) SSLSocketFactory.getDefault();
         SSLSocket secureSocket = (SSLSocket) f.createSocket();
-        secureSocket.connect(new InetSocketAddress(address, port), 
+        secureSocket.connect(new InetSocketAddress(address, port),
                 SysProperties.SOCKET_CONNECT_TIMEOUT);
         if (SysProperties.ENABLE_ANONYMOUS_SSL) {
             String[] list = secureSocket.getEnabledCipherSuites();
@@ -84,7 +84,7 @@ public class SecureSocketFactory {
     /**
      * Create a secure server socket. If a bind address is specified, the socket
      * is only bound to this address.
-     * 
+     *
      * @param port the port to listen on
      * @param bindAddress the address to bind to, or null to bind to all
      *            addresses
@@ -126,22 +126,22 @@ public class SecureSocketFactory {
         return bout.toByteArray();
     }
 //## Java 1.4 end ##
-    
-    
+
+
     /**
      * Get the keystore object using the given password.
-     * 
+     *
      * @param password the keystore password
      * @return the keystore
      */
 //## Java 1.4 begin ##
     public static KeyStore getKeyStore(String password) throws IOException {
         try {
-            // The following source code can be re-generated 
+            // The following source code can be re-generated
             // if you have a keystore file.
-            // This code is (hopefully) more Java version independent 
-            // than using keystores directly. See also: 
-            // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4887561 
+            // This code is (hopefully) more Java version independent
+            // than using keystores directly. See also:
+            // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4887561
             // (1.4.2 cannot read keystore written with 1.4.1)
             // --- generated code start ---
 

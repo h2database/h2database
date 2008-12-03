@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -13,19 +13,19 @@ import java.sql.SQLException;
  * is closed.
  */
 public interface CloseListener {
-    
+
     /**
      * This method is called when the database is closed.
      * If the method throws an exception, it will be logged, but
      * closing the database will continue.
-     * 
+     *
      * @throws SQLException
      */
     void close() throws SQLException;
-    
+
     /**
      * This method is called when the trigger is dropped.
-     * 
+     *
      * @throws SQLException
      */
     void remove() throws SQLException;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -31,10 +31,10 @@ import org.h2.util.IOUtils;
  * Tests for user defined functions and aggregates.
  */
 public class TestFunctions extends TestBase {
-    
+
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
@@ -48,12 +48,12 @@ public class TestFunctions extends TestBase {
         testFileRead();
         deleteDb("functions");
     }
-    
+
     private void testVarArgs() throws SQLException {
 //## Java 1.5 begin ##
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS mean FOR \"" + 
+        stat.execute("CREATE ALIAS mean FOR \"" +
                 getClass().getName() + ".mean\"");
         ResultSet rs = stat.executeQuery(
                 "select mean(), mean(10), mean(10, 20), mean(10, 20, 30)");
@@ -63,7 +63,7 @@ public class TestFunctions extends TestBase {
         assertEquals(15.0, rs.getDouble(3));
         assertEquals(20.0, rs.getDouble(4));
 
-        stat.execute("CREATE ALIAS mean2 FOR \"" + 
+        stat.execute("CREATE ALIAS mean2 FOR \"" +
                 getClass().getName() + ".mean2\"");
         rs = stat.executeQuery(
                 "select mean2(), mean2(10), mean2(10, 20)");
@@ -72,10 +72,10 @@ public class TestFunctions extends TestBase {
         assertEquals(10.0, rs.getDouble(2));
         assertEquals(15.0, rs.getDouble(3));
 
-        stat.execute("CREATE ALIAS printMean FOR \"" + 
+        stat.execute("CREATE ALIAS printMean FOR \"" +
                 getClass().getName() + ".printMean\"");
         rs = stat.executeQuery(
-                "select printMean('A'), printMean('A', 10), " + 
+                "select printMean('A'), printMean('A', 10), " +
                 "printMean('BB', 10, 20), printMean ('CCC', 10, 20, 30)");
         rs.next();
         assertEquals("A: 0", rs.getString(1));
@@ -381,7 +381,7 @@ public class TestFunctions extends TestBase {
 
     /**
      * Test method to create a simple result set.
-     * 
+     *
      * @param count the number of rows
      * @param ip an int
      * @param bp a boolean
@@ -425,18 +425,18 @@ public class TestFunctions extends TestBase {
         }
         return (int) Math.sqrt(value);
     }
-    
+
     /**
      * This method is called via reflection from the database.
      */
     public static double mean() {
         return 1;
     }
-    
+
     /**
      * This method is called via reflection from the database.
      */
-//## Java 1.5 begin ##    
+//## Java 1.5 begin ##
     public static double mean(double... values) {
         double sum = 0;
         for (double x : values) {
@@ -445,7 +445,7 @@ public class TestFunctions extends TestBase {
         return sum / values.length;
     }
 //## Java 1.5 end ##
-    
+
     /**
      * This method is called via reflection from the database.
      */
@@ -459,7 +459,7 @@ public class TestFunctions extends TestBase {
         return sum / values.length;
     }
 //## Java 1.5 end ##
-    
+
     /**
      * This method is called via reflection from the database.
      */
@@ -472,5 +472,5 @@ public class TestFunctions extends TestBase {
         return prefix + ": " + (int) (sum / values.length);
     }
 //## Java 1.5 end ##
-    
+
 }

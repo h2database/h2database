@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -37,7 +37,7 @@ public class TestSecurity extends TestBase {
         }
         return ByteUtils.convertBytesToString(result);
     }
-    
+
     private void testOneSHA(SHA256 sha) {
         assertEquals("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
                 getHashString(sha, new byte[] {}));
@@ -59,7 +59,7 @@ public class TestSecurity extends TestBase {
         buff.append('a');
         checkSHA256(buff.toString(), "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB");
     }
-    
+
     private void checkSHA256(String message, String expected) {
         SHA256 sha = new SHA256();
         String hash = ByteUtils.convertBytesToString(sha.getHash(message.getBytes(), true)).toUpperCase();

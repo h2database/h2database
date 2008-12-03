@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -136,7 +136,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     /**
      * Cancel the statement with the given id.
-     * 
+     *
      * @param id the statement id
      */
     public void cancelStatement(int id) {
@@ -403,7 +403,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
     /**
      * Remove a server from the list of cluster nodes and disables the cluster
      * mode.
-     * 
+     *
      * @param e the exception (used for debugging)
      * @param i the index of the server to remove
      */
@@ -425,7 +425,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     /**
      * Automatically re-connect if necessary and if configured to do so.
-     * 
+     *
      * @return true if reconnected
      */
     public boolean autoReconnect(int count) throws SQLException {
@@ -471,7 +471,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     /**
      * Check if this session is closed and throws an exception if so.
-     * 
+     *
      * @throws SQLException if the session is closed
      */
     public void checkClosed() throws SQLException {
@@ -520,7 +520,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
      * Called to flush the output after data has been sent to the server and
      * just before receiving data. This method also reads the status code from
      * the server and throws any exception the server sent.
-     * 
+     *
      * @param transfer the transfer object
      * @throws SQLException if the server sent an exception
      * @throws IOException if there is a communication problem between client
@@ -545,7 +545,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     /**
      * Returns true if the connection is in cluster mode.
-     * 
+     *
      * @return true if it is
      */
     public boolean isClustered() {
@@ -558,7 +558,7 @@ public class SessionRemote implements SessionInterface, DataHandler {
 
     /**
      * Write the operation to the trace system if debug trace is enabled.
-     * 
+     *
      * @param operation the operation performed
      * @param id the id of the operation
      */

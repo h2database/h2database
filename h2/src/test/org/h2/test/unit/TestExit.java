@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -20,7 +20,7 @@ import org.h2.test.TestBase;
  * A new process is started.
  */
 public class TestExit extends TestBase implements DatabaseEventListener {
-    
+
     public static Connection conn;
 
     static final int OPEN_WITH_CLOSE_ON_EXIT = 1, OPEN_WITHOUT_CLOSE_ON_EXIT = 2;
@@ -31,8 +31,8 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         }
         deleteDb("exit");
         String selfDestruct = SelfDestructor.getPropertyString(60);
-        String[] procDef = new String[] { "java", selfDestruct, 
-                "-cp", "bin" + File.pathSeparator + ".", 
+        String[] procDef = new String[] { "java", selfDestruct,
+                "-cp", "bin" + File.pathSeparator + ".",
                 getClass().getName(), "" + OPEN_WITH_CLOSE_ON_EXIT };
         Process proc = Runtime.getRuntime().exec(procDef);
         while (true) {
@@ -54,8 +54,8 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         if (!getClosedFile().exists()) {
             fail("did not close database");
         }
-        procDef = new String[] { "java", 
-                "-cp", "bin" + File.pathSeparator + ".", getClass().getName(), 
+        procDef = new String[] { "java",
+                "-cp", "bin" + File.pathSeparator + ".", getClass().getName(),
                 "" + OPEN_WITHOUT_CLOSE_ON_EXIT };
         proc = Runtime.getRuntime().exec(procDef);
         proc.waitFor();
@@ -69,7 +69,7 @@ public class TestExit extends TestBase implements DatabaseEventListener {
     /**
      * This method is called when executing this application from the command
      * line.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String[] args) throws SQLException {

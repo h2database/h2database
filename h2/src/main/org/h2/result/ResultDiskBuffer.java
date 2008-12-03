@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -38,22 +38,22 @@ class ResultDiskBuffer implements ResultExternal {
      * Each virtual disk tape is a region of the temp file.
      */
     static class ResultDiskTape {
-        
+
         /**
          * The start position of this tape in the file.
          */
         long start;
-        
+
         /**
          * The end position of this tape in the file.
          */
         long end;
-        
+
         /**
          * The current read position.
          */
         long pos;
-        
+
         /**
          * A list of rows in the buffer.
          */
@@ -224,7 +224,7 @@ class ResultDiskBuffer implements ResultExternal {
             file = null;
         }
     }
-    
+
     public int removeRow(Value[] values) {
         throw Message.getInternalError();
     }
@@ -232,7 +232,7 @@ class ResultDiskBuffer implements ResultExternal {
     public boolean contains(Value[] values) {
         throw Message.getInternalError();
     }
-    
+
     public int addRow(Value[] values) {
         throw Message.getInternalError();
     }

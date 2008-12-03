@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -155,14 +155,14 @@ public class JavaAggregate extends Expression {
             // this is a different level (the enclosing query)
             return;
         }
-        
+
         int groupRowId = select.getCurrentGroupRowId();
         if (lastGroupRowId == groupRowId) {
             // already visited
             return;
         }
         lastGroupRowId = groupRowId;
-        
+
         AggregateFunction agg = (AggregateFunction) group.get(this);
         if (agg == null) {
             agg = getInstance();

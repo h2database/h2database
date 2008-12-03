@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -16,27 +16,27 @@ import java.util.ArrayList;
  * This class is used by the H2 Console.
  */
 public class DbTableOrView {
-    
+
     /**
      * The schema this table belongs to.
      */
     DbSchema schema;
-    
+
     /**
      * The table name.
      */
     String name;
-    
+
     /**
      * The quoted table name.
      */
     String quotedName;
-    
+
     /**
      * True if this represents a view.
      */
     boolean isView;
-    
+
     /**
      * The column list.
      */
@@ -52,7 +52,7 @@ public class DbTableOrView {
 
     /**
      * Read the column for this table from the database meta data.
-     * 
+     *
      * @param meta the database meta data
      */
     void readColumns(DatabaseMetaData meta) throws SQLException {

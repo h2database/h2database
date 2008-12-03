@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -37,7 +37,7 @@ public class Db {
 
     /**
      * Create a database object using the given connection.
-     * 
+     *
      * @param conn the database connection
      */
     public Db(Connection conn) {
@@ -52,7 +52,7 @@ public class Db {
     /**
      * Open the database connection. For most databases, it is not required to
      * load the driver before calling this method.
-     * 
+     *
      * @param url the database URL
      * @param user the user name
      * @param password the password
@@ -69,7 +69,7 @@ public class Db {
 
     /**
      * Prepare a SQL statement.
-     * 
+     *
      * @param sql the SQL statement
      * @return the prepared statement
      */
@@ -88,7 +88,7 @@ public class Db {
 
     /**
      * Execute a SQL statement.
-     * 
+     *
      * @param sql the SQL statement
      */
     public void execute(String sql) {
@@ -98,13 +98,13 @@ public class Db {
             throw convert(e);
         }
     }
-    
+
     /**
      * Read a result set.
-     * 
+     *
      * @param rs the result set
      * @return a list of maps
-     */    
+     */
     static List query(ResultSet rs) throws SQLException {
         List list = new ArrayList();
         ResultSetMetaData meta = rs.getMetaData();
@@ -118,10 +118,10 @@ public class Db {
         }
         return list;
     }
-    
+
     /**
      * Execute a SQL statement.
-     * 
+     *
      * @param sql the SQL statement
      * @return a list of maps
      */
@@ -157,7 +157,7 @@ public class Db {
 
         /**
          * Set the value of the current parameter.
-         * 
+         *
          * @param x the value
          */
         public Prepared set(int x) {
@@ -171,7 +171,7 @@ public class Db {
 
         /**
          * Set the value of the current parameter.
-         * 
+         *
          * @param x the value
          */
         public Prepared set(String x) {
@@ -185,7 +185,7 @@ public class Db {
 
         /**
          * Set the value of the current parameter.
-         * 
+         *
          * @param x the value
          */
         public Prepared set(byte[] x) {
@@ -199,7 +199,7 @@ public class Db {
 
         /**
          * Set the value of the current parameter.
-         * 
+         *
          * @param x the value
          */
         public Prepared set(InputStream x) {
@@ -221,10 +221,10 @@ public class Db {
                 throw convert(e);
             }
         }
-        
+
         /**
          * Execute the prepared query.
-         */        
+         */
         public List query() {
             try {
                 return Db.query(prep.executeQuery());
@@ -236,7 +236,7 @@ public class Db {
 
     /**
      * Convert a checked exception to a runtime exception.
-     * 
+     *
      * @param e the checked exception
      * @return the runtime exception
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -21,17 +21,17 @@ import org.h2.test.TestBase;
  * Tests Statement.cancel
  */
 public class TestCancel extends TestBase {
-    
+
     private static int lastVisited;
-    
+
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
         TestBase.createCaller().init().test();
-    }    
+    }
 
     /**
      * This thread cancels a statement after some time.
@@ -45,7 +45,7 @@ public class TestCancel extends TestBase {
             this.cancel = cancel;
             this.wait = wait;
         }
-        
+
         /**
          * Stop the test now.
          */
@@ -77,7 +77,7 @@ public class TestCancel extends TestBase {
         testCancelStatement();
         deleteDb("cancel");
     }
-    
+
     private void testReset() throws SQLException {
         deleteDb("cancel");
         Connection conn = getConnection("cancel");
@@ -93,7 +93,7 @@ public class TestCancel extends TestBase {
         stat.execute("select count(*) from system_range(1, 1000), system_range(1, 1000)");
         conn.close();
     }
-    
+
     private void testQueryTimeoutInTransaction() throws SQLException {
         deleteDb("cancel");
         Connection conn = getConnection("cancel");
@@ -165,7 +165,7 @@ public class TestCancel extends TestBase {
             System.setProperty("h2.maxQueryTimeout", "" + oldMax);
         }
     }
-    
+
     /**
      * This method is called via reflection from the database.
      */

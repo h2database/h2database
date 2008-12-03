@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -16,52 +16,52 @@ public class XMLParser {
      * This event type means an error occurred.
      */
     public static final int ERROR = 0;
-    
+
     /**
      * This event type means a start element has been read.
      */
     public static final int START_ELEMENT = 1;
-    
+
     /**
      * This event type means an end element has been read.
      */
     public static final int END_ELEMENT = 2;
-    
+
     /**
      * This event type means a processing instruction has been read.
      */
     public static final int PROCESSING_INSTRUCTION = 3;
-    
+
     /**
      * This event type means text has been read.
      */
     public static final int CHARACTERS = 4;
-    
+
     /**
      * This event type means a comment has been read.
      */
     public static final int COMMENT = 5;
-    
+
     // public static final int SPACE = 6;
-    
+
     /**
      * This event type is used before reading.
      */
     public static final int START_DOCUMENT = 7;
-    
+
     /**
      * This event type means the end of the document has been reached.
      */
     public static final int END_DOCUMENT = 8;
-    
+
     // public static final int ENTITY_REFERENCE = 9;
     // public static final int ATTRIBUTE = 10;
-    
+
     /**
      * This event type means a DTD element has been read.
-     */    
+     */
     public static final int DTD = 11;
-    
+
     // public static final int CDATA = 12;
     // public static final int NAMESPACE = 13;
     // public static final int NOTATION_DECLARATION = 14;
@@ -80,18 +80,18 @@ public class XMLParser {
 
     /**
      * Construct a new XML parser.
-     * 
+     *
      * @param xml the document
      */
     public XMLParser(String xml) {
         this.xml = xml;
         eventType = START_DOCUMENT;
     }
-    
+
     /**
      * Enable or disable HTML processing. When enabled, attributes don't need to
      * have values.
-     * 
+     *
      * @param html true if HTML processing is enabled.
      */
     public void setHTML(boolean html) {
@@ -375,7 +375,7 @@ public class XMLParser {
 
     /**
      * Check if there are more tags to read.
-     * 
+     *
      * @return true if there are more tags
      */
     public boolean hasNext() {
@@ -384,7 +384,7 @@ public class XMLParser {
 
     /**
      * Read the next tag.
-     * 
+     *
      * @return the event type of the next tag
      */
     public int next() {
@@ -401,7 +401,7 @@ public class XMLParser {
     /**
      * Read the next start, end, or character tag. This method skips comments,
      * DTDs, and processing instructions.
-     * 
+     *
      * @return the event type of the next tag
      */
     public int nextTag() {
@@ -415,7 +415,7 @@ public class XMLParser {
 
     /**
      * Get the event type of the current token.
-     * 
+     *
      * @return the event type
      */
     public int getEventType() {
@@ -424,7 +424,7 @@ public class XMLParser {
 
     /**
      * Get the current text.
-     * 
+     *
      * @return the text
      */
     public String getText() {
@@ -433,7 +433,7 @@ public class XMLParser {
 
     /**
      * Get the current token text.
-     * 
+     *
      * @return the token
      */
     public String getToken() {
@@ -442,7 +442,7 @@ public class XMLParser {
 
     /**
      * Get the number of attributes.
-     * 
+     *
      * @return the attribute count
      */
     public int getAttributeCount() {
@@ -451,7 +451,7 @@ public class XMLParser {
 
     /**
      * Get the prefix of the attribute.
-     * 
+     *
      * @param index the index of the attribute (starting with 0)
      * @return the prefix
      */
@@ -461,7 +461,7 @@ public class XMLParser {
 
     /**
      * Get the local name of the attribute.
-     * 
+     *
      * @param index the index of the attribute (starting with 0)
      * @return the local name
      */
@@ -472,7 +472,7 @@ public class XMLParser {
     /**
      * Get the full name of the attribute. If there is no prefix, only the local
      * name is returned, otherwise the prefix, ':', and the local name.
-     * 
+     *
      * @param index the index of the attribute (starting with 0)
      * @return the full name
      */
@@ -484,7 +484,7 @@ public class XMLParser {
 
     /**
      * Get the value of this attribute.
-     * 
+     *
      * @param index the index of the attribute (starting with 0)
      * @return the value
      */
@@ -494,7 +494,7 @@ public class XMLParser {
 
     /**
      * Get the value of this attribute.
-     * 
+     *
      * @param namespaceURI the namespace URI (currently ignored)
      * @param localName the attribute name
      * @return the value or null
@@ -513,7 +513,7 @@ public class XMLParser {
      * Get the full name of the current start or end element. If there is no
      * prefix, only the local name is returned, otherwise the prefix, ':', and
      * the local name.
-     * 
+     *
      * @return the full name
      */
     public String getName() {
@@ -522,7 +522,7 @@ public class XMLParser {
 
     /**
      * Get the local name of the current start or end element.
-     * 
+     *
      * @return the local name
      */
     public String getLocalName() {
@@ -531,7 +531,7 @@ public class XMLParser {
 
     /**
      * Get the prefix of the current start or end element.
-     * 
+     *
      * @return the prefix
      */
     public String getPrefix() {
@@ -541,7 +541,7 @@ public class XMLParser {
     /**
      * Check if the current character tag only contains spaces or other
      * non-printable characters.
-     * 
+     *
      * @return if the trimmed text is empty
      */
     public boolean isWhiteSpace() {
@@ -550,7 +550,7 @@ public class XMLParser {
 
     /**
      * Get the remaining XML text of the document.
-     * 
+     *
      * @return the remaining XML
      */
     public String getRemaining() {
@@ -559,7 +559,7 @@ public class XMLParser {
 
     /**
      * Get the index of the current position.
-     * 
+     *
      * @return the position
      */
     public int getPos() {

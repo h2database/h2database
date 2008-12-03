@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -31,12 +31,12 @@ public class GrantRevoke extends DefineCommand {
      * The operation type to grant a right.
      */
     public static final int GRANT = 0;
-    
+
     /**
      * The operation type to revoke a right.
      */
     public static final int REVOKE = 1;
-    
+
     private ObjectArray roleNames;
     private int operationType;
     private int rightMask;
@@ -53,7 +53,7 @@ public class GrantRevoke extends DefineCommand {
 
     /**
      * Add the specified right bit to the rights bitmap.
-     * 
+     *
      * @param right the right bit
      */
     public void addRight(int right) {
@@ -62,7 +62,7 @@ public class GrantRevoke extends DefineCommand {
 
     /**
      * Add the specified role to the list of roles.
-     * 
+     *
      * @param roleName the role
      */
     public void addRoleName(String roleName) {
@@ -182,7 +182,7 @@ public class GrantRevoke extends DefineCommand {
 
     /**
      * Add the specified table to the list of tables.
-     * 
+     *
      * @param table the table
      */
     public void addTable(Table table) {

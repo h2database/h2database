@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -52,7 +52,7 @@ public class Update extends Prepared {
 
     /**
      * Add an assignment of the form column = expression.
-     * 
+     *
      * @param column the column
      * @param expression the expression
      */
@@ -120,11 +120,11 @@ public class Update extends Prepared {
                     count++;
                 }
             }
-            // TODO self referencing referential integrity constraints 
+            // TODO self referencing referential integrity constraints
             // don't work if update is multi-row and 'inversed' the condition!
-            // probably need multi-row triggers with 'deleted' and 'inserted' 
+            // probably need multi-row triggers with 'deleted' and 'inserted'
             // at the same time. anyway good for sql compatibility
-            // TODO update in-place (but if the position changes, 
+            // TODO update in-place (but if the position changes,
             // we need to update all indexes) before row triggers
 
             // the cached row is already updated - we need the old values

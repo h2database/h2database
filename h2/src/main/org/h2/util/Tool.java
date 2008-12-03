@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -16,15 +16,15 @@ import org.h2.constant.SysProperties;
  * the H2 Console.
  */
 public abstract class Tool {
-    
+
     /**
      * The output stream where this tool writes to.
      */
     protected PrintStream out = System.out;
-    
+
     /**
      * Sets the standard output stream.
-     * 
+     *
      * @param out the new standard output stream
      */
     public void setOut(PrintStream out) {
@@ -33,14 +33,14 @@ public abstract class Tool {
 
     /**
      * Run the tool with the given output stream and arguments.
-     * 
+     *
      * @param args the argument list
      */
     public abstract void run(String[] args) throws SQLException;
-    
+
     /**
      * Print to the output stream that no database files have been found.
-     * 
+     *
      * @param dir the directory or null
      * @param db the database name or null
      */
@@ -60,7 +60,7 @@ public abstract class Tool {
     /**
      * Read an argument and check if it is true (1), false (-1), or not (0).
      * This method is used for compatibility with older versions only.
-     * 
+     *
      * @param args the list of arguments
      * @param i the index - 1
      * @return 1 for true, -1 for false, or 0 for not read
@@ -79,5 +79,5 @@ public abstract class Tool {
         }
         return 0;
     }
-    
+
 }

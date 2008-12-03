@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -16,11 +16,11 @@ import org.h2.value.DataType;
  * A column of a table.
  */
 class Column {
-    
+
     private static final int[] TYPES = { Types.INTEGER, Types.VARCHAR, Types.DECIMAL, Types.DATE, Types.TIME,
             Types.TIMESTAMP, DataType.TYPE_BOOLEAN, Types.BINARY, Types.VARBINARY, Types.CLOB, Types.BLOB,
             Types.DOUBLE, Types.BIGINT, Types.TIMESTAMP, Types.BIT, };
-    
+
     private TestSynth config;
     private String name;
     private int type;
@@ -70,7 +70,7 @@ class Column {
 
     /**
      * Check if this data type supports comparisons for this database.
-     * 
+     *
      * @param config the configuration
      * @param type the SQL type
      * @return true if the value can be used in conditions
@@ -181,7 +181,7 @@ class Column {
 
     /**
      * Generate a random column.
-     * 
+     *
      * @param config the configuration
      * @return the column
      */
@@ -218,7 +218,7 @@ class Column {
 
     /**
      * The the column type.
-     * 
+     *
      * @return the type
      */
     int getType() {

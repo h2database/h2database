@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -56,7 +56,7 @@ public class Transfer {
 
     /**
      * Create a new transfer object for the specified session.
-     * 
+     *
      * @param session the session
      */
     public Transfer(SessionInterface session) {
@@ -65,7 +65,7 @@ public class Transfer {
 
     /**
      * Set the socket this object uses.
-     * 
+     *
      * @param s the socket
      */
     public void setSocket(Socket s) {
@@ -90,7 +90,7 @@ public class Transfer {
 
     /**
      * Write a boolean.
-     * 
+     *
      * @param x the value
      * @return itself
      */
@@ -101,16 +101,16 @@ public class Transfer {
 
     /**
      * Read a boolean.
-     * 
+     *
      * @return the value
-     */    
+     */
     public boolean readBoolean() throws IOException {
         return in.readByte() == 1;
     }
 
     /**
      * Write a byte.
-     * 
+     *
      * @param x the value
      * @return itself
      */
@@ -121,19 +121,19 @@ public class Transfer {
 
     /**
      * Read a byte.
-     * 
+     *
      * @return the value
-     */    
+     */
     private byte readByte() throws IOException {
         return in.readByte();
     }
 
     /**
      * Write an int.
-     * 
+     *
      * @param x the value
      * @return itself
-     */    
+     */
     public Transfer writeInt(int x) throws IOException {
         out.writeInt(x);
         return this;
@@ -141,19 +141,19 @@ public class Transfer {
 
     /**
      * Read an int.
-     * 
+     *
      * @return the value
-     */    
+     */
     public int readInt() throws IOException {
         return in.readInt();
     }
 
     /**
      * Write a long.
-     * 
+     *
      * @param x the value
      * @return itself
-     */   
+     */
     public Transfer writeLong(long x) throws IOException {
         out.writeLong(x);
         return this;
@@ -161,19 +161,19 @@ public class Transfer {
 
     /**
      * Read a long.
-     * 
+     *
      * @return the value
-     */    
+     */
     public long readLong() throws IOException {
         return in.readLong();
     }
 
     /**
      * Write a double.
-     * 
+     *
      * @param x the value
      * @return itself
-     */       
+     */
     private Transfer writeDouble(double i) throws IOException {
         out.writeDouble(i);
         return this;
@@ -181,10 +181,10 @@ public class Transfer {
 
     /**
      * Write a float.
-     * 
+     *
      * @param x the value
      * @return itself
-     */   
+     */
     private Transfer writeFloat(float i) throws IOException {
         out.writeFloat(i);
         return this;
@@ -192,28 +192,28 @@ public class Transfer {
 
     /**
      * Read a double.
-     * 
+     *
      * @return the value
-     */    
+     */
     private double readDouble() throws IOException {
         return in.readDouble();
     }
 
     /**
      * Read a float.
-     * 
+     *
      * @return the value
-     */    
+     */
     private float readFloat() throws IOException {
         return in.readFloat();
     }
 
     /**
      * Write a string. The maximum string length is Integer.MAX_VALUE.
-     * 
+     *
      * @param s the value
      * @return itself
-     */  
+     */
     public Transfer writeString(String s) throws IOException {
         if (s == null) {
             out.writeInt(-1);
@@ -229,15 +229,15 @@ public class Transfer {
 
     /**
      * Read a string.
-     * 
+     *
      * @return the value
-     */    
+     */
     public String readString() throws IOException {
         int len = in.readInt();
         if (len == -1) {
             return null;
         }
-        // TODO optimize: StringBuffer is synchronized, maybe use a char array 
+        // TODO optimize: StringBuffer is synchronized, maybe use a char array
         // (but that means more memory)
         StringBuffer buff = new StringBuffer(len);
         for (int i = 0; i < len; i++) {
@@ -250,10 +250,10 @@ public class Transfer {
 
     /**
      * Write a byte array.
-     * 
+     *
      * @param data the value
      * @return itself
-     */ 
+     */
     public Transfer writeBytes(byte[] data) throws IOException {
         if (data == null) {
             writeInt(-1);
@@ -266,9 +266,9 @@ public class Transfer {
 
     /**
      * Read a byte array.
-     * 
+     *
      * @return the value
-     */    
+     */
     public byte[] readBytes() throws IOException {
         int len = readInt();
         if (len == -1) {
@@ -299,9 +299,9 @@ public class Transfer {
 
     /**
      * Write a value.
-     * 
+     *
      * @param v the value
-     */     
+     */
     public void writeValue(Value v) throws IOException, SQLException {
         int type = v.getType();
         writeInt(type);
@@ -433,12 +433,12 @@ public class Transfer {
             throw Message.getInternalError("type=" + type);
         }
     }
-    
+
     /**
      * Read a value.
-     * 
+     *
      * @return the value
-     */    
+     */
     public Value readValue() throws IOException, SQLException {
         int type = readInt();
         switch(type) {
@@ -530,7 +530,7 @@ public class Transfer {
 
     /**
      * Get the socket.
-     * 
+     *
      * @return the socket
      */
     public Socket getSocket() {
@@ -539,7 +539,7 @@ public class Transfer {
 
     /**
      * Set the session.
-     * 
+     *
      * @param session the session
      */
     public void setSession(SessionInterface session) {
@@ -548,7 +548,7 @@ public class Transfer {
 
     /**
      * Enable or disable SSL.
-     * 
+     *
      * @param ssl the new value
      */
     public void setSSL(boolean ssl) {
@@ -557,7 +557,7 @@ public class Transfer {
 
     /**
      * Open a new new connection to the same address and port as this one.
-     * 
+     *
      * @return the new transfer object
      */
     public Transfer openNewConnection() throws IOException {

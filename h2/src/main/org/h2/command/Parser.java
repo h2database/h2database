@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -193,7 +193,7 @@ public class Parser {
 
     /**
      * Parse the statement and prepare it for execution.
-     * 
+     *
      * @param sql the SQL statement to parse
      * @return the prepared object
      */
@@ -209,7 +209,7 @@ public class Parser {
 
     /**
      * Parse the statement, but don't prepare it for execution.
-     * 
+     *
      * @param sql the SQL statement to parse
      * @return the prepared object
      */
@@ -223,7 +223,7 @@ public class Parser {
 
     /**
      * Parse a statement or a list of statements, and prepare it for execution.
-     * 
+     *
      * @param sql the SQL statement to parse
      * @return the command object
      */
@@ -756,7 +756,7 @@ public class Parser {
         columns.toArray(cols);
         return cols;
     }
-    
+
     private boolean readIfMore() throws SQLException {
         if (readIf(",")) {
             return !readIf(")");
@@ -783,7 +783,7 @@ public class Parser {
         }
         return prepare(session, buff.toString(), paramValues);
     }
-    
+
     private Prepared parseShow() throws SQLException {
         ObjectArray paramValues = new ObjectArray();
         StringBuffer buff = new StringBuffer("SELECT ");
@@ -824,7 +824,7 @@ public class Parser {
         }
         return prepare(session, buff.toString(), paramValues);
     }
-    
+
     private Prepared prepare(Session session, String sql, ObjectArray paramValues) throws SQLException {
         Prepared prep = session.prepare(sql);
         ObjectArray params = prep.getParameters();
@@ -1335,7 +1335,7 @@ public class Parser {
         Query command = parseSelectSub();
         return parseSelectUnionExtension(command, start, false);
     }
-    
+
     private Query parseSelectUnionExtension(Query command, int start, boolean unionOnly) throws SQLException {
         while (true) {
             if (readIf("UNION")) {
@@ -1368,7 +1368,7 @@ public class Parser {
         setSQL(command, null, start);
         return command;
     }
-    
+
     private void parseEndOfQuery(Query command) throws SQLException {
         if (readIf("ORDER")) {
             read("BY");
@@ -1414,7 +1414,7 @@ public class Parser {
             // make sure aggregate functions will not work here
             Select temp = currentSelect;
             currentSelect = null;
-            
+
             // http://sqlpro.developpez.com/SQL2008/
             if (readIf("OFFSET")) {
                 command.setOffset(readExpression().optimize(session));
@@ -1435,7 +1435,7 @@ public class Parser {
                 }
                 read("ONLY");
             }
-            
+
             currentSelect = temp;
         }
         if (readIf("LIMIT")) {
@@ -1621,7 +1621,7 @@ public class Parser {
         setSQL(command, "SELECT", start);
         return command;
     }
-    
+
     private Table getDualTable() throws SQLException {
         Schema main = database.findSchema(Constants.SCHEMA_MAIN);
         Expression one = ValueExpression.get(ValueLong.get(1));
@@ -3055,7 +3055,7 @@ public class Parser {
 
     /**
      * Checks if this string is a SQL keyword.
-     * 
+     *
      * @param s the token to check
      * @return true if it is a keyword
      */
@@ -3247,7 +3247,7 @@ public class Parser {
         }
         return column;
     }
-    
+
     private void parseAutoIncrement(Column column) throws SQLException {
         long start = 1, increment = 1;
         if (readIf("(")) {
@@ -3312,7 +3312,7 @@ public class Parser {
             dataType = DataType.getTypeByName(original);
         }
         if (dataType.type == Value.NULL) {
-            // We do support NULL in the database meta data, 
+            // We do support NULL in the database meta data,
             // but not actually when creating tables.
             throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, original);
         }
@@ -3358,7 +3358,7 @@ public class Parser {
                 read(")");
             }
         } else if (readIf("(")) {
-            // Support for MySQL: INT(11), MEDIUMINT(8) and so on. 
+            // Support for MySQL: INT(11), MEDIUMINT(8) and so on.
             // Just ignore the precision.
             getPositiveInt();
             read(")");
@@ -4691,7 +4691,7 @@ public class Parser {
 
     /**
      * Add double quotes around an identifier if required.
-     * 
+     *
      * @param s the identifier
      * @return the quoted identifier
      */
@@ -4722,7 +4722,7 @@ public class Parser {
 
     /**
      * Parse a SQL code snippet that represents an expression.
-     * 
+     *
      * @param sql the code snippet
      * @return the expression object
      * @throws SQLException if the code snippet could not be parsed

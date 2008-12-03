@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -38,7 +38,7 @@ import org.h2.value.Transfer;
  * used, but locking by creating a socket is supported as well.
  */
 public class FileLock {
-    
+
     /**
      * This locking method means no locking is used at all.
      */
@@ -54,38 +54,38 @@ public class FileLock {
      * This locking method means a socket is created on the given machine.
      */
     public static final int LOCK_SOCKET = 2;
-    
+
     private static final String MAGIC = "FileLock";
     private static final String FILE = "file", SOCKET = "socket";
     private static final int RANDOM_BYTES = 16;
     private static final int SLEEP_GAP = 25;
     private static final int TIME_GRANULARITY = 2000;
-    
+
     /**
      * The lock file name.
      */
     volatile String fileName;
-    
+
     /**
      * The server socket (only used when using the SOCKET mode).
      */
     volatile ServerSocket socket;
-    
+
     /**
      * The file system.
      */
     FileSystem fs;
-    
+
     /**
      * The number of milliseconds to sleep after checking a file.
      */
     int sleep;
-    
+
     /**
      * The trace object.
      */
     Trace trace;
-    
+
     /**
      * The last time the lock file was written.
      */
@@ -98,7 +98,7 @@ public class FileLock {
 
     /**
      * Create a new file locking object.
-     * 
+     *
      * @param traceSystem the trace system to use
      * @param sleep the number of milliseconds to sleep
      */
@@ -109,7 +109,7 @@ public class FileLock {
 
     /**
      * Lock the file if possible. A file may only be locked once.
-     * 
+     *
      * @param fileName the name of the properties file to use
      * @param allowSocket if the socket locking protocol should be used if
      *            possible
@@ -129,7 +129,7 @@ public class FileLock {
         }
         locked = true;
     }
-    
+
     /**
      * Unlock the file. The watchdog thread is stopped. This method does nothing
      * if the file is already unlocked.
@@ -157,7 +157,7 @@ public class FileLock {
 
     /**
      * Add a setting to the properties file.
-     * 
+     *
      * @param key the key
      * @param value the value
      */
@@ -203,7 +203,7 @@ public class FileLock {
             throw getException(e);
         }
     }
-    
+
     private void checkServer() throws SQLException {
         Properties prop = load();
         String server = prop.getProperty("server");
@@ -270,7 +270,7 @@ public class FileLock {
         }
         throw error("Lock file recently modified");
     }
-    
+
     private void setUniqueId() {
         byte[] bytes = RandomUtils.getSecureBytes(RANDOM_BYTES);
         String random = ByteUtils.convertBytesToString(bytes);
@@ -335,7 +335,7 @@ public class FileLock {
         method = SOCKET;
         properties = new SortedProperties();
         setUniqueId();
-        // if this returns 127.0.0.1, 
+        // if this returns 127.0.0.1,
         // the computer is probably not networked
         ipAddress = NetUtils.getLocalAddress();
         if (!fs.createNewFile(fileName)) {
@@ -443,7 +443,7 @@ public class FileLock {
 
     /**
      * Get the file locking method type given a method name.
-     * 
+     *
      * @param method the method name
      * @return the method type
      * @throws SQLException if the method name is unknown

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -52,7 +52,7 @@ public class WriterThread extends Thread {
 
     /**
      * Change the write delay
-     * 
+     *
      * @param writeDelay the new write delay
      */
     public void setWriteDelay(int writeDelay) {
@@ -68,7 +68,7 @@ public class WriterThread extends Thread {
 
     /**
      * Create and start a new writer thread for the given database.
-     * 
+     *
      * @param database the database
      * @param writeDelay the delay
      * @return the writer thread object
@@ -182,7 +182,7 @@ public class WriterThread extends Thread {
     /**
      * Delete the following log file later on. If there is already a file to be
      * deleted, that one will be deleted immediately.
-     * 
+     *
      * @param fileName the name of the file to delete
      */
     public synchronized void deleteLogFileLater(String fileName) throws SQLException {

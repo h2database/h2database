@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -39,7 +39,7 @@ import org.h2.util.Tool;
  * </pre>
  */
 public class RunScript extends Tool {
-    
+
     private boolean showResults;
     private boolean checkResults;
 
@@ -76,14 +76,14 @@ public class RunScript extends Tool {
      * </ul>
      * To include local files when using remote databases, use the special
      * syntax:
-     * 
+     *
      * <pre>
      * &#064;INCLUDE fileName
      * </pre>
-     * 
+     *
      * This syntax is only supported by this tool. Embedded RUNSCRIPT SQL
      * statements will be executed by the database.
-     * 
+     *
      * @param args the command line arguments
      * @throws SQLException
      */
@@ -163,7 +163,7 @@ public class RunScript extends Tool {
     public static ResultSet execute(Connection conn, Reader reader) throws SQLException {
         return new RunScript().process(conn, reader);
     }
-    
+
     private ResultSet process(Connection conn, Reader reader) throws SQLException {
         reader = new BufferedReader(reader);
         Statement stat = conn.createStatement();
@@ -254,7 +254,7 @@ public class RunScript extends Tool {
                                         throw new SQLException("Unexpected output for:\n" + sql.trim() + "\nGot:\n" + result + "\nExpected:\n" + expected);
                                     }
                                 }
-                                
+
                             }
                         } else {
                             stat.execute(sql);
@@ -299,7 +299,7 @@ public class RunScript extends Tool {
     public static void execute(String url, String user, String password, String fileName, String charsetName, boolean continueOnError) throws SQLException {
         new RunScript().process(url, user, password, fileName, charsetName, continueOnError);
     }
-    
+
     /**
      * Executes the SQL commands in a script file against a database.
      *
@@ -326,20 +326,20 @@ public class RunScript extends Tool {
             throw Message.convertIOException(e, fileName);
         }
     }
-    
+
     /**
      * If the statements as well as the results should be printed to the output.
-     * 
+     *
      * @param show true if yes
      */
     public void setShowResults(boolean show) {
         this.showResults = show;
     }
-    
+
     /**
      * If results of statements should be cross-checked with the expected
      * output. The expected result is the next line(s) of the script, commented.
-     * 
+     *
      * @param check true if yes
      */
     public void setCheckResults(boolean check) {

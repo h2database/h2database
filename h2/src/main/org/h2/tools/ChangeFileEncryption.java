@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -130,7 +130,7 @@ public class ChangeFileEncryption extends Tool {
     public static void execute(String dir, String db, String cipher, char[] decryptPassword, char[] encryptPassword, boolean quiet) throws SQLException {
         new ChangeFileEncryption().process(dir, db, cipher, decryptPassword, encryptPassword, quiet);
     }
-    
+
     private void process(String dir, String db, String cipher, char[] decryptPassword, char[] encryptPassword, boolean quiet) throws SQLException {
         ChangeFileEncryption change = new ChangeFileEncryption();
         if (encryptPassword != null) {
@@ -146,7 +146,7 @@ public class ChangeFileEncryption extends Tool {
         change.decrypt = getFileEncryptionKey(decryptPassword);
         change.encrypt = getFileEncryptionKey(encryptPassword);
 
-        // first, test only if the file can be renamed 
+        // first, test only if the file can be renamed
         // (to find errors with locked files early)
         ArrayList files = FileLister.getDatabaseFiles(dir, db, false);
         if (files.size() == 0 && !quiet) {
@@ -160,7 +160,7 @@ public class ChangeFileEncryption extends Tool {
             FileUtils.rename(temp, fileName);
         }
         // if this worked, the operation will (hopefully) be successful
-        // TODO changeFileEncryption: this is a workaround! 
+        // TODO changeFileEncryption: this is a workaround!
         // make the operation atomic (all files or none)
         for (int i = 0; i < files.size(); i++) {
             String fileName = (String) files.get(i);

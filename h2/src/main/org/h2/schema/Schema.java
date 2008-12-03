@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -51,7 +51,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Create a new schema object.
-     * 
+     *
      * @param database the database
      * @param id the object id
      * @param schemaName the schema name
@@ -67,7 +67,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Check if this schema can be dropped. System schemas can not be dropped.
-     * 
+     *
      * @return true if it can be dropped
      */
     public boolean canDrop() {
@@ -134,7 +134,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Get the owner of this schema.
-     * 
+     *
      * @return the owner
      */
     public User getOwner() {
@@ -162,7 +162,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Add an object to this schema.
-     * 
+     *
      * @param obj the object to add
      */
     public void add(SchemaObject obj) {
@@ -180,7 +180,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Rename an object.
-     * 
+     *
      * @param obj the object to rename
      * @param newName the new name
      */
@@ -207,7 +207,7 @@ public class Schema extends DbObjectBase {
      * Try to find a table or view with this name. This method returns null if
      * no object with this name exists. Local temporary tables are also
      * returned.
-     * 
+     *
      * @param session the session
      * @param name the object name
      * @return the object or null
@@ -223,7 +223,7 @@ public class Schema extends DbObjectBase {
     /**
      * Try to find an index with this name. This method returns null if
      * no object with this name exists.
-     * 
+     *
      * @param session the session
      * @param name the object name
      * @return the object or null
@@ -239,7 +239,7 @@ public class Schema extends DbObjectBase {
     /**
      * Try to find a trigger with this name. This method returns null if
      * no object with this name exists.
-     * 
+     *
      * @param name the object name
      * @return the object or null
      */
@@ -250,7 +250,7 @@ public class Schema extends DbObjectBase {
     /**
      * Try to find a sequence with this name. This method returns null if
      * no object with this name exists.
-     * 
+     *
      * @param sequenceName the object name
      * @return the object or null
      */
@@ -261,7 +261,7 @@ public class Schema extends DbObjectBase {
     /**
      * Try to find a constraint with this name. This method returns null if no
      * object with this name exists.
-     * 
+     *
      * @param constraintName the object name
      * @return the object or null
      */
@@ -272,7 +272,7 @@ public class Schema extends DbObjectBase {
     /**
      * Try to find a user defined constant with this name. This method returns
      * null if no object with this name exists.
-     * 
+     *
      * @param constantName the object name
      * @return the object or null
      */
@@ -282,7 +282,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Release a unique object name.
-     * 
+     *
      * @param name the object name
      */
     public void freeUniqueName(String name) {
@@ -316,7 +316,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Create a unique constraint name.
-     * 
+     *
      * @param table the constraint table
      * @return the unique name
      */
@@ -326,7 +326,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Create a unique index name.
-     * 
+     *
      * @param table the indexed table
      * @param prefix the index name prefix
      * @return the unique name
@@ -344,7 +344,7 @@ public class Schema extends DbObjectBase {
     /**
      * Get the table or view with the given name.
      * Local temporary tables are also returned.
-     * 
+     *
      * @param session the session
      * @param name the table or view name
      * @return the table or view
@@ -363,7 +363,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Get the index with the given name.
-     * 
+     *
      * @param name the index name
      * @return the index
      * @throws SQLException if no such object exists
@@ -378,7 +378,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Get the constraint with the given name.
-     * 
+     *
      * @param name the constraint name
      * @return the constraint
      * @throws SQLException if no such object exists
@@ -393,7 +393,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Get the user defined constant with the given name.
-     * 
+     *
      * @param constantName the constant name
      * @return the constant
      * @throws SQLException if no such object exists
@@ -408,7 +408,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Get the sequence with the given name.
-     * 
+     *
      * @param sequenceName the sequence name
      * @return the sequence
      * @throws SQLException if no such object exists
@@ -423,7 +423,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Get all objects of the given type.
-     * 
+     *
      * @param type the object type
      * @return a  (possible empty) list of all objects
      */
@@ -434,7 +434,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Remove an object from this schema.
-     * 
+     *
      * @param obj the object to remove
      */
     public void remove(SchemaObject obj) {
@@ -449,7 +449,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Add a table to the schema.
-     * 
+     *
      * @param tableName the table name
      * @param id the object id
      * @param columns the column list
@@ -464,7 +464,7 @@ public class Schema extends DbObjectBase {
 
     /**
      * Add a linked table to the schema.
-     * 
+     *
      * @param id the object id
      * @param tableName the table name of the alias
      * @param driver the driver class name

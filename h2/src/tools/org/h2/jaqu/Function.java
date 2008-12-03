@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -15,7 +15,7 @@ import org.h2.jaqu.util.Utils;
  */
 public class Function implements Token {
 //## Java 1.5 begin ##
-    
+
     private static final Long COUNT_STAR = new Long(0);
 
     protected Object[] x;
@@ -37,11 +37,11 @@ public class Function implements Token {
         }
         stat.appendSQL(")");
     }
-    
+
     public static Long count() {
         return COUNT_STAR;
     }
-    
+
     public static Integer length(Object x) {
         return Db.registerToken(
             Utils.newObject(Integer.class), new Function("LENGTH", x));
@@ -76,7 +76,7 @@ public class Function implements Token {
                 }
             });
     }
-    
+
     public static Boolean not(Boolean x) {
         return Db.registerToken(
             Utils.newObject(Boolean.class), new Function("", x) {
@@ -89,7 +89,7 @@ public class Function implements Token {
 
     public static Boolean or(Boolean... x) {
         return Db.registerToken(
-                Utils.newObject(Boolean.class), 
+                Utils.newObject(Boolean.class),
                 new Function("", (Object[]) x) {
             public void appendSQL(SqlStatement stat, Query query) {
                 for (int i = 0; i < x.length; i++) {
@@ -104,7 +104,7 @@ public class Function implements Token {
 
     public static Boolean and(Boolean... x) {
         return Db.registerToken(
-                Utils.newObject(Boolean.class), 
+                Utils.newObject(Boolean.class),
                 new Function("", (Object[]) x) {
             public void appendSQL(SqlStatement stat, Query query) {
                 for (int i = 0; i < x.length; i++) {
@@ -122,13 +122,13 @@ public class Function implements Token {
         X o = Utils.newObject(clazz);
         return Db.registerToken(o, new Function("MIN", x));
     }
-    
+
     public static <X> X max(X x) {
         Class<X> clazz = (Class<X>) x.getClass();
         X o = Utils.newObject(clazz);
         return Db.registerToken(o, new Function("MAX", x));
     }
-    
+
     public static Boolean like(String x, String pattern) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("LIKE", x, pattern) {

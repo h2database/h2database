@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -26,7 +26,7 @@ public class RandomGen {
 
     /**
      * Get the next integer that is smaller than max.
-     * 
+     *
      * @param max the upper limit (exclusive)
      * @return the random value
      */
@@ -36,7 +36,7 @@ public class RandomGen {
 
     /**
      * Get the next gaussian value.
-     * 
+     *
      * @return the value
      */
     public double nextGaussian() {
@@ -45,7 +45,7 @@ public class RandomGen {
 
     /**
      * Get the next random value that is at most max but probably much lower.
-     * 
+     *
      * @param max the maximum value
      * @return the value
      */
@@ -63,7 +63,7 @@ public class RandomGen {
 
     /**
      * Get a number of random bytes.
-     * 
+     *
      * @param data the target buffer
      */
     public void getBytes(byte[] data) {
@@ -72,7 +72,7 @@ public class RandomGen {
 
     /**
      * Get a boolean that is true with the given probability in percent.
-     * 
+     *
      * @param percent the probability
      * @return the boolean value
      */
@@ -82,7 +82,7 @@ public class RandomGen {
 
     /**
      * Get a random string with the given length.
-     * 
+     *
      * @param len the length
      * @return the string
      */
@@ -102,7 +102,7 @@ public class RandomGen {
      * this method returns 0. In 10% of the cases, a gaussian value in the range
      * -200 and +1800 is returned. In all other cases, a gaussian value in the
      * range -5 and +20 is returned.
-     * 
+     *
      * @return the random value
      */
     public int getRandomInt() {
@@ -125,7 +125,7 @@ public class RandomGen {
 
     /**
      * Get a random long. The algorithm is similar to a random int.
-     * 
+     *
      * @return the random value
      */
     public long getRandomLong() {
@@ -148,7 +148,7 @@ public class RandomGen {
 
     /**
      * Get a random double. The algorithm is similar to a random int.
-     * 
+     *
      * @return the random value
      */
     public double getRandomDouble() {
@@ -175,7 +175,7 @@ public class RandomGen {
 
     /**
      * Get a random boolean.
-     * 
+     *
      * @return the random value
      */
     public boolean nextBoolean() {
@@ -184,7 +184,7 @@ public class RandomGen {
 
     /**
      * Get a random integer array. In 10% of the cases, null is returned.
-     * 
+     *
      * @return the array
      */
     public int[] getIntArray() {
@@ -203,7 +203,7 @@ public class RandomGen {
 
     /**
      * Get a random byte array. In 10% of the cases, null is returned.
-     * 
+     *
      * @return the array
      */
     public byte[] getByteArray() {
@@ -220,7 +220,7 @@ public class RandomGen {
 
     /**
      * Get a random time value. In 10% of the cases, null is returned.
-     * 
+     *
      * @return the value
      */
     public Time randomTime() {
@@ -239,7 +239,7 @@ public class RandomGen {
 
     /**
      * Get a random timestamp value. In 10% of the cases, null is returned.
-     * 
+     *
      * @return the value
      */
     public Timestamp randomTimestamp() {
@@ -284,7 +284,7 @@ public class RandomGen {
 
     /**
      * Get a random date value. In 10% of the cases, null is returned.
-     * 
+     *
      * @return the value
      */
     public Date randomDate() {
@@ -302,7 +302,7 @@ public class RandomGen {
 
     /**
      * Randomly modify a SQL statement.
-     * 
+     *
      * @param sql the original SQL statement
      * @return the modified statement
      */
@@ -311,7 +311,7 @@ public class RandomGen {
         for (int i = 0; i < len; i++) {
             int pos = getInt(sql.length());
             if (getBoolean(50)) {
-                String badChars = "abcABCDEF\u00ef\u00f6\u00fcC1230=<>+\"\\*%&/()=?$_-.:,;{}[]"; 
+                String badChars = "abcABCDEF\u00ef\u00f6\u00fcC1230=<>+\"\\*%&/()=?$_-.:,;{}[]";
                 // auml, ouml, uuml
                 char bad = badChars.charAt(getInt(badChars.length()));
                 sql = sql.substring(0, pos) + bad + sql.substring(pos);
@@ -328,7 +328,7 @@ public class RandomGen {
 
     /**
      * Set the seed value.
-     * 
+     *
      * @param seed the new seed value
      */
     public void setSeed(int seed) {

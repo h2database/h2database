@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -23,7 +23,7 @@ import org.h2.util.MathUtils;
  * records into a byte array and vice versa. The data is stored in a
  * {@link DiskFile}. A storage occupies a number of pages in a file.
  * File format:
- * 
+ *
  * <pre>
  * int block size
  * int storage id
@@ -53,7 +53,7 @@ public class Storage {
 
     /**
      * Create a new storage object for this file.
-     * 
+     *
      * @param database the database
      * @param file the file
      * @param reader the reader that can parse records
@@ -69,7 +69,7 @@ public class Storage {
 
     /**
      * Get the record parser for this storage.
-     * 
+     *
      * @return the record parser
      */
     public RecordReader getRecordReader() {
@@ -85,7 +85,7 @@ public class Storage {
 
     /**
      * Read a record from the file or cache.
-     * 
+     *
      * @param session the session
      * @param pos the position of the record
      * @return the record
@@ -96,7 +96,7 @@ public class Storage {
 
     /**
      * Read a record if it is stored at that location.
-     * 
+     *
      * @param session the session
      * @param pos the position where it is stored
      * @return the record or null
@@ -156,7 +156,7 @@ public class Storage {
 
     /**
      * Update an existing record.
-     * 
+     *
      * @param session the session
      * @param record the record
      */
@@ -167,7 +167,7 @@ public class Storage {
 
     /**
      * Add or update a record in the file.
-     * 
+     *
      * @param session the session
      * @param record the record
      * @param pos the position (use ALLOCATE_POS to add a new record)
@@ -192,7 +192,7 @@ public class Storage {
 
     /**
      * Remove a record.
-     * 
+     *
      * @param session the session
      * @param pos where the record is stored
      */
@@ -209,7 +209,7 @@ public class Storage {
         recordCount--;
         file.removeRecord(session, pos, record, blockCount);
     }
-    
+
     private void refillFreeList() {
         if (freeList.size() != 0 || freeCount == 0) {
             return;
@@ -225,7 +225,7 @@ public class Storage {
                     } else {
                         return;
                     }
-                }                    
+                }
                 block++;
             }
         }
@@ -245,19 +245,19 @@ public class Storage {
                 int lastPage = Integer.MIN_VALUE;
                 int lastBlockLow  = Integer.MAX_VALUE;
                 int lastBlockHigh = 0;
-                
+
                 nextEntry:
                 for (int i = 0; i < freeList.size(); i++) {
                     int px = freeList.get(i);
-                    
+
                     if (px >= lastBlockLow && px <= lastBlockHigh) {
-                        // we have already tested this block 
+                        // we have already tested this block
                         // and found that it's used
                         continue;
                     }
 
                     if (used.get(px)) {
-                        // sometimes some entries in the freeList 
+                        // sometimes some entries in the freeList
                         // are not free (free 2, free 1, allocate 1+2)
                         // these entries are removed right here
                         freeList.remove(i--);
@@ -298,7 +298,7 @@ public class Storage {
 
     /**
      * Called after a record has been deleted.
-     * 
+     *
      * @param pos the position
      * @param blockCount the number of blocks
      */
@@ -325,7 +325,7 @@ public class Storage {
 
     /**
      * Get the unique storage id.
-     * 
+     *
      * @return the id
      */
     public int getId() {
@@ -334,7 +334,7 @@ public class Storage {
 
     /**
      * Get the number of records in this storage.
-     * 
+     *
      * @return the number of records
      */
     public int getRecordCount() {
@@ -343,7 +343,7 @@ public class Storage {
 
     /**
      * Delete all records from this storage.
-     * 
+     *
      * @param session the session
      */
     public void truncate(Session session) throws SQLException {
@@ -355,7 +355,7 @@ public class Storage {
 
     /**
      * Set the record parser for this storage.
-     * 
+     *
      * @param reader the record parser
      */
     public void setReader(RecordReader reader) {
@@ -364,7 +364,7 @@ public class Storage {
 
     /**
      * Write this record now.
-     * 
+     *
      * @param rec the record to write
      */
     public void flushRecord(Record rec) throws SQLException {
@@ -373,7 +373,7 @@ public class Storage {
 
     /**
      * Get the overhead to store a record (header data) in number of bytes.
-     * 
+     *
      * @return the overhead
      */
     public int getRecordOverhead() {
@@ -386,7 +386,7 @@ public class Storage {
 
     /**
      * Update the record count.
-     * 
+     *
      * @param recordCount the new record count
      */
     public void setRecordCount(int recordCount) {
@@ -395,7 +395,7 @@ public class Storage {
 
     /**
      * Add a page to this storage.
-     * 
+     *
      * @param i the page id to add
      */
     void addPage(int i) {
@@ -404,7 +404,7 @@ public class Storage {
 
     /**
      * Remove a list of page from this storage.
-     * 
+     *
      * @param removeSorted the pages to remove
      */
     void removePages(IntArray removeSorted) {
@@ -413,7 +413,7 @@ public class Storage {
 
     /**
      * Remove a page from this storage.
-     * 
+     *
      * @param i the page to remove
      */
     void removePage(int i) {

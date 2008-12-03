@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -40,7 +40,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
     /**
      * Initialize the base index.
-     * 
+     *
      * @param table the table
      * @param id the object id
      * @param name the index name
@@ -130,7 +130,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     /**
      * Find the first (or last) value of this index. The cursor returned is
      * positioned on the correct row, or on null if no row has been found.
-     * 
+     *
      * @param session the session
      * @param first true for the first value, false for the last
      * @return a cursor (never null)
@@ -185,7 +185,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     /**
      * Calculate the cost for the given mask as if this index was a typical
      * b-tree range index.
-     * 
+     *
      * @param masks the search mask
      * @param rowCount the number of rows in the index
      * @return the calculated cost
@@ -363,7 +363,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     public void commit(int operation, Row row) {
         // nothing to do
     }
-    
+
     void setMultiVersion(boolean multiVersion) {
         this.isMultiVersion = multiVersion;
     }

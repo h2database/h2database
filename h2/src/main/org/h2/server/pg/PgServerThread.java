@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -535,17 +535,17 @@ public class PgServerThread implements Runnable {
                 for (int i = 0; i < columns; i++) {
                     writeString(names[i].toLowerCase());
                     // object ID
-                    writeInt(0); 
+                    writeInt(0);
                     // attribute number of the column
-                    writeShort(0); 
+                    writeShort(0);
                     // data type
-                    writeInt(types[i]); 
+                    writeInt(types[i]);
                     // pg_type.typlen
-                    writeShort(getTypeSize(types[i], precision[i])); 
+                    writeShort(getTypeSize(types[i], precision[i]));
                     // pg_attribute.atttypmod
-                    writeInt(-1); 
+                    writeInt(-1);
                     // text
-                    writeShort(0); 
+                    writeShort(0);
                 }
                 sendMessage();
             }
@@ -570,7 +570,7 @@ public class PgServerThread implements Runnable {
         writeString("ERROR");
         write('C');
         // PROTOCOL VIOLATION
-        writeString("08P01"); 
+        writeString("08P01");
         write('M');
         writeString(message);
         sendMessage();
@@ -668,7 +668,7 @@ public class PgServerThread implements Runnable {
         sendParameterStatus("session_authorization", userName);
         sendParameterStatus("standard_conforming_strings", "off");
         // TODO PostgreSQL TimeZone
-        sendParameterStatus("TimeZone", "CET"); 
+        sendParameterStatus("TimeZone", "CET");
         sendBackendKeyData();
         sendReadyForQuery();
     }
@@ -678,15 +678,15 @@ public class PgServerThread implements Runnable {
         char c;
         try {
             if (conn.getAutoCommit()) {
-                // idle                
+                // idle
                 c = 'I';
             } else {
                 // in a transaction block
-                c = 'T'; 
+                c = 'T';
             }
         } catch (SQLException e) {
             // failed transaction block
-            c = 'E'; 
+            c = 'E';
         }
         write((byte) c);
         sendMessage();
@@ -760,22 +760,22 @@ public class PgServerThread implements Runnable {
      * Represents a PostgreSQL Prepared object.
      */
     static class Prepared {
-        
+
         /**
          * The object name.
          */
         String name;
-        
+
         /**
          * The SQL statement.
          */
         String sql;
-        
+
         /**
          * The prepared statement.
          */
         PreparedStatement prep;
-        
+
         /**
          * The list of parameter types (if set).
          */
@@ -786,22 +786,22 @@ public class PgServerThread implements Runnable {
      * Represents a PostgreSQL Portal object.
      */
     static class Portal {
-        
+
         /**
          * The portal name.
          */
         String name;
-        
+
         /**
          * The SQL statement.
          */
         String sql;
-        
+
         /**
          * The format used in the result set columns (if set).
          */
         int[] resultColumnFormat;
-        
+
         /**
          * The prepared statement.
          */

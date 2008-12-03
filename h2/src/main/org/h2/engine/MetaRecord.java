@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -23,7 +23,7 @@ import org.h2.value.ValueString;
  * It contains the SQL statement to create the database object.
  */
 public class MetaRecord {
-    
+
     private static final Comparator META_RECORD_COMPARATOR = new Comparator() {
         public int compare(Object o1, Object o2) {
             MetaRecord m1 = (MetaRecord) o1;
@@ -48,7 +48,7 @@ public class MetaRecord {
         objectType = r.getValue(2).getInt();
         sql = r.getValue(3).getString();
     }
-    
+
     MetaRecord(DbObject obj) {
         id = obj.getId();
         objectType = obj.getType();
@@ -58,7 +58,7 @@ public class MetaRecord {
 
     /**
      * Sort the list of meta records by 'create order'.
-     * 
+     *
      * @param records the list of meta records
      */
     public static void sort(ObjectArray records) {
@@ -74,7 +74,7 @@ public class MetaRecord {
 
     /**
      * Execute the meta data statement.
-     * 
+     *
      * @param db the database
      * @param systemSession the system session
      * @param listener the database event listener

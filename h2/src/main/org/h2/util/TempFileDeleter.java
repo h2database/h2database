@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -22,25 +22,25 @@ public class TempFileDeleter {
 
     private final ReferenceQueue queue = new ReferenceQueue();
     private final HashMap refMap = new HashMap();
-    
+
     private TempFileDeleter() {
         // utility class
     }
-    
+
     public static TempFileDeleter getInstance() {
         return new TempFileDeleter();
     }
-    
+
     /**
      * Contains information about a file.
      */
     static class TempFile {
-        
+
         /**
          * The file name.
          */
         String fileName;
-        
+
         /**
          * The last modified date of this file.
          */
@@ -50,7 +50,7 @@ public class TempFileDeleter {
     /**
      * Add a file to the list of temp files to delete. The file is deleted once
      * the file object is garbage collected.
-     * 
+     *
      * @param fileName the file name
      * @param file the object to monitor
      * @return the reference that can be used to stop deleting the file
@@ -65,12 +65,12 @@ public class TempFileDeleter {
         deleteUnused();
         return ref;
     }
-    
+
     /**
      * Update the last modified date of the auto-delete reference. If the file
      * was modified after that, it will not be deleted (because it might have
      * been deleted and then re-created).
-     * 
+     *
      * @param ref the reference
      */
     public synchronized void updateAutoDelete(Reference ref) {
@@ -84,7 +84,7 @@ public class TempFileDeleter {
 
     /**
      * Delete the given file now. This will remove the reference from the list.
-     * 
+     *
      * @param ref the reference as returned by addFile
      * @param fileName the file name
      */
@@ -113,7 +113,7 @@ public class TempFileDeleter {
             }
         }
     }
-    
+
     /**
      * Delete all registered temp files.
      */
@@ -142,7 +142,7 @@ public class TempFileDeleter {
     /**
      * This method is called if a file should no longer be deleted if the object
      * is garbage collected.
-     * 
+     *
      * @param ref the reference as returned by addFile
      * @param fileName the file name
      */

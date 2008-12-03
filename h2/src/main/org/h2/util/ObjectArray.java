@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -31,7 +31,7 @@ public class ObjectArray {
 
     /**
      * Create a new object with the given initial capacity.
-     * 
+     *
      * @param capacity the initial capacity
      */
     public ObjectArray(int capacity) {
@@ -40,7 +40,7 @@ public class ObjectArray {
 
     /**
      * Create a new object with all elements of the given collection.
-     * 
+     *
      * @param collection the collection with all elements
      */
     public ObjectArray(Collection collection) {
@@ -58,7 +58,7 @@ public class ObjectArray {
 
     /**
      * Append an object at the end of the list.
-     * 
+     *
      * @param value the value
      */
     public void add(Object value) {
@@ -70,7 +70,7 @@ public class ObjectArray {
 
     /**
      * Get the object at the given index.
-     * 
+     *
      * @param index the index
      * @return the value
      */
@@ -83,11 +83,11 @@ public class ObjectArray {
 
     /**
      * Remove the object at the given index.
-     * 
+     *
      * @param index the index
      */
     public Object remove(int index) {
-        // TODO performance: the app should (where possible) 
+        // TODO performance: the app should (where possible)
         // remove from end to start, to avoid O(n^2)
         if (SysProperties.CHECK && index >= size) {
             throwException(index);
@@ -102,7 +102,7 @@ public class ObjectArray {
 
     /**
      * Remove a number of elements from the given start and end index.
-     * 
+     *
      * @param from the start index
      * @param to the end index
      */
@@ -119,7 +119,7 @@ public class ObjectArray {
 
     /**
      * Fill the list with empty elements until it reaches the given size.
-     * 
+     *
      * @param size the new size
      */
     public void setSize(int size) {
@@ -134,7 +134,7 @@ public class ObjectArray {
             data = d;
         }
     }
-    
+
     /**
      * Shrink the array to the required size.
      */
@@ -147,7 +147,7 @@ public class ObjectArray {
     /**
      * Insert an element at the given position. The element at this position and
      * all elements with a higher index move one element.
-     * 
+     *
      * @param index the index where to insert the object
      * @param value the object to insert
      */
@@ -167,7 +167,7 @@ public class ObjectArray {
 
     /**
      * Update the object at the given index.
-     * 
+     *
      * @param index the index
      * @param value the new value
      */
@@ -180,7 +180,7 @@ public class ObjectArray {
 
     /**
      * Get the size of the list.
-     * 
+     *
      * @return the size
      */
     public int size() {
@@ -189,7 +189,7 @@ public class ObjectArray {
 
     /**
      * Convert this list to an array. The target array must be big enough.
-     * 
+     *
      * @param array the target array
      */
     public void toArray(Object[] array) {
@@ -212,7 +212,7 @@ public class ObjectArray {
 
     /**
      * Get the index of the given object, or -1 if not found.
-     * 
+     *
      * @param o the object to search
      * @return the index
      */
@@ -227,7 +227,7 @@ public class ObjectArray {
 
     /**
      * Add all objects from the given list.
-     * 
+     *
      * @param list the list
      */
     public void addAll(ObjectArray list) {
@@ -244,7 +244,7 @@ public class ObjectArray {
 
     /**
      * Sort the elements using the given comparator.
-     * 
+     *
      * @param comp the comparator
      */
     public void sort(Comparator comp) {
@@ -253,7 +253,7 @@ public class ObjectArray {
 
     /**
      * Sort using the quicksort algorithm.
-     * 
+     *
      * @param comp the comparator
      * @param l the first element (left)
      * @param r the last element (right)

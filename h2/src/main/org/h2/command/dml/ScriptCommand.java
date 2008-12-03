@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -68,7 +68,7 @@ public class ScriptCommand extends ScriptBase {
             return t1.getId() - t2.getId();
         }
     };
-    
+
     private boolean passwords;
     private boolean data;
     private boolean settings;
@@ -139,7 +139,7 @@ public class ScriptCommand extends ScriptBase {
                 for (int i = 0; i < settings.size(); i++) {
                     Setting setting = (Setting) settings.get(i);
                     if (setting.getName().equals(SetTypes.getTypeName(SetTypes.CREATE_BUILD))) {
-                        // don't add CREATE_BUILD to the script 
+                        // don't add CREATE_BUILD to the script
                         // (it is only set when creating the database)
                         continue;
                     }
@@ -483,7 +483,7 @@ public class ScriptCommand extends ScriptBase {
                         if (current == null) {
                             if (closed) {
                                 return -1;
-                            }                            
+                            }
                             if (!rs.next()) {
                                 close();
                                 return -1;
@@ -505,7 +505,7 @@ public class ScriptCommand extends ScriptBase {
                 if (closed) {
                     return;
                 }
-                closed = true;        
+                closed = true;
                 try {
                     rs.close();
                 } catch (SQLException e) {

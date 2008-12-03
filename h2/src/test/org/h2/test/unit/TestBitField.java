@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -19,7 +19,7 @@ public class TestBitField extends TestBase {
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
@@ -33,7 +33,7 @@ public class TestBitField extends TestBase {
         testRandom();
         testGetSet();
     }
-    
+
     private void testNextSetBit() {
         Random random = new Random(1);
         BitField field = new BitField();
@@ -68,7 +68,7 @@ public class TestBitField extends TestBase {
         testSetFast(used, false);
         testSetFast(used, true);
     }
-    
+
     private void testSetFast(BitField used, boolean init) {
         int len = 10000;
         Random random = new Random(1);
@@ -80,7 +80,7 @@ public class TestBitField extends TestBase {
                 // for (int j = 0; j < 8; j++, x++) {
                 //    if (used.get(x) != ((mask & (1 << j)) != 0)) {
                 //        throw Message.getInternalError(
-                //          "Redo failure, block: " + x + 
+                //          "Redo failure, block: " + x +
                 //          " expected in-use bit: " + used.get(x));
                 //    }
                 // }

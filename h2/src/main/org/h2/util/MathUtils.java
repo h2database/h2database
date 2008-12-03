@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -17,17 +17,17 @@ import org.h2.message.Message;
  * This is a utility class with mathematical helper functions.
  */
 public class MathUtils {
-    
+
     private MathUtils() {
         // utility class
     }
-    
+
     /**
      * Round the value up to the next block size. The block size must be a power
      * of two. As an example, using the block size of 8, the following rounding
      * operations are done: 0 stays 0; values 1..8 results in 8, 9..16 results
      * in 16, and so on.
-     * 
+     *
      * @param x the value to be rounded
      * @param blockSizePowerOf2
      * @return the rounded value
@@ -41,7 +41,7 @@ public class MathUtils {
      * of two. As an example, using the block size of 8, the following rounding
      * operations are done: 0 stays 0; values 1..8 results in 8, 9..16 results
      * in 16, and so on.
-     * 
+     *
      * @param x the value to be rounded
      * @param blockSizePowerOf2
      * @return the rounded value
@@ -52,7 +52,7 @@ public class MathUtils {
 
     /**
      * Check if a value is a power of two.
-     * 
+     *
      * @param len the value to check
      * @throws RuntimeException if it is not a power of two
      */
@@ -65,7 +65,7 @@ public class MathUtils {
     /**
      * Get the value that is equal or higher than this value, and that is a
      * power of two.
-     * 
+     *
      * @param x the original value
      * @return the next power of two value
      */
@@ -80,7 +80,7 @@ public class MathUtils {
     /**
      * Increase the value by about 50%. The method is used to increase the file
      * size in larger steps.
-     * 
+     *
      * @param start the smallest possible returned value
      * @param min the current value
      * @param blockSize the block size
@@ -103,7 +103,7 @@ public class MathUtils {
 
     /**
      * Set the scale of a BigDecimal value.
-     * 
+     *
      * @param bd the BigDecimal value
      * @param scale the new scale
      * @return the scaled value
@@ -120,7 +120,7 @@ public class MathUtils {
     /**
      * Parse a string to a byte. This method uses the decode method to support
      * decimal, hexadecimal and octal values.
-     * 
+     *
      * @param s the string to parse
      * @return the value
      */
@@ -131,7 +131,7 @@ public class MathUtils {
     /**
      * Parse a string to a short. This method uses the decode method to support
      * decimal, hexadecimal and octal values.
-     * 
+     *
      * @param s the string to parse
      * @return the value
      */
@@ -142,7 +142,7 @@ public class MathUtils {
     /**
      * Parse a string to an int. This method uses the decode method to support
      * decimal, hexadecimal and octal values.
-     * 
+     *
      * @param s the string to parse
      * @return the value
      */
@@ -153,7 +153,7 @@ public class MathUtils {
     /**
      * Parse a string to a long. This method uses the decode method to support
      * decimal, hexadecimal and octal values.
-     * 
+     *
      * @param s the string to parse
      * @return the value
      */
@@ -165,7 +165,7 @@ public class MathUtils {
      * Convert a long value to an int value. Values larger than the biggest int
      * value is converted to the biggest int value, and values smaller than the
      * smallest int value are converted to the smallest int value.
-     * 
+     *
      * @param l the value to convert
      * @return the converted int value
      */
@@ -182,10 +182,10 @@ public class MathUtils {
     /**
      * Calculate the factorial (n!) of a number.
      * This implementation uses a naive multiplication loop, and
-     * is very slow for large n. 
+     * is very slow for large n.
      * For n = 1000, it takes about 10 ms.
      * For n = 8000, it takes about 800 ms.
-     * 
+     *
      * @param n the number
      * @return the factorial of n
      */

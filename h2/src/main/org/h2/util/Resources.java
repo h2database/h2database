@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -20,7 +20,7 @@ import java.util.zip.ZipInputStream;
 public class Resources {
 
     private static final HashMap FILES = new HashMap();
-    
+
     private Resources() {
         // utility class
     }
@@ -28,7 +28,7 @@ public class Resources {
     static {
         loadFromZip();
     }
-    
+
     private static void loadFromZip() {
         InputStream in = Resources.class.getResourceAsStream("data.zip");
         if (in == null) {
@@ -59,7 +59,7 @@ public class Resources {
 
     /**
      * Get a resource from the resource map.
-     * 
+     *
      * @param name the name of the resource
      * @return the resource data
      */
@@ -78,9 +78,9 @@ public class Resources {
         }
         return data == null ? new byte[0] : data;
     }
-    
+
     static boolean isShutdown() {
         return FILES == null;
     }
-    
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -16,7 +16,7 @@ import org.h2.store.DiskFile;
  * The base object for all cached objects.
  */
 public abstract class CacheObject {
-    
+
     /**
      * Ensure the class is loaded when initialized, so that sorting is possible
      * even when loading new classes is not allowed any more. This can occur
@@ -35,24 +35,24 @@ public abstract class CacheObject {
      * the head, then this element is the most recently used object.
      */
     public CacheObject previous;
-    
+
     /**
      * The next element in the LRU linked list. If the next element is the head,
      * then this element is the least recently used object.
      */
     public CacheObject next;
-    
+
     /**
      * The next element in the hash chain.
      */
     public CacheObject chained;
-    
+
     /**
      * The cache queue identifier. This field is only used for the 2Q cache
      * algorithm.
      */
     public int cacheQueue;
-    
+
     /**
      * The number of blocks occupied by this object.
      */
@@ -71,7 +71,7 @@ public abstract class CacheObject {
 
     /**
      * Order the given list of cache objects by position.
-     * 
+     *
      * @param recordList the list of cache objects
      */
     public static void sort(ObjectArray recordList) {
@@ -100,7 +100,7 @@ public abstract class CacheObject {
     /**
      * Check if this cache object has been changed and thus needs to be written
      * back to the storage.
-     * 
+     *
      * @return if it has been changed
      */
     public boolean isChanged() {
@@ -113,7 +113,7 @@ public abstract class CacheObject {
 
     /**
      * Check if this cache object can be removed from the cache.
-     * 
+     *
      * @return if it can be removed
      */
     public boolean isPinned() {

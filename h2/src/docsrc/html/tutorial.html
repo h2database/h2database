@@ -170,7 +170,7 @@ If the server started successfully, you can connect to it using a web browser.
 The browser needs to support JavaScript, frames and cascading stylesheets (css).
 If you started the server on the same computer as the browser, go to http://localhost:8082 in the browser.
 If you want to connect to the application from another computer, you need to provide the IP address of the server, for example:
-<a href="http://192.168.0.2:8082">http://192.168.0.2:8082</a>. 
+<a href="http://192.168.0.2:8082">http://192.168.0.2:8082</a>.
 If you enabled SSL on the server side, the URL needs to start with HTTPS.
 </p>
 
@@ -232,12 +232,12 @@ If you don't have the icon (because you started it in another way),
 press [Ctrl]+[C] on the console where the server was started (Windows),
 or close the console window.
 </p>
-    
+
 <br /><a name="console_settings"></a>
-<h2>Settings of the H2 Console</h2>    
+<h2>Settings of the H2 Console</h2>
 <p>
-The settings of the H2 Console are stored in a configuration file 
-called <code>.h2.server.properties</code> in you user home directory. 
+The settings of the H2 Console are stored in a configuration file
+called <code>.h2.server.properties</code> in you user home directory.
 For Windows installations, the user home directory is usually <code>C:\Documents and Settings\[username]</code>.
 The configuration file contains the settings of the application and is automatically created when the H2 Console is first started.
 </p>
@@ -354,9 +354,9 @@ To stop remote server, remote connections must be enabled on the server.
 <h2>Using Hibernate</h2>
 <p>
 This database supports Hibernate version 3.1 and newer. You can use the HSQLDB Dialect,
-or the native H2 Dialect. Unfortunately the H2 Dialect included in Hibernate is buggy. A 
+or the native H2 Dialect. Unfortunately the H2 Dialect included in Hibernate is buggy. A
 <a href="http://opensource.atlassian.com/projects/hibernate/browse/HHH-3401">patch
-for Hibernate</a> has been submitted. The dialect for the newest version of Hibernate 
+for Hibernate</a> has been submitted. The dialect for the newest version of Hibernate
 is also available at src/tools/org/hibernate/dialect/H2Dialect.java.txt.
 You can rename it to H2Dialect.java and include this as a patch in your application.
 </p>
@@ -364,15 +364,15 @@ You can rename it to H2Dialect.java and include this as a patch in your applicat
 <br /><a name="using_toplink"></a>
 <h2>Using TopLink and Glassfish</h2>
 <p>
-To use H2 with Glassfish (or Sun AS), set the Datasource Classname to 
+To use H2 with Glassfish (or Sun AS), set the Datasource Classname to
 <code>org.h2.jdbcx.JdbcDataSource</code>. You can set this in the GUI
 at Application Server - Resources - JDBC - Connection Pools,
 or by editing the file <code>sun-resources.xml</code>: at element
-<code>jdbc-connection-pool</code>, set the attribute 
+<code>jdbc-connection-pool</code>, set the attribute
 <code>datasource-classname</code> to <code>org.h2.jdbcx.JdbcDataSource</code>.
 </p>
 <p>
-The H2 database is compatible with HSQLDB and PostgreSQL. 
+The H2 database is compatible with HSQLDB and PostgreSQL.
 To take advantage of H2 specific features, use the <code>H2Platform</code>.
 The source code of this platform is included in H2 at
 <code>src/tools/oracle/toplink/essentials/platform/database/DatabasePlatform.java.txt</code>.
@@ -435,8 +435,8 @@ add the following snippet to your web.xml file (after context-param and before f
 For details on how to access the database, see the code DbStarter.java
 </p>
 <p>
-By default the DbStarter listener opens an embedded connection using the database URL jdbc:h2:~/test 
-and user name and password 'sa'. It can also start the TCP server, however this is disabled by default. 
+By default the DbStarter listener opens an embedded connection using the database URL jdbc:h2:~/test
+and user name and password 'sa'. It can also start the TCP server, however this is disabled by default.
 To enable it, use the db.tcpServer parameter in web.xml. Here is the complete list of options.
 These options are set just after the display-name and description tag, but before any listener and filter tags:
 </p>
@@ -460,13 +460,13 @@ These options are set just after the display-name and description tag, but befor
 </pre>
 <p>
 When the web application is stopped, the database connection will be closed automatically.
-If the server is started within the DbStarter, it will also be stopped automatically when the 
+If the server is started within the DbStarter, it will also be stopped automatically when the
 web application is stopped.
 </p>
 
 <h3>Using the H2 Console Servlet</h3>
 <p>
-The H2 Console is a standalone application and includes its own web server, but it can be 
+The H2 Console is a standalone application and includes its own web server, but it can be
 used as a servlet as well. To do that, include the the h2 jar file in your application, and
 add the following configuration to your web.xml:
 </p>
@@ -637,10 +637,10 @@ The command line tools are:
 </li><li><b>Restore</b> restores a backup of a database.
 </li><li><b>RunScript</b> runs a SQL script against a database.
 </li><li><b>Server</b> is used in the server mode to start a H2 server.
-</li><li><b>Shell</b> is a command line database tool. 
+</li><li><b>Shell</b> is a command line database tool.
 </li></ul>
 <p>
-The tools can also be called from an application by calling the main or another public methods. 
+The tools can also be called from an application by calling the main or another public methods.
 For details, see the Javadoc documentation.
 </p>
 
@@ -714,7 +714,7 @@ open. Using a connection pool for H2 actually slows down the process a bit, exce
 file encryption is used (in this case opening a connection is about half as fast as using
 a connection pool). A simple connection pool is included in H2. It is based on the
 <a href="http://www.source-code.biz/snippets/java/8.htm">Mini Connection Pool Manager</a>
-from Christian d'Heureuse. There are other, more complex connection pools available, for example 
+from Christian d'Heureuse. There are other, more complex connection pools available, for example
 <a href="http://jakarta.apache.org/commons/dbcp/">DBCP</a>. The build-in
 connection pool is used as follows:
 </p>
@@ -841,11 +841,11 @@ Date, time and timestamp values support ISO 8601 formatting, including time zone
 CALL TIMESTAMP '2008-01-01 12:00:00+01:00';
 </pre>
 <p>
-If the time zone is not set, the value is parsed using the current time zone setting of the system. 
-Date and time information is stored in H2 database files in GMT (Greenwich Mean Time). 
-If the database is opened using another system time zone, the date and time will change accordingly. 
-If you want to move a database from one time zone to the other and don't want this to happen, 
-you need to create a SQL script file using the SCRIPT command or Script tool, and then load 
+If the time zone is not set, the value is parsed using the current time zone setting of the system.
+Date and time information is stored in H2 database files in GMT (Greenwich Mean Time).
+If the database is opened using another system time zone, the date and time will change accordingly.
+If you want to move a database from one time zone to the other and don't want this to happen,
+you need to create a SQL script file using the SCRIPT command or Script tool, and then load
 the database using the RUNSCRIPT command or the RunScript tool in the new time zone.
 </p>
 

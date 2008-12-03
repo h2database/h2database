@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -1197,10 +1197,10 @@ public class Function extends Expression implements FunctionCall {
         }
         return bytes;
     }
-    
+
     /**
      * Check if a given string is a valid date part string.
-     * 
+     *
      * @param part the string
      * @return true if it is
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -704,7 +704,7 @@ public class Recover extends Tool implements DataHandler {
             }
         }
     }
-    
+
     private void dumpData(String fileName, boolean textStorage, String outputName, int offset) {
         PrintWriter writer = null;
         FileStore store = null;
@@ -877,7 +877,7 @@ public class Recover extends Tool implements DataHandler {
             closeSilently(store);
         }
     }
-    
+
     private String extractTableOrViewName(String sql) {
         int indexTable = sql.indexOf(" TABLE ");
         int indexView = sql.indexOf(" VIEW ");
@@ -887,7 +887,7 @@ public class Recover extends Tool implements DataHandler {
             } else {
                 indexTable = -1;
             }
-        } 
+        }
         if (indexView > 0) {
             sql = sql.substring(indexView + " VIEW ".length());
         } else if (indexTable > 0) {
@@ -1037,14 +1037,14 @@ public class Recover extends Tool implements DataHandler {
     public SmallLRUCache getLobFileListCache() {
         return null;
     }
-    
+
     /**
      * INTERNAL
      */
     public TempFileDeleter getTempFileDeleter() {
         return TempFileDeleter.getInstance();
     }
-    
+
     /**
      * INTERNAL
      */

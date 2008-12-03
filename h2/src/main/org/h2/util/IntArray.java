@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -35,7 +35,7 @@ public class IntArray {
 
     /**
      * Append a value.
-     * 
+     *
      * @param value the value to append
      */
     public void add(int value) {
@@ -45,7 +45,7 @@ public class IntArray {
 
     /**
      * Get the value at the given index.
-     * 
+     *
      * @param index the index
      * @return the value
      */
@@ -58,7 +58,7 @@ public class IntArray {
 
     /**
      * Remove the value at the given index.
-     * 
+     *
      * @param index the index
      */
     public void remove(int index) {
@@ -80,7 +80,7 @@ public class IntArray {
     /**
      * Insert an element at the given position. The element at this position and
      * all elements with a higher index move one element.
-     * 
+     *
      * @param index the index where to insert the value
      * @param value the value to insert
      */
@@ -100,7 +100,7 @@ public class IntArray {
 
     /**
      * Update the value at the given index.
-     * 
+     *
      * @param index the index
      * @param value the new value
      */
@@ -141,7 +141,7 @@ public class IntArray {
 
     /**
      * Get the size of the list.
-     * 
+     *
      * @return the size
      */
     public int size() {
@@ -151,7 +151,7 @@ public class IntArray {
     /**
      * Insert an element at the correct position in a sorted list.
      * If the list is not sorted, the result of this operation is undefined.
-     * 
+     *
      * @param value the value to insert
      */
     public void addValueSorted(int value) {
@@ -188,7 +188,7 @@ public class IntArray {
 
     /**
      * Remove the first element of this list that matches this value.
-     * 
+     *
      * @param value the value to be remove
      */
     public void removeValue(int value) {
@@ -200,10 +200,10 @@ public class IntArray {
         }
         throw Message.getInternalError();
     }
-    
+
     /**
      * Remove the last element of this list that matches this value.
-     * 
+     *
      * @param value the value to be remove
      */
     public void removeLastValue(int value) {
@@ -214,12 +214,12 @@ public class IntArray {
             }
         }
         throw Message.getInternalError();
-    }    
-    
+    }
+
     /**
      * Return the index with a this value.
      * If the list is not sorted, the result of this operation is undefined.
-     * 
+     *
      * @param value the value to find
      * @return the index or -1 if not found
      */
@@ -238,11 +238,11 @@ public class IntArray {
         }
         return -1;
     }
-    
+
     /**
      * Return the next index with a value larger than this one.
      * If the list is not sorted, the result of this operation is undefined.
-     * 
+     *
      * @param value the value to find
      * @return the index
      */
@@ -276,18 +276,18 @@ public class IntArray {
 
     /**
      * Convert this list to an array. The target array must be big enough.
-     * 
+     *
      * @param array the target array
      */
     public void toArray(int[] array) {
         System.arraycopy(data, 0, array, 0, size);
     }
-    
+
     /**
      * Remove all values from the given sorted list from this sorted list.
-     * 
+     *
      * @param removeSorted the value to remove
-     */    
+     */
     public void removeAllSorted(IntArray removeSorted) {
         int[] d = new int[data.length];
         int newSize = 0;

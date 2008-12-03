@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -37,10 +37,10 @@ class AggregateData {
         this.aggregateType = aggregateType;
         this.dataType = dataType;
     }
-    
+
     /**
      * Add a value to this aggregate.
-     * 
+     *
      * @param database the database
      * @param distinct if the calculation should be distinct
      * @param v the value
@@ -152,7 +152,7 @@ class AggregateData {
 
     /**
      * Get the aggregate result.
-     * 
+     *
      * @param database the database
      * @param distinct if distinct is used
      * @return the value

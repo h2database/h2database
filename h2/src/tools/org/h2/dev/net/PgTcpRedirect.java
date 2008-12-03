@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -17,7 +17,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * This class helps debug the PostgreSQL network protocol. 
+ * This class helps debug the PostgreSQL network protocol.
  * It listens on one port, and sends the exact same data to another port.
  */
 public class PgTcpRedirect {
@@ -25,7 +25,7 @@ public class PgTcpRedirect {
     /**
      * This method is called when executing this application from the command
      * line.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String[] args) throws Exception {
@@ -40,9 +40,9 @@ public class PgTcpRedirect {
         // int portServer = 9083, portClient = 9084;
         // int portServer = 3306, portClient = 3307;
         // H2 PgServer
-        // int portServer = 5435, portClient = 5433; 
+        // int portServer = 5435, portClient = 5433;
         // PostgreSQL
-        int portServer = 5432, portClient = 5433; 
+        int portServer = 5432, portClient = 5433;
 
         for (int i = 0; i < args.length; i++) {
             if ("-client".equals(args[i])) {
@@ -531,7 +531,7 @@ public class PgTcpRedirect {
 
     /**
      * Print the uninterpreted byte array.
-     * 
+     *
      * @param buffer the byte array
      * @param len the length
      */

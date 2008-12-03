@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -18,11 +18,11 @@ import org.h2.test.TestBase;
  * Tests the Connection.nativeSQL method.
  */
 public class TestNativeSQL extends TestBase {
-    
-    private static final String[] PAIRS = new String[] { 
+
+    private static final String[] PAIRS = new String[] {
             "CREATE TABLE TEST(ID INT PRIMARY KEY)",
-            "CREATE TABLE TEST(ID INT PRIMARY KEY)", 
-            
+            "CREATE TABLE TEST(ID INT PRIMARY KEY)",
+
             "INSERT INTO TEST VALUES(1)", "INSERT INTO TEST VALUES(1)",
             "SELECT '{nothing}' FROM TEST", "SELECT '{nothing}' FROM TEST",
 
@@ -66,7 +66,7 @@ public class TestNativeSQL extends TestBase {
         assertTrue(conn.isClosed());
         deleteDb("nativeSql");
     }
-    
+
     private void testQuotes() throws SQLException {
         Statement stat = conn.createStatement();
         Random random = new Random(1);
@@ -105,7 +105,7 @@ public class TestNativeSQL extends TestBase {
             assertEquals(raw, rs.getString(1));
         }
     }
-    
+
     private void testRandom() throws SQLException {
         Random random = new Random(1);
         for (int i = 0; i < 100; i++) {
@@ -197,13 +197,13 @@ public class TestNativeSQL extends TestBase {
             conn.nativeSQL(smallest);
         }
     }
-    
+
     private void testPairs() throws SQLException {
         for (int i = 0; i < PAIRS.length; i += 2) {
             test(conn, PAIRS[i], PAIRS[i + 1]);
         }
     }
-    
+
     private void testCases() throws SQLException {
         conn.nativeSQL("TEST");
         conn.nativeSQL("TEST--testing");

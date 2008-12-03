@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -74,7 +74,7 @@ public class FunctionAlias extends DbObjectBase {
                 for (int j = 0; j < list.size(); j++) {
                     JavaMethod old = (JavaMethod) list.get(j);
                     if (old.getParameterCount() == javaMethod.getParameterCount()) {
-                        throw Message.getSQLException(ErrorCode.METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2, 
+                        throw Message.getSQLException(ErrorCode.METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2,
                                 new String[] {
                                     old.toString(),
                                     javaMethod.toString()
@@ -153,7 +153,7 @@ public class FunctionAlias extends DbObjectBase {
 
     /**
      * Find the Java method that matches the arguments.
-     * 
+     *
      * @param args the argument list
      * @return the Java method
      * @throws SQLException if no matching method could be found
@@ -178,17 +178,17 @@ public class FunctionAlias extends DbObjectBase {
     public String getJavaMethodName() {
         return this.methodName;
     }
-    
+
     /**
      * Get the Java methods mapped by this function.
-     * 
+     *
      * @return the Java methods.
      */
     public JavaMethod[] getJavaMethods() throws SQLException {
         load();
         return javaMethods;
     }
-    
+
     /**
      * There may be multiple Java methods that match a function name.
      * Each method must have a different number of parameters however.
@@ -225,23 +225,23 @@ public class FunctionAlias extends DbObjectBase {
             Class returnClass = method.getReturnType();
             dataType = DataType.getTypeFromClass(returnClass);
         }
-        
+
         public String toString() {
             return method.toString();
         }
-        
+
         /**
          * Check if this function requires a database connection.
-         * 
+         *
          * @return if the function requires a connection
          */
         public boolean hasConnectionParam() {
             return this.hasConnectionParam;
         }
-        
+
         /**
          * Call the user-defined function and return the value.
-         * 
+         *
          * @param session the session
          * @param args the argument list
          * @param columnList true if the function should only return the column list
@@ -317,7 +317,7 @@ public class FunctionAlias extends DbObjectBase {
                 session.setAutoCommit(old);
             }
         }
-        
+
         public Class[] getColumnClasses() throws SQLException {
             return method.getParameterTypes();
         }
@@ -325,7 +325,7 @@ public class FunctionAlias extends DbObjectBase {
         public int getDataType() {
             return dataType;
         }
-        
+
         public int getParameterCount() throws SQLException {
             return paramCount;
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -16,7 +16,7 @@ import org.h2.test.TestBase;
 
 /**
  * Tests for overloaded user defined functions.
- * 
+ *
  * @author Gary Tong
  */
 public class TestFunctionOverload extends TestBase {
@@ -24,10 +24,10 @@ public class TestFunctionOverload extends TestBase {
     private static final String ME = TestFunctionOverload.class.getName();
     private Connection conn;
     private DatabaseMetaData meta;
-    
+
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
@@ -46,7 +46,7 @@ public class TestFunctionOverload extends TestBase {
         conn.close();
         deleteDb("functionOverload");
     }
-    
+
     private void testOverloadError() throws SQLException {
         Statement stat = conn.createStatement();
         try {

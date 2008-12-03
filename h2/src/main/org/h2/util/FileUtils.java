@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -20,7 +20,7 @@ import org.h2.store.fs.FileSystem;
  * This utility class supports basic operations on files
  */
 public class FileUtils {
-    
+
     private FileUtils() {
         // utility class
     }
@@ -57,8 +57,8 @@ public class FileUtils {
 
     /**
      * Get the absolute file path of a file in the user home directory.
-     * 
-     * @param fileName 
+     *
+     * @param fileName
      * @return the absolute path
      */
     public static String getFileInUserHome(String fileName) {
@@ -72,7 +72,7 @@ public class FileUtils {
 
     /**
      * Trace input or output operations if enabled.
-     * 
+     *
      * @param method the method from where this method was called
      * @param fileName the file name
      * @param o the object to append to the message
@@ -144,7 +144,7 @@ public class FileUtils {
 
     /**
      * Create a new temporary file.
-     * 
+     *
      * @param prefix the prefix of the file name (including directory name if
      *            required)
      * @param suffix the suffix
@@ -231,7 +231,7 @@ public class FileUtils {
 
     /**
      * Create an output stream to write into the file.
-     * 
+     *
      * @param fileName the file name
      * @param append if true, the file will grow, if false, the file will be
      *            truncated first

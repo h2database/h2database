@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -13,10 +13,10 @@ import org.h2.tools.Server;
  * Tests the H2 Console application.
  */
 public class TestWeb extends TestBase {
-    
+
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String[] a) throws Exception {
@@ -62,14 +62,14 @@ public class TestWeb extends TestBase {
         result = client.get(url, "getHistory.do?id=4");
         assertContains(result, "select * from test");
         result = client.get(url, "autoCompleteList.do?query=se");
-        
+
 //        long time = System.currentTimeMillis();
 //        for (int i=0; i<1000; i++) {
 //            if(System.currentTimeMillis()-time > 15000) {
 //                break;
 //            }
 //        result = client.get(url, "autoCompleteList.do?query=select * from ");
-        
+
         assertContains(result, "select");
         assertContains(result, "set");
         result = client.get(url, "tables.do");
@@ -111,11 +111,11 @@ public class TestWeb extends TestBase {
 
         result = client.get(url, "logout.do");
         result = client.get(url, "settingRemove.do?name=_test_");
-        
+
         client.get(url, "admin.do");
         // this would also stop the server
         // client.get(url, "adminShutdown.do");
-        
+
         server.stop();
     }
 

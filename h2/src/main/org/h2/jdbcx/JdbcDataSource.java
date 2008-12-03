@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -35,7 +35,7 @@ import org.h2.util.StringUtils;
  * and Connection objects. This class is usually registered in a JNDI naming
  * service. To create a data source object and register it with a JNDI service,
  * use the following code:
- * 
+ *
  * <pre>
  * import org.h2.jdbcx.JdbcDataSource;
  * import javax.naming.Context;
@@ -47,9 +47,9 @@ import org.h2.util.StringUtils;
  * Context ctx = new InitialContext();
  * ctx.bind(&quot;jdbc/dsName&quot;, ds);
  * </pre>
- * 
+ *
  * To use a data source that is already registered, use the following code:
- * 
+ *
  * <pre>
  * import java.sql.Connection;
  * import javax.sql.DataSource;
@@ -59,7 +59,7 @@ import org.h2.util.StringUtils;
  * DataSource ds = (DataSource) ctx.lookup(&quot;jdbc/dsName&quot;);
  * Connection conn = ds.getConnection();
  * </pre>
- * 
+ *
  * In this example the user name and password are serialized as
  * well; this may be a security problem in some cases.
  */
@@ -156,7 +156,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
     /**
      * Open a new connection using the current URL and the specified user name
      * and password.
-     * 
+     *
      * @param user the user name
      * @param password the password
      * @return the connection
@@ -207,10 +207,10 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
         debugCodeCall("setPassword", "");
         this.password = convertToCharArray(password);
     }
-    
+
     /**
      * Set the current password in the form of a char array.
-     * 
+     *
      * @param password the new password in the form of a char array.
      */
     public void setPasswordChars(char[] password) {
@@ -219,11 +219,11 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
         }
         this.password = password;
     }
-    
+
     private char[] convertToCharArray(String s) {
         return s == null ? null : s.toCharArray();
     }
-    
+
     private String convertToString(char[] a) {
         return a == null ? null : new String(a);
     }
@@ -292,7 +292,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
     /**
      * Open a new XA connection using the current URL and the specified user
      * name and password.
-     * 
+     *
      * @param user the user name
      * @param password the password
      * @return the connection
@@ -322,7 +322,7 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
     /**
      * Open a new pooled connection using the current URL and the specified user
      * name and password.
-     * 
+     *
      * @param user the user name
      * @param password the password
      * @return the connection

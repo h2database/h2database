@@ -1192,6 +1192,10 @@ public class Database implements DataHandler {
                 fileIndex.close();
                 fileIndex = null;
             }
+            if (pageStore != null) {
+                pageStore.close();
+                pageStore = null;
+            }            
         } catch (SQLException e) {
             traceSystem.getTrace(Trace.DATABASE).error("close", e);
         }

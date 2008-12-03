@@ -8,7 +8,6 @@ package org.h2.store;
 
 import java.io.IOException;
 import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.message.Message;
@@ -19,6 +18,7 @@ import org.h2.util.CacheLRU;
 import org.h2.util.CacheObject;
 import org.h2.util.CacheWriter;
 import org.h2.util.FileUtils;
+import org.h2.util.ObjectArray;
 
 /**
  * This class represents a file that is split into pages. The first page (page
@@ -56,7 +56,7 @@ public class PageStore implements CacheWriter {
     private int freeListRootPageId;
     private int freePageCount;
     private int pageCount;
-
+    private int writeCount;
     /**
      * Create a new page store object.
      * 
@@ -96,6 +96,22 @@ public class PageStore implements CacheWriter {
         } catch (SQLException e) {
             close();
             throw e;
+        }
+    }
+    
+    /**
+     * Flush all pending changes to disk.
+     */
+    public void flush() throws SQLException {
+        synchronized (database) {
+            database.checkPowerOff();
+            ObjectArray list = cache.getAllChanged();
+            CacheObject.sort(list);
+            for (int i = 0; i < list.size(); i++) {
+                Record rec = (Record) list.get(i);
+                writeBack(rec);
+            }
+            int todoWriteDeletedPages;
         }
     }
     
@@ -169,7 +185,10 @@ public class PageStore implements CacheWriter {
     public void close() throws SQLException {
         int todo;
         try {
-            file.close();
+            flush();
+            if (file != null) {
+                file.close();
+            }
         } catch (IOException e) {
             throw Message.convertIOException(e, "close");
         }
@@ -183,8 +202,27 @@ public class PageStore implements CacheWriter {
         return database.getTrace(Trace.DATABASE);
     }
 
-    public void writeBack(CacheObject entry) throws SQLException {
-        int todo;
+    public void writeBack(CacheObject obj) throws SQLException {
+        synchronized (database) {
+            writeCount++;
+            Record record = (Record) obj;
+            record.write(null);
+            record.setChanged(false);
+        }
+    }
+    
+    /**
+     * Update a record.
+     * 
+     * @param record the record
+     */
+    public void updateRecord(Record record) throws SQLException {
+        synchronized (database) {
+            record.setChanged(true);
+            int pos = record.getPos();
+            cache.update(pos, record);
+            int todoLogChanges;
+        }
     }
 
     /**
@@ -207,6 +245,17 @@ public class PageStore implements CacheWriter {
      */
     public DataPageBinary createDataPage() {
         return new DataPageBinary(database, new byte[pageSize]);
+    }
+
+    /**
+     * Get the record if it is stored in the file, or null if not.
+     * 
+     * @param pos the page id
+     * @return the record or null
+     */
+    public Record getRecord(int pos) {
+        CacheObject obj = cache.find(pos);
+        return (Record) obj;
     }
 
     /**
@@ -258,6 +307,15 @@ public class PageStore implements CacheWriter {
      */
     public void freePage(int pageId) {
         int todo;
+    }
+
+    /**
+     * Remove a page from the cache.
+     * 
+     * @param pageId the page id
+     */
+    public void removeRecord(int pageId) {
+        cache.remove(pageId);
     }
 
 }

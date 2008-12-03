@@ -45,6 +45,7 @@ class TableDefinition<T> {
         String columnName;
         Field field;
         String dataType;
+        int maxLength;
         
         Object getValue(Object obj) {
             try {
@@ -119,6 +120,16 @@ class TableDefinition<T> {
         index.columnNames = mapColumnNames(columns);
         indexes.add(index);
     }
+    
+    public void setMaxLength(Object column, int maxLength) {
+        String columnName = getColumnName(column);
+        for (FieldDefinition f: fields) {
+            if (f.columnName.equals(columnName)) {
+                f.maxLength = maxLength;
+                break;
+            }
+        }
+    }
 
     void mapFields() {
         Field[] classFields = clazz.getFields();
@@ -186,6 +197,11 @@ class TableDefinition<T> {
             buff.append(field.columnName);
             buff.append(' ');
             buff.append(field.dataType);
+            if (field.maxLength != 0) {
+                buff.append('(');
+                buff.append(field.maxLength);
+                buff.append(')');
+            }
         }
         if (primaryKeyColumnNames != null) {
             buff.append(", PRIMARY KEY(");

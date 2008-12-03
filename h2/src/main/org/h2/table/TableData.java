@@ -83,6 +83,10 @@ public class TableData extends Table implements RecordReader {
         traceLock = database.getTrace(Trace.LOCK);
     }
 
+    public int getHeadPos() {
+        return scanIndex.getHeadPos();
+    }
+    
     public void close(Session session) throws SQLException {
         for (int i = 0; i < indexes.size(); i++) {
             Index index = (Index) indexes.get(i);

@@ -43,6 +43,7 @@ public class Product implements Table {
     public void define() {
         tableName("Product");
         primaryKey(productId);
+        maxLength(category, 255);
         index(productName, category);
     }
 

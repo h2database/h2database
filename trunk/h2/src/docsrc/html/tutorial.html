@@ -92,7 +92,7 @@ Depending on your platform and environment, there are multiple ways to start the
   <td>
       Open a console window, navigate to the directory 'h2/bin' and type:
 <pre>
-java -cp h2.jar org.h2.tools.Server
+java -cp h2*.jar org.h2.tools.Server
 </pre>
   </td>
 </tr>
@@ -423,7 +423,7 @@ The server mode is similar, but it allows you to run the server in another proce
 
 <h3>Using a Servlet Listener to Start and Stop a Database</h3>
 <p>
-Add the h2.jar file your web application, and
+Add the h2*.jar file your web application, and
 add the following snippet to your web.xml file (after context-param and before filter):
 </p>
 <pre>
@@ -621,7 +621,7 @@ This database comes with a number of command line tools. To get more information
 start it with the parameter '-?', for example:
 </p>
 <pre>
-java -cp h2.jar org.h2.tools.Backup -?
+java -cp h2*.jar org.h2.tools.Backup -?
 </pre>
 <p>
 The command line tools are:
@@ -654,7 +654,7 @@ The steps to connect to a H2 database are:
 <ul><li>Start OpenOffice Writer, go to [Tools], [Options]
 </li><li>Make sure you have selected a Java runtime environment in OpenOffice.org / Java
 </li><li>Click [Class Path...], [Add Archive...]
-</li><li>Select your h2.jar (location is up to you, could be wherever you choose)
+</li><li>Select your h2 jar file (location is up to you, could be wherever you choose)
 </li><li>Click [OK] (as much as needed), stop OpenOffice (including the Quickstarter)
 </li><li>Start OpenOffice Base
 </li><li>Connect to an existing database; select JDBC; [Next]
@@ -670,7 +670,7 @@ To use H2 in NeoOffice (OpenOffice without X11):
 <ul><li>In NeoOffice, go to [NeoOffice], [Preferences]
 </li><li>Look for the page under [NeoOffice], [Java]
 </li><li>Click [Classpath], [Add Archive...]
-</li><li>Select your h2.jar (location is up to you, could be wherever you choose)
+</li><li>Select your h2 jar file (location is up to you, could be wherever you choose)
 </li><li>Click [OK] (as much as needed), restart NeoOffice.
 </li></ul>
 <p>

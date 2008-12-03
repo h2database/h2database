@@ -50,8 +50,8 @@ Here is the list of known and confirmed issues:
 <li>Some problems have been found with right outer join. Internally, it is converted to left outer join, which
     does not always produce the same results as other databases when used in combination with other joins.
 </li><li>When using Install4j before 4.1.4 on Linux and enabling 'pack200', 
-    the h2.jar becomes corrupted by the install process, causing application failure. 
-    A workaround is to add an empty file h2.jar.nopack next to the h2.jar file. 
+    the h2*.jar becomes corrupted by the install process, causing application failure. 
+    A workaround is to add an empty file h2*.jar.nopack next to the h2*.jar file. 
     This problem is solved in Install4j 4.1.4.
 </li></ul>
 

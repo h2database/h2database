@@ -333,7 +333,7 @@ SET TRACE_LEVEL_FILE 0;
 Now convert the .trace.db file using the ConvertTraceFile tool:
 </p>
 <pre>
-java -cp h2.jar org.h2.tools.ConvertTraceFile 
+java -cp h2*.jar org.h2.tools.ConvertTraceFile 
   -traceFile "~/test.trace.db" -script "~/test.sql"
 </pre>
 <p>

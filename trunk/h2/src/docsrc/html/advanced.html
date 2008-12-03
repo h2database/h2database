@@ -437,7 +437,7 @@ The Windows version of the PostgreSQL ODBC driver is available at
 After installing the ODBC driver, start the H2 Server using the command line:
 </p>
 <pre>
-java -cp h2.jar org.h2.tools.Server
+java -cp h2*.jar org.h2.tools.Server
 </pre>
 <p>
 The PG Server (PG for PostgreSQL protocol) is started as well.
@@ -445,7 +445,7 @@ By default, databases are stored in the current working directory where the serv
 Use -baseDir to save databases in another directory, for example the user home directory:
 </p>
 <pre>
-java -cp h2.jar org.h2.tools.Server -baseDir ~
+java -cp h2*.jar org.h2.tools.Server -baseDir ~
 </pre>
 <p>
 The PG server can be started and stopped from within a Java application as follows:
@@ -531,14 +531,14 @@ An implementation of the ADO.NET interface is available in the open source proje
 <ul><li>Install the .NET Framework from <a href="http://www.microsoft.com">Microsoft</a>.
     Mono has not yet been tested.
 </li><li>Install <a href="http://www.ikvm.net">IKVM.NET</a>.
-</li><li>Copy the h2.jar file to ikvm/bin
+</li><li>Copy the h2*.jar file to ikvm/bin
 </li><li>Run the H2 Console using:
-    <code>ikvm -jar h2.jar</code>
+    <code>ikvm -jar h2*.jar</code>
 </li><li>Convert the H2 Console to an .exe file using:
-    <code>ikvmc -target:winexe h2.jar</code>.
+    <code>ikvmc -target:winexe h2*.jar</code>.
     You may ignore the warnings.
 </li><li>Create a .dll file using (change the version accordingly):
-    <code>ikvmc.exe -target:library -version:1.0.69.0 h2.jar</code>
+    <code>ikvmc.exe -target:library -version:1.0.69.0 h2*.jar</code>
 </li></ul>
 <p>
 If you want your C# application use H2, you need to add the h2.dll and the 

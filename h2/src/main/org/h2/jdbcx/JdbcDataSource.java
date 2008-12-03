@@ -25,9 +25,9 @@ import javax.sql.XADataSource;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceObject;
 
-//## Java 1.6 begin ##
+/*## Java 1.6 begin ##
 import org.h2.message.Message;
-//## Java 1.6 end ##
+## Java 1.6 end ##*/
 import org.h2.util.StringUtils;
 
 /**
@@ -341,22 +341,22 @@ implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Ref
      *
      * @param iface the class
      */
-//## Java 1.6 begin ##
+/*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
-//## Java 1.6 end ##
+## Java 1.6 end ##*/
 
     /**
      * [Not supported] Checks if unwrap can return an object of this class.
      *
      * @param iface the class
      */
-//## Java 1.6 begin ##
+/*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         throw Message.getUnsupportedException();
     }
-//## Java 1.6 end ##
+## Java 1.6 end ##*/
 
     /**
      * INTERNAL

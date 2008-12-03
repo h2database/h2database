@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, 
+ * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -165,103 +165,103 @@ java org.h2.test.TestAll timer
      * If the test should run with many rows.
      */
     public boolean big;
-    
+
     /**
      * If remote database connections should be used.
      */
     public boolean networked;
-    
+
     /**
      * If in-memory databases should be used.
      */
     public boolean memory;
-    
+
     /**
      * If index files should be deleted before re-opening the database.
      */
     public boolean deleteIndex;
-    
+
     /**
      * If code coverage is enabled.
      */
     public boolean codeCoverage;
-    
+
     /**
      * If the multi version concurrency control mode should be used.
      */
     public boolean mvcc;
-    
+
     /**
      * The log mode to use.
      */
     public int logMode = 1;
-    
+
     /**
      * The cipher to use (null for unencrypted).
      */
     public String cipher;
-    
+
     /**
      * If only JDK 1.4 methods should be tested.
      */
     public boolean jdk14 = true;
-    
+
     /**
      * The file trace level value to use.
      */
     public int traceLevelFile;
-    
+
     /**
      * If test trace information should be written (for debugging only).
      */
     public boolean traceTest;
-    
+
     /**
      * If the transaction log files should be kept small (that is, log files
      * should be switched early).
      */
     boolean smallLog;
-    
+
     /**
      * If SSL should be used for remote connections.
      */
     boolean ssl;
-    
+
     /**
      * If MAX_MEMORY_UNDO=3 should be used.
      */
     boolean diskUndo;
-    
+
     /**
-     * If the text storage mechanism should be used. 
+     * If the text storage mechanism should be used.
      */
     boolean textStorage;
-    
+
     /**
      * If a small cache and a low number for MAX_MEMORY_ROWS should be used.
      */
     boolean diskResult;
-    
+
     /**
      * If TRACE_LEVEL_SYSTEM_OUT should be set to 2 (for debugging only).
      */
     boolean traceSystemOut;
-    
+
     /**
      * If the tests should run forever.
      */
     boolean endless;
-    
+
     /**
      * The THROTTLE value to use.
      */
     int throttle;
-    
+
     /**
      * If the test should stop when the first error occurs.
      */
     boolean stopOnError;
-    
+
     /**
      * If the Two-Queue cache algorithm should be used.
      */
@@ -271,7 +271,7 @@ java org.h2.test.TestAll timer
 
     /**
      * Run all tests.
-     * 
+     *
      * @param args the command line arguments
      */
     public static void main(String[] args) throws Exception {
@@ -281,10 +281,9 @@ java org.h2.test.TestAll timer
         test.printSystem();
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
-        
+
 /*
 maybe make cmd+enter work for mac?
-docs & h2 console / tools: replace h2.jar with h2*.jar
 create_100_tables.sql (show columns in h2 console for h2 databases)
 postgresql generate_series?
 is in-memory scan index re-using ids?
@@ -292,7 +291,7 @@ don't store default values (store a special value)
 build.sh from mac (test in Ubuntu)
 btree: maybe split at the insertion point
 split files (1 GB max size)
-add a setting (that can be changed at runtime) to call fsync 
+add a setting (that can be changed at runtime) to call fsync
 and delay on each commit
 
 drop table test;
@@ -304,7 +303,7 @@ multithreaded kernel
 
 remove old TODO
 
-online backup may not work for very large files 
+online backup may not work for very large files
 (document problem with jdk 1.4; document to use jar -xf)
 
 test web site with firefox 3, internet explorer, opera, safari, google chrome
@@ -328,7 +327,7 @@ implemented:
 - prepared statements
 - small result sets (up to fetch size)
 - throws an error when autocommit is false
-- an error is thrown when the connection is lost 
+- an error is thrown when the connection is lost
   while looping over large result sets (larger than fetch size)
 not implemented / not tested
 - batch updates
@@ -338,8 +337,8 @@ not implemented / not tested
 - throw error when in cluster mode
 
 TestMVCC:
-Concurrent update in table test: another transaction has updated or 
-deleted the same row when exactly does it occur in other databases 
+Concurrent update in table test: another transaction has updated or
+deleted the same row when exactly does it occur in other databases
 (PostgreSQL, Oracle)?
 
 Run benchmark with the newest versions of other databases.
@@ -348,20 +347,20 @@ documentation: use 'server mode' not 'remote mode'.
 CREATE FUNCTION? Function interface
 
 find quote:
-You can't make a system that will not lose data, you can only make 
-a system that knows the last save point of 100% integrity. There are 
-too many variables and too much randomness on a cold hard power failure. 
+You can't make a system that will not lose data, you can only make
+a system that knows the last save point of 100% integrity. There are
+too many variables and too much randomness on a cold hard power failure.
 
 not tested:
 PreparedProcedure PREPARE <name>(column,...) AS ...
-Procedure 
+Procedure
 DeallocateProcedure DEALLOCATE [PLAN] <name>
 ExecuteProcedure EXECUTE <name>[([p[,...])]
 
 in help.csv, use complete examples for functions; add a test case
 
-analyzer configuration option for the fulltext search   
-   
+analyzer configuration option for the fulltext search
+
 optimize where x not in (select):
 SELECT c FROM color LEFT OUTER JOIN (SELECT c FROM TABLE(c
 VARCHAR= ?)) p ON color.c = p.c WHERE p.c IS NULL;
@@ -554,7 +553,7 @@ http://www.w3schools.com/sql/
         new TestTriggersConstraints().runTest(this);
         new TestTwoPhaseCommit().runTest(this);
         new TestView().runTest(this);
-        
+
         // jaqu
         new SamplesTest().runTest(this);
 
@@ -702,7 +701,7 @@ http://www.w3schools.com/sql/
                 prop.getProperty("user.variant")+" "+
                 prop.getProperty("file.encoding"));
     }
-    
+
     public String toString() {
         StringBuffer buff = new StringBuffer();
         appendIf(buff, big, "big");
@@ -728,7 +727,7 @@ http://www.w3schools.com/sql/
         appendIf(buff, deleteIndex, "deleteIndex");
         return buff.toString();
     }
-    
+
     private void appendIf(StringBuffer buff, boolean flag, String text) {
         if (flag) {
             buff.append(text);

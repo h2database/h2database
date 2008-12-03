@@ -131,20 +131,20 @@ public class TestIndex extends TestBase {
         stat.execute("CREATE INDEX IDX_ND ON TEST(ID DESC)");
         rs = conn.getMetaData().getIndexInfo(null, null, "TEST", false, false);
         rs.next();
-        assertEquals(rs.getString("ASC_OR_DESC"), "D");
-        assertEquals(rs.getInt("SORT_TYPE"), SortOrder.DESCENDING);
+        assertEquals("D", rs.getString("ASC_OR_DESC"));
+        assertEquals(SortOrder.DESCENDING, rs.getInt("SORT_TYPE"));
         stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(1, 30)");
         rs = stat.executeQuery("SELECT COUNT(*) FROM TEST WHERE ID BETWEEN 10 AND 20");
         rs.next();
-        assertEquals(rs.getInt(1), 11);
+        assertEquals(11, rs.getInt(1));
         reconnect();
         rs = conn.getMetaData().getIndexInfo(null, null, "TEST", false, false);
         rs.next();
-        assertEquals(rs.getString("ASC_OR_DESC"), "D");
-        assertEquals(rs.getInt("SORT_TYPE"), SortOrder.DESCENDING);
+        assertEquals("D", rs.getString("ASC_OR_DESC"));
+        assertEquals(SortOrder.DESCENDING, rs.getInt("SORT_TYPE"));
         rs = stat.executeQuery("SELECT COUNT(*) FROM TEST WHERE ID BETWEEN 10 AND 20");
         rs.next();
-        assertEquals(rs.getInt(1), 11);
+        assertEquals(11, rs.getInt(1));
         stat.execute("DROP TABLE TEST");
         conn.close();
     }

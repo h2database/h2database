@@ -18,6 +18,16 @@ import java.util.ArrayList;
 public class DbSchema {
 
     /**
+     * Up to this many tables, the column type and indexes are listed.
+     */
+    static final int MAX_TABLES_LIST_INDEXES = 100;
+
+    /**
+     * Up to this many tables, the column names are listed.
+     */
+    static final int MAX_TABLES_LIST_COLUMNS = 500;
+
+    /**
      * The database content container.
      */
     DbContents contents;
@@ -68,7 +78,7 @@ public class DbSchema {
         rs.close();
         tables = new DbTableOrView[list.size()];
         list.toArray(tables);
-        if (tables.length < 100) {
+        if (tables.length < MAX_TABLES_LIST_COLUMNS) {
             for (int i = 0; i < tables.length; i++) {
                 DbTableOrView tab = tables[i];
                 tab.readColumns(meta);

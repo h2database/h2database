@@ -283,8 +283,6 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
-maybe make cmd+enter work for mac?
-create_100_tables.sql (show columns in h2 console for h2 databases)
 postgresql generate_series?
 is in-memory scan index re-using ids?
 don't store default values (store a special value)

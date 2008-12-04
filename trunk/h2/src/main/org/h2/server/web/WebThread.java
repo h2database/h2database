@@ -792,7 +792,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             return treeIndex;
         }
         boolean isOracle = schema.contents.isOracle;
-        boolean notManyTables = tables.length < 100;
+        boolean notManyTables = tables.length < DbSchema.MAX_TABLES_LIST_INDEXES;
         for (int i = 0; i < tables.length; i++) {
             DbTableOrView table = tables[i];
             if (table.isView) {

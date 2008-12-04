@@ -161,15 +161,15 @@ public class Shell {
                 if (line == null) {
                     break;
                 }
-                line = line.trim();
-                if (line.length() == 0) {
+                String trimmed = line.trim();
+                if (trimmed.length() == 0) {
                     continue;
                 }
-                boolean end = line.endsWith(";");
+                boolean end = trimmed.endsWith(";");
                 if (end) {
-                    line = line.substring(0, line.length() - 1).trim();
+                    line = line.substring(0, line.lastIndexOf(';'));
                 }
-                String upper = line.toUpperCase();
+                String upper = trimmed.toUpperCase();
                 if ("EXIT".equals(upper) || "QUIT".equals(upper)) {
                     break;
                 } else if ("HELP".equals(upper) || "?".equals(upper)) {
@@ -242,7 +242,7 @@ public class Shell {
                     if (statement == null) {
                         statement = line;
                     } else {
-                        statement += " " + line;
+                        statement += "\n" + line;
                     }
                     if (end) {
                         execute(statement);

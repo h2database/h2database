@@ -131,6 +131,7 @@ public class MetaTable extends Table {
                     "STORAGE_TYPE",
                     "SQL",
                     "REMARKS",
+                    "LAST_MODIFICATION BIGINT",
                     "ID INT"
             });
             indexColumnName = "TABLE_NAME";
@@ -645,6 +646,8 @@ public class MetaTable extends Table {
                         table.getCreateSQL(),
                         // REMARKS
                         replaceNullWithEmpty(table.getComment()),
+                        // LAST_MODIFICATION
+                        "" + table.getMaxDataModificationId(),
                         // ID
                         "" + table.getId()
                 });

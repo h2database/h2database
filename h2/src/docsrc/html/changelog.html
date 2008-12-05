@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Shell: line comments didn't work correctly.
+<ul><li>New meta data column INFORMATION_SCHEMA.TABLES.LAST_MODIFICATION to get
+    the table modification counter.
+</li><li>Shell: line comments didn't work correctly.
 </li><li>H2 Console: Columns are now listed for up to 500 tables instead of 100.
 </li><li>H2 Console: Cmd+Enter executes the current statement.
 </li><li>JaQu: the maximum length of a column can now be defined using maxLength.
@@ -27,9 +29,7 @@ Change Log
 </li></ul>
 
 <h2>Version 1.1.104 (2008-11-28)</h2>
-<ul><li>New meta data column INFORMATION_SCHEMA.TABLES.LAST_MODIFICATION to get
-    the table modification counter.
-</li><li>If a query that was used like a table contained group by and was ordered by an expression that
+<ul><li>If a query that was used like a table contained group by and was ordered by an expression that
     is not in the column list, an exception was thrown.
 </li><li>JaQu: tables are now auto-created when running a query.
 </li><li>The optimizer had problems with function tables (for example CSVREAD and FTL_SEARCH).

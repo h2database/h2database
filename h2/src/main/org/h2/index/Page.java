@@ -10,7 +10,12 @@ package org.h2.index;
 /**
  * A page.
  */
-class Page {
+public class Page {
+
+    /**
+     * A log page.
+     */
+    public static final int TYPE_LOG = 8;
 
     /**
      * An empty page.

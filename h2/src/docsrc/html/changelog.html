@@ -27,7 +27,9 @@ Change Log
 </li></ul>
 
 <h2>Version 1.1.104 (2008-11-28)</h2>
-<ul><li>If a query that was used like a table contained group by and was ordered by an expression that
+<ul><li>New meta data column INFORMATION_SCHEMA.TABLES.LAST_MODIFICATION to get
+    the table modification counter.
+</li><li>If a query that was used like a table contained group by and was ordered by an expression that
     is not in the column list, an exception was thrown.
 </li><li>JaQu: tables are now auto-created when running a query.
 </li><li>The optimizer had problems with function tables (for example CSVREAD and FTL_SEARCH).

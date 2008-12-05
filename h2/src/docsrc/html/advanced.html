@@ -419,9 +419,11 @@ Support for the PostgreSQL network protocol is quite new and should be viewed
 as experimental. It should not be used for production applications.
 </p>
 <p>
-At this time, the PostgreSQL ODBC driver does not work on 64 bit versions of Windows.
-For more information, see:
-<a href="http://svr5.postgresql.org/pgsql-odbc/2005-09/msg00127.php">ODBC Driver on Windows 64 bit</a>
+To use the PostgreSQL ODBC driver on 64 bit versions of Windows,
+first run <code>c:/windows/syswow64/odbcad32.exe</code>.
+At this point you set up your DSN just like you would on any other system.
+See also:
+<a href="http://archives.postgresql.org/pgsql-odbc/2005-09/msg00125.php">Re: ODBC Driver on Windows 64 bit</a>
 </p>
 
 <h3>ODBC Installation</h3>
@@ -1136,9 +1138,9 @@ OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
 <tr>
   <td>GCJ</td>
   <td>
-    GNU Compiler for Java.
-    <a href="http://gcc.gnu.org/java/">http://gcc.gnu.org/java/</a> and
-    <a href="http://nativej.mtsystems.ch">http://nativej.mtsystems.ch/ (not free any more)</a>
+    Compiler for Java.
+    <a href="http://gcc.gnu.org/java">GNU Compiler for the Java</a> and
+    <a href="http://www.dobysoft.com/products/nativej">NativeJ (commercial)</a>
   </td>
 </tr>
 <tr>

@@ -61,9 +61,14 @@ public class LinkChecker {
                     continue;
                 }
                 if (OPEN_EXTERNAL_LINKS) {
+                    System.out.println(link);
                     StartBrowser.openURL(link);
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        // ignore
+                    }
                 }
-                // System.out.println("External Link: " + link);
             }
         }
     }

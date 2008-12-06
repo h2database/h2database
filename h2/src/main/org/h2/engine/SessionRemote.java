@@ -41,7 +41,7 @@ import org.h2.value.ValueString;
  * The client side part of a session when using the server mode. This object
  * communicates with a Session on the server side.
  */
-public class SessionRemote implements SessionInterface, DataHandler {
+public class SessionRemote implements SessionInterface, SessionFactory, DataHandler {
 
     public static final int SESSION_PREPARE = 0;
     public static final int SESSION_CLOSE = 1;
@@ -244,11 +244,11 @@ public class SessionRemote implements SessionInterface, DataHandler {
                 backup = (ConnectionInfo) ci.clone();
                 connectionInfo = (ConnectionInfo) ci.clone();
             }
-            SessionInterface si = (SessionInterface) ClassUtils.loadSystemClass("org.h2.engine.Session").newInstance();
+            SessionFactory sf = (SessionFactory) ClassUtils.loadSystemClass("org.h2.engine.SessionFactoryEmbedded").newInstance();
             if (openNew) {
                 ci.setProperty("OPEN_NEW", "true");
             }
-            return si.createSession(ci);
+            return sf.createSession(ci);
         } catch (SQLException e) {
             int errorCode = e.getErrorCode();
             if (errorCode == ErrorCode.DATABASE_ALREADY_OPEN_1) {

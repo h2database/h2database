@@ -46,14 +46,6 @@ public interface SessionInterface {
     boolean isClosed();
 
     /**
-     * Open a new session.
-     *
-     * @param ci the connection parameters
-     * @return the new session
-     */
-    SessionInterface createSession(ConnectionInfo ci) throws SQLException;
-
-    /**
      * Get the number of disk operations before power failure is simulated.
      * This is used for testing. If not set, 0 is returned
      *

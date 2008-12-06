@@ -283,6 +283,8 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
+
+http://blog.flexive.org/2008/12/05/porting-flexive-to-the-h2-database/
 postgresql generate_series?
 is in-memory scan index re-using ids?
 don't store default values (store a special value)

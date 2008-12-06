@@ -56,7 +56,7 @@ public class ExpressionColumn extends Expression {
         if (column != null) {
             sql = column.getSQL();
         } else {
-            sql = columnName;
+            sql = Parser.quoteIdentifier(columnName);
         }
         if (tableAlias != null) {
             sql = Parser.quoteIdentifier(tableAlias) + "." + sql;

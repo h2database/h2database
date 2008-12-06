@@ -1,4 +1,7 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select * from (select "x" from dual);
+> exception
+
 select * from(select 1 from system_range(1, 2) group by sin(x) order by sin(x));
 > 1
 > -
@@ -429,7 +432,7 @@ insert into t2 select x from system_range(1, 1000);
 explain select count(*) from t1 where t1.id in ( select t2.id from t2 );
 > PLAN
 > -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT COUNT(*) FROM (SELECT DISTINCT T2.ID AS TEMP_VIEW_4_X FROM PUBLIC.T2 /* PUBLIC.T2_TABLE_SCAN */) TEMP_VIEW_5 /* SELECT DISTINCT T2.ID AS TEMP_VIEW_4_X FROM PUBLIC.T2 /++ PUBLIC.T2_TABLE_SCAN ++/ */ INNER JOIN PUBLIC.T1 /* PUBLIC.PRIMARY_KEY_A: ID = TEMP_VIEW_5.TEMP_VIEW_4_X */ ON 1=1 WHERE T1.ID = TEMP_VIEW_5.TEMP_VIEW_4_X
+> SELECT COUNT(*) FROM (SELECT DISTINCT T2.ID AS TEMP_VIEW_5_X FROM PUBLIC.T2 /* PUBLIC.T2_TABLE_SCAN */) TEMP_VIEW_6 /* SELECT DISTINCT T2.ID AS TEMP_VIEW_5_X FROM PUBLIC.T2 /++ PUBLIC.T2_TABLE_SCAN ++/ */ INNER JOIN PUBLIC.T1 /* PUBLIC.PRIMARY_KEY_A: ID = TEMP_VIEW_6.TEMP_VIEW_5_X */ ON 1=1 WHERE T1.ID = TEMP_VIEW_6.TEMP_VIEW_5_X
 > rows: 1
 
 select count(*) from t1 where t1.id in ( select t2.id from t2 );
@@ -876,7 +879,7 @@ insert into test values(1), (2), (3);
 explain select * from test where id in(1, 2, null);
 > PLAN
 > ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID FROM TABLE_DISTINCT(TEMP_VIEW_22_X INTEGER=(1, 2, NULL)) TEMP_VIEW_23 /* PUBLIC."" */ INNER JOIN PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID >= 1 AND ID <= 2 AND ID = TEMP_VIEW_23.TEMP_VIEW_22_X */ ON 1=1 WHERE (ID IN(1, 2, NULL)) AND (ID = TEMP_VIEW_23.TEMP_VIEW_22_X)
+> SELECT TEST.ID FROM TABLE_DISTINCT(TEMP_VIEW_23_X INTEGER=(1, 2, NULL)) TEMP_VIEW_24 /* PUBLIC."" */ INNER JOIN PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID >= 1 AND ID <= 2 AND ID = TEMP_VIEW_24.TEMP_VIEW_23_X */ ON 1=1 WHERE (ID IN(1, 2, NULL)) AND (ID = TEMP_VIEW_24.TEMP_VIEW_23_X)
 > rows: 1
 
 drop table test;
@@ -2597,7 +2600,7 @@ select * from test t1 where id in(id);
 explain select * from test t1 where id in(select id from test);
 > PLAN
 > ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM (SELECT DISTINCT ID AS TEMP_VIEW_72_X FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */) TEMP_VIEW_73 /* SELECT DISTINCT ID AS TEMP_VIEW_72_X FROM PUBLIC.TEST /++ PUBLIC.TEST_TABLE_SCAN ++/ */ INNER JOIN PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEMP_VIEW_73.TEMP_VIEW_72_X */ ON 1=1 WHERE ID = TEMP_VIEW_73.TEMP_VIEW_72_X
+> SELECT T1.ID, T1.NAME FROM (SELECT DISTINCT ID AS TEMP_VIEW_73_X FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */) TEMP_VIEW_74 /* SELECT DISTINCT ID AS TEMP_VIEW_73_X FROM PUBLIC.TEST /++ PUBLIC.TEST_TABLE_SCAN ++/ */ INNER JOIN PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEMP_VIEW_74.TEMP_VIEW_73_X */ ON 1=1 WHERE ID = TEMP_VIEW_74.TEMP_VIEW_73_X
 > rows: 1
 
 select * from test t1 where id in(select id from test);
@@ -2610,7 +2613,7 @@ select * from test t1 where id in(select id from test);
 explain select * from test t1 where id in(1, select max(id) from test);
 > PLAN
 > --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM TABLE_DISTINCT(TEMP_VIEW_80_X INTEGER=(1, 2)) TEMP_VIEW_81 /* PUBLIC."" */ INNER JOIN PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID >= 1 AND ID <= 2 AND ID = TEMP_VIEW_81.TEMP_VIEW_80_X */ ON 1=1 WHERE (ID IN(1, 2)) AND (ID = TEMP_VIEW_81.TEMP_VIEW_80_X)
+> SELECT T1.ID, T1.NAME FROM TABLE_DISTINCT(TEMP_VIEW_81_X INTEGER=(1, 2)) TEMP_VIEW_82 /* PUBLIC."" */ INNER JOIN PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID >= 1 AND ID <= 2 AND ID = TEMP_VIEW_82.TEMP_VIEW_81_X */ ON 1=1 WHERE (ID IN(1, 2)) AND (ID = TEMP_VIEW_82.TEMP_VIEW_81_X)
 > rows: 1
 
 select * from test t1 where id in(1, select max(id) from test);
@@ -5513,13 +5516,13 @@ EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE EXISTS(SELECT * FROM TEST T2 WHERE 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(1, 2);
 > PLAN
 > --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM TABLE_DISTINCT(TEMP_VIEW_117_X INTEGER=(1, 2)) TEMP_VIEW_118 /* PUBLIC."" */ INNER JOIN PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID >= 1 AND ID <= 2 AND ID = TEMP_VIEW_118.TEMP_VIEW_117_X */ ON 1=1 WHERE (ID IN(1, 2)) AND (ID = TEMP_VIEW_118.TEMP_VIEW_117_X)
+> SELECT T1.ID, T1.NAME FROM TABLE_DISTINCT(TEMP_VIEW_118_X INTEGER=(1, 2)) TEMP_VIEW_119 /* PUBLIC."" */ INNER JOIN PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID >= 1 AND ID <= 2 AND ID = TEMP_VIEW_119.TEMP_VIEW_118_X */ ON 1=1 WHERE (ID IN(1, 2)) AND (ID = TEMP_VIEW_119.TEMP_VIEW_118_X)
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID IN(SELECT ID FROM TEST);
 > PLAN
 > -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT T1.ID, T1.NAME FROM (SELECT DISTINCT ID AS TEMP_VIEW_121_X FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */) TEMP_VIEW_122 /* SELECT DISTINCT ID AS TEMP_VIEW_121_X FROM PUBLIC.TEST /++ PUBLIC.TEST_TABLE_SCAN ++/ */ INNER JOIN PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEMP_VIEW_122.TEMP_VIEW_121_X */ ON 1=1 WHERE ID = TEMP_VIEW_122.TEMP_VIEW_121_X
+> SELECT T1.ID, T1.NAME FROM (SELECT DISTINCT ID AS TEMP_VIEW_122_X FROM PUBLIC.TEST /* PUBLIC.TEST_TABLE_SCAN */) TEMP_VIEW_123 /* SELECT DISTINCT ID AS TEMP_VIEW_122_X FROM PUBLIC.TEST /++ PUBLIC.TEST_TABLE_SCAN ++/ */ INNER JOIN PUBLIC.TEST T1 /* PUBLIC.PRIMARY_KEY_2: ID = TEMP_VIEW_123.TEMP_VIEW_122_X */ ON 1=1 WHERE ID = TEMP_VIEW_123.TEMP_VIEW_122_X
 > rows: 1
 
 EXPLAIN PLAN FOR SELECT * FROM TEST T1 WHERE ID NOT IN(SELECT ID FROM TEST);

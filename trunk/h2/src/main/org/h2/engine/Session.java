@@ -42,9 +42,9 @@ import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 
 /**
- * A session represents a database connection. When using the server mode, this
- * object resides on the server side and communicates with a RemoteSession on
- * the client side.
+ * A session represents an embedded database connection. When using the server
+ * mode, this object resides on the server side and communicates with a
+ * SessionRemote object on the client side.
  */
 public class Session implements SessionInterface {
 
@@ -91,10 +91,6 @@ public class Session implements SessionInterface {
     private boolean commitOrRollbackDisabled;
     private Table waitForLock;
     private int modificationId;
-
-    public Session() {
-        // nothing to do
-    }
 
     Session(Database database, User user, int id) {
         this.database = database;
@@ -303,10 +299,6 @@ public class Session implements SessionInterface {
 
     public void setLockTimeout(int lockTimeout) {
         this.lockTimeout = lockTimeout;
-    }
-
-    public SessionInterface createSession(ConnectionInfo ci) throws SQLException {
-        return Engine.getInstance().getSession(ci);
     }
 
     public CommandInterface prepareCommand(String sql, int fetchSize) throws SQLException {

@@ -72,7 +72,7 @@ class PageDataLeaf extends PageData {
         offsets = new int[entryCount];
         keys = new int[entryCount];
         rows = new Row[entryCount];
-        if (type == Page.TYPE_DATA_LEAF_WITH_OVERFLOW) {
+        if (type == (Page.TYPE_DATA_LEAF | Page.FLAG_LAST)) {
             firstOverflowPageId = data.readInt();
         }
         for (int i = 0; i < entryCount; i++) {
@@ -191,7 +191,7 @@ class PageDataLeaf extends PageData {
                     DataPageBinary page = store.readPage(next);
                     page.setPos(4);
                     int type = page.readByte();
-                    if (type == Page.TYPE_DATA_OVERFLOW_LAST) {
+                    if (type == (Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST)) {
                         int size = page.readShortInt();
                         data.write(page.getBytes(), 7, size);
                         break;
@@ -296,9 +296,9 @@ class PageDataLeaf extends PageData {
         data.writeInt(parentPageId);
         int type;
         if (firstOverflowPageId == 0) {
-            type = Page.TYPE_DATA_LEAF;
+            type = Page.TYPE_DATA_LEAF | Page.FLAG_LAST;
         } else {
-            type = Page.TYPE_DATA_LEAF_WITH_OVERFLOW;
+            type = Page.TYPE_DATA_LEAF;
         }
         data.writeByte((byte) type);
         data.writeShortInt(entryCount);
@@ -330,11 +330,11 @@ class PageDataLeaf extends PageData {
                 overflow.writeInt(parent);
                 int size;
                 if (remaining > pageSize - 7) {
-                    overflow.writeByte((byte) Page.TYPE_DATA_OVERFLOW_WITH_MORE);
+                    overflow.writeByte((byte) Page.TYPE_DATA_OVERFLOW);
                     overflow.writeInt(overflowPageIds[i + 1]);
                     size = pageSize - overflow.length();
                 } else {
-                    overflow.writeByte((byte) Page.TYPE_DATA_OVERFLOW_LAST);
+                    overflow.writeByte((byte) (Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST));
                     size = remaining;
                     overflow.writeShortInt(remaining);
                 }

@@ -18,34 +18,29 @@ public class Page {
     public static final int TYPE_LOG = 8;
 
     /**
+     * This is the last page of a chain.
+     */
+    public static final int FLAG_LAST = 16;
+
+    /**
      * An empty page.
      */
     static final int TYPE_EMPTY = 0;
 
     /**
-     * A data leaf page without overflow.
+     * A data leaf page (without overflow: or FLAG_LAST).
      */
-    static final int TYPE_DATA_LEAF = 2;
+    static final int TYPE_DATA_LEAF = 1;
+
+     /**
+     * A data node page (does never have overflow).
+     */
+    static final int TYPE_DATA_NODE = 2;
 
     /**
-     * A data leaf page with overflow.
+     * An overflow pages (the last page: or FLAG_LAST).
      */
-    static final int TYPE_DATA_LEAF_WITH_OVERFLOW = 3;
-
-    /**
-     * A data node page without overflow.
-     */
-    static final int TYPE_DATA_NODE = 4;
-
-    /**
-     * The last overflow page.
-     */
-    static final int TYPE_DATA_OVERFLOW_LAST = 6;
-
-    /**
-     * An overflow pages (more to come).
-     */
-    static final int TYPE_DATA_OVERFLOW_WITH_MORE = 7;
+    static final int TYPE_DATA_OVERFLOW = 3;
 
     /**
      * This is a root page.

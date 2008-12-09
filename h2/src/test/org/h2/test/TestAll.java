@@ -284,6 +284,11 @@ java org.h2.test.TestAll timer
 
 /*
 
+JCR: for each node type, create a table; one 'dynamic' table with parameter;
+    option to cache the results
+MySQL compatibility for @rownum:=@rownum+1
+insert into test2 (select id, id from test);
+
 http://blog.flexive.org/2008/12/05/porting-flexive-to-the-h2-database/
 postgresql generate_series?
 is in-memory scan index re-using ids?

@@ -118,9 +118,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         int parentPageId = data.readInt();
         int type = data.readByte() & 255;
         PageData result;
-        switch (type) {
+        switch (type & ~Page.FLAG_LAST) {
         case Page.TYPE_DATA_LEAF:
-        case Page.TYPE_DATA_LEAF_WITH_OVERFLOW:
             result = new PageDataLeaf(this, id, parentPageId, data);
             break;
         case Page.TYPE_DATA_NODE:

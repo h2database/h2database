@@ -880,8 +880,14 @@ public class Parser {
         Table table = readTableOrView();
         command.setTable(table);
         if (readIf("(")) {
-            Column[] columns = parseColumnList(table);
-            command.setColumns(columns);
+            if (isToken("SELECT") || isToken("FROM")) {
+                command.setQuery(parseSelect());
+                read(")");
+                return command;
+            } else {
+                Column[] columns = parseColumnList(table);
+                command.setColumns(columns);
+            }
         }
         if (readIf("DEFAULT")) {
             read("VALUES");
@@ -2144,6 +2150,13 @@ public class Parser {
         case AT:
             read();
             r = new Variable(session, readAliasIdentifier());
+            if (readIf(":=")) {
+                Expression value = readExpression();
+                Function function = Function.getFunction(database, "SET");
+                function.setParameter(0, r);
+                function.setParameter(1, value);
+                r = function;
+            }
             break;
         case PARAMETER:
             // there must be no space between ? and the number
@@ -3013,6 +3026,8 @@ public class Parser {
             switch (c0) {
             case ':':
                 if ("::".equals(s)) {
+                    return KEYWORD;
+                } else if (":=".equals(s)) {
                     return KEYWORD;
                 }
                 break;

@@ -18,13 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Each session threw an invisible exception when garbage collected.
+<ul><li>MySQL compatibility: support for := assignment as in @sum:=@sum+x
+</li><li>INSERT INTO TEST(SELECT * FROM TEST) is now supported.
+</li><li>Each session threw an invisible exception when garbage collected.
 </li><li>Foreign key constraints referring to a quoted column did not work.
 </li><li>New meta data column INFORMATION_SCHEMA.TABLES.LAST_MODIFICATION to get
     the table modification counter.
 </li><li>Shell: line comments didn't work correctly.
 </li><li>H2 Console: Columns are now listed for up to 500 tables instead of 100.
-</li><li>H2 Console: Cmd+Enter executes the current statement.
+</li><li>H2 Console: Cmd+Enter executes the current statement, Alt+Space for autocomplete.
 </li><li>JaQu: the maximum length of a column can now be defined using maxLength.
     For an example, see Product.java (maxLength(category, 255)).
 </li><li>R&\#305;dvan A&\#287;ar has completed the Turkish translation of the H2 Console. Thanks a lot!

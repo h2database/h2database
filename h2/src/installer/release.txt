@@ -1,0 +1,41 @@
+Change version and build number in Constants.java
+Maybe increase TCP_DRIVER_VERSION (old clients must be compatible!)
+Update the changelog (add new version)
+Update the newsfeed
+No "  Message.get" (must be "throw Message.get")
+Documentation: check if all Javadoc files are in the index
+Check that is no TODO in the docs
+Check code coverage
+Run regression test with JDK 1.4 and 1.5
+Use latest versions of other dbs
+Change version(s) in performance.html
+Run ./buildRelease.sh
+
+Test with Hibernate
+Run FindBugs
+buildRelease.bat
+Check docs, versions and links in main, downloads, build numbers
+Check if missing javadocs
+Test installer
+Check in the PDF file:
+- footer
+- front page
+- orphan control
+- check images
+- table of contents
+Test Console
+Test all languages
+Scan for viruses
+Upload to SourceForge
+svn commit
+svn copy: /svn/trunk /svn/tags/version-1.1.x; Version 1.1.x (yyyy-mm-dd)
+Newsletter: prepare (always to BCC!!)
+Upload to h2database.com, http://code.google.com/p/h2database/downloads/list
+Newsletter: send (always to BCC!!)
+Remove Contacts in GMail
+Add to freshmeat
+Change version: http://en.wikipedia.org/wiki/H2_%28DBMS%29
+Change version: http://ja.wikipedia.org/wiki/H2_Database
+Change version: http://es.wikipedia.org/wiki/H2
+Change version: http://www.heise.de/software/
+Close bugs: http://code.google.com/p/h2database/issues/list

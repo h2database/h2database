@@ -6,7 +6,6 @@
  */
 package org.h2.test.db;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +19,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-
 import org.h2.engine.Constants;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
@@ -98,7 +96,7 @@ public class TestScript extends TestBase {
         if (errors.length() > 0) {
             throw new Exception("errors:\n" + errors.toString());
         }
-        new File(outFile).delete();
+        // new File(outFile).delete();
     }
 
     private String readLine() throws IOException {

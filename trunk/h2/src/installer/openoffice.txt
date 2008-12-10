@@ -6,6 +6,7 @@ End Sub
 
 sub H2Pdf
     BaseDir = "file:///C:/data/h2database/"
+    REM BaseDir = "file:///Users/tmueller/data/"
 
     Url = BaseDir & "h2/docs/html/onePage.html"
     dim FileProperties(1) As New com.sun.star.beans.PropertyValue

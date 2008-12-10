@@ -283,11 +283,9 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
-
 JCR: for each node type, create a table; one 'dynamic' table with parameter;
     option to cache the results
-MySQL compatibility for @rownum:=@rownum+1
-insert into test2 (select id, id from test);
+<link rel="icon" type="image/png" href="/path/image.png">
 
 http://blog.flexive.org/2008/12/05/porting-flexive-to-the-h2-database/
 postgresql generate_series?

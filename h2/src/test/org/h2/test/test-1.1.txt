@@ -1,4 +1,13 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select @n := case when x = 1 then 1 else @n * x end f from system_range(1, 4);
+> F
+> --
+> 1
+> 2
+> 24
+> 6
+> rows: 4
+
 select * from (select "x" from dual);
 > exception
 
@@ -1910,7 +1919,7 @@ DROP TABLE TEST;
 create table test(id int);
 > ok
 
-insert into test select x from system_range(1, 100);
+insert into test (select x from system_range(1, 100));
 > update count: 100
 
 select id/1000 from test group by id/1000;

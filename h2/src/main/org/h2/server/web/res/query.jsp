@@ -206,7 +206,7 @@ function keyDown(event) {
         // ctrl + return, cmd + return
         document.h2query.submit();
         return false;
-    } else if(key == 32 && event.ctrlKey) {
+    } else if(key == 32 && (event.ctrlKey || event.altKey)) {
         // ctrl + space
         autoCompleteManual = true;
         lastQuery = null;

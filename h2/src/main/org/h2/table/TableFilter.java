@@ -64,6 +64,7 @@ public class TableFilter implements ColumnResolver {
     private TableFilter join;
 
     private boolean outerJoin;
+    private ObjectArray naturalJoinColumns;
     private boolean foundOne;
     private Expression fullCondition;
 
@@ -724,6 +725,28 @@ public class TableFilter implements ColumnResolver {
 
     public String toString() {
         return alias != null ? alias : "" + table;
+    }
+
+    /**
+     * Add a column to the natural join key column list.
+     *
+     * @param c the column to add
+     */
+    public void addNaturalJoinColumn(Column c) {
+        if (naturalJoinColumns == null) {
+            naturalJoinColumns = new ObjectArray();
+        }
+        naturalJoinColumns.add(c);
+    }
+
+    /**
+     * Check if the given column is a natural join column.
+     *
+     * @param c the column to check
+     * @return true if this is a joined natural join column
+     */
+    public boolean isNaturalJoinColumn(Column c) {
+        return naturalJoinColumns != null && naturalJoinColumns.indexOf(c) >= 0;
     }
 
 }

@@ -1252,8 +1252,10 @@ public class Parser {
                 for (int t = 0; t < tableCols.length; t++) {
                     String tableColumnName = tableCols[t].getName();
                     for (int j = 0; j < joinCols.length; j++) {
-                        String joinColumnName = joinCols[j].getName();
+                        Column c = joinCols[j];
+                        String joinColumnName = c.getName();
                         if (tableColumnName.equals(joinColumnName)) {
+                            join.addNaturalJoinColumn(c);
                             Expression tableExpr = new ExpressionColumn(database, tableSchema, last
                                     .getTableAlias(), tableColumnName);
                             Expression joinExpr = new ExpressionColumn(database, joinSchema, join

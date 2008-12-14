@@ -60,7 +60,7 @@ public class JavaAggregate extends Expression {
     }
 
     public int getScale() {
-        return 0;
+        return DataType.getDataType(dataType).defaultScale;
     }
 
     public String getSQL() {
@@ -91,6 +91,9 @@ public class JavaAggregate extends Expression {
         case ExpressionVisitor.GET_DEPENDENCIES:
             visitor.addDependency(userAggregate);
             break;
+        case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
+            // user defined aggregate functions can not be optimized
+            return false;
         default:
         }
         for (int i = 0; i < args.length; i++) {
@@ -111,13 +114,16 @@ public class JavaAggregate extends Expression {
     public Expression optimize(Session session) throws SQLException {
         userConnection = session.createConnection(false);
         argTypes = new int[args.length];
+        int[] argSqlTypes = new int[args.length];
         for (int i = 0; i < args.length; i++) {
             Expression expr = args[i];
             args[i] = expr.optimize(session);
-            argTypes[i] = expr.getType();
+            int type = expr.getType();
+            argTypes[i] = type;
+            argSqlTypes[i] = DataType.convertTypeToSQLType(type);
         }
         aggregate = getInstance();
-        dataType = aggregate.getType(argTypes);
+        dataType = DataType.convertSQLTypeToValueType(aggregate.getType(argSqlTypes));
         return this;
     }
 

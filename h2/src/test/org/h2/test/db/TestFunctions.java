@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -30,7 +31,7 @@ import org.h2.util.IOUtils;
 /**
  * Tests for user defined functions and aggregates.
  */
-public class TestFunctions extends TestBase {
+public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * Run just this test.
@@ -42,11 +43,30 @@ public class TestFunctions extends TestBase {
     }
 
     public void test() throws Exception {
+        deleteDb("functions");
+        testPrecision();
         testVarArgs();
         testAggregate();
         testFunctions();
         testFileRead();
         deleteDb("functions");
+    }
+
+    private void testPrecision() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        stat.execute("create alias no_op for \""+getClass().getName()+".noOp\"");
+        PreparedStatement prep = conn.prepareStatement("select * from dual where no_op(1.6)=?");
+        prep.setBigDecimal(1, new BigDecimal("1.6"));
+        ResultSet rs = prep.executeQuery();
+        assertTrue(rs.next());
+
+        stat.execute("create aggregate agg_sum for \""+getClass().getName()+"\"");
+        rs = stat.executeQuery("select agg_sum(1), sum(1.6) from dual");
+        rs.next();
+        assertEquals(1, rs.getMetaData().getScale(2));
+        assertEquals(32767, rs.getMetaData().getScale(1));
+        conn.close();
     }
 
     private void testVarArgs() throws SQLException {
@@ -436,6 +456,13 @@ public class TestFunctions extends TestBase {
     /**
      * This method is called via reflection from the database.
      */
+    public static BigDecimal noOp(BigDecimal dec) {
+       return dec;
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     */
 //## Java 1.5 begin ##
     public static double mean(double... values) {
         double sum = 0;
@@ -472,5 +499,22 @@ public class TestFunctions extends TestBase {
         return prefix + ": " + (int) (sum / values.length);
     }
 //## Java 1.5 end ##
+
+    public void add(Object value) throws SQLException {
+    }
+
+    public Object getResult() throws SQLException {
+        return new BigDecimal("1.6");
+    }
+
+    public int getType(int[] inputTypes) throws SQLException {
+        if (inputTypes.length != 1 || inputTypes[0] != Types.INTEGER) {
+            throw new SQLException("unexpected data type");
+        }
+        return Types.DECIMAL;
+    }
+
+    public void init(Connection conn) throws SQLException {
+    }
 
 }

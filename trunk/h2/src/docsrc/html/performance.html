@@ -290,15 +290,15 @@ It was developed / sponsored by db4o.
 <p>
 There are a few problems with the PolePosition test:
 </p>
-<ul><li> 
-HSQLDB uses in-memory tables by default while H2 uses persistent tables. The HSQLDB version 
-included in PolePosition does not support changing this, so you need to replace 
-poleposition-0.20/lib/hsqldb.jar with a newer version (for example hsqldb-1.8.0.7.jar), 
-and then use the setting 
+<ul><li>
+HSQLDB uses in-memory tables by default while H2 uses persistent tables. The HSQLDB version
+included in PolePosition does not support changing this, so you need to replace
+poleposition-0.20/lib/hsqldb.jar with a newer version (for example hsqldb-1.8.0.7.jar),
+and then use the setting
 hsqldb.connecturl=jdbc:hsqldb:file:data/hsqldb/dbbench2;hsqldb.default_table_type=cached;sql.enforce_size=true in Jdbc.properties.
-</li><li>HSQLDB keeps the database open between tests, while H2 closes the database (losing all the cache). 
+</li><li>HSQLDB keeps the database open between tests, while H2 closes the database (losing all the cache).
 To change that, use the database URL jdbc:h2:file:data/h2/dbbench;DB_CLOSE_DELAY=-1
-</li><li>The amount of cache memory is quite important, specially for the PolePosition test. 
+</li><li>The amount of cache memory is quite important, specially for the PolePosition test.
 Unfortunately, the PolePosition test does not take this into account.
 </li></ul>
 

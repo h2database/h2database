@@ -262,7 +262,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Server: use one listener (detect if the request comes from an PG or TCP client)
 </li><li>Store dates as 'local'. Existing files use GMT. Use escape syntax for compatibility.
 </li><li>Support data type INTERVAL
-</li><li>NATURAL JOIN: MySQL and PostgreSQL don't repeat columns when using SELECT * ...
 </li><li>Optimize SELECT MIN(ID), MAX(ID), COUNT(*) FROM TEST WHERE ID BETWEEN 100 AND 200
 </li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER
 </li><li>Sequence: PostgreSQL compatibility (rename, create) (http://www.postgresql.org/docs/8.2/static/sql-altersequence.html)
@@ -385,6 +384,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>AUTO_SERVER: support changing IP addresses (disable a network while the database is open).
 </li><li>Avoid using java.util.Calendar internally because it's slow, complicated, and seems to be buggy.
 </li><li>Support TRUNCATE .. CASCADE like PostgreSQL.
+</li><li>Support opening a database that is in the classpath, maybe using a new file system.
 </li></ul>
 
 <h2>Not Planned</h2>

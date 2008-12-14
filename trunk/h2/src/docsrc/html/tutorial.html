@@ -769,10 +769,23 @@ To search the index, use the following query:
 SELECT * FROM FT_SEARCH('Hello', 0, 0);
 </pre>
 <p>
+This will produce a result set that contains the query needed to retrieve the data:
+</p>
+<p>
+QUERY: "PUBLIC"."TEST" WHERE "ID"=1
+</p>
+<p>
+If you prefer the raw data, use <code>FT_SEARCH_DATA('Hello', 0, 0);</code>.
+The result contains the columns SCHEMA (the schema name), 
+TABLE (the table name), COLUMNS (an array of column names), and KEYS 
+(an array of objects).
+</p>
+<p>
 You can also call the index from within a Java application:
 </p>
 <pre>
-org.h2.fulltext.FullText.search(conn, text, limit, offset)
+org.h2.fulltext.FullText.search(conn, text, limit, offset);
+org.h2.fulltext.FullText.searchData(conn, text, limit, offset);
 </pre>
 
 <h3>Using the Lucene Fulltext Search</h3>
@@ -797,16 +810,30 @@ CALL FTL_CREATE_INDEX('PUBLIC', 'TEST', NULL);
 </pre>
 <p>
 PUBLIC is the schema, TEST is the table name. The list of column names (column separated) is optional,
-in this case all columns are indexed. The index is updated in read time. To search the index, use the following query:
+in this case all columns are indexed. The index is updated in read time. To search the index, 
+use the following query:
 </p>
 <pre>
 SELECT * FROM FTL_SEARCH('Hello', 0, 0);
 </pre>
 <p>
+This will produce a result set that contains the query needed to retrieve the data:
+</p>
+<p>
+QUERY: "PUBLIC"."TEST" WHERE "ID"=1
+</p>
+<p>
+If you prefer the raw data, use <code>FT_SEARCH_DATA('Hello', 0, 0);</code>.
+The result contains the columns SCHEMA (the schema name), 
+TABLE (the table name), COLUMNS (an array of column names), and KEYS 
+(an array of objects).
+</p>
+<p>
 You can also call the index from within a Java application:
 </p>
 <pre>
-org.h2.fulltext.FullTextLucene.search(conn, text, limit, offset)
+org.h2.fulltext.FullTextLucene.search(conn, text, limit, offset);
+org.h2.fulltext.FullTextLucene.searchData(conn, text, limit, offset);
 </pre>
 
 <br /><a name="user_defined_variables"></a>

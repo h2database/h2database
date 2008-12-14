@@ -18,10 +18,14 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>MySQL compatibility: support for := assignment as in @sum:=@sum+x
+<ul><li>Natural join: the joined columns are not repeated any more when using SELECT *.
+</li><li>User defined aggregate functions: the method getType expected internal data types
+    instead of SQL types.
+</li><li>User defined aggregate functions did not work if there was no group by expression.
+</li><li>MySQL compatibility: support for := assignment as in @sum:=@sum+x
 </li><li>INSERT INTO TEST(SELECT * FROM TEST) is now supported.
 </li><li>Each session threw an invisible exception when garbage collected.
-</li><li>Foreign key constraints referring to a quoted column did not work.
+</li><li>Foreign key constraints that refer to a quoted column did not work.
 </li><li>New meta data column INFORMATION_SCHEMA.TABLES.LAST_MODIFICATION to get
     the table modification counter.
 </li><li>Shell: line comments didn't work correctly.

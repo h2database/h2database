@@ -283,6 +283,14 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
+create table a(x array);
+insert into a values((1, 2));
+@META SELECT x[1] FROM a;
+should be varchar
+
+javadocs: check if there is a desc for a param, return...
+add javadocs for fulltext package.
+FTL_SEARCH_DATA function was documented
 JCR: for each node type, create a table; one 'dynamic' table with parameter;
     option to cache the results
 <link rel="icon" type="image/png" href="/path/image.png">

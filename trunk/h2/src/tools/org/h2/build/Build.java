@@ -302,8 +302,10 @@ public class Build extends BuildBase {
         delete("docs");
         mkdir("docs/javadoc");
         javadoc(new String[] { "-sourcepath", "src/main", "org.h2.jdbc", "org.h2.jdbcx",
-                "org.h2.tools", "org.h2.api", "org.h2.constant",
-                "-doclet", "org.h2.build.doclet.Doclet"});
+                "org.h2.tools", "org.h2.api", "org.h2.constant", "org.h2.fulltext",
+                "-doclet", "org.h2.build.doclet.Doclet",
+                "-classpath",
+                "ext/lucene-core-2.2.0.jar"});
         copy("docs/javadoc", getFiles("src/docsrc/javadoc"), "src/docsrc/javadoc");
     }
 

@@ -45,6 +45,7 @@ import org.h2.util.StringUtils;
 
 /**
  * This class implements the full text search based on Apache Lucene.
+ * Most methods can be called using SQL statements as well.
  */
 public class FullTextLucene extends FullText
 //## Java 1.4 begin ##
@@ -147,7 +148,7 @@ implements Trigger, CloseListener
      *  CALL FTL_INIT();
      * </pre>
      *
-     * @param conn
+     * @param conn the connection
      */
     //## Java 1.4 begin ##
     public static void init(Connection conn) throws SQLException {
@@ -574,7 +575,12 @@ implements Trigger, CloseListener
             index[i] = found;
         }
     }
+    //## Java 1.4 end ##
 
+    /**
+     * INTERNAL
+     */
+    //## Java 1.4 begin ##
     public void close() throws SQLException {
         try {
             if (indexer != null) {
@@ -587,7 +593,12 @@ implements Trigger, CloseListener
             throw convertException(e);
         }
     }
+    //## Java 1.4 end ##
 
+    /**
+     * INTERNAL
+     */
+    //## Java 1.4 begin ##
     public void remove() throws SQLException {
         // ignore
     }

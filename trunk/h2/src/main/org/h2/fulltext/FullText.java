@@ -44,6 +44,7 @@ import org.h2.value.DataType;
 
 /**
  * This class implements the native full text search.
+ * Most methods can be called using SQL statements as well.
  */
 public class FullText implements Trigger, CloseListener {
 
@@ -474,6 +475,7 @@ public class FullText implements Trigger, CloseListener {
     }
 
     /**
+     * INTERNAL.
      * Convert the object to a string.
      *
      * @param data the object
@@ -838,10 +840,16 @@ public class FullText implements Trigger, CloseListener {
         }
     }
 
+    /**
+     * INTERNAL
+     */
     public void close() throws SQLException {
         setting.removeIndexInfo(index);
     }
 
+    /**
+     * INTERNAL
+     */
     public void remove() throws SQLException {
         setting.removeIndexInfo(index);
     }

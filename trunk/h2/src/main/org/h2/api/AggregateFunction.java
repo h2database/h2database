@@ -29,10 +29,10 @@ public interface AggregateFunction {
      * The method should check here if the number of parameters passed is correct,
      * and if not it should throw an exception.
      *
-     * @param inputType the SQL type of the parameters
+     * @param inputTypes the SQL type of the parameters
      * @return the SQL type of the result
      */
-    int getType(int[] inputType) throws SQLException;
+    int getType(int[] inputTypes) throws SQLException;
 
     /**
      * This method is called once for each row.

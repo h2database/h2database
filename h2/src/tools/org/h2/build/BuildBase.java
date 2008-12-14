@@ -150,6 +150,12 @@ public class BuildBase {
      */
     protected void projectHelp() {
         Method[] methods = getClass().getDeclaredMethods();
+        Arrays.sort(methods, new Comparator() {
+            public int compare(Object o1, Object o2) {
+                Method a = (Method) o1, b = (Method) o2;
+                return a.getName().compareTo(b.getName());
+            }
+        });
         out.println("Targets:");
         for (int i = 0; i < methods.length; i++) {
             Method m = methods[i];

@@ -608,6 +608,9 @@ public class Select extends Query {
                 Column[] columns = t.getColumns();
                 for (int j = 0; j < columns.length; j++) {
                     Column c = columns[j];
+                    if (filter.isNaturalJoinColumn(c)) {
+                        continue;
+                    }
                     ExpressionColumn ec = new ExpressionColumn(session.getDatabase(), null, alias, c.getName());
                     expressions.add(i++, ec);
                 }

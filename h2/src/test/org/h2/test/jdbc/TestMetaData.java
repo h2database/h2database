@@ -238,6 +238,16 @@ public class TestMetaData extends TestBase {
         assertEquals(Types.VARCHAR, type);
         rs = conn.createStatement().executeQuery("SELECT COUNT(*) C FROM DUAL");
         assertEquals("C", rs.getMetaData().getColumnName(1));
+
+        Statement stat = conn.createStatement();
+        stat.execute("create table a(x array)");
+        stat.execute("insert into a values((1, 2))");
+        rs = stat.executeQuery("SELECT x[1] FROM a");
+        ResultSetMetaData meta = rs.getMetaData();
+        assertEquals(Types.VARCHAR, meta.getColumnType(1));
+        rs.next();
+        assertEquals(String.class.getName(), rs.getObject(1).getClass().getName());
+        stat.execute("drop table a");
     }
 
     private void testColumnPrecision() throws SQLException {

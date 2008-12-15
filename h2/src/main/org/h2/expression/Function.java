@@ -302,7 +302,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionWithNull("CASE", CASE, VAR_ARGS, Value.NULL);
         addFunctionNotConst("NEXTVAL", NEXTVAL, VAR_ARGS, Value.LONG);
         addFunctionNotConst("CURRVAL", CURRVAL, VAR_ARGS, Value.LONG);
-        addFunction("ARRAY_GET", ARRAY_GET, 2, Value.NULL);
+        addFunction("ARRAY_GET", ARRAY_GET, 2, Value.STRING);
         addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false);
         addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INT, false, false);
         addFunctionNotConst("MEMORY_FREE", MEMORY_FREE, 0, Value.INT);
@@ -1652,7 +1652,6 @@ public class Function extends Expression implements FunctionCall {
         case ROUND:
         case TRUNCATE:
         case POWER:
-        case ARRAY_GET:
             dataType = p0.getType();
             scale = p0.getScale();
             precision = p0.getPrecision();

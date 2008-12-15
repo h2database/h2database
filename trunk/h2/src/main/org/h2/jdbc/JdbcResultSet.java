@@ -695,7 +695,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @deprecated
      *
-     * @param columnName
+     * @param columnName the column name
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
@@ -3358,7 +3358,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     /**
      * Returns the value of the specified column as a String.
      *
-     * @param columnName
+     * @param columnName the column name
      * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed

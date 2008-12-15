@@ -374,7 +374,7 @@ public class Server implements Runnable, ShutdownHandler {
      *     new String[] { &quot;-trace&quot; }).start();
      * </pre>
      *
-     * @param args
+     * @param args the argument list
      * @return the server
      */
     public static Server createWebServer(String[] args) throws SQLException {
@@ -392,7 +392,7 @@ public class Server implements Runnable, ShutdownHandler {
      *     new String[] { &quot;-trace&quot; }).start();
      * </pre>
      *
-     * @param args
+     * @param args the argument list
      * @return the server
      */
     public static Server createFtpServer(String[] args) throws SQLException {
@@ -407,7 +407,7 @@ public class Server implements Runnable, ShutdownHandler {
      *     new String[] { &quot;-tcpAllowOthers&quot; }).start();
      * </pre>
      *
-     * @param args
+     * @param args the argument list
      * @return the server
      */
     public static Server createTcpServer(String[] args) throws SQLException {
@@ -423,7 +423,7 @@ public class Server implements Runnable, ShutdownHandler {
      *         "-pgAllowOthers"}).start();
      * </pre>
      *
-     * @param args
+     * @param args the argument list
      * @return the server
      */
     public static Server createPgServer(String[] args) throws SQLException {

@@ -509,7 +509,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * (procedureNoResult or procedureReturnsResult) </li>
      * </ul>
      *
-     * @return the procedures.
+     * @return the procedures
      * @throws SQLException if the connection is closed
      */
     public ResultSet getProcedures(String catalog, String schemaPattern,
@@ -569,6 +569,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>15 POS (int) the parameter index </li>
      * </ul>
      *
+     * @return the procedure columns
      * @throws SQLException if the connection is closed
      */
     public ResultSet getProcedureColumns(String catalog, String schemaPattern,

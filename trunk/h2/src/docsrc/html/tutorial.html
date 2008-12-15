@@ -775,10 +775,12 @@ This will produce a result set that contains the query needed to retrieve the da
 QUERY: "PUBLIC"."TEST" WHERE "ID"=1
 </p>
 <p>
-If you prefer the raw data, use <code>FT_SEARCH_DATA('Hello', 0, 0);</code>.
-The result contains the columns SCHEMA (the schema name), 
-TABLE (the table name), COLUMNS (an array of column names), and KEYS 
-(an array of objects).
+To get the raw data, use <code>FT_SEARCH_DATA('Hello', 0, 0);</code>.
+The result contains the columns SCHEMA (the schema name),
+TABLE (the table name), COLUMNS (an array of column names), and KEYS
+(an array of objects). To join a table, use a join as in:
+<code>SELECT T.*FROM FT_SEARCH_DATA('Hello', 0, 0) FT, TEST T
+WHERE FT.TABLE='TEST' AND T.ID= FT.KEYS[0];</code>
 </p>
 <p>
 You can also call the index from within a Java application:
@@ -810,7 +812,7 @@ CALL FTL_CREATE_INDEX('PUBLIC', 'TEST', NULL);
 </pre>
 <p>
 PUBLIC is the schema, TEST is the table name. The list of column names (column separated) is optional,
-in this case all columns are indexed. The index is updated in read time. To search the index, 
+in this case all columns are indexed. The index is updated in read time. To search the index,
 use the following query:
 </p>
 <pre>
@@ -823,10 +825,12 @@ This will produce a result set that contains the query needed to retrieve the da
 QUERY: "PUBLIC"."TEST" WHERE "ID"=1
 </p>
 <p>
-If you prefer the raw data, use <code>FT_SEARCH_DATA('Hello', 0, 0);</code>.
-The result contains the columns SCHEMA (the schema name), 
-TABLE (the table name), COLUMNS (an array of column names), and KEYS 
-(an array of objects).
+To get the raw data, use <code>FT_SEARCH_DATA('Hello', 0, 0);</code>.
+The result contains the columns SCHEMA (the schema name),
+TABLE (the table name), COLUMNS (an array of column names), and KEYS
+(an array of objects). To join a table, use a join as in:
+<code>SELECT T.*FROM FT_SEARCH_DATA('Hello', 0, 0) FT, TEST T
+WHERE FT.TABLE='TEST' AND T.ID= FT.KEYS[0];</code>
 </p>
 <p>
 You can also call the index from within a Java application:

@@ -41,13 +41,13 @@ public class PageLog {
         output = store.createDataPage();
     }
 
-    void open() throws SQLException {
-        if (firstPage == 0) {
-            return;
-        }
-        undo();
-        prepareOutput();
-    }
+//    void open() throws SQLException {
+//        if (firstPage == 0) {
+//            return;
+//        }
+//        undo();
+//        prepareOutput();
+//    }
 
     private void prepareOutput() {
         output.reset();
@@ -64,18 +64,18 @@ public class PageLog {
         }
     }
 
-    void addUndo(int pageId) throws SQLException {
-        if (undo.get(pageId)) {
-            return;
-        }
-        undo.set(pageId);
-        data.reset();
-        data.writeByte((byte) 1);
-        data.writeInt(pageId);
-        DataPageBinary p = store.readPage(pageId);
-        data.write(p.getBytes(), 0, store.getPageSize());
-        write(data.getBytes(), 0, data.length());
-    }
+//    void addUndo(int pageId) throws SQLException {
+//        if (undo.get(pageId)) {
+//            return;
+//        }
+//        undo.set(pageId);
+//        data.reset();
+//        data.writeByte((byte) 1);
+//        data.writeInt(pageId);
+//        DataPageBinary p = store.readPage(pageId);
+//        data.write(p.getBytes(), 0, store.getPageSize());
+//        write(data.getBytes(), 0, data.length());
+//    }
 
     private void write(byte[] data, int offset, int length) {
         if (bufferPos + length > store.getPageSize()) {

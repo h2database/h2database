@@ -1,29 +1,33 @@
 #!/bin/sh
 cd ../..
-today=$(date "+%Y-%m-%d")
-rmdir -r ../h2web-$today
-rmdir -r ../h2web
+set TODAY=$(date "+%Y-%m-%d")
+rm -r ../h2web-$TODAY
+rm -r ../h2web
 mkdir ../h2web
 
-rmdir -r bin
-rmdir /s /q temp
-call java14
+rm -r bin
+rm -r temp
+set JAVA_HOME=$JAVA14
+set PATH=$JAVA14/bin:$PATH
 ./build.sh -quiet
 
-call java16
-call build -quiet compile
-call build -quiet spellcheck javadocImpl jarClient
+set JAVA_HOME=$JAVA16
+set PATH=$JAVA16/bin:$PATH
+./build.sh -quiet compile
+./build.sh -quiet spellcheck javadocImpl jarClient
 
 echo $(date "+%H:%M:%S") JDK 1.4
-call java14
+set JAVA_HOME=$JAVA14
+set PATH=$JAVA14/bin:$PATH
 ./build.sh -quiet clean compile
 ./build.sh -quiet installer mavenDeployCentral
 
-rem ./build.sh -quiet compile benchmark
-rem == Copy the benchmark results and update the performance page and diagram
+# ./build.sh -quiet compile benchmark
+# == Copy the benchmark results and update the performance page and diagram
 
-call java16
+set JAVA_HOME=$JAVA16
+set PATH=$JAVA16/bin:$PATH
 ./build.sh -quiet switchSource
-mv ../h2web h2web-%today%
+mv ../h2web h2web-$TODAY
 
 echo $(date "+%H:%M:%S") Done

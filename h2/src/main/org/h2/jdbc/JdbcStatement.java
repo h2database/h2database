@@ -659,12 +659,28 @@ public class JdbcStatement extends TraceObject implements Statement {
     }
 
     /**
-     * [Not supported]
+     * Move to the next result set.
+     * This method always returns false.
+     *
+     * @param current Statement.CLOSE_CURRENT_RESULT, Statement.KEEP_CURRENT_RESULT
+     *          or Statement.CLOSE_ALL_RESULTS
+     * @return false
      */
     public boolean getMoreResults(int current) throws SQLException {
         try {
-            debugCodeCall("getMoreResults");
-            throw Message.getUnsupportedException();
+            debugCodeCall("getMoreResults", current);
+            switch (current) {
+            case Statement.CLOSE_CURRENT_RESULT:
+            case Statement.CLOSE_ALL_RESULTS:
+                resultSet.close();
+                break;
+            case Statement.KEEP_CURRENT_RESULT:
+                // nothing to do
+                break;
+            default:
+                throw Message.getInvalidValueException(""+current, "current");
+            }
+            return false;
         } catch (Exception e) {
             throw logAndConvert(e);
         }

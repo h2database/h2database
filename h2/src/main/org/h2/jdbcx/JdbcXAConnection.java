@@ -255,6 +255,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * Prepare a transaction.
      *
      * @param xid the transaction id
+     * @return XA_OK
      * @throws XAException
      */
 //## Java 1.4 begin ##

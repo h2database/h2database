@@ -520,8 +520,8 @@ public class JdbcConnection extends TraceObject implements Connection {
     /**
      * Gets the current catalog name.
      *
-     * @throws SQLException
-     *             if the connection is closed
+     * @return the catalog name
+     * @throws SQLException if the connection is closed
      */
     public String getCatalog() throws SQLException {
         try {

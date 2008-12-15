@@ -231,23 +231,42 @@ public class Doclet {
                     writer.println("<br /><br />");
                     space = true;
                 }
-                String p = paramTags[j].parameterName() + " - " + paramTags[j].parameterComment();
+                String paramName = paramTags[j].parameterName();
+                String comment = paramTags[j].parameterComment();
+                if (comment.trim().length() == 0) {
+                    addError("Undocumented parameter (" +
+                            clazz.name() + ".java:" + method.position().line() + ") " + name + " " + paramName);
+                }
+                String p = paramName + " - " + comment;
                 if (j == 0) {
                     writer.println("<div class=\"itemTitle\">Parameters:</div>");
                 }
                 writer.println("<div class=\"item\">" + p + "</div>");
             }
             Tag[] returnTags = method.tags("return");
+            ThrowsTag[] throwsTags = method.throwsTags();
+            boolean hasThrowsTag = throwsTags != null && throwsTags.length > 0;
             if (returnTags != null && returnTags.length > 0) {
                 if (!space) {
                     writer.println("<br /><br />");
                     space = true;
                 }
                 writer.println("<div class=\"itemTitle\">Returns:</div>");
-                writer.println("<div class=\"item\">" + returnTags[0].text() + "</div>");
+                String returnComment = returnTags[0].text();
+                if (returnComment.trim().length() == 0) {
+                    addError("Undocumented return value (" +
+                            clazz.name() + ".java:" + method.position().line() + ") " + name);
+                }
+                writer.println("<div class=\"item\">" + returnComment + "</div>");
+            } else if (!method.returnType().toString().equals("void")) {
+                if (!method.commentText().startsWith("[") && !hasThrowsTag) {
+                    // [Not supported] and such are not problematic
+                    // also not problematic are methods that always throw an exception
+                    addError("Undocumented return value (" +
+                            clazz.name() + ".java:" + method.position().line() + ") " + name + " " + method.returnType());
+                }
             }
-            ThrowsTag[] throwsTags = method.throwsTags();
-            if (throwsTags != null && throwsTags.length > 0) {
+            if (hasThrowsTag) {
                 if (!space) {
                     writer.println("<br /><br />");
                     space = true;

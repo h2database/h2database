@@ -54,7 +54,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
 </li><li>Option for Java functions: [DETERMINISTIC] FOR ...
-</li><li>Improved fulltext search (supports LOBs).
+</li><li>Fulltext search: support streaming CLOB data.
 </li><li>Support mixed clustering mode (one embedded, the other server mode)
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
@@ -181,7 +181,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support linked JCR tables
 </li><li>Make sure H2 is supported by Execute Query: http://executequery.org/
 </li><li>Read InputStream when executing, as late as possible (maybe only embedded mode). Problem with re-execute.
-</li><li>Fulltext search: min word length; store word positions
+</li><li>Native fulltext search: min word length; store word positions
 </li><li>FTP Server: Implement a client to send / receive files to server (dir, get, put)
 </li><li>FTP Server: Implement SFTP / FTPS
 </li><li>Add an option to the SCRIPT command to generate only portable / standard SQL
@@ -287,7 +287,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Change package name in version 2.0: org.h2database
 </li><li>MVCC: support transactionally consistent backups using SCRIPT
 </li><li>Improve time to open large databases (see mail 'init time for distributed setup')
-</li><li>Use ARRAY for fulltext search return value, at least internally in the native implementation (and as an option for the user)
 </li><li>Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 </li><li>Java 1.5 tool: JdbcUtils.closeSilently(s1, s2,...)
 </li><li>Javadoc: document design patterns used
@@ -385,6 +384,9 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Avoid using java.util.Calendar internally because it's slow, complicated, and seems to be buggy.
 </li><li>Support TRUNCATE .. CASCADE like PostgreSQL.
 </li><li>Support opening a database that is in the classpath, maybe using a new file system.
+</li><li>Fulltext search: lazy result generation using SimpleRowSource.
+</li><li>Support transformation to join for user defined functions, as for IN(SELECT...).
+</li><li>Fulltext search: Support alternative syntax: WHERE FTL_CONTAINS(name, 'hello').
 </li></ul>
 
 <h2>Not Planned</h2>

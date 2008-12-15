@@ -2754,7 +2754,7 @@ YEAR(CREATED)
 "
 
 "Functions (System)","ARRAY_GET","
-ARRAY_GET(arrayExpression, indexExpression): value
+ARRAY_GET(arrayExpression, indexExpression): varchar
 ","
 Returns one element of an array.
 ","

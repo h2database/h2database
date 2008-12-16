@@ -6,7 +6,13 @@
  */
 package org.h2.test.unit;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Random;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Database;
@@ -31,6 +37,59 @@ public class TestPageStoreStreams extends TestBase {
     }
 
     public void test() throws Exception {
+        testFuzz();
+//        for (int i = 0; i < 4; i++) {
+//            testPerformance(true);
+//            testPerformance(false);
+//        }
+    }
+
+    private void testPerformance(boolean file) throws Exception {
+        String name = "mem:pageStoreStreams";
+        ConnectionInfo ci = new ConnectionInfo(name);
+        Database db = new Database(name, ci, null);
+        String fileName = getTestDir("/pageStoreStreams");
+        new File(fileName).delete();
+        File f = new File(fileName + ".dat");
+        f.delete();
+        PageStore store = new PageStore(db, fileName, "rw", 8192);
+        store.setPageSize(8 * 1024);
+        byte[] buff = new byte[100];
+        store.open();
+        int head = store.allocatePage();
+        OutputStream out;
+        InputStream in;
+        long start = System.currentTimeMillis();
+        if (file) {
+            out = new BufferedOutputStream(new FileOutputStream(f), 4 * 1024);
+        } else {
+            out = new PageOutputStream(store, 0, head, Page.TYPE_LOG);
+        }
+        for (int i = 0; i < 1000000; i++) {
+            out.write(buff);
+        }
+        out.close();
+        if (file) {
+            in = new BufferedInputStream(new FileInputStream(f), 4 * 1024);
+        } else {
+            in = new PageInputStream(store, 0, head, Page.TYPE_LOG);
+        }
+        while (true) {
+            int len = in.read(buff);
+            if (len < 0) {
+                break;
+            }
+        }
+        in.close();
+        System.out.println((file ? "file" : "pageStore") +
+                " " + (System.currentTimeMillis() - start));
+        store.close();
+        db.shutdownImmediately();
+        new File(fileName).delete();
+        f.delete();
+    }
+
+    private void testFuzz() throws Exception {
         String name = "mem:pageStoreStreams";
         ConnectionInfo ci = new ConnectionInfo(name);
         Database db = new Database(name, ci, null);
@@ -45,8 +104,8 @@ public class TestPageStoreStreams extends TestBase {
             random.nextBytes(data);
             int head = store.allocatePage();
             PageOutputStream out = new PageOutputStream(store, 0, head, Page.TYPE_LOG);
-            for (int p = 0; len > 0;) {
-                int l = len == 0 ? 0 : random.nextInt(len / 10);
+            for (int p = 0; p < len;) {
+                int l = len == 0 ? 0 : Math.min(len - p, random.nextInt(len / 10));
                 out.write(data, p, l);
                 p += l;
             }
@@ -54,7 +113,7 @@ public class TestPageStoreStreams extends TestBase {
             PageInputStream in = new PageInputStream(store, 0, head, Page.TYPE_LOG);
             byte[] data2 = new byte[len];
             for (int off = 0;;) {
-                int l = random.nextInt(1 + len / 10) - 1;
+                int l = random.nextInt(1 + len / 10) + 1;
                 l = in.read(data2, off, l);
                 if (l < 0) {
                     break;

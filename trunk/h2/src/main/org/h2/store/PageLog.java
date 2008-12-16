@@ -49,7 +49,7 @@ public class PageLog {
 //        prepareOutput();
 //    }
 
-    private void prepareOutput() {
+    private void prepareOutput() throws SQLException {
         output.reset();
         output.writeInt(0);
         output.writeByte((byte) Page.TYPE_LOG);

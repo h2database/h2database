@@ -37,6 +37,7 @@ public class TestOptimizations extends TestBase {
     }
 
     public void test() throws Exception {
+        testNestedInSelectAndLike();
         testInSelectJoin();
         testMinMaxNullOptimization();
         if (config.networked) {
@@ -54,6 +55,20 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
         deleteDb("optimizations");
+    }
+
+    private void testNestedInSelectAndLike() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        PreparedStatement prep;
+        prep = conn.prepareStatement("SELECT * FROM DUAL A WHERE A.X IN (SELECT B.X FROM DUAL B WHERE B.X LIKE ?)");
+        prep.setString(1, "1");
+        prep.execute();
+        prep = conn.prepareStatement("SELECT * FROM DUAL A WHERE A.X IN (SELECT B.X FROM DUAL B WHERE B.X IN (?, ?))");
+        prep.setInt(1, 1);
+        prep.setInt(2, 1);
+        prep.executeQuery();
+        conn.close();
     }
 
     private void testInSelectJoin() throws SQLException {

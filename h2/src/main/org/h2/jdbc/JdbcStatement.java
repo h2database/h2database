@@ -662,7 +662,8 @@ public class JdbcStatement extends TraceObject implements Statement {
      * Move to the next result set.
      * This method always returns false.
      *
-     * @param current Statement.CLOSE_CURRENT_RESULT, Statement.KEEP_CURRENT_RESULT
+     * @param current Statement.CLOSE_CURRENT_RESULT,
+     *          Statement.KEEP_CURRENT_RESULT,
      *          or Statement.CLOSE_ALL_RESULTS
      * @return false
      */
@@ -672,7 +673,9 @@ public class JdbcStatement extends TraceObject implements Statement {
             switch (current) {
             case Statement.CLOSE_CURRENT_RESULT:
             case Statement.CLOSE_ALL_RESULTS:
-                resultSet.close();
+                if (resultSet != null) {
+                    resultSet.close();
+                }
                 break;
             case Statement.KEEP_CURRENT_RESULT:
                 // nothing to do

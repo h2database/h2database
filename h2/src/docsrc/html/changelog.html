@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The fulltext search documentation has been improved.
+<ul><li>Deleting a database using the tool DeleteDbFiles deleted LOB files
+    of other databases in the same directory.
+</li><li>When used in a subquery, LIKE and IN(..) did not work correctly sometimes.
+</li><li>The fulltext search documentation has been improved.
 </li><li>ARRAY_GET returned the wrong data type (ARRAY). Now it returns VARCHAR.
 </li><li>Natural join: the joined columns are not repeated any more when using SELECT *.
 </li><li>User defined aggregate functions: the method getType expected internal data types

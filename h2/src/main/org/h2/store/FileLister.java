@@ -63,8 +63,10 @@ public class FileLister {
             } else if (f.endsWith(Constants.SUFFIX_LOG_FILE)) {
                 ok = true;
             } else if (f.endsWith(Constants.SUFFIX_LOBS_DIRECTORY)) {
-                files.addAll(getDatabaseFiles(f, null, all));
-                ok = true;
+                if (FileUtils.fileStartsWith(f, start + ".")) {
+                    files.addAll(getDatabaseFiles(f, null, all));
+                    ok = true;
+                }
             } else if (f.endsWith(Constants.SUFFIX_LOB_FILE)) {
                 ok = true;
             } else if (f.endsWith(Constants.SUFFIX_PAGE_FILE)) {

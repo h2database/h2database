@@ -283,7 +283,6 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
-javadocs: check if there is a desc for a param, return...
 JCR: for each node type, create a table; one 'dynamic' table with parameter;
     option to cache the results
 <link rel="icon" type="image/png" href="/path/image.png">

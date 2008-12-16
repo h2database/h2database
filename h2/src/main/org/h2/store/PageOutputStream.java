@@ -55,7 +55,7 @@ public class PageOutputStream extends OutputStream {
         page.writeInt(parentPage);
         page.writeByte((byte) type);
         page.writeInt(0);
-        remaining = page.length();
+        remaining = store.getPageSize() - page.length();
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
@@ -67,7 +67,12 @@ public class PageOutputStream extends OutputStream {
             off += remaining;
             len -= remaining;
             parentPage = nextPage;
-            nextPage = store.allocatePage();
+            pageId = nextPage;
+            try {
+                nextPage = store.allocatePage();
+            } catch (SQLException e) {
+                throw Message.convertToIOException(e);
+            }
             page.setInt(5, nextPage);
             storePage();
             initPage();
@@ -88,6 +93,7 @@ public class PageOutputStream extends OutputStream {
         page.setPos(4);
         page.writeByte((byte) (type | Page.FLAG_LAST));
         page.writeInt(store.getPageSize() - remaining - 9);
+        pageId = nextPage;
         storePage();
         store = null;
     }

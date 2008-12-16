@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.index.Page;
 import org.h2.message.Message;
 
@@ -94,7 +93,7 @@ public class PageInputStream extends InputStream {
         }
         page.reset();
         try {
-            page = store.readPage(nextPage);
+            store.readPage(nextPage, page);
             int p = page.readInt();
             int t = page.readByte();
             boolean last = (t & Page.FLAG_LAST) != 0;
@@ -111,8 +110,8 @@ public class PageInputStream extends InputStream {
                 remaining = page.readInt();
             } else {
                 nextPage = page.readInt();
+                remaining = store.getPageSize() - page.length();
             }
-            remaining = Constants.FILE_BLOCK_SIZE - page.length();
         } catch (SQLException e) {
             throw Message.convertToIOException(e);
         }

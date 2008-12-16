@@ -55,7 +55,9 @@ public class TestTools extends TestBase {
         if (config.networked) {
             return;
         }
+        org.h2.Driver.load();
         deleteDb("utils");
+        testDeleteFiles();
         testScriptRunscriptLob();
         deleteDb("utils");
         testServerMain();
@@ -70,10 +72,25 @@ public class TestTools extends TestBase {
         deleteDb("utils");
     }
 
+    private void testDeleteFiles() throws SQLException {
+        DeleteDbFiles.execute(null, "utilsMore", true);
+        Connection conn = DriverManager.getConnection("jdbc:h2:utilsMore");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(c clob) as select space(10000) from dual");
+        conn.close();
+        DeleteDbFiles.execute(null, "utils", true);
+        conn = DriverManager.getConnection("jdbc:h2:utilsMore");
+        stat = conn.createStatement();
+        ResultSet rs;
+        rs = stat.executeQuery("select * from test");
+        rs.next();
+        rs.getString(1);
+        conn.close();
+    }
+
     private void testServerMain() throws SQLException {
         String result;
         Connection conn;
-        org.h2.Driver.load();
 
         result = runServer(new String[]{"-?"}, 1);
         assertTrue(result.indexOf("Starts H2 Servers") >= 0);

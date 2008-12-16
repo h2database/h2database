@@ -153,12 +153,11 @@ public class ViewIndex extends BaseIndex {
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
         ObjectArray paramList = query.getParameters();
-        int idx = 0;
         for (int i = 0; originalParameters != null && i < originalParameters.size(); i++) {
             Parameter orig = (Parameter) originalParameters.get(i);
+            int idx = orig.getIndex();
+            Parameter param = (Parameter) paramList.get(idx);
             Value value = orig.getValue(session);
-            idx = orig.getIndex();
-            Parameter param = (Parameter) paramList.get(idx++);
             param.setValue(value);
         }
         int len;
@@ -169,6 +168,7 @@ public class ViewIndex extends BaseIndex {
         } else {
             len = 0;
         }
+        int idx = originalParameters == null ? 0 : originalParameters.size();
         for (int i = 0; i < len; i++) {
             if (first != null) {
                 Value v = first.getValue(i);
@@ -195,7 +195,7 @@ public class ViewIndex extends BaseIndex {
         if (masks == null) {
             return query;
         }
-        int firstIndexParam = query.getParameters().size();
+        int firstIndexParam = originalParameters == null ? 0 : originalParameters.size();
         IntArray paramIndex = new IntArray();
         for (int i = 0; i < masks.length; i++) {
             int mask = masks[i];

@@ -209,10 +209,18 @@ public class Build extends BuildBase {
         files.addAll(getFiles("../h2/service"));
         files.addAll(getFiles("../h2/src"));
         zip("../h2web/h2.zip", files, "../", false, false);
-        exec("makensis", new String[]{"/v2", "src/installer/h2.nsi"});
+        boolean installer = false;
+        try {
+            exec("makensis", new String[]{"/v2", "src/installer/h2.nsi"});
+            installer = true;
+        } catch (Error e) {
+            print("NSIS is not available: " + e);
+        }
         String buildDate = getStaticField("org.h2.engine.Constants", "BUILD_DATE");
         writeFile(new File("../h2web/h2-" + buildDate + ".zip"), readFile(new File("../h2web/h2.zip")));
-        writeFile(new File("../h2web/h2-setup-" + buildDate + ".exe"), readFile(new File("../h2web/h2-setup.exe")));
+        if (installer) {
+            writeFile(new File("../h2web/h2-setup-" + buildDate + ".exe"), readFile(new File("../h2web/h2-setup.exe")));
+        }
     }
 
     /**

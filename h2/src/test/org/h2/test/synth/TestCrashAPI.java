@@ -73,11 +73,9 @@ public class TestCrashAPI extends TestBase {
         // can not use FILE_LOCK=NO, otherwise something could be written into
         // the database in the finalize method
 
-        // ";STORAGE=TEXT";
         String add = "";
 
 //         int testing;
-        // add = ";STORAGE=TEXT";
 //        if(openCount >= 32) {
 //            int test;
 //            Runtime.getRuntime().halt(0);

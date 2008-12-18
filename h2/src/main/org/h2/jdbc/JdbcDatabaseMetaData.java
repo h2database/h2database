@@ -85,7 +85,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Gets the version number of the driver in the format
+     * Gets the version number of the driver. The format is
      * [MajorVersion].[MinorVersion].
      *
      * @return the version number

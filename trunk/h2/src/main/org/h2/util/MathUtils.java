@@ -29,7 +29,7 @@ public class MathUtils {
      * in 16, and so on.
      *
      * @param x the value to be rounded
-     * @param blockSizePowerOf2
+     * @param blockSizePowerOf2 the block size
      * @return the rounded value
      */
     public static int roundUp(int x, int blockSizePowerOf2) {
@@ -43,7 +43,7 @@ public class MathUtils {
      * in 16, and so on.
      *
      * @param x the value to be rounded
-     * @param blockSizePowerOf2
+     * @param blockSizePowerOf2 the block size
      * @return the rounded value
      */
     public static long roundUpLong(long x, long blockSizePowerOf2) {

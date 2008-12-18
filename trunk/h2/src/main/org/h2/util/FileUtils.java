@@ -58,7 +58,7 @@ public class FileUtils {
     /**
      * Get the absolute file path of a file in the user home directory.
      *
-     * @param fileName
+     * @param fileName the file name
      * @return the absolute path
      */
     public static String getFileInUserHome(String fileName) {

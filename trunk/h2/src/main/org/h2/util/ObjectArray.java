@@ -85,6 +85,7 @@ public class ObjectArray {
      * Remove the object at the given index.
      *
      * @param index the index
+     * @return the removed object
      */
     public Object remove(int index) {
         // TODO performance: the app should (where possible)

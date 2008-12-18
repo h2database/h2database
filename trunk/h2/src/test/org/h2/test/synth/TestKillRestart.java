@@ -32,7 +32,7 @@ public class TestKillRestart extends TestBase {
         deleteDb("killRestart");
         String url = getURL("killRestart", true);
         // String url = getURL(
-        //        "killRestart;CACHE_SIZE=2048;WRITE_DELAY=0;STORAGE=TEXT", true);
+        //        "killRestart;CACHE_SIZE=2048;WRITE_DELAY=0", true);
         String user = getUser(), password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);
         String[] procDef = new String[] { "java", selfDestruct,

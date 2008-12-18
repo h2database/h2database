@@ -75,6 +75,7 @@ public interface DbInterface {
      * Execute a query.
      *
      * @param sql the SQL statement
+     * @return the result
      */
     Result select(String sql) throws SQLException;
 

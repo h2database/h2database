@@ -137,7 +137,7 @@ public class ExpressionVisitor {
      * Set the column resolver.
      * This is used for NOT_FROM_RESOLVER visitors.
      *
-     * @param resolver
+     * @param resolver the column resolver
      */
     public void setResolver(ColumnResolver resolver) {
         this.resolver = resolver;

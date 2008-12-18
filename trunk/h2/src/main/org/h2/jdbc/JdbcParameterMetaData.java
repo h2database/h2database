@@ -96,7 +96,7 @@ implements ParameterMetaData
 
     /**
      * Returns the parameter precision.
-     * 0 is returned if the precision is not known.
+     * The value 0 is returned if the precision is not known.
      *
      * @param param the column index (1,2,...)
      * @return the precision
@@ -113,7 +113,7 @@ implements ParameterMetaData
 
     /**
      * Returns the parameter scale.
-     * 0 is returned if the scale is not known.
+     * The value 0 is returned if the scale is not known.
      *
      * @param param the column index (1,2,...)
      * @return the scale

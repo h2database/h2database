@@ -51,7 +51,7 @@ public class RowList {
     }
 
     private void writeRow(DataPage buff, Row r) throws SQLException {
-        buff.checkCapacity(1 + buff.getIntLen() * 7);
+        buff.checkCapacity(1 + DataPage.LENGTH_INT * 7);
         buff.writeByte((byte) 1);
         buff.writeInt(r.getMemorySize());
         buff.writeInt(r.getColumnCount());

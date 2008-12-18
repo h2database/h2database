@@ -107,11 +107,10 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     }
 
     private void initStore() throws SQLException {
-        byte[] magic = Database.getMagic(true);
         Database db = session.getDatabase();
         // script files are always in text format
         String fileName = getFileName();
-        store = FileStore.open(db, fileName, "rw", magic, cipher, key);
+        store = FileStore.open(db, fileName, "rw", cipher, key);
         store.setCheckedWriting(false);
         store.init();
     }
@@ -178,11 +177,6 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
 
     public boolean needRecompile() {
         return false;
-    }
-
-    public boolean getTextStorage() {
-        // script files are always in text format
-        return true;
     }
 
     public String getDatabasePath() {

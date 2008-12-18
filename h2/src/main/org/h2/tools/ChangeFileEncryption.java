@@ -9,8 +9,6 @@ package org.h2.tools;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
-import org.h2.engine.Database;
 import org.h2.message.Message;
 import org.h2.security.SHA256;
 import org.h2.store.FileLister;
@@ -169,27 +167,24 @@ public class ChangeFileEncryption extends Tool {
     }
 
     private void process(String fileName) throws SQLException {
-        boolean textStorage = Database.isTextStorage(fileName, false);
-        byte[] magic = Database.getMagic(textStorage);
         FileStore in;
         if (decrypt == null) {
-            in = FileStore.open(null, fileName, "r", magic);
+            in = FileStore.open(null, fileName, "r");
         } else {
-            in = FileStore.open(null, fileName, "r", magic, cipher, decrypt);
+            in = FileStore.open(null, fileName, "r", cipher, decrypt);
         }
         in.init();
-        copy(fileName, textStorage, in, encrypt);
+        copy(fileName, in, encrypt);
     }
 
-    private void copy(String fileName, boolean textStorage, FileStore in, byte[] key) throws SQLException {
+    private void copy(String fileName, FileStore in, byte[] key) throws SQLException {
         String temp = dir + "/temp.db";
         FileUtils.delete(temp);
-        byte[] magic = Database.getMagic(textStorage);
         FileStore fileOut;
         if (key == null) {
-            fileOut = FileStore.open(null, temp, "rw", magic);
+            fileOut = FileStore.open(null, temp, "rw");
         } else {
-            fileOut = FileStore.open(null, temp, "rw", magic, cipher, key);
+            fileOut = FileStore.open(null, temp, "rw", cipher, key);
         }
         fileOut.init();
         byte[] buffer = new byte[4 * 1024];

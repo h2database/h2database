@@ -29,8 +29,8 @@ public class SecureFileStore extends FileStore {
     private byte[] bufferForInitVector;
     private int keyIterations;
 
-    public SecureFileStore(DataHandler handler, String name, String mode, byte[] magic, String cipher, byte[] key, int keyIterations) throws SQLException {
-        super(handler, name, mode, magic);
+    public SecureFileStore(DataHandler handler, String name, String mode, String cipher, byte[] key, int keyIterations) throws SQLException {
+        super(handler, name, mode);
         this.key = key;
         if ("XTEA".equalsIgnoreCase(cipher)) {
             this.cipher = new XTEA();

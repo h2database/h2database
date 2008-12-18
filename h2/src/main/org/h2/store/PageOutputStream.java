@@ -22,7 +22,7 @@ public class PageOutputStream extends OutputStream {
     private int type;
     private int pageId;
     private int nextPage;
-    private DataPageBinary page;
+    private DataPage page;
     private int remaining;
 
     /**

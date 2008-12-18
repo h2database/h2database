@@ -29,7 +29,6 @@ public class TestFile extends TestBase implements DataHandler {
     }
 
     private void doTest(boolean compress) throws Exception {
-        byte[] magic = new byte[0];
         int len = getSize(1000, 10000);
         Random random = new Random();
         FileStore mem = null, file = null;
@@ -48,8 +47,8 @@ public class TestFile extends TestBase implements DataHandler {
                 buffFile = new byte[l];
             }
             if (file == null) {
-                mem = FileStore.open(this, prefix + "test", "rw", magic);
-                file = FileStore.open(this, "~/testFile", "rw", magic);
+                mem = FileStore.open(this, prefix + "test", "rw");
+                file = FileStore.open(this, "~/testFile", "rw");
             }
             assertEquals(file.getFilePointer(), mem.getFilePointer());
             assertEquals(file.length(), mem.length());
@@ -167,10 +166,6 @@ public class TestFile extends TestBase implements DataHandler {
 
     public int getMaxLengthInplaceLob() {
         return 0;
-    }
-
-    public boolean getTextStorage() {
-        return false;
     }
 
     public void handleInvalidChecksum() {

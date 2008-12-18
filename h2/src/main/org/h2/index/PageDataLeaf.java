@@ -12,7 +12,7 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.store.DataPage;
-import org.h2.store.DataPageBinary;
+import org.h2.store.DataPage;
 import org.h2.store.PageStore;
 import org.h2.util.IntArray;
 
@@ -60,7 +60,7 @@ class PageDataLeaf extends PageData {
      */
     int start;
 
-    PageDataLeaf(PageScanIndex index, int pageId, int parentPageId, DataPageBinary data) {
+    PageDataLeaf(PageScanIndex index, int pageId, int parentPageId, DataPage data) {
         super(index, pageId, parentPageId, data);
         start = 7;
     }
@@ -188,7 +188,7 @@ class PageDataLeaf extends PageData {
                 data.setPos(pageSize);
                 int next = firstOverflowPageId;
                 while (true) {
-                    DataPageBinary page = store.readPage(next);
+                    DataPage page = store.readPage(next);
                     page.setPos(4);
                     int type = page.readByte();
                     if (type == (Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST)) {
@@ -251,7 +251,7 @@ class PageDataLeaf extends PageData {
         int testIfReallyNotRequired;
 //        PageStore store = index.getPageStore();
 //        store.updateRecord(firstOverflowPageId);
-//        DataPageBinary overflow = store.readPage(firstOverflowPageId);
+//        DataPage overflow = store.readPage(firstOverflowPageId);
 //        overflow.reset();
 //        overflow.writeInt(getPos());
 //        store.writePage(firstOverflowPageId, overflow);
@@ -321,7 +321,7 @@ class PageDataLeaf extends PageData {
             if (firstOverflowPageId == 0) {
                 throw Message.getInternalError();
             }
-            DataPageBinary overflow = store.createDataPage();
+            DataPage overflow = store.createDataPage();
             int parent = getPos();
             int pos = pageSize;
             int remaining = data.length() - pageSize;

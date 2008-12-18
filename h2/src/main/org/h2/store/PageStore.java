@@ -52,14 +52,13 @@ public class PageStore implements CacheWriter {
     private String accessMode;
     private int cacheSize;
     private Cache cache;
-    private DataPageBinary fileHeader;
+    private DataPage fileHeader;
     private int systemRootPageId;
     private int freeListRootPageId;
     private int freePageCount;
     private int pageCount;
     private int writeCount;
     private long fileLength;
-    private long currentPos;
 
     /**
      * Create a new page store object.
@@ -87,7 +86,7 @@ public class PageStore implements CacheWriter {
      */
     public void open() throws SQLException {
         try {
-            fileHeader = new DataPageBinary(database, new byte[FILE_HEADER_SIZE - FileStore.HEADER_LENGTH]);
+            fileHeader = DataPage.create(database, new byte[FILE_HEADER_SIZE - FileStore.HEADER_LENGTH]);
             if (FileUtils.exists(fileName)) {
                 file = database.openFile(fileName, accessMode, true);
                 readHeader();
@@ -259,8 +258,8 @@ public class PageStore implements CacheWriter {
      *
      * @return the data page.
      */
-    public DataPageBinary createDataPage() {
-        return new DataPageBinary(database, new byte[pageSize]);
+    public DataPage createDataPage() {
+        return DataPage.create(database, new byte[pageSize]);
     }
 
     /**
@@ -280,8 +279,8 @@ public class PageStore implements CacheWriter {
      * @param pos the page id
      * @return the page
      */
-    public DataPageBinary readPage(int pos) throws SQLException {
-        DataPageBinary page = createDataPage();
+    public DataPage readPage(int pos) throws SQLException {
+        DataPage page = createDataPage();
         readPage(pos, page);
         return page;
     }
@@ -290,9 +289,9 @@ public class PageStore implements CacheWriter {
      * Read a page.
      *
      * @param pos the page id
-     * @return the page
+     * @param page the page
      */
-    public void readPage(int pos, DataPageBinary page) throws SQLException {
+    public void readPage(int pos, DataPage page) throws SQLException {
         file.seek(pos << pageSizeShift);
         file.readFully(page.getBytes(), 0, pageSize);
     }
@@ -321,7 +320,7 @@ public class PageStore implements CacheWriter {
      * @param pageId the page id
      * @param data the data
      */
-    public void writePage(int pageId, DataPageBinary data) throws SQLException {
+    public void writePage(int pageId, DataPage data) throws SQLException {
         file.seek(pageId << pageSizeShift);
         file.write(data.getBytes(), 0, pageSize);
     }

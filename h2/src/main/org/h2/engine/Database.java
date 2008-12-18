@@ -7,7 +7,6 @@
 package org.h2.engine;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,7 +58,6 @@ import org.h2.util.ByteUtils;
 import org.h2.util.CacheLRU;
 import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
-import org.h2.util.IOUtils;
 import org.h2.util.IntHashMap;
 import org.h2.util.MemoryUtils;
 import org.h2.util.NetUtils;
@@ -105,7 +103,6 @@ public class Database implements DataHandler {
     private final BitField objectIds = new BitField();
     private final Object lobSyncObject = new Object();
 
-    private boolean textStorage;
     private Schema mainSchema;
     private Schema infoSchema;
     private int nextSessionId;
@@ -182,7 +179,6 @@ public class Database implements DataHandler {
             accessModeLog = "r";
         }
         this.fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
-        this.textStorage = ci.getTextStorage();
         this.databaseURL = ci.getURL();
         this.eventListener = ci.getDatabaseEventListenerObject();
         ci.removeDatabaseEventListenerObject();
@@ -246,56 +242,6 @@ public class Database implements DataHandler {
             return;
         }
         powerOffCount = count;
-    }
-
-    public boolean getTextStorage() {
-        return textStorage;
-    }
-
-    /**
-     * Check if the storage mode of the given database file is 'text'.
-     *
-     * @param fileName the file name of the database file
-     * @param defaultValue the value to use if the file doesn't exist or is too
-     *            small
-     * @return true if the storage mode is 'text'
-     * @throws SQLException if the database file version does not match
-     */
-    public static boolean isTextStorage(String fileName, boolean defaultValue) throws SQLException {
-        byte[] magicText = Constants.MAGIC_FILE_HEADER_TEXT.getBytes();
-        byte[] magicBinary = Constants.MAGIC_FILE_HEADER.getBytes();
-        try {
-            InputStream fin = FileUtils.openFileInputStream(fileName);
-            byte[] magic = IOUtils.readBytesAndClose(fin, magicBinary.length);
-            if (ByteUtils.compareNotNull(magic, magicText) == 0) {
-                return true;
-            } else if (ByteUtils.compareNotNull(magic, magicBinary) == 0) {
-                return false;
-            } else if (magic.length < magicText.length) {
-                // file size is 0 or too small
-                return defaultValue;
-            }
-            throw Message.getSQLException(ErrorCode.FILE_VERSION_ERROR_1, fileName);
-        } catch (IOException e) {
-            throw Message.convertIOException(e, fileName);
-        }
-    }
-
-    /**
-     * Get the file header (the 'magic bytes').
-     *
-     * @param textStorage if the header of a text storage should be returned
-     * @return the magic bytes
-     */
-    public static byte[] getMagic(boolean textStorage) {
-        if (textStorage) {
-            return Constants.MAGIC_FILE_HEADER_TEXT.getBytes();
-        }
-        return Constants.MAGIC_FILE_HEADER.getBytes();
-    }
-
-    public byte[] getMagic() {
-        return getMagic(textStorage);
     }
 
     /**
@@ -447,7 +393,7 @@ public class Database implements DataHandler {
         if (mustExist && !FileUtils.exists(name)) {
             throw Message.getSQLException(ErrorCode.FILE_NOT_FOUND_1, name);
         }
-        FileStore store = FileStore.open(this, name, mode, getMagic(), cipher, filePasswordHash);
+        FileStore store = FileStore.open(this, name, mode, cipher, filePasswordHash);
         try {
             store.init();
         } catch (SQLException e) {
@@ -534,7 +480,6 @@ public class Database implements DataHandler {
                 }
             }
             if (FileUtils.exists(dataFileName)) {
-                textStorage = isTextStorage(dataFileName, textStorage);
                 lobFilesInDirectories &= !ValueLob.existsLobFile(getDatabasePath());
                 lobFilesInDirectories |= FileUtils.exists(databaseName + Constants.SUFFIX_LOBS_DIRECTORY);
             }

@@ -4,8 +4,8 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.store;
 
+package org.h2.store;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -43,29 +43,44 @@ import org.h2.value.ValueUuid;
  * A data page is a byte buffer that contains persistent data of a row or index
  * page.
  */
-public abstract class DataPage {
+public class DataPage {
+
+    /**
+     * The space required for the checksum and additional fillers.
+     */
+    public static final int LENGTH_FILLER = 2;
+
+    /**
+     * The length of an integer value.
+     */
+    public static final int LENGTH_INT = 4;
+
+    /**
+     * The length of a long value.
+     */
+    public static final int LENGTH_LONG = 8;
 
     /**
      * Whether calculating (and checking) the checksum is enabled.
      */
-    static final boolean CHECKSUM = true;
+    private static final boolean CHECKSUM = true;
 
     /**
      * The data handler responsible for lob objects.
      */
-    protected DataHandler handler;
+    private DataHandler handler;
 
     /**
      * The data itself.
      */
-    protected byte[] data;
+    private byte[] data;
 
     /**
      * The current write or read position.
      */
-    protected int pos;
+    private int pos;
 
-    protected DataPage(DataHandler handler, byte[] data) {
+    private DataPage(DataHandler handler, byte[] data) {
         this.handler = handler;
         this.data = data;
     }
@@ -74,7 +89,12 @@ public abstract class DataPage {
      * Calculate the checksum and write.
      *
      */
-    public abstract void updateChecksum();
+    public void updateChecksum() {
+        if (CHECKSUM) {
+            int x = handler.getChecksum(data, 0, pos - 2);
+            data[pos - 2] = (byte) x;
+        }
+    }
 
     /**
      * Test if the checksum is correct.
@@ -82,14 +102,15 @@ public abstract class DataPage {
      * @param len the number of bytes
      * @throws SQLException if the checksum does not match
      */
-    public abstract void check(int len) throws SQLException;
-
-    /**
-     * The space required for the checksum and additional fillers.
-     *
-     * @return the size
-     */
-    public abstract int getFillerLength();
+    public void check(int len) throws SQLException {
+        if (CHECKSUM) {
+            int x = handler.getChecksum(data, 0, len - 2);
+            if (data[len - 2] == (byte) x) {
+                return;
+            }
+            handler.handleInvalidChecksum();
+        }
+    }
 
     /**
      * Update an integer at the given position.
@@ -98,7 +119,13 @@ public abstract class DataPage {
      * @param pos the position
      * @param x the value
      */
-    public abstract void setInt(int pos, int x);
+    public void setInt(int pos, int x) {
+        byte[] buff = data;
+        buff[pos] = (byte) (x >> 24);
+        buff[pos + 1] = (byte) (x >> 16);
+        buff[pos + 2] = (byte) (x >> 8);
+        buff[pos + 3] = (byte) x;
+    }
 
     /**
      * Write an integer at the current position.
@@ -106,7 +133,13 @@ public abstract class DataPage {
      *
      * @param x the value
      */
-    public abstract void writeInt(int x);
+    public void writeInt(int x) {
+        byte[] buff = data;
+        buff[pos++] = (byte) (x >> 24);
+        buff[pos++] = (byte) (x >> 16);
+        buff[pos++] = (byte) (x >> 8);
+        buff[pos++] = (byte) x;
+    }
 
     /**
      * Read an integer at the current position.
@@ -114,22 +147,10 @@ public abstract class DataPage {
      *
      * @return the value
      */
-    public abstract int readInt();
-
-    /**
-     * Get the length of an integer value.
-     *
-     * @return the length
-     */
-    public abstract int getIntLen();
-
-    /**
-     * Get the length of a long value.
-     *
-     * @param x the value
-     * @return the length
-     */
-    public abstract int getLongLen(long x);
+    public int readInt() {
+        byte[] buff = data;
+        return (buff[pos++] << 24) + ((buff[pos++] & 0xff) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos++] & 0xff);
+    }
 
     /**
      * Get the length of a String value.
@@ -137,7 +158,9 @@ public abstract class DataPage {
      * @param s the value
      * @return the length
      */
-    public abstract int getStringLen(String s);
+    public int getStringLen(String s) {
+        return getStringLenUTF8(s);
+    }
 
     /**
      * Read a String value.
@@ -145,7 +168,26 @@ public abstract class DataPage {
      *
      * @return the value
      */
-    public abstract String readString();
+    public String readString() {
+        byte[] buff = data;
+        int p = pos;
+        int len = ((buff[p++] & 0xff) << 24) + ((buff[p++] & 0xff) << 16) + ((buff[p++] & 0xff) << 8)
+                + (buff[p++] & 0xff);
+        char[] chars = new char[len];
+        for (int i = 0; i < len; i++) {
+            int x = buff[p++] & 0xff;
+            if (x < 0x80) {
+                chars[i] = (char) x;
+            } else if (x >= 0xe0) {
+                chars[i] = (char) (((x & 0xf) << 12) + ((buff[p++] & 0x3f) << 6) + (buff[p++] & 0x3f));
+            } else {
+                chars[i] = (char) (((x & 0x1f) << 6) + (buff[p++] & 0x3f));
+            }
+        }
+        pos = p;
+        return new String(chars);
+    }
+
 
     /**
      * Write a String value.
@@ -153,7 +195,30 @@ public abstract class DataPage {
      *
      * @param s the value
      */
-    public abstract void writeString(String s);
+    public void writeString(String s) {
+        int len = s.length();
+        checkCapacity(len * 3 + 4);
+        int p = pos;
+        byte[] buff = data;
+        buff[p++] = (byte) (len >> 24);
+        buff[p++] = (byte) (len >> 16);
+        buff[p++] = (byte) (len >> 8);
+        buff[p++] = (byte) len;
+        for (int i = 0; i < len; i++) {
+            int c = s.charAt(i);
+            if (c > 0 && c < 0x80) {
+                buff[p++] = (byte) c;
+            } else if (c >= 0x800) {
+                buff[p++] = (byte) (0xe0 | (c >> 12));
+                buff[p++] = (byte) (0x80 | ((c >> 6) & 0x3f));
+                buff[p++] = (byte) (0x80 | (c & 0x3f));
+            } else {
+                buff[p++] = (byte) (0xc0 | (c >> 6));
+                buff[p++] = (byte) (0x80 | (c & 0x3f));
+            }
+        }
+        pos = p;
+    }
 
     /**
      * Increase the size to the given length.
@@ -161,7 +226,13 @@ public abstract class DataPage {
      *
      * @param len the new length
      */
-    public abstract void fill(int len);
+    public void fill(int len) {
+        if (pos > len) {
+            pos = len;
+        }
+        checkCapacity(len - pos);
+        pos = len;
+    }
 
     /**
      * Create a new data page for the given handler. The
@@ -172,10 +243,7 @@ public abstract class DataPage {
      * @return the data page
      */
     public static DataPage create(DataHandler handler, int capacity) {
-        if (handler.getTextStorage()) {
-            return new DataPageText(handler, new byte[capacity]);
-        }
-        return new DataPageBinary(handler, new byte[capacity]);
+        return new DataPage(handler, new byte[capacity]);
     }
 
     /**
@@ -187,10 +255,7 @@ public abstract class DataPage {
      * @return the data page
      */
     public static DataPage create(DataHandler handler, byte[] buff) {
-        if (handler.getTextStorage()) {
-            return new DataPageText(handler, buff);
-        }
-        return new DataPageBinary(handler, buff);
+        return new DataPage(handler, buff);
     }
 
     /**
@@ -244,7 +309,7 @@ public abstract class DataPage {
     public void writeDataPageNoSize(DataPage page) {
         checkCapacity(page.pos);
         // don't write filler
-        int len = page.pos - getFillerLength();
+        int len = page.pos - LENGTH_FILLER;
         System.arraycopy(page.data, 0, data, pos, len);
         pos += len;
     }
@@ -451,13 +516,13 @@ public abstract class DataPage {
         case Value.BYTE:
         case Value.SHORT:
         case Value.INT:
-            return 1 + getIntLen();
+            return 1 + LENGTH_INT;
         case Value.LONG:
-            return 1 + getLongLen(v.getLong());
+            return 1 + LENGTH_LONG;
         case Value.DOUBLE:
-            return 1 + getLongLen(Double.doubleToLongBits(v.getDouble()));
+            return 1 + LENGTH_LONG;
         case Value.FLOAT:
-            return 1 + getIntLen();
+            return 1 + LENGTH_INT;
         case Value.STRING:
         case Value.STRING_IGNORECASE:
         case Value.STRING_FIXED:
@@ -467,20 +532,16 @@ public abstract class DataPage {
         case Value.JAVA_OBJECT:
         case Value.BYTES: {
             int len = v.getBytesNoCopy().length;
-            return 1 + getIntLen() + len;
+            return 1 + LENGTH_INT + len;
         }
-        case Value.UUID: {
-            ValueUuid uuid = (ValueUuid) v;
-            return 1 + getLongLen(uuid.getHigh()) + getLongLen(uuid.getLow());
-        }
+        case Value.UUID:
+            return 1 + LENGTH_LONG + LENGTH_LONG;
         case Value.TIME:
-            return 1 + getLongLen(v.getTimeNoCopy().getTime());
+            return 1 + LENGTH_LONG;
         case Value.DATE:
-            return 1 + getLongLen(v.getDateNoCopy().getTime());
-        case Value.TIMESTAMP: {
-            Timestamp ts = v.getTimestampNoCopy();
-            return 1 + getLongLen(ts.getTime()) + getIntLen();
-        }
+            return 1 + LENGTH_LONG;
+        case Value.TIMESTAMP:
+            return 1 + LENGTH_LONG + LENGTH_INT;
         case Value.BLOB:
         case Value.CLOB: {
             int len = 1;
@@ -488,9 +549,9 @@ public abstract class DataPage {
             lob.convertToFileIfRequired(handler);
             byte[] small = lob.getSmall();
             if (small != null) {
-                len += getIntLen() + small.length;
+                len += LENGTH_INT + small.length;
             } else {
-                len += getIntLen() + getIntLen() + getIntLen() + getLongLen(lob.getPrecision()) + 1;
+                len += LENGTH_INT + LENGTH_INT + LENGTH_INT + LENGTH_LONG + 1;
                 if (!lob.isLinked()) {
                     len += getStringLen(lob.getFileName());
                 }
@@ -499,7 +560,7 @@ public abstract class DataPage {
         }
         case Value.ARRAY: {
             Value[] list = ((ValueArray) v).getList();
-            int len = 1 + getIntLen();
+            int len = 1 + LENGTH_INT;
             for (int i = 0; i < list.length; i++) {
                 len += getValueLen(list[i]);
             }
@@ -623,6 +684,42 @@ public abstract class DataPage {
      */
     public void setPos(int pos) {
         this.pos = pos;
+    }
+
+    /**
+     * Write a short integer at the current position.
+     * The current position is incremented.
+     *
+     * @param x the value
+     */
+    public void writeShortInt(int x) {
+        byte[] buff = data;
+        buff[pos++] = (byte) (x >> 8);
+        buff[pos++] = (byte) x;
+    }
+
+    /**
+     * Read an short integer at the current position.
+     * The current position is incremented.
+     *
+     * @return the value
+     */
+    public int readShortInt() {
+        byte[] buff = data;
+        return ((buff[pos++] & 0xff) << 8) + (buff[pos++] & 0xff);
+    }
+
+    private static int getStringLenUTF8(String s) {
+        int plus = 4, len = s.length();
+        for (int i = 0; i < len; i++) {
+            char c = s.charAt(i);
+            if (c >= 0x800) {
+                plus += 2;
+            } else if (c == 0 || c >= 0x80) {
+                plus++;
+            }
+        }
+        return len + plus;
     }
 
 }

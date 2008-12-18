@@ -356,10 +356,10 @@ public class BtreeNode extends BtreePage {
     int getRealByteCount() throws SQLException {
         DataPage dummy = index.getDatabase().getDataPage();
         int len = pageChildren.size();
-        int size = 2 + dummy.getIntLen() + dummy.getIntLen() * len;
+        int size = 2 + DataPage.LENGTH_INT + DataPage.LENGTH_INT * len;
         len = pageData.size();
-        size += dummy.getIntLen();
-        size += len * dummy.getIntLen();
+        size += DataPage.LENGTH_INT;
+        size += len * DataPage.LENGTH_INT;
         for (int i = 0; i < len; i++) {
             SearchRow row = getData(i);
             size += getRowSize(dummy, row);

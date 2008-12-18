@@ -225,16 +225,12 @@ public class TestValueMemory extends TestBase implements DataHandler {
         return 100;
     }
 
-    public boolean getTextStorage() {
-        return false;
-    }
-
     public void handleInvalidChecksum() {
         // nothing to do
     }
 
     public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
-        return FileStore.open(this, name, mode, null);
+        return FileStore.open(this, name, mode);
     }
 
     public boolean getLobFilesInDirectories() {

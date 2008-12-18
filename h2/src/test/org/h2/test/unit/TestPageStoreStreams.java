@@ -38,13 +38,12 @@ public class TestPageStoreStreams extends TestBase {
 
     public void test() throws Exception {
         testFuzz();
-//        for (int i = 0; i < 4; i++) {
-//            testPerformance(true);
-//            testPerformance(false);
-//        }
+        testPerformance(false, 1000);
+        // testPerformance(true, 1000000);
+        // testPerformance(false, 1000000);
     }
 
-    private void testPerformance(boolean file) throws Exception {
+    private void testPerformance(boolean file, int count) throws Exception {
         String name = "mem:pageStoreStreams";
         ConnectionInfo ci = new ConnectionInfo(name);
         Database db = new Database(name, ci, null);
@@ -65,7 +64,7 @@ public class TestPageStoreStreams extends TestBase {
         } else {
             out = new PageOutputStream(store, 0, head, Page.TYPE_LOG);
         }
-        for (int i = 0; i < 1000000; i++) {
+        for (int i = 0; i < count; i++) {
             out.write(buff);
         }
         out.close();
@@ -81,7 +80,7 @@ public class TestPageStoreStreams extends TestBase {
             }
         }
         in.close();
-        System.out.println((file ? "file" : "pageStore") +
+        println((file ? "file" : "pageStore") +
                 " " + (System.currentTimeMillis() - start));
         store.close();
         db.shutdownImmediately();

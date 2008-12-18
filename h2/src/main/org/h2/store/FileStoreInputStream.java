@@ -106,7 +106,7 @@ public class FileStoreInputStream extends InputStream {
         page.checkCapacity(remainingInBuffer);
         // get the length to read
         if (compress != null) {
-            page.checkCapacity(page.getIntLen());
+            page.checkCapacity(DataPage.LENGTH_INT);
             page.readInt();
         }
         page.setPos(page.length() + remainingInBuffer);

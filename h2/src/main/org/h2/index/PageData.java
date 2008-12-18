@@ -10,7 +10,7 @@ import java.sql.SQLException;
 
 import org.h2.engine.Session;
 import org.h2.result.Row;
-import org.h2.store.DataPageBinary;
+import org.h2.store.DataPage;
 import org.h2.store.Record;
 
 /**
@@ -36,7 +36,7 @@ abstract class PageData extends Record {
     /**
      * The data page.
      */
-    protected final DataPageBinary data;
+    protected final DataPage data;
 
     /**
      * The number of entries.
@@ -48,7 +48,7 @@ abstract class PageData extends Record {
      */
     protected int[] keys;
 
-    PageData(PageScanIndex index, int pageId, int parentPageId, DataPageBinary data) {
+    PageData(PageScanIndex index, int pageId, int parentPageId, DataPage data) {
         this.index = index;
         this.parentPageId = parentPageId;
         this.data = data;

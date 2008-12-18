@@ -52,7 +52,7 @@ public class ConnectionInfo implements Cloneable {
         // TODO document these settings
         String[] connectionTime = new String[] { "ACCESS_MODE_LOG", "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS",
-                "PASSWORD", "RECOVER", "STORAGE", "USER", "DATABASE_EVENT_LISTENER_OBJECT", "AUTO_SERVER",
+                "PASSWORD", "RECOVER", "USER", "DATABASE_EVENT_LISTENER_OBJECT", "AUTO_SERVER",
                 "AUTO_RECONNECT", "OPEN_NEW" };
         for (int i = 0; i < connectionTime.length; i++) {
             String key = connectionTime[i];
@@ -490,22 +490,6 @@ public class ConnectionInfo implements Cloneable {
      */
     public void setOriginalURL(String url) {
         originalURL = url;
-    }
-
-    /**
-     * Check if this database URL references a text based database explicitly.
-     *
-     * @return true if the storage has been set to text
-     */
-    boolean getTextStorage() throws SQLException {
-        String storage = removeProperty("STORAGE", "BINARY");
-        if ("BINARY".equalsIgnoreCase(storage)) {
-            return false;
-        } else if ("TEXT".equalsIgnoreCase(storage)) {
-            return true;
-        } else {
-            throw Message.getInvalidValueException(storage, "storage");
-        }
     }
 
     /**

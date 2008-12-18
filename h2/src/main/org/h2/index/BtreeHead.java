@@ -38,7 +38,7 @@ public class BtreeHead extends Record {
     }
 
     public int getByteCount(DataPage dummy) {
-        return 1 + dummy.getIntLen();
+        return 1 + DataPage.LENGTH_INT;
     }
 
     public void write(DataPage buff) {

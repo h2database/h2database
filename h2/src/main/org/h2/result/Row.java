@@ -54,7 +54,7 @@ public class Row extends Record implements SearchRow {
 
     public int getByteCount(DataPage dummy) throws SQLException {
         int len = data.length;
-        int size = dummy.getIntLen();
+        int size = DataPage.LENGTH_INT;
         for (int i = 0; i < len; i++) {
             Value v = data[i];
             size += dummy.getValueLen(v);

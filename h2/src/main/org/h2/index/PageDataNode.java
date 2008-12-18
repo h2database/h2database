@@ -12,7 +12,7 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.store.DataPage;
-import org.h2.store.DataPageBinary;
+import org.h2.store.DataPage;
 
 /**
  * A leaf page that contains data of one or multiple rows.
@@ -36,7 +36,7 @@ class PageDataNode extends PageData {
 
     private int rowCount = UNKNOWN_ROWCOUNT;
 
-    PageDataNode(PageScanIndex index, int pageId, int parentPageId, DataPageBinary data) {
+    PageDataNode(PageScanIndex index, int pageId, int parentPageId, DataPage data) {
         super(index, pageId, parentPageId, data);
     }
 

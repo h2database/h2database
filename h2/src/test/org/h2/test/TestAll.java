@@ -233,11 +233,6 @@ java org.h2.test.TestAll timer
     boolean diskUndo;
 
     /**
-     * If the text storage mechanism should be used.
-     */
-    boolean textStorage;
-
-    /**
      * If a small cache and a low number for MAX_MEMORY_ROWS should be used.
      */
     boolean diskResult;
@@ -291,7 +286,6 @@ http://blog.flexive.org/2008/12/05/porting-flexive-to-the-h2-database/
 postgresql generate_series?
 is in-memory scan index re-using ids?
 don't store default values (store a special value)
-build.sh from mac (test in Ubuntu)
 btree: maybe split at the insertion point
 split files (1 GB max size)
 add a setting (that can be changed at runtime) to call fsync
@@ -417,15 +411,14 @@ http://www.w3schools.com/sql/
             } else {
                 cipher = "AES";
             }
-            for (int a = 0; a < 256; a++) {
+            for (int a = 0; a < 128; a++) {
                 smallLog = (a & 1) != 0;
                 big = (a & 2) != 0;
                 networked = (a & 4) != 0;
                 memory = (a & 8) != 0;
                 ssl = (a & 16) != 0;
-                textStorage = (a & 32) != 0;
-                diskResult = (a & 64) != 0;
-                deleteIndex = (a & 128) != 0;
+                diskResult = (a & 32) != 0;
+                deleteIndex = (a & 64) != 0;
                 for (logMode = 0; logMode < 3; logMode++) {
                     traceLevelFile = logMode;
                     test();
@@ -439,7 +432,7 @@ http://www.w3schools.com/sql/
      */
     private void runTests() throws SQLException {
         jdk14 = true;
-        smallLog = big = networked = memory = ssl = textStorage = false;
+        smallLog = big = networked = memory = ssl = false;
         diskResult = deleteIndex = traceSystemOut = diskUndo = false;
         mvcc = traceTest = stopOnError = cache2Q = false;
         traceLevelFile = throttle = 0;
@@ -449,18 +442,15 @@ http://www.w3schools.com/sql/
 
         networked = true;
         memory = true;
-        textStorage = true;
         test();
 
         networked = false;
         memory = false;
-        textStorage = false;
         logMode = 2;
         test();
 
         logMode = 1;
         diskUndo = true;
-        textStorage = true;
         diskResult = true;
         deleteIndex = true;
         traceLevelFile = 3;
@@ -469,7 +459,6 @@ http://www.w3schools.com/sql/
         test();
 
         diskUndo = false;
-        textStorage = false;
         diskResult = false;
         deleteIndex = false;
         traceLevelFile = 1;
@@ -718,7 +707,6 @@ http://www.w3schools.com/sql/
         appendIf(buff, smallLog, "smallLog");
         appendIf(buff, ssl, "ssl");
         appendIf(buff, diskUndo, "diskUndo");
-        appendIf(buff, textStorage, "textStorage");
         appendIf(buff, diskResult, "diskResult");
         appendIf(buff, traceSystemOut, "traceSystemOut");
         appendIf(buff, endless, "endless");

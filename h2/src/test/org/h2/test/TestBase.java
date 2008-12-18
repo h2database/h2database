@@ -51,6 +51,7 @@ public abstract class TestBase {
      * Get the test directory for this test.
      *
      * @param name the directory name suffix
+     * @return the test directory
      */
     public static String getTestDir(String name) {
         return BASE_TEST_DIR + "/test" + name;
@@ -211,9 +212,6 @@ public abstract class TestBase {
             url = name;
         }
         if (!config.memory) {
-            if (config.textStorage) {
-                url += ";STORAGE=TEXT";
-            }
             if (admin) {
                 url += ";LOG=" + config.logMode;
             }

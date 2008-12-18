@@ -56,6 +56,10 @@ public class PageStore implements CacheWriter {
     private int systemRootPageId;
     private int freeListRootPageId;
     private int freePageCount;
+
+    /**
+     * Number of pages (including free pages).
+     */
     private int pageCount;
     private int writeCount;
     private long fileLength;
@@ -242,6 +246,9 @@ public class PageStore implements CacheWriter {
      */
     public int allocatePage() throws SQLException {
         if (freePageCount == 0) {
+            if (freeListRootPageId != 0) {
+                throw Message.getInternalError("freeListRootPageId:" + freeListRootPageId);
+            }
             if (pageCount * pageSize >= fileLength) {
                 long newLength = (pageCount + INCREMENT_PAGES) * pageSize;
                 file.setLength(newLength);
@@ -249,8 +256,38 @@ public class PageStore implements CacheWriter {
             }
             return pageCount++;
         }
-        int todoReturnAFreePage;
-        return 0;
+        if (freeListRootPageId == 0) {
+            throw Message.getInternalError();
+        }
+        PageFreeList free = (PageFreeList) cache.find(freeListRootPageId);
+        if (free == null) {
+            free = new PageFreeList(this, freeListRootPageId, 0);
+            free.read();
+        }
+        int id = free.allocate();
+        freePageCount--;
+        return id;
+    }
+
+    /**
+     * Add a page to the free list.
+     *
+     * @param pageId the page id
+     */
+    public void freePage(int pageId) throws SQLException {
+        freePageCount++;
+        PageFreeList free;
+        cache.remove(pageId);
+        if (freeListRootPageId == 0) {
+            setFreeListRootPage(pageId, false, 0);
+        } else {
+            free = (PageFreeList) cache.find(freeListRootPageId);
+            if (free == null) {
+                free = new PageFreeList(this, freeListRootPageId, 0);
+                free.read();
+            }
+            free.free(pageId);
+        }
     }
 
     /**
@@ -326,21 +363,20 @@ public class PageStore implements CacheWriter {
     }
 
     /**
-     * Add a page to the free list.
-     *
-     * @param pageId the page id
-     */
-    public void freePage(int pageId) {
-        int todo;
-    }
-
-    /**
      * Remove a page from the cache.
      *
      * @param pageId the page id
      */
     public void removeRecord(int pageId) {
         cache.remove(pageId);
+    }
+
+    void setFreeListRootPage(int pageId, boolean existing, int next) throws SQLException {
+        this.freeListRootPageId = pageId;
+        if (!existing) {
+            PageFreeList free = new PageFreeList(this, pageId, next);
+            updateRecord(free);
+        }
     }
 
 }

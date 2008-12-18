@@ -159,6 +159,7 @@ public class Db {
          * Set the value of the current parameter.
          *
          * @param x the value
+         * @return itself
          */
         public Prepared set(int x) {
             try {
@@ -173,6 +174,7 @@ public class Db {
          * Set the value of the current parameter.
          *
          * @param x the value
+         * @return itself
          */
         public Prepared set(String x) {
             try {
@@ -187,6 +189,7 @@ public class Db {
          * Set the value of the current parameter.
          *
          * @param x the value
+         * @return itself
          */
         public Prepared set(byte[] x) {
             try {
@@ -201,6 +204,7 @@ public class Db {
          * Set the value of the current parameter.
          *
          * @param x the value
+         * @return itself
          */
         public Prepared set(InputStream x) {
             try {
@@ -224,6 +228,8 @@ public class Db {
 
         /**
          * Execute the prepared query.
+         *
+         * @return the result list
          */
         public List query() {
             try {

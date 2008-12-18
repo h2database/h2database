@@ -131,6 +131,8 @@ public class TestOptimizations extends TestBase {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @return a result set
      */
     public static ResultSet optimizeInJoinSelect() throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();

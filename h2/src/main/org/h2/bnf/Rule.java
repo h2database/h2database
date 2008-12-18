@@ -23,8 +23,8 @@ public interface Rule {
     /**
      * Get a random entry.
      *
-     * @param config
-     * @param level
+     * @param config the configuration
+     * @param level the call level
      * @return the entry
      */
     String random(Bnf config, int level);

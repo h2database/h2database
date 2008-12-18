@@ -591,7 +591,7 @@ public class TableFilter implements ColumnResolver {
     /**
      * Set the session of this table filter.
      *
-     * @param session
+     * @param session the new session
      */
     void setSession(Session session) {
         this.session = session;

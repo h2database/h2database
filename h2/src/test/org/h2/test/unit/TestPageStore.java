@@ -13,6 +13,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.sql.SQLException;
 import java.util.Random;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Database;
@@ -21,11 +22,12 @@ import org.h2.store.PageInputStream;
 import org.h2.store.PageOutputStream;
 import org.h2.store.PageStore;
 import org.h2.test.TestBase;
+import org.h2.util.IntArray;
 
 /**
- * Test page store input and output streams.
+ * Test the page store.
  */
-public class TestPageStoreStreams extends TestBase {
+public class TestPageStore extends TestBase {
 
     /**
      * Run just this test.
@@ -37,20 +39,56 @@ public class TestPageStoreStreams extends TestBase {
     }
 
     public void test() throws Exception {
-        testFuzz();
-        testPerformance(false, 1000);
+        testAllocateFree();
+        testStreamFuzz();
+        testStreamPerformance(false, 1000);
         // testPerformance(true, 1000000);
         // testPerformance(false, 1000000);
     }
 
-    private void testPerformance(boolean file, int count) throws Exception {
-        String name = "mem:pageStoreStreams";
-        ConnectionInfo ci = new ConnectionInfo(name);
-        Database db = new Database(name, ci, null);
-        String fileName = getTestDir("/pageStoreStreams");
+    private void testAllocateFree() throws SQLException {
+        String fileName = getTestDir("/pageStore");
         new File(fileName).delete();
         File f = new File(fileName + ".dat");
         f.delete();
+        Database db = getDatabase();
+        PageStore store = new PageStore(db, fileName, "rw", 8192);
+        store.setPageSize(1024);
+        store.open();
+        IntArray list = new IntArray();
+        int test;
+        int size = 270;
+        for (int i = 0; i < size; i++) {
+            int id = store.allocatePage();
+            list.add(id);
+        }
+        for (int i = 0; i < size; i++) {
+            int id = list.get(i);
+            store.freePage(id);
+        }
+        for (int i = 0; i < size; i++) {
+            int id = store.allocatePage();
+            int expected = list.get(list.size() - 1 - i);
+            assertEquals(expected, id);
+        }
+        store.close();
+        db.shutdownImmediately();
+        new File(fileName).delete();
+        f.delete();
+    }
+
+    private Database getDatabase() throws SQLException {
+        String name = "mem:pageStore";
+        ConnectionInfo ci = new ConnectionInfo(name);
+        return new Database(name, ci, null);
+    }
+
+    private void testStreamPerformance(boolean file, int count) throws Exception {
+        String fileName = getTestDir("/pageStore");
+        new File(fileName).delete();
+        File f = new File(fileName + ".dat");
+        f.delete();
+        Database db = getDatabase();
         PageStore store = new PageStore(db, fileName, "rw", 8192);
         store.setPageSize(8 * 1024);
         byte[] buff = new byte[100];
@@ -88,7 +126,7 @@ public class TestPageStoreStreams extends TestBase {
         f.delete();
     }
 
-    private void testFuzz() throws Exception {
+    private void testStreamFuzz() throws Exception {
         String name = "mem:pageStoreStreams";
         ConnectionInfo ci = new ConnectionInfo(name);
         Database db = new Database(name, ci, null);

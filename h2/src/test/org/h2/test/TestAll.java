@@ -278,6 +278,7 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
+checksum: no need to checksum all data; every 128th byte is enough; but need position+counter
 JCR: for each node type, create a table; one 'dynamic' table with parameter;
     option to cache the results
 <link rel="icon" type="image/png" href="/path/image.png">

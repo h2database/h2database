@@ -223,6 +223,7 @@ public class Doclet {
             }
             writer.println("<h4>" + type + " <span class=\"methodName\">" + name + "</span>" + buff.toString()
                     + "</h4>");
+            boolean hasComment = method.commentText() != null && method.commentText().trim().length() != 0;
             writer.println(formatText(method.commentText()));
             ParamTag[] paramTags = method.paramTags();
             boolean space = false;
@@ -259,7 +260,7 @@ public class Doclet {
                 }
                 writer.println("<div class=\"item\">" + returnComment + "</div>");
             } else if (!method.returnType().toString().equals("void")) {
-                if (!method.commentText().startsWith("[") && !hasThrowsTag) {
+                if (hasComment && !method.commentText().startsWith("[") && !hasThrowsTag) {
                     // [Not supported] and such are not problematic
                     // also not problematic are methods that always throw an exception
                     addError("Undocumented return value (" +

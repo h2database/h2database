@@ -84,7 +84,7 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable 
     /**
      * This index is now the owner of the specified index.
      *
-     * @param index
+     * @param index the index
      */
     public abstract void setIndexOwner(Index index);
 

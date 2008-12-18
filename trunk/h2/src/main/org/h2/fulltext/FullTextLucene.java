@@ -173,7 +173,6 @@ implements Trigger, CloseListener
      */
     //## Java 1.4 begin ##
     public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) throws SQLException {
-        init(conn);
         this.schemaName = schemaName;
         this.tableName = tableName;
         this.indexPath = getIndexPath(conn);

@@ -331,7 +331,6 @@ public class FullText implements Trigger, CloseListener {
      * INTERNAL
      */
     public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) throws SQLException {
-        init(conn);
         setting = FullTextSettings.getInstance(conn);
         ArrayList keyList = new ArrayList();
         DatabaseMetaData meta = conn.getMetaData();

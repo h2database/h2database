@@ -4056,10 +4056,6 @@ public class Parser {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
-        } else if (readIf("STORAGE")) {
-            readIfEqualOrTo();
-            read();
-            return new NoOperation(session);
         } else if (readIf("DB_CLOSE_ON_EXIT")) {
             readIfEqualOrTo();
             read();

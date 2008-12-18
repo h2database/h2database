@@ -477,7 +477,7 @@ public class ValueLob extends Value {
                 }
                 deleteFile(handler, temp);
                 renameFile(handler, fileName, temp);
-                tempFile = FileStore.open(handler, temp, "rw", null);
+                tempFile = FileStore.open(handler, temp, "rw");
                 tempFile.autoDelete();
                 tempFile.closeSilently();
                 fileName = temp;

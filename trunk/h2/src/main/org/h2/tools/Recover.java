@@ -24,10 +24,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import org.h2.command.Parser;
 import org.h2.engine.Constants;
-import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.MetaRecord;
 import org.h2.log.LogFile;
@@ -65,7 +63,6 @@ import org.h2.value.ValueLob;
 public class Recover extends Tool implements DataHandler {
 
     private String databaseName;
-    private boolean textStorage;
     private int block;
     private int blockCount;
     private int storageId;
@@ -173,9 +170,7 @@ public class Recover extends Tool implements DataHandler {
 
     private void removePassword(String fileName) throws SQLException {
         setDatabaseName(fileName.substring(fileName.length() - Constants.SUFFIX_DATA_FILE.length()));
-        textStorage = Database.isTextStorage(fileName, false);
-        byte[] magic = Database.getMagic(textStorage);
-        FileStore store = FileStore.open(null, fileName, "rw", magic);
+        FileStore store = FileStore.open(null, fileName, "rw");
         long length = store.length();
         int offset = FileStore.HEADER_LENGTH;
         int blockSize = DiskFile.BLOCK_SIZE;
@@ -356,9 +351,7 @@ public class Recover extends Tool implements DataHandler {
         InputStream in = null;
         try {
             fileOut = FileUtils.openFileOutputStream(n, false);
-            textStorage = Database.isTextStorage(fileName, false);
-            byte[] magic = Database.getMagic(textStorage);
-            store = FileStore.open(null, fileName, "r", magic);
+            store = FileStore.open(null, fileName, "r");
             store.init();
             in = new BufferedInputStream(new FileStoreInputStream(store, this, lobCompression, false));
             byte[] buffer = new byte[Constants.IO_BUFFER_SIZE];
@@ -455,9 +448,7 @@ public class Recover extends Tool implements DataHandler {
         try {
             setDatabaseName(fileName.substring(fileName.length() - Constants.SUFFIX_LOG_FILE.length()));
             writer = getWriter(fileName, ".txt");
-            textStorage = Database.isTextStorage(fileName, false);
-            byte[] magic = Database.getMagic(textStorage);
-            store = FileStore.open(null, fileName, "r", magic);
+            store = FileStore.open(null, fileName, "r");
             long length = store.length();
             writer.println("// length: " + length);
             int offset = FileStore.HEADER_LENGTH;
@@ -617,9 +608,7 @@ public class Recover extends Tool implements DataHandler {
         try {
             setDatabaseName(fileName.substring(fileName.length() - Constants.SUFFIX_INDEX_FILE.length()));
             writer = getWriter(fileName, ".txt");
-            textStorage = Database.isTextStorage(fileName, false);
-            byte[] magic = Database.getMagic(textStorage);
-            store = FileStore.open(null, fileName, "r", magic);
+            store = FileStore.open(null, fileName, "r");
             long length = store.length();
             int offset = FileStore.HEADER_LENGTH;
             int blockSize = DiskFile.BLOCK_SIZE;
@@ -691,21 +680,10 @@ public class Recover extends Tool implements DataHandler {
 
     private void dumpData(String fileName) {
         setDatabaseName(fileName.substring(0, fileName.length() - Constants.SUFFIX_DATA_FILE.length()));
-        try {
-            textStorage = Database.isTextStorage(fileName, false);
-            dumpData(fileName, textStorage, fileName, FileStore.HEADER_LENGTH);
-        } catch (SQLException e) {
-            traceError("Can not parse file header", e);
-            for (int i = 0; i < 256; i += 16) {
-                textStorage = (i % 2) == 0;
-                int offset = i / 2;
-                String out = fileName + (textStorage ? ".txt." : ".") + offset + Constants.SUFFIX_DATA_FILE;
-                dumpData(fileName, textStorage, out, offset);
-            }
-        }
+        dumpData(fileName, fileName, FileStore.HEADER_LENGTH);
     }
 
-    private void dumpData(String fileName, boolean textStorage, String outputName, int offset) {
+    private void dumpData(String fileName, String outputName, int offset) {
         PrintWriter writer = null;
         FileStore store = null;
         try {
@@ -715,8 +693,7 @@ public class Recover extends Tool implements DataHandler {
             ObjectArray schema = new ObjectArray();
             HashSet objectIdSet = new HashSet();
             HashMap tableMap = new HashMap();
-            byte[] magic = Database.getMagic(textStorage);
-            store = FileStore.open(null, fileName, "r", magic);
+            store = FileStore.open(null, fileName, "r");
             long length = store.length();
             int blockSize = DiskFile.BLOCK_SIZE;
             int blocks = (int) (length / blockSize);
@@ -763,7 +740,7 @@ public class Recover extends Tool implements DataHandler {
                     } catch (Throwable e) {
                         writeDataError(writer, "eof", s.getBytes(), 1);
                         blockCount = 1;
-                        store = FileStore.open(null, fileName, "r", magic);
+                        store = FileStore.open(null, fileName, "r");
                         continue;
                     }
                 }
@@ -925,13 +902,6 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public boolean getTextStorage() {
-        return textStorage;
-    }
-
-    /**
-     * INTERNAL
-     */
     public String getDatabasePath() {
         return databaseName;
     }
@@ -940,7 +910,7 @@ public class Recover extends Tool implements DataHandler {
      * INTERNAL
      */
     public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
-        return FileStore.open(this, name, "rw", Constants.MAGIC_FILE_HEADER.getBytes());
+        return FileStore.open(this, name, "rw");
     }
 
     /**

@@ -14,7 +14,7 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.store.DataPageBinary;
+import org.h2.store.DataPage;
 import org.h2.store.PageStore;
 import org.h2.store.Record;
 import org.h2.table.Column;
@@ -113,7 +113,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (rec != null) {
             return (PageData) rec;
         }
-        DataPageBinary data = store.readPage(id);
+        DataPage data = store.readPage(id);
         data.reset();
         int parentPageId = data.readInt();
         int type = data.readByte() & 255;
@@ -211,7 +211,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
      * @param data the data page
      * @return the row
      */
-    Row readRow(DataPageBinary data) throws SQLException {
+    Row readRow(DataPage data) throws SQLException {
         return tableData.readRow(data);
     }
 

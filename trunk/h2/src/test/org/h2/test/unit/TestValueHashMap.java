@@ -90,10 +90,6 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         }
     }
 
-    public boolean getTextStorage() {
-        return false;
-    }
-
     public String getDatabasePath() {
         return null;
     }

@@ -170,7 +170,7 @@ public abstract class BtreePage extends Record {
      * @return the number of bytes
      */
     int getRowSize(DataPage dummy, SearchRow row) throws SQLException {
-        int rowsize = dummy.getIntLen();
+        int rowsize = DataPage.LENGTH_INT;
         Column[] columns = index.getColumns();
         for (int j = 0; j < columns.length; j++) {
             Value v = row.getValue(columns[j].getColumnId());

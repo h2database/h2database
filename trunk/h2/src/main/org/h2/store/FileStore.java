@@ -50,7 +50,6 @@ public class FileStore {
      */
     protected DataHandler handler;
 
-    private byte[] magic;
     private FileObject file;
     private long filePos;
     private long fileLength;
@@ -68,11 +67,10 @@ public class FileStore {
      * @param mode the access mode ("r", "rw", "rws", "rwd")
      * @param magic the magic file header
      */
-    protected FileStore(DataHandler handler, String name, String mode, byte[] magic) throws SQLException {
+    protected FileStore(DataHandler handler, String name, String mode) throws SQLException {
         FileSystem fs = FileSystem.getInstance(name);
         this.handler = handler;
         this.name = name;
-        this.magic = magic;
         this.mode = mode;
         if (handler != null) {
             tempFileDeleter = handler.getTempFileDeleter();
@@ -102,8 +100,8 @@ public class FileStore {
      * @param magic the file header magic bytes
      * @return the created object
      */
-    public static FileStore open(DataHandler handler, String name, String mode, byte[] magic) throws SQLException {
-        return open(handler, name, mode, magic, null, null, 0);
+    public static FileStore open(DataHandler handler, String name, String mode) throws SQLException {
+        return open(handler, name, mode, null, null, 0);
     }
 
     /**
@@ -117,8 +115,8 @@ public class FileStore {
      * @param key the encryption key
      * @return the created object
      */
-    public static FileStore open(DataHandler handler, String name, String mode, byte[] magic, String cipher, byte[] key) throws SQLException {
-        return open(handler, name, mode, magic, cipher, key, Constants.ENCRYPTION_KEY_HASH_ITERATIONS);
+    public static FileStore open(DataHandler handler, String name, String mode, String cipher, byte[] key) throws SQLException {
+        return open(handler, name, mode, cipher, key, Constants.ENCRYPTION_KEY_HASH_ITERATIONS);
     }
 
     /**
@@ -133,13 +131,13 @@ public class FileStore {
      * @param keyIterations the number of iterations the key should be hashed
      * @return the created object
      */
-    public static FileStore open(DataHandler handler, String name, String mode, byte[] magic, String cipher,
+    public static FileStore open(DataHandler handler, String name, String mode, String cipher,
             byte[] key, int keyIterations) throws SQLException {
         FileStore store;
         if (cipher == null) {
-            store = new FileStore(handler, name, mode, magic);
+            store = new FileStore(handler, name, mode);
         } else {
-            store = new SecureFileStore(handler, name, mode, magic, cipher, key, keyIterations);
+            store = new SecureFileStore(handler, name, mode, cipher, key, keyIterations);
         }
         return store;
     }
@@ -150,7 +148,7 @@ public class FileStore {
      * @return the random salt or the magic
      */
     protected byte[] generateSalt() {
-        return magic;
+        return Constants.MAGIC_FILE_HEADER.getBytes();
     }
 
     /**
@@ -185,6 +183,7 @@ public class FileStore {
     public void init() throws SQLException {
         int len = Constants.FILE_BLOCK_SIZE;
         byte[] salt;
+        byte[] magic = Constants.MAGIC_FILE_HEADER.getBytes();
         if (length() < HEADER_LENGTH) {
             // write unencrypted
             checkedWriting = false;

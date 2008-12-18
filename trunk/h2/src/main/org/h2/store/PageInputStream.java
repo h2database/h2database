@@ -21,11 +21,6 @@ import org.h2.message.Message;
  * </li><li>5-8: the next page (if there are more) or length
  * </li><li>9-remainder: data
  * </li></ul>
- * The data format is:
- * <ul><li>0-0: type (0: end, 1: undo)
- * </li><li>1-4: page id
- * </li><li>5-: data
- * </li></ul>
  */
 public class PageInputStream extends InputStream {
 
@@ -33,7 +28,7 @@ public class PageInputStream extends InputStream {
     private int parentPage;
     private int type;
     private int nextPage;
-    private DataPageBinary page;
+    private DataPage page;
     private boolean endOfFile;
     private int remaining;
 

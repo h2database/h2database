@@ -69,8 +69,6 @@ Features
     Read Only Databases</a><br />
 <a href="#database_in_zip">
     Read Only Databases in Zip or Jar File</a><br />
-<a href="#storage_formats">
-    Binary and Text Storage Formats</a><br />
 <a href="#low_disk_space">
     Graceful Handling of Low Disk Space Situations</a><br />
 <a href="#computed_columns">
@@ -151,7 +149,7 @@ Features
 </li><li>Contains a recovery tool that can dump the contents of the data file
 </li><li>Support for variables (for example to calculate running totals)
 </li><li>Automatic re-compilation of prepared statements
-</li><li>Uses a small number of database files, binary and text storage formats, graceful handling of low disk space situations
+</li><li>Uses a small number of database files
 </li><li>Uses a checksum for each record and log entry for data integrity
 </li><li>Well tested (high code coverage, randomized stress tests)
 </li></ul>
@@ -1319,18 +1317,6 @@ a regular database, because random access in zip files is not supported (only st
 affects the performance depends on the queries and the data. The database
 is not read in memory; so large databases are supported as well. The same indexes are used than when using
 a regular database.
-</p>
-
-<br /><a name="storage_formats"></a>
-<h2>Binary and Text Storage Formats</h2>
-<p>
-This database engine supports both binary and text storage formats.
-The binary format is faster, but the text storage format can be useful as well,
-for example to debug the database engine.
-If a database already exists, the storage format is recognized automatically.
-New databases are created in the binary storage format by default.
-To create a new database in the text storage format, the database URL must contain
-the parameter STORAGE=TEXT. Example URL: jdbc:h2:~/test;STORAGE=TEXT
 </p>
 
 <br /><a name="low_disk_space"></a>

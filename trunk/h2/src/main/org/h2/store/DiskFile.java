@@ -142,7 +142,7 @@ public class DiskFile implements CacheWriter {
         }
         rowBuff = DataPage.create(database, BLOCK_SIZE);
         // TODO: the overhead is larger in the log file, so this value is too high :-(
-        recordOverhead = 4 * rowBuff.getIntLen() + 1 + rowBuff.getFillerLength();
+        recordOverhead = 4 * DataPage.LENGTH_INT + 1 + DataPage.LENGTH_FILLER;
         freeBlock = DataPage.create(database, BLOCK_SIZE);
         freeBlock.fill(BLOCK_SIZE);
         freeBlock.updateChecksum();
@@ -399,7 +399,7 @@ public class DiskFile implements CacheWriter {
                     s.setRecordCount(0);
                 }
             }
-            int blockHeaderLen = Math.max(Constants.FILE_BLOCK_SIZE, 2 * rowBuff.getIntLen());
+            int blockHeaderLen = Math.max(Constants.FILE_BLOCK_SIZE, 2 * DataPage.LENGTH_INT);
             byte[] buff = new byte[blockHeaderLen];
             DataPage s = DataPage.create(database, buff);
             long time = 0;
@@ -655,18 +655,11 @@ public class DiskFile implements CacheWriter {
             if (!found) {
                 int max = fileBlockCount;
                 pos = MathUtils.roundUp(max, BLOCKS_PER_PAGE);
-                if (rowBuff instanceof DataPageText) {
-                    if (pos > max) {
-                        writeDirectDeleted(max, pos - max);
-                    }
-                    writeDirectDeleted(pos, blockCount);
-                } else {
-                    long min = ((long) pos + blockCount) * BLOCK_SIZE;
-                    min = MathUtils.scaleUp50Percent(Constants.FILE_MIN_SIZE, min, Constants.FILE_PAGE_SIZE, Constants.FILE_MAX_INCREMENT) + OFFSET;
-                    if (min > file.length()) {
-                        file.setLength(min);
-                        database.notifyFileSize(min);
-                    }
+                long min = ((long) pos + blockCount) * BLOCK_SIZE;
+                min = MathUtils.scaleUp50Percent(Constants.FILE_MIN_SIZE, min, Constants.FILE_PAGE_SIZE, Constants.FILE_MAX_INCREMENT) + OFFSET;
+                if (min > file.length()) {
+                    file.setLength(min);
+                    database.notifyFileSize(min);
                 }
             }
             setBlockOwner(null, storage, pos, blockCount, false);

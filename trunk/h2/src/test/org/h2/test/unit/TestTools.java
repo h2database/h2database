@@ -421,7 +421,7 @@ public class TestTools extends TestBase {
 
     private void testChangeFileEncryption() throws SQLException {
         org.h2.Driver.load();
-        Connection conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/utils;CIPHER=XTEA;STORAGE=TEXT", "sa",
+        Connection conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/utils;CIPHER=XTEA", "sa",
                 "abc 123");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");

@@ -28,11 +28,7 @@ import org.h2.value.ValueString;
  */
 public class TestDataPage extends TestBase implements DataHandler {
 
-    boolean text;
-
     public void test() throws SQLException {
-        testAll();
-        text = true;
         testAll();
     }
 
@@ -88,10 +84,6 @@ public class TestDataPage extends TestBase implements DataHandler {
         trace(page.readInt());
 
         page = null;
-    }
-
-    public boolean getTextStorage() {
-        return text;
     }
 
     public String getDatabasePath() {

@@ -13,11 +13,6 @@ package org.h2.index;
 public class Page {
 
     /**
-     * A log page.
-     */
-    public static final int TYPE_LOG = 8;
-
-    /**
      * This is the last page of a chain.
      */
     public static final int FLAG_LAST = 16;
@@ -25,22 +20,32 @@ public class Page {
     /**
      * An empty page.
      */
-    static final int TYPE_EMPTY = 0;
+    public static final int TYPE_EMPTY = 0;
 
     /**
-     * A data leaf page (without overflow: or FLAG_LAST).
+     * A data leaf page (without overflow: + FLAG_LAST).
      */
-    static final int TYPE_DATA_LEAF = 1;
+    public static final int TYPE_DATA_LEAF = 1;
 
      /**
-     * A data node page (does never have overflow).
+     * A data node page (never has overflow pages).
      */
-    static final int TYPE_DATA_NODE = 2;
+    public static final int TYPE_DATA_NODE = 2;
 
     /**
-     * An overflow pages (the last page: or FLAG_LAST).
+     * An overflow page (the last page: + FLAG_LAST).
      */
-    static final int TYPE_DATA_OVERFLOW = 3;
+    public static final int TYPE_DATA_OVERFLOW = 3;
+
+    /**
+     * A page containing a list of free pages (the last page: + FLAG_LAST).
+     */
+    public static final int TYPE_FREE_LIST = 4;
+
+    /**
+     * A log page.
+     */
+    public static final int TYPE_LOG = 5;
 
     /**
      * This is a root page.

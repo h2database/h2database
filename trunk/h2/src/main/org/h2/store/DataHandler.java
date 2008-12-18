@@ -20,13 +20,6 @@ import org.h2.value.Value;
 public interface DataHandler {
 
     /**
-     * Check if text storage is used.
-     *
-     * @return if text storage is used.
-     */
-    boolean getTextStorage();
-
-    /**
      * Get the database path.
      *
      * @return the database path

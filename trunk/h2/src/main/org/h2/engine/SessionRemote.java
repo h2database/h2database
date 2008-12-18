@@ -613,10 +613,6 @@ public class SessionRemote implements SessionInterface, SessionFactory, DataHand
         return Constants.DEFAULT_MAX_LENGTH_CLIENTSIDE_LOB;
     }
 
-    public boolean getTextStorage() {
-        return false;
-    }
-
     public void handleInvalidChecksum() throws SQLException {
         throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
     }
@@ -626,11 +622,10 @@ public class SessionRemote implements SessionInterface, SessionFactory, DataHand
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, name);
         }
         FileStore store;
-        byte[] magic = Constants.MAGIC_FILE_HEADER.getBytes();
         if (cipher == null) {
-            store = FileStore.open(this, name, mode, magic);
+            store = FileStore.open(this, name, mode);
         } else {
-            store = FileStore.open(this, name, mode, magic, cipher, fileEncryptionKey, 0);
+            store = FileStore.open(this, name, mode, cipher, fileEncryptionKey, 0);
         }
         store.setCheckedWriting(false);
         try {

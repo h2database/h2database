@@ -276,7 +276,7 @@ public class BtreeLeaf extends BtreePage {
             return;
         }
         DataPage dummy = index.getDatabase().getDataPage();
-        int diff = getRowSize(dummy, row) + dummy.getIntLen();
+        int diff = getRowSize(dummy, row) + DataPage.LENGTH_INT;
         cachedRealByteCount += add ? diff : -diff;
         if (cachedRealByteCount + index.getRecordOverhead() >= DiskFile.BLOCK_SIZE * BLOCKS_PER_PAGE) {
             cachedRealByteCount = 0;
@@ -286,7 +286,7 @@ public class BtreeLeaf extends BtreePage {
     int getRealByteCount() throws SQLException {
         DataPage dummy = index.getDatabase().getDataPage();
         int len = pageData.size();
-        int size = 2 + dummy.getIntLen() * (len + 1);
+        int size = 2 + DataPage.LENGTH_INT * (len + 1);
         for (int i = 0; i < len; i++) {
             SearchRow row = (SearchRow) pageData.get(i);
             size += getRowSize(dummy, row);

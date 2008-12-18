@@ -31,8 +31,8 @@ public class PageLog {
     private int bufferPos;
     private int firstPage;
     private int nextPage;
-    private DataPageBinary data;
-    private DataPageBinary output;
+    private DataPage data;
+    private DataPage output;
 
     PageLog(PageStore store, int firstPage) {
         this.store = store;
@@ -72,7 +72,7 @@ public class PageLog {
 //        data.reset();
 //        data.writeByte((byte) 1);
 //        data.writeInt(pageId);
-//        DataPageBinary p = store.readPage(pageId);
+//        DataPage p = store.readPage(pageId);
 //        data.write(p.getBytes(), 0, store.getPageSize());
 //        write(data.getBytes(), 0, data.length());
 //    }

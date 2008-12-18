@@ -371,11 +371,6 @@ public class Constants {
     public static final String MAGIC_FILE_HEADER = "-- H2 0.5/B --      ".substring(0, FILE_BLOCK_SIZE - 1) + "\n";
 
     /**
-     * The file header used for text files.
-     */
-    public static final String MAGIC_FILE_HEADER_TEXT = "-- H2 0.5/T --      ".substring(0, FILE_BLOCK_SIZE - 1) + "\n";
-
-    /**
      * The name of the in-memory management database used by the TCP server
      * to keep the active sessions.
      */

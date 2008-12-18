@@ -150,7 +150,7 @@ public class LogFile {
         if (file == null) {
             throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
         }
-        int size = MathUtils.roundUp(buff.length() + buff.getFillerLength(), BLOCK_SIZE);
+        int size = MathUtils.roundUp(buff.length() + DataPage.LENGTH_FILLER, BLOCK_SIZE);
         int blockCount = size / BLOCK_SIZE;
         buff.fill(size);
         buff.setInt(0, blockCount);

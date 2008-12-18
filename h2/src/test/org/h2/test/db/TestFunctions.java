@@ -337,6 +337,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param value the blob
+     * @return the input stream
      */
     public static BufferedInputStream blob2stream(Blob value) throws SQLException {
         if (value == null) {
@@ -348,6 +351,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param value the input stream
+     * @return the buffered input stream
      */
     public static BufferedInputStream stream2stream(InputStream value) {
         if (value == null) {
@@ -359,6 +365,11 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param conn the connection
+     * @param id the test id
+     * @param name the text
+     * @return the count
      */
     public static int addRow(Connection conn, int id, String name) throws SQLException {
         conn.createStatement().execute("INSERT INTO TEST VALUES(" + id + ", '" + name + "')");
@@ -371,6 +382,10 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param conn the connection
+     * @param sql the SQL statement
+     * @return the result set
      */
     public static ResultSet select(Connection conn, String sql) throws SQLException {
         Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -379,6 +394,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param conn the connection
+     * @return the result set
      */
     public static ResultSet selectMaxId(Connection conn) throws SQLException {
         return conn.createStatement().executeQuery("SELECT MAX(ID) FROM TEST");
@@ -386,6 +404,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @return the test array
      */
     public static Object[] getArray() {
         return new Object[] { new Integer(0), "Hello" };
@@ -393,6 +413,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param conn the connection
+     * @return the result set
      */
     public static ResultSet nullResultSet(Connection conn) throws SQLException {
         PreparedStatement statement = conn.prepareStatement("select null from system_range(1,1)");
@@ -438,6 +461,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param value the value
+     * @return the square root
      */
     public static int root(int value) {
         if (value < 0) {
@@ -448,6 +474,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @return 1
      */
     public static double mean() {
         return 1;
@@ -455,6 +483,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param dec the value
+     * @return the value
      */
     public static BigDecimal noOp(BigDecimal dec) {
        return dec;
@@ -462,6 +493,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param values the values
+     * @return the mean value
      */
 //## Java 1.5 begin ##
     public static double mean(double... values) {
@@ -475,6 +509,10 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param conn the connection
+     * @param values the values
+     * @return the mean value
      */
 //## Java 1.5 begin ##
     public static double mean2(Connection conn, double... values) {
@@ -489,6 +527,10 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param prefix the print prefix
+     * @param values the values
+     * @return the text
      */
 //## Java 1.5 begin ##
     public static String printMean(String prefix, double... values) {

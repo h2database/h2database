@@ -132,6 +132,8 @@ public class TestFunctionOverload extends TestBase {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @return 0
      */
     public static int overload0() {
         return 0;
@@ -139,6 +141,9 @@ public class TestFunctionOverload extends TestBase {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param one the value
+     * @return the value
      */
     public static int overload1or2(int one) {
         return one;
@@ -146,6 +151,10 @@ public class TestFunctionOverload extends TestBase {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param one the first value
+     * @param two the second value
+     * @return the sum of both
      */
     public static int overload1or2(int one, int two) {
         return one + two;
@@ -153,6 +162,10 @@ public class TestFunctionOverload extends TestBase {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param conn the connection
+     * @param one the value
+     * @return the value
      */
     public static int overload1or2WithConn(Connection conn, int one) throws SQLException {
         conn.createStatement().executeQuery("select 1 from dual");
@@ -161,6 +174,10 @@ public class TestFunctionOverload extends TestBase {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param one the first value
+     * @param two the second value
+     * @return the sum of both
      */
     public static int overload1or2WithConn(int one, int two) {
         return one + two;
@@ -168,6 +185,10 @@ public class TestFunctionOverload extends TestBase {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param one the first value
+     * @param two the second value
+     * @return the sum of both
      */
     public static int overloadError(int one, int two) {
         return one + two;
@@ -175,6 +196,10 @@ public class TestFunctionOverload extends TestBase {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param one the first value
+     * @param two the second value
+     * @return the sum of both
      */
     public static int overloadError(double one, double two) {
         return (int) (one + two);

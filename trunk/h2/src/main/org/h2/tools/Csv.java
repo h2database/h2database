@@ -583,7 +583,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Set the field delimiter. The default is " (a double quote).
-     * 0 means no field delimiter is used.
+     * The value 0 means no field delimiter is used.
      *
      * @param fieldDelimiter the field delimiter
      */
@@ -593,7 +593,6 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Get the current field delimiter.
-     * 0 means no field delimiter is used.
      *
      * @return the field delimiter
      */
@@ -603,7 +602,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Set the escape character (used to escape the field delimiter). The
-     * default is " (a double quote). 0 means no escape character is used.
+     * default is " (a double quote). The value 0 means no escape character is used.
      *
      * @param escapeCharacter the escape character
      */
@@ -613,7 +612,6 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Get the current escape character.
-     * 0 means no escape character is used.
      *
      * @return the escape character
      */

@@ -38,12 +38,12 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 <h2>Priority 2</h2>
 <ul>
 <li>Improve test code coverage
+</li><li>Optimize .. OR .. to IN(..) or UNION if the cost is lower
 </li><li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
 </li><li>Test multi-threaded in-memory db access
 </li><li>Procedural language / script language (Javascript)
 </li><li>Option to shutdown all the running servers (on the same VM).
 </li><li>Optimize ID=? OR ID=?: convert to IN(...)
-</li><li>Optimize .. OR .. to UNION if the cost is lower
 </li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
 </li><li>Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
 </li><li>Implement INSTEAD OF trigger (for views, tables, metadata tables).

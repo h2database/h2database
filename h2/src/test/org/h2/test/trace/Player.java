@@ -69,7 +69,7 @@ public class Player {
     /**
      * Execute a trace file.
      *
-     * @param fileName
+     * @param fileName the file name
      * @param log print debug information
      * @param checkResult if the result of each method should be compared
      *            against the result in the file

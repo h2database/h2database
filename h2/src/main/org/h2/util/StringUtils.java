@@ -575,8 +575,8 @@ public class StringUtils {
      * Creates an XML attribute of the form name="value".
      * A single space is prepended to the name,
      * so that multiple attributes can be concatenated.
-     * @param name
-     * @param value
+     * @param name the attribute name
+     * @param value the attribute value
      * @return the attribute
      */
     public static String xmlAttr(String name, String value) {
@@ -640,7 +640,7 @@ public class StringUtils {
      * If the data contains '--', it is converted to '- -'.
      * The data is indented with 4 spaces if it contains a newline character.
      *
-     * @param data
+     * @param data the comment text
      * @return <!-- data -->
      */
     public static String xmlComment(String data) {
@@ -663,7 +663,8 @@ public class StringUtils {
     /**
      * Converts the data to a CDATA element.
      * If the data contains ']]>', it is escaped as a text element.
-     * @param data
+     *
+     * @param data the text data
      * @return <![CDATA[data]]>
      */
     public static String xmlCData(String data) {
@@ -686,7 +687,7 @@ public class StringUtils {
     /**
      * Escapes an XML text element.
      *
-     * @param text
+     * @param text the text data
      * @return the escaped text
      */
     public static String xmlText(String text) {

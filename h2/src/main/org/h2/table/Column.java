@@ -238,6 +238,7 @@ public class Column {
      *
      * @param session the session
      * @param value the value or null
+     * @return the new or converted value
      */
     public Value validateConvertUpdateSequence(Session session, Value value) throws SQLException {
         if (value == null) {

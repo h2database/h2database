@@ -185,6 +185,8 @@ public class FtpClient {
 
     /**
      * Print the working directory (PWD).
+     *
+     * @return the working directory
      */
     String printWorkingDirectory() throws IOException {
         send("PWD");

@@ -65,7 +65,6 @@ public class FileStore {
      * @param handler the callback object
      * @param name the file name
      * @param mode the access mode ("r", "rw", "rws", "rwd")
-     * @param magic the magic file header
      */
     protected FileStore(DataHandler handler, String name, String mode) throws SQLException {
         FileSystem fs = FileSystem.getInstance(name);
@@ -97,7 +96,6 @@ public class FileStore {
      * @param handler the data handler
      * @param name the file name
      * @param mode the access mode (r, rw, rws, rwd)
-     * @param magic the file header magic bytes
      * @return the created object
      */
     public static FileStore open(DataHandler handler, String name, String mode) throws SQLException {
@@ -110,7 +108,6 @@ public class FileStore {
      * @param handler the data handler
      * @param name the file name
      * @param mode the access mode (r, rw, rws, rwd)
-     * @param magic the file header magic bytes
      * @param cipher the name of the cipher algorithm
      * @param key the encryption key
      * @return the created object
@@ -125,7 +122,6 @@ public class FileStore {
      * @param handler the data handler
      * @param name the file name
      * @param mode the access mode (r, rw, rws, rwd)
-     * @param magic the file header magic bytes
      * @param cipher the name of the cipher algorithm
      * @param key the encryption key
      * @param keyIterations the number of iterations the key should be hashed

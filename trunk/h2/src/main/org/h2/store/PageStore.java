@@ -371,6 +371,13 @@ public class PageStore implements CacheWriter {
         cache.remove(pageId);
     }
 
+    /**
+     * Set the root page of the free list.
+     *
+     * @param pageId the first free list page
+     * @param existing if the page already exists
+     * @param next the next page
+     */
     void setFreeListRootPage(int pageId, boolean existing, int next) throws SQLException {
         this.freeListRootPageId = pageId;
         if (!existing) {

@@ -35,6 +35,11 @@ public class PageFreeList extends Record {
         this.nextPage = nextPage;
     }
 
+    /**
+     * Allocate a page from the free list.
+     *
+     * @return the page
+     */
     int allocate() throws SQLException {
         int size = array.size();
         if (size > 0) {
@@ -54,6 +59,9 @@ public class PageFreeList extends Record {
         return (store.getPageSize() - 9) / DataPage.LENGTH_INT;
     }
 
+    /**
+     * Read the page from the disk.
+     */
     void read() throws SQLException {
         store.readPage(getPos(), page);
         int p = page.readInt();
@@ -79,6 +87,11 @@ public class PageFreeList extends Record {
         }
     }
 
+    /**
+     * Add a page to the free list.
+     *
+     * @param pageId the page id to add
+     */
     void free(int pageId) throws SQLException {
         store.updateRecord(this);
         if (array.size() < getMaxSize()) {

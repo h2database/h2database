@@ -198,7 +198,7 @@ class PageDataNode extends PageData {
     private void removeRow(int i) throws SQLException {
         entryCount--;
         if (entryCount <= 0) {
-            Message.getInternalError();
+            Message.throwInternalError();
         }
         int[] newKeys = new int[entryCount];
         int[] newChildPageIds = new int[entryCount + 1];
@@ -265,7 +265,7 @@ class PageDataNode extends PageData {
     private void check() {
         for (int i = 0; i < childPageIds.length; i++) {
             if (childPageIds[i] == 0) {
-                throw Message.getInternalError();
+                Message.throwInternalError();
             }
         }
     }

@@ -175,7 +175,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     public Cursor findNext(Session session, SearchRow first, SearchRow last) throws SQLException {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public int getLookupCost(long rowCount) {

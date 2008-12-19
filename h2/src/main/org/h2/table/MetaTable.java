@@ -503,7 +503,7 @@ public class MetaTable extends Table {
             break;
         }
         default:
-            throw Message.getInternalError("type="+type);
+            throw Message.throwInternalError("type="+type);
         }
         setColumns(cols);
 
@@ -1607,7 +1607,7 @@ public class MetaTable extends Table {
             break;
         }
         default:
-            throw Message.getInternalError("type="+type);
+            Message.throwInternalError("type="+type);
         }
         return rows;
     }
@@ -1623,7 +1623,7 @@ public class MetaTable extends Table {
         case ConstraintReferential.SET_NULL:
             return DatabaseMetaData.importedKeySetNull;
         default:
-            throw Message.getInternalError("action="+action);
+            throw Message.throwInternalError("action="+action);
         }
     }
 
@@ -1739,7 +1739,7 @@ public class MetaTable extends Table {
     }
 
     public long getRowCount(Session session) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public boolean canGetRowCount() {

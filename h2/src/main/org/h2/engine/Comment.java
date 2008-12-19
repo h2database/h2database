@@ -29,7 +29,7 @@ public class Comment extends DbObjectBase {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     private static String getTypeName(int type) {
@@ -90,7 +90,7 @@ public class Comment extends DbObjectBase {
     }
 
     public void checkRename() {
-        throw Message.getInternalError();
+        Message.throwInternalError();
     }
 
     /**

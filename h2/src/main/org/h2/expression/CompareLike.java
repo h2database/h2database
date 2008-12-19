@@ -153,7 +153,7 @@ public class CompareLike extends Condition {
         Value e = escape == null ? null : escape.getValue(session);
         if (e == ValueNull.INSTANCE) {
             // should already be optimized
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
         initPattern(p, getEscapeChar(e));
         if (patternLength <= 0 || types[0] != MATCH) {
@@ -255,7 +255,7 @@ public class CompareLike extends Condition {
                 }
                 return false;
             default:
-                throw Message.getInternalError("type=" + type);
+                Message.throwInternalError("type=" + type);
             }
         }
         return si == sLen;

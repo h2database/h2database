@@ -191,7 +191,7 @@ public class TableFilter implements ColumnResolver {
         }
         if (join != null) {
             if (SysProperties.CHECK && join == this) {
-                throw Message.getInternalError("self join");
+                Message.throwInternalError("self join");
             }
             join.prepare();
         }

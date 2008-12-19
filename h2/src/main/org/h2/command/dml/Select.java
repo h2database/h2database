@@ -621,7 +621,7 @@ public class Select extends Query {
 
     public void init() throws SQLException {
         if (SysProperties.CHECK && checkInit) {
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
         expandColumnList();
         visibleColumnCount = expressions.size();
@@ -715,7 +715,7 @@ public class Select extends Query {
             return;
         }
         if (SysProperties.CHECK && !checkInit) {
-            throw Message.getInternalError("not initialized");
+            Message.throwInternalError("not initialized");
         }
         if (orderList != null) {
             sort = prepareOrder(orderList, expressions.size());
@@ -1126,7 +1126,7 @@ public class Select extends Query {
     public String getFirstColumnAlias(Session session) {
         if (SysProperties.CHECK) {
             if (visibleColumnCount > 1) {
-                throw Message.getInternalError("" + visibleColumnCount);
+                Message.throwInternalError("" + visibleColumnCount);
             }
         }
         Expression expr = (Expression) expressions.get(0);

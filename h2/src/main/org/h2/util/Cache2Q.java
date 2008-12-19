@@ -68,10 +68,10 @@ public class Cache2Q implements Cache {
     private void addToFront(CacheObject head, CacheObject rec) {
         if (SysProperties.CHECK) {
             if (rec == head) {
-                throw Message.getInternalError("try to move head");
+                Message.throwInternalError("try to move head");
             }
             if (rec.next != null || rec.previous != null) {
-                throw Message.getInternalError("already linked");
+                Message.throwInternalError("already linked");
             }
         }
         rec.next = head;
@@ -82,7 +82,7 @@ public class Cache2Q implements Cache {
 
     private void removeFromList(CacheObject rec) {
         if (SysProperties.CHECK && (rec instanceof CacheHead && rec.cacheQueue != OUT)) {
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
         rec.previous.next = rec.next;
         rec.next.previous = rec.previous;
@@ -260,7 +260,7 @@ public class Cache2Q implements Cache {
             for (int i = 0; i < rec.getBlockCount(); i++) {
                 CacheObject old = find(rec.getPos() + i);
                 if (old != null) {
-                    throw Message.getInternalError("try to add a record twice i=" + i);
+                    Message.throwInternalError("try to add a record twice i=" + i);
                 }
             }
         }

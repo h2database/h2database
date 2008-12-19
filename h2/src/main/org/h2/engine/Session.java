@@ -505,7 +505,7 @@ public class Session implements SessionInterface {
     public void addLock(Table table) {
         if (SysProperties.CHECK) {
             if (locks.indexOf(table) >= 0) {
-                throw Message.getInternalError();
+                Message.throwInternalError();
             }
         }
         locks.add(table);
@@ -529,7 +529,7 @@ public class Session implements SessionInterface {
             int lockMode = database.getLockMode();
             if (lockMode != Constants.LOCK_MODE_OFF && !database.isMultiVersion()) {
                 if (locks.indexOf(log.getTable()) < 0 && !Table.TABLE_LINK.equals(log.getTable().getTableType())) {
-                    throw Message.getInternalError();
+                    Message.throwInternalError();
                 }
             }
         }
@@ -565,7 +565,7 @@ public class Session implements SessionInterface {
     private void unlockAll() {
         if (SysProperties.CHECK) {
             if (undoLog.size() > 0) {
-                throw Message.getInternalError();
+                Message.throwInternalError();
             }
         }
         if (locks.size() > 0) {
@@ -845,7 +845,7 @@ public class Session implements SessionInterface {
      */
     public void unlinkAtCommit(ValueLob v) {
         if (SysProperties.CHECK && !v.isLinked()) {
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
         if (unlinkMap == null) {
             unlinkMap = new HashMap();

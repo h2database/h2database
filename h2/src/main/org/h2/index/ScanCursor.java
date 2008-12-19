@@ -73,7 +73,7 @@ public class ScanCursor implements Cursor {
     }
 
     public boolean previous() {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
 }

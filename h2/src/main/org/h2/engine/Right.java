@@ -141,7 +141,7 @@ public class Right extends DbObjectBase {
     }
 
     public void checkRename() {
-        throw Message.getInternalError();
+        Message.throwInternalError();
     }
 
     public void setRightMask(int rightMask) {

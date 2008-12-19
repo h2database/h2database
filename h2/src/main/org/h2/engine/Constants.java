@@ -6,72 +6,6 @@
  */
 package org.h2.engine;
 
-/*
- * Release checklist:
- *
- * - Test with Hibernate
- * - Run FindBugs
- * build jarClient
- * - Check jar file size
- * build jar
- * build javadocImpl
- * java16
- * build compile
- * set classpath=
- * build javadoc
- * build javadocImpl
- * - Check if missing javadocs
- * java14
- * build compile
- * java16
- * compile
- * - Change version and build number in Constants.java
- * - Maybe increase TCP_DRIVER_VERSION (old clients must be compatible!)
- * - Check code coverage
- * - No "  Message.get" (must be "throw Message.get")
- * - Check that is no TODO in the docs
- * - Run regression test with JDK 1.4 and 1.5
- * - Use latest versions of other dbs
- *     Derby 10.4.1.3
- *     PostgreSQL 8.3.1
- *     MySQL 5.0.51
- * - Change version(s) in performance.html
- * java14
- * build benchmark
- * - Copy the benchmark results and update the performance page and diagram
- * - Documentation: check if all Javadoc files are in the index
- * - Update the changelog (add new version)
- * - Update the newsfeed
- * build docs
- * - Check dataWeb/index.html, versions and links in main, downloads, build
- * soffice.exe -invisible macro:///Standard.Module1.H2Pdf
- * - Check in the PDF file:
- *     - footer
- *     - front page
- *     - orphan control
- *     - check images
- *     - table of contents
- * java14
- * build all
- * - Copy the pdf file to h2/docs
- * build zip
- * makensis /v2 src/installer/h2.nsi
- * - Test Console
- * - Test all languages
- * - Scan for viruses
- * build mavenDeployCentral
- * - Upload to SourceForge
- * java16
- * build compile
- * - svn commit
- * - svn copy: /svn/trunk /svn/tags/version-1.0.x; Version 1.0.x (yyyy-mm-dd)
- * - Newsletter: prepare (always to BCC!!)
- * - Upload to h2database.com, http://code.google.com/p/h2database/downloads/list
- * - Newsletter: send (always to BCC!!)
- * - Add to freshmeat
- * - http://en.wikipedia.org/wiki/H2_%28DBMS%29 (change version)
- * - http://www.heise.de/software/
- */
 /**
  * Constants are fixed values that are used in the whole database code.
  */
@@ -80,7 +14,7 @@ public class Constants {
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 104;
+    public static final int BUILD_ID = 105;
 
     /**
      * The build id of the last stable release.
@@ -90,7 +24,7 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2008-11-28";
+    public static final String BUILD_DATE = "2008-12-19";
 
     /**
      * The build date is updated for each public release.

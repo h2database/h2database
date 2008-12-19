@@ -112,7 +112,7 @@ public class Comparison extends Condition {
             sql = left.getSQL() + " IS NOT NULL";
             break;
         default:
-            throw Message.getInternalError("compareType=" + compareType);
+            throw Message.throwInternalError("compareType=" + compareType);
         }
         return "(" + sql + ")";
     }
@@ -184,7 +184,7 @@ public class Comparison extends Condition {
             }
         } else {
             if (SysProperties.CHECK && (left == null || right == null)) {
-                throw Message.getInternalError();
+                Message.throwInternalError();
             }
             if (left == ValueExpression.NULL || right == ValueExpression.NULL) {
                 // TODO NULL handling: maybe issue a warning when comparing with
@@ -210,7 +210,7 @@ public class Comparison extends Condition {
                 result = !(l == ValueNull.INSTANCE);
                 break;
             default:
-                throw Message.getInternalError("type=" + compareType);
+                throw Message.throwInternalError("type=" + compareType);
             }
             return ValueBoolean.get(result);
         }
@@ -255,7 +255,7 @@ public class Comparison extends Condition {
             result = database.compare(l, r) < 0;
             break;
         default:
-            throw Message.getInternalError("type=" + compareType);
+            throw Message.throwInternalError("type=" + compareType);
         }
         return result;
     }
@@ -274,7 +274,7 @@ public class Comparison extends Condition {
         case SMALLER:
             return BIGGER;
         default:
-            throw Message.getInternalError("type=" + compareType);
+            throw Message.throwInternalError("type=" + compareType);
         }
     }
 
@@ -297,7 +297,7 @@ public class Comparison extends Condition {
         case IS_NOT_NULL:
             return IS_NULL;
         default:
-            throw Message.getInternalError("type=" + compareType);
+            throw Message.throwInternalError("type=" + compareType);
         }
     }
 
@@ -362,7 +362,7 @@ public class Comparison extends Condition {
             addIndex = true;
             break;
         default:
-            throw Message.getInternalError("type=" + compareType);
+            throw Message.throwInternalError("type=" + compareType);
         }
         if (addIndex) {
             if (l != null) {

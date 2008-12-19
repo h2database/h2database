@@ -257,7 +257,7 @@ public class ExpressionColumn extends Expression {
             visitor.addDependency(column.getTable());
             return true;
         default:
-            throw Message.getInternalError("type=" + visitor.getType());
+            throw Message.throwInternalError("type=" + visitor.getType());
         }
     }
 

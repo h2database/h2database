@@ -323,7 +323,7 @@ public class DiskFile implements CacheWriter {
                     for (int x = 0; x < b2; x += 8) {
                         int mask = in.read();
                         if (mask != used.getByte(x)) {
-                            throw Message.getInternalError("Redo failure, block: " + x + " expected: " + used.getByte(x) + " got: " + mask);
+                            Message.throwInternalError("Redo failure, block: " + x + " expected: " + used.getByte(x) + " got: " + mask);
                         }
                     }
                 } else {
@@ -343,7 +343,7 @@ public class DiskFile implements CacheWriter {
                     if (init) {
                         int old = getPageOwner(i);
                         if (old != -1 && old != s) {
-                            throw Message.getInternalError("Redo failure, expected page owner: " + old + " got: " + s);
+                            Message.throwInternalError("Redo failure, expected page owner: " + old + " got: " + s);
                         }
                     } else {
                         if (s >= 0) {
@@ -366,7 +366,7 @@ public class DiskFile implements CacheWriter {
                         if (storage != null) {
                             int current = storage.getRecordCount();
                             if (current != recordCount) {
-                                throw Message.getInternalError("Redo failure, expected row count: " + current + " got: " + recordCount);
+                                Message.throwInternalError("Redo failure, expected row count: " + current + " got: " + recordCount);
                             }
                         }
                     } else {
@@ -414,7 +414,7 @@ public class DiskFile implements CacheWriter {
                 s.reset();
                 int blockCount = s.readInt();
                 if (SysProperties.CHECK && blockCount < 0) {
-                    throw Message.getInternalError();
+                    Message.throwInternalError();
                 }
                 if (blockCount == 0) {
                     setUnused(null, i, 1);
@@ -422,7 +422,7 @@ public class DiskFile implements CacheWriter {
                 } else {
                     int id = s.readInt();
                     if (SysProperties.CHECK && id < 0) {
-                        throw Message.getInternalError();
+                        Message.throwInternalError();
                     }
                     Storage storage = database.getStorage(id, this);
                     setUnused(null, i, blockCount);
@@ -588,11 +588,11 @@ public class DiskFile implements CacheWriter {
             int blockCount = s.readInt();
             int id = s.readInt();
             if (storageId != id) {
-                throw Message.getInternalError("File ID mismatch got=" + id + " expected=" + storageId + " pos=" + pos
+                Message.throwInternalError("File ID mismatch got=" + id + " expected=" + storageId + " pos=" + pos
                         + " " + logChanges + " " + this + " blockCount:" + blockCount);
             }
             if (blockCount == 0) {
-                throw Message.getInternalError("0 blocks to read pos=" + pos);
+                Message.throwInternalError("0 blocks to read pos=" + pos);
             }
             if (blockCount > 1) {
                 byte[] b2 = ByteUtils.newBytes(blockCount * BLOCK_SIZE);
@@ -795,7 +795,7 @@ public class DiskFile implements CacheWriter {
         if (SysProperties.CHECK && old >= 0 && storageId >= 0 && old != storageId) {
             for (int i = 0; i < BLOCKS_PER_PAGE; i++) {
                 if (used.get(i + page * BLOCKS_PER_PAGE)) {
-                    throw Message.getInternalError(
+                    Message.throwInternalError(
                             "double allocation in file " + fileName +
                             " page " + page +
                             " blocks " + (BLOCKS_PER_PAGE * page) +
@@ -919,12 +919,12 @@ public class DiskFile implements CacheWriter {
                 if (old != null) {
                     if (old != record) {
                         database.checkPowerOff();
-                        throw Message.getInternalError("old != record old=" + old + " new=" + record);
+                        Message.throwInternalError("old != record old=" + old + " new=" + record);
                     }
                     int blockCount = record.getBlockCount();
                     for (int i = 0; i < blockCount; i++) {
                         if (deleted.get(i + pos)) {
-                            throw Message.getInternalError("update marked as deleted: " + (i + pos));
+                            Message.throwInternalError("update marked as deleted: " + (i + pos));
                         }
                     }
                 }
@@ -983,14 +983,14 @@ public class DiskFile implements CacheWriter {
                 s.reset();
                 int blockCount = s.readInt();
                 if (SysProperties.CHECK && blockCount < 0) {
-                    throw Message.getInternalError();
+                    Message.throwInternalError();
                 }
                 if (blockCount == 0) {
                     blockCount = 1;
                 }
                 int id = s.readInt();
                 if (SysProperties.CHECK && id < 0) {
-                    throw Message.getInternalError();
+                    Message.throwInternalError();
                 }
                 s.checkCapacity(blockCount * blockSize);
                 if (blockCount > 1) {
@@ -1173,7 +1173,7 @@ public class DiskFile implements CacheWriter {
                 all.fill(blockCount * BLOCK_SIZE);
                 all.updateChecksum();
                 if (SysProperties.CHECK && all.length() != BLOCK_SIZE * blockCount) {
-                    throw Message.getInternalError("blockCount:" + blockCount + " length: " + all.length() * BLOCK_SIZE);
+                    Message.throwInternalError("blockCount:" + blockCount + " length: " + all.length() * BLOCK_SIZE);
                 }
                 data = new byte[all.length()];
                 System.arraycopy(all.getBytes(), 0, data, 0, all.length());

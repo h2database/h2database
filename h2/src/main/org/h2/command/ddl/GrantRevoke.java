@@ -99,7 +99,7 @@ public class GrantRevoke extends DefineCommand {
                 } else if (operationType == REVOKE) {
                     revokeRole(grantedRole);
                 } else {
-                    throw Message.getInternalError("type=" + operationType);
+                    Message.throwInternalError("type=" + operationType);
                 }
             }
         } else {
@@ -108,7 +108,7 @@ public class GrantRevoke extends DefineCommand {
             } else if (operationType == REVOKE) {
                 revokeRight();
             } else {
-                throw Message.getInternalError("type=" + operationType);
+                Message.throwInternalError("type=" + operationType);
             }
         }
         return 0;

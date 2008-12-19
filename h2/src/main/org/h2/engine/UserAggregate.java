@@ -46,7 +46,7 @@ public class UserAggregate extends DbObjectBase {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public String getDropSQL() {

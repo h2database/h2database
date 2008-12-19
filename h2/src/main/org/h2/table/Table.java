@@ -250,7 +250,7 @@ public abstract class Table extends SchemaObjectBase {
     public abstract long getRowCountApproximation();
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     /**

@@ -43,7 +43,7 @@ public class LinkedCursor implements Cursor {
     }
 
     public int getPos() {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
 
@@ -64,7 +64,7 @@ public class LinkedCursor implements Cursor {
     }
 
     public boolean previous() {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
 }

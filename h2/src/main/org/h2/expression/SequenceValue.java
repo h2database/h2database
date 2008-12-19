@@ -90,7 +90,7 @@ public class SequenceValue extends Expression {
             visitor.addDependency(sequence);
             return true;
         default:
-            throw Message.getInternalError("type="+visitor.getType());
+            throw Message.throwInternalError("type="+visitor.getType());
         }
     }
 

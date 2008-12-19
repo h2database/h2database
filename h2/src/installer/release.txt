@@ -2,7 +2,6 @@ Change version and build number in Constants.java
 Maybe increase TCP_DRIVER_VERSION (old clients must be compatible!)
 Update the changelog (add new version)
 Update the newsfeed
-No "  Message.get" (must be "throw Message.get")
 Documentation: check if all Javadoc files are in the index
 Check that is no TODO in the docs
 Check code coverage

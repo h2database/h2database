@@ -90,7 +90,7 @@ public class ValueHashMap extends HashBase {
             index = (index + plus++) & mask;
         } while (plus <= len);
         // no space
-        throw Message.getInternalError("hashmap is full");
+        Message.throwInternalError("hashmap is full");
     }
 
     /**

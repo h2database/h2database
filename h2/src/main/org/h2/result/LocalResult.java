@@ -186,7 +186,7 @@ public class LocalResult implements ResultInterface {
      */
     public void removeDistinct(Value[] values) throws SQLException {
         if (!distinct) {
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
         if (distinctRows != null) {
             ValueArray array = ValueArray.get(values);
@@ -205,7 +205,7 @@ public class LocalResult implements ResultInterface {
      */
     public boolean containsDistinct(Value[] values) throws SQLException {
         if (!distinct) {
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
         if (distinctRows != null) {
             ValueArray array = ValueArray.get(values);

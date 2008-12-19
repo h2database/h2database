@@ -37,7 +37,7 @@ class RangeCursor implements Cursor {
     }
 
     public int getPos() {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public boolean next() {
@@ -52,7 +52,7 @@ class RangeCursor implements Cursor {
     }
 
     public boolean previous() {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
 }

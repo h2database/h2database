@@ -44,7 +44,7 @@ public class HashCursor implements Cursor {
     }
 
     public boolean previous() {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
 }

@@ -58,7 +58,7 @@ public class MathUtils {
      */
     public static void checkPowerOf2(int len) {
         if ((len & (len - 1)) != 0 && len > 0) {
-            throw Message.getInternalError("not a power of 2: " + len);
+            Message.throwInternalError("not a power of 2: " + len);
         }
     }
 

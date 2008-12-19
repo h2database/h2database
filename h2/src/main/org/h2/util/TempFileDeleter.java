@@ -93,7 +93,7 @@ public class TempFileDeleter {
             TempFile f2 = (TempFile) refMap.remove(ref);
             if (f2 != null) {
                 if (SysProperties.CHECK && fileName != null && !f2.fileName.equals(fileName)) {
-                    throw Message.getInternalError("f2:" + f2.fileName + " f:" + fileName);
+                    Message.throwInternalError("f2:" + f2.fileName + " f:" + fileName);
                 }
                 fileName = f2.fileName;
                 long mod = FileUtils.getLastModified(fileName);
@@ -151,7 +151,7 @@ public class TempFileDeleter {
         if (ref != null) {
             TempFile f2 = (TempFile) refMap.remove(ref);
             if (SysProperties.CHECK && (f2 == null || !f2.fileName.equals(fileName))) {
-                throw Message.getInternalError("f2:" + f2 + " " + (f2 == null ? "" : f2.fileName) + " f:" + fileName);
+                Message.throwInternalError("f2:" + f2 + " " + (f2 == null ? "" : f2.fileName) + " f:" + fileName);
             }
         }
         deleteUnused();

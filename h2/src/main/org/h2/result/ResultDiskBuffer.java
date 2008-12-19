@@ -226,15 +226,15 @@ class ResultDiskBuffer implements ResultExternal {
     }
 
     public int removeRow(Value[] values) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public boolean contains(Value[] values) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public int addRow(Value[] values) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
 }

@@ -956,28 +956,28 @@ public class Recover extends Tool implements DataHandler {
      * INTERNAL
      */
     public int compareTypeSave(Value a, Value b) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     /**
      * INTERNAL
      */
     public int getMaxLengthInplaceLob() {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     /**
      * INTERNAL
      */
     public int allocateObjectId(boolean b, boolean c) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     /**
      * INTERNAL
      */
     public String createTempFile() {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     /**

@@ -251,25 +251,25 @@ public class LogFile {
         int sessionId = in.readInt();
         if (type == 'P') {
             if (undo) {
-                throw Message.getInternalError("can't undo prepare commit");
+                Message.throwInternalError("can't undo prepare commit");
             }
             String transaction = in.readString();
             logSystem.setPreparedCommitForSession(this, sessionId, pos, transaction, blocks);
             return true;
         } else if (type == 'C') {
             if (undo) {
-                throw Message.getInternalError("can't undo commit");
+                Message.throwInternalError("can't undo commit");
             }
             logSystem.setLastCommitForSession(sessionId, id, pos);
             return true;
         } else if (type == 'R') {
             if (undo) {
-                throw Message.getInternalError("can't undo rollback");
+                Message.throwInternalError("can't undo rollback");
             }
             return true;
         } else if (type == 'S') {
             if (undo) {
-                throw Message.getInternalError("can't undo summary");
+                Message.throwInternalError("can't undo summary");
             }
         }
         if (readOnly && type != 'S') {
@@ -321,7 +321,7 @@ public class LogFile {
         }
         case 'T':
             if (undo) {
-                throw Message.getInternalError("cannot undo truncate");
+                Message.throwInternalError("cannot undo truncate");
             }
             logSystem.addRedoLog(storage, recordId, blockCount, null);
             storage.setRecordCount(0);
@@ -349,7 +349,7 @@ public class LogFile {
             }
             break;
         default:
-            throw Message.getInternalError("type=" + type);
+            Message.throwInternalError("type=" + type);
         }
         return true;
     }

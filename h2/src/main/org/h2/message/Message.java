@@ -170,15 +170,32 @@ public class Message {
     }
 
     /**
-     * Gets an internal error.
+     * Throw an internal error. This method seems to return an exception object,
+     * so that it can be used instead of 'return', but in fact it always throws
+     * the exception.
      *
      * @param s the message
      * @return the RuntimeException object
+     * @throws RuntimeException the exception
      */
-    public static RuntimeException getInternalError(String s) {
+    public static RuntimeException throwInternalError(String s) {
         RuntimeException e = new RuntimeException(s);
         TraceSystem.traceThrowable(e);
+        if (true) {
+            throw e;
+        }
         return e;
+    }
+
+    /**
+     * Throw an internal error. This method seems to return an exception object,
+     * so that it can be used instead of 'return', but in fact it always throws
+     * the exception.
+     *
+     * @return the RuntimeException object
+     */
+    public static RuntimeException throwInternalError() {
+        return throwInternalError("Unexpected code path");
     }
 
     /**
@@ -269,15 +286,6 @@ public class Message {
             return getSQLException(ErrorCode.IO_EXCEPTION_1, new String[] { e.toString() }, e);
         }
         return getSQLException(ErrorCode.IO_EXCEPTION_2, new String[] { e.toString(), message }, e);
-    }
-
-    /**
-     * Gets an internal error.
-     *
-     * @return the RuntimeException object
-     */
-    public static RuntimeException getInternalError() {
-        return getInternalError("Unexpected code path");
     }
 
     /**

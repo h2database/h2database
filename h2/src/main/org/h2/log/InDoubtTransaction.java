@@ -64,7 +64,7 @@ public class InDoubtTransaction {
             log.updatePreparedCommit(false, pos, sessionId, blocks);
             break;
         default:
-            throw Message.getInternalError("state="+state);
+            Message.throwInternalError("state="+state);
         }
         this.state = state;
     }
@@ -83,7 +83,7 @@ public class InDoubtTransaction {
         case ROLLBACK:
             return "ROLLBACK";
         default:
-            throw Message.getInternalError("state="+state);
+            throw Message.throwInternalError("state="+state);
         }
     }
 

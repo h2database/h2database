@@ -64,7 +64,7 @@ public class AlterTableSet extends SchemaCommand {
             table.setCheckForeignKeyConstraints(session, false, false);
             break;
         default:
-            throw Message.getInternalError("type="+type);
+            Message.throwInternalError("type="+type);
         }
         return 0;
     }

@@ -324,7 +324,7 @@ public class DateTimeUtils {
                 return ts;
             }
             default:
-                throw Message.getInternalError("type:" + type);
+                throw Message.throwInternalError("type:" + type);
             }
         } catch (IllegalArgumentException e) {
             throw Message.getSQLException(errorCode, new String[]{original, e.toString()}, e);

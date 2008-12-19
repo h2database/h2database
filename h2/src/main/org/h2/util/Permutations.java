@@ -42,7 +42,7 @@ public class Permutations {
         this.n = in.length;
         this.m = m;
         if (n < m || m < 0) {
-            throw Message.getInternalError("n < m or m < 0");
+            Message.throwInternalError("n < m or m < 0");
         }
         this.in = in;
         this.out = out;

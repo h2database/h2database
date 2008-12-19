@@ -705,7 +705,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 transactionIsolationLevel = Connection.TRANSACTION_SERIALIZABLE;
                 break;
             default:
-                throw Message.getInternalError("lockMode:" + lockMode);
+                throw Message.throwInternalError("lockMode:" + lockMode);
             }
             return transactionIsolationLevel;
         } catch (Exception e) {
@@ -1104,7 +1104,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             return i;
         }
         default:
-            throw Message.getInternalError("c=" + c);
+            throw Message.throwInternalError("c=" + c);
         }
     }
 

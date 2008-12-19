@@ -278,7 +278,7 @@ public class Aggregate extends Expression {
                 }
                 return v;
             default:
-                throw Message.getInternalError("type=" + type);
+                Message.throwInternalError("type=" + type);
             }
         }
         HashMap group = select.getCurrentGroup();
@@ -424,7 +424,7 @@ public class Aggregate extends Expression {
             scale = 0;
             break;
         default:
-            throw Message.getInternalError("type=" + type);
+            Message.throwInternalError("type=" + type);
         }
         return this;
     }
@@ -525,7 +525,7 @@ public class Aggregate extends Expression {
             text = "BOOL_OR";
             break;
         default:
-            throw Message.getInternalError("type=" + type);
+            throw Message.throwInternalError("type=" + type);
         }
         if (distinct) {
             return text + "(DISTINCT " + on.getSQL() + ")";

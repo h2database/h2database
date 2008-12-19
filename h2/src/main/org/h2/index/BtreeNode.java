@@ -75,7 +75,7 @@ public class BtreeNode extends BtreePage {
     int add(Row newRow, Session session) throws SQLException {
         int l = 0, r = pageData.size();
         if (!Constants.ALLOW_EMPTY_BTREE_PAGES && pageChildren.size() == 0) {
-            throw Message.getInternalError("Empty btree page");
+            Message.throwInternalError("Empty btree page");
         }
         while (l < r) {
             int i = (l + r) >>> 1;
@@ -117,7 +117,7 @@ public class BtreeNode extends BtreePage {
     SearchRow remove(Session session, Row oldRow) throws SQLException {
         int l = 0, r = pageData.size();
         if (!Constants.ALLOW_EMPTY_BTREE_PAGES && pageChildren.size() == 0) {
-            throw Message.getInternalError("Empty btree page");
+            Message.throwInternalError("Empty btree page");
         }
         int comp = 0;
         while (l < r) {
@@ -186,7 +186,7 @@ public class BtreeNode extends BtreePage {
         if (SysProperties.CHECK && index.getDatabase().getLogIndexChanges() && !getDeleted()) {
             // page must have been deleted already before calling
             // getSplitPoint()
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
         for (int i = splitPoint; i < max; i++) {
             data.add(getData(splitPoint));
@@ -210,7 +210,7 @@ public class BtreeNode extends BtreePage {
     boolean findFirst(BtreeCursor cursor, SearchRow compare, boolean bigger) throws SQLException {
         int l = 0, r = pageData.size();
         if (!Constants.ALLOW_EMPTY_BTREE_PAGES && pageChildren.size() == 0) {
-            throw Message.getInternalError("Empty btree page");
+            Message.throwInternalError("Empty btree page");
         }
         while (l < r) {
             int i = (l + r) >>> 1;
@@ -349,7 +349,7 @@ public class BtreeNode extends BtreePage {
             }
         }
         if (buff.length() > BtreePage.BLOCKS_PER_PAGE * DiskFile.BLOCK_SIZE) {
-            throw Message.getInternalError("indexed data overflow");
+            Message.throwInternalError("indexed data overflow");
         }
     }
 

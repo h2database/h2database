@@ -88,7 +88,7 @@ public abstract class CacheObject {
 
     public void setPos(int pos) {
         if (SysProperties.CHECK && (previous != null || next != null || chained != null)) {
-            throw Message.getInternalError("setPos too late");
+            Message.throwInternalError("setPos too late");
         }
         this.pos = pos;
     }

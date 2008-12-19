@@ -86,7 +86,7 @@ public class ConstraintReferential extends Constraint {
             buff.append("SET NULL");
             break;
         default:
-            throw Message.getInternalError("action=" + action);
+            Message.throwInternalError("action=" + action);
         }
     }
 
@@ -601,7 +601,7 @@ public class ConstraintReferential extends Constraint {
         } else if (this.refIndex == index) {
             refIndexOwner = true;
         } else {
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
     }
 

@@ -57,7 +57,7 @@ public class ConnectionInfo implements Cloneable {
         for (int i = 0; i < connectionTime.length; i++) {
             String key = connectionTime[i];
             if (SysProperties.CHECK && KNOWN_SETTINGS.contains(key)) {
-                throw Message.getInternalError(key);
+                Message.throwInternalError(key);
             }
             KNOWN_SETTINGS.add(key);
         }
@@ -294,7 +294,7 @@ public class ConnectionInfo implements Cloneable {
      */
     String removeProperty(String key, String defaultValue) {
         if (SysProperties.CHECK && !KNOWN_SETTINGS.contains(key)) {
-            throw Message.getInternalError(key);
+            Message.throwInternalError(key);
         }
         Object x = prop.remove(key);
         return x == null ? defaultValue : x.toString();
@@ -379,7 +379,7 @@ public class ConnectionInfo implements Cloneable {
      */
     public String getProperty(String key, String defaultValue) {
         if (SysProperties.CHECK && !KNOWN_SETTINGS.contains(key)) {
-            throw Message.getInternalError(key);
+            Message.throwInternalError(key);
         }
         String s = getProperty(key);
         return s == null ? defaultValue : s;

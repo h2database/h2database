@@ -75,7 +75,7 @@ public class Schema extends DbObjectBase {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public String getDropSQL() {
@@ -156,7 +156,7 @@ public class Schema extends DbObjectBase {
         case DbObject.CONSTANT:
             return constants;
         default:
-            throw Message.getInternalError("type=" + type);
+            throw Message.throwInternalError("type=" + type);
         }
     }
 
@@ -167,12 +167,12 @@ public class Schema extends DbObjectBase {
      */
     public void add(SchemaObject obj) {
         if (SysProperties.CHECK && obj.getSchema() != this) {
-            throw Message.getInternalError("wrong schema");
+            Message.throwInternalError("wrong schema");
         }
         String name = obj.getName();
         HashMap map = getMap(obj.getType());
         if (SysProperties.CHECK && map.get(name) != null) {
-            throw Message.getInternalError("object already exists");
+            Message.throwInternalError("object already exists");
         }
         map.put(name, obj);
         freeUniqueName(name);
@@ -189,10 +189,10 @@ public class Schema extends DbObjectBase {
         HashMap map = getMap(type);
         if (SysProperties.CHECK) {
             if (!map.containsKey(obj.getName())) {
-                throw Message.getInternalError("not found: " + obj.getName());
+                Message.throwInternalError("not found: " + obj.getName());
             }
             if (obj.getName().equals(newName) || map.containsKey(newName)) {
-                throw Message.getInternalError("object already exists: " + newName);
+                Message.throwInternalError("object already exists: " + newName);
             }
         }
         obj.checkRename();
@@ -441,7 +441,7 @@ public class Schema extends DbObjectBase {
         String objName = obj.getName();
         HashMap map = getMap(obj.getType());
         if (SysProperties.CHECK && !map.containsKey(objName)) {
-            throw Message.getInternalError("not found: " + objName);
+            Message.throwInternalError("not found: " + objName);
         }
         map.remove(objName);
         freeUniqueName(objName);

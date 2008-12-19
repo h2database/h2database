@@ -271,7 +271,7 @@ public class FileSystemSplit extends FileSystem {
 
     private String translateFileName(String fileName) {
         if (!fileName.startsWith(FileSystem.PREFIX_SPLIT)) {
-            throw Message.getInternalError(fileName + " doesn't start with " + FileSystem.PREFIX_SPLIT);
+            Message.throwInternalError(fileName + " doesn't start with " + FileSystem.PREFIX_SPLIT);
         }
         fileName = fileName.substring(FileSystem.PREFIX_SPLIT.length());
         if (fileName.length() > 0 && Character.isDigit(fileName.charAt(0))) {

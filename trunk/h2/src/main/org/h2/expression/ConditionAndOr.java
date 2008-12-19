@@ -41,7 +41,7 @@ public class ConditionAndOr extends Condition {
         this.left = left;
         this.right = right;
         if (SysProperties.CHECK && (left == null || right == null)) {
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
     }
 
@@ -55,7 +55,7 @@ public class ConditionAndOr extends Condition {
             sql = left.getSQL() + " OR " + right.getSQL();
             break;
         default:
-            throw Message.getInternalError("andOrType=" + andOrType);
+            throw Message.throwInternalError("andOrType=" + andOrType);
         }
         return "(" + sql + ")";
     }
@@ -119,7 +119,7 @@ public class ConditionAndOr extends Condition {
             return ValueBoolean.get(false);
         }
         default:
-            throw Message.getInternalError("type=" + andOrType);
+            throw Message.throwInternalError("type=" + andOrType);
         }
     }
 
@@ -198,7 +198,7 @@ public class ConditionAndOr extends Condition {
             }
             break;
         default:
-            throw Message.getInternalError("type=" + andOrType);
+            Message.throwInternalError("type=" + andOrType);
         }
         return this;
     }

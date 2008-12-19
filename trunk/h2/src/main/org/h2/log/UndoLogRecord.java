@@ -130,7 +130,7 @@ public class UndoLogRecord {
             }
             break;
         default:
-            throw Message.getInternalError("op=" + operation);
+            Message.throwInternalError("op=" + operation);
         }
     }
 
@@ -186,7 +186,7 @@ public class UndoLogRecord {
         int op = buff.readInt();
         if (SysProperties.CHECK) {
             if (operation != op) {
-                throw Message.getInternalError("operation=" + operation + " op=" + op);
+                Message.throwInternalError("operation=" + operation + " op=" + op);
             }
         }
         int columnCount = buff.readInt();

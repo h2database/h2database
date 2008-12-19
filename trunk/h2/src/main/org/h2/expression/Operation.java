@@ -88,7 +88,7 @@ public class Operation extends Expression {
             sql = left.getSQL() + " / " + right.getSQL();
             break;
         default:
-            throw Message.getInternalError("opType=" + opType);
+            throw Message.throwInternalError("opType=" + opType);
         }
         return "(" + sql + ")";
     }
@@ -140,7 +140,7 @@ public class Operation extends Expression {
             }
             return l.divide(r);
         default:
-            throw Message.getInternalError("type=" + opType);
+            throw Message.throwInternalError("type=" + opType);
         }
     }
 
@@ -205,7 +205,7 @@ public class Operation extends Expression {
             }
             break;
         default:
-            throw Message.getInternalError("type=" + opType);
+            Message.throwInternalError("type=" + opType);
         }
         if (left.isConstant() && (right == null || right.isConstant())) {
             return ValueExpression.get(getValue(session));

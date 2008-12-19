@@ -101,7 +101,7 @@ public class FunctionTable extends Table {
     }
 
     public boolean canDrop() {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public void addRow(Session session, Row row) throws SQLException {
@@ -113,7 +113,7 @@ public class FunctionTable extends Table {
     }
 
     public String getTableType() {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public Index getScanIndex(Session session) {

@@ -120,7 +120,7 @@ public class FileLock {
         this.fileName = fileName;
         checkServer();
         if (locked) {
-            throw Message.getInternalError("already locked");
+            Message.throwInternalError("already locked");
         }
         if (allowSocket) {
             lockSocket();

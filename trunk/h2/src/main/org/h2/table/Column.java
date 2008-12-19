@@ -337,7 +337,7 @@ public class Column {
     public void convertAutoIncrementToSequence(Session session, Schema schema, int id, boolean temporary)
             throws SQLException {
         if (!autoIncrement) {
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
         if ("IDENTITY".equals(originalSQL)) {
             originalSQL = "BIGINT";

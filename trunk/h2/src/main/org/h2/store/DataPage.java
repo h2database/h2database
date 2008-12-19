@@ -491,12 +491,12 @@ public class DataPage {
             break;
         }
         default:
-            throw Message.getInternalError("type=" + v.getType());
+            Message.throwInternalError("type=" + v.getType());
         }
         if (SysProperties.CHECK2) {
             if (pos - start != getValueLen(v)) {
                 throw Message
-                        .getInternalError("value size error: got " + (pos - start) + " expected " + getValueLen(v));
+                        .throwInternalError("value size error: got " + (pos - start) + " expected " + getValueLen(v));
             }
         }
     }
@@ -567,7 +567,7 @@ public class DataPage {
             return len;
         }
         default:
-            throw Message.getInternalError("type=" + v.getType());
+            throw Message.throwInternalError("type=" + v.getType());
         }
     }
 
@@ -663,7 +663,7 @@ public class DataPage {
             return ValueArray.get(list);
         }
         default:
-            throw Message.getInternalError("type=" + dataType);
+            throw Message.throwInternalError("type=" + dataType);
         }
     }
 

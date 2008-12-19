@@ -178,7 +178,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             break;
         }
         default:
-            throw Message.getInternalError("type=" + type);
+            Message.throwInternalError("type=" + type);
         }
         return 0;
     }
@@ -286,7 +286,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 continue;
             }
             if (child.getType() == DbObject.TABLE_OR_VIEW) {
-                throw Message.getInternalError();
+                Message.throwInternalError();
             }
             String quotedName = Parser.quoteIdentifier(tempName + "_" + child.getName());
             String sql = null;

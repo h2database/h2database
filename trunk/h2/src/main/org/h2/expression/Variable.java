@@ -76,7 +76,7 @@ public class Variable extends Expression {
         case ExpressionVisitor.GET_DEPENDENCIES:
             return true;
         default:
-            throw Message.getInternalError("type="+visitor.getType());
+            throw Message.throwInternalError("type="+visitor.getType());
         }
     }
 

@@ -124,7 +124,7 @@ public class Backup extends Tool {
                 String fileName = (String) list.get(i);
                 String f = FileUtils.getAbsolutePath(fileName);
                 if (!f.startsWith(base)) {
-                    throw Message.getInternalError(f + " does not start with " + base);
+                    Message.throwInternalError(f + " does not start with " + base);
                 }
                 f = f.substring(base.length());
                 f = BackupCommand.correctFileName(f);

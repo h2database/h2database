@@ -100,7 +100,7 @@ public class TreeIndex extends BaseIndex {
                 }
                 return;
             default:
-                throw Message.getInternalError("b: " + x.balance * sign);
+                Message.throwInternalError("b: " + x.balance * sign);
             }
             if (x == root) {
                 return;
@@ -139,7 +139,7 @@ public class TreeIndex extends BaseIndex {
     public void remove(Session session, Row row) throws SQLException {
         TreeNode x = findFirstNode(row, true);
         if (x == null) {
-            throw Message.getInternalError("not found!");
+            Message.throwInternalError("not found!");
         }
         TreeNode n;
         if (x.left == null) {
@@ -191,7 +191,7 @@ public class TreeIndex extends BaseIndex {
             }
 
             if (SysProperties.CHECK && x.right == null) {
-                throw Message.getInternalError("tree corrupted");
+                Message.throwInternalError("tree corrupted");
             }
             x.right.parent = x;
             x.left.parent = x;
@@ -248,7 +248,7 @@ public class TreeIndex extends BaseIndex {
                 }
                 break;
             default:
-                throw Message.getInternalError("b: " + x.balance * sign);
+                Message.throwInternalError("b: " + x.balance * sign);
             }
             isLeft = x.isFromLeft();
             n = x.parent;

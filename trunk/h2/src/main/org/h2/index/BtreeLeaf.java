@@ -92,14 +92,14 @@ public class BtreeLeaf extends BtreePage {
         int l = 0, r = pageData.size();
         if (r == 0) {
             if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
-                throw Message.getInternalError("Empty btree page");
+                Message.throwInternalError("Empty btree page");
             }
         }
         while (l < r) {
             int i = (l + r) >>> 1;
             SearchRow row = (SearchRow) pageData.get(i);
             if (SysProperties.CHECK && row == null) {
-                throw Message.getInternalError("btree corrupt");
+                Message.throwInternalError("btree corrupt");
             }
             int comp = index.compareRows(row, oldRow);
             if (comp == 0) {
@@ -149,7 +149,7 @@ public class BtreeLeaf extends BtreePage {
     boolean findFirst(BtreeCursor cursor, SearchRow compare, boolean bigger) throws SQLException {
         int l = 0, r = pageData.size();
         if (r == 0 && !Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
-            throw Message.getInternalError("Empty btree page");
+            Message.throwInternalError("Empty btree page");
         }
         while (l < r) {
             int i = (l + r) >>> 1;
@@ -197,7 +197,7 @@ public class BtreeLeaf extends BtreePage {
     void first(BtreeCursor cursor) throws SQLException {
         if (pageData.size() == 0) {
             if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
-                throw Message.getInternalError("Empty btree page");
+                Message.throwInternalError("Empty btree page");
             }
             nextUpper(cursor);
             return;
@@ -211,7 +211,7 @@ public class BtreeLeaf extends BtreePage {
         int last = pageData.size() - 1;
         if (last < 0) {
             if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
-                throw Message.getInternalError("Empty btree page");
+                Message.throwInternalError("Empty btree page");
             }
             previousUpper(cursor);
             return;
@@ -299,7 +299,7 @@ public class BtreeLeaf extends BtreePage {
     SearchRow getFirst(Session session) {
         if (pageData.size() == 0) {
             if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
-                throw Message.getInternalError("Empty btree page");
+                Message.throwInternalError("Empty btree page");
             }
             return null;
         }

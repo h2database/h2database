@@ -30,7 +30,7 @@ public class Constant extends SchemaObjectBase {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public String getDropSQL() {

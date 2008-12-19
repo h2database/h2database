@@ -1118,7 +1118,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         default:
-            throw Message.getInternalError("type=" + info.type);
+            throw Message.throwInternalError("type=" + info.type);
         }
         return result;
     }
@@ -1264,7 +1264,7 @@ public class Function extends Expression implements FunctionCall {
             case Calendar.HOUR_OF_DAY:
                 return t2 / hour - t1 / hour;
             default:
-                throw Message.getInternalError("field:" + field);
+                throw Message.throwInternalError("field:" + field);
             }
         }
         case Calendar.DATE:
@@ -1546,7 +1546,7 @@ public class Function extends Expression implements FunctionCall {
             max = 2;
             break;
         default:
-            throw Message.getInternalError("type=" + info.type);
+            Message.throwInternalError("type=" + info.type);
         }
         boolean ok = (len >= min) && (len <= max);
         if (!ok) {

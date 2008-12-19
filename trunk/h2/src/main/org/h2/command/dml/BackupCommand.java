@@ -124,7 +124,7 @@ public class BackupCommand extends Prepared {
         String f = FileUtils.getAbsolutePath(fn);
         base = FileUtils.getAbsolutePath(base);
         if (!f.startsWith(base)) {
-            throw Message.getInternalError(f + " does not start with " + base);
+            Message.throwInternalError(f + " does not start with " + base);
         }
         f = f.substring(base.length());
         f = correctFileName(f);

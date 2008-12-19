@@ -362,13 +362,13 @@ public class Transfer {
         case Value.BLOB: {
             long length = v.getPrecision();
             if (SysProperties.CHECK && length < 0) {
-                throw Message.getInternalError("length: " + length);
+                Message.throwInternalError("length: " + length);
             }
             writeLong(length);
             InputStream in = v.getInputStream();
             long written = IOUtils.copyAndCloseInput(in, out);
             if (SysProperties.CHECK && written != length) {
-                throw Message.getInternalError("length:" + length + " written:" + written);
+                Message.throwInternalError("length:" + length + " written:" + written);
             }
             writeInt(LOB_MAGIC);
             break;
@@ -376,7 +376,7 @@ public class Transfer {
         case Value.CLOB: {
             long length = v.getPrecision();
             if (SysProperties.CHECK && length < 0) {
-                throw Message.getInternalError("length: " + length);
+                Message.throwInternalError("length: " + length);
             }
             writeLong(length);
             Reader reader = v.getReader();
@@ -391,7 +391,7 @@ public class Transfer {
             Writer writer = new BufferedWriter(new OutputStreamWriter(out2, Constants.UTF8));
             long written = IOUtils.copyAndCloseInput(reader, writer);
             if (SysProperties.CHECK && written != length) {
-                throw Message.getInternalError("length:" + length + " written:" + written);
+                Message.throwInternalError("length:" + length + " written:" + written);
             }
             writer.flush();
             writeInt(LOB_MAGIC);
@@ -430,7 +430,7 @@ public class Transfer {
             break;
         }
         default:
-            throw Message.getInternalError("type=" + type);
+            Message.throwInternalError("type=" + type);
         }
     }
 
@@ -524,7 +524,7 @@ public class Transfer {
             return ValueResultSet.get(rs);
         }
         default:
-            throw Message.getInternalError("type="+type);
+            throw Message.throwInternalError("type="+type);
         }
     }
 

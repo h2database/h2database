@@ -581,7 +581,7 @@ public class SessionRemote implements SessionInterface, SessionFactory, DataHand
     }
 
     public int compareTypeSave(Value a, Value b) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public String createTempFile() throws SQLException {

@@ -184,7 +184,7 @@ public class TransactionCommand extends Prepared {
             break;
         }
         default:
-            throw Message.getInternalError("type=" + type);
+            Message.throwInternalError("type=" + type);
         }
         return 0;
     }

@@ -124,7 +124,7 @@ class PageDataLeaf extends PageData {
         rows = newRows;
         if (offset < start) {
             if (entryCount > 1) {
-                throw Message.getInternalError();
+                Message.throwInternalError();
             }
             // need to write the overflow page id
             start += 4;
@@ -152,7 +152,7 @@ class PageDataLeaf extends PageData {
     private void removeRow(int i) throws SQLException {
         entryCount--;
         if (entryCount <= 0) {
-            Message.getInternalError();
+            Message.throwInternalError();
         }
         int[] newOffsets = new int[entryCount];
         int[] newKeys = new int[entryCount];
@@ -319,7 +319,7 @@ class PageDataLeaf extends PageData {
         // don't need to write overflow if we just update the parent page id
         if (data.length() > pageSize && overflowPageIds != null) {
             if (firstOverflowPageId == 0) {
-                throw Message.getInternalError();
+                Message.throwInternalError();
             }
             DataPage overflow = store.createDataPage();
             int parent = getPos();

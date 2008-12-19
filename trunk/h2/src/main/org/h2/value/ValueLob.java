@@ -117,7 +117,7 @@ public class ValueLob extends Value {
 
     private static String getFileName(DataHandler handler, int tableId, int objectId) {
         if (SysProperties.CHECK && tableId == 0 && objectId == 0) {
-            throw Message.getInternalError("0 LOB");
+            Message.throwInternalError("0 LOB");
         }
         if (handler.getLobFilesInDirectories()) {
             String table = tableId < 0 ? ".temp" : ".t" + tableId;
@@ -723,7 +723,7 @@ public class ValueLob extends Value {
             }
             Value v2 = link(handler, tabId);
             if (SysProperties.CHECK && v2 != this) {
-                throw Message.getInternalError();
+                Message.throwInternalError();
             }
         }
     }

@@ -128,7 +128,7 @@ public class SelectUnion extends Query {
             right.setDistinct(true);
             break;
         default:
-            throw Message.getInternalError("type=" + unionType);
+            Message.throwInternalError("type=" + unionType);
         }
         LocalResult l = left.query(0);
         LocalResult r = right.query(0);
@@ -169,7 +169,7 @@ public class SelectUnion extends Query {
             break;
         }
         default:
-            throw Message.getInternalError("type=" + unionType);
+            Message.throwInternalError("type=" + unionType);
         }
         if (offset != null) {
             result.setOffset(offset.getValue(session).getInt());
@@ -183,7 +183,7 @@ public class SelectUnion extends Query {
 
     public void init() throws SQLException {
         if (SysProperties.CHECK && checkInit) {
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
         checkInit = true;
         left.init();
@@ -208,7 +208,7 @@ public class SelectUnion extends Query {
             return;
         }
         if (SysProperties.CHECK && !checkInit) {
-            throw Message.getInternalError("not initialized");
+            Message.throwInternalError("not initialized");
         }
         isPrepared = true;
         left.prepare();
@@ -289,7 +289,7 @@ public class SelectUnion extends Query {
             break;
         }
         default:
-            throw Message.getInternalError("type=" + unionType);
+            Message.throwInternalError("type=" + unionType);
         }
     }
 
@@ -311,7 +311,7 @@ public class SelectUnion extends Query {
             buff.append("EXCEPT ");
             break;
         default:
-            throw Message.getInternalError("type=" + unionType);
+            Message.throwInternalError("type=" + unionType);
         }
         buff.append('(');
         buff.append(right.getPlanSQL());

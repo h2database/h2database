@@ -71,7 +71,7 @@ public class MultiVersionIndex implements Index {
     }
 
     public Cursor findNext(Session session, SearchRow first, SearchRow last) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public boolean canFindNext() {

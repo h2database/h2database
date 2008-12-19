@@ -321,7 +321,7 @@ public class DataType {
         for (int i = 0; i < TYPES_BY_VALUE_TYPE.length; i++) {
             DataType dt = TYPES_BY_VALUE_TYPE[i];
             if (dt == null) {
-                throw Message.getInternalError("unmapped type " + i);
+                Message.throwInternalError("unmapped type " + i);
             }
             Value.getOrder(i);
         }
@@ -554,7 +554,7 @@ public class DataType {
             break;
         }
         default:
-            throw Message.getInternalError("type="+type);
+            throw Message.throwInternalError("type="+type);
         }
         return v;
     }
@@ -628,7 +628,7 @@ public class DataType {
         case Value.RESULT_SET:
             return ResultSet.class.getName();
         default:
-            throw Message.getInternalError("type="+type);
+            throw Message.throwInternalError("type="+type);
         }
     }
 
@@ -940,9 +940,8 @@ public class DataType {
             return ObjectUtils.getFloat(0);
         } else if (clazz == Double.TYPE) {
             return ObjectUtils.getDouble(0);
-        } else {
-            throw Message.getInternalError("primitive=" + clazz.toString());
         }
+        throw Message.throwInternalError("primitive=" + clazz.toString());
     }
 
     /**

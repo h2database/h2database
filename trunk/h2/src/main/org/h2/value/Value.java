@@ -294,7 +294,7 @@ public abstract class Value {
         case RESULT_SET:
             return 51;
         default:
-            throw Message.getInternalError("type:"+type);
+            throw Message.throwInternalError("type:"+type);
         }
     }
 
@@ -776,7 +776,7 @@ public abstract class Value {
             case UUID:
                 return ValueUuid.get(s);
             default:
-                throw Message.getInternalError("type=" + type);
+                throw Message.throwInternalError("type=" + type);
             }
         } catch (NumberFormatException e) {
             throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, new String[] { s }, e);

@@ -35,11 +35,11 @@ public class Wildcard extends Expression {
     }
 
     public Value getValue(Session session) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public int getType() {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
@@ -51,19 +51,19 @@ public class Wildcard extends Expression {
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        throw Message.getInternalError();
+        Message.throwInternalError();
     }
 
     public int getScale() {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public long getPrecision() {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public int getDisplaySize() {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public String getTableAlias() {
@@ -82,15 +82,15 @@ public class Wildcard extends Expression {
     }
 
     public void updateAggregate(Session session) {
-        throw Message.getInternalError();
+        Message.throwInternalError();
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public int getCost() {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
 }

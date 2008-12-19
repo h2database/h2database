@@ -104,7 +104,7 @@ public class IndexCondition {
             buff.append(" < ");
             break;
         default:
-            throw Message.getInternalError("type="+compareType);
+            Message.throwInternalError("type="+compareType);
         }
         buff.append(expression.getSQL());
         return buff.toString();
@@ -128,7 +128,7 @@ public class IndexCondition {
         case Comparison.SMALLER:
             return END;
         default:
-            throw Message.getInternalError("type=" + compareType);
+            throw Message.throwInternalError("type=" + compareType);
         }
     }
 

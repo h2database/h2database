@@ -140,7 +140,7 @@ public class TableData extends Table implements RecordReader {
         if (SysProperties.CHECK && !database.isMultiVersion()) {
             long rc = index.getRowCount(session);
             if (rc != rowCount + offset) {
-                throw Message.getInternalError("rowCount expected " + (rowCount + offset) + " got " + rc + " " + getName() + "." + index.getName());
+                Message.throwInternalError("rowCount expected " + (rowCount + offset) + " got " + rc + " " + getName() + "." + index.getName());
             }
         }
     }
@@ -209,7 +209,7 @@ public class TableData extends Table implements RecordReader {
                 }
                 addRowsToIndex(session, buffer, index);
                 if (SysProperties.CHECK && remaining != 0) {
-                    throw Message.getInternalError("rowcount remaining=" + remaining + " " + getName());
+                    Message.throwInternalError("rowcount remaining=" + remaining + " " + getName());
                 }
             } catch (SQLException e) {
                 getSchema().freeUniqueName(indexName);
@@ -335,7 +335,7 @@ public class TableData extends Table implements RecordReader {
             if (SysProperties.CHECK) {
                 long rc = index.getRowCount(session);
                 if (rc != 0) {
-                    throw Message.getInternalError("rowCount expected 0 got " + rc);
+                    Message.throwInternalError("rowCount expected 0 got " + rc);
                 }
             }
         }
@@ -625,7 +625,7 @@ public class TableData extends Table implements RecordReader {
             for (int i = 0; i < list.size(); i++) {
                 Index index = (Index) list.get(i);
                 if (index.getTable() == this) {
-                    throw Message.getInternalError("index not dropped: " + index.getName());
+                    Message.throwInternalError("index not dropped: " + index.getName());
                 }
             }
         }

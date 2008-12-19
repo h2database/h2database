@@ -198,7 +198,7 @@ public class IntArray {
                 return;
             }
         }
-        throw Message.getInternalError();
+        Message.throwInternalError();
     }
 
     /**
@@ -213,7 +213,7 @@ public class IntArray {
                 return;
             }
         }
-        throw Message.getInternalError();
+        Message.throwInternalError();
     }
 
     /**

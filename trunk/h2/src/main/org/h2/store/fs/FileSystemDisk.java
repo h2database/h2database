@@ -61,7 +61,7 @@ public class FileSystemDisk extends FileSystem {
         File oldFile = new File(oldName);
         File newFile = new File(newName);
         if (oldFile.getAbsolutePath().equals(newFile.getAbsolutePath())) {
-            throw Message.getInternalError("rename file old=new");
+            Message.throwInternalError("rename file old=new");
         }
         if (!oldFile.exists()) {
             throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[] { oldName + " (not found)",
@@ -303,7 +303,7 @@ public class FileSystemDisk extends FileSystem {
         }
         String fullFileName = normalize(name);
         if (!fullFileName.startsWith(path)) {
-            throw Message.getInternalError("file utils error: " + fullFileName + " does not start with " + path);
+            Message.throwInternalError("file utils error: " + fullFileName + " does not start with " + path);
         }
         String fileName = fullFileName.substring(path.length());
         return fileName;

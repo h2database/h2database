@@ -102,7 +102,7 @@ public class ConstraintCheck extends Constraint {
     }
 
     public void setIndexOwner(Index index) {
-        throw Message.getInternalError();
+        Message.throwInternalError();
     }
 
     public boolean containsColumn(Column col) {

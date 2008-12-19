@@ -45,7 +45,7 @@ public class UndoLog {
      */
     public int size() {
         if (SysProperties.CHECK && memoryUndo > records.size()) {
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
         return records.size();
     }

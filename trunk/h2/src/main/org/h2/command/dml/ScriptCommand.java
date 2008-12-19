@@ -401,7 +401,7 @@ public class ScriptCommand extends ScriptBase {
             break;
         }
         default:
-            throw Message.getInternalError("type:" + v.getType());
+            Message.throwInternalError("type:" + v.getType());
         }
         return id;
     }

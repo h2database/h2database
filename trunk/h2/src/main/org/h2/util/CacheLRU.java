@@ -52,7 +52,7 @@ public class CacheLRU implements Cache {
             for (int i = 0; i < rec.getBlockCount(); i++) {
                 CacheObject old = find(pos + i);
                 if (old != null) {
-                    throw Message.getInternalError("try to add a record twice pos:" + pos + " i:" + i);
+                    Message.throwInternalError("try to add a record twice pos:" + pos + " i:" + i);
                 }
             }
         }
@@ -72,7 +72,7 @@ public class CacheLRU implements Cache {
         } else {
             if (SysProperties.CHECK) {
                 if (old != rec) {
-                    throw Message.getInternalError("old != record old=" + old + " new=" + rec);
+                    Message.throwInternalError("old != record old=" + old + " new=" + rec);
                 }
             }
             removeFromLinkedList(rec);
@@ -105,7 +105,7 @@ public class CacheLRU implements Cache {
             }
             CacheObject last = head.next;
             if (SysProperties.CHECK && last == head) {
-                throw Message.getInternalError("try to remove head");
+                Message.throwInternalError("try to remove head");
             }
             // we are not allowed to remove it if the log is not yet written
             // (because we need to log before writing the data)
@@ -131,7 +131,7 @@ public class CacheLRU implements Cache {
 
     private void addToFront(CacheObject rec) {
         if (SysProperties.CHECK && rec == head) {
-            throw Message.getInternalError("try to move head");
+            Message.throwInternalError("try to move head");
         }
         rec.next = head;
         rec.previous = head.previous;
@@ -141,7 +141,7 @@ public class CacheLRU implements Cache {
 
     private void removeFromLinkedList(CacheObject rec) {
         if (SysProperties.CHECK && rec == head) {
-            throw Message.getInternalError("try to remove head");
+            Message.throwInternalError("try to remove head");
         }
         rec.previous.next = rec.next;
         rec.next.previous = rec.previous;
@@ -176,7 +176,7 @@ public class CacheLRU implements Cache {
         if (SysProperties.CHECK) {
             rec.chained = null;
             if (find(pos) != null) {
-                throw Message.getInternalError("not removed!");
+                Message.throwInternalError("not removed!");
             }
         }
     }
@@ -241,7 +241,7 @@ public class CacheLRU implements Cache {
                     if (list.size() >= recordCount) {
                         if (SysProperties.CHECK) {
                             if (list.size() > recordCount) {
-                                throw Message.getInternalError("cache chain error");
+                                Message.throwInternalError("cache chain error");
                             }
                         } else {
                             break;

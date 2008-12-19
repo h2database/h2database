@@ -120,7 +120,7 @@ public class ValueNull extends Value {
     }
 
     protected int compareSecure(Value v, CompareMode mode) {
-        throw Message.getInternalError("compare null");
+        throw Message.throwInternalError("compare null");
     }
 
     public long getPrecision() {

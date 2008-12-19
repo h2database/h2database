@@ -142,7 +142,7 @@ class AggregateData {
             }
             break;
         default:
-            throw Message.getInternalError("type=" + aggregateType);
+            Message.throwInternalError("type=" + aggregateType);
         }
     }
 
@@ -224,7 +224,7 @@ class AggregateData {
             break;
         }
         default:
-            throw Message.getInternalError("type=" + aggregateType);
+            Message.throwInternalError("type=" + aggregateType);
         }
         return v == null ? ValueNull.INSTANCE : v.convertTo(dataType);
     }

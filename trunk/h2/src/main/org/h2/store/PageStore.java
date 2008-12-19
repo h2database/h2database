@@ -247,7 +247,7 @@ public class PageStore implements CacheWriter {
     public int allocatePage() throws SQLException {
         if (freePageCount == 0) {
             if (freeListRootPageId != 0) {
-                throw Message.getInternalError("freeListRootPageId:" + freeListRootPageId);
+                Message.throwInternalError("freeListRootPageId:" + freeListRootPageId);
             }
             if (pageCount * pageSize >= fileLength) {
                 long newLength = (pageCount + INCREMENT_PAGES) * pageSize;
@@ -257,7 +257,7 @@ public class PageStore implements CacheWriter {
             return pageCount++;
         }
         if (freeListRootPageId == 0) {
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
         PageFreeList free = (PageFreeList) cache.find(freeListRootPageId);
         if (free == null) {

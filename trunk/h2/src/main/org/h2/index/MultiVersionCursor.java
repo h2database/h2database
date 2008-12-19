@@ -85,7 +85,7 @@ public class MultiVersionCursor implements Cursor {
     public int getPos() {
         synchronized (sync) {
             if (SysProperties.CHECK && end) {
-                throw Message.getInternalError();
+                Message.throwInternalError();
             }
             return onBase ? baseCursor.getPos() : deltaCursor.getPos();
         }
@@ -103,7 +103,7 @@ public class MultiVersionCursor implements Cursor {
     public boolean next() throws SQLException {
         synchronized (sync) {
             if (SysProperties.CHECK && end) {
-                throw Message.getInternalError();
+                Message.throwInternalError();
             }
             while (true) {
                 if (needNewDelta) {
@@ -141,7 +141,7 @@ public class MultiVersionCursor implements Cursor {
                         needNewDelta = true;
                         return true;
                     }
-                    throw Message.getInternalError();
+                    Message.throwInternalError();
                 }
                 int compare = index.compareRows(deltaRow, baseRow);
                 if (compare == 0) {
@@ -154,7 +154,7 @@ public class MultiVersionCursor implements Cursor {
                 if (compare == 0) {
                     if (isDeleted) {
                         if (isThisSession) {
-                            throw Message.getInternalError();
+                            Message.throwInternalError();
                         }
                         // another session updated the row
                     } else {

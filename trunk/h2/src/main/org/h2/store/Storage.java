@@ -200,7 +200,7 @@ public class Storage {
         checkOnePage();
         Record record = getRecord(session, pos);
         if (SysProperties.CHECK && record.getDeleted()) {
-            throw Message.getInternalError("duplicate delete " + pos);
+            Message.throwInternalError("duplicate delete " + pos);
         }
         record.setDeleted(true);
         int blockCount = record.getBlockCount();
@@ -232,7 +232,7 @@ public class Storage {
         // if we came here, all free records must be in the list
         // otherwise it would have returned early
         if (SysProperties.CHECK2 && freeCount > freeList.size()) {
-            throw Message.getInternalError("freeCount expected " + freeList.size() + ", got: " + freeCount);
+            Message.throwInternalError("freeCount expected " + freeList.size() + ", got: " + freeCount);
         }
         freeCount = freeList.size();
     }

@@ -225,7 +225,7 @@ public class TableView extends Table {
     }
 
     public long getRowCount(Session session) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public boolean canGetRowCount() {

@@ -307,7 +307,7 @@ public class DbContextRule implements Rule {
             s = matchColumn(sentence);
             break;
         default:
-            throw Message.getInternalError("type=" + type);
+            throw Message.throwInternalError("type=" + type);
         }
         if (s == null) {
             return false;

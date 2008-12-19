@@ -49,7 +49,7 @@ public class BtreeCursor implements Cursor {
      */
     void push(BtreePage page, int position) {
         if (SysProperties.CHECK && (top != null && top.page == page)) {
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
         top = new BtreePosition(page, position, top);
     }

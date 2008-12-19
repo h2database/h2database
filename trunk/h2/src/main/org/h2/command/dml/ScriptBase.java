@@ -208,7 +208,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     }
 
     public int compareTypeSave(Value a, Value b) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public int getMaxLengthInplaceLob() {

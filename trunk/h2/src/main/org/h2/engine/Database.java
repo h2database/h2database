@@ -671,7 +671,7 @@ public class Database implements DataHandler {
         if (SysProperties.CHECK) {
             Storage s = (Storage) storageMap.get(id);
             if (s == null || s.getDiskFile() != file) {
-                throw Message.getInternalError();
+                Message.throwInternalError();
             }
         }
         storageMap.remove(id);
@@ -689,7 +689,7 @@ public class Database implements DataHandler {
         Storage storage = (Storage) storageMap.get(id);
         if (storage != null) {
             if (SysProperties.CHECK && storage.getDiskFile() != file) {
-                throw Message.getInternalError();
+                Message.throwInternalError();
             }
         } else {
             storage = new Storage(this, file, null, id);
@@ -766,7 +766,7 @@ public class Database implements DataHandler {
         case DbObject.AGGREGATE:
             return aggregates;
         default:
-            throw Message.getInternalError("type=" + type);
+            throw Message.throwInternalError("type=" + type);
         }
     }
 
@@ -807,7 +807,7 @@ public class Database implements DataHandler {
         }
         String name = obj.getName();
         if (SysProperties.CHECK && map.get(name) != null) {
-            throw Message.getInternalError("object already exists");
+            Message.throwInternalError("object already exists");
         }
         if (id > 0 && !starting) {
             addMeta(session, obj);
@@ -1152,7 +1152,7 @@ public class Database implements DataHandler {
         r.setValue(0, ValueInt.get(id));
         Cursor cursor = metaIdIndex.find(session, r, r);
         if (cursor.next()) {
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
     }
 
@@ -1176,7 +1176,7 @@ public class Database implements DataHandler {
             i = objectIds.nextClearBit(0);
         }
         if (SysProperties.CHECK && objectIds.get(i)) {
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
         objectIds.set(i);
         return i;
@@ -1329,7 +1329,7 @@ public class Database implements DataHandler {
         ObjectArray list = obj.getChildren();
         Comment comment = findComment(obj);
         if (comment != null) {
-            throw Message.getInternalError();
+            Message.throwInternalError();
         }
         update(session, obj);
         // remember that this scans only one level deep!
@@ -1354,10 +1354,10 @@ public class Database implements DataHandler {
         HashMap map = getMap(type);
         if (SysProperties.CHECK) {
             if (!map.containsKey(obj.getName())) {
-                throw Message.getInternalError("not found: " + obj.getName());
+                Message.throwInternalError("not found: " + obj.getName());
             }
             if (obj.getName().equals(newName) || map.containsKey(newName)) {
-                throw Message.getInternalError("object already exists: " + newName);
+                Message.throwInternalError("object already exists: " + newName);
             }
         }
         obj.checkRename();
@@ -1461,7 +1461,7 @@ public class Database implements DataHandler {
         int type = obj.getType();
         HashMap map = getMap(type);
         if (SysProperties.CHECK && !map.containsKey(objName)) {
-            throw Message.getInternalError("not found: " + objName);
+            Message.throwInternalError("not found: " + objName);
         }
         Comment comment = findComment(obj);
         if (comment != null) {
@@ -1806,7 +1806,7 @@ public class Database implements DataHandler {
             logIndex = true;
             break;
         default:
-            throw Message.getInternalError("level=" + level);
+            throw Message.throwInternalError("level=" + level);
         }
         if (fileIndex != null) {
             fileIndex.setLogChanges(logIndex);

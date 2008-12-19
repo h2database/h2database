@@ -65,7 +65,7 @@ public class Sequence extends SchemaObjectBase {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw Message.getInternalError();
+        throw Message.throwInternalError();
     }
 
     public synchronized String getCreateSQL() {

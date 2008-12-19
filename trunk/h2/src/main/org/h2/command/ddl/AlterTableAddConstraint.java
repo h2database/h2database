@@ -244,7 +244,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             break;
         }
         default:
-            throw Message.getInternalError("type=" + type);
+            throw Message.throwInternalError("type=" + type);
         }
         // parent relationship is already set with addConstraint
         constraint.setComment(comment);

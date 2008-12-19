@@ -267,10 +267,10 @@ public class FileStore {
      */
     public void readFully(byte[] b, int off, int len) throws SQLException {
         if (SysProperties.CHECK && len < 0) {
-            throw Message.getInternalError("read len " + len);
+            Message.throwInternalError("read len " + len);
         }
         if (SysProperties.CHECK && len % Constants.FILE_BLOCK_SIZE != 0) {
-            throw Message.getInternalError("unaligned read " + name + " len " + len);
+            Message.throwInternalError("unaligned read " + name + " len " + len);
         }
         checkPowerOff();
         try {
@@ -288,7 +288,7 @@ public class FileStore {
      */
     public void seek(long pos) throws SQLException {
         if (SysProperties.CHECK && pos % Constants.FILE_BLOCK_SIZE != 0) {
-            throw Message.getInternalError("unaligned seek " + name + " pos " + pos);
+            Message.throwInternalError("unaligned seek " + name + " pos " + pos);
         }
         try {
             if (pos != filePos) {
@@ -320,10 +320,10 @@ public class FileStore {
      */
     public void write(byte[] b, int off, int len) throws SQLException {
         if (SysProperties.CHECK && len < 0) {
-            throw Message.getInternalError("read len " + len);
+            Message.throwInternalError("read len " + len);
         }
         if (SysProperties.CHECK && len % Constants.FILE_BLOCK_SIZE != 0) {
-            throw Message.getInternalError("unaligned write " + name + " len " + len);
+            Message.throwInternalError("unaligned write " + name + " len " + len);
         }
         checkWritingAllowed();
         checkPowerOff();
@@ -374,7 +374,7 @@ public class FileStore {
      */
     public void setLength(long newLength) throws SQLException {
         if (SysProperties.CHECK && newLength % Constants.FILE_BLOCK_SIZE != 0) {
-            throw Message.getInternalError("unaligned setLength " + name + " pos " + newLength);
+            Message.throwInternalError("unaligned setLength " + name + " pos " + newLength);
         }
         checkPowerOff();
         checkWritingAllowed();
@@ -409,14 +409,14 @@ public class FileStore {
             if (SysProperties.CHECK2) {
                 len = file.length();
                 if (len != fileLength) {
-                    throw Message.getInternalError("file " + name + " length " + len + " expected " + fileLength);
+                    Message.throwInternalError("file " + name + " length " + len + " expected " + fileLength);
                 }
             }
             if (SysProperties.CHECK2 && len % Constants.FILE_BLOCK_SIZE != 0) {
                 long newLength = len + Constants.FILE_BLOCK_SIZE - (len % Constants.FILE_BLOCK_SIZE);
                 file.setFileLength(newLength);
                 fileLength = newLength;
-                throw Message.getInternalError("unaligned file length " + name + " len " + len);
+                Message.throwInternalError("unaligned file length " + name + " len " + len);
             }
             return len;
         } catch (IOException e) {
@@ -433,7 +433,7 @@ public class FileStore {
         if (SysProperties.CHECK2) {
             try {
                 if (file.getFilePointer() != filePos) {
-                    throw Message.getInternalError();
+                    Message.throwInternalError();
                 }
             } catch (IOException e) {
                 throw Message.convertIOException(e, name);

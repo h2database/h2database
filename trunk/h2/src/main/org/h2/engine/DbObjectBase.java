@@ -211,7 +211,7 @@ public abstract class DbObjectBase implements DbObject {
         case COMMENT:
             return 14;
         default:
-            throw Message.getInternalError("type="+type);
+            throw Message.throwInternalError("type="+type);
         }
     }
 

@@ -290,7 +290,7 @@ public class TableView extends Table {
 
     public long getMaxDataModificationId() {
         if (createException != null) {
-            throw Message.getInternalError();
+            return Long.MAX_VALUE;
         }
         if (viewQuery == null) {
             return Long.MAX_VALUE;

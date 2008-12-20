@@ -27,11 +27,12 @@ public class Mode {
     // Modes are also documented in the features section
 
     /**
-     * Concatenation of a NULL with another value results in NULL. Usually, the
-     * NULL is treated as an empty string if only one of the operators is NULL,
-     * and NULL is only returned if both values are NULL.
+     * When enabled, aliased columns (as in SELECT ID AS I FROM TEST) return the
+     * alias (I in this case) in ResultSetMetaData.getColumnName() and 'null' in
+     * getTableName(). If disabled, the real column name (ID in this case) and
+     * table name is returned.
      */
-    public boolean nullConcatIsNull;
+    public boolean aliasColumnName;
 
     /**
      * When inserting data, if a column is defined to be NOT NULL and NULL is
@@ -49,10 +50,9 @@ public class Mode {
     public boolean convertOnlyToSmallerScale;
 
     /**
-     * When converting a floating point number to a integer, the fractional
-     * digits should not be truncated, but the value should be rounded.
+     * Creating indexes in the CREATE TABLE statement should be supported.
      */
-    public boolean roundWhenConvertToLong;
+    public boolean indexDefinitionInCreateTable;
 
     /**
      * The identifiers should be returned in lower case.
@@ -60,14 +60,17 @@ public class Mode {
     public boolean lowerCaseIdentifiers;
 
     /**
-     * Creating indexes in the CREATE TABLE statement should be supported.
+     * Concatenation of a NULL with another value results in NULL. Usually, the
+     * NULL is treated as an empty string if only one of the operators is NULL,
+     * and NULL is only returned if both values are NULL.
      */
-    public boolean indexDefinitionInCreateTable;
+    public boolean nullConcatIsNull;
 
     /**
-     * The system columns 'CTID' and 'OID' should be supported.
+     * When converting a floating point number to a integer, the fractional
+     * digits should not be truncated, but the value should be rounded.
      */
-    public boolean systemColumns;
+    public boolean roundWhenConvertToLong;
 
     /**
      * Identifiers may be quoted using square brackets as in [Test].
@@ -75,32 +78,28 @@ public class Mode {
     public boolean squareBracketQuotedNames;
 
     /**
-     * When using unique indexes, multiple rows with NULL in one of the columns
-     * are allowed by default. However many databases view NULL as distinct in
-     * this regard and only allow one row with NULL.
+     * Support for the syntax [OFFSET .. ROW] [FETCH ... ONLY]
+     * as an alternative syntax for LIMIT .. OFFSET.
+     */
+    public boolean supportOffsetFetch;
+
+    /**
+     * The system columns 'CTID' and 'OID' should be supported.
+     */
+    public boolean systemColumns;
+
+    /**
+     * For unique indexes, NULL is distinct. That means only one row with NULL
+     * in one of the columns is allowed.
      */
     public boolean uniqueIndexSingleNull;
 
     /**
      * When using unique indexes, multiple rows with NULL in all columns
      * are allowed, however it is not allowed to have multiple rows with the
-     * same values otherwise. This is how Oracle works.
+     * same values otherwise.
      */
     public boolean uniqueIndexSingleNullExceptAllColumnsAreNull;
-
-    /**
-     * If the syntax [OFFSET .. ROW] [FETCH ... ONLY] should be supported.
-     * This is an alternative syntax for LIMIT .. OFFSET.
-     */
-    public boolean supportOffsetFetch;
-
-    /**
-     * When enabled, aliased columns (as in SELECT ID AS I FROM TEST) return the
-     * alias (I in this case) in ResultSetMetaData.getColumnName() and 'null' in
-     * getTableName(). If disabled, the real column name (ID in this case) and
-     * table name is returned.
-     */
-    public boolean aliasColumnName;
 
     private String name;
 
@@ -109,48 +108,47 @@ public class Mode {
         mode.aliasColumnName = SysProperties.ALIAS_COLUMN_NAME;
         add(mode);
 
-        mode = new Mode("PostgreSQL");
-        mode.nullConcatIsNull = true;
-        mode.roundWhenConvertToLong = true;
-        mode.systemColumns = true;
+        mode = new Mode("DB2");
         mode.aliasColumnName = true;
+        mode.supportOffsetFetch = true;
+        add(mode);
+
+        mode = new Mode("Derby");
+        mode.aliasColumnName = true;
+        mode.uniqueIndexSingleNull = true;
+        add(mode);
+
+        mode = new Mode("HSQLDB");
+        mode.aliasColumnName = true;
+        mode.convertOnlyToSmallerScale = true;
+        mode.nullConcatIsNull = true;
+        mode.uniqueIndexSingleNull = true;
+        add(mode);
+
+        mode = new Mode("MSSQLServer");
+        mode.aliasColumnName = true;
+        mode.squareBracketQuotedNames = true;
+        mode.uniqueIndexSingleNull = true;
         add(mode);
 
         mode = new Mode("MySQL");
         mode.convertInsertNullToZero = true;
-        mode.roundWhenConvertToLong = true;
-        mode.lowerCaseIdentifiers = true;
         mode.indexDefinitionInCreateTable = true;
-        add(mode);
-
-        mode = new Mode("HSQLDB");
-        mode.nullConcatIsNull = true;
-        mode.convertOnlyToSmallerScale = true;
-        mode.uniqueIndexSingleNull = true;
-        mode.aliasColumnName = true;
-        add(mode);
-
-        mode = new Mode("MSSQLServer");
-        mode.squareBracketQuotedNames = true;
-        mode.uniqueIndexSingleNull = true;
-        mode.aliasColumnName = true;
-        add(mode);
-
-        mode = new Mode("Derby");
-        mode.uniqueIndexSingleNull = true;
-        mode.aliasColumnName = true;
+        mode.lowerCaseIdentifiers = true;
+        mode.roundWhenConvertToLong = true;
         add(mode);
 
         mode = new Mode("Oracle");
+        mode.aliasColumnName = true;
         mode.uniqueIndexSingleNullExceptAllColumnsAreNull = true;
-        mode.aliasColumnName = true;
         add(mode);
 
-        mode = new Mode("DB2");
-        mode.supportOffsetFetch = true;
+        mode = new Mode("PostgreSQL");
         mode.aliasColumnName = true;
+        mode.nullConcatIsNull = true;
+        mode.roundWhenConvertToLong = true;
+        mode.systemColumns = true;
         add(mode);
-
     }
 
     private Mode(String name) {

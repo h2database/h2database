@@ -45,9 +45,9 @@ public class ErrorCode {
     /**
      * The error with code <code>8000</code> is thrown when
      * there was a problem trying to create a database lock.
-     * See the cause for details.
+     * See the message and cause for details.
      */
-    public static final int ERROR_OPENING_DATABASE = 8000;
+    public static final int ERROR_OPENING_DATABASE_1 = 8000;
 
     /**
      * The error with code <code>8004</code> is thrown when
@@ -1876,7 +1876,7 @@ public class ErrorCode {
         case INVALID_PARAMETER_COUNT_2: return "07001";
 
         // 08: connection exception
-        case ERROR_OPENING_DATABASE: return "08000";
+        case ERROR_OPENING_DATABASE_1: return "08000";
         case WRONG_USER_OR_PASSWORD: return "08004";
 
         // 21: cardinality violation

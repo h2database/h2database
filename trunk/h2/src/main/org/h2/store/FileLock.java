@@ -16,7 +16,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.Properties;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -198,9 +197,11 @@ public class FileLock {
                 out.close();
             }
             lastWrite = fs.getLastModified(fileName);
-            trace.debug("save " + properties);
+            if (trace.isDebugEnabled()) {
+                trace.debug("save " + properties);
+            }
         } catch (IOException e) {
-            throw getException(e);
+            throw getExceptionFatal("Could not save properties " + fileName, e);
         }
     }
 
@@ -244,10 +245,12 @@ public class FileLock {
     private Properties load() throws SQLException {
         try {
             Properties p2 = SortedProperties.loadProperties(fileName);
-            trace.debug("load " + p2);
+            if (trace.isDebugEnabled()) {
+                trace.debug("load " + p2);
+            }
             return p2;
         } catch (IOException e) {
-            throw getException(e);
+            throw getExceptionFatal("Could not load properties " + fileName, e);
         }
     }
 
@@ -256,7 +259,7 @@ public class FileLock {
             long last = fs.getLastModified(fileName);
             long dist = System.currentTimeMillis() - last;
             if (dist < -TIME_GRANULARITY) {
-                throw error("Lock file modified in the future: dist=" + dist);
+                throw getExceptionFatal("Lock file modified in the future: dist=" + dist, null);
             }
             if (dist < SLEEP_GAP) {
                 try {
@@ -268,7 +271,7 @@ public class FileLock {
                 return;
             }
         }
-        throw error("Lock file recently modified");
+        throw getExceptionFatal("Lock file recently modified", null);
     }
 
     private void setUniqueId() {
@@ -286,23 +289,23 @@ public class FileLock {
             waitUntilOld();
             String m2 = load().getProperty("method", FILE);
             if (!m2.equals(FILE)) {
-                throw error("Unsupported lock method " + m2);
+                throw getExceptionFatal("Unsupported lock method " + m2, null);
             }
             save();
             sleep(2 * sleep);
             if (!load().equals(properties)) {
-                throw error("Locked by another process");
+                throw getExceptionAlreadyInUse("Locked by another process");
             }
             fs.delete(fileName);
             if (!fs.createNewFile(fileName)) {
-                throw error("Another process was faster");
+                throw getExceptionFatal("Another process was faster", null);
             }
         }
         save();
         sleep(SLEEP_GAP);
         if (!load().equals(properties)) {
             fileName = null;
-            throw error("Concurrent update");
+            throw getExceptionFatal("Concurrent update", null);
         }
         Thread watchdog = new Thread(new Runnable() {
             public void run() {
@@ -347,11 +350,11 @@ public class FileLock {
                 lockFile();
                 return;
             } else if (!m2.equals(SOCKET)) {
-                throw error("Unsupported lock method " + m2);
+                throw getExceptionFatal("Unsupported lock method " + m2, null);
             }
             String ip = p2.getProperty("ipAddress", ipAddress);
             if (!ipAddress.equals(ip)) {
-                throw error("Locked by another computer: " + ip);
+                throw getExceptionAlreadyInUse("Locked by another computer: " + ip);
             }
             String port = p2.getProperty("port", "0");
             int portId = Integer.parseInt(port);
@@ -359,27 +362,27 @@ public class FileLock {
             try {
                 address = InetAddress.getByName(ip);
             } catch (UnknownHostException e) {
-                throw getException(e);
+                throw getExceptionFatal("Unknown host " + ip, e);
             }
             for (int i = 0; i < 3; i++) {
                 try {
                     Socket s = new Socket(address, portId);
                     s.close();
-                    throw error("Locked by another process");
+                    throw getExceptionAlreadyInUse("Locked by another process");
                 } catch (BindException e) {
-                    throw error("Bind Exception");
+                    throw getExceptionFatal("Bind Exception", null);
                 } catch (ConnectException e) {
                     trace.debug("lockSocket not connected " + port, e);
                 } catch (IOException e) {
-                    throw error("IOException");
+                    throw getExceptionFatal("IOException", null);
                 }
             }
             if (read != fs.getLastModified(fileName)) {
-                throw error("Concurrent update");
+                throw getExceptionFatal("Concurrent update", null);
             }
             fs.delete(fileName);
             if (!fs.createNewFile(fileName)) {
-                throw error("Another process was faster");
+                throw getExceptionFatal("Another process was faster", null);
             }
         }
         try {
@@ -418,15 +421,15 @@ public class FileLock {
         try {
             Thread.sleep(time);
         } catch (InterruptedException e) {
-            throw getException(e);
+            throw getExceptionFatal("Sleep interrupted", e);
         }
     }
 
-    private SQLException getException(Throwable t) {
-        return Message.getSQLException(ErrorCode.ERROR_OPENING_DATABASE, null, t);
+    private SQLException getExceptionFatal(String reason, Throwable t) {
+        return Message.getSQLException(ErrorCode.ERROR_OPENING_DATABASE_1, new String[]{reason}, t);
     }
 
-    private SQLException error(String reason) {
+    private SQLException getExceptionAlreadyInUse(String reason) {
         JdbcSQLException ex = Message.getSQLException(ErrorCode.DATABASE_ALREADY_OPEN_1, reason);
         String payload = null;
         if (fileName != null) {

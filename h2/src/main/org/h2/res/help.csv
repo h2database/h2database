@@ -1044,9 +1044,11 @@ SET MAX_OPERATION_MEMORY 0
 "
 
 "Commands (Other)","SET MODE","
-SET MODE {REGULAR | HSQLDB | POSTGRESQL | MYSQL}
+SET MODE {REGULAR | DB2 | DERBY | HSQLDB |
+MSSQLSERVER | MYSQL | ORACLE | POSTGRESQL}
 ","
-Changes to another database mode.
+Changes to another database compatibility mode.
+For details, see Compatibility Modes in the feature section.
 This setting is not persistent.
 Admin rights are required to execute this command.
 This setting can be appended to the database URL: jdbc:h2:test;MODE=MYSQL

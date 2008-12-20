@@ -278,12 +278,13 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
-create a short one page documentation
-checksum: no need to checksum all data; every 128th byte is enough;
-but need position+counter
 JCR: for each node type, create a table; one 'dynamic' table with parameter;
     option to cache the results
 <link rel="icon" type="image/png" href="/path/image.png">
+create a short one page documentation
+update roadmap (specially priority 1)
+checksum: no need to checksum all data; every 128th byte is enough;
+  but need position+counter
 
 http://blog.flexive.org/2008/12/05/porting-flexive-to-the-h2-database/
 postgresql generate_series?

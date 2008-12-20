@@ -12,7 +12,6 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.store.DataPage;
-import org.h2.store.DataPage;
 import org.h2.store.PageStore;
 import org.h2.util.IntArray;
 
@@ -145,7 +144,7 @@ class PageDataLeaf extends PageData {
             array.toArray(overflowPageIds);
             firstOverflowPageId = overflowPageIds[0];
         }
-        index.getPageStore().updateRecord(this);
+        index.getPageStore().updateRecord(this, data);
         return 0;
     }
 
@@ -266,7 +265,7 @@ class PageDataLeaf extends PageData {
             return true;
         }
         removeRow(i);
-        index.getPageStore().updateRecord(this);
+        index.getPageStore().updateRecord(this, data);
         return false;
     }
 

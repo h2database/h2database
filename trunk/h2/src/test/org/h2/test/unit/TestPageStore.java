@@ -56,7 +56,6 @@ public class TestPageStore extends TestBase {
         store.setPageSize(1024);
         store.open();
         IntArray list = new IntArray();
-        int test;
         int size = 270;
         for (int i = 0; i < size; i++) {
             int id = store.allocatePage();

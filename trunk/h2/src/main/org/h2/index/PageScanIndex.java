@@ -55,11 +55,11 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             return;
         }
         this.store = database.getPageStorage();
-        if (headPos == Index.EMPTY_HEAD || headPos >= store.getPageCount()) {
-            // new table
+        if (headPos == Index.EMPTY_HEAD || store.isNew()) {
+            // new table, or the system table for a new database
             headPos = store.allocatePage();
             PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
-            store.updateRecord(root);
+            store.updateRecord(root, root.data);
         } else {
             lastKey = getPage(headPos).getLastKey();
             rowCount = getPage(headPos).getRowCount();
@@ -94,9 +94,9 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             page2.setParentPageId(headPos);
             PageDataNode newRoot = new PageDataNode(this, rootPageId, Page.ROOT, store.createDataPage());
             newRoot.init(page1, pivot, page2);
-            store.updateRecord(page1);
-            store.updateRecord(page2);
-            store.updateRecord(newRoot);
+            store.updateRecord(page1, page1.data);
+            store.updateRecord(page2, page2.data);
+            store.updateRecord(newRoot, null);
             root = newRoot;
         }
         rowCount++;
@@ -185,9 +185,10 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     public void truncate(Session session) throws SQLException {
         trace("truncate");
         store.removeRecord(headPos);
+        int todoLogOldData;
         int freePages;
         PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
-        store.updateRecord(root);
+        store.updateRecord(root, null);
         rowCount = 0;
         lastKey = 0;
     }

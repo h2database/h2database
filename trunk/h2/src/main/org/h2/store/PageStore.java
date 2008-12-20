@@ -32,6 +32,7 @@ import org.h2.util.ObjectArray;
  * </li><li>54-57: page number of the system table root
  * </li><li>58-61: page number of the first free list page
  * </li><li>62-65: number of free pages
+ * </li><li>66-69: log head page number
  * </li></ul>
  */
 public class PageStore implements CacheWriter {
@@ -56,11 +57,19 @@ public class PageStore implements CacheWriter {
     private int systemRootPageId;
     private int freeListRootPageId;
     private int freePageCount;
+    private int logRootPageId;
+    private PageLog log;
 
     /**
      * Number of pages (including free pages).
      */
     private int pageCount;
+
+    /**
+     * True if this
+     */
+    private boolean isNew;
+
     private int writeCount;
     private long fileLength;
 
@@ -97,10 +106,15 @@ public class PageStore implements CacheWriter {
             } else {
                 setPageSize(PAGE_SIZE_DEFAULT);
                 file = database.openFile(fileName, accessMode, false);
+                logRootPageId = allocatePage();
                 writeHeader();
+                isNew = true;
             }
+            log = new PageLog(this, logRootPageId);
             fileLength = file.length();
             pageCount = (int) (fileLength / pageSize);
+            log.recover();
+            log.openForWriting();
         } catch (SQLException e) {
             close();
             throw e;
@@ -150,6 +164,16 @@ public class PageStore implements CacheWriter {
         systemRootPageId = fileHeader.readInt();
         freeListRootPageId = fileHeader.readInt();
         freePageCount = fileHeader.readInt();
+        logRootPageId = fileHeader.readInt();
+    }
+
+    /**
+     * Check if this page store was just created.
+     *
+     * @return true if it was
+     */
+    public boolean isNew() {
+        return isNew;
     }
 
     /**
@@ -187,6 +211,7 @@ public class PageStore implements CacheWriter {
         fileHeader.writeInt(systemRootPageId);
         fileHeader.writeInt(freeListRootPageId);
         fileHeader.writeInt(freePageCount);
+        fileHeader.writeInt(logRootPageId);
         file.seek(FileStore.HEADER_LENGTH);
         file.write(fileHeader.getBytes(), 0, FILE_HEADER_SIZE - FileStore.HEADER_LENGTH);
         byte[] filler = new byte[pageSize - FILE_HEADER_SIZE];
@@ -197,7 +222,7 @@ public class PageStore implements CacheWriter {
      * Close the file.
      */
     public void close() throws SQLException {
-        int todo;
+        int todoTruncateLog;
         try {
             flush();
             if (file != null) {
@@ -230,12 +255,14 @@ public class PageStore implements CacheWriter {
      *
      * @param record the record
      */
-    public void updateRecord(Record record) throws SQLException {
+    public void updateRecord(Record record, DataPage old) throws SQLException {
         synchronized (database) {
             record.setChanged(true);
             int pos = record.getPos();
             cache.update(pos, record);
-            int todoLogChanges;
+            if (old != null) {
+                log.addUndo(record.getPos(), old);
+            }
         }
     }
 
@@ -382,7 +409,7 @@ public class PageStore implements CacheWriter {
         this.freeListRootPageId = pageId;
         if (!existing) {
             PageFreeList free = new PageFreeList(this, pageId, next);
-            updateRecord(free);
+            updateRecord(free, null);
         }
     }
 

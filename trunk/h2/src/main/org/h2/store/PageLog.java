@@ -6,93 +6,71 @@
  */
 package org.h2.store;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.sql.SQLException;
 import org.h2.index.Page;
+import org.h2.message.Message;
 import org.h2.util.BitField;
 
 /**
  * Transaction log mechanism.
- * The log is split in pages, the format is:
- * <ul><li>0-3: parent page id
- * </li><li>4-4: page type (LOG)
- * </li><li>5-8: the next page (0 for end)
- * </li><li>9-: data
- * </li></ul>
  * The data format is:
- * <ul><li>0-0: type (0: end, 1: undo)
+ * <ul><li>0-0: type (0: undo)
  * </li><li>1-4: page id
  * </li><li>5-: data
  * </li></ul>
  */
 public class PageLog {
 
+    private static final int UNDO = 0;
     private PageStore store;
     private BitField undo = new BitField();
-    private int bufferPos;
+    private DataOutputStream out;
     private int firstPage;
-    private int nextPage;
-    private DataPage data;
-    private DataPage output;
 
     PageLog(PageStore store, int firstPage) {
         this.store = store;
         this.firstPage = firstPage;
-        data = store.createDataPage();
-        output = store.createDataPage();
     }
 
-//    void open() throws SQLException {
-//        if (firstPage == 0) {
-//            return;
-//        }
-//        undo();
-//        prepareOutput();
-//    }
-
-    private void prepareOutput() throws SQLException {
-        output.reset();
-        output.writeInt(0);
-        output.writeByte((byte) Page.TYPE_LOG);
-        output.writeInt(store.allocatePage());
+    void openForWriting() {
+        out = new DataOutputStream(new PageOutputStream(store, 0, firstPage, Page.TYPE_LOG));
     }
 
-    private void undo() throws SQLException {
-        int next = firstPage;
-        while (next != 0) {
-            data = store.readPage(firstPage);
-            data.setPos(4);
-        }
-    }
-
-//    void addUndo(int pageId) throws SQLException {
-//        if (undo.get(pageId)) {
-//            return;
-//        }
-//        undo.set(pageId);
-//        data.reset();
-//        data.writeByte((byte) 1);
-//        data.writeInt(pageId);
-//        DataPage p = store.readPage(pageId);
-//        data.write(p.getBytes(), 0, store.getPageSize());
-//        write(data.getBytes(), 0, data.length());
-//    }
-
-    private void write(byte[] data, int offset, int length) {
-        if (bufferPos + length > store.getPageSize()) {
-            while (length > 0) {
-                int len = Math.min(length, store.getPageSize() - bufferPos);
-                write(data, offset, len);
-                offset += len;
-                length -= len;
+    public void recover() throws SQLException {
+        DataInputStream in = new DataInputStream(new PageInputStream(store, 0, firstPage, Page.TYPE_LOG));
+        DataPage data = store.createDataPage();
+        try {
+            while (true) {
+                int x = in.read();
+                if (x < 0) {
+                    break;
+                }
+                if (x == UNDO) {
+                    int pageId = in.readInt();
+                    in.read(data.getBytes(), 0, store.getPageSize());
+                    store.writePage(pageId, data);
+                }
             }
-            return;
+        } catch (IOException e) {
+            throw Message.convertIOException(e, "recovering");
         }
-        System.arraycopy(data, offset, output.getBytes(), bufferPos, length);
-        bufferPos += length;
-//        if (bufferPos != BUFFER_SIZE) {
-//            return;
-//        }
+    }
 
+    public void addUndo(int pageId, DataPage page) throws SQLException {
+        try {
+            if (undo.get(pageId)) {
+                return;
+            }
+            out.write(UNDO);
+            out.writeInt(pageId);
+            out.write(page.getBytes(), 0, store.getPageSize());
+            undo.set(pageId);
+        } catch (IOException e) {
+            throw Message.convertIOException(e, "recovering");
+        }
     }
 
 }

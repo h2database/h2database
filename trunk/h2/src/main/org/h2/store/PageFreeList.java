@@ -24,13 +24,13 @@ import org.h2.util.IntArray;
 public class PageFreeList extends Record {
 
     private final PageStore store;
-    private final DataPage page;
+    private final DataPage data;
     private final IntArray array = new IntArray();
     private int nextPage;
 
     PageFreeList(PageStore store, int pageId, int nextPage) {
         setPos(pageId);
-        this.page = store.createDataPage();
+        this.data = store.createDataPage();
         this.store = store;
         this.nextPage = nextPage;
     }
@@ -41,13 +41,14 @@ public class PageFreeList extends Record {
      * @return the page
      */
     int allocate() throws SQLException {
+        store.updateRecord(this, data);
         int size = array.size();
         if (size > 0) {
             int x = array.get(size - 1);
             array.remove(size - 1);
             return x;
         }
-        store.updateRecord(this);
+        store.removeRecord(getPos());
         // no more free pages in this list:
         // set the next page (may be 0, meaning no free pages)
         store.setFreeListRootPage(nextPage, true, 0);
@@ -63,9 +64,9 @@ public class PageFreeList extends Record {
      * Read the page from the disk.
      */
     void read() throws SQLException {
-        store.readPage(getPos(), page);
-        int p = page.readInt();
-        int t = page.readByte();
+        store.readPage(getPos(), data);
+        int p = data.readInt();
+        int t = data.readByte();
         boolean last = (t & Page.FLAG_LAST) != 0;
         t &= ~Page.FLAG_LAST;
         if (t != Page.TYPE_FREE_LIST || p != 0) {
@@ -77,13 +78,13 @@ public class PageFreeList extends Record {
         int size;
         if (last) {
             nextPage = 0;
-            size = page.readInt();
+            size = data.readInt();
         } else {
-            nextPage = page.readInt();
+            nextPage = data.readInt();
             size = getMaxSize();
         }
         for (int i = 0; i < size; i++) {
-            array.add(page.readInt());
+            array.add(data.readInt());
         }
     }
 
@@ -93,7 +94,7 @@ public class PageFreeList extends Record {
      * @param pageId the page id to add
      */
     void free(int pageId) throws SQLException {
-        store.updateRecord(this);
+        store.updateRecord(this, data);
         if (array.size() < getMaxSize()) {
             array.add(pageId);
         } else {
@@ -110,20 +111,20 @@ public class PageFreeList extends Record {
     }
 
     public void write(DataPage buff) throws SQLException {
-        page.reset();
-        page.writeInt(0);
+        data.reset();
+        data.writeInt(0);
         int type = Page.TYPE_FREE_LIST;
         if (nextPage == 0) {
             type |= Page.FLAG_LAST;
         }
-        page.writeByte((byte) type);
+        data.writeByte((byte) type);
         if (nextPage != 0) {
-            page.writeInt(nextPage);
+            data.writeInt(nextPage);
         } else {
-            page.writeInt(array.size());
+            data.writeInt(array.size());
         }
         for (int i = 0; i < array.size(); i++) {
-            page.writeInt(array.get(i));
+            data.writeInt(array.get(i));
         }
     }
 

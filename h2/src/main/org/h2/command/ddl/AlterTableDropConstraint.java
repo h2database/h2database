@@ -35,7 +35,7 @@ public class AlterTableDropConstraint extends SchemaCommand {
 
     public int update() throws SQLException {
         session.commit(true);
-        Constraint constraint = getSchema().findConstraint(constraintName);
+        Constraint constraint = getSchema().findConstraint(session, constraintName);
         if (constraint == null) {
             if (!ifExists) {
                 throw Message.getSQLException(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);

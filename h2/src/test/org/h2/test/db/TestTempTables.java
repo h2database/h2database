@@ -31,11 +31,22 @@ public class TestTempTables extends TestBase {
         deleteDb("tempTables");
         Connection c1 = getConnection("tempTables");
         Connection c2 = getConnection("tempTables");
+        testConstraints(c1, c2);
         testTables(c1, c2);
         testIndexes(c1, c2);
         c1.close();
         c2.close();
         deleteDb("tempTables");
+    }
+
+    private void testConstraints(Connection conn1, Connection conn2) throws SQLException {
+        Statement s1 = conn1.createStatement(), s2 = conn2.createStatement();
+        s1.execute("create local temporary table test(id int unique)");
+        s2.execute("create local temporary table test(id int unique)");
+        s1.execute("alter table test add constraint a unique(id)");
+        s2.execute("alter table test add constraint a unique(id)");
+        s1.execute("drop table test");
+        s2.execute("drop table test");
     }
 
     private void testIndexes(Connection conn1, Connection conn2) throws SQLException {

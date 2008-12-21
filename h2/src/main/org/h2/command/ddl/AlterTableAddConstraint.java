@@ -78,7 +78,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
 
     private String generateConstraintName(Table table) {
         if (constraintName == null) {
-            constraintName = getSchema().getUniqueConstraintName(table);
+            constraintName = getSchema().getUniqueConstraintName(session, table);
         }
         return constraintName;
     }
@@ -100,7 +100,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         session.commit(true);
         Database db = session.getDatabase();
         Table table = getSchema().getTableOrView(session, tableName);
-        if (getSchema().findConstraint(constraintName) != null) {
+        if (getSchema().findConstraint(session, constraintName) != null) {
             if (ifNotExists) {
                 return 0;
             }
@@ -248,7 +248,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
         }
         // parent relationship is already set with addConstraint
         constraint.setComment(comment);
-        db.addSchemaObject(session, constraint);
+        if (table.getTemporary() && !table.getGlobalTemporary()) {
+            session.addLocalTempTableConstraint(constraint);
+        } else {
+            db.addSchemaObject(session, constraint);
+        }
         table.addConstraint(constraint);
         return 0;
     }

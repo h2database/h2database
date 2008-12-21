@@ -226,7 +226,17 @@ public class Doclet {
             boolean hasComment = method.commentText() != null && method.commentText().trim().length() != 0;
             writer.println(formatText(method.commentText()));
             ParamTag[] paramTags = method.paramTags();
+            ThrowsTag[] throwsTags = method.throwsTags();
+            boolean hasThrowsTag = throwsTags != null && throwsTags.length > 0;
             boolean space = false;
+            if (paramTags.length != params.length) {
+                if (hasComment && !method.commentText().startsWith("[") && !hasThrowsTag) {
+                    // [Not supported] and such are not problematic
+                    // also not problematic are methods that always throw an exception
+                    addError("Undocumented parameter(s) (" +
+                            clazz.name() + ".java:" + method.position().line() + ") " + name + " documented: " + paramTags.length + " params: "+ params.length);
+                }
+            }
             for (int j = 0; j < paramTags.length; j++) {
                 if (!space) {
                     writer.println("<br /><br />");
@@ -245,8 +255,6 @@ public class Doclet {
                 writer.println("<div class=\"item\">" + p + "</div>");
             }
             Tag[] returnTags = method.tags("return");
-            ThrowsTag[] throwsTags = method.throwsTags();
-            boolean hasThrowsTag = throwsTags != null && throwsTags.length > 0;
             if (returnTags != null && returnTags.length > 0) {
                 if (!space) {
                     writer.println("<br /><br />");

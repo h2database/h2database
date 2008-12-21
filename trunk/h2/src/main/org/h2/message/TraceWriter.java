@@ -16,6 +16,8 @@ interface TraceWriter {
 
     /**
      * Set the name of the database or trace object.
+     *
+     * @param name the new name
      */
     void setName(String name);
 

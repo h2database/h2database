@@ -878,6 +878,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     /**
      * Creates a new named savepoint.
      *
+     * @param name the savepoint name
      * @return the new savepoint
      */
 //## Java 1.4 begin ##
@@ -900,6 +901,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Rolls back to a savepoint.
+     *
+     * @param savepoint the savepoint
      */
 //## Java 1.4 begin ##
     public void rollback(Savepoint savepoint) throws SQLException {
@@ -916,6 +919,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Releases a savepoint.
+     *
+     * @param savepoint the savepoint to release
      */
 //## Java 1.4 begin ##
     public void releaseSavepoint(Savepoint savepoint) throws SQLException {
@@ -1408,6 +1413,8 @@ public class JdbcConnection extends TraceObject implements Connection {
     /**
      * Returns true if this connection is still valid.
      *
+     * @param timeout the number of seconds to wait for the database to respond
+     *            (ignored)
      * @return true if the connection is valid.
      */
     public synchronized boolean isValid(int timeout) {

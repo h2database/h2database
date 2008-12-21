@@ -85,6 +85,7 @@ class PageDataLeaf extends PageData {
      * Add a row if possible. If it is possible this method returns 0, otherwise
      * the split point. It is always possible to add one row.
      *
+     * @param row the now to add
      * @return the split point of this page, or 0 if no split is required
      */
     int addRow(Row row) throws SQLException {

@@ -268,11 +268,11 @@ public class Session implements SessionInterface {
             index.removeChildrenAndResources(this);
         }
     }
-    
+
     /**
      * Get the local temporary constraint if one exists with that name, or
      * null if not.
-     * 
+     *
      * @param name the constraint name
      * @return the constraint, or null
      */
@@ -511,6 +511,7 @@ public class Session implements SessionInterface {
      * Partially roll back the current transaction.
      *
      * @param index the position to which should be rolled back
+     * @param trimToSize if the list should be trimmed
      */
     public void rollbackTo(int index, boolean trimToSize) throws SQLException {
         while (undoLog.size() > index) {

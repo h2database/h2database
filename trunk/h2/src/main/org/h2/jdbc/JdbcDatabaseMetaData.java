@@ -1445,6 +1445,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Returns whether CONVERT is supported for one datatype to another.
      *
+     * @param fromType the source SQL type
+     * @param toType the target SQL type
      * @return true
      */
     public boolean supportsConvert(int fromType, int toType) {
@@ -1983,6 +1985,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Returns whether a specific transaction isolation level is supported.
      *
+     * @param level the transaction isolation level (Connection.TRANSACTION_*)
      * @return true
      */
     public boolean supportsTransactionIsolationLevel(int level) {
@@ -2035,6 +2038,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Returns whether a specific result set type is supported.
      * ResultSet.TYPE_SCROLL_SENSITIVE is not supported.
      *
+     * @param type the result set type
      * @return true for all types except ResultSet.TYPE_FORWARD_ONLY
      */
     public boolean supportsResultSetType(int type) {
@@ -2046,6 +2050,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Returns whether a specific result set concurrency is supported.
      * ResultSet.TYPE_SCROLL_SENSITIVE is not supported.
      *
+     * @param type the result set type
+     * @param concurrency the result set concurrency
      * @return true if the type is not ResultSet.TYPE_SCROLL_SENSITIVE
      */
     public boolean supportsResultSetConcurrency(int type, int concurrency) {
@@ -2058,6 +2064,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Returns whether own updates are visible.
      *
+     * @param type the result set type
      * @return true
      */
     public boolean ownUpdatesAreVisible(int type) {
@@ -2068,6 +2075,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Returns whether own deletes are visible.
      *
+     * @param type the result set type
      * @return false
      */
     public boolean ownDeletesAreVisible(int type) {
@@ -2078,6 +2086,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Returns whether own inserts are visible.
      *
+     * @param type the result set type
      * @return false
      */
     public boolean ownInsertsAreVisible(int type) {
@@ -2088,6 +2097,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Returns whether other updates are visible.
      *
+     * @param type the result set type
      * @return false
      */
     public boolean othersUpdatesAreVisible(int type) {
@@ -2098,6 +2108,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Returns whether other deletes are visible.
      *
+     * @param type the result set type
      * @return false
      */
     public boolean othersDeletesAreVisible(int type) {
@@ -2108,6 +2119,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Returns whether other inserts are visible.
      *
+     * @param type the result set type
      * @return false
      */
     public boolean othersInsertsAreVisible(int type) {
@@ -2118,6 +2130,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Returns whether updates are detected.
      *
+     * @param type the result set type
      * @return false
      */
     public boolean updatesAreDetected(int type) {
@@ -2128,6 +2141,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Returns whether deletes are detected.
      *
+     * @param type the result set type
      * @return false
      */
     public boolean deletesAreDetected(int type) {
@@ -2138,6 +2152,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     /**
      * Returns whether inserts are detected.
      *
+     * @param type the result set type
      * @return false
      */
     public boolean insertsAreDetected(int type) {
@@ -2522,16 +2537,20 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     }
 
     /**
-     * Get the list of super tables of a table.
-     * This method currently returns an empty result set.
-     *
+     * Get the list of super tables of a table. This method currently returns an
+     * empty result set.
      * <ul>
-     * <li>1 TABLE_CAT (String) table catalog
-     * </li><li>2 TABLE_SCHEM (String) table schema
-     * </li><li>3 TABLE_NAME (String) table name
-     * </li><li>4 SUPERTABLE_NAME (String) the name of the super table
-     * </li></ul>
+     * <li>1 TABLE_CAT (String) table catalog</li>
+     * <li>2 TABLE_SCHEM (String) table schema</li>
+     * <li>3 TABLE_NAME (String) table name</li>
+     * <li>4 SUPERTABLE_NAME (String) the name of the super table</li>
+     * </ul>
      *
+     * @param catalog null (to get all objects) or the catalog name
+     * @param schemaPattern null (to get all objects) or a schema name (uppercase for
+     *            unquoted names)
+     * @param tableNamePattern null (to get all objects) or a table name pattern
+     *            (uppercase for unquoted names)
      * @return an empty result set
      */
     public ResultSet getSuperTables(String catalog, String schemaPattern,

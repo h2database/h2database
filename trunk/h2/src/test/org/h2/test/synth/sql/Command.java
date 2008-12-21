@@ -130,6 +130,7 @@ class Command {
      * Create a create table command.
      *
      * @param config the configuration
+     * @param table the table
      * @return the command
      */
     static Command getCreateTable(TestSynth config, Table table) {
@@ -140,6 +141,7 @@ class Command {
      * Create a create index command.
      *
      * @param config the configuration
+     * @param index the index
      * @return the command
      */
     static Command getCreateIndex(TestSynth config, Index index) {
@@ -150,6 +152,7 @@ class Command {
      * Create a random select command.
      *
      * @param config the configuration
+     * @param table the table
      * @return the command
      */
     static Command getRandomSelect(TestSynth config, Table table) {

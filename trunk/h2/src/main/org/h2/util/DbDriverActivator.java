@@ -16,14 +16,18 @@ import org.osgi.framework.BundleContext;
 public class DbDriverActivator implements BundleActivator {
 
     /**
-     * Start the bundle. This will load the database driver.
+     * Start the bundle. This will load and register the database driver.
+     *
+     * @param bundleContext the bundle context
      */
     public void start(BundleContext bundleContext) {
         org.h2.Driver.load();
     }
 
     /**
-     * Stop the bundle. This will unload the database driver.
+     * Stop the bundle. This will deregister the database driver.
+     *
+     * @param bundleContext the bundle context
      */
     public void stop(BundleContext bundleContext) {
         org.h2.Driver.unload();

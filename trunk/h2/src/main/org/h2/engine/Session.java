@@ -20,6 +20,7 @@ import org.h2.command.Prepared;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.constraint.Constraint;
 import org.h2.index.Index;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.log.InDoubtTransaction;
@@ -67,6 +68,7 @@ public class Session implements SessionInterface {
     private Exception stackTrace = new Exception();
     private HashMap localTempTables;
     private HashMap localTempTableIndexes;
+    private HashMap localTempTableConstraints;
     private int throttle;
     private long lastThrottle;
     private Command currentCommand;
@@ -264,6 +266,62 @@ public class Session implements SessionInterface {
         if (localTempTableIndexes != null) {
             localTempTableIndexes.remove(index.getName());
             index.removeChildrenAndResources(this);
+        }
+    }
+    
+    /**
+     * Get the local temporary constraint if one exists with that name, or
+     * null if not.
+     * 
+     * @param name the constraint name
+     * @return the constraint, or null
+     */
+    public Constraint findLocalTempTableConstraint(String name) {
+        if (localTempTableConstraints == null) {
+            return null;
+        }
+        return (Constraint) localTempTableConstraints.get(name);
+    }
+
+    /**
+     * Get the map of constraints for all constraints on local, temporary
+     * tables, if any.  The map's keys are the constraints' names.
+     *
+     * @return the map of constraints, or null
+     */
+    public HashMap getLocalTempTableConstraints() {
+        if (localTempTableConstraints == null) {
+            return new HashMap();
+        }
+        return localTempTableConstraints;
+    }
+
+    /**
+     * Add a local temporary constraint to this session.
+     *
+     * @param constraint the constraint to add
+     * @throws SQLException if a constraint with the same name already exists
+     */
+    public void addLocalTempTableConstraint(Constraint constraint) throws SQLException {
+        if (localTempTableConstraints == null) {
+            localTempTableConstraints = new HashMap();
+        }
+        String name = constraint.getName();
+        if (localTempTableConstraints.get(name) != null) {
+            throw Message.getSQLException(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraint.getSQL());
+        }
+        localTempTableConstraints.put(name, constraint);
+    }
+
+    /**
+     * Drop and remove the given local temporary constraint from this session.
+     *
+     * @param constraint the constraint
+     */
+    public void removeLocalTempTableConstraint(Constraint constraint) throws SQLException {
+        if (localTempTableConstraints != null) {
+            localTempTableConstraints.remove(constraint.getName());
+            constraint.removeChildrenAndResources(this);
         }
     }
 

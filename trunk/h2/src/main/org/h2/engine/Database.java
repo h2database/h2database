@@ -20,6 +20,7 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.constraint.Constraint;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -1529,16 +1530,25 @@ public class Database implements DataHandler {
      * @param obj the object to be removed
      */
     public synchronized void removeSchemaObject(Session session, SchemaObject obj) throws SQLException {
-        if (obj.getType() == DbObject.TABLE_OR_VIEW) {
+        int type = obj.getType();
+        if (type == DbObject.TABLE_OR_VIEW) {
             Table table = (Table) obj;
             if (table.getTemporary() && !table.getGlobalTemporary()) {
                 session.removeLocalTempTable(table);
                 return;
             }
-        } else if (obj.getType() == DbObject.INDEX) {
+        } else if (type == DbObject.INDEX) {
             Index index = (Index) obj;
-            if (index.getTable().getTemporary() && !index.getTable().getGlobalTemporary()) {
+            Table table = index.getTable();
+            if (table.getTemporary() && !table.getGlobalTemporary()) {
                 session.removeLocalTempTableIndex(index);
+                return;
+            }
+        } else if (type == DbObject.CONSTRAINT) {
+            Constraint constraint = (Constraint) obj;
+            Table table = constraint.getTable();
+            if (table.getTemporary() && !table.getGlobalTemporary()) {
+                session.removeLocalTempTableConstraint(constraint);
                 return;
             }
         }

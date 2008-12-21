@@ -262,11 +262,16 @@ public class Schema extends DbObjectBase {
      * Try to find a constraint with this name. This method returns null if no
      * object with this name exists.
      *
-     * @param constraintName the object name
+     * @param session the session
+     * @param name the object name
      * @return the object or null
      */
-    public Constraint findConstraint(String constraintName) {
-        return (Constraint) constraints.get(constraintName);
+    public Constraint findConstraint(Session session, String name) {
+        Constraint constraint = (Constraint) constraints.get(name);
+        if (constraint == null) {
+            constraint = session.findLocalTempTableConstraint(name);
+        }
+        return constraint;
     }
 
     /**
@@ -287,41 +292,52 @@ public class Schema extends DbObjectBase {
      */
     public void freeUniqueName(String name) {
         if (name != null) {
-            temporaryUniqueNames.remove(name);
+            synchronized (temporaryUniqueNames) {
+                temporaryUniqueNames.remove(name);
+            }
         }
     }
 
     private String getUniqueName(DbObject obj, HashMap map, String prefix) {
         String hash = Integer.toHexString(obj.getName().hashCode()).toUpperCase();
         String name = null;
-        for (int i = 1; i < hash.length(); i++) {
-            name = prefix + hash.substring(0, i);
-            if (!map.containsKey(name) && !temporaryUniqueNames.contains(name)) {
-                break;
-            }
-            name = null;
-        }
-        if (name == null) {
-            prefix = prefix + hash + "_";
-            for (int i = 0;; i++) {
-                name = prefix + i;
+        synchronized (temporaryUniqueNames) {
+            for (int i = 1; i < hash.length(); i++) {
+                name = prefix + hash.substring(0, i);
                 if (!map.containsKey(name) && !temporaryUniqueNames.contains(name)) {
                     break;
                 }
+                name = null;
             }
+            if (name == null) {
+                prefix = prefix + hash + "_";
+                for (int i = 0;; i++) {
+                    name = prefix + i;
+                    if (!map.containsKey(name) && !temporaryUniqueNames.contains(name)) {
+                        break;
+                    }
+                }
+            }
+            temporaryUniqueNames.add(name);
         }
-        temporaryUniqueNames.add(name);
         return name;
     }
 
     /**
      * Create a unique constraint name.
      *
+     * @param session the session
      * @param table the constraint table
      * @return the unique name
      */
-    public String getUniqueConstraintName(Table table) {
-        return getUniqueName(table, constraints, "CONSTRAINT_");
+    public String getUniqueConstraintName(Session session, Table table) {
+        HashMap tableConstraints;
+        if (table.getTemporary() && !table.getGlobalTemporary()) {
+            tableConstraints = session.getLocalTempTableConstraints();
+        } else {
+            tableConstraints = constraints;
+        }
+        return getUniqueName(table, tableConstraints, "CONSTRAINT_");
     }
 
     /**

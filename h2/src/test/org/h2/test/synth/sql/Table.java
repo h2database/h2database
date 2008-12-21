@@ -135,6 +135,8 @@ class Table {
     /**
      * Get the INSERT statement for this table.
      *
+     * @param c the column list
+     * @param v the value list
      * @return the SQL statement
      */
     String getInsertSQL(Column[] c, Value[] v) {

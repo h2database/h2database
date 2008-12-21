@@ -3074,6 +3074,7 @@ public class Parser {
      * Checks if this string is a SQL keyword.
      *
      * @param s the token to check
+     * @param supportOffsetFetch if OFFSET and FETCH are keywords
      * @return true if it is a keyword
      */
     public static boolean isKeyword(String s, boolean supportOffsetFetch) {

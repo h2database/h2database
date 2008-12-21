@@ -343,6 +343,7 @@ public class Schema extends DbObjectBase {
     /**
      * Create a unique index name.
      *
+     * @param session the session
      * @param table the indexed table
      * @param prefix the index name prefix
      * @return the unique name
@@ -471,6 +472,7 @@ public class Schema extends DbObjectBase {
      * @param columns the column list
      * @param persistent if the table should be persistent
      * @param clustered if a clustered table should be created
+     * @param headPos the position (page number) of the head
      * @return the created {@link TableData} object
      */
     public TableData createTable(String tableName, int id, ObjectArray columns, boolean persistent, boolean clustered, int headPos)
@@ -487,6 +489,7 @@ public class Schema extends DbObjectBase {
      * @param url the database URL
      * @param user the user name
      * @param password the password
+     * @param originalSchema the schema name of the target table
      * @param originalTable the table name of the target table
      * @param emitUpdates if updates should be emitted instead of delete/insert
      * @param force create the object even if the database can not be accessed

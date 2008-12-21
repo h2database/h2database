@@ -125,7 +125,6 @@ abstract class PageData extends Record {
     /**
      * Split the index page at the given point.
      *
-     * @param session the session
      * @param splitPoint the index where to split
      * @return the new page that contains about half the entries
      */
@@ -185,6 +184,7 @@ abstract class PageData extends Record {
     /**
      * Get the row for the given key.
      *
+     * @param session the session
      * @param key the key
      * @return the row
      */

@@ -76,6 +76,8 @@ public class TestAutoServer extends TestBase {
 
     /**
      * This method is called via reflection from the database.
+     *
+     * @param exitValue the exit value
      */
     public static void halt(int exitValue) {
         Runtime.getRuntime().halt(exitValue);

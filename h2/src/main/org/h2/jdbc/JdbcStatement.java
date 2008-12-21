@@ -53,6 +53,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * If another result set exists for this statement, this will be closed
      * (even if this statement fails).
      *
+     * @param sql the SQL statement to execute
      * @return the result set
      */
     public ResultSet executeQuery(String sql) throws SQLException {
@@ -135,6 +136,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * If auto commit is on, and the statement is not a select, this statement
      * will be committed.
      *
+     * @param sql the SQL statement to execute
      * @return true if a result set is available, false if not
      */
     public boolean execute(String sql) throws SQLException {
@@ -569,6 +571,8 @@ public class JdbcStatement extends TraceObject implements Statement {
 
     /**
      * Adds a statement to the batch.
+     *
+     * @param sql the SQL statement
      */
     public void addBatch(String sql) throws SQLException {
         try {

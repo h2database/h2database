@@ -190,6 +190,7 @@ public interface Index extends SchemaObject {
      * allowed using the current compatibility mode for unique indexes. Note:
      * NULL behavior is complicated in SQL.
      *
+     * @param session the session
      * @param newRow the row to check
      * @return true if one of the columns is null and multiple nulls in unique
      *         indexes are allowed

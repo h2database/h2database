@@ -39,8 +39,12 @@ public class Driver implements java.sql.Driver {
     }
 
     /**
+     * Open a database connection.
      * This method should not be called by an application.
+     * Instead, the method DriverManager.getConnection should be used.
      *
+     * @param url the database URL
+     * @param info the connection properties
      * @return the new connection
      */
     public Connection connect(String url, Properties info) throws SQLException {
@@ -58,8 +62,10 @@ public class Driver implements java.sql.Driver {
     }
 
     /**
+     * Check if the driver understands this URL.
      * This method should not be called by an application.
      *
+     * @param url the database URL
      * @return if the driver understands the URL
      */
     public boolean acceptsURL(String url) {
@@ -67,6 +73,7 @@ public class Driver implements java.sql.Driver {
     }
 
     /**
+     * Get the major version number of the driver.
      * This method should not be called by an application.
      *
      * @return the major version number
@@ -76,6 +83,7 @@ public class Driver implements java.sql.Driver {
     }
 
     /**
+     * Get the minor version number of the driver.
      * This method should not be called by an application.
      *
      * @return the minor version number
@@ -85,8 +93,11 @@ public class Driver implements java.sql.Driver {
     }
 
     /**
+     * Get the list of supported properties.
      * This method should not be called by an application.
      *
+     * @param url the database URL
+     * @param info the connection properties
      * @return a zero length array
      */
     public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) {
@@ -94,6 +105,7 @@ public class Driver implements java.sql.Driver {
     }
 
     /**
+     * Check if this driver is compliant to the JDBC specification.
      * This method should not be called by an application.
      *
      * @return true

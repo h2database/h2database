@@ -406,6 +406,7 @@ public class SessionRemote implements SessionInterface, SessionFactory, DataHand
      *
      * @param e the exception (used for debugging)
      * @param i the index of the server to remove
+     * @param count the retry count index
      */
     public void removeServer(IOException e, int i, int count) throws SQLException {
         transferList.remove(i);
@@ -426,6 +427,7 @@ public class SessionRemote implements SessionInterface, SessionFactory, DataHand
     /**
      * Automatically re-connect if necessary and if configured to do so.
      *
+     * @param count the retry count index
      * @return true if reconnected
      */
     public boolean autoReconnect(int count) throws SQLException {

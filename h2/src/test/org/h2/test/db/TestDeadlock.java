@@ -92,6 +92,8 @@ public class TestDeadlock extends TestBase {
 
     /**
      * Add the exception to the list of exceptions.
+     *
+     * @param e the exception
      */
     void catchDeadlock(SQLException e) {
         if (lastException != null) {

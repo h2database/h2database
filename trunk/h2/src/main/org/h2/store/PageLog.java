@@ -35,10 +35,17 @@ public class PageLog {
         this.firstPage = firstPage;
     }
 
+    /**
+     * Open the log file for writing. For an existing database, the recovery
+     * must be run first.
+     */
     void openForWriting() {
         out = new DataOutputStream(new PageOutputStream(store, 0, firstPage, Page.TYPE_LOG));
     }
 
+    /**
+     * Run the recovery process. Uncommitted transactions are rolled back.
+     */
     public void recover() throws SQLException {
         DataInputStream in = new DataInputStream(new PageInputStream(store, 0, firstPage, Page.TYPE_LOG));
         DataPage data = store.createDataPage();
@@ -59,6 +66,13 @@ public class PageLog {
         }
     }
 
+    /**
+     * Add an undo entry to the log. The page data is only written once until
+     * the next checkpoint.
+     *
+     * @param pageId the page id
+     * @param page the old page data
+     */
     public void addUndo(int pageId, DataPage page) throws SQLException {
         try {
             if (undo.get(pageId)) {

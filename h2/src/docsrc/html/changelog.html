@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Constraints for local temporary tables now session scoped. So far they were global.
+<ul><li>The license change a bit: so far the license was modified to say
+    'Swiss law'. This is now changed back to the original 'US law'.
+    This was requested by a user, and I don't see a problem.
+</li><li>Constraints for local temporary tables now session scoped. So far they were global.
     Thanks a lot to Eric Faulhaber for finding and fixing this problem!
 </li><li>When using the auto-server mode, and if the lock file was modified in the future,
     the wrong exception was thrown ('Connection is broken' instead of 'Error opening database: Lock file modified in the future').

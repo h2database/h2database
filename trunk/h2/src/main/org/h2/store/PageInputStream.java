@@ -18,7 +18,7 @@ import org.h2.message.Message;
  * The format is:
  * <ul><li>0-3: parent page id
  * </li><li>4-4: page type
- * </li><li>5-8: the next page (if there are more) or length
+ * </li><li>5-8: the next page (if there is one) or length
  * </li><li>9-remainder: data
  * </li></ul>
  */

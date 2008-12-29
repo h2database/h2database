@@ -98,6 +98,10 @@ public class PageOutputStream extends OutputStream {
         store = null;
     }
 
+    public void flush() throws IOException {
+        int todo;
+    }
+
 //    public void write(byte[] buff, int off, int len) throws IOException {
 //        if (len > 0) {
 //            try {

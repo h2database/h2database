@@ -54,10 +54,14 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             int todo;
             return;
         }
-        this.store = database.getPageStorage();
-        if (headPos == Index.EMPTY_HEAD || store.isNew()) {
-            // new table, or the system table for a new database
+        this.store = database.getPageStore();
+        if (headPos == Index.EMPTY_HEAD) {
+            // new table
             headPos = store.allocatePage();
+            PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
+            store.updateRecord(root, root.data);
+        } else if (store.isNew()) {
+            // the system table for a new database
             PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
             store.updateRecord(root, root.data);
         } else {
@@ -100,6 +104,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             root = newRoot;
         }
         rowCount++;
+        int todo;
+        // store.getLog().addRow(headPos, row);
     }
 
     /**
@@ -125,6 +131,9 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         case Page.TYPE_DATA_NODE:
             result = new PageDataNode(this, id, parentPageId, data);
             break;
+        case Page.TYPE_EMPTY:
+            PageDataLeaf empty = new PageDataLeaf(this, id, parentPageId, data);
+            return empty;
         default:
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "page=" + id + " type=" + type);
         }
@@ -229,8 +238,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     private void trace(String message) {
+        int todoSometimeSlow;
         if (headPos != 1) {
-            int test;
 //            System.out.println(message);
         }
     }

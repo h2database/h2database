@@ -21,7 +21,7 @@ import org.h2.util.ObjectUtils;
  */
 class FullTextSettings {
 
-    private static HashMap settings = new HashMap();
+    private static final HashMap SETTINGS = new HashMap();
 
     private HashSet ignoreList = new HashSet();
     private HashMap words = new HashMap();
@@ -84,10 +84,10 @@ class FullTextSettings {
      */
     static FullTextSettings getInstance(Connection conn) throws SQLException {
         String path = getIndexPath(conn);
-        FullTextSettings setting = (FullTextSettings) settings.get(path);
+        FullTextSettings setting = (FullTextSettings) SETTINGS.get(path);
         if (setting == null) {
             setting = new FullTextSettings();
-            settings.put(path, setting);
+            SETTINGS.put(path, setting);
         }
         return setting;
     }

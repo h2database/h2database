@@ -46,15 +46,10 @@ import org.h2.value.DataType;
  * This class implements the native full text search.
  * Most methods can be called using SQL statements as well.
  */
-public class FullText implements Trigger, CloseListener {
+public class FullText {
 
     private static final String TRIGGER_PREFIX = "FT_";
     private static final String SCHEMA = "FT";
-
-    /**
-     * The column name of the result set returned by the search method.
-     */
-    private static final String FIELD_QUERY = "QUERY";
 
     /**
      * A column name of the result set returned by the searchData method.
@@ -76,14 +71,72 @@ public class FullText implements Trigger, CloseListener {
      */
     private static final String FIELD_KEYS = "KEYS";
 
-    private FullTextSettings setting;
-    private IndexInfo index;
-    private int[] dataTypes;
-    private PreparedStatement prepInsertWord, prepInsertRow, prepInsertMap;
-    private PreparedStatement prepDeleteRow, prepDeleteMap;
-    private PreparedStatement prepSelectRow;
+    /**
+     * The column name of the result set returned by the search method.
+     */
+    private static final String FIELD_QUERY = "QUERY";
 
-   /**
+    /**
+     * Initializes full text search functionality for this database. This adds
+     * the following Java functions to the database:
+     * <ul>
+     * <li>FT_CREATE_INDEX(schemaNameString, tableNameString,
+     * columnListString)</li>
+     * <li>FT_SEARCH(queryString, limitInt, offsetInt): result set</li>
+     * <li>FT_REINDEX()</li>
+     * <li>FT_DROP_ALL()</li>
+     * </ul>
+     * It also adds a schema FT to the database where bookkeeping information
+     * is stored. This function may be called from a Java application, or by
+     * using the SQL statements:
+     *
+     * <pre>
+     * CREATE ALIAS IF NOT EXISTS FT_INIT FOR
+     *      &quot;org.h2.fulltext.FullText.init&quot;;
+     * CALL FT_INIT();
+     * </pre>
+     *
+     * @param conn the connection
+     */
+    public static void init(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE SCHEMA IF NOT EXISTS " + SCHEMA);
+        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
+                        + ".INDEXES(ID INT AUTO_INCREMENT PRIMARY KEY, SCHEMA VARCHAR, TABLE VARCHAR, COLUMNS VARCHAR, UNIQUE(SCHEMA, TABLE))");
+        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
+                + ".WORDS(ID INT AUTO_INCREMENT PRIMARY KEY, NAME VARCHAR, UNIQUE(NAME))");
+        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
+                + ".ROWS(ID IDENTITY, HASH INT, INDEXID INT, KEY VARCHAR, UNIQUE(HASH, INDEXID, KEY))");
+
+        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
+                        + ".MAP(ROWID INT, WORDID INT, PRIMARY KEY(WORDID, ROWID))");
+
+        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA + ".IGNORELIST(LIST VARCHAR)");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_CREATE_INDEX FOR \"" + FullText.class.getName() + ".createIndex\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_INDEX FOR \"" + FullText.class.getName() + ".dropIndex\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH FOR \"" + FullText.class.getName() + ".search\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH_DATA FOR \"" + FullText.class.getName() + ".searchData\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_REINDEX FOR \"" + FullText.class.getName() + ".reindex\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_ALL FOR \"" + FullText.class.getName() + ".dropAll\"");
+        FullTextSettings setting = FullTextSettings.getInstance(conn);
+        ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".IGNORELIST");
+        while (rs.next()) {
+            String commaSeparatedList = rs.getString(1);
+            setIgnoreList(setting, commaSeparatedList);
+        }
+        rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".WORDS");
+        HashMap map = setting.getWordList();
+        while (rs.next()) {
+            String word = rs.getString("NAME");
+            int id = rs.getInt("ID");
+            word = setting.convertWord(word);
+            if (word != null) {
+                map.put(word, ObjectUtils.getInteger(id));
+            }
+        }
+    }
+
+    /**
      * Create a new full text index for a table and column list. Each table may
      * only have one index at any time.
      *
@@ -102,6 +155,29 @@ public class FullText implements Trigger, CloseListener {
         prep.execute();
         createTrigger(conn, schema, table);
         indexExistingRows(conn, schema, table);
+    }
+
+    /**
+     * Re-creates the full text index for this database
+     *
+     * @param conn the connection
+     */
+    public static void reindex(Connection conn) throws SQLException {
+        init(conn);
+        removeAllTriggers(conn, TRIGGER_PREFIX);
+        FullTextSettings setting = FullTextSettings.getInstance(conn);
+        setting.getWordList().clear();
+        Statement stat = conn.createStatement();
+        stat.execute("TRUNCATE TABLE " + SCHEMA + ".WORDS");
+        stat.execute("TRUNCATE TABLE " + SCHEMA + ".ROWS");
+        stat.execute("TRUNCATE TABLE " + SCHEMA + ".MAP");
+        ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".INDEXES");
+        while (rs.next()) {
+            String schema = rs.getString("SCHEMA");
+            String table = rs.getString("TABLE");
+            createTrigger(conn, schema, table);
+            indexExistingRows(conn, schema, table);
+        }
     }
 
     /**
@@ -147,64 +223,61 @@ public class FullText implements Trigger, CloseListener {
         }
     }
 
-    private static void createTrigger(Connection conn, String schema, String table) throws SQLException {
-        createOrDropTrigger(conn, schema, table, true);
-    }
-
-    private static void createOrDropTrigger(Connection conn, String schema, String table, boolean create) throws SQLException {
-        Statement stat = conn.createStatement();
-        String trigger = StringUtils.quoteIdentifier(schema) + "."
-                + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
-        stat.execute("DROP TRIGGER IF EXISTS " + trigger);
-        if (create) {
-            StringBuffer buff = new StringBuffer("CREATE TRIGGER IF NOT EXISTS ");
-            buff.append(trigger);
-            buff.append(" AFTER INSERT, UPDATE, DELETE ON ");
-            buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
-            buff.append(" FOR EACH ROW CALL \"");
-            buff.append(FullText.class.getName());
-            buff.append("\"");
-            stat.execute(buff.toString());
-        }
-    }
-
-    private static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
-        FullText existing = new FullText();
-        existing.init(conn, schema, null, table, false, INSERT);
-        StringBuffer buff = new StringBuffer("SELECT * FROM ");
-        buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
-        ResultSet rs = conn.createStatement().executeQuery(buff.toString());
-        int columnCount = rs.getMetaData().getColumnCount();
-        while (rs.next()) {
-            Object[] row = new Object[columnCount];
-            for (int i = 0; i < columnCount; i++) {
-                row[i] = rs.getObject(i + 1);
-            }
-            existing.fire(conn, null, row);
-        }
-    }
-
     /**
-     * Re-creates the full text index for this database
+     * Drops all full text indexes from the database.
      *
      * @param conn the connection
      */
-    public static void reindex(Connection conn) throws SQLException {
+    public static void dropAll(Connection conn) throws SQLException {
         init(conn);
-        removeAllTriggers(conn);
-        FullTextSettings setting = FullTextSettings.getInstance(conn);
-        setting.getWordList().clear();
         Statement stat = conn.createStatement();
-        stat.execute("TRUNCATE TABLE " + SCHEMA + ".WORDS");
-        stat.execute("TRUNCATE TABLE " + SCHEMA + ".ROWS");
-        stat.execute("TRUNCATE TABLE " + SCHEMA + ".MAP");
-        ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".INDEXES");
-        while (rs.next()) {
-            String schema = rs.getString("SCHEMA");
-            String table = rs.getString("TABLE");
-            createTrigger(conn, schema, table);
-            indexExistingRows(conn, schema, table);
-        }
+        stat.execute("DROP SCHEMA IF EXISTS " + SCHEMA);
+        removeAllTriggers(conn, TRIGGER_PREFIX);
+        FullTextSettings setting = FullTextSettings.getInstance(conn);
+        setting.removeAllIndexes();
+        setting.getIgnoreList().clear();
+        setting.getWordList().clear();
+    }
+
+    /**
+     * Searches from the full text index for this database.
+     * The returned result set has the following column:
+     * <ul><li>QUERY (varchar): The query to use to get the data.
+     * The query does not include 'SELECT * FROM '. Example:
+     * PUBLIC.TEST WHERE ID = 1
+     * </li></ul>
+     *
+     * @param conn the connection
+     * @param text the search query
+     * @param limit the maximum number of rows or 0 for no limit
+     * @param offset the offset or 0 for no offset
+     * @return the result set
+     */
+    public static ResultSet search(Connection conn, String text, int limit, int offset) throws SQLException {
+        return search(conn, text, limit, offset, false);
+    }
+
+    /**
+     * Searches from the full text index for this database. The result contains
+     * the primary key data as an array. The returned result set has the
+     * following columns:
+     * <ul>
+     * <li>SCHEMA (varchar): The schema name. Example: PUBLIC </li>
+     * <li>TABLE (varchar): The table name. Example: TEST </li>
+     * <li>COLUMNS (array of varchar): Comma separated list of quoted column
+     * names. The column names are quoted if necessary. Example: (ID) </li>
+     * <li>KEYS (array of values): Comma separated list of values. Example: (1)
+     * </li>
+     * </ul>
+     *
+     * @param conn the connection
+     * @param text the search query
+     * @param limit the maximum number of rows or 0 for no limit
+     * @param offset the offset or 0 for no offset
+     * @return the result set
+     */
+    public static ResultSet searchData(Connection conn, String text, int limit, int offset) throws SQLException {
+        return search(conn, text, limit, offset, true);
     }
 
     /**
@@ -225,252 +298,6 @@ public class FullText implements Trigger, CloseListener {
         PreparedStatement prep = conn.prepareStatement("INSERT INTO " + SCHEMA + ".IGNORELIST VALUES(?)");
         prep.setString(1, commaSeparatedList);
         prep.execute();
-    }
-
-    private static void setIgnoreList(FullTextSettings setting, String commaSeparatedList) {
-        String[] list = StringUtils.arraySplit(commaSeparatedList, ',', true);
-        HashSet set = setting.getIgnoreList();
-        for (int i = 0; i < list.length; i++) {
-            String word = list[i];
-            word = setting.convertWord(word);
-            if (word != null) {
-                set.add(list[i]);
-            }
-        }
-    }
-
-    private static void removeAllTriggers(Connection conn) throws SQLException {
-        Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.TRIGGERS");
-        Statement stat2 = conn.createStatement();
-        while (rs.next()) {
-            String schema = rs.getString("TRIGGER_SCHEMA");
-            String name = rs.getString("TRIGGER_NAME");
-            if (name.startsWith(TRIGGER_PREFIX)) {
-                name = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(name);
-                stat2.execute("DROP TRIGGER " + name);
-            }
-        }
-    }
-
-    /**
-     * Drops all full text indexes from the database.
-     *
-     * @param conn the connection
-     */
-    public static void dropAll(Connection conn) throws SQLException {
-        init(conn);
-        Statement stat = conn.createStatement();
-        stat.execute("DROP SCHEMA IF EXISTS " + SCHEMA);
-        removeAllTriggers(conn);
-        FullTextSettings setting = FullTextSettings.getInstance(conn);
-        setting.removeAllIndexes();
-        setting.getIgnoreList().clear();
-        setting.getWordList().clear();
-    }
-
-    /**
-     * Initializes full text search functionality for this database. This adds
-     * the following Java functions to the database:
-     * <ul>
-     * <li>FT_CREATE_INDEX(schemaNameString, tableNameString, columnListString)
-     * </li><li>FT_SEARCH(queryString, limitInt, offsetInt): result set
-     * </li><li>FT_REINDEX()
-     * </li><li>FT_DROP_ALL()
-     * </li></ul>
-     * It also adds a schema FULLTEXT to the database where bookkeeping
-     * information is stored. This function may be called from a Java
-     * application, or by using the SQL statements:
-     * <pre>
-     * CREATE ALIAS IF NOT EXISTS FULLTEXT_INIT FOR
-     *      &quot;org.h2.fulltext.FullText.init&quot;;
-     * CALL FULLTEXT_INIT();
-     * </pre>
-     *
-     * @param conn the connection
-     */
-    public static void init(Connection conn) throws SQLException {
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE SCHEMA IF NOT EXISTS " + SCHEMA);
-        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
-                        + ".INDEXES(ID INT AUTO_INCREMENT PRIMARY KEY, SCHEMA VARCHAR, TABLE VARCHAR, COLUMNS VARCHAR, UNIQUE(SCHEMA, TABLE))");
-        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
-                + ".WORDS(ID INT AUTO_INCREMENT PRIMARY KEY, NAME VARCHAR, UNIQUE(NAME))");
-        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
-                + ".ROWS(ID IDENTITY, HASH INT, INDEXID INT, KEY VARCHAR, UNIQUE(HASH, INDEXID, KEY))");
-
-        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
-                        + ".MAP(ROWID INT, WORDID INT, PRIMARY KEY(WORDID, ROWID))");
-
-        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA + ".IGNORELIST(LIST VARCHAR)");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_CREATE_INDEX FOR \"" + FullText.class.getName() + ".createIndex\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_INDEX FOR \"" + FullText.class.getName() + ".dropIndex\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH FOR \"" + FullText.class.getName() + ".search\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH_DATA FOR \"" + FullText.class.getName() + ".searchData\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_REINDEX FOR \"" + FullText.class.getName() + ".reindex\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_ALL FOR \"" + FullText.class.getName() + ".dropAll\"");
-        FullTextSettings setting = FullTextSettings.getInstance(conn);
-        ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".IGNORELIST");
-        while (rs.next()) {
-            String commaSeparatedList = rs.getString(1);
-            setIgnoreList(setting, commaSeparatedList);
-        }
-        rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".WORDS");
-        HashMap map = setting.getWordList();
-        while (rs.next()) {
-            String word = rs.getString("NAME");
-            int id = rs.getInt("ID");
-            word = setting.convertWord(word);
-            if (word != null) {
-                map.put(word, ObjectUtils.getInteger(id));
-            }
-        }
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) throws SQLException {
-        setting = FullTextSettings.getInstance(conn);
-        ArrayList keyList = new ArrayList();
-        DatabaseMetaData meta = conn.getMetaData();
-        ResultSet rs = meta.getColumns(null, schemaName, tableName, null);
-        ArrayList columnList = new ArrayList();
-        while (rs.next()) {
-            columnList.add(rs.getString("COLUMN_NAME"));
-        }
-        dataTypes = new int[columnList.size()];
-        index = new IndexInfo();
-        index.schemaName = schemaName;
-        index.tableName = tableName;
-        index.columnNames = new String[columnList.size()];
-        columnList.toArray(index.columnNames);
-        rs = meta.getColumns(null, schemaName, tableName, null);
-        for (int i = 0; rs.next(); i++) {
-            dataTypes[i] = rs.getInt("DATA_TYPE");
-        }
-        if (keyList.size() == 0) {
-            rs = meta.getPrimaryKeys(null, schemaName, tableName);
-            while (rs.next()) {
-                keyList.add(rs.getString("COLUMN_NAME"));
-            }
-        }
-        if (keyList.size() == 0) {
-            throw new SQLException("No primary key for table " + tableName);
-        }
-        ArrayList indexList = new ArrayList();
-        PreparedStatement prep = conn.prepareStatement(
-                "SELECT ID, COLUMNS FROM " + SCHEMA + ".INDEXES WHERE SCHEMA=? AND TABLE=?");
-        prep.setString(1, schemaName);
-        prep.setString(2, tableName);
-        rs = prep.executeQuery();
-        if (rs.next()) {
-            index.id = rs.getInt(1);
-            String columns = rs.getString(2);
-            if (columns != null) {
-                String[] list = StringUtils.arraySplit(columns, ',', true);
-                for (int i = 0; i < list.length; i++) {
-                    indexList.add(list[i]);
-                }
-            }
-        }
-        if (indexList.size() == 0) {
-            indexList.addAll(columnList);
-        }
-        index.keys = new int[keyList.size()];
-        setColumns(index.keys, keyList, columnList);
-        index.indexColumns = new int[indexList.size()];
-        setColumns(index.indexColumns, indexList, columnList);
-        setting.addIndexInfo(index);
-        prepInsertWord = conn.prepareStatement(
-                "INSERT INTO " + SCHEMA + ".WORDS(NAME) VALUES(?)");
-        prepInsertRow = conn.prepareStatement(
-                "INSERT INTO " + SCHEMA + ".ROWS(HASH, INDEXID, KEY) VALUES(?, ?, ?)");
-        prepInsertMap = conn.prepareStatement(
-                "INSERT INTO " + SCHEMA + ".MAP(ROWID, WORDID) VALUES(?, ?)");
-        prepDeleteRow = conn.prepareStatement(
-                "DELETE FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND KEY=?");
-        prepDeleteMap = conn.prepareStatement(
-                "DELETE FROM " + SCHEMA + ".MAP WHERE ROWID=? AND WORDID=?");
-        prepSelectRow = conn.prepareStatement(
-                "SELECT ID FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND KEY=?");
-
-        PreparedStatement prepSelectMapByWordId = conn.prepareStatement(
-                "SELECT ROWID FROM " + SCHEMA + ".MAP WHERE WORDID=?");
-        PreparedStatement prepSelectRowById = conn.prepareStatement(
-                "SELECT KEY, INDEXID FROM " + SCHEMA + ".ROWS WHERE ID=?");
-        setting.setPrepSelectMapByWordId(prepSelectMapByWordId);
-        setting.setPrepSelectRowById(prepSelectRowById);
-    }
-
-    private void setColumns(int[] index, ArrayList keys, ArrayList columns) throws SQLException {
-        for (int i = 0; i < keys.size(); i++) {
-            String key = (String) keys.get(i);
-            int found = -1;
-            for (int j = 0; found == -1 && j < columns.size(); j++) {
-                String column = (String) columns.get(j);
-                if (column.equals(key)) {
-                    found = j;
-                }
-            }
-            if (found < 0) {
-                throw new SQLException("FULLTEXT", "Column not found: " + key);
-            }
-            index[i] = found;
-        }
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
-        if (oldRow != null) {
-            delete(setting, oldRow);
-        }
-        if (newRow != null) {
-            insert(setting, newRow);
-        }
-    }
-
-    private String getKey(Object[] row) throws SQLException {
-        StringBuffer buff = new StringBuffer();
-        for (int i = 0; i < index.keys.length; i++) {
-            if (i > 0) {
-                buff.append(" AND ");
-            }
-            int columnIndex = index.keys[i];
-            buff.append(StringUtils.quoteIdentifier(index.columnNames[columnIndex]));
-            Object o = row[columnIndex];
-            if (o == null) {
-                buff.append(" IS NULL");
-            } else {
-                buff.append("=");
-                buff.append(quoteSQL(o, dataTypes[columnIndex]));
-            }
-        }
-        String key = buff.toString();
-        return key;
-    }
-
-    private String quoteString(String data) {
-        if (data.indexOf('\'') < 0) {
-            return "'" + data + "'";
-        }
-        StringBuffer buff = new StringBuffer(data.length() + 2);
-        buff.append('\'');
-        for (int i = 0; i < data.length(); i++) {
-            char ch = data.charAt(i);
-            if (ch == '\'') {
-                buff.append(ch);
-            }
-            buff.append(ch);
-        }
-        buff.append('\'');
-        return buff.toString();
-    }
-
-    private String quoteBinary(byte[] data) {
-        return "'" + ByteUtils.convertBytesToString(data) + "'";
     }
 
     /**
@@ -531,7 +358,60 @@ public class FullText implements Trigger, CloseListener {
         }
     }
 
-    private String quoteSQL(Object data, int type) throws SQLException {
+    /**
+     * Create an empty search result and initialize the columns.
+     *
+     * @param data true if the result set should contain the primary key data as
+     *            an array.
+     * @return the empty result set
+     */
+    protected static SimpleResultSet createResultSet(boolean data) throws SQLException {
+        SimpleResultSet result = new SimpleResultSet();
+        if (data) {
+            result.addColumn(FullText.FIELD_SCHEMA, Types.VARCHAR, 0, 0);
+            result.addColumn(FullText.FIELD_TABLE, Types.VARCHAR, 0, 0);
+            result.addColumn(FullText.FIELD_COLUMNS, Types.ARRAY, 0, 0);
+            result.addColumn(FullText.FIELD_KEYS, Types.ARRAY, 0, 0);
+        } else {
+            result.addColumn(FullText.FIELD_QUERY, Types.VARCHAR, 0, 0);
+        }
+        return result;
+    }
+
+    /**
+     * Parse a primary key condition into the primary key columns.
+     *
+     * @param conn the database connection
+     * @param key the primary key condition as a string
+     * @return an array containing the column name list and the data list
+     */
+    protected static Object[][] parseKey(Connection conn, String key) throws SQLException {
+        ArrayList columns = new ArrayList();
+        ArrayList data = new ArrayList();
+        JdbcConnection c = (JdbcConnection) conn;
+        Session session = (Session) c.getSession();
+        Parser p = new Parser(session);
+        Expression expr = p.parseExpression(key);
+        addColumnData(columns, data, expr);
+        Object[] col = new Object[columns.size()];
+        columns.toArray(col);
+        Object[] dat = new Object[columns.size()];
+        data.toArray(dat);
+        Object[][] columnData = new Object[][] {
+                col, dat
+        };
+        return columnData;
+    }
+
+    /**
+     * INTERNAL.
+     * Convert an object to a String as used in a SQL statement.
+     *
+     * @param data the object
+     * @param type the SQL type
+     * @return the SQL String
+     */
+    protected static String quoteSQL(Object data, int type) throws SQLException {
         if (data == null) {
             return "NULL";
         }
@@ -558,7 +438,7 @@ public class FullText implements Trigger, CloseListener {
         case Types.VARBINARY:
         case Types.LONGVARBINARY:
         case Types.BINARY:
-            return quoteBinary((byte[]) data);
+            return "'" + ByteUtils.convertBytesToString((byte[]) data) + "'";
         case Types.CLOB:
         case Types.JAVA_OBJECT:
         case Types.OTHER:
@@ -575,146 +455,48 @@ public class FullText implements Trigger, CloseListener {
         }
     }
 
-    private static void addWords(FullTextSettings setting, HashSet set, String text) {
-        StringTokenizer tokenizer = new StringTokenizer(text, " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]");
-        while (tokenizer.hasMoreTokens()) {
-            String word = tokenizer.nextToken();
-            word = setting.convertWord(word);
-            if (word != null) {
-                set.add(word);
+    /**
+     * Remove all triggers that start with the given prefix.
+     *
+     * @param conn the database connection
+     * @param prefix the prefix
+     */
+    protected static void removeAllTriggers(Connection conn, String prefix) throws SQLException {
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.TRIGGERS");
+        Statement stat2 = conn.createStatement();
+        while (rs.next()) {
+            String schema = rs.getString("TRIGGER_SCHEMA");
+            String name = rs.getString("TRIGGER_NAME");
+            if (name.startsWith(TRIGGER_PREFIX)) {
+                name = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(name);
+                stat2.execute("DROP TRIGGER " + name);
             }
         }
     }
 
-    private int[] getWordIds(FullTextSettings setting, Object[] row) throws SQLException {
-        HashSet words = new HashSet();
-        for (int i = 0; i < index.indexColumns.length; i++) {
-            int idx = index.indexColumns[i];
-            String data = asString(row[idx], dataTypes[idx]);
-            addWords(setting, words, data);
-        }
-        HashMap allWords = setting.getWordList();
-        int[] wordIds = new int[words.size()];
-        Iterator it = words.iterator();
-        for (int i = 0; it.hasNext(); i++) {
-            String word = (String) it.next();
-            Integer wId = (Integer) allWords.get(word);
-            int wordId;
-            if (wId == null) {
-                prepInsertWord.setString(1, word);
-                prepInsertWord.execute();
-                ResultSet rs = JdbcUtils.getGeneratedKeys(prepInsertWord);
-                rs.next();
-                wordId = rs.getInt(1);
-                allWords.put(word, ObjectUtils.getInteger(wordId));
-            } else {
-                wordId = wId.intValue();
+    /**
+     * Set the column indices of a set of keys.
+     *
+     * @param index the column indices (will be modified)
+     * @param keys the key list
+     * @param columns the column list
+     */
+    protected static void setColumns(int[] index, ArrayList keys, ArrayList columns) throws SQLException {
+        for (int i = 0; i < keys.size(); i++) {
+            String key = (String) keys.get(i);
+            int found = -1;
+            for (int j = 0; found == -1 && j < columns.size(); j++) {
+                String column = (String) columns.get(j);
+                if (column.equals(key)) {
+                    found = j;
+                }
             }
-            wordIds[i] = wordId;
-        }
-        Arrays.sort(wordIds);
-        return wordIds;
-    }
-
-    private void insert(FullTextSettings setting, Object[] row) throws SQLException {
-        String key = getKey(row);
-        int hash = key.hashCode();
-        prepInsertRow.setInt(1, hash);
-        prepInsertRow.setInt(2, index.id);
-        prepInsertRow.setString(3, key);
-        prepInsertRow.execute();
-        ResultSet rs = JdbcUtils.getGeneratedKeys(prepInsertRow);
-        rs.next();
-        int rowId = rs.getInt(1);
-        prepInsertMap.setInt(1, rowId);
-        int[] wordIds = getWordIds(setting, row);
-        for (int i = 0; i < wordIds.length; i++) {
-            prepInsertMap.setInt(2, wordIds[i]);
-            prepInsertMap.execute();
-        }
-    }
-
-    private void delete(FullTextSettings setting, Object[] row) throws SQLException {
-        String key = getKey(row);
-        int hash = key.hashCode();
-        prepSelectRow.setInt(1, hash);
-        prepSelectRow.setInt(2, index.id);
-        prepSelectRow.setString(3, key);
-        ResultSet rs = prepSelectRow.executeQuery();
-        if (rs.next()) {
-            int rowId = rs.getInt(1);
-            prepDeleteMap.setInt(1, rowId);
-            int[] wordIds = getWordIds(setting, row);
-            for (int i = 0; i < wordIds.length; i++) {
-                prepDeleteMap.setInt(2, wordIds[i]);
-                prepDeleteMap.executeUpdate();
+            if (found < 0) {
+                throw new SQLException("FULLTEXT", "Column not found: " + key);
             }
-            prepDeleteRow.setInt(1, hash);
-            prepDeleteRow.setInt(2, index.id);
-            prepDeleteRow.setString(3, key);
-            prepDeleteRow.executeUpdate();
+            index[i] = found;
         }
-    }
-
-    /**
-     * Searches from the full text index for this database. The result contains
-     * the primary key data as an array. The returned result set has the
-     * following columns:
-     * <ul>
-     * <li>SCHEMA (varchar): The schema name. Example: PUBLIC </li>
-     * <li>TABLE (varchar): The table name. Example: TEST </li>
-     * <li>COLUMNS (array of varchar): Comma separated list of quoted column
-     * names. The column names are quoted if necessary. Example: (ID) </li>
-     * <li>KEYS (array of values): Comma separated list of values. Example: (1)
-     * </li>
-     * </ul>
-     *
-     * @param conn the connection
-     * @param text the search query
-     * @param limit the maximum number of rows or 0 for no limit
-     * @param offset the offset or 0 for no offset
-     * @return the result set
-     */
-    public static ResultSet searchData(Connection conn, String text, int limit, int offset) throws SQLException {
-        return search(conn, text, limit, offset, true);
-    }
-
-    /**
-     * Searches from the full text index for this database.
-     * The returned result set has the following column:
-     * <ul><li>QUERY (varchar): The query to use to get the data.
-     * The query does not include 'SELECT * FROM '. Example:
-     * PUBLIC.TEST WHERE ID = 1
-     * </li></ul>
-     *
-     * @param conn the connection
-     * @param text the search query
-     * @param limit the maximum number of rows or 0 for no limit
-     * @param offset the offset or 0 for no offset
-     * @return the result set
-     */
-    public static ResultSet search(Connection conn, String text, int limit, int offset) throws SQLException {
-        return search(conn, text, limit, offset, false);
-    }
-
-    /**
-     * Create an empty search result and initialize the columns.
-     *
-     * @param data true if the result set should contain the primary key data as
-     *            an array.
-     * @return the empty result set
-     */
-    static SimpleResultSet createResultSet(boolean data) throws SQLException {
-        SimpleResultSet result = new SimpleResultSet();
-        if (data) {
-            result.addColumn(FullText.FIELD_SCHEMA, Types.VARCHAR, 0, 0);
-            result.addColumn(FullText.FIELD_TABLE, Types.VARCHAR, 0, 0);
-            result.addColumn(FullText.FIELD_COLUMNS, Types.ARRAY, 0, 0);
-            result.addColumn(FullText.FIELD_KEYS, Types.ARRAY, 0, 0);
-        } else {
-            result.addColumn(FullText.FIELD_QUERY, Types.VARCHAR, 0, 0);
-        }
-        return result;
     }
 
     private static ResultSet search(Connection conn, String text, int limit, int offset, boolean data) throws SQLException {
@@ -768,17 +550,17 @@ public class FullText implements Trigger, CloseListener {
                 if (data) {
                     Object[][] columnData = parseKey(conn, key);
                     Object[] row = new Object[] {
-                        index.schemaName,
-                        index.tableName,
+                        index.schema,
+                        index.table,
                         columnData[0],
                         columnData[1]
                     };
                     result.addRow(row);
                 } else {
                     StringBuffer buff = new StringBuffer();
-                    buff.append(StringUtils.quoteIdentifier(index.schemaName));
+                    buff.append(StringUtils.quoteIdentifier(index.schema));
                     buff.append('.');
-                    buff.append(StringUtils.quoteIdentifier(index.tableName));
+                    buff.append(StringUtils.quoteIdentifier(index.table));
                     buff.append(" WHERE ");
                     buff.append(key);
                     String query = buff.toString();
@@ -791,31 +573,6 @@ public class FullText implements Trigger, CloseListener {
             }
         }
         return result;
-    }
-
-    /**
-     * Parse a primary key condition into the primary key columns.
-     *
-     * @param conn the database connection
-     * @param key the primary key condition as a string
-     * @return an array containing the column name list and the data list
-     */
-    static Object[][] parseKey(Connection conn, String key) throws SQLException {
-        ArrayList columns = new ArrayList();
-        ArrayList data = new ArrayList();
-        JdbcConnection c = (JdbcConnection) conn;
-        Session session = (Session) c.getSession();
-        Parser p = new Parser(session);
-        Expression expr = p.parseExpression(key);
-        addColumnData(columns, data, expr);
-        Object[] col = new Object[columns.size()];
-        columns.toArray(col);
-        Object[] dat = new Object[columns.size()];
-        data.toArray(dat);
-        Object[][] columnData = new Object[][] {
-                col, dat
-        };
-        return columnData;
     }
 
     private static void addColumnData(ArrayList columns, ArrayList data, Expression expr) {
@@ -839,18 +596,289 @@ public class FullText implements Trigger, CloseListener {
         }
     }
 
-    /**
-     * INTERNAL
-     */
-    public void close() throws SQLException {
-        setting.removeIndexInfo(index);
+    private static void addWords(FullTextSettings setting, HashSet set, String text) {
+        StringTokenizer tokenizer = new StringTokenizer(text, " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]");
+        while (tokenizer.hasMoreTokens()) {
+            String word = tokenizer.nextToken();
+            word = setting.convertWord(word);
+            if (word != null) {
+                set.add(word);
+            }
+        }
+    }
+
+    private static void createTrigger(Connection conn, String schema, String table) throws SQLException {
+        createOrDropTrigger(conn, schema, table, true);
+    }
+
+    private static void createOrDropTrigger(Connection conn, String schema, String table, boolean create) throws SQLException {
+        Statement stat = conn.createStatement();
+        String trigger = StringUtils.quoteIdentifier(schema) + "."
+                + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
+        stat.execute("DROP TRIGGER IF EXISTS " + trigger);
+        if (create) {
+            StringBuffer buff = new StringBuffer("CREATE TRIGGER IF NOT EXISTS ");
+            buff.append(trigger);
+            buff.append(" AFTER INSERT, UPDATE, DELETE ON ");
+            buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
+            buff.append(" FOR EACH ROW CALL \"");
+            buff.append(FullText.FullTextTrigger.class.getName());
+            buff.append("\"");
+            stat.execute(buff.toString());
+        }
+    }
+
+    private static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
+        FullText.FullTextTrigger existing = new FullText.FullTextTrigger();
+        existing.init(conn, schema, null, table, false, Trigger.INSERT);
+        StringBuffer buff = new StringBuffer("SELECT * FROM ");
+        buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
+        ResultSet rs = conn.createStatement().executeQuery(buff.toString());
+        int columnCount = rs.getMetaData().getColumnCount();
+        while (rs.next()) {
+            Object[] row = new Object[columnCount];
+            for (int i = 0; i < columnCount; i++) {
+                row[i] = rs.getObject(i + 1);
+            }
+            existing.fire(conn, null, row);
+        }
+    }
+
+    private static String quoteString(String data) {
+        if (data.indexOf('\'') < 0) {
+            return "'" + data + "'";
+        }
+        StringBuffer buff = new StringBuffer(data.length() + 2);
+        buff.append('\'');
+        for (int i = 0; i < data.length(); i++) {
+            char ch = data.charAt(i);
+            if (ch == '\'') {
+                buff.append(ch);
+            }
+            buff.append(ch);
+        }
+        buff.append('\'');
+        return buff.toString();
+    }
+
+    private static void setIgnoreList(FullTextSettings setting, String commaSeparatedList) {
+        String[] list = StringUtils.arraySplit(commaSeparatedList, ',', true);
+        HashSet set = setting.getIgnoreList();
+        for (int i = 0; i < list.length; i++) {
+            String word = list[i];
+            word = setting.convertWord(word);
+            if (word != null) {
+                set.add(list[i]);
+            }
+        }
     }
 
     /**
-     * INTERNAL
+     * Trigger updates the index when a inserting, updating, or deleting a row.
      */
-    public void remove() throws SQLException {
-        setting.removeIndexInfo(index);
+    public static class FullTextTrigger implements Trigger, CloseListener {
+
+        private FullTextSettings setting;
+        private IndexInfo index;
+        private int[] columnTypes;
+        private PreparedStatement prepInsertWord, prepInsertRow, prepInsertMap;
+        private PreparedStatement prepDeleteRow, prepDeleteMap;
+        private PreparedStatement prepSelectRow;
+
+        /**
+         * INTERNAL
+         */
+        public void init(Connection conn, String schemaName, String triggerName,
+                String tableName, boolean before, int type) throws SQLException {
+            setting = FullTextSettings.getInstance(conn);
+            ArrayList keyList = new ArrayList();
+            DatabaseMetaData meta = conn.getMetaData();
+            ResultSet rs = meta.getColumns(null, schemaName, tableName, null);
+            ArrayList columnList = new ArrayList();
+            while (rs.next()) {
+                columnList.add(rs.getString("COLUMN_NAME"));
+            }
+            columnTypes = new int[columnList.size()];
+            index = new IndexInfo();
+            index.schema = schemaName;
+            index.table = tableName;
+            index.columns = new String[columnList.size()];
+            columnList.toArray(index.columns);
+            rs = meta.getColumns(null, schemaName, tableName, null);
+            for (int i = 0; rs.next(); i++) {
+                columnTypes[i] = rs.getInt("DATA_TYPE");
+            }
+            if (keyList.size() == 0) {
+                rs = meta.getPrimaryKeys(null, schemaName, tableName);
+                while (rs.next()) {
+                    keyList.add(rs.getString("COLUMN_NAME"));
+                }
+            }
+            if (keyList.size() == 0) {
+                throw new SQLException("No primary key for table " + tableName);
+            }
+            ArrayList indexList = new ArrayList();
+            PreparedStatement prep = conn.prepareStatement(
+                    "SELECT ID, COLUMNS FROM " + SCHEMA + ".INDEXES WHERE SCHEMA=? AND TABLE=?");
+            prep.setString(1, schemaName);
+            prep.setString(2, tableName);
+            rs = prep.executeQuery();
+            if (rs.next()) {
+                index.id = rs.getInt(1);
+                String columns = rs.getString(2);
+                if (columns != null) {
+                    String[] list = StringUtils.arraySplit(columns, ',', true);
+                    for (int i = 0; i < list.length; i++) {
+                        indexList.add(list[i]);
+                    }
+                }
+            }
+            if (indexList.size() == 0) {
+                indexList.addAll(columnList);
+            }
+            index.keys = new int[keyList.size()];
+            setColumns(index.keys, keyList, columnList);
+            index.indexColumns = new int[indexList.size()];
+            setColumns(index.indexColumns, indexList, columnList);
+            setting.addIndexInfo(index);
+            prepInsertWord = conn.prepareStatement(
+                    "INSERT INTO " + SCHEMA + ".WORDS(NAME) VALUES(?)");
+            prepInsertRow = conn.prepareStatement(
+                    "INSERT INTO " + SCHEMA + ".ROWS(HASH, INDEXID, KEY) VALUES(?, ?, ?)");
+            prepInsertMap = conn.prepareStatement(
+                    "INSERT INTO " + SCHEMA + ".MAP(ROWID, WORDID) VALUES(?, ?)");
+            prepDeleteRow = conn.prepareStatement(
+                    "DELETE FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND KEY=?");
+            prepDeleteMap = conn.prepareStatement(
+                    "DELETE FROM " + SCHEMA + ".MAP WHERE ROWID=? AND WORDID=?");
+            prepSelectRow = conn.prepareStatement(
+                    "SELECT ID FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND KEY=?");
+
+            PreparedStatement prepSelectMapByWordId = conn.prepareStatement(
+                    "SELECT ROWID FROM " + SCHEMA + ".MAP WHERE WORDID=?");
+            PreparedStatement prepSelectRowById = conn.prepareStatement(
+                    "SELECT KEY, INDEXID FROM " + SCHEMA + ".ROWS WHERE ID=?");
+            setting.setPrepSelectMapByWordId(prepSelectMapByWordId);
+            setting.setPrepSelectRowById(prepSelectRowById);
+        }
+
+        /**
+         * INTERNAL
+         */
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow)
+                throws SQLException {
+            if (oldRow != null) {
+                delete(setting, oldRow);
+            }
+            if (newRow != null) {
+                insert(setting, newRow);
+            }
+        }
+
+        /**
+         * INTERNAL
+         */
+        public void close() throws SQLException {
+            setting.removeIndexInfo(index);
+        }
+
+        /**
+         * INTERNAL
+         */
+        public void remove() throws SQLException {
+            setting.removeIndexInfo(index);
+        }
+
+        private void insert(FullTextSettings setting, Object[] row) throws SQLException {
+            String key = getKey(row);
+            int hash = key.hashCode();
+            prepInsertRow.setInt(1, hash);
+            prepInsertRow.setInt(2, index.id);
+            prepInsertRow.setString(3, key);
+            prepInsertRow.execute();
+            ResultSet rs = JdbcUtils.getGeneratedKeys(prepInsertRow);
+            rs.next();
+            int rowId = rs.getInt(1);
+            prepInsertMap.setInt(1, rowId);
+            int[] wordIds = getWordIds(setting, row);
+            for (int i = 0; i < wordIds.length; i++) {
+                prepInsertMap.setInt(2, wordIds[i]);
+                prepInsertMap.execute();
+            }
+        }
+
+        private void delete(FullTextSettings setting, Object[] row) throws SQLException {
+            String key = getKey(row);
+            int hash = key.hashCode();
+            prepSelectRow.setInt(1, hash);
+            prepSelectRow.setInt(2, index.id);
+            prepSelectRow.setString(3, key);
+            ResultSet rs = prepSelectRow.executeQuery();
+            if (rs.next()) {
+                int rowId = rs.getInt(1);
+                prepDeleteMap.setInt(1, rowId);
+                int[] wordIds = getWordIds(setting, row);
+                for (int i = 0; i < wordIds.length; i++) {
+                    prepDeleteMap.setInt(2, wordIds[i]);
+                    prepDeleteMap.executeUpdate();
+                }
+                prepDeleteRow.setInt(1, hash);
+                prepDeleteRow.setInt(2, index.id);
+                prepDeleteRow.setString(3, key);
+                prepDeleteRow.executeUpdate();
+            }
+        }
+
+        private int[] getWordIds(FullTextSettings setting, Object[] row) throws SQLException {
+            HashSet words = new HashSet();
+            for (int i = 0; i < index.indexColumns.length; i++) {
+                int idx = index.indexColumns[i];
+                String data = asString(row[idx], columnTypes[idx]);
+                addWords(setting, words, data);
+            }
+            HashMap allWords = setting.getWordList();
+            int[] wordIds = new int[words.size()];
+            Iterator it = words.iterator();
+            for (int i = 0; it.hasNext(); i++) {
+                String word = (String) it.next();
+                Integer wId = (Integer) allWords.get(word);
+                int wordId;
+                if (wId == null) {
+                    prepInsertWord.setString(1, word);
+                    prepInsertWord.execute();
+                    ResultSet rs = JdbcUtils.getGeneratedKeys(prepInsertWord);
+                    rs.next();
+                    wordId = rs.getInt(1);
+                    allWords.put(word, ObjectUtils.getInteger(wordId));
+                } else {
+                    wordId = wId.intValue();
+                }
+                wordIds[i] = wordId;
+            }
+            Arrays.sort(wordIds);
+            return wordIds;
+        }
+
+        private String getKey(Object[] row) throws SQLException {
+            StringBuffer buff = new StringBuffer();
+            for (int i = 0; i < index.keys.length; i++) {
+                if (i > 0) {
+                    buff.append(" AND ");
+                }
+                int columnIndex = index.keys[i];
+                buff.append(StringUtils.quoteIdentifier(index.columns[columnIndex]));
+                Object o = row[columnIndex];
+                if (o == null) {
+                    buff.append(" IS NULL");
+                } else {
+                    buff.append("=");
+                    buff.append(quoteSQL(o, columnTypes[columnIndex]));
+                }
+            }
+            String key = buff.toString();
+            return key;
+        }
+
     }
 
 }

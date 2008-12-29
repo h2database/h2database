@@ -516,8 +516,6 @@ public class Server implements Runnable, ShutdownHandler {
         return service.getPort();
     }
 
-
-
     /**
      * INTERNAL
      */

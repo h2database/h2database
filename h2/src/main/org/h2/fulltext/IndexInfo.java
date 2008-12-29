@@ -19,12 +19,12 @@ class IndexInfo {
     /**
      * The schema name.
      */
-    String schemaName;
+    String schema;
 
     /**
      * The table name.
      */
-    String tableName;
+    String table;
 
     /**
      * The column indexes of the key columns.
@@ -39,5 +39,5 @@ class IndexInfo {
     /**
      * The column names.
      */
-    String[] columnNames;
+    String[] columns;
 }

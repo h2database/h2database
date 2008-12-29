@@ -451,6 +451,9 @@ public class Database implements DataHandler {
 
     private synchronized void open(int traceLevelFile, int traceLevelSystemOut) throws SQLException {
         if (persistent) {
+            if (SysProperties.PAGE_STORE) {
+                getPageStore();
+            }
             String dataFileName = databaseName + Constants.SUFFIX_DATA_FILE;
             if (FileUtils.exists(dataFileName)) {
                 // if it is already read-only because ACCESS_MODE_DATA=r
@@ -486,7 +489,7 @@ public class Database implements DataHandler {
             }
             dummy = DataPage.create(this, 0);
             deleteOldTempFiles();
-            log = new LogSystem(this, databaseName, readOnly, accessModeLog);
+            log = new LogSystem(this, databaseName, readOnly, accessModeLog, pageStore);
             openFileData();
             log.open();
             openFileIndex();
@@ -514,7 +517,7 @@ public class Database implements DataHandler {
             writer = WriterThread.create(this, writeDelay);
         } else {
             traceSystem = new TraceSystem(null, false);
-            log = new LogSystem(null, null, false, null);
+            log = new LogSystem(null, null, false, null, null);
         }
         systemUser = new User(this, 0, Constants.DBA_NAME, true);
         mainSchema = new Schema(this, 0, Constants.SCHEMA_MAIN, systemUser, true);
@@ -532,7 +535,11 @@ public class Database implements DataHandler {
         cols.add(new Column("HEAD", Value.INT));
         cols.add(new Column("TYPE", Value.INT));
         cols.add(new Column("SQL", Value.STRING));
-        meta = mainSchema.createTable("SYS", 0, cols, persistent, false, 1);
+        int headPos = 0;
+        if (SysProperties.PAGE_STORE) {
+            headPos = pageStore.getSystemRootPageId();
+        }
+        meta = mainSchema.createTable("SYS", 0, cols, persistent, false, headPos);
         IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
         metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(
                 false, false), Index.EMPTY_HEAD, null);
@@ -2066,7 +2073,7 @@ public class Database implements DataHandler {
         return getTrace(Trace.DATABASE);
     }
 
-    public PageStore getPageStorage() throws SQLException {
+    public PageStore getPageStore() throws SQLException {
         if (pageStore == null) {
             pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData,
                     SysProperties.CACHE_SIZE_DEFAULT);

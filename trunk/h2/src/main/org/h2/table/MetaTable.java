@@ -71,6 +71,7 @@ public class MetaTable extends Table {
 
     // TODO INFORMATION_SCHEMA.tables: select table_name
     // from INFORMATION_SCHEMA.tables where TABLE_TYPE = 'BASE TABLE'
+    // (currently 'TABLE'; like HSQLDB)
 
     private static final int TABLES = 0;
     private static final int COLUMNS = 1;

@@ -329,12 +329,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * TABLE_SCHEM, and COLUMN_NAME (and not by KEY_SEQ).
      *
      * <ul>
-     * <li>1 TABLE_CAT (String) table catalog </li>
-     * <li>2 TABLE_SCHEM (String) table schema </li>
-     * <li>3 TABLE_NAME (String) table name </li>
-     * <li>4 COLUMN_NAME (String) column name </li>
-     * <li>5 KEY_SEQ (short) the column index of this column (1,2,...) </li>
-     * <li>6 PK_NAME (String) always 'PRIMARY_KEY' </li>
+     * <li>1 TABLE_CAT (String) table catalog</li>
+     * <li>2 TABLE_SCHEM (String) table schema</li>
+     * <li>3 TABLE_NAME (String) table name</li>
+     * <li>4 COLUMN_NAME (String) column name</li>
+     * <li>5 KEY_SEQ (short) the column index of this column (1,2,...)</li>
+     * <li>6 PK_NAME (String) the name of the primary key index</li>
      * </ul>
      *
      * @param catalog null (to get all objects) or the catalog name

@@ -10,6 +10,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
+import org.h2.engine.Session;
 import org.h2.index.Page;
 import org.h2.message.Message;
 import org.h2.util.BitField;
@@ -17,7 +18,7 @@ import org.h2.util.BitField;
 /**
  * Transaction log mechanism.
  * The data format is:
- * <ul><li>0-0: type (0: undo)
+ * <ul><li>0-0: type (0: undo,...)
  * </li><li>1-4: page id
  * </li><li>5-: data
  * </li></ul>
@@ -25,6 +26,7 @@ import org.h2.util.BitField;
 public class PageLog {
 
     private static final int UNDO = 0;
+    private static final int COMMIT = 1;
     private PageStore store;
     private BitField undo = new BitField();
     private DataOutputStream out;
@@ -57,13 +59,17 @@ public class PageLog {
                 }
                 if (x == UNDO) {
                     int pageId = in.readInt();
+int test;
+System.out.println("redo " + pageId);
                     in.read(data.getBytes(), 0, store.getPageSize());
                     store.writePage(pageId, data);
                 }
             }
         } catch (IOException e) {
-            throw Message.convertIOException(e, "recovering");
+            int todoSomeExceptionAreOkSomeNot;
+//            throw Message.convertIOException(e, "recovering");
         }
+        int todoDeleteAfterRecovering;
     }
 
     /**
@@ -78,10 +84,26 @@ public class PageLog {
             if (undo.get(pageId)) {
                 return;
             }
+int test;
+System.out.println("undo " + pageId);
             out.write(UNDO);
             out.writeInt(pageId);
             out.write(page.getBytes(), 0, store.getPageSize());
             undo.set(pageId);
+        } catch (IOException e) {
+            throw Message.convertIOException(e, "recovering");
+        }
+    }
+
+    /**
+     * Mark a committed transaction.
+     *
+     * @param session the session
+     */
+    public void commit(Session session) throws SQLException {
+        try {
+            out.write(COMMIT);
+            out.writeInt(session.getId());
         } catch (IOException e) {
             throw Message.convertIOException(e, "recovering");
         }

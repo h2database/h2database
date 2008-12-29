@@ -295,8 +295,9 @@ public class SelectUnion extends Query {
 
     public String getPlanSQL() {
         StringBuffer buff = new StringBuffer();
-        buff.append(left.getPlanSQL());
-        buff.append(' ');
+        buff.append('(');
+        buff.append(StringUtils.unEnclose(left.getPlanSQL()));
+        buff.append(')');
         switch (unionType) {
         case UNION_ALL:
             buff.append("UNION ALL ");
@@ -314,7 +315,7 @@ public class SelectUnion extends Query {
             Message.throwInternalError("type=" + unionType);
         }
         buff.append('(');
-        buff.append(right.getPlanSQL());
+        buff.append(StringUtils.unEnclose(right.getPlanSQL()));
         buff.append(')');
         Expression[] exprList = new Expression[expressions.size()];
         expressions.toArray(exprList);

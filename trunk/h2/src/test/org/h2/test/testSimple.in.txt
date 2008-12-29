@@ -1,3 +1,5 @@
+select count(*)from((select 1 from dual limit 1)union(select 2 from dual limit 1));
+> 2;
 select sum(cast(x as int)) from system_range(2147483547, 2147483637);
 > 195421006872;
 select sum(x) from system_range(9223372036854775707, 9223372036854775797);

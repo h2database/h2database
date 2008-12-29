@@ -340,14 +340,14 @@ public class TableView extends Table {
      *
      * @param session the session
      * @param owner the owner of the query
+     * @param name the view name
      * @param query the query
      * @return the view table
      */
-    public static TableView createTempView(Session session, User owner, Query query) throws SQLException {
-        String tempViewName = session.getNextTempViewName();
+    public static TableView createTempView(Session session, User owner, String name, Query query) throws SQLException {
         Schema mainSchema = session.getDatabase().getSchema(Constants.SCHEMA_MAIN);
         String querySQL = query.getPlanSQL();
-        TableView v = new TableView(mainSchema, 0, tempViewName, querySQL, query.getParameters(), null, session,
+        TableView v = new TableView(mainSchema, 0, name, querySQL, query.getParameters(), null, session,
                 false);
         if (v.createException != null) {
             throw v.createException;

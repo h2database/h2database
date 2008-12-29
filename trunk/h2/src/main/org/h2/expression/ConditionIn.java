@@ -229,12 +229,12 @@ public class ConditionIn extends Condition {
         function.doneWithParameters();
         ObjectArray columns = new ObjectArray();
         int dataType = left.getType();
-        String columnName = session.getNextTempViewName() + "_X";
+        String columnName = session.getNextSystemIdentifier(select.getSQL());
         Column col = new Column(columnName, dataType);
         columns.add(col);
         function.setColumns(columns);
         FunctionTable table = new FunctionTable(mainSchema, session, function);
-        String viewName = session.getNextTempViewName();
+        String viewName = session.getNextSystemIdentifier(select.getSQL());
         TableFilter filter = new TableFilter(session, table, viewName, false, select);
         select.addTableFilter(filter, true);
         ExpressionColumn column = new ExpressionColumn(db, null, viewName, columnName);

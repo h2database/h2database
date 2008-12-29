@@ -1134,7 +1134,8 @@ public class Select extends Query {
             return expr.getAlias();
         }
         Mode mode = session.getDatabase().getMode();
-        expr = new Alias(expr,  session.getNextTempViewName() + "_X", mode.aliasColumnName);
+        String name = session.getNextSystemIdentifier(getSQL());
+        expr = new Alias(expr,  name, mode.aliasColumnName);
         expressions.set(0, expr);
         return expr.getAlias();
     }

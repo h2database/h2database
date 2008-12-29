@@ -278,6 +278,7 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
+remove google analytics
 JCR: for each node type, create a table; one 'dynamic' table with parameter;
     option to cache the results
 <link rel="icon" type="image/png" href="/path/image.png">

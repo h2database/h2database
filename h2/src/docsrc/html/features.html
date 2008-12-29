@@ -1328,19 +1328,10 @@ a regular database.
 <br /><a name="low_disk_space"></a>
 <h2>Graceful Handling of Low Disk Space Situations</h2>
 <p>
-The database is able to deal with situations where the disk space available is running low.
-Whenever the database starts, an 'emergency space' file is created (size is 1 MB),
-and if there is no more space available, the file will shrink. If the space available
-is lower than 128 KB, the database will go into a special read only mode, where
-writing operations are no longer allowed: All writing operations will throw the
-exception 'No disk space available' from this point on. To go back to the normal operating
-mode, all connections to the database need to be closed first, and space needs to
-be freed up.
-</p><p>
-It is possible to install a database event listener to detect low disk space situations early on
-(when only 1 MB if space is available). To do this, use the SQL statement
-SET DATABASE_EVENT_LISTENER.
-The listener can also be set at connection time, using an URL of the form
+If the database needs more disk space, it calls the database event listener if one is installed.
+The application may then delete temporary files, or display a message and wait until
+the user has resolved the problem. To install a listener, run the SQL statement
+SET DATABASE_EVENT_LISTENER or use a database URL of the form
 jdbc:h2:~/test;DATABASE_EVENT_LISTENER='com.acme.DbListener'
 (the quotes around the class name are required).
 See also the DatabaseEventListener API.

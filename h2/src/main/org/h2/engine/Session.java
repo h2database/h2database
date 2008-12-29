@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
-
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
@@ -49,6 +48,11 @@ import org.h2.value.ValueNull;
  */
 public class Session implements SessionInterface {
 
+    /**
+     * The prefix of generated identifiers. It may not have letters, because
+     * they are case sensitive.
+     */
+    private static final String SYSTEM_IDENTIFIER_PREFIX = "_";
     private static int nextSerialId;
 
     private final int serialId = nextSerialId++;
@@ -77,7 +81,7 @@ public class Session implements SessionInterface {
     private String[] schemaSearchPath;
     private String traceModuleName;
     private HashMap unlinkMap;
-    private int tempViewIndex;
+    private int systemIdentifier;
     private HashMap procedures;
     private boolean undoLogEnabled = true;
     private boolean autoCommitAtTransactionEnd;
@@ -923,8 +927,19 @@ public class Session implements SessionInterface {
         }
     }
 
-    public String getNextTempViewName() {
-        return "TEMP_VIEW_" + tempViewIndex++;
+    /**
+     * Get the next system generated identifiers. The identifier returned does
+     * not occur within the given SQL statement.
+     *
+     * @param sql the SQL statement
+     * @return the new identifier
+     */
+    public String getNextSystemIdentifier(String sql) {
+        String id;
+        do {
+            id = SYSTEM_IDENTIFIER_PREFIX + systemIdentifier++;
+        } while (sql.indexOf(id) >= 0);
+        return id;
     }
 
     /**

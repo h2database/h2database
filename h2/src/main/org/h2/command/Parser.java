@@ -938,8 +938,8 @@ public class Parser {
                 } else {
                     s = session;
                 }
-                table = TableView.createTempView(s, session.getUser(), query);
-                alias = table.getName();
+                alias = session.getNextSystemIdentifier(sqlCommand);
+                table = TableView.createTempView(s, session.getUser(), alias, query);
             } else {
                 TableFilter top = readTableFilter(fromOuter);
                 top = readJoin(top, currentSelect, fromOuter);

@@ -24,20 +24,19 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 <h2>Priority 1</h2>
 <ul>
 <li>Bugfixes
-</li><li>Write more tests and documentation for MVCC (Multi Version Concurrency Control)
+</li><li>Page store: new storage mechanism
+</li><li>[Requires page store] Support large updates (use the transaction log to undo).
+</li><li>[Requires page store] Shutdown compact
 </li><li>More tests with MULTI_THREADED=1
 </li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
-</li><li>Test with Spatial DB in a box / JTS (http://docs.codehaus.org/display/GEOS/SpatialDBBox)
 </li><li>Optimization: result set caching (like MySQL)
-</li><li>Support large updates (use the transaction log to undo).
-</li><li>Shutdown compact
 </li><li>Server side cursors
-</li><li>Support nested outer joins (see todo.txt).
 </li></ul>
 
 <h2>Priority 2</h2>
 <ul>
 <li>Improve test code coverage
+</li><li>Fulltext search: support streaming CLOB data.
 </li><li>Optimize .. OR .. to IN(..) or UNION if the cost is lower
 </li><li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
 </li><li>Test multi-threaded in-memory db access
@@ -54,7 +53,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
 </li><li>Option for Java functions: [DETERMINISTIC] FOR ...
-</li><li>Fulltext search: support streaming CLOB data.
 </li><li>Support mixed clustering mode (one embedded, the other server mode)
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
@@ -68,9 +66,12 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA)
 </li><li>Feature: a setting to delete the the log or not (for backup)
 </li><li>Test with Sun ASPE1_4; JEE Sun AS PE1.4
+</li><li>Support nested outer joins (see todo.txt).
 </li><li>Test performance again with SQL Server, Oracle, DB2
 </li><li>Test with dbmonster (http://dbmonster.kernelpanic.pl/)
 </li><li>Test with dbcopy (http://dbcopyplugin.sourceforge.net)
+</li><li>Test with Spatial DB in a box / JTS
+</li><li>Write more tests and documentation for MVCC (Multi Version Concurrency Control)
 </li><li>Find a tool to view large text file (larger than 100 MB), with find, page up and down (like less), truncate before / after
 </li><li>Implement, test, document XAConnection and so on
 </li><li>Pluggable data type (for compression, validation, conversion, encryption)
@@ -86,6 +87,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Count index range query (count(*) where id between 10 and 20)
 </li><li>Eclipse plugin
 </li><li>Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait]
+</li><li>Improved fulltext search (reader / tokenizer / filter).
 </li><li>iReport to support H2
 </li><li>Implement missing JDBC API (CallableStatement,...)
 </li><li>Compression of the cache
@@ -164,7 +166,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility)
 </li><li>Backup tool should work with other databases as well
 </li><li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs
-</li><li>Improved fulltext search (reader / tokenizer / filter).
 </li><li>Performance: Update in-place
 </li><li>Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess)
 </li><li>Java static code analysis: http://pmd.sourceforge.net/
@@ -387,6 +388,8 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Fulltext search: lazy result generation using SimpleRowSource.
 </li><li>Support transformation to join for user defined functions, as for IN(SELECT...).
 </li><li>Fulltext search: Support alternative syntax: WHERE FTL_CONTAINS(name, 'hello').
+</li><li>MySQL compatibility: support REPLACE, see http://dev.mysql.com/doc/refman/5.1/de/replace.html
+</li><li>MySQL compatibility: support INSERT INTO table SET column1 = value1, column2 = value2
 </li></ul>
 
 <h2>Not Planned</h2>

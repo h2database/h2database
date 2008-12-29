@@ -139,8 +139,9 @@ public class ConditionInSelect extends Condition {
         if (alias == null) {
             return this;
         }
-        TableView view = TableView.createTempView(session, session.getUser(), query);
-        TableFilter filter = new TableFilter(session, view, view.getName(), false, select);
+        String name = session.getNextSystemIdentifier(select.getSQL());
+        TableView view = TableView.createTempView(session, session.getUser(), name, query);
+        TableFilter filter = new TableFilter(session, view, name, false, select);
         select.addTableFilter(filter, true);
         ExpressionColumn column = new ExpressionColumn(session.getDatabase(), null, view.getName(), alias);
         Expression on = new Comparison(session, Comparison.EQUAL, left, column);

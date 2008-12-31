@@ -704,7 +704,7 @@ public class TestMetaData extends TestBase {
                 "PK_NAME" }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT,
                 Types.VARCHAR }, null, null);
         assertResultSetOrdered(rs,
-                new String[][] { { catalog, Constants.SCHEMA_MAIN, "TEST", "ID", "1", "PRIMARY_KEY_2" }, });
+                new String[][] { { catalog, Constants.SCHEMA_MAIN, "TEST", "ID", "1", "CONSTRAINT_2" }, });
         trace("getTables - using a wildcard");
         stat.executeUpdate("CREATE TABLE T_2(B INT,A VARCHAR(6),C INT,PRIMARY KEY(C,A,B))");
         stat.executeUpdate("CREATE TABLE TX2(B INT,A VARCHAR(6),C INT,PRIMARY KEY(C,A,B))");
@@ -758,9 +758,9 @@ public class TestMetaData extends TestBase {
         trace("getPrimaryKeys");
         rs = meta.getPrimaryKeys(null, null, "T_2");
         assertResultSetOrdered(rs, new String[][] {
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "A", "2", "PRIMARY_KEY_1" },
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "B", "3", "PRIMARY_KEY_1" },
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "C", "1", "PRIMARY_KEY_1" }, });
+                { catalog, Constants.SCHEMA_MAIN, "T_2", "A", "2", "CONSTRAINT_1" },
+                { catalog, Constants.SCHEMA_MAIN, "T_2", "B", "3", "CONSTRAINT_1" },
+                { catalog, Constants.SCHEMA_MAIN, "T_2", "C", "1", "CONSTRAINT_1" }, });
         stat.executeUpdate("DROP TABLE TX2");
         stat.executeUpdate("DROP TABLE T_2");
         stat.executeUpdate("CREATE TABLE PARENT(ID INT PRIMARY KEY)");

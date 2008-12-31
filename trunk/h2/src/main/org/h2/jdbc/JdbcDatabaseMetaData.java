@@ -358,7 +358,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "TABLE_NAME, "
                     + "COLUMN_NAME, "
                     + "ORDINAL_POSITION KEY_SEQ, "
-                    + "INDEX_NAME PK_NAME "
+                    + "IFNULL(CONSTRAINT_NAME, INDEX_NAME) PK_NAME "
                     + "FROM INFORMATION_SCHEMA.INDEXES "
                     + "WHERE TABLE_CATALOG LIKE ? "
                     + "AND TABLE_SCHEMA LIKE ? "

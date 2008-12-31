@@ -187,7 +187,8 @@ public class MetaTable extends Table {
                     "REMARKS",
                     "SQL",
                     "ID INT",
-                    "SORT_TYPE INT"
+                    "SORT_TYPE INT",
+                    "CONSTRAINT_NAME"
             });
             indexColumnName = "TABLE_NAME";
             break;
@@ -726,11 +727,19 @@ public class MetaTable extends Table {
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
-                ObjectArray idx = table.getIndexes();
-                for (int j = 0; idx != null && j < idx.size(); j++) {
-                    Index index = (Index) idx.get(j);
+                ObjectArray indexes = table.getIndexes();
+                ObjectArray constraints = table.getConstraints();
+                for (int j = 0; indexes != null && j < indexes.size(); j++) {
+                    Index index = (Index) indexes.get(j);
                     if (index.getCreateSQL() == null) {
                         continue;
+                    }
+                    String constraintName = null;
+                    for (int k = 0; constraints != null && k < constraints.size(); k++) {
+                        Constraint constraint = (Constraint) constraints.get(k);
+                        if (constraint.getUniqueIndex() == index) {
+                            constraintName = constraint.getName();
+                        }
                     }
                     IndexColumn[] cols = index.getIndexColumns();
                     for (int k = 0; k < cols.length; k++) {
@@ -775,6 +784,8 @@ public class MetaTable extends Table {
                                 "" + index.getId(),
                                 // SORT_TYPE
                                 "" + idxCol.sortType,
+                                // CONSTRAINT_NAME
+                                constraintName
                             });
                     }
                 }

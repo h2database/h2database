@@ -7,6 +7,7 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -28,9 +29,23 @@ public class TestView extends TestBase {
     }
 
     public void test() throws SQLException {
+        testInSelect();
         testUnionReconnect();
         testManyViews();
         deleteDb("view");
+    }
+
+    private void testInSelect() throws SQLException {
+        deleteDb("view");
+        Connection conn = getConnection("view");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key) as select 1");
+        PreparedStatement prep = conn.prepareStatement(
+                "select * from test t where t.id in (select t2.id from test t2 where t2.id in (?, ?))");
+        prep.setInt(1, 1);
+        prep.setInt(2, 2);
+        prep.execute();
+        conn.close();
     }
 
     private void testUnionReconnect() throws SQLException {

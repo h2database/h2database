@@ -156,9 +156,12 @@ public class ViewIndex extends BaseIndex {
         for (int i = 0; originalParameters != null && i < originalParameters.size(); i++) {
             Parameter orig = (Parameter) originalParameters.get(i);
             int idx = orig.getIndex();
-            Parameter param = (Parameter) paramList.get(idx);
-            Value value = orig.getValue(session);
-            param.setValue(value);
+            // the parameter may have been optimized away
+            if (idx < paramList.size()) {
+                Parameter param = (Parameter) paramList.get(idx);
+                Value value = orig.getValue(session);
+                param.setValue(value);
+            }
         }
         int len;
         if (first != null) {

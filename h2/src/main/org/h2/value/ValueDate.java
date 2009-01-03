@@ -22,7 +22,7 @@ public class ValueDate extends Value {
     /**
      * The precision in digits.
      */
-    static final int PRECISION = 8;
+    public static final int PRECISION = 8;
 
     /**
      * The display size of the textual representation of a date.

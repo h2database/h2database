@@ -11,7 +11,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import org.h2.engine.Database;
-import org.h2.engine.MetaRecord;
 import org.h2.engine.Session;
 import org.h2.index.Page;
 import org.h2.message.Message;
@@ -115,7 +114,7 @@ System.out.println("recovery stopped: " + e.toString());
         for (int i = 0; i < columnCount; i++) {
             values[i] = data.readValue();
         }
-        int todoTableDatareadRowWithMemory;
+        int todoTableDataReadRowWithMemory;
         Row row = new Row(values, 0);
         return row;
     }

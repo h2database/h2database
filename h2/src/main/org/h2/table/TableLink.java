@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.HashMap;
 
 import org.h2.command.Prepared;
@@ -31,6 +32,9 @@ import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
+import org.h2.value.ValueDate;
+import org.h2.value.ValueTime;
+import org.h2.value.ValueTimestamp;
 
 /**
  * A linked table contains connection information for a table accessible by JDBC.
@@ -125,6 +129,7 @@ public class TableLink extends Table {
             n = convertColumnName(n);
             int sqlType = rs.getInt("DATA_TYPE");
             long precision = rs.getInt("COLUMN_SIZE");
+            precision = convertPrecision(sqlType, precision);
             int scale = rs.getInt("DECIMAL_DIGITS");
             int displaySize = MathUtils.convertLongToInt(precision);
             int type = DataType.convertSQLTypeToValueType(sqlType);
@@ -152,6 +157,7 @@ public class TableLink extends Table {
                     n = convertColumnName(n);
                     int sqlType = rsMeta.getColumnType(i + 1);
                     long precision = rsMeta.getPrecision(i + 1);
+                    precision = convertPrecision(sqlType, precision);
                     int scale = rsMeta.getScale(i + 1);
                     int displaySize = rsMeta.getColumnDisplaySize(i + 1);
                     int type = DataType.convertSQLTypeToValueType(sqlType);
@@ -243,6 +249,23 @@ public class TableLink extends Table {
         if (indexName != null) {
             addIndex(list, indexType);
         }
+    }
+    
+    private long convertPrecision(int sqlType, long precision) {
+        // workaround for an Oracle problem
+        // the precision reported by Oracle is 7 for a date column
+        switch (sqlType) {
+        case Types.DATE:
+            precision = Math.max(ValueDate.PRECISION, precision);
+            break;
+        case Types.TIMESTAMP:
+            precision = Math.max(ValueTimestamp.PRECISION, precision);
+            break;
+        case Types.TIME:
+            precision = Math.max(ValueTime.PRECISION, precision);
+            break;
+        }
+        return precision;
     }
 
     private String convertColumnName(String columnName) {

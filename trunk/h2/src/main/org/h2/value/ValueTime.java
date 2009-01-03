@@ -20,7 +20,7 @@ public class ValueTime extends Value {
     /**
      * The precision in digits.
      */
-    static final int PRECISION = 6;
+    public static final int PRECISION = 6;
 
     /**
      * The display size of the textual representation of a time.

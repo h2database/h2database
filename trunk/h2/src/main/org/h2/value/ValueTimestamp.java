@@ -25,7 +25,7 @@ public class ValueTimestamp extends Value {
     /**
      * The precision in digits.
      */
-    static final int PRECISION = 23;
+    public static final int PRECISION = 23;
 
     /**
      * The display size of the textual representation of a timestamp.

@@ -99,6 +99,8 @@ public class Database implements DataHandler {
     private final HashMap userDataTypes = new HashMap();
     private final HashMap aggregates = new HashMap();
     private final HashMap comments = new HashMap();
+    private IntHashMap tableMap = new IntHashMap();
+
     private final Set userSessions = Collections.synchronizedSet(new HashSet());
     private Session exclusiveSession;
     private final BitField objectIds = new BitField();
@@ -452,7 +454,10 @@ public class Database implements DataHandler {
     private synchronized void open(int traceLevelFile, int traceLevelSystemOut) throws SQLException {
         if (persistent) {
             if (SysProperties.PAGE_STORE) {
-                getPageStore();
+                PageStore store = getPageStore();
+                if (!store.isNew()) {
+                    store.getLog().recover(true);
+                }
             }
             String dataFileName = databaseName + Constants.SUFFIX_DATA_FILE;
             if (FileUtils.exists(dataFileName)) {
@@ -540,6 +545,7 @@ public class Database implements DataHandler {
             headPos = pageStore.getSystemRootPageId();
         }
         meta = mainSchema.createTable("SYS", 0, cols, persistent, false, headPos);
+        tableMap.put(0, meta);
         IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
         metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(
                 false, false), Index.EMPTY_HEAD, null);
@@ -562,6 +568,12 @@ public class Database implements DataHandler {
         for (int i = 0; i < records.size(); i++) {
             MetaRecord rec = (MetaRecord) records.get(i);
             rec.execute(this, systemSession, eventListener);
+        }
+        if (SysProperties.PAGE_STORE) {
+            PageStore store = getPageStore();
+            if (!store.isNew()) {
+                getPageStore().getLog().recover(false);
+            }
         }
         // try to recompile the views that are invalid
         recompileInvalidViews(systemSession);
@@ -792,6 +804,9 @@ public class Database implements DataHandler {
         obj.getSchema().add(obj);
         if (id > 0 && !starting) {
             addMeta(session, obj);
+        }
+        if (obj instanceof TableData) {
+            tableMap.put(id, obj);
         }
     }
 
@@ -1146,6 +1161,7 @@ public class Database implements DataHandler {
                 fileIndex = null;
             }
             if (pageStore != null) {
+                pageStore.checkpoint();
                 pageStore.close();
                 pageStore = null;
             }
@@ -1579,6 +1595,9 @@ public class Database implements DataHandler {
         int id = obj.getId();
         obj.removeChildrenAndResources(session);
         removeMeta(session, id);
+        if (obj instanceof TableData) {
+            tableMap.remove(id);
+        }
     }
 
     /**
@@ -2080,6 +2099,29 @@ public class Database implements DataHandler {
             pageStore.open();
         }
         return pageStore;
+    }
+
+    /**
+     * Redo a change in a table.
+     *
+     * @param tableId the object id of the table
+     * @param row the row
+     * @param add true if the record is added, false if deleted
+     */
+    public void redo(int tableId, Row row, boolean add) throws SQLException {
+        TableData table = (TableData) tableMap.get(tableId);
+        if (add) {
+            table.addRow(systemSession, row);
+        } else {
+            table.removeRow(systemSession, row);
+        }
+        if (tableId == 0) {
+            MetaRecord m = new MetaRecord(row);
+            if (add) {
+                objectIds.set(m.getId());
+                m.execute(this, systemSession, eventListener);
+            }
+        }
     }
 
 }

@@ -250,7 +250,7 @@ public class TableLink extends Table {
             addIndex(list, indexType);
         }
     }
-    
+
     private long convertPrecision(int sqlType, long precision) {
         // workaround for an Oracle problem
         // the precision reported by Oracle is 7 for a date column

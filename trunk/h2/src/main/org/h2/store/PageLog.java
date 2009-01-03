@@ -55,9 +55,9 @@ public class PageLog {
     }
 
     /**
-     * Run the recovery process. There are two recovery stages:
-     * first only the undo steps are run (restoring the state before the last checkpoint).
-     * In the second stage the committed operations are re-applied.
+     * Run the recovery process. There are two recovery stages: first only the
+     * undo steps are run (restoring the state before the last checkpoint). In
+     * the second stage the committed operations are re-applied.
      *
      * @param undo true if the undo step should be run
      */

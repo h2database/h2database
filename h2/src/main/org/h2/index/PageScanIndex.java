@@ -40,6 +40,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     // TODO use an undo log and maybe redo log (for performance)
     // TODO file position, content checksums
     // TODO completely re-use keys of deleted rows
+    // TODO remove Database.objectIds
+
     private int lastKey;
     private long rowCount;
     private long rowCountApproximation;
@@ -104,8 +106,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             root = newRoot;
         }
         rowCount++;
-        int todo;
-        // store.getLog().addRow(headPos, row);
+        store.getLog().addOrRemoveRow(session, tableData.getId(), row, true);
     }
 
     /**
@@ -184,6 +185,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 //                lastKey--;
 //            }
         }
+        store.getLog().addOrRemoveRow(session, tableData.getId(), row, false);
     }
 
     public void remove(Session session) throws SQLException {
@@ -238,7 +240,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     private void trace(String message) {
-        int todoSometimeSlow;
+        int slowEvenIfNotEnabled;
         if (headPos != 1) {
 //            System.out.println(message);
         }

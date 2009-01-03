@@ -278,12 +278,16 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.check2", "true");
 
 /*
+
+drop table test;
+create table test(id int primary key) as select 1;
+@LOOP 10 select * from test t where t.id in (select t2.id from test t2 where t2.id in (?, ?));
+
 remove google analytics
 JCR: for each node type, create a table; one 'dynamic' table with parameter;
     option to cache the results
 <link rel="icon" type="image/png" href="/path/image.png">
 create a short one page documentation
-update roadmap (specially priority 1)
 checksum: no need to checksum all data; every 128th byte is enough;
   but need position+counter
 

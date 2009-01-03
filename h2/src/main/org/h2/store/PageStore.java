@@ -121,7 +121,6 @@ public class PageStore implements CacheWriter {
                 fileLength = file.length();
                 pageCount = (int) (fileLength / pageSize);
                 log = new PageLog(this, logRootPageId);
-                log.recover();
             } else {
                 isNew = true;
                 setPageSize(PAGE_SIZE_DEFAULT);
@@ -145,18 +144,19 @@ public class PageStore implements CacheWriter {
     }
 
     /**
-     * Flush all pending changes to disk.
+     * Flush all pending changes to disk, and re-open the log file.
      */
-    public void flush() throws SQLException {
+    public void checkpoint() throws SQLException {
+System.out.println("PageStore.checkpoint");
         synchronized (database) {
             database.checkPowerOff();
-            writeHeader();
             ObjectArray list = cache.getAllChanged();
             CacheObject.sort(list);
             for (int i = 0; i < list.size(); i++) {
                 Record rec = (Record) list.get(i);
                 writeBack(rec);
             }
+            log.reopen();
             int todoWriteDeletedPages;
         }
     }
@@ -240,12 +240,11 @@ public class PageStore implements CacheWriter {
     }
 
     /**
-     * Close the file.
+     * Close the file without flushing the cache.
      */
     public void close() throws SQLException {
         int todoTruncateLog;
         try {
-            flush();
             if (file != null) {
                 file.close();
             }
@@ -265,6 +264,9 @@ public class PageStore implements CacheWriter {
     public void writeBack(CacheObject obj) throws SQLException {
         synchronized (database) {
             Record record = (Record) obj;
+int test;
+System.out.println("writeBack " + record);
+            int todoRemoveParameter;
             record.write(null);
             record.setChanged(false);
         }
@@ -446,6 +448,10 @@ public class PageStore implements CacheWriter {
 
     public PageLog getLog() {
         return log;
+    }
+
+    Database getDatabase() {
+        return database;
     }
 
 }

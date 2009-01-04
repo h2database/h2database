@@ -135,7 +135,7 @@ public class GenerateDoc {
                 String topic = rs.getString("TOPIC");
                 String syntax = rs.getString("SYNTAX");
                 syntax = PageParser.escapeHtml(syntax);
-                syntax = StringUtils.replaceAll(syntax, "<br />", "");
+                syntax = StringUtils.replaceAll(syntax, "<br />", " ");
                 syntax = bnf.getSyntaxHtml(syntax);
                 map.put("syntax", syntax);
                 String link = topic.toLowerCase();

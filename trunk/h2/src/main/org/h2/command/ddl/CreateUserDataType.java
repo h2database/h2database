@@ -14,6 +14,7 @@ import org.h2.engine.Session;
 import org.h2.engine.UserDataType;
 import org.h2.message.Message;
 import org.h2.table.Column;
+import org.h2.table.Table;
 import org.h2.value.DataType;
 
 /**
@@ -39,7 +40,6 @@ public class CreateUserDataType extends DefineCommand {
     }
 
     public void setIfNotExists(boolean ifNotExists) {
-        // TODO user data type: if exists - probably better use 'or replace'
         this.ifNotExists = ifNotExists;
     }
 
@@ -55,8 +55,14 @@ public class CreateUserDataType extends DefineCommand {
             throw Message.getSQLException(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, typeName);
         }
         DataType builtIn = DataType.getTypeByName(typeName);
-        if (builtIn != null && !builtIn.hidden) {
-            throw Message.getSQLException(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, typeName);
+        if (builtIn != null) {
+            if (!builtIn.hidden) {
+                throw Message.getSQLException(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, typeName);
+            }
+            Table table = session.getDatabase().getFirstUserTable();
+            if (table != null) {
+                throw Message.getSQLException(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, typeName + " (" + table.getSQL() + ")");
+            }
         }
         int id = getObjectId(false, true);
         UserDataType type = new UserDataType(db, id, typeName);

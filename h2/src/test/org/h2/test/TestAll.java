@@ -279,12 +279,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-drop table test;
-create table test(id int primary key) as select 1;
-@LOOP 10 select * from test t where t.id in
-(select t2.id from test t2 where t2.id in (?, ?));
-
-remove google analytics
 JCR: for each node type, create a table; one 'dynamic' table with parameter;
     option to cache the results
 <link rel="icon" type="image/png" href="/path/image.png">
@@ -301,15 +295,9 @@ split files (1 GB max size)
 add a setting (that can be changed at runtime) to call fsync
 and delay on each commit
 
-drop table test;
-create table test(id int);
-select id from test a natural join test b;
-(works for MySQL, PostgreSQL)
-
+remove google analytics
 multithreaded kernel
-
 remove old TODO
-
 online backup may not work for very large files
 (document problem with jdk 1.4; document to use jar -xf)
 

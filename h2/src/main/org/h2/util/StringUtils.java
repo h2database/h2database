@@ -902,9 +902,9 @@ public class StringUtils {
      * @param s the string
      * @return true if it only contains digits 0 - 9
      */
-    public static boolean isNumber(String identifier) {
-        for (int i = 0; i < identifier.length(); i++) {
-            if (!Character.isDigit(identifier.charAt(i))) {
+    public static boolean isNumber(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            if (!Character.isDigit(s.charAt(i))) {
                 return false;
             }
         }

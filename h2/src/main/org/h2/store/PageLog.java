@@ -161,8 +161,10 @@ System.out.println("commit");
     /**
      * A record is added to a table, or removed from a table.
      *
-     * @param headPos the head position of the table
+     * @param session the session
+     * @param tableId the table id
      * @param row the row to add
+     * @param add true if the row is added, false if it is removed
      */
     public void addOrRemoveRow(Session session, int tableId, Row row, boolean add) throws SQLException {
         try {
@@ -183,6 +185,9 @@ System.out.println("  " + (add?"+":"-") + " tab:" + tableId + " " + row);
         }
     }
 
+    /**
+     * Close the log, truncate it, and re-open it.
+     */
     void reopen() throws SQLException {
         try {
             out.close();

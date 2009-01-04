@@ -14,7 +14,6 @@ import org.h2.compress.Compressor;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
-import org.h2.engine.DbObject;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.engine.Setting;
@@ -25,7 +24,6 @@ import org.h2.result.LocalResult;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 import org.h2.tools.CompressTool;
-import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.ValueInt;
@@ -94,12 +92,9 @@ public class Set extends Prepared {
         }
         case SetTypes.COLLATION: {
             session.getUser().checkAdmin();
-            ObjectArray array = database.getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
-            for (int i = 0; i < array.size(); i++) {
-                Table table = (Table) array.get(i);
-                if (table.getCreateSQL() != null) {
-                    throw Message.getSQLException(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL());
-                }
+            Table table = database.getFirstUserTable();
+            if (table != null) {
+                throw Message.getSQLException(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL());
             }
             CompareMode compareMode;
             StringBuffer buff = new StringBuffer(stringValue);

@@ -2124,4 +2124,20 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Get the first user defined table.
+     *
+     * @return the table or null if no table is defined
+     */
+    public Table getFirstUserTable() {
+        ObjectArray array = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
+        for (int i = 0; i < array.size(); i++) {
+            Table table = (Table) array.get(i);
+            if (table.getCreateSQL() != null) {
+                return table;
+            }
+        }
+        return null;
+    }
+
 }

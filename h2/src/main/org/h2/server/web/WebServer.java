@@ -99,16 +99,18 @@ public class WebServer implements Service {
      */
     private static final long SESSION_TIMEOUT = 30 * 60 * 1000;
 
-    /*
-    String[] list = Locale.getISOLanguages();
-    for(int i=0; i<list.length; i++) System.out.print(list[i] + " ");
-    String lang = new java.util.Locale("hu").
-            getDisplayLanguage(new java.util.Locale("hu"));
-        java.util.Locale.CHINESE.getDisplayLanguage(
-        java.util.Locale.CHINESE);
-       for(int i=0; i<lang.length(); i++)
-         System.out.println(Integer.toHexString(lang.charAt(i))+" ");
-     */
+//    static {
+//        String[] list = Locale.getISOLanguages();
+//        for (int i = 0; i < list.length; i++) {
+//            System.out.print(list[i] + " ");
+//        }
+//        String lang = new java.util.Locale("hu").
+//            getDisplayLanguage(new java.util.Locale("hu"));
+//        java.util.Locale.CHINESE.getDisplayLanguage(java.util.Locale.CHINESE);
+//        for (int i = 0; i < lang.length(); i++) {
+//            System.out.println(Integer.toHexString(lang.charAt(i)) + " ");
+//        }
+//    }
 
     // private URLClassLoader urlClassLoader;
     private String driverList;

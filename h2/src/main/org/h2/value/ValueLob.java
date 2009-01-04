@@ -186,7 +186,7 @@ public class ValueLob extends Value {
         }
         long inplace = handler.getMaxLengthInplaceLob();
         if (inplace >= Integer.MAX_VALUE) {
-           inplace = remaining;
+            inplace = remaining;
         }
         long m = compress ? Constants.IO_BUFFER_SIZE_COMPRESS : Constants.IO_BUFFER_SIZE;
         if (m < remaining && m <= inplace) {

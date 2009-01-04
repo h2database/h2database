@@ -878,73 +878,79 @@ Description
 AES-128
 
 @advanced_1293_td
-A block encryption algorithm. See also: <a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
+A block encryption algorithm. See also: <a
+            href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia:   AES</a>
 
 @advanced_1294_td
 Birthday Paradox
 
 @advanced_1295_td
-Describes the higher than expected probability that two persons in a room have the same birthday.  Also valid for randomly generated UUIDs. See also: <a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
+Describes the higher than expected probability that two   persons in a room have the same birthday. Also valid for randomly   generated UUIDs. See also: <a
+            href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia:   Birthday Paradox</a>
 
 @advanced_1296_td
 Digest
 
 @advanced_1297_td
-Protocol to protect a password (but not to protect data). See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
+Protocol to protect a password (but not to protect data).   See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC   2617: HTTP Digest Access Authentication</a>
 
 @advanced_1298_td
 GCJ
 
 @advanced_1299_td
-Compiler for Java. <a href="http://gcc.gnu.org/java">GNU Compiler for the Java</a> and <a href="http://www.dobysoft.com/products/nativej">NativeJ (commercial)</a>
+Compiler for Java. <a href="http://gcc.gnu.org/java">GNU   Compiler for the Java</a> and <a
+            href="http://www.dobysoft.com/products/nativej">NativeJ   (commercial)</a>
 
 @advanced_1300_td
 HTTPS
 
 @advanced_1301_td
-A protocol to provide security to HTTP connections. See also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
+A protocol to provide security to HTTP connections. See   also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818:   HTTP Over TLS</a>
 
 @advanced_1302_td
 Modes of Operation
 
 @advanced_1303_a
-Wikipedia: Block cipher modes of operation
+Wikipedia:   Block cipher modes of operation
 
 @advanced_1304_td
 Salt
 
 @advanced_1305_td
-Random number to increase the security of passwords.  See also: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
+Random number to increase the security of passwords. See   also: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia:   Key derivation function</a>
 
 @advanced_1306_td
 SHA-256
 
 @advanced_1307_td
-A cryptographic one-way hash function.  See also: <a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
+A cryptographic one-way hash function. See also: <a
+            href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA   hash functions</a>
 
 @advanced_1308_td
 SQL Injection
 
 @advanced_1309_td
-A security vulnerability where an application generates SQL statements with embedded user input.  See also: <a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
+A security vulnerability where an application generates SQL   statements with embedded user input. See also: <a
+            href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia:   SQL Injection</a>
 
 @advanced_1310_td
 Watermark Attack
 
 @advanced_1311_td
-Security problem of certain encryption programs where the existence of certain  data can be proven without decrypting.  For more information, search in the internet for 'watermark attack cryptoloop'
+Security problem of certain encryption programs where the   existence of certain data can be proven without decrypting. For more   information, search in the internet for 'watermark attack   cryptoloop'
 
 @advanced_1312_td
 SSL/TLS
 
 @advanced_1313_td
-Secure Sockets Layer / Transport Layer Security.  See also: <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
+Secure Sockets Layer / Transport Layer Security. See also: <a href="http://java.sun.com/products/jsse/">Java Secure Socket   Extension (JSSE)</a>
 
 @advanced_1314_td
 XTEA
 
 @advanced_1315_td
-A block encryption algorithm.  See also: <a href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
+A block encryption algorithm. See also: <a
+            href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
 
 @build_1000_h1
 Build
@@ -1904,7 +1910,7 @@ Databases in zip files: large queries are now supported. Temp files are created 
 Invalid inline views threw confusing SQL exceptions.
 
 @changelog_1261_li
-The Japanese translation of the error messages and the H2 Console has been improved. Thanks a lot to Masahiro IKEMOTO.
+The Japanese translation of the error messages and the  H2 Console has been improved. Thanks a lot to Masahiro IKEMOTO.
 
 @changelog_1262_li
 Optimization for MIN() and MAX() when using MVCC.
@@ -4154,7 +4160,7 @@ In this example, the password is hard code in the application, which is not secu
 Passing the User Name and/or Password in the URL
 
 @features_1563_p
-Instead of passing the user name as a separate parameter as in <code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test", "sa", "123");</code> the user name (and/or password) can be supplied in the URL itself: <code>Connection conn = DriverManager. getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");</code> The settings in the URL override the settings passed as a separate parameter.
+Instead of passing the user name as a separate parameter as in <code>Connection conn = DriverManager.  getConnection("jdbc:h2:~/test", "sa", "123");</code> the user name (and/or password) can be supplied in the URL itself: <code>Connection conn = DriverManager.  getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");</code> The settings in the URL override the settings passed as a separate parameter.
 
 @features_1564_h2
 User-Defined Functions and Stored Procedures
@@ -4784,13 +4790,13 @@ means having the right to grant, to the maximum extent possible, whether at the 
 1.9. "Modifications"
 
 @license_1033_p
-means any addition to or deletion from the substance or structure of either the  Original Code or any previous Modifications. When Covered Code is released as a  series of files, a Modification is:
+means any addition to or deletion from the substance or structure of either the Original Code or any previous Modifications. When Covered Code is released as a series of files, a Modification is:
 
 @license_1034_p
-1.9.a. Any addition to or deletion from the contents of a file  containing Original Code or previous Modifications.
+1.9.a. Any addition to or deletion from the contents of a file containing Original Code or previous Modifications.
 
 @license_1035_p
-1.9.b. Any new file that contains any part of the Original Code or  previous Modifications.
+1.9.b. Any new file that contains any part of the Original Code or previous Modifications.
 
 @license_1036_b
 1.10. "Original Code"

@@ -284,7 +284,7 @@ JCR: for each node type, create a table; one 'dynamic' table with parameter;
 <link rel="icon" type="image/png" href="/path/image.png">
 create a short one page documentation
 checksum: no need to checksum all data; every 128th byte is enough;
-  but need position+counter
+    but need position+counter
 
 http://blog.flexive.org/2008/12/05/porting-flexive-to-the-h2-database/
 postgresql generate_series?
@@ -323,7 +323,7 @@ implemented:
 - small result sets (up to fetch size)
 - throws an error when autocommit is false
 - an error is thrown when the connection is lost
-  while looping over large result sets (larger than fetch size)
+    while looping over large result sets (larger than fetch size)
 not implemented / not tested
 - batch updates
 - ignored in embedded mode

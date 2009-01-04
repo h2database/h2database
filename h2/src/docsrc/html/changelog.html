@@ -487,7 +487,7 @@ Change Log
     the zip file has been corrected.
 </li><li>Invalid inline views threw confusing SQL exceptions.
 </li><li>The Japanese translation of the error messages and the
-  H2 Console has been improved. Thanks a lot to Masahiro IKEMOTO.
+    H2 Console has been improved. Thanks a lot to Masahiro IKEMOTO.
 </li><li>Optimization for MIN() and MAX() when using MVCC.
 </li><li>To protect against remote brute force password attacks,
     the delay after each unsuccessful login now gets double as long.
@@ -516,7 +516,7 @@ Change Log
     now the 'true' is no longer needed.
     The old behavior is still supported.
 </li><li>New system property h2.sortNullsHigh to invert the default sorting behavior
-     for NULL. The default didn't change.
+    for NULL. The default didn't change.
 </li><li>Performance was very slow when using LOG=2 and deleting or
     updating all rows of a table in a loop. Fixed.
 </li><li>ALTER TABLE or CREATE TABLE now support parameters for the password field.
@@ -566,8 +566,8 @@ Change Log
 </li><li>Fulltext search: new method SEARCH_DATA that returns the column
     names and primary keys as arrays.
 </li><li>New experimental optimization for GROUP BY queries if an index can be used
-     that matches the group by columns. To enable this optimization, set the system
-     property h2.optimizeGroupSorted to true.
+    that matches the group by columns. To enable this optimization, set the system
+    property h2.optimizeGroupSorted to true.
 </li><li>When using multi-version concurrency (MVCC=TRUE), duplicate rows could appear in the result set when running queries
     with uncommitted changes in the same session.
 </li><li>H2 Console: remote connections were very slow because getHostName/getRemoteHost was used.

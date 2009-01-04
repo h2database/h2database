@@ -710,7 +710,7 @@ public class Parser {
             column.columnName = readColumnIdentifier();
             columns.add(column);
             if (readIf("ASC")) {
-                 // ignore
+                // ignore
             } else if (readIf("DESC")) {
                 column.sortType = SortOrder.DESCENDING;
             }

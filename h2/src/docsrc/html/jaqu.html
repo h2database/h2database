@@ -28,7 +28,7 @@ Microsoft .NET technology). The following JaQu code:
 <pre>
 Product p = new Product();
 List&lt;Product> soldOutProducts =
-  db.from(p).where(p.unitsInStock).is(0).select();
+    db.from(p).where(p.unitsInStock).is(0).select();
 </pre>
 <p>
 stands for the SQL statement:
@@ -97,130 +97,129 @@ import org.h2.jaqu.Db;
 import static org.h2.jaqu.Function.*;
 
 public class Test {
-   Db db;
+    Db db;
 
-   public static void main(String[] args) throws Exception {
-       new SamplesTest().test();
-   }
+    public static void main(String[] args) throws Exception {
+        new SamplesTest().test();
+    }
 
-   public void test() throws Exception {
-       db = Db.open("jdbc:h2:mem:", "sa", "sa");
-       db.insertAll(Product.getProductList());
-       db.insertAll(Customer.getCustomerList());
-       db.insertAll(Order.getOrderList());
-       testLength();
-       testCount();
-       testGroup();
-       testSelectManyCompoundFrom2();
-       testWhereSimple4();
-       testSelectSimple2();
-       testAnonymousTypes3();
-       testWhereSimple2();
-       testWhereSimple3();
-       db.close();
-   }
+    public void test() throws Exception {
+        db = Db.open("jdbc:h2:mem:", "sa", "sa");
+        db.insertAll(Product.getProductList());
+        db.insertAll(Customer.getCustomerList());
+        db.insertAll(Order.getOrderList());
+        testLength();
+        testCount();
+        testGroup();
+        testSelectManyCompoundFrom2();
+        testWhereSimple4();
+        testSelectSimple2();
+        testAnonymousTypes3();
+        testWhereSimple2();
+        testWhereSimple3();
+        db.close();
+    }
 
-   private void testWhereSimple2() throws Exception {
-       Product p = new Product();
-       List&lt;Product> soldOutProducts =
-           db.from(p).
-           where(p.unitsInStock).is(0).
-           orderBy(p.productId).select();
-   }
+    private void testWhereSimple2() throws Exception {
+        Product p = new Product();
+        List&lt;Product> soldOutProducts =
+            db.from(p).
+            where(p.unitsInStock).is(0).
+            orderBy(p.productId).select();
+    }
 
-   private void testWhereSimple3() throws Exception {
-       Product p = new Product();
-       List&lt;Product> expensiveInStockProducts =
-           db.from(p).
-           where(p.unitsInStock).bigger(0).
-           and(p.unitPrice).bigger(3.0).
-           orderBy(p.productId).select();
-   }
+    private void testWhereSimple3() throws Exception {
+        Product p = new Product();
+        List&lt;Product> expensiveInStockProducts =
+            db.from(p).
+            where(p.unitsInStock).bigger(0).
+            and(p.unitPrice).bigger(3.0).
+            orderBy(p.productId).select();
+    }
 
+    private void testWhereSimple4() throws Exception {
+        Customer c = new Customer();
+        List&lt;Customer> waCustomers =
+            db.from(c).
+            where(c.region).is("WA").
+            select();
+    }
 
-   private void testWhereSimple4() throws Exception {
-       Customer c = new Customer();
-       List&lt;Customer> waCustomers =
-           db.from(c).
-           where(c.region).is("WA").
-           select();
-   }
+    private void testSelectSimple2() throws Exception {
+        Product p = new Product();
+        List&lt;String> productNames =
+            db.from(p).
+            orderBy(p.productId).select(p.productName);
+        List&lt;Product> products = Product.getProductList();
+    }
 
-   private void testSelectSimple2() throws Exception {
-       Product p = new Product();
-       List&lt;String> productNames =
-           db.from(p).
-           orderBy(p.productId).select(p.productName);
-       List&lt;Product> products = Product.getProductList();
-   }
+    public static class ProductPrice {
+        public String productName;
+        public String category;
+        public Double price;
+    }
 
-   public static class ProductPrice {
-       public String productName;
-       public String category;
-       public Double price;
-   }
+    private void testAnonymousTypes3() throws Exception {
+        final Product p = new Product();
+        List&lt;ProductPrice> productInfos =
+            db.from(p).orderBy(p.productId).
+            select(new ProductPrice() { {
+                    productName = p.productName;
+                    category = p.category;
+                    price = p.unitPrice;
+            }});
+        List&lt;Product> products = Product.getProductList();
+    }
 
-   private void testAnonymousTypes3() throws Exception {
-       final Product p = new Product();
-       List&lt;ProductPrice> productInfos =
-           db.from(p).orderBy(p.productId).
-           select(new ProductPrice() { {
-                   productName = p.productName;
-                   category = p.category;
-                   price = p.unitPrice;
-           }});
-       List&lt;Product> products = Product.getProductList();
-   }
+    public static class CustOrder {
+        public String customerId;
+        public Integer orderId;
+        public BigDecimal total;
+    }
 
-   public static class CustOrder {
-       public String customerId;
-       public Integer orderId;
-       public BigDecimal total;
-   }
+    private void testSelectManyCompoundFrom2() throws Exception {
+        final Customer c = new Customer();
+        final Order o = new Order();
+        List&lt;CustOrder> orders =
+            db.from(c).
+            innerJoin(o).on(c.customerId).is(o.customerId).
+            where(o.total).smaller(new BigDecimal("500.00")).
+            orderBy(1).
+            select(new CustOrder() { {
+                customerId = c.customerId;
+                orderId = o.orderId;
+                total = o.total;
+            }});
+    }
 
-   private void testSelectManyCompoundFrom2() throws Exception {
-       final Customer c = new Customer();
-       final Order o = new Order();
-       List&lt;CustOrder> orders =
-           db.from(c).
-           innerJoin(o).on(c.customerId).is(o.customerId).
-           where(o.total).smaller(new BigDecimal("500.00")).
-           orderBy(1).
-           select(new CustOrder() { {
-               customerId = c.customerId;
-               orderId = o.orderId;
-               total = o.total;
-           }});
-   }
+    private void testLength() throws Exception {
+        Product p = new Product();
+        List&lt;Integer> lengths = db.from(p).
+            where(length(p.productName)).smaller(10).
+            orderBy(1).
+            selectDistinct(length(p.productName));
+    }
 
-   private void testLength() throws Exception {
-       Product p = new Product();
-       List&lt;Integer> lengths = db.from(p).
-           where(length(p.productName)).smaller(10).
-           orderBy(1).
-           selectDistinct(length(p.productName));
-   }
+    private void testCount() throws Exception {
+        long count = db.from(new Product()).selectCount();
+    }
 
-   private void testCount() throws Exception {
-       long count = db.from(new Product()).selectCount();
-   }
+    public static class ProductGroup {
+        public String category;
+        public Long productCount;
+    }
 
-   public static class ProductGroup {
-       public String category;
-       public Long productCount;
-   }
-
-   private void testGroup() throws Exception {
-       final Product p = new Product();
-       List&lt;ProductGroup> list =
-           db.from(p).
-           groupBy(p.category).
-           orderBy(1).
-           select(new ProductGroup() { {
-               category = p.category;
-               productCount = count();
-           }});
-   }
+    private void testGroup() throws Exception {
+        final Product p = new Product();
+        List&lt;ProductGroup> list =
+            db.from(p).
+            groupBy(p.category).
+            orderBy(1).
+            select(new ProductGroup() { {
+                category = p.category;
+                productCount = count();
+            }});
+    }
 
 }
 </pre>

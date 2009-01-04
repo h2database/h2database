@@ -325,7 +325,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         }
     }
 
-   /**
+    /**
      * Gets the fetch direction.
      *
      * @return FETCH_FORWARD

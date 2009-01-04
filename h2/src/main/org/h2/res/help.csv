@@ -424,7 +424,7 @@ The current user owner must have admin rights.
 CREATE LINKED TABLE LINK('org.h2.Driver', 'jdbc:h2:test2', 'sa', 'sa', 'TEST');
 CREATE LINKED TABLE LINK('', 'jdbc:h2:test2', 'sa', 'sa', '(SELECT * FROM TEST WHERE ID>0)');
 CREATE LINKED TABLE LINK('javax.naming.InitialContext',
-  'java:comp/env/jdbc/Test', NULL, NULL, '(SELECT * FROM TEST WHERE ID>0)');
+    'java:comp/env/jdbc/Test', NULL, NULL, '(SELECT * FROM TEST WHERE ID>0)');
 "
 
 "Commands (DDL)","CREATE ROLE","

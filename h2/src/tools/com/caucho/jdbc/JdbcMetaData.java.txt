@@ -10,6 +10,6 @@ you need to add
         return new H2MetaData(ds);
     else
 
- just before
+just before
 
     if ("oracle".equalsIgnoreCase(name))

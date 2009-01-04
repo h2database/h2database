@@ -27,7 +27,7 @@ public class Page {
      */
     public static final int TYPE_DATA_LEAF = 1;
 
-     /**
+    /**
      * A data node page (never has overflow pages).
      */
     public static final int TYPE_DATA_NODE = 2;

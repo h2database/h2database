@@ -43,7 +43,7 @@ function addHighlight(page, word, count) {
         if(top.main.document.location.href.indexOf(page) > 0 && top.main.document.body && top.main.document.body.innerHTML) {
             highlight();
         } else {
-              window.setTimeout('addHighlight("'+page+'","'+word+'",'+(count-1)+')', 10);
+            window.setTimeout('addHighlight("'+page+'","'+word+'",'+(count-1)+')', 10);
         }
     }
 }
@@ -98,47 +98,47 @@ function highlightSearchTerms(body, searchText) {
     searchArray = searchText.split(",");
     if (!body || typeof(body.innerHTML) == "undefined") {
         return false;
-      }
-      var bodyText = body.innerHTML;
-      for (var i = 0; i < searchArray.length; i++) {
-          var color = matchColor[i % matchColor.length];
+    }
+    var bodyText = body.innerHTML;
+    for (var i = 0; i < searchArray.length; i++) {
+        var color = matchColor[i % matchColor.length];
         highlightStartTag = "<span ";
         if(i==0) {
             highlightStartTag += "id=firstFound ";
         }
         highlightStartTag += "style='color:#000000; background-color:#"+color+";'>";
         bodyText = doHighlight(bodyText, searchArray[i], highlightStartTag, highlightEndTag);
-      }
-      return bodyText;
+    }
+    return bodyText;
 }
 
 function doHighlight(bodyText, searchTerm, highlightStartTag, highlightEndTag) {
-  if(searchTerm == undefined || searchTerm=="") {
-    return bodyText;
-  }
-  var newText = "";
-  var i = -1;
-  var lcSearchTerm = searchTerm.toLowerCase();
-  var lcBodyText = bodyText.toLowerCase();
-  while (bodyText.length > 0) {
-    i = lcBodyText.indexOf(lcSearchTerm, i+1);
-    if (i < 0) {
-      newText += bodyText;
-      bodyText = "";
-    } else {
-      // skip anything inside an HTML tag
-      if (bodyText.lastIndexOf(">", i) >= bodyText.lastIndexOf("<", i)) {
-        // skip anything inside a <script> block
-        if (lcBodyText.lastIndexOf("/script>", i) >= lcBodyText.lastIndexOf("<script", i)) {
-          newText += bodyText.substring(0, i) + highlightStartTag + bodyText.substr(i, searchTerm.length) + highlightEndTag;
-          bodyText = bodyText.substr(i + searchTerm.length);
-          lcBodyText = bodyText.toLowerCase();
-          i = -1;
-        }
-      }
+    if(searchTerm == undefined || searchTerm=="") {
+        return bodyText;
     }
-  }
-  return newText;
+    var newText = "";
+    var i = -1;
+    var lcSearchTerm = searchTerm.toLowerCase();
+    var lcBodyText = bodyText.toLowerCase();
+    while (bodyText.length > 0) {
+        i = lcBodyText.indexOf(lcSearchTerm, i+1);
+        if (i < 0) {
+            newText += bodyText;
+            bodyText = "";
+        } else {
+            // skip anything inside an HTML tag
+            if (bodyText.lastIndexOf(">", i) >= bodyText.lastIndexOf("<", i)) {
+                // skip anything inside a <script> block
+                if (lcBodyText.lastIndexOf("/script>", i) >= lcBodyText.lastIndexOf("<script", i)) {
+                    newText += bodyText.substring(0, i) + highlightStartTag + bodyText.substr(i, searchTerm.length) + highlightEndTag;
+                    bodyText = bodyText.substr(i + searchTerm.length);
+                    lcBodyText = bodyText.toLowerCase();
+                    i = -1;
+                }
+            }
+        }
+    }
+    return newText;
 }
 
 var drag = false;

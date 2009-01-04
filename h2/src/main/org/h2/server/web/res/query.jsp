@@ -105,12 +105,12 @@ function setSelection(element) {
         try {
             var range = document.selection.createRange();
             var copy = range.duplicate();
-             copy.moveToElementText(element);
+            copy.moveToElementText(element);
             copy.setEndPoint('EndToEnd', range);
-               element.selectionStart = copy.text.length - range.text.length;
-               element.selectionEnd = element.selectionStart + range.text.length;
+            element.selectionStart = copy.text.length - range.text.length;
+            element.selectionEnd = element.selectionStart + range.text.length;
         } catch (e) {
-               element.selectionEnd = element.selectionStart = 0;
+            element.selectionEnd = element.selectionStart = 0;
         }
     }
 }
@@ -418,13 +418,13 @@ function sendAsyncRequest(url) {
             req = false;
         }
     } else if(window.ActiveXObject) {
-           try {
+        try {
             req = new ActiveXObject("Msxml2.XMLHTTP");
-          } catch(e) {
+        } catch(e) {
             try {
-                  req = new ActiveXObject("Microsoft.XMLHTTP");
+                req = new ActiveXObject("Microsoft.XMLHTTP");
             } catch(e) {
-                  req = false;
+                req = false;
             }
         }
     }

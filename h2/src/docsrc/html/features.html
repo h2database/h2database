@@ -452,136 +452,136 @@ This is achieved using different database URLs. Settings in the URLs are not cas
 </p>
 <table><tr><th>Topic</th><th>URL Format and Examples</th></tr>
 <tr>
-  <td><a href="#embedded_databases">Embedded (local) connection</a></td>
-  <td>
-    jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;<br />
-      jdbc:h2:~/test<br />
-     jdbc:h2:file:/data/sample<br />
-     jdbc:h2:file:C:/data/sample (Windows only)<br />
-  </td>
+    <td><a href="#embedded_databases">Embedded (local) connection</a></td>
+    <td>
+        jdbc:h2:[file:][&lt;path&gt;]&lt;databaseName&gt;<br />
+        jdbc:h2:~/test<br />
+        jdbc:h2:file:/data/sample<br />
+        jdbc:h2:file:C:/data/sample (Windows only)<br />
+    </td>
 </tr>
 <tr>
-  <td><a href="#memory_only_databases">In-Memory (private)</a></td>
-  <td>jdbc:h2:mem:</td>
+    <td><a href="#memory_only_databases">In-Memory (private)</a></td>
+    <td>jdbc:h2:mem:</td>
 </tr>
 <tr>
-  <td><a href="#memory_only_databases">In-Memory (named)</a></td>
-  <td>
-    jdbc:h2:mem:&lt;databaseName&gt;<br />
-    jdbc:h2:mem:test_mem
-  </td>
+    <td><a href="#memory_only_databases">In-Memory (named)</a></td>
+    <td>
+        jdbc:h2:mem:&lt;databaseName&gt;<br />
+        jdbc:h2:mem:test_mem
+    </td>
 </tr>
 <tr>
-  <td><a href="tutorial.html#using_server">Remote using TCP/IP</a></td>
-  <td>
-    jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;<br />
-    jdbc:h2:tcp://localhost/~/test<br />
-    jdbc:h2:tcp://dbserv:8084/~/sample
-  </td>
+    <td><a href="tutorial.html#using_server">Remote using TCP/IP</a></td>
+    <td>
+        jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;<br />
+        jdbc:h2:tcp://localhost/~/test<br />
+        jdbc:h2:tcp://dbserv:8084/~/sample
+    </td>
 </tr>
 <tr>
-  <td><a href="advanced.html#ssl_tls_connections">Remote using SSL/TLS</a></td>
-  <td>
-    jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;<br />
-    jdbc:h2:ssl://secureserv:8085/~/sample;
-  </td>
+    <td><a href="advanced.html#ssl_tls_connections">Remote using SSL/TLS</a></td>
+    <td>
+        jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;<br />
+        jdbc:h2:ssl://secureserv:8085/~/sample;
+    </td>
 </tr>
 <tr>
-  <td><a href="#file_encryption">Using Encrypted Files</a></td>
-  <td>
-    jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]<br />
-    jdbc:h2:ssl://secureserv/~/testdb;CIPHER=AES<br />
-    jdbc:h2:file:~/secure;CIPHER=XTEA<br />
-  </td>
+    <td><a href="#file_encryption">Using Encrypted Files</a></td>
+    <td>
+        jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]<br />
+        jdbc:h2:ssl://secureserv/~/testdb;CIPHER=AES<br />
+        jdbc:h2:file:~/secure;CIPHER=XTEA<br />
+    </td>
 </tr>
 <tr>
-  <td><a href="#database_file_locking">File Locking Methods</a></td>
-  <td>
-    jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}<br />
-    jdbc:h2:file:~/quickAndDirty;FILE_LOCK=NO<br />
-    jdbc:h2:file:~/private;CIPHER=XTEA;FILE_LOCK=SOCKET<br />
-  </td>
+    <td><a href="#database_file_locking">File Locking Methods</a></td>
+    <td>
+        jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}<br />
+        jdbc:h2:file:~/quickAndDirty;FILE_LOCK=NO<br />
+        jdbc:h2:file:~/private;CIPHER=XTEA;FILE_LOCK=SOCKET<br />
+    </td>
 </tr>
 <tr>
-  <td><a href="#database_only_if_exists">Only Open if it Already Exists</a></td>
-  <td>
-    jdbc:h2:&lt;url&gt;;IFEXISTS=TRUE<br />
-    jdbc:h2:file:~/sample;IFEXISTS=TRUE<br />
-  </td>
+    <td><a href="#database_only_if_exists">Only Open if it Already Exists</a></td>
+    <td>
+        jdbc:h2:&lt;url&gt;;IFEXISTS=TRUE<br />
+        jdbc:h2:file:~/sample;IFEXISTS=TRUE<br />
+    </td>
 </tr>
 <tr>
     <td><a href="#do_not_close_on_exit">Don't Close the Database when the VM Exits</a></td>
     <td>
-    jdbc:h2:&lt;url&gt;;DB_CLOSE_ON_EXIT=FALSE
+        jdbc:h2:&lt;url&gt;;DB_CLOSE_ON_EXIT=FALSE
     </td>
 </tr>
 <tr>
-  <td><a href="#passwords">User Name and/or Password</a></td>
-  <td>
-    jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]<br />
-    jdbc:h2:file:~/sample;USER=sa;PASSWORD=123<br />
-  </td>
+    <td><a href="#passwords">User Name and/or Password</a></td>
+    <td>
+        jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]<br />
+        jdbc:h2:file:~/sample;USER=sa;PASSWORD=123<br />
+    </td>
 </tr>
 <tr>
-  <td><a href="#log_index_changes">Log Index Changes</a></td>
-  <td>
-    jdbc:h2:&lt;url&gt;;LOG=2<br />
-    jdbc:h2:file:~/sample;LOG=2<br />
-  </td>
+    <td><a href="#log_index_changes">Log Index Changes</a></td>
+    <td>
+        jdbc:h2:&lt;url&gt;;LOG=2<br />
+        jdbc:h2:file:~/sample;LOG=2<br />
+    </td>
 </tr>
 <tr>
-  <td><a href="#trace_options">Debug Trace Settings</a></td>
-  <td>
-    jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;<br />
-    jdbc:h2:file:~/sample;TRACE_LEVEL_FILE=3<br />
-  </td>
+    <td><a href="#trace_options">Debug Trace Settings</a></td>
+    <td>
+        jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;<br />
+        jdbc:h2:file:~/sample;TRACE_LEVEL_FILE=3<br />
+    </td>
 </tr>
 <tr>
-  <td><a href="#ignore_unknown_settings">Ignore Unknown Settings</a></td>
-  <td>
-    jdbc:h2:&lt;url&gt;;IGNORE_UNKNOWN_SETTINGS=TRUE<br />
-  </td>
+    <td><a href="#ignore_unknown_settings">Ignore Unknown Settings</a></td>
+    <td>
+        jdbc:h2:&lt;url&gt;;IGNORE_UNKNOWN_SETTINGS=TRUE<br />
+    </td>
 </tr>
 <tr>
-  <td><a href="#custom_access_mode">Custom File Access Mode</a></td>
-  <td>
-    jdbc:h2:&lt;url&gt;;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws<br />
-  </td>
+    <td><a href="#custom_access_mode">Custom File Access Mode</a></td>
+    <td>
+        jdbc:h2:&lt;url&gt;;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws<br />
+    </td>
 </tr>
 <tr>
-  <td><a href="#database_in_zip">Database in or Zip File</a></td>
-  <td>
-    jdbc:h2:zip:&lt;zipFileName&gt;!/&lt;databaseName&gt;<br />
-    jdbc:h2:zip:~/db.zip!/test
-  </td>
+    <td><a href="#database_in_zip">Database in or Zip File</a></td>
+    <td>
+        jdbc:h2:zip:&lt;zipFileName&gt;!/&lt;databaseName&gt;<br />
+        jdbc:h2:zip:~/db.zip!/test
+    </td>
 </tr>
 <tr>
-  <td><a href="#compatibility">Compatibility Mode</a></td>
-  <td>
-    jdbc:h2:&lt;url&gt;;MODE=&lt;databaseType&gt;<br />
-    jdbc:h2:~/test;MODE=MYSQL
-  </td>
+    <td><a href="#compatibility">Compatibility Mode</a></td>
+    <td>
+        jdbc:h2:&lt;url&gt;;MODE=&lt;databaseType&gt;<br />
+        jdbc:h2:~/test;MODE=MYSQL
+    </td>
 </tr>
 <tr>
-  <td><a href="#auto_reconnect">Auto-Reconnect</a></td>
-  <td>
-    jdbc:h2:&lt;url&gt;;AUTO_RECONNECT=TRUE<br />
-    jdbc:h2:tcp://localhost/~/test;AUTO_RECONNECT=TRUE
-  </td>
+    <td><a href="#auto_reconnect">Auto-Reconnect</a></td>
+    <td>
+        jdbc:h2:&lt;url&gt;;AUTO_RECONNECT=TRUE<br />
+        jdbc:h2:tcp://localhost/~/test;AUTO_RECONNECT=TRUE
+    </td>
 </tr>
 <tr>
-  <td><a href="#auto_mixed_mode">Automatic Mixed Mode</a></td>
-  <td>
-    jdbc:h2:&lt;url&gt;;AUTO_SERVER=TRUE<br />
-    jdbc:h2:~/test;AUTO_SERVER=TRUE
-  </td>
+    <td><a href="#auto_mixed_mode">Automatic Mixed Mode</a></td>
+    <td>
+        jdbc:h2:&lt;url&gt;;AUTO_SERVER=TRUE<br />
+        jdbc:h2:~/test;AUTO_SERVER=TRUE
+    </td>
 </tr>
 <tr>
-  <td><a href="#other_settings">Changing Other Settings</a></td>
-  <td>
-    jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]<br />
-    jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3<br />
-  </td>
+    <td><a href="#other_settings">Changing Other Settings</a></td>
+    <td>
+        jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]<br />
+        jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3<br />
+    </td>
 </tr>
 </table>
 
@@ -838,46 +838,34 @@ The locks are also released when the autocommit mode changes, and for connection
 autocommit set to true (this is the default), locks are released after each statement.
 Here is an overview on what statements generate what type of lock:
 </p>
-<table><tr><th>Type of Lock</th><th>SQL Statement</th></tr>
-<tr>
-  <td>
-    Read
-  </td>
-  <td>
-    SELECT * FROM TEST<br />
-    CALL SELECT MAX(ID) FROM TEST<br />
-    SCRIPT
-  </td>
-</tr>
-<tr>
-  <td>
-    Write
-  </td>
-  <td>
-    SELECT * FROM TEST WHERE 1=0 FOR UPDATE
-  </td>
-</tr>
-<tr>
-  <td>
-    Write
-  </td>
-  <td>
-    INSERT INTO TEST VALUES(1, 'Hello')<br />
-    INSERT INTO TEST SELECT * FROM TEST<br />
-    UPDATE TEST SET NAME='Hi'<br />
-    DELETE FROM TEST
-  </td>
-</tr>
-<tr>
-  <td>
-    Write
-  </td>
-  <td>
-    ALTER TABLE TEST ...<br />
-    CREATE INDEX ... ON TEST ...<br />
-    DROP INDEX ...
-  </td>
-</tr>
+<table>
+    <tr>
+        <th>Type of Lock</th>
+        <th>SQL Statement</th>
+    </tr>
+    <tr>
+        <td>Read</td>
+        <td>SELECT * FROM TEST<br />
+        CALL SELECT MAX(ID) FROM TEST<br />
+        SCRIPT</td>
+    </tr>
+    <tr>
+        <td>Write</td>
+        <td>SELECT * FROM TEST WHERE 1=0 FOR UPDATE</td>
+    </tr>
+    <tr>
+        <td>Write</td>
+        <td>INSERT INTO TEST VALUES(1, 'Hello')<br />
+        INSERT INTO TEST SELECT * FROM TEST<br />
+        UPDATE TEST SET NAME='Hi'<br />
+        DELETE FROM TEST</td>
+    </tr>
+    <tr>
+        <td>Write</td>
+        <td>ALTER TABLE TEST ...<br />
+        CREATE INDEX ... ON TEST ...<br />
+        DROP INDEX ...</td>
+    </tr>
 </table>
 <p>
 The number of seconds until a lock timeout exception is thrown can be
@@ -1354,9 +1342,9 @@ and index this column:
 </p>
 <pre>
 CREATE TABLE ADDRESS(
-  ID INT PRIMARY KEY,
-  NAME VARCHAR,
-  UPPER_NAME VARCHAR AS UPPER(NAME)
+    ID INT PRIMARY KEY,
+    NAME VARCHAR,
+    UPPER_NAME VARCHAR AS UPPER(NAME)
 );
 CREATE INDEX IDX_U_NAME ON ADDRESS(UPPER_NAME);
 </pre>
@@ -1436,7 +1424,7 @@ prop.put("password", password);
 Connection conn = null;
 try {
     conn = DriverManager.
-      getConnection(url, prop);
+    getConnection(url, prop);
 } finally {
     Arrays.fill(password, 0);
 }
@@ -1451,12 +1439,12 @@ However, Java Swing supports a way to get passwords using a char array (JPasswor
 Instead of passing the user name as a separate parameter as in
 <code>
 Connection conn = DriverManager.
-  getConnection("jdbc:h2:~/test", "sa", "123");
+    getConnection("jdbc:h2:~/test", "sa", "123");
 </code>
 the user name (and/or password) can be supplied in the URL itself:
 <code>
 Connection conn = DriverManager.
-  getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");
+    getConnection("jdbc:h2:~/test;USER=sa;PASSWORD=123");
 </code>
 The settings in the URL override the settings passed as a separate parameter.
 </p>
@@ -1563,7 +1551,7 @@ public static ResultSet getMatrix(Integer id) throws SQLException {
         for(int y = 0; y &lt; id.intValue(); y++) {
             rs.addRow(new Object[] { new Integer(x), new Integer(y) });
         }
-      }
+    }
     return rs;
 }
 
@@ -1598,7 +1586,7 @@ The trigger then needs to be defined in the database:
 </p>
 <pre>
 CREATE TRIGGER INV_INS AFTER INSERT ON INVOICE
-  FOR EACH ROW CALL "org.h2.samples.TriggerSample"
+    FOR EACH ROW CALL "org.h2.samples.TriggerSample"
 </pre>
 <p>
 The trigger can be used to veto a change, by throwing a SQL Exception.

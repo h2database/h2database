@@ -101,8 +101,8 @@ public class TestMvcc1 extends TestBase {
         s1.execute("create table b (name varchar(100) not null, a integer, primary key(name), foreign key(a) references a(id))");
         s1.execute("insert into a(code) values('one')");
         try {
-             s2.execute("insert into b values('un B', 1)");
-             fail();
+            s2.execute("insert into b values('un B', 1)");
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }

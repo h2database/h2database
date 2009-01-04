@@ -153,18 +153,18 @@ public class JdbcUtils {
                         return ds.getConnection();
                     }
                     return ds.getConnection(user, password);
-                 } catch (InstantiationException e) {
-                     throw Message.convert(e);
-                 } catch (IllegalAccessException e) {
-                     throw Message.convert(e);
-                 } catch (NamingException e) {
-                     throw Message.convert(e);
-                 }
-                 //## Java 1.4 end ##
-             } else {
+                } catch (InstantiationException e) {
+                    throw Message.convert(e);
+                } catch (IllegalAccessException e) {
+                    throw Message.convert(e);
+                } catch (NamingException e) {
+                    throw Message.convert(e);
+                }
+                //## Java 1.4 end ##
+            } else {
                 // Don't know, but maybe it loaded a JDBC Driver
                 return DriverManager.getConnection(url, prop);
-             }
+            }
         }
         return DriverManager.getConnection(url, prop);
     }

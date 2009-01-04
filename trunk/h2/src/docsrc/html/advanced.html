@@ -281,10 +281,10 @@ java org.h2.tools.Server
     Run the tool on the command line:
 <pre>
 java org.h2.tools.CreateCluster
-  -urlSource jdbc:h2:tcp://localhost:9101/~/test
-  -urlTarget jdbc:h2:tcp://localhost:9102/~/test
-  -user sa
-  -serverList localhost:9101,localhost:9102
+    -urlSource jdbc:h2:tcp://localhost:9101/~/test
+    -urlTarget jdbc:h2:tcp://localhost:9102/~/test
+    -user sa
+    -serverList localhost:9101,localhost:9102
 </pre>
 </li><li>You can now connect to the databases using
 an application or the H2 Console using the JDBC URL
@@ -1112,98 +1112,87 @@ OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
 
 <br /><a name="glossary_links"></a>
 <h2>Glossary and Links</h2>
-<table><tr><th>Term</th><th>Description</th></tr>
-<tr>
-  <td>AES-128</td>
-  <td>
-    A block encryption algorithm. See also:
-    <a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
-  </td>
-</tr>
-<tr>
-  <td>Birthday Paradox</td>
-  <td>
-      Describes the higher than expected probability that two persons in a room have the same birthday.
-    Also valid for randomly generated UUIDs. See also:
-    <a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
-  </td>
-</tr>
-<tr>
-  <td>Digest</td>
-  <td>
-    Protocol to protect a password (but not to protect data). See also:
-    <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
-  </td>
-</tr>
-<tr>
-  <td>GCJ</td>
-  <td>
-    Compiler for Java.
-    <a href="http://gcc.gnu.org/java">GNU Compiler for the Java</a> and
-    <a href="http://www.dobysoft.com/products/nativej">NativeJ (commercial)</a>
-  </td>
-</tr>
-<tr>
-  <td>HTTPS</td>
-  <td>
-    A protocol to provide security to HTTP connections. See also:
-    <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
-  </td>
-</tr>
-<tr>
-  <td>Modes of Operation</td>
-  <td>
-  <a href="http://en.wikipedia.org/wiki/Block_cipher_modes_of_operation">Wikipedia: Block cipher modes of operation</a>
-  </td>
-</tr>
-<tr>
-  <td>Salt</td>
-  <td>
-      Random number to increase the security of passwords.
-      See also:
-    <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
-  </td>
-</tr>
-<tr>
-  <td>SHA-256</td>
-  <td>
-      A cryptographic one-way hash function.
-      See also:
-    <a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
-  </td>
-</tr>
-<tr>
-  <td>SQL Injection</td>
-  <td>
-      A security vulnerability where an application generates SQL statements with embedded user input.
-      See also:
-    <a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
-  </td>
-</tr>
-<tr>
-  <td>Watermark Attack</td>
-  <td>
-    Security problem of certain encryption programs where the existence of certain
-    data can be proven without decrypting.
-    For more information, search in the internet for 'watermark attack cryptoloop'
-  </td>
-</tr>
-<tr>
-  <td>SSL/TLS</td>
-  <td>
-    Secure Sockets Layer / Transport Layer Security.
-    See also:
-      <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
-  </td>
-</tr>
-<tr>
-  <td>XTEA</td>
-  <td>
-    A block encryption algorithm.
-      See also:
-    <a href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a>
-  </td>
-</tr>
+<table>
+    <tr>
+        <th>Term</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>AES-128</td>
+        <td>A block encryption algorithm. See also: <a
+            href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia:
+        AES</a></td>
+    </tr>
+    <tr>
+        <td>Birthday Paradox</td>
+        <td>Describes the higher than expected probability that two
+        persons in a room have the same birthday. Also valid for randomly
+        generated UUIDs. See also: <a
+            href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia:
+        Birthday Paradox</a></td>
+    </tr>
+    <tr>
+        <td>Digest</td>
+        <td>Protocol to protect a password (but not to protect data).
+        See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC
+        2617: HTTP Digest Access Authentication</a></td>
+    </tr>
+    <tr>
+        <td>GCJ</td>
+        <td>Compiler for Java. <a href="http://gcc.gnu.org/java">GNU
+        Compiler for the Java</a> and <a
+            href="http://www.dobysoft.com/products/nativej">NativeJ
+        (commercial)</a></td>
+    </tr>
+    <tr>
+        <td>HTTPS</td>
+        <td>A protocol to provide security to HTTP connections. See
+        also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818:
+        HTTP Over TLS</a></td>
+    </tr>
+    <tr>
+        <td>Modes of Operation</td>
+        <td><a
+            href="http://en.wikipedia.org/wiki/Block_cipher_modes_of_operation">Wikipedia:
+        Block cipher modes of operation</a></td>
+    </tr>
+    <tr>
+        <td>Salt</td>
+        <td>Random number to increase the security of passwords. See
+        also: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia:
+        Key derivation function</a></td>
+    </tr>
+    <tr>
+        <td>SHA-256</td>
+        <td>A cryptographic one-way hash function. See also: <a
+            href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA
+        hash functions</a></td>
+    </tr>
+    <tr>
+        <td>SQL Injection</td>
+        <td>A security vulnerability where an application generates SQL
+        statements with embedded user input. See also: <a
+            href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia:
+        SQL Injection</a></td>
+    </tr>
+    <tr>
+        <td>Watermark Attack</td>
+        <td>Security problem of certain encryption programs where the
+        existence of certain data can be proven without decrypting. For more
+        information, search in the internet for 'watermark attack
+        cryptoloop'</td>
+    </tr>
+    <tr>
+        <td>SSL/TLS</td>
+        <td>Secure Sockets Layer / Transport Layer Security. See also:
+        <a href="http://java.sun.com/products/jsse/">Java Secure Socket
+        Extension (JSSE)</a></td>
+    </tr>
+    <tr>
+        <td>XTEA</td>
+        <td>A block encryption algorithm. See also: <a
+            href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a></td>
+    </tr>
 </table>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

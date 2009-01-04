@@ -371,9 +371,9 @@ public class Doclet {
     private boolean skipMethod(MethodDoc method) {
         ClassDoc clazz = method.containingClass();
         boolean isInterface = clazz.isInterface() || (clazz.isAbstract() && method.isAbstract());
-         if (INTERFACES_ONLY && !isInterface) {
-             return true;
-         }
+        if (INTERFACES_ONLY && !isInterface) {
+            return true;
+        }
         String name = method.name();
         if (method.isPrivate() || name.equals("finalize")) {
             return true;

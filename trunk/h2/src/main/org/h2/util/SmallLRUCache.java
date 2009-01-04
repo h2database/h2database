@@ -36,6 +36,6 @@ extends HashMap
 //## Java 1.4 begin ##
     protected boolean removeEldestEntry(Map.Entry eldest) {
         return size() > size;
-     }
+    }
 //## Java 1.4 end ##
 }

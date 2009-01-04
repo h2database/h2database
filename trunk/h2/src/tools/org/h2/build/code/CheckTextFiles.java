@@ -215,6 +215,21 @@ public class CheckTextFiles {
                 System.out.println("CHANGED: File " + file.getName());
             }
         }
+        line = 1;
+        for (int i = 0; i < data.length; i++) {
+            if (data[i] < 32) {
+                line++;
+                for (int j = i + 1; j < data.length; j++) {
+                    if (data[j] != 32) {
+                        int mod = (j - i - 1) & 3;
+                        if (mod != 0 && (mod != 1 || data[j] != '*')) {
+                            fail(file, "contains wrong number of heading spaces: " + (j - i - 1), line);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     private void fail(File file, String error, int line) {

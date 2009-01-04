@@ -11,7 +11,7 @@ Initial Developer: H2 Group
     <title>${text.a.title}</title>
     <link rel="stylesheet" type="text/css" href="stylesheet.css" />
 <script type="text/javascript">
-  location.href = 'login.jsp?jsessionid=${sessionId}';
+location.href = 'login.jsp?jsessionid=${sessionId}';
 </script>
 </head>
 <body style="margin: 20px;">

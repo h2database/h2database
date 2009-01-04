@@ -488,7 +488,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @return the value
      */
     public static BigDecimal noOp(BigDecimal dec) {
-       return dec;
+        return dec;
     }
 
     /**

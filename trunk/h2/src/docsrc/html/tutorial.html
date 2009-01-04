@@ -67,8 +67,8 @@ Depending on your platform and environment, there are multiple ways to start the
 </p>
 <table><tr><th>OS</th><th>Start</th></tr>
 <tr>
-  <td>Windows</td>
-  <td>
+    <td>Windows</td>
+    <td>
     Click [Start], [All Programs], [H2], and [H2 Console (Command Line)]<br />
     When using the Sun JDK 1.4 or 1.5, a window with the title 'H2 Console ' should appear.
     When using the Sun JDK 1.6, an icon will be added to the system tray:
@@ -76,25 +76,25 @@ Depending on your platform and environment, there are multiple ways to start the
     If you don't get the window and the system tray icon,
     then maybe Java is not installed correctly (in this case, try another way to start the application).
     A browser window should open and point to the Login page http://localhost:8082).
-  </td>
+    </td>
 </tr>
 <tr>
-  <td>Windows</td>
-  <td>
+    <td>Windows</td>
+    <td>
     Open a file browser, navigate to h2/bin, and double click on h2.bat.<br />
     A console window appears. If there is a problem, you will see an error message
     in this window. A browser window will open and point to the Login page
     (URL: http://localhost:8082).
-  </td>
+    </td>
 </tr>
 <tr>
-  <td>Any</td>
-  <td>
-      Open a console window, navigate to the directory 'h2/bin' and type:
+    <td>Any</td>
+    <td>
+    Open a console window, navigate to the directory 'h2/bin' and type:
 <pre>
 java -cp h2*.jar org.h2.tools.Server
 </pre>
-  </td>
+    </td>
 </tr>
 </table>
 
@@ -251,13 +251,13 @@ and then get a connection. A simple way to do that is using the following code:
 <pre>
 import java.sql.*;
 public class Test {
-  public static void main(String[] a)
-  throws Exception {
-    Class.forName("org.h2.Driver");
-    Connection conn = DriverManager.
-      getConnection("jdbc:h2:~/test", "sa", "");
-    // add application code here
-  }
+    public static void main(String[] a)
+            throws Exception {
+        Class.forName("org.h2.Driver");
+        Connection conn = DriverManager.
+            getConnection("jdbc:h2:~/test", "sa", "");
+        // add application code here
+    }
 }
 </pre>
 <p>
@@ -381,8 +381,8 @@ To enable it, change the following setting in persistence.xml:
 </p>
 <pre>
 &lt;property
-  name="toplink.target-database"
-  value="oracle.toplink.essentials.platform.database.H2Platform"/>
+    name="toplink.target-database"
+    value="oracle.toplink.essentials.platform.database.H2Platform"/>
 </pre>
 <p>
 In old versions of Glassfish, the property name is <code>toplink.platform.class.name</code>.
@@ -428,7 +428,7 @@ add the following snippet to your web.xml file (after context-param and before f
 </p>
 <pre>
 &lt;listener>
-   &lt;listener-class>org.h2.server.web.DbStarter&lt;/listener-class>
+    &lt;listener-class>org.h2.server.web.DbStarter&lt;/listener-class>
 &lt;/listener>
 </pre>
 <p>
@@ -442,20 +442,20 @@ These options are set just after the display-name and description tag, but befor
 </p>
 <pre>
 &lt;context-param>
-   &lt;param-name>db.url&lt;/param-name>
-   &lt;param-value>jdbc:h2:~/test&lt;/param-value>
+    &lt;param-name>db.url&lt;/param-name>
+    &lt;param-value>jdbc:h2:~/test&lt;/param-value>
 &lt;/context-param>
 &lt;context-param>
-   &lt;param-name>db.user&lt;/param-name>
-   &lt;param-value>sa&lt;/param-value>
+    &lt;param-name>db.user&lt;/param-name>
+    &lt;param-value>sa&lt;/param-value>
 &lt;/context-param>
 &lt;context-param>
-   &lt;param-name>db.password&lt;/param-name>
-   &lt;param-value>sa&lt;/param-value>
+    &lt;param-name>db.password&lt;/param-name>
+    &lt;param-value>sa&lt;/param-value>
 &lt;/context-param>
 &lt;context-param>
-   &lt;param-name>db.tcpServer&lt;/param-name>
-   &lt;param-value>-tcpAllowOthers&lt;/param-value>
+    &lt;param-name>db.tcpServer&lt;/param-name>
+    &lt;param-value>-tcpAllowOthers&lt;/param-value>
 &lt;/context-param>
 </pre>
 <p>

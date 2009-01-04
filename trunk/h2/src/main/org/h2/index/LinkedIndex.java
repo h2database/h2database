@@ -48,7 +48,7 @@ public class LinkedIndex extends BaseIndex {
 
     private boolean isNull(Value v) {
         return v == null || v == ValueNull.INSTANCE;
-      }
+    }
 
     public void add(Session session, Row row) throws SQLException {
         StringBuffer buff = new StringBuffer("INSERT INTO ");

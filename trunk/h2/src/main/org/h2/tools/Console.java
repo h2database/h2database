@@ -301,15 +301,15 @@ ShutdownHandler {
 
             // trayIcon.addMouseListener(this);
             trayIcon.getClass().
-                 getMethod("addMouseListener", new Class[]{MouseListener.class}).
-                 invoke(trayIcon, new Object[]{this});
+                getMethod("addMouseListener", new Class[]{MouseListener.class}).
+                invoke(trayIcon, new Object[]{this});
 
-             // tray.add(icon);
-             tray.getClass().
+            // tray.add(icon);
+            tray.getClass().
                 getMethod("add", new Class[] { Class.forName("java.awt.TrayIcon") }).
                 invoke(tray, new Object[] { trayIcon });
 
-             return true;
+            return true;
         } catch (Exception e) {
             return false;
         }

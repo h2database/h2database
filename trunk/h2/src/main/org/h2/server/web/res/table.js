@@ -26,7 +26,7 @@ function initSort() {
     if(document.getElementById('editing') != undefined) {
         // don't allow sorting while editing
         return;
-       }
+    }
     var tables = document.getElementsByTagName("table");
     for (var i=0; i<tables.length; i++) {
         table = tables[i];
@@ -172,7 +172,7 @@ function resortTable(link) {
     var allSpans = document.getElementsByTagName("span");
     for (var i=0;i<allSpans.length;i++) {
         if (allSpans[i].className == 'sortArrow') {
-               // in the same table as us?
+            // in the same table as us?
             if (getParent(allSpans[i],"table") == getParent(link,"table")) {
                 allSpans[i].innerHTML = '&nbsp;&nbsp;';
             }

@@ -1326,7 +1326,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     ResultInterface getGeneratedKeys() throws SQLException {
         getGeneratedKeys = prepareCommand("CALL IDENTITY()", getGeneratedKeys);
         return getGeneratedKeys.executeQuery(0, false);
-     }
+    }
 
     /**
      * Create a new empty Clob object.

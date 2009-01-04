@@ -272,7 +272,7 @@ public class DataType {
         add(Value.BYTES, Types.VARBINARY, "Bytes",
                 createString(false),
                 new String[]{"VARBINARY"},
-               8
+                8
         );
         add(Value.BYTES, Types.BINARY, "Bytes",
                 createString(false),

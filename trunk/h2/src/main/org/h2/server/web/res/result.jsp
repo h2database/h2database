@@ -16,8 +16,8 @@ Initial Developer: H2 Group
 <body class="result">
 
 <div id="output">
- ${result}
- </div>
+${result}
+</div>
 
 <table id="h2auto" class="autoComp"><tbody></tbody></table>
 

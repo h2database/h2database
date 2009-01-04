@@ -121,14 +121,14 @@ as
 select
     t.id*10000 + c.ordinal_position oid,
     t.id attrelid,
-     c.column_name attname,
-     data_type atttypid,
-     -1 attlen,
-     c.ordinal_position attnum,
-     -1 atttypmod,
-     false attnotnull,
-     false attisdropped,
-     false atthasdef
+    c.column_name attname,
+    data_type atttypid,
+    -1 attlen,
+    c.ordinal_position attnum,
+    -1 atttypmod,
+    false attnotnull,
+    false attisdropped,
+    false atthasdef
 from information_schema.tables t, information_schema.columns c
 where t.table_name = c.table_name
 and t.table_schema = c.table_schema
@@ -136,14 +136,14 @@ union all
 select
     1000000 + t.id*10000 + c.ordinal_position oid,
     i.id attrelid,
-     c.column_name attname,
-     data_type atttypid,
-     -1 attlen,
-     c.ordinal_position attnum,
-     -1 atttypmod,
-     false attnotnull,
-     false attisdropped,
-     false atthasdef
+    c.column_name attname,
+    data_type atttypid,
+    -1 attlen,
+    c.ordinal_position attnum,
+    -1 atttypmod,
+    false attnotnull,
+    false attisdropped,
+    false atthasdef
 from information_schema.tables t, information_schema.indexes i, information_schema.columns c
 where t.table_name = i.table_name
 and t.table_schema = i.table_schema

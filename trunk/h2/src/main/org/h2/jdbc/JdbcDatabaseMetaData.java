@@ -2668,7 +2668,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * @return DatabaseMetaData.sqlStateSQL99
      */
 //## Java 1.4 begin ##
-   public int getSQLStateType() {
+    public int getSQLStateType() {
         debugCodeCall("getSQLStateType");
         return DatabaseMetaData.sqlStateSQL99;
     }

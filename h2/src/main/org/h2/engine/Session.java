@@ -831,7 +831,7 @@ public class Session implements SessionInterface {
     public void setCurrentCommand(Command command, long startTime) {
         this.currentCommand = command;
         this.currentCommandStart = startTime;
-        if (queryTimeout > 0) {
+        if (queryTimeout > 0 && startTime != 0) {
             cancelAt = startTime + queryTimeout;
         }
     }

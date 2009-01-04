@@ -48,6 +48,9 @@ public class TestCompatibility extends TestBase {
     }
 
     private void testDomain() throws SQLException {
+        if (config.memory) {
+            return;
+        }
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key) as select 1");
         try {

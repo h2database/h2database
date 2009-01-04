@@ -13,6 +13,36 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(56,
+'New version available: 1.1.106 (beta; 2009-01-04)', '2009-01-04 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>The license change a bit: so far the license was modified to say
+    'Swiss law'. This is now changed back to the original 'US law'.
+</li><li>CREATE DOMAIN: Built-in data types can now only be changed if no tables exist.
+</li><li>DatabaseMetaData.getPrimaryKeys: The column PK_NAME now contains the
+    constraint name instead of the index name (compatibility for PostgreSQL and Derby).
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Statement.setQueryTimeout did not work correctly for some statements.
+</li><li>Linked tables: a workaround for Oracle DATE columns has been implemented.
+</li><li>Using IN(..) inside a IN(SELECT..) did not always work.
+</li><li>Views with IN(..) that used a view itself did not work.
+</li><li>Union queries with LIMIT or ORDER BY that are used in a view or subquery did not work.
+</li><li>Constraints for local temporary tables now session scoped. So far they were global.
+    Thanks a lot to Eric Faulhaber for finding and fixing this problem!
+</li><li>When using the auto-server mode, and if the lock file was modified in the future,
+    the wrong exception was thrown.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(55,
 'New version available: 1.1.105 (beta; 2008-12-19)', '2008-12-19 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -28,7 +58,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>H2 Console: support for the 'command' key.
 </li><li>JaQu: the maximum length of a column can now be defined.
 </li><li>The fulltext search documentation has been improved.
-</li><li>R&\#305;dvan A&\#287;ar has completed the Turkish translation.
+</li><li>Ridvan Agar has completed the Turkish translation.
 </li></ul>
 <b>Bugfixes:</b>
 <ul><li>The tool DeleteDbFiles could deleted LOB files of other databases.
@@ -407,39 +437,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Setting a column default with a different data type did not work.
 </li><li>Opening big databases was sometimes very slow. Fixed.
 </li><li>RUNSCRIPT could throw a NullPointerException.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(43,
-'New version available: 1.0.73 (2008-05-31)', '2008-05-31 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>ParameterMetaData now returns the right data type for most cases.
-</li><li>New column INFORMATION_SCHEMA.CONSTRAINTS.UNIQUE_INDEX_NAME.
-</li><li>Some SET statements no longer commit a transaction.
-</li><li>The table SYSTEM_RANGE now supports parameters.
-</li><li>The SCRIPT command does now emit IF NOT EXISTS for CREATE ROLE.
-</li><li>Improved MySQL compatibility for AUTO_INCREMENT columns.
-</li><li>The aggregate functions BOOL_OR and BOOL_AND are now supported.
-</li><li>Negative scale values are now supported.
-</li><li>Infinite numbers and NaN are now better supported.
-</li><li>The fulltext search now supports CLOB.
-</li><li>A right can now be granted multiple times.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Disconnecting or unmounting drives while the database is open
-    now throws the right exception.
-</li><li>The H2 Console could not be shut down from within the tool.
-</li><li>If the password was passed as a char array, it was kept in an internal buffer
-        longer than required. Theoretically the password could have been stolen
-        if the main memory was swapped to disk before the garbage collection was run.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

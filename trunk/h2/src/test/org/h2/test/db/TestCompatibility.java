@@ -36,6 +36,7 @@ public class TestCompatibility extends TestBase {
         deleteDb("compatibility");
         conn = getConnection("compatibility");
 
+        testDomain();
         testColumnAlias();
         testUniqueIndexSingleNull();
         testUniqueIndexOracle();
@@ -44,6 +45,22 @@ public class TestCompatibility extends TestBase {
 
         conn.close();
         deleteDb("compatibility");
+    }
+
+    private void testDomain() throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key) as select 1");
+        try {
+            stat.execute("create domain int as varchar");
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        conn.close();
+        conn = getConnection("compatibility");
+        stat = conn.createStatement();
+        stat.execute("insert into test values(2)");
+        stat.execute("drop table test");
     }
 
     private void testColumnAlias() throws SQLException {

@@ -1229,24 +1229,6 @@ Class.forName("org.h2.Driver");
 Also, the user name and password needs to be set, because they are not listed in the trace file.
 </p>
 
-<h3>Enabling the Trace Option at Runtime by Manually Creating a File</h3>
-<p>
-Sometimes, you can't or don't want to change the application or database URL.
-There is still a way to enable the trace mode in these cases, even at runtime (while
-the database connection is open). You only need to create a special file in the directory
-where the database files are stored.
-The database engine checks every 4 seconds if this file exists (only while executing a statement).
-The file name is the database name plus '.trace.db.start'.
-This feature is disabled if the database is encrypted.
-</p><p>
-Example: if a database is called 'test', then the file to start tracing is 'test.trace.db.start'.
-The database engine tries to delete this file when it detects it.
-If trace is enabled using the start file, the trace level is not persistent to the database, and
-trace is switched back to the level that was set before when connecting to the database.
-However, if the start file is read only, the database engine cannot delete the file and
-will always enable the trace mode when connecting.
-</p>
-
 <br /><a name="other_logging"></a>
 <h2>Using Other Logging APIs</h2>
 <p>

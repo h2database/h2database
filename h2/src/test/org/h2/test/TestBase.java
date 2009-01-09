@@ -426,8 +426,12 @@ public abstract class TestBase {
      * @return the formatted time
      */
     static String formatTime(long millis) {
-        return new java.sql.Time(java.sql.Time.valueOf("0:0:0").getTime() + millis).toString()
+        String s = new java.sql.Time(java.sql.Time.valueOf("0:0:0").getTime() + millis).toString()
         + "." + ("" + (1000 + (millis % 1000))).substring(1);
+        if (s.startsWith("00:")) {
+            s = s.substring(3);
+        }
+        return s;
     }
 
     /**

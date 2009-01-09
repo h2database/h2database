@@ -279,6 +279,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+update copyright year to 2009 for changed files
+
 JCR: for each node type, create a table; one 'dynamic' table with parameter;
     option to cache the results
 <link rel="icon" type="image/png" href="/path/image.png">
@@ -437,6 +439,7 @@ http://www.w3schools.com/sql/
         logMode = 1;
         cipher = null;
         test();
+        testUnit();
 
         networked = true;
         memory = true;
@@ -591,7 +594,10 @@ http://www.w3schools.com/sql/
         new TestKillRestartMulti().runTest(this);
         new TestMultiThreaded().runTest(this);
 
-        // unit
+        afterTest();
+    }
+
+    private void testUnit() {
         new TestBitField().runTest(this);
         new TestCache().runTest(this);
         new TestCompress().runTest(this);
@@ -623,8 +629,6 @@ http://www.w3schools.com/sql/
         new TestValue().runTest(this);
         new TestValueHashMap().runTest(this);
         new TestValueMemory().runTest(this);
-
-        afterTest();
     }
 
     private void runTest(String className) {

@@ -32,6 +32,11 @@ import org.h2.util.SmallLRUCache;
 public class TraceSystem implements TraceWriter {
 
     /**
+     * The parent trace level should be used.
+     */
+    public static final int PARENT = -1;
+
+    /**
      * This trace level means nothing should be written.
      */
     public static final int OFF = 0;
@@ -74,21 +79,19 @@ public class TraceSystem implements TraceWriter {
      */
     private static final int DEFAULT_MAX_FILE_SIZE = 64 * 1024 * 1024;
 
-    private static final int CHECK_FILE_TIME = 4000;
     private static final int CHECK_SIZE_EACH_WRITES = 128;
 
     private int levelSystemOut = DEFAULT_TRACE_LEVEL_SYSTEM_OUT;
     private int levelFile = DEFAULT_TRACE_LEVEL_FILE;
+    private int level;
     private int maxFileSize = DEFAULT_MAX_FILE_SIZE;
     private String fileName;
-    private long lastCheck;
     private SmallLRUCache traces;
     private SimpleDateFormat dateFormat;
     private Writer fileWriter;
     private PrintWriter printWriter;
     private int checkSize;
     private boolean closed;
-    private boolean manualEnabling = true;
     private boolean writingErrorLogged;
     private TraceWriter writer = this;
 
@@ -100,6 +103,7 @@ public class TraceSystem implements TraceWriter {
      */
     public TraceSystem(String fileName, boolean init) {
         this.fileName = fileName;
+        updateLevel();
         traces = new SmallLRUCache(100);
         dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
         if (fileName != null && init) {
@@ -109,6 +113,10 @@ public class TraceSystem implements TraceWriter {
                 logWritingError(e);
             }
         }
+    }
+
+    private void updateLevel() {
+        level = Math.max(levelSystemOut, levelFile);
     }
 
     /**
@@ -121,16 +129,6 @@ public class TraceSystem implements TraceWriter {
         if (writer != null) {
             e.printStackTrace(writer);
         }
-    }
-
-    /**
-     * Allow to manually enable the trace option by placing a specially named
-     * file in the right folder.
-     *
-     * @param value the new value
-     */
-    public void setManualEnabling(boolean value) {
-        this.manualEnabling = value;
     }
 
     /**
@@ -149,8 +147,7 @@ public class TraceSystem implements TraceWriter {
     }
 
     public boolean isEnabled(int level) {
-        int max = Math.max(levelSystemOut, levelFile);
-        return level <= max;
+        return level <= this.level;
     }
 
     /**
@@ -178,6 +175,7 @@ public class TraceSystem implements TraceWriter {
      */
     public void setLevelSystemOut(int level) {
         levelSystemOut = level;
+        updateLevel();
     }
 
     /**
@@ -208,6 +206,7 @@ public class TraceSystem implements TraceWriter {
             }
         }
         levelFile = level;
+        updateLevel();
     }
 
     private String format(String module, String s) {
@@ -224,30 +223,8 @@ public class TraceSystem implements TraceWriter {
             }
         }
         if (fileName != null) {
-            if (level > levelFile) {
-                enableIfRequired();
-            }
             if (level <= levelFile) {
                 writeFile(format(module, s), t);
-            }
-        }
-    }
-
-    private void enableIfRequired() {
-        if (!manualEnabling) {
-            return;
-        }
-        long time = System.currentTimeMillis();
-        if (time > lastCheck + CHECK_FILE_TIME) {
-            String checkFile = fileName + Constants.SUFFIX_TRACE_START_FILE;
-            lastCheck = time;
-            if (FileUtils.exists(checkFile)) {
-                levelFile = DEBUG;
-                try {
-                    FileUtils.delete(checkFile);
-                } catch (Exception e) {
-                    // the file may be read only
-                }
             }
         }
     }

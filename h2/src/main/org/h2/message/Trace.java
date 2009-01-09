@@ -97,6 +97,7 @@ public class Trace {
     private TraceWriter traceWriter;
     private String module;
     private String lineSeparator;
+    private int level = TraceSystem.PARENT;
 
     Trace(TraceWriter traceWriter, String module) {
         this.traceWriter = traceWriter;
@@ -105,12 +106,29 @@ public class Trace {
     }
 
     /**
+     * Set the trace level of this component. This setting overrides the parent
+     * trace level.
+     *
+     * @param level the new level
+     */
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    private boolean isEnabled(int level) {
+        if (this.level == TraceSystem.PARENT) {
+            return traceWriter.isEnabled(level);
+        }
+        return level <= this.level;
+    }
+
+    /**
      * Check if the trace level is equal or higher than INFO.
      *
      * @return true if it is
      */
     public boolean isInfoEnabled() {
-        return traceWriter.isEnabled(TraceSystem.INFO);
+        return isEnabled(TraceSystem.INFO);
     }
 
     /**
@@ -119,7 +137,7 @@ public class Trace {
      * @return true if it is
      */
     public boolean isDebugEnabled() {
-        return traceWriter.isEnabled(TraceSystem.DEBUG);
+        return isEnabled(TraceSystem.DEBUG);
     }
 
     /**
@@ -128,7 +146,9 @@ public class Trace {
      * @param s the message
      */
     public void error(String s) {
-        traceWriter.write(TraceSystem.ERROR, module, s, null);
+        if (isEnabled(TraceSystem.ERROR)) {
+            traceWriter.write(TraceSystem.ERROR, module, s, null);
+        }
     }
 
     /**
@@ -138,7 +158,9 @@ public class Trace {
      * @param t the exception
      */
     public void error(String s, Throwable t) {
-        traceWriter.write(TraceSystem.ERROR, module, s, t);
+        if (isEnabled(TraceSystem.ERROR)) {
+            traceWriter.write(TraceSystem.ERROR, module, s, t);
+        }
     }
 
     /**
@@ -147,7 +169,9 @@ public class Trace {
      * @param s the message
      */
     public void info(String s) {
-        traceWriter.write(TraceSystem.INFO, module, s, null);
+        if (isEnabled(TraceSystem.INFO)) {
+            traceWriter.write(TraceSystem.INFO, module, s, null);
+        }
     }
 
     /**
@@ -157,16 +181,9 @@ public class Trace {
      * @param t the exception
      */
     public void info(String s, Throwable t) {
-        traceWriter.write(TraceSystem.INFO, module, s, t);
-    }
-
-    /**
-     * Write Java source code with trace level DEBUG to the trace system.
-     *
-     * @param java the source code
-     */
-    public void debugCode(String java) {
-        traceWriter.write(TraceSystem.DEBUG, module, lineSeparator + "/**/" + java, null);
+        if (isEnabled(TraceSystem.INFO)) {
+            traceWriter.write(TraceSystem.INFO, module, s, t);
+        }
     }
 
     /**
@@ -175,7 +192,9 @@ public class Trace {
      * @param java the source code
      */
     public void infoCode(String java) {
-        traceWriter.write(TraceSystem.INFO, module, lineSeparator + "/**/" + java, null);
+        if (isEnabled(TraceSystem.INFO)) {
+            traceWriter.write(TraceSystem.INFO, module, lineSeparator + "/**/" + java, null);
+        }
     }
 
     /**
@@ -187,6 +206,9 @@ public class Trace {
      * @param time the time it took to run the statement in ms
      */
     public void infoSQL(String sql, String params, int count, long time) {
+        if (!isEnabled(TraceSystem.INFO)) {
+            return;
+        }
         StringBuffer buff = new StringBuffer(sql.length() + params.length() + 20);
         buff.append(lineSeparator);
         buff.append("/*SQL");
@@ -229,7 +251,9 @@ public class Trace {
      * @param s the message
      */
     public void debug(String s) {
-        traceWriter.write(TraceSystem.DEBUG, module, s, null);
+        if (isEnabled(TraceSystem.DEBUG)) {
+            traceWriter.write(TraceSystem.DEBUG, module, s, null);
+        }
     }
 
     /**
@@ -239,7 +263,20 @@ public class Trace {
      * @param t the exception
      */
     public void debug(String s, Throwable t) {
-        traceWriter.write(TraceSystem.DEBUG, module, s, t);
+        if (isEnabled(TraceSystem.DEBUG)) {
+            traceWriter.write(TraceSystem.DEBUG, module, s, t);
+        }
+    }
+
+    /**
+     * Write Java source code with trace level DEBUG to the trace system.
+     *
+     * @param java the source code
+     */
+    public void debugCode(String java) {
+        if (isEnabled(TraceSystem.DEBUG)) {
+            traceWriter.write(TraceSystem.DEBUG, module, lineSeparator + "/**/" + java, null);
+        }
     }
 
 }

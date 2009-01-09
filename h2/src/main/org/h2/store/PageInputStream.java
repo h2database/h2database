@@ -43,7 +43,7 @@ public class PageInputStream extends InputStream {
     public int read() throws IOException {
         byte[] b = new byte[1];
         int len = read(b);
-        return len < 0 ? -1 : b[0];
+        return len < 0 ? -1 : (b[0] & 255);
     }
 
     public int read(byte[] b) throws IOException {
@@ -64,6 +64,9 @@ public class PageInputStream extends InputStream {
             off += r;
             len -= r;
         }
+int test;
+if(read==0)
+System.out.println("stop");
         return read == 0 ? -1 : read;
     }
 
@@ -96,7 +99,7 @@ public class PageInputStream extends InputStream {
             if (type != t || p != parentPage) {
                 throw Message.getSQLException(
                         ErrorCode.FILE_CORRUPTED_1,
-                        "type:" + t + " parent:" + p +
+                        "page:" +nextPage+ " type:" + t + " parent:" + p +
                         " expected type:" + type + " expected parent:" + parentPage);
             }
             parentPage = nextPage;
@@ -107,6 +110,8 @@ public class PageInputStream extends InputStream {
                 nextPage = page.readInt();
                 remaining = store.getPageSize() - page.length();
             }
+            int test;
+            System.out.println("   pageIn.read " + page + " next:" + nextPage);
         } catch (SQLException e) {
             throw Message.convertToIOException(e);
         }

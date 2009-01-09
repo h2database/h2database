@@ -14,6 +14,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.Page;
 import org.h2.message.Message;
+import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.util.BitField;
 import org.h2.value.Value;
@@ -28,13 +29,16 @@ import org.h2.value.Value;
  */
 public class PageLog {
 
-    private static final int UNDO = 0;
-    private static final int COMMIT = 1;
-    private static final int ADD = 2;
-    private static final int REMOVE = 3;
+    private static final int NO_OP = 0;
+    private static final int UNDO = 1;
+    private static final int COMMIT = 2;
+    private static final int ADD = 3;
+    private static final int REMOVE = 4;
 
     private PageStore store;
+    private Trace trace;
     private BitField undo = new BitField();
+    private PageOutputStream pageOut;
     private DataOutputStream out;
     private int firstPage;
     private DataPage data;
@@ -44,6 +48,7 @@ public class PageLog {
         this.store = store;
         this.firstPage = firstPage;
         data = store.createDataPage();
+        trace = store.getTrace();
     }
 
     /**
@@ -51,7 +56,9 @@ public class PageLog {
      * must be run first.
      */
     void openForWriting() {
-        out = new DataOutputStream(new PageOutputStream(store, 0, firstPage, Page.TYPE_LOG));
+        trace.debug("openForWriting");
+        pageOut = new PageOutputStream(store, 0, firstPage, Page.TYPE_LOG);
+        out = new DataOutputStream(pageOut);
     }
 
     /**
@@ -62,7 +69,7 @@ public class PageLog {
      * @param undo true if the undo step should be run
      */
     public void recover(boolean undo) throws SQLException {
-System.out.println("=recover= " + undo);
+        trace.debug("recover");
         DataInputStream in = new DataInputStream(new PageInputStream(store, 0, firstPage, Page.TYPE_LOG));
         DataPage data = store.createDataPage();
         try {
@@ -72,10 +79,10 @@ System.out.println("=recover= " + undo);
                 if (x < 0) {
                     break;
                 }
-                if (x == UNDO) {
+                if (x == NO_OP) {
+                    // nothing to do
+                } else if (x == UNDO) {
                     int pageId = in.readInt();
-int test;
-System.out.println("redo " + pageId);
                     in.read(data.getBytes(), 0, store.getPageSize());
                     if (undo) {
                         store.writePage(pageId, data);
@@ -84,7 +91,6 @@ System.out.println("redo " + pageId);
                     int sessionId = in.readInt();
                     int tableId = in.readInt();
                     Row row = readRow(in);
-System.out.println((x == ADD ? " add" : " remove") + (" " + tableId + " " + row));
                     Database db = store.getDatabase();
                     if (!undo) {
                         db.redo(tableId, row, x == ADD);
@@ -93,11 +99,11 @@ System.out.println((x == ADD ? " add" : " remove") + (" " + tableId + " " + row)
 
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
+            int todoOnlyIOExceptionAndSQLException;
             int todoSomeExceptionAreOkSomeNot;
-e.printStackTrace();
-System.out.println("recovery stopped: " + e.toString());
-//            throw Message.convertIOException(e, "recovering");
+//e.printStackTrace();
+            trace.debug("recovery stopped: " + e.toString());
         } finally {
             recoveryRunning = false;
         }
@@ -131,8 +137,6 @@ System.out.println("recovery stopped: " + e.toString());
             if (undo.get(pageId)) {
                 return;
             }
-int test;
-System.out.println("undo " + pageId);
             out.write(UNDO);
             out.writeInt(pageId);
             out.write(page.getBytes(), 0, store.getPageSize());
@@ -149,8 +153,7 @@ System.out.println("undo " + pageId);
      */
     public void commit(Session session) throws SQLException {
         try {
-int test;
-System.out.println("commit");
+            trace.debug("commit");
             out.write(COMMIT);
             out.writeInt(session.getId());
         } catch (IOException e) {
@@ -171,8 +174,10 @@ System.out.println("commit");
             if (recoveryRunning) {
                 return;
             }
-int test;
-System.out.println("  " + (add?"+":"-") + " tab:" + tableId + " " + row);
+            if (trace.isDebugEnabled()) {
+                trace.debug((add?"+":"-") + " table:" + tableId +
+                        " remaining:" + pageOut.getRemainingBytes() + " row:" + row);
+            }
             out.write(add ? ADD : REMOVE);
             out.writeInt(session.getId());
             out.writeInt(tableId);
@@ -193,6 +198,34 @@ System.out.println("  " + (add?"+":"-") + " tab:" + tableId + " " + row);
             out.close();
             openForWriting();
             int todoDeleteOrReUsePages;
+        } catch (IOException e) {
+            throw Message.convertIOException(e, null);
+        }
+    }
+
+    /**
+     * Flush the transaction log.
+     */
+    public void flush() throws SQLException {
+        try {
+            trace.debug("flush");
+            out.flush();
+            int filler = pageOut.getRemainingBytes();
+            for (int i = 0; i < filler; i++) {
+                out.writeByte(NO_OP);
+            }
+        } catch (IOException e) {
+            throw Message.convertIOException(e, null);
+        }
+    }
+
+    /**
+     * Flush and close the log.
+     */
+    public void close() throws SQLException {
+        try {
+            trace.debug("close");
+            out.close();
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
         }

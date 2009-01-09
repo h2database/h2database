@@ -246,6 +246,7 @@ System.out.println("PageStore.checkpoint");
         int todoTruncateLog;
         try {
             if (file != null) {
+                log.close();
                 file.close();
             }
         } catch (IOException e) {
@@ -265,7 +266,7 @@ System.out.println("PageStore.checkpoint");
         synchronized (database) {
             Record record = (Record) obj;
 int test;
-System.out.println("writeBack " + record);
+System.out.println("writeBack " + record.getPos() + ":" + record);
             int todoRemoveParameter;
             record.write(null);
             record.setChanged(false);
@@ -380,6 +381,9 @@ System.out.println("writeBack " + record);
      * @param page the page
      */
     public void readPage(int pos, DataPage page) throws SQLException {
+        if (pos >= pageCount) {
+            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, pos + " of " + pageCount);
+        }
         file.seek(pos << pageSizeShift);
         file.readFully(page.getBytes(), 0, pageSize);
     }

@@ -71,7 +71,7 @@ class PageDataLeaf extends PageData {
         offsets = new int[entryCount];
         keys = new int[entryCount];
         rows = new Row[entryCount];
-        if (type == (Page.TYPE_DATA_LEAF | Page.FLAG_LAST)) {
+        if (type == Page.TYPE_DATA_LEAF) {
             firstOverflowPageId = data.readInt();
         }
         for (int i = 0; i < entryCount; i++) {
@@ -91,9 +91,12 @@ class PageDataLeaf extends PageData {
     int addRow(Row row) throws SQLException {
         int rowLength = row.getByteCount(data);
         int pageSize = index.getPageStore().getPageSize();
+        // TODO currently the order is important
+        // TODO and can only add at the end
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (entryCount > 0 && last - rowLength < start + 6) {
             int todoSplitAtLastInsertionPoint;
+            return (entryCount / 2) + 1;
         }
         int offset = last - rowLength;
         int[] newOffsets = new int[entryCount + 1];
@@ -112,7 +115,6 @@ class PageDataLeaf extends PageData {
                 System.arraycopy(keys, x, newKeys, x + 1, entryCount - x);
                 System.arraycopy(rows, x, newRows, x + 1, entryCount - x);
             }
-            return (entryCount / 2) + 1;
         }
         entryCount++;
         start += 6;

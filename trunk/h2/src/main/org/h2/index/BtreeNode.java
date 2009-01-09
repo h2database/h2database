@@ -74,7 +74,7 @@ public class BtreeNode extends BtreePage {
 
     int add(Row newRow, Session session) throws SQLException {
         int l = 0, r = pageData.size();
-        if (!Constants.ALLOW_EMPTY_BTREE_PAGES && pageChildren.size() == 0) {
+        if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root && pageChildren.size() == 0) {
             Message.throwInternalError("Empty btree page");
         }
         while (l < r) {
@@ -96,6 +96,11 @@ public class BtreeNode extends BtreePage {
             }
         }
         int at = l;
+        if (pageChildren.size() == 0) {
+            BtreeLeaf newLeaf = new BtreeLeaf(index, new ObjectArray());
+            index.addPage(session, newLeaf);
+            pageChildren.add(newLeaf.getPos());
+        }
         BtreePage page = index.getPage(session, pageChildren.get(at));
         int splitPoint = page.add(newRow, session);
         if (splitPoint == 0) {
@@ -116,7 +121,7 @@ public class BtreeNode extends BtreePage {
 
     SearchRow remove(Session session, Row oldRow) throws SQLException {
         int l = 0, r = pageData.size();
-        if (!Constants.ALLOW_EMPTY_BTREE_PAGES && pageChildren.size() == 0) {
+        if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root && pageChildren.size() == 0) {
             Message.throwInternalError("Empty btree page");
         }
         int comp = 0;
@@ -146,10 +151,14 @@ public class BtreeNode extends BtreePage {
             index.deletePage(session, this);
             pageChildren.remove(at);
             if (pageChildren.size() == 0) {
-                // no more children - this page is empty as well
-                // it can't be the root otherwise the index would have been
-                // truncated
-                return oldRow;
+                if (root) {
+                    // root page: save as it (empty)
+                    index.updatePage(session, this);
+                    return first;
+                } else {
+                    // no more children - this page is empty as well
+                    return oldRow;
+                }
             }
             if (at == 0) {
                 // the first child is empty - then the first row of this subtree
@@ -209,7 +218,7 @@ public class BtreeNode extends BtreePage {
 
     boolean findFirst(BtreeCursor cursor, SearchRow compare, boolean bigger) throws SQLException {
         int l = 0, r = pageData.size();
-        if (!Constants.ALLOW_EMPTY_BTREE_PAGES && pageChildren.size() == 0) {
+        if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root && pageChildren.size() == 0) {
             Message.throwInternalError("Empty btree page");
         }
         while (l < r) {
@@ -306,6 +315,13 @@ public class BtreeNode extends BtreePage {
     }
 
     void first(BtreeCursor cursor) throws SQLException {
+        if (pageData.size() == 0) {
+            if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
+                Message.throwInternalError("Empty btree page");
+            }
+            nextUpper(cursor);
+            return;
+        }
         cursor.push(this, 0);
         BtreePage page = index.getPage(cursor.getSession(), pageChildren.get(0));
         page.first(cursor);
@@ -313,6 +329,13 @@ public class BtreeNode extends BtreePage {
 
     void last(BtreeCursor cursor) throws SQLException {
         int last = pageChildren.size() - 1;
+        if (last < 0) {
+            if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
+                Message.throwInternalError("Empty btree page");
+            }
+            previousUpper(cursor);
+            return;
+        }
         cursor.push(this, last);
         BtreePage page = index.getPage(cursor.getSession(), pageChildren.get(last));
         page.last(cursor);

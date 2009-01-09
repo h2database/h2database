@@ -65,7 +65,7 @@ public abstract class BtreePage extends Record {
      * @param session the session
      * @param row the row
      * @return the new first row in the list; null if no change; the deleted row
-     *         if not empty
+     *         if now empty
      */
     abstract SearchRow remove(Session session, Row row) throws SQLException;
 

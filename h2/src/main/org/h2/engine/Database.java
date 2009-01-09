@@ -469,9 +469,6 @@ public class Database implements DataHandler {
             } else {
                 traceSystem = new TraceSystem(databaseName + Constants.SUFFIX_TRACE_FILE, true);
             }
-            if (cipher != null) {
-                traceSystem.setManualEnabling(false);
-            }
             traceSystem.setLevelFile(traceLevelFile);
             traceSystem.setLevelSystemOut(traceLevelSystemOut);
             traceSystem.getTrace(Trace.DATABASE)

@@ -252,14 +252,9 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     public void remove(Session session, Row row) throws SQLException {
         setChanged(session);
-        if (rowCount == 1) {
-            // TODO performance: maybe improve truncate performance in this case
-            truncate(session);
-        } else {
-            BtreePage root = getRoot(session);
-            root.remove(session, row);
-            rowCount--;
-        }
+        BtreePage root = getRoot(session);
+        root.remove(session, row);
+        rowCount--;
     }
 
     public boolean canFindNext() {
@@ -351,7 +346,9 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         if (!database.getLogIndexChanges() && !database.getReadOnly()) {
             storage.flushRecord(head);
         }
-        trace.debug("Index " + getSQL() + " head consistent=" + head.getConsistent());
+        if (trace.isDebugEnabled()) {
+            trace.debug("Index " + getSQL() + " head consistent=" + head.getConsistent());
+        }
     }
 
     public void truncate(Session session) throws SQLException {

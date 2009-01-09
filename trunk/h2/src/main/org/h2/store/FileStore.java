@@ -58,6 +58,7 @@ public class FileStore {
     private boolean synchronousMode;
     private String mode;
     private TempFileDeleter tempFileDeleter;
+    private boolean textMode;
 
     /**
      * Create a new file using the given settings.
@@ -195,6 +196,12 @@ public class FileStore {
             seek(0);
             byte[] buff = new byte[len];
             readFullyDirect(buff, 0, len);
+            if (Constants.MAGIC_FILE_HEADER_SUPPORT_TEXT) {
+                if (buff[10] == 'T') {
+                    buff[10] = 'B';
+                    textMode = true;
+                }
+            }
             if (ByteUtils.compareNotNull(buff, magic) != 0) {
                 throw Message.getSQLException(ErrorCode.FILE_VERSION_ERROR_1, name);
             }
@@ -203,6 +210,9 @@ public class FileStore {
             initKey(salt);
             // read (maybe) encrypted
             readFully(buff, 0, Constants.FILE_BLOCK_SIZE);
+            if (textMode) {
+                buff[10] = 'B';
+            }
             if (ByteUtils.compareNotNull(buff, magic) != 0) {
                 throw Message.getSQLException(ErrorCode.FILE_ENCRYPTION_ERROR_1, name);
             }
@@ -508,6 +518,15 @@ public class FileStore {
         if (SysProperties.TRACE_IO) {
             System.out.println("FileStore." + method + " " + fileName + " " + o);
         }
+    }
+
+    /**
+     * Check if the file store is in text mode.
+     *
+     * @return true if it is
+     */
+    public boolean isTextMode() {
+        return textMode;
     }
 
 }

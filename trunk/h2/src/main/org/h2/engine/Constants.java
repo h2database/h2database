@@ -305,6 +305,12 @@ public class Constants {
     public static final String MAGIC_FILE_HEADER = "-- H2 0.5/B --      ".substring(0, FILE_BLOCK_SIZE - 1) + "\n";
 
     /**
+     * If old text file headers should be supported. This setting can be removed
+     * in future versions (required for compatibility with version 1.1.103).
+     */
+    public static final boolean MAGIC_FILE_HEADER_SUPPORT_TEXT = true;
+
+    /**
      * The name of the in-memory management database used by the TCP server
      * to keep the active sessions.
      */
@@ -454,11 +460,6 @@ public class Constants {
      * The file name suffix of trace files.
      */
     public static final String SUFFIX_TRACE_FILE = ".trace.db";
-
-    /**
-     * The file name suffix of the signal file that starts trace output.
-     */
-    public static final String SUFFIX_TRACE_START_FILE = ".start";
 
     /**
      * The table name suffix used to create internal temporary tables.

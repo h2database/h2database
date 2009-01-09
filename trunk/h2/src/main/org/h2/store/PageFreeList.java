@@ -64,6 +64,7 @@ public class PageFreeList extends Record {
      * Read the page from the disk.
      */
     void read() throws SQLException {
+        data.reset();
         store.readPage(getPos(), data);
         int p = data.readInt();
         int t = data.readByte();
@@ -72,7 +73,7 @@ public class PageFreeList extends Record {
         if (t != Page.TYPE_FREE_LIST || p != 0) {
             throw Message.getSQLException(
                     ErrorCode.FILE_CORRUPTED_1,
-                    "type:" + t + " parent:" + p +
+                    "pos:" + getPos() + " type:" + t + " parent:" + p +
                     " expected type:" + Page.TYPE_FREE_LIST);
         }
         int size;
@@ -126,6 +127,7 @@ public class PageFreeList extends Record {
         for (int i = 0; i < array.size(); i++) {
             data.writeInt(array.get(i));
         }
+        store.writePage(getPos(), data);
     }
 
 }

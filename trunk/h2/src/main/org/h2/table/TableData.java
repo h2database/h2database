@@ -240,7 +240,11 @@ public class TableData extends Table implements RecordReader {
             if (index.getIndexType().getPersistent() && !database.getReadOnly()
                     && !database.getLog().containsInDoubtTransactions()) {
                 // can not save anything in the log file if it contains in-doubt transactions
-                database.update(session, index);
+                if (!SysProperties.PAGE_STORE) {
+                    // must not do this when using the page store
+                    // because recovery is not done yet
+                    database.update(session, index);
+                }
             }
         }
         indexes.add(index);

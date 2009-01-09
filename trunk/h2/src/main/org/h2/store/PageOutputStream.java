@@ -83,6 +83,8 @@ public class PageOutputStream extends OutputStream {
 
     private void storePage() throws IOException {
         try {
+int test;
+System.out.println("   pageOut.storePage " + pageId + " next:" + nextPage);
             store.writePage(pageId, page);
         } catch (SQLException e) {
             throw Message.convertToIOException(e);
@@ -100,6 +102,15 @@ public class PageOutputStream extends OutputStream {
 
     public void flush() throws IOException {
         int todo;
+    }
+
+    /**
+     * Get the number of remaining bytes that fit in the current page.
+     *
+     * @return the number of bytes
+     */
+    public int getRemainingBytes() {
+        return remaining;
     }
 
 //    public void write(byte[] buff, int off, int len) throws IOException {

@@ -167,7 +167,7 @@ public class FileStoreInputStream extends InputStream {
         return i;
     }
 
-    public int readInt() {
+    private int readInt() {
         if (store.isTextMode()) {
             byte[] buff = new byte[8];
             page.read(buff, 0, 8);

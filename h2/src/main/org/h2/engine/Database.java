@@ -221,6 +221,8 @@ public class Database implements DataHandler {
                 }
             }
         } catch (Exception e) {
+int test;
+e.printStackTrace();
             if (traceSystem != null) {
                 if (e instanceof SQLException) {
                     SQLException e2 = (SQLException) e;
@@ -454,9 +456,9 @@ public class Database implements DataHandler {
     private synchronized void open(int traceLevelFile, int traceLevelSystemOut) throws SQLException {
         if (persistent) {
             if (SysProperties.PAGE_STORE) {
-                PageStore store = getPageStore();
-                if (!store.isNew()) {
-                    store.getLog().recover(true);
+                String pageFileName = databaseName + Constants.SUFFIX_PAGE_FILE;
+                if (FileUtils.exists(pageFileName) && FileUtils.isReadOnly(pageFileName)) {
+                    readOnly = true;
                 }
             }
             String dataFileName = databaseName + Constants.SUFFIX_DATA_FILE;
@@ -483,6 +485,12 @@ public class Database implements DataHandler {
                 lock.lock(databaseName + Constants.SUFFIX_LOCK_FILE, fileLockMethod == FileLock.LOCK_SOCKET);
                 if (autoServerMode) {
                     startServer(lock.getUniqueId());
+                }
+            }
+            if (SysProperties.PAGE_STORE) {
+                PageStore store = getPageStore();
+                if (!store.isNew()) {
+                    store.getLog().recover(true);
                 }
             }
             if (FileUtils.exists(dataFileName)) {

@@ -221,8 +221,6 @@ public class Database implements DataHandler {
                 }
             }
         } catch (Exception e) {
-int test;
-e.printStackTrace();
             if (traceSystem != null) {
                 if (e instanceof SQLException) {
                     SQLException e2 = (SQLException) e;

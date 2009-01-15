@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import org.h2.util.StringUtils;
 
@@ -112,7 +113,7 @@ public class FunctionsMySQL {
      * @return a formatted date/time String in the format "yyyy-MM-dd HH:mm:ss".
      */
     public static String fromUnixTime(int seconds) {
-        SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT);
+        SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT, Locale.ENGLISH);
         return formatter.format(new Date(seconds * 1000L));
     }
 
@@ -126,7 +127,7 @@ public class FunctionsMySQL {
      */
     public static String fromUnixTime(int seconds, String format) {
         format = convertToSimpleDateFormat(format);
-        SimpleDateFormat formatter = new SimpleDateFormat(format);
+        SimpleDateFormat formatter = new SimpleDateFormat(format, Locale.ENGLISH);
         return formatter.format(new Date(seconds * 1000L));
     }
 

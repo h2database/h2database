@@ -11,12 +11,14 @@ import java.io.OutputStream;
 import java.sql.SQLException;
 import org.h2.index.Page;
 import org.h2.message.Message;
+import org.h2.message.Trace;
 
 /**
  * An output stream that writes into a page store.
  */
 public class PageOutputStream extends OutputStream {
 
+    private final Trace trace;
     private PageStore store;
     private int parentPage;
     private int type;
@@ -34,6 +36,7 @@ public class PageOutputStream extends OutputStream {
      * @param type the page type
      */
     public PageOutputStream(PageStore store, int parentPage, int headPage, int type) {
+        this.trace = store.getTrace();
         this.store = store;
         this.parentPage = parentPage;
         this.nextPage = headPage;
@@ -43,6 +46,7 @@ public class PageOutputStream extends OutputStream {
     }
 
     public void write(int b) throws IOException {
+        int todoOptimizeIfNeeded;
         write(new byte[] { (byte) b });
     }
 
@@ -62,7 +66,7 @@ public class PageOutputStream extends OutputStream {
         if (len <= 0) {
             return;
         }
-        while (len > remaining) {
+        while (len >= remaining) {
             page.write(b, off, remaining);
             off += remaining;
             len -= remaining;
@@ -83,8 +87,9 @@ public class PageOutputStream extends OutputStream {
 
     private void storePage() throws IOException {
         try {
-int test;
-System.out.println("   pageOut.storePage " + pageId + " next:" + nextPage);
+            if (trace.isDebugEnabled()) {
+                trace.debug("pageOut.storePage " + pageId + " next:" + nextPage);
+            }
             store.writePage(pageId, page);
         } catch (SQLException e) {
             throw Message.convertToIOException(e);
@@ -112,34 +117,5 @@ System.out.println("   pageOut.storePage " + pageId + " next:" + nextPage);
     public int getRemainingBytes() {
         return remaining;
     }
-
-//    public void write(byte[] buff, int off, int len) throws IOException {
-//        if (len > 0) {
-//            try {
-//                page.reset();
-//                if (compress != null) {
-//                    if (off != 0 || len != buff.length) {
-//                        byte[] b2 = new byte[len];
-//                        System.arraycopy(buff, off, b2, 0, len);
-//                        buff = b2;
-//                        off = 0;
-//                    }
-//                    int uncompressed = len;
-//                    buff = compress.compress(buff, compressionAlgorithm);
-//                    len = buff.length;
-//                    page.writeInt(len);
-//                    page.writeInt(uncompressed);
-//                    page.write(buff, off, len);
-//                } else {
-//                    page.writeInt(len);
-//                    page.write(buff, off, len);
-//                }
-//                page.fillAligned();
-//                store.write(page.getBytes(), 0, page.length());
-//            } catch (SQLException e) {
-//                throw Message.convertToIOException(e);
-//            }
-//        }
-//    }
 
 }

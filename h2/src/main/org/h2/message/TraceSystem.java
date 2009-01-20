@@ -216,7 +216,9 @@ public class TraceSystem implements TraceWriter {
     }
 
     public void write(int level, String module, String s, Throwable t) {
-        if (level <= levelSystemOut) {
+        if (level <= levelSystemOut || level > this.level) {
+            // level <= levelSystemOut: the system out level is set higher
+            // level > this.level: the level for this module is set higher
             System.out.println(format(module, s));
             if (t != null && levelSystemOut == DEBUG) {
                 t.printStackTrace();

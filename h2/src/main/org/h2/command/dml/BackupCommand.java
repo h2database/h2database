@@ -17,6 +17,7 @@ import java.util.zip.ZipOutputStream;
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -27,6 +28,7 @@ import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.store.DiskFile;
 import org.h2.store.FileLister;
+import org.h2.store.PageStore;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.ObjectArray;
@@ -71,12 +73,16 @@ public class BackupCommand extends Prepared {
                 String fn = db.getName() + Constants.SUFFIX_DATA_FILE;
                 backupDiskFile(out, fn, db.getDataFile());
                 fn = db.getName() + Constants.SUFFIX_INDEX_FILE;
-                String base = FileUtils.getParent(fn);
                 backupDiskFile(out, fn, db.getIndexFile());
+                if (SysProperties.PAGE_STORE) {
+                    fn = db.getName() + Constants.SUFFIX_PAGE_FILE;
+                    backupPageStore(out, fn, db.getPageStore());
+                }
                 ObjectArray list = log.getActiveLogFiles();
                 int max = list.size();
                 // synchronize on the database, to avoid concurrent temp file
                 // creation / deletion / backup
+                String base = FileUtils.getParent(fn);
                 synchronized (db.getLobSyncObject()) {
                     for (int i = 0; i < list.size(); i++) {
                         LogFile lf = (LogFile) list.get(i);
@@ -102,6 +108,22 @@ public class BackupCommand extends Prepared {
         } catch (IOException e) {
             throw Message.convertIOException(e, fileName);
         }
+    }
+
+    private void backupPageStore(ZipOutputStream out, String fileName, PageStore store) throws SQLException, IOException {
+        Database db = session.getDatabase();
+        fileName = FileUtils.getFileName(fileName);
+        out.putNextEntry(new ZipEntry(fileName));
+        int max = store.getPageCount();
+        int pos = 0;
+        while (true) {
+            pos = store.copyDirect(pos, out);
+            if (pos < 0) {
+                break;
+            }
+            db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, fileName, pos, max);
+        }
+        out.closeEntry();
     }
 
     private void backupDiskFile(ZipOutputStream out, String fileName, DiskFile file) throws SQLException, IOException {

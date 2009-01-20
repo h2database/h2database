@@ -56,7 +56,7 @@ public class PageLog {
      * must be run first.
      */
     void openForWriting() {
-        trace.debug("openForWriting");
+        trace.debug("log openForWriting");
         pageOut = new PageOutputStream(store, 0, firstPage, Page.TYPE_LOG);
         out = new DataOutputStream(pageOut);
     }
@@ -69,7 +69,7 @@ public class PageLog {
      * @param undo true if the undo step should be run
      */
     public void recover(boolean undo) throws SQLException {
-        trace.debug("recover");
+        trace.debug("log recover");
         DataInputStream in = new DataInputStream(new PageInputStream(store, 0, firstPage, Page.TYPE_LOG));
         DataPage data = store.createDataPage();
         try {
@@ -85,6 +85,9 @@ public class PageLog {
                     int pageId = in.readInt();
                     in.read(data.getBytes(), 0, store.getPageSize());
                     if (undo) {
+                        if (trace.isDebugEnabled()) {
+                            trace.debug("log write " + pageId);
+                        }
                         store.writePage(pageId, data);
                     }
                 } else if (x == ADD || x == REMOVE) {
@@ -93,6 +96,9 @@ public class PageLog {
                     Row row = readRow(in);
                     Database db = store.getDatabase();
                     if (!undo) {
+                        if (trace.isDebugEnabled()) {
+                            trace.debug("log redo " + (x == ADD ? "+" : "-") + " " + row);
+                        }
                         db.redo(tableId, row, x == ADD);
                     }
                 } else if (x == COMMIT) {
@@ -102,15 +108,16 @@ public class PageLog {
         } catch (Exception e) {
             int todoOnlyIOExceptionAndSQLException;
             int todoSomeExceptionAreOkSomeNot;
-//e.printStackTrace();
-            trace.debug("recovery stopped: " + e.toString());
+            trace.debug("log recovery stopped: " + e.toString());
         } finally {
             recoveryRunning = false;
         }
+        trace.debug("log recover done");
         int todoDeleteAfterRecovering;
     }
 
     private Row readRow(DataInputStream in) throws IOException, SQLException {
+        int pos = in.readInt();
         int len = in.readInt();
         data.reset();
         data.checkCapacity(len);
@@ -122,6 +129,7 @@ public class PageLog {
         }
         int todoTableDataReadRowWithMemory;
         Row row = new Row(values, 0);
+        row.setPos(pos);
         return row;
     }
 
@@ -153,7 +161,7 @@ public class PageLog {
      */
     public void commit(Session session) throws SQLException {
         try {
-            trace.debug("commit");
+            trace.debug("log commit");
             out.write(COMMIT);
             out.writeInt(session.getId());
         } catch (IOException e) {
@@ -175,13 +183,15 @@ public class PageLog {
                 return;
             }
             if (trace.isDebugEnabled()) {
-                trace.debug((add?"+":"-") + " table:" + tableId +
+                trace.debug("log " + (add?"+":"-") + " table:" + tableId +
                         " remaining:" + pageOut.getRemainingBytes() + " row:" + row);
             }
             out.write(add ? ADD : REMOVE);
             out.writeInt(session.getId());
             out.writeInt(tableId);
+            out.writeInt(row.getPos());
             data.reset();
+            int todoWriteIntoOutputDirectly;
             row.write(data);
             out.writeInt(data.length());
             out.write(data.getBytes(), 0, data.length());
@@ -195,8 +205,10 @@ public class PageLog {
      */
     void reopen() throws SQLException {
         try {
+            trace.debug("log reopen");
             out.close();
             openForWriting();
+            flush();
             int todoDeleteOrReUsePages;
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
@@ -208,12 +220,13 @@ public class PageLog {
      */
     public void flush() throws SQLException {
         try {
-            trace.debug("flush");
+            trace.debug("log flush");
             out.flush();
             int filler = pageOut.getRemainingBytes();
             for (int i = 0; i < filler; i++) {
                 out.writeByte(NO_OP);
             }
+            out.flush();
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
         }
@@ -222,13 +235,13 @@ public class PageLog {
     /**
      * Flush and close the log.
      */
-    public void close() throws SQLException {
-        try {
-            trace.debug("close");
-            out.close();
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
-        }
-    }
+//    public void close() throws SQLException {
+//        try {
+//            trace.debug("log close");
+//            out.close();
+//        } catch (IOException e) {
+//            throw Message.convertIOException(e, null);
+//        }
+//    }
 
 }

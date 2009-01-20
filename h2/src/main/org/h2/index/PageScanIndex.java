@@ -41,6 +41,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     // TODO file position, content checksums
     // TODO completely re-use keys of deleted rows
     // TODO remove Database.objectIds
+    // TODO detect circles in linked lists
+    // (input stream, free list, extend pages...)
 
     private int lastKey;
     private long rowCount;
@@ -48,6 +50,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 
     public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
+        // trace.setLevel(TraceSystem.DEBUG);
         if (database.isMultiVersion()) {
             int todoMvcc;
         }
@@ -72,7 +75,9 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             int reuseKeysIfManyDeleted;
         }
         this.headPos = headPos;
-        trace("open " + rowCount);
+        if (trace.isDebugEnabled()) {
+            trace.debug("open " + rowCount);
+        }
         table.setRowCount(rowCount);
     }
 
@@ -82,14 +87,18 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 
     public void add(Session session, Row row) throws SQLException {
         row.setPos(++lastKey);
-        trace("add " + row.getPos());
+        if (trace.isDebugEnabled()) {
+            trace.debug("add " + row.getPos());
+        }
         while (true) {
             PageData root = getPage(headPos);
             int splitPoint = root.addRow(row);
             if (splitPoint == 0) {
                 break;
             }
-            trace("split " + splitPoint);
+            if (trace.isDebugEnabled()) {
+                trace.debug("split " + splitPoint);
+            }
             int pivot = root.getKey(splitPoint - 1);
             PageData page1 = root;
             PageData page2 = root.split(splitPoint);
@@ -147,7 +156,9 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     public void close(Session session) throws SQLException {
-        trace("close");
+        if (trace.isDebugEnabled()) {
+            trace.debug("close");
+        }
         int writeRowCount;
     }
 
@@ -170,10 +181,13 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     public void remove(Session session, Row row) throws SQLException {
-        trace("remove " + row.getPos());
+        if (trace.isDebugEnabled()) {
+            trace.debug("remove " + row.getPos());
+        }
         int invalidateRowCount;
         // setChanged(session);
         if (rowCount == 1) {
+            int todoMaybeImprove;
             truncate(session);
         } else {
             int key = row.getPos();
@@ -189,12 +203,16 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     public void remove(Session session) throws SQLException {
-        trace("remove");
+        if (trace.isDebugEnabled()) {
+            trace.debug("remove");
+        }
         int todo;
     }
 
     public void truncate(Session session) throws SQLException {
-        trace("truncate");
+        if (trace.isDebugEnabled()) {
+            trace.debug("truncate");
+        }
         store.removeRecord(headPos);
         int todoLogOldData;
         int freePages;
@@ -237,13 +255,6 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 
     public String getCreateSQL() {
         return null;
-    }
-
-    private void trace(String message) {
-        int slowEvenIfNotEnabled;
-        if (headPos != 1) {
-//            System.out.println(message);
-        }
     }
 
     public int getColumnIndex(Column col) {

@@ -94,6 +94,11 @@ public class Trace {
      */
     public static final String USER = "user";
 
+    /**
+     * The trace module name for the page store.
+     */
+    public static final String PAGE_STORE = "pageStore";
+
     private TraceWriter traceWriter;
     private String module;
     private String lineSeparator;

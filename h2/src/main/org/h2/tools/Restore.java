@@ -173,7 +173,7 @@ public class Restore extends Tool {
                 boolean copy = false;
                 if (db == null) {
                     copy = true;
-                } else if (fileName.startsWith(originalDbName)) {
+                } else if (fileName.startsWith(originalDbName + ".")) {
                     fileName = db + fileName.substring(originalDbName.length());
                     copy = true;
                 }

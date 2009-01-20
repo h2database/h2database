@@ -137,20 +137,6 @@ class PageDataNode extends PageData {
         }
     }
 
-    private void removeChild(int x) {
-        int[] newKeys = new int[entryCount - 1];
-        int[] newChildPageIds = new int[entryCount];
-        System.arraycopy(keys, 0, newKeys, 0, x);
-        System.arraycopy(childPageIds, 0, newChildPageIds, 0, x + 1);
-        if (x < entryCount) {
-            System.arraycopy(keys, x + 1, newKeys, x, entryCount - x - 1);
-            System.arraycopy(childPageIds, x + 1, newChildPageIds, x, entryCount - x);
-        }
-        keys = newKeys;
-        childPageIds = newChildPageIds;
-        entryCount--;
-    }
-
     /**
      * Initialize the page.
      *
@@ -194,23 +180,6 @@ class PageDataNode extends PageData {
         return index.getPage(child).getFirstLeaf();
     }
 
-    private void removeRow(int i) throws SQLException {
-        entryCount--;
-        if (entryCount <= 0) {
-            Message.throwInternalError();
-        }
-        int[] newKeys = new int[entryCount];
-        int[] newChildPageIds = new int[entryCount + 1];
-        System.arraycopy(keys, 0, newKeys, 0, Math.min(entryCount, i));
-        System.arraycopy(childPageIds, 0, newChildPageIds, 0, i);
-        if (entryCount > i) {
-            System.arraycopy(keys, i + 1, newKeys, i, entryCount - i);
-        }
-        System.arraycopy(childPageIds, i + 1, newChildPageIds, i, entryCount - i + 1);
-        keys = newKeys;
-        childPageIds = newChildPageIds;
-    }
-
     boolean remove(int key) throws SQLException {
         int at = find(key);
         // merge is not implemented to allow concurrent usage of btrees
@@ -224,13 +193,11 @@ class PageDataNode extends PageData {
         }
         // this child is now empty
         index.getPageStore().freePage(page.getPageId());
-        if (entryCount == 0) {
+        if (entryCount < 1) {
             // no more children - this page is empty as well
-            // it can't be the root otherwise the index would have been
-            // truncated
             return true;
         }
-        removeRow(at);
+        removeChild(at);
         index.getPageStore().updateRecord(this, data);
         return false;
     }
@@ -286,6 +253,23 @@ class PageDataNode extends PageData {
             data.writeInt(keys[i]);
         }
         index.getPageStore().writePage(getPos(), data);
+    }
+
+    private void removeChild(int i) throws SQLException {
+        entryCount--;
+        if (entryCount < 0) {
+            Message.throwInternalError();
+        }
+        int[] newKeys = new int[entryCount];
+        int[] newChildPageIds = new int[entryCount + 1];
+        System.arraycopy(keys, 0, newKeys, 0, Math.min(entryCount, i));
+        System.arraycopy(childPageIds, 0, newChildPageIds, 0, i);
+        if (entryCount > i) {
+            System.arraycopy(keys, i + 1, newKeys, i, entryCount - i);
+        }
+        System.arraycopy(childPageIds, i + 1, newChildPageIds, i, entryCount - i + 1);
+        keys = newKeys;
+        childPageIds = newChildPageIds;
     }
 
 }

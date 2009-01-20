@@ -511,7 +511,6 @@ public class TestCases extends TestBase {
         trace("testDoubleRecovery");
         deleteDb("cases");
         Connection conn = getConnection("cases");
-        deleteDb("twoPhaseCommit");
         Statement stat = conn.createStatement();
         stat.execute("SET WRITE_DELAY 0");
         stat.execute("DROP TABLE IF EXISTS TEST");

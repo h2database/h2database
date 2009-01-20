@@ -7,6 +7,7 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -32,6 +33,7 @@ public class TestRights extends TestBase {
     }
 
     public void test() throws SQLException {
+        testGetTables();
         testDropTempTables();
         // testLowerCaseUser();
         testSchemaRenameUser();
@@ -53,6 +55,21 @@ public class TestRights extends TestBase {
 //        conn = getConnection("rights", "Test2", "abc");
 //        conn.close();
 //    }
+
+    private void testGetTables() throws SQLException {
+        deleteDb("rights");
+        Connection conn = getConnection("rights");
+        stat = conn.createStatement();
+
+        stat.execute("CREATE USER IF NOT EXISTS TEST PASSWORD 'TEST'");
+        stat.execute("CREATE TABLE TEST(ID INT)");
+        stat.execute("GRANT ALL ON TEST TO TEST");
+        Connection conn2 = getConnection("rights", "TEST", getPassword("TEST"));
+        DatabaseMetaData meta = conn2.getMetaData();
+        meta.getTables(null, null, "%", new String[]{"TABLE", "VIEW", "SEQUENCE"});
+        conn2.close();
+        conn.close();
+    }
 
     private void testDropTempTables() throws SQLException {
         deleteDb("rights");

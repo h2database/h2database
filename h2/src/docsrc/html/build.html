@@ -47,14 +47,14 @@ A Java Runtime Environment (JRE) version 1.4 or higher is required to run this d
 To build the database executables, the following software stack was used.
 Newer version or compatible software works too.
 </p>
-<ul><li>Windows XP
-</li><li>Sun JDK Version 1.4 and 1.6
-</li><li>Eclipse Version 3.3
-</li><li>Eclipse Plugins: Subclipse 1.2.4, EclEmma Java Code Coverage 1.3.0, Eclipse Checkstyle Plug-in 4.4.0
+<ul><li>Mac OS X and Windows XP
+</li><li>Sun JDK Version 1.4, 1.5, and 1.6
+</li><li>Eclipse Version 3.4
+</li><li>Eclipse Plugins: Subclipse 1.4.6, EclEmma Java Code Coverage 1.3.0, Eclipse Checkstyle Plug-in 4.4.2
 </li><li>Mozilla Firefox 3.0
 </li><li>OpenOffice 3.0
 </li><li>NSIS 2.38 (Nullsoft Scriptable Install System)
-</li><li>Maven 2.0.7
+</li><li>Maven 2.0.9
 </li><li>YourKit Java Profiler
 </li></ul>
 
@@ -94,6 +94,7 @@ The build system can generate smaller jar files as well. The following targets a
 <ul><li>jarClient: Create the h2client.jar. This only contains the remote JDBC implementation.
 </li><li>jarSmall: Create the file h2small.jar. This only contains the embedded database. Debug information is disabled.
 </li><li>jarJaqu: Create the file h2jaqu.jar. This only contains the JaQu (Java Query) implementation. All other jar files do not include JaQu.
+</li><li>javadocImpl: Create the Javadocs of the implementation.
 </li></ul>
 <p>
 To create the h2client.jar file, go to the directory h2 and execute the following command:
@@ -162,16 +163,20 @@ using <code>build docs</code>.
 <p>
 If you like to provide patches, please consider the following guidelines to simplify merging them:
 </p>
-<ul><li>Only use Java 1.4 features (not use Java 1.5 or 1.6) (see Environment).
+<ul><li>Only use Java 1.4 features (do not use Java 1.5 or 1.6) (see Environment).
 </li><li>Follow the coding style used in the project, use Checkstyle (see above) to check the coding style.
+    The checkstyle configuration is in <code>src/installer/checkstyle.xml</code>.
 </li><li>Please provide test cases and integrate them into the test suite.
-    For Java level tests, see src/test/org/h2/test/TestAll.java.
-    For SQL level tests, see src/test/org/h2/test/test.in.txt or testSimple.in.txt
-</li><li>The test cases should cover at least 90% of the changed/new code; use a code coverage tool to verify that (see above).
-</li><li>Verify that you did not break other features: Run the test cases by executing build test.
-</li><li>Provide end user documentation if required (src/docsrc/html/*).
-</li><li>Document grammar changes in src/main/org/h2/res/help.csv
-</li><li>Provide a change log entry (src/docsrc/html/changelog.html).
+    For Java level tests, see <code>src/test/org/h2/test/TestAll.java</code>.
+    For SQL level tests, see <code>src/test/org/h2/test/test.in.txt</code> or <code>testSimple.in.txt</code>.
+</li><li>The test cases should cover at least 90% of the changed and new code; use a code coverage tool to verify that (see above).
+</li><li>Verify that you did not break other features: Run the test cases by executing <code>build test</code>.
+</li><li>Provide end user documentation if required (<code>src/docsrc/html/*</code>).
+</li><li>Document grammar changes in <code>src/main/org/h2/res/help.csv</code>
+</li><li>Provide a change log entry (<code>src/docsrc/html/changelog.html</code>).
+</li><li>Verify the spelling using <code>build spellcheck</code>. If required
+    add the new words to <code>src/tools/org/h2/build/doc/dictionary.txt</code>.
+</li><li>Verify the formatting using <code>build docs</code> and <code>build javadoc</code>.
 </li><li>Submit patches as .patch files (compressed if big). To create a patch, use for example Eclipse Team/Create Patch.
 </li></ul>
 

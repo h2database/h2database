@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
+ * Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -105,7 +105,7 @@ public class PageStore implements CacheWriter {
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
         int test;
-trace.setLevel(TraceSystem.DEBUG);
+//trace.setLevel(TraceSystem.DEBUG);
         this.fileName = fileName;
         this.accessMode = accessMode;
         this.cacheSize = cacheSizeDefault;

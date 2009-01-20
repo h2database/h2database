@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
+Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
 and under the Eclipse Public License, Version 1.0
 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
@@ -253,7 +253,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>In MySQL mode, for AUTO_INCREMENT columns, don't set the primary key
 </li><li>Use JDK 1.4 file locking to create the lock file (but not yet by default); writing a system property to detect concurrent access from the same VM (different classloaders).
 </li><li>Support compatibility for jdbc:hsqldb:res:
-</li><li>In the MySQL and PostgreSQL, use lower case identifiers by default (DatabaseMetaData.storesLowerCaseIdentifiers = true)
+</li><li>In the MySQL and PostgreSQL mode, use lower case identifiers by default (DatabaseMetaData.storesLowerCaseIdentifiers = true)
 </li><li>Provide a simple, lightweight O/R mapping tool
 </li><li>Provide an Java SQL builder with standard and H2 syntax
 </li><li>Trace: write OS, file system, JVM,... when opening the database
@@ -395,6 +395,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Replace information_schema tables with regular tables that are automatically re-built when needed. Use indexes.
 </li><li>Support a special trigger on all tables.
 </li><li>Delete temporary files or objects using finalize.
+</li><li>MySQL and MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.
 </li></ul>
 
 <h2>Not Planned</h2>

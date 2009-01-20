@@ -964,11 +964,11 @@ SET LOCK_TIMEOUT 1000
 "Commands (Other)","SET LOG","
 SET LOG int
 ","
-Enabled or disables writing to the log file.
+Enabled or disables writing to the transaction log file.
 0: logging is disabled (faster)
 1: logging of the data is enabled, but logging of the index changes is disabled (default)
 2: logging of both data and index changes are enabled
-Logging can be disabled to improve the performance when durability is not important,
+Transaction logging can be disabled to improve the performance when durability is not important,
 for example while running tests or when loading the database.
 Warning: It may not be possible to recover the database if logging is disabled and
 the application terminates abnormally. If logging of index changes is enabled,

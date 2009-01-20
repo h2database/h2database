@@ -159,7 +159,8 @@ public class BuildBase {
         out.println("Targets:");
         for (int i = 0; i < methods.length; i++) {
             Method m = methods[i];
-            if ((m.getModifiers() & Modifier.STATIC) == 0 && m.getParameterTypes().length == 0) {
+            int mod = m.getModifiers();
+            if (!Modifier.isStatic(mod) && Modifier.isPublic(mod) && m.getParameterTypes().length == 0) {
                 out.println(m.getName());
             }
         }

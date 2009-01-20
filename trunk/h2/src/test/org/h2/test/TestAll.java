@@ -277,6 +277,9 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
+
+// System.setProperty("h2.pageStore", "true");
+
 /*
 
 update copyright year to 2009 for changed files

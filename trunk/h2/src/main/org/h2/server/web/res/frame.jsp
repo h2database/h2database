@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN">
 <!--
-Copyright 2004-2008 H2 Group.
+Copyright 2004-2009 H2 Group.
 Multiple-Licensed under the H2 License, Version 1.0,
 and under the Eclipse Public License, Version 1.0
 (http://h2database.com/html/license.html).

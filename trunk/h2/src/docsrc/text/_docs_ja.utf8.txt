@@ -1144,7 +1144,7 @@ Centralリポジトリの利用
 #Next Version (unreleased)
 
 @changelog_1002_li
-#Some DatabaseMetaData operations did not work for non-admin users for versions 1.1.x
+#Some DatabaseMetaData operations did not work for non-admin users for versions 1.1.x.
 
 @changelog_1003_li
 #The MySQL compatibility extension fromUnixTime now used the English locale.

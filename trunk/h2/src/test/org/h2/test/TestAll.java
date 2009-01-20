@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2008 H2 Group. Multiple-Licensed under the H2 License,
+ * Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -282,7 +282,8 @@ java org.h2.test.TestAll timer
 
 /*
 
-update copyright year to 2009 for changed files
+document: sequences and auto-increment number
+that were used once are never re-used
 
 JCR: for each node type, create a table; one 'dynamic' table with parameter;
     option to cache the results
@@ -300,7 +301,6 @@ split files (1 GB max size)
 add a setting (that can be changed at runtime) to call fsync
 and delay on each commit
 
-remove google analytics
 multithreaded kernel
 remove old TODO
 online backup may not work for very large files

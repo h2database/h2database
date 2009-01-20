@@ -104,13 +104,17 @@ public class User extends RightOwner {
             // everybody has access to the metadata information
             return;
         }
-        if (Table.VIEW.equals(table.getTableType())) {
+        String tableType = table.getTableType();
+        if (Table.VIEW.equals(tableType)) {
             TableView v = (TableView) table;
             if (v.getOwner() == this) {
                 // the owner of a view has access:
                 // SELECT * FROM (SELECT * FROM ...)
                 return;
             }
+        } else if (tableType == null) {
+            // function table
+            return;
         }
         if (!isRightGrantedRecursive(table, rightMask)) {
             if (table.getTemporary() && !table.getGlobalTemporary()) {

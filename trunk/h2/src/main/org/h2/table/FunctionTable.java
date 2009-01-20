@@ -113,7 +113,7 @@ public class FunctionTable extends Table {
     }
 
     public String getTableType() {
-        throw Message.throwInternalError();
+        return null;
     }
 
     public Index getScanIndex(Session session) {

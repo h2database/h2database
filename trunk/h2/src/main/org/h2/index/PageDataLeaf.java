@@ -182,6 +182,10 @@ class PageDataLeaf extends PageData {
      * @return the row
      */
     Row getRowAt(int at) throws SQLException {
+        int test;
+if(rows == null) {
+    System.out.println("stop");
+}
         Row r = rows[at];
         if (r == null) {
             if (firstOverflowPageId != 0) {
@@ -262,7 +266,7 @@ class PageDataLeaf extends PageData {
     boolean remove(int key) throws SQLException {
         int i = find(key);
         if (keys[i] != key) {
-            throw Message.getSQLException(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL());
+            throw Message.getSQLException(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL() + ": " + key);
         }
         if (entryCount == 1) {
             return true;

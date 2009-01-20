@@ -64,9 +64,6 @@ public class PageInputStream extends InputStream {
             off += r;
             len -= r;
         }
-int test;
-if(read==0)
-System.out.println("stop");
         return read == 0 ? -1 : read;
     }
 
@@ -110,8 +107,6 @@ System.out.println("stop");
                 nextPage = page.readInt();
                 remaining = store.getPageSize() - page.length();
             }
-            int test;
-            System.out.println("   pageIn.read " + page + " next:" + nextPage);
         } catch (SQLException e) {
             throw Message.convertToIOException(e);
         }

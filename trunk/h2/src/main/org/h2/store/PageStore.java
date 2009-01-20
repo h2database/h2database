@@ -7,11 +7,14 @@
 package org.h2.store;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
+import org.h2.index.Page;
 import org.h2.message.Message;
 import org.h2.message.Trace;
+import org.h2.message.TraceSystem;
 import org.h2.util.Cache;
 import org.h2.util.Cache2Q;
 import org.h2.util.CacheLRU;
@@ -45,6 +48,7 @@ public class PageStore implements CacheWriter {
     private static final int WRITE_VERSION = 0;
 
     private Database database;
+    private final Trace trace;
     private String fileName;
     private FileStore file;
     private String accessMode;
@@ -99,6 +103,9 @@ public class PageStore implements CacheWriter {
      */
     public PageStore(Database database, String fileName, String accessMode, int cacheSizeDefault) {
         this.database = database;
+        trace = database.getTrace(Trace.PAGE_STORE);
+        int test;
+trace.setLevel(TraceSystem.DEBUG);
         this.fileName = fileName;
         this.accessMode = accessMode;
         this.cacheSize = cacheSizeDefault;
@@ -107,6 +114,30 @@ public class PageStore implements CacheWriter {
             this.cache = new Cache2Q(this, cacheSize);
         } else {
             this.cache = new CacheLRU(this, cacheSize);
+        }
+    }
+
+    /**
+     * Copy the next page to the output stream.
+     *
+     * @param pageId the page to copy
+     * @param out the output stream
+     * @return the new position, or -1 if there is no more data to copy
+     */
+    public int copyDirect(int pageId, OutputStream out) throws SQLException {
+        synchronized (database) {
+            byte[] buffer = new byte[pageSize];
+            try {
+                if (pageId >= pageCount) {
+                    return -1;
+                }
+                file.seek(pageId * pageSize);
+                file.readFullyDirect(buffer, 0, pageSize);
+                out.write(buffer, 0, pageSize);
+                return pageId + 1;
+            } catch (IOException e) {
+                throw Message.convertIOException(e, fileName);
+            }
         }
     }
 
@@ -121,6 +152,16 @@ public class PageStore implements CacheWriter {
                 fileLength = file.length();
                 pageCount = (int) (fileLength / pageSize);
                 log = new PageLog(this, logRootPageId);
+                lastUsedPage = pageCount - 1;
+                while (true) {
+                    DataPage page = readPage(lastUsedPage);
+                    page.readInt();
+                    int type = page.readByte();
+                    if (type != Page.TYPE_EMPTY) {
+                        break;
+                    }
+                    lastUsedPage--;
+                }
             } else {
                 isNew = true;
                 setPageSize(PAGE_SIZE_DEFAULT);
@@ -147,7 +188,7 @@ public class PageStore implements CacheWriter {
      * Flush all pending changes to disk, and re-open the log file.
      */
     public void checkpoint() throws SQLException {
-System.out.println("PageStore.checkpoint");
+        trace.debug("checkpoint");
         synchronized (database) {
             database.checkPowerOff();
             ObjectArray list = cache.getAllChanged();
@@ -156,9 +197,12 @@ System.out.println("PageStore.checkpoint");
                 Record rec = (Record) list.get(i);
                 writeBack(rec);
             }
+            int todoFlushBeforeReopen;
             log.reopen();
             int todoWriteDeletedPages;
         }
+        pageCount = lastUsedPage + 1;
+        file.setLength(pageSize * pageCount);
     }
 
     private void readHeader() throws SQLException {
@@ -240,15 +284,15 @@ System.out.println("PageStore.checkpoint");
     }
 
     /**
-     * Close the file without flushing the cache.
+     * Close the file without writing anything.
      */
     public void close() throws SQLException {
-        int todoTruncateLog;
         try {
+            trace.debug("close");
             if (file != null) {
-                log.close();
                 file.close();
             }
+            file = null;
         } catch (IOException e) {
             throw Message.convertIOException(e, "close");
         }
@@ -259,14 +303,15 @@ System.out.println("PageStore.checkpoint");
     }
 
     public Trace getTrace() {
-        return database.getTrace(Trace.DATABASE);
+        return trace;
     }
 
     public void writeBack(CacheObject obj) throws SQLException {
         synchronized (database) {
             Record record = (Record) obj;
-int test;
-System.out.println("writeBack " + record.getPos() + ":" + record);
+            if (trace.isDebugEnabled()) {
+                trace.debug("writeBack " + record.getPos() + ":" + record);
+            }
             int todoRemoveParameter;
             record.write(null);
             record.setChanged(false);
@@ -281,6 +326,9 @@ System.out.println("writeBack " + record.getPos() + ":" + record);
      */
     public void updateRecord(Record record, DataPage old) throws SQLException {
         int todoLogHeaderPageAsWell;
+        if (trace.isDebugEnabled()) {
+            trace.debug("updateRecord " + record.getPos() + " " + record.toString());
+        }
         synchronized (database) {
             record.setChanged(true);
             int pos = record.getPos();
@@ -331,6 +379,9 @@ System.out.println("writeBack " + record.getPos() + ":" + record);
      * @param pageId the page id
      */
     public void freePage(int pageId) throws SQLException {
+        if (trace.isDebugEnabled()) {
+            trace.debug("freePage " + pageId);
+        }
         freePageCount++;
         PageFreeList free;
         cache.remove(pageId);

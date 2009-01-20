@@ -9,6 +9,7 @@ package org.h2.store;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.util.FileUtils;
 
@@ -29,8 +30,14 @@ public class FileLister {
      * @return the database name or null
      */
     public static String getDatabaseNameFromFileName(String fileName) {
-        if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
-            return fileName.substring(0, fileName.length() - Constants.SUFFIX_DATA_FILE.length());
+        if (SysProperties.PAGE_STORE) {
+            if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
+                return fileName.substring(0, fileName.length() - Constants.SUFFIX_PAGE_FILE.length());
+            }
+        } else {
+            if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
+                return fileName.substring(0, fileName.length() - Constants.SUFFIX_DATA_FILE.length());
+            }
         }
         return null;
     }

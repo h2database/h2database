@@ -45,7 +45,7 @@ public class DropView extends SchemaCommand {
                 throw Message.getSQLException(ErrorCode.VIEW_NOT_FOUND_1, viewName);
             }
         } else {
-            if (!view.getTableType().equals(Table.VIEW)) {
+            if (!Table.VIEW.equals(view.getTableType())) {
                 throw Message.getSQLException(ErrorCode.VIEW_NOT_FOUND_1, viewName);
             }
             session.getUser().checkRight(view, Right.ALL);

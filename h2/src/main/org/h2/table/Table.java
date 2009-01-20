@@ -698,12 +698,6 @@ public abstract class Table extends SchemaObjectBase {
             list = new ObjectArray();
         }
         // self constraints are two entries in the list
-//        if(Database.CHECK) {
-//            if(list.indexOf(obj) >= 0) {
-//                throw Message.internal(
-//                    "object already in list: " + obj.getName());
-//            }
-//        }
         list.add(obj);
         return list;
     }

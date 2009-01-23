@@ -23,7 +23,16 @@ import org.h2.util.FileUtils;
  */
 public class TestOpenClose extends TestBase implements DatabaseEventListener {
 
-    int nextId = 10;
+    private int nextId = 10;
+
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws Exception {
         testCloseDelay();
@@ -35,6 +44,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
     }
 
     private void testCloseDelay() throws Exception {
+        deleteDb(baseDir, "openClose");
         String url = getURL("openClose;DB_CLOSE_DELAY=1", true);
         String user = getUser(), password = getPassword();
         Connection conn = DriverManager.getConnection(url, user, password);

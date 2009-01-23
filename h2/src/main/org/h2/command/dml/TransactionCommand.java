@@ -14,6 +14,7 @@ import org.h2.engine.Session;
 import org.h2.log.LogSystem;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
+import org.h2.store.PageStore;
 
 /**
  * Represents a transactional statement.
@@ -122,6 +123,10 @@ public class TransactionCommand extends Prepared {
             break;
         case CHECKPOINT:
             session.getUser().checkAdmin();
+            PageStore store = session.getDatabase().getPageStore();
+            if (store != null) {
+                store.checkpoint();
+            }
             session.getDatabase().getLog().checkpoint();
             session.getDatabase().getTempFileDeleter().deleteUnused();
             break;

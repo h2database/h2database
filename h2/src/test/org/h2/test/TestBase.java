@@ -1037,6 +1037,7 @@ public abstract class TestBase {
      */
     public static TestBase createCaller() {
         String className = new Exception().getStackTrace()[1].getClassName();
+        org.h2.Driver.load();
         try {
             return (TestBase) Class.forName(className).newInstance();
         } catch (Exception e) {

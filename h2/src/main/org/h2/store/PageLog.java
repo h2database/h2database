@@ -43,6 +43,7 @@ public class PageLog {
     private int firstPage;
     private DataPage data;
     private boolean recoveryRunning;
+    private long operation;
 
     PageLog(PageStore store, int firstPage) {
         this.store = store;
@@ -57,7 +58,7 @@ public class PageLog {
      */
     void openForWriting() {
         trace.debug("log openForWriting");
-        pageOut = new PageOutputStream(store, 0, firstPage, Page.TYPE_LOG);
+        pageOut = new PageOutputStream(store, 0, firstPage, Page.TYPE_LOG, true);
         out = new DataOutputStream(pageOut);
     }
 
@@ -150,7 +151,7 @@ public class PageLog {
             out.write(page.getBytes(), 0, store.getPageSize());
             undo.set(pageId);
         } catch (IOException e) {
-            throw Message.convertIOException(e, "recovering");
+            throw Message.convertIOException(e, null);
         }
     }
 
@@ -164,8 +165,11 @@ public class PageLog {
             trace.debug("log commit");
             out.write(COMMIT);
             out.writeInt(session.getId());
+            if (store.getDatabase().getLog().getFlushOnEachCommit()) {
+                flush();
+            }
         } catch (IOException e) {
-            throw Message.convertIOException(e, "recovering");
+            throw Message.convertIOException(e, null);
         }
     }
 
@@ -186,6 +190,9 @@ public class PageLog {
                 trace.debug("log " + (add?"+":"-") + " table:" + tableId +
                         " remaining:" + pageOut.getRemainingBytes() + " row:" + row);
             }
+            int todoLogPosShouldBeLong;
+            session.addLogPos(0, (int) operation);
+            row.setLastLog(0, (int) operation);
             out.write(add ? ADD : REMOVE);
             out.writeInt(session.getId());
             out.writeInt(tableId);
@@ -220,6 +227,7 @@ public class PageLog {
      */
     public void flush() throws SQLException {
         try {
+            int todoUseLessSpace;
             trace.debug("log flush");
             out.flush();
             int filler = pageOut.getRemainingBytes();

@@ -105,7 +105,7 @@ public class PageStore implements CacheWriter {
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
         int test;
-//trace.setLevel(TraceSystem.DEBUG);
+// trace.setLevel(TraceSystem.DEBUG);
         this.fileName = fileName;
         this.accessMode = accessMode;
         this.cacheSize = cacheSizeDefault;
@@ -189,6 +189,10 @@ public class PageStore implements CacheWriter {
      */
     public void checkpoint() throws SQLException {
         trace.debug("checkpoint");
+        if (log == null) {
+            // the file was never fully opened
+            return;
+        }
         synchronized (database) {
             database.checkPowerOff();
             ObjectArray list = cache.getAllChanged();
@@ -345,25 +349,33 @@ public class PageStore implements CacheWriter {
      * @return the page id
      */
     public int allocatePage() throws SQLException {
-        if (freePageCount == 0) {
-            if (pageCount * pageSize >= fileLength) {
-                increaseFileSize(INCREMENT_PAGES);
+        return allocatePage(false);
+    }
+
+    /**
+     * Allocate a page.
+     *
+     * @param atEnd if the allocated page must be at the end of the file
+     * @return the page id
+     */
+    public int allocatePage(boolean atEnd) throws SQLException {
+        if (freePageCount > 0 && !atEnd) {
+            if (freeListRootPageId == 0) {
+                Message.throwInternalError();
             }
+            PageFreeList free = (PageFreeList) cache.find(freeListRootPageId);
+            if (free == null) {
+                free = new PageFreeList(this, freeListRootPageId, 0);
+                free.read();
+            }
+            int id = free.allocate();
+            freePageCount--;
+            return id;
         }
-        if (lastUsedPage < pageCount) {
-            return ++lastUsedPage;
+        if (lastUsedPage >= pageCount) {
+            increaseFileSize(INCREMENT_PAGES);
         }
-        if (freeListRootPageId == 0) {
-            Message.throwInternalError();
-        }
-        PageFreeList free = (PageFreeList) cache.find(freeListRootPageId);
-        if (free == null) {
-            free = new PageFreeList(this, freeListRootPageId, 0);
-            free.read();
-        }
-        int id = free.allocate();
-        freePageCount--;
-        return id;
+        return ++lastUsedPage;
     }
 
     private void increaseFileSize(int increment) throws SQLException {

@@ -26,6 +26,7 @@ public class PageOutputStream extends OutputStream {
     private int nextPage;
     private DataPage page;
     private int remaining;
+    private final boolean allocateAtEnd;
 
     /**
      * Create a new page output stream.
@@ -35,12 +36,13 @@ public class PageOutputStream extends OutputStream {
      * @param headPage the first page
      * @param type the page type
      */
-    public PageOutputStream(PageStore store, int parentPage, int headPage, int type) {
+    public PageOutputStream(PageStore store, int parentPage, int headPage, int type, boolean allocateAtEnd) {
         this.trace = store.getTrace();
         this.store = store;
         this.parentPage = parentPage;
         this.nextPage = headPage;
         this.type = type;
+        this.allocateAtEnd = allocateAtEnd;
         page = store.createDataPage();
         initPage();
     }
@@ -73,7 +75,7 @@ public class PageOutputStream extends OutputStream {
             parentPage = nextPage;
             pageId = nextPage;
             try {
-                nextPage = store.allocatePage();
+                nextPage = store.allocatePage(allocateAtEnd);
             } catch (SQLException e) {
                 throw Message.convertToIOException(e);
             }

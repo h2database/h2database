@@ -21,7 +21,8 @@ import org.h2.util.IntArray;
  * <ul><li>0-3: parent page id (0 for root)
  * </li><li>4-4: page type
  * </li><li>5-6: entry count
- * </li><li>only if there is overflow: 7-10: overflow page id
+ * </li><li>7-10: table id
+ * </li><li>only if there is overflow: 11-14: overflow page id
  * </li><li>list of key / offset pairs (4 bytes key, 2 bytes offset)
  * </li></ul>
  * The format of an overflow page is:
@@ -33,6 +34,11 @@ import org.h2.util.IntArray;
  * </li></ul>
  */
 class PageDataLeaf extends PageData {
+
+    private static final int KEY_OFFSET_PAIR_LENGTH = 6;
+    private static final int KEY_OFFSET_PAIR_START = 11;
+    private static final int OVERFLOW_DATA_START_MORE = 9;
+    private static final int OVERFLOW_DATA_START_LAST = 7;
 
     /**
      * The row offsets.
@@ -61,7 +67,7 @@ class PageDataLeaf extends PageData {
 
     PageDataLeaf(PageScanIndex index, int pageId, int parentPageId, DataPage data) {
         super(index, pageId, parentPageId, data);
-        start = 7;
+        start = KEY_OFFSET_PAIR_START;
     }
 
     void read() throws SQLException {
@@ -94,7 +100,7 @@ class PageDataLeaf extends PageData {
         // TODO currently the order is important
         // TODO and can only add at the end
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
-        if (entryCount > 0 && last - rowLength < start + 6) {
+        if (entryCount > 0 && last - rowLength < start + KEY_OFFSET_PAIR_LENGTH) {
             int todoSplitAtLastInsertionPoint;
             return (entryCount / 2) + 1;
         }
@@ -117,7 +123,7 @@ class PageDataLeaf extends PageData {
             }
         }
         entryCount++;
-        start += 6;
+        start += KEY_OFFSET_PAIR_LENGTH;
         newOffsets[x] = offset;
         newKeys[x] = row.getPos();
         newRows[x] = row;
@@ -138,7 +144,7 @@ class PageDataLeaf extends PageData {
             do {
                 int next = index.getPageStore().allocatePage();
                 array.add(next);
-                remaining -= pageSize - 7;
+                remaining -= pageSize - OVERFLOW_DATA_START_LAST;
                 if (remaining > 0) {
                     remaining += 2;
                 }
@@ -165,7 +171,7 @@ class PageDataLeaf extends PageData {
         System.arraycopy(offsets, i + 1, newOffsets, i, entryCount - i);
         System.arraycopy(keys, i + 1, newKeys, i, entryCount - i);
         System.arraycopy(rows, i + 1, newRows, i, entryCount - i);
-        start -= 6;
+        start -= KEY_OFFSET_PAIR_LENGTH;
         offsets = newOffsets;
         keys = newKeys;
         rows = newRows;
@@ -182,10 +188,6 @@ class PageDataLeaf extends PageData {
      * @return the row
      */
     Row getRowAt(int at) throws SQLException {
-        int test;
-if(rows == null) {
-    System.out.println("stop");
-}
         Row r = rows[at];
         if (r == null) {
             if (firstOverflowPageId != 0) {
@@ -199,12 +201,12 @@ if(rows == null) {
                     int type = page.readByte();
                     if (type == (Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST)) {
                         int size = page.readShortInt();
-                        data.write(page.getBytes(), 7, size);
+                        data.write(page.getBytes(), OVERFLOW_DATA_START_LAST, size);
                         break;
                     } else {
                         next = page.readInt();
-                        int size = pageSize - 9;
-                        data.write(page.getBytes(), 9, size);
+                        int size = pageSize - OVERFLOW_DATA_START_MORE;
+                        data.write(page.getBytes(), OVERFLOW_DATA_START_MORE, size);
                     }
                 }
             }
@@ -335,7 +337,7 @@ if(rows == null) {
                 overflow.reset();
                 overflow.writeInt(parent);
                 int size;
-                if (remaining > pageSize - 7) {
+                if (remaining > pageSize - OVERFLOW_DATA_START_LAST) {
                     overflow.writeByte((byte) Page.TYPE_DATA_OVERFLOW);
                     overflow.writeInt(overflowPageIds[i + 1]);
                     size = pageSize - overflow.length();

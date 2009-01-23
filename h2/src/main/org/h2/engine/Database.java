@@ -1134,6 +1134,9 @@ public class Database implements DataHandler {
             }
             log = null;
         }
+        if (pageStore != null) {
+            pageStore.checkpoint();
+        }
         closeFiles();
         if (persistent && lock == null && fileLockMethod != FileLock.LOCK_NO) {
             // everything already closed (maybe in checkPowerOff)
@@ -1165,7 +1168,6 @@ public class Database implements DataHandler {
                 fileIndex = null;
             }
             if (pageStore != null) {
-                pageStore.checkpoint();
                 pageStore.close();
                 pageStore = null;
             }

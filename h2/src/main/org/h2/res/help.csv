@@ -453,6 +453,7 @@ CREATE SEQUENCE [IF NOT EXISTS] newSequenceName
 [CACHE long]
 ","
 Creates a new sequence. The data type of a sequence is BIGINT.
+Used values are never re-used, even when the transaction is rolled back.
 The cache is the number of pre-allocated numbers. If the system crashes without closing the
 database, at most this many numbers are lost. The default cache size is 32.
 ","
@@ -475,6 +476,7 @@ Cached tables (the default) are persistent, and the number or rows is not limite
 Memory tables are persistent, but the index data is kept in the main memory, so memory tables should not get too large.
 Temporary tables are not persistent. Temporary tables can be global (accessible by all connections)
 or local (only accessible by the current connection). The default is for temporary tables is global.
+Identity and auto-increment columns are columns with a sequence as the default.
 ","
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))
 "
@@ -1667,6 +1669,7 @@ IDENTITY
 ","
 Auto-Increment value.
 Possible values: -9223372036854775808 to 9223372036854775807.
+Used values are never re-used, even when the transaction is rolled back.
 See also java.lang.Long.
 ","
 IDENTITY
@@ -2989,6 +2992,7 @@ MEMORY_USED()
 NEXTVAL([schemaName, ] sequenceString): long
 ","
 Returns the next value of the sequence.
+Used values are never re-used, even when the transaction is rolled back.
 If the schema name is not set, the current schema is used.
 If the schema name is not set, the sequence name is converted to uppercase (for compatibility).
 ","

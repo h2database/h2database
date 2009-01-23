@@ -6,7 +6,6 @@
  */
 package org.h2.index;
 
-
 /**
  * A page.
  */

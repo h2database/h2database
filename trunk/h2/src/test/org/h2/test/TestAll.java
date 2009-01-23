@@ -282,9 +282,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-document: sequences and auto-increment number
-that were used once are never re-used
-
 JCR: for each node type, create a table; one 'dynamic' table with parameter;
     option to cache the results
 <link rel="icon" type="image/png" href="/path/image.png">

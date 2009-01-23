@@ -633,7 +633,7 @@ public class LogSystem {
      *
      * @return true if it is
      */
-    boolean getFlushOnEachCommit() {
+    public boolean getFlushOnEachCommit() {
         return flushOnEachCommit;
     }
 

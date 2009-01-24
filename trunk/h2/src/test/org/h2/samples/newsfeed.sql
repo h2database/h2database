@@ -24,7 +24,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>The MySQL compatibility extension fromUnixTime now used the English locale.
 </li></ul>
 <b>Bugfixes:</b>
-<ul><li>
 <ul><li>Some DatabaseMetaData operations did not work for non-admin users.
 </li><li>When using LOG=2, the index file grew quickly in some situations.
 </li><li>In versions 1.1.105-106, old encrypted script files could not be processed.

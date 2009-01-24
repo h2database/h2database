@@ -13,6 +13,29 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+
+INSERT INTO ITEM VALUES(57,
+'New version available: 1.1.107 (beta; 2009-01-24)', '2009-01-24 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Enabling the trace mechanism by creating a file is no longer supported.
+</li><li>The MySQL compatibility extension fromUnixTime now used the English locale.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>
+<ul><li>Some DatabaseMetaData operations did not work for non-admin users.
+</li><li>When using LOG=2, the index file grew quickly in some situations.
+</li><li>In versions 1.1.105-106, old encrypted script files could not be processed.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(56,
 'New version available: 1.1.106 (beta; 2009-01-04)', '2009-01-04 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -404,39 +427,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Some database metadata calls returned the wrong data type for DATA_TYPE columns.
 </li><li>A bug int the Lucene fulltext implementation has been fixed.
 </li><li>The character '$' could not be used in identifier names.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(44,
-'New version available: 1.0.74 (2008-06-21)', '2008-06-21 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>JaQu (Java Query), a tool similar to LINQ (Language Integrated Query)
-    is now included. See also
-    <a href="http://code.google.com/p/h2database/source/browse/trunk/h2/src/test/org/h2/test/jaqu/SamplesTest.java">
-    code examples</a>.
-</li><li>Support for overloaded Java methods. Many thanks to Gary Tong!
-</li><li>Deadlocks are now detected.
-</li><li>Linked tables: statements executed against the target are list with trace level 3.
-</li><li>RunScript tool: new options to show and check the results of queries.
-</li><li>Improved compatibility with databases that only allow one row with 'NULL' in a unique
-    index. Use the compatibility mode to enable this feature.
-</li><li>The source code is now switched to Java 1.6 by default.
-</li><li>The ChangePassword tool is now called ChangeFileEncryption.
-</li><li>It is no longer allowed to create columns with the data type NULL.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>The Lucene fulltext index was always re-created when opening a database.
-</li><li>Setting a column default with a different data type did not work.
-</li><li>Opening big databases was sometimes very slow. Fixed.
-</li><li>RUNSCRIPT could throw a NullPointerException.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

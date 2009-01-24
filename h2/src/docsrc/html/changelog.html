@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.1.107 (2009-01-24)</h2>
 <ul><li>Some DatabaseMetaData operations did not work for non-admin users for versions 1.1.x.
 </li><li>The MySQL compatibility extension fromUnixTime now used the English locale.
 </li><li>When using LOG=2 and repeatedly updating the last row rows of a table, the index file grew quickly.
@@ -641,32 +645,6 @@ Change Log
 </li><li>Variables: large objects (CLOB and BLOB) that don't fit in memory did not work correctly when used as variables.
 </li><li>Fulltext search is now supported in named in-memory databases.
 </li><li>H2 Console: multiple consecutive spaces in the setting name did not work. Fixed.
-</li></ul>
-
-<h2>Version 1.0.65 (2008-01-18)</h2>
-<ul>
-<li>The build (ant) now automatically switches the source code to the correct version (JDK 1.4/1.5 or 1.6).
-</li><li>A recovery bug has been fixed. With older versions, it was necessary to add ;RECOVER=1 to the database URL in cases where it should not have been required.
-</li><li>The performance for DROP and DROP ALL OBJECTS has been improved.
-</li><li>The ChangePassword API has been improved.
-</li><li>User defined variables are now supported. Examples: SET @VAR=10;CALL @VAR. This can be used for running totals as in: select x, set(@t, ifnull(@t, 0) + x) from system_range(1, 10)
-</li><li>The Ukrainian translation has been improved.
-</li><li>CALL statements can now be used in batch updates and called using Statement.executeUpdate.
-</li><li>New read-only setting CREATE_BUILD (the build number of the database engine that created the database).
-</li><li>The optimizer did not use multi column indexes for range queries in some cases. Fixed.
-</li><li>The H2 Console now calls DataSource.getConnection() instead of DataSource.getConnection(user, password) when user name and password are not specified.
-</li><li>The bind IP address can now be set when using multi-homed host (if multiple network adapters are available) using the system property h2.bindAddress.
-</li><li>Batch update: Calling BatchUpdateException.printStackTrace() could result in out of memory. Fixed.
-</li><li>Indexes of unique or foreign constraints where not dropped when the constraint was dropped after altering the table (for example dropping a column). Fixed.
-</li><li>The performance for large result sets in the server mode has been improved.
-</li><li>The setting h2.serverSmallResultSetSize has been renamed to h2.serverResultSetFetchSize.
-</li><li>The SCRIPT command now uses multi-row insert statements to save space except if the option SIMPLE is used.
-</li><li>The SCRIPT command did not split up CLOB data correctly. Fixed.
-</li><li>Optimization for single column distinct queries with an index: select distinct name from test. Can be disabled by setting the system property h2.optimizeDistinct to false.
-</li><li>DROP ALL OBJECTS did not drop user defined aggregate functions and domains.
-</li><li>PostgreSQL compatibility: COUNT(T.*) is now supported.
-</li><li>LIKE comparisons are now faster.
-</li><li>Encrypted databases are now faster.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

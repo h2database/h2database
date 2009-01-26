@@ -81,9 +81,10 @@ public class MemoryUtils {
     }
 
     /**
-     * Check if the classloader or virtual machine is shut down. In this case
-     * static references are set to null, which can cause NullPointerExceptions
-     * and can be confusing because it looks like a bug in the application.
+     * Check if Tomcat has set the static references to null,
+     * which can cause a NullPointerException. A workaround is to
+     * disable the system property org.apache.catalina.loader.
+     * WebappClassLoader.ENABLE_CLEAR_REFERENCES
      *
      * @return true if static references are set to null
      */

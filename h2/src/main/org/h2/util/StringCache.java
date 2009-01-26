@@ -24,40 +24,6 @@ public class StringCache {
         // utility class
     }
 
-    // testing: cacheHit / miss are public!
-    // public static int cacheHit = 0, cacheMiss = 0;
-
-    // 4703
-//    public static String get(String s) {
-//        if (s == null) {
-//            return s;
-//        } else if (s.length() == 0) {
-//            return "";
-//        }
-//        if (!Constants.USE_OBJECT_CACHE
-//                || !ENABLED || s.length() > MAX_CACHE_SIZE / 10) {
-//            return s;
-//        }
-//        int hash = s.hashCode();
-//        int index = hash & (Constants.OBJECT_CACHE_SIZE - 1);
-//        String cached = cache[index];
-//        if (cached != null) {
-//            if (s.equals(cached)) {
-//                // cacheHit++;
-//                return cached;
-//            }
-//        }
-//        // cacheMiss++;
-//        replace(index, s);
-//        return s;
-//    }
-
-    // 3500
-//    public static String get(String s) {
-//        return s;
-//    }
-
-    // 3906
     /**
      * Get the string from the cache if possible. If the string has not been
      * found, it is added to the cache. If there is such a string in the cache,
@@ -75,25 +41,18 @@ public class StringCache {
         } else if (s.length() == 0) {
             return "";
         }
-        String[] cache = (String[]) softCache.get();
         int hash = s.hashCode();
-        if (cache == null) {
-            try {
-                cache = new String[SysProperties.OBJECT_CACHE_SIZE];
-            } catch (OutOfMemoryError e) {
-                return s;
+        String[] cache = getCache();
+        if (cache != null) {
+            int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
+            String cached = cache[index];
+            if (cached != null) {
+                if (s.equals(cached)) {
+                    return cached;
+                }
             }
-            softCache = new SoftReference(cache);
+            cache[index] = s;
         }
-        int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
-        String cached = cache[index];
-        if (cached != null) {
-            if (s.equals(cached)) {
-                // cacheHit++;
-                return cached;
-            }
-        }
-        cache[index] = s;
         return s;
     }
 
@@ -115,18 +74,15 @@ public class StringCache {
         } else if (s.length() == 0) {
             return "";
         }
-        String[] cache = (String[]) softCache.get();
         int hash = s.hashCode();
-        if (cache == null) {
-            cache = new String[SysProperties.OBJECT_CACHE_SIZE];
-            softCache = new SoftReference(cache);
-        }
+        String[] cache = getCache();
         int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
-        String cached = cache[index];
-        if (cached != null) {
-            if (s.equals(cached)) {
-                // cacheHit++;
-                return cached;
+        if (cache != null) {
+            String cached = cache[index];
+            if (cached != null) {
+                if (s.equals(cached)) {
+                    return cached;
+                }
             }
         }
         // create a new object that is not shared
@@ -135,6 +91,26 @@ public class StringCache {
         s = new String(s);
         cache[index] = s;
         return s;
+    }
+
+    private static String[] getCache() {
+        String[] cache;
+        // softCache can be null due to a Tomcat problem
+        // a workaround is disable the system property org.apache.
+        // catalina.loader.WebappClassLoader.ENABLE_CLEAR_REFERENCES
+        if (softCache != null) {
+            cache = (String[]) softCache.get();
+            if (cache != null) {
+                return cache;
+            }
+        }
+        try {
+            cache = new String[SysProperties.OBJECT_CACHE_SIZE];
+        } catch (OutOfMemoryError e) {
+            return null;
+        }
+        softCache = new SoftReference(cache);
+        return cache;
     }
 
     /**

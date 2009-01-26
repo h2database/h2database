@@ -440,8 +440,9 @@ CREATE SCHEMA [IF NOT EXISTS] name
 [AUTHORIZATION ownerUserName]
 ","
 Creates a new schema.
-The current user owner must have admin rights.
-If no authorization is specified, the current user is used.
+If no owner is specified, the current user is used.
+The user that executes the command must have admin rights,
+as well as the owner.
 ","
 CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 "
@@ -1273,8 +1274,8 @@ PRIMARY KEY(ID, NAME)
 "Other Grammar","Referential Constraint","
 FOREIGN KEY (columnName [,...])
 REFERENCES [refTableName] [(refColumnName[,...])]
-[ON DELETE {CASCADE | RESTRICT | NO ACTION | SET DEFAULT | SET NULL}]
-[ON UPDATE {CASCADE | SET DEFAULT | SET NULL}]
+[ON DELETE {CASCADE | RESTRICT | NO ACTION | SET {DEFAULT|NULL}}]
+[ON UPDATE {CASCADE | SET {DEFAULT|NULL}}]
 ","
 Defines a referential constraint.
 If the table name is not specified, then the same table is referenced.
@@ -1360,7 +1361,7 @@ LIKE 'Jo%'
 "
 
 "Other Grammar","Compare","
-= | < | > | <> | <= | >= | !=
+<> | <= | >= | = | < | > | !=
 ","
 Comparison operator. The operator != is the same as <>.
 ","

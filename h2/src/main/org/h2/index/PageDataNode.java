@@ -83,15 +83,15 @@ class PageDataNode extends PageData {
             }
             int pivot = page.getKey(splitPoint - 1);
             PageData page2 = page.split(splitPoint);
-            index.getPageStore().updateRecord(page, page.data);
-            index.getPageStore().updateRecord(page2, page2.data);
+            index.getPageStore().updateRecord(page, true, page.data);
+            index.getPageStore().updateRecord(page2, true, page2.data);
             addChild(x, page2.getPageId(), pivot);
             int maxEntries = (index.getPageStore().getPageSize() - 15) / 8;
             if (entryCount >= maxEntries) {
                 int todoSplitAtLastInsertionPoint;
                 return entryCount / 2;
             }
-            index.getPageStore().updateRecord(this, data);
+            index.getPageStore().updateRecord(this, true, data);
         }
         updateRowCount(1);
         return 0;
@@ -103,7 +103,7 @@ class PageDataNode extends PageData {
         }
         if (rowCountStored != UNKNOWN_ROWCOUNT) {
             rowCountStored = UNKNOWN_ROWCOUNT;
-            index.getPageStore().updateRecord(this, data);
+            index.getPageStore().updateRecord(this, true, data);
         }
     }
 
@@ -133,7 +133,7 @@ class PageDataNode extends PageData {
             int child = childPageIds[i];
             PageData p = index.getPage(child);
             p.setParentPageId(getPos());
-            index.getPageStore().updateRecord(p, p.data);
+            index.getPageStore().updateRecord(p, true, p.data);
         }
     }
 
@@ -198,7 +198,7 @@ class PageDataNode extends PageData {
             return true;
         }
         removeChild(at);
-        index.getPageStore().updateRecord(this, data);
+        index.getPageStore().updateRecord(this, true, data);
         return false;
     }
 
@@ -224,7 +224,7 @@ class PageDataNode extends PageData {
         this.rowCount = rowCount;
         if (rowCountStored != rowCount) {
             rowCountStored = rowCount;
-            index.getPageStore().updateRecord(this, data);
+            index.getPageStore().updateRecord(this, true, data);
         }
     }
 

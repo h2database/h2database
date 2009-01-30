@@ -52,7 +52,7 @@ abstract class PageData extends Record {
         this.index = index;
         this.parentPageId = parentPageId;
         this.data = data;
-        this.setPos(pageId);
+        setPos(pageId);
     }
 
     /**

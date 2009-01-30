@@ -18,7 +18,6 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.store.DataPage;
 import org.h2.store.DiskFile;
-import org.h2.store.PageLog;
 import org.h2.store.PageStore;
 import org.h2.store.Record;
 import org.h2.store.Storage;
@@ -63,7 +62,7 @@ public class LogSystem {
     private int keepFiles;
     private boolean closed;
     private String accessMode;
-    private PageLog pageLog;
+    private PageStore pageStore;
 
     /**
      * Create new transaction log object. This will not open or create files
@@ -77,9 +76,7 @@ public class LogSystem {
      */
     public LogSystem(Database database, String fileNamePrefix, boolean readOnly, String accessMode, PageStore pageStore) {
         this.database = database;
-        if (pageStore != null) {
-            this.pageLog = pageStore.getLog();
-        }
+        this.pageStore = pageStore;
         this.readOnly = readOnly;
         this.accessMode = accessMode;
         closed = true;
@@ -472,8 +469,8 @@ public class LogSystem {
             if (closed) {
                 return;
             }
-            if (pageLog != null) {
-                pageLog.commit(session);
+            if (pageStore != null) {
+                pageStore.commit(session);
             }
             currentLog.commit(session);
             session.setAllCommitted();

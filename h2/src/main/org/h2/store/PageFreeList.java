@@ -41,7 +41,7 @@ public class PageFreeList extends Record {
      * @return the page
      */
     int allocate() throws SQLException {
-        store.updateRecord(this, data);
+        store.updateRecord(this, true, data);
         int size = array.size();
         if (size > 0) {
             int x = array.get(size - 1);
@@ -95,7 +95,7 @@ public class PageFreeList extends Record {
      * @param pageId the page id to add
      */
     void free(int pageId) throws SQLException {
-        store.updateRecord(this, data);
+        store.updateRecord(this, true, data);
         if (array.size() < getMaxSize()) {
             array.add(pageId);
         } else {

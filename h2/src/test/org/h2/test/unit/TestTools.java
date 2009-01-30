@@ -20,6 +20,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
@@ -297,7 +298,8 @@ public class TestTools extends TestBase {
 
         conn = DriverManager.getConnection(url, "another", "another");
         stat = conn.createStatement();
-        stat.execute("runscript from '" + baseDir + "/toolsRecover.data.sql'");
+        String suffix = SysProperties.PAGE_STORE ? ".h2.sql" : ".data.sql";
+        stat.execute("runscript from '" + baseDir + "/toolsRecover" + suffix + "'");
         rs = stat.executeQuery("select * from \"test 2\"");
         assertFalse(rs.next());
         rs = stat.executeQuery("select * from test");

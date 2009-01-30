@@ -277,17 +277,26 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
-
+// failing tests: 11 (1st round)
 // System.setProperty("h2.pageStore", "true");
 
 /*
 
+PageStore.switchLogIfPossible()
+
+drop table test;
+create table test(id int);
+select 1 from test where 'a'=1;
+Fails: Oracle, PostgreSQL, H2
+Works: MySQL, HSQLDB
+
+select for update in mvcc mode: only lock the selected records?
+
+test case for daylight saving time enabled/move to a timezone (locking,...)
 JCR: for each node type, create a table; one 'dynamic' table with parameter;
     option to cache the results
 <link rel="icon" type="image/png" href="/path/image.png">
-create a short one page documentation
-checksum: no need to checksum all data; every 128th byte is enough;
-    but need position+counter
+create a short 4 pages documentation
 
 http://blog.flexive.org/2008/12/05/porting-flexive-to-the-h2-database/
 postgresql generate_series?

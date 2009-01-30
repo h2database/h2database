@@ -495,7 +495,7 @@ public abstract class TestBase {
      * @throws AssertionError if the values are not equal
      */
     protected void assertEquals(byte[] expected, byte[] actual) {
-        assertTrue(expected.length == actual.length);
+        assertEquals("length", expected.length, actual.length);
         for (int i = 0; i < expected.length; i++) {
             if (expected[i] != actual[i]) {
                 fail("[" + i + "]: expected: " + (int) expected[i] + " actual: " + (int) actual[i]);

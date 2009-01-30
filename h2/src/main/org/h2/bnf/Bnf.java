@@ -31,8 +31,6 @@ import org.h2.util.StringUtils;
  */
 public class Bnf {
 
-    private static final String SEPARATORS = " [](){}|.,\r\n<>:-+*/=<\">!'$";
-
     private final Random random = new Random();
     private final HashMap ruleMap = new HashMap();
     private String syntax;
@@ -142,7 +140,7 @@ public class Bnf {
      * @return the HTML formatted text
      */
     public String getSyntaxHtml(String bnf) {
-        StringTokenizer tokenizer = new StringTokenizer(bnf, SEPARATORS, true);
+        StringTokenizer tokenizer = getTokenizer(bnf);
         StringBuffer buff = new StringBuffer();
         while (tokenizer.hasMoreTokens()) {
             String s = tokenizer.nextToken();
@@ -257,7 +255,7 @@ public class Bnf {
         syntax = StringUtils.replaceAll(syntax, "a-f", "@af@");
         syntax = StringUtils.replaceAll(syntax, "A-F", "@af@");
         syntax = StringUtils.replaceAll(syntax, "0-9", "@digit@");
-        StringTokenizer tokenizer = new StringTokenizer(syntax, SEPARATORS, true);
+        StringTokenizer tokenizer = getTokenizer(syntax);
         while (tokenizer.hasMoreTokens()) {
             String s = tokenizer.nextToken();
             // avoid duplicate strings
@@ -335,6 +333,10 @@ public class Bnf {
      */
     public ArrayList getStatements() {
         return statements;
+    }
+
+    private StringTokenizer getTokenizer(String syntax) {
+        return new StringTokenizer(syntax, " [](){}|.,\r\n<>:-+*/=<\">!'$", true);
     }
 
 }

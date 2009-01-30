@@ -438,7 +438,8 @@ public class Server implements Runnable, ShutdownHandler {
     public Server start() throws SQLException {
         service.start();
         Thread t = new Thread(this);
-        t.setName(service.getName() + " (" + service.getURL() + ")");
+        String name = service.getName() + " (" + service.getURL() + ")";
+        t.setName(name);
         t.start();
         for (int i = 1; i < 64; i += i) {
             wait(i);
@@ -449,7 +450,7 @@ public class Server implements Runnable, ShutdownHandler {
         if (isRunning(true)) {
             return this;
         }
-        throw Message.getSQLException(ErrorCode.CONNECTION_BROKEN);
+        throw Message.getSQLException(ErrorCode.EXCEPTION_OPENING_PORT_2, new String[] { name, "timeout" });
     }
 
     private static void wait(int i) {

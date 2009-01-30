@@ -67,6 +67,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Feature: a setting to delete the the log or not (for backup)
 </li><li>Test with Sun ASPE1_4; JEE Sun AS PE1.4
 </li><li>Support nested outer joins (see todo.txt).
+</li><li>Don't write stack traces for common exceptions like duplicate key to the log by default
 </li><li>Test performance again with SQL Server, Oracle, DB2
 </li><li>Test with dbmonster (http://dbmonster.kernelpanic.pl/)
 </li><li>Test with dbcopy (http://dbcopyplugin.sourceforge.net)
@@ -100,7 +101,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Document, implement tool for long running transactions using user-defined compensation statements
 </li><li>Support SET TABLE DUAL READONLY
 </li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files
-</li><li>Don't write stack traces for common exceptions like duplicate key to the log by default
 </li><li>GCJ: what is the state now?
 </li><li>Reduce disk space usage
 </li><li>Events for: Database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
@@ -395,7 +395,12 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Replace information_schema tables with regular tables that are automatically re-built when needed. Use indexes.
 </li><li>Support a special trigger on all tables.
 </li><li>Delete temporary files or objects using finalize.
-</li><li>MySQL and MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.
+</li><li>MySQL, MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.
+</li><li>Oracle compatibility: support calling 0-parameters functions without parenthesis. Make constants obsolete.
+</li><li>MySQL, HSQLDB compatibility: support where 'a'=1 (not supported by Derby, PostgreSQL)
+</li><li>CSV: currently # is a line comment and can start at any field. Make it optional.
+</li><li>Add database creation date and time to the database.
+</li><li>Support ASSERTIONS.
 </li></ul>
 
 <h2>Not Planned</h2>

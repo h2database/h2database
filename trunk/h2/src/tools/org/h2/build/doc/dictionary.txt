@@ -13,7 +13,7 @@ alexahin alexander algo algorithm algorithms alias aliased aliases aliasing alig
 aligned alive all allclasses alleging allocate allocated allocation allow allowed
 allowing allows almost alone along alpha already also alt alter altering
 alternate alternative alternatives alters altersequence always ambiguous amount
-amp amt analyse analysis analyze analyzer analyzing anchor and andrew android
+amp amt analysis analyze analyzer analyzing anchor and andrew android
 andy ang angle animal anne annual anon anonymous another ansi ant anti antonio
 any anyone anything anyway anywhere apache api apos app apparatus appear appears
 append appended appending appendix appends apple apples applets applicable
@@ -579,4 +579,4 @@ xive evolving mssqlserver eric respond faulhaber fixing northern lying
 federal santa america county clara courts california york venue away stages
 titles headers grew orchestration social razor finder ranging friend intervals
 bot jot delicious rife appenders circles spelling cash sky ecm nuxeo poland
-opengeospatial sfs
+opengeospatial sfs symmetric obsolete failing parenthesis unloading

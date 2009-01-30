@@ -667,7 +667,7 @@ COMMIT TRANSACTION XID_TEST
 "Commands (Other)","CHECKPOINT","
 CHECKPOINT
 ","
-Flushes the log and data files and switches to a new log file.
+Flushes the log and data files and switches to a new log file if possible.
 Admin rights are required to execute this command.
 ","
 CHECKPOINT

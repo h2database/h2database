@@ -29,21 +29,44 @@ import org.h2.value.Value;
  */
 public class PageLog {
 
-    private static final int NO_OP = 0;
-    private static final int UNDO = 1;
-    private static final int COMMIT = 2;
-    private static final int ADD = 3;
-    private static final int REMOVE = 4;
+    /**
+     * No operation.
+     */
+    public static final int NO_OP = 0;
+
+    /**
+     * An undo log entry.
+     * Format: page id, page.
+     */
+    public static final int UNDO = 1;
+
+    /**
+     * A commit entry of a session.
+     * Format: session id.
+     */
+    public static final int COMMIT = 2;
+
+    /**
+     * Add a record to a table.
+     * Format: session id, table id, row.
+     */
+    public static final int ADD = 3;
+
+    /**
+     * Remove a record from a table.
+     * Format: session id, table id, row.
+     */
+    public static final int REMOVE = 4;
 
     private PageStore store;
     private Trace trace;
-    private BitField undo = new BitField();
+
     private PageOutputStream pageOut;
     private DataOutputStream out;
     private int firstPage;
     private DataPage data;
-    private boolean recoveryRunning;
     private long operation;
+    private BitField undo = new BitField();
 
     PageLog(PageStore store, int firstPage) {
         this.store = store;
@@ -69,12 +92,10 @@ public class PageLog {
      *
      * @param undo true if the undo step should be run
      */
-    public void recover(boolean undo) throws SQLException {
-        trace.debug("log recover");
+    void recover(boolean undo) throws SQLException {
         DataInputStream in = new DataInputStream(new PageInputStream(store, 0, firstPage, Page.TYPE_LOG));
         DataPage data = store.createDataPage();
         try {
-            recoveryRunning = true;
             while (true) {
                 int x = in.read();
                 if (x < 0) {
@@ -84,45 +105,48 @@ public class PageLog {
                     // nothing to do
                 } else if (x == UNDO) {
                     int pageId = in.readInt();
-                    in.read(data.getBytes(), 0, store.getPageSize());
+                    in.readFully(data.getBytes(), 0, store.getPageSize());
                     if (undo) {
                         if (trace.isDebugEnabled()) {
-                            trace.debug("log write " + pageId);
+                            trace.debug("log undo " + pageId);
                         }
                         store.writePage(pageId, data);
                     }
                 } else if (x == ADD || x == REMOVE) {
                     int sessionId = in.readInt();
                     int tableId = in.readInt();
-                    Row row = readRow(in);
-                    Database db = store.getDatabase();
+                    Row row = readRow(in, data);
                     if (!undo) {
+                        Database db = store.getDatabase();
                         if (trace.isDebugEnabled()) {
                             trace.debug("log redo " + (x == ADD ? "+" : "-") + " " + row);
                         }
                         db.redo(tableId, row, x == ADD);
                     }
                 } else if (x == COMMIT) {
-
+                    in.readInt();
                 }
             }
         } catch (Exception e) {
             int todoOnlyIOExceptionAndSQLException;
             int todoSomeExceptionAreOkSomeNot;
             trace.debug("log recovery stopped: " + e.toString());
-        } finally {
-            recoveryRunning = false;
         }
-        trace.debug("log recover done");
-        int todoDeleteAfterRecovering;
     }
 
-    private Row readRow(DataInputStream in) throws IOException, SQLException {
+    /**
+     * Read a row from an input stream.
+     *
+     * @param in the input stream
+     * @param data a temporary buffer
+     * @return the row
+     */
+    public static Row readRow(DataInputStream in, DataPage data) throws IOException, SQLException {
         int pos = in.readInt();
         int len = in.readInt();
         data.reset();
         data.checkCapacity(len);
-        in.read(data.getBytes(), 0, len);
+        in.readFully(data.getBytes(), 0, len);
         int columnCount = data.readInt();
         Value[] values = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
@@ -141,7 +165,7 @@ public class PageLog {
      * @param pageId the page id
      * @param page the old page data
      */
-    public void addUndo(int pageId, DataPage page) throws SQLException {
+    void addUndo(int pageId, DataPage page) throws SQLException {
         try {
             if (undo.get(pageId)) {
                 return;
@@ -160,7 +184,7 @@ public class PageLog {
      *
      * @param session the session
      */
-    public void commit(Session session) throws SQLException {
+    void commit(Session session) throws SQLException {
         try {
             trace.debug("log commit");
             out.write(COMMIT);
@@ -181,11 +205,8 @@ public class PageLog {
      * @param row the row to add
      * @param add true if the row is added, false if it is removed
      */
-    public void addOrRemoveRow(Session session, int tableId, Row row, boolean add) throws SQLException {
+    void logAddOrRemoveRow(Session session, int tableId, Row row, boolean add) throws SQLException {
         try {
-            if (recoveryRunning) {
-                return;
-            }
             if (trace.isDebugEnabled()) {
                 trace.debug("log " + (add?"+":"-") + " table:" + tableId +
                         " remaining:" + pageOut.getRemainingBytes() + " row:" + row);
@@ -225,7 +246,7 @@ public class PageLog {
     /**
      * Flush the transaction log.
      */
-    public void flush() throws SQLException {
+    private void flush() throws SQLException {
         try {
             int todoUseLessSpace;
             trace.debug("log flush");

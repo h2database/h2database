@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.h2.command.Parser;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.MetaRecord;
@@ -32,6 +33,7 @@ import org.h2.index.Page;
 import org.h2.log.LogFile;
 import org.h2.message.Message;
 import org.h2.message.Trace;
+import org.h2.result.Row;
 import org.h2.result.SimpleRow;
 import org.h2.security.SHA256;
 import org.h2.store.DataHandler;
@@ -40,6 +42,8 @@ import org.h2.store.DiskFile;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
+import org.h2.store.PageLog;
+import org.h2.store.PageStore;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
@@ -106,7 +110,6 @@ public class Recover extends Tool implements DataHandler {
     public void run(String[] args) throws SQLException {
         String dir = ".";
         String db = null;
-        boolean removePassword = false;
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if ("-dir".equals(arg)) {
@@ -114,7 +117,7 @@ public class Recover extends Tool implements DataHandler {
             } else if ("-db".equals(arg)) {
                 db = args[++i];
             } else if ("-removePassword".equals(arg)) {
-                removePassword = true;
+                remove = true;
             } else if ("-trace".equals(arg)) {
                 trace = true;
             } else if (arg.equals("-help") || arg.equals("-?")) {
@@ -126,7 +129,7 @@ public class Recover extends Tool implements DataHandler {
                 return;
             }
         }
-        if (removePassword) {
+        if (!SysProperties.PAGE_STORE && remove) {
             removePassword(dir, db);
         } else {
             process(dir, db);
@@ -332,7 +335,7 @@ public class Recover extends Tool implements DataHandler {
 
     private void writeDataError(PrintWriter writer, String error, byte[] data, int dumpBlocks) {
         writer.println("-- ERROR: " + error + " block:" + block + " blockCount:" + blockCount + " storageId:"
-                + storageId + " recordLength: " + recordLength + " valueId:" + valueId);
+                + storageId + " recordLength:" + recordLength + " valueId:" + valueId);
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
             int x = data[i] & 0xff;
@@ -699,11 +702,16 @@ public class Recover extends Tool implements DataHandler {
             writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" + this.getClass().getName() + ".readClob\";");
             writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" + this.getClass().getName() + ".readBlob\";");
             resetSchema();
-            store = FileStore.open(null, fileName, "r");
+            store = FileStore.open(null, fileName, remove ? "rw" : "r");
             long length = store.length();
-            byte[] buff = new byte[128];
-            DataPage s = DataPage.create(this, buff);
-            store.readFully(buff, 0, buff.length);
+            try {
+                store.init();
+            } catch (Exception e) {
+                writeError(writer, e);
+            }
+            DataPage s = DataPage.create(this, 128);
+            store.seek(0);
+            store.readFully(s.getBytes(), 0, 128);
             s.setPos(48);
             int pageSize = s.readInt();
             int writeVersion = (int) s.readByte();
@@ -717,19 +725,25 @@ public class Recover extends Tool implements DataHandler {
             writer.println("-- systemTableRoot: " + systemTableRoot);
             writer.println("-- freeListHead: " + freeListHead);
             writer.println("-- logHead: " + logHead);
+            if (pageSize < PageStore.PAGE_SIZE_MIN || pageSize > PageStore.PAGE_SIZE_MAX) {
+                pageSize = PageStore.PAGE_SIZE_DEFAULT;
+                // use default values for other settings as well
+                systemTableRoot = 1;
+                freeListHead = 2;
+                logHead = 3;
+                writer.println("-- ERROR: page size; using " + pageSize);
+            }
             int pageCount = (int) (length / pageSize);
             blockCount = 1;
-            buff = new byte[pageSize];
-            s = DataPage.create(this, buff);
-            for (int page = 1; page < pageCount; page++) {
-                store.seek((long) page * pageSize);
-                store.readFully(buff, 0, pageSize);
-                s.reset();
+            for (long page = 1; page < pageCount; page++) {
+                s = DataPage.create(this, pageSize);
+                store.seek(page * pageSize);
+                store.readFully(s.getBytes(), 0, pageSize);
                 int parentPageId = s.readInt();
                 int type = s.readByte();
                 switch (type) {
                 case Page.TYPE_EMPTY:
-                    writer.println("-- page " + page + ": empty");
+                    // writer.println("-- page " + page + ": empty");
                     if (parentPageId != 0) {
                         writer.println("-- ERROR parent:" + parentPageId);
                     }
@@ -746,17 +760,46 @@ public class Recover extends Tool implements DataHandler {
                     break;
                 case Page.TYPE_DATA_LEAF:
                     writer.println("-- page " + page + ": data leaf " + (last ? "(last)" : ""));
-                    dumpPageDataLeaf(store, pageSize, writer, s, last);
+                    dumpPageDataLeaf(store, pageSize, writer, s, last, page);
                     break;
                 case Page.TYPE_FREE_LIST:
                     writer.println("-- page " + page + ": free list " + (last ? "(last)" : ""));
                     break;
                 case Page.TYPE_LOG:
                     writer.println("-- page " + page + ": log " + (last ? "(last)" : ""));
+                    dumpPageLog(store, writer, s, last);
                     break;
                 default:
                     writer.println("-- page " + page + ": ERROR unknown type " + type);
                     break;
+                }
+            }
+            writeSchema(writer);
+            DataInputStream in = new DataInputStream(
+                    new PageInputStream(writer, this, store, logHead, pageSize, 0, Page.TYPE_LOG)
+            );
+            writer.println("-- log");
+            while (true) {
+                int x = in.read();
+                if (x < 0) {
+                    break;
+                }
+                if (x == PageLog.NO_OP) {
+                    // nothing to do
+                } else if (x == PageLog.UNDO) {
+                    int pageId = in.readInt();
+                    in.readFully(new byte[pageSize]);
+                    writer.println("-- undo page " + pageId);
+                } else if (x == PageLog.ADD || x == PageLog.REMOVE) {
+                    int sessionId = in.readInt();
+                    storageId = in.readInt();
+                    Row row = PageLog.readRow(in, s);
+                    writer.println("-- session " + sessionId +
+                            " table " + storageId +
+                            " " + (x == PageLog.ADD ? "add" : "remove") + " " + row.toString());
+                } else if (x == PageLog.COMMIT) {
+                    int sessionId = in.readInt();
+                    writer.println("-- commit " + sessionId);
                 }
             }
             writer.close();
@@ -768,12 +811,122 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpPageDataLeaf(FileStore store, int pageSize, PrintWriter writer, DataPage s, boolean last) throws SQLException {
+    /**
+     * An input stream that reads the data from a page store.
+     */
+    static class PageInputStream extends InputStream {
+
+        private final PrintWriter writer;
+        private final int type;
+        private final FileStore store;
+        private final DataPage page;
+        private final int pageSize;
+        private int parentPage;
+        private int nextPage;
+        private boolean endOfFile;
+        private int remaining;
+
+        public PageInputStream(PrintWriter writer, DataHandler handler,
+                FileStore store, int firstPage, int pageSize, int parent, int type) {
+            this.writer = writer;
+            this.store = store;
+            this.pageSize = pageSize;
+            this.type = type;
+            this.parentPage = parent;
+            nextPage = firstPage;
+            page = DataPage.create(handler, pageSize);
+        }
+
+        public int read() throws IOException {
+            byte[] b = new byte[1];
+            int len = read(b);
+            return len < 0 ? -1 : (b[0] & 255);
+        }
+
+        public int read(byte[] b) throws IOException {
+            return read(b, 0, b.length);
+        }
+
+        public int read(byte[] b, int off, int len) throws IOException {
+            if (len == 0) {
+                return 0;
+            }
+            int read = 0;
+            while (len > 0) {
+                int r = readBlock(b, off, len);
+                if (r < 0) {
+                    break;
+                }
+                read += r;
+                off += r;
+                len -= r;
+            }
+            return read == 0 ? -1 : read;
+        }
+
+        private int readBlock(byte[] buff, int off, int len) throws IOException {
+            fillBuffer();
+            if (endOfFile) {
+                return -1;
+            }
+            int l = Math.min(remaining, len);
+            page.read(buff, off, l);
+            remaining -= l;
+            return l;
+        }
+
+        private void fillBuffer() throws IOException {
+            if (remaining > 0 || endOfFile) {
+                return;
+            }
+            if (nextPage == 0) {
+                endOfFile = true;
+                return;
+            }
+            page.reset();
+            try {
+                store.seek((long) nextPage * pageSize);
+                store.readFully(page.getBytes(), 0, pageSize);
+                page.reset();
+                int p = page.readInt();
+                int t = page.readByte();
+                boolean last = (t & Page.FLAG_LAST) != 0;
+                t &= ~Page.FLAG_LAST;
+                if (type != t || p != parentPage) {
+                    writer.println("-- ERROR  page:" +nextPage+ " type:" + t + " parent:" + p +
+                            " expected type:" + type + " expected parent:" + parentPage);
+                }
+                parentPage = nextPage;
+                if (last) {
+                    nextPage = 0;
+                    remaining = page.readInt();
+                } else {
+                    nextPage = page.readInt();
+                    remaining = pageSize - page.length();
+                }
+            } catch (SQLException e) {
+                throw Message.convertToIOException(e);
+            }
+        }
+
+    }
+
+    private void dumpPageLog(FileStore store, PrintWriter writer, DataPage s, boolean last) {
+        if (last) {
+            int size = s.readInt();
+            writer.println("--  size:" + size);
+        } else {
+            int next = s.readInt();
+            writer.println("--  next:" + next);
+        }
+    }
+
+    private void dumpPageDataLeaf(FileStore store, int pageSize, PrintWriter writer, DataPage s, boolean last, long pageId) throws SQLException {
+        storageId = s.readInt();
         int entryCount = s.readShortInt();
-        int tableId = s.readInt();
         int[] keys = new int[entryCount];
         int[] offsets = new int[entryCount];
-        int next = 0;
+        long next = 0;
         if (!last) {
             next = s.readInt();
         }
@@ -782,8 +935,7 @@ public class Recover extends Tool implements DataHandler {
             offsets[i] = s.readShortInt();
         }
         if (!last) {
-            byte[] buff = new byte[pageSize];
-            DataPage s2 = DataPage.create(this, buff);
+            DataPage s2 = DataPage.create(this, pageSize);
             s.setPos(pageSize);
             while (true) {
                 store.seek(pageSize * next);
@@ -792,23 +944,118 @@ public class Recover extends Tool implements DataHandler {
                 int type = s2.readByte();
                 if (type == (Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST)) {
                     int size = s2.readShortInt();
+                    writer.println("-- chain:" + next + " type:" + type + " size:" + size);
                     s.write(s2.getBytes(), 7, size);
                     break;
-                } else {
+                } else if (type == Page.TYPE_DATA_OVERFLOW) {
                     next = s2.readInt();
+                    if (next == 0) {
+                        writeDataError(writer, "next:0", s2.getBytes(), 1);
+                        break;
+                    }
                     int size = pageSize - 9;
+                    writer.println("-- chain:" + next + " type:" + type + " size:" + size + " next:" + next);
                     s.write(s2.getBytes(), 9, size);
+                } else {
+                    writeDataError(writer, "type:" + type, s2.getBytes(), 1);
+                    break;
                 }
             }
         }
         for (int i = 0; i < entryCount; i++) {
             int key = keys[i];
             int off = offsets[i];
-            writer.println("-- [" + i + "] tableId: " + tableId + " key:" + key + " off: " + off);
+            writer.println("-- [" + i + "] storage:" + storageId + " key:" + key + " off:" + off);
             s.setPos(off);
-            s.readInt();
-            if (remove && tableId == 0) {
-                writer.println("-- system table");
+            Value[] data = createRecord(writer, s);
+            if (data != null) {
+                createTemporaryTable(writer);
+                writeRow(writer, s, data);
+                if (remove && storageId == 0) {
+                    String sql = data[3].getString();
+                    if (sql.startsWith("CREATE USER ")) {
+                        int saltIndex = ByteUtils.indexOf(s.getBytes(), "SALT ".getBytes(), off);
+                        if (saltIndex >= 0) {
+                            String userName = sql.substring("CREATE USER ".length(), sql.indexOf("SALT ") - 1);
+                            if (userName.startsWith("\"")) {
+                                // TODO doesn't work for all cases ("" inside user name)
+                                userName = userName.substring(1, userName.length() - 1);
+                            }
+                            SHA256 sha = new SHA256();
+                            byte[] userPasswordHash = sha.getKeyPasswordHash(userName, "".toCharArray());
+                            byte[] salt = RandomUtils.getSecureBytes(Constants.SALT_LEN);
+                            byte[] passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
+                            StringBuffer buff = new StringBuffer();
+                            buff.append("SALT '");
+                            buff.append(ByteUtils.convertBytesToString(salt));
+                            buff.append("' HASH '");
+                            buff.append(ByteUtils.convertBytesToString(passwordHash));
+                            buff.append("'");
+                            byte[] replacement = buff.toString().getBytes();
+                            System.arraycopy(replacement, 0, s.getBytes(), saltIndex, replacement.length);
+                            store.seek(pageSize * pageId);
+                            store.write(s.getBytes(), 0, pageSize);
+                            if (trace) {
+                                out.println("User: " + userName);
+                            }
+                            remove = false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private Value[] createRecord(PrintWriter writer, DataPage s) {
+        recordLength = s.readInt();
+        if (recordLength <= 0) {
+            writeDataError(writer, "recordLength<0", s.getBytes(), blockCount);
+            return null;
+        }
+        Value[] data;
+        try {
+            data = new Value[recordLength];
+        } catch (OutOfMemoryError e) {
+            writeDataError(writer, "out of memory", s.getBytes(), blockCount);
+            return null;
+        }
+        return data;
+    }
+
+    private void writeRow(PrintWriter writer, DataPage s, Value[] data) {
+        StringBuffer sb = new StringBuffer();
+        sb.append("INSERT INTO O_" + storageId + " VALUES(");
+        for (valueId = 0; valueId < recordLength; valueId++) {
+            try {
+                Value v = s.readValue();
+                data[valueId] = v;
+                if (valueId > 0) {
+                    sb.append(", ");
+                }
+                sb.append(getSQL(v));
+            } catch (Exception e) {
+                writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
+                continue;
+            } catch (OutOfMemoryError e) {
+                writeDataError(writer, "out of memory", s.getBytes(), blockCount);
+                continue;
+            }
+        }
+        sb.append(");");
+        writer.println(sb.toString());
+        writer.flush();
+        if (storageId == 0) {
+            try {
+                SimpleRow r = new SimpleRow(data);
+                MetaRecord meta = new MetaRecord(r);
+                schema.add(meta);
+                if (meta.getObjectType() == DbObject.TABLE_OR_VIEW) {
+                    String sql = data[3].getString();
+                    String name = extractTableOrViewName(sql);
+                    tableMap.put(ObjectUtils.getInteger(meta.getId()), name);
+                }
+            } catch (Throwable t) {
+                writeError(writer, t);
             }
         }
     }
@@ -902,74 +1149,13 @@ public class Recover extends Tool implements DataHandler {
                 } else {
                     pageOwners[page] = storageId;
                 }
-                recordLength = s.readInt();
-                if (recordLength <= 0) {
-                    writeDataError(writer, "recordLength<0", s.getBytes(), blockCount);
-                    continue;
-                }
-                Value[] data;
-                try {
-                    data = new Value[recordLength];
-                } catch (OutOfMemoryError e) {
-                    writeDataError(writer, "out of memory", s.getBytes(), blockCount);
-                    continue;
-                }
-                createTemporaryTable(writer);
-                StringBuffer sb = new StringBuffer();
-                sb.append("INSERT INTO O_" + storageId + " VALUES(");
-                for (valueId = 0; valueId < recordLength; valueId++) {
-                    try {
-                        Value v = s.readValue();
-                        data[valueId] = v;
-                        if (valueId > 0) {
-                            sb.append(", ");
-                        }
-                        sb.append(getSQL(v));
-                    } catch (Exception e) {
-                        writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
-                        continue;
-                    } catch (OutOfMemoryError e) {
-                        writeDataError(writer, "out of memory", s.getBytes(), blockCount);
-                        continue;
-                    }
-                }
-                sb.append(");");
-                writer.println(sb.toString());
-                writer.flush();
-                if (storageId == 0) {
-                    try {
-                        SimpleRow r = new SimpleRow(data);
-                        MetaRecord meta = new MetaRecord(r);
-                        schema.add(meta);
-                        if (meta.getObjectType() == DbObject.TABLE_OR_VIEW) {
-                            String sql = data[3].getString();
-                            String name = extractTableOrViewName(sql);
-                            tableMap.put(ObjectUtils.getInteger(meta.getId()), name);
-                        }
-                    } catch (Throwable t) {
-                        writeError(writer, t);
-                    }
+                Value[] data = createRecord(writer, s);
+                if (data != null) {
+                    createTemporaryTable(writer);
+                    writeRow(writer, s, data);
                 }
             }
-            MetaRecord.sort(schema);
-            for (int i = 0; i < schema.size(); i++) {
-                MetaRecord m = (MetaRecord) schema.get(i);
-                writer.println(m.getSQL() + ";");
-            }
-            for (Iterator it = tableMap.entrySet().iterator(); it.hasNext();) {
-                Map.Entry entry = (Entry) it.next();
-                Integer objectId = (Integer) entry.getKey();
-                String name = (String) entry.getValue();
-                if (objectIdSet.contains(objectId)) {
-                    writer.println("INSERT INTO " + name + " SELECT * FROM O_" + objectId + ";");
-                }
-            }
-            for (Iterator it = objectIdSet.iterator(); it.hasNext();) {
-                Integer objectId = (Integer) it.next();
-                writer.println("DROP TABLE O_" + objectId + ";");
-            }
-            writer.println("DROP ALIAS READ_CLOB;");
-            writer.println("DROP ALIAS READ_BLOB;");
+            writeSchema(writer);
             writer.close();
         } catch (Throwable e) {
             writeError(writer, e);
@@ -977,6 +1163,28 @@ public class Recover extends Tool implements DataHandler {
             IOUtils.closeSilently(writer);
             closeSilently(store);
         }
+    }
+
+    private void writeSchema(PrintWriter writer) {
+        MetaRecord.sort(schema);
+        for (int i = 0; i < schema.size(); i++) {
+            MetaRecord m = (MetaRecord) schema.get(i);
+            writer.println(m.getSQL() + ";");
+        }
+        for (Iterator it = tableMap.entrySet().iterator(); it.hasNext();) {
+            Map.Entry entry = (Entry) it.next();
+            Integer objectId = (Integer) entry.getKey();
+            String name = (String) entry.getValue();
+            if (objectIdSet.contains(objectId)) {
+                writer.println("INSERT INTO " + name + " SELECT * FROM O_" + objectId + ";");
+            }
+        }
+        for (Iterator it = objectIdSet.iterator(); it.hasNext();) {
+            Integer objectId = (Integer) it.next();
+            writer.println("DROP TABLE O_" + objectId + ";");
+        }
+        writer.println("DROP ALIAS READ_CLOB;");
+        writer.println("DROP ALIAS READ_BLOB;");
     }
 
     private void createTemporaryTable(PrintWriter writer) {

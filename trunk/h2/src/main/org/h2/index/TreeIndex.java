@@ -100,7 +100,7 @@ public class TreeIndex extends BaseIndex {
                 }
                 return;
             default:
-                Message.throwInternalError("b: " + x.balance * sign);
+                Message.throwInternalError("b:" + x.balance * sign);
             }
             if (x == root) {
                 return;

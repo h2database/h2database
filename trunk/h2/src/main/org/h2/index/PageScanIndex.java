@@ -20,6 +20,8 @@ import org.h2.store.Record;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
+import org.h2.value.Value;
+import org.h2.value.ValueLob;
 
 /**
  * The scan index allows to access a row by key. It can be used to iterate over
@@ -31,22 +33,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     private PageStore store;
     private TableData tableData;
     private int headPos;
-
-    // TODO test that setPageId updates parent, overflow parent
-    // TODO remember last page with deleted keys (in the root page?),
-    // and chain such pages
-    // TODO order pages so that searching for a key
-    // doesn't seek backwards in the file
-    // TODO use an undo log and maybe redo log (for performance)
-    // TODO file position, content checksums
-    // TODO completely re-use keys of deleted rows
-    // TODO remove Database.objectIds
-    // TODO detect circles in linked lists
-    // (input stream, free list, extend pages...)
-
     private int lastKey;
     private long rowCount;
-    private long rowCountApproximation;
 
     public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
@@ -64,11 +52,11 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             // new table
             headPos = store.allocatePage();
             PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
-            store.updateRecord(root, root.data);
+            store.updateRecord(root, true, root.data);
         } else if (store.isNew()) {
             // the system table for a new database
             PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
-            store.updateRecord(root, root.data);
+            store.updateRecord(root, true, root.data);
         } else {
             lastKey = getPage(headPos).getLastKey();
             rowCount = getPage(headPos).getRowCount();
@@ -90,6 +78,18 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("add " + row.getPos());
         }
+        if (tableData.getContainsLargeObject()) {
+            for (int i = 0; i < row.getColumnCount(); i++) {
+                Value v = row.getValue(i);
+                Value v2 = v.link(database, getId());
+                if (v2.isLinked()) {
+                    session.unlinkAtCommitStop(v2);
+                }
+                if (v != v2) {
+                    row.setValue(i, v2);
+                }
+            }
+        }
         while (true) {
             PageData root = getPage(headPos);
             int splitPoint = root.addRow(row);
@@ -109,13 +109,13 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             page2.setParentPageId(headPos);
             PageDataNode newRoot = new PageDataNode(this, rootPageId, Page.ROOT, store.createDataPage());
             newRoot.init(page1, pivot, page2);
-            store.updateRecord(page1, page1.data);
-            store.updateRecord(page2, page2.data);
-            store.updateRecord(newRoot, null);
+            store.updateRecord(page1, true, page1.data);
+            store.updateRecord(page2, true, page2.data);
+            store.updateRecord(newRoot, true, null);
             root = newRoot;
         }
         rowCount++;
-        store.getLog().addOrRemoveRow(session, tableData.getId(), row, true);
+        store.logAddOrRemoveRow(session, tableData.getId(), row, true);
     }
 
     /**
@@ -184,11 +184,19 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("remove " + row.getPos());
         }
+        if (tableData.getContainsLargeObject()) {
+            for (int i = 0; i < row.getColumnCount(); i++) {
+                Value v = row.getValue(i);
+                if (v.isLinked()) {
+                    session.unlinkAtCommit((ValueLob) v);
+                }
+            }
+        }
         int invalidateRowCount;
         // setChanged(session);
         if (rowCount == 1) {
             int todoMaybeImprove;
-            truncate(session);
+            removeAllRows();
         } else {
             int key = row.getPos();
             PageData root = getPage(headPos);
@@ -199,7 +207,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 //                lastKey--;
 //            }
         }
-        store.getLog().addOrRemoveRow(session, tableData.getId(), row, false);
+        store.logAddOrRemoveRow(session, tableData.getId(), row, false);
     }
 
     public void remove(Session session) throws SQLException {
@@ -213,11 +221,19 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("truncate");
         }
+        removeAllRows();
+        if (tableData.getContainsLargeObject() && tableData.getPersistent()) {
+            ValueLob.removeAllForTable(database, table.getId());
+        }
+        tableData.setRowCount(0);
+    }
+
+    private void removeAllRows() throws SQLException {
         store.removeRecord(headPos);
         int todoLogOldData;
         int freePages;
         PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
-        store.updateRecord(root, null);
+        store.updateRecord(root, true, null);
         rowCount = 0;
         lastKey = 0;
     }
@@ -246,7 +262,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     public long getRowCountApproximation() {
-        return rowCountApproximation;
+        return rowCount;
     }
 
     public long getRowCount(Session session) {

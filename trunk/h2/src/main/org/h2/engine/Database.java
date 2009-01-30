@@ -488,7 +488,7 @@ public class Database implements DataHandler {
             if (SysProperties.PAGE_STORE) {
                 PageStore store = getPageStore();
                 if (!store.isNew()) {
-                    store.getLog().recover(true);
+                    store.recover(true);
                 }
             }
             if (FileUtils.exists(dataFileName)) {
@@ -572,11 +572,12 @@ public class Database implements DataHandler {
             MetaRecord rec = (MetaRecord) records.get(i);
             rec.execute(this, systemSession, eventListener);
         }
-        if (SysProperties.PAGE_STORE) {
-            PageStore store = getPageStore();
-            if (!store.isNew()) {
-                getPageStore().getLog().recover(false);
-                store.checkpoint();
+        if (pageStore != null) {
+            if (!pageStore.isNew()) {
+                getPageStore().recover(false);
+                if (!readOnly) {
+                    pageStore.checkpoint();
+                }
             }
         }
         // try to recompile the views that are invalid

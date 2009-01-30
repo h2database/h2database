@@ -659,7 +659,7 @@ public class Parser {
                 read("=");
                 Expression expression;
                 if (readIf("DEFAULT")) {
-                    expression = ValueExpression.DEFAULT;
+                    expression = ValueExpression.getDefault();
                 } else {
                     expression = readExpression();
                 }
@@ -2344,7 +2344,7 @@ public class Parser {
             break;
         case NULL:
             read();
-            r = ValueExpression.NULL;
+            r = ValueExpression.getNull();
             break;
         case VALUE:
             r = ValueExpression.get(currentValue);
@@ -2376,7 +2376,7 @@ public class Parser {
     private Expression readWhen(Expression left) throws SQLException {
         if (readIf("END")) {
             readIf("CASE");
-            return ValueExpression.NULL;
+            return ValueExpression.getNull();
         }
         if (readIf("ELSE")) {
             Expression elsePart = readExpression();

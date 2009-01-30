@@ -18,17 +18,24 @@ import org.h2.store.DiskFile;
 public abstract class CacheObject {
 
     /**
-     * Ensure the class is loaded when initialized, so that sorting is possible
-     * even when loading new classes is not allowed any more. This can occur
-     * when stopping a web application.
+     * Compare cache objects by position.
      */
-    private static final Comparator CACHE_COMPARATOR = new Comparator() {
+    private static class CacheComparator implements Comparator {
         public int compare(Object a, Object b) {
             int pa = ((CacheObject) a).getPos();
             int pb = ((CacheObject) b).getPos();
             return pa == pb ? 0 : (pa < pb ? -1 : 1);
         }
     };
+
+    /**
+     * Ensure the class is loaded when initialized, so that sorting is possible
+     * even when loading new classes is not allowed any more. This can occur
+     * when stopping a web application.
+     */
+    static {
+        new CacheComparator();
+    }
 
     /**
      * The previous element in the LRU linked list. If the previous element is
@@ -75,7 +82,7 @@ public abstract class CacheObject {
      * @param recordList the list of cache objects
      */
     public static void sort(ObjectArray recordList) {
-        recordList.sort(CACHE_COMPARATOR);
+        recordList.sort(new CacheComparator());
     }
 
     public void setBlockCount(int size) {

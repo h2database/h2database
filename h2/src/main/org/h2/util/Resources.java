@@ -79,8 +79,4 @@ public class Resources {
         return data == null ? new byte[0] : data;
     }
 
-    static boolean isShutdown() {
-        return FILES == null;
-    }
-
 }

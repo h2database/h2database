@@ -78,7 +78,11 @@ public class Message {
     }
 
     private static String translate(String key, String[] param) {
-        String message = MESSAGES.getProperty(key);
+        String message = null;
+        if (MESSAGES != null) {
+            // Tomcat sets final static fields to null sometimes
+            message = MESSAGES.getProperty(key);
+        }
         if (message == null) {
             message = "(Message " + key + " not found)";
         }

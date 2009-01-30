@@ -34,22 +34,22 @@ import org.h2.util.StringUtils;
  */
 public class CompressTool {
 
-    private static CompressTool instance = new CompressTool();
-    private static byte[] buffer;
-    private static final int MAX_BUFFER_SIZE = 64 * 1024 * 1024;
+    private static final CompressTool INSTANCE = new CompressTool();
+    private static final int MAX_BUFFER_SIZE = 64 * 1024;
+    private byte[] cachedBuffer;
 
     private CompressTool() {
         // don't allow construction
     }
 
-    private static byte[] getBuffer(int min) {
+    private byte[] getBuffer(int min) {
         if (min > MAX_BUFFER_SIZE) {
             return ByteUtils.newBytes(min);
         }
-        if (buffer == null || buffer.length < min) {
-            buffer = ByteUtils.newBytes(min);
+        if (cachedBuffer == null || cachedBuffer.length < min) {
+            cachedBuffer = ByteUtils.newBytes(min);
         }
-        return buffer;
+        return cachedBuffer;
     }
 
     /**
@@ -58,7 +58,7 @@ public class CompressTool {
      * @return the singleton
      */
     public static CompressTool getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     /**

@@ -87,7 +87,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
             if (fileName == null || fileName.trim().length() == 0) {
                 fileName = "script.sql";
             }
-            fileName = SysProperties.scriptDirectory + fileName;
+            fileName = SysProperties.getScriptDirectory() + fileName;
         }
         return fileName;
     }

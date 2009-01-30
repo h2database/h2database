@@ -30,7 +30,7 @@ public class DateTimeUtils {
     private static final int DEFAULT_DAY = 1;
     private static final int DEFAULT_HOUR = 0;
 
-    private static Calendar calendar = Calendar.getInstance();
+    private static Calendar cachedCalendar = Calendar.getInstance();
 
     private DateTimeUtils() {
         // utility class
@@ -40,7 +40,14 @@ public class DateTimeUtils {
      * Reset the calendar, for example after changing the default timezone.
      */
     public static void resetCalendar() {
-        calendar = Calendar.getInstance();
+        cachedCalendar = null;
+    }
+
+    private static Calendar getCalendar() {
+        if (cachedCalendar == null) {
+            cachedCalendar = Calendar.getInstance();
+        }
+        return cachedCalendar;
     }
 
     /**
@@ -67,7 +74,7 @@ public class DateTimeUtils {
      * @return the time value without the date component
      */
     public static Time cloneAndNormalizeTime(Time value) {
-        Calendar cal = calendar;
+        Calendar cal = getCalendar();
         long time;
         synchronized (cal) {
             cal.setTime(value);
@@ -86,7 +93,7 @@ public class DateTimeUtils {
      * @return the date value at midnight
      */
     public static Date cloneAndNormalizeDate(Date value) {
-        Calendar cal = calendar;
+        Calendar cal = getCalendar();
         long time;
         synchronized (cal) {
             cal.setTime(value);
@@ -147,7 +154,7 @@ public class DateTimeUtils {
             throw Message.getInvalidValueException("calendar", null);
         }
         source = (Calendar) source.clone();
-        Calendar universal = calendar;
+        Calendar universal = getCalendar();
         synchronized (universal) {
             source.setTime(x);
             convertTime(source, universal);
@@ -334,7 +341,7 @@ public class DateTimeUtils {
     private static long getTime(boolean lenient, TimeZone tz, int year, int month, int day, int hour, int minute, int second, boolean setMillis, int nano) {
         Calendar c;
         if (tz == null) {
-            c = calendar;
+            c = getCalendar();
         } else {
             c = Calendar.getInstance(tz);
         }
@@ -369,7 +376,7 @@ public class DateTimeUtils {
      * @return the value
      */
     public static int getDatePart(java.util.Date d, int field) {
-        Calendar c = calendar;
+        Calendar c = getCalendar();
         int value;
         synchronized (c) {
             c.setTime(d);

@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.h2.constant.ErrorCode;
@@ -27,7 +28,6 @@ import org.h2.jdbc.JdbcBlob;
 import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.Message;
-import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
 
@@ -49,9 +49,13 @@ public class DataType {
      */
     public static final int TYPE_DATALINK = 70;
 
-    private static final ObjectArray TYPES = new ObjectArray();
+    /**
+     * The list of types. An ArrayList so that Tomcat doesn't set it to null
+     * when clearing references.
+     */
+    private static final ArrayList TYPES = new ArrayList();
     private static final HashMap TYPES_BY_NAME = new HashMap();
-    private static final DataType[] TYPES_BY_VALUE_TYPE = new DataType[Value.TYPE_COUNT];
+    private static final ArrayList TYPES_BY_VALUE_TYPE = new ArrayList();
 
     /**
      * The value type of this data type.
@@ -160,6 +164,9 @@ public class DataType {
     public int memory;
 
     static {
+        for (int i = 0; i < Value.TYPE_COUNT; i++) {
+            TYPES_BY_VALUE_TYPE.add(null);
+        }
         //## Java 1.4 begin ##
         if (TYPE_BOOLEAN != Types.BOOLEAN) {
             new Exception("Types.BOOLEAN: " + Types.BOOLEAN).printStackTrace();
@@ -318,8 +325,8 @@ public class DataType {
                 new String[]{"RESULT_SET"},
                 20
         );
-        for (int i = 0; i < TYPES_BY_VALUE_TYPE.length; i++) {
-            DataType dt = TYPES_BY_VALUE_TYPE[i];
+        for (int i = 0; i < TYPES_BY_VALUE_TYPE.size(); i++) {
+            DataType dt = (DataType) TYPES_BY_VALUE_TYPE.get(i);
             if (dt == null) {
                 Message.throwInternalError("unmapped type " + i);
             }
@@ -357,8 +364,8 @@ public class DataType {
                 }
             }
             TYPES_BY_NAME.put(dt.name, dt);
-            if (TYPES_BY_VALUE_TYPE[type] == null) {
-                TYPES_BY_VALUE_TYPE[type] = dt;
+            if (TYPES_BY_VALUE_TYPE.get(type) == null) {
+                TYPES_BY_VALUE_TYPE.set(type, dt);
             }
             TYPES.add(dt);
         }
@@ -411,7 +418,7 @@ public class DataType {
      *
      * @return the list
      */
-    public static ObjectArray getTypes() {
+    public static ArrayList getTypes() {
         return TYPES;
     }
 
@@ -639,9 +646,9 @@ public class DataType {
      * @return the data type object
      */
     public static DataType getDataType(int type) {
-        DataType dt = TYPES_BY_VALUE_TYPE[type];
+        DataType dt = (DataType) TYPES_BY_VALUE_TYPE.get(type);
         if (dt == null) {
-            dt = TYPES_BY_VALUE_TYPE[Value.NULL];
+            dt = (DataType) TYPES_BY_VALUE_TYPE.get(Value.NULL);
         }
         return dt;
     }

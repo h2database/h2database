@@ -1,8 +1,7 @@
 /*
- * Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License,
- * Version 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html).
- * Initial Developer: H2 Group
+ * Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License, Version
+ * 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html). Initial Developer: H2 Group
  */
 package org.h2.command.dml;
 
@@ -16,7 +15,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Comparator;
-
 import org.h2.command.Parser;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
@@ -60,14 +58,6 @@ import org.h2.value.ValueString;
  * SCRIPT
  */
 public class ScriptCommand extends ScriptBase {
-
-    private static final Comparator TABLE_COMPARATOR = new Comparator() {
-        public int compare(Object o1, Object o2) {
-            Table t1 = (Table) o1;
-            Table t2 = (Table) o2;
-            return t1.getId() - t2.getId();
-        }
-    };
 
     private boolean passwords;
     private boolean data;
@@ -196,7 +186,13 @@ public class ScriptCommand extends ScriptBase {
             ObjectArray tables = db.getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
             // sort by id, so that views are after tables and views on views
             // after the base views
-            tables.sort(TABLE_COMPARATOR);
+            tables.sort(new Comparator() {
+                public int compare(Object o1, Object o2) {
+                    Table t1 = (Table) o1;
+                    Table t2 = (Table) o2;
+                    return t1.getId() - t2.getId();
+                }
+            });
             for (int i = 0; i < tables.size(); i++) {
                 Table table = (Table) tables.get(i);
                 table.lock(session, false, false);

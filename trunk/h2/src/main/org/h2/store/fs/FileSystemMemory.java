@@ -25,7 +25,7 @@ import org.h2.util.RandomUtils;
 public class FileSystemMemory extends FileSystem {
 
     private static final FileSystemMemory INSTANCE = new FileSystemMemory();
-    private final HashMap memoryFiles = new HashMap();
+    private static final HashMap MEMORY_FILES = new HashMap();
 
     private FileSystemMemory() {
         // don't allow construction
@@ -42,16 +42,16 @@ public class FileSystemMemory extends FileSystem {
     public void rename(String oldName, String newName) {
         oldName = normalize(oldName);
         newName = normalize(newName);
-        synchronized (memoryFiles) {
+        synchronized (MEMORY_FILES) {
             FileObjectMemory f = getMemoryFile(oldName);
             f.setName(newName);
-            memoryFiles.remove(oldName);
-            memoryFiles.put(newName, f);
+            MEMORY_FILES.remove(oldName);
+            MEMORY_FILES.put(newName, f);
         }
     }
 
     public boolean createNewFile(String fileName) {
-        synchronized (memoryFiles) {
+        synchronized (MEMORY_FILES) {
             if (exists(fileName)) {
                 return false;
             }
@@ -62,29 +62,29 @@ public class FileSystemMemory extends FileSystem {
 
     public boolean exists(String fileName) {
         fileName = normalize(fileName);
-        synchronized (memoryFiles) {
-            return memoryFiles.get(fileName) != null;
+        synchronized (MEMORY_FILES) {
+            return MEMORY_FILES.get(fileName) != null;
         }
     }
 
     public void delete(String fileName) {
         fileName = normalize(fileName);
-        synchronized (memoryFiles) {
-            memoryFiles.remove(fileName);
+        synchronized (MEMORY_FILES) {
+            MEMORY_FILES.remove(fileName);
         }
     }
 
     public boolean tryDelete(String fileName) {
         fileName = normalize(fileName);
-        synchronized (memoryFiles) {
-            memoryFiles.remove(fileName);
+        synchronized (MEMORY_FILES) {
+            MEMORY_FILES.remove(fileName);
         }
         return true;
     }
 
     public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir) {
         name += ".";
-        synchronized (memoryFiles) {
+        synchronized (MEMORY_FILES) {
             for (int i = 0;; i++) {
                 String n = name + (RandomUtils.getSecureLong() >>> 1) + suffix;
                 if (!exists(n)) {
@@ -97,8 +97,8 @@ public class FileSystemMemory extends FileSystem {
 
     public String[] listFiles(String path) {
         ObjectArray list = new ObjectArray();
-        synchronized (memoryFiles) {
-            for (Iterator it = memoryFiles.keySet().iterator(); it.hasNext();) {
+        synchronized (MEMORY_FILES) {
+            for (Iterator it = MEMORY_FILES.keySet().iterator(); it.hasNext();) {
                 String name = (String) it.next();
                 if (name.startsWith(path)) {
                     list.add(name);
@@ -112,8 +112,8 @@ public class FileSystemMemory extends FileSystem {
 
     public void deleteRecursive(String fileName) throws SQLException {
         fileName = normalize(fileName);
-        synchronized (memoryFiles) {
-            Iterator it = memoryFiles.keySet().iterator();
+        synchronized (MEMORY_FILES) {
+            Iterator it = MEMORY_FILES.keySet().iterator();
             while (it.hasNext()) {
                 String name = (String) it.next();
                 if (name.startsWith(fileName)) {
@@ -217,12 +217,12 @@ public class FileSystemMemory extends FileSystem {
 
     private FileObjectMemory getMemoryFile(String fileName) {
         fileName = normalize(fileName);
-        synchronized (memoryFiles) {
-            FileObjectMemory m = (FileObjectMemory) memoryFiles.get(fileName);
+        synchronized (MEMORY_FILES) {
+            FileObjectMemory m = (FileObjectMemory) MEMORY_FILES.get(fileName);
             if (m == null) {
                 boolean compress = fileName.startsWith(FileSystem.PREFIX_MEMORY_LZF);
                 m = new FileObjectMemory(fileName, compress);
-                memoryFiles.put(fileName, m);
+                MEMORY_FILES.put(fileName, m);
             }
             return m;
         }

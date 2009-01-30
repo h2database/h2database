@@ -165,17 +165,20 @@ public class TestRandomSQL extends TestBase {
     }
 
     public void testCase(int i) throws SQLException {
-        String old = SysProperties.scriptDirectory;
-        SysProperties.scriptDirectory = "dataScript/";
-        seed = i;
-        printTime("seed: " + seed);
+        String old = SysProperties.getScriptDirectory();
         try {
-            deleteDb();
-        } catch (SQLException e) {
-            processException("deleteDb", e);
+            SysProperties.setScriptDirectory("dataScript/");
+            seed = i;
+            printTime("seed: " + seed);
+            try {
+                deleteDb();
+            } catch (SQLException e) {
+                processException("deleteDb", e);
+            }
+            testWithSeed(bnf);
+        } finally {
+            SysProperties.setScriptDirectory(old);
         }
-        testWithSeed(bnf);
-        SysProperties.scriptDirectory = old;
         try {
             deleteDb();
         } catch (SQLException e) {

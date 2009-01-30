@@ -24,11 +24,11 @@ Change Log
 </li><li>Connection.isValid is a bit faster.
 </li><li>H2 Console: The autocomplete feature has been improved a bit. It can now better
     parse conditions.
-</li><li>When restarting a web application in Tomcat, an exception is thrown sometimes.
-    In most cases this is a NullPointerException.
+</li><li>When restarting a web application in Tomcat, an exception was thrown sometimes.
+    In most cases this was a NullPointerException. A workaround in H2 has been implemented.
     The root cause of the problem is now documented in the FAQ:
     Tomcat sets all static fields (final or non-final) to null when unloading a web application.
-    A workaround is to set the system property
+    A workaround is to put the h2.jar in the lib directory, or set the system property
     org.apache.catalina.loader.WebappClassLoader.ENABLE_CLEAR_REFERENCES
     to false.
 </li></ul>

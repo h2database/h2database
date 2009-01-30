@@ -102,6 +102,7 @@ import org.h2.test.synth.thread.TestMulti;
 import org.h2.test.unit.SelfDestructor;
 import org.h2.test.unit.TestBitField;
 import org.h2.test.unit.TestCache;
+import org.h2.test.unit.TestClearReferences;
 import org.h2.test.unit.TestCompress;
 import org.h2.test.unit.TestDataPage;
 import org.h2.test.unit.TestDate;
@@ -281,6 +282,9 @@ java org.h2.test.TestAll timer
 // System.setProperty("h2.pageStore", "true");
 
 /*
+
+include ClearReferences test case
+isShutdown
 
 PageStore.switchLogIfPossible()
 
@@ -609,6 +613,7 @@ http://www.w3schools.com/sql/
     private void testUnit() {
         new TestBitField().runTest(this);
         new TestCache().runTest(this);
+        new TestClearReferences().runTest(this);
         new TestCompress().runTest(this);
         new TestDataPage().runTest(this);
         new TestDate().runTest(this);

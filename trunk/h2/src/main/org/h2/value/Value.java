@@ -329,8 +329,11 @@ public abstract class Value {
      */
     static Value cache(Value v) {
         if (SysProperties.OBJECT_CACHE) {
-            Value[] cache = (Value[]) softCache.get();
             int hash = v.hashCode();
+            if (softCache == null) {
+                softCache = new SoftReference(null);
+            }
+            Value[] cache = (Value[]) softCache.get();
             if (cache == null) {
                 cache = new Value[SysProperties.OBJECT_CACHE_SIZE];
                 softCache = new SoftReference(cache);

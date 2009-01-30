@@ -30,20 +30,18 @@ implements ObjectFactory
 //## Java 1.4 end ##
 {
 
-    private static TraceSystem traceSystem;
+    private static TraceSystem cachedTraceSystem;
     private Trace trace;
 
     static {
         org.h2.Driver.load();
-        traceSystem = new TraceSystem(SysProperties.CLIENT_TRACE_DIRECTORY + "h2datasource" + Constants.SUFFIX_TRACE_FILE, false);
-        traceSystem.setLevelFile(SysProperties.DATASOURCE_TRACE_LEVEL);
     }
 
     /**
      * The public constructor to create new factory objects.
      */
     public JdbcDataSourceFactory() {
-        trace = traceSystem.getTrace("JDBCX");
+        trace = getTraceSystem().getTrace("JDBCX");
     }
 
     /**
@@ -77,8 +75,12 @@ implements ObjectFactory
     }
 //## Java 1.4 end ##
 
-    TraceSystem getTraceSystem() {
-        return traceSystem;
+    private TraceSystem getTraceSystem() {
+        if (cachedTraceSystem == null) {
+            cachedTraceSystem = new TraceSystem(SysProperties.CLIENT_TRACE_DIRECTORY + "h2datasource" + Constants.SUFFIX_TRACE_FILE, false);
+            cachedTraceSystem.setLevelFile(SysProperties.DATASOURCE_TRACE_LEVEL);
+        }
+        return cachedTraceSystem;
     }
 
     Trace getTrace() {

@@ -94,7 +94,7 @@ public class Update extends Prepared {
                         Value newValue;
                         if (newExpr == null) {
                             newValue = oldRow.getValue(i);
-                        } else if (newExpr == ValueExpression.DEFAULT) {
+                        } else if (newExpr == ValueExpression.getDefault()) {
                             Column column = table.getColumn(i);
                             Expression defaultExpr = column.getDefaultExpression();
                             Value v;

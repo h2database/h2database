@@ -23,7 +23,7 @@ import org.h2.util.StringUtils;
  */
 public class MultiDimension {
 
-    private static MultiDimension instance = new MultiDimension();
+    private static final MultiDimension INSTANCE = new MultiDimension();
 
     private MultiDimension() {
         // don't allow construction
@@ -35,7 +35,7 @@ public class MultiDimension {
      * @return the singleton
      */
     public static MultiDimension getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     /**

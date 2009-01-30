@@ -85,7 +85,7 @@ public class ConditionIn extends Condition {
         }
         left = left.optimize(session);
         boolean constant = left.isConstant();
-        if (constant && left == ValueExpression.NULL) {
+        if (constant && left == ValueExpression.getNull()) {
             return left;
         }
         boolean allValuesConstant = true;

@@ -120,8 +120,4 @@ public class StringCache {
         softCache = new SoftReference(null);
     }
 
-    static boolean isShutdown() {
-        return softCache == null;
-    }
-
 }

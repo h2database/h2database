@@ -38,8 +38,8 @@ public class ValueDecimal extends Value {
     private static final int DIVIDE_SCALE_ADD = 25;
     private static final BigDecimal DEC_ZERO = new BigDecimal("0");
     private static final BigDecimal DEC_ONE = new BigDecimal("1");
-    private static final ValueDecimal ZERO = new ValueDecimal(DEC_ZERO);
-    private static final ValueDecimal ONE = new ValueDecimal(DEC_ONE);
+    private static final Object ZERO = new ValueDecimal(DEC_ZERO);
+    private static final Object ONE = new ValueDecimal(DEC_ONE);
 
     private final BigDecimal value;
     private String valueString;
@@ -187,9 +187,9 @@ public class ValueDecimal extends Value {
      */
     public static ValueDecimal get(BigDecimal dec) {
         if (DEC_ZERO.equals(dec)) {
-            return ZERO;
+            return (ValueDecimal) ZERO;
         } else if (DEC_ONE.equals(dec)) {
-            return ONE;
+            return (ValueDecimal) ONE;
         }
         // TODO value optimization: find a way to read size of BigDecimal,
         // check max cache size

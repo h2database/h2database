@@ -7,10 +7,10 @@
 package org.h2.engine;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Properties;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;
@@ -20,7 +20,6 @@ import org.h2.security.SHA256;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 
 /**
@@ -43,25 +42,6 @@ public class ConnectionInfo implements Cloneable {
     private boolean ssl;
     private boolean persistent;
     private boolean unnamed;
-
-    static {
-        ObjectArray list = SetTypes.getSettings();
-        for (int i = 0; i < list.size(); i++) {
-            KNOWN_SETTINGS.add(list.get(i));
-        }
-        // TODO document these settings
-        String[] connectionTime = new String[] { "ACCESS_MODE_LOG", "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
-                "CREATE", "CACHE_TYPE", "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS",
-                "PASSWORD", "RECOVER", "USER", "DATABASE_EVENT_LISTENER_OBJECT", "AUTO_SERVER",
-                "AUTO_RECONNECT", "OPEN_NEW" };
-        for (int i = 0; i < connectionTime.length; i++) {
-            String key = connectionTime[i];
-            if (SysProperties.CHECK && KNOWN_SETTINGS.contains(key)) {
-                Message.throwInternalError(key);
-            }
-            KNOWN_SETTINGS.add(key);
-        }
-    }
 
     /**
      * Create a connection info object.
@@ -91,6 +71,30 @@ public class ConnectionInfo implements Cloneable {
         convertPasswords();
         name = url.substring(Constants.START_URL.length());
         parseName();
+    }
+
+    static {
+        ArrayList list = SetTypes.getTypes();
+        HashSet set = KNOWN_SETTINGS;
+        for (int i = 0; i < list.size(); i++) {
+            set.add(list.get(i));
+        }
+        // TODO document these settings
+        String[] connectionTime = new String[] { "ACCESS_MODE_LOG", "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
+                "CREATE", "CACHE_TYPE", "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS",
+                "PASSWORD", "RECOVER", "USER", "DATABASE_EVENT_LISTENER_OBJECT", "AUTO_SERVER",
+                "AUTO_RECONNECT", "OPEN_NEW" };
+        for (int i = 0; i < connectionTime.length; i++) {
+            String key = connectionTime[i];
+            if (SysProperties.CHECK && set.contains(key)) {
+                Message.throwInternalError(key);
+            }
+            set.add(key);
+        }
+    }
+
+    private static boolean isKnownSetting(String s) {
+        return KNOWN_SETTINGS.contains(s);
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -174,7 +178,7 @@ public class ConnectionInfo implements Cloneable {
             if (prop.containsKey(key)) {
                 throw Message.getSQLException(ErrorCode.DUPLICATE_PROPERTY_1, key);
             }
-            if (KNOWN_SETTINGS.contains(key)) {
+            if (isKnownSetting(key)) {
                 prop.put(key, info.get(list[i]));
             }
         }
@@ -195,7 +199,7 @@ public class ConnectionInfo implements Cloneable {
                 String value = setting.substring(equal + 1);
                 String key = setting.substring(0, equal);
                 key = StringUtils.toUpperEnglish(key);
-                if (!KNOWN_SETTINGS.contains(key)) {
+                if (!isKnownSetting(key)) {
                     throw Message.getSQLException(ErrorCode.UNSUPPORTED_SETTING_1, key);
                 }
                 String old = prop.getProperty(key);
@@ -293,7 +297,7 @@ public class ConnectionInfo implements Cloneable {
      * @return the value
      */
     String removeProperty(String key, String defaultValue) {
-        if (SysProperties.CHECK && !KNOWN_SETTINGS.contains(key)) {
+        if (SysProperties.CHECK && !isKnownSetting(key)) {
             Message.throwInternalError(key);
         }
         Object x = prop.remove(key);
@@ -378,7 +382,7 @@ public class ConnectionInfo implements Cloneable {
      * @return the value as a String
      */
     public String getProperty(String key, String defaultValue) {
-        if (SysProperties.CHECK && !KNOWN_SETTINGS.contains(key)) {
+        if (SysProperties.CHECK && !isKnownSetting(key)) {
             Message.throwInternalError(key);
         }
         String s = getProperty(key);

@@ -37,12 +37,6 @@ public class LogSystem {
      */
     public static final int LOG_WRITTEN = -1;
 
-    private static final Comparator LOG_FILE_COMPARATOR = new Comparator() {
-        public int compare(Object a, Object b) {
-            return ((LogFile) a).getId() - ((LogFile) b).getId();
-        }
-    };
-
     private Database database;
     private ObjectArray activeLogs;
     private LogFile currentLog;
@@ -319,7 +313,11 @@ public class LogSystem {
                 }
             }
         }
-        activeLogs.sort(LOG_FILE_COMPARATOR);
+        activeLogs.sort(new Comparator() {
+            public int compare(Object a, Object b) {
+                return ((LogFile) a).getId() - ((LogFile) b).getId();
+            }
+        });
         if (activeLogs.size() == 0) {
             LogFile l = new LogFile(this, 0, fileNamePrefix);
             activeLogs.add(l);

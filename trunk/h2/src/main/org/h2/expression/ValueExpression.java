@@ -22,19 +22,37 @@ public class ValueExpression extends Expression {
     /**
      * The expression represents ValueNull.INSTANCE.
      */
-    public static final ValueExpression NULL = new ValueExpression(ValueNull.INSTANCE);
+    private static final Object NULL = new ValueExpression(ValueNull.INSTANCE);
 
     /**
      * This special expression represents the default value. It is used for
      * UPDATE statements of the form SET COLUMN = DEFAULT. The value is
      * ValueNull.INSTANCE, but should never be accessed.
      */
-    public static final ValueExpression DEFAULT = new ValueExpression(ValueNull.INSTANCE);
+    private static final Object DEFAULT = new ValueExpression(ValueNull.INSTANCE);
 
-    private Value value;
+    private final Value value;
 
     private ValueExpression(Value value) {
         this.value = value;
+    }
+
+    /**
+     * Get the NULL expression.
+     *
+     * @return the NULL expression
+     */
+    public static ValueExpression getNull() {
+        return (ValueExpression) NULL;
+    }
+
+    /**
+     * Get the DEFAULT expression.
+     *
+     * @return the DEFAULT expression
+     */
+    public static ValueExpression getDefault() {
+        return (ValueExpression) DEFAULT;
     }
 
     /**
@@ -45,7 +63,7 @@ public class ValueExpression extends Expression {
      */
     public static ValueExpression get(Value value) {
         if (value == ValueNull.INSTANCE) {
-            return ValueExpression.NULL;
+            return getNull();
         }
         return new ValueExpression(value);
     }

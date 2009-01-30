@@ -75,8 +75,4 @@ public class JdbcDriverUtils {
         }
     }
 
-    static boolean isShutdown() {
-        return DRIVERS == null;
-    }
-
 }

@@ -119,7 +119,7 @@ public class Comparison extends Condition {
 
     private Expression getCast(Expression expr, int dataType, long precision, int scale, int displaySize, Session session)
             throws SQLException {
-        if (expr == ValueExpression.NULL) {
+        if (expr == ValueExpression.getNull()) {
             return expr;
         }
         Function function = Function.getFunction(session.getDatabase(), "CAST");
@@ -186,10 +186,10 @@ public class Comparison extends Condition {
             if (SysProperties.CHECK && (left == null || right == null)) {
                 Message.throwInternalError();
             }
-            if (left == ValueExpression.NULL || right == ValueExpression.NULL) {
+            if (left == ValueExpression.getNull() || right == ValueExpression.getNull()) {
                 // TODO NULL handling: maybe issue a warning when comparing with
                 // a NULL constants
-                return ValueExpression.NULL;
+                return ValueExpression.getNull();
             }
             if (left.isConstant() && right.isConstant()) {
                 return ValueExpression.get(getValue(session));

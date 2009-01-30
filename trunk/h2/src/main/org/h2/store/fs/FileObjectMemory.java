@@ -25,7 +25,7 @@ public class FileObjectMemory implements FileObject {
     private static final int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
     private static final CompressLZF LZF = new CompressLZF();
     private static final byte[] BUFFER = new byte[BLOCK_SIZE * 2];
-    private static final byte[] COMPRESSED_BLOCK;
+    private static byte[] cachedCompressedEmptyBlock;
 
 //## Java 1.4 begin ##
     private static final Cache COMPRESS_LATER = new Cache(CACHE_SIZE);
@@ -137,11 +137,14 @@ public class FileObjectMemory implements FileObject {
         }
     }
 
-    static {
-        byte[] n = new byte[BLOCK_SIZE];
-        int len = LZF.compress(n, BLOCK_SIZE, BUFFER, 0);
-        COMPRESSED_BLOCK = new byte[len];
-        System.arraycopy(BUFFER, 0, COMPRESSED_BLOCK, 0, len);
+    static byte[] getCompressedEmptyBlock() {
+        if (cachedCompressedEmptyBlock == null) {
+            byte[] n = new byte[BLOCK_SIZE];
+            int len = LZF.compress(n, BLOCK_SIZE, BUFFER, 0);
+            cachedCompressedEmptyBlock = new byte[len];
+            System.arraycopy(BUFFER, 0, cachedCompressedEmptyBlock, 0, len);
+        }
+        return cachedCompressedEmptyBlock;
     }
 
     private void touch() {
@@ -186,7 +189,7 @@ public class FileObjectMemory implements FileObject {
             byte[][] n = new byte[blocks][];
             System.arraycopy(data, 0, n, 0, Math.min(data.length, n.length));
             for (int i = data.length; i < blocks; i++) {
-                n[i] = COMPRESSED_BLOCK;
+                n[i] = getCompressedEmptyBlock();
             }
             data = n;
         }

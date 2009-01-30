@@ -6,7 +6,7 @@
  */
 package org.h2.command.dml;
 
-import org.h2.util.ObjectArray;
+import java.util.ArrayList;
 
 /**
  * The list of setting for a SET statement.
@@ -193,56 +193,51 @@ public class SetTypes {
      */
     public static final int QUERY_TIMEOUT = 36;
 
-    private static ObjectArray types = new ObjectArray();
-
-    static {
-        setType(IGNORECASE, "IGNORECASE");
-        setType(MAX_LOG_SIZE, "MAX_LOG_SIZE");
-        setType(MODE, "MODE");
-        setType(READONLY, "READONLY");
-        setType(LOCK_TIMEOUT, "LOCK_TIMEOUT");
-        setType(DEFAULT_LOCK_TIMEOUT, "DEFAULT_LOCK_TIMEOUT");
-        setType(DEFAULT_TABLE_TYPE, "DEFAULT_TABLE_TYPE");
-        setType(CACHE_SIZE, "CACHE_SIZE");
-        setType(TRACE_LEVEL_SYSTEM_OUT, "TRACE_LEVEL_SYSTEM_OUT");
-        setType(TRACE_LEVEL_FILE, "TRACE_LEVEL_FILE");
-        setType(TRACE_MAX_FILE_SIZE, "TRACE_MAX_FILE_SIZE");
-        setType(COLLATION, "COLLATION");
-        setType(CLUSTER, "CLUSTER");
-        setType(WRITE_DELAY, "WRITE_DELAY");
-        setType(DATABASE_EVENT_LISTENER, "DATABASE_EVENT_LISTENER");
-        setType(MAX_MEMORY_ROWS, "MAX_MEMORY_ROWS");
-        setType(LOCK_MODE, "LOCK_MODE");
-        setType(DB_CLOSE_DELAY, "DB_CLOSE_DELAY");
-        setType(LOG, "LOG");
-        setType(THROTTLE, "THROTTLE");
-        setType(MAX_MEMORY_UNDO, "MAX_MEMORY_UNDO");
-        setType(MAX_LENGTH_INPLACE_LOB, "MAX_LENGTH_INPLACE_LOB");
-        setType(COMPRESS_LOB, "COMPRESS_LOB");
-        setType(ALLOW_LITERALS, "ALLOW_LITERALS");
-        setType(MULTI_THREADED, "MULTI_THREADED");
-        setType(SCHEMA, "SCHEMA");
-        setType(OPTIMIZE_REUSE_RESULTS, "OPTIMIZE_REUSE_RESULTS");
-        setType(SCHEMA_SEARCH_PATH, "SCHEMA_SEARCH_PATH");
-        setType(UNDO_LOG, "UNDO_LOG");
-        setType(REFERENTIAL_INTEGRITY, "REFERENTIAL_INTEGRITY");
-        setType(MVCC, "MVCC");
-        setType(MAX_OPERATION_MEMORY, "MAX_OPERATION_MEMORY");
-        setType(EXCLUSIVE, "EXCLUSIVE");
-        setType(CREATE_BUILD, "CREATE_BUILD");
-        setType(VARIABLE, "@");
-        setType(QUERY_TIMEOUT, "QUERY_TIMEOUT");
-    }
+    private static final ArrayList TYPES = new ArrayList();
 
     private SetTypes() {
         // utility class
     }
 
-    private static void setType(int type, String name) {
-        while (types.size() <= type) {
-            types.add(null);
-        }
-        types.set(type, name);
+    static {
+        ArrayList list = TYPES;
+        list.add(null);
+        list.add(IGNORECASE, "IGNORECASE");
+        list.add(MAX_LOG_SIZE, "MAX_LOG_SIZE");
+        list.add(MODE, "MODE");
+        list.add(READONLY, "READONLY");
+        list.add(LOCK_TIMEOUT, "LOCK_TIMEOUT");
+        list.add(DEFAULT_LOCK_TIMEOUT, "DEFAULT_LOCK_TIMEOUT");
+        list.add(DEFAULT_TABLE_TYPE, "DEFAULT_TABLE_TYPE");
+        list.add(CACHE_SIZE, "CACHE_SIZE");
+        list.add(TRACE_LEVEL_SYSTEM_OUT, "TRACE_LEVEL_SYSTEM_OUT");
+        list.add(TRACE_LEVEL_FILE, "TRACE_LEVEL_FILE");
+        list.add(TRACE_MAX_FILE_SIZE, "TRACE_MAX_FILE_SIZE");
+        list.add(COLLATION, "COLLATION");
+        list.add(CLUSTER, "CLUSTER");
+        list.add(WRITE_DELAY, "WRITE_DELAY");
+        list.add(DATABASE_EVENT_LISTENER, "DATABASE_EVENT_LISTENER");
+        list.add(MAX_MEMORY_ROWS, "MAX_MEMORY_ROWS");
+        list.add(LOCK_MODE, "LOCK_MODE");
+        list.add(DB_CLOSE_DELAY, "DB_CLOSE_DELAY");
+        list.add(LOG, "LOG");
+        list.add(THROTTLE, "THROTTLE");
+        list.add(MAX_MEMORY_UNDO, "MAX_MEMORY_UNDO");
+        list.add(MAX_LENGTH_INPLACE_LOB, "MAX_LENGTH_INPLACE_LOB");
+        list.add(COMPRESS_LOB, "COMPRESS_LOB");
+        list.add(ALLOW_LITERALS, "ALLOW_LITERALS");
+        list.add(MULTI_THREADED, "MULTI_THREADED");
+        list.add(SCHEMA, "SCHEMA");
+        list.add(OPTIMIZE_REUSE_RESULTS, "OPTIMIZE_REUSE_RESULTS");
+        list.add(SCHEMA_SEARCH_PATH, "SCHEMA_SEARCH_PATH");
+        list.add(UNDO_LOG, "UNDO_LOG");
+        list.add(REFERENTIAL_INTEGRITY, "REFERENTIAL_INTEGRITY");
+        list.add(MVCC, "MVCC");
+        list.add(MAX_OPERATION_MEMORY, "MAX_OPERATION_MEMORY");
+        list.add(EXCLUSIVE, "EXCLUSIVE");
+        list.add(CREATE_BUILD, "CREATE_BUILD");
+        list.add(VARIABLE, "@");
+        list.add(QUERY_TIMEOUT, "QUERY_TIMEOUT");
     }
 
     /**
@@ -252,16 +247,16 @@ public class SetTypes {
      * @return the number
      */
     public static int getType(String name) {
-        for (int i = 0; i < types.size(); i++) {
-            if (name.equals(types.get(i))) {
+        for (int i = 0; i < getTypes().size(); i++) {
+            if (name.equals(getTypes().get(i))) {
                 return i;
             }
         }
         return -1;
     }
 
-    public static ObjectArray getSettings() {
-        return types;
+    public static ArrayList getTypes() {
+        return TYPES;
     }
 
     /**
@@ -271,7 +266,7 @@ public class SetTypes {
      * @return the name
      */
     public static String getTypeName(int type) {
-        return (String) types.get(type);
+        return (String) getTypes().get(type);
     }
 
 }

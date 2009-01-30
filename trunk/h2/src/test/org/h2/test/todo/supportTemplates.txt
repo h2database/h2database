@@ -52,6 +52,7 @@ I am sorry to say that, but it looks like a corruption problem. I am very intere
 
 - Could you send the full stack trace of the exception including message text?
 - What is your database URL?
+- Do you use Tomcat or another web server? Do you unload or reload the web application?
 - You can find out if the database is corrupted when running
     SCRIPT TO 'test.sql'
 - What version H2 are you using?

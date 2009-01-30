@@ -45,7 +45,7 @@ public class CompressLZF implements Compressor {
     private static final int MAX_OFF = 1 << 13;
     private static final int MAX_REF = (1 << 8) + (1 << 3);
 
-    private int[] hashTab;
+    private int[] cachedHashTable;
 
     public void setOptions(String options) {
         // nothing to do
@@ -70,11 +70,12 @@ public class CompressLZF implements Compressor {
 
     public int compress(byte[] in, int inLen, byte[] out, int outPos) {
         int inPos = 0;
-        if (hashTab == null) {
-            hashTab = new int[HASH_SIZE];
+        if (cachedHashTable == null) {
+            cachedHashTable = new int[HASH_SIZE];
         } else {
-            System.arraycopy(EMPTY, 0, hashTab, 0, HASH_SIZE);
+            System.arraycopy(EMPTY, 0, cachedHashTable, 0, HASH_SIZE);
         }
+        int[] hashTab = cachedHashTable;
         int literals = 0;
         int hash = first(in, inPos);
         while (true) {

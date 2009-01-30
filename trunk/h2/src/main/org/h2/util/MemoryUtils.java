@@ -80,16 +80,4 @@ public class MemoryUtils {
         reserveMemory = null;
     }
 
-    /**
-     * Check if Tomcat has set the static references to null,
-     * which can cause a NullPointerException. A workaround is to
-     * disable the system property org.apache.catalina.loader.
-     * WebappClassLoader.ENABLE_CLEAR_REFERENCES
-     *
-     * @return true if static references are set to null
-     */
-    public static boolean isShutdown() {
-        return StringCache.isShutdown() || JdbcDriverUtils.isShutdown() || Resources.isShutdown();
-    }
-
 }

@@ -76,7 +76,7 @@ public class CompareLike extends Condition {
             Value l = left.getValue(session);
             if (l == ValueNull.INSTANCE) {
                 // NULL LIKE something > NULL
-                return ValueExpression.NULL;
+                return ValueExpression.getNull();
             }
         }
         if (escape != null) {
@@ -89,11 +89,11 @@ public class CompareLike extends Condition {
             Value r = right.getValue(session);
             if (r == ValueNull.INSTANCE) {
                 // something LIKE NULL > NULL
-                return ValueExpression.NULL;
+                return ValueExpression.getNull();
             }
             Value e = escape == null ? null : escape.getValue(session);
             if (e == ValueNull.INSTANCE) {
-                return ValueExpression.NULL;
+                return ValueExpression.getNull();
             }
             String p = r.getString();
             initPattern(p, getEscapeChar(e));

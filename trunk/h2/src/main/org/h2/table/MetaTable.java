@@ -16,6 +16,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.Collator;
+import java.util.ArrayList;
 import java.util.Locale;
 
 import org.h2.command.Command;
@@ -865,7 +866,7 @@ public class MetaTable extends Table {
             add(rows, new String[]{"h2.recompileAlways", "" + SysProperties.RECOMPILE_ALWAYS});
             add(rows, new String[]{"h2.redoBufferSize", "" + SysProperties.REDO_BUFFER_SIZE});
             add(rows, new String[]{"h2.runFinalize", "" + SysProperties.runFinalize});
-            add(rows, new String[]{"h2.scriptDirectory", SysProperties.scriptDirectory});
+            add(rows, new String[]{"h2.scriptDirectory", SysProperties.getScriptDirectory()});
             add(rows, new String[]{"h2.serverCachedObjects", "" + SysProperties.SERVER_CACHED_OBJECTS});
             add(rows, new String[]{"h2.serverResultSetFetchSize", "" + SysProperties.SERVER_RESULT_SET_FETCH_SIZE});
             add(rows, new String[]{"h2.sortNullsHigh", "" + SysProperties.SORT_NULLS_HIGH});
@@ -887,7 +888,7 @@ public class MetaTable extends Table {
             break;
         }
         case TYPE_INFO: {
-            ObjectArray types = DataType.getTypes();
+            ArrayList types = DataType.getTypes();
             for (int i = 0; i < types.size(); i++) {
                 DataType t = (DataType) types.get(i);
                 if (t.hidden || t.sqlType == Value.NULL) {

@@ -27,9 +27,8 @@ import org.h2.util.StringUtils;
 public class Engine {
 
     private static final Engine INSTANCE = new Engine();
+    private static final HashMap DATABASES = new HashMap();
     private static volatile long wrongPasswordDelay = SysProperties.DELAY_WRONG_PASSWORD_MIN;
-    private static Object wrongPasswordSync = new Object();
-    private final HashMap databases = new HashMap();
 
     private Engine() {
         // don't allow others to instantiate
@@ -46,7 +45,7 @@ public class Engine {
         if (openNew || ci.isUnnamedInMemory()) {
             database = null;
         } else {
-            database = (Database) databases.get(name);
+            database = (Database) DATABASES.get(name);
         }
         User user = null;
         boolean opened = false;
@@ -65,7 +64,7 @@ public class Engine {
                 database.setMasterUser(user);
             }
             if (!ci.isUnnamedInMemory()) {
-                databases.put(name, database);
+                DATABASES.put(name, database);
             }
             database.opened();
         }
@@ -182,7 +181,7 @@ public class Engine {
      * @param name the database name
      */
     public void close(String name) {
-        databases.remove(name);
+        DATABASES.remove(name);
     }
 
     /**
@@ -208,10 +207,10 @@ public class Engine {
             if (delay > min && delay > 0) {
                 // the first correct password must be blocked,
                 // otherwise parallel attacks are possible
-                synchronized (wrongPasswordSync) {
+                synchronized (INSTANCE) {
                     // delay up to the last delay
                     // an attacker can't know how long it will be
-                    delay = RandomUtils.nextInt((int) delay);
+                    delay = RandomUtils.nextSecureInt((int) delay);
                     try {
                         Thread.sleep(delay);
                     } catch (InterruptedException e) {
@@ -223,7 +222,7 @@ public class Engine {
         } else {
             // this method is not synchronized on the Engine, so that
             // regular successful attempts are not blocked
-            synchronized (wrongPasswordSync) {
+            synchronized (INSTANCE) {
                 long delay = wrongPasswordDelay;
                 int max = SysProperties.DELAY_WRONG_PASSWORD_MAX;
                 if (max <= 0) {

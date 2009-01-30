@@ -25,28 +25,29 @@ public class RandomUtils {
     /**
      * The secure random object.
      */
-    static SecureRandom secureRandom;
+    static SecureRandom cachedSecureRandom;
 
     /**
      * True if the secure random object is seeded.
      */
     static volatile boolean seeded;
-    private static Random random  = new Random();
+
+    private static final Random RANDOM  = new Random();
 
     private RandomUtils() {
         // utility class
     }
 
     private static synchronized SecureRandom getSecureRandom() {
-        if (secureRandom != null) {
-            return secureRandom;
+        if (cachedSecureRandom != null) {
+            return cachedSecureRandom;
         }
         // Workaround for SecureRandom problem as described in
         // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6202721
         // Can not do that in a static initializer block, because
-        // threads are not started after the initializer block exits
+        // threads are not started until after the initializer block exits
         try {
-            secureRandom = SecureRandom.getInstance("SHA1PRNG");
+            cachedSecureRandom = SecureRandom.getInstance("SHA1PRNG");
             // On some systems, secureRandom.generateSeed() is very slow.
             // In this case it is initialized using our own seed implementation
             // and afterwards (in the thread) using the regular algorithm.
@@ -55,8 +56,8 @@ public class RandomUtils {
                     try {
                         SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
                         byte[] seed = sr.generateSeed(20);
-                        synchronized (secureRandom) {
-                            secureRandom.setSeed(seed);
+                        synchronized (cachedSecureRandom) {
+                            cachedSecureRandom.setSeed(seed);
                             seeded = true;
                         }
                     } catch (NoSuchAlgorithmException e) {
@@ -78,15 +79,15 @@ public class RandomUtils {
             if (!seeded) {
                 byte[] seed = generateAlternativeSeed();
                 // this never reduces randomness
-                synchronized (secureRandom) {
-                    secureRandom.setSeed(seed);
+                synchronized (cachedSecureRandom) {
+                    cachedSecureRandom.setSeed(seed);
                 }
             }
         } catch (NoSuchAlgorithmException e) {
             warn("SecureRandom", e);
-            secureRandom = new SecureRandom();
+            cachedSecureRandom = new SecureRandom();
         }
-        return secureRandom;
+        return cachedSecureRandom;
     }
 
     private static byte[] generateAlternativeSeed() {
@@ -184,14 +185,28 @@ public class RandomUtils {
     }
 
     /**
+     * Get a pseudo random int value between 0 (including and the given value
+     * (excluding). The value is not cryptographically secure.
+     *
+     * @param lowerThan the value returned will be lower than this value
+     * @return the random long value
+     */
+    public static int nextInt(int lowerThan) {
+        return RANDOM.nextInt(lowerThan);
+    }
+
+    /**
      * Get a cryptographically secure pseudo random int value between 0
      * (including and the given value (excluding).
      *
-     * @param lower the value returned will be lower than this value
+     * @param lowerThan the value returned will be lower than this value
      * @return the random long value
      */
-    public static int nextInt(int lower) {
-        return random.nextInt(lower);
+    public static int nextSecureInt(int lowerThan) {
+        SecureRandom sr = getSecureRandom();
+        synchronized (sr) {
+            return sr.nextInt(lowerThan);
+        }
     }
 
     /**

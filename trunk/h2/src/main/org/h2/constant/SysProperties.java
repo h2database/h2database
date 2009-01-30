@@ -493,14 +493,6 @@ public class SysProperties {
     public static boolean runFinalize = getBooleanSetting("h2.runFinalize", true);
 
     /**
-     * System property <code>h2.scriptDirectory</code> (default: empty
-     * string).<br />
-     * Relative or absolute directory where the script files are stored to or
-     * read from.
-     */
-    public static String scriptDirectory = getStringSetting("h2.scriptDirectory", "");
-
-    /**
      * System property <code>h2.serverCachedObjects</code> (default: 64).<br />
      * TCP Server: number of cached objects per session.
      */
@@ -566,7 +558,7 @@ public class SysProperties {
      */
     public static final int COLLATOR_CACHE_SIZE = getCollatorCacheSize();
 
-    private static String baseDir = getStringSetting("h2.baseDir", null);
+    private static final String H2_BASE_DIR = "h2.baseDir";
 
     private SysProperties() {
         // utility class
@@ -623,14 +615,32 @@ public class SysProperties {
         if (!dir.endsWith("/")) {
             dir += "/";
         }
-        baseDir = dir;
+        System.setProperty(H2_BASE_DIR, dir);
     }
 
     /**
      * INTERNAL
      */
     public static String getBaseDir() {
-        return baseDir;
+        return getStringSetting(H2_BASE_DIR, null);
+    }
+
+    /**
+     * INTERNAL
+     * System property <code>h2.scriptDirectory</code> (default: empty
+     * string).<br />
+     * Relative or absolute directory where the script files are stored to or
+     * read from.
+     */
+    public static String getScriptDirectory() {
+        return getStringSetting("h2.scriptDirectory", "");
+    }
+
+    /**
+     * INTERNAL
+     */
+    public static void setScriptDirectory(String dir) {
+        System.setProperty("h2.scriptDirectory", dir);
     }
 
     /**

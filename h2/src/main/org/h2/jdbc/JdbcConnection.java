@@ -1420,7 +1420,10 @@ public class JdbcConnection extends TraceObject implements Connection {
     public synchronized boolean isValid(int timeout) {
         try {
             debugCodeCall("isValid", timeout);
-            checkClosed();
+            if (session == null || session.isClosed()) {
+                return false;
+            }
+            // force a network round trip (if networked)
             getInternalAutoCommit();
             return true;
         } catch (Exception e) {

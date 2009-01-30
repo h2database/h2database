@@ -18,7 +18,17 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>Improved exception message when connecting to a just started server fails. 
+</li><li>Connection.isValid is a bit faster.
+</li><li>H2 Console: The autocomplete feature has been improved a bit. It can now better
+    parse conditions.
+</li><li>When restarting a web application in Tomcat, an exception is thrown sometimes.
+    In most cases this is a NullPointerException.
+    The root cause of the problem is now documented in the FAQ:
+    Tomcat sets all static fields (final or non-final) to null when unloading a web application.
+    A workaround is to set the system property
+    org.apache.catalina.loader.WebappClassLoader.ENABLE_CLEAR_REFERENCES
+    to false.
 </li></ul>
 
 <h2>Version 1.1.107 (2009-01-24)</h2>

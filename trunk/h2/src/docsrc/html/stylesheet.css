@@ -112,13 +112,6 @@ em.u {
     font-style: normal;
 }
 
-.button {
-    border: 1px outset #800;
-    margin: 0px 2px 0px 2px;
-    padding: 0px 4px 0px 4px;
-    font-weight: bold;
-}
-
 .menu {
     margin: 10px 10px 10px 10px;
 }

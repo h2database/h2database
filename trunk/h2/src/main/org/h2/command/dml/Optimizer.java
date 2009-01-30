@@ -6,7 +6,6 @@
  */
 package org.h2.command.dml;
 
-import java.math.BigInteger;
 import java.sql.SQLException;
 import java.util.BitSet;
 import java.util.Random;
@@ -16,7 +15,6 @@ import org.h2.expression.Expression;
 import org.h2.table.Plan;
 import org.h2.table.PlanItem;
 import org.h2.table.TableFilter;
-import org.h2.util.MathUtils;
 import org.h2.util.ObjectUtils;
 import org.h2.util.Permutations;
 
@@ -27,12 +25,12 @@ import org.h2.util.Permutations;
 public class Optimizer {
 
     private static final int MAX_BRUTE_FORCE_FILTERS = 7;
-    private static final BigInteger MAX_BRUTE_FORCE = new BigInteger("" + 2000);
+    private static final int MAX_BRUTE_FORCE = 2000;
     private static final int MAX_GENETIC = 500;
     private long start;
     private BitSet switched;
 
-    //  possible plans for filters:
+    //  possible plans for filters, if using brute force:
     //  1 filter 1 plan
     //  2 filters 2 plans
     //  3 filters 6 plans
@@ -43,10 +41,6 @@ public class Optimizer {
     //  8 filters 40320 plan
     //  9 filters 362880 plans
     // 10 filters 3628800 filters
-    // 1 of 1, 2, 3, 4, 5, 6 filters: 1, 2, 3, 4, 5, 6
-    // 2 of 2, 3, 4, 5, 6 filters: 2, 6, 12, 20, 30
-    // 3 of 3, 4, 5, 6 filters: 6, 24, 75, 120
-    // 4 of 4, 5, 6 filters: 24, 120, 260
 
     private TableFilter[] filters;
     private Expression condition;
@@ -63,12 +57,21 @@ public class Optimizer {
         this.session = session;
     }
 
-    private int getMaxBruteForceFilters(int filterCount) {
-        int i = 0, j = filterCount;
-        BigInteger total = new BigInteger("" + filterCount);
-        while (j > 0 && total.compareTo(MAX_BRUTE_FORCE) < 0) {
+    /**
+     * How many filter to calculate using brute force. The remaining filters are
+     * selected using a greedy algorithm which has a runtime of (1 + 2 + ... +
+     * n) = (n * (n-1) / 2) for n filters. The brute force algorithm has a
+     * runtime of n * (n-1) * ... * (n-m) when calculating m brute force of n
+     * total. The combined runtime is (brute force) * (greedy).
+     *
+     * @param filterCount the number of filters total
+     * @return the number of filters to calculate using brute force
+     */
+    private static int getMaxBruteForceFilters(int filterCount) {
+        int i = 0, j = filterCount, total = filterCount;
+        while (j > 0 && total * (j * (j - 1) / 2) < MAX_BRUTE_FORCE) {
             j--;
-            total = total.multiply(MathUtils.factorial(j));
+            total *= j;
             i++;
         }
         return i;

@@ -71,6 +71,7 @@ I am sorry to say that, but it looks like a corruption problem. I am very intere
 - Is the application multi-threaded?
 - What operating system, file system, and virtual machine
     (java -version) do you use?
+- Is it (or was it at some point) a networked file system? 
 - How big is the database (file sizes)?
 - Is the database usually closed normally, or is process terminated forcefully
     or the computer switched off?

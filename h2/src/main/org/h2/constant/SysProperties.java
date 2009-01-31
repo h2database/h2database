@@ -626,7 +626,7 @@ public class SysProperties {
     }
 
     /**
-     * INTERNAL
+     * INTERNAL.
      * System property <code>h2.scriptDirectory</code> (default: empty
      * string).<br />
      * Relative or absolute directory where the script files are stored to or

@@ -219,7 +219,7 @@ public class Database implements DataHandler {
                     // applets may not do that - ignore
                 }
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             if (traceSystem != null) {
                 if (e instanceof SQLException) {
                     SQLException e2 = (SQLException) e;

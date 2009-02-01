@@ -8,6 +8,12 @@ package org.h2.build;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Iterator;
+import java.util.TreeMap;
 
 import org.h2.build.code.SwitchSource;
 
@@ -433,6 +439,79 @@ public class Build extends BuildBase {
     public void test() {
         compile();
         java("org.h2.test.TestAll", null);
+    }
+
+    /**
+     * Test the local network of this machine.
+     */
+    public void testNetwork() {
+        try {
+            System.out.println("environment settings:");
+            for (Iterator it = new TreeMap(System.getProperties()).entrySet().iterator(); it.hasNext();) {
+                System.out.println(it.next());
+            }
+            System.out.println();
+            System.out.println("localhost:" + InetAddress.getByName("localhost"));
+            InetAddress[] addresses = InetAddress.getAllByName("localhost");
+            for (int i = 0; i < addresses.length; i++) {
+                System.out.println(i + ":" + addresses[i]);
+            }
+            InetAddress localhost = InetAddress.getLocalHost();
+            System.out.println("getLocalHost:" + localhost);
+            addresses = InetAddress.getAllByName(localhost.getHostAddress());
+            for (int i = 0; i < addresses.length; i++) {
+                System.out.println(i + ":" + addresses[i]);
+            }
+            InetAddress address = InetAddress.getByName(localhost.getHostAddress());
+            System.out.println("byName:" + address);
+            ServerSocket serverSocket;
+            try {
+                serverSocket = new ServerSocket(0);
+            } catch (Exception e) {
+                e.printStackTrace();
+                serverSocket = new ServerSocket(0);
+            }
+            System.out.println(serverSocket);
+            int port = serverSocket.getLocalPort();
+            final ServerSocket accept = serverSocket;
+            new Thread() {
+                public void run() {
+                    try {
+                        System.out.println("server accepting");
+                        Socket s = accept.accept();
+                        Thread.sleep(100);
+                        System.out.println("server accepted:" + s);
+                        System.out.println("server read:" + s.getInputStream().read());
+                        Thread.sleep(200);
+                        s.getOutputStream().write(234);
+                        Thread.sleep(100);
+                        System.out.println("server closing");
+                        s.close();
+                        System.out.println("server done");
+                    } catch (Throwable t) {
+                        t.printStackTrace();
+                    }
+                }
+            }.start();
+            Thread.sleep(1000);
+            Socket socket = new Socket();
+            InetSocketAddress socketAddress = new InetSocketAddress(address, port);
+            System.out.println("client:" + socketAddress);
+            try {
+                socket.connect(socketAddress, 2000);
+                Thread.sleep(200);
+                System.out.println("client:" + socket.toString());
+                socket.getOutputStream().write(123);
+                Thread.sleep(100);
+                System.out.println("client read:" + socket.getInputStream().read());
+                socket.close();
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+            System.out.println("done");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**

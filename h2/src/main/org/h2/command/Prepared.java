@@ -15,6 +15,7 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
 import org.h2.index.Index;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.util.ObjectArray;
@@ -365,6 +366,49 @@ public abstract class Prepared {
      */
     public String toString() {
         return sqlStatement;
+    }
+
+    protected String getSQL(Value[] values) {
+        StringBuffer buff = new StringBuffer();
+        for (int i = 0; i < values.length; i++) {
+            if (i > 0) {
+                buff.append(", ");
+            }
+            Value v = values[i];
+            if (v != null) {
+                buff.append(v.getSQL());
+            }
+        }
+        return buff.toString();
+    }
+
+    protected String getSQL(Expression[] list) {
+        StringBuffer buff = new StringBuffer();
+        for (int i = 0; i < list.length; i++) {
+            if (i > 0) {
+                buff.append(", ");
+            }
+            Expression e = list[i];
+            if (e != null) {
+                buff.append(e.getSQL());
+            }
+        }
+        return buff.toString();
+    }
+
+
+    protected SQLException setRow(SQLException ex, int rowId, String values) {
+        if (ex instanceof JdbcSQLException) {
+            JdbcSQLException e = (JdbcSQLException) ex;
+            StringBuffer buff = new StringBuffer("VALUES(");
+            buff.append(values).append(")");
+            if (rowId > 0) {
+                buff.append(" -- row #");
+                buff.append(rowId + 1);
+            }
+            e.setSQL(buff.toString());
+        }
+        return ex;
     }
 
 }

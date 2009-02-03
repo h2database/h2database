@@ -15,7 +15,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -332,12 +331,14 @@ public class WebServer implements Service {
     }
 
     public void stop() {
-        try {
-            serverSocket.close();
-        } catch (IOException e) {
-            // TODO log exception
+        if (serverSocket != null) {
+            try {
+                serverSocket.close();
+            } catch (IOException e) {
+                traceError(e);
+            }
+            serverSocket = null;
         }
-        serverSocket = null;
         if (listenerThread != null) {
             try {
                 listenerThread.join(1000);
@@ -349,14 +350,7 @@ public class WebServer implements Service {
         ArrayList list = new ArrayList(sessions.values());
         for (int i = 0; i < list.size(); i++) {
             WebSession session = (WebSession) list.get(i);
-            Statement stat = session.executingStatement;
-            if (stat != null) {
-                try {
-                    stat.cancel();
-                } catch (Exception e) {
-                    // ignore
-                }
-            }
+            session.close();
         }
         list = new ArrayList(running);
         for (int i = 0; i < list.size(); i++) {
@@ -365,8 +359,7 @@ public class WebServer implements Service {
                 c.stopNow();
                 c.join(100);
             } catch (Exception e) {
-                // TODO log exception
-                e.printStackTrace();
+                traceError(e);
             }
         }
     }
@@ -387,8 +380,10 @@ public class WebServer implements Service {
      *
      * @param e the exception
      */
-    void traceError(Exception e) {
-        e.printStackTrace();
+    void traceError(Throwable e) {
+        if (trace) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -676,7 +671,7 @@ public class WebServer implements Service {
      * The translate thread reads and writes the file translation.properties
      * once a second.
      */
-    private static class TranslateThread extends Thread {
+    private class TranslateThread extends Thread {
 
         private final File file = new File("translation.properties");
         private final Map translation;
@@ -714,8 +709,7 @@ public class WebServer implements Service {
                     }
                     Thread.sleep(1000);
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    // ignore
+                    traceError(e);
                 }
             }
         }

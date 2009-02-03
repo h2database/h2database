@@ -552,7 +552,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             }
             session.put("autoCompleteList", result);
         } catch (Throwable e) {
-            e.printStackTrace();
+            server.traceError(e);
         }
         return "autoCompleteList.jsp";
     }
@@ -974,7 +974,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             error = formatAsError(error);
             return error;
         } catch (OutOfMemoryError e2) {
-            e.printStackTrace();
+            server.traceError(e);
             return e.toString();
         }
     }

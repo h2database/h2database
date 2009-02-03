@@ -84,8 +84,12 @@ public class Insert extends Prepared {
                     if (e != null) {
                         // e can be null (DEFAULT)
                         e = e.optimize(session);
-                        Value v = e.getValue(session).convertTo(c.getType());
-                        newRow.setValue(index, v);
+                        try {
+                            Value v = e.getValue(session).convertTo(c.getType());
+                            newRow.setValue(index, v);
+                        } catch (SQLException ex) {
+                            throw setRow(ex, x, getSQL(expr));
+                        }
                     }
                 }
                 checkCanceled();
@@ -113,8 +117,12 @@ public class Insert extends Prepared {
                 for (int j = 0; j < columns.length; j++) {
                     Column c = columns[j];
                     int index = c.getColumnId();
-                    Value v = r[j].convertTo(c.getType());
-                    newRow.setValue(index, v);
+                    try {
+                        Value v = r[j].convertTo(c.getType());
+                        newRow.setValue(index, v);
+                    } catch (SQLException ex) {
+                        throw setRow(ex, count, getSQL(r));
+                    }
                 }
                 table.validateConvertUpdateSequence(session, newRow);
                 table.fireBeforeRow(session, null, newRow);

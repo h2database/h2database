@@ -118,8 +118,12 @@ public class Merge extends Prepared {
                     Expression e = expr[i];
                     if (e != null) {
                         // e can be null (DEFAULT)
-                        Value v = expr[i].getValue(session).convertTo(c.getType());
-                        newRow.setValue(index, v);
+                        try {
+                            Value v = expr[i].getValue(session).convertTo(c.getType());
+                            newRow.setValue(index, v);
+                        } catch (SQLException ex) {
+                            throw setRow(ex, count, getSQL(expr));
+                        }
                     }
                 }
                 merge(newRow);
@@ -139,8 +143,12 @@ public class Merge extends Prepared {
                 for (int j = 0; j < columns.length; j++) {
                     Column c = columns[j];
                     int index = c.getColumnId();
-                    Value v = r[j].convertTo(c.getType());
-                    newRow.setValue(index, v);
+                    try {
+                        Value v = r[j].convertTo(c.getType());
+                        newRow.setValue(index, v);
+                    } catch (SQLException ex) {
+                        throw setRow(ex, count, getSQL(r));
+                    }
                 }
                 merge(newRow);
             }

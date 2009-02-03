@@ -125,29 +125,17 @@ class WebSession {
             tableRule = new DbContextRule(contents, DbContextRule.TABLE);
             schemaRule = new DbContextRule(contents, DbContextRule.SCHEMA);
             columnAliasRule = new DbContextRule(contents, DbContextRule.COLUMN_ALIAS);
-//            bnf.updateTopic("newTableName", new String[]{"TEST"});
-//            String[] schemas;
-//            if(contents.isMySQL) {
-//                schemas = new String[0];
-//            } else {
-//                schemas = new String[contents.schemas.length];
-//                for(int i=0; i<contents.schemas.length; i++) {
-//                    schemas[i] = contents.schemas[i].quotedName + ".";
-//                }
-//            }
-//            bnf.updateTopic("schemaName", schemas);
             newBnf.updateTopic("columnName", columnRule);
             newBnf.updateTopic("newTableAlias", newAliasRule);
             newBnf.updateTopic("tableAlias", aliasRule);
             newBnf.updateTopic("columnAlias", columnAliasRule);
             newBnf.updateTopic("tableName", tableRule);
             newBnf.updateTopic("schemaName", schemaRule);
-            // bnf.updateTopic("name", new String[]{""});
             newBnf.linkStatements();
             bnf = newBnf;
         } catch (Exception e) {
             // ok we don't have the bnf
-            e.printStackTrace();
+            server.traceError(e);
         }
     }
 
@@ -244,6 +232,24 @@ class WebSession {
 
     boolean getShutdownServerOnDisconnect() {
         return shutdownServerOnDisconnect;
+    }
+
+    void close() {
+        if (executingStatement != null) {
+            try {
+                executingStatement.cancel();
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+
     }
 
 }

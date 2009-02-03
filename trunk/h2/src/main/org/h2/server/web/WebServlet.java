@@ -53,6 +53,10 @@ public class WebServlet extends HttpServlet {
         server.init(args);
     }
 
+    public void destroy() {
+        server.stop();
+    }
+
     private boolean allow(HttpServletRequest req) {
         if (server.getAllowOthers()) {
             return true;

@@ -31,6 +31,7 @@ public class PageInputStream extends InputStream {
     private DataPage page;
     private boolean endOfFile;
     private int remaining;
+    private byte[] buffer = new byte[1];
 
     public PageInputStream(PageStore store, int parentPage, int headPage, int type) {
         this.store = store;
@@ -41,9 +42,8 @@ public class PageInputStream extends InputStream {
     }
 
     public int read() throws IOException {
-        byte[] b = new byte[1];
-        int len = read(b);
-        return len < 0 ? -1 : (b[0] & 255);
+        int len = read(buffer);
+        return len < 0 ? -1 : (buffer[0] & 255);
     }
 
     public int read(byte[] b) throws IOException {
@@ -94,6 +94,7 @@ public class PageInputStream extends InputStream {
             boolean last = (t & Page.FLAG_LAST) != 0;
             t &= ~Page.FLAG_LAST;
             if (type != t || p != parentPage) {
+                int todoNeedBetterWayToDetectEOF;
                 throw Message.getSQLException(
                         ErrorCode.FILE_CORRUPTED_1,
                         "page:" +nextPage+ " type:" + t + " parent:" + p +

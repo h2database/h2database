@@ -9,15 +9,16 @@ package org.h2.store;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
+import java.util.HashMap;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.Page;
+import org.h2.log.SessionState;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.result.Row;
-import org.h2.util.BitField;
 import org.h2.util.Cache;
 import org.h2.util.Cache2Q;
 import org.h2.util.CacheLRU;
@@ -25,6 +26,7 @@ import org.h2.util.CacheObject;
 import org.h2.util.CacheWriter;
 import org.h2.util.FileUtils;
 import org.h2.util.ObjectArray;
+import org.h2.util.ObjectUtils;
 
 /**
  * This class represents a file that is organized as a number of pages. The
@@ -60,6 +62,7 @@ public class PageStore implements CacheWriter {
     // at runtime and recovery
     // synchronized correctly (on the index?)
     // TODO two phase commit: append (not patch) commit & rollback
+    // TODO remove trace or use isDebugEnabled
 
     /**
      * The smallest possible page size.
@@ -97,6 +100,7 @@ public class PageStore implements CacheWriter {
     private int activeLog;
     private int[] logRootPageIds = new int[LOG_COUNT];
     private boolean recoveryRunning;
+    private HashMap sessionStates = new HashMap();
 
     /**
      * The file size in bytes.
@@ -144,7 +148,7 @@ public class PageStore implements CacheWriter {
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
         int test;
-// trace.setLevel(TraceSystem.DEBUG);
+trace.setLevel(TraceSystem.DEBUG);
         this.cacheSize = cacheSizeDefault;
         String cacheType = database.getCacheType();
         if (Cache2Q.TYPE_NAME.equals(cacheType)) {
@@ -190,15 +194,6 @@ public class PageStore implements CacheWriter {
                 pageCount = (int) (fileLength / pageSize);
                 initLogs();
                 lastUsedPage = pageCount - 1;
-                while (true) {
-                    DataPage page = readPage(lastUsedPage);
-                    page.readInt();
-                    int type = page.readByte();
-                    if (type != Page.TYPE_EMPTY) {
-                        break;
-                    }
-                    lastUsedPage--;
-                }
             } else {
                 isNew = true;
                 setPageSize(PAGE_SIZE_DEFAULT);
@@ -210,14 +205,16 @@ public class PageStore implements CacheWriter {
                 for (int i = 0; i < LOG_COUNT; i++) {
                     logRootPageIds[i] = 3 + i;
                 }
-                lastUsedPage = pageCount;
+                lastUsedPage = 3 + LOG_COUNT;
                 int todoShouldBeOneMoreStartWith0;
                 pageCount = lastUsedPage;
                 increaseFileSize(INCREMENT_PAGES - pageCount);
                 writeHeader();
                 initLogs();
+                getLog().openForWriting(0);
+                switchLogIfPossible();
+                getLog().flush();
             }
-            getLog().openForWriting();
         } catch (SQLException e) {
             close();
             throw e;
@@ -255,9 +252,14 @@ public class PageStore implements CacheWriter {
         file.setLength(pageSize * pageCount);
     }
 
-    private void switchLogIfPossible() {
-        int nextLogId = (activeLog + 1) % LOG_COUNT;
-        PageLog nextLog = logs[nextLogId];
+    private void switchLogIfPossible() throws SQLException {
+        trace.debug("switchLogIfPossible");
+        int id = getLog().getId();
+        getLog().close();
+        activeLog = (activeLog + 1) % LOG_COUNT;
+        int todoCanOnlyReuseAfterLoggedChangesAreWritten;
+        getLog().openForWriting(id + 1);
+
 
 //        Session[] sessions = database.getSessions(true);
 //        int firstUncommittedLog = getLog().getId();
@@ -277,7 +279,7 @@ public class PageStore implements CacheWriter {
 
 
 //        if (nextLog.containsUncommitted())
-        activeLog = nextLogId;
+//        activeLog = nextLogId;
 //        getLog().reopen();
     }
 
@@ -415,7 +417,7 @@ public class PageStore implements CacheWriter {
             record.setChanged(true);
             int pos = record.getPos();
             cache.update(pos, record);
-            if (logUndo) {
+            if (logUndo && !recoveryRunning) {
                 if (old == null) {
                     old = readPage(pos);
                 }
@@ -604,9 +606,10 @@ public class PageStore implements CacheWriter {
     }
 
     /**
-     * Run the recovery process. There are two recovery stages: first only the
-     * undo steps are run (restoring the state before the last checkpoint). In
-     * the second stage the committed operations are re-applied.
+     * Run the recovery process. There are two recovery stages: first (undo is
+     * true) only the undo steps are run (restoring the state before the last
+     * checkpoint). In the second stage (undo is false) the committed operations
+     * are re-applied.
      *
      * @param undo true if the undo step should be run
      */
@@ -614,10 +617,36 @@ public class PageStore implements CacheWriter {
         trace.debug("log recover");
         try {
             recoveryRunning = true;
-            int todoBothMaybe;
-            getLog().recover(undo);
+            int maxId = 0;
+            for (int i = 0; i < LOG_COUNT; i++) {
+                int id = logs[i].openForReading();
+                if (id > maxId) {
+                    maxId = id;
+                    activeLog = i;
+                }
+            }
+            for (int i = 0; i < LOG_COUNT; i++) {
+                // start with the oldest log file
+                int j = (activeLog + 1 + i) % LOG_COUNT;
+                logs[j].recover(undo);
+            }
+            if (!undo) {
+                switchLogIfPossible();
+                int todoProbablyStillRequiredForTwoPhaseCommit;
+                sessionStates = new HashMap();
+            }
         } finally {
             recoveryRunning = false;
+            // re-calculate the last used page
+            while (true) {
+                DataPage page = readPage(lastUsedPage);
+                page.readInt();
+                int type = page.readByte();
+                if (type != Page.TYPE_EMPTY) {
+                    break;
+                }
+                lastUsedPage--;
+            }
         }
         trace.debug("log recover done");
     }
@@ -643,6 +672,55 @@ public class PageStore implements CacheWriter {
      */
     public void commit(Session session) throws SQLException {
         getLog().commit(session);
+    }
+
+    /**
+     * Get the session state for this session. A new object is created if there
+     * is no session state yet.
+     *
+     * @param sessionId the session id
+     * @return the session state object
+     */
+    private SessionState getOrAddSessionState(int sessionId) {
+        Integer key = ObjectUtils.getInteger(sessionId);
+        SessionState state = (SessionState) sessionStates.get(key);
+        if (state == null) {
+            state = new SessionState();
+            sessionStates.put(key, state);
+            state.sessionId = sessionId;
+        }
+        return state;
+    }
+
+    /**
+     * Set the last commit record for a session.
+     *
+     * @param sessionId the session id
+     * @param logId the log file id
+     * @param pos the position in the log file
+     */
+    void setLastCommitForSession(int sessionId, int logId, int pos) {
+        SessionState state = getOrAddSessionState(sessionId);
+        state.lastCommitLog = logId;
+        state.lastCommitPos = pos;
+        state.inDoubtTransaction = null;
+    }
+
+    /**
+     * Check if the session contains uncommitted log entries at the given position.
+     *
+     * @param sessionId the session id
+     * @param logId the log file id
+     * @param pos the position in the log file
+     * @return true if this session contains an uncommitted transaction
+     */
+    boolean isSessionCommitted(int sessionId, int logId, int pos) {
+        Integer key = ObjectUtils.getInteger(sessionId);
+        SessionState state = (SessionState) sessionStates.get(key);
+        if (state == null) {
+            return true;
+        }
+        return state.isCommitted(logId, pos);
     }
 
 }

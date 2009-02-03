@@ -260,6 +260,9 @@ public class FtpServer implements Service {
     }
 
     public void stop() {
+        if (serverSocket == null) {
+            return;
+        }
         try {
             serverSocket.close();
         } catch (IOException e) {

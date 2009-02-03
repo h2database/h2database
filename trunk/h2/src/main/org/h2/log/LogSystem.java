@@ -42,7 +42,7 @@ public class LogSystem {
     private LogFile currentLog;
     private String fileNamePrefix;
     private HashMap storages = new HashMap();
-    private HashMap sessions = new HashMap();
+    private HashMap sessionStates = new HashMap();
     private DataPage rowBuff;
     private ObjectArray undo;
     // TODO log file / deleteOldLogFilesAutomatically:
@@ -252,7 +252,7 @@ public class LogSystem {
                 database.getIndexFile().flushRedoLog();
             }
             int end = currentLog.getPos();
-            Object[] states = sessions.values().toArray();
+            Object[] states = sessionStates.values().toArray();
             inDoubtTransactions = new ObjectArray();
             for (int i = 0; i < states.length; i++) {
                 SessionState state = (SessionState) states[i];
@@ -260,10 +260,10 @@ public class LogSystem {
                     inDoubtTransactions.add(state.inDoubtTransaction);
                 }
             }
-            for (int i = undo.size() - 1; i >= 0 && sessions.size() > 0; i--) {
+            for (int i = undo.size() - 1; i >= 0 && sessionStates.size() > 0; i--) {
                 database.setProgress(DatabaseEventListener.STATE_RECOVER, null, undo.size() - 1 - i, undo.size());
                 LogRecord record = (LogRecord) undo.get(i);
-                if (sessions.get(ObjectUtils.getInteger(record.sessionId)) != null) {
+                if (sessionStates.get(ObjectUtils.getInteger(record.sessionId)) != null) {
                     // undo only if the session is not yet committed
                     record.log.undo(record.logRecordId);
                     database.getDataFile().flushRedoLog();
@@ -359,7 +359,7 @@ public class LogSystem {
      */
     boolean isSessionCommitted(int sessionId, int logId, int pos) {
         Integer key = ObjectUtils.getInteger(sessionId);
-        SessionState state = (SessionState) sessions.get(key);
+        SessionState state = (SessionState) sessionStates.get(key);
         if (state == null) {
             return true;
         }
@@ -389,10 +389,10 @@ public class LogSystem {
      */
     SessionState getOrAddSessionState(int sessionId) {
         Integer key = ObjectUtils.getInteger(sessionId);
-        SessionState state = (SessionState) sessions.get(key);
+        SessionState state = (SessionState) sessionStates.get(key);
         if (state == null) {
             state = new SessionState();
-            sessions.put(key, state);
+            sessionStates.put(key, state);
             state.sessionId = sessionId;
         }
         return state;
@@ -433,7 +433,7 @@ public class LogSystem {
      * @param sessionId the session id
      */
     void removeSession(int sessionId) {
-        sessions.remove(ObjectUtils.getInteger(sessionId));
+        sessionStates.remove(ObjectUtils.getInteger(sessionId));
     }
 
     /**

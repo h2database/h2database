@@ -15,22 +15,22 @@ public class SessionState {
     /**
      * The session id
      */
-    int sessionId;
+    public int sessionId;
 
     /**
      * The last log file id where a commit for this session is found.
      */
-    int lastCommitLog;
+    public int lastCommitLog;
 
     /**
      * The position where a commit for this session is found.
      */
-    int lastCommitPos;
+    public int lastCommitPos;
 
     /**
      * The in-doubt transaction if there is one.
      */
-    InDoubtTransaction inDoubtTransaction;
+    public InDoubtTransaction inDoubtTransaction;
 
     /**
      * Check if this session state is already committed at this point.
@@ -39,7 +39,7 @@ public class SessionState {
      * @param pos the position in the log file
      * @return true if it is committed
      */
-    boolean isCommitted(int logId, int pos) {
+    public boolean isCommitted(int logId, int pos) {
         if (logId != lastCommitLog) {
             return lastCommitLog > logId;
         }

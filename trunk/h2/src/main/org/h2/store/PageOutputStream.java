@@ -20,13 +20,15 @@ public class PageOutputStream extends OutputStream {
 
     private final Trace trace;
     private PageStore store;
-    private int parentPage;
     private int type;
+    private int parentPage;
     private int pageId;
     private int nextPage;
     private DataPage page;
     private int remaining;
     private final boolean allocateAtEnd;
+    private byte[] buffer = new byte[1];
+    private boolean needFlush;
 
     /**
      * Create a new page output stream.
@@ -40,7 +42,7 @@ public class PageOutputStream extends OutputStream {
         this.trace = store.getTrace();
         this.store = store;
         this.parentPage = parentPage;
-        this.nextPage = headPage;
+        this.pageId = headPage;
         this.type = type;
         this.allocateAtEnd = allocateAtEnd;
         page = store.createDataPage();
@@ -48,8 +50,8 @@ public class PageOutputStream extends OutputStream {
     }
 
     public void write(int b) throws IOException {
-        int todoOptimizeIfNeeded;
-        write(new byte[] { (byte) b });
+        buffer[0] = (byte) b;
+        write(buffer);
     }
 
     public void write(byte[] b) throws IOException {
@@ -72,18 +74,21 @@ public class PageOutputStream extends OutputStream {
             page.write(b, off, remaining);
             off += remaining;
             len -= remaining;
-            parentPage = nextPage;
-            pageId = nextPage;
             try {
                 nextPage = store.allocatePage(allocateAtEnd);
             } catch (SQLException e) {
                 throw Message.convertToIOException(e);
             }
-            page.setInt(5, nextPage);
+            page.setPos(4);
+            page.writeByte((byte) type);
+            page.writeInt(nextPage);
             storePage();
+            parentPage = pageId;
+            pageId = nextPage;
             initPage();
         }
         page.write(b, off, len);
+        needFlush = true;
         remaining -= len;
     }
 
@@ -98,26 +103,21 @@ public class PageOutputStream extends OutputStream {
         }
     }
 
-    public void close() throws IOException {
-        page.setPos(4);
-        page.writeByte((byte) (type | Page.FLAG_LAST));
-        page.writeInt(store.getPageSize() - remaining - 9);
-        pageId = nextPage;
-        storePage();
-        store = null;
-    }
-
     public void flush() throws IOException {
-        int todo;
+        if (needFlush) {
+            int len = page.length();
+            page.setPos(4);
+            page.writeByte((byte) (type | Page.FLAG_LAST));
+            page.writeInt(store.getPageSize() - remaining - 9);
+            page.setPos(len);
+            storePage();
+            needFlush = false;
+        }
     }
 
-    /**
-     * Get the number of remaining bytes that fit in the current page.
-     *
-     * @return the number of bytes
-     */
-    public int getRemainingBytes() {
-        return remaining;
+    public void close() throws IOException {
+        flush();
+        store = null;
     }
 
 }

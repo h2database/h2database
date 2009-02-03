@@ -22,6 +22,7 @@ public class FileStoreOutputStream extends OutputStream {
     private DataPage page;
     private String compressionAlgorithm;
     private CompressTool compress;
+    private byte[] buffer = new byte[1];
 
     public FileStoreOutputStream(FileStore store, DataHandler handler, String compressionAlgorithm) {
         this.store = store;
@@ -30,6 +31,11 @@ public class FileStoreOutputStream extends OutputStream {
             this.compressionAlgorithm = compressionAlgorithm;
         }
         page = DataPage.create(handler, Constants.FILE_BLOCK_SIZE);
+    }
+
+    public void write(int b) throws IOException {
+        buffer[0] = (byte) b;
+        write(buffer);
     }
 
     public void write(byte[] buff) throws IOException {
@@ -73,10 +79,6 @@ public class FileStoreOutputStream extends OutputStream {
                 store = null;
             }
         }
-    }
-
-    public void write(int b) throws IOException {
-        throw new IOException("this method is not implemented");
     }
 
 }

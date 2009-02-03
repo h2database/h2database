@@ -21,7 +21,11 @@ import org.h2.value.Value;
 
 /**
  * Transaction log mechanism.
- * The data format is:
+ * The format is:
+ * <ul><li>0-3: log id
+ * </li><li>records
+ * </li></ul>
+ * The data format for a record is:
  * <ul><li>0-0: type (0: undo,...)
  * </li><li>1-4: page id
  * </li><li>5-: data
@@ -58,11 +62,14 @@ public class PageLog {
      */
     public static final int REMOVE = 4;
 
-    private PageStore store;
+    private final PageStore store;
+    private int id;
+    private int pos;
     private Trace trace;
 
     private PageOutputStream pageOut;
     private DataOutputStream out;
+    private DataInputStream in;
     private int firstPage;
     private DataPage data;
     private long operation;
@@ -76,13 +83,38 @@ public class PageLog {
     }
 
     /**
-     * Open the log file for writing. For an existing database, the recovery
+     * Open the log for writing. For an existing database, the recovery
      * must be run first.
+     *
+     * @param id the log id
      */
-    void openForWriting() {
-        trace.debug("log openForWriting");
+    void openForWriting(int id) throws SQLException {
+        this.id = id;
+        trace.debug("log openForWriting " + id + " firstPage:" + firstPage);
         pageOut = new PageOutputStream(store, 0, firstPage, Page.TYPE_LOG, true);
         out = new DataOutputStream(pageOut);
+        try {
+            out.writeInt(id);
+            out.flush();
+        } catch (IOException e) {
+            throw Message.convertIOException(e, null);
+        }
+    }
+
+    /**
+     * Open the log for reading. This will also read the log id.
+     *
+     * @return the log id
+     */
+    int openForReading() throws SQLException {
+        in = new DataInputStream(new PageInputStream(store, 0, firstPage, Page.TYPE_LOG));
+        try {
+            id = in.readInt();
+            trace.debug("log openForReading " + id + " firstPage:" + firstPage + " id:" + id);
+            return id;
+        } catch (IOException e) {
+            return 0;
+        }
     }
 
     /**
@@ -93,14 +125,18 @@ public class PageLog {
      * @param undo true if the undo step should be run
      */
     void recover(boolean undo) throws SQLException {
-        DataInputStream in = new DataInputStream(new PageInputStream(store, 0, firstPage, Page.TYPE_LOG));
+        if (trace.isDebugEnabled()) {
+            trace.debug("log recover " + id + " undo:" + undo);
+        }
         DataPage data = store.createDataPage();
         try {
+            pos = 0;
             while (true) {
                 int x = in.read();
                 if (x < 0) {
                     break;
                 }
+                pos++;
                 if (x == NO_OP) {
                     // nothing to do
                 } else if (x == UNDO) {
@@ -118,16 +154,22 @@ public class PageLog {
                     Row row = readRow(in, data);
                     if (!undo) {
                         Database db = store.getDatabase();
-                        if (trace.isDebugEnabled()) {
-                            trace.debug("log redo " + (x == ADD ? "+" : "-") + " " + row);
+                        if (store.isSessionCommitted(sessionId, id, pos)) {
+                            if (trace.isDebugEnabled()) {
+                                trace.debug("log redo " + (x == ADD ? "+" : "-") + " " + row);
+                            }
+                            db.redo(tableId, row, x == ADD);
                         }
-                        db.redo(tableId, row, x == ADD);
                     }
                 } else if (x == COMMIT) {
-                    in.readInt();
+                    int sessionId = in.readInt();
+                    if (undo) {
+                        store.setLastCommitForSession(sessionId, id, pos);
+                    }
                 }
             }
         } catch (Exception e) {
+e.printStackTrace();
             int todoOnlyIOExceptionAndSQLException;
             int todoSomeExceptionAreOkSomeNot;
             trace.debug("log recovery stopped: " + e.toString());
@@ -170,6 +212,9 @@ public class PageLog {
             if (undo.get(pageId)) {
                 return;
             }
+            if (trace.isDebugEnabled()) {
+                trace.debug("log undo " + pageId);
+            }
             out.write(UNDO);
             out.writeInt(pageId);
             out.write(page.getBytes(), 0, store.getPageSize());
@@ -209,7 +254,7 @@ public class PageLog {
         try {
             if (trace.isDebugEnabled()) {
                 trace.debug("log " + (add?"+":"-") + " table:" + tableId +
-                        " remaining:" + pageOut.getRemainingBytes() + " row:" + row);
+                        " row:" + row);
             }
             int todoLogPosShouldBeLong;
             session.addLogPos(0, (int) operation);
@@ -229,13 +274,30 @@ public class PageLog {
     }
 
     /**
-     * Close the log, truncate it, and re-open it.
+     * Close the log.
      */
-    void reopen() throws SQLException {
+    void close() throws SQLException {
+        try {
+            trace.debug("log close " + id);
+            if (out != null) {
+                out.close();
+            }
+            out = null;
+        } catch (IOException e) {
+            throw Message.convertIOException(e, null);
+        }
+    }
+
+    /**
+     * Close the log, truncate it, and re-open it.
+     *
+     * @param id the new log id
+     */
+    private void reopen(int id) throws SQLException {
         try {
             trace.debug("log reopen");
             out.close();
-            openForWriting();
+            openForWriting(id);
             flush();
             int todoDeleteOrReUsePages;
         } catch (IOException e) {
@@ -246,19 +308,23 @@ public class PageLog {
     /**
      * Flush the transaction log.
      */
-    private void flush() throws SQLException {
+    void flush() throws SQLException {
         try {
             int todoUseLessSpace;
             trace.debug("log flush");
             out.flush();
-            int filler = pageOut.getRemainingBytes();
-            for (int i = 0; i < filler; i++) {
-                out.writeByte(NO_OP);
-            }
-            out.flush();
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
         }
+    }
+
+    /**
+     * Get the log id.
+     *
+     * @return the log id
+     */
+    int getId() {
+        return id;
     }
 
     /**

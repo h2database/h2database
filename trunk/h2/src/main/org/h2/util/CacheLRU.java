@@ -72,7 +72,7 @@ public class CacheLRU implements Cache {
         } else {
             if (SysProperties.CHECK) {
                 if (old != rec) {
-                    Message.throwInternalError("old != record old=" + old + " new=" + rec);
+                    Message.throwInternalError("old!=record pos:" + pos + " old:" + old + " new:" + rec);
                 }
             }
             removeFromLinkedList(rec);

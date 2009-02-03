@@ -2091,7 +2091,7 @@ public class Database implements DataHandler {
     }
 
     public PageStore getPageStore() throws SQLException {
-        if (pageStore == null) {
+        if (pageStore == null && SysProperties.PAGE_STORE) {
             pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData,
                     SysProperties.CACHE_SIZE_DEFAULT);
             pageStore.open();

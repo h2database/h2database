@@ -9,6 +9,7 @@ package org.h2.command.dml;
 import java.sql.SQLException;
 
 import org.h2.command.Prepared;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.log.LogSystem;
@@ -123,8 +124,8 @@ public class TransactionCommand extends Prepared {
             break;
         case CHECKPOINT:
             session.getUser().checkAdmin();
-            PageStore store = session.getDatabase().getPageStore();
-            if (store != null) {
+            if (SysProperties.PAGE_STORE) {
+                PageStore store = session.getDatabase().getPageStore();
                 store.checkpoint();
             }
             session.getDatabase().getLog().checkpoint();

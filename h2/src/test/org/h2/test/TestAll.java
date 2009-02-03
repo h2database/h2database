@@ -283,7 +283,10 @@ java org.h2.test.TestAll timer
 
 /*
 
-include ClearReferences test case
+maybe close the database when a final static field is set to null?
+
+use 127.0.0.1 if other addresses don't work
+
 isShutdown
 
 PageStore.switchLogIfPossible()

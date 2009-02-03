@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>If opening a database failed with an out of memory exception, some files were not closed.
+<ul><li>The WebServlet did not close the database when undeploying the web application.
+</li><li>The exception message of failed INSERT or MERGE statements now includes all values and the row number.
+</li><li>If opening a database failed with an out of memory exception, some files were not closed.
 </li><li>Optimizer: the expected runtime calculation was incorrect. The fixed calculation
     should give slightly better query plans when using many joins.
 </li><li>Improved exception message when connecting to a just started server fails.

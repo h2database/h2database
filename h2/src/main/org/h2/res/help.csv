@@ -1843,7 +1843,8 @@ ARRAY
 "Functions (Aggregate)","AVG","
 AVG([DISTINCT] {int | long | decimal | double}): value
 ","
-The average (mean) value.
+The average (mean) value. 
+If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 AVG(X)
@@ -1853,6 +1854,7 @@ AVG(X)
 BOOL_AND(boolean): boolean
 ","
 Returns true if all expressions are true.
+If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 BOOL_AND(ID>10)
@@ -1862,6 +1864,7 @@ BOOL_AND(ID>10)
 BOOL_OR(boolean): boolean
 ","
 Returns true if any expression is true.
+If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 BOOL_OR(NAME LIKE 'W%')
@@ -1871,6 +1874,7 @@ BOOL_OR(NAME LIKE 'W%')
 COUNT(*) | COUNT([DISTINCT] expression): int
 ","
 The count of all row, or of the non-null values.
+If no rows are selected, the result is 0.
 Aggregates are only allowed in select statements.
 ","
 COUNT(*)
@@ -1880,6 +1884,7 @@ COUNT(*)
 GROUP_CONCAT([DISTINCT] string [ORDER BY {expression [ASC|DESC]}[,...]] [SEPARATOR expression]): string
 ","
 Concatenates strings with a separator. The default separator is a ',' (without space).
+If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 GROUP_CONCAT(NAME ORDER BY ID SEPARATOR ', ')
@@ -1888,7 +1893,8 @@ GROUP_CONCAT(NAME ORDER BY ID SEPARATOR ', ')
 "Functions (Aggregate)","MAX","
 MAX(value): value
 ","
-The highest value.
+The highest value. 
+If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 MAX(NAME)
@@ -1897,7 +1903,8 @@ MAX(NAME)
 "Functions (Aggregate)","MIN","
 MIN(value): value
 ","
-The lowest value.
+The lowest value. 
+If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 MIN(NAME)
@@ -1906,7 +1913,8 @@ MIN(NAME)
 "Functions (Aggregate)","SUM","
 SUM([DISTINCT] {int | long | decimal | double}): value
 ","
-The sum of all values.
+The sum of all values. 
+If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 SUM(X)
@@ -1928,6 +1936,7 @@ SELECT SELECTIVITY(FIRSTNAME), SELECTIVITY(NAME) FROM TEST WHERE ROWNUM()<100000
 STDDEV_POP([DISTINCT] double): double
 ","
 The population standard deviation.
+If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 STDDEV_POP(X)
@@ -1937,6 +1946,7 @@ STDDEV_POP(X)
 STDDEV_SAMP([DISTINCT] double): double
 ","
 The sample standard deviation.
+If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 STDDEV(X)
@@ -1946,6 +1956,7 @@ STDDEV(X)
 VAR_POP([DISTINCT] double): double
 ","
 The population variance (square of the population standard deviation).
+If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 VAR_POP(X)
@@ -1955,6 +1966,7 @@ VAR_POP(X)
 VAR_SAMP([DISTINCT] double): double
 ","
 The sample variance (square of the sample standard deviation).
+If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 VAR_SAMP(X)

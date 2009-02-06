@@ -234,6 +234,10 @@ class WebSession {
         return shutdownServerOnDisconnect;
     }
 
+    /**
+     * Close the connection and stop the statement if one is currently
+     * executing.
+     */
     void close() {
         if (executingStatement != null) {
             try {

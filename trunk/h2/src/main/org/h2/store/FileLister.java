@@ -70,7 +70,7 @@ public class FileLister {
             } else if (f.endsWith(Constants.SUFFIX_LOG_FILE)) {
                 ok = true;
             } else if (f.endsWith(Constants.SUFFIX_LOBS_DIRECTORY)) {
-                if (FileUtils.fileStartsWith(f, start + ".")) {
+                if (start == null || FileUtils.fileStartsWith(f, start + ".")) {
                     files.addAll(getDatabaseFiles(f, null, all));
                     ok = true;
                 }

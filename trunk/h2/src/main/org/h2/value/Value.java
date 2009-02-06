@@ -833,6 +833,9 @@ public abstract class Value {
      *         1 otherwise
      */
     public final int compareTo(Value v, CompareMode mode) throws SQLException {
+        if (this == v) {
+            return 0;
+        }
         if (this == ValueNull.INSTANCE) {
             return v == ValueNull.INSTANCE ? 0 : -1;
         } else if (v == ValueNull.INSTANCE) {

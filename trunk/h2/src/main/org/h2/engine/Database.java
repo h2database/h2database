@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 
@@ -165,6 +166,10 @@ public class Database implements DataHandler {
     private TempFileDeleter tempFileDeleter = TempFileDeleter.getInstance();
     private PageStore pageStore;
 
+    private Properties reconnectLastLock;
+    private long reconnectCheckNext;
+    private boolean reconnectChangePending;
+
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = new CompareMode(null, null, 0);
         this.persistent = ci.isPersistent();
@@ -172,15 +177,18 @@ public class Database implements DataHandler {
         this.databaseName = name;
         this.databaseShortName = parseDatabaseShortName();
         this.cipher = cipher;
-        String lockMethodName = ci.removeProperty("FILE_LOCK", null);
-        this.accessModeLog = ci.removeProperty("ACCESS_MODE_LOG", "rw").toLowerCase();
-        this.accessModeData = ci.removeProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
-        this.autoServerMode = ci.removeProperty("AUTO_SERVER", false);
+        String lockMethodName = ci.getProperty("FILE_LOCK", null);
+        this.accessModeLog = ci.getProperty("ACCESS_MODE_LOG", "rw").toLowerCase();
+        this.accessModeData = ci.getProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
+        this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
         if ("r".equals(accessModeData)) {
             readOnly = true;
             accessModeLog = "r";
         }
         this.fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
+        if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
+            writeDelay = SysProperties.MIN_WRITE_DELAY;
+        }
         this.databaseURL = ci.getURL();
         this.eventListener = ci.getDatabaseEventListenerObject();
         ci.removeDatabaseEventListenerObject();
@@ -199,12 +207,16 @@ public class Database implements DataHandler {
         if (ignoreSummary != null) {
             this.recovery = true;
         }
-        this.multiVersion = ci.removeProperty("MVCC", false);
-        boolean closeAtVmShutdown = ci.removeProperty("DB_CLOSE_ON_EXIT", true);
+        this.multiVersion = ci.getProperty("MVCC", false);
+        boolean closeAtVmShutdown = ci.getProperty("DB_CLOSE_ON_EXIT", true);
         int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
         int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
                 TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
         this.cacheType = StringUtils.toUpperEnglish(ci.removeProperty("CACHE_TYPE", CacheLRU.TYPE_NAME));
+        openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown);
+    }
+
+    private void openDatabase(int traceLevelFile, int traceLevelSystemOut, boolean closeAtVmShutdown) throws SQLException {
         try {
             open(traceLevelFile, traceLevelSystemOut);
             if (closeAtVmShutdown) {
@@ -293,6 +305,25 @@ public class Database implements DataHandler {
 
     public long getModificationDataId() {
         return modificationDataId;
+    }
+
+    private void reconnectModified(boolean pending) {
+        if (readOnly || pending == reconnectChangePending || lock == null) {
+            return;
+        }
+        try {
+            if (pending) {
+                getTrace().debug("wait before writing");
+                Thread.sleep((int) (SysProperties.RECONNECT_CHECK_DELAY * 1.1));
+            }
+            lock.setProperty("modificationDataId", Long.toString(modificationDataId));
+            lock.setProperty("modificationMetaId", Long.toString(modificationMetaId));
+            lock.setProperty("changePending", pending ? "true" : null);
+            lock.save();
+            reconnectChangePending = pending;
+        } catch (Exception e) {
+            getTrace().error("pending:"+ pending, e);
+        }
     }
 
     public long getNextModificationDataId() {
@@ -478,12 +509,14 @@ public class Database implements DataHandler {
                 }
             }
             if (!readOnly && fileLockMethod != FileLock.LOCK_NO) {
-                lock = new FileLock(traceSystem, Constants.LOCK_SLEEP);
-                lock.lock(databaseName + Constants.SUFFIX_LOCK_FILE, fileLockMethod == FileLock.LOCK_SOCKET);
+                lock = new FileLock(traceSystem, databaseName + Constants.SUFFIX_LOCK_FILE, Constants.LOCK_SLEEP);
+                lock.lock(fileLockMethod);
                 if (autoServerMode) {
                     startServer(lock.getUniqueId());
                 }
             }
+            // wait until pending changes are written
+            isReconnectNeeded();
             if (SysProperties.PAGE_STORE) {
                 PageStore store = getPageStore();
                 if (!store.isNew()) {
@@ -602,7 +635,8 @@ public class Database implements DataHandler {
                 "-key", key, databaseName});
         server.start();
         String address = NetUtils.getLocalAddress() + ":" + server.getPort();
-        lock.addProperty("server", address);
+        lock.setProperty("server", address);
+        lock.save();
     }
 
     private void stopServer() {
@@ -2136,6 +2170,85 @@ public class Database implements DataHandler {
             }
         }
         return null;
+    }
+
+    public boolean isReconnectNeeded() {
+        if (fileLockMethod != FileLock.LOCK_SERIALIZED) {
+            return false;
+        }
+        long now = System.currentTimeMillis();
+        if (now < reconnectCheckNext) {
+            return false;
+        }
+        reconnectCheckNext = now + SysProperties.RECONNECT_CHECK_DELAY;
+        if (lock == null) {
+            lock = new FileLock(traceSystem, databaseName + Constants.SUFFIX_LOCK_FILE, Constants.LOCK_SLEEP);
+        }
+        Properties prop;
+        try {
+            while (true) {
+                prop = lock.load();
+                if (prop.equals(reconnectLastLock)) {
+                    return false;
+                }
+                if (prop.getProperty("changePending", null) == null) {
+                    break;
+                }
+                getTrace().debug("delay (change pending)");
+                Thread.sleep(SysProperties.RECONNECT_CHECK_DELAY);
+            }
+            reconnectLastLock = prop;
+        } catch (Exception e) {
+            getTrace().error("readOnly:" + readOnly, e);
+            // ignore
+        }
+        return true;
+    }
+
+    /**
+     * This method is called after writing to the database.
+     */
+    public void afterWriting() throws SQLException {
+        if (fileLockMethod != FileLock.LOCK_SERIALIZED || readOnly) {
+            return;
+        }
+        reconnectCheckNext = System.currentTimeMillis() + 1;
+    }
+
+    /**
+     * Flush all changes when using the serialized mode, and if there are
+     * pending changes.
+     */
+    public void checkpointIfRequired() throws SQLException {
+        if (fileLockMethod != FileLock.LOCK_SERIALIZED || readOnly || !reconnectChangePending) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        if (now > reconnectCheckNext) {
+            getTrace().debug("checkpoint");
+            checkpoint();
+            reconnectModified(false);
+        }
+    }
+
+    /**
+     * Flush all changes and open a new log file.
+     */
+    public void checkpoint() throws SQLException {
+        if (SysProperties.PAGE_STORE) {
+            pageStore.checkpoint();
+        }
+        getLog().checkpoint();
+        getTempFileDeleter().deleteUnused();
+    }
+
+    /**
+     * This method is called before writing to the log file.
+     */
+    public void beforeWriting() {
+        if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
+            reconnectModified(true);
+        }
     }
 
 }

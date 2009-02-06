@@ -142,6 +142,17 @@ public class WriterThread extends Thread {
             if (Constants.FLUSH_INDEX_DELAY != 0) {
                 flushIndexes(database);
             }
+
+            // checkpoint if required
+            try {
+                database.checkpointIfRequired();
+            } catch (SQLException e) {
+                TraceSystem traceSystem = database.getTraceSystem();
+                if (traceSystem != null) {
+                    traceSystem.getTrace(Trace.LOG).error("reconnectCheckpoint", e);
+                }
+            }
+
             LogSystem log = database.getLog();
             if (log == null) {
                 break;
@@ -154,6 +165,7 @@ public class WriterThread extends Thread {
                     traceSystem.getTrace(Trace.LOG).error("flush", e);
                 }
             }
+
             // TODO log writer: could also flush the dirty cache when there is
             // low activity
             int wait = writeDelay;

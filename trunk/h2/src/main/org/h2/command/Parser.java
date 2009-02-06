@@ -4085,6 +4085,10 @@ public class Parser {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
+        } else if (readIf("OPEN_NEW")) {
+            readIfEqualOrTo();
+            read();
+            return new NoOperation(session);
         } else if (readIf("RECOVER")) {
             readIfEqualOrTo();
             read();

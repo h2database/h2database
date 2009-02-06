@@ -46,7 +46,7 @@ import org.h2.value.ValueNull;
  * mode, this object resides on the server side and communicates with a
  * SessionRemote object on the client side.
  */
-public class Session implements SessionInterface {
+public class Session extends SessionWithState {
 
     /**
      * The prefix of generated identifiers. It may not have letters, because
@@ -56,9 +56,10 @@ public class Session implements SessionInterface {
     private static int nextSerialId;
 
     private final int serialId = nextSerialId++;
+    private Database database;
+    private ConnectionInfo connectionInfo;
     private User user;
     private int id;
-    private Database database;
     private ObjectArray locks = new ObjectArray();
     private UndoLog undoLog;
     private boolean autoCommit = true;
@@ -97,6 +98,7 @@ public class Session implements SessionInterface {
     private boolean commitOrRollbackDisabled;
     private Table waitForLock;
     private int modificationId;
+    private int modificationIdState;
 
     Session(Database database, User user, int id) {
         this.database = database;
@@ -625,12 +627,13 @@ public class Session implements SessionInterface {
         }
     }
 
-    private void unlockAll() {
+    private void unlockAll() throws SQLException {
         if (SysProperties.CHECK) {
             if (undoLog.size() > 0) {
                 Message.throwInternalError();
             }
         }
+        database.afterWriting();
         if (locks.size() > 0) {
             synchronized (database) {
                 for (int i = 0; i < locks.size(); i++) {
@@ -641,6 +644,10 @@ public class Session implements SessionInterface {
             }
         }
         savepoints = null;
+
+        if (modificationIdState != modificationId) {
+            sessionStateChanged = true;
+        }
     }
 
     private void cleanTempTables(boolean closeSession) throws SQLException {
@@ -1102,6 +1109,22 @@ public class Session implements SessionInterface {
 
     public int getModificationId() {
         return modificationId;
+    }
+
+    public boolean isReconnectNeeded() {
+        return database.isReconnectNeeded();
+    }
+
+    public SessionInterface reconnect() throws SQLException {
+        readSessionState();
+        Session newSession = Engine.getInstance().getSession(connectionInfo);
+        newSession.sessionState = sessionState;
+        newSession.recreateSessionState();
+        return newSession;
+    }
+
+    public void setConnectionInfo(ConnectionInfo ci) {
+        connectionInfo = ci;
     }
 
 }

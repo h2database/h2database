@@ -509,6 +509,7 @@ public class LogSystem {
                 return;
             }
             database.checkWritingAllowed();
+            database.beforeWriting();
             if (!file.isDataFile()) {
                 storageId = -storageId;
             }
@@ -535,6 +536,7 @@ public class LogSystem {
                 return;
             }
             database.checkWritingAllowed();
+            database.beforeWriting();
             int storageId = record.getStorageId();
             if (!file.isDataFile()) {
                 storageId = -storageId;

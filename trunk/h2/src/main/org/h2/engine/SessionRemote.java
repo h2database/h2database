@@ -41,7 +41,7 @@ import org.h2.value.ValueString;
  * The client side part of a session when using the server mode. This object
  * communicates with a Session on the server side.
  */
-public class SessionRemote implements SessionInterface, SessionFactory, DataHandler {
+public class SessionRemote extends SessionWithState implements SessionFactory, DataHandler {
 
     public static final int SESSION_PREPARE = 0;
     public static final int SESSION_CLOSE = 1;
@@ -81,9 +81,6 @@ public class SessionRemote implements SessionInterface, SessionFactory, DataHand
     private boolean autoReconnect;
     private int lastReconnect;
     private SessionInterface embedded;
-    private boolean sessionStateChanged;
-    private ObjectArray sessionState;
-    private boolean sessionStateUpdating;
     private DatabaseEventListener eventListener;
 
     public SessionRemote() {
@@ -259,7 +256,7 @@ public class SessionRemote implements SessionInterface, SessionFactory, DataHand
                         // OPEN_NEW must be removed now, otherwise
                         // opening a session with AUTO_SERVER fails
                         // if another connection is already open
-                        backup.removeProperty("OPEN_NEW", false);
+                        backup.removeProperty("OPEN_NEW", null);
                         connectServer(backup);
                         return this;
                     }
@@ -451,19 +448,7 @@ public class SessionRemote implements SessionInterface, SessionFactory, DataHand
             // unfortunately
             connectEmbeddedOrServer(true);
         }
-        if (sessionState != null && sessionState.size() > 0) {
-            sessionStateUpdating = true;
-            try {
-                for (int i = 0; i < sessionState.size(); i++) {
-                    String sql = (String) sessionState.get(i);
-                    CommandInterface ci = prepareCommand(sql, Integer.MAX_VALUE);
-                    ci.executeUpdate();
-                }
-            } finally {
-                sessionStateUpdating = false;
-                sessionStateChanged = false;
-            }
-        }
+        recreateSessionState();
         if (eventListener != null) {
             eventListener.setProgress(DatabaseEventListener.STATE_RECONNECTED, databaseName, count,
                     SysProperties.MAX_RECONNECT);
@@ -663,25 +648,16 @@ public class SessionRemote implements SessionInterface, SessionFactory, DataHand
         return lastReconnect;
     }
 
-    /**
-     * Read the session state if necessary.
-     */
-    public void readSessionState() throws SQLException {
-        if (!sessionStateChanged || sessionStateUpdating) {
-            return;
-        }
-        sessionStateChanged = false;
-        sessionState = new ObjectArray();
-        CommandInterface ci = prepareCommand("SELECT * FROM INFORMATION_SCHEMA.SESSION_STATE", Integer.MAX_VALUE);
-        ResultInterface result = ci.executeQuery(0, false);
-        while (result.next()) {
-            Value[] row = result.currentRow();
-            sessionState.add(row[1].getString());
-        }
-    }
-
     public TempFileDeleter getTempFileDeleter() {
         return TempFileDeleter.getInstance();
+    }
+
+    public boolean isReconnectNeeded() {
+        return false;
+    }
+
+    public SessionInterface reconnect() {
+        return this;
     }
 
 }

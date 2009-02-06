@@ -375,8 +375,8 @@ public abstract class TestBase {
         e.printStackTrace();
         try {
             TraceSystem ts = new TraceSystem(null, false);
-            FileLock lock = new FileLock(ts, 1000);
-            lock.lock("error.lock", false);
+            FileLock lock = new FileLock(ts, "error.lock", 1000);
+            lock.lock(FileLock.LOCK_FILE);
             FileWriter fw = new FileWriter("ERROR.txt", true);
             PrintWriter pw = new PrintWriter(fw);
             e.printStackTrace(pw);

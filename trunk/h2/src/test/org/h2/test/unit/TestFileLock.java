@@ -62,9 +62,9 @@ public class TestFileLock extends TestBase implements Runnable {
 
     public void run() {
         while (!stop) {
-            FileLock lock = new FileLock(new TraceSystem(null, false), 100);
+            FileLock lock = new FileLock(new TraceSystem(null, false), FILE, 100);
             try {
-                lock.lock(FILE, allowSockets);
+                lock.lock(allowSockets ? FileLock.LOCK_SOCKET : FileLock.LOCK_FILE);
                 base.trace(lock + " locked");
                 locks++;
                 if (locks > 1) {

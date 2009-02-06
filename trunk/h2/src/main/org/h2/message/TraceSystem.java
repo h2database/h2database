@@ -178,6 +178,10 @@ public class TraceSystem implements TraceWriter {
         updateLevel();
     }
 
+    public int getLevelSystemOut() {
+        return levelSystemOut;
+    }
+
     /**
      * Set the file trace level.
      *
@@ -207,6 +211,10 @@ public class TraceSystem implements TraceWriter {
         }
         levelFile = level;
         updateLevel();
+    }
+
+    public int getLevelFile() {
+        return levelFile;
     }
 
     private String format(String module, String s) {

@@ -1843,7 +1843,7 @@ ARRAY
 "Functions (Aggregate)","AVG","
 AVG([DISTINCT] {int | long | decimal | double}): value
 ","
-The average (mean) value. 
+The average (mean) value.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
@@ -1893,7 +1893,7 @@ GROUP_CONCAT(NAME ORDER BY ID SEPARATOR ', ')
 "Functions (Aggregate)","MAX","
 MAX(value): value
 ","
-The highest value. 
+The highest value.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
@@ -1903,7 +1903,7 @@ MAX(NAME)
 "Functions (Aggregate)","MIN","
 MIN(value): value
 ","
-The lowest value. 
+The lowest value.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
@@ -1913,7 +1913,7 @@ MIN(NAME)
 "Functions (Aggregate)","SUM","
 SUM([DISTINCT] {int | long | decimal | double}): value
 ","
-The sum of all values. 
+The sum of all values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","

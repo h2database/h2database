@@ -18,7 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The WebServlet did not close the database when undeploying the web application.
+<ul><li>Recovery did not work if there were more than 255 lobs stored as files.
+</li><li>New experimental mode to support multiple read-write connections without starting
+    a server. To enable this mode, append ;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE to the database URL.
+    Don't expect high performance when multiple concurrent writers.
+</li><li>In a web application, the database classes are not unloaded if a connection is open.
+    This may cause out of memory when re-deploying a web application.
+    The DbStarter is changed to close all connections to the configured database
+    (by executing SHUTDOWN).
+</li><li>The WebServlet did not close the database when un-deploying the web application.
 </li><li>The exception message of failed INSERT or MERGE statements now includes all values and the row number.
 </li><li>If opening a database failed with an out of memory exception, some files were not closed.
 </li><li>Optimizer: the expected runtime calculation was incorrect. The fixed calculation

@@ -89,6 +89,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Eclipse plugin
 </li><li>Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait]
 </li><li>Improved fulltext search (reader / tokenizer / filter).
+</li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files
 </li><li>iReport to support H2
 </li><li>Implement missing JDBC API (CallableStatement,...)
 </li><li>Compression of the cache
@@ -100,7 +101,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Copy database: Tool with config GUI and batch mode, extensible (example: compare)
 </li><li>Document, implement tool for long running transactions using user-defined compensation statements
 </li><li>Support SET TABLE DUAL READONLY
-</li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files
 </li><li>GCJ: what is the state now?
 </li><li>Reduce disk space usage
 </li><li>Events for: Database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
@@ -401,6 +401,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>CSV: currently # is a line comment and can start at any field. Make it optional.
 </li><li>Add database creation date and time to the database.
 </li><li>Support ASSERTIONS.
+</li><li>MySQL compatibility: support comparing 1='a'
 </li></ul>
 
 <h2>Not Planned</h2>

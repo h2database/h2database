@@ -69,14 +69,20 @@ public class DbStarter implements ServletContextListener {
     }
 
     public void contextDestroyed(ServletContextEvent servletContextEvent) {
-        if (server != null) {
-            server.stop();
-            server = null;
+        try {
+            conn.createStatement().execute("SHUTDOWN");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         try {
             conn.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
+        if (server != null) {
+            server.stop();
+            server = null;
+        }
     }
+
 }

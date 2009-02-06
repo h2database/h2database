@@ -54,8 +54,14 @@ public class FileLock {
      */
     public static final int LOCK_SOCKET = 2;
 
+    /**
+     * This locking method means multiple writers are allowed, and they
+     * synchronize themselves.
+     */
+    public static final int LOCK_SERIALIZED = 3;
+
     private static final String MAGIC = "FileLock";
-    private static final String FILE = "file", SOCKET = "socket";
+    private static final String FILE = "file", SOCKET = "socket", SERIALIZED = "serialized";
     private static final int RANDOM_BYTES = 16;
     private static final int SLEEP_GAP = 25;
     private static final int TIME_GRANULARITY = 2000;
@@ -101,30 +107,34 @@ public class FileLock {
      * @param traceSystem the trace system to use
      * @param sleep the number of milliseconds to sleep
      */
-    public FileLock(TraceSystem traceSystem, int sleep) {
+    public FileLock(TraceSystem traceSystem, String fileName, int sleep) {
         this.trace = traceSystem.getTrace(Trace.FILE_LOCK);
+        this.fileName = fileName;
         this.sleep = sleep;
     }
 
     /**
      * Lock the file if possible. A file may only be locked once.
      *
-     * @param fileName the name of the properties file to use
-     * @param allowSocket if the socket locking protocol should be used if
-     *            possible
+     * @param fileLockMethod the file locking method to use
      * @throws SQLException if locking was not successful
      */
-    public synchronized void lock(String fileName, boolean allowSocket) throws SQLException {
+    public synchronized void lock(int fileLockMethod) throws SQLException {
         this.fs = FileSystem.getInstance(fileName);
-        this.fileName = fileName;
         checkServer();
         if (locked) {
             Message.throwInternalError("already locked");
         }
-        if (allowSocket) {
-            lockSocket();
-        } else {
+        switch (fileLockMethod) {
+        case LOCK_FILE:
             lockFile();
+            break;
+        case LOCK_SOCKET:
+            lockSocket();
+            break;
+        case LOCK_SERIALIZED:
+            lockSerialized();
+            break;
         }
         locked = true;
     }
@@ -155,14 +165,18 @@ public class FileLock {
     }
 
     /**
-     * Add a setting to the properties file.
+     * Add or change a setting to the properties. This call does not save the
+     * file.
      *
      * @param key the key
      * @param value the value
      */
-    public void addProperty(String key, String value) throws SQLException {
-        properties.put(key, value);
-        save();
+    public void setProperty(String key, String value) throws SQLException {
+        if (value == null) {
+            properties.remove(key);
+        } else {
+            properties.put(key, value);
+        }
     }
 
     /**
@@ -187,11 +201,10 @@ public class FileLock {
     /**
      * Save the lock file.
      */
-    void save() throws SQLException {
+    public void save() throws SQLException {
         try {
             OutputStream out = fs.openFileOutputStream(fileName, false);
             try {
-                properties.setProperty("method", String.valueOf(method));
                 properties.store(out, MAGIC);
             } finally {
                 out.close();
@@ -242,7 +255,12 @@ public class FileLock {
         }
     }
 
-    private Properties load() throws SQLException {
+    /**
+     * Load the properties file.
+     *
+     * @return the properties
+     */
+    public Properties load() throws SQLException {
         try {
             Properties p2 = SortedProperties.loadProperties(fileName);
             if (trace.isDebugEnabled()) {
@@ -281,9 +299,17 @@ public class FileLock {
         properties.setProperty("id", uniqueId);
     }
 
+    private void lockSerialized() throws SQLException {
+        method = SERIALIZED;
+        properties = new SortedProperties();
+        properties.setProperty("method", String.valueOf(method));
+        setUniqueId();
+    }
+
     private void lockFile() throws SQLException {
         method = FILE;
         properties = new SortedProperties();
+        properties.setProperty("method", String.valueOf(method));
         setUniqueId();
         if (!fs.createNewFile(fileName)) {
             waitUntilOld();
@@ -337,6 +363,7 @@ public class FileLock {
     private void lockSocket() throws SQLException {
         method = SOCKET;
         properties = new SortedProperties();
+        properties.setProperty("method", String.valueOf(method));
         setUniqueId();
         // if this returns 127.0.0.1,
         // the computer is probably not networked
@@ -458,6 +485,8 @@ public class FileLock {
             return FileLock.LOCK_NO;
         } else if (method.equalsIgnoreCase("SOCKET")) {
             return FileLock.LOCK_SOCKET;
+        } else if (method.equalsIgnoreCase("SERIALIZED")) {
+            return FileLock.LOCK_SERIALIZED;
         } else {
             throw Message.getSQLException(ErrorCode.UNSUPPORTED_LOCK_METHOD_1, method);
         }

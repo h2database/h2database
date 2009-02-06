@@ -278,6 +278,18 @@ public class ConnectionInfo implements Cloneable {
     }
 
     /**
+     * Get a boolean property if it is set and return the value.
+     *
+     * @param key the property name
+     * @param defaultValue the default value
+     * @return the value
+     */
+    public boolean getProperty(String key, boolean defaultValue) {
+        String x = getProperty(key, null);
+        return x == null ? defaultValue : Boolean.valueOf(x).booleanValue();
+    }
+
+    /**
      * Remove a boolean property if it is set and return the value.
      *
      * @param key the property name

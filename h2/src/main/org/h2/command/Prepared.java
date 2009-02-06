@@ -368,6 +368,12 @@ public abstract class Prepared {
         return sqlStatement;
     }
 
+    /**
+     * Get the SQL snippet of the value list.
+     *
+     * @param values the value list
+     * @return the SQL snippet
+     */
     protected String getSQL(Value[] values) {
         StringBuffer buff = new StringBuffer();
         for (int i = 0; i < values.length; i++) {
@@ -382,6 +388,12 @@ public abstract class Prepared {
         return buff.toString();
     }
 
+    /**
+     * Get the SQL snippet of the expression list.
+     *
+     * @param list the expression list
+     * @return the SQL snippet
+     */
     protected String getSQL(Expression[] list) {
         StringBuffer buff = new StringBuffer();
         for (int i = 0; i < list.length; i++) {
@@ -396,7 +408,14 @@ public abstract class Prepared {
         return buff.toString();
     }
 
-
+    /**
+     * Set the SQL statement of the exception to the given row.
+     *
+     * @param ex the exception
+     * @param rowId the row number
+     * @param values the values of the row
+     * @return the exception
+     */
     protected SQLException setRow(SQLException ex, int rowId, String values) {
         if (ex instanceof JdbcSQLException) {
             JdbcSQLException e = (JdbcSQLException) ex;

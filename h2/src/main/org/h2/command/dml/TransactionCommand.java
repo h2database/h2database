@@ -9,13 +9,11 @@ package org.h2.command.dml;
 import java.sql.SQLException;
 
 import org.h2.command.Prepared;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.log.LogSystem;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
-import org.h2.store.PageStore;
 
 /**
  * Represents a transactional statement.
@@ -124,12 +122,7 @@ public class TransactionCommand extends Prepared {
             break;
         case CHECKPOINT:
             session.getUser().checkAdmin();
-            if (SysProperties.PAGE_STORE) {
-                PageStore store = session.getDatabase().getPageStore();
-                store.checkpoint();
-            }
-            session.getDatabase().getLog().checkpoint();
-            session.getDatabase().getTempFileDeleter().deleteUnused();
+            session.getDatabase().checkpoint();
             break;
         case SAVEPOINT:
             session.addSavepoint(savepointName);

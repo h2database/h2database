@@ -283,23 +283,15 @@ java org.h2.test.TestAll timer
 
 /*
 
-maybe close the database when a final static field is set to null?
+select 1 from dual a where 1 in(select 1 from dual b
+where 1 in(select 1 from dual c where a.x=1));
+
+error message on insert / merge: include SQL statement (at least table name)
 
 use 127.0.0.1 if other addresses don't work
 
-isShutdown
-
-PageStore.switchLogIfPossible()
-
-drop table test;
-create table test(id int);
-select 1 from test where 'a'=1;
-Fails: Oracle, PostgreSQL, H2
-Works: MySQL, HSQLDB
-
 select for update in mvcc mode: only lock the selected records?
 
-test case for daylight saving time enabled/move to a timezone (locking,...)
 JCR: for each node type, create a table; one 'dynamic' table with parameter;
     option to cache the results
 <link rel="icon" type="image/png" href="/path/image.png">

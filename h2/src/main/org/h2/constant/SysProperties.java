@@ -447,6 +447,15 @@ public class SysProperties {
     public static final boolean RECOMPILE_ALWAYS = getBooleanSetting("h2.recompileAlways", false);
 
     /**
+     * System property <code>h2.reconnectCheckDelay</code> (default: 250).<br />
+     * Check the .lock.db file every this many milliseconds to detect that the
+     * database was changed. The process writing to the database must first
+     * notify a change in the .lock.db file, then wait twice this many
+     * milliseconds before updating the database.
+     */
+    public static final int RECONNECT_CHECK_DELAY = getIntSetting("h2.reconnectCheckDelay", 250);
+
+    /**
      * System property <code>h2.redoBufferSize</code> (default: 262144).<br />
      * Size of the redo buffer (used at startup when recovering).
      */
@@ -557,6 +566,11 @@ public class SysProperties {
      * been set for the database.
      */
     public static final int COLLATOR_CACHE_SIZE = getCollatorCacheSize();
+
+    /**
+     * The current time this class was loaded (in milliseconds).
+     */
+    public static final long TIME_START = System.currentTimeMillis();
 
     private static final String H2_BASE_DIR = "h2.baseDir";
 

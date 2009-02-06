@@ -62,9 +62,6 @@ import java.sql.SQLClientInfoException;
  * </p>
  */
 public class JdbcConnection extends TraceObject implements Connection {
-    // TODO test: check if enough synchronization on jdbc objects
-    // TODO feature: auto-reconnect on lost connection
-
     private String url;
     private String user;
 
@@ -1265,6 +1262,12 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
         if (session.isClosed()) {
             throw Message.getSQLException(ErrorCode.DATABASE_CALLED_AT_SHUTDOWN);
+        }
+        if (session.isReconnectNeeded()) {
+            trace.debug("reconnect");
+            session = session.reconnect();
+            trace = session.getTrace();
+            setTrace(trace, TraceObject.CONNECTION, getTraceId());
         }
     }
 

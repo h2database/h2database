@@ -72,4 +72,18 @@ public interface SessionInterface {
      * Cancel the current or next command (called when closing a connection).
      */
     void cancel();
+
+    /**
+     * Check if the database changed and therefore reconnecting is required.
+     *
+     * @return true if reconnecting is required
+     */
+    boolean isReconnectNeeded();
+
+    /**
+     * Close the connection and open a new connection.
+     *
+     * @return the new connection
+     */
+    SessionInterface reconnect() throws SQLException;
 }

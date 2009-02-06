@@ -63,6 +63,7 @@ public class PageStore implements CacheWriter {
     // synchronized correctly (on the index?)
     // TODO two phase commit: append (not patch) commit & rollback
     // TODO remove trace or use isDebugEnabled
+    // TODO recover tool: don't re-do uncommitted operations
 
     /**
      * The smallest possible page size.

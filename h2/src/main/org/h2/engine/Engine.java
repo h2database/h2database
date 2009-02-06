@@ -16,6 +16,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.message.Trace;
+import org.h2.store.FileLock;
 import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
 
@@ -41,7 +42,7 @@ public class Engine {
     private Session openSession(ConnectionInfo ci, boolean ifExists, String cipher) throws SQLException {
         String name = ci.getName();
         Database database;
-        boolean openNew = ci.removeProperty("OPEN_NEW", false);
+        boolean openNew = ci.getProperty("OPEN_NEW", false);
         if (openNew || ci.isUnnamedInMemory()) {
             database = null;
         } else {
@@ -105,8 +106,20 @@ public class Engine {
      */
     public Session getSession(ConnectionInfo ci) throws SQLException {
         try {
+            ConnectionInfo backup = null;
+            String lockMethodName = ci.getProperty("FILE_LOCK", null);
+            int fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
+            if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
+                try {
+                    backup = (ConnectionInfo) ci.clone();
+                } catch (CloneNotSupportedException e) {
+                }
+            }
             Session session = openSession(ci);
             validateUserAndPassword(true);
+            if (backup != null) {
+                session.setConnectionInfo(backup);
+            }
             return session;
         } catch (SQLException e) {
             if (e.getErrorCode() == ErrorCode.WRONG_USER_OR_PASSWORD) {

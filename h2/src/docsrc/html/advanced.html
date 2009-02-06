@@ -691,7 +691,7 @@ consult the source code of the listener and test application.
 <h2>Using the Recover Tool</h2>
 <p>
 The recover tool can be used to extract the contents of a data file, even if the database is corrupted.
-At this time, it does not extract the content of the log file or large objects (CLOB or BLOB).
+It also extracts the content of the log file or large objects (CLOB or BLOB).
 To run the tool, type on the command line:
 </p>
 <pre>
@@ -700,8 +700,11 @@ java org.h2.tools.Recover
 <p>
 For each database in the current directory, a text file will be created.
 This file contains raw insert statement (for the data) and data definition (DDL) statement to recreate
-the schema of the database. This file cannot be executed directly, as the raw insert statements
-don't have the correct table names, so the file needs to be pre-processed manually before executing.
+the schema of the database. This file can be executed using the RunScript tool or a
+<code>RUNSCRIPT FROM</code> SQL statement. The script include at least one
+CREATE USER statement. If you run the script against a database that was created with the same
+user, or if there are conflicting users, running the script will fail. Consider running the script
+against a database that was created with a user name that is not in the script.
 </p>
 
 <br /><a name="file_locking_protocols"></a>
@@ -712,7 +715,7 @@ that the database is in use. If database is closed, or if the process that opene
 the database terminates, this lock file is deleted.
 </p><p>
 In special cases (if the process did not terminate normally, for example because
-there was a blackout), the lock file is not deleted by the process that created it.
+there was a power failure), the lock file is not deleted by the process that created it.
 That means the existence of the lock file is not a safe protocol for file locking.
 However, this software uses a challenge-response protocol to protect the database
 files. There are two methods (algorithms) implemented to provide both security
@@ -763,6 +766,7 @@ to the user if it cannot open a database, and not try again in a (fast) loop.
 <h3>File Locking Method 'Socket'</h3>
 <p>
 There is a second locking mechanism implemented, but disabled by default.
+To use it, append <code>;FILE_LOCK=SOCKET</code> to the database URL.
 The algorithm is:
 </p>
 <ul>
@@ -775,7 +779,7 @@ to the 'file' method.
 </li><li>If the lock file exists, and the lock method is 'socket', then the process
 checks if the port is in use. If the original process is still running, the port is in use
 and this process throws an exception (database is in use). If the original process
-died (for example due to a blackout, or abnormal termination of the virtual machine),
+died (for example due to a power failure, or abnormal termination of the virtual machine),
 then the port was released. The new process deletes the lock file and starts again.
 </li></ul>
 <p>

@@ -18,13 +18,14 @@ import org.h2.result.SearchRow;
  * The cursor implementation for the b tree index.
  */
 public class BtreeCursor implements Cursor {
-    private BtreeIndex index;
+
+    private final Session session;
+    private final BtreeIndex index;
+    private final SearchRow last;
     private BtreePosition top;
     private SearchRow currentSearchRow;
     private Row currentRow;
     private boolean first;
-    private SearchRow last;
-    private Session session;
 
     BtreeCursor(Session session, BtreeIndex index, SearchRow last) {
         this.session = session;

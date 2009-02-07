@@ -27,7 +27,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * This is the most common type of index, a b tree index.
+ * This is the most common type of index, a btree index.
  * The index structure is:
  * <ul>
  * <li>There is one {@link BtreeHead} that points to the root page.

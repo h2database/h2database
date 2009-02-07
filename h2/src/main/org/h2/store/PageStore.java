@@ -46,12 +46,17 @@ import org.h2.util.ObjectUtils;
  */
 public class PageStore implements CacheWriter {
 
+    // TODO log block allocation
+    // TODO use free-space bitmap
+    // TODO block compression: maybe http://en.wikipedia.org/wiki/LZJB
+    // with RLE, specially for 0s.
     // TODO test that setPageId updates parent, overflow parent
     // TODO order pages so that searching for a key
     // doesn't seek backwards in the file
     // TODO use an undo log and maybe redo log (for performance)
     // TODO checksum: 0 for empty; position hash + every 128th byte,
-    // specially important for log
+    // specially important for log; misdirected reads or writes
+    // TODO type, sequence (start with random); checksum (start with block id)
     // TODO for lists: write sequence byte
     // TODO completely re-use keys of deleted rows; maybe
     // remember last page with deleted keys (in the root page?),

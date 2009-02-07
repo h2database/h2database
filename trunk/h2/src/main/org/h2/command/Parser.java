@@ -3388,6 +3388,8 @@ public class Parser {
                 dataType = DataType.getTypeByName("BINARY");
             }
         }
+        // MySQL compatibility
+        readIf("UNSIGNED");
         int type = dataType.type;
         Column column = new Column(columnName, type, precision, scale, displaySize);
         if (templateColumn != null) {
@@ -4471,6 +4473,7 @@ public class Parser {
             command.setType(AlterTableAddConstraint.CHECK);
             command.setCheckExpression(readExpression());
         } else if (readIf("UNIQUE")) {
+            readIf("KEY");
             readIf("INDEX");
             command = new AlterTableAddConstraint(session, schema, ifNotExists);
             command.setType(AlterTableAddConstraint.UNIQUE);

@@ -176,11 +176,16 @@ public class ScanIndex extends BaseIndex implements RowIndex {
             }
         } else {
             // in-memory
-            Row free = new Row(null, 0);
-            free.setPos(firstFree);
-            int key = row.getPos();
-            rows.set(key, free);
-            firstFree = key;
+            if (!database.isMultiVersion() && rowCount == 1) {
+                rows = new ObjectArray();
+                firstFree = -1;
+            } else {
+                Row free = new Row(null, 0);
+                free.setPos(firstFree);
+                int key = row.getPos();
+                rows.set(key, free);
+                firstFree = key;
+            }
         }
         if (database.isMultiVersion()) {
             // if storage is null, the delete flag is not yet set

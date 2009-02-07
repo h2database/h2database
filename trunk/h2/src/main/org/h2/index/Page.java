@@ -32,19 +32,34 @@ public class Page {
     public static final int TYPE_DATA_NODE = 2;
 
     /**
-     * An overflow page (the last page: + FLAG_LAST).
+     * A data overflow page (the last page: + FLAG_LAST).
      */
     public static final int TYPE_DATA_OVERFLOW = 3;
 
     /**
+     * A btree leaf page (without overflow: + FLAG_LAST).
+     */
+    public static final int TYPE_BTREE_LEAF = 4;
+
+    /**
+     * A btree node page (never has overflow pages).
+     */
+    public static final int TYPE_BTREE_NODE = 5;
+
+    /**
+     * A btree overflow page.
+     */
+    public static final int TYPE_BTREE_OVERFLOW = 6;
+
+    /**
      * A page containing a list of free pages (the last page: + FLAG_LAST).
      */
-    public static final int TYPE_FREE_LIST = 4;
+    public static final int TYPE_FREE_LIST = 7;
 
     /**
      * A log page.
      */
-    public static final int TYPE_LOG = 5;
+    public static final int TYPE_LOG = 8;
 
     /**
      * This is a root page.

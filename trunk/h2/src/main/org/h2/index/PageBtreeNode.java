@@ -7,14 +7,15 @@
 package org.h2.index;
 
 import java.sql.SQLException;
-
+import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 import org.h2.store.DataPage;
 
 /**
- * A leaf page that contains data of one or multiple rows.
+ * A leaf page that contains index data.
  * Format:
  * <ul><li>0-3: parent page id
  * </li><li>4-4: page type
@@ -24,11 +25,7 @@ import org.h2.store.DataPage;
  * </li><li>15- entries: 4 bytes leaf page id, 4 bytes key
  * </li></ul>
  */
-class PageDataNode extends PageData {
-
-    private final static int ENTRY_START = 15;
-
-    private final static int ENTRY_LENGTH = 8;
+class PageBtreeNode extends PageBtree {
 
     /**
      * The page ids of the children.
@@ -39,7 +36,7 @@ class PageDataNode extends PageData {
 
     private int rowCount = UNKNOWN_ROWCOUNT;
 
-    PageDataNode(PageScanIndex index, int pageId, int parentPageId, DataPage data) {
+    PageBtreeNode(PageBtreeIndex index, int pageId, int parentPageId, DataPage data) {
         super(index, pageId, parentPageId, data);
     }
 
@@ -49,55 +46,75 @@ class PageDataNode extends PageData {
         rowCount = rowCountStored = data.readInt();
         childPageIds = new int[entryCount + 1];
         childPageIds[entryCount] = data.readInt();
-        keys = new int[entryCount];
+        rows = new SearchRow[entryCount];
+        offsets = new int[entryCount];
         for (int i = 0; i < entryCount; i++) {
             childPageIds[i] = data.readInt();
-            keys[i] = data.readInt();
+            offsets[i] = data.readInt();
         }
         check();
     }
 
-    private void addChild(int x, int childPageId, int key) {
-        int[] newKeys = new int[entryCount + 1];
-        int[] newChildPageIds = new int[entryCount + 2];
-        if (childPageIds != null) {
-            System.arraycopy(childPageIds, 0, newChildPageIds, 0, x + 1);
-        }
-        if (entryCount > 0) {
-            System.arraycopy(keys, 0, newKeys, 0, x);
-            if (x < entryCount) {
-                System.arraycopy(keys, x, newKeys, x + 1, entryCount - x);
-                System.arraycopy(childPageIds, x, newChildPageIds, x + 1, entryCount - x + 1);
-            }
-        }
-        newKeys[x] = key;
-        newChildPageIds[x + 1] = childPageId;
-        keys = newKeys;
-        childPageIds = newChildPageIds;
-        entryCount++;
+    /**
+     * Add a row if possible. If it is possible this method returns 0, otherwise
+     * the split point. It is always possible to add one row.
+     *
+     * @param row the now to add
+     * @return the split point of this page, or 0 if no split is required
+     */
+    private int addChild(int x, int childPageId, SearchRow row) {
+//        int rowLength = index.getRowSize(data, row);
+//
+//        int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
+//        if (entryCount > 0 && last - rowLength < start + KEY_OFFSET_PAIR_LENGTH) {
+//            int todoSplitAtLastInsertionPoint;
+//            return (entryCount / 2) + 1;
+//        }
+//
+//        int[] newOffsets = new int[entryCount + 1];
+//        SearchRow[] newRows = new SearchRow[entryCount + 1];
+//        int[] newChildPageIds = new int[entryCount + 2];
+//        if (childPageIds != null) {
+//            System.arraycopy(childPageIds, 0, newChildPageIds, 0, x + 1);
+//        }
+//        if (entryCount > 0) {
+//            System.arraycopy(offsets, 0, newOffsets, 0, x);
+//            System.arraycopy(rows, 0, newRows, 0, x);
+//            if (x < entryCount) {
+//                System.arraycopy(offsets, x, newOffsets, x + 1, entryCount - x);
+//                System.arraycopy(rows, x, newRows, x + 1, entryCount - x);
+//                System.arraycopy(childPageIds, x, newChildPageIds, x + 1, entryCount - x + 1);
+//            }
+//        }
+//        newOffsets[x] = offset;
+//        newRows[x] = row;
+//        newChildPageIds[x + 1] = childPageId;
+//        offsets = newOffsets;
+//        childPageIds = newChildPageIds;
+//        entryCount++;
+        return 0;
     }
 
-    int addRow(Row row) throws SQLException {
-        while (true) {
-            int x = find(row.getPos());
-            PageData page = index.getPage(childPageIds[x]);
-            int splitPoint = page.addRow(row);
-            if (splitPoint == 0) {
-                break;
-            }
-            int pivot = page.getKey(splitPoint - 1);
-            PageData page2 = page.split(splitPoint);
-            index.getPageStore().updateRecord(page, true, page.data);
-            index.getPageStore().updateRecord(page2, true, page2.data);
-            addChild(x, page2.getPageId(), pivot);
-            int maxEntries = (index.getPageStore().getPageSize() - ENTRY_START) / ENTRY_LENGTH;
-            if (entryCount >= maxEntries) {
-                int todoSplitAtLastInsertionPoint;
-                return entryCount / 2;
-            }
-            index.getPageStore().updateRecord(this, true, data);
-        }
-        updateRowCount(1);
+    int addRow(Session session, SearchRow row) throws SQLException {
+//        while (true) {
+//            int x = find(session, row, false);
+//            PageBtree page = index.getPage(childPageIds[x]);
+//            int splitPoint = page.addRow(session, row);
+//            if (splitPoint == 0) {
+//                break;
+//            }
+//            SearchRow pivot = page.getRow(session, splitPoint - 1);
+//            PageBtree page2 = page.split(session, splitPoint);
+//            index.getPageStore().updateRecord(page, true, page.data);
+//            index.getPageStore().updateRecord(page2, true, page2.data);
+//            int splitPoint = addChild(x, page2.getPageId(), pivot);
+//            if (splitPoint != 0) {
+//                int todoSplitAtLastInsertionPoint;
+//                return splitPoint / 2;
+//            }
+//            index.getPageStore().updateRecord(this, true, data);
+//        }
+//        updateRowCount(1);
         return 0;
     }
 
@@ -111,17 +128,12 @@ class PageDataNode extends PageData {
         }
     }
 
-    Cursor find() throws SQLException {
-        int child = childPageIds[0];
-        return index.getPage(child).find();
-    }
-
-    PageData split(int splitPoint) throws SQLException {
+    PageBtree split(Session session, int splitPoint) throws SQLException {
         int newPageId = index.getPageStore().allocatePage();
-        PageDataNode p2 = new PageDataNode(index, newPageId, parentPageId, index.getPageStore().createDataPage());
+        PageBtreeNode p2 = new PageBtreeNode(index, newPageId, parentPageId, index.getPageStore().createDataPage());
         int firstChild = childPageIds[splitPoint];
         for (int i = splitPoint; i < entryCount;) {
-            p2.addChild(p2.entryCount, childPageIds[splitPoint + 1], keys[splitPoint]);
+            p2.addChild(p2.entryCount, childPageIds[splitPoint + 1], rows[splitPoint]);
             removeChild(splitPoint);
         }
         int lastChild = childPageIds[splitPoint - 1];
@@ -135,7 +147,7 @@ class PageDataNode extends PageData {
     protected void remapChildren() throws SQLException {
         for (int i = 0; i < childPageIds.length; i++) {
             int child = childPageIds[i];
-            PageData p = index.getPage(child);
+            PageBtree p = index.getPage(child);
             p.setParentPageId(getPos());
             index.getPageStore().updateRecord(p, true, p.data);
         }
@@ -148,48 +160,38 @@ class PageDataNode extends PageData {
      * @param pivot the pivot key
      * @param page2 the last child page
      */
-    void init(PageData page1, int pivot, PageData page2) {
+    void init(PageBtree page1, SearchRow pivot, PageBtree page2) {
         entryCount = 1;
         childPageIds = new int[] { page1.getPageId(), page2.getPageId() };
-        keys = new int[] { pivot };
+        rows = new SearchRow[] { pivot };
         check();
     }
 
-    int getLastKey() throws SQLException {
-        int todoRemove;
-        return index.getPage(childPageIds[entryCount]).getLastKey();
-    }
-
-    /**
-     * Get the next leaf page.
-     *
-     * @param key the last key of the current page
-     * @return the next leaf page
-     */
-    public PageDataLeaf getNextPage(int key) throws SQLException {
-        int i = find(key) + 1;
+    void find(PageBtreeCursor cursor, SearchRow first, boolean bigger) throws SQLException {
+        int i = find(cursor.getSession(), first, bigger) + 1;
         if (i > entryCount) {
             if (parentPageId == Page.ROOT) {
-                return null;
+                return;
             }
-            PageDataNode next = (PageDataNode) index.getPage(parentPageId);
-            return next.getNextPage(key);
+            PageBtreeNode next = (PageBtreeNode) index.getPage(parentPageId);
+            next.find(cursor, first, bigger);
+            return;
         }
-        PageData page = index.getPage(childPageIds[i]);
-        return page.getFirstLeaf();
+        PageBtree page = index.getPage(childPageIds[i]);
+        page.find(cursor, first, bigger);
     }
 
-    PageDataLeaf getFirstLeaf() throws SQLException {
+    PageBtreeLeaf getFirstLeaf() throws SQLException {
         int child = childPageIds[0];
         return index.getPage(child).getFirstLeaf();
     }
 
-    boolean remove(int key) throws SQLException {
-        int at = find(key);
+    boolean remove(Session session, SearchRow row) throws SQLException {
+        int at = find(session, row, false);
         // merge is not implemented to allow concurrent usage of btrees
         // TODO maybe implement merge
-        PageData page = index.getPage(childPageIds[at]);
-        boolean empty = page.remove(key);
+        PageBtree page = index.getPage(childPageIds[at]);
+        boolean empty = page.remove(session, row);
         updateRowCount(-1);
         if (!empty) {
             // the first row didn't change - nothing to do
@@ -206,17 +208,11 @@ class PageDataNode extends PageData {
         return false;
     }
 
-    Row getRow(Session session, int key) throws SQLException {
-        int at = find(key);
-        PageData page = index.getPage(childPageIds[at]);
-        return page.getRow(session, key);
-    }
-
     int getRowCount() throws SQLException {
         if (rowCount == UNKNOWN_ROWCOUNT) {
             int count = 0;
             for (int i = 0; i < childPageIds.length; i++) {
-                PageData page = index.getPage(childPageIds[i]);
+                PageBtree page = index.getPage(childPageIds[i]);
                 count += page.getRowCount();
             }
             rowCount = count;
@@ -248,13 +244,13 @@ class PageDataNode extends PageData {
         check();
         data.reset();
         data.writeInt(parentPageId);
-        data.writeByte((byte) Page.TYPE_DATA_NODE);
+        data.writeByte((byte) Page.TYPE_BTREE_NODE);
         data.writeShortInt(entryCount);
         data.writeInt(rowCountStored);
         data.writeInt(childPageIds[entryCount]);
         for (int i = 0; i < entryCount; i++) {
             data.writeInt(childPageIds[i]);
-            data.writeInt(keys[i]);
+            data.writeInt(offsets[i]);
         }
         index.getPageStore().writePage(getPos(), data);
     }
@@ -264,15 +260,19 @@ class PageDataNode extends PageData {
         if (entryCount < 0) {
             Message.throwInternalError();
         }
-        int[] newKeys = new int[entryCount];
+        int[] newOffsets = new int[entryCount];
+        SearchRow[] newRows = new SearchRow[entryCount + 1];
         int[] newChildPageIds = new int[entryCount + 1];
-        System.arraycopy(keys, 0, newKeys, 0, Math.min(entryCount, i));
+        System.arraycopy(offsets, 0, newOffsets, 0, Math.min(entryCount, i));
+        System.arraycopy(rows, 0, newRows, 0, Math.min(entryCount, i));
         System.arraycopy(childPageIds, 0, newChildPageIds, 0, i);
         if (entryCount > i) {
-            System.arraycopy(keys, i + 1, newKeys, i, entryCount - i);
+            System.arraycopy(offsets, i + 1, newOffsets, i, entryCount - i);
+            System.arraycopy(rows, i + 1, newRows, i, entryCount - i);
         }
         System.arraycopy(childPageIds, i + 1, newChildPageIds, i, entryCount - i + 1);
-        keys = newKeys;
+        offsets = newOffsets;
+        rows = newRows;
         childPageIds = newChildPageIds;
     }
 

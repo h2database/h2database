@@ -7,13 +7,9 @@
 package org.h2.index;
 
 import java.sql.SQLException;
-import org.h2.engine.Session;
-import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.DataPage;
 import org.h2.store.Record;
-import org.h2.table.Column;
-import org.h2.value.Value;
 
 /**
  * A page that contains index data.
@@ -51,11 +47,14 @@ abstract class PageBtree extends Record {
     protected int entryCount;
 
     /**
+     * The index data
+     */
+    protected SearchRow[] rows;
+
+    /**
      * The start of the data area.
      */
-    int start;
-
-    protected SearchRow[] rows;
+    protected int start;
 
     PageBtree(PageBtreeIndex index, int pageId, int parentPageId, DataPage data) {
         this.index = index;
@@ -79,16 +78,17 @@ abstract class PageBtree extends Record {
     abstract void setRowCountStored(int rowCount) throws SQLException;
 
     /**
-     * Find an entry by key.
+     * Find an entry.
      *
-     * @param key the key (may not exist)
-     * @return the matching or next index
+     * @param compare the row
+     * @param bigger if looking for a larger row
+     * @return the index of the found row
      */
-    int find(Session session, SearchRow compare, boolean bigger) throws SQLException {
+    int find(SearchRow compare, boolean bigger) throws SQLException {
         int l = 0, r = entryCount;
         while (l < r) {
             int i = (l + r) >>> 1;
-            SearchRow row = (SearchRow) getRow(session, i);
+            SearchRow row = (SearchRow) getRow(i);
             int comp = index.compareRows(row, compare);
             if (comp > 0 || (!bigger && comp == 0)) {
                 r = i;
@@ -111,10 +111,14 @@ abstract class PageBtree extends Record {
      * @return 0 if successful, or the split position if the page needs to be
      *         split
      */
-    abstract int addRow(Session session, SearchRow row) throws SQLException;
+    abstract int addRow(SearchRow row) throws SQLException;
 
     /**
      * Find the first row.
+     *
+     * @param cursor the cursor
+     * @param first the row to find
+     * @param if the row should be bigger
      */
     abstract void find(PageBtreeCursor cursor, SearchRow first, boolean bigger) throws SQLException;
 
@@ -124,7 +128,7 @@ abstract class PageBtree extends Record {
      * @param at the index
      * @return the row
      */
-    SearchRow getRow(Session session, int at) throws SQLException {
+    SearchRow getRow(int at) throws SQLException {
         SearchRow row = rows[at];
         if (row == null) {
             row = index.readRow(data, offsets[at]);
@@ -139,7 +143,7 @@ abstract class PageBtree extends Record {
      * @param splitPoint the index where to split
      * @return the new page that contains about half the entries
      */
-    abstract PageBtree split(Session session, int splitPoint) throws SQLException;
+    abstract PageBtree split(int splitPoint) throws SQLException;
 
     /**
      * Change the page id.
@@ -180,9 +184,9 @@ abstract class PageBtree extends Record {
     /**
      * Remove a row.
      *
-     * @param key the key of the row to remove
+     * @param row the row to remove
      * @return true if this page is now empty
      */
-    abstract boolean remove(Session session, SearchRow row) throws SQLException;
+    abstract boolean remove(SearchRow row) throws SQLException;
 
 }

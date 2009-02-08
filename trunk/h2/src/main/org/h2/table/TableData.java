@@ -25,6 +25,7 @@ import org.h2.index.HashIndex;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.MultiVersionIndex;
+import org.h2.index.PageBtreeIndex;
 import org.h2.index.PageScanIndex;
 import org.h2.index.RowIndex;
 import org.h2.index.ScanIndex;
@@ -176,7 +177,11 @@ public class TableData extends Table implements RecordReader {
         }
         Index index;
         if (getPersistent() && indexType.getPersistent()) {
-            index = new BtreeIndex(session, this, indexId, indexName, cols, indexType, headPos);
+            if (SysProperties.PAGE_STORE) {
+                index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, headPos);
+            } else {
+                index = new BtreeIndex(session, this, indexId, indexName, cols, indexType, headPos);
+            }
         } else {
             if (indexType.getHash()) {
                 index = new HashIndex(this, indexId, indexName, cols, indexType);

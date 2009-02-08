@@ -64,7 +64,7 @@ class PageBtreeLeaf extends PageBtree {
      * @param row the now to add
      * @return the split point of this page, or 0 if no split is required
      */
-    int addRow(Session session, SearchRow row) throws SQLException {
+    int addRow(SearchRow row) throws SQLException {
         int rowLength = index.getRowSize(data, row);
         int pageSize = index.getPageStore().getPageSize();
         // TODO currently the order is important
@@ -81,7 +81,7 @@ class PageBtreeLeaf extends PageBtree {
         if (entryCount == 0) {
             x = 0;
         } else {
-            x = find(session, row, false);
+            x = find(row, false);
             System.arraycopy(offsets, 0, newOffsets, 0, x);
             System.arraycopy(rows, 0, newRows, 0, x);
             if (x < entryCount) {
@@ -116,7 +116,6 @@ class PageBtreeLeaf extends PageBtree {
             Message.throwInternalError();
         }
         int[] newOffsets = new int[entryCount];
-        int[] newKeys = new int[entryCount];
         Row[] newRows = new Row[entryCount];
         System.arraycopy(offsets, 0, newOffsets, 0, i);
         System.arraycopy(rows, 0, newRows, 0, i);
@@ -131,11 +130,11 @@ class PageBtreeLeaf extends PageBtree {
         return entryCount;
     }
 
-    PageBtree split(Session session, int splitPoint) throws SQLException {
+    PageBtree split(int splitPoint) throws SQLException {
         int newPageId = index.getPageStore().allocatePage();
         PageBtreeLeaf p2 = new PageBtreeLeaf(index, newPageId, parentPageId, index.getPageStore().createDataPage());
         for (int i = splitPoint; i < entryCount;) {
-            p2.addRow(session, getRow(session, splitPoint));
+            p2.addRow(getRow(splitPoint));
             removeRow(splitPoint);
         }
         return p2;
@@ -145,9 +144,9 @@ class PageBtreeLeaf extends PageBtree {
         return this;
     }
 
-    boolean remove(Session session, SearchRow row) throws SQLException {
-        int at = find(session, row, false);
-        if (index.compareRows(row, getRow(session, at)) != 0) {
+    boolean remove(SearchRow row) throws SQLException {
+        int at = find(row, false);
+        if (index.compareRows(row, getRow(at)) != 0) {
             throw Message.getSQLException(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL() + ": " + row);
         }
         if (entryCount == 1) {
@@ -180,36 +179,25 @@ class PageBtreeLeaf extends PageBtree {
     }
 
     private void write() throws SQLException {
-//        if (written) {
-//            return;
-//        }
-//        // make sure rows are read
-//        for (int i = 0; i < entryCount; i++) {
-//            getRowAt(i);
-//        }
-//        data.reset();
-//        data.writeInt(parentPageId);
-//        int type;
-//        if (overflowKey == 0) {
-//            type = Page.TYPE_BTREE_LEAF | Page.FLAG_LAST;
-//        } else {
-//            type = Page.TYPE_BTREE_LEAF;
-//        }
-//        data.writeByte((byte) type);
-//        data.writeInt(index.getId());
-//        data.writeShortInt(entryCount);
-//        if (overflowKey != 0) {
-//            data.writeInt(overflowKey);
-//        }
-//        for (int i = 0; i < entryCount; i++) {
-//            data.writeInt(keys[i]);
-//            data.writeShortInt(offsets[i]);
-//        }
-//        for (int i = 0; i < entryCount; i++) {
-//            data.setPos(offsets[i]);
-//            rows[i].write(data);
-//        }
-//        written = true;
+        if (written) {
+            return;
+        }
+        // make sure rows are read
+        for (int i = 0; i < entryCount; i++) {
+            getRow(i);
+        }
+        data.reset();
+        data.writeInt(parentPageId);
+        data.writeByte((byte) Page.TYPE_BTREE_LEAF);
+        data.writeInt(index.getId());
+        data.writeShortInt(entryCount);
+        for (int i = 0; i < entryCount; i++) {
+            data.writeShortInt(offsets[i]);
+        }
+        for (int i = 0; i < entryCount; i++) {
+            index.writeRow(data, offsets[i], rows[i]);
+        }
+        written = true;
     }
 
     DataPage getDataPage() throws SQLException {
@@ -218,11 +206,33 @@ class PageBtreeLeaf extends PageBtree {
     }
 
     void find(PageBtreeCursor cursor, SearchRow first, boolean bigger) throws SQLException {
-        int todo;
+        int i = find(first, bigger) + 1;
+        if (i > entryCount) {
+            if (parentPageId == Page.ROOT) {
+                return;
+            }
+            PageBtreeNode next = (PageBtreeNode) index.getPage(parentPageId);
+            next.find(cursor, first, bigger);
+            return;
+        }
+        cursor.setCurrent(this, i);
     }
 
     void remapChildren() throws SQLException {
-        int todo;
+    }
+
+    /**
+     * Set the cursor to the first row of the next page.
+     *
+     * @param cursor the cursor
+     */
+    void nextPage(PageBtreeCursor cursor) throws SQLException {
+        if (parentPageId == Page.ROOT) {
+            cursor.setCurrent(null, 0);
+            return;
+        }
+        PageBtreeNode next = (PageBtreeNode) index.getPage(parentPageId);
+        next.nextPage(cursor, getRow(entryCount - 1));
     }
 
 }

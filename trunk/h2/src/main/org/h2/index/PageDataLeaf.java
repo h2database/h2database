@@ -249,7 +249,7 @@ class PageDataLeaf extends PageData {
         return getRowAt(entryCount - 1).getPos();
     }
 
-    public PageDataLeaf getNextPage() throws SQLException {
+    PageDataLeaf getNextPage() throws SQLException {
         if (parentPageId == Page.ROOT) {
             return null;
         }

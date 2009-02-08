@@ -46,6 +46,7 @@ import org.h2.util.ObjectUtils;
  */
 public class PageStore implements CacheWriter {
 
+    // TODO btree index with fixed size values doesn't need offset and so on
     // TODO log block allocation
     // TODO use free-space bitmap
     // TODO block compression: maybe http://en.wikipedia.org/wiki/LZJB

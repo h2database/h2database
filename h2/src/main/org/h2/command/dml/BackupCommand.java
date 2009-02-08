@@ -70,25 +70,29 @@ public class BackupCommand extends Prepared {
             try {
                 log.flush();
                 log.updateKeepFiles(1);
-                String fn = db.getName() + Constants.SUFFIX_DATA_FILE;
-                backupDiskFile(out, fn, db.getDataFile());
-                fn = db.getName() + Constants.SUFFIX_INDEX_FILE;
-                backupDiskFile(out, fn, db.getIndexFile());
+                String fn;
                 if (SysProperties.PAGE_STORE) {
                     fn = db.getName() + Constants.SUFFIX_PAGE_FILE;
                     backupPageStore(out, fn, db.getPageStore());
+                } else {
+                    fn = db.getName() + Constants.SUFFIX_DATA_FILE;
+                    backupDiskFile(out, fn, db.getDataFile());
+                    fn = db.getName() + Constants.SUFFIX_INDEX_FILE;
+                    backupDiskFile(out, fn, db.getIndexFile());
                 }
-                ObjectArray list = log.getActiveLogFiles();
-                int max = list.size();
                 // synchronize on the database, to avoid concurrent temp file
                 // creation / deletion / backup
                 String base = FileUtils.getParent(fn);
                 synchronized (db.getLobSyncObject()) {
-                    for (int i = 0; i < list.size(); i++) {
-                        LogFile lf = (LogFile) list.get(i);
-                        fn = lf.getFileName();
-                        backupFile(out, base, fn);
-                        db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, name, i, max);
+                    if (!SysProperties.PAGE_STORE) {
+                        ObjectArray list = log.getActiveLogFiles();
+                        int max = list.size();
+                        for (int i = 0; i < list.size(); i++) {
+                            LogFile lf = (LogFile) list.get(i);
+                            fn = lf.getFileName();
+                            backupFile(out, base, fn);
+                            db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, name, i, max);
+                        }
                     }
                     String prefix = db.getDatabasePath();
                     String dir = FileUtils.getParent(prefix);

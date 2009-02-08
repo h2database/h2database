@@ -283,6 +283,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+arc
+
 select 1 from dual a where 1 in(select 1 from dual b
 where 1 in(select 1 from dual c where a.x=1));
 

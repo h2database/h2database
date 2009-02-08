@@ -530,27 +530,29 @@ public class Database implements DataHandler {
             dummy = DataPage.create(this, 0);
             deleteOldTempFiles();
             log = new LogSystem(this, databaseName, readOnly, accessModeLog, pageStore);
-            openFileData();
-            log.open();
-            openFileIndex();
-            log.recover();
-            fileData.init();
-            try {
-                fileIndex.init();
-            } catch (Exception e) {
-                if (recovery) {
-                    traceSystem.getTrace(Trace.DATABASE).error("opening index", e);
-                    ArrayList list = new ArrayList(storageMap.values());
-                    for (int i = 0; i < list.size(); i++) {
-                        Storage s = (Storage) list.get(i);
-                        if (s.getDiskFile() == fileIndex) {
-                            removeStorage(s.getId(), fileIndex);
+            if (pageStore == null) {
+                openFileData();
+                log.open();
+                openFileIndex();
+                log.recover();
+                fileData.init();
+                try {
+                    fileIndex.init();
+                } catch (Exception e) {
+                    if (recovery) {
+                        traceSystem.getTrace(Trace.DATABASE).error("opening index", e);
+                        ArrayList list = new ArrayList(storageMap.values());
+                        for (int i = 0; i < list.size(); i++) {
+                            Storage s = (Storage) list.get(i);
+                            if (s.getDiskFile() == fileIndex) {
+                                removeStorage(s.getId(), fileIndex);
+                            }
                         }
+                        fileIndex.delete();
+                        openFileIndex();
+                    } else {
+                        throw Message.convert(e);
                     }
-                    fileIndex.delete();
-                    openFileIndex();
-                } else {
-                    throw Message.convert(e);
                 }
             }
             reserveLobFileObjectIds();

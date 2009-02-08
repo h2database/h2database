@@ -9,7 +9,6 @@ package org.h2.index;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
@@ -46,9 +45,6 @@ public class PageBtreeIndex extends BaseIndex {
             return;
         }
         this.store = database.getPageStore();
-if (store == null) {
-    System.out.println("stop");
-}
         if (headPos == Index.EMPTY_HEAD) {
             // new table
             headPos = store.allocatePage();
@@ -113,7 +109,6 @@ if (store == null) {
             root = newRoot;
         }
         rowCount++;
-        store.logAddOrRemoveRow(session, tableData.getId(), row, true);
     }
 
     /**
@@ -175,9 +170,8 @@ if (store == null) {
         throw Message.getUnsupportedException();
     }
 
-    public double getCost(Session session, int[] masks) throws SQLException {
-        long cost = 10 * (tableData.getRowCountApproximation() + Constants.COST_ROW_OFFSET);
-        return cost;
+    public double getCost(Session session, int[] masks) {
+        return 10 * getCostRangeIndex(masks, tableData.getRowCount(session));
     }
 
     public boolean needRebuild() {
@@ -207,7 +201,6 @@ if (store == null) {
             rowCount--;
             int todoReuseKeys;
         }
-        store.logAddOrRemoveRow(session, tableData.getId(), row, false);
     }
 
     public void remove(Session session) throws SQLException {
@@ -237,8 +230,8 @@ if (store == null) {
         rowCount = 0;
     }
 
-    public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException();
+    public void checkRename() {
+        // ok
     }
 
     /**

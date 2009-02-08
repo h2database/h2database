@@ -85,6 +85,9 @@ abstract class PageBtree extends Record {
      * @return the index of the found row
      */
     int find(SearchRow compare, boolean bigger) throws SQLException {
+        if (compare == null) {
+            return 0;
+        }
         int l = 0, r = entryCount;
         while (l < r) {
             int i = (l + r) >>> 1;

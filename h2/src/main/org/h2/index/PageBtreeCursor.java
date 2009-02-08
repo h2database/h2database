@@ -30,6 +30,12 @@ public class PageBtreeCursor implements Cursor {
         this.last = last;
     }
 
+    /**
+     * Set the position of the current row.
+     *
+     * @param current the leaf page
+     * @param i the index within the page
+     */
     void setCurrent(PageBtreeLeaf current, int i) {
         this.current = current;
         this.i = i;
@@ -51,20 +57,20 @@ public class PageBtreeCursor implements Cursor {
     }
 
     public boolean next() throws SQLException {
-//        if (i >= current.getEntryCount()) {
-//            current = current.getNextPage();
-//            i = 0;
-//            if (current == null) {
-//                return false;
-//            }
-//        }
-//        currentSearchRow = current.getRowAt(i);
-//        if (index.compareRows(currentSearchRow, last) > 0) {
-//            currentSearchRow = null;
-//            currentRow = null;
-//            return false;
-//        }
-//        i++;
+        if (i >= current.getEntryCount()) {
+            current.nextPage(this);
+            i = 0;
+            if (current == null) {
+                return false;
+            }
+        }
+        currentSearchRow = current.getRow(i);
+        if (index.compareRows(currentSearchRow, last) > 0) {
+            currentSearchRow = null;
+            currentRow = null;
+            return false;
+        }
+        i++;
         return true;
     }
 

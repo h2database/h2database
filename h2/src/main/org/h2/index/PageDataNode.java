@@ -166,7 +166,7 @@ class PageDataNode extends PageData {
      * @param key the last key of the current page
      * @return the next leaf page
      */
-    public PageDataLeaf getNextPage(int key) throws SQLException {
+    PageDataLeaf getNextPage(int key) throws SQLException {
         int i = find(key) + 1;
         if (i > entryCount) {
             if (parentPageId == Page.ROOT) {

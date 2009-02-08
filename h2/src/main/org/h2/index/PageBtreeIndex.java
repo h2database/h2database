@@ -17,7 +17,6 @@ import org.h2.result.SearchRow;
 import org.h2.store.DataPage;
 import org.h2.store.PageStore;
 import org.h2.store.Record;
-import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 import org.h2.value.Value;
@@ -47,6 +46,9 @@ public class PageBtreeIndex extends BaseIndex {
             return;
         }
         this.store = database.getPageStore();
+if (store == null) {
+    System.out.println("stop");
+}
         if (headPos == Index.EMPTY_HEAD) {
             // new table
             headPos = store.allocatePage();
@@ -88,16 +90,16 @@ public class PageBtreeIndex extends BaseIndex {
         }
         while (true) {
             PageBtree root = getPage(headPos);
-            int splitPoint = root.addRow(session, row);
+            int splitPoint = root.addRow(row);
             if (splitPoint == 0) {
                 break;
             }
             if (trace.isDebugEnabled()) {
                 trace.debug("split " + splitPoint);
             }
-            SearchRow pivot = root.getRow(session, splitPoint - 1);
+            SearchRow pivot = root.getRow(splitPoint - 1);
             PageBtree page1 = root;
-            PageBtree page2 = root.split(session, splitPoint);
+            PageBtree page2 = root.split(splitPoint);
             int rootPageId = root.getPageId();
             int id = store.allocatePage();
             page1.setPageId(id);
@@ -201,7 +203,7 @@ public class PageBtreeIndex extends BaseIndex {
             removeAllRows();
         } else {
             PageBtree root = getPage(headPos);
-            root.remove(session, row);
+            root.remove(row);
             rowCount--;
             int todoReuseKeys;
         }
@@ -276,10 +278,18 @@ public class PageBtreeIndex extends BaseIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("close");
         }
-        store = null;
+        int todoWhyRequired;
+        // store = null;
         int writeRowCount;
     }
 
+    /**
+     * Read a row from the data page at the given offset.
+     *
+     * @param data the data
+     * @param offset the offset
+     * @return the row
+     */
     SearchRow readRow(DataPage data, int offset) throws SQLException {
         data.setPos(offset);
         SearchRow row = table.getTemplateSimpleRow(columns.length == 1);
@@ -292,6 +302,22 @@ public class PageBtreeIndex extends BaseIndex {
     }
 
     /**
+     * Write a row to the data page at the given offset.
+     *
+     * @param data the data
+     * @param offset the offset
+     * @param row the row to write
+     */
+    void writeRow(DataPage data, int offset, SearchRow row) throws SQLException {
+        data.setPos(offset);
+        data.writeInt(row.getPos());
+        for (int i = 0; i < columns.length; i++) {
+            int idx = columns[i].getColumnId();
+            data.writeValue(row.getValue(idx));
+        }
+    }
+
+    /**
      * Get the size of a row (only the part that is stored in the index).
      *
      * @param dummy a dummy data page to calculate the size
@@ -300,8 +326,8 @@ public class PageBtreeIndex extends BaseIndex {
      */
     int getRowSize(DataPage dummy, SearchRow row) throws SQLException {
         int rowsize = DataPage.LENGTH_INT;
-        for (int j = 0; j < columns.length; j++) {
-            Value v = row.getValue(columns[j].getColumnId());
+        for (int i = 0; i < columns.length; i++) {
+            Value v = row.getValue(columns[i].getColumnId());
             rowsize += dummy.getValueLen(v);
         }
         return rowsize;

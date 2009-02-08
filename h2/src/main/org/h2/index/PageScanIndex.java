@@ -276,7 +276,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("close");
         }
-        store = null;
+        int todoWhyNotClose;
+        // store = null;
         int writeRowCount;
     }
 

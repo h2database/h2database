@@ -68,7 +68,7 @@ public class TableData extends Table implements RecordReader {
         setColumns(cols);
         this.clustered = clustered;
         if (!clustered) {
-            if (SysProperties.PAGE_STORE && persistent) {
+            if (SysProperties.PAGE_STORE && database.isPersistent()) {
                 scanIndex = new PageScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistent), headPos);
             } else {
                 scanIndex = new ScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistent));

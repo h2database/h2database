@@ -70,6 +70,7 @@ public class PageStore implements CacheWriter {
     // TODO two phase commit: append (not patch) commit & rollback
     // TODO remove trace or use isDebugEnabled
     // TODO recover tool: don't re-do uncommitted operations
+    // TODO no need to log old page if it was always empty
 
     /**
      * The smallest possible page size.
@@ -86,10 +87,14 @@ public class PageStore implements CacheWriter {
      */
     public static final int PAGE_SIZE_DEFAULT = 1024;
 
+    /**
+     * The number of log streams.
+     */
+    public static final int LOG_COUNT = 2;
+
     private static final int INCREMENT_PAGES = 128;
     private static final int READ_VERSION = 0;
     private static final int WRITE_VERSION = 0;
-    private static final int LOG_COUNT = 2;
 
     private Database database;
     private final Trace trace;
@@ -155,7 +160,7 @@ public class PageStore implements CacheWriter {
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
         int test;
-trace.setLevel(TraceSystem.DEBUG);
+//trace.setLevel(TraceSystem.DEBUG);
         this.cacheSize = cacheSizeDefault;
         String cacheType = database.getCacheType();
         if (Cache2Q.TYPE_NAME.equals(cacheType)) {

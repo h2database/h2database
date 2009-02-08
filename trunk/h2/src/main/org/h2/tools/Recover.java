@@ -762,6 +762,12 @@ public class Recover extends Tool implements DataHandler {
                     writer.println("-- page " + page + ": data leaf " + (last ? "(last)" : ""));
                     dumpPageDataLeaf(store, pageSize, writer, s, last, page);
                     break;
+                case Page.TYPE_BTREE_NODE:
+                    writer.println("-- page " + page + ": btree node" + (last ? "(last)" : ""));
+                    break;
+                case Page.TYPE_BTREE_LEAF:
+                    writer.println("-- page " + page + ": btree leaf " + (last ? "(last)" : ""));
+                    break;
                 case Page.TYPE_FREE_LIST:
                     writer.println("-- page " + page + ": free list " + (last ? "(last)" : ""));
                     break;
@@ -775,32 +781,8 @@ public class Recover extends Tool implements DataHandler {
                 }
             }
             writeSchema(writer);
-            DataInputStream in = new DataInputStream(
-                    new PageInputStream(writer, this, store, logHead, pageSize, 0, Page.TYPE_LOG)
-            );
-            writer.println("-- log");
-            while (true) {
-                int x = in.read();
-                if (x < 0) {
-                    break;
-                }
-                if (x == PageLog.NO_OP) {
-                    // nothing to do
-                } else if (x == PageLog.UNDO) {
-                    int pageId = in.readInt();
-                    in.readFully(new byte[pageSize]);
-                    writer.println("-- undo page " + pageId);
-                } else if (x == PageLog.ADD || x == PageLog.REMOVE) {
-                    int sessionId = in.readInt();
-                    storageId = in.readInt();
-                    Row row = PageLog.readRow(in, s);
-                    writer.println("-- session " + sessionId +
-                            " table " + storageId +
-                            " " + (x == PageLog.ADD ? "add" : "remove") + " " + row.toString());
-                } else if (x == PageLog.COMMIT) {
-                    int sessionId = in.readInt();
-                    writer.println("-- commit " + sessionId);
-                }
+            for (int i = 0; i < PageStore.LOG_COUNT; i++) {
+                dumpPageLogStream(writer, store, logHead + i, pageSize);
             }
             writer.close();
         } catch (Throwable e) {
@@ -809,6 +791,39 @@ public class Recover extends Tool implements DataHandler {
             IOUtils.closeSilently(writer);
             closeSilently(store);
         }
+    }
+
+    private void dumpPageLogStream(PrintWriter writer, FileStore store, int logHead, int pageSize) throws IOException, SQLException {
+        DataPage s = DataPage.create(this, pageSize);
+        DataInputStream in = new DataInputStream(
+                new PageInputStream(writer, this, store, logHead, pageSize, 0, Page.TYPE_LOG)
+        );
+        int logId = in.readInt();
+        writer.println("-- log " + logId);
+        while (true) {
+            int x = in.read();
+            if (x < 0) {
+                break;
+            }
+            if (x == PageLog.NO_OP) {
+                // nothing to do
+            } else if (x == PageLog.UNDO) {
+                int pageId = in.readInt();
+                in.readFully(new byte[pageSize]);
+                writer.println("-- undo page " + pageId);
+            } else if (x == PageLog.ADD || x == PageLog.REMOVE) {
+                int sessionId = in.readInt();
+                storageId = in.readInt();
+                Row row = PageLog.readRow(in, s);
+                writer.println("-- session " + sessionId +
+                        " table " + storageId +
+                        " " + (x == PageLog.ADD ? "add" : "remove") + " " + row.toString());
+            } else if (x == PageLog.COMMIT) {
+                int sessionId = in.readInt();
+                writer.println("-- commit " + sessionId);
+            }
+        }
+
     }
 
     /**

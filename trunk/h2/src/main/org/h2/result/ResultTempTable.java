@@ -8,12 +8,14 @@ package org.h2.result;
 
 import java.sql.SQLException;
 
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.index.BtreeIndex;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
+import org.h2.index.PageBtreeIndex;
 import org.h2.message.Message;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
@@ -52,7 +54,11 @@ public class ResultTempTable implements ResultExternal {
         IndexType indexType;
         indexType = IndexType.createPrimaryKey(true, false);
         IndexColumn[] indexCols = new IndexColumn[]{indexColumn};
-        index = new BtreeIndex(session, table, indexId, tableName, indexCols, indexType, Index.EMPTY_HEAD);
+        if (SysProperties.PAGE_STORE) {
+            index = new PageBtreeIndex(table, indexId, tableName, indexCols, indexType, Index.EMPTY_HEAD);
+        } else {
+            index = new BtreeIndex(session, table, indexId, tableName, indexCols, indexType, Index.EMPTY_HEAD);
+        }
         table.getIndexes().add(index);
     }
 

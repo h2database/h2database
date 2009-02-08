@@ -81,7 +81,9 @@ public class RowList {
     private void writeAllRows() throws SQLException {
         if (file == null) {
             Database db = session.getDatabase();
-            this.cache = db.getDataFile().getCache();
+            if (!SysProperties.PAGE_STORE) {
+                cache = db.getDataFile().getCache();
+            }
             String fileName = db.createTempFile();
             file = db.openFile(fileName, "rw", false);
             file.seek(FileStore.HEADER_LENGTH);
@@ -184,7 +186,7 @@ public class RowList {
             }
             values[i] = v;
         }
-        if (pos != 0) {
+        if (pos != 0 && cache != null) {
             CacheObject found = cache.find(pos);
             if (found != null) {
                 return (Row) found;

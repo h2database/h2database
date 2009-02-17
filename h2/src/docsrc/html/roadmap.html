@@ -40,6 +40,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Optimize .. OR .. to IN(..) or UNION if the cost is lower
 </li><li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
 </li><li>Test multi-threaded in-memory db access
+</li><li>MVCC: Select for update should only lock the selected rows.
 </li><li>Procedural language / script language (Javascript)
 </li><li>Option to shutdown all the running servers (on the same VM).
 </li><li>Optimize ID=? OR ID=?: convert to IN(...)
@@ -404,6 +405,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>MySQL compatibility: support comparing 1='a'
 </li><li>Support PostgreSQL lock modes: http://www.postgresql.org/docs/8.3/static/explicit-locking.html
 </li><li>PostgreSQL compatibility: test DbVisualizer and Squirrel SQL using a new PostgreSQL JDBC driver.
+</li><li>RunScript should be able to read from system in (or quite mode for Shell).
 </li></ul>
 
 <h2>Not Planned</h2>

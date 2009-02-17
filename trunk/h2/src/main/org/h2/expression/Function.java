@@ -51,6 +51,7 @@ import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -1703,9 +1704,10 @@ public class Function extends Expression implements FunctionCall {
         }
         default:
             dataType = info.dataType;
+            DataType type = DataType.getDataType(dataType);
             precision = 0;
             displaySize = 0;
-            scale = 0;
+            scale = type.defaultScale;
         }
         if (allConst) {
             return ValueExpression.get(getValue(session));
@@ -1798,6 +1800,9 @@ public class Function extends Expression implements FunctionCall {
             displaySize = (int) precision;
             break;
         default:
+            DataType type = DataType.getDataType(dataType);
+            precision = type.defaultPrecision;
+            displaySize = type.defaultDisplaySize;
         }
     }
 

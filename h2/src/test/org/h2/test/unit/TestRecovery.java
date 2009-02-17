@@ -19,6 +19,15 @@ import org.h2.tools.DeleteDbFiles;
  */
 public class TestRecovery extends TestBase {
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         DeleteDbFiles.execute(baseDir, "recovery", true);
         org.h2.Driver.load();

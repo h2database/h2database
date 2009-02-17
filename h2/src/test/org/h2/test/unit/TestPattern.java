@@ -17,6 +17,15 @@ import org.h2.value.CompareMode;
  */
 public class TestPattern extends TestBase {
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         CompareMode mode = new CompareMode(null, null, 100);
         CompareLike comp = new CompareLike(mode, null, null, null, false);

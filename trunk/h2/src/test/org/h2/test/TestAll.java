@@ -283,7 +283,12 @@ java org.h2.test.TestAll timer
 
 /*
 
-arc
+line breaks in grammar (specially select)
+
+test performance with log=2
+maybe make log=2 the default option
+
+TRANSACTION_ID()
 
 select 1 from dual a where 1 in(select 1 from dual b
 where 1 in(select 1 from dual c where a.x=1));

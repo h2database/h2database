@@ -7,7 +7,9 @@
 package org.h2.test.unit;
 
 import java.io.File;
+import java.sql.SQLException;
 
+import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
 import org.h2.test.TestBase;
@@ -35,9 +37,35 @@ public class TestFileLock extends TestBase implements Runnable {
         this.allowSockets = allowSockets;
     }
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws Exception {
+        testSimple();
         test(false);
         test(true);
+    }
+
+    private void testSimple() throws SQLException {
+        FileLock lock1 = new FileLock(new TraceSystem(null, false), FILE, Constants.LOCK_SLEEP);
+        FileLock lock2 = new FileLock(new TraceSystem(null, false), FILE, Constants.LOCK_SLEEP);
+        lock1.lock(FileLock.LOCK_FILE);
+        try {
+            lock2.lock(FileLock.LOCK_FILE);
+            fail();
+        } catch (Exception e) {
+            // expected
+        }
+        lock1.unlock();
+        lock2 = new FileLock(new TraceSystem(null, false), FILE, Constants.LOCK_SLEEP);
+        lock2.lock(FileLock.LOCK_FILE);
+        lock2.unlock();
     }
 
     private void test(boolean allowSockets) throws Exception {

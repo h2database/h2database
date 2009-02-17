@@ -49,8 +49,14 @@ public class TestBitField extends TestBase {
     }
 
     private void testNextClearBit() {
-        Random random = new Random(1);
+        BitSet set = new BitSet();
         BitField field = new BitField();
+        set.set(0, 640);
+        field.setRange(0, 640, true);
+        assertEquals(set.nextClearBit(0), field.nextClearBit(0));
+
+        Random random = new Random(1);
+        field = new BitField();
         field.setRange(0, 500, true);
         for (int i = 0; i < 100000; i++) {
             int a = random.nextInt(120);

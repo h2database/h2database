@@ -20,6 +20,15 @@ import org.h2.util.IOUtils;
  */
 public class TestReader extends TestBase {
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws Exception {
         String s = "\u00ef\u00f6\u00fc";
         StringReader r = new StringReader(s);

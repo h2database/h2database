@@ -9,11 +9,11 @@ package org.h2.samples;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-
 import org.h2.tools.SimpleResultSet;
 
 /**
@@ -32,6 +32,8 @@ public class Function {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
         Statement stat = conn.createStatement();
+
+        // Using a custom Java function
         stat.execute("CREATE ALIAS IS_PRIME FOR \"org.h2.samples.Function.isPrime\" ");
         ResultSet rs;
         rs = stat.executeQuery("SELECT IS_PRIME(X), X FROM SYSTEM_RANGE(1, 20) ORDER BY X");
@@ -42,6 +44,22 @@ public class Function {
                 System.out.println(x + " is prime");
             }
         }
+
+        // Calling the built-in 'table' function
+        stat.execute("CREATE TABLE TEST(ID INT) AS " +
+                "SELECT X FROM SYSTEM_RANGE(1, 100)");
+        PreparedStatement prep;
+        prep = conn.prepareStatement("SELECT * FROM TABLE(X INT=?, O INT=?) J " +
+                "INNER JOIN TEST T ON J.X=T.ID ORDER BY J.O");
+        prep.setObject(1,
+                new Integer[] { new Integer(30), new Integer(20) });
+        prep.setObject(2,
+                new Integer[] { new Integer(1), new Integer(2) });
+        ResultSet rs2 = prep.executeQuery();
+        while (rs2.next()) {
+            System.out.println(rs2.getInt(1));
+        }
+
         conn.close();
     }
 

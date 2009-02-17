@@ -20,6 +20,15 @@ import org.h2.util.StringUtils;
  */
 public class TestSampleApps extends TestBase {
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws Exception {
         deleteDb("optimizations");
         String url = "jdbc:h2:" + baseDir + "/optimizations";
@@ -32,7 +41,7 @@ public class TestSampleApps extends TestBase {
                 + "PHONE: +41123456789\n\n" + "NAME: John Jones\n" + "EMAIL: john.jones@abcde.abc\n"
                 + "PHONE: +41976543210\n");
         testApp(org.h2.samples.Function.class, null,
-                "2 is prime\n3 is prime\n5 is prime\n7 is prime\n11 is prime\n13 is prime\n17 is prime\n19 is prime");
+                "2 is prime\n3 is prime\n5 is prime\n7 is prime\n11 is prime\n13 is prime\n17 is prime\n19 is prime\n30\n20");
         // Not compatible with PostgreSQL JDBC driver (throws a NullPointerException)
         //testApp(org.h2.samples.SecurePassword.class, null, "Joe");
         // TODO test ShowProgress (percent numbers are hardware specific)

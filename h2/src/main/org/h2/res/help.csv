@@ -2502,7 +2502,7 @@ REPLACE(NAME, ' ')
 SOUNDEX(string): string
 ","
 Returns a four character code representing the sound of a string.
-See also http://www.archives.gov/genealogy/soundex.html .
+See also http://www.archives.gov/genealogy/census/soundex.html .
 ","
 SOUNDEX(NAME)
 "

@@ -469,7 +469,12 @@ public class TableFilter implements ColumnResolver {
         }
     }
 
-    private void mapAndAddFilter(Expression on) throws SQLException {
+    /**
+     * Map the columns and add the join condition.
+     *
+     * @param on the condition
+     */
+    public void mapAndAddFilter(Expression on) throws SQLException {
         on.mapColumns(this, 0);
         addFilterCondition(on, true);
         on.createIndexConditions(session, this);

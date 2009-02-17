@@ -1782,8 +1782,13 @@ public class Parser {
                             TableFilter rightFilter = rightCol.getTableFilter();
                             r = new Comparison(session, compareType, r, right);
                             if (leftFilter != null && rightFilter != null) {
-                                filters.remove(filters.indexOf(rightFilter));
-                                leftFilter.addJoin(rightFilter, true, r);
+                                int idx = filters.indexOf(rightFilter);
+                                if (idx >= 0) {
+                                    filters.remove(idx);
+                                    leftFilter.addJoin(rightFilter, true, r);
+                                } else {
+                                    rightFilter.mapAndAddFilter(r);
+                                }
                                 r = ValueExpression.get(ValueBoolean.get(true));
                             }
                         }

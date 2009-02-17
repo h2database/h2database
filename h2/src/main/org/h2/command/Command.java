@@ -231,6 +231,7 @@ public abstract class Command implements CommandInterface {
                     }
                 }
             } catch (SQLException e) {
+                Message.addSQL(e, sql);
                 database.exceptionThrown(e, sql);
                 database.checkPowerOff();
                 if (e.getErrorCode() == ErrorCode.DEADLOCK_1) {

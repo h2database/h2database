@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>MySQL compatibility for CREATE TABLE is improved (UNSIGNED, KEY).
+<ul><li>The H2 Console web application (war file) did only support ASCII characters.
+    Now UTF-8 is supported.
+</li><li>DATEADD does no longer require that the argument is a timestamp.
+</li><li>The database file locking mechanism didn't work correctly on Mac OS.
+</li><li>Some built-in functions reported the wrong precision, scale, and display size.
+</li><li>MySQL compatibility for CREATE TABLE is improved (UNSIGNED, KEY).
 </li><li>Recovery did not work if there were more than 255 lobs stored as files.
 </li><li>New experimental mode to support multiple read-write connections without starting
     a server. To enable this mode, append ;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE to the database URL.

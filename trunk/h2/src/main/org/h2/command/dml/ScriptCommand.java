@@ -208,7 +208,7 @@ public class ScriptCommand extends ScriptBase {
             ObjectArray sequences = db.getAllSchemaObjects(DbObject.SEQUENCE);
             for (int i = 0; i < sequences.size(); i++) {
                 Sequence sequence = (Sequence) sequences.get(i);
-                if (drop) {
+                if (drop && !sequence.getBelongsToTable()) {
                     add(sequence.getDropSQL(), false);
                 }
                 add(sequence.getCreateSQL(), false);

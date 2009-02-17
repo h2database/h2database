@@ -19,7 +19,7 @@ public class BitField {
     /**
      * Get the index of the last bit that is set.
      *
-     * @return the index of the last enabled bit
+     * @return the index of the last enabled bit, or -1
      */
     public int getLastSetBit() {
         int i = (data.length << ADDRESS_BITS) - 1;
@@ -76,7 +76,7 @@ public class BitField {
                 }
             }
         }
-        return fromIndex;
+        return max << ADDRESS_BITS;
     }
 
     /**

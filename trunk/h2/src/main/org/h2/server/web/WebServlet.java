@@ -81,6 +81,7 @@ public class WebServlet extends HttpServlet {
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        req.setCharacterEncoding("utf-8");
         String file = req.getPathInfo();
         if (file == null) {
             resp.sendRedirect(req.getRequestURI() + "/");

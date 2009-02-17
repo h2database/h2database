@@ -74,6 +74,7 @@ public class PageLog {
     private DataPage data;
     private long operation;
     private BitField undo = new BitField();
+    private int[] reservedPages = new int[2];
 
     PageLog(PageStore store, int firstPage) {
         this.store = store;
@@ -215,12 +216,26 @@ e.printStackTrace();
             if (trace.isDebugEnabled()) {
                 trace.debug("log undo " + pageId);
             }
+            undo.set(pageId);
+            reservePages(2);
             out.write(UNDO);
             out.writeInt(pageId);
             out.write(page.getBytes(), 0, store.getPageSize());
-            undo.set(pageId);
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
+        }
+    }
+
+    private void reservePages(int pageCount) throws SQLException {
+        int testIfRequired;
+        if (pageCount > reservedPages.length) {
+            reservedPages = new int[pageCount];
+        }
+        for (int i = 0; i < pageCount; i++) {
+            reservedPages[i] = store.allocatePage();
+        }
+        for (int i = 0; i < pageCount; i++) {
+            store.freePage(reservedPages[i]);
         }
     }
 
@@ -232,6 +247,7 @@ e.printStackTrace();
     void commit(Session session) throws SQLException {
         try {
             trace.debug("log commit");
+            reservePages(1);
             out.write(COMMIT);
             out.writeInt(session.getId());
             if (store.getDatabase().getLog().getFlushOnEachCommit()) {
@@ -259,13 +275,17 @@ e.printStackTrace();
             int todoLogPosShouldBeLong;
             session.addLogPos(0, (int) operation);
             row.setLastLog(0, (int) operation);
+
+            data.reset();
+            int todoWriteIntoOutputDirectly;
+            row.write(data);
+
+            reservePages(1 + data.length() / store.getPageSize());
+
             out.write(add ? ADD : REMOVE);
             out.writeInt(session.getId());
             out.writeInt(tableId);
             out.writeInt(row.getPos());
-            data.reset();
-            int todoWriteIntoOutputDirectly;
-            row.write(data);
             out.writeInt(data.length());
             out.write(data.getBytes(), 0, data.length());
         } catch (IOException e) {

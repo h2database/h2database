@@ -26,9 +26,9 @@ import org.h2.store.DataPage;
  */
 class PageDataNode extends PageData {
 
-    private final static int ENTRY_START = 15;
+    private static final int ENTRY_START = 15;
 
-    private final static int ENTRY_LENGTH = 8;
+    private static final int ENTRY_LENGTH = 8;
 
     /**
      * The page ids of the children.
@@ -274,6 +274,10 @@ class PageDataNode extends PageData {
         System.arraycopy(childPageIds, i + 1, newChildPageIds, i, entryCount - i + 1);
         keys = newKeys;
         childPageIds = newChildPageIds;
+    }
+
+    public String toString() {
+        return "page[" + getPos() + "] data node table:" + index.getId() + " entries:" + entryCount;
     }
 
 }

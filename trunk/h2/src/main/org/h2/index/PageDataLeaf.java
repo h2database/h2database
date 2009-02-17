@@ -66,7 +66,7 @@ class PageDataLeaf extends PageData {
         if (tableId != index.getId()) {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1,
                     "page:" + getPageId() + " expected table:" + index.getId() +
-                    "got:" + tableId);
+                    " got:" + tableId + " type:" + type);
         }
         entryCount = data.readShortInt();
         offsets = new int[entryCount];
@@ -349,6 +349,10 @@ class PageDataLeaf extends PageData {
     DataPage getDataPage() throws SQLException {
         write();
         return data;
+    }
+
+    public String toString() {
+        return "page[" + getPos() + "] data leaf table:" + index.getId() + " entries:" + entryCount;
     }
 
 }

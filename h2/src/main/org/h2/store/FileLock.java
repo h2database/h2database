@@ -273,20 +273,18 @@ public class FileLock {
     }
 
     private void waitUntilOld() throws SQLException {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < TIME_GRANULARITY / SLEEP_GAP; i++) {
             long last = fs.getLastModified(fileName);
             long dist = System.currentTimeMillis() - last;
             if (dist < -TIME_GRANULARITY) {
                 throw getExceptionFatal("Lock file modified in the future: dist=" + dist, null);
-            }
-            if (dist < SLEEP_GAP) {
-                try {
-                    Thread.sleep(dist + 1);
-                } catch (Exception e) {
-                    trace.debug("sleep", e);
-                }
-            } else {
+            } else if (dist > TIME_GRANULARITY) {
                 return;
+            }
+            try {
+                Thread.sleep(SLEEP_GAP);
+            } catch (Exception e) {
+                trace.debug("sleep", e);
             }
         }
         throw getExceptionFatal("Lock file recently modified", null);

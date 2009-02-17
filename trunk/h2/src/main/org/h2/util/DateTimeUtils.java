@@ -97,6 +97,12 @@ public class DateTimeUtils {
         long time;
         synchronized (cal) {
             cal.setTime(value);
+            // if we don't enable lenient processing, dates between
+            // 1916-06-03 and 1920-03-21,
+            // 1940-06-15, 1947-03-16, and
+            // 1966-05-22 to 1979-05-27 don't work
+            // (central european timezone CET)
+            cal.setLenient(true);
             cal.set(Calendar.MILLISECOND, 0);
             cal.set(Calendar.SECOND, 0);
             cal.set(Calendar.MINUTE, 0);
@@ -253,8 +259,8 @@ public class DateTimeUtils {
                 day = Integer.parseInt(s.substring(s2 + 1, end));
             }
             int hour = DEFAULT_HOUR, minute = 0, second = 0, nano = 0;
-            if (type != Value.DATE) {
-                int s1 = s.indexOf(':', timeStart);
+            int s1 = s.indexOf(':', timeStart);
+            if (type == Value.TIME || (type == Value.TIMESTAMP && s1 >= 0)) {
                 int s2 = s.indexOf(':', s1 + 1);
                 int s3 = s.indexOf('.', s2 + 1);
                 if (s1 <= 0 || s2 <= s1) {

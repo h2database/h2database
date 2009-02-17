@@ -1,8 +1,7 @@
 /*
- * Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License,
- * Version 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html).
- * Initial Developer: H2 Group
+ * Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License, Version
+ * 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html). Initial Developer: H2 Group
  */
 package org.h2.store;
 
@@ -10,82 +9,118 @@ import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.index.Page;
 import org.h2.message.Message;
-import org.h2.util.IntArray;
+import org.h2.util.BitField;
 
 /**
- * The list of free pages of a page store.
- * The format of a free list trunk page is:
- * <ul><li>0-3: parent page id (always 0)
- * </li><li>4-4: page type
- * </li><li>5-8: the next page (if there are more) or number of entries
- * </li><li>9-remainder: data (4 bytes each entry)
- * </li></ul>
+ * The list of free pages of a page store. The format of a free list trunk page
+ * is:
+ * <ul>
+ * <li>0-3: parent page id (always 0)</li>
+ * <li>4-4: page type</li>
+ * <li>5-remainder: data</li>
+ * </ul>
  */
 public class PageFreeList extends Record {
 
-    private final PageStore store;
-    private final DataPage data;
-    private final IntArray array = new IntArray();
-    private int nextPage;
+    private static final int DATA_START = 5;
 
-    PageFreeList(PageStore store, int pageId, int nextPage) {
+    private final PageStore store;
+    private final BitField used = new BitField();
+    private final int firstAddressed;
+    private final int pageCount;
+    private final int nextPage;
+    private boolean full;
+    private DataPage data;
+
+    PageFreeList(PageStore store, int pageId, int firstAddressed) {
         setPos(pageId);
-        this.data = store.createDataPage();
         this.store = store;
-        this.nextPage = nextPage;
+        this.firstAddressed = firstAddressed;
+        pageCount = (store.getPageSize() - DATA_START) * 8;
+        for (int i = firstAddressed; i <= pageId; i++) {
+            used.set(getAddress(i));
+        }
+        nextPage = firstAddressed + pageCount;
+    }
+
+    private int getAddress(int pageId) {
+        return pageId - firstAddressed;
     }
 
     /**
      * Allocate a page from the free list.
      *
-     * @return the page
+     * @return the page, or -1 if all pages are used
      */
     int allocate() throws SQLException {
-        store.updateRecord(this, true, data);
-        int size = array.size();
-        if (size > 0) {
-            int x = array.get(size - 1);
-            array.remove(size - 1);
-            return x;
+        if (full) {
+            PageFreeList next = getNext();
+            if (next == null) {
+                return -1;
+            }
+            return next.allocate();
         }
-        store.removeRecord(getPos());
-        // no more free pages in this list:
-        // set the next page (may be 0, meaning no free pages)
-        store.setFreeListRootPage(nextPage, true, 0);
-        // and then return the page itself
-        return getPos();
-    }
-
-    private int getMaxSize() {
-        return (store.getPageSize() - 9) / DataPage.LENGTH_INT;
+        int free = used.nextClearBit(0);
+        if (free > pageCount) {
+            full = true;
+            return allocate();
+        }
+        used.set(free);
+        store.updateRecord(this, true, data);
+        return free + firstAddressed;
     }
 
     /**
-     * Read the page from the disk.
+     * Allocate a page at the end of the file
+     *
+     * @param min the minimum page number
+     * @return the page id
      */
-    void read() throws SQLException {
-        data.reset();
-        store.readPage(getPos(), data);
-        int p = data.readInt();
-        int t = data.readByte();
-        boolean last = (t & Page.FLAG_LAST) != 0;
-        t &= ~Page.FLAG_LAST;
-        if (t != Page.TYPE_FREE_LIST || p != 0) {
-            throw Message.getSQLException(
-                    ErrorCode.FILE_CORRUPTED_1,
-                    "pos:" + getPos() + " type:" + t + " parent:" + p +
-                    " expected type:" + Page.TYPE_FREE_LIST);
+    int allocateAtEnd(int min) throws SQLException {
+        int pos = Math.max(min, getLastUsed() + 1);
+        return allocate(pos);
+    }
+
+    public int getLastUsed() throws SQLException {
+        if (nextPage < store.getPageCount()) {
+            PageFreeList next = getNext();
+            return next.getLastUsed();
         }
-        int size;
-        if (last) {
-            nextPage = 0;
-            size = data.readInt();
+        return used.getLastSetBit() + firstAddressed;
+    }
+
+    private PageFreeList getNext() throws SQLException {
+        PageFreeList next = (PageFreeList) store.getRecord(nextPage);
+        if (next == null) {
+            if (nextPage < store.getPageCount()) {
+                next = new PageFreeList(store, nextPage, nextPage);
+                next.read();
+                store.updateRecord(next, false, null);
+            }
+        }
+        return next;
+    }
+
+    /**
+     * Mark a page as used.
+     *
+     * @param pos the page id
+     * @return the page id, or -1
+     */
+    int allocate(int pos) throws SQLException {
+        if (pos - firstAddressed > pageCount) {
+            PageFreeList next = getNext();
+            if (next == null) {
+                return -1;
+            }
+            return next.allocate(pos);
         } else {
-            nextPage = data.readInt();
-            size = getMaxSize();
-        }
-        for (int i = 0; i < size; i++) {
-            array.add(data.readInt());
+            int idx = pos - firstAddressed;
+            if (idx >= 0 && !used.get(idx)) {
+                used.set(pos - firstAddressed);
+                store.updateRecord(this, true, data);
+            }
+            return pos;
         }
     }
 
@@ -95,15 +130,28 @@ public class PageFreeList extends Record {
      * @param pageId the page id to add
      */
     void free(int pageId) throws SQLException {
+        full = false;
+        used.clear(pageId - firstAddressed);
         store.updateRecord(this, true, data);
-        if (array.size() < getMaxSize()) {
-            array.add(pageId);
-        } else {
-            // this page is full:
-            // the freed page is the next list
-            this.nextPage = pageId;
-            // set the next page
-            store.setFreeListRootPage(pageId, false, getPos());
+    }
+
+    /**
+     * Read the page from the disk.
+     */
+    void read() throws SQLException {
+        data = store.createDataPage();
+        store.readPage(getPos(), data);
+        int p = data.readInt();
+        int t = data.readByte();
+        if (t == Page.TYPE_EMPTY) {
+            return;
+        }
+        if (t != Page.TYPE_FREE_LIST || p != 0) {
+            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "pos:" + getPos() + " type:" + t + " parent:" + p
+                    + " expected type:" + Page.TYPE_FREE_LIST);
+        }
+        for (int i = 0; i < pageCount; i += 8) {
+            used.setByte(i, data.readByte());
         }
     }
 
@@ -112,20 +160,12 @@ public class PageFreeList extends Record {
     }
 
     public void write(DataPage buff) throws SQLException {
-        data.reset();
+        data = store.createDataPage();
         data.writeInt(0);
         int type = Page.TYPE_FREE_LIST;
-        if (nextPage == 0) {
-            type |= Page.FLAG_LAST;
-        }
         data.writeByte((byte) type);
-        if (nextPage != 0) {
-            data.writeInt(nextPage);
-        } else {
-            data.writeInt(array.size());
-        }
-        for (int i = 0; i < array.size(); i++) {
-            data.writeInt(array.get(i));
+        for (int i = 0; i < pageCount; i += 8) {
+            data.writeByte((byte) used.getByte(i));
         }
         store.writePage(getPos(), data);
     }

@@ -300,4 +300,9 @@ class PageBtreeNode extends PageBtree {
         cursor.setCurrent(leaf, 0);
     }
 
+    public String toString() {
+        return "page[" + getPos() + "] btree node table:" + index.getId() + " entries:" + entryCount;
+    }
+
+
 }

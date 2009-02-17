@@ -8,12 +8,12 @@ package org.h2.engine;
 
 import java.sql.SQLException;
 import java.util.Comparator;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.Prepared;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.SearchRow;
+import org.h2.schema.SchemaObject;
 import org.h2.util.ObjectArray;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueString;
@@ -83,6 +83,37 @@ public class MetaRecord {
             command.setObjectId(id);
             command.setHeadPos(headPos);
             command.update();
+        } catch (Exception e) {
+            SQLException s = Message.addSQL(Message.convert(e), sql);
+            db.getTrace(Trace.DATABASE).error(sql, s);
+            if (listener != null) {
+                listener.exceptionThrown(s, sql);
+                // continue startup in this case
+            } else {
+                throw s;
+            }
+        }
+    }
+
+    /**
+     * Undo a metadata change.
+     *
+     * @param db the database
+     * @param systemSession the system session
+     * @param listener the database event listener
+     */
+    void undo(Database db, Session systemSession, DatabaseEventListener listener) throws SQLException {
+        try {
+            DbObject obj = db.getDbObject(id);
+            // null if it was already removed
+            // (a identity sequence is removed when the table is removed)
+            if (obj != null) {
+                if (obj instanceof SchemaObject) {
+                    db.removeSchemaObject(systemSession, (SchemaObject) obj);
+                } else {
+                    db.removeDatabaseObject(systemSession, obj);
+                }
+            }
         } catch (Exception e) {
             SQLException s = Message.addSQL(Message.convert(e), sql);
             db.getTrace(Trace.DATABASE).error(sql, s);

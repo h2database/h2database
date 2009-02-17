@@ -53,13 +53,17 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             headPos = store.allocatePage();
             PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
             store.updateRecord(root, true, root.data);
-        } else if (store.isNew()) {
-            // the system table for a new database
-            PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
-            store.updateRecord(root, true, root.data);
+            int test;
+//        } else if (store.isNew()) {
+//            // the system table for a new database
+//            PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
+//            store.updateRecord(root, true, root.data);
         } else {
-            lastKey = getPage(headPos).getLastKey();
-            rowCount = getPage(headPos).getRowCount();
+            PageData root = getPage(headPos);
+            lastKey = root.getLastKey();
+            rowCount = root.getRowCount();
+            // could have been created before, but never committed
+            store.updateRecord(root, false, null);
             int reuseKeysIfManyDeleted;
         }
         this.headPos = headPos;
@@ -127,6 +131,10 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     PageData getPage(int id) throws SQLException {
         Record rec = store.getRecord(id);
         if (rec != null) {
+            if (rec instanceof PageDataLeafOverflow) {
+                int test;
+                System.out.println("stop");
+            }
             return (PageData) rec;
         }
         DataPage data = store.readPage(id);

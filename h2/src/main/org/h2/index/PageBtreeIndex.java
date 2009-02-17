@@ -31,6 +31,7 @@ public class PageBtreeIndex extends BaseIndex {
     private TableData tableData;
     private int headPos;
     private long rowCount;
+    private boolean needRebuild;
 
     public PageBtreeIndex(TableData table, int id, String indexName, IndexColumn[] columns,
             IndexType indexType, int headPos) throws SQLException {
@@ -46,14 +47,16 @@ public class PageBtreeIndex extends BaseIndex {
         }
         this.store = database.getPageStore();
         if (headPos == Index.EMPTY_HEAD) {
-            // new table
+            // new index
+            needRebuild = true;
             headPos = store.allocatePage();
             PageBtreeLeaf root = new PageBtreeLeaf(this, headPos, Page.ROOT, store.createDataPage());
             store.updateRecord(root, true, root.data);
-        } else if (store.isNew()) {
-            // the system table for a new database
-            PageBtreeLeaf root = new PageBtreeLeaf(this, headPos, Page.ROOT, store.createDataPage());
-            store.updateRecord(root, true, root.data);
+            int test;
+//        } else if (store.isNew()) {
+//            // the system table for a new database
+//            PageBtreeLeaf root = new PageBtreeLeaf(this, headPos, Page.ROOT, store.createDataPage());
+//            store.updateRecord(root, true, root.data);
         } else {
             rowCount = getPage(headPos).getRowCount();
             int reuseKeysIfManyDeleted;
@@ -175,7 +178,7 @@ public class PageBtreeIndex extends BaseIndex {
     }
 
     public boolean needRebuild() {
-        return false;
+        return needRebuild;
     }
 
     public void remove(Session session, Row row) throws SQLException {

@@ -234,4 +234,8 @@ class PageBtreeLeaf extends PageBtree {
         next.nextPage(cursor, getRow(entryCount - 1));
     }
 
+    public String toString() {
+        return "page[" + getPos() + "] btree leaf table:" + index.getId() + " entries:" + entryCount;
+    }
+
 }

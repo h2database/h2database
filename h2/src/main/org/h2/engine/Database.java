@@ -63,6 +63,7 @@ import org.h2.util.FileUtils;
 import org.h2.util.IntHashMap;
 import org.h2.util.NetUtils;
 import org.h2.util.ObjectArray;
+import org.h2.util.ObjectUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
@@ -100,6 +101,7 @@ public class Database implements DataHandler {
     private final HashMap aggregates = new HashMap();
     private final HashMap comments = new HashMap();
     private IntHashMap tableMap = new IntHashMap();
+    private final HashMap databaseObjects = new HashMap();
 
     private final Set userSessions = Collections.synchronizedSet(new HashSet());
     private Session exclusiveSession;
@@ -519,9 +521,7 @@ public class Database implements DataHandler {
             isReconnectNeeded();
             if (SysProperties.PAGE_STORE) {
                 PageStore store = getPageStore();
-                if (!store.isNew()) {
-                    store.recover(true);
-                }
+                store.recover();
             }
             if (FileUtils.exists(dataFileName)) {
                 lobFilesInDirectories &= !ValueLob.existsLobFile(getDatabasePath());
@@ -579,7 +579,7 @@ public class Database implements DataHandler {
         cols.add(new Column("SQL", Value.STRING));
         int headPos = 0;
         if (pageStore != null) {
-            headPos = pageStore.getSystemRootPageId();
+            headPos = pageStore.getMetaTableHeadPos();
         }
         meta = mainSchema.createTable("SYS", 0, cols, persistent, false, headPos);
         tableMap.put(0, meta);
@@ -606,14 +606,6 @@ public class Database implements DataHandler {
             MetaRecord rec = (MetaRecord) records.get(i);
             rec.execute(this, systemSession, eventListener);
         }
-        if (pageStore != null) {
-            if (!pageStore.isNew()) {
-                getPageStore().recover(false);
-                if (!readOnly) {
-                    pageStore.checkpoint();
-                }
-            }
-        }
         // try to recompile the views that are invalid
         recompileInvalidViews(systemSession);
         starting = false;
@@ -628,6 +620,10 @@ public class Database implements DataHandler {
         }
         systemSession.commit(true);
         traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
+    }
+
+    public Schema getMainSchema() {
+        return mainSchema;
     }
 
     private void startServer(String key) throws SQLException {
@@ -764,18 +760,21 @@ public class Database implements DataHandler {
     }
 
     private synchronized void addMeta(Session session, DbObject obj) throws SQLException {
-        if (obj.getTemporary()) {
-            return;
+        int id = obj.getId();
+        if (id > 0 && !starting && !obj.getTemporary()) {
+            Row r = meta.getTemplateRow();
+            MetaRecord rec = new MetaRecord(obj);
+            rec.setRecord(r);
+            objectIds.set(id);
+            meta.lock(session, true, true);
+            meta.addRow(session, r);
+            if (isMultiVersion()) {
+                // TODO this should work without MVCC, but avoid risks at the moment
+                session.log(meta, UndoLogRecord.INSERT, r);
+            }
         }
-        Row r = meta.getTemplateRow();
-        MetaRecord rec = new MetaRecord(obj);
-        rec.setRecord(r);
-        objectIds.set(obj.getId());
-        meta.lock(session, true, true);
-        meta.addRow(session, r);
-        if (isMultiVersion()) {
-            // TODO this should work without MVCC, but avoid risks at the moment
-            session.log(meta, UndoLogRecord.INSERT, r);
+        if (SysProperties.PAGE_STORE && id > 0) {
+            databaseObjects.put(ObjectUtils.getInteger(id), obj);
         }
     }
 
@@ -786,22 +785,27 @@ public class Database implements DataHandler {
      * @param id the id of the object to remove
      */
     public synchronized void removeMeta(Session session, int id) throws SQLException {
-        SearchRow r = meta.getTemplateSimpleRow(false);
-        r.setValue(0, ValueInt.get(id));
-        Cursor cursor = metaIdIndex.find(session, r, r);
-        if (cursor.next()) {
-            Row found = cursor.get();
-            meta.lock(session, true, true);
-            meta.removeRow(session, found);
-            if (isMultiVersion()) {
-                // TODO this should work without MVCC, but avoid risks at the
-                // moment
-                session.log(meta, UndoLogRecord.DELETE, found);
+        if (id > 0 && !starting) {
+            SearchRow r = meta.getTemplateSimpleRow(false);
+            r.setValue(0, ValueInt.get(id));
+            Cursor cursor = metaIdIndex.find(session, r, r);
+            if (cursor.next()) {
+                Row found = cursor.get();
+                meta.lock(session, true, true);
+                meta.removeRow(session, found);
+                if (isMultiVersion()) {
+                    // TODO this should work without MVCC, but avoid risks at the
+                    // moment
+                    session.log(meta, UndoLogRecord.DELETE, found);
+                }
+                objectIds.clear(id);
+                if (SysProperties.CHECK) {
+                    checkMetaFree(session, id);
+                }
             }
-            objectIds.clear(id);
-            if (SysProperties.CHECK) {
-                checkMetaFree(session, id);
-            }
+        }
+        if (SysProperties.PAGE_STORE) {
+            databaseObjects.remove(ObjectUtils.getInteger(id));
         }
     }
 
@@ -842,9 +846,7 @@ public class Database implements DataHandler {
             checkWritingAllowed();
         }
         obj.getSchema().add(obj);
-        if (id > 0 && !starting) {
-            addMeta(session, obj);
-        }
+        addMeta(session, obj);
         if (obj instanceof TableData) {
             tableMap.put(id, obj);
         }
@@ -872,9 +874,7 @@ public class Database implements DataHandler {
         if (SysProperties.CHECK && map.get(name) != null) {
             Message.throwInternalError("object already exists");
         }
-        if (id > 0 && !starting) {
-            addMeta(session, obj);
-        }
+        addMeta(session, obj);
         map.put(name, obj);
     }
 
@@ -1615,19 +1615,21 @@ public class Database implements DataHandler {
             removeDatabaseObject(session, comment);
         }
         obj.getSchema().remove(obj);
-        String invalid;
-        if (SysProperties.OPTIMIZE_DROP_DEPENDENCIES) {
-            Table t = getDependentTable(obj, null);
-            invalid = t == null ? null : t.getSQL();
-        } else {
-            invalid = getFirstInvalidTable(session);
-        }
-        if (invalid != null) {
-            obj.getSchema().add(obj);
-            throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, new String[] { obj.getSQL(), invalid });
+        if (!starting) {
+            String invalid;
+            if (SysProperties.OPTIMIZE_DROP_DEPENDENCIES) {
+                Table t = getDependentTable(obj, null);
+                invalid = t == null ? null : t.getSQL();
+            } else {
+                invalid = getFirstInvalidTable(session);
+            }
+            if (invalid != null) {
+                obj.getSchema().add(obj);
+                throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, new String[] { obj.getSQL(), invalid });
+            }
+            obj.removeChildrenAndResources(session);
         }
         int id = obj.getId();
-        obj.removeChildrenAndResources(session);
         removeMeta(session, id);
         if (obj instanceof TableData) {
             tableMap.remove(id);
@@ -2154,6 +2156,8 @@ public class Database implements DataHandler {
             if (add) {
                 objectIds.set(m.getId());
                 m.execute(this, systemSession, eventListener);
+            } else {
+                m.undo(this, systemSession, eventListener);
             }
         }
     }
@@ -2251,6 +2255,16 @@ public class Database implements DataHandler {
         if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
             reconnectModified(true);
         }
+    }
+
+    /**
+     * Get a database object.
+     *
+     * @param id the object id
+     * @return the database object
+     */
+    DbObject getDbObject(int id) {
+        return (DbObject) databaseObjects.get(ObjectUtils.getInteger(id));
     }
 
 }

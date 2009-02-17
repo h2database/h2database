@@ -129,4 +129,8 @@ public class PageDataLeafOverflow extends Record {
         store.writePage(getPos(), overflow);
     }
 
+    public String toString() {
+        return "page[" + getPos() + "] data leaf overflow prev:" + previous + " next:" + next;
+    }
+
 }

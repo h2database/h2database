@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.index.Page;
 import org.h2.message.Message;
+import org.h2.message.Trace;
 
 /**
  * An output stream that writes into a page store.
@@ -25,6 +26,7 @@ import org.h2.message.Message;
 public class PageInputStream extends InputStream {
 
     private PageStore store;
+    private final Trace trace;
     private int parentPage;
     private int type;
     private int nextPage;
@@ -35,6 +37,7 @@ public class PageInputStream extends InputStream {
 
     public PageInputStream(PageStore store, int parentPage, int headPage, int type) {
         this.store = store;
+        this.trace = store.getTrace();
         this.parentPage = parentPage;
         this.type = type;
         nextPage = headPage;
@@ -107,6 +110,9 @@ public class PageInputStream extends InputStream {
             } else {
                 nextPage = page.readInt();
                 remaining = store.getPageSize() - page.length();
+            }
+            if (trace.isDebugEnabled()) {
+                trace.debug("pageIn.readPage " + parentPage + " next:" + nextPage);
             }
         } catch (SQLException e) {
             throw Message.convertToIOException(e);

@@ -693,7 +693,10 @@ public class FullText {
             setting = FullTextSettings.getInstance(conn);
             ArrayList keyList = new ArrayList();
             DatabaseMetaData meta = conn.getMetaData();
-            ResultSet rs = meta.getColumns(null, schemaName, tableName, null);
+            ResultSet rs = meta.getColumns(null,
+                    JdbcUtils.escapeMetaDataPattern(schemaName),
+                    JdbcUtils.escapeMetaDataPattern(tableName),
+                    null);
             ArrayList columnList = new ArrayList();
             while (rs.next()) {
                 columnList.add(rs.getString("COLUMN_NAME"));
@@ -704,12 +707,17 @@ public class FullText {
             index.table = tableName;
             index.columns = new String[columnList.size()];
             columnList.toArray(index.columns);
-            rs = meta.getColumns(null, schemaName, tableName, null);
+            rs = meta.getColumns(null,
+                    JdbcUtils.escapeMetaDataPattern(schemaName),
+                    JdbcUtils.escapeMetaDataPattern(tableName),
+                    null);
             for (int i = 0; rs.next(); i++) {
                 columnTypes[i] = rs.getInt("DATA_TYPE");
             }
             if (keyList.size() == 0) {
-                rs = meta.getPrimaryKeys(null, schemaName, tableName);
+                rs = meta.getPrimaryKeys(null,
+                        JdbcUtils.escapeMetaDataPattern(schemaName),
+                        tableName);
                 while (rs.next()) {
                     keyList.add(rs.getString("COLUMN_NAME"));
                 }

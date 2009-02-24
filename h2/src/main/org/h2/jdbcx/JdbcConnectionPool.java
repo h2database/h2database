@@ -99,8 +99,8 @@ public class JdbcConnectionPool implements DataSource {
      * @param max the maximum number of connections
      */
     public synchronized void setMaxConnections(int max) {
-        if (maxConnections < 1) {
-            throw new IllegalArgumentException("Invalid maxConnections value.");
+        if (max < 1) {
+            throw new IllegalArgumentException("Invalid maxConnections value: " + max);
         }
         this.maxConnections = max;
         // notify waiting threads if the value was increased

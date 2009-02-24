@@ -38,6 +38,7 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileSystem;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 //## Java 1.4 end ##
 
@@ -368,7 +369,10 @@ public class FullTextLucene extends FullText {
             this.indexModifier = getIndexModifier(conn);
             ArrayList keyList = new ArrayList();
             DatabaseMetaData meta = conn.getMetaData();
-            ResultSet rs = meta.getColumns(null, schemaName, tableName, null);
+            ResultSet rs = meta.getColumns(null,
+                    JdbcUtils.escapeMetaDataPattern(schemaName),
+                    JdbcUtils.escapeMetaDataPattern(tableName),
+                    null);
             ArrayList columnList = new ArrayList();
             while (rs.next()) {
                 columnList.add(rs.getString("COLUMN_NAME"));
@@ -376,12 +380,17 @@ public class FullTextLucene extends FullText {
             columnTypes = new int[columnList.size()];
             columns = new String[columnList.size()];
             columnList.toArray(columns);
-            rs = meta.getColumns(null, schemaName, tableName, null);
+            rs = meta.getColumns(null,
+                    JdbcUtils.escapeMetaDataPattern(schemaName),
+                    JdbcUtils.escapeMetaDataPattern(tableName),
+                    null);
             for (int i = 0; rs.next(); i++) {
                 columnTypes[i] = rs.getInt("DATA_TYPE");
             }
             if (keyList.size() == 0) {
-                rs = meta.getPrimaryKeys(null, schemaName, tableName);
+                rs = meta.getPrimaryKeys(null,
+                        JdbcUtils.escapeMetaDataPattern(schemaName),
+                        tableName);
                 while (rs.next()) {
                     keyList.add(rs.getString("COLUMN_NAME"));
                 }
@@ -390,7 +399,9 @@ public class FullTextLucene extends FullText {
                 throw new SQLException("No primary key for table " + tableName);
             }
             ArrayList indexList = new ArrayList();
-            PreparedStatement prep = conn.prepareStatement("SELECT COLUMNS FROM "+SCHEMA+".INDEXES WHERE SCHEMA=? AND TABLE=?");
+            PreparedStatement prep = conn.prepareStatement(
+                    "SELECT COLUMNS FROM " + SCHEMA
+                    + ".INDEXES WHERE SCHEMA=? AND TABLE=?");
             prep.setString(1, schemaName);
             prep.setString(2, tableName);
             rs = prep.executeQuery();

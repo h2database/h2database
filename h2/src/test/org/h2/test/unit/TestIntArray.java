@@ -16,8 +16,23 @@ import org.h2.util.IntArray;
  */
 public class TestIntArray extends TestBase {
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() {
+        testInit();
         testRandom();
+    }
+
+    private void testInit() {
+        IntArray array = new IntArray(new int[0]);
+        array.add(10);
     }
 
     private void testRandom() {

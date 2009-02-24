@@ -283,8 +283,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-line breaks in grammar (specially select)
-
 test performance with log=2
 maybe make log=2 the default option
 
@@ -292,8 +290,6 @@ TRANSACTION_ID()
 
 select 1 from dual a where 1 in(select 1 from dual b
 where 1 in(select 1 from dual c where a.x=1));
-
-error message on insert / merge: include SQL statement (at least table name)
 
 use 127.0.0.1 if other addresses don't work
 

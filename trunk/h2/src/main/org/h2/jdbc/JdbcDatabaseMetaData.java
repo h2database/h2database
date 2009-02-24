@@ -109,7 +109,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * </li>
      * </ul>
      *
-     * @param catalog null (to get all objects) or the catalog name
+     * @param catalogPattern null (to get all objects) or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name
      *            (uppercase for unquoted names)
      * @param tableNamePattern null (to get all objects) or a table name
@@ -118,10 +118,10 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * @return the list of columns
      * @throws SQLException if the connection is closed
      */
-    public ResultSet getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types) throws SQLException {
+    public ResultSet getTables(String catalogPattern, String schemaPattern, String tableNamePattern, String[] types) throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getTables(" + quote(catalog) + ", " + quote(schemaPattern) + ", " + quote(tableNamePattern)
+                debugCode("getTables(" + quote(catalogPattern) + ", " + quote(schemaPattern) + ", " + quote(tableNamePattern)
                         + ", " + quoteArray(types) + ");");
             }
             checkClosed();
@@ -152,7 +152,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "AND TABLE_NAME LIKE ? "
                     + "AND (" + tableType + ") "
                     + "ORDER BY TABLE_TYPE, TABLE_SCHEMA, TABLE_NAME");
-            prep.setString(1, getCatalogPattern(catalog));
+            prep.setString(1, getCatalogPattern(catalogPattern));
             prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, getPattern(tableNamePattern));
             for (int i = 0; types != null && i < types.length; i++) {
@@ -190,7 +190,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>18 IS_NULLABLE (String) "NO" or "YES" </li>
      * </ul>
      *
-     * @param catalog null (to get all objects) or the catalog name
+     * @param catalogPattern null (to get all objects) or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name
      *            (uppercase for unquoted names)
      * @param tableNamePattern null (to get all objects) or a table name
@@ -200,12 +200,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * @return the list of columns
      * @throws SQLException if the connection is closed
      */
-    public ResultSet getColumns(String catalog, String schemaPattern,
+    public ResultSet getColumns(String catalogPattern, String schemaPattern,
             String tableNamePattern, String columnNamePattern)
             throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getColumns(" + quote(catalog)+", "
+                debugCode("getColumns(" + quote(catalogPattern)+", "
                         +quote(schemaPattern)+", "
                         +quote(tableNamePattern)+", "
                         +quote(columnNamePattern)+");");
@@ -236,7 +236,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "AND TABLE_NAME LIKE ? "
                     + "AND COLUMN_NAME LIKE ? "
                     + "ORDER BY TABLE_SCHEM, TABLE_NAME, ORDINAL_POSITION");
-            prep.setString(1, getCatalogPattern(catalog));
+            prep.setString(1, getCatalogPattern(catalogPattern));
             prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, getPattern(tableNamePattern));
             prep.setString(4, getPattern(columnNamePattern));
@@ -271,19 +271,19 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * 2=NULLS_FIRST, 4=NULLS_LAST </li>
      * </ul>
      *
-     * @param catalog null (to get all objects) or the catalog name
-     * @param schema schema name (must be specified)
+     * @param catalogPattern null or the catalog name
+     * @param schemaPattern schema name (must be specified)
      * @param tableName table name (must be specified)
      * @param unique only unique indexes
      * @param approximate is ignored
      * @return the list of indexes and columns
      * @throws SQLException if the connection is closed
      */
-    public ResultSet getIndexInfo(String catalog, String schema, String tableName, boolean unique, boolean approximate)
+    public ResultSet getIndexInfo(String catalogPattern, String schemaPattern, String tableName, boolean unique, boolean approximate)
             throws SQLException {
         try {
             if (isDebugEnabled()) {
-                debugCode("getIndexInfo(" + quote(catalog) + ", " + quote(schema) + ", " + quote(tableName) + ", "
+                debugCode("getIndexInfo(" + quote(catalogPattern) + ", " + quote(schemaPattern) + ", " + quote(tableName) + ", "
                         + unique + ", " + approximate + ");");
             }
             String uniqueCondition;
@@ -315,8 +315,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "AND (" + uniqueCondition + ") "
                     + "AND TABLE_NAME = ? "
                     + "ORDER BY NON_UNIQUE, TYPE, TABLE_SCHEM, INDEX_NAME, ORDINAL_POSITION");
-            prep.setString(1, getCatalogPattern(catalog));
-            prep.setString(2, getSchemaPattern(schema));
+            prep.setString(1, getCatalogPattern(catalogPattern));
+            prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, tableName);
             return prep.executeQuery();
         } catch (Exception e) {
@@ -337,18 +337,18 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>6 PK_NAME (String) the name of the primary key index</li>
      * </ul>
      *
-     * @param catalog null (to get all objects) or the catalog name
-     * @param schema schema name (must be specified)
+     * @param catalogPattern null or the catalog name
+     * @param schemaPattern schema name (must be specified)
      * @param tableName table name (must be specified)
      * @return the list of primary key columns
      * @throws SQLException if the connection is closed
      */
-    public ResultSet getPrimaryKeys(String catalog, String schema, String tableName) throws SQLException {
+    public ResultSet getPrimaryKeys(String catalogPattern, String schemaPattern, String tableName) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getPrimaryKeys("
-                        +quote(catalog)+", "
-                        +quote(schema)+", "
+                        +quote(catalogPattern)+", "
+                        +quote(schemaPattern)+", "
                         +quote(tableName)+");");
             }
             checkClosed();
@@ -365,8 +365,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "AND TABLE_NAME = ? "
                     + "AND PRIMARY_KEY = TRUE "
                     + "ORDER BY COLUMN_NAME");
-            prep.setString(1, getCatalogPattern(catalog));
-            prep.setString(2, getSchemaPattern(schema));
+            prep.setString(1, getCatalogPattern(catalogPattern));
+            prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, tableName);
             return prep.executeQuery();
         } catch (Exception e) {
@@ -509,6 +509,9 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * (procedureNoResult or procedureReturnsResult) </li>
      * </ul>
      *
+     * @param catalogPattern null or the catalog name
+     * @param schemaPattern schema name (must be specified)
+     * @param procedureNamePattern the procedure name pattern
      * @return the procedures
      * @throws SQLException if the connection is closed
      */
@@ -569,16 +572,20 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>15 POS (int) the parameter index </li>
      * </ul>
      *
+     * @param catalogPattern null or the catalog name
+     * @param schemaPattern schema name (must be specified)
+     * @param procedureNamePattern the procedure name pattern
+     * @param columnNamePattern the procedure name pattern
      * @return the procedure columns
      * @throws SQLException if the connection is closed
      */
-    public ResultSet getProcedureColumns(String catalog, String schemaPattern,
+    public ResultSet getProcedureColumns(String catalogPattern, String schemaPattern,
             String procedureNamePattern, String columnNamePattern)
             throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getProcedureColumns("
-                        +quote(catalog)+", "
+                        +quote(catalogPattern)+", "
                         +quote(schemaPattern)+", "
                         +quote(procedureNamePattern)+", "
                         +quote(columnNamePattern)+");");
@@ -606,7 +613,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "AND ALIAS_NAME LIKE ? "
                     + "AND COLUMN_NAME LIKE ? "
                     + "ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME, NUM_INPUT_PARAMS, POS");
-            prep.setString(1, getCatalogPattern(catalog));
+            prep.setString(1, getCatalogPattern(catalogPattern));
             prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, getPattern(procedureNamePattern));
             prep.setString(4, getPattern(columnNamePattern));
@@ -713,8 +720,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * others </li>
      * </ul>
      *
-     * @param catalog null (to get all objects) or the catalog name
-     * @param schema null (to get all objects) or a schema name (uppercase for
+     * @param catalogPattern null (to get all objects) or the catalog name
+     * @param schemaPattern null (to get all objects) or a schema name (uppercase for
      *            unquoted names)
      * @param table a table name (uppercase for unquoted names)
      * @param columnNamePattern null (to get all objects) or a column name
@@ -722,13 +729,13 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * @return the list of privileges
      * @throws SQLException if the connection is closed
      */
-    public ResultSet getColumnPrivileges(String catalog, String schema,
+    public ResultSet getColumnPrivileges(String catalogPattern, String schemaPattern,
             String table, String columnNamePattern) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getColumnPrivileges("
-                        +quote(catalog)+", "
-                        +quote(schema)+", "
+                        +quote(catalogPattern)+", "
+                        +quote(schemaPattern)+", "
                         +quote(table)+", "
                         +quote(columnNamePattern)+");");
             }
@@ -748,8 +755,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "AND TABLE_NAME = ? "
                     + "AND COLUMN_NAME LIKE ? "
                     + "ORDER BY COLUMN_NAME, PRIVILEGE");
-            prep.setString(1, getCatalogPattern(catalog));
-            prep.setString(2, getSchemaPattern(schema));
+            prep.setString(1, getCatalogPattern(catalogPattern));
+            prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, table);
             prep.setString(4, getPattern(columnNamePattern));
             return prep.executeQuery();
@@ -774,7 +781,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * others </li>
      * </ul>
      *
-     * @param catalog null (to get all objects) or the catalog name
+     * @param catalogPattern null (to get all objects) or the catalog name
      * @param schemaPattern null (to get all objects) or a schema name
      *            (uppercase for unquoted names)
      * @param tableNamePattern null (to get all objects) or a table name
@@ -782,11 +789,11 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * @return the list of privileges
      * @throws SQLException if the connection is closed
      */
-    public ResultSet getTablePrivileges(String catalog, String schemaPattern, String tableNamePattern) throws SQLException {
+    public ResultSet getTablePrivileges(String catalogPattern, String schemaPattern, String tableNamePattern) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getTablePrivileges("
-                        +quote(catalog)+", "
+                        +quote(catalogPattern)+", "
                         +quote(schemaPattern)+", "
                         +quote(tableNamePattern)+");");
             }
@@ -804,7 +811,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "AND TABLE_SCHEMA LIKE ? "
                     + "AND TABLE_NAME LIKE ? "
                     + "ORDER BY TABLE_SCHEM, TABLE_NAME, PRIVILEGE");
-            prep.setString(1, getCatalogPattern(catalog));
+            prep.setString(1, getCatalogPattern(catalogPattern));
             prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, getPattern(tableNamePattern));
             return prep.executeQuery();
@@ -828,21 +835,21 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * </li><li>8 PSEUDO_COLUMN (short) (always bestRowNotPseudo)
      * </li></ul>
      *
-     * @param catalog null (to get all objects) or the catalog name
-     * @param schema schema name (must be specified)
+     * @param catalogPattern null (to get all objects) or the catalog name
+     * @param schemaPattern schema name (must be specified)
      * @param tableName table name (must be specified)
      * @param scope ignored
      * @param nullable ignored
      * @return the primary key index
      * @throws SQLException if the connection is closed
      */
-    public ResultSet getBestRowIdentifier(String catalog, String schema,
+    public ResultSet getBestRowIdentifier(String catalogPattern, String schemaPattern,
             String tableName, int scope, boolean nullable) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getBestRowIdentifier("
-                        +quote(catalog)+", "
-                        +quote(schema)+", "
+                        +quote(catalogPattern)+", "
+                        +quote(schemaPattern)+", "
                         +quote(tableName)+", "
                         +scope+", "+nullable+");");
             }
@@ -869,8 +876,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             prep.setInt(1, DatabaseMetaData.bestRowSession);
             // PSEUDO_COLUMN
             prep.setInt(2, DatabaseMetaData.bestRowNotPseudo);
-            prep.setString(3, getCatalogPattern(catalog));
-            prep.setString(4, getSchemaPattern(schema));
+            prep.setString(3, getCatalogPattern(catalogPattern));
+            prep.setString(4, getSchemaPattern(schemaPattern));
             prep.setString(5, tableName);
             return prep.executeQuery();
         } catch (Exception e) {
@@ -880,6 +887,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Get the list of columns that are update when any value is updated.
+     * The result set is always empty.
      *
      * <ul>
      * <li>1 SCOPE (int) not used
@@ -950,18 +958,18 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * importedKeyNotDeferrable) </li>
      * </ul>
      *
-     * @param catalog null (to get all objects) or the catalog name
-     * @param schema the schema name of the foreign table
+     * @param catalogPattern null (to get all objects) or the catalog name
+     * @param schemaPattern the schema name of the foreign table
      * @param tableName the name of the foreign table
      * @return the result set
      * @throws SQLException if the connection is closed
      */
-    public ResultSet getImportedKeys(String catalog, String schema, String tableName) throws SQLException {
+    public ResultSet getImportedKeys(String catalogPattern, String schemaPattern, String tableName) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getImportedKeys("
-                        +quote(catalog)+", "
-                        +quote(schema)+", "
+                        +quote(catalogPattern)+", "
+                        +quote(schemaPattern)+", "
                         +quote(tableName)+");");
             }
             checkClosed();
@@ -985,8 +993,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "AND FKTABLE_SCHEMA LIKE ? "
                     + "AND FKTABLE_NAME = ? "
                     + "ORDER BY PKTABLE_CAT, PKTABLE_SCHEM, PKTABLE_NAME, FK_NAME, KEY_SEQ");
-            prep.setString(1, getCatalogPattern(catalog));
-            prep.setString(2, getSchemaPattern(schema));
+            prep.setString(1, getCatalogPattern(catalogPattern));
+            prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, tableName);
             return prep.executeQuery();
         } catch (Exception e) {
@@ -1019,19 +1027,19 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * importedKeyNotDeferrable) </li>
      * </ul>
      *
-     * @param catalog null (to get all objects) or the catalog name
-     * @param schema the schema name of the primary table
+     * @param catalogPattern null or the catalog name
+     * @param schemaPattern the schema name of the primary table
      * @param tableName the name of the primary table
      * @return the result set
      * @throws SQLException if the connection is closed
      */
-    public ResultSet getExportedKeys(String catalog, String schema, String tableName)
+    public ResultSet getExportedKeys(String catalogPattern, String schemaPattern, String tableName)
             throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getExportedKeys("
-                        +quote(catalog)+", "
-                        +quote(schema)+", "
+                        +quote(catalogPattern)+", "
+                        +quote(schemaPattern)+", "
                         +quote(tableName)+");");
             }
             checkClosed();
@@ -1055,8 +1063,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "AND PKTABLE_SCHEMA LIKE ? "
                     + "AND PKTABLE_NAME = ? "
                     + "ORDER BY FKTABLE_CAT, FKTABLE_SCHEM, FKTABLE_NAME, FK_NAME, KEY_SEQ");
-            prep.setString(1, getCatalogPattern(catalog));
-            prep.setString(2, getSchemaPattern(schema));
+            prep.setString(1, getCatalogPattern(catalogPattern));
+            prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, tableName);
             return prep.executeQuery();
         } catch (Exception e) {
@@ -1090,28 +1098,28 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * importedKeyNotDeferrable) </li>
      * </ul>
      *
-     * @param primaryCatalog ignored
-     * @param primarySchema the schema name of the primary table (must be
+     * @param primaryCatalogPattern null or the catalog name
+     * @param primarySchemaPattern the schema name of the primary table (must be
      *            specified)
      * @param primaryTable the name of the primary table (must be specified)
-     * @param foreignCatalog ignored
-     * @param foreignSchema the schema name of the foreign table (must be
+     * @param foreignCatalogPattern null or the catalog name
+     * @param foreignSchemaPattern the schema name of the foreign table (must be
      *            specified)
      * @param foreignTable the name of the foreign table (must be specified)
      * @return the result set
      * @throws SQLException if the connection is closed
      */
-    public ResultSet getCrossReference(String primaryCatalog,
-            String primarySchema, String primaryTable, String foreignCatalog,
-            String foreignSchema, String foreignTable) throws SQLException {
+    public ResultSet getCrossReference(String primaryCatalogPattern,
+            String primarySchemaPattern, String primaryTable, String foreignCatalogPattern,
+            String foreignSchemaPattern, String foreignTable) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getCrossReference("
-                        +quote(primaryCatalog)+", "
-                        +quote(primarySchema)+", "
+                        +quote(primaryCatalogPattern)+", "
+                        +quote(primarySchemaPattern)+", "
                         +quote(primaryTable)+", "
-                        +quote(foreignCatalog)+", "
-                        +quote(foreignSchema)+", "
+                        +quote(foreignCatalogPattern)+", "
+                        +quote(foreignSchemaPattern)+", "
                         +quote(foreignTable)+");");
             }
             checkClosed();
@@ -1138,11 +1146,11 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "AND FKTABLE_SCHEMA LIKE ? "
                     + "AND FKTABLE_NAME = ? "
                     + "ORDER BY FKTABLE_CAT, FKTABLE_SCHEM, FKTABLE_NAME, FK_NAME, KEY_SEQ");
-            prep.setString(1, getCatalogPattern(primaryCatalog));
-            prep.setString(2, getSchemaPattern(primarySchema));
+            prep.setString(1, getCatalogPattern(primaryCatalogPattern));
+            prep.setString(2, getSchemaPattern(primarySchemaPattern));
             prep.setString(3, primaryTable);
-            prep.setString(4, getCatalogPattern(foreignCatalog));
-            prep.setString(5, getSchemaPattern(foreignSchema));
+            prep.setString(4, getCatalogPattern(foreignCatalogPattern));
+            prep.setString(5, getSchemaPattern(foreignSchemaPattern));
             prep.setString(6, foreignTable);
             return prep.executeQuery();
         } catch (Exception e) {

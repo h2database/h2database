@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
+import org.h2.util.JdbcUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -68,7 +69,10 @@ public class UpdatableRow {
                 return;
             }
         }
-        ResultSet rs = meta.getTables(null, schemaName, tableName, new String[] { "TABLE" });
+        ResultSet rs = meta.getTables(null,
+                JdbcUtils.escapeMetaDataPattern(schemaName),
+                JdbcUtils.escapeMetaDataPattern(tableName),
+                new String[] { "TABLE" });
         if (!rs.next()) {
             return;
         }
@@ -77,12 +81,16 @@ public class UpdatableRow {
             return;
         }
         key = new ObjectArray();
-        rs = meta.getPrimaryKeys(null, schemaName, tableName);
+        rs = meta.getPrimaryKeys(null,
+                JdbcUtils.escapeMetaDataPattern(schemaName),
+                tableName);
         while (rs.next()) {
             key.add(rs.getString("COLUMN_NAME"));
         }
         if (key.size() == 0) {
-            rs = meta.getIndexInfo(null, schemaName, tableName, true, true);
+            rs = meta.getIndexInfo(null,
+                    JdbcUtils.escapeMetaDataPattern(schemaName),
+                    tableName, true, true);
             while (rs.next()) {
                 key.add(rs.getString("COLUMN_NAME"));
             }

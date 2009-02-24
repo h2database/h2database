@@ -71,7 +71,7 @@ public class IntArray {
 
     private void checkCapacity() {
         if (size >= data.length) {
-            int[] d = new int[data.length * 2];
+            int[] d = new int[Math.max(4, data.length * 2)];
             System.arraycopy(data, 0, d, 0, data.length);
             data = d;
         }

@@ -101,27 +101,27 @@ public abstract class TestHalt extends TestBase {
     /**
      * Initialize the test.
      */
-    abstract void testInit() throws SQLException;
+    abstract void controllerInit() throws SQLException;
 
     /**
      * Check if the database is consistent after a simulated database crash.
      */
-    abstract void testCheckAfterCrash() throws SQLException;
+    abstract void controllerCheckAfterCrash() throws SQLException;
 
     /**
      * Wait for some time after the application has been started.
      */
-    abstract void testWaitAfterAppStart() throws Exception;
+    abstract void controllerWaitAfterAppStart() throws Exception;
 
     /**
      * Start the application.
      */
-    abstract void appStart() throws SQLException;
+    abstract void processAppStart() throws SQLException;
 
     /**
      * Run the application.
      */
-    abstract void appRun() throws SQLException;
+    abstract void processAppRun() throws SQLException;
 
     public void test() throws SQLException {
         for (int i = 0;; i++) {
@@ -129,7 +129,7 @@ public abstract class TestHalt extends TestBase {
             flags = i >> 4;
             // flags |= FLAG_NO_DELAY; // | FLAG_LOBS;
             try {
-                runTest();
+                controllerTest();
             } catch (Throwable t) {
                 System.out.println("Error: " + t);
                 t.printStackTrace();
@@ -139,37 +139,23 @@ public abstract class TestHalt extends TestBase {
 
     Connection getConnection() throws SQLException {
         org.h2.Driver.load();
-        return DriverManager.getConnection("jdbc:h2:" + baseDir + "/halt", "sa", "sa");
+        String url = "jdbc:h2:" + baseDir + "/halt";
+        // String url = "jdbc:h2:" + baseDir + "/halt;TRACE_LEVEL_FILE=3";
+        return DriverManager.getConnection(url, "sa", "sa");
     }
 
-    /**
-     * Start the program.
-     *
-     * @param args the command line arguments
-     */
-    protected void start(String[] args) throws Exception {
-        if (args.length == 0) {
-            runTest();
-        } else {
-            operations = Integer.parseInt(args[0]);
-            flags = Integer.parseInt(args[1]);
-            value = Integer.parseInt(args[2]);
-            runRandom();
-        }
-    }
-
-    private void runRandom() throws SQLException {
+    void processRunRandom() throws SQLException {
         connect();
         try {
             traceOperation("connected, operations:" + operations + " flags:" + flags + " value:" + value);
-            appStart();
+            processAppStart();
             System.out.println("READY");
             System.out.println("READY");
             System.out.println("READY");
-            appRun();
+            processAppRun();
             traceOperation("done");
         } catch (Exception e) {
-            trace("run", e);
+            traceOperation("run", e);
         }
         disconnect();
     }
@@ -179,7 +165,7 @@ public abstract class TestHalt extends TestBase {
             traceOperation("connecting");
             conn = getConnection();
         } catch (SQLException e) {
-            trace("connect", e);
+            traceOperation("connect", e);
             e.printStackTrace();
             throw e;
         }
@@ -191,7 +177,7 @@ public abstract class TestHalt extends TestBase {
      * @param s the message
      */
     protected void traceOperation(String s) {
-        trace(s, null);
+        traceOperation(s, null);
     }
 
     /**
@@ -200,7 +186,7 @@ public abstract class TestHalt extends TestBase {
      * @param s the message
      * @param e the exception or null
      */
-    protected void trace(String s, Exception e) {
+    protected void traceOperation(String s, Exception e) {
         FileWriter writer = null;
         try {
             File f = new File(baseDir + "/" + TRACE_FILE_NAME);
@@ -219,13 +205,13 @@ public abstract class TestHalt extends TestBase {
         }
     }
 
-    private void runTest() throws Exception {
+    void controllerTest() throws Exception {
         traceOperation("delete database -----------------------------");
         DeleteDbFiles.execute(baseDir, DATABASE_NAME, true);
         new File(baseDir + "/" + TRACE_FILE_NAME).delete();
 
         connect();
-        testInit();
+        controllerInit();
         disconnect();
         for (int i = 0; i < 10; i++) {
             traceOperation("backing up " + sequenceId);
@@ -254,7 +240,7 @@ public abstract class TestHalt extends TestBase {
             } else if (s.startsWith("READY")) {
                 traceOperation("got reply: " + s);
             }
-            testWaitAfterAppStart();
+            controllerWaitAfterAppStart();
             p.destroy();
             try {
                 traceOperation("backing up " + sequenceId);
@@ -262,7 +248,7 @@ public abstract class TestHalt extends TestBase {
                 // new File(BASE_DIR + "/haltSeq" + (sequenceId-20) +
                 // ".zip").delete();
                 connect();
-                testCheckAfterCrash();
+                controllerCheckAfterCrash();
             } catch (Exception e) {
                 File zip = new File(baseDir + "/haltSeq" + sequenceId + ".zip");
                 File zipId = new File(baseDir + "/haltSeq" + sequenceId + "-" + errorId + ".zip");
@@ -285,7 +271,7 @@ public abstract class TestHalt extends TestBase {
             traceOperation("disconnect");
             conn.close();
         } catch (Exception e) {
-            trace("disconnect", e);
+            traceOperation("disconnect", e);
         }
     }
 

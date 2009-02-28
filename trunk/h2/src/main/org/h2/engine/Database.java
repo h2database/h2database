@@ -1054,6 +1054,9 @@ public class Database implements DataHandler {
             for (int i = 0; i < all.length; i++) {
                 Session s = all[i];
                 try {
+                    // must roll back, otherwise the session is removed and
+                    // the log file that contains its uncommitted operations as well
+                    s.rollback();
                     s.close();
                 } catch (SQLException e) {
                     traceSystem.getTrace(Trace.SESSION).error("disconnecting #" + s.getId(), e);

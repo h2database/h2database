@@ -714,8 +714,8 @@ public class Recover extends Tool implements DataHandler {
             store.readFully(s.getBytes(), 0, 128);
             s.setPos(48);
             int pageSize = s.readInt();
-            int writeVersion = (int) s.readByte();
-            int readVersion = (int) s.readByte();
+            int writeVersion = s.readByte();
+            int readVersion = s.readByte();
             int systemTableRoot = s.readInt();
             int freeListHead = s.readInt();
             int logHead = s.readInt();

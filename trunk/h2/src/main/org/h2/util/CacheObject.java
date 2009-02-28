@@ -26,7 +26,7 @@ public abstract class CacheObject {
             int pb = ((CacheObject) b).getPos();
             return pa == pb ? 0 : (pa < pb ? -1 : 1);
         }
-    };
+    }
 
     /**
      * Ensure the class is loaded when initialized, so that sorting is possible

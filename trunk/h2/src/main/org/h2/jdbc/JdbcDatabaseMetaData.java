@@ -515,12 +515,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * @return the procedures
      * @throws SQLException if the connection is closed
      */
-    public ResultSet getProcedures(String catalog, String schemaPattern,
+    public ResultSet getProcedures(String catalogPattern, String schemaPattern,
             String procedureNamePattern) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getProcedures("
-                        +quote(catalog)+", "
+                        +quote(catalogPattern)+", "
                         +quote(schemaPattern)+", "
                         +quote(procedureNamePattern)+");");
             }
@@ -539,7 +539,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "AND ALIAS_SCHEMA LIKE ? "
                     + "AND ALIAS_NAME LIKE ? "
                     + "ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME, NUM_INPUT_PARAMS");
-            prep.setString(1, getCatalogPattern(catalog));
+            prep.setString(1, getCatalogPattern(catalogPattern));
             prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, getPattern(procedureNamePattern));
             return prep.executeQuery();

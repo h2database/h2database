@@ -55,7 +55,8 @@ public class PageBtreeIndex extends BaseIndex {
             int test;
 //        } else if (store.isNew()) {
 //            // the system table for a new database
-//            PageBtreeLeaf root = new PageBtreeLeaf(this, headPos, Page.ROOT, store.createDataPage());
+//            PageBtreeLeaf root = new PageBtreeLeaf(this,
+//                    headPos, Page.ROOT, store.createDataPage());
 //            store.updateRecord(root, true, root.data);
         } else {
             rowCount = getPage(headPos).getRowCount();

@@ -283,13 +283,19 @@ java org.h2.test.TestAll timer
 
 /*
 
+select 1 from dual a where 1 in(select 1 from dual b
+where 1 in(select 1 from dual c where a.x=1));
+
+
+
+http://www.marciowb.net/blog/2008/08/quickly-using-h2-database-with
+http://blogs.sun.com/theaquarium/entry/h2_database_with_glassfish
+http://blog.flexive.org/2008/12/05/porting-flexive-to-the-h2-database/
+
 test performance with log=2
 maybe make log=2 the default option
 
 TRANSACTION_ID()
-
-select 1 from dual a where 1 in(select 1 from dual b
-where 1 in(select 1 from dual c where a.x=1));
 
 use 127.0.0.1 if other addresses don't work
 
@@ -300,7 +306,6 @@ JCR: for each node type, create a table; one 'dynamic' table with parameter;
 <link rel="icon" type="image/png" href="/path/image.png">
 create a short 4 pages documentation
 
-http://blog.flexive.org/2008/12/05/porting-flexive-to-the-h2-database/
 postgresql generate_series?
 is in-memory scan index re-using ids?
 don't store default values (store a special value)

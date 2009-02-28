@@ -94,6 +94,20 @@ public class Shell {
     }
 
     /**
+     * Redirects the input and output. By default, System.in, out and err are
+     * used.
+     *
+     * @param reader the input stream reader to use
+     * @param out the output stream to use
+     * @param err the output error stream to use
+     */
+    public void setStreams(BufferedReader reader, PrintStream out, PrintStream err) {
+        this.reader = reader;
+        this.out = out;
+        this.err = err;
+    }
+
+    /**
      * Run the shell tool with the given command line settings.
      *
      * @param args the command line settings
@@ -145,7 +159,9 @@ public class Shell {
             showHelp();
         }
         String statement = null;
-        reader = new BufferedReader(new InputStreamReader(in));
+        if (reader == null) {
+            reader = new BufferedReader(new InputStreamReader(in));
+        }
         while (true) {
             try {
                 if (conn == null) {

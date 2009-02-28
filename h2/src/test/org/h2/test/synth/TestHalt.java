@@ -144,6 +144,9 @@ public abstract class TestHalt extends TestBase {
         return DriverManager.getConnection(url, "sa", "sa");
     }
 
+    /**
+     * The second process starts the application and executes random operations.
+     */
     void processRunRandom() throws SQLException {
         connect();
         try {
@@ -205,6 +208,10 @@ public abstract class TestHalt extends TestBase {
         }
     }
 
+    /**
+     * Run one test. The controller starts the process, waits, kills the
+     * process, and checks if everything is ok.
+     */
     void controllerTest() throws Exception {
         traceOperation("delete database -----------------------------");
         DeleteDbFiles.execute(baseDir, DATABASE_NAME, true);

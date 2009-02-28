@@ -144,6 +144,9 @@ public class LogSystem {
                 l.setFirstUncommittedPos(LOG_WRITTEN);
             } else if (l.getId() == firstUncommittedLog) {
                 if (firstUncommittedPos == l.getPos()) {
+                    // that means firstUncommittedPos is still
+                    // were it was at the beginning
+                    // and all sessions are committed
                     l.setFirstUncommittedPos(LOG_WRITTEN);
                 } else {
                     l.setFirstUncommittedPos(firstUncommittedPos);

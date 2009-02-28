@@ -29,7 +29,15 @@ public class TestHaltApp extends TestHalt {
     public static void main(String[] args) throws Exception {
         SelfDestructor.startCountdown(60);
         baseDir = TestHalt.DIR;
-        new TestHaltApp().start(args);
+        TestHaltApp app = new TestHaltApp();
+        if (args.length == 0) {
+            app.controllerTest();
+        } else {
+            app.operations = Integer.parseInt(args[0]);
+            app.flags = Integer.parseInt(args[1]);
+            app.value = Integer.parseInt(args[2]);
+            app.processRunRandom();
+        }
     }
 
     private void execute(Statement stat, String sql) throws SQLException {
@@ -40,7 +48,7 @@ public class TestHaltApp extends TestHalt {
     /**
      * Initialize the database.
      */
-    protected void testInit() throws SQLException {
+    protected void controllerInit() throws SQLException {
         Statement stat = conn.createStatement();
         // stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR(255))");
         for (int i = 0; i < 20; i++) {
@@ -57,7 +65,7 @@ public class TestHaltApp extends TestHalt {
     /**
      * Wait after the application has been started.
      */
-    protected void testWaitAfterAppStart() throws Exception {
+    protected void controllerWaitAfterAppStart() throws Exception {
         int sleep = 10 + random.nextInt(300);
         if ((flags & FLAG_NO_DELAY) == 0) {
             sleep += 1000;
@@ -71,22 +79,22 @@ public class TestHaltApp extends TestHalt {
      *
      * @throws SQLException  if the data is not consistent.
      */
-    protected void testCheckAfterCrash() throws SQLException {
+    protected void controllerCheckAfterCrash() throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT COUNT(*) FROM TEST");
         rs.next();
         int count = rs.getInt(1);
         System.out.println("count: " + count);
-        if (count % 2 == 0) {
+        if (count % 2 != 0) {
             traceOperation("row count: " + count);
-            throw new SQLException("Unexpected odd row count");
+            throw new SQLException("Unexpected odd row count: " + count);
         }
     }
 
     /**
      * Initialize the application.
      */
-    protected void appStart() throws SQLException {
+    protected void processAppStart() throws SQLException {
         Statement stat = conn.createStatement();
         if ((flags & FLAG_NO_DELAY) != 0) {
             execute(stat, "SET WRITE_DELAY 0");
@@ -95,13 +103,13 @@ public class TestHaltApp extends TestHalt {
         ResultSet rs = stat.executeQuery("SELECT COUNT(*) FROM TEST");
         rs.next();
         rowCount = rs.getInt(1);
-        trace("rows: " + rowCount, null);
+        traceOperation("rows: " + rowCount, null);
     }
 
     /**
      * Run the application code.
      */
-    protected void appRun() throws SQLException {
+    protected void processAppRun() throws SQLException {
         conn.setAutoCommit(false);
         traceOperation("setAutoCommit false");
         int rows = 10000 + value;
@@ -146,11 +154,11 @@ public class TestHaltApp extends TestHalt {
                 rowCount -= uc;
             }
             traceOperation("rowCount " + rowCount);
-            trace("rows now: " + rowCount, null);
+            traceOperation("rows now: " + rowCount, null);
             if (rowCount % 2 == 0) {
                 traceOperation("commit " + rowCount);
                 conn.commit();
-                trace("committed: " + rowCount, null);
+                traceOperation("committed: " + rowCount, null);
             }
             if ((flags & FLAG_NO_DELAY) != 0) {
                 if (random.nextInt(10) == 0 && (rowCount % 2 == 0)) {

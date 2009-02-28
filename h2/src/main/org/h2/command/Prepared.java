@@ -419,7 +419,10 @@ public abstract class Prepared {
     protected SQLException setRow(SQLException ex, int rowId, String values) {
         if (ex instanceof JdbcSQLException) {
             JdbcSQLException e = (JdbcSQLException) ex;
-            StringBuffer buff = new StringBuffer(sqlStatement);
+            StringBuffer buff = new StringBuffer();
+            if (sqlStatement != null) {
+                buff.append(sqlStatement);
+            }
             buff.append(" -- ");
             if (rowId > 0) {
                 buff.append("row #").append(rowId + 1).append(" ");

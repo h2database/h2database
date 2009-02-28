@@ -235,8 +235,10 @@ trace.setLevel(TraceSystem.DEBUG);
         cols.add(new Column("TABLE", Value.INT));
         cols.add(new Column("COLUMNS", Value.STRING));
         int headPos = getSystemRootPageId();
-//        pageTable = database.getMainSchema().createTable("PAGE_INDEX", 0, cols, true, false, headPos);
-//        pageIndex = (PageScanIndex) pageTable.getScanIndex(database.getSystemSession());
+//        pageTable = database.getMainSchema().createTable(
+//                "PAGE_INDEX", 0, cols, true, false, headPos);
+//        pageIndex = (PageScanIndex) pageTable.getScanIndex(
+//                database.getSystemSession());
     }
 
     private void initLogs() {

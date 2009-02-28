@@ -13,6 +13,44 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(58,
+'New version available: 1.1.108 (beta; 2009-02-28)', '2009-02-28 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Support for multiple read-write connections without starting a server.
+</li><li>MySQL compatibility for CREATE TABLE is improved.
+</li><li>The exception message of failed INSERT statements now includes all values.
+</li><li>The DbStarter now closes all connections to the configured database.
+</li><li>Improved exception message when connecting to a just started server fails.
+</li><li>Connection.isValid is a bit faster.
+</li><li>H2 Console: The autocomplete feature has been improved a bit.
+</li><li>When restarting a web application in Tomcat, an exception was thrown sometimes.
+    The root cause of the problem is now documented in the FAQ.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>When the shutdown hook closed the database, the last log file
+    was deleted too early. This could cause uncommitted changes to be persisted.
+</li><li>The database file locking mechanism didn't work correctly on Mac OS.
+</li><li>Recovery did not work if there were more than 255 lobs stored as files.
+</li><li>If opening a database failed with an out of memory exception, some files were not closed.
+</li><li>The WebServlet did not close the database when un-deploying the web application.
+</li><li>JdbcConnectionPool: it was possible to set a negative connection pool size.
+</li><li>Fulltext search did not support table names with a backslash.
+</li><li>A bug in the internal IntArray was fixed.
+</li><li>The H2 Console web application (war file) now supports all Unicode characters.
+</li><li>DATEADD does no longer require that the argument is a timestamp.
+</li><li>Some built-in functions reported the wrong precision, scale, and display size.
+</li><li>Optimizer: the expected runtime calculation was incorrect. The fixed calculation
+    should give slightly better query plans when using many joins.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
 
 INSERT INTO ITEM VALUES(57,
 'New version available: 1.1.107 (beta; 2009-01-24)', '2009-01-24 12:00:00',
@@ -397,35 +435,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Temporary files were sometimes deleted too late when executing large insert, update,
     or delete operations.
 </li><li>The database file was growing after deleting many rows, and after large update operations.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(45,
-'New version available: 1.0.75 (2008-07-14)', '2008-07-14 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>The JaQu (Java Query) tool has been improved.
-</li><li>The H2 Console can be started with an open connection to inspect a database while debugging.
-</li><li>The referential constraint checking performance has been improvement.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Running out of memory could result in incomplete transactions or corrupted databases. Fixed.
-</li><li>CSVREAD did not process NULL correctly when using a whitespace field separator.
-</li><li>Stopping a WebServer didn't always work. Fixed.
-</li><li>Sometimes, order by in a query that uses the same table multiple times didn't work.
-</li><li>A multi version concurrency (MVCC) problem has been fixed.
-</li><li>Some views with multiple joined tables didn't work.
-</li><li>The Oracle mode now allows multiple rows with NULL in a unique index.
-</li><li>Some database metadata calls returned the wrong data type for DATA_TYPE columns.
-</li><li>A bug int the Lucene fulltext implementation has been fixed.
-</li><li>The character '$' could not be used in identifier names.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

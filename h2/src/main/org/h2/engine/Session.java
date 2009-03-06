@@ -1118,6 +1118,7 @@ public class Session extends SessionWithState {
 
     public SessionInterface reconnect() throws SQLException {
         readSessionState();
+        close();
         Session newSession = Engine.getInstance().getSession(connectionInfo);
         newSession.sessionState = sessionState;
         newSession.recreateSessionState();

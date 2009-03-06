@@ -44,6 +44,7 @@ public class TestCases extends TestBase {
         if (config.memory || config.logMode == 0) {
             return;
         }
+        testReservedKeywordReconnect();
         testSpecialSQL();
         testUpperCaseLowerCaseDatabase();
         testManualCommitSet();
@@ -65,6 +66,22 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testReservedKeywordReconnect() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("create table \"UNIQUE\"(\"UNIQUE\" int)");
+        conn.close();
+        conn = getConnection("cases");
+        stat = conn.createStatement();
+        stat.execute("select \"UNIQUE\" from \"UNIQUE\"");
+        stat.execute("drop table \"UNIQUE\"");
+        conn.close();
     }
 
     private void testInvalidDatabaseName() throws SQLException {

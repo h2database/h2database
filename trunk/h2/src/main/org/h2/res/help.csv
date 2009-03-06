@@ -127,6 +127,15 @@ The password must be in single quotes. It is case sensitive and can contain spac
 SCRIPT NODATA
 "
 
+"Commands (DML)","SHOW","
+SHOW { SCHEMAS | TABLES [FROM schemaName] |
+COLUMNS FROM tableName [FROM schemaName] }
+","
+Lists the schemas, tables, or the columns of a table.
+","
+SHOW TABLES
+"
+
 "Commands (DDL)","ALTER INDEX RENAME","
 ALTER INDEX indexName RENAME TO newIndexName
 ","
@@ -3071,6 +3080,17 @@ TABLE|TABLE_DISTINCT( { name dataType = expression } [,..]): result set
 Returns the result set. TABLE_DISTINCT removes duplicate rows.
 ","
 SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'))
+"
+
+"Functions (System)","TRANSACTION_ID","
+TRANSACTION_ID(): string
+","
+Returns the current transaction id for this session. This method returns NULL
+if there is no uncommitted change, or if the the database is not persisted.
+Otherwise a value of the following form is returned: logFileId-position-sessionId.
+The value is unique across database restarts (values are not re-used).
+","
+CALL TRANSACTION_ID()
 "
 
 "Functions (System)","USER","

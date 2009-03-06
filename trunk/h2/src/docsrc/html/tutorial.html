@@ -432,12 +432,16 @@ add the following snippet to your web.xml file (after context-param and before f
 &lt;/listener>
 </pre>
 <p>
-For details on how to access the database, see the code DbStarter.java
-</p>
-<p>
+For details on how to access the database, see the file DbStarter.java.
 By default the DbStarter listener opens an embedded connection using the database URL jdbc:h2:~/test
-and user name and password 'sa'. It can also start the TCP server, however this is disabled by default.
-To enable it, use the db.tcpServer parameter in web.xml. Here is the complete list of options.
+and user name and password 'sa'. If you want to use it within your servlet, you can access it like this:
+</p>
+<pre>
+Connection conn = getServletContext().getAttribute("connection");
+</pre>
+<p>
+The DbStarter can also start the TCP server, however this is disabled by default.
+To enable it, use the parameter db.tcpServer in the file web.xml. Here is the complete list of options.
 These options are set just after the display-name and description tag, but before any listener and filter tags:
 </p>
 <pre>

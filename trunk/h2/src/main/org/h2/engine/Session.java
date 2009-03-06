@@ -40,6 +40,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueString;
 
 /**
  * A session represents an embedded database connection. When using the server
@@ -1125,6 +1126,13 @@ public class Session extends SessionWithState {
 
     public void setConnectionInfo(ConnectionInfo ci) {
         connectionInfo = ci;
+    }
+
+    public Value getTransactionId() {
+        if (undoLog.size() == 0 || !database.isPersistent()) {
+            return ValueNull.INSTANCE;
+        }
+        return ValueString.get(firstUncommittedLog+"-" + firstUncommittedPos + "-" + id);
     }
 
 }

@@ -150,7 +150,7 @@ public class CheckTextFiles {
         for (int i = 0; i < data.length; i++) {
             char ch = (char) (data[i] & 0xff);
             if (ch > 127) {
-                fail(file, "contains character " + ch, line);
+                fail(file, "contains character " + (int) ch + " at " + new String(data, i - 10, 20), line);
                 return;
             } else if (ch < 32) {
                 if (ch == '\n') {

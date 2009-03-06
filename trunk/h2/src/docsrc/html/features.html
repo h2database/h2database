@@ -435,11 +435,12 @@ or on the number of open connections.
 <h3>Mixed Mode</h3>
 <p>
 The mixed mode is a combination of the embedded and the remote mode.
-The main application connects to a database in embedded mode, but also starts
-a server so that other applications (running in different virtual machines) can
+The first application that connects to a database does that in embedded mode, but also starts
+a server so that other applications (running in different processes or virtual machines) can
 concurrently access the same data. The embedded connections are as fast as if
 the database is used in just the embedded mode, while the remote
-connections are a bit slower.
+connections are a bit slower. All clients that want to connect to the database (no matter if
+it's an embedded or remote connection) can do so using the exact same database URL.
 </p>
 <img src="images/connection-mode-mixed.png"
     alt="The database and the server is running inside the application; another application connects remotely" />

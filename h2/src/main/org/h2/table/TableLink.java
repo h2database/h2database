@@ -367,13 +367,29 @@ public class TableLink extends Table {
         }
     }
 
-    public long getRowCount(Session session) throws SQLException {
-        PreparedStatement prep = getPreparedStatement("SELECT COUNT(*) FROM " + qualifiedTableName);
-        ResultSet rs = prep.executeQuery();
-        rs.next();
-        long count = rs.getLong(1);
-        rs.close();
-        return count;
+    public synchronized long getRowCount(Session session) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM " + qualifiedTableName;
+        try {
+            PreparedStatement prep = getPreparedStatement(sql, false);
+            ResultSet rs = prep.executeQuery();
+            rs.next();
+            long count = rs.getLong(1);
+            rs.close();
+            return count;
+        } catch (SQLException e) {
+            throw wrapException(sql, e);
+        }
+    }
+
+    /**
+     * Wrap a SQL exception that occurred while accessing a linked table.
+     *
+     * @param sql the SQL statement
+     * @param e the SQL exception from the remote database
+     * @return the wrapped SQL exception
+     */
+    public SQLException wrapException(String sql, SQLException e) {
+        return Message.getSQLException(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_2, new String[] { sql, e.toString() }, e);
     }
 
     public String getQualifiedTable() {
@@ -384,10 +400,12 @@ public class TableLink extends Table {
      * Get a prepared statement object for the given statement. Prepared
      * statements are kept in a hash map to avoid re-creating them.
      *
-     * @param sql the SQL statement.
+     * @param sql the SQL statement
+     * @param exclusive if the prepared statement must be removed from the map
+     *          until reusePreparedStatement is called (only required for queries)
      * @return the prepared statement
      */
-    public PreparedStatement getPreparedStatement(String sql) throws SQLException {
+    public PreparedStatement getPreparedStatement(String sql, boolean exclusive) throws SQLException {
         Trace trace = database.getTrace(Trace.TABLE);
         if (trace.isDebugEnabled()) {
             trace.debug(getName() + ":\n" + sql);
@@ -399,6 +417,9 @@ public class TableLink extends Table {
         if (prep == null) {
             prep = conn.getConnection().prepareStatement(sql);
             prepared.put(sql, prep);
+        }
+        if (exclusive) {
+            prepared.remove(sql);
         }
         return prep;
     }
@@ -500,6 +521,10 @@ public class TableLink extends Table {
 
     public long getRowCountApproximation() {
         return ROW_COUNT_APPROXIMATION;
+    }
+
+    public void reusePreparedStatement(PreparedStatement prep, String sql) {
+        prepared.put(sql, prep);
     }
 
 }

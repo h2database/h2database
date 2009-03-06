@@ -6,6 +6,7 @@
  */
 package org.h2.index;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -14,7 +15,7 @@ import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.Column;
-import org.h2.table.Table;
+import org.h2.table.TableLink;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 
@@ -23,15 +24,24 @@ import org.h2.value.Value;
  */
 public class LinkedCursor implements Cursor {
 
-    private Session session;
+    private final TableLink tableLink;
+    private final PreparedStatement prep;
+    private final String sql;
+    private final Session session;
+    private final ResultSet rs;
     private Row current;
-    private ResultSet rs;
-    private Table table;
 
-    LinkedCursor(Table table, ResultSet rs, Session session) {
+    LinkedCursor(TableLink tableLink, ResultSet rs, Session session, String sql, PreparedStatement prep) {
         this.session = session;
-        this.table = table;
+        this.tableLink = tableLink;
         this.rs = rs;
+        this.sql = sql;
+        this.prep = prep;
+    }
+
+    private void closeResultSetAndReusePreparedStatement() throws SQLException {
+        rs.close();
+        tableLink.reusePreparedStatement(prep, sql);
     }
 
     public Row get() {
@@ -50,13 +60,13 @@ public class LinkedCursor implements Cursor {
     public boolean next() throws SQLException {
         boolean result = rs.next();
         if (!result) {
-            rs.close();
+            closeResultSetAndReusePreparedStatement();
             current = null;
             return false;
         }
-        current = table.getTemplateRow();
+        current = tableLink.getTemplateRow();
         for (int i = 0; i < current.getColumnCount(); i++) {
-            Column col = table.getColumn(i);
+            Column col = tableLink.getColumn(i);
             Value v = DataType.readValue(session, rs, i + 1, col.getType());
             current.setValue(i, v);
         }

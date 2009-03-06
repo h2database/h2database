@@ -1496,14 +1496,14 @@ public class JdbcConnection extends TraceObject implements Connection {
 ## Java 1.6 end ##*/
 
     /**
-     * Create a clob value from this reader.
+     * Create a Clob value from this reader.
      *
      * @param x the reader
-     * @param length the length (if smaller or equal to 0, all data until the
+     * @param length the length (if smaller or equal than 0, all data until the
      *            end of file is read)
      * @return the value
      */
-    Value createClob(Reader x, long length) throws SQLException {
+    public Value createClob(Reader x, long length) throws SQLException {
         if (x == null) {
             return ValueNull.INSTANCE;
         }
@@ -1515,14 +1515,14 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * Create a blob value from this input stream.
+     * Create a Blob value from this input stream.
      *
      * @param x the input stream
-     * @param length the length (if smaller or equal to 0, all data until the
+     * @param length the length (if smaller or equal than 0, all data until the
      *            end of file is read)
      * @return the value
      */
-    Value createBlob(InputStream x, long length) throws SQLException {
+    public Value createBlob(InputStream x, long length) throws SQLException {
         if (x == null) {
             return ValueNull.INSTANCE;
         }

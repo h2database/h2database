@@ -283,19 +283,11 @@ java org.h2.test.TestAll timer
 
 /*
 
-select 1 from dual a where 1 in(select 1 from dual b
-where 1 in(select 1 from dual c where a.x=1));
+mark 1.1 as stable
 
-
-
-http://www.marciowb.net/blog/2008/08/quickly-using-h2-database-with
-http://blogs.sun.com/theaquarium/entry/h2_database_with_glassfish
-http://blog.flexive.org/2008/12/05/porting-flexive-to-the-h2-database/
+documentation: start rolling review; consistently use <code> or not.
 
 test performance with log=2
-maybe make log=2 the default option
-
-TRANSACTION_ID()
 
 use 127.0.0.1 if other addresses don't work
 
@@ -303,7 +295,10 @@ select for update in mvcc mode: only lock the selected records?
 
 JCR: for each node type, create a table; one 'dynamic' table with parameter;
     option to cache the results
+
+Favicon per page
 <link rel="icon" type="image/png" href="/path/image.png">
+
 create a short 4 pages documentation
 
 postgresql generate_series?

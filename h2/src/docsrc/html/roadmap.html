@@ -328,7 +328,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Javadocs: for each tool, add a copy &amp; paste sample in the class level.
 </li><li>Javadocs: add @author tags.
 </li><li>Fluent API for tools: Server.createTcpServer().setPort(9081).setPassword(password).start();
-</li><li>MySQL compatibility: real SQL statements for SHOW TABLES, DESCRIBE TEST (then remove from Shell)
+</li><li>MySQL compatibility: real SQL statement for DESCRIBE TEST
 </li><li>Use a default delay of 1 second before closing a database.
 </li><li>Maven: upload source code and javadocs as well.
 </li><li>Write (log) to system table before adding to internal data structures.
@@ -406,6 +406,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support PostgreSQL lock modes: http://www.postgresql.org/docs/8.3/static/explicit-locking.html
 </li><li>PostgreSQL compatibility: test DbVisualizer and Squirrel SQL using a new PostgreSQL JDBC driver.
 </li><li>RunScript should be able to read from system in (or quite mode for Shell).
+</li><li>Natural join: support select x from dual natural join dual.
 </li></ul>
 
 <h2>Not Planned</h2>

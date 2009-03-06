@@ -457,7 +457,11 @@ public class LogFile {
                 file.close();
                 file = null;
                 if (delete) {
-                    database.deleteLogFileLater(fileName);
+                    try {
+                        database.deleteLogFileLater(fileName);
+                    } catch (SQLException e) {
+                        // can not delete the file now - ignore
+                    }
                 }
             } catch (IOException e) {
                 if (closeException == null) {

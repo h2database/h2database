@@ -322,6 +322,7 @@ public class Database implements DataHandler {
             lock.setProperty("modificationMetaId", Long.toString(modificationMetaId));
             lock.setProperty("changePending", pending ? "true" : null);
             lock.save();
+            reconnectLastLock = lock.load();
             reconnectChangePending = pending;
         } catch (Exception e) {
             getTrace().error("pending:"+ pending, e);

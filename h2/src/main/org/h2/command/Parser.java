@@ -3171,6 +3171,9 @@ public class Parser {
             }
             return getKeywordOrIdentifier(s, "TRUE", TRUE);
         case 'U':
+            if ("UNIQUE".equals(s)) {
+                return KEYWORD;
+            }
             return getKeywordOrIdentifier(s, "UNION", KEYWORD);
         case 'W':
             return getKeywordOrIdentifier(s, "WHERE", KEYWORD);

@@ -141,7 +141,7 @@ public class PageStore implements CacheWriter {
      */
     private boolean isNew;
 
-    private DataPage pageTable;
+    private TableData pageTable;
     private PageScanIndex pageIndex;
 
     /**
@@ -218,6 +218,8 @@ trace.setLevel(TraceSystem.DEBUG);
                 int todoShouldBeOneMoreStartWith0;
                 writeHeader();
                 initLogs();
+                openPageIndex();
+
                 getLog().openForWriting(0);
                 switchLogIfPossible();
                 getLog().flush();
@@ -235,10 +237,10 @@ trace.setLevel(TraceSystem.DEBUG);
         cols.add(new Column("TABLE", Value.INT));
         cols.add(new Column("COLUMNS", Value.STRING));
         int headPos = getSystemRootPageId();
-//        pageTable = database.getMainSchema().createTable(
-//                "PAGE_INDEX", 0, cols, true, false, headPos);
-//        pageIndex = (PageScanIndex) pageTable.getScanIndex(
-//                database.getSystemSession());
+        pageTable = database.getMainSchema().createTable(
+                "PAGE_INDEX", 0, cols, true, false, headPos);
+        pageIndex = (PageScanIndex) pageTable.getScanIndex(
+                database.getSystemSession());
     }
 
     private void initLogs() {

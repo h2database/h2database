@@ -34,6 +34,7 @@ public class TestLinkedTable extends TestBase {
 
     public void test() throws SQLException {
         // testLinkAutoAdd();
+        testNestedQueriesToSameTable();
         testSharedConnection();
         testMultipleSchemas();
         testReadOnlyLinkedTable();
@@ -65,6 +66,27 @@ public class TestLinkedTable extends TestBase {
 //        ca.close();
 //        cb.close();
 //    }
+
+    private void testNestedQueriesToSameTable() throws SQLException {
+        if (config.memory || !SysProperties.SHARE_LINKED_CONNECTIONS) {
+            return;
+        }
+        org.h2.Driver.load();
+        deleteDb("linkedTable");
+        String url = getURL("linkedTable", true);
+        String user = getUser();
+        String password = getPassword();
+        Connection ca = getConnection(url, user, password);
+        Statement sa = ca.createStatement();
+        sa.execute("CREATE TABLE TEST(ID INT) AS SELECT 1");
+        ca.close();
+        Connection cb = DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
+        Statement sb = cb.createStatement();
+        sb.execute("CREATE LINKED TABLE T1(NULL, '" + url + "', '"+user+"', '"+password+"', 'TEST')");
+        sb.executeQuery("SELECT * FROM DUAL A LEFT OUTER JOIN T1 A ON A.ID=1 LEFT OUTER JOIN T1 B ON B.ID=1");
+        sb.execute("DROP ALL OBJECTS");
+        cb.close();
+    }
 
     private void testSharedConnection() throws SQLException {
         if (config.memory || !SysProperties.SHARE_LINKED_CONNECTIONS) {

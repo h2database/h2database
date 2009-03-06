@@ -10,7 +10,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.Message;
@@ -70,7 +69,7 @@ public class LinkedIndex extends BaseIndex {
         String sql = buff.toString();
         synchronized (link.getConnection()) {
             try {
-                PreparedStatement prep = link.getPreparedStatement(sql);
+                PreparedStatement prep = link.getPreparedStatement(sql, false);
                 for (int i = 0, j = 0; i < row.getColumnCount(); i++) {
                     Value v = row.getValue(i);
                     if (v != null && v != ValueNull.INSTANCE) {
@@ -81,7 +80,7 @@ public class LinkedIndex extends BaseIndex {
                 prep.executeUpdate();
                 rowCount++;
             } catch (SQLException e) {
-                throw wrapException(sql, e);
+                throw link.wrapException(sql, e);
             }
         }
     }
@@ -119,7 +118,7 @@ public class LinkedIndex extends BaseIndex {
         String sql = buff.toString();
         synchronized (link.getConnection()) {
             try {
-                PreparedStatement prep = link.getPreparedStatement(sql);
+                PreparedStatement prep = link.getPreparedStatement(sql, true);
                 int j = 0;
                 for (int i = 0; first != null && i < first.getColumnCount(); i++) {
                     Value v = first.getValue(i);
@@ -136,9 +135,9 @@ public class LinkedIndex extends BaseIndex {
                     }
                 }
                 ResultSet rs = prep.executeQuery();
-                return new LinkedCursor(table, rs, session);
+                return new LinkedCursor(link, rs, session, sql, prep);
             } catch (SQLException e) {
-                throw wrapException(sql, e);
+                throw link.wrapException(sql, e);
             }
         }
     }
@@ -209,7 +208,7 @@ public class LinkedIndex extends BaseIndex {
         String sql = buff.toString();
         synchronized (link.getConnection()) {
             try {
-                PreparedStatement prep = link.getPreparedStatement(sql);
+                PreparedStatement prep = link.getPreparedStatement(sql, false);
                 for (int i = 0, j = 0; i < row.getColumnCount(); i++) {
                     Value v = row.getValue(i);
                     if (!isNull(v)) {
@@ -220,7 +219,7 @@ public class LinkedIndex extends BaseIndex {
                 int count = prep.executeUpdate();
                 rowCount -= count;
             } catch (SQLException e) {
-                throw wrapException(sql, e);
+                throw link.wrapException(sql, e);
             }
         }
     }
@@ -261,7 +260,7 @@ public class LinkedIndex extends BaseIndex {
         synchronized (link.getConnection()) {
             try {
                 int j = 1;
-                PreparedStatement prep = link.getPreparedStatement(sql);
+                PreparedStatement prep = link.getPreparedStatement(sql, false);
                 for (int i = 0; i < newRow.getColumnCount(); i++) {
                     newRow.getValue(i).set(prep, j);
                     j++;
@@ -277,13 +276,9 @@ public class LinkedIndex extends BaseIndex {
                 // this has no effect but at least it allows to debug the update count
                 rowCount = rowCount + count - count;
             } catch (SQLException e) {
-                throw wrapException(sql, e);
+                throw link.wrapException(sql, e);
             }
         }
-    }
-
-    private SQLException wrapException(String sql, SQLException e) {
-        return Message.getSQLException(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_2, new String[] { sql, e.toString() }, e);
     }
 
     public long getRowCount(Session session) {

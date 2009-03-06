@@ -100,7 +100,7 @@ public class Function extends Expression implements FunctionCall {
             CASE = 206, NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211,
             MEMORY_FREE = 212, MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217,
             LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220, CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
-            FILE_READ = 225;
+            FILE_READ = 225, TRANSACTION_ID = 226;
 
     private static final int VAR_ARGS = -1;
 
@@ -318,6 +318,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("CANCEL_SESSION", CANCEL_SESSION, 1, Value.BOOLEAN);
         addFunction("SET", SET, 2, Value.NULL, false, false);
         addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, true);
+        addFunctionNotConst("TRANSACTION_ID", TRANSACTION_ID, 0, Value.STRING);
 
         // TableFunction
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
@@ -815,6 +816,10 @@ public class Function extends Expression implements FunctionCall {
         }
         case CANCEL_SESSION: {
             result = ValueBoolean.get(cancelStatement(session, v0.getInt()));
+            break;
+        }
+        case TRANSACTION_ID: {
+            result = session.getTransactionId();
             break;
         }
         default:

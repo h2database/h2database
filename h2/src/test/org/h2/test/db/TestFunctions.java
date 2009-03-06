@@ -44,12 +44,37 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     public void test() throws Exception {
         deleteDb("functions");
+        testTransactionId();
         testPrecision();
         testVarArgs();
         testAggregate();
         testFunctions();
         testFileRead();
         deleteDb("functions");
+    }
+
+    private void testTransactionId() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        ResultSet rs;
+        rs = stat.executeQuery("call transaction_id()");
+        rs.next();
+        assertTrue(rs.getString(1) == null && rs.wasNull());
+        stat.execute("insert into test values(1)");
+        rs = stat.executeQuery("call transaction_id()");
+        rs.next();
+        assertTrue(rs.getString(1) == null && rs.wasNull());
+        conn.setAutoCommit(false);
+        stat.execute("delete from test");
+        rs = stat.executeQuery("call transaction_id()");
+        rs.next();
+        assertTrue(rs.getString(1) != null);
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testPrecision() throws SQLException {

@@ -166,9 +166,9 @@ public class Function extends Expression implements FunctionCall {
         addFunction("ASIN", ASIN, 1, Value.DOUBLE);
         addFunction("ATAN", ATAN, 1, Value.DOUBLE);
         addFunction("ATAN2", ATAN2, 2, Value.DOUBLE);
-        addFunction("BITAND", BITAND, 2, Value.INT);
-        addFunction("BITOR", BITOR, 2, Value.INT);
-        addFunction("BITXOR", BITXOR, 2, Value.INT);
+        addFunction("BITAND", BITAND, 2, Value.LONG);
+        addFunction("BITOR", BITOR, 2, Value.LONG);
+        addFunction("BITXOR", BITXOR, 2, Value.LONG);
         addFunction("CEILING", CEILING, 1, Value.DOUBLE);
         addFunction("COS", COS, 1, Value.DOUBLE);
         addFunction("COT", COT, 1, Value.DOUBLE);
@@ -177,7 +177,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("FLOOR", FLOOR, 1, Value.DOUBLE);
         addFunction("LOG", LOG, 1, Value.DOUBLE);
         addFunction("LOG10", LOG10, 1, Value.DOUBLE);
-        addFunction("MOD", MOD, 2, Value.INT);
+        addFunction("MOD", MOD, 2, Value.LONG);
         addFunction("PI", PI, 0, Value.DOUBLE);
         addFunction("POWER", POWER, 2, Value.DOUBLE);
         addFunction("RADIANS", RADIANS, 1, Value.DOUBLE);
@@ -869,20 +869,20 @@ public class Function extends Expression implements FunctionCall {
             result = ValueDouble.get(Math.atan2(v0.getDouble(), v1.getDouble()));
             break;
         case BITAND:
-            result = ValueInt.get(v0.getInt() & v1.getInt());
+            result = ValueLong.get(v0.getLong() & v1.getLong());
             break;
         case BITOR:
-            result = ValueInt.get(v0.getInt() | v1.getInt());
+            result = ValueLong.get(v0.getLong() | v1.getLong());
             break;
         case BITXOR:
-            result = ValueInt.get(v0.getInt() ^ v1.getInt());
+            result = ValueLong.get(v0.getLong() ^ v1.getLong());
             break;
         case MOD: {
-            int x = v1.getInt();
-            if (x == 0.0) {
+            long x = v1.getLong();
+            if (x == 0) {
                 throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
             }
-            result = ValueInt.get(v0.getInt() % x);
+            result = ValueLong.get(v0.getLong() % x);
             break;
         }
         case POWER:

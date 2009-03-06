@@ -2056,7 +2056,7 @@ ATAN2(X, Y)
 "
 
 "Functions (Numeric)","BITAND","
-BITAND(int, int): int
+BITAND(long, long): long
 ","
 See also Java operator &.
 ","
@@ -2064,7 +2064,7 @@ BITAND(A, B)
 "
 
 "Functions (Numeric)","BITOR","
-BITOR(int, int): int
+BITOR(long, long): long
 ","
 See also Java operator |.
 ","
@@ -2072,7 +2072,7 @@ BITOR(A, B)
 "
 
 "Functions (Numeric)","BITXOR","
-BITXOR(int, int): int
+BITXOR(long, long): long
 ","
 See also Java operator ^.
 ","
@@ -2080,7 +2080,7 @@ BITXOR(A, B)
 "
 
 "Functions (Numeric)","MOD","
-MOD(int, int): int
+MOD(long, long): long
 ","
 See also Java operator %.
 ","

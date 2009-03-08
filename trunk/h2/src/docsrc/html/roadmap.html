@@ -363,6 +363,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support GRANT SELECT, UPDATE ON *.
 </li><li>Test Eclipse DTP.
 </li><li>H2 Console: autocomplete: keep the previous setting
+</li><li>MySQL, MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.
 </li><li>executeBatch: option to stop at the first failed statement.
 </li><li>Implement OLAP features as described here: http://www.devx.com/getHelpOn/10MinuteSolution/16573/0/page/5
 </li><li>Support Oracle ROWID (unique identifier for each row).
@@ -396,7 +397,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Replace information_schema tables with regular tables that are automatically re-built when needed. Use indexes.
 </li><li>Support a special trigger on all tables.
 </li><li>Delete temporary files or objects using finalize.
-</li><li>MySQL, MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.
 </li><li>Oracle compatibility: support calling 0-parameters functions without parenthesis. Make constants obsolete.
 </li><li>MySQL, HSQLDB compatibility: support where 'a'=1 (not supported by Derby, PostgreSQL)
 </li><li>CSV: currently # is a line comment and can start at any field. Make it optional.
@@ -409,6 +409,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Natural join: support select x from dual natural join dual.
 </li><li>Optimize IN(...) for DELETE and UPDATE.
 </li><li>Natural join: somehow support this: select a.x, b.x, x from dual a natural join dual b
+</li><li>MySQL compatibility: for auto_increment columns, convert 0 to next value (as when inserting NULL).
 </li></ul>
 
 <h2>Not Planned</h2>

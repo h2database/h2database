@@ -18,10 +18,9 @@ import org.h2.util.FileUtils;
 /**
  * FileObject which is using NIO MappedByteBuffer mapped to memory from file.
  */
-// TODO support files over 2 GB by using multiple buffers
-// TODO howto dispose MappedByteBuffer?
 public class FileObjectDiskMapped implements FileObject {
 
+    // TODO support files over 2 GB by using multiple buffers
     private static final long GC_TIMEOUT_MS = 10000;
     private final String name;
     private final MapMode mode;
@@ -36,10 +35,10 @@ public class FileObjectDiskMapped implements FileObject {
         }
         this.name = fileName;
         file = new RandomAccessFile(fileName, mode);
-        remap();
+        reMap();
     }
 
-    private void unmap() {
+    private void unMap() {
         if (mapped != null) {
             // first write all data
             mapped.force();
@@ -79,12 +78,10 @@ public class FileObjectDiskMapped implements FileObject {
     }
 
     /**
-     * remap byte buffer into memory, called when file size has changed or file
-     * was created
-     *
-     * @throws IOException
+     * Re-map byte buffer into memory, called when file size has changed or file
+     * was created.
      */
-    private void remap() throws IOException {
+    private void reMap() throws IOException {
         if (file.length() > Integer.MAX_VALUE) {
             throw new RuntimeException("File over 2GB is not supported yet");
         }
@@ -92,7 +89,7 @@ public class FileObjectDiskMapped implements FileObject {
         if (mapped != null) {
             oldPos = mapped.position();
             mapped.force();
-            unmap();
+            unMap();
         }
 
         // maps new MappedByteBuffer, old one is disposed during GC
@@ -104,8 +101,7 @@ public class FileObjectDiskMapped implements FileObject {
     }
 
     public void close() throws IOException {
-        unmap();
-
+        unMap();
         file.close();
         file = null;
     }
@@ -132,7 +128,7 @@ public class FileObjectDiskMapped implements FileObject {
 
     public void setFileLength(long newLength) throws IOException {
         FileUtils.setLength(file, newLength);
-        remap();
+        reMap();
     }
 
     public void sync() throws IOException {

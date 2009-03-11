@@ -323,7 +323,7 @@ public class SysProperties {
 
     /**
      * System property <code>h2.nioCleanerHack</code> (default: true).<br />
-     * If possible, use a hack to unmap the mapped file. See also
+     * If possible, use a hack to un-map the mapped file. See also
      * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4724038
      */
     public static final boolean NIO_CLEANER_HACK = getBooleanSetting("h2.nioCleanerHack", true);

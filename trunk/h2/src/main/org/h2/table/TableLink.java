@@ -523,6 +523,12 @@ public class TableLink extends Table {
         return ROW_COUNT_APPROXIMATION;
     }
 
+    /**
+     * Add this prepared statement to the list of cached statements.
+     *
+     * @param prep the prepared statement
+     * @param sql the SQL statement
+     */
     public void reusePreparedStatement(PreparedStatement prep, String sql) {
         prepared.put(sql, prep);
     }

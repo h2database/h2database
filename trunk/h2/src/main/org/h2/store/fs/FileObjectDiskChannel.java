@@ -22,8 +22,8 @@ public class FileObjectDiskChannel implements FileObject {
 
     FileObjectDiskChannel(String fileName, String mode) throws FileNotFoundException {
         this.name = fileName;
-        RandomAccessFile raf = new RandomAccessFile(fileName, mode);
-        channel = raf.getChannel();
+        RandomAccessFile file = new RandomAccessFile(fileName, mode);
+        channel = file.getChannel();
     }
 
     public void close() throws IOException {
@@ -46,10 +46,10 @@ public class FileObjectDiskChannel implements FileObject {
         if (len == 0) {
             return;
         }
-        if (channel.size() <= off + len) {
-            // TODO get size can degrade performance
-            throw new java.io.EOFException();
-        }
+        // reading the size can reduce the performance
+        // if (channel.size() <= off + len) {
+        //    throw new java.io.EOFException();
+        // }
         ByteBuffer buf = ByteBuffer.wrap(b);
         buf.position(off);
         buf.limit(off + len);
@@ -57,13 +57,10 @@ public class FileObjectDiskChannel implements FileObject {
     }
 
     public void seek(long pos) throws IOException {
-        // System.out.println("seek");
         channel.position(pos);
     }
 
     public void setFileLength(long newLength) throws IOException {
-        // System.out.println("setFileLength");
-        // System.out.println(" "+channel.size()+" - "+channel.position());
         if (newLength <= channel.size()) {
             long oldPos = channel.position();
             channel.truncate(newLength);
@@ -72,20 +69,17 @@ public class FileObjectDiskChannel implements FileObject {
             }
             channel.position(oldPos);
         } else {
-            // extend by writting to new location
+            // extend by writing to the new location
             ByteBuffer b = ByteBuffer.allocate(1);
             channel.write(b, newLength - 1);
         }
-        // System.out.println(" "+channel.size()+" - "+channel.position());
     }
 
     public void sync() throws IOException {
-        // System.out.println("sync");
         channel.force(true);
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
-        // System.out.println("write");
         ByteBuffer buf = ByteBuffer.wrap(b);
         buf.position(off);
         buf.limit(off + len);

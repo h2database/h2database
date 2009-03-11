@@ -25,12 +25,12 @@ public class FileSystemDiskNio extends FileSystemDisk {
     public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir)
     throws IOException {
         String file = super.createTempFile(name, suffix, deleteOnExit, inTempDir);
-        return FileSystem.PREFIX_NIO + file;
+        return getPrefix() + file;
     }
 
     protected String translateFileName(String fileName) {
-        if (fileName.startsWith(FileSystem.PREFIX_NIO)) {
-            fileName = fileName.substring(FileSystem.PREFIX_NIO.length());
+        if (fileName.startsWith(getPrefix())) {
+            fileName = fileName.substring(getPrefix().length());
         }
         return super.translateFileName(fileName);
     }
@@ -40,23 +40,23 @@ public class FileSystemDiskNio extends FileSystemDisk {
     }
 
     public String normalize(String fileName) throws SQLException {
-        return FileSystem.PREFIX_NIO + super.normalize(fileName);
+        return getPrefix() + super.normalize(fileName);
     }
 
     public String[] listFiles(String path) throws SQLException {
         String[] list = super.listFiles(path);
         for (int i = 0; list != null && i < list.length; i++) {
-            list[i] = FileSystem.PREFIX_NIO + list[i];
+            list[i] = getPrefix() + list[i];
         }
         return list;
     }
 
     public String getParent(String fileName) {
-        return FileSystem.PREFIX_NIO + super.getParent(fileName);
+        return getPrefix() + super.getParent(fileName);
     }
 
     public String getAbsolutePath(String fileName) {
-        return FileSystem.PREFIX_NIO + super.getAbsolutePath(fileName);
+        return getPrefix() + super.getAbsolutePath(fileName);
     }
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {
@@ -77,6 +77,23 @@ public class FileSystemDiskNio extends FileSystemDisk {
         return f;
     }
 
+    /**
+     * Get the prefix for this file system.
+     *
+     * @return the prefix
+     */
+    protected String getPrefix() {
+        return FileSystem.PREFIX_NIO;
+    }
+
+    /**
+     * Try to open a file with this name and mode.
+     *
+     * @param fileName the file name
+     * @param mode the open mode
+     * @return the file object
+     * @throws IOException if opening fails
+     */
     protected FileObject open(String fileName, String mode) throws IOException {
         return new FileObjectDiskChannel(fileName, mode);
     }

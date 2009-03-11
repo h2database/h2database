@@ -47,6 +47,13 @@ public class FileSystemDisk extends FileSystem {
         return new File(fileName).length();
     }
 
+    /**
+     * Translate the file name to the native format.
+     * This will expand the home directory (~).
+     *
+     * @param fileName the file name
+     * @return the native file name
+     */
     protected String translateFileName(String fileName) {
         if (fileName != null && fileName.startsWith("~")) {
             String userDir = SysProperties.USER_HOME;
@@ -82,6 +89,13 @@ public class FileSystemDisk extends FileSystem {
         throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName, newName});
     }
 
+    /**
+     * Print a trace message if tracing is enabled.
+     *
+     * @param method the method
+     * @param fileName the file name
+     * @param o the object
+     */
     protected void trace(String method, String fileName, Object o) {
         if (SysProperties.TRACE_IO) {
             System.out.println("FileSystem." + method + " " + fileName + " " + o);
@@ -350,6 +364,10 @@ public class FileSystemDisk extends FileSystem {
         return in;
     }
 
+    /**
+     * Call the garbage collection and run finalization. This close all files that
+     * were not closed, and are no longer referenced.
+     */
     protected void freeMemoryAndFinalize() {
         trace("freeMemoryAndFinalize", null, null);
         Runtime rt = Runtime.getRuntime();

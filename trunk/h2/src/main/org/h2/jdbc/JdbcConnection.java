@@ -1265,6 +1265,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
         if (session.isReconnectNeeded()) {
             trace.debug("reconnect");
+            int todoInvalidatePreparedStatements;
             session = session.reconnect();
             trace = session.getTrace();
             setTrace(trace, TraceObject.CONNECTION, getTraceId());

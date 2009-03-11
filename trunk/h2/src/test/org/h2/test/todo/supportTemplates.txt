@@ -48,7 +48,7 @@ Please provide any additional information below.
 
 Corrupted database
 
-I am sorry to say that, but it looks like a corruption problem. I am very interested in analyzing and solving this problem. Corruption problems have top priority for me. I have a few question:
+I am sorry to say that, but it looks like a corruption problem. I am very interested in analyzing and solving this problem. Corruption problems have top priority for me. I have a few questions:
 
 - Could you send the full stack trace of the exception including message text?
 - What is your database URL?

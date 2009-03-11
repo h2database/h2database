@@ -140,7 +140,7 @@ public class ConditionInSelect extends Condition {
             return this;
         }
         String name = session.getNextSystemIdentifier(select.getSQL());
-        TableView view = TableView.createTempView(session, session.getUser(), name, query);
+        TableView view = TableView.createTempView(session, session.getUser(), name, query, select);
         TableFilter filter = new TableFilter(session, view, name, false, select);
         select.addTableFilter(filter, true);
         ExpressionColumn column = new ExpressionColumn(session.getDatabase(), null, view.getName(), alias);

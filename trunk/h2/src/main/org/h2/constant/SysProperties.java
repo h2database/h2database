@@ -315,6 +315,20 @@ public class SysProperties {
     public static final int MIN_WRITE_DELAY = getIntSetting("h2.minWriteDelay", 5);
 
     /**
+     * System property <code>h2.nioLoadMapped</code> (default: false).<br />
+     * If the mapped buffer should be loaded when the file is opened.
+     * This can improve performance.
+     */
+    public static final boolean NIO_LOAD_MAPPED = getBooleanSetting("h2.nioLoadMapped", false);
+
+    /**
+     * System property <code>h2.nioCleanerHack</code> (default: true).<br />
+     * If possible, use a hack to unmap the mapped file. See also
+     * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4724038
+     */
+    public static final boolean NIO_CLEANER_HACK = getBooleanSetting("h2.nioCleanerHack", true);
+
+    /**
      * System property <code>h2.objectCache</code> (default: true).<br />
      * Cache commonly used objects (integers, strings).
      */

@@ -569,11 +569,19 @@ public class ValueLob extends Value {
     }
 
     public byte[] getBytes() throws SQLException {
+        if (type == CLOB) {
+            // convert hex to string
+            return super.getBytes();
+        }
         byte[] data = getBytesNoCopy();
         return ByteUtils.cloneByteArray(data);
     }
 
     public byte[] getBytesNoCopy() throws SQLException {
+        if (type == CLOB) {
+            // convert hex to string
+            return super.getBytesNoCopy();
+        }
         if (small != null) {
             return small;
         }

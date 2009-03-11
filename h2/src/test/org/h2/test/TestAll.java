@@ -283,6 +283,9 @@ java org.h2.test.TestAll timer
 
 /*
 
+FILE_LOCK=SERIALIZED with prepared statement, statement,
+maybe updatable result set
+
 mark 1.1 as stable
 
 documentation: start rolling review; consistently use <code> or not.

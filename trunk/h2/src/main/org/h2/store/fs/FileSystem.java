@@ -43,6 +43,16 @@ public abstract class FileSystem {
     public static final String PREFIX_SPLIT = "split:";
 
     /**
+     * The prefix used for the NIO FileChannel file system.
+     */
+    public static final String PREFIX_NIO = "nio:";
+
+    /**
+     * The prefix used for the NIO (memory mapped) file system.
+     */
+    public static final String PREFIX_NIO_MAPPED = "nioMapped:";
+
+    /**
      * Get the file system object.
      *
      * @param fileName the file name or prefix
@@ -57,6 +67,10 @@ public abstract class FileSystem {
             return FileSystemZip.getInstance();
         } else if (fileName.startsWith(PREFIX_SPLIT)) {
             return FileSystemSplit.getInstance();
+        } else if (fileName.startsWith(PREFIX_NIO)) {
+            return FileSystemDiskNio.getInstance();
+        } else if (fileName.startsWith(PREFIX_NIO_MAPPED)) {
+            return FileSystemDiskNioMapped.getInstance();
         }
         return FileSystemDisk.getInstance();
     }

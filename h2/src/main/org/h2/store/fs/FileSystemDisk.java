@@ -47,7 +47,7 @@ public class FileSystemDisk extends FileSystem {
         return new File(fileName).length();
     }
 
-    private String translateFileName(String fileName) {
+    protected String translateFileName(String fileName) {
         if (fileName != null && fileName.startsWith("~")) {
             String userDir = SysProperties.USER_HOME;
             fileName = userDir + fileName.substring(1);
@@ -82,7 +82,7 @@ public class FileSystemDisk extends FileSystem {
         throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName, newName});
     }
 
-    private void trace(String method, String fileName, Object o) {
+    protected void trace(String method, String fileName, Object o) {
         if (SysProperties.TRACE_IO) {
             System.out.println("FileSystem." + method + " " + fileName + " " + o);
         }
@@ -350,7 +350,7 @@ public class FileSystemDisk extends FileSystem {
         return in;
     }
 
-    private void freeMemoryAndFinalize() {
+    protected void freeMemoryAndFinalize() {
         trace("freeMemoryAndFinalize", null, null);
         Runtime rt = Runtime.getRuntime();
         long mem = rt.freeMemory();

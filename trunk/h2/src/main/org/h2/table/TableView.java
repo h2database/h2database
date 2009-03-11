@@ -44,6 +44,7 @@ public class TableView extends Table {
     private long lastModificationCheck;
     private long maxDataModificationId;
     private User owner;
+    private Query topQuery;
 
     public TableView(Schema schema, int id, String name, String querySQL, ObjectArray params, String[] columnNames,
             Session session, boolean recursive) throws SQLException {
@@ -342,13 +343,15 @@ public class TableView extends Table {
      * @param owner the owner of the query
      * @param name the view name
      * @param query the query
+     * @param topQuery the top level query
      * @return the view table
      */
-    public static TableView createTempView(Session session, User owner, String name, Query query) throws SQLException {
+    public static TableView createTempView(Session session, User owner, String name, Query query, Query topQuery) throws SQLException {
         Schema mainSchema = session.getDatabase().getSchema(Constants.SCHEMA_MAIN);
         String querySQL = query.getPlanSQL();
         TableView v = new TableView(mainSchema, 0, name, querySQL, query.getParameters(), null, session,
                 false);
+        v.setTopQuery(topQuery);
         if (v.createException != null) {
             throw v.createException;
         }
@@ -357,8 +360,16 @@ public class TableView extends Table {
         return v;
     }
 
+    private void setTopQuery(Query topQuery) {
+        this.topQuery = topQuery;
+    }
+
     public long getRowCountApproximation() {
         return ROW_COUNT_APPROXIMATION;
+    }
+
+    public int getParameterOffset() {
+        return topQuery == null ? 0 : topQuery.getParameters().size();
     }
 
 }

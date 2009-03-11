@@ -29,9 +29,10 @@ import org.h2.value.Value;
  */
 public class ViewIndex extends BaseIndex {
 
-    private String querySQL;
-    private ObjectArray originalParameters;
-    private SmallLRUCache costCache = new SmallLRUCache(Constants.VIEW_INDEX_CACHE_SIZE);
+    private final TableView view;
+    private final String querySQL;
+    private final ObjectArray originalParameters;
+    private final SmallLRUCache costCache = new SmallLRUCache(Constants.VIEW_INDEX_CACHE_SIZE);
     private boolean recursive;
     private int[] masks;
     private String planSQL;
@@ -40,6 +41,7 @@ public class ViewIndex extends BaseIndex {
 
     public ViewIndex(TableView view, String querySQL, ObjectArray originalParameters, boolean recursive) {
         initBaseIndex(view, 0, null, null, IndexType.createNonUnique(false));
+        this.view = view;
         this.querySQL = querySQL;
         this.originalParameters = originalParameters;
         this.recursive = recursive;
@@ -48,6 +50,7 @@ public class ViewIndex extends BaseIndex {
 
     public ViewIndex(TableView view, ViewIndex index, Session session, int[] masks) throws SQLException {
         initBaseIndex(view, 0, null, null, IndexType.createNonUnique(false));
+        this.view = view;
         this.querySQL = index.querySQL;
         this.originalParameters = index.originalParameters;
         this.recursive = index.recursive;
@@ -122,7 +125,7 @@ public class ViewIndex extends BaseIndex {
                 Column col = table.getColumn(idx);
                 columns[i] = col;
                 int mask = masks[idx];
-                int nextParamIndex = query.getParameters().size();
+                int nextParamIndex = query.getParameters().size() + view.getParameterOffset();
                 if ((mask & IndexCondition.EQUALITY) != 0) {
                     Parameter param = new Parameter(nextParamIndex);
                     query.addGlobalCondition(param, idx, Comparison.EQUAL);
@@ -172,6 +175,7 @@ public class ViewIndex extends BaseIndex {
             len = 0;
         }
         int idx = originalParameters == null ? 0 : originalParameters.size();
+        idx += view.getParameterOffset();
         for (int i = 0; i < len; i++) {
             if (first != null) {
                 Value v = first.getValue(i);
@@ -199,6 +203,7 @@ public class ViewIndex extends BaseIndex {
             return query;
         }
         int firstIndexParam = originalParameters == null ? 0 : originalParameters.size();
+        firstIndexParam += view.getParameterOffset();
         IntArray paramIndex = new IntArray();
         for (int i = 0; i < masks.length; i++) {
             int mask = masks[i];

@@ -36,6 +36,8 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testJoinWithView();
+        testLobDecrypt();
         testInvalidDatabaseName();
         testReuseSpace();
         testDeleteGroup();
@@ -66,6 +68,43 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testJoinWithView() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        conn.createStatement().execute(
+                "create table t(i identity, n varchar) as select 1, 'x'");
+        PreparedStatement prep = conn.prepareStatement(
+                "select 1 from dual " +
+                "inner join(select n from t where i=?) a on a.n='x' " +
+                "inner join(select n from t where i=?) b on b.n='x'");
+        prep.setInt(1, 1);
+        prep.setInt(2, 1);
+        prep.execute();
+        conn.close();
+    }
+
+    private void testLobDecrypt() throws SQLException {
+        Connection conn = getConnection("cases");
+        String key = "key";
+        String value = "Hello World";
+        PreparedStatement prep = conn.prepareStatement("CALL ENCRYPT('AES', RAWTOHEX(?), STRINGTOUTF8(?))");
+        prep.setCharacterStream(1, new StringReader(key), -1);
+        prep.setCharacterStream(2, new StringReader(value), -1);
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        String encrypted = rs.getString(1);
+        PreparedStatement prep2 = conn
+                .prepareStatement("CALL TRIM(CHAR(0) FROM UTF8TOSTRING(DECRYPT('AES', RAWTOHEX(?), ?)))");
+        prep2.setCharacterStream(1, new StringReader(key), -1);
+        prep2.setCharacterStream(2, new StringReader(encrypted), -1);
+        ResultSet rs2 = prep2.executeQuery();
+        rs2.first();
+        String decrypted = rs2.getString(1);
+        prep2.close();
+        assertEquals(value, decrypted);
+        conn.close();
     }
 
     private void testReservedKeywordReconnect() throws SQLException {

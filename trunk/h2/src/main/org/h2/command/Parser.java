@@ -939,7 +939,7 @@ public class Parser {
                     s = session;
                 }
                 alias = session.getNextSystemIdentifier(sqlCommand);
-                table = TableView.createTempView(s, session.getUser(), alias, query);
+                table = TableView.createTempView(s, session.getUser(), alias, query, currentSelect);
             } else {
                 TableFilter top = readTableFilter(fromOuter);
                 top = readJoin(top, currentSelect, fromOuter);

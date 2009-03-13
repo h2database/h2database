@@ -22,6 +22,15 @@ public class TestMulti extends TestBase {
      */
     public volatile boolean stop;
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws Exception {
         org.h2.Driver.load();
         deleteDb(baseDir, "openClose");

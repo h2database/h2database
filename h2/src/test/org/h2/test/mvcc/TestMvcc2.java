@@ -22,6 +22,15 @@ public class TestMvcc2 extends TestBase {
     private static final String INSERT = "INSERT INTO EMPLOYEE (id, version, NAME) VALUES (1, 1, 'Jones')";
     private static final String UPDATE = "UPDATE EMPLOYEE SET NAME = 'Miller' WHERE version = 1";
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         if (!config.mvcc) {
             return;

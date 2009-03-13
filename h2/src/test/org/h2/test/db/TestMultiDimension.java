@@ -21,6 +21,15 @@ import org.h2.tools.MultiDimension;
  */
 public class TestMultiDimension extends TestBase {
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         Random rand = new Random(10);
         for (int i = 0; i < 1000; i++) {
@@ -37,11 +46,12 @@ public class TestMultiDimension extends TestBase {
         conn = getConnection("multiDimension");
         Statement stat = conn.createStatement();
         stat.execute("CREATE ALIAS MAP FOR \"" + getClass().getName() + ".interleave\"");
-        stat
-                .execute("CREATE TABLE TEST(X INT NOT NULL, Y INT NOT NULL, Z INT NOT NULL, XYZ BIGINT AS MAP(X, Y, Z), DATA VARCHAR)");
+        stat.execute("CREATE TABLE TEST(X INT NOT NULL, Y INT NOT NULL, Z INT NOT NULL, " +
+                "XYZ BIGINT AS MAP(X, Y, Z), DATA VARCHAR)");
         stat.execute("CREATE INDEX IDX_X ON TEST(X, Y, Z)");
         stat.execute("CREATE INDEX IDX_XYZ ON TEST(XYZ)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(X, Y, Z, DATA) VALUES(?, ?, ?, ?)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST(X, Y, Z, DATA) VALUES(?, ?, ?, ?)");
         // a reasonable max value to see the performance difference is 60; the
         // higher the bigger the difference
         int max = getSize(10, 20);
@@ -69,8 +79,9 @@ public class TestMultiDimension extends TestBase {
             }
         }
         stat.execute("ANALYZE SAMPLE_SIZE 10000");
-        PreparedStatement prepRegular = conn.prepareStatement("SELECT * FROM TEST WHERE X BETWEEN ? AND ? "
-                + "AND Y BETWEEN ? AND ? AND Z BETWEEN ? AND ? ORDER BY X, Y, Z");
+        PreparedStatement prepRegular = conn.prepareStatement(
+                "SELECT * FROM TEST WHERE X BETWEEN ? AND ? " +
+                "AND Y BETWEEN ? AND ? AND Z BETWEEN ? AND ? ORDER BY X, Y, Z");
         MultiDimension multi = MultiDimension.getInstance();
         String sql = multi.generatePreparedQuery("TEST", "XYZ", new String[] { "X", "Y", "Z" });
         sql += " ORDER BY X, Y, Z";

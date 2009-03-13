@@ -18,6 +18,15 @@ public class TestTransactionIsolation extends TestBase {
 
     private Connection conn1, conn2;
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         if (config.mvcc) {
             // no tests yet

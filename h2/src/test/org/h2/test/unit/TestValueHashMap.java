@@ -31,6 +31,15 @@ public class TestValueHashMap extends TestBase implements DataHandler {
 
     CompareMode compareMode = new CompareMode(null, null, 0);
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         ValueHashMap map = new ValueHashMap(this);
         HashMap hash = new HashMap();

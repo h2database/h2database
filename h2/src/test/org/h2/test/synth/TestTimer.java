@@ -24,6 +24,15 @@ import org.h2.tools.DeleteDbFiles;
  */
 public class TestTimer extends TestBase {
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         validateOld();
         DeleteDbFiles.execute(baseDir, "timer", true);

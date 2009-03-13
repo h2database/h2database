@@ -32,6 +32,15 @@ import org.h2.test.TestBase;
 public class TestServlet extends TestBase {
 
     /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
+    /**
      * Minimum ServletContext implementation.
      * Most methods are not implemented.
      */

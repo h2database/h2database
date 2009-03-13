@@ -23,6 +23,15 @@ public class TestMvcc1 extends TestBase {
     private Connection c1, c2;
     private Statement s1, s2;
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         testSetMode();
         testCases();

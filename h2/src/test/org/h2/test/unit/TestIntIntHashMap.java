@@ -18,6 +18,15 @@ public class TestIntIntHashMap extends TestBase {
 
     private Random rand = new Random();
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() {
         rand.setSeed(10);
         test(true);

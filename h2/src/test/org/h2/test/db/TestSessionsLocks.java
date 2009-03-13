@@ -18,6 +18,15 @@ import org.h2.test.TestBase;
  */
 public class TestSessionsLocks extends TestBase {
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws Exception {
         if (config.mvcc) {
             return;

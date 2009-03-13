@@ -33,6 +33,15 @@ public class TestRandomSQL extends TestBase {
     private Bnf bnf;
     private int success, total;
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     private void processException(String sql, SQLException e) {
         if (e.getSQLState().equals("HY000")) {
             TestBase.logError("new TestRandomSQL().init(test).testCase(" + seed + ");  // FAIL: " + e.toString() + " sql: " + sql, e);

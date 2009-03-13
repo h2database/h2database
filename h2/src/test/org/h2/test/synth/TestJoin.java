@@ -31,6 +31,15 @@ public class TestJoin extends TestBase {
     private int paramCount;
     private StringBuffer buff;
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws Exception {
         String old = baseDir;
         baseDir = TestBase.getTestDir("join");

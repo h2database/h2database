@@ -22,6 +22,15 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
 
     private boolean calledOpened, calledClosingDatabase, calledScan;
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         testCalled();
         testCloseLog0(false);

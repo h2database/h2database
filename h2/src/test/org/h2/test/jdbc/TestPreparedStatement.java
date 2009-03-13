@@ -29,6 +29,15 @@ public class TestPreparedStatement extends TestBase {
 
     private static final int LOB_SIZE = 4000, LOB_SIZE_BIG = 512 * 1024;
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws Exception {
 
         deleteDb("preparedStatement");

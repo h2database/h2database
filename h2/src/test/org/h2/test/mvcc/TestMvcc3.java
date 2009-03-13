@@ -18,6 +18,15 @@ import org.h2.test.TestBase;
  */
 public class TestMvcc3 extends TestBase {
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         testCreateTableAsSelect();
         testSequence();

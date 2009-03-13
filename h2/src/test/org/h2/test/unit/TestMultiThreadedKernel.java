@@ -23,6 +23,15 @@ public class TestMultiThreadedKernel extends TestBase implements Runnable {
     private TestMultiThreadedKernel master;
     private volatile boolean stop;
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws Exception {
         if (config.networked || config.mvcc) {
             return;

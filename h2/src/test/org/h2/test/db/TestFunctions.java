@@ -33,6 +33,8 @@ import org.h2.util.IOUtils;
  */
 public class TestFunctions extends TestBase implements AggregateFunction {
 
+    static int count;
+
     /**
      * Run just this test.
      *
@@ -44,6 +46,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     public void test() throws Exception {
         deleteDb("functions");
+        testDeterministic();
         testTransactionId();
         testPrecision();
         testVarArgs();
@@ -51,6 +54,32 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testFunctions();
         testFileRead();
         deleteDb("functions");
+    }
+
+    private void testDeterministic() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+
+        stat.execute("create alias getCount for \""+getClass().getName()+".getCount\"");
+        setCount(0);
+        rs = stat.executeQuery("select getCount() from system_range(1, 2)");
+        rs.next();
+        assertEquals(0, rs.getInt(1));
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        stat.execute("drop alias getCount");
+
+        stat.execute("create alias getCount deterministic for \""+getClass().getName()+".getCount\"");
+        setCount(0);
+        rs = stat.executeQuery("select getCount() from system_range(1, 2)");
+        rs.next();
+        assertEquals(0, rs.getInt(1));
+        rs.next();
+        assertEquals(0, rs.getInt(1));
+        stat.execute("drop alias getCount");
+
+        conn.close();
     }
 
     private void testTransactionId() throws SQLException {
@@ -514,6 +543,19 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      */
     public static BigDecimal noOp(BigDecimal dec) {
         return dec;
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @return the count
+     */
+    public static int getCount() {
+        return count++;
+    }
+
+    private static void setCount(int newCount) {
+        count = newCount;
     }
 
     /**

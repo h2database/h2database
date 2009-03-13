@@ -131,6 +131,15 @@ public class TraceObject {
     }
 
     /**
+     * Update the trace.
+     *
+     * @param trace the trace object
+     */
+    protected void setTrace(Trace trace) {
+        this.trace = trace;
+    }
+
+    /**
      * INTERNAL
      */
     public int getTraceId() {

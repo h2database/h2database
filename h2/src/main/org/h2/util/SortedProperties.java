@@ -74,11 +74,14 @@ public class SortedProperties extends Properties {
     public static synchronized SortedProperties loadProperties(String fileName) throws IOException {
         SortedProperties prop = new SortedProperties();
         if (FileUtils.exists(fileName)) {
-            InputStream in = FileUtils.openFileInputStream(fileName);
+            InputStream in = null;
             try {
+                in = FileUtils.openFileInputStream(fileName);
                 prop.load(in);
             } finally {
-                in.close();
+                if (in != null) {
+                    in.close();
+                }
             }
         }
         return prop;

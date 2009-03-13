@@ -394,7 +394,10 @@ public class Database implements DataHandler {
                 }
                 if (lock != null) {
                     stopServer();
-                    lock.unlock();
+                    if (lockMode != FileLock.LOCK_SERIALIZED) {
+                        // allow testing shutdown
+                        lock.unlock();
+                    }
                     lock = null;
                 }
             } catch (Exception e) {

@@ -13,6 +13,7 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.index.Index;
 import org.h2.index.IndexCondition;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
@@ -215,6 +216,14 @@ public class ConditionIn extends Condition {
         if (!areAllValues(ExpressionVisitor.get(ExpressionVisitor.EVALUATABLE))) {
             return this;
         }
+        if (!(left instanceof ExpressionColumn)) {
+            return this;
+        }
+        ExpressionColumn ec = (ExpressionColumn) left;
+        Index index = ec.getTableFilter().getTable().getIndexForColumn(ec.getColumn(), false);
+        if (index == null) {
+            return this;
+        }
         Database db = session.getDatabase();
         Schema mainSchema = db.getSchema(Constants.SCHEMA_MAIN);
         int rowCount = values.size();
@@ -233,7 +242,7 @@ public class ConditionIn extends Condition {
         Column col = new Column(columnName, dataType);
         columns.add(col);
         function.setColumns(columns);
-        FunctionTable table = new FunctionTable(mainSchema, session, function);
+        FunctionTable table = new FunctionTable(mainSchema, session, function, function);
         String viewName = session.getNextSystemIdentifier(select.getSQL());
         TableFilter filter = new TableFilter(session, table, viewName, false, select);
         select.addTableFilter(filter, true);

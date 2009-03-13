@@ -13,7 +13,6 @@ import java.sql.Types;
 import java.util.Map;
 
 import org.h2.constant.ErrorCode;
-import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
 import org.h2.message.TraceObject;
 import org.h2.tools.SimpleResultSet;
@@ -31,8 +30,8 @@ public class JdbcArray extends TraceObject implements Array {
     /**
      * INTERNAL
      */
-    JdbcArray(SessionInterface session, JdbcConnection conn, Value value, int id) {
-        setTrace(session.getTrace(), TraceObject.ARRAY, id);
+    JdbcArray(JdbcConnection conn, Value value, int id) {
+        setTrace(conn.getSession().getTrace(), TraceObject.ARRAY, id);
         this.conn = conn;
         this.value = value;
     }

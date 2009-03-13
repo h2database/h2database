@@ -62,6 +62,7 @@ import java.sql.SQLXML;
  */
 public class JdbcPreparedStatement extends JdbcStatement implements PreparedStatement {
 
+    private final String sql;
     private CommandInterface command;
     private ObjectArray batchParameters;
 
@@ -69,6 +70,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 boolean closeWithResultSet) throws SQLException {
         super(conn, resultSetType, id, closeWithResultSet);
         setTrace(session.getTrace(), TraceObject.PREPARED_STATEMENT, id);
+        this.sql = sql;
         command = conn.prepareCommand(sql, fetchSize);
     }
 
@@ -160,7 +162,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             checkClosed();
             closeOldResultSet();
             boolean returnsResultSet;
-            synchronized (session) {
+            synchronized (conn.getSession()) {
                 try {
                     setExecutingStatement(command);
                     if (command.isQuery()) {
@@ -432,7 +434,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (x == null) {
                 setParameter(parameterIndex, ValueNull.INSTANCE);
             } else {
-                Value v = DataType.convertToValue(session, x, type);
+                Value v = DataType.convertToValue(conn.getSession(), x, type);
                 setParameter(parameterIndex, v.convertTo(type));
             }
         } catch (Exception e) {
@@ -1206,7 +1208,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 debugCodeAssign("ParameterMetaData", TraceObject.PARAMETER_META_DATA, id, "getParameterMetaData()");
             }
             checkClosed();
-            JdbcParameterMetaData meta = new JdbcParameterMetaData(session, this, command, id);
+            JdbcParameterMetaData meta = new JdbcParameterMetaData(session.getTrace(), this, command, id);
             return meta;
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1408,7 +1410,16 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * INTERNAL
      */
     public String toString() {
-        return getTraceObjectName() + ": " + command.toString();
+        return getTraceObjectName() + ": " + command;
+    }
+
+    boolean checkClosed() throws SQLException {
+        if (super.checkClosed()) {
+            // if the session was re-connected, re-prepare the statement
+            command = conn.prepareCommand(sql, fetchSize);
+            return true;
+        }
+        return false;
     }
 
 }

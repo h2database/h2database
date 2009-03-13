@@ -10,9 +10,9 @@ import java.sql.ParameterMetaData;
 import java.sql.SQLException;
 
 import org.h2.command.CommandInterface;
-import org.h2.engine.SessionInterface;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.Message;
+import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
@@ -32,8 +32,8 @@ implements ParameterMetaData
     private int paramCount;
     private ObjectArray parameters;
 
-    JdbcParameterMetaData(SessionInterface session, JdbcPreparedStatement prep, CommandInterface command, int id) {
-        setTrace(session.getTrace(), TraceObject.PARAMETER_META_DATA, id);
+    JdbcParameterMetaData(Trace trace, JdbcPreparedStatement prep, CommandInterface command, int id) {
+        setTrace(trace, TraceObject.PARAMETER_META_DATA, id);
         this.prep = prep;
         this.parameters = command.getParameters();
         this.paramCount = parameters.size();

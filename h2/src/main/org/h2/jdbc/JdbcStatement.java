@@ -6,7 +6,6 @@
  */
 package org.h2.jdbc;
 
-
 import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -847,13 +846,19 @@ public class JdbcStatement extends TraceObject implements Statement {
     /**
      * Check if the statement is closed.
      *
+     * @return true if a reconnect was required
      * @throws SQLException if it is closed
      */
-    void checkClosed() throws SQLException {
+    boolean checkClosed() throws SQLException {
         if (conn == null) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
-        conn.checkClosed();
+        if (conn.checkClosed()) {
+            session = conn.getSession();
+            setTrace(session.getTrace());
+            return true;
+        }
+        return false;
     }
 
     /**

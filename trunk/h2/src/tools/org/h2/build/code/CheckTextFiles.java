@@ -149,6 +149,7 @@ public class CheckTextFiles {
         boolean lastWasWhitespace = false;
         for (int i = 0; i < data.length; i++) {
             char ch = (char) (data[i] & 0xff);
+            boolean isWhitespace = Character.isWhitespace(ch);
             if (ch > 127) {
                 fail(file, "contains character " + (int) ch + " at " + new String(data, i - 10, 20), line);
                 return;
@@ -194,11 +195,31 @@ public class CheckTextFiles {
                     fail(file, "contains character " + (int) ch, line);
                     return;
                 }
+            } else if (isWhitespace) {
+                lastWasWhitespace = true;
+                if (fix) {
+                    boolean write = true;
+                    for (int j = i + 1; j < data.length; j++) {
+                        char ch2 = (char) (data[j] & 0xff);
+                        if (ch2 == '\n' || ch2 == '\r') {
+                            write = false;
+                            lastWasWhitespace = false;
+                            ch = ch2;
+                            i = j - 1;
+                            break;
+                        } else if (!Character.isWhitespace(ch2)) {
+                            break;
+                        }
+                    }
+                    if (write) {
+                        out.write(ch);
+                    }
+                }
             } else {
                 if (fix) {
                     out.write(ch);
                 }
-                lastWasWhitespace = Character.isWhitespace(ch);
+                lastWasWhitespace = false;
             }
         }
         if (lastWasWhitespace && !allowTrailingSpaces) {

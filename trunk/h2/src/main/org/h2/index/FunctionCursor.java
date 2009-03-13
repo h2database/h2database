@@ -12,6 +12,7 @@ import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.value.Value;
 
 /**
  * A cursor for a function that returns a result set.
@@ -19,6 +20,7 @@ import org.h2.result.SearchRow;
 public class FunctionCursor implements Cursor {
 
     private LocalResult result;
+    private Value[] values;
     private Row row;
 
     FunctionCursor(LocalResult result) {
@@ -26,11 +28,17 @@ public class FunctionCursor implements Cursor {
     }
 
     public Row get() {
+        if (values == null) {
+            return null;
+        }
+        if (row == null) {
+            row = new Row(values, 0);
+        }
         return row;
     }
 
     public SearchRow getSearchRow() {
-        return row;
+        return get();
     }
 
     public int getPos() {
@@ -38,12 +46,13 @@ public class FunctionCursor implements Cursor {
     }
 
     public boolean next() throws SQLException {
+        row = null;
         if (result.next()) {
-            row = new Row(result.currentRow(), 0);
+            values = result.currentRow();
         } else {
-            row = null;
+            values = null;
         }
-        return row != null;
+        return values != null;
     }
 
     public boolean previous() {

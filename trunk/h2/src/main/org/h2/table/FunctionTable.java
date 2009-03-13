@@ -35,9 +35,13 @@ public class FunctionTable extends Table {
 
     private final FunctionCall function;
     private final long rowCount;
+    private Expression functionExpr;
+    private LocalResult cachedResult;
+    private Value cachedValue;
 
-    public FunctionTable(Schema schema, Session session, FunctionCall function) throws SQLException {
+    public FunctionTable(Schema schema, Session session, Expression functionExpr, FunctionCall function) throws SQLException {
         super(schema, 0, function.getName(), false);
+        this.functionExpr = functionExpr;
         this.function = function;
         if (function instanceof TableFunction) {
             rowCount = ((TableFunction) function).getRowCount();
@@ -151,14 +155,23 @@ public class FunctionTable extends Table {
      * @return the result set
      */
     public LocalResult getResult(Session session) throws SQLException {
-        function.optimize(session);
-        Value v = function.getValue(session);
+        functionExpr = functionExpr.optimize(session);
+        Value v = functionExpr.getValue(session);
+        if (cachedResult != null && cachedValue == v) {
+            cachedResult.reset();
+            return cachedResult;
+        }
         if (v == ValueNull.INSTANCE) {
             return new LocalResult();
         }
         ValueResultSet value = (ValueResultSet) v;
         ResultSet rs = value.getResultSet();
-        return LocalResult.read(session,  rs, 0);
+        LocalResult result = LocalResult.read(session,  rs, 0);
+        if (function.isDeterministic()) {
+            cachedResult = result;
+            cachedValue = v;
+        }
+        return result;
     }
 
     public long getMaxDataModificationId() {

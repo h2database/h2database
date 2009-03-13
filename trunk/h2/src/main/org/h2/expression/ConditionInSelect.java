@@ -13,6 +13,7 @@ import org.h2.command.dml.Select;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.index.Index;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.table.ColumnResolver;
@@ -128,6 +129,7 @@ public class ConditionInSelect extends Condition {
     }
 
     public Expression optimizeInJoin(Session session, Select select) throws SQLException {
+        query.setDistinct(true);
         if (all || compareType != Comparison.EQUAL) {
             return this;
         }
@@ -135,8 +137,15 @@ public class ConditionInSelect extends Condition {
             return this;
         }
         String alias = query.getFirstColumnAlias(session);
-        query.setDistinct(true);
         if (alias == null) {
+            return this;
+        }
+        if (!(left instanceof ExpressionColumn)) {
+            return this;
+        }
+        ExpressionColumn ec = (ExpressionColumn) left;
+        Index index = ec.getTableFilter().getTable().getIndexForColumn(ec.getColumn(), false);
+        if (index == null) {
             return this;
         }
         String name = session.getNextSystemIdentifier(select.getSQL());

@@ -29,6 +29,15 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         start = last = System.currentTimeMillis();
     }
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         if (config.networked || config.cipher != null) {
             return;

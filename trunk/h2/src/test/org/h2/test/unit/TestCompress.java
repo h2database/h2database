@@ -17,6 +17,15 @@ import org.h2.tools.CompressTool;
  */
 public class TestCompress extends TestBase {
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         if (config.big) {
             for (int i = 0; i < 100; i++) {

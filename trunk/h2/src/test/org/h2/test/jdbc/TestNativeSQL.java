@@ -55,6 +55,15 @@ public class TestNativeSQL extends TestBase {
 
     private Connection conn;
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         deleteDb("nativeSql");
         conn = getConnection("nativeSql");

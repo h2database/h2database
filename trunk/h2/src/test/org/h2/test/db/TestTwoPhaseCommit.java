@@ -18,6 +18,16 @@ import org.h2.test.TestBase;
  * Tests for the two-phase-commit feature.
  */
 public class TestTwoPhaseCommit extends TestBase {
+
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         if (config.memory || config.networked || config.logMode == 0) {
             return;

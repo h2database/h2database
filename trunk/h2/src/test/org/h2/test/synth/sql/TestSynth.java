@@ -56,6 +56,15 @@ public class TestSynth extends TestBase {
     private int mode;
 
     /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
+    /**
      * Check whether this database is of the specified type.
      *
      * @param isType the database type

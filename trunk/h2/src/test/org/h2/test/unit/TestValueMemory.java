@@ -57,6 +57,15 @@ public class TestValueMemory extends TestBase implements DataHandler {
     private Random random = new Random(1);
     private SmallLRUCache lobFileListCache = new SmallLRUCache(128);
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         for (int i = 0; i < Value.TYPE_COUNT; i++) {
             testType(i);

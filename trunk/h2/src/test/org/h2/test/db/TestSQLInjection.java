@@ -22,6 +22,15 @@ public class TestSQLInjection extends TestBase {
     private Connection conn;
     private Statement stat;
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         deleteDb("sqlInjection");
         reconnect("sqlInjection");

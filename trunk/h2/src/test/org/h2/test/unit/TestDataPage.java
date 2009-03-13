@@ -28,6 +28,15 @@ import org.h2.value.ValueString;
  */
 public class TestDataPage extends TestBase implements DataHandler {
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         testAll();
     }

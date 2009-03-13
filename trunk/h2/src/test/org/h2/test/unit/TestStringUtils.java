@@ -22,6 +22,15 @@ import org.h2.util.StringUtils;
  */
 public class TestStringUtils extends TestBase {
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws Exception {
         testHex();
         testXML();

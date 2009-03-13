@@ -24,6 +24,15 @@ public class TestSimpleIndex extends TestBase {
     private Statement stat;
     private RandomGen random;
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         deleteDb("simpleIndex");
         conn = getConnection("simpleIndex");

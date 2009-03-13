@@ -30,6 +30,15 @@ public class TestKill extends TestBase {
     private int accounts = 10;
     private Random random = new Random(1);
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws Exception {
         String connect = "";
 

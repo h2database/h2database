@@ -19,6 +19,15 @@ import org.h2.util.ByteUtils;
  */
 public class TestSecurity extends TestBase {
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws SQLException {
         testSHA();
         testAES();

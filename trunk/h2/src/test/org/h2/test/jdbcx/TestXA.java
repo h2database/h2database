@@ -22,10 +22,20 @@ import org.h2.util.JdbcUtils;
  * Basic XA tests.
  */
 public class TestXA extends TestBase {
+
     private static final String DB_NAME1 = "xadb1";
     private static final String DB_NAME2 = "xadb2";
     private static final String DB_URL1 = "jdbc:h2:file:" + baseDir + "/" + DB_NAME1;
     private static final String DB_URL2 = "jdbc:h2:file:" + baseDir + "/" + DB_NAME2;
+
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws Exception {
         testXAAutoCommit();

@@ -37,6 +37,15 @@ public class TestShell extends TestBase {
     private PipedInputStream testIn;
     private LineNumberReader lineReader;
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws IOException {
         testIn = new PipedInputStream();
         PipedOutputStream out = new PipedOutputStream(testIn);

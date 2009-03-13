@@ -57,6 +57,15 @@ public class TestCrashAPI extends TestBase {
     private int openCount;
     private long callCount;
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     private void deleteDb() {
         try {
             deleteDb(baseDir + "/" + DIR, null);

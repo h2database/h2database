@@ -22,8 +22,16 @@ import org.h2.test.TestBase;
 public class TestTriggersConstraints extends TestBase implements Trigger {
 
     private static boolean mustNotCallTrigger;
-
     private String triggerName;
+
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws SQLException {
         deleteDb("trigger");

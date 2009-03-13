@@ -39,6 +39,15 @@ public class TestMultiThread extends TestBase implements Runnable {
         stat = conn.createStatement();
     }
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+
     public void test() throws Exception {
 
         Connection conn = getConnection();

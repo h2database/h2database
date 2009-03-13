@@ -18,11 +18,14 @@ import org.h2.test.TestBase;
  */
 public class TestSpeed extends TestBase {
 
-    // java -cp .;..\..\hsqldb\lib\hsqldb.jar -Xrunhprof:heap=sites,depth=6
-    // org.h2.test.TestAll
-    // java -Xrunhprof:heap=sites org.h2.test.TestAll
-
-    // TODO test: here is more code, currently untested!
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String[] a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
 
     public void test() throws SQLException {
 

@@ -6,14 +6,13 @@
  */
 package org.h2.result;
 
-import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
-import org.h2.engine.SessionInterface;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.message.Message;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ObjectArray;
@@ -28,8 +27,7 @@ import org.h2.value.ValueNull;
  */
 public class UpdatableRow {
 
-    private final SessionInterface session;
-    private final Connection conn;
+    private final JdbcConnection conn;
     private final DatabaseMetaData meta;
     private final ResultInterface result;
     private final int columnCount;
@@ -44,13 +42,11 @@ public class UpdatableRow {
      *
      * @param conn the database connection
      * @param result the result
-     * @param session the session
      */
-    public UpdatableRow(Connection conn, ResultInterface result, SessionInterface session) throws SQLException {
+    public UpdatableRow(JdbcConnection conn, ResultInterface result) throws SQLException {
         this.conn = conn;
         this.meta = conn.getMetaData();
         this.result = result;
-        this.session = session;
         columnCount = result.getVisibleColumnCount();
         for (int i = 0; i < columnCount; i++) {
             String t = result.getTableName(i);
@@ -197,7 +193,7 @@ public class UpdatableRow {
         Value[] newRow = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
             int type = result.getColumnType(i);
-            newRow[i] = DataType.readValue(session, rs, i + 1, type);
+            newRow[i] = DataType.readValue(conn.getSession(), rs, i + 1, type);
         }
         return newRow;
     }

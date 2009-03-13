@@ -8,9 +8,11 @@ package org.h2.test.unit;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 
 /**
@@ -28,9 +30,36 @@ public class TestFileLockSerialized extends TestBase {
     }
 
     public void test() throws Exception {
+        testKillWriter();
+        testConcurrentReadWrite();
+    }
 
-        // TODO support long running queries
+    private void testKillWriter() throws Exception {
+        deleteDb("fileLockSerialized");
+        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized";
+        String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;WRITE_DELAY=0";
 
+        Class.forName("org.h2.Driver");
+        Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key)");
+        ((JdbcConnection) conn).setPowerOffCount(1);
+        try {
+            stat.execute("insert into test values(1)");
+            fail();
+        } catch (SQLException e) {
+            // ignore
+        }
+
+        Connection conn2 = DriverManager.getConnection(writeUrl, "sa", "sa");
+        Statement stat2 = conn2.createStatement();
+        stat2.execute("insert into test values(1)");
+        printResult(stat2, "select * from test");
+
+        conn2.close();
+    }
+
+    private void testConcurrentReadWrite() throws Exception {
         deleteDb("fileLockSerialized");
 
         String url = "jdbc:h2:" + baseDir + "/fileLockSerialized";
@@ -45,7 +74,7 @@ public class TestFileLockSerialized extends TestBase {
         stat.execute("create table test(id int primary key)");
 
         Connection conn3 = DriverManager.getConnection(writeUrl, "sa", "sa");
-        Statement stat3 = conn3.createStatement();
+        PreparedStatement prep3 = conn3.prepareStatement("insert into test values(?)");
 
         Connection conn2 = DriverManager.getConnection(writeUrl, "sa", "sa");
         Statement stat2 = conn2.createStatement();
@@ -57,7 +86,8 @@ public class TestFileLockSerialized extends TestBase {
         trace("insert row 1");
         stat.execute("insert into test values(1)");
         trace("insert row 2");
-        stat3.execute("insert into test values(2)");
+        prep3.setInt(1, 2);
+        prep3.execute();
         printResult(stat2, "select * from test");
         printResult(stat2, "select * from temp");
 

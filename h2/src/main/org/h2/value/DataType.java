@@ -963,9 +963,9 @@ public class DataType {
     public static Object convertTo(SessionInterface session, JdbcConnection conn, Value v, Class paramClass)
             throws SQLException {
         if (paramClass == java.sql.Blob.class) {
-            return new JdbcBlob(session, conn, v, 0);
+            return new JdbcBlob(conn, v, 0);
         } else if (paramClass == Clob.class) {
-            return new JdbcClob(session, conn, v, 0);
+            return new JdbcClob(conn, v, 0);
         } else {
             throw Message.getUnsupportedException();
         }

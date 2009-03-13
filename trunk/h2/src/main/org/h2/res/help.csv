@@ -364,11 +364,12 @@ CREATE AGGREGATE MEDIAN FOR ""com.acme.db.Median""
 "
 
 "Commands (DDL)","CREATE ALIAS","
-CREATE ALIAS [IF NOT EXISTS] newFunctionAliasName FOR classAndMethodName
+CREATE ALIAS [IF NOT EXISTS] newFunctionAliasName [DETERMINISTIC] FOR classAndMethodName
 ","
 Creates a new function alias. The method name must be the full qualified class and method name,
 and may optionally include the parameter classes as in ""java.lang.Integer.parseInt(java.lang.String, int)"").
 The class and the method must both be public, and the method must be static.
+Deterministic functions always return the same value for the same parameters.
 Admin rights are required to execute this command.
 If the first parameter of the Java function is a java.sql.Connection, then
 the current to the database is provided. This connection must not be closed.
@@ -2847,10 +2848,12 @@ Converts a value to another data type.
 ","
 CONVERT(NAME, INT)
 "
+
 "Functions (System)","CURRVAL","
 CURRVAL([schemaName, ] sequenceString): long
 ","
-Returns the current (last) value of the sequence.
+Returns the current (last) value of the sequence, independent of the session.
+If the sequence was just created, the method returns (start - interval).
 If the schema name is not set, the current schema is used.
 If the schema name is not set, the sequence name is converted to uppercase (for compatibility).
 ","

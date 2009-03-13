@@ -1256,7 +1256,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      *
      * @throws SQLException if the connection or session is closed
      */
-    void checkClosed() throws SQLException {
+    boolean checkClosed() throws SQLException {
         if (session == null) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
@@ -1265,11 +1265,11 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
         if (session.isReconnectNeeded()) {
             trace.debug("reconnect");
-            int todoInvalidatePreparedStatements;
             session = session.reconnect();
-            trace = session.getTrace();
-            setTrace(trace, TraceObject.CONNECTION, getTraceId());
+            setTrace(session.getTrace());
+            return true;
         }
+        return false;
     }
 
     String getURL() throws SQLException {
@@ -1343,7 +1343,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeAssign("Clob", TraceObject.CLOB, id, "createClob()");
             checkClosed();
             ValueLob v = ValueLob.createSmallLob(Value.CLOB, new byte[0]);
-            return new JdbcClob(session, this, v, id);
+            return new JdbcClob(this, v, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1360,7 +1360,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeAssign("Blob", TraceObject.BLOB, id, "createClob()");
             checkClosed();
             ValueLob v = ValueLob.createSmallLob(Value.BLOB, new byte[0]);
-            return new JdbcBlob(session, this, v, id);
+            return new JdbcBlob(this, v, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1378,7 +1378,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeAssign("NClob", TraceObject.CLOB, id, "createNClob()");
             checkClosed();
             ValueLob v = ValueLob.createSmallLob(Value.CLOB, new byte[0]);
-            return new JdbcClob(session, this, v, id);
+            return new JdbcClob(this, v, id);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1560,7 +1560,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         case Value.CLOB: {
             if (SysProperties.RETURN_LOB_OBJECTS) {
                 int id = getNextId(TraceObject.CLOB);
-                o = new JdbcClob(session, this, v, id);
+                o = new JdbcClob(this, v, id);
             } else {
                 o = v.getObject();
             }
@@ -1569,7 +1569,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         case Value.BLOB: {
             if (SysProperties.RETURN_LOB_OBJECTS) {
                 int id = getNextId(TraceObject.BLOB);
-                o = new JdbcBlob(session, this, v, id);
+                o = new JdbcBlob(this, v, id);
             } else {
                 o = v.getObject();
             }

@@ -15,7 +15,6 @@ import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
 import org.h2.message.TraceObject;
 import org.h2.util.IOUtils;
@@ -40,8 +39,8 @@ public class JdbcClob extends TraceObject implements Clob
     /**
      * INTERNAL
      */
-    public JdbcClob(SessionInterface session, JdbcConnection conn, Value value, int id) {
-        setTrace(session.getTrace(), TraceObject.CLOB, id);
+    public JdbcClob(JdbcConnection conn, Value value, int id) {
+        setTrace(conn.getSession().getTrace(), TraceObject.CLOB, id);
         this.conn = conn;
         this.value = value;
     }

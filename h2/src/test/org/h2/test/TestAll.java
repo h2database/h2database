@@ -147,7 +147,7 @@ public class TestAll {
 
 Random test:
 
-java16
+java15
 cd bin
 del *.db
 start cmd /k "java -cp .;%H2DRIVERS% org.h2.test.TestAll join >testJoin.txt"

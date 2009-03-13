@@ -3517,6 +3517,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     private Value convertToUnknownValue(Object x) throws SQLException {
+        checkClosed();
         return DataType.convertToValue(conn.getSession(), x, Value.UNKNOWN);
     }
 

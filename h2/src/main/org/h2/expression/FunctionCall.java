@@ -78,4 +78,10 @@ public interface FunctionCall {
      */
     String getSQL();
 
+    /**
+     * Whether the function always returns the same result for the same parameters.
+     *
+     * @return true if it does
+     */
+    boolean isDeterministic();
 }

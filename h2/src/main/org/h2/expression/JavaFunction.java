@@ -52,6 +52,9 @@ public class JavaFunction extends Expression implements FunctionCall {
             Expression e = args[i].optimize(session);
             args[i] = e;
         }
+        if (isEverything(ExpressionVisitor.DETERMINISTIC)) {
+            return ValueExpression.get(getValue(session));
+        }
         return this;
     }
 
@@ -120,9 +123,12 @@ public class JavaFunction extends Expression implements FunctionCall {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch(visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
-            // TODO optimization: some functions are deterministic, but we don't
-            // know (no setting for that)
-            return false;
+            if (!isDeterministic()) {
+                return false;
+            } else {
+                // only if all parameters are deterministic as well
+                break;
+            }
         case ExpressionVisitor.GET_DEPENDENCIES:
             visitor.addDependency(functionAlias);
             break;
@@ -143,6 +149,10 @@ public class JavaFunction extends Expression implements FunctionCall {
             cost += args[i].getCost();
         }
         return cost;
+    }
+
+    public boolean isDeterministic() {
+        return functionAlias.isDeterministic();
     }
 
 }

@@ -72,8 +72,6 @@ import org.h2.value.ValueUuid;
  * This class implements most built-in functions of this database.
  */
 public class Function extends Expression implements FunctionCall {
-    // TODO functions: add function hashcode(value)
-
     public static final int ABS = 0, ACOS = 1, ASIN = 2, ATAN = 3, ATAN2 = 4, BITAND = 5, BITOR = 6, BITXOR = 7,
             CEILING = 8, COS = 9, COT = 10, DEGREES = 11, EXP = 12, FLOOR = 13, LOG = 14, LOG10 = 15, MOD = 16,
             PI = 17, POWER = 18, RADIANS = 19, RAND = 20, ROUND = 21, ROUNDMAGIC = 22, SIGN = 23, SIN = 24, SQRT = 25,
@@ -183,7 +181,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("RADIANS", RADIANS, 1, Value.DOUBLE);
         // RAND without argument: get the next value
         // RAND with one argument: seed the random generator
-        addFunctionNotConst("RAND", RAND, VAR_ARGS, Value.DOUBLE);
+        addFunctionNotDeterministic("RAND", RAND, VAR_ARGS, Value.DOUBLE);
         addFunction("ROUND", ROUND, 2, Value.DOUBLE);
         addFunction("ROUNDMAGIC", ROUNDMAGIC, 1, Value.DOUBLE);
         addFunction("SIGN", SIGN, 1, Value.INT);
@@ -194,12 +192,12 @@ public class Function extends Expression implements FunctionCall {
         addFunction("HASH", HASH, 3, Value.BYTES);
         addFunction("ENCRYPT", ENCRYPT, 3, Value.BYTES);
         addFunction("DECRYPT", DECRYPT, 3, Value.BYTES);
-        addFunctionNotConst("SECURE_RAND", SECURE_RAND, 1, Value.BYTES);
+        addFunctionNotDeterministic("SECURE_RAND", SECURE_RAND, 1, Value.BYTES);
         addFunction("COMPRESS", COMPRESS, VAR_ARGS, Value.BYTES);
         addFunction("EXPAND", EXPAND, 1, Value.BYTES);
         addFunction("ZERO", ZERO, 0, Value.INT);
-        addFunctionNotConst("RANDOM_UUID", RANDOM_UUID, 0, Value.UUID);
-        addFunctionNotConst("SYS_GUID", RANDOM_UUID, 0, Value.UUID);
+        addFunctionNotDeterministic("RANDOM_UUID", RANDOM_UUID, 0, Value.UUID);
+        addFunctionNotDeterministic("SYS_GUID", RANDOM_UUID, 0, Value.UUID);
         // string
         addFunction("ASCII", ASCII, 1, Value.INT);
         addFunction("BIT_LENGTH", BIT_LENGTH, 1, Value.INT);
@@ -251,12 +249,12 @@ public class Function extends Expression implements FunctionCall {
         addFunction("LPAD", LPAD, VAR_ARGS, Value.STRING);
 
         // date
-        addFunctionNotConst("CURRENT_DATE", CURRENT_DATE, 0, Value.DATE);
-        addFunctionNotConst("CURDATE", CURDATE, 0, Value.DATE);
-        addFunctionNotConst("CURRENT_TIME", CURRENT_TIME, 0, Value.TIME);
-        addFunctionNotConst("CURTIME", CURTIME, 0, Value.TIME);
-        addFunctionNotConst("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
-        addFunctionNotConst("NOW", NOW, VAR_ARGS, Value.TIMESTAMP);
+        addFunctionNotDeterministic("CURRENT_DATE", CURRENT_DATE, 0, Value.DATE);
+        addFunctionNotDeterministic("CURDATE", CURDATE, 0, Value.DATE);
+        addFunctionNotDeterministic("CURRENT_TIME", CURRENT_TIME, 0, Value.TIME);
+        addFunctionNotDeterministic("CURTIME", CURTIME, 0, Value.TIME);
+        addFunctionNotDeterministic("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
+        addFunctionNotDeterministic("NOW", NOW, VAR_ARGS, Value.TIMESTAMP);
         addFunction("DATEADD", DATE_ADD, 3, Value.TIMESTAMP);
         addFunction("DATEDIFF", DATE_DIFF, 3, Value.LONG);
         addFunction("DAYNAME", DAY_NAME, 1, Value.STRING);
@@ -283,14 +281,14 @@ public class Function extends Expression implements FunctionCall {
         addFunction("ISO_WEEK", ISO_WEEK, 1, Value.INT);
         addFunction("ISO_DAY_OF_WEEK", ISO_DAY_OF_WEEK, 1, Value.INT);
         // system
-        addFunctionNotConst("DATABASE", DATABASE, 0, Value.STRING);
-        addFunctionNotConst("USER", USER, 0, Value.STRING);
-        addFunctionNotConst("CURRENT_USER", CURRENT_USER, 0, Value.STRING);
-        addFunctionNotConst("IDENTITY", IDENTITY, 0, Value.LONG);
-        addFunctionNotConst("IDENTITY_VAL_LOCAL", IDENTITY, 0, Value.LONG);
-        addFunctionNotConst("LAST_INSERT_ID", IDENTITY, 0, Value.LONG);
-        addFunctionNotConst("AUTOCOMMIT", AUTOCOMMIT, 0, Value.BOOLEAN);
-        addFunctionNotConst("READONLY", READONLY, 0, Value.BOOLEAN);
+        addFunctionNotDeterministic("DATABASE", DATABASE, 0, Value.STRING);
+        addFunctionNotDeterministic("USER", USER, 0, Value.STRING);
+        addFunctionNotDeterministic("CURRENT_USER", CURRENT_USER, 0, Value.STRING);
+        addFunctionNotDeterministic("IDENTITY", IDENTITY, 0, Value.LONG);
+        addFunctionNotDeterministic("IDENTITY_VAL_LOCAL", IDENTITY, 0, Value.LONG);
+        addFunctionNotDeterministic("LAST_INSERT_ID", IDENTITY, 0, Value.LONG);
+        addFunctionNotDeterministic("AUTOCOMMIT", AUTOCOMMIT, 0, Value.BOOLEAN);
+        addFunctionNotDeterministic("READONLY", READONLY, 0, Value.BOOLEAN);
         addFunction("DATABASE_PATH", DATABASE_PATH, 0, Value.STRING);
         addFunction("LOCK_TIMEOUT", LOCK_TIMEOUT, 0, Value.INT);
         addFunctionWithNull("IFNULL", IFNULL, 2, Value.NULL);
@@ -301,16 +299,16 @@ public class Function extends Expression implements FunctionCall {
         addFunctionWithNull("NVL", COALESCE, VAR_ARGS, Value.NULL);
         addFunctionWithNull("NULLIF", NULLIF, 2, Value.NULL);
         addFunctionWithNull("CASE", CASE, VAR_ARGS, Value.NULL);
-        addFunctionNotConst("NEXTVAL", NEXTVAL, VAR_ARGS, Value.LONG);
-        addFunctionNotConst("CURRVAL", CURRVAL, VAR_ARGS, Value.LONG);
+        addFunctionNotDeterministic("NEXTVAL", NEXTVAL, VAR_ARGS, Value.LONG);
+        addFunctionNotDeterministic("CURRVAL", CURRVAL, VAR_ARGS, Value.LONG);
         addFunction("ARRAY_GET", ARRAY_GET, 2, Value.STRING);
         addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false);
         addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INT, false, false);
-        addFunctionNotConst("MEMORY_FREE", MEMORY_FREE, 0, Value.INT);
-        addFunctionNotConst("MEMORY_USED", MEMORY_USED, 0, Value.INT);
-        addFunctionNotConst("LOCK_MODE", LOCK_MODE, 0, Value.INT);
-        addFunctionNotConst("SCHEMA", SCHEMA, 0, Value.STRING);
-        addFunctionNotConst("SESSION_ID", SESSION_ID, 0, Value.INT);
+        addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE, 0, Value.INT);
+        addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED, 0, Value.INT);
+        addFunctionNotDeterministic("LOCK_MODE", LOCK_MODE, 0, Value.INT);
+        addFunctionNotDeterministic("SCHEMA", SCHEMA, 0, Value.STRING);
+        addFunctionNotDeterministic("SESSION_ID", SESSION_ID, 0, Value.INT);
         addFunction("ARRAY_LENGTH", ARRAY_LENGTH, 1, Value.INT);
         addFunction("LINK_SCHEMA", LINK_SCHEMA, 6, Value.RESULT_SET);
         addFunctionWithNull("LEAST", LEAST, VAR_ARGS, Value.NULL);
@@ -318,7 +316,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("CANCEL_SESSION", CANCEL_SESSION, 1, Value.BOOLEAN);
         addFunction("SET", SET, 2, Value.NULL, false, false);
         addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, true);
-        addFunctionNotConst("TRANSACTION_ID", TRANSACTION_ID, 0, Value.STRING);
+        addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID, 0, Value.STRING);
 
         // TableFunction
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
@@ -336,18 +334,18 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static void addFunction(String name, int type, int parameterCount, int dataType,
-            boolean nullIfParameterIsNull, boolean isDeterm) {
+            boolean nullIfParameterIsNull, boolean deterministic) {
         FunctionInfo info = new FunctionInfo();
         info.name = name;
         info.type = type;
         info.parameterCount = parameterCount;
         info.dataType = dataType;
         info.nullIfParameterIsNull = nullIfParameterIsNull;
-        info.isDeterministic = isDeterm;
+        info.deterministic = deterministic;
         FUNCTIONS.put(name, info);
     }
 
-    private static void addFunctionNotConst(String name, int type, int parameterCount, int dataType) {
+    private static void addFunctionNotDeterministic(String name, int type, int parameterCount, int dataType) {
         addFunction(name, type, parameterCount, dataType, true, false);
     }
 
@@ -1606,7 +1604,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     public Expression optimize(Session session) throws SQLException {
-        boolean allConst = info.isDeterministic;
+        boolean allConst = info.deterministic;
         for (int i = 0; i < args.length; i++) {
             Expression e = args[i].optimize(session);
             args[i] = e;
@@ -1919,7 +1917,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        if (visitor.getType() == ExpressionVisitor.DETERMINISTIC && !info.isDeterministic) {
+        if (visitor.getType() == ExpressionVisitor.DETERMINISTIC && !info.deterministic) {
             return false;
         }
         for (int i = 0; i < args.length; i++) {
@@ -1937,6 +1935,10 @@ public class Function extends Expression implements FunctionCall {
             cost += args[i].getCost();
         }
         return cost;
+    }
+
+    public boolean isDeterministic() {
+        return info.deterministic;
     }
 
 }

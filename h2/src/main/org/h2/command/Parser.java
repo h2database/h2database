@@ -965,7 +965,7 @@ public class Parser {
                     if (!(func instanceof FunctionCall)) {
                         throw getSyntaxError();
                     }
-                    table = new FunctionTable(mainSchema, session, (FunctionCall) func);
+                    table = new FunctionTable(mainSchema, session, func, (FunctionCall) func);
                 }
             } else if ("DUAL".equals(tableName)) {
                 table = getDualTable();
@@ -3765,6 +3765,7 @@ public class Parser {
         }
         command.setAliasName(name);
         command.setIfNotExists(ifNotExists);
+        command.setDeterministic(readIf("DETERMINISTIC"));
         read("FOR");
         command.setJavaClassMethod(readUniqueIdentifier());
         return command;

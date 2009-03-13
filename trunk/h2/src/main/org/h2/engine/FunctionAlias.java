@@ -36,6 +36,7 @@ public class FunctionAlias extends DbObjectBase {
     private String className;
     private String methodName;
     private JavaMethod[] javaMethods;
+    private boolean deterministic;
 
     public FunctionAlias(Database db, int id, String name, String javaClassMethod, boolean force) throws SQLException {
         initDbObjectBase(db, id, name, Trace.FUNCTION);
@@ -130,6 +131,9 @@ public class FunctionAlias extends DbObjectBase {
         StringBuffer buff = new StringBuffer();
         buff.append("CREATE FORCE ALIAS ");
         buff.append(getSQL());
+        if (deterministic) {
+            buff.append(" DETERMINISTIC");
+        }
         buff.append(" FOR ");
         buff.append(Parser.quoteIdentifier(className + "." + methodName));
         return buff.toString();
@@ -348,6 +352,14 @@ public class FunctionAlias extends DbObjectBase {
             return id - m.id;
         }
 
+    }
+
+    public void setDeterministic(boolean deterministic) {
+        this.deterministic = deterministic;
+    }
+
+    public boolean isDeterministic() {
+        return deterministic;
     }
 
 }

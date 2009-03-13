@@ -39,5 +39,5 @@ class FunctionInfo {
     /**
      * If this function always returns the same value for the same parameters.
      */
-    boolean isDeterministic;
+    boolean deterministic;
 }

@@ -268,8 +268,8 @@ public class Build extends BuildBase {
             exclude("*.sh").
             exclude("*.txt");
         long kb = jar("bin/h2client" + getJarSuffix(), files, "temp");
-        if (kb < 300 || kb > 350) {
-            throw new Error("Expected file size 300 - 350 KB, got: " + kb);
+        if (kb < 300 || kb > 400) {
+            throw new Error("Expected file size 300 - 400 KB, got: " + kb);
         }
     }
 

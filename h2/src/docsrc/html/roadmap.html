@@ -410,6 +410,9 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Optimize IN(...) for DELETE and UPDATE.
 </li><li>Natural join: somehow support this: select a.x, b.x, x from dual a natural join dual b
 </li><li>MySQL compatibility: for auto_increment columns, convert 0 to next value (as when inserting NULL).
+</li><li>Functions: support hashcode(value)
+</li><li>Sequences: CURRVAL should be session specific. Compatibility with PostgreSQL.
+</li><li>Serialized file lock: support long running queries.
 </li></ul>
 
 <h2>Not Planned</h2>

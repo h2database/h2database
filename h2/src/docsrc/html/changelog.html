@@ -18,17 +18,19 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Multiple nested queries in the FROM clause with parameters did not always work.
+<ul><li>The optimization for IN(...) is now only used if comparing a column with an index.
+</li><li>User defined functions can now be deterministic (see CREATE ALIAS documentation).
+</li><li>Multiple nested queries in the FROM clause with parameters did not always work.
 </li><li>When converting CLOB to BINARY, each character resulted in one byte.
     Now, the text is parsed as a hex as when converting VARCHAR.
 </li><li>New experimental NIO storage mechanism with both FileChannel and
     memory mapped files. To use it, use the file name prefix nio: or nioMapped:
-    as in jdbc:h2:nio:~/test. So far it looks like NIO storage is faster Mac OS 
+    as in jdbc:h2:nio:~/test. So far it looks like NIO storage is faster Mac OS
     but slower on some Windows systems. Thanks a lot to Jan Kotek for the patch!
-</li><li>The functions BITOR, BITAND, BITXOR, and MOD now accept 
+</li><li>The functions BITOR, BITAND, BITXOR, and MOD now accept
     and return BIGINT instead of INT.
 </li><li>Could not use the same linked table multiple times in the same query.
-</li><li>A bug in the server-less multi-connection mode has been fixed.
+</li><li>Bugs in the server-less multi-connection mode have been fixed.
 </li><li>Column names could not be named "UNIQUE" (with the quotes).
 </li><li>New system function TRANSACTION_ID() to get the current transaction
     identifier for a session.

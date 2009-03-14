@@ -524,7 +524,7 @@ public class Constants {
      * @return the version number
      */
     public static Object getVersionStable() {
-        return "1.0." + BUILD_ID_STABLE;
+        return "1.1." + BUILD_ID_STABLE;
     }
 
     /**

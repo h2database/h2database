@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.1.109 (2009-03-14)</h2>
 <ul><li>The optimization for IN(...) is now only used if comparing a column with an index.
 </li><li>User defined functions can now be deterministic (see CREATE ALIAS documentation).
 </li><li>Multiple nested queries in the FROM clause with parameters did not always work.
@@ -25,7 +29,7 @@ Change Log
     Now, the text is parsed as a hex as when converting VARCHAR.
 </li><li>New experimental NIO storage mechanism with both FileChannel and
     memory mapped files. To use it, use the file name prefix nio: or nioMapped:
-    as in jdbc:h2:nio:~/test. So far it looks like NIO storage is faster Mac OS
+    as in jdbc:h2:nio:~/test. So far it looks like NIO storage is faster on Mac OS
     but slower on some Windows systems. Thanks a lot to Jan Kotek for the patch!
 </li><li>The functions BITOR, BITAND, BITXOR, and MOD now accept
     and return BIGINT instead of INT.

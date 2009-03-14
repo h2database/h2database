@@ -13,8 +13,35 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(59,
+'New version available: 1.1.109 (2009-03-14)', '2009-03-14 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>New experimental NIO storage (faster on Mac OS
+    but slower on Windows). Thanks a lot to Jan Kotek!
+</li><li>User defined functions can now be deterministic.
+</li><li>New system function TRANSACTION_ID().
+</li><li>Bit functions and MOD now use BIGINT.
+</li><li>The optimization for IN(...) is now only used if it helps.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Could not use a linked table multiple times in the same query.
+</li><li>Multiple nested queries with parameters did not always work.
+</li><li>When converting CLOB to BINARY, each character resulted in one byte.
+</li><li>Bugs in the server-less multi-connection mode have been fixed.
+</li><li>Column names could not be named "UNIQUE" (with the quotes).
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(58,
-'New version available: 1.1.108 (beta; 2009-02-28)', '2009-02-28 12:00:00',
+'New version available: 1.1.108 (2009-02-28)', '2009-02-28 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
 (You may have to click 'Refresh').
 <br />
@@ -402,39 +429,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
     the h2.jar becomes corrupted by the install process, causing application failure.
     A workaround is to add an empty file h2.jar.nopack next to the h2.jar file.
     The reason for this problem is not known.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(46,
-'New version available: 1.0.76 (2008-07-27)', '2008-07-27 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Key values can now be changed in updatable result sets.
-</li><li>Changes in updatable result sets are now always visible.
-</li><li>There is a problem with Hibernate when using Boolean columns, see
-    http://opensource.atlassian.com/projects/hibernate/browse/HHH-3401
-</li><li>The comment of a domain (user defined data type) is now used.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>ResultSetMetaData.getColumnClassName now returns the correct
-    class name for BLOB and CLOB.
-</li><li>Fixed the Oracle mode: Oracle allows multiple rows only where
-    all columns of the unique index are NULL.
-</li><li>ORDER BY on tableName.columnName didn't work correctly if the column
-    name was also used as an alias.
-</li><li>Invalid database names are now detected and a better error message is thrown.
-</li><li>H2 Console: The progress display when opening a database has been improved.
-</li><li>The error message when the server doesn't start has been improved.
-</li><li>Temporary files were sometimes deleted too late when executing large insert, update,
-    or delete operations.
-</li><li>The database file was growing after deleting many rows, and after large update operations.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

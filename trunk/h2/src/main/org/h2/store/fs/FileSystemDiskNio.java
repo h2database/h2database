@@ -63,7 +63,7 @@ public class FileSystemDiskNio extends FileSystemDisk {
         fileName = translateFileName(fileName);
         FileObject f;
         try {
-            f = new FileObjectDiskMapped(fileName, mode);
+            f = open(fileName, mode);
             trace("openRandomAccessFile", fileName, f);
         } catch (IOException e) {
             freeMemoryAndFinalize();

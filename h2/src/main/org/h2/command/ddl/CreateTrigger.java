@@ -71,12 +71,10 @@ public class CreateTrigger extends SchemaCommand {
     }
 
     public void setIfNotExists(boolean ifNotExists) {
-        // TODO trigger: if exists - probably better use 'or replace'
         this.ifNotExists = ifNotExists;
     }
 
     public int update() throws SQLException {
-        // TODO rights: what rights are required to create a trigger?
         session.commit(true);
         Database db = session.getDatabase();
         if (getSchema().findTrigger(triggerName) != null) {

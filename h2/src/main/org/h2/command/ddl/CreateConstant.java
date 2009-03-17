@@ -32,7 +32,6 @@ public class CreateConstant extends SchemaCommand {
     }
 
     public void setIfNotExists(boolean ifNotExists) {
-        // TODO constant: if exists - probably better use 'or replace'
         this.ifNotExists = ifNotExists;
     }
 

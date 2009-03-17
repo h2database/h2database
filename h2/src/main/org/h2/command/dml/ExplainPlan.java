@@ -43,7 +43,6 @@ public class ExplainPlan extends Prepared {
     }
 
     public LocalResult query(int maxrows) throws SQLException {
-        // TODO rights: are rights required for explain?
         Column column = new Column("PLAN", Value.STRING);
         ExpressionColumn expr = new ExpressionColumn(session.getDatabase(), column);
         Expression[] expressions = new Expression[] {

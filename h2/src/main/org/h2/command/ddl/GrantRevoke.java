@@ -137,7 +137,7 @@ public class GrantRevoke extends DefineCommand {
         if (grantee instanceof Role) {
             Role granteeRole = (Role) grantee;
             if (grantedRole.isRoleGranted(granteeRole)) {
-                // TODO role: should be 'cyclic role grants are not allowed'
+                // cyclic role grants are not allowed
                 throw Message.getSQLException(ErrorCode.ROLE_ALREADY_GRANTED_1, grantedRole.getSQL());
             }
         }

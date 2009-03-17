@@ -91,8 +91,7 @@ public class Select extends Query {
      * @param isTop if the table can be the first table in the query plan
      */
     public void addTableFilter(TableFilter filter, boolean isTop) {
-        // TODO compatibility: it seems oracle doesn't check on
-        // duplicate aliases; do other databases check it?
+        // Oracle doesn't check on duplicate aliases
         // String alias = filter.getAlias();
         // if(filterNames.contains(alias)) {
         //     throw Message.getSQLException(
@@ -431,7 +430,7 @@ public class Select extends Query {
                     break;
                 }
                 if (idxCol.sortType != sortTypes[j]) {
-                    // TODO NULL FIRST for ascending and NULLS LAST
+                    // NULL FIRST for ascending and NULLS LAST
                     // for descending would actually match the default
                     ok = false;
                     break;
@@ -570,8 +569,6 @@ public class Select extends Query {
     }
 
     private void expandColumnList() throws SQLException {
-        // TODO this works: select distinct count(*)
-        // from system_columns group by table
         for (int i = 0; i < expressions.size(); i++) {
             Expression expr = (Expression) expressions.get(i);
             if (!expr.isWildcard()) {

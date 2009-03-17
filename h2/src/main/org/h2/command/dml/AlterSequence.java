@@ -60,7 +60,6 @@ public class AlterSequence extends SchemaCommand {
     }
 
     public int update() throws SQLException {
-        // TODO rights: what are the rights required for a sequence?
         Database db = session.getDatabase();
         if (table != null) {
             session.getUser().checkRight(table, Right.ALL);

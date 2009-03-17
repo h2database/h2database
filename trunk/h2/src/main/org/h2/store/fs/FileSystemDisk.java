@@ -394,8 +394,7 @@ public class FileSystemDisk extends FileSystem {
             try {
                 f = new FileObjectDisk(fileName, mode);
             } catch (IOException e2) {
-                e2.initCause(e);
-                throw e2;
+                throw e;
             }
         }
         return f;

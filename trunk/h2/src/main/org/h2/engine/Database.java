@@ -524,8 +524,7 @@ public class Database implements DataHandler {
             // wait until pending changes are written
             isReconnectNeeded();
             if (SysProperties.PAGE_STORE) {
-                PageStore store = getPageStore();
-                store.recover();
+                getPageStore();
             }
             if (FileUtils.exists(dataFileName)) {
                 lobFilesInDirectories &= !ValueLob.existsLobFile(getDatabasePath());

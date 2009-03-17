@@ -261,11 +261,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
         int indexId = getObjectId(true, false);
         IndexType indexType;
         if (unique) {
-            // TODO default index (hash or not; memory or not or same as table)
             // for unique constraints
             indexType = IndexType.createUnique(t.getPersistent(), false);
         } else {
-            // TODO default index (memory or not or same as table) for unique
             // constraints
             indexType = IndexType.createNonUnique(t.getPersistent());
         }

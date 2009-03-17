@@ -88,7 +88,6 @@ public class Optimizer {
             calculateBruteForceSome();
             random = new Random(0);
             calculateGenetic();
-            // TODO optimizer: how to use rule based optimizer?
         }
     }
 

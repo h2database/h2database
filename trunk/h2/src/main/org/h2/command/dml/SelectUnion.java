@@ -323,8 +323,6 @@ public class SelectUnion extends Query {
             buff.append(" ORDER BY ");
             buff.append(sort.getSQL(exprList, exprList.length));
         }
-        // TODO refactoring: limit and order by could be in Query (now in
-        // SelectUnion and in Select)
         if (limit != null) {
             buff.append(" LIMIT ");
             buff.append(StringUtils.unEnclose(limit.getSQL()));

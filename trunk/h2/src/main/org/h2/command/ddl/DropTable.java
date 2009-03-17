@@ -57,7 +57,6 @@ public class DropTable extends SchemaCommand {
 
     private void prepareDrop() throws SQLException {
         table = getSchema().findTableOrView(session, tableName);
-        // TODO drop table: drops views as well (is this ok?)
         if (table == null) {
             if (!ifExists) {
                 throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);

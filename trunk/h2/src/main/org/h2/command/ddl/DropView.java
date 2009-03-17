@@ -37,7 +37,6 @@ public class DropView extends SchemaCommand {
     }
 
     public int update() throws SQLException {
-        // TODO rights: what rights are required to drop a view?
         session.commit(true);
         Table view = getSchema().findTableOrView(session, viewName);
         if (view == null) {

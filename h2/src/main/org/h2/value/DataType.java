@@ -234,13 +234,11 @@ public class DataType {
                 createDecimal(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE, ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
                 new String[]{"DECIMAL", "DEC"},
                 17
-                // TODO value: are NaN, Inf, -Inf,... supported as well?
         );
         add(Value.DECIMAL, Types.NUMERIC, "BigDecimal",
                 createDecimal(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE, ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
                 new String[]{"NUMERIC", "NUMBER"},
                 17
-                // TODO value: are NaN, Inf, -Inf,... supported as well?
         );
         add(Value.FLOAT, Types.REAL, "Float",
                 createDecimal(ValueFloat.PRECISION, ValueFloat.PRECISION, 0, ValueFloat.DISPLAY_SIZE, false, false),
@@ -256,25 +254,21 @@ public class DataType {
                 createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION, 0, ValueDouble.DISPLAY_SIZE, false, false),
                 new String[] {"FLOAT", "FLOAT8" },
                 4
-                // TODO value: show min and max values, E format if supported
         );
         add(Value.TIME, Types.TIME, "Time",
                 createDate(ValueTime.PRECISION, "TIME", 0, ValueTime.DISPLAY_SIZE),
                 new String[]{"TIME"},
                 10
-                // TODO value: min / max for time
         );
         add(Value.DATE, Types.DATE, "Date",
                 createDate(ValueDate.PRECISION, "DATE", 0, ValueDate.DISPLAY_SIZE),
                 new String[]{"DATE"},
                 10
-                // TODO value: min / max for date
         );
         add(Value.TIMESTAMP, Types.TIMESTAMP, "Timestamp",
                 createDate(ValueTimestamp.PRECISION, "TIMESTAMP", ValueTimestamp.DEFAULT_SCALE, ValueTimestamp.DISPLAY_SIZE),
                 new String[]{"TIMESTAMP", "DATETIME", "SMALLDATETIME"},
                 12
-                // TODO value: min / max for timestamp
         );
         add(Value.BYTES, Types.VARBINARY, "Bytes",
                 createString(false),

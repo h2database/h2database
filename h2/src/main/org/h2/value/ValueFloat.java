@@ -105,7 +105,6 @@ public class ValueFloat extends Value {
     }
 
     public int getScale() {
-        // TODO value: what is the scale of a float?
         return 0;
     }
 

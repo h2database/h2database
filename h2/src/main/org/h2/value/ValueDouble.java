@@ -105,7 +105,6 @@ public class ValueDouble extends Value {
     }
 
     public int getScale() {
-        // TODO value: what is the scale of a double?
         return 0;
     }
 

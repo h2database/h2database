@@ -77,7 +77,6 @@ public class ValueDecimal extends Value {
 
     public Value divide(Value v) throws SQLException {
         ValueDecimal dec = (ValueDecimal) v;
-        // TODO value: divide decimal: rounding?
         if (dec.value.signum() == 0) {
             throw Message.getSQLException(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
@@ -191,8 +190,6 @@ public class ValueDecimal extends Value {
         } else if (DEC_ONE.equals(dec)) {
             return (ValueDecimal) ONE;
         }
-        // TODO value optimization: find a way to read size of BigDecimal,
-        // check max cache size
         return (ValueDecimal) Value.cache(new ValueDecimal(dec));
     }
 

@@ -78,9 +78,82 @@ Welcome to H2, the Java SQL database. The main feature of H2 are:
     </td></tr>
 
 <tr><td colspan="3" style="border: 0px; padding: 5px 0px 15px 0px;">
-    <h3> Performance </h3>
-    <img src="images/performance.png" alt="Performance comparison" /><br />
-    Operations/second (higher is better) - <a href="performance.html">More information about this test</a>
+    <h3>Features</h3>
+    <table style="width: 425px;"><tr>
+		<th></th>
+		<th>H2</th>
+		<th>Derby</th>
+		<th>HSQLDB</th>
+		<th>MySQL</th>
+		<th>PostgreSQL</th>
+		</tr><tr>
+		<td>Pure Java</td>
+		<td class="compareY">Yes</td>
+		<td class="compareY">Yes</td>
+		<td class="compareY">Yes</td>
+		<td class="compareN">No</td>
+		<td class="compareN">No</td>
+		</tr><tr>
+		<td>In-Memory Mode</td>
+		<td class="compareY">Yes</td>
+		<td class="compareN">No</td>
+		<td class="compareY">Yes</td>
+		<td class="compareN">No</td>
+		<td class="compareN">No</td>
+		</tr><tr>
+		<td>Transaction Isolation</td>
+		<td class="compareY">Yes</td>
+		<td class="compareY">Yes</td>
+		<td class="compareN">No</td>
+		<td class="compareY">Yes</td>
+		<td class="compareY">Yes</td>
+		</tr><tr>
+		<td>Cost Based Optimizer</td>
+		<td class="compareY">Yes</td>
+		<td class="compareY">Yes</td>
+		<td class="compareN">No</td>
+		<td class="compareY">Yes</td>
+		<td class="compareY">Yes</td>
+		</tr><tr>
+		<td>Encrypted Database</td>
+		<td class="compareY">Yes</td>
+		<td class="compareY">Yes</td>
+		<td class="compareN">No</td>
+		<td class="compareN">No</td>
+		<td class="compareN">No</td>
+		</tr><tr>
+		<td>ODBC Driver</td>
+		<td class="compareY">Yes</td>
+		<td class="compareN">No</td>
+		<td class="compareN">No</td>
+		<td class="compareY">Yes</td>
+		<td class="compareY">Yes</td>
+		</tr><tr>
+		<td>Fulltext Search</td>
+		<td class="compareY">Yes</td>
+		<td class="compareN">No</td>
+		<td class="compareN">No</td>
+		<td class="compareY">Yes</td>
+		<td class="compareY">Yes</td>
+		</tr><tr>
+		<td>Multi Version Concurrency</td>
+		<td class="compareY">Yes</td>
+		<td class="compareN">No</td>
+		<td class="compareN">No</td>
+		<td class="compareN">No</td>
+		<td class="compareY">Yes</td>
+		</tr><tr>
+		<td>Footprint (jar/dll size)</td>
+		<td>~1 MB</td>
+		<td>~2 MB</td>
+		<td>~600 KB</td>
+		<td>~4 MB</td>
+		<td>~6 MB</td>
+		</tr>
+	</table>
+	<p>
+	See also the <a href="features.html#comparison">detailed comparison</a>.
+	</p>
 </td></tr>
 
 <tr><td colspan="3" style="border: 0px; background-color: #eee;">

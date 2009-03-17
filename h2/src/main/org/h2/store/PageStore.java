@@ -13,6 +13,7 @@ import java.util.HashMap;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.index.PageScanIndex;
 import org.h2.log.SessionState;
@@ -33,6 +34,7 @@ import org.h2.util.FileUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.value.Value;
+import org.h2.value.ValueInt;
 
 /**
  * This class represents a file that is organized as a number of pages. The
@@ -136,11 +138,6 @@ public class PageStore implements CacheWriter {
      */
     private PageLog[] logs = new PageLog[LOG_COUNT];
 
-    /**
-     * True if this is a new file.
-     */
-    private boolean isNew;
-
     private TableData pageTable;
     private PageScanIndex pageIndex;
 
@@ -198,13 +195,18 @@ trace.setLevel(TraceSystem.DEBUG);
     public void open() throws SQLException {
         try {
             if (FileUtils.exists(fileName)) {
+                // existing
                 file = database.openFile(fileName, accessMode, true);
                 readHeader();
                 fileLength = file.length();
                 pageCount = (int) (fileLength / pageSize);
                 initLogs();
+                recover(true);
+                openPageIndex();
+                recover(false);
+                checkpoint();
             } else {
-                isNew = true;
+                // new
                 setPageSize(PAGE_SIZE_DEFAULT);
                 file = database.openFile(fileName, accessMode, false);
                 systemRootPageId = 1;
@@ -215,11 +217,9 @@ trace.setLevel(TraceSystem.DEBUG);
                 for (int i = 0; i < LOG_COUNT; i++) {
                     logRootPageIds[i] = 3 + i;
                 }
-                int todoShouldBeOneMoreStartWith0;
                 writeHeader();
                 initLogs();
                 openPageIndex();
-
                 getLog().openForWriting(0);
                 switchLogIfPossible();
                 getLog().flush();
@@ -229,18 +229,6 @@ trace.setLevel(TraceSystem.DEBUG);
             close();
             throw e;
         }
-    }
-
-    private void openPageIndex() throws SQLException {
-        ObjectArray cols = new ObjectArray();
-        cols.add(new Column("HEAD", Value.INT));
-        cols.add(new Column("TABLE", Value.INT));
-        cols.add(new Column("COLUMNS", Value.STRING));
-        int headPos = getSystemRootPageId();
-        pageTable = database.getMainSchema().createTable(
-                "PAGE_INDEX", 0, cols, true, false, headPos);
-        pageIndex = (PageScanIndex) pageTable.getScanIndex(
-                database.getSystemSession());
     }
 
     private void initLogs() {
@@ -626,16 +614,6 @@ trace.setLevel(TraceSystem.DEBUG);
     }
 
     /**
-     * Run recovery.
-     */
-    public void recover() throws SQLException {
-        recover(true);
-        openPageIndex();
-        recover(false);
-        checkpoint();
-    }
-
-    /**
      * Run one recovery stage. There are two recovery stages: first (undo is
      * true) only the undo steps are run (restoring the state before the last
      * checkpoint). In the second stage (undo is false) the committed operations
@@ -757,17 +735,34 @@ trace.setLevel(TraceSystem.DEBUG);
         return state.isCommitted(logId, pos);
     }
 
-    public int getMetaTableHeadPos() {
-        int test;
+    public void addMeta(PageScanIndex pageScanIndex, int id) {
+
+      //  pageIndex.add(session, row)
+    }
+
+    public int getMetaTableHeadPos() throws SQLException {
+        int todo;
         return 0;
     }
 
-//    public int getMetaTableHeadPos() {
-//        SearchRow r = pageIndex.getTemplateSimpleRow(false);
-//
-//        return pageIndex.find(database.getSystemSession(), first, last)
-//        // TODO Auto-generated method stub
-//        return 0;
-//    }
+    private void openPageIndex() throws SQLException {
+        ObjectArray cols = new ObjectArray();
+        cols.add(new Column("HEAD", Value.INT));
+        cols.add(new Column("TABLE", Value.INT));
+        cols.add(new Column("COLUMNS", Value.STRING));
+        int headPos = getSystemRootPageId();
+        pageTable = database.getMainSchema().createTable(
+                "PAGE_INDEX", 0, cols, true, false, headPos);
+        pageIndex = (PageScanIndex) pageTable.getScanIndex(
+                database.getSystemSession());
+    }
+
+    private void readMetaData() throws SQLException {
+        Cursor cursor = pageIndex.find(database.getSystemSession(), null, null);
+        while (cursor.next()) {
+            Row row = cursor.get();
+            int headPos = row.getValue(0).getInt();
+        }
+    }
 
 }

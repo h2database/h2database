@@ -38,10 +38,9 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 <li>Improve test code coverage
 </li><li>Fulltext search: support streaming CLOB data.
 </li><li>Optimize .. OR .. to IN(..) or UNION if the cost is lower
-</li><li>Support OSGi: http://oscar-osgi.sourceforge.net, http://incubator.apache.org/felix/index.html
 </li><li>Test multi-threaded in-memory db access
 </li><li>MVCC: Select for update should only lock the selected rows.
-</li><li>Procedural language / script language (Javascript)
+</li><li>Procedural language / script language (Java, Javascript)
 </li><li>Option to shutdown all the running servers (on the same VM).
 </li><li>Optimize ID=? OR ID=?: convert to IN(...)
 </li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
@@ -53,7 +52,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
-</li><li>Option for Java functions: [DETERMINISTIC] FOR ...
 </li><li>Support mixed clustering mode (one embedded, the other server mode)
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
@@ -62,13 +60,11 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Migrate database tool (also from other database engines)
 </li><li>Optimization: automatic index creation suggestion using the trace file?
 </li><li>Compression performance: don't allocate buffers, compress / expand in to out buffer
-</li><li>Rebuild index functionality (other than delete the index file)
+</li><li>Rebuild index functionality to shrink index size and improve performance
 </li><li>Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory)
 </li><li>Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA)
-</li><li>Feature: a setting to delete the the log or not (for backup)
-</li><li>Test with Sun ASPE1_4; JEE Sun AS PE1.4
 </li><li>Support nested outer joins (see todo.txt).
-</li><li>Don't write stack traces for common exceptions like duplicate key to the log by default
+</li><li>Don't write stack traces for common exceptions like duplicate key to the log by default (exclude list)
 </li><li>Test performance again with SQL Server, Oracle, DB2
 </li><li>Test with dbmonster (http://dbmonster.kernelpanic.pl/)
 </li><li>Test with dbcopy (http://dbcopyplugin.sourceforge.net)
@@ -89,7 +85,8 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Count index range query (count(*) where id between 10 and 20)
 </li><li>Eclipse plugin
 </li><li>Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait]
-</li><li>Improved fulltext search (reader / tokenizer / filter).
+</li><li>Fulltext search Lucene: analyzer configuration.
+</li><li>Fulltext search (native): reader / tokenizer / filter.
 </li><li>Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files
 </li><li>iReport to support H2
 </li><li>Implement missing JDBC API (CallableStatement,...)
@@ -103,7 +100,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Document, implement tool for long running transactions using user-defined compensation statements
 </li><li>Support SET TABLE DUAL READONLY
 </li><li>GCJ: what is the state now?
-</li><li>Reduce disk space usage
 </li><li>Events for: Database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
 </li><li>Optimization: Log compression
 </li><li>Support standard INFORMATION_SCHEMA tables, as defined in http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt; specially KEY_COLUMN_USAGE (http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif)
@@ -122,21 +118,16 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>SQL Server 2005, Oracle: Support COUNT(*) OVER(). See http://www.orafusion.com/art_anlytc.htm
 </li><li>RANK() and DENSE_RANK(), Partition using OVER()
 </li><li>SQL 2003 (http://www.wiscorp.com/sql_2003_standard.zip)
-</li><li>http://www.jpackage.org
 </li><li>Version column (number/sequence and timestamp based)
 </li><li>Optimize getGeneratedKey: send last identity after each execute (server).
-</li><li>Date: default date is '1970-01-01' (is it 1900-01-01 in the standard / other databases?)
 </li><li>Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID);
 </li><li>Max memory rows / max undo log size: use block count / row size not row count
 </li><li>Support 123L syntax as in Java; example: SELECT (2000000000*2)
 </li><li>Implement point-in-time recovery
-</li><li>Include the version name in the jar file name
 </li><li>LIKE: improved version for larger texts (currently using naive search)
-</li><li>The Script tool should work with other databases as well
 </li><li>Automatically convert to the next 'higher' data type whenever there is an overflow.
 </li><li>Throw an exception when the application calls getInt on a Long (optional)
 </li><li>Default date format for input and output (local date constants)
-</li><li>ValueInt.convertToString and so on (remove Value.convertTo)
 </li><li>Support custom Collators
 </li><li>Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery)
 </li><li>Clustering: Reads should be randomly distributed or to a designated database on RAM
@@ -374,6 +365,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Option to copy the old version of each changed page once after a checkpoint.
 </li><li>H2 Console: support single file upload and directory download (optional).
 </li><li>Document FTL_SEARCH, FTL_SEARCH_DATA.
+</li><li>Sequences: CURRVAL should be session specific. Compatibility with PostgreSQL.
 </li><li>Support DatabaseMetaData.insertsAreDetected: updatable result sets should detect inserts.
 </li><li>Auto-server: add option to define the IP address range or list.
 </li><li>Open a read-only database but don't share it with other connections. jdbc:h2:~/test;PRIVATE=TRUE
@@ -411,8 +403,12 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Natural join: somehow support this: select a.x, b.x, x from dual a natural join dual b
 </li><li>MySQL compatibility: for auto_increment columns, convert 0 to next value (as when inserting NULL).
 </li><li>Functions: support hashcode(value)
-</li><li>Sequences: CURRVAL should be session specific. Compatibility with PostgreSQL.
 </li><li>Serialized file lock: support long running queries.
+</li><li>Network: use 127.0.0.1 if other addresses don't work.
+</li><li>Select for update in mvcc mode: only lock the selected records.
+</li><li>Support reading JCR data: one table per node type; query table; cache option
+</li><li>OSGi: create a sample application, test, document.
+</li><li>help.csv: use complete examples for functions; run as test case.
 </li></ul>
 
 <h2>Not Planned</h2>

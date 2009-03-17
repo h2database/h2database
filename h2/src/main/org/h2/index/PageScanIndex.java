@@ -51,9 +51,10 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (headPos == Index.EMPTY_HEAD) {
             // new table
             headPos = store.allocatePage();
+            store.addMeta(this, id);
             PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
             store.updateRecord(root, true, root.data);
-            int test;
+
 //        } else if (store.isNew()) {
 //            // the system table for a new database
 //            PageDataLeaf root = new PageDataLeaf(this, headPos,

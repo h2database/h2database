@@ -278,31 +278,19 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
-// failing tests: 11 (1st round)
 // System.setProperty("h2.pageStore", "true");
 
 /*
 
-mark 1.1 as stable
-
-documentation: rolling review; consistently use <code> or not.
-
-test performance with log=2
-
-use 127.0.0.1 if other addresses don't work
-
-select for update in mvcc mode: only lock the selected records?
-
-JCR: for each node type, create a table; one 'dynamic' table with parameter;
-    option to cache the results
-
-Favicon per page
-<link rel="icon" type="image/png" href="/path/image.png">
+documentation: rolling review at roadmap.html:146
 
 create a short 4 pages documentation
 
+documentation: how can you improve performance (group of settings)
+
+test performance with log=2
+
 postgresql generate_series?
-is in-memory scan index re-using ids?
 don't store default values (store a special value)
 btree: maybe split at the insertion point
 split files (1 GB max size)
@@ -311,19 +299,8 @@ and delay on each commit
 
 multithreaded kernel
 remove old TODO
-online backup may not work for very large files
-(document problem with jdk 1.4; document to use jar -xf)
 
 test web site with firefox 3, internet explorer, opera, safari, google chrome
-
-test with 1.0
-
-documentation: how can you improve performance (group of settings)
-
-document url parameter open_new
-osgi: create a sample application, test, document
-
-merge join test case
 
 auto_reconnect
 implemented:
@@ -349,7 +326,6 @@ Concurrent update in table test: another transaction has updated or
 deleted the same row when exactly does it occur in other databases
 (PostgreSQL, Oracle)?
 
-Run benchmark with the newest versions of other databases.
 documentation: use 'server mode' not 'remote mode'.
 
 CREATE FUNCTION? Function interface
@@ -364,10 +340,6 @@ PreparedProcedure PREPARE <name>(column,...) AS ...
 Procedure
 DeallocateProcedure DEALLOCATE [PLAN] <name>
 ExecuteProcedure EXECUTE <name>[([p[,...])]
-
-in help.csv, use complete examples for functions; add a test case
-
-analyzer configuration option for the fulltext search
 
 optimize where x not in (select):
 SELECT c FROM color LEFT OUTER JOIN (SELECT c FROM TABLE(c

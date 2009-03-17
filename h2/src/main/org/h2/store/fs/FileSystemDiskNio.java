@@ -68,10 +68,9 @@ public class FileSystemDiskNio extends FileSystemDisk {
         } catch (IOException e) {
             freeMemoryAndFinalize();
             try {
-                f = new FileObjectDiskMapped(fileName, mode);
+                f = open(fileName, mode);
             } catch (IOException e2) {
-                e2.initCause(e);
-                throw e2;
+                throw e;
             }
         }
         return f;

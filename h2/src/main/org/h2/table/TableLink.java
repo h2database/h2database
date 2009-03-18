@@ -204,7 +204,12 @@ public class TableLink extends Table {
                 String col = rs.getString("COLUMN_NAME");
                 col = convertColumnName(col);
                 Column column = (Column) columnMap.get(col);
-                list.set(idx - 1, column);
+                if (idx == 0) {
+                    // workaround for a bug in the SQLite JDBC driver
+                    list.add(column);
+                } else {
+                    list.set(idx - 1, column);
+                }
             } while (rs.next());
             addIndex(list, IndexType.createPrimaryKey(false, false));
             rs.close();

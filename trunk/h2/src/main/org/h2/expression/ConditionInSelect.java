@@ -136,6 +136,9 @@ public class ConditionInSelect extends Condition {
         if (!query.isEverything(ExpressionVisitor.EVALUATABLE)) {
             return this;
         }
+        if (!query.isEverything(ExpressionVisitor.INDEPENDENT)) {
+            return this;
+        }
         String alias = query.getFirstColumnAlias(session);
         if (alias == null) {
             return this;

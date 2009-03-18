@@ -14,7 +14,9 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.Cursor;
+import org.h2.index.Index;
 import org.h2.index.IndexType;
+import org.h2.index.PageBtreeIndex;
 import org.h2.index.PageScanIndex;
 import org.h2.log.SessionState;
 import org.h2.message.Message;
@@ -33,8 +35,10 @@ import org.h2.util.CacheWriter;
 import org.h2.util.FileUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
+import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueString;
 
 /**
  * This class represents a file that is organized as a number of pages. The
@@ -140,6 +144,7 @@ public class PageStore implements CacheWriter {
 
     private TableData pageTable;
     private PageScanIndex pageIndex;
+    private HashMap metaObjects = new HashMap();
 
     /**
      * Create a new page store object.
@@ -735,11 +740,6 @@ trace.setLevel(TraceSystem.DEBUG);
         return state.isCommitted(logId, pos);
     }
 
-    public void addMeta(PageScanIndex pageScanIndex, int id) {
-
-      //  pageIndex.add(session, row)
-    }
-
     public int getMetaTableHeadPos() throws SQLException {
         int todo;
         return 0;
@@ -747,8 +747,10 @@ trace.setLevel(TraceSystem.DEBUG);
 
     private void openPageIndex() throws SQLException {
         ObjectArray cols = new ObjectArray();
+        cols.add(new Column("ID", Value.INT));
+        cols.add(new Column("TYPE", Value.INT));
+        cols.add(new Column("PARENT", Value.INT));
         cols.add(new Column("HEAD", Value.INT));
-        cols.add(new Column("TABLE", Value.INT));
         cols.add(new Column("COLUMNS", Value.STRING));
         int headPos = getSystemRootPageId();
         pageTable = database.getMainSchema().createTable(
@@ -762,7 +764,59 @@ trace.setLevel(TraceSystem.DEBUG);
         while (cursor.next()) {
             Row row = cursor.get();
             int headPos = row.getValue(0).getInt();
+            int type = row.getValue(1).getInt();
+            int id = row.getValue(2).getInt();
+            int tableId = row.getValue(3).getInt();
+            String columnList = row.getValue(4).getString();
+            String[] columns = StringUtils.arraySplit(columnList, ',', false);
+            IndexType indexType = IndexType.createNonUnique(true);
+            Index meta;
+            TableData table;
+            if (type == 0) {
+                ObjectArray columnArray = new ObjectArray();
+                for (int i = 0; i < columns.length; i++) {
+                    Column col = new Column("C" + i, Value.INT);
+                    columnArray.add(col);
+                }
+                table = new TableData(database.getMainSchema(), "T" + id, id, columnArray, true, false, headPos);
+            } else {
+                PageScanIndex p = (PageScanIndex) metaObjects.get(ObjectUtils.getInteger(tableId));
+                table = (TableData) p.getTable();
+            }
+            Column[] tableCols = table.getColumns();
+            Column[] cols = new Column[columns.length];
+            for (int i = 0; i < columns.length; i++) {
+                cols[i] = tableCols[Integer.parseInt(columns[i])];
+            }
+            IndexColumn[] indexColumns = IndexColumn.wrap(cols);
+            if (type == 0) {
+                meta = new PageScanIndex(table, id, indexColumns, indexType, headPos);
+            } else {
+                meta = new PageBtreeIndex(table, id, "I" + id, indexColumns, indexType, headPos);
+            }
+            metaObjects.put(ObjectUtils.getInteger(id), meta);
         }
+    }
+
+    public void addMeta(Index index) throws SQLException {
+        int type = index instanceof PageScanIndex ? 0 : 1;
+        Column[] columns = index.getColumns();
+        String[] columnIndexes = new String[columns.length];
+        for (int i = 0; i < columns.length; i++) {
+            columnIndexes[i] = String.valueOf(columns[i].getColumnId());
+        }
+        String columnList = StringUtils.arrayCombine(columnIndexes, ',');
+        addMeta(index.getId(), type, index.getHeadPos(), index.getTable().getId(), columnList);
+    }
+
+    private void addMeta(int id, int type, int parent, int headPos, String columnList) throws SQLException {
+        Row row = pageTable.getTemplateRow();
+        row.setValue(0, ValueInt.get(id));
+        row.setValue(1, ValueInt.get(type));
+        row.setValue(2, ValueInt.get(parent));
+        row.setValue(3, ValueInt.get(headPos));
+        row.setValue(3, ValueString.get(columnList));
+        pageIndex.add(database.getSystemSession(), row);
     }
 
 }

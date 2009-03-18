@@ -216,6 +216,9 @@ public class ConditionIn extends Condition {
         if (!areAllValues(ExpressionVisitor.get(ExpressionVisitor.EVALUATABLE))) {
             return this;
         }
+        if (!areAllValues(ExpressionVisitor.get(ExpressionVisitor.INDEPENDENT))) {
+            return this;
+        }
         if (!(left instanceof ExpressionColumn)) {
             return this;
         }

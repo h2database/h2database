@@ -1,4 +1,13 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id identity);
+> ok
+
+select 1 from test a where 1 in(select 1 from test b where b.id in(select 1 from test c where c.id=a.id));
+> rows: 0
+
+drop table test;
+> ok
+
 select @n := case when x = 1 then 1 else @n * x end f from system_range(1, 4);
 > F
 > --

@@ -28,8 +28,8 @@ Scan for viruses
 Upload to SourceForge
 svn commit
 svn copy: /svn/trunk /svn/tags/version-1.1.x; Version 1.1.x (yyyy-mm-dd)
-Newsletter: prepare (always to BCC!!)
 Upload to h2database.com, http://code.google.com/p/h2database/downloads/list
+Newsletter: prepare (always to BCC!!)
 Newsletter: send (always to BCC!!)
 Remove Contacts in GMail
 Add to freshmeat

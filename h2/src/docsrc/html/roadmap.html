@@ -150,11 +150,10 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>The build should fail if the test fails
 </li><li>Add GUI to build a custom version (embedded, fulltext,...) using build flags
 </li><li>http://rubyforge.org/projects/hypersonic/
-</li><li>DbVisualizer profile for H2
 </li><li>Add comparator (x === y) : (x = y or (x is null and y is null))
 </li><li>Try to create trace file even for read only databases
 </li><li>Add a sample application that runs the H2 unit test and writes the result to a file (so it can be included in the user app)
-</li><li>Count on a column that can not be null would be optimized to COUNT(*)
+</li><li>Count on a column that can not be null could be optimized to COUNT(*)
 </li><li>Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility)
 </li><li>Backup tool should work with other databases as well
 </li><li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs
@@ -182,7 +181,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Fast library for parsing / formatting: http://javolution.org/
 </li><li>Updatable Views (simple cases first)
 </li><li>Improve create index performance
-</li><li>Support ARRAY data type
 </li><li>Implement more JDBC 4.0 features
 </li><li>Support TRANSFORM / PIVOT as in MS Access
 </li><li>SELECT * FROM (VALUES (...), (...), ....) AS alias(f1, ...)
@@ -198,7 +196,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support 1+'2'=3, '1'+'2'='12' (MS SQL Server compatibility)
 </li><li>Support nested transactions
 </li><li>Add a benchmark for big databases, and one for many users
-</li><li>Compression in the result set (repeating values in the same column)
+</li><li>Compression in the result set (repeating values in the same column) over TCP/IP
 </li><li>Support curtimestamp (like curtime, curdate)
 </li><li>Support ANALYZE {TABLE|INDEX} tableName COMPUTE|ESTIMATE|DELETE STATISTICS ptnOption options
 </li><li>Support Sequoia (Continuent.org)

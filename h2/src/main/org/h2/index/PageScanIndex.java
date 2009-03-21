@@ -12,6 +12,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.Message;
+import org.h2.message.TraceSystem;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.DataPage;
@@ -32,25 +33,27 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 
     private PageStore store;
     private TableData tableData;
-    private int headPos;
+    private final int headPos;
     private int lastKey;
     private long rowCount;
 
     public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
+        int test;
         // trace.setLevel(TraceSystem.DEBUG);
         if (database.isMultiVersion()) {
             int todoMvcc;
         }
         tableData = table;
-        if (!database.isPersistent() || id < 0) {
+        this.store = database.getPageStore();
+        if (!database.isPersistent()) {
             int todo;
+            this.headPos = 0;
             return;
         }
-        this.store = database.getPageStore();
         if (headPos == Index.EMPTY_HEAD) {
             // new table
-            headPos = store.allocatePage();
+            this.headPos = headPos = store.allocatePage();
             store.addMeta(this);
             PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
             store.updateRecord(root, true, root.data);
@@ -61,6 +64,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 //                    Page.ROOT, store.createDataPage());
 //            store.updateRecord(root, true, root.data);
         } else {
+            this.headPos = headPos;
             PageData root = getPage(headPos);
             lastKey = root.getLastKey();
             rowCount = root.getRowCount();
@@ -68,9 +72,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             store.updateRecord(root, false, null);
             int reuseKeysIfManyDeleted;
         }
-        this.headPos = headPos;
         if (trace.isDebugEnabled()) {
-            trace.debug("open " + rowCount);
+            trace.debug("opened " + getName() + " rows:" + rowCount);
         }
         table.setRowCount(rowCount);
     }
@@ -80,7 +83,9 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     public void add(Session session, Row row) throws SQLException {
-        row.setPos(++lastKey);
+        if (row.getPos() == 0) {
+            row.setPos(++lastKey);
+        }
         if (trace.isDebugEnabled()) {
             trace.debug("add " + row.getPos());
         }
@@ -217,7 +222,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("remove");
         }
-        int todo;
+        store.removeMeta(this);
     }
 
     public void truncate(Session session) throws SQLException {

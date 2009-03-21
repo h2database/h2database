@@ -11,6 +11,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
+import org.h2.message.TraceSystem;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.DataPage;
@@ -36,6 +37,7 @@ public class PageBtreeIndex extends BaseIndex {
     public PageBtreeIndex(TableData table, int id, String indexName, IndexColumn[] columns,
             IndexType indexType, int headPos) throws SQLException {
         initBaseIndex(table, id, indexName, columns, indexType);
+        int test;
         // trace.setLevel(TraceSystem.DEBUG);
         if (database.isMultiVersion()) {
             int todoMvcc;
@@ -49,22 +51,20 @@ public class PageBtreeIndex extends BaseIndex {
         if (headPos == Index.EMPTY_HEAD) {
             // new index
             needRebuild = true;
-            headPos = store.allocatePage();
+            this.headPos = headPos = store.allocatePage();
             PageBtreeLeaf root = new PageBtreeLeaf(this, headPos, Page.ROOT, store.createDataPage());
             store.updateRecord(root, true, root.data);
-            int test;
-//        } else if (store.isNew()) {
-//            // the system table for a new database
-//            PageBtreeLeaf root = new PageBtreeLeaf(this,
-//                    headPos, Page.ROOT, store.createDataPage());
-//            store.updateRecord(root, true, root.data);
+            store.addMeta(this);
         } else {
-            rowCount = getPage(headPos).getRowCount();
+            this.headPos = headPos;
+            PageBtree root = getPage(headPos);
+            rowCount = root.getRowCount();
+            // could have been created before, but never committed
+            store.updateRecord(root, false, null);
             int reuseKeysIfManyDeleted;
         }
-        this.headPos = headPos;
         if (trace.isDebugEnabled()) {
-            trace.debug("open " + rowCount);
+            trace.debug("opened " + getName() +" rows:"+ rowCount);
         }
     }
 
@@ -211,7 +211,7 @@ public class PageBtreeIndex extends BaseIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("remove");
         }
-        int todo;
+        store.removeMeta(this);
     }
 
     public void truncate(Session session) throws SQLException {

@@ -239,15 +239,15 @@ public class TableData extends Table implements RecordReader {
             } else {
                 database.addSchemaObject(session, index);
             }
-            // Need to update, because maybe the index is rebuilt at startup,
-            // and so the head pos may have changed, which needs to be stored now.
-            // addSchemaObject doesn't update the sys table at startup
-            if (index.getIndexType().getPersistent() && !database.getReadOnly()
-                    && !database.getLog().containsInDoubtTransactions()) {
-                // can not save anything in the log file if it contains in-doubt transactions
-                if (!SysProperties.PAGE_STORE) {
-                    // must not do this when using the page store
-                    // because recovery is not done yet
+            // must not do this when using the page store
+            // because recovery is not done yet
+            if (!SysProperties.PAGE_STORE) {
+                // need to update, because maybe the index is rebuilt at startup,
+                // and so the head pos may have changed, which needs to be stored now.
+                // addSchemaObject doesn't update the sys table at startup
+                if (index.getIndexType().getPersistent() && !database.getReadOnly()
+                        && !database.getLog().containsInDoubtTransactions()) {
+                    // can not save anything in the log file if it contains in-doubt transactions
                     database.update(session, index);
                 }
             }

@@ -154,12 +154,11 @@ public class PageLog {
                     int tableId = in.readInt();
                     Row row = readRow(in, data);
                     if (!undo) {
-                        Database db = store.getDatabase();
                         if (store.isSessionCommitted(sessionId, id, pos)) {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log redo " + (x == ADD ? "+" : "-") + " " + row);
+                                trace.debug("log redo " + (x == ADD ? "+" : "-") + " table:" + tableId + " " + row);
                             }
-                            db.redo(tableId, row, x == ADD);
+                            store.redo(tableId, row, x == ADD);
                         }
                     }
                 } else if (x == COMMIT) {

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Iterator;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -23,9 +24,10 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.result.Row;
-import org.h2.result.SearchRow;
+import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
+import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.util.Cache;
 import org.h2.util.Cache2Q;
@@ -50,7 +52,7 @@ import org.h2.value.ValueString;
  *     (512 - 32768, must be a power of 2)</li>
  * <li>52: write version (0, otherwise the file is opened in read-only mode)</li>
  * <li>53: read version (0, otherwise opening the file fails)</li>
- * <li>54-57: system table root page number (usually 1)</li>
+ * <li>54-57: meta table root page number (usually 1)</li>
  * <li>58-61: free list head page number (usually 2)</li>
  * <li>62-65: log[0] head page number (usually 3)</li>
  * <li>66-69: log[1] head page number (usually 4)</li>
@@ -108,6 +110,10 @@ public class PageStore implements CacheWriter {
     private static final int READ_VERSION = 0;
     private static final int WRITE_VERSION = 0;
 
+    private static final int META_TYPE_SCAN_INDEX = 0;
+    private static final int META_TYPE_BTREE_INDEX = 1;
+    private static final int META_TABLE_ID = -1;
+
     private Database database;
     private final Trace trace;
     private String fileName;
@@ -118,7 +124,7 @@ public class PageStore implements CacheWriter {
 
     private int pageSize;
     private int pageSizeShift;
-    private int systemRootPageId;
+    private int metaTableRootPageId;
     private int freeListRootPageId;
     private int lastUsedPage;
 
@@ -142,9 +148,11 @@ public class PageStore implements CacheWriter {
      */
     private PageLog[] logs = new PageLog[LOG_COUNT];
 
-    private TableData pageTable;
-    private PageScanIndex pageIndex;
-    private HashMap metaObjects = new HashMap();
+    private Schema metaSchema;
+    private TableData metaTable;
+    private PageScanIndex metaIndex;
+    private HashMap metaObjects;
+    private int systemTableHeadPos;
 
     /**
      * Create a new page store object.
@@ -160,7 +168,7 @@ public class PageStore implements CacheWriter {
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
         int test;
-trace.setLevel(TraceSystem.DEBUG);
+// trace.setLevel(TraceSystem.DEBUG);
         this.cacheSize = cacheSizeDefault;
         String cacheType = database.getCacheType();
         if (Cache2Q.TYPE_NAME.equals(cacheType)) {
@@ -207,27 +215,27 @@ trace.setLevel(TraceSystem.DEBUG);
                 pageCount = (int) (fileLength / pageSize);
                 initLogs();
                 recover(true);
-                openPageIndex();
                 recover(false);
                 checkpoint();
             } else {
                 // new
                 setPageSize(PAGE_SIZE_DEFAULT);
                 file = database.openFile(fileName, accessMode, false);
-                systemRootPageId = 1;
+                metaTableRootPageId = 1;
                 freeListRootPageId = 2;
                 pageCount = 3 + LOG_COUNT;
                 increaseFileSize(INCREMENT_PAGES - pageCount);
-                PageFreeList list = getFreeList();
+                getFreeList();
                 for (int i = 0; i < LOG_COUNT; i++) {
                     logRootPageIds[i] = 3 + i;
                 }
                 writeHeader();
                 initLogs();
-                openPageIndex();
+                openMetaIndex();
                 getLog().openForWriting(0);
                 switchLogIfPossible();
                 getLog().flush();
+                systemTableHeadPos = Index.EMPTY_HEAD;
             }
             lastUsedPage = getFreeList().getLastUsed() + 1;
         } catch (SQLException e) {
@@ -322,7 +330,7 @@ trace.setLevel(TraceSystem.DEBUG);
             accessMode = "r";
             file = database.openFile(fileName, accessMode, true);
         }
-        systemRootPageId = page.readInt();
+        metaTableRootPageId = page.readInt();
         freeListRootPageId = page.readInt();
         for (int i = 0; i < LOG_COUNT; i++) {
             logRootPageIds[i] = page.readInt();
@@ -362,7 +370,7 @@ trace.setLevel(TraceSystem.DEBUG);
         page.writeInt(pageSize);
         page.writeByte((byte) WRITE_VERSION);
         page.writeByte((byte) READ_VERSION);
-        page.writeInt(systemRootPageId);
+        page.writeInt(metaTableRootPageId);
         page.writeInt(freeListRootPageId);
         for (int i = 0; i < LOG_COUNT; i++) {
             page.writeInt(logRootPageIds[i]);
@@ -601,15 +609,6 @@ trace.setLevel(TraceSystem.DEBUG);
         }
     }
 
-    /**
-     * Get the system table root page number.
-     *
-     * @return the page number
-     */
-    public int getSystemRootPageId() {
-        return systemRootPageId;
-    }
-
     PageLog getLog() {
         return logs[activeLog];
     }
@@ -627,7 +626,12 @@ trace.setLevel(TraceSystem.DEBUG);
      * @param undo true if the undo step should be run
      */
     private void recover(boolean undo) throws SQLException {
-        trace.debug("log recover");
+        if (undo) {
+            trace.debug("log recover");
+        } else {
+            openMetaIndex();
+            readMetaData();
+        }
         try {
             recoveryRunning = true;
             int maxId = 0;
@@ -665,7 +669,20 @@ trace.setLevel(TraceSystem.DEBUG);
         } finally {
             recoveryRunning = false;
         }
-        trace.debug("log recover done");
+        if (!undo) {
+            PageScanIndex index = (PageScanIndex) metaObjects.get(ObjectUtils.getInteger(0));
+            if (index == null) {
+                systemTableHeadPos = Index.EMPTY_HEAD;
+            } else {
+                systemTableHeadPos = index.getHeadPos();
+            }
+            for (Iterator it = metaObjects.values().iterator(); it.hasNext();) {
+                Index openIndex = (Index) it.next();
+                openIndex.close(database.getSystemSession());
+            }
+            metaObjects = null;
+            trace.debug("log recover done");
+        }
     }
 
     /**
@@ -740,83 +757,136 @@ trace.setLevel(TraceSystem.DEBUG);
         return state.isCommitted(logId, pos);
     }
 
-    public int getMetaTableHeadPos() throws SQLException {
-        int todo;
-        return 0;
+    /**
+     * Get the position of the system table head.
+     *
+     * @return the system table head
+     */
+    public int getSystemTableHeadPos() throws SQLException {
+        return systemTableHeadPos;
     }
 
-    private void openPageIndex() throws SQLException {
+    /**
+     * Redo a change in a table.
+     *
+     * @param tableId the object id of the table
+     * @param row the row
+     * @param add true if the record is added, false if deleted
+     */
+    void redo(int tableId, Row row, boolean add) throws SQLException {
+        if (tableId == META_TABLE_ID) {
+            if (add) {
+                addMeta(row);
+            } else {
+                removeMeta(row);
+            }
+        }
+        PageScanIndex index = (PageScanIndex) metaObjects.get(ObjectUtils.getInteger(tableId));
+        if (index == null) {
+            throw Message.throwInternalError("Table not found: " + tableId + " " + row + " " + add);
+        }
+        Table table = index.getTable();
+        if (add) {
+            table.addRow(database.getSystemSession(), row);
+        } else {
+            table.removeRow(database.getSystemSession(), row);
+        }
+    }
+
+    private void openMetaIndex() throws SQLException {
         ObjectArray cols = new ObjectArray();
         cols.add(new Column("ID", Value.INT));
         cols.add(new Column("TYPE", Value.INT));
         cols.add(new Column("PARENT", Value.INT));
         cols.add(new Column("HEAD", Value.INT));
         cols.add(new Column("COLUMNS", Value.STRING));
-        int headPos = getSystemRootPageId();
-        pageTable = database.getMainSchema().createTable(
-                "PAGE_INDEX", 0, cols, true, false, headPos);
-        pageIndex = (PageScanIndex) pageTable.getScanIndex(
+        metaSchema = new Schema(database, 0, "", null, true);
+        int headPos = metaTableRootPageId;
+        metaTable = new TableData(metaSchema, "PAGE_INDEX",
+                META_TABLE_ID, cols, true, false, headPos);
+        metaIndex = (PageScanIndex) metaTable.getScanIndex(
                 database.getSystemSession());
+        metaObjects = new HashMap();
+        metaObjects.put(ObjectUtils.getInteger(-1), metaIndex);
     }
 
     private void readMetaData() throws SQLException {
-        Cursor cursor = pageIndex.find(database.getSystemSession(), null, null);
+        Cursor cursor = metaIndex.find(database.getSystemSession(), null, null);
         while (cursor.next()) {
             Row row = cursor.get();
-            int headPos = row.getValue(0).getInt();
-            int type = row.getValue(1).getInt();
-            int id = row.getValue(2).getInt();
-            int tableId = row.getValue(3).getInt();
-            String columnList = row.getValue(4).getString();
-            String[] columns = StringUtils.arraySplit(columnList, ',', false);
-            IndexType indexType = IndexType.createNonUnique(true);
-            Index meta;
-            TableData table;
-            if (type == 0) {
-                ObjectArray columnArray = new ObjectArray();
-                for (int i = 0; i < columns.length; i++) {
-                    Column col = new Column("C" + i, Value.INT);
-                    columnArray.add(col);
-                }
-                table = new TableData(database.getMainSchema(), "T" + id, id, columnArray, true, false, headPos);
-            } else {
-                PageScanIndex p = (PageScanIndex) metaObjects.get(ObjectUtils.getInteger(tableId));
-                table = (TableData) p.getTable();
+            addMeta(row);
+        }
+    }
+
+    private void removeMeta(Row row) throws SQLException {
+        int id = row.getValue(0).getInt();
+        Index index = (Index) metaObjects.remove(ObjectUtils.getInteger(id));
+        index.getTable().removeIndex(index);
+        if (index instanceof PageBtreeIndex) {
+            index.getSchema().remove(index);
+        }
+    }
+
+    private void addMeta(Row row) throws SQLException {
+        int id = row.getValue(0).getInt();
+        int type = row.getValue(1).getInt();
+        int parent = row.getValue(2).getInt();
+        int headPos = row.getValue(3).getInt();
+        String columnList = row.getValue(4).getString();
+        String[] columns = StringUtils.arraySplit(columnList, ',', false);
+        IndexType indexType = IndexType.createNonUnique(true);
+        Index meta;
+        if (trace.isDebugEnabled()) {
+            trace.debug("addMeta id=" + id + " type=" + type + " parent=" + parent + " columns=" + columnList);
+        }
+        if (type == META_TYPE_SCAN_INDEX) {
+            ObjectArray columnArray = new ObjectArray();
+            for (int i = 0; i < columns.length; i++) {
+                Column col = new Column("C" + i, Value.INT);
+                columnArray.add(col);
             }
+            TableData table = new TableData(metaSchema, "T" + id, id, columnArray, true, false, headPos);
+            meta = table.getScanIndex(database.getSystemSession());
+        } else {
+            PageScanIndex p = (PageScanIndex) metaObjects.get(ObjectUtils.getInteger(parent));
+            TableData table = (TableData) p.getTable();
             Column[] tableCols = table.getColumns();
             Column[] cols = new Column[columns.length];
             for (int i = 0; i < columns.length; i++) {
                 cols[i] = tableCols[Integer.parseInt(columns[i])];
             }
             IndexColumn[] indexColumns = IndexColumn.wrap(cols);
-            if (type == 0) {
-                meta = new PageScanIndex(table, id, indexColumns, indexType, headPos);
-            } else {
-                meta = new PageBtreeIndex(table, id, "I" + id, indexColumns, indexType, headPos);
-            }
-            metaObjects.put(ObjectUtils.getInteger(id), meta);
+            meta = table.addIndex(database.getSystemSession(), "I" + id, id, indexColumns, indexType, headPos, null);
         }
+        metaObjects.put(ObjectUtils.getInteger(id), meta);
     }
 
     public void addMeta(Index index) throws SQLException {
-        int type = index instanceof PageScanIndex ? 0 : 1;
+        int type = index instanceof PageScanIndex ? META_TYPE_SCAN_INDEX : META_TYPE_BTREE_INDEX;
         Column[] columns = index.getColumns();
         String[] columnIndexes = new String[columns.length];
         for (int i = 0; i < columns.length; i++) {
             columnIndexes[i] = String.valueOf(columns[i].getColumnId());
         }
         String columnList = StringUtils.arrayCombine(columnIndexes, ',');
-        addMeta(index.getId(), type, index.getHeadPos(), index.getTable().getId(), columnList);
+        addMeta(index.getId(), type, index.getTable().getId(), index.getHeadPos(), columnList);
     }
 
     private void addMeta(int id, int type, int parent, int headPos, String columnList) throws SQLException {
-        Row row = pageTable.getTemplateRow();
+        Row row = metaTable.getTemplateRow();
         row.setValue(0, ValueInt.get(id));
         row.setValue(1, ValueInt.get(type));
         row.setValue(2, ValueInt.get(parent));
         row.setValue(3, ValueInt.get(headPos));
-        row.setValue(3, ValueString.get(columnList));
-        pageIndex.add(database.getSystemSession(), row);
+        row.setValue(4, ValueString.get(columnList));
+        row.setPos(id + 1);
+        metaIndex.add(database.getSystemSession(), row);
+    }
+
+    public void removeMeta(Index index) throws SQLException {
+        Session session = database.getSystemSession();
+        Row row = metaIndex.getRow(session, index.getId() + 1);
+        metaIndex.remove(session, row);
     }
 
 }

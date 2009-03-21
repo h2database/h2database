@@ -524,7 +524,9 @@ public class Database implements DataHandler {
             // wait until pending changes are written
             isReconnectNeeded();
             if (SysProperties.PAGE_STORE) {
+                starting = true;
                 getPageStore();
+                starting = false;
             }
             if (FileUtils.exists(dataFileName)) {
                 lobFilesInDirectories &= !ValueLob.existsLobFile(getDatabasePath());
@@ -582,7 +584,7 @@ public class Database implements DataHandler {
         cols.add(new Column("SQL", Value.STRING));
         int headPos = 0;
         if (pageStore != null) {
-            headPos = pageStore.getMetaTableHeadPos();
+            headPos = pageStore.getSystemTableHeadPos();
         }
         meta = mainSchema.createTable("SYS", 0, cols, persistent, false, headPos);
         tableMap.put(0, meta);
@@ -2141,31 +2143,6 @@ public class Database implements DataHandler {
             pageStore.open();
         }
         return pageStore;
-    }
-
-    /**
-     * Redo a change in a table.
-     *
-     * @param tableId the object id of the table
-     * @param row the row
-     * @param add true if the record is added, false if deleted
-     */
-    public void redo(int tableId, Row row, boolean add) throws SQLException {
-        TableData table = (TableData) tableMap.get(tableId);
-        if (add) {
-            table.addRow(systemSession, row);
-        } else {
-            table.removeRow(systemSession, row);
-        }
-        if (tableId == 0) {
-            MetaRecord m = new MetaRecord(row);
-            if (add) {
-                objectIds.set(m.getId());
-                m.execute(this, systemSession, eventListener);
-            } else {
-                m.undo(this, systemSession, eventListener);
-            }
-        }
     }
 
     /**

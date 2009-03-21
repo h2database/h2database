@@ -4,6 +4,9 @@ MySQL
 SET GLOBAL sql_mode='ANSI';
 SELECT @@global.sql_mode
 
+Non-standard escape mechanism:
+select 'Joe''s', 'Joe\'s';
+
 Compare with NULL problem:
 drop table test;
 create table test(id int);
@@ -33,6 +36,8 @@ The workaround responseBuffering=adaptive doesn't always seem to work
 PostgreSQL
 --------------------------------------------------------------------------------------------------------
 
+Non-standard escape mechanism:
+select 'Joe''s', 'Joe\'s';
 
 HSQLDB
 --------------------------------------------------------------------------------------------------------

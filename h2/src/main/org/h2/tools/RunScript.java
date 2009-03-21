@@ -53,7 +53,7 @@ public class RunScript extends Tool {
                 " [-driver <class>]  The JDBC driver class to use (not required in most cases)\n" +
                 " [-showResults]     Show the statements and the results of queries\n" +
                 " [-checkResults]    Check if the query results match the expected results\n" +
-                " [-options ...]     The list of options (only for H2 embedded mode)");
+                " [-options ...]     A list of options (only for embedded H2, see RUNSCRIPT)");
         out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
     }
 
@@ -71,8 +71,8 @@ public class RunScript extends Tool {
      * databases) </li>
      * <li>-showResults (show the statements and the results of queries)</li>
      * <li>-checkResults (check if the query results match the expected results</li>
-     * <li>-options (to specify a list of options ;only for H2 and only when
-     * using the embedded mode) </li>
+     * <li>-options (to specify a list of options for the RUNSCRIPT command;
+     * only for H2 and only when using the embedded mode)</li>
      * </ul>
      * To include local files when using remote databases, use the special
      * syntax:

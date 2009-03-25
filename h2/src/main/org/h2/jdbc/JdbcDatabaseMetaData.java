@@ -1300,13 +1300,25 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     /**
      * Gets the comma-separated list of all SQL keywords that are not supported
-     * as table/column/index name, in addition to the SQL-92 keywords.
+     * as table/column/index name, in addition to the SQL-92 keywords. The list
+     * returned is:
+     * <pre>
+     * LIMIT,MINUS,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY
+     * </pre>
+     * The complete list of keywords (including SQL-92 keywords) is:
+     * <pre>
+     * CROSS, CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP, DISTINCT,
+     * EXCEPT, EXISTS, FALSE, FOR, FROM, FULL, GROUP, HAVING, INNER,
+     * INTERSECT, IS, JOIN, LIKE, LIMIT, MINUS, NATURAL, NOT, NULL, ON,
+     * ORDER, PRIMARY, ROWNUM, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP,
+     * TODAY, TRUE, UNION, WHERE
+     * </pre>
      *
-     * @return a list with the keywords
+     * @return a list of additional the keywords
      */
     public String getSQLKeywords() {
         debugCodeCall("getSQLKeywords");
-        return "";
+        return "LIMIT,MINUS,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY";
     }
 
     /**

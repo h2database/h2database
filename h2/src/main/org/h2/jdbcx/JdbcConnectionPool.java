@@ -23,6 +23,7 @@ package org.h2.jdbcx;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Stack;
 
 import javax.sql.ConnectionEvent;
@@ -45,11 +46,8 @@ import org.h2.message.Message;
  * // init
  * import org.h2.jdbcx.*;
  * ...
- * JdbcDataSource ds = new JdbcDataSource();
- * ds.setURL("jdbc:h2:~/test");
- * ds.setUser("sa");
- * ds.setPassword("sa");
- * JdbcConnectionPool cp = JdbcConnectionPool.create(ds);
+ * JdbcConnectionPool cp = JdbcConnectionPool.create(
+ *     "jdbc:h2:~/test", "sa", "sa");
  * // use
  * Connection conn = cp.getConnection();
  * ...
@@ -64,12 +62,15 @@ import org.h2.message.Message;
  */
 public class JdbcConnectionPool implements DataSource {
 
+    private static final int DEFAULT_TIMEOUT = 60;
+
     private final ConnectionPoolDataSource dataSource;
     private final Stack recycledConnections = new Stack();
+    private final HashMap poolToConnMap = new HashMap();
     private final PoolConnectionEventListener poolConnectionEventListener = new PoolConnectionEventListener();
     private PrintWriter logWriter;
     private int maxConnections = 10;
-    private int timeout = 60;
+    private int timeout = DEFAULT_TIMEOUT;
     private int activeConnections;
     private boolean isDisposed;
 
@@ -90,6 +91,22 @@ public class JdbcConnectionPool implements DataSource {
      */
     public static JdbcConnectionPool create(ConnectionPoolDataSource dataSource) {
         return new JdbcConnectionPool(dataSource);
+    }
+
+    /**
+     * Constructs a new connection pool for H2 databases.
+     *
+     * @param url the database URL of the H2 connection
+     * @param user the user name
+     * @param password the password
+     * @return the connection pool
+     */
+    public static JdbcConnectionPool create(String url, String user, String password) {
+        JdbcDataSource ds = new JdbcDataSource();
+        ds.setURL(url);
+        ds.setUser(user);
+        ds.setPassword(password);
+        return new JdbcConnectionPool(ds);
     }
 
     /**
@@ -127,11 +144,15 @@ public class JdbcConnectionPool implements DataSource {
 
     /**
      * Sets the maximum time in seconds to wait for a free connection.
-     * The default timeout is 60 seconds.
+     * The default timeout is 60 seconds. Calling this method with the
+     * value 0 will set the timeout to the default value.
      *
-     * @param seconds the maximum timeout
+     * @param seconds the timeout, 0 meaning the default
      */
     public synchronized void setLoginTimeout(int seconds) {
+        if (seconds == 0) {
+            seconds = DEFAULT_TIMEOUT;
+        }
         this.timeout = seconds;
     }
 
@@ -148,6 +169,7 @@ public class JdbcConnectionPool implements DataSource {
             PooledConnection pc = (PooledConnection) recycledConnections.pop();
             try {
                 pc.close();
+                poolToConnMap.remove(pc);
             } catch (SQLException e2) {
                 if (e == null) {
                     e = e2;
@@ -200,7 +222,12 @@ public class JdbcConnectionPool implements DataSource {
         } else {
             pc = dataSource.getPooledConnection();
         }
-        Connection conn = pc.getConnection();
+        Connection conn;
+        conn = (Connection) poolToConnMap.get(pc);
+        if (conn == null) {
+            conn = pc.getConnection();
+            poolToConnMap.put(pc, conn);
+        }
         activeConnections++;
         pc.addConnectionEventListener(poolConnectionEventListener);
         return conn;
@@ -233,6 +260,7 @@ public class JdbcConnectionPool implements DataSource {
     private void closeConnection(PooledConnection pc) {
         try {
             pc.close();
+            poolToConnMap.remove(pc);
         } catch (SQLException e) {
             log("Error while closing database connection: " + e.toString());
         }

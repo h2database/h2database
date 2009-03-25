@@ -48,11 +48,13 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     public Expression optimize(Session session) throws SQLException {
+        boolean allConst = isDeterministic();
         for (int i = 0; i < args.length; i++) {
             Expression e = args[i].optimize(session);
             args[i] = e;
+            allConst &= e.isConstant();
         }
-        if (isEverything(ExpressionVisitor.DETERMINISTIC)) {
+        if (allConst) {
             return ValueExpression.get(getValue(session));
         }
         return this;

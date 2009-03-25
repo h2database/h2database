@@ -79,6 +79,12 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(0, rs.getInt(1));
         stat.execute("drop alias getCount");
 
+        stat.execute("create alias reverse deterministic for \""+getClass().getName()+".reverse\"");
+        rs = stat.executeQuery("select reverse(x) from system_range(700, 700)");
+        rs.next();
+        assertEquals("007", rs.getString(1));
+        stat.execute("drop alias reverse");
+
         conn.close();
     }
 
@@ -556,6 +562,16 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     private static void setCount(int newCount) {
         count = newCount;
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @param s the string
+     * @return the string, reversed
+     */
+    public static String reverse(String s) {
+        return new StringBuffer(s).reverse().toString();
     }
 
     /**

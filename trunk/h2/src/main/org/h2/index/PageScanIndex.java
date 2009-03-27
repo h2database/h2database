@@ -40,7 +40,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
         int test;
-        // trace.setLevel(TraceSystem.DEBUG);
+        trace.setLevel(TraceSystem.DEBUG);
         if (database.isMultiVersion()) {
             int todoMvcc;
         }
@@ -85,9 +85,15 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     public void add(Session session, Row row) throws SQLException {
         if (row.getPos() == 0) {
             row.setPos(++lastKey);
+        } else {
+            lastKey = Math.max(lastKey, row.getPos() + 1);
         }
         if (trace.isDebugEnabled()) {
-            trace.debug("add " + row.getPos());
+            int test;
+            if (table.getId() == -1) {
+                System.out.println("pause");
+            }
+            trace.debug("add table:" + table.getId() + " " + row);
         }
         if (tableData.getContainsLargeObject()) {
             for (int i = 0; i < row.getColumnCount(); i++) {
@@ -191,6 +197,9 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     public void remove(Session session, Row row) throws SQLException {
         if (trace.isDebugEnabled()) {
             trace.debug("remove " + row.getPos());
+            if (table.getId() == -1) {
+                System.out.println("pause");
+            }
         }
         if (tableData.getContainsLargeObject()) {
             for (int i = 0; i < row.getColumnCount(); i++) {

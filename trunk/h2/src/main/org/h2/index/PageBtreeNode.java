@@ -201,7 +201,7 @@ class PageBtreeNode extends PageBtree {
             return false;
         }
         // this child is now empty
-        index.getPageStore().freePage(page.getPageId());
+        index.getPageStore().freePage(page.getPageId(), true, page.data);
         if (entryCount < 1) {
             // no more children - this page is empty as well
             return true;

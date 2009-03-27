@@ -112,7 +112,7 @@ public class PageInputStream extends InputStream {
                 remaining = store.getPageSize() - page.length();
             }
             if (trace.isDebugEnabled()) {
-                trace.debug("pageIn.readPage " + parentPage + " next:" + nextPage);
+                // trace.debug("pageIn.readPage " + parentPage + " next:" + nextPage);
             }
         } catch (SQLException e) {
             throw Message.convertToIOException(e);

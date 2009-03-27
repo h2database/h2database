@@ -440,7 +440,7 @@ public class TestMetaData extends TestBase {
         }
         assertEquals(meta.getSchemaTerm(), "schema");
         assertEquals(meta.getSearchStringEscape(), "\\");
-        assertEquals(meta.getSQLKeywords(), "");
+        assertEquals(meta.getSQLKeywords(), "LIMIT,MINUS,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY");
 
         assertTrue(meta.getURL().startsWith("jdbc:h2:"));
         assertTrue(meta.getUserName().length() > 1);

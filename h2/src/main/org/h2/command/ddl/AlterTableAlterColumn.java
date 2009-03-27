@@ -240,7 +240,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         // with the old table
         // still need a new id because using 0 would mean: the new table tries
         // to use the rows of the table 0 (the meta table)
-        int id = -1;
+        int id = db.allocateObjectId(true, true);
         TableData newTable = getSchema().createTable(tempName, id, newColumns, persistent, false, Index.EMPTY_HEAD);
         newTable.setComment(table.getComment());
         StringBuffer buff = new StringBuffer(newTable.getCreateSQL());

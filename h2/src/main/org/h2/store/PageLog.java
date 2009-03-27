@@ -234,7 +234,7 @@ e.printStackTrace();
             reservedPages[i] = store.allocatePage();
         }
         for (int i = 0; i < pageCount; i++) {
-            store.freePage(reservedPages[i]);
+            store.freePage(reservedPages[i], false, null);
         }
     }
 

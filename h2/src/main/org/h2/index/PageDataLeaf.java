@@ -6,6 +6,7 @@
  */
 package org.h2.index;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
@@ -92,8 +93,6 @@ class PageDataLeaf extends PageData {
     int addRow(Row row) throws SQLException {
         int rowLength = row.getByteCount(data);
         int pageSize = index.getPageStore().getPageSize();
-        // TODO currently the order is important
-        // TODO and can only add at the end
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (entryCount > 0 && last - rowLength < start + KEY_OFFSET_PAIR_LENGTH) {
             int todoSplitAtLastInsertionPoint;
@@ -112,11 +111,15 @@ class PageDataLeaf extends PageData {
             System.arraycopy(keys, 0, newKeys, 0, x);
             System.arraycopy(rows, 0, newRows, 0, x);
             if (x < entryCount) {
-                System.arraycopy(offsets, x, newOffsets, x + 1, entryCount - x);
+                for (int j = x; j < entryCount; j++) {
+                    newOffsets[j + 1] = offsets[j] - rowLength;
+                }
                 System.arraycopy(keys, x, newKeys, x + 1, entryCount - x);
                 System.arraycopy(rows, x, newRows, x + 1, entryCount - x);
             }
         }
+        last = x == 0 ? pageSize : offsets[x - 1];
+        offset = last - rowLength;
         entryCount++;
         start += KEY_OFFSET_PAIR_LENGTH;
         newOffsets[x] = offset;
@@ -175,7 +178,11 @@ class PageDataLeaf extends PageData {
         System.arraycopy(offsets, 0, newOffsets, 0, i);
         System.arraycopy(keys, 0, newKeys, 0, i);
         System.arraycopy(rows, 0, newRows, 0, i);
-        System.arraycopy(offsets, i + 1, newOffsets, i, entryCount - i);
+        int startNext = i < entryCount - 1 ? offsets[i + 1] : index.getPageStore().getPageSize();
+        int rowLength = offsets[i] - startNext;
+        for (int j = i; j < entryCount; j++) {
+            newOffsets[j] = offsets[j + 1] + rowLength;
+        }
         System.arraycopy(keys, i + 1, newKeys, i, entryCount - i);
         System.arraycopy(rows, i + 1, newRows, i, entryCount - i);
         start -= KEY_OFFSET_PAIR_LENGTH;
@@ -334,6 +341,9 @@ class PageDataLeaf extends PageData {
         data.writeShortInt(entryCount);
         if (firstOverflowPageId != 0) {
             data.writeInt(firstOverflowPageId);
+        }
+        if (getPos() == 1) {
+            System.out.println("pause");
         }
         for (int i = 0; i < entryCount; i++) {
             data.writeInt(keys[i]);

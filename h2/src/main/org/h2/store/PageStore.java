@@ -168,7 +168,7 @@ public class PageStore implements CacheWriter {
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
         int test;
-// trace.setLevel(TraceSystem.DEBUG);
+trace.setLevel(TraceSystem.DEBUG);
         this.cacheSize = cacheSizeDefault;
         String cacheType = database.getCacheType();
         if (Cache2Q.TYPE_NAME.equals(cacheType)) {
@@ -407,6 +407,10 @@ public class PageStore implements CacheWriter {
         synchronized (database) {
             Record record = (Record) obj;
             if (trace.isDebugEnabled()) {
+                int test;
+                if (record.getPos() == 1) {
+                    System.out.println("pause");
+                }
                 trace.debug("writeBack " + record);
             }
             int todoRemoveParameter;
@@ -426,6 +430,10 @@ public class PageStore implements CacheWriter {
         synchronized (database) {
             if (trace.isDebugEnabled()) {
                 if (!record.isChanged()) {
+                    int test;
+                    if(record.getPos() == 1) {
+                        System.out.println("pause");
+                    }
                     trace.debug("updateRecord " + record.toString());
                 }
             }
@@ -481,7 +489,7 @@ public class PageStore implements CacheWriter {
         if (trace.isDebugEnabled()) {
             trace.debug("allocated " + id + " atEnd:" + atEnd);
         }
-        if (id > pageCount) {
+        if (id >= pageCount) {
             increaseFileSize(INCREMENT_PAGES);
         }
         return id;
@@ -498,8 +506,10 @@ public class PageStore implements CacheWriter {
      * Add a page to the free list.
      *
      * @param pageId the page id
+     * @param logUndo if an undo entry need to be logged
+     * @param old the old data (if known)
      */
-    public void freePage(int pageId) throws SQLException {
+    public void freePage(int pageId, boolean logUndo, DataPage old) throws SQLException {
         if (trace.isDebugEnabled()) {
             trace.debug("freePage " + pageId);
         }
@@ -507,7 +517,13 @@ public class PageStore implements CacheWriter {
         getFreeList().free(pageId);
         if (recoveryRunning) {
             writePage(pageId, createDataPage());
+        } else if (logUndo) {
+            if (old == null) {
+                old = readPage(pageId);
+            }
+            getLog().addUndo(pageId, old);
         }
+
     }
 
     /**
@@ -626,9 +642,8 @@ public class PageStore implements CacheWriter {
      * @param undo true if the undo step should be run
      */
     private void recover(boolean undo) throws SQLException {
-        if (undo) {
-            trace.debug("log recover");
-        } else {
+        trace.debug("log recover #" + undo);
+        if (!undo) {
             openMetaIndex();
             readMetaData();
         }
@@ -849,6 +864,9 @@ public class PageStore implements CacheWriter {
             meta = table.getScanIndex(database.getSystemSession());
         } else {
             PageScanIndex p = (PageScanIndex) metaObjects.get(ObjectUtils.getInteger(parent));
+            if (p == null) {
+                throw Message.throwInternalError("parent not found:" + parent);
+            }
             TableData table = (TableData) p.getTable();
             Column[] tableCols = table.getColumns();
             Column[] cols = new Column[columns.length];
@@ -861,6 +879,11 @@ public class PageStore implements CacheWriter {
         metaObjects.put(ObjectUtils.getInteger(id), meta);
     }
 
+    /**
+     * Add the meta data of an index.
+     *
+     * @param index the index to add
+     */
     public void addMeta(Index index) throws SQLException {
         int type = index instanceof PageScanIndex ? META_TYPE_SCAN_INDEX : META_TYPE_BTREE_INDEX;
         Column[] columns = index.getColumns();
@@ -883,6 +906,11 @@ public class PageStore implements CacheWriter {
         metaIndex.add(database.getSystemSession(), row);
     }
 
+    /**
+     * Remove the meta data of an index.
+     *
+     * @param index the index to remove
+     */
     public void removeMeta(Index index) throws SQLException {
         Session session = database.getSystemSession();
         Row row = metaIndex.getRow(session, index.getId() + 1);

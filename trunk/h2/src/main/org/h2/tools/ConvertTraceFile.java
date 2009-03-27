@@ -21,8 +21,10 @@ import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 
 /**
- * Convert a trace file to a java class.
- * This is required because the find command truncates lines.
+ * Converts a .trace.db file to a SQL script and Java source code.
+ * <br />
+ * SQL statement statistics are listed as well.
+ * @h2.resource
  */
 public class ConvertTraceFile extends Tool {
 
@@ -54,28 +56,21 @@ public class ConvertTraceFile extends Tool {
         }
     }
 
-    private void showUsage() {
-        out.println("Converts a .trace.db file to a SQL script and Java source code.");
-        out.println("java "+getClass().getName() + "\n" +
-                " [-traceFile <file>]  The trace file name (default: test.trace.db)\n" +
-                " [-script <file>]     The script file name (default: test.sql)\n" +
-                " [-javaClass <file>]  The Java directory and class file name (default: Test)");
-        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
-    }
-
     /**
-     * The command line interface for this tool. The options must be split into
-     * strings like this: "-traceFile", "test.trace.db",... Options are case
-     * sensitive. The following options are supported:
-     * <ul>
-     * <li>-help or -? (print the list of options) </li>
-     * <li>-traceFile filename (the default is test.trace.db) </li>
-     * <li>-script filename (the default is test.sql) </li>
-     * <li>-javaClass className (the default is Test) </li>
-     * </ul>
+     * Options are case sensitive. Supported options are:
+     * <table>
+     * <tr><td>[-help] or [-?]</td>
+     * <td>Print the list of options</td></tr>
+     * <tr><td>[-traceFile &lt;file&gt;]</td>
+     * <td>The trace file name (default: test.trace.db)</td></tr>
+     * <tr><td>[-script &lt;file&gt;]</td>
+     * <td>The script file name (default: test.sql)</td></tr>
+     * <tr><td>[-javaClass &lt;file&gt;]</td>
+     * <td>The Java directory and class file name (default: Test)</td></tr>
+     * </table>
+     * @h2.resource
      *
      * @param args the command line arguments
-     * @throws Exception
      */
     public static void main(String[] args) throws SQLException {
         new ConvertTraceFile().run(args);

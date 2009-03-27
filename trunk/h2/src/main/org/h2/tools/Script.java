@@ -22,36 +22,31 @@ import org.h2.util.Tool;
 
 /**
  * Creates a SQL script file by extracting the schema and data of a database.
+ * @h2.resource
  */
 public class Script extends Tool {
 
-    private void showUsage() {
-        out.println("Allows converting a database to a SQL script.");
-        out.println("java "+getClass().getName() + "\n" +
-                " -url <url>         The database URL\n" +
-                " -user <user>       The user name\n" +
-                " [-password <pwd>]  The password\n" +
-                " [-script <file>]   The script file to run (default: backup.sql)\n" +
-                " [-quiet]           Do not print progress information\n" +
-                " [-options ...]     The list of options (only for H2 embedded mode)");
-        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
-    }
-
     /**
-     * The command line interface for this tool.
-     * The options must be split into strings like this: "-user", "sa",...
-     * Options are case sensitive. The following options are supported:
-     * <ul>
-     * <li>-help or -? (print the list of options)
-     * </li><li>-url jdbc:h2:... (database URL)
-     * </li><li>-user username
-     * </li><li>-password password
-     * </li><li>-script filename (default file name is backup.sql)
-     * </li><li>-options to specify a list of options (only for H2)
-     * </li></ul>
+     * Options are case sensitive. Supported options are:
+     * <table>
+     * <tr><td>[-help] or [-?]</td>
+     * <td>Print the list of options</td></tr>
+     * <tr><td>[-url &lt;url&gt;]</td>
+     * <td>The database URL (jdbc:...)</td></tr>
+     * <tr><td>[-user &lt;user&gt;]</td>
+     * <td>The user name (default: sa)</td></tr>
+     * <tr><td>[-password &lt;pwd&gt;]</td>
+     * <td>The password</td></tr>
+     * <tr><td>[-script &lt;file&gt;]</td>
+     * <td>The target script file name (default: backup.sql)</td></tr>
+     * <tr><td>[-options ...]</td>
+     * <td>A list of options (only for embedded H2, see RUNSCRIPT)</td></tr>
+     * <tr><td>[-quiet]</td>
+     * <td>Do not print progress information</td></tr>
+     * </table>
+     * @h2.resource
      *
      * @param args the command line arguments
-     * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
         new Script().run(args);
@@ -59,7 +54,7 @@ public class Script extends Tool {
 
     public void run(String[] args) throws SQLException {
         String url = null;
-        String user = null;
+        String user = "sa";
         String password = "";
         String file = "backup.sql";
         String options1 = null, options2 = null;
@@ -99,7 +94,7 @@ public class Script extends Tool {
                 return;
             }
         }
-        if (url == null || user == null || file == null) {
+        if (url == null) {
             showUsage();
             return;
         }

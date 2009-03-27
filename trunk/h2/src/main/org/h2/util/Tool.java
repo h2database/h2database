@@ -6,9 +6,11 @@
  */
 package org.h2.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.SQLException;
-
+import java.util.Properties;
 import org.h2.constant.SysProperties;
 
 /**
@@ -21,6 +23,8 @@ public abstract class Tool {
      * The output stream where this tool writes to.
      */
     protected PrintStream out = System.out;
+
+    private Properties resources;
 
     /**
      * Sets the standard output stream.
@@ -55,6 +59,30 @@ public abstract class Tool {
             buff.append(db);
         }
         out.println(buff.toString());
+    }
+
+    /**
+     * Print the usage of the tool. This method reads the description from the
+     * resource file.
+     */
+    protected void showUsage() {
+        if (resources == null) {
+            resources = new Properties();
+            String resourceName = "/org/h2/res/javadoc.properties";
+            try {
+                byte[] buff = Resources.get(resourceName);
+                if (buff != null) {
+                    resources.load(new ByteArrayInputStream(buff));
+                }
+            } catch (IOException e) {
+                out.println("Cannot load " + resourceName);
+            }
+        }
+        String className = getClass().getName();
+        out.println(resources.get(className));
+        out.println("Usage: java "+getClass().getName() + " <options>");
+        out.println(resources.get(className + ".main"));
+        out.println("See also http://h2database.com/javadoc/" + className.replace('.', '/') + ".html");
     }
 
     /**

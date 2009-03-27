@@ -16,38 +16,32 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
 
 /**
- * Tool to create a database cluster. This will copy a database to another
- * location if required, and modify the cluster setting.
+ * Creates a cluster from a standalone database.
+ * <br />
+ * Copies a database to another location if required.
+ * @h2.resource
  */
 public class CreateCluster extends Tool {
 
-    private void showUsage() {
-        out.println("Creates a cluster from a standalone database.");
-        out.println("java "+getClass().getName() + "\n" +
-                " -urlSource <url>    The database URL of the source database (jdbc:h2:...)\n" +
-                " -urlTarget <url>    The database URL of the target database (jdbc:h2:...)\n" +
-                " -user <user>        The user name\n" +
-                " [-password <pwd>]   The password\n" +
-                " -serverList <list>  The comma separated list of host names or IP addresses");
-        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
-    }
-
     /**
-     * The command line interface for this tool. The options must be split into
-     * strings like this: "-urlSource", "jdbc:h2:test",... Options are case
-     * sensitive. The following options are supported:
-     * <ul>
-     * <li>-help or -? (print the list of options) </li>
-     * <li>-urlSource jdbc:h2:... (the database URL of the source database)
-     * </li>
-     * <li>-urlTarget jdbc:h2:... (the database URL of the target database)
-     * </li><li>-user (the user name)
-     * </li><li>-password (the password)
-     * </li><li>-serverList (the server list)
-     * </li></ul>
+     * Options are case sensitive. Supported options are:
+     * <table>
+     * <tr><td>[-help] or [-?]</td>
+     * <td>Print the list of options</td></tr>
+     * <tr><td>[-urlSource &lt;url&gt;]</td>
+     * <td>The database URL of the source database (jdbc:h2:...)</td></tr>
+     * <tr><td>[-urlTarget &lt;url&gt;]</td>
+     * <td>The database URL of the target database (jdbc:h2:...)</td></tr>
+     * <tr><td>[-user &lt;user&gt;]</td>
+     * <td>The user name (default: sa)</td></tr>
+     * <tr><td>[-password &lt;pwd&gt;]</td>
+     * <td>The password</td></tr>
+     * <tr><td>[-serverList &lt;list&gt;]</td>
+     * <td>The comma separated list of host names or IP addresses</td></tr>
+     * </table>
+     * @h2.resource
      *
      * @param args the command line arguments
-     * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
         new CreateCluster().run(args);
@@ -56,7 +50,7 @@ public class CreateCluster extends Tool {
     public void run(String[] args) throws SQLException {
         String urlSource = null;
         String urlTarget = null;
-        String user = null;
+        String user = "sa";
         String password = "";
         String serverList = null;
         for (int i = 0; args != null && i < args.length; i++) {

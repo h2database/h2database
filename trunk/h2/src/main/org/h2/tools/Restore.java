@@ -22,31 +22,27 @@ import org.h2.util.Tool;
 
 /**
  * Restores a H2 database by extracting the database files from a .zip file.
+ * @h2.resource
  */
 public class Restore extends Tool {
 
-    private void showUsage() {
-        out.println("Restores a database backup.");
-        out.println("java "+getClass().getName() + "\n" +
-                " [-file <filename>]  The source file name (default: backup.zip)\n" +
-                " [-dir <dir>]        Target directory (default: .)\n" +
-                " [-db <database>]    Target database name");
-        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
-    }
-
     /**
-     * The command line interface for this tool.
-     * The options must be split into strings like this: "-db", "test",...
-     * Options are case sensitive. The following options are supported:
-     * <ul>
-     * <li>-help or -? (print the list of options)
-     * </li><li>-file filename (the default is backup.zip)
-     * </li><li>-dir database directory (the default is the current directory)
-     * </li><li>-db database name (as stored in the backup if no name is specified)
-     * </li></ul>
+     * Options are case sensitive. Supported options are:
+     * <table>
+     * <tr><td>[-help] or [-?]</td>
+     * <td>Print the list of options</td></tr>
+     * <tr><td>[-file &lt;filename&gt;]</td>
+     * <td>The source file name (default: backup.zip)</td></tr>
+     * <tr><td>[-dir &lt;dir&gt;]</td>
+     * <td>The target directory (default: .)</td></tr>
+     * <tr><td>[-db &lt;database&gt;]</td>
+     * <td>The target database name (as stored if not set)</td></tr>
+     * <tr><td>[-quiet]</td>
+     * <td>Do not print progress information</td></tr>
+     * </table>
+     * @h2.resource
      *
      * @param args the command line arguments
-     * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
         new Restore().run(args);

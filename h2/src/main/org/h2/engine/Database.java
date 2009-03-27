@@ -310,10 +310,18 @@ public class Database implements DataHandler {
     }
 
     private void reconnectModified(boolean pending) {
-        if (readOnly || pending == reconnectChangePending || lock == null) {
+        if (readOnly || lock == null) {
             return;
         }
         try {
+            if (pending == reconnectChangePending) {
+                long now = System.currentTimeMillis();
+                if (now > reconnectCheckNext) {
+                    lock.save();
+                    reconnectCheckNext = now + SysProperties.RECONNECT_CHECK_DELAY;
+                }
+                return;
+            }
             if (pending) {
                 getTrace().debug("wait before writing");
                 Thread.sleep((int) (SysProperties.RECONNECT_CHECK_DELAY * 1.1));
@@ -324,6 +332,7 @@ public class Database implements DataHandler {
             lock.save();
             reconnectLastLock = lock.load();
             reconnectChangePending = pending;
+            reconnectCheckNext = System.currentTimeMillis() + SysProperties.RECONNECT_CHECK_DELAY;
         } catch (Exception e) {
             getTrace().error("pending:"+ pending, e);
         }
@@ -511,6 +520,7 @@ public class Database implements DataHandler {
                     .info("opening " + databaseName + " (build " + Constants.BUILD_ID + ")");
             if (autoServerMode) {
                 if (readOnly || fileLockMethod == FileLock.LOCK_NO) {
+                    int todoImproveErrorMessage;
                     throw Message.getSQLException(ErrorCode.FEATURE_NOT_SUPPORTED);
                 }
             }
@@ -523,6 +533,7 @@ public class Database implements DataHandler {
             }
             // wait until pending changes are written
             isReconnectNeeded();
+            beforeWriting();
             if (SysProperties.PAGE_STORE) {
                 starting = true;
                 getPageStore();
@@ -625,6 +636,7 @@ public class Database implements DataHandler {
         }
         systemSession.commit(true);
         traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
+        afterWriting();
     }
 
     public Schema getMainSchema() {
@@ -2182,6 +2194,12 @@ public class Database implements DataHandler {
                 }
                 if (prop.getProperty("changePending", null) == null) {
                     break;
+                }
+                if (System.currentTimeMillis() > now + SysProperties.RECONNECT_CHECK_DELAY * 4) {
+                    // the writing process didn't update the file -
+                    // it may have terminated
+                    lock.setProperty("changePending", null);
+                    lock.save();
                 }
                 getTrace().debug("delay (change pending)");
                 Thread.sleep(SysProperties.RECONNECT_CHECK_DELAY);

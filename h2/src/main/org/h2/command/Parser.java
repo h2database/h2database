@@ -884,10 +884,9 @@ public class Parser {
                 command.setQuery(parseSelect());
                 read(")");
                 return command;
-            } else {
-                Column[] columns = parseColumnList(table);
-                command.setColumns(columns);
             }
+            Column[] columns = parseColumnList(table);
+            command.setColumns(columns);
         }
         if (readIf("DEFAULT")) {
             read("VALUES");

@@ -49,10 +49,10 @@ import org.h2.util.StringUtils;
 public class FullTextLucene extends FullText {
 
     //## Java 1.4 begin ##
+    static final HashMap INDEX_MODIFIERS = new HashMap();
+    static final boolean STORE_DOCUMENT_TEXT_IN_INDEX = Boolean.getBoolean("h2.storeDocumentTextInIndex");
     private static final String TRIGGER_PREFIX = "FTL_";
     private static final String SCHEMA = "FTL";
-    private static final boolean STORE_DOCUMENT_TEXT_IN_INDEX = Boolean.getBoolean("h2.storeDocumentTextInIndex");
-    private static final HashMap INDEX_MODIFIERS = new HashMap();
     private static final String FIELD_DATA = "DATA";
     private static final String FIELD_COLUMN_PREFIX = "_";
     private static final String FIELD_QUERY = "QUERY";
@@ -201,7 +201,7 @@ public class FullTextLucene extends FullText {
         return search(conn, text, limit, offset, true);
     }
 
-    private static SQLException convertException(Exception e) {
+    static SQLException convertException(Exception e) {
         SQLException e2 = new SQLException("FULLTEXT", "Error while indexing document");
         e2.initCause(e);
         return e2;
@@ -221,7 +221,7 @@ public class FullTextLucene extends FullText {
         stat.execute(buff.toString());
     }
 
-    private static IndexModifier getIndexModifier(Connection conn) throws SQLException {
+    static IndexModifier getIndexModifier(Connection conn) throws SQLException {
         String path = getIndexPath(conn);
         IndexModifier indexer;
         synchronized (INDEX_MODIFIERS) {
@@ -240,7 +240,7 @@ public class FullTextLucene extends FullText {
         return indexer;
     }
 
-    private static String getIndexPath(Connection conn) throws SQLException {
+    static String getIndexPath(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("CALL DATABASE_PATH()");
         rs.next();

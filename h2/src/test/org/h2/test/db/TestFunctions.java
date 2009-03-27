@@ -626,6 +626,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 //## Java 1.5 end ##
 
     public void add(Object value) throws SQLException {
+        // ignore
     }
 
     public Object getResult() throws SQLException {
@@ -640,6 +641,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     }
 
     public void init(Connection conn) throws SQLException {
+        // ignore
     }
 
 }

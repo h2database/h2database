@@ -113,6 +113,7 @@ public class Engine {
                 try {
                     backup = (ConnectionInfo) ci.clone();
                 } catch (CloneNotSupportedException e) {
+                    // ignore (can not occur)
                 }
             }
             Session session = openSession(ci);

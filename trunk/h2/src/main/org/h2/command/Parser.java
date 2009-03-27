@@ -4658,6 +4658,12 @@ public class Parser {
                             unique.setTableName(tableName);
                             command.addConstraintCommand(unique);
                         }
+                        if (readIf("NOT")) {
+                            read("NULL");
+                            column.setNullable(false);
+                        } else {
+                            readIf("NULL");
+                        }
                         if (readIf("CHECK")) {
                             Expression expr = readExpression();
                             column.addCheckConstraint(session, expr);

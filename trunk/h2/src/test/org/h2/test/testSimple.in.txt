@@ -1,3 +1,7 @@
+create table test(id int unique not null);
+drop table test;
+create table test(id int not null unique);
+drop table test;
 select count(*)from((select 1 from dual limit 1)union(select 2 from dual limit 1));
 > 2;
 select sum(cast(x as int)) from system_range(2147483547, 2147483637);

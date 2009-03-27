@@ -48,9 +48,13 @@ import org.h2.util.StringUtils;
  */
 public class FullTextLucene extends FullText {
 
-    //## Java 1.4 begin ##
-    static final HashMap INDEX_MODIFIERS = new HashMap();
+    /**
+     * Whether the text content should be stored in the Lucene index.
+     */
     static final boolean STORE_DOCUMENT_TEXT_IN_INDEX = Boolean.getBoolean("h2.storeDocumentTextInIndex");
+
+    //## Java 1.4 begin ##
+    private static final HashMap INDEX_MODIFIERS = new HashMap();
     private static final String TRIGGER_PREFIX = "FTL_";
     private static final String SCHEMA = "FTL";
     private static final String FIELD_DATA = "DATA";
@@ -201,6 +205,12 @@ public class FullTextLucene extends FullText {
         return search(conn, text, limit, offset, true);
     }
 
+    /**
+     * Convert an exception to a fulltext exception.
+     *
+     * @param e the original exception
+     * @return the converted SQL exception
+     */
     static SQLException convertException(Exception e) {
         SQLException e2 = new SQLException("FULLTEXT", "Error while indexing document");
         e2.initCause(e);
@@ -221,7 +231,7 @@ public class FullTextLucene extends FullText {
         stat.execute(buff.toString());
     }
 
-    static IndexModifier getIndexModifier(Connection conn) throws SQLException {
+    private static IndexModifier getIndexModifier(Connection conn) throws SQLException {
         String path = getIndexPath(conn);
         IndexModifier indexer;
         synchronized (INDEX_MODIFIERS) {
@@ -240,6 +250,12 @@ public class FullTextLucene extends FullText {
         return indexer;
     }
 
+    /**
+     * Get the path of the Lucene index for this database.
+     *
+     * @param conn the database connection
+     * @return the path
+     */
     static String getIndexPath(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("CALL DATABASE_PATH()");
@@ -272,15 +288,27 @@ public class FullTextLucene extends FullText {
         String path = getIndexPath(conn);
         IndexModifier index = (IndexModifier) INDEX_MODIFIERS.get(path);
         if (index != null) {
-            INDEX_MODIFIERS.remove(path);
+            removeIndexModifier(index, path);
+        }
+        FileSystem.getInstance(path).deleteRecursive(path);
+    }
+
+    /**
+     * Close the index modifier and remove it from the index modifier set.
+     *
+     * @param indexModifier the index modifier
+     * @param indexPath the index path
+     */
+    static void removeIndexModifier(IndexModifier indexModifier, String indexPath) throws SQLException {
+        synchronized (INDEX_MODIFIERS) {
             try {
-                index.flush();
-                index.close();
-            } catch (IOException e) {
+                INDEX_MODIFIERS.remove(indexPath);
+                indexModifier.flush();
+                indexModifier.close();
+            } catch (Exception e) {
                 throw convertException(e);
             }
         }
-        FileSystem.getInstance(path).deleteRecursive(path);
     }
 
     private static ResultSet search(Connection conn, String text, int limit, int offset, boolean data) throws SQLException {
@@ -445,14 +473,8 @@ public class FullTextLucene extends FullText {
         //## Java 1.4 begin ##
         public void close() throws SQLException {
             if (indexModifier != null) {
-                try {
-                    indexModifier.flush();
-                    indexModifier.close();
-                    INDEX_MODIFIERS.remove(indexPath);
-                    indexModifier = null;
-                } catch (Exception e) {
-                    throw convertException(e);
-                }
+                removeIndexModifier(indexModifier, indexPath);
+                indexModifier = null;
             }
         }
         //## Java 1.4 end ##
@@ -526,7 +548,6 @@ public class FullTextLucene extends FullText {
             String key = buff.toString();
             return key;
         }
-
     }
 
 }

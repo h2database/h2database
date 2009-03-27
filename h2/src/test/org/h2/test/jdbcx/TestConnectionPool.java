@@ -7,6 +7,7 @@
 package org.h2.test.jdbcx;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -30,9 +31,43 @@ public class TestConnectionPool extends TestBase {
 
     public void test() throws Exception {
         deleteDb("connectionPool");
+        testPerformance();
+        testKeepOpen();
         testConnect();
         testThreads();
         deleteDb("connectionPool");
+    }
+
+    private void testPerformance() throws SQLException {
+        String url = getURL("connectionPool", true), user = getUser(), password = getPassword();
+        JdbcConnectionPool man = JdbcConnectionPool.create(url, user, password);
+        Connection conn = man.getConnection();
+        int len = 1000;
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < len; i++) {
+            man.getConnection().close();
+        }
+        trace((int) (System.currentTimeMillis() - start));
+        man.dispose();
+        start = System.currentTimeMillis();
+        for (int i = 0; i < len; i++) {
+            DriverManager.getConnection(url, user, password).close();
+        }
+        trace((int) (System.currentTimeMillis() - start));
+        conn.close();
+    }
+
+    private void testKeepOpen() throws Exception {
+        JdbcConnectionPool man = getConnectionPool(1);
+        Connection conn = man.getConnection();
+        Statement stat = conn.createStatement();
+        stat.execute("create local temporary table test(id int)");
+        conn.close();
+        conn = man.getConnection();
+        stat = conn.createStatement();
+        stat.execute("select * from test");
+        conn.close();
+        man.dispose();
     }
 
     private void testThreads() throws Exception {

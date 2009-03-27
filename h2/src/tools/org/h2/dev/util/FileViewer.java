@@ -28,7 +28,7 @@ public class FileViewer extends Tool {
         new FileViewer().run(args);
     }
 
-    private void showUsage() {
+    protected void showUsage() {
         out.println("A text file viewer that support very large files.");
         out.println("java "+getClass().getName() + "\n" +
                 " -file <file>     The name of the file to view\n" +

@@ -104,7 +104,6 @@ public class Build extends BuildBase {
         switchSource();
         clean();
         mkdir("temp");
-        resources(clientOnly, basicResourcesOnly);
         download();
         String classpath = "temp" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
@@ -139,6 +138,7 @@ public class Build extends BuildBase {
                 exclude("*/package.html");
             copy("temp", files, "src/test");
         }
+        resources(clientOnly, basicResourcesOnly);
     }
 
     private void filter(String source, String target, String old, String replacement) {
@@ -332,6 +332,7 @@ public class Build extends BuildBase {
                 "-sourcepath", "src/main" + File.pathSeparator +
                 "src/test" + File.pathSeparator + "src/tools" ,
                 "-noindex",
+                "-tag", "h2.resource",
                 "-d", "docs/javadocImpl2",
                 "-classpath", System.getProperty("java.home") +
                 "/../lib/tools.jar" +
@@ -412,6 +413,10 @@ public class Build extends BuildBase {
     }
 
     private void resources(boolean clientOnly, boolean basicOnly) {
+        if (!clientOnly) {
+            javadoc(new String[] { "-sourcepath", "src/main", "org.h2.tools",
+                    "-doclet", "org.h2.build.doclet.ResourceDoclet"});
+        }
         FileList files = getFiles("src/main").
             exclude("*.MF").
             exclude("*.java").
@@ -421,6 +426,7 @@ public class Build extends BuildBase {
             files = files.keep("src/main/org/h2/res/_messages_en.*");
         }
         if (clientOnly) {
+            files = files.exclude("src/main/org/h2/res/javadoc.properties");
             files = files.exclude("src/main/org/h2/server/*");
         }
         zip("temp/org/h2/util/data.zip", files, "src/main", true, false);

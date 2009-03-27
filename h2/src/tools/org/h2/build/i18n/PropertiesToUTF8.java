@@ -6,14 +6,9 @@
  */
 package org.h2.build.i18n;
 
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.OutputStreamWriter;
@@ -21,7 +16,6 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.Enumeration;
 import java.util.Properties;
-
 import org.h2.build.code.CheckTextFiles;
 import org.h2.build.indexer.HtmlConverter;
 import org.h2.util.IOUtils;
@@ -86,7 +80,7 @@ public class PropertiesToUTF8 {
         }
         LineNumberReader reader = new LineNumberReader(new InputStreamReader(new FileInputStream(source), "UTF-8"));
         try {
-            Properties prop = new SortedProperties();
+            SortedProperties prop = new SortedProperties();
             StringBuffer buff = new StringBuffer();
             String key = null;
             boolean found = false;
@@ -116,7 +110,7 @@ public class PropertiesToUTF8 {
             if (found) {
                 prop.setProperty(key, buff.toString());
             }
-            storeProperties(prop, target);
+            prop.store(target);
         } finally {
             reader.close();
         }
@@ -162,32 +156,6 @@ public class PropertiesToUTF8 {
             out.setLength(out.getFilePointer());
             out.close();
         }
-    }
-
-    /**
-     * Store a properties file.
-     *
-     * @param p the properties
-     * @param fileName the file name
-     */
-    static void storeProperties(Properties p, String fileName) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        p.store(out, null);
-        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-        InputStreamReader reader = new InputStreamReader(in, "ISO8859-1");
-        LineNumberReader r = new LineNumberReader(reader);
-        FileWriter w = new FileWriter(fileName);
-        PrintWriter writer = new PrintWriter(new BufferedWriter(w));
-        while (true) {
-            String line = r.readLine();
-            if (line == null) {
-                break;
-            }
-            if (!line.startsWith("#")) {
-                writer.println(line);
-            }
-        }
-        writer.close();
     }
 
 }

@@ -11,12 +11,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
-
 import org.h2.util.StringUtils;
-
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.MethodDoc;
@@ -34,6 +33,7 @@ import com.sun.javadoc.Type;
 public class Doclet {
 
     private static final boolean INTERFACES_ONLY = Boolean.getBoolean("h2.interfacesOnly");
+    private String destDir = System.getProperty("h2.destDir", "docs/javadoc");
     private int errorCount;
     private HashSet errors = new HashSet();
 
@@ -51,7 +51,6 @@ public class Doclet {
     private boolean startDoc(RootDoc root) throws IOException {
         ClassDoc[] classes = root.classes();
         String[][] options = root.options();
-        String destDir = System.getProperty("h2.destDir", "docs/javadoc");
         for (int i = 0; i < options.length; i++) {
             if (options[i][0].equals("destdir")) {
                 destDir = options[i][1];
@@ -59,7 +58,7 @@ public class Doclet {
         }
         for (int i = 0; i < classes.length; ++i) {
             ClassDoc clazz = classes[i];
-            processClass(destDir, clazz);
+            processClass(clazz);
         }
         if (errorCount > 0) {
             throw new IOException("FAILED: " + errorCount + " errors found");
@@ -75,7 +74,7 @@ public class Doclet {
         return name;
     }
 
-    private void processClass(String destDir, ClassDoc clazz) throws IOException {
+    private void processClass(ClassDoc clazz) throws IOException {
         String packageName = clazz.containingPackage().name();
         String dir = destDir + "/" + packageName.replace('.', '/');
         (new File(dir)).mkdirs();
@@ -102,6 +101,7 @@ public class Doclet {
                 return ((MethodDoc) a).name().compareTo(((MethodDoc) b).name());
             }
         });
+        ArrayList signatures = new ArrayList();
         boolean hasMethods = false;
         for (int i = 0; i < methods.length; i++) {
             MethodDoc method = methods[i];
@@ -117,20 +117,31 @@ public class Doclet {
             writer.println("<tr><td class=\"return\">" + type + "</td><td class=\"method\">");
             Parameter[] params = method.parameters();
             StringBuffer buff = new StringBuffer();
+            StringBuffer buffSignature = new StringBuffer(name);
+            buffSignature.append('(');
             buff.append('(');
             for (int j = 0; j < params.length; j++) {
                 if (j > 0) {
                     buff.append(", ");
+                    buffSignature.append(',');
                 }
-                buff.append(getTypeName(false, params[j].type()));
+                String typeName = getTypeName(false, params[j].type());
+                buff.append(typeName);
+                buffSignature.append(typeName);
                 buff.append(' ');
                 buff.append(params[j].name());
             }
             buff.append(')');
+            buffSignature.append(')');
             if (isDeprecated(method)) {
                 name = "<span class=\"deprecated\">" + name + "</span>";
             }
-            writer.println("<a href=\"#r" + i + "\">" + name + "</a>" + buff.toString());
+            String signature = buffSignature.toString();
+            while (signatures.size() < i) {
+                signatures.add(null);
+            }
+            signatures.add(i, signature);
+            writer.println("<a href=\"#" + signature + "\">" + name + "</a>" + buff.toString());
             String firstSentence = getFirstSentence(method.firstSentenceTags());
             if (firstSentence != null) {
                 writer.println("<div class=\"methodText\">" + formatText(firstSentence) + "</div>");
@@ -195,7 +206,8 @@ public class Doclet {
                 continue;
             }
             String type = getTypeName(method.isStatic(), method.returnType());
-            writer.println("<a name=\"r" + i + "\"></a>");
+            String signature = (String) signatures.get(i);
+            writer.println("<a name=\"" + signature + "\"></a>");
             Parameter[] params = method.parameters();
             StringBuffer buff = new StringBuffer();
             buff.append('(');
@@ -452,13 +464,12 @@ public class Doclet {
 
     private static boolean isDeprecated(MethodDoc method) {
         Tag[] tags = method.tags();
-        boolean deprecated = false;
         for (int j = 0; j < tags.length; j++) {
             Tag t = tags[j];
             if (t.kind().equals("@deprecated")) {
-                deprecated = true;
+                return true;
             }
         }
-        return deprecated;
+        return false;
     }
 }

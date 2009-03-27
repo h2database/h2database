@@ -282,7 +282,13 @@ java org.h2.test.TestAll timer
 
 /*
 
-documentation: rolling review at roadmap.html:203
+Console, Server, and Shell do not extend Tool yet.
+
+DatabaseH2PoolTest.java
+file_lock=serialized and then go back to auto_server=true
+throws an exception "method not supported".
+
+documentation: rolling review at roadmap.html:312
 
 create a short 4 pages documentation
 
@@ -346,6 +352,10 @@ SELECT c FROM color LEFT OUTER JOIN (SELECT c FROM TABLE(c
 VARCHAR= ?)) p ON color.c = p.c WHERE p.c IS NULL;
 
 http://www.w3schools.com/sql/
+
+kill a specific java process:
+kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
+
 
 */
         if (args.length > 0) {

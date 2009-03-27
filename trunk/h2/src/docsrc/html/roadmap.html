@@ -36,16 +36,18 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 <h2>Priority 2</h2>
 <ul>
 <li>Improve test code coverage
+</li><li>Procedural language / script language (Java, Javascript)
 </li><li>Fulltext search: support streaming CLOB data.
 </li><li>Optimize .. OR .. to IN(..) or UNION if the cost is lower
 </li><li>Test multi-threaded in-memory db access
 </li><li>MVCC: Select for update should only lock the selected rows.
-</li><li>Procedural language / script language (Java, Javascript)
 </li><li>Option to shutdown all the running servers (on the same VM).
 </li><li>Optimize ID=? OR ID=?: convert to IN(...)
 </li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
 </li><li>Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
 </li><li>Implement INSTEAD OF trigger (for views, tables, metadata tables).
+</li><li>Triggers for metadata tables; use for PostgreSQL catalog
+</li><li>Support triggers for INFORMATION_SCHEMA tables (to better support PostgreSQL catalog: rebuild after creating new tables)
 </li><li>Full outer joins
 </li><li>Support trigger on the tables information_schema.tables and ...columns
 </li><li>Test very large databases and LOBs (up to 256 GB)
@@ -205,7 +207,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Recursive Queries (see details)
 </li><li>Release locks (shared or exclusive) on demand
 </li><li>Support OUTER UNION
-</li><li>Support Parameterized Views (similar to CSVREAD, but using just SQL for the definition)
+</li><li>Support parameterized views (similar to CSVREAD, but using just SQL for the definition)
 </li><li>A way (JDBC driver) to map an URL (jdbc:h2map:c1) to a connection object
 </li><li>Option for SCRIPT to only process one or a set of tables, and append to a file
 </li><li>Support using a unique index for IS NULL (including linked tables)
@@ -214,11 +216,12 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Compatibility with Derby: VALUES(1), (2); SELECT * FROM (VALUES (1), (2)) AS myTable(c1)
 </li><li>Compatibility: # is the start of a single line comment (MySQL) but date quote (Access). Mode specific
 </li><li>Run benchmarks with JDK 1.5, JDK 1.6, java -server
-</li><li>Optimizations: Faster hash function for strings, byte arrays, big decimal
+</li><li>Optimizations: Faster hash function for strings, byte arrays
 </li><li>DatabaseEventListener: callback for all operations (including expected time, RUNSCRIPT) and cancel functionality
 </li><li>H2 Console / large result sets: use 'streaming' instead of building the page in-memory
 </li><li>Benchmark: add a graph to show how databases scale (performance/database size)
 </li><li>Implement a SQLData interface to map your data over to a custom object
+</li><li>In the MySQL and PostgreSQL mode, use lower case identifiers by default (DatabaseMetaData.storesLowerCaseIdentifiers = true)
 </li><li>Make DDL (Data Definition) operations transactional
 </li><li>Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
 </li><li>Support multiple directories (on different hard drives) for the same database
@@ -243,8 +246,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>In MySQL mode, for AUTO_INCREMENT columns, don't set the primary key
 </li><li>Use JDK 1.4 file locking to create the lock file (but not yet by default); writing a system property to detect concurrent access from the same VM (different classloaders).
 </li><li>Support compatibility for jdbc:hsqldb:res:
-</li><li>In the MySQL and PostgreSQL mode, use lower case identifiers by default (DatabaseMetaData.storesLowerCaseIdentifiers = true)
-</li><li>Provide a simple, lightweight O/R mapping tool
 </li><li>Provide an Java SQL builder with standard and H2 syntax
 </li><li>Trace: write OS, file system, JVM,... when opening the database
 </li><li>Support indexes for views (probably requires materialized views)
@@ -260,8 +261,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>File system that writes to two file systems (replicating file system)
 </li><li>File system with a background writer thread; test if this is faster
 </li><li>FTP access to a database (.csv for a table, a directory for a schema, a file for a lob, a script.sql file).
-</li><li>LIMIT and OFFSET for GROUP_CONCAT
-</li><li>Support triggers for INFORMATION_SCHEMA tables (to better support PostgreSQL catalog: rebuild after creating new tables)
 </li><li>Better document the source code
 </li><li>Support select * from dual a left join dual b on b.x=(select max(x) from dual)
 </li><li>Optimization: don't lock when the database is read-only
@@ -272,7 +271,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others)
 </li><li>Command line option for the H2 Console and TCP configuration (which .h2.server.properties and .h2.keystore to use)
 </li><li>Support a schema name for Java functions
-</li><li>Remember the domain of a column
+</li><li>Remember the user defined data type (domain) of a column
 </li><li>Support Jackcess (MS Access databases)
 </li><li>Built-in methods to write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World')
 </li><li>Change package name in version 2.0: org.h2database
@@ -281,13 +280,10 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 </li><li>Java 1.5 tool: JdbcUtils.closeSilently(s1, s2,...)
 </li><li>Javadoc: document design patterns used
-</li><li>Triggers for metadata tables; use for PostgreSQL catalog
 </li><li>Does the FTP server has problems with multithreading?
 </li><li>Write an article about SQLInjection (h2\src\docsrc\html\images\SQLInjection.txt)
 </li><li>Convert SQL-injection-2.txt to html document, include SQLInjection.java sample
-</li><li>Send SQL Injection solution proposal to MySQL, Derby, HSQLDB,...
 </li><li>Improve LOB in directories performance
-</li><li>Optimize OR conditions: convert them to IN(...) if possible.
 </li><li>Web site design: http://www.igniterealtime.org/projects/openfire/index.jsp
 </li><li>HSQLDB compatibility: Openfire server uses: CREATE SCHEMA PUBLIC AUTHORIZATION DBA;
     CREATE USER SA PASSWORD ""; GRANT DBA TO SA; SET SCHEMA PUBLIC
@@ -301,7 +297,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Translated .pdf
 </li><li>Cluster: hot deploy (adding a node at runtime)
 </li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.id = t2.id where t1.id = t2.id;
-</li><li>Try again with Lobo browser (pure Java)
 </li><li>Recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...), and things should go into the .trace.db file
 </li><li>RECOVER=2 to backup the database, run recovery, open the database
 </li><li>Recovery should work with encrypted databases
@@ -408,6 +403,8 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>OSGi: create a sample application, test, document.
 </li><li>help.csv: use complete examples for functions; run as test case.
 </li><li>Deploy h2..-sources.jar to maven repository.
+</li><li>Re-implement PooledConnection; use a lightweight connection object.
+</li><li>Doclet: convert some javadocs to a resource (man page for command line tools, tests, build tool).
 </li></ul>
 
 <h2>Not Planned</h2>

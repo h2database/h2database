@@ -47,6 +47,7 @@ public class FileObjectMemory implements FileObject {
         private int size;
 
         Cache(int size) {
+            super(size, (float) 0.75, true);
             this.size = size;
         }
 

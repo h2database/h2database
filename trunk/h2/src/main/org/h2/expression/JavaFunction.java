@@ -127,10 +127,9 @@ public class JavaFunction extends Expression implements FunctionCall {
         case ExpressionVisitor.DETERMINISTIC:
             if (!isDeterministic()) {
                 return false;
-            } else {
-                // only if all parameters are deterministic as well
-                break;
             }
+            // only if all parameters are deterministic as well
+            break;
         case ExpressionVisitor.GET_DEPENDENCIES:
             visitor.addDependency(functionAlias);
             break;

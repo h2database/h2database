@@ -773,7 +773,7 @@ public class Recover extends Tool implements DataHandler {
                     break;
                 case Page.TYPE_LOG:
                     writer.println("-- page " + page + ": log " + (last ? "(last)" : ""));
-                    dumpPageLog(store, writer, s, last);
+                    dumpPageLog(writer, s, last);
                     break;
                 default:
                     writer.println("-- page " + page + ": ERROR unknown type " + type);
@@ -926,7 +926,7 @@ public class Recover extends Tool implements DataHandler {
 
     }
 
-    private void dumpPageLog(FileStore store, PrintWriter writer, DataPage s, boolean last) {
+    private void dumpPageLog(PrintWriter writer, DataPage s, boolean last) {
         if (last) {
             int size = s.readInt();
             writer.println("--  size:" + size);

@@ -596,7 +596,7 @@ public class FullText {
         }
     }
 
-    private static void addWords(FullTextSettings setting, HashSet set, String text) {
+    static void addWords(FullTextSettings setting, HashSet set, String text) {
         StringTokenizer tokenizer = new StringTokenizer(text, " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]");
         while (tokenizer.hasMoreTokens()) {
             String word = tokenizer.nextToken();

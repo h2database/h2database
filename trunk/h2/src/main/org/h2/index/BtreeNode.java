@@ -155,10 +155,9 @@ public class BtreeNode extends BtreePage {
                     // root page: save as it (empty)
                     index.updatePage(session, this);
                     return first;
-                } else {
-                    // no more children - this page is empty as well
-                    return oldRow;
                 }
+                // no more children - this page is empty as well
+                return oldRow;
             }
             if (at == 0) {
                 // the first child is empty - then the first row of this subtree

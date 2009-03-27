@@ -30,70 +30,65 @@ import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 
 /**
- * Executes the contents of a SQL script file against a database.
- * This tool is usually used to create a database from script.
- * It can also be used to analyze performance problems by running
- * the tool using Java profiler settings such as:
- * <pre>
- * java -Xrunhprof:cpu=samples ...
- * </pre>
+ * Runs a SQL script against a database.
+ * @h2.resource
  */
 public class RunScript extends Tool {
 
     private boolean showResults;
     private boolean checkResults;
 
-    private void showUsage() {
-        out.println("Runs a SQL script.");
-        out.println("java "+getClass().getName() + "\n" +
-                " -url <url>         The database URL\n" +
-                " -user <user>       The user name\n" +
-                " [-password <pwd>]  The password\n" +
-                " [-script <file>]   The script file to run (default: backup.sql)\n" +
-                " [-driver <class>]  The JDBC driver class to use (not required in most cases)\n" +
-                " [-showResults]     Show the statements and the results of queries\n" +
-                " [-checkResults]    Check if the query results match the expected results\n" +
-                " [-options ...]     A list of options (only for embedded H2, see RUNSCRIPT)");
-        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
-    }
-
     /**
-     * The command line interface for this tool. The options must be split into
-     * strings like this: "-user", "sa",... Options are case sensitive. The
-     * following options are supported:
-     * <ul>
-     * <li>-help or -? (print the list of options) </li>
-     * <li>-url jdbc:h2:... (database URL) </li>
-     * <li>-user username </li>
-     * <li>-password password </li>
-     * <li>-script filename (default file name is backup.sql) </li>
-     * <li>-driver driver (the JDBC driver class name; not required for most
-     * databases) </li>
-     * <li>-showResults (show the statements and the results of queries)</li>
-     * <li>-checkResults (check if the query results match the expected results</li>
-     * <li>-options (to specify a list of options for the RUNSCRIPT command;
-     * only for H2 and only when using the embedded mode)</li>
-     * </ul>
-     * To include local files when using remote databases, use the special
-     * syntax:
-     *
-     * <pre>
-     * &#064;INCLUDE fileName
-     * </pre>
-     *
-     * This syntax is only supported by this tool. Embedded RUNSCRIPT SQL
-     * statements will be executed by the database.
+     * Options are case sensitive. Supported options are:
+     * <table>
+     * <tr><td>[-help] or [-?]</td>
+     * <td>Print the list of options</td></tr>
+     * <tr><td>[-url &lt;url&gt;]</td>
+     * <td>The database URL (jdbc:...)</td></tr>
+     * <tr><td>[-user &lt;user&gt;]</td>
+     * <td>The user name (default: sa)</td></tr>
+     * <tr><td>[-password &lt;pwd&gt;]</td>
+     * <td>The password</td></tr>
+     * <tr><td>[-script &lt;file&gt;]</td>
+     * <td>The script file to run (default: backup.sql)</td></tr>
+     * <tr><td>[-driver &lt;class&gt;]</td>
+     * <td>The JDBC driver class to use (not required in most cases)</td></tr>
+     * <tr><td>[-showResults]</td>
+     * <td>Show the statements and the results of queries</td></tr>
+     * <tr><td>[-checkResults]</td>
+     * <td>Check if the query results match the expected results</td></tr>
+     * <tr><td>[-options ...]</td>
+     * <td>A list of options (only for embedded H2, see RUNSCRIPT)</td></tr>
+     * </table>
+     * @h2.resource
      *
      * @param args the command line arguments
-     * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
         new RunScript().run(args);
     }
 
+    /**
+     * Executes the contents of a SQL script file against a database.
+     * This tool is usually used to create a database from script.
+     * It can also be used to analyze performance problems by running
+     * the tool using Java profiler settings such as:
+     * <pre>
+     * java -Xrunhprof:cpu=samples,depth=16 ...
+     * </pre>
+     * To include local files when using remote databases, use the special
+     * syntax:
+     * <pre>
+     * &#064;INCLUDE fileName
+     * </pre>
+     * This syntax is only supported by this tool. Embedded RUNSCRIPT SQL
+     * statements will be executed by the database.
+     *
+     * @param args the command line arguments
+     */
     public void run(String[] args) throws SQLException {
         String url = null;
-        String user = null;
+        String user = "sa";
         String password = "";
         String script = "backup.sql";
         String options = null;

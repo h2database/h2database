@@ -17,9 +17,10 @@ import org.h2.util.FileUtils;
 import org.h2.util.Tool;
 
 /**
- * A tools to change, remove or set a file password of a database without
- * opening it. The encryption algorithm can be changed as well. It can not be
- * used to change a password of a user.
+ * Allows changing the database file encryption password or algorithm.
+ * <br />
+ * This tool can not be used to change a password of a user.
+ * @h2.resource
  */
 public class ChangeFileEncryption extends Tool {
 
@@ -28,34 +29,27 @@ public class ChangeFileEncryption extends Tool {
     private byte[] decrypt;
     private byte[] encrypt;
 
-    private void showUsage() {
-        out.println("Allows changing the database file encryption password or algorithm.");
-        out.println("java "+getClass().getName() + "\n" +
-                " -cipher <type>    AES or XTEA\n" +
-                " [-dir <dir>]      The database directory (default: .)\n" +
-                " [-db <database>]  The database name (default: all databases)\n" +
-                " [-decrypt <pwd>]  The decryption password (default: the database is not yet encrypted)\n" +
-                " [-encrypt <pwd>]  The encryption password (default: the database should not be encrypted)\n" +
-                " [-quiet]          Do not print progress information");
-        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
-    }
-
     /**
-     * The command line interface for this tool.
-     * The options must be split into strings like this: "-db", "test",...
-     * Options are case sensitive. The following options are supported:
-     * <ul>
-     * <li>-help or -? (print the list of options)
-     * </li><li>-dir database directory (the default is the current directory)
-     * </li><li>-db database name (all databases if no name is specified)
-     * </li><li>-cipher type (AES or XTEA)
-     * </li><li>-decrypt password (null if the database is not encrypted)
-     * </li><li>-encrypt password (null if the database should not be encrypted)
-     * </li><li>-quiet does not print progress information
-     * </li></ul>
+     * Options are case sensitive. Supported options are:
+     * <table>
+     * <tr><td>[-help] or [-?]</td>
+     * <td>Print the list of options</td></tr>
+     * <tr><td>[-cipher type]</td>
+     * <td>The encryption type (AES or XTEA)</td></tr>
+     * <tr><td>[-dir &lt;dir&gt;]</td>
+     * <td>The database directory (default: .)</td></tr>
+     * <tr><td>[-db &lt;database&gt;]</td>
+     * <td>Database name (all databases if not set)</td></tr>
+     * <tr><td>[-decrypt &lt;pwd&gt;]</td>
+     * <td>The decryption password (if not set: not yet encrypted)</td></tr>
+     * <tr><td>[-encrypt &lt;pwd&gt;]</td>
+     * <td>The encryption password (if not set: do not encrypt)</td></tr>
+     * <tr><td>[-quiet]</td>
+     * <td>Do not print progress information</td></tr>
+     * </table>
+     * @h2.resource
      *
      * @param args the command line arguments
-     * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
         new ChangeFileEncryption().run(args);

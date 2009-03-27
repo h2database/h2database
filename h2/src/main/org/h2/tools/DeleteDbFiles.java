@@ -16,33 +16,28 @@ import org.h2.util.FileUtils;
 import org.h2.util.Tool;
 
 /**
- * Delete the database files. The database must be closed before calling this
- * tool.
+ * Deletes all files belonging to a database.
+ * <br />
+ * The database must be closed before calling this tool.
+ * @h2.resource
  */
 public class DeleteDbFiles extends Tool {
 
-    private void showUsage() {
-        out.println("Deletes all files belonging to a database.");
-        out.println("java "+getClass().getName() + "\n" +
-                " [-dir <dir>]      The directory (default: .)\n" +
-                " [-db <database>]  The database name\n" +
-                " [-quiet]          Do not print progress information");
-        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
-    }
-
     /**
-     * The command line interface for this tool.
-     * The options must be split into strings like this: "-db", "test",...
-     * Options are case sensitive. The following options are supported:
-     * <ul>
-     * <li>-help or -? (print the list of options)
-     * </li><li>-dir database directory (the default is the current directory)
-     * </li><li>-db database name (all databases if no name is specified)
-     * </li><li>-quiet does not print progress information
-     * </li></ul>
+     * Options are case sensitive. Supported options are:
+     * <table>
+     * <tr><td>[-help] or [-?]</td>
+     * <td>Print the list of options</td></tr>
+     * <tr><td>[-dir &lt;dir&gt;]</td>
+     * <td>The directory (default: .)</td></tr>
+     * <tr><td>[-db &lt;database&gt;]</td>
+     * <td>The database name</td></tr>
+     * <tr><td>[-quiet]</td>
+     * <td>Do not print progress information</td></tr>
+     * </table>
+     * @h2.resource
      *
      * @param args the command line arguments
-     * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
         new DeleteDbFiles().run(args);

@@ -24,34 +24,28 @@ import org.h2.util.IOUtils;
 import org.h2.util.Tool;
 
 /**
- * Backs up a H2 database by creating a .zip file from the database files.
+ * Creates a backup of a database.
+ * @h2.resource
  */
 public class Backup extends Tool {
 
-    private void showUsage() {
-        out.println("Creates a backup of a database.");
-        out.println("java "+getClass().getName() + "\n" +
-            " [-file <filename>]  The target file name (default: backup.zip)\n" +
-            " [-dir <dir>]        Source directory (default: .)\n" +
-            " [-db <database>]    Source database name\n" +
-            " [-quiet]            Do not print progress information");
-        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
-    }
-
     /**
-     * The command line interface for this tool.
-     * The options must be split into strings like this: "-db", "test",...
-     * Options are case sensitive. The following options are supported:
-     * <ul>
-     * <li>-help or -? (print the list of options)
-     * </li><li>-file filename (the default is backup.zip)
-     * </li><li>-dir database directory (the default is the current directory)
-     * </li><li>-db database name (not required if there is only one database)
-     * </li><li>-quiet does not print progress information
-     * </li></ul>
+     * Options are case sensitive. Supported options are:
+     * <table>
+     * <tr><td>[-help] or [-?]</td>
+     * <td>Print the list of options</td></tr>
+     * <tr><td>[-file &lt;filename&gt;]</td>
+     * <td>The target file name (default: backup.zip)</td></tr>
+     * <tr><td>[-dir &lt;dir&gt;]</td>
+     * <td>The source directory (default: .)</td></tr>
+     * <tr><td>[-db &lt;database&gt;]</td>
+     * <td>Source database; not required if there is only one</td></tr>
+     * <tr><td>[-quiet]</td>
+     * <td>Do not print progress information</td></tr>
+     * </table>
+     * @h2.resource
      *
      * @param args the command line arguments
-     * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
         new Backup().run(args);

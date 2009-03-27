@@ -58,12 +58,8 @@ import org.h2.value.Value;
 import org.h2.value.ValueLob;
 
 /**
- * Dumps the contents of a database file to a human readable text file. This
- * text file can be used to recover most of the data. This tool does not open
- * the database and can be used even if the database files are corrupted. A
- * database can get corrupted if there is a bug in the database engine or file
- * system software, or if an application writes into the database file that
- * doesn't understand the the file format, or if there is a hardware problem.
+ * Helps recovering a corrupted database.
+ * @h2.resource
  */
 public class Recover extends Tool implements DataHandler {
 
@@ -80,33 +76,37 @@ public class Recover extends Tool implements DataHandler {
     private HashMap tableMap;
     private boolean remove;
 
-    private void showUsage() {
-        out.println("Helps recovering a corrupted database.");
-        out.println("java "+getClass().getName() + "\n" +
-                " [-dir <dir>]      The directory (default: .)\n" +
-                " [-db <database>]  The database name\n" +
-                " [-trace]          Print additional trace information");
-        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
-    }
-
     /**
-     * The command line interface for this tool.
-     * The options must be split into strings like this: "-db", "test",...
-     * Options are case sensitive. The following options are supported:
-     * <ul>
-     * <li>-help or -? (print the list of options)
-     * </li><li>-dir database directory (the default is the current directory)
-     * </li><li>-db database name (all databases if no name is specified)
-     * </li><li>-trace (print additional trace information while processing)
-     * </li></ul>
+     * Options are case sensitive. Supported options are:
+     * <table>
+     * <tr><td>[-help] or [-?]</td>
+     * <td>Print the list of options</td></tr>
+     * <tr><td>[-dir &lt;dir&gt;]</td>
+     * <td>The directory (default: .)</td></tr>
+     * <tr><td>[-db &lt;database&gt;]</td>
+     * <td>The database name (all databases if not set)</td></tr>
+     * <tr><td>[-trace]</td>
+     * <td>Print additional trace information</td></tr>
+     * </table>
+     * @h2.resource
      *
      * @param args the command line arguments
-     * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
         new Recover().run(args);
     }
 
+    /**
+     * Dumps the contents of a database file to a human readable text file. This
+     * text file can be used to recover most of the data. This tool does not
+     * open the database and can be used even if the database files are
+     * corrupted. A database can get corrupted if there is a bug in the database
+     * engine or file system software, or if an application writes into the
+     * database file that doesn't understand the the file format, or if there is
+     * a hardware problem.
+     *
+     * @param args the command line arguments
+     */
     public void run(String[] args) throws SQLException {
         String dir = ".";
         String db = null;

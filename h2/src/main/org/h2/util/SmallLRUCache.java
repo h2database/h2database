@@ -30,6 +30,7 @@ extends HashMap
     private int size;
 
     public SmallLRUCache(int size) {
+        super(size, (float) 0.75, true);
         this.size = size;
     }
 

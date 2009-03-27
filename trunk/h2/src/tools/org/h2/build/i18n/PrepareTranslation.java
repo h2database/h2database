@@ -239,7 +239,7 @@ public class PrepareTranslation {
         String xml = IOUtils.readStringAndClose(new InputStreamReader(new FileInputStream(f), "UTF-8"), -1);
         StringBuffer template = new StringBuffer(xml.length());
         int id = 0;
-        Properties prop = new SortedProperties();
+        SortedProperties prop = new SortedProperties();
         XMLParser parser = new XMLParser(xml);
         StringBuffer buff = new StringBuffer();
         Stack stack = new Stack();
@@ -370,7 +370,7 @@ public class PrepareTranslation {
         String propFileName = target + "/_docs_" + MAIN_LANGUAGE + ".properties";
         Properties old = SortedProperties.loadProperties(propFileName);
         prop.putAll(old);
-        PropertiesToUTF8.storeProperties(prop, propFileName);
+        prop.store(propFileName);
         String t = template.toString();
         if (templateIsCopy && !t.equals(xml)) {
             for (int i = 0; i < Math.min(t.length(), xml.length()); i++) {
@@ -413,7 +413,7 @@ public class PrepareTranslation {
         ArrayList translations = new ArrayList();
         for (int i = 0; list != null && i < list.length; i++) {
             File f = list[i];
-            if (f.getName().endsWith(".properties")) {
+            if (f.getName().endsWith(".properties") && f.getName().indexOf('_') >= 0) {
                 if (f.getName().endsWith("_" + MAIN_LANGUAGE + ".properties")) {
                     main = f;
                 } else {
@@ -421,20 +421,20 @@ public class PrepareTranslation {
                 }
             }
         }
-        Properties p = SortedProperties.loadProperties(main.getAbsolutePath());
+        SortedProperties p = SortedProperties.loadProperties(main.getAbsolutePath());
         Properties base = SortedProperties.loadProperties(baseDir + "/" + main.getName());
-        PropertiesToUTF8.storeProperties(p, main.getAbsolutePath());
+        p.store(main.getAbsolutePath());
         for (int i = 0; i < translations.size(); i++) {
             File trans = (File) translations.get(i);
             String language = trans.getName();
             language = language.substring(language.lastIndexOf('_') + 1, language.lastIndexOf('.'));
             prepare(p, base, trans, language);
         }
-        PropertiesToUTF8.storeProperties(p, baseDir + "/" + main.getName());
+        p.store(baseDir + "/" + main.getName());
     }
 
     private void prepare(Properties main, Properties base, File trans, String language) throws IOException {
-        Properties p = SortedProperties.loadProperties(trans.getAbsolutePath());
+        SortedProperties p = SortedProperties.loadProperties(trans.getAbsolutePath());
         Properties oldTranslations = new Properties();
         for (Iterator it = base.keySet().iterator(); it.hasNext();) {
             String key = (String) it.next();
@@ -526,7 +526,7 @@ public class PrepareTranslation {
                 p.remove(key);
             }
         }
-        PropertiesToUTF8.storeProperties(p, trans.getAbsolutePath());
+        p.store(trans.getAbsolutePath());
     }
 
     private Map autoTranslate(Set toTranslate, String  sourceLanguage, String targetLanguage) {

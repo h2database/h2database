@@ -6,6 +6,8 @@
  */
 package org.h2.test.unit;
 
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -14,6 +16,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
+import org.h2.util.SortedProperties;
 
 /**
  * Test the serialized (server-less) mode.
@@ -30,8 +33,72 @@ public class TestFileLockSerialized extends TestBase {
     }
 
     public void test() throws Exception {
+        Class.forName("org.h2.Driver");
+        testTwoWriters();
+        testPendingWrite();
         testKillWriter();
         testConcurrentReadWrite();
+    }
+
+    private void testTwoWriters() throws Exception {
+        deleteDb("fileLockSerialized");
+        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized";
+        final String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
+        final boolean[] stop = new boolean[1];
+        Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
+        conn.createStatement().execute("create table test(id identity) as select x from system_range(1, 100)");
+        conn.close();
+        new Thread() {
+            public void run() {
+                while (!stop[0]) {
+                    try {
+                        Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
+                        conn.createStatement().execute("select * from test");
+                        conn.close();
+                    } catch (SQLException e) {
+                        // ignore
+                    }
+                }
+            }
+        }.start();
+        Thread.sleep(100);
+        for (int i = 0; i < 3; i++) {
+            conn = DriverManager.getConnection(writeUrl, "sa", "sa");
+            Statement stat = conn.createStatement();
+            stat.execute("drop table test");
+            stat.execute("create table test(id identity) as select x from system_range(1, 100)");
+            conn.createStatement().execute("select * from test");
+            conn.close();
+        }
+        stop[0] = true;
+        Thread.sleep(100);
+        conn = DriverManager.getConnection(writeUrl, "sa", "sa");
+        conn.createStatement().execute("select * from test");
+        conn.close();
+    }
+
+    private void testPendingWrite() throws Exception {
+        deleteDb("fileLockSerialized");
+        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized";
+        String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;WRITE_DELAY=0";
+
+        Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key)");
+        Thread.sleep(500);
+        String propFile = baseDir + "/fileLockSerialized.lock.db";
+        SortedProperties p = SortedProperties.loadProperties(propFile);
+        p.setProperty("changePending", "true");
+        p.setProperty("modificationDataId", "1000");
+        OutputStream out = new FileOutputStream(propFile, false);
+        try {
+            p.store(out, "test");
+        } finally {
+            out.close();
+        }
+        Thread.sleep(500);
+        stat.execute("select * from test");
+        conn.close();
     }
 
     private void testKillWriter() throws Exception {
@@ -39,7 +106,6 @@ public class TestFileLockSerialized extends TestBase {
         String url = "jdbc:h2:" + baseDir + "/fileLockSerialized";
         String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;WRITE_DELAY=0";
 
-        Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");

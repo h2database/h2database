@@ -18,7 +18,24 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Linked tables to SQLite database can now be created.
+<ul><li>Some internal caches did not use the LRU mechanism. Fixed
+    (LOB file list, optimizer cost cache, trace system, view indexes, collection keys,
+    compressed in-memory file system).
+</li><li>Command line help of the tools now match the javadocs.
+    The build converts the javadocs to a resource that is read by the tool at runtime.
+    This should not have an effect on using the database, but it reduces duplicate
+    and out-of-sync documentation.
+</li><li>CREATE TABLE: improved compatibility (support for UNIQUE NOT NULL).
+</li><li>DatabaseMetaData.getSQLKeywords now returns the correct list.
+</li><li>Deterministic user defined functions did not work when the parameter was a column. Fixed.
+</li><li>JdbcConnectionPool.setLoginTimeout with 0 now uses the default timeout.
+</li><li>Creating a JdbcConnectionPool has been simplified a bit.
+</li><li>The built-in connection pool did not re-use connections.
+    Getting a connection using the built-in JdbcConnectionPool is now about 70 times faster
+    than opening connections using DriverManager.getConnection.
+</li><li>More bugs in the server-less multi-connection mode have been fixed:
+    if a process terminated while writing, other open connections were blocked.
+</li><li>Linked tables to SQLite database can now be created.
 </li><li>Nested IN(IN(...)) didn't work.
 </li><li>NIO storage: the nio: prefix was using memory mapped files instead of FileChannel.
 </li></ul>

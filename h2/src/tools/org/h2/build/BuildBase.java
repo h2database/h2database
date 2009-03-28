@@ -139,7 +139,7 @@ public class BuildBase {
     /**
      * Emit a beep.
      */
-    public void beep() {
+    protected void beep() {
         out.print("\007");
         out.flush();
     }

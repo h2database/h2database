@@ -74,13 +74,13 @@ public class TestTools extends TestBase {
     }
 
     private void testDeleteFiles() throws SQLException {
-        DeleteDbFiles.execute(null, "utilsMore", true);
-        Connection conn = DriverManager.getConnection("jdbc:h2:utilsMore");
+        deleteDb("utilsMore");
+        Connection conn = getConnection("utilsMore");
         Statement stat = conn.createStatement();
         stat.execute("create table test(c clob) as select space(10000) from dual");
         conn.close();
-        DeleteDbFiles.execute(null, "utils", true);
-        conn = DriverManager.getConnection("jdbc:h2:utilsMore");
+        DeleteDbFiles.execute(baseDir, "utils", true);
+        conn = getConnection("utilsMore");
         stat = conn.createStatement();
         ResultSet rs;
         rs = stat.executeQuery("select * from test");

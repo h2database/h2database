@@ -65,10 +65,10 @@ public class TestCsv extends TestBase {
         stat.execute("create temporary table test (a int, b int, c int)");
         stat.execute("insert into test values(1,2,3)");
         stat.execute("insert into test values(4,null,5)");
-        stat.execute("call csvwrite('test.tsv','select * from test',null,' ')");
+        stat.execute("call csvwrite('"+baseDir+"/test.tsv','select * from test',null,' ')");
         ResultSet rs1 = stat.executeQuery("select * from test");
         assertResultSetOrdered(rs1, new String[][]{new String[]{"1", "2", "3"}, new String[]{"4", null, "5"}});
-        ResultSet rs2 = stat.executeQuery("select * from csvread('test.tsv',null,null,' ')");
+        ResultSet rs2 = stat.executeQuery("select * from csvread('"+baseDir+"/test.tsv',null,null,' ')");
         assertResultSetOrdered(rs2, new String[][]{new String[]{"1", "2", "3"}, new String[]{"4", null, "5"}});
         conn.close();
         FileUtils.delete(f.getAbsolutePath());

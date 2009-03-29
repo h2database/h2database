@@ -219,7 +219,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
     }
 
     public void setPowerOffCount(int count) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("remote");
     }
 
     public SessionInterface createSession(ConnectionInfo ci) throws SQLException {
@@ -307,7 +307,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         // AUTO_SERVER implies AUTO_RECONNECT
         autoReconnect |= Boolean.valueOf(ci.getProperty("AUTO_SERVER", "false")).booleanValue();
         if (autoReconnect && serverList != null) {
-            throw Message.getSQLException(ErrorCode.FEATURE_NOT_SUPPORTED);
+            throw Message.getUnsupportedException("autoReconnect && serverList != null");
         }
         if (autoReconnect) {
             eventListener = ci.getDatabaseEventListenerObject();

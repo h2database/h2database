@@ -744,7 +744,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public InputStream getUnicodeStream(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getUnicodeStream", columnIndex);
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("unicodeStream");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -757,7 +757,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public InputStream getUnicodeStream(String columnName) throws SQLException {
         try {
             debugCodeCall("getUnicodeStream", columnName);
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("unicodeStream");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -772,7 +772,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("getObject(" + columnIndex + ", map);");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("map");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -787,7 +787,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("getObject(" + quote(columnName) + ", map);");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("map");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -799,7 +799,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public Ref getRef(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getRef", columnIndex);
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("ref");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -811,7 +811,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public Ref getRef(String columnName) throws SQLException {
         try {
             debugCodeCall("getRef", columnName);
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("ref");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1207,7 +1207,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public URL getURL(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getURL", columnIndex);
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("url");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1219,7 +1219,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public URL getURL(String columnName) throws SQLException {
         try {
             debugCodeCall("getURL", columnName);
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("url");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2073,7 +2073,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("updateRef("+columnIndex+", x);");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("ref");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2087,7 +2087,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("updateRef("+quote(columnName)+", x);");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("ref");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2329,7 +2329,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("updateArray("+columnIndex+", x);");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("setArray");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2343,7 +2343,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("updateArray("+quote(columnName)+", x);");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("setArray");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2357,7 +2357,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public String getCursorName() throws SQLException {
         try {
             debugCodeCall("getCursorName");
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("cursorName");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2462,6 +2462,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
+     * [Not supported]
      * Sets (changes) the fetch direction for this result set. This method
      * should only be called for scrollable result sets, otherwise it will throw
      * an exception (no matter what direction is used).
@@ -2473,7 +2474,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     public void setFetchDirection(int direction) throws SQLException {
         try {
             debugCodeCall("setFetchDirection", direction);
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("setFetchDirection");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3054,7 +3055,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      */
 /*## Java 1.6 begin ##
     public RowId getRowId(int columnIndex) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("rowId");
     }
 ## Java 1.6 end ##*/
 
@@ -3065,7 +3066,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      */
 /*## Java 1.6 begin ##
     public RowId getRowId(String columnName) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("rowId");
     }
 ## Java 1.6 end ##*/
 
@@ -3077,7 +3078,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      */
 /*## Java 1.6 begin ##
     public void updateRowId(int columnIndex, RowId x) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("rowId");
     }
 ## Java 1.6 end ##*/
 
@@ -3089,7 +3090,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      */
 /*## Java 1.6 begin ##
     public void updateRowId(String columnName, RowId x) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("rowId");
     }
 ## Java 1.6 end ##*/
 
@@ -3168,7 +3169,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("updateNClob("+columnIndex+", x);");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("NClob");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3184,7 +3185,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("updateNClob("+columnIndex+", x);");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("NClob");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3201,7 +3202,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("updateNClob("+columnIndex+", x, " + length + "L);");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("NClob");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3218,7 +3219,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("updateNClob("+quote(columnName)+", x);");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("NClob");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3235,7 +3236,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("updateNClob("+quote(columnName)+", x, " + length+"L);");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("NClob");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3251,7 +3252,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("updateNClob("+quote(columnName)+", x);");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("NClob");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3304,7 +3305,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      */
 /*## Java 1.6 begin ##
     public SQLXML getSQLXML(int columnIndex) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SQLXML");
     }
 ## Java 1.6 end ##*/
 
@@ -3313,7 +3314,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      */
 /*## Java 1.6 begin ##
     public SQLXML getSQLXML(String columnName) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SQLXML");
     }
 ## Java 1.6 end ##*/
 
@@ -3323,7 +3324,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 /*## Java 1.6 begin ##
     public void updateSQLXML(int columnIndex, SQLXML xmlObject)
             throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SQLXML");
     }
 ## Java 1.6 end ##*/
 
@@ -3333,7 +3334,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 /*## Java 1.6 begin ##
     public void updateSQLXML(String columnName, SQLXML xmlObject)
             throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SQLXML");
     }
 ## Java 1.6 end ##*/
 
@@ -3475,7 +3476,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 /*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
         debugCode("unwrap");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("unwrap");
     }
 ## Java 1.6 end ##*/
 
@@ -3485,7 +3486,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 /*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         debugCode("isWrapperFor");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("isWrapperFor");
     }
 ## Java 1.6 end ##*/
 

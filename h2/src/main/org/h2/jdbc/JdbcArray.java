@@ -280,7 +280,7 @@ public class JdbcArray extends TraceObject implements Array {
 
     private void checkMap(Map map) throws SQLException {
         if (map != null && map.size() > 0) {
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("map.size > 0");
         }
     }
 

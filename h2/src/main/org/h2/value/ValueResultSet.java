@@ -112,7 +112,7 @@ public class ValueResultSet extends Value {
     }
 
     protected int compareSecure(Value v, CompareMode mode) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw throwUnsupportedExceptionForType();
     }
 
     public boolean equals(Object other) {
@@ -132,7 +132,7 @@ public class ValueResultSet extends Value {
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw throwUnsupportedExceptionForType();
     }
 
     public String getSQL() {

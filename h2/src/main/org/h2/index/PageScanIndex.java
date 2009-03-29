@@ -182,7 +182,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("PAGE");
     }
 
     public double getCost(Session session, int[] masks) throws SQLException {
@@ -256,7 +256,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("PAGE");
     }
 
     public Row getRow(Session session, int key) throws SQLException {

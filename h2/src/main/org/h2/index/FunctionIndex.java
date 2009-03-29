@@ -36,11 +36,11 @@ public class FunctionIndex extends BaseIndex {
     }
 
     public void add(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("ALIAS");
     }
 
     public void remove(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("ALIAS");
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
@@ -52,7 +52,7 @@ public class FunctionIndex extends BaseIndex {
 
     public double getCost(Session session, int[] masks) throws SQLException {
         if (masks != null) {
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("ALIAS");
         }
         long expectedRows;
         if (functionTable.canGetRowCount()) {
@@ -64,11 +64,11 @@ public class FunctionIndex extends BaseIndex {
     }
 
     public void remove(Session session) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("ALIAS");
     }
 
     public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("ALIAS");
     }
 
     public boolean needRebuild() {
@@ -76,7 +76,7 @@ public class FunctionIndex extends BaseIndex {
     }
 
     public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("ALIAS");
     }
 
     public boolean canGetFirstOrLast() {
@@ -84,7 +84,7 @@ public class FunctionIndex extends BaseIndex {
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("ALIAS");
     }
 
     public long getRowCount(Session session) {

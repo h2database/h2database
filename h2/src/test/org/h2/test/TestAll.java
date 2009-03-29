@@ -284,10 +284,6 @@ java org.h2.test.TestAll timer
 
 Console, Server, and Shell do not extend Tool yet.
 
-DatabaseH2PoolTest.java
-file_lock=serialized and then go back to auto_server=true
-throws an exception "method not supported".
-
 documentation: rolling review at roadmap.html:312
 
 create a short 4 pages documentation

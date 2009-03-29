@@ -2550,7 +2550,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                         +quote(schemaPattern)+", "
                         +quote(typeNamePattern)+");");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("superTypes");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2610,7 +2610,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                         +quote(typeNamePattern)+", "
                         +quote(attributeNamePattern)+");");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("attributes");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2752,7 +2752,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     public ResultSet getSchemas(String catalog, String schemaPattern)
             throws SQLException {
         debugCodeCall("getSchemas");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("getSchemas(., .)");
     }
 ## Java 1.6 end ##*/
 
@@ -2781,7 +2781,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      */
     public ResultSet getClientInfoProperties() throws SQLException {
         debugCodeCall("getClientInfoProperties");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("clientInfoProperties");
     }
 
     /**
@@ -2790,7 +2790,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 /*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
         debugCodeCall("unwrap");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("unwrap");
     }
 ## Java 1.6 end ##*/
 
@@ -2800,7 +2800,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 /*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         debugCodeCall("isWrapperFor");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("isWrapperFor");
     }
 ## Java 1.6 end ##*/
 
@@ -2812,7 +2812,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             String functionNamePattern, String columnNamePattern)
             throws SQLException {
         debugCodeCall("getFunctionColumns");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("getFunctionColumns");
     }
 ## Java 1.6 end ##*/
 
@@ -2823,7 +2823,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     public ResultSet getFunctions(String catalog, String schemaPattern,
             String functionNamePattern) throws SQLException {
         debugCodeCall("getFunctions");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("getFunctions");
     }
 ## Java 1.6 end ##*/
 

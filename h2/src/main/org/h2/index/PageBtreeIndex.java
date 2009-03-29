@@ -171,7 +171,7 @@ public class PageBtreeIndex extends BaseIndex {
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("PAGE");
     }
 
     public double getCost(Session session, int[] masks) {

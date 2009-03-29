@@ -8,8 +8,6 @@ package org.h2.value;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
-import org.h2.message.Message;
 import org.h2.util.MathUtils;
 
 /**
@@ -99,7 +97,7 @@ public class ValueArray extends Value {
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw throwUnsupportedExceptionForType();
     }
 
     public String getSQL() {

@@ -296,7 +296,7 @@ public class ErrorCode {
      * calling an unsupported JDBC method. See the stack trace
      * for details.
      */
-    public static final int FEATURE_NOT_SUPPORTED = 50100;
+    public static final int FEATURE_NOT_SUPPORTED_1 = 50100;
 
     /**
      * The error with code <code>50200</code> is thrown when
@@ -1900,7 +1900,7 @@ public class ErrorCode {
         case GENERAL_ERROR_1: return "HY000";
         case UNKNOWN_DATA_TYPE_1: return "HY004";
 
-        case FEATURE_NOT_SUPPORTED: return "HYC00";
+        case FEATURE_NOT_SUPPORTED_1: return "HYC00";
         case LOCK_TIMEOUT_1: return "HYT00";
         default:
             return "" + errorCode;

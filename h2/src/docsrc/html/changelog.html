@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Some internal caches did not use the LRU mechanism. Fixed
+<ul><li>Improved error message for unsupported features: 
+    now the message says what exactly is not supported.
+</li><li>Improved OSGi support.
+</li><li>Some internal caches did not use the LRU mechanism. Fixed
     (LOB file list, optimizer cost cache, trace system, view indexes, collection keys,
     compressed in-memory file system).
 </li><li>Command line help of the tools now match the javadocs.
@@ -34,7 +37,8 @@ Change Log
     Getting a connection using the built-in JdbcConnectionPool is now about 70 times faster
     than opening connections using DriverManager.getConnection.
 </li><li>More bugs in the server-less multi-connection mode have been fixed:
-    if a process terminated while writing, other open connections were blocked.
+    If a process terminated while writing, other open connections were blocked.
+    If two processes were writing to the database, sometimes the database was corrupt after closing.
 </li><li>Linked tables to SQLite database can now be created.
 </li><li>Nested IN(IN(...)) didn't work.
 </li><li>NIO storage: the nio: prefix was using memory mapped files instead of FileChannel.

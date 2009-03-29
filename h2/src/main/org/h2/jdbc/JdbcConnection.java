@@ -1254,6 +1254,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     /**
      * Check if this connection is closed.
      *
+     * @return true if the session was re-connected
      * @throws SQLException if the connection or session is closed
      */
     boolean checkClosed() throws SQLException {
@@ -1390,7 +1391,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
 /*## Java 1.6 begin ##
     public SQLXML createSQLXML() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SQLXML");
     }
 ## Java 1.6 end ##*/
 
@@ -1400,7 +1401,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 /*## Java 1.6 begin ##
     public Array createArrayOf(String typeName, Object[] elements)
             throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("createArray");
     }
 ## Java 1.6 end ##*/
 
@@ -1410,7 +1411,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 /*## Java 1.6 begin ##
     public Struct createStruct(String typeName, Object[] attributes)
             throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("Struct");
     }
 ## Java 1.6 end ##*/
 
@@ -1470,7 +1471,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
 /*## Java 1.6 begin ##
     public String getClientInfo(String name) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("clientInfo");
     }
 ## Java 1.6 end ##*/
 
@@ -1481,7 +1482,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
 /*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("unwrap");
     }
 ## Java 1.6 end ##*/
 
@@ -1492,7 +1493,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
 /*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("isWrapperFor");
     }
 ## Java 1.6 end ##*/
 
@@ -1536,7 +1537,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     private void checkMap(Map map) throws SQLException {
         if (map != null && map.size() > 0) {
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("map.size > 0");
         }
     }
 

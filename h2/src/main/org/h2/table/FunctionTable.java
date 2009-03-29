@@ -93,15 +93,15 @@ public class FunctionTable extends Table {
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             int headPos, String comment) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("ALIAS");
     }
 
     public void removeRow(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("ALIAS");
     }
 
     public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("ALIAS");
     }
 
     public boolean canDrop() {
@@ -109,11 +109,11 @@ public class FunctionTable extends Table {
     }
 
     public void addRow(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("ALIAS");
     }
 
     public void checkSupportAlter() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("ALIAS");
     }
 
     public String getTableType() {
@@ -145,7 +145,7 @@ public class FunctionTable extends Table {
     }
 
     public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("ALIAS");
     }
 
     /**

@@ -579,7 +579,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setRef("+parameterIndex+", x);");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("ref");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -666,7 +666,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setUnicodeStream("+parameterIndex+", x, "+length+");");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("unicodeStream");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -794,7 +794,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setArray("+parameterIndex+", x);");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("setArray");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -959,7 +959,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setURL("+parameterIndex+", x);");
             }
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("url");
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1235,7 +1235,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
 /*## Java 1.6 begin ##
     public void setRowId(int parameterIndex, RowId x) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("rowId");
     }
 ## Java 1.6 end ##*/
 
@@ -1402,7 +1402,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      */
 /*## Java 1.6 begin ##
     public void setSQLXML(int parameterIndex, SQLXML x) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SQLXML");
     }
 ## Java 1.6 end ##*/
 

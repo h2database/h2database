@@ -85,7 +85,7 @@ public class JdbcClob extends TraceObject implements Clob
      */
     public void truncate(long len) throws SQLException {
         debugCodeCall("truncate", len);
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LOB update");
     }
 
     /**
@@ -109,7 +109,7 @@ public class JdbcClob extends TraceObject implements Clob
      */
     public OutputStream setAsciiStream(long pos) throws SQLException {
         debugCodeCall("setAsciiStream", pos);
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LOB update");
     }
 
     /**
@@ -132,7 +132,7 @@ public class JdbcClob extends TraceObject implements Clob
      */
     public Writer setCharacterStream(long pos) throws SQLException {
         debugCodeCall("setCharacterStream", pos);
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LOB update");
     }
 
     /**
@@ -177,7 +177,7 @@ public class JdbcClob extends TraceObject implements Clob
      */
     public int setString(long pos, String str) throws SQLException {
         debugCode("setString("+pos+", "+quote(str)+");");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LOB update");
     }
 
     /**
@@ -185,7 +185,7 @@ public class JdbcClob extends TraceObject implements Clob
      */
     public int setString(long pos, String str, int offset, int len) throws SQLException {
         debugCode("setString("+pos+", "+quote(str)+", "+offset+", "+len+");");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LOB update");
     }
 
     /**
@@ -193,7 +193,7 @@ public class JdbcClob extends TraceObject implements Clob
      */
     public long position(String pattern, long start) throws SQLException {
         debugCode("position("+quote(pattern)+", "+start+");");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LOB search");
     }
 
     /**
@@ -201,7 +201,7 @@ public class JdbcClob extends TraceObject implements Clob
      */
     public long position(Clob clobPattern, long start) throws SQLException {
         debugCode("position(clobPattern, "+start+");");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LOB search");
     }
 
     /**
@@ -217,7 +217,7 @@ public class JdbcClob extends TraceObject implements Clob
      */
     public Reader getCharacterStream(long pos, long length) throws SQLException {
         debugCode("getCharacterStream("+pos+", "+length+");");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LOB subset");
     }
 
     private void checkClosed() throws SQLException {

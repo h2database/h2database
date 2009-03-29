@@ -79,23 +79,23 @@ public class RangeTable extends Table {
     }
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType, int headPos, String comment) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SYSTEM_RANGE");
     }
 
     public void removeRow(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SYSTEM_RANGE");
     }
 
     public void addRow(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SYSTEM_RANGE");
     }
 
     public void checkSupportAlter() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SYSTEM_RANGE");
     }
 
     public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SYSTEM_RANGE");
     }
 
     public boolean canGetRowCount() {
@@ -153,7 +153,7 @@ public class RangeTable extends Table {
     }
 
     public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SYSTEM_RANGE");
     }
 
     public long getMaxDataModificationId() {

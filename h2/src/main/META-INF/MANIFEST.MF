@@ -6,7 +6,9 @@ Build-Jdk: ${buildJdk}
 Created-By: ${createdBy}
 ${mainClassTag}
 Bundle-Activator: org.h2.util.DbDriverActivator
+Bundle-ManifestVersion: 2
 Bundle-Name: H2 Database Engine
+Bundle-SymbolicName: org.h2
 Bundle-Vendor: H2 Group
 Bundle-Version: ${version}
 DynamicImport-Package: *

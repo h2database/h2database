@@ -231,7 +231,13 @@ public class FullTextLucene extends FullText {
         stat.execute(buff.toString());
     }
 
-    private static IndexModifier getIndexModifier(Connection conn) throws SQLException {
+    /**
+     * Get the index modifier for the given connection.
+     * 
+     * @param conn the connection
+     * @return the index modifier
+     */
+    static IndexModifier getIndexModifier(Connection conn) throws SQLException {
         String path = getIndexPath(conn);
         IndexModifier indexer;
         synchronized (INDEX_MODIFIERS) {

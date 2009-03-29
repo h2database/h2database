@@ -244,7 +244,7 @@ public class Database implements DataHandler {
                 }
                 traceSystem.close();
             }
-            closeOpenFilesAndUnlock();
+            closeOpenFilesAndUnlock(false);
             throw Message.convert(e);
         }
     }
@@ -371,7 +371,7 @@ public class Database implements DataHandler {
                 if (log != null) {
                     try {
                         stopWriter();
-                        log.close();
+                        log.close(false);
                     } catch (SQLException e) {
                         // ignore
                     }
@@ -520,8 +520,7 @@ public class Database implements DataHandler {
                     .info("opening " + databaseName + " (build " + Constants.BUILD_ID + ")");
             if (autoServerMode) {
                 if (readOnly || fileLockMethod == FileLock.LOCK_NO) {
-                    int todoImproveErrorMessage;
-                    throw Message.getSQLException(ErrorCode.FEATURE_NOT_SUPPORTED);
+                    throw Message.getUnsupportedException("autoServerMode && (readOnly || fileLockMethod == NO)");
                 }
             }
             if (!readOnly && fileLockMethod != FileLock.LOCK_NO) {
@@ -1059,6 +1058,17 @@ public class Database implements DataHandler {
         if (closing) {
             return;
         }
+        if (isReconnectNeeded()) {
+            // another connection wrote - don't write anything
+            try {
+                closeOpenFilesAndUnlock(false);
+            } catch (SQLException e) {
+                // ignore
+            }
+            traceSystem.close();
+            Engine.getInstance().close(databaseName);
+            return;
+        }
         closing = true;
         stopServer();
         if (userSessions.size() > 0) {
@@ -1131,7 +1141,7 @@ public class Database implements DataHandler {
         }
         tempFileDeleter.deleteAll();
         try {
-            closeOpenFilesAndUnlock();
+            closeOpenFilesAndUnlock(true);
         } catch (SQLException e) {
             traceSystem.getTrace(Trace.DATABASE).error("close", e);
         }
@@ -1172,18 +1182,20 @@ public class Database implements DataHandler {
         }
     }
 
-    private synchronized void closeOpenFilesAndUnlock() throws SQLException {
+    private synchronized void closeOpenFilesAndUnlock(boolean checkpoint) throws SQLException {
         if (log != null) {
             stopWriter();
             try {
-                log.close();
+                log.close(checkpoint);
             } catch (Throwable e) {
                 traceSystem.getTrace(Trace.DATABASE).error("close", e);
             }
             log = null;
         }
         if (pageStore != null) {
-            pageStore.checkpoint();
+            if (checkpoint) {
+                pageStore.checkpoint();
+            }
         }
         closeFiles();
         if (persistent && lock == null && fileLockMethod != FileLock.LOCK_NO) {
@@ -1200,7 +1212,11 @@ public class Database implements DataHandler {
             systemSession = null;
         }
         if (lock != null) {
-            lock.unlock();
+            if (fileLockMethod != FileLock.LOCK_SERIALIZED) {
+                // must not delete the .lock file if we wrote something,
+                // otherwise other connections can not detect that
+                lock.unlock();
+            }
             lock = null;
         }
     }
@@ -2200,6 +2216,7 @@ public class Database implements DataHandler {
                     // it may have terminated
                     lock.setProperty("changePending", null);
                     lock.save();
+                    break;
                 }
                 getTrace().debug("delay (change pending)");
                 Thread.sleep(SysProperties.RECONNECT_CHECK_DELAY);

@@ -697,7 +697,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      */
 /*## Java 1.6 begin ##
     public NClob getNClob(int parameterIndex) throws SQLException {
-        throw Message.throwGetUnsupportedException();
+        throw throwGetUnsupportedException();
     }
 ## Java 1.6 end ##*/
 

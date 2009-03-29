@@ -168,8 +168,10 @@ public class LogSystem {
 
     /**
      * Close all log files.
+     *
+     * @param checkpoint if a checkpoint should be written
      */
-    public void close() throws SQLException {
+    public void close(boolean checkpoint) throws SQLException {
         if (database == null) {
             return;
         }
@@ -189,7 +191,7 @@ public class LogSystem {
             SQLException closeException = null;
             try {
                 flushAndCloseUnused();
-                if (!containsInDoubtTransactions()) {
+                if (!containsInDoubtTransactions() && checkpoint) {
                     checkpoint();
                 }
             } catch (SQLException e) {

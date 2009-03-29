@@ -34,10 +34,25 @@ public class TestFileLockSerialized extends TestBase {
 
     public void test() throws Exception {
         Class.forName("org.h2.Driver");
+        testTwoReaders();
         testTwoWriters();
         testPendingWrite();
         testKillWriter();
         testConcurrentReadWrite();
+    }
+
+    private void testTwoReaders() throws Exception {
+        deleteDb("fileLockSerialized");
+        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
+        Connection conn1 = DriverManager.getConnection(url);
+        conn1.createStatement().execute("create table test(id int)");
+        Connection conn2 = DriverManager.getConnection(url);
+        Statement stat2 = conn2.createStatement();
+        stat2.execute("drop table test");
+        stat2.execute("create table test(id identity) as select 1");
+        conn2.close();
+        conn1.close();
+        DriverManager.getConnection(url).close();
     }
 
     private void testTwoWriters() throws Exception {

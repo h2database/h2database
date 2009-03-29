@@ -74,11 +74,11 @@ public class ViewIndex extends BaseIndex {
     }
 
     public void add(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("VIEW");
     }
 
     public void remove(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("VIEW");
     }
 
     /**
@@ -246,15 +246,15 @@ public class ViewIndex extends BaseIndex {
     }
 
     public void remove(Session session) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("VIEW");
     }
 
     public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("VIEW");
     }
 
     public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("VIEW");
     }
 
     public boolean needRebuild() {
@@ -266,7 +266,7 @@ public class ViewIndex extends BaseIndex {
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("VIEW");
     }
 
     public void setRecursive(boolean value) {

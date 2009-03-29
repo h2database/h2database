@@ -205,24 +205,23 @@ public class TableView extends Table {
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             int headPos, String comment) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("VIEW");
     }
 
     public void removeRow(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("VIEW");
     }
 
     public void addRow(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("VIEW");
     }
 
     public void checkSupportAlter() throws SQLException {
-        // TODO view: alter what? rename is ok
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("VIEW");
     }
 
     public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("VIEW");
     }
 
     public long getRowCount(Session session) {

@@ -433,11 +433,11 @@ public abstract class Value {
      * @return the result
      */
     public Value add(Value v) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw throwUnsupportedExceptionForType();
     }
 
     public int getSignum() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw throwUnsupportedExceptionForType();
     }
 
     /**
@@ -446,7 +446,7 @@ public abstract class Value {
      * @return the negative
      */
     public Value negate() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw throwUnsupportedExceptionForType();
     }
 
     /**
@@ -456,7 +456,7 @@ public abstract class Value {
      * @return the result
      */
     public Value subtract(Value v) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw throwUnsupportedExceptionForType();
     }
 
     /**
@@ -466,7 +466,7 @@ public abstract class Value {
      * @return the result
      */
     public Value divide(Value v) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw throwUnsupportedExceptionForType();
     }
 
     /**
@@ -476,7 +476,7 @@ public abstract class Value {
      * @return the result
      */
     public Value multiply(Value v) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw throwUnsupportedExceptionForType();
     }
 
     /**
@@ -986,6 +986,16 @@ public abstract class Value {
 
     public String toString() {
         return getTraceSQL();
+    }
+
+    /**
+     * Throw the exception that the feature is not support for the given data type.
+     *
+     * @return the exception
+     * @throws SQLException
+     */
+    protected SQLException throwUnsupportedExceptionForType() throws SQLException {
+        throw Message.getUnsupportedException(DataType.getDataType(getType()).name);
     }
 
 }

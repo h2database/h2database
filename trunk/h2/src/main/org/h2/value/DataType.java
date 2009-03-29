@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.sql.Array;
+import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -956,13 +957,12 @@ public class DataType {
      */
     public static Object convertTo(SessionInterface session, JdbcConnection conn, Value v, Class paramClass)
             throws SQLException {
-        if (paramClass == java.sql.Blob.class) {
+        if (paramClass == Blob.class) {
             return new JdbcBlob(conn, v, 0);
         } else if (paramClass == Clob.class) {
             return new JdbcClob(conn, v, 0);
-        } else {
-            throw Message.getUnsupportedException();
         }
+        throw Message.getUnsupportedException(paramClass.getName());
     }
 
 }

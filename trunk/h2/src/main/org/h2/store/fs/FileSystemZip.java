@@ -39,7 +39,7 @@ public class FileSystemZip extends FileSystem {
     }
 
     public void copy(String original, String copy) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("write");
     }
 
     public void createDirs(String fileName) {
@@ -47,7 +47,7 @@ public class FileSystemZip extends FileSystem {
     }
 
     public boolean createNewFile(String fileName) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("write");
     }
 
     public String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
@@ -58,11 +58,11 @@ public class FileSystemZip extends FileSystem {
     }
 
     public void delete(String fileName) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("write");
     }
 
     public void deleteRecursive(String fileName) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("write");
     }
 
     public boolean exists(String fileName) {
@@ -209,11 +209,11 @@ public class FileSystemZip extends FileSystem {
     }
 
     public OutputStream openFileOutputStream(String fileName, boolean append) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("write");
     }
 
     public void rename(String oldName, String newName) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("write");
     }
 
     public boolean tryDelete(String fileName) {

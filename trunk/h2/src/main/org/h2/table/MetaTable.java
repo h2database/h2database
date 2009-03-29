@@ -548,7 +548,7 @@ public class MetaTable extends Table {
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             int headPos, String comment) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("META");
     }
 
     public void lock(Session session, boolean exclusive, boolean force) {
@@ -1641,15 +1641,15 @@ public class MetaTable extends Table {
     }
 
     public void removeRow(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("META");
     }
 
     public void addRow(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("META");
     }
 
     public void removeChildrenAndResources(Session session) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("META");
     }
 
     public void close(Session session) {
@@ -1740,15 +1740,15 @@ public class MetaTable extends Table {
     }
 
     public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("META");
     }
 
     public void checkSupportAlter() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("META");
     }
 
     public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("META");
     }
 
     public long getRowCount(Session session) {

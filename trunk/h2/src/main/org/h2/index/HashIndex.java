@@ -150,7 +150,7 @@ public class HashIndex extends BaseIndex {
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("HASH");
     }
 
     public long getRowCount(Session session) {

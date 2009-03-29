@@ -45,7 +45,7 @@ public class AlterTableRename extends SchemaCommand {
         }
         session.getUser().checkRight(oldTable, Right.ALL);
         if (oldTable.getTemporary()) {
-            throw Message.getUnsupportedException();
+            throw Message.getUnsupportedException("TEMP TABLE");
         }
         db.renameSchemaObject(session, oldTable, newTableName);
         return 0;

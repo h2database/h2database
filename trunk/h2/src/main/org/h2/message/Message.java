@@ -158,8 +158,8 @@ public class Message {
      *
      * @return the SQLException object
      */
-    public static JdbcSQLException getUnsupportedException() {
-        return getSQLException(ErrorCode.FEATURE_NOT_SUPPORTED);
+    public static JdbcSQLException getUnsupportedException(String message) {
+        return getSQLException(ErrorCode.FEATURE_NOT_SUPPORTED_1, message);
     }
 
     /**

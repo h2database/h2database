@@ -35,11 +35,11 @@ public class MetaIndex extends BaseIndex {
     }
 
     public void add(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("META");
     }
 
     public void remove(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("META");
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
@@ -55,11 +55,11 @@ public class MetaIndex extends BaseIndex {
     }
 
     public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("META");
     }
 
     public void remove(Session session) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("META");
     }
 
     public int getColumnIndex(Column col) {
@@ -71,7 +71,7 @@ public class MetaIndex extends BaseIndex {
     }
 
     public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("META");
     }
 
     public boolean needRebuild() {
@@ -87,7 +87,7 @@ public class MetaIndex extends BaseIndex {
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("META");
     }
 
     public long getRowCount(Session session) {

@@ -33,11 +33,11 @@ public class RangeIndex extends BaseIndex {
     }
 
     public void add(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SYSTEM_RANGE");
     }
 
     public void remove(Session session, Row row) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SYSTEM_RANGE");
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
@@ -57,11 +57,11 @@ public class RangeIndex extends BaseIndex {
     }
 
     public void remove(Session session) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SYSTEM_RANGE");
     }
 
     public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SYSTEM_RANGE");
     }
 
     public boolean needRebuild() {
@@ -69,7 +69,7 @@ public class RangeIndex extends BaseIndex {
     }
 
     public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("SYSTEM_RANGE");
     }
 
     public boolean canGetFirstOrLast() {

@@ -351,7 +351,7 @@ public class JdbcConnectionPool implements DataSource {
      */
 /*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("unwrap");
     }
 ## Java 1.6 end ##*/
 
@@ -362,7 +362,7 @@ public class JdbcConnectionPool implements DataSource {
      */
 /*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("isWrapperFor");
     }
 ## Java 1.6 end ##*/
 

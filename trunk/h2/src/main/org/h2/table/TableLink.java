@@ -331,7 +331,7 @@ public class TableLink extends Table {
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             int headPos, String comment) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LINK");
     }
 
     public void lock(Session session, boolean exclusive, boolean force) {
@@ -438,11 +438,11 @@ public class TableLink extends Table {
     }
 
     public void checkSupportAlter() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LINK");
     }
 
     public void truncate(Session session) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LINK");
     }
 
     public boolean canGetRowCount() {

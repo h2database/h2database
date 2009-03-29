@@ -81,7 +81,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      */
     public void truncate(long len) throws SQLException {
         debugCodeCall("truncate", len);
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LOB update");
     }
 
     /**
@@ -127,7 +127,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      */
     public int setBytes(long pos, byte[] bytes) throws SQLException {
         debugCode("setBytes("+pos+", bytes);");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LOB update");
     }
 
     /**
@@ -142,7 +142,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      */
     public int setBytes(long pos, byte[] bytes, int offset, int len) throws SQLException {
         debugCode("setBytes("+pos+", bytes, "+offset+", "+len+");");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LOB update");
     }
 
     /**
@@ -170,7 +170,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      */
     public OutputStream setBinaryStream(long pos) throws SQLException {
         debugCodeCall("setBinaryStream", pos);
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LOB update");
     }
 
     /**
@@ -223,7 +223,7 @@ public class JdbcBlob extends TraceObject implements Blob {
                 throw logAndConvert(e);
             }
         }
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LOB search");
     }
 
     /**
@@ -256,7 +256,7 @@ public class JdbcBlob extends TraceObject implements Blob {
                 throw logAndConvert(e);
             }
         }
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LOB subset");
     }
 
     /**
@@ -277,7 +277,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      */
     public InputStream getBinaryStream(long pos, long length) throws SQLException {
         debugCode("getBinaryStream("+pos+", "+length+");");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LOB update");
     }
 
     private void checkClosed() throws SQLException {

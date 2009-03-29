@@ -74,7 +74,7 @@ public class UserAggregate extends DbObjectBase {
     }
 
     public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("AGGREGATE");
     }
 
     public String getJavaClassName() {

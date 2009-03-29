@@ -434,7 +434,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
 /*## Java 1.6 begin ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
         debugCodeCall("unwrap");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("unwrap");
     }
 ## Java 1.6 end ##*/
 
@@ -444,7 +444,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
 /*## Java 1.6 begin ##
     public boolean isWrapperFor(Class< ? > iface) throws SQLException {
         debugCodeCall("isWrapperFor");
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("isWrapperFor");
     }
 ## Java 1.6 end ##*/
 

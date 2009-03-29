@@ -269,7 +269,7 @@ public class FileSystemDatabase extends FileSystem {
     }
 
     public void deleteRecursive(String fileName) throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("db");
     }
 
     public boolean exists(String fileName) {
@@ -407,7 +407,7 @@ public class FileSystemDatabase extends FileSystem {
             long parentOld = getId(oldName, true);
             long parentNew = getId(newName, true);
             if (parentOld != parentNew) {
-                throw Message.getUnsupportedException();
+                throw Message.getUnsupportedException("different parents");
             }
             newName = getFileName(newName);
             long id = getId(oldName, false);

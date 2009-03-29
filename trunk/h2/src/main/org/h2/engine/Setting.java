@@ -71,7 +71,7 @@ public class Setting extends DbObjectBase {
     }
 
     public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("RENAME");
     }
 
 }

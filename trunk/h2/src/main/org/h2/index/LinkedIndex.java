@@ -169,7 +169,7 @@ public class LinkedIndex extends BaseIndex {
     }
 
     public void checkRename() throws SQLException {
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LINKED");
     }
 
     public boolean needRebuild() {
@@ -183,7 +183,7 @@ public class LinkedIndex extends BaseIndex {
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
         // TODO optimization: could get the first or last value (in any case;
         // maybe not optimized)
-        throw Message.getUnsupportedException();
+        throw Message.getUnsupportedException("LINKED");
     }
 
     public void remove(Session session, Row row) throws SQLException {

@@ -156,6 +156,7 @@ public class Message {
     /**
      * Gets a SQL exception meaning this feature is not supported.
      *
+     * @param message what exactly is not supported
      * @return the SQLException object
      */
     public static JdbcSQLException getUnsupportedException(String message) {

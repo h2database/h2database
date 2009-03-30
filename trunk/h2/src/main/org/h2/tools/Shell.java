@@ -28,83 +28,71 @@ import org.h2.util.FileUtils;
 import org.h2.util.JdbcDriverUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.SortedProperties;
+import org.h2.util.Tool;
 
 /**
  * Interactive command line tool to access a database using JDBC.
+ * @h2.resource
  */
-public class Shell {
-
-    /**
-     * The system output stream.
-     */
-    PrintStream out = System.out;
+public class Shell extends Tool {
 
     private PrintStream err = System.err;
     private InputStream in = System.in;
+    private BufferedReader reader;
     private Connection conn;
     private Statement stat;
     private boolean listMode;
     private int maxColumnSize = 100;
     // Windows: '\u00b3';
     private char boxVertical = '|';
-    private BufferedReader reader;
 
     /**
-     * The command line interface for this tool. The options must be split into
-     * strings like this: "-user", "sa",... Options are case sensitive. The
-     * following options are supported:
-     * <ul>
-     * <li>-help or -? (print the list of options) </li>
-     * <li>-url jdbc:h2:... (database URL) </li>
-     * <li>-user username </li>
-     * <li>-password password </li>
-     * <li>-driver driver the JDBC driver class name (not required for most
-     * databases) </li>
-     * </ul>
+     * Options are case sensitive. Supported options are:
+     * <table>
+     * <tr><td>[-help] or [-?]</td>
+     * <td>Print the list of options</td></tr>
+     * <tr><td>[-url &lt;url&gt;]</td>
+     * <td>The database URL (jdbc:h2:...)</td></tr>
+     * <tr><td>[-user &lt;user&gt;]</td>
+     * <td>The user name</td></tr>
+     * <tr><td>[-password &lt;pwd&gt;]</td>
+     * <td>The password</td></tr>
+     * <tr><td>[-driver &lt;class&gt;]</td>
+     * <td>The JDBC driver class to use (not required in most cases)</td></tr>
+     * </table>
+     * @h2.resource
      *
      * @param args the command line arguments
-     * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
         new Shell().run(args);
     }
 
-    private void showUsage() {
-        println("An interactive command line database tool.");
-        println("java "+getClass().getName() + "\n" +
-                " [-url <url>]       The database URL\n" +
-                " [-user <user>]     The user name\n" +
-                " [-password <pwd>]  The password\n" +
-                " [-driver <class>]  The JDBC driver class to use (not required in most cases)");
-        println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
+    /**
+     * Sets the standard error stream.
+     *
+     * @param out the new standard error stream
+     */
+    public void setErr(PrintStream err) {
+        this.err = err;
     }
 
     /**
-     * Redirects the input and output. By default, System.in, out and err are
-     * used.
+     * Redirects the standard input. By default, System.in is used.
      *
      * @param in the input stream to use
-     * @param out the output stream to use
-     * @param err the output error stream to use
      */
-    public void setStreams(InputStream in, PrintStream out, PrintStream err) {
+    public void setIn(InputStream in) {
         this.in = in;
-        this.out = out;
-        this.err = err;
     }
 
     /**
-     * Redirects the input and output. By default, System.in, out and err are
-     * used.
+     * Redirects the standard input. By default, System.in is used.
      *
      * @param reader the input stream reader to use
-     * @param out the output stream to use
-     * @param err the output error stream to use
      */
-    public void setStreams(BufferedReader reader, PrintStream out, PrintStream err) {
+    public void setInReader(BufferedReader reader) {
         this.reader = reader;
-        this.out = out;
-        this.err = err;
     }
 
     /**
@@ -117,19 +105,18 @@ public class Shell {
         String user = "";
         String password = "";
         for (int i = 0; args != null && i < args.length; i++) {
-            if (args[i].equals("-url")) {
+            String arg = args[i];
+            if (arg.equals("-url")) {
                 url = args[++i];
-            } else if (args[i].equals("-user")) {
+            } else if (arg.equals("-user")) {
                 user = args[++i];
-            } else if (args[i].equals("-password")) {
+            } else if (arg.equals("-password")) {
                 password = args[++i];
-            } else if (args[i].equals("-driver")) {
+            } else if (arg.equals("-driver")) {
                 String driver = args[++i];
                 ClassUtils.loadUserClass(driver);
             } else {
-                println("Unsupported option: " + args[i]);
-                showUsage();
-                return;
+                throwUnsupportedOption(arg);
             }
         }
         if (url != null) {

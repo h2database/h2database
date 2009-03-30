@@ -57,7 +57,9 @@ public class TestShell extends TestBase {
             public void run() {
                 try {
                     Shell shell = new Shell();
-                    shell.setStreams(toolIn, toolOut, toolOut);
+                    shell.setIn(toolIn);
+                    shell.setOut(toolOut);
+                    shell.setErr(toolOut);
                     shell.run(new String[0]);
                 } catch (SQLException e) {
                     e.printStackTrace();

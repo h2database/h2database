@@ -69,14 +69,12 @@ public class CreateCluster extends Tool {
                 showUsage();
                 return;
             } else {
-                out.println("Unsupported option: " + arg);
-                showUsage();
-                return;
+                throwUnsupportedOption(arg);
             }
         }
-        if (urlSource == null || urlTarget == null || user == null || serverList == null) {
+        if (urlSource == null || urlTarget == null || serverList == null) {
             showUsage();
-            return;
+            throw new SQLException("Source URL, target URL, or server list not set");
         }
         process(urlSource, urlTarget, user, password, serverList);
     }

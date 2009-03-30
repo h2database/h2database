@@ -127,14 +127,12 @@ public class RunScript extends Tool {
                 showUsage();
                 return;
             } else {
-                out.println("Unsupported option: " + arg);
-                showUsage();
-                return;
+                throwUnsupportedOption(arg);
             }
         }
-        if (url == null || user == null || password == null || script == null) {
+        if (url == null) {
             showUsage();
-            return;
+            throw new SQLException("URL not set");
         }
         long time = System.currentTimeMillis();
         if (options != null) {

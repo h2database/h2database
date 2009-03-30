@@ -89,14 +89,12 @@ public class Script extends Tool {
                 showUsage();
                 return;
             } else {
-                out.println("Unsupported option: " + arg);
-                showUsage();
-                return;
+                throwUnsupportedOption(arg);
             }
         }
         if (url == null) {
             showUsage();
-            return;
+            throw new SQLException("URL not set");
         }
         if (options1 != null) {
             processScript(url, user, password, file, options1, options2);

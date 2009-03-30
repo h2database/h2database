@@ -30,9 +30,9 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import org.h2.util.Resources;
+import org.h2.util.Tool;
 
 import java.io.IOException;
-import java.io.PrintStream;
 //## AWT end ##
 import java.sql.SQLException;
 
@@ -41,19 +41,16 @@ import org.h2.server.ShutdownHandler;
 import org.h2.util.StartBrowser;
 
 /**
- * This tool starts the H2 Console (web-) server, as well as the TCP and PG
- * server. For JDK 1.6, a system tray icon is created, for platforms that
- * support it. Otherwise, a small window opens.
+ * Starts the H2 Console (web-) server, as well as the TCP and PG server.
+ * @h2.resource
  *
  * @author Thomas Mueller, Ridvan Agar
  */
-public class Console implements
+public class Console extends Tool implements
 //## AWT begin ##
 ActionListener, MouseListener,
 //## AWT end ##
 ShutdownHandler {
-
-    private static final int EXIT_ERROR = 1;
 
 //## AWT begin ##
     Frame frame;
@@ -65,50 +62,40 @@ ShutdownHandler {
     private boolean isWindows;
 
     /**
-     * The command line interface for this tool.
-     * The command line options are the same as in the Server tool,
-     * but this tool will always start the TCP, TCP and PG server.
-     * Options are case sensitive.
-     *
-     * The command line interface for this tool. The options must be split into
-     * strings like this: "-baseDir", "/temp/data",... By default, -tcp, -web,
-     * -browser and -pg are started. If there is a problem starting a service,
-     * the program terminates with an exit code of 1. Options are case
-     * sensitive. The following options are supported:
-     * <ul>
-     * <li>-help or -? (print the list of options) </li>
-     * <li>-web (start the Web Server and H2 Console) </li>
-     * <li>-tool (start the icon or window that allows to start a browser)</li>
-     * <li>-browser (start a browser and open a page to connect to the
-     *     Web Server) </li>
-     * <li>-tcp (start the TCP Server) </li>
-     * <li>-pg (start the PG Server) </li>
-     * </ul>
-     * For each Server, additional options are available.
-     * Those options are the same as in the Server tool.
+     * When running without options, -tcp, -web, -browser and -pg are started.<br />
+     * Options are case sensitive. Supported options are:
+     * <table>
+     * <tr><td>[-help] or [-?]</td>
+     * <td>Print the list of options</td></tr>
+     * <tr><td>[-web]</td>
+     * <td>Start the web server with the H2 Console</td></tr>
+     * <tr><td>[-tool]</td>
+     * <td>Start the icon or window that allows to start a browser</td></tr>
+     * <tr><td>[-browser]</td>
+     * <td>Start a browser and open a page to connect to the web server</td></tr>
+     * <tr><td>[-tcp]</td>
+     * <td>Start the TCP server</td></tr>
+     * <tr><td>[-pg]</td>
+     * <td>Start the PG server</td></tr>
+     * </table>
+     * For each Server, additional options are available; for details, see the Server tool.<br />
+     * If a service can not be started, the program terminates with an exit code of 1.
+     * @h2.resource
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
-        int exitCode = new Console().run(args, System.out);
-        if (exitCode != 0) {
-            System.exit(exitCode);
-        }
+    public static void main(String[] args) throws SQLException {
+        new Console().run(args);
     }
 
-    private void showUsage(PrintStream out) {
-        out.println("Starts H2 Console");
-        out.println("By default, -web, -tool, -browser, -tcp, and -pg are started. Options are case sensitive.");
-        out.println("java "+getClass().getName());
-        out.println("-web                  Start the Web Server and H2 Console");
-        out.println("-tool                 Start the icon or window that allows to start a browser (includes -web)");
-        out.println("-browser              Start a browser to connect to the H2 Console (includes -web)");
-        out.println("-tcp                  Start the TCP Server");
-        out.println("-pg                   Start the PG Server");
-        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
-    }
-
-    private int run(String[] args, PrintStream out) {
+    /**
+     * This tool starts the H2 Console (web-) server, as well as the TCP and PG
+     * server. For JDK 1.6, a system tray icon is created, for platforms that
+     * support it. Otherwise, a small window opens.
+     *
+     * @param args the command line arguments
+     */
+    public void run(String[] args) throws SQLException {
         isWindows = SysProperties.getStringSetting("os.name", "").startsWith("Windows");
         boolean tcpStart = false, pgStart = false, webStart = false, toolStart = false;
         boolean browserStart = false;
@@ -119,8 +106,8 @@ ShutdownHandler {
             if (arg == null) {
                 continue;
             } else if ("-?".equals(arg) || "-help".equals(arg)) {
-                showUsage(out);
-                return EXIT_ERROR;
+                showUsage();
+                return;
             } else if ("-web".equals(arg)) {
                 startDefaultServers = false;
                 webStart = true;
@@ -147,7 +134,6 @@ ShutdownHandler {
             tcpStart = true;
             pgStart = true;
         }
-        int exitCode = 0;
         if (webStart) {
             try {
                 web = Server.createWebServer(args);
@@ -199,17 +185,16 @@ ShutdownHandler {
             StartBrowser.openURL(web.getURL());
         }
         if (!web.isRunning(true)) {
-            exitCode = EXIT_ERROR;
+            throw new SQLException("The web server is not running");
         }
-        return exitCode;
     }
 
     private void printProblem(SQLException e, Server server) {
         if (server == null) {
             e.printStackTrace();
         } else {
-            System.out.println(server.getStatus());
-            System.out.println("Root cause: " + e.getMessage());
+            out.println(server.getStatus());
+            out.println("Root cause: " + e.getMessage());
         }
     }
 

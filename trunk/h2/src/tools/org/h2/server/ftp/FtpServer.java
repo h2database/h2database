@@ -20,7 +20,6 @@ import java.util.Locale;
 import java.util.Properties;
 
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.server.Service;
 import org.h2.store.fs.FileSystem;
 import org.h2.util.FileUtils;
@@ -38,29 +37,39 @@ import org.h2.util.Tool;
 public class FtpServer implements Service {
 
     /**
+     * The default port to use for the FTP server.
+     * This value is also in the documentation and in the Server javadoc.
+     */
+    public static final int DEFAULT_PORT = 8021;
+
+    /**
      * The default root directory name used by the FTP server.
+     * This value is also in the documentation and in the Server javadoc.
      */
     public static final String DEFAULT_ROOT = "ftp";
 
     /**
      * The default user name that is allowed to read data.
+     * This value is also in the documentation and in the Server javadoc.
      */
     public static final String DEFAULT_READ = "guest";
 
     /**
      * The default user name that is allowed to read and write data.
+     * This value is also in the documentation and in the Server javadoc.
      */
     public static final String DEFAULT_WRITE = "sa";
 
     /**
      * The default password of the user that is allowed to read and write data.
+     * This value is also in the documentation and in the Server javadoc.
      */
     public static final String DEFAULT_WRITE_PASSWORD = "sa";
 
     static final String TASK_SUFFIX = ".task";
 
     private ServerSocket serverSocket;
-    private int port = Constants.DEFAULT_FTP_PORT;
+    private int port = DEFAULT_PORT;
     private int openConnectionCount;
     private int maxConnectionCount = 100;
 

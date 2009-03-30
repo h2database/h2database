@@ -35,7 +35,10 @@ import org.h2.util.Tool;
  */
 public class PgServer implements Service {
 
-    // also in the docs
+    /**
+     * The default port to use for the PG server.
+     * This value is also in the documentation and in the Server javadoc.
+     */
     public static final int DEFAULT_PORT = 5435;
 
     private int port = PgServer.DEFAULT_PORT;

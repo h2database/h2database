@@ -39,6 +39,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Procedural language / script language (Java, Javascript)
 </li><li>Fulltext search: support streaming CLOB data.
 </li><li>Optimize .. OR .. to IN(..) or UNION if the cost is lower
+</li><li>Enable warning for 'Local variable declaration hides another field or variable'.
 </li><li>Test multi-threaded in-memory db access
 </li><li>MVCC: Select for update should only lock the selected rows.
 </li><li>Option to shutdown all the running servers (on the same VM).
@@ -274,7 +275,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Remember the user defined data type (domain) of a column
 </li><li>Support Jackcess (MS Access databases)
 </li><li>Built-in methods to write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World')
-</li><li>Change package name in version 2.0: org.h2database
+</li><li>Maven: deploy / upload h2..-sources.jar and javadocs as well.
 </li><li>MVCC: support transactionally consistent backups using SCRIPT
 </li><li>Improve time to open large databases (see mail 'init time for distributed setup')
 </li><li>Move Maven 2 repository from hsql.sf.net to h2database.sf.net
@@ -314,15 +315,12 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Fluent API for tools: Server.createTcpServer().setPort(9081).setPassword(password).start();
 </li><li>MySQL compatibility: real SQL statement for DESCRIBE TEST
 </li><li>Use a default delay of 1 second before closing a database.
-</li><li>Maven: upload source code and javadocs as well.
 </li><li>Write (log) to system table before adding to internal data structures.
 </li><li>Support very large deletes and updates.
 </li><li>Doclet (javadocs): constructors are not listed.
 </li><li>Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup).
 </li><li>Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object);
 </li><li>MVCC should not be memory bound (uncommitted data is kept in memory in the delta index; maybe using a regular btree index solves the problem).
-</li><li>Support CREATE TEMPORARY LINKED TABLE.
-</li><li>MySQL compatibility: SELECT @variable := x FROM SYSTEM_RANGE(1, 50);
 </li><li>Oracle compatibility: support NLS_DATE_FORMAT.
 </li><li>Support flashback queries as in Oracle.
 </li><li>Import / Export of fixed with text files.
@@ -332,7 +330,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
     Also support it when using INSERT ... SELECT.
 </li><li>HSQLDB compatibility: automatic data type for SUM if value is the value is too big (by default use the same type as the data).
 </li><li>Improve the optimizer to select the right index for special cases: where id between 2 and 4 and booleanColumn
-</li><li>Enable warning for 'Local variable declaration hides another field or variable'.
 </li><li>Linked tables: make hidden columns available (Oracle: rowid and ora_rowscn columns).
 </li><li>Support merge join.
 </li><li>H2 Console: in-place autocomplete.
@@ -402,9 +399,9 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Support reading JCR data: one table per node type; query table; cache option
 </li><li>OSGi: create a sample application, test, document.
 </li><li>help.csv: use complete examples for functions; run as test case.
-</li><li>Deploy h2..-sources.jar to maven repository.
 </li><li>Re-implement PooledConnection; use a lightweight connection object.
 </li><li>Doclet: convert some javadocs to a resource (man page for command line tools, tests, build tool).
+</li><li>Change package name in version 2.0: org.h2database
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -42,6 +42,11 @@ public abstract class Tool {
      */
     public abstract void run(String[] args) throws SQLException;
 
+    protected SQLException throwUnsupportedOption(String option) throws SQLException {
+        showUsage();
+        throw new SQLException("Unsupported option: " + option);
+    }
+
     /**
      * Print to the output stream that no database files have been found.
      *

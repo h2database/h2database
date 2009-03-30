@@ -44,13 +44,9 @@ import org.h2.util.Tool;
  */
 public class TcpServer implements Service {
 
-    // TODO new feature: implement automatic client / server mode if 'socket'
-    // file locking is used
-    // TODO better exception message if the port is already in use, maybe
-    // automatically use the next free port?
-
     /**
      * The default port to use for the TCP server.
+     * This value is also in the documentation and in the Server javadoc.
      */
     public static final int DEFAULT_PORT = 9092;
 

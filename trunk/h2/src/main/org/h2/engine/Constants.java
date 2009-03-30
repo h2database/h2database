@@ -159,19 +159,14 @@ public class Constants {
     public static final char DEFAULT_ESCAPE_CHAR = '\\';
 
     /**
-     * The default port number of the FTP server.
-     */
-    public static final int DEFAULT_FTP_PORT = 8021;
-
-    /**
      * If the HTTP server should allow connections from other computers by
      * default.
      */
     public static final boolean DEFAULT_HTTP_ALLOW_OTHERS = false;
 
     /**
-     * The default port number of the HTTP server (for the H2 Console). This
-     * value is also in the documentation.
+     * The default port number of the HTTP server (for the H2 Console).
+     * This value is also in the documentation and in the Server javadoc.
      */
     public static final int DEFAULT_HTTP_PORT = 8082;
 

@@ -93,27 +93,27 @@ public class ConstraintReferential extends Constraint {
     /**
      * Create the SQL statement of this object so a copy of the table can be made.
      *
-     * @param table the table to create the object for
+     * @param forTable the table to create the object for
      * @param quotedName the name of this object (quoted if necessary)
      * @return the SQL statement
      */
-    public String getCreateSQLForCopy(Table table, String quotedName) {
-        return getCreateSQLForCopy(table, refTable, quotedName, true);
+    public String getCreateSQLForCopy(Table forTable, String quotedName) {
+        return getCreateSQLForCopy(forTable, refTable, quotedName, true);
     }
 
     /**
      * Create the SQL statement of this object so a copy of the table can be made.
      *
-     * @param table the table to create the object for
-     * @param refTable the referenced table
+     * @param forTable the table to create the object for
+     * @param forRefTable the referenced table
      * @param quotedName the name of this object (quoted if necessary)
      * @param internalIndex add the index name to the statement
      * @return the SQL statement
      */
-    public String getCreateSQLForCopy(Table table, Table refTable, String quotedName, boolean internalIndex) {
+    public String getCreateSQLForCopy(Table forTable, Table forRefTable, String quotedName, boolean internalIndex) {
         StringBuffer buff = new StringBuffer();
         buff.append("ALTER TABLE ");
-        String mainTable = table.getSQL();
+        String mainTable = forTable.getSQL();
         buff.append(mainTable);
         buff.append(" ADD CONSTRAINT ");
         buff.append(quotedName);
@@ -131,7 +131,7 @@ public class ConstraintReferential extends Constraint {
             buff.append(cols[i].getSQL());
         }
         buff.append(")");
-        if (internalIndex && indexOwner && table == this.table) {
+        if (internalIndex && indexOwner && forTable == this.table) {
             buff.append(" INDEX ");
             buff.append(index.getSQL());
         }
@@ -139,9 +139,9 @@ public class ConstraintReferential extends Constraint {
         String quotedRefTable;
         if (this.table == this.refTable) {
             // self-referencing constraints: need to use new table
-            quotedRefTable = table.getSQL();
+            quotedRefTable = forTable.getSQL();
         } else {
-            quotedRefTable = refTable.getSQL();
+            quotedRefTable = forRefTable.getSQL();
         }
         buff.append(quotedRefTable);
         buff.append("(");
@@ -152,7 +152,7 @@ public class ConstraintReferential extends Constraint {
             buff.append(refCols[i].getSQL());
         }
         buff.append(")");
-        if (internalIndex && refIndexOwner && table == this.table) {
+        if (internalIndex && refIndexOwner && forTable == this.table) {
             buff.append(" INDEX ");
             buff.append(refIndex.getSQL());
         }
@@ -349,16 +349,16 @@ public class ConstraintReferential extends Constraint {
         }
     }
 
-    private boolean found(Session session, Index index, SearchRow check, Row excluding) throws SQLException {
-        index.getTable().lock(session, false, false);
-        Cursor cursor = index.find(session, check, check);
+    private boolean found(Session session, Index searchIndex, SearchRow check, Row excluding) throws SQLException {
+        searchIndex.getTable().lock(session, false, false);
+        Cursor cursor = searchIndex.find(session, check, check);
         while (cursor.next()) {
             SearchRow found;
             found = cursor.getSearchRow();
             if (excluding != null && found.getPos() == excluding.getPos()) {
                 continue;
             }
-            Column[] cols = index.getColumns();
+            Column[] cols = searchIndex.getColumns();
             boolean allEqual = true;
             for (int i = 0; i < columns.length && i < cols.length; i++) {
                 int idx = cols[i].getColumnId();

@@ -264,17 +264,17 @@ public class CompareLike extends Condition {
     /**
      * Test if the value matches the pattern.
      *
-     * @param pattern the pattern
+     * @param testPattern the pattern
      * @param value the value
-     * @param escape the escape character
+     * @param escapeChar the escape character
      * @return true if the value matches
      */
-    public boolean test(String pattern, String value, char escape) throws SQLException {
-        initPattern(pattern, escape);
+    public boolean test(String testPattern, String value, char escapeChar) throws SQLException {
+        initPattern(testPattern, escapeChar);
         return compareAt(value, 0, 0, value.length());
     }
 
-    private void initPattern(String p, char escape) throws SQLException {
+    private void initPattern(String p, char escapeChar) throws SQLException {
         if (regexp) {
             patternString = p;
             try {
@@ -301,12 +301,12 @@ public class CompareLike extends Condition {
         for (int i = 0; i < len; i++) {
             char c = p.charAt(i);
             int type;
-            if (escape == c) {
+            if (escapeChar == c) {
                 if (i >= len - 1) {
                     throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, StringUtils.addAsterisk(p, i));
                 }
                 c = p.charAt(++i);
-                if (c != '_' && c != '%' && c != escape) {
+                if (c != '_' && c != '%' && c != escapeChar) {
                     throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, StringUtils.addAsterisk(p, i));
                 }
                 type = MATCH;

@@ -229,12 +229,12 @@ class AggregateData {
         return v == null ? ValueNull.INSTANCE : v.convertTo(dataType);
     }
 
-    private Value divide(Value a, long count) throws SQLException {
-        if (count == 0) {
+    private Value divide(Value a, long by) throws SQLException {
+        if (by == 0) {
             return ValueNull.INSTANCE;
         }
         int type = Value.getHigherOrder(a.getType(), Value.LONG);
-        Value b = ValueLong.get(count).convertTo(type);
+        Value b = ValueLong.get(by).convertTo(type);
         a = a.convertTo(type).divide(b);
         return a;
     }

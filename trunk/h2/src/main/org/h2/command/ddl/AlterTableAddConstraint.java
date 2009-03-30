@@ -299,9 +299,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private Index getIndex(Table t, IndexColumn[] cols) {
         ObjectArray list = t.getIndexes();
         for (int i = 0; i < list.size(); i++) {
-            Index idx = (Index) list.get(i);
-            if (canUseIndex(idx, t, cols)) {
-                return idx;
+            Index existingIndex = (Index) list.get(i);
+            if (canUseIndex(existingIndex, t, cols)) {
+                return existingIndex;
             }
         }
         return null;
@@ -329,12 +329,12 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return true;
     }
 
-    private boolean canUseIndex(Index index, Table table, IndexColumn[] cols) {
-        if (index.getTable() != table || index.getCreateSQL() == null) {
+    private boolean canUseIndex(Index existingIndex, Table table, IndexColumn[] cols) {
+        if (existingIndex.getTable() != table || existingIndex.getCreateSQL() == null) {
             // can't use the scan index or index of another table
             return false;
         }
-        Column[] indexCols = index.getColumns();
+        Column[] indexCols = existingIndex.getColumns();
         if (indexCols.length < cols.length) {
             return false;
         }
@@ -343,7 +343,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             // but not all columns of the index need to be part of the list
             // holes are not allowed (index=a,b,c & list=a,b is ok; but list=a,c
             // is not)
-            int idx = index.getColumnIndex(cols[j].column);
+            int idx = existingIndex.getColumnIndex(cols[j].column);
             if (idx < 0 || idx >= cols.length) {
                 return false;
             }

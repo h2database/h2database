@@ -52,7 +52,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
     /**
      * The file name (if set).
      */
-    private Expression file;
+    private Expression fileNameExpr;
     private String fileName;
 
     private String cipher;
@@ -77,13 +77,13 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         key = sha.getKeyPasswordHash("script", password);
     }
 
-    public void setFile(Expression file) {
-        this.file = file;
+    public void setFileNameExpr(Expression file) {
+        this.fileNameExpr = file;
     }
 
     protected String getFileName() throws SQLException {
-        if (file != null && fileName == null) {
-            fileName = file.optimize(session).getValue(session).getString();
+        if (fileNameExpr != null && fileName == null) {
+            fileName = fileNameExpr.optimize(session).getValue(session).getString();
             if (fileName == null || fileName.trim().length() == 0) {
                 fileName = "script.sql";
             }
@@ -100,17 +100,17 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
      * Delete the target file.
      */
     void deleteStore() throws SQLException {
-        String fileName = getFileName();
-        if (fileName != null) {
-            FileUtils.delete(fileName);
+        String file = getFileName();
+        if (file != null) {
+            FileUtils.delete(file);
         }
     }
 
     private void initStore() throws SQLException {
         Database db = session.getDatabase();
         // script files are always in text format
-        String fileName = getFileName();
-        store = FileStore.open(db, fileName, "rw", cipher, key);
+        String file = getFileName();
+        store = FileStore.open(db, file, "rw", cipher, key);
         store.setCheckedWriting(false);
         store.init();
     }
@@ -119,8 +119,8 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
      * Open the output stream.
      */
     void openOutput() throws SQLException {
-        String fileName = getFileName();
-        if (fileName == null) {
+        String file = getFileName();
+        if (file == null) {
             return;
         }
         if (isEncrypted()) {
@@ -129,7 +129,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
             // always use a big buffer, otherwise end-of-block is written a lot
             out = new BufferedOutputStream(out, Constants.IO_BUFFER_SIZE_COMPRESS);
         } else {
-            OutputStream o = FileUtils.openFileOutputStream(fileName, false);
+            OutputStream o = FileUtils.openFileOutputStream(file, false);
             out = new BufferedOutputStream(o, Constants.IO_BUFFER_SIZE);
             out = CompressTool.wrapOutputStream(out, compressionAlgorithm, Constants.SCRIPT_SQL);
         }
@@ -139,8 +139,8 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
      * Open the input stream.
      */
     void openInput() throws SQLException {
-        String fileName = getFileName();
-        if (fileName == null) {
+        String file = getFileName();
+        if (file == null) {
             return;
         }
         if (isEncrypted()) {
@@ -149,14 +149,14 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         } else {
             InputStream inStream;
             try {
-                inStream = FileUtils.openFileInputStream(fileName);
+                inStream = FileUtils.openFileInputStream(file);
             } catch (IOException e) {
-                throw Message.convertIOException(e, fileName);
+                throw Message.convertIOException(e, file);
             }
             in = new BufferedInputStream(inStream, Constants.IO_BUFFER_SIZE);
             in = CompressTool.wrapInputStream(in, compressionAlgorithm, Constants.SCRIPT_SQL);
             if (in == null) {
-                throw Message.getSQLException(ErrorCode.FILE_NOT_FOUND_1, Constants.SCRIPT_SQL + " in " + fileName);
+                throw Message.getSQLException(ErrorCode.FILE_NOT_FOUND_1, Constants.SCRIPT_SQL + " in " + file);
             }
         }
     }

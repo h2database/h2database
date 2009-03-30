@@ -201,9 +201,9 @@ public class Database implements DataHandler {
                 setEventListenerClass(listener);
             }
         }
-        String log = ci.getProperty(SetTypes.LOG, null);
-        if (log != null) {
-            this.logIndexChanges = "2".equals(log);
+        String logSetting = ci.getProperty(SetTypes.LOG, null);
+        if (logSetting != null) {
+            this.logIndexChanges = "2".equals(logSetting);
         }
         String ignoreSummary = ci.getProperty("RECOVER", null);
         if (ignoreSummary != null) {
@@ -437,11 +437,11 @@ public class Database implements DataHandler {
         return traceSystem.getTrace(module);
     }
 
-    public FileStore openFile(String name, String mode, boolean mustExist) throws SQLException {
+    public FileStore openFile(String name, String openMode, boolean mustExist) throws SQLException {
         if (mustExist && !FileUtils.exists(name)) {
             throw Message.getSQLException(ErrorCode.FILE_NOT_FOUND_1, name);
         }
-        FileStore store = FileStore.open(this, name, mode, cipher, filePasswordHash);
+        FileStore store = FileStore.open(this, name, openMode, cipher, filePasswordHash);
         try {
             store.init();
         } catch (SQLException e) {
@@ -454,15 +454,15 @@ public class Database implements DataHandler {
     /**
      * Check if the file password hash is correct.
      *
-     * @param cipher the cipher algorithm
-     * @param hash the hash code
+     * @param testCipher the cipher algorithm
+     * @param testHash the hash code
      * @return true if the cipher algorithm and the password match
      */
-    public boolean validateFilePasswordHash(String cipher, byte[] hash) throws SQLException {
-        if (!StringUtils.equals(cipher, this.cipher)) {
+    public boolean validateFilePasswordHash(String testCipher, byte[] testHash) throws SQLException {
+        if (!StringUtils.equals(testCipher, this.cipher)) {
             return false;
         }
-        return ByteUtils.compareSecure(hash, filePasswordHash);
+        return ByteUtils.compareSecure(testHash, filePasswordHash);
     }
 
     private void openFileData() throws SQLException {

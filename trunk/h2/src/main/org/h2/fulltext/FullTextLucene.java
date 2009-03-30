@@ -233,7 +233,7 @@ public class FullTextLucene extends FullText {
 
     /**
      * Get the index modifier for the given connection.
-     * 
+     *
      * @param conn the connection
      * @return the index modifier
      */

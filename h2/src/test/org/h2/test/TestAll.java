@@ -282,7 +282,9 @@ java org.h2.test.TestAll timer
 
 /*
 
-Console, Server, and Shell do not extend Tool yet.
+Remove FTP server from the server tool.
+Move FTP server to tools.
+Javadoc: link to source code (line number?) - check ScalaDoc
 
 documentation: rolling review at roadmap.html:312
 

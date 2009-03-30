@@ -45,10 +45,10 @@ public class ConstraintCheck extends Constraint {
         this.expr = expr;
     }
 
-    public String getCreateSQLForCopy(Table table, String quotedName) {
+    public String getCreateSQLForCopy(Table forTable, String quotedName) {
         StringBuffer buff = new StringBuffer();
         buff.append("ALTER TABLE ");
-        buff.append(table.getSQL());
+        buff.append(forTable.getSQL());
         buff.append(" ADD CONSTRAINT ");
         buff.append(quotedName);
         if (comment != null) {

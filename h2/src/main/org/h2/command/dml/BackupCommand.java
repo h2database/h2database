@@ -39,18 +39,18 @@ import org.h2.util.ObjectArray;
  */
 public class BackupCommand extends Prepared {
 
-    private Expression fileName;
+    private Expression fileNameExpr;
 
     public BackupCommand(Session session) {
         super(session);
     }
 
     public void setFileName(Expression fileName) {
-        this.fileName = fileName;
+        this.fileNameExpr = fileName;
     }
 
     public int update() throws SQLException {
-        String name = fileName.getValue(session).getString();
+        String name = fileNameExpr.getValue(session).getString();
         session.getUser().checkAdmin();
         backupTo(name);
         return 0;

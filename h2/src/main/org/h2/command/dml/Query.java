@@ -38,12 +38,12 @@ public abstract class Query extends Prepared {
     /**
      * The limit expression as specified in the LIMIT or TOP clause.
      */
-    protected Expression limit;
+    protected Expression limitExpr;
 
     /**
      * The offset expression as specified in the LIMIT .. OFFSET clause.
      */
-    protected Expression offset;
+    protected Expression offsetExpr;
 
     /**
      * The sample size
@@ -154,10 +154,10 @@ public abstract class Query extends Prepared {
      * Get the alias (or column name) of the first column.
      * This is used to convert IN(SELECT ...) queries to inner joins.
      *
-     * @param session the session
+     * @param s the session
      * @return the alias or column name
      */
-    public abstract String getFirstColumnAlias(Session session);
+    public abstract String getFirstColumnAlias(Session s);
 
     /**
      * Check if this expression and all sub-expressions can fulfill a criteria.
@@ -171,9 +171,9 @@ public abstract class Query extends Prepared {
     /**
      * Update all aggregate function values.
      *
-     * @param session the session
+     * @param s the session
      */
-    public abstract void updateAggregate(Session session) throws SQLException;
+    public abstract void updateAggregate(Session s) throws SQLException;
 
     public boolean isQuery() {
         return true;
@@ -183,9 +183,9 @@ public abstract class Query extends Prepared {
         return true;
     }
 
-    private boolean sameResultAsLast(Session session, Value[] params, Value[] lastParams, long lastEvaluated)
+    private boolean sameResultAsLast(Session s, Value[] params, Value[] lastParams, long lastEval)
             throws SQLException {
-        Database db = session.getDatabase();
+        Database db = s.getDatabase();
         for (int i = 0; i < params.length; i++) {
             if (!db.areEqual(lastParams[i], params[i])) {
                 return false;
@@ -194,7 +194,7 @@ public abstract class Query extends Prepared {
         if (!isEverything(ExpressionVisitor.DETERMINISTIC) || !isEverything(ExpressionVisitor.INDEPENDENT)) {
             return false;
         }
-        if (db.getModificationDataId() > lastEvaluated && getMaxDataModificationId() > lastEvaluated) {
+        if (db.getModificationDataId() > lastEval && getMaxDataModificationId() > lastEval) {
             return false;
         }
         return true;
@@ -376,11 +376,11 @@ public abstract class Query extends Prepared {
     }
 
     public void setOffset(Expression offset) {
-        this.offset = offset;
+        this.offsetExpr = offset;
     }
 
     public void setLimit(Expression limit) {
-        this.limit = limit;
+        this.limitExpr = limit;
     }
 
     /**

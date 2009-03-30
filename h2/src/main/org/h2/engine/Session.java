@@ -531,8 +531,8 @@ public class Session extends SessionWithState {
             savepoints.keySet().toArray(names);
             for (int i = 0; i < names.length; i++) {
                 String name = names[i];
-                Integer id = (Integer) savepoints.get(names[i]);
-                if (id.intValue() > index) {
+                Integer savepointIndex = (Integer) savepoints.get(names[i]);
+                if (savepointIndex.intValue() > index) {
                     savepoints.remove(name);
                 }
             }
@@ -749,11 +749,11 @@ public class Session extends SessionWithState {
         if (savepoints == null) {
             throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
-        Integer id = (Integer) savepoints.get(name);
-        if (id == null) {
+        Integer savepointIndex = (Integer) savepoints.get(name);
+        if (savepointIndex == null) {
             throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
-        int i = id.intValue();
+        int i = savepointIndex.intValue();
         rollbackTo(i, false);
     }
 
@@ -943,11 +943,11 @@ public class Session extends SessionWithState {
      * @return the new identifier
      */
     public String getNextSystemIdentifier(String sql) {
-        String id;
+        String identifier;
         do {
-            id = SYSTEM_IDENTIFIER_PREFIX + systemIdentifier++;
-        } while (sql.indexOf(id) >= 0);
-        return id;
+            identifier = SYSTEM_IDENTIFIER_PREFIX + systemIdentifier++;
+        } while (sql.indexOf(identifier) >= 0);
+        return identifier;
     }
 
     /**

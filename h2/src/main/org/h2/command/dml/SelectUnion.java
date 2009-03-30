@@ -92,19 +92,19 @@ public class SelectUnion extends Query {
     }
 
     public LocalResult queryMeta() throws SQLException {
-        ObjectArray expressions = left.getExpressions();
+        ObjectArray leftExpressions = left.getExpressions();
         int columnCount = left.getColumnCount();
-        LocalResult result = new LocalResult(session, expressions, columnCount);
+        LocalResult result = new LocalResult(session, leftExpressions, columnCount);
         result.done();
         return result;
     }
 
     protected LocalResult queryWithoutCache(int maxrows) throws SQLException {
         if (maxrows != 0) {
-            if (limit != null) {
-                maxrows = Math.min(limit.getValue(session).getInt(), maxrows);
+            if (limitExpr != null) {
+                maxrows = Math.min(limitExpr.getValue(session).getInt(), maxrows);
             }
-            limit = ValueExpression.get(ValueInt.get(maxrows));
+            limitExpr = ValueExpression.get(ValueInt.get(maxrows));
         }
         int columnCount = left.getColumnCount();
         LocalResult result = new LocalResult(session, expressions, columnCount);
@@ -171,11 +171,11 @@ public class SelectUnion extends Query {
         default:
             Message.throwInternalError("type=" + unionType);
         }
-        if (offset != null) {
-            result.setOffset(offset.getValue(session).getInt());
+        if (offsetExpr != null) {
+            result.setOffset(offsetExpr.getValue(session).getInt());
         }
-        if (limit != null) {
-            result.setLimit(limit.getValue(session).getInt());
+        if (limitExpr != null) {
+            result.setLimit(limitExpr.getValue(session).getInt());
         }
         result.done();
         return result;
@@ -323,12 +323,12 @@ public class SelectUnion extends Query {
             buff.append(" ORDER BY ");
             buff.append(sort.getSQL(exprList, exprList.length));
         }
-        if (limit != null) {
+        if (limitExpr != null) {
             buff.append(" LIMIT ");
-            buff.append(StringUtils.unEnclose(limit.getSQL()));
-            if (offset != null) {
+            buff.append(StringUtils.unEnclose(limitExpr.getSQL()));
+            if (offsetExpr != null) {
                 buff.append(" OFFSET ");
-                buff.append(StringUtils.unEnclose(offset.getSQL()));
+                buff.append(StringUtils.unEnclose(offsetExpr.getSQL()));
             }
         }
         if (isForUpdate) {
@@ -350,12 +350,12 @@ public class SelectUnion extends Query {
         return left.isReadOnly() && right.isReadOnly();
     }
 
-    public void updateAggregate(Session session) throws SQLException {
-        left.updateAggregate(session);
-        right.updateAggregate(session);
+    public void updateAggregate(Session s) throws SQLException {
+        left.updateAggregate(s);
+        right.updateAggregate(s);
     }
 
-    public String getFirstColumnAlias(Session session) {
+    public String getFirstColumnAlias(Session s) {
         return null;
     }
 

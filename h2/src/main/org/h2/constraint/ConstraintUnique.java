@@ -37,14 +37,14 @@ public class ConstraintUnique extends Constraint {
         return primaryKey ? Constraint.PRIMARY_KEY : Constraint.UNIQUE;
     }
 
-    public String getCreateSQLForCopy(Table table, String quotedName) {
-        return getCreateSQLForCopy(table, quotedName, true);
+    public String getCreateSQLForCopy(Table forTable, String quotedName) {
+        return getCreateSQLForCopy(forTable, quotedName, true);
     }
 
-    private String getCreateSQLForCopy(Table table, String quotedName, boolean internalIndex) {
+    private String getCreateSQLForCopy(Table forTable, String quotedName, boolean internalIndex) {
         StringBuffer buff = new StringBuffer();
         buff.append("ALTER TABLE ");
-        buff.append(table.getSQL());
+        buff.append(forTable.getSQL());
         buff.append(" ADD CONSTRAINT ");
         buff.append(quotedName);
         if (comment != null) {
@@ -61,7 +61,7 @@ public class ConstraintUnique extends Constraint {
             buff.append(Parser.quoteIdentifier(columns[i].column.getName()));
         }
         buff.append(')');
-        if (internalIndex && indexOwner && table == this.table) {
+        if (internalIndex && indexOwner && forTable == this.table) {
             buff.append(" INDEX ");
             buff.append(index.getSQL());
         }

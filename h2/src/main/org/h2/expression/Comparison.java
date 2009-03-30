@@ -117,14 +117,14 @@ public class Comparison extends Condition {
         return "(" + sql + ")";
     }
 
-    private Expression getCast(Expression expr, int dataType, long precision, int scale, int displaySize, Session session)
+    private Expression getCast(Expression expr, int targetDataType, long precision, int scale, int displaySize, Session session)
             throws SQLException {
         if (expr == ValueExpression.getNull()) {
             return expr;
         }
         Function function = Function.getFunction(session.getDatabase(), "CAST");
         function.setParameter(0, expr);
-        function.setDataType(dataType, precision, scale, displaySize);
+        function.setDataType(targetDataType, precision, scale, displaySize);
         function.doneWithParameters();
         return function.optimize(session);
     }
@@ -448,12 +448,12 @@ public class Comparison extends Condition {
     /**
      * Get the left or the right sub-expression of this condition.
      *
-     * @param left true to get the left sub-expression, false to get the right
+     * @param getLeft true to get the left sub-expression, false to get the right
      *            sub-expression.
      * @return the sub-expression
      */
-    public Expression getExpression(boolean left) {
-        return left ? this.left : right;
+    public Expression getExpression(boolean getLeft) {
+        return getLeft ? this.left : right;
     }
 
 }

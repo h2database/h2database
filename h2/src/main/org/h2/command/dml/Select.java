@@ -444,10 +444,10 @@ public class Select extends Query {
     }
 
     private void queryDistinct(LocalResult result, long limitRows) throws SQLException {
-        if (limitRows != 0 && offset != null) {
+        if (limitRows != 0 && offsetExpr != null) {
             // limitRows must be long, otherwise we get an int overflow
             // if limitRows is at or near Integer.MAX_VALUE
-            limitRows += offset.getValue(session).getInt();
+            limitRows += offsetExpr.getValue(session).getInt();
         }
         int rowNumber = 0;
         setCurrentRowNumber(0);
@@ -481,10 +481,10 @@ public class Select extends Query {
     }
 
     private void queryFlat(int columnCount, LocalResult result, long limitRows) throws SQLException {
-        if (limitRows != 0 && offset != null) {
+        if (limitRows != 0 && offsetExpr != null) {
             // limitRows must be long, otherwise we get an int overflow
             // if limitRows is at or near Integer.MAX_VALUE
-            limitRows += offset.getValue(session).getInt();
+            limitRows += offsetExpr.getValue(session).getInt();
         }
         int rowNumber = 0;
         setCurrentRowNumber(0);
@@ -526,8 +526,8 @@ public class Select extends Query {
 
     protected LocalResult queryWithoutCache(int maxRows) throws SQLException {
         int limitRows = maxRows;
-        if (limit != null) {
-            int l = limit.getValue(session).getInt();
+        if (limitExpr != null) {
+            int l = limitExpr.getValue(session).getInt();
             if (limitRows == 0) {
                 limitRows = l;
             } else {
@@ -558,8 +558,8 @@ public class Select extends Query {
         } else {
             queryFlat(columnCount, result, limitRows);
         }
-        if (offset != null) {
-            result.setOffset(offset.getValue(session).getInt());
+        if (offsetExpr != null) {
+            result.setOffset(offsetExpr.getValue(session).getInt());
         }
         if (limitRows != 0) {
             result.setLimit(limitRows);
@@ -810,7 +810,7 @@ public class Select extends Query {
         Optimizer optimizer = new Optimizer(topArray, condition, session);
         optimizer.optimize();
         topTableFilter = optimizer.getTopFilter();
-        double cost = optimizer.getCost();
+        double planCost = optimizer.getCost();
 
         TableFilter f = topTableFilter;
         while (f != null) {
@@ -849,7 +849,7 @@ public class Select extends Query {
             f = f.getJoin();
         }
         topTableFilter.prepare();
-        return cost;
+        return planCost;
     }
 
     public String getPlanSQL() {
@@ -939,12 +939,12 @@ public class Select extends Query {
                 buff.append(StringUtils.unEnclose(o.getSQL()));
             }
         }
-        if (limit != null) {
+        if (limitExpr != null) {
             buff.append("\nLIMIT ");
-            buff.append(StringUtils.unEnclose(limit.getSQL()));
-            if (offset != null) {
+            buff.append(StringUtils.unEnclose(limitExpr.getSQL()));
+            if (offsetExpr != null) {
                 buff.append(" OFFSET ");
-                buff.append(StringUtils.unEnclose(offset.getSQL()));
+                buff.append(StringUtils.unEnclose(offsetExpr.getSQL()));
             }
         }
         if (isForUpdate) {
@@ -1057,16 +1057,16 @@ public class Select extends Query {
         }
     }
 
-    public void updateAggregate(Session session) throws SQLException {
+    public void updateAggregate(Session s) throws SQLException {
         for (int i = 0; i < expressions.size(); i++) {
             Expression e = (Expression) expressions.get(i);
-            e.updateAggregate(session);
+            e.updateAggregate(s);
         }
         if (condition != null) {
-            condition.updateAggregate(session);
+            condition.updateAggregate(s);
         }
         if (having != null) {
-            having.updateAggregate(session);
+            having.updateAggregate(s);
         }
     }
 
@@ -1120,7 +1120,7 @@ public class Select extends Query {
         return isEverything(ExpressionVisitor.READONLY);
     }
 
-    public String getFirstColumnAlias(Session session) {
+    public String getFirstColumnAlias(Session s) {
         if (SysProperties.CHECK) {
             if (visibleColumnCount > 1) {
                 Message.throwInternalError("" + visibleColumnCount);
@@ -1130,8 +1130,8 @@ public class Select extends Query {
         if (expr instanceof Alias) {
             return expr.getAlias();
         }
-        Mode mode = session.getDatabase().getMode();
-        String name = session.getNextSystemIdentifier(getSQL());
+        Mode mode = s.getDatabase().getMode();
+        String name = s.getNextSystemIdentifier(getSQL());
         expr = new Alias(expr,  name, mode.aliasColumnName);
         expressions.set(0, expr);
         return expr.getAlias();

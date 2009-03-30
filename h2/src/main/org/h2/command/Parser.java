@@ -825,8 +825,8 @@ public class Parser {
         return prepare(session, buff.toString(), paramValues);
     }
 
-    private Prepared prepare(Session session, String sql, ObjectArray paramValues) throws SQLException {
-        Prepared prep = session.prepare(sql);
+    private Prepared prepare(Session s, String sql, ObjectArray paramValues) throws SQLException {
+        Prepared prep = s.prepare(sql);
         ObjectArray params = prep.getParameters();
         for (int i = 0; params != null && i < params.size(); i++) {
             Parameter p = (Parameter) params.get(i);
@@ -4177,7 +4177,7 @@ public class Parser {
     private RunScriptCommand parseRunScript() throws SQLException {
         RunScriptCommand command = new RunScriptCommand(session);
         read("FROM");
-        command.setFile(readExpression());
+        command.setFileNameExpr(readExpression());
         if (readIf("COMPRESSION")) {
             command.setCompressionAlgorithm(readUniqueIdentifier());
         }
@@ -4221,7 +4221,7 @@ public class Parser {
         command.setDrop(dropTables);
         command.setSimple(simple);
         if (readIf("TO")) {
-            command.setFile(readExpression());
+            command.setFileNameExpr(readExpression());
             if (readIf("COMPRESSION")) {
                 command.setCompressionAlgorithm(readUniqueIdentifier());
             }

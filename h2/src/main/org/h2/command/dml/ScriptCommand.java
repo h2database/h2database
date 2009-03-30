@@ -102,9 +102,9 @@ public class ScriptCommand extends ScriptBase {
     }
 
     public LocalResult queryMeta() throws SQLException {
-        LocalResult result = createResult();
-        result.done();
-        return result;
+        LocalResult r = createResult();
+        r.done();
+        return r;
     }
 
     private LocalResult createResult() {
@@ -125,9 +125,9 @@ public class ScriptCommand extends ScriptBase {
             }
             Database db = session.getDatabase();
             if (settings) {
-                ObjectArray settings = db.getAllSettings();
-                for (int i = 0; i < settings.size(); i++) {
-                    Setting setting = (Setting) settings.get(i);
+                ObjectArray settingList = db.getAllSettings();
+                for (int i = 0; i < settingList.size(); i++) {
+                    Setting setting = (Setting) settingList.get(i);
                     if (setting.getName().equals(SetTypes.getTypeName(SetTypes.CREATE_BUILD))) {
                         // don't add CREATE_BUILD to the script
                         // (it is only set when creating the database)
@@ -356,12 +356,12 @@ public class ScriptCommand extends ScriptBase {
         switch (v.getType()) {
         case Value.BLOB: {
             byte[] bytes = new byte[lobBlockSize];
-            InputStream in = v.getInputStream();
+            InputStream input = v.getInputStream();
             try {
                 for (int i = 0;; i++) {
                     StringBuffer buff = new StringBuffer(lobBlockSize * 2);
                     buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id + ", " + i + ", NULL, '");
-                    int len = IOUtils.readFully(in, bytes, 0, lobBlockSize);
+                    int len = IOUtils.readFully(input, bytes, 0, lobBlockSize);
                     if (len <= 0) {
                         break;
                     }
@@ -371,18 +371,18 @@ public class ScriptCommand extends ScriptBase {
                     add(sql, true);
                 }
             } finally {
-                IOUtils.closeSilently(in);
+                IOUtils.closeSilently(input);
             }
             break;
         }
         case Value.CLOB: {
             char[] chars = new char[lobBlockSize];
-            Reader in = v.getReader();
+            Reader reader = v.getReader();
             try {
                 for (int i = 0;; i++) {
                     StringBuffer buff = new StringBuffer(lobBlockSize * 2);
                     buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id + ", " + i + ", ");
-                    int len = IOUtils.readFully(in, chars, lobBlockSize);
+                    int len = IOUtils.readFully(reader, chars, lobBlockSize);
                     if (len < 0) {
                         break;
                     }
@@ -392,7 +392,7 @@ public class ScriptCommand extends ScriptBase {
                     add(sql, true);
                 }
             } finally {
-                IOUtils.closeSilently(in);
+                IOUtils.closeSilently(reader);
             }
             break;
         }

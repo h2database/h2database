@@ -335,8 +335,8 @@ public class Bnf {
         return statements;
     }
 
-    private StringTokenizer getTokenizer(String syntax) {
-        return new StringTokenizer(syntax, " [](){}|.,\r\n<>:-+*/=<\">!'$", true);
+    private StringTokenizer getTokenizer(String s) {
+        return new StringTokenizer(s, " [](){}|.,\r\n<>:-+*/=<\">!'$", true);
     }
 
 }

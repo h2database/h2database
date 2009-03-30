@@ -162,8 +162,14 @@ public class TestTools extends TestBase {
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(buff);
         server = new Server();
-        int gotCode = server.run(args, ps);
-        assertEquals(exitCode, gotCode);
+        server.setOut(ps);
+        int result = 0;
+        try {
+            server.run(args);
+        } catch (SQLException e) {
+            result = 1;
+        }
+        assertEquals(exitCode, result);
         ps.flush();
         String s = new String(buff.toByteArray());
         return s;

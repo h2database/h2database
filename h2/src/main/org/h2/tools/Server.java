@@ -6,13 +6,11 @@
  */
 package org.h2.tools;
 
-import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
 import org.h2.server.Service;
@@ -25,11 +23,11 @@ import org.h2.util.StartBrowser;
 import org.h2.util.Tool;
 
 /**
- * This tool can be used to start various database servers (listeners).
+ * Starts the H2 Console (web-) server, TCP, PG, and FTP server.
+ * @h2.resource
  */
-public class Server implements Runnable, ShutdownHandler {
+public class Server extends Tool implements Runnable, ShutdownHandler {
 
-    private static final int EXIT_ERROR = 1;
     private Service service;
     private Server web, tcp, pg, ftp;
     private ShutdownHandler shutdownHandler;
@@ -47,101 +45,70 @@ public class Server implements Runnable, ShutdownHandler {
         }
     }
 
-    private void showUsage(String a, PrintStream out) {
-        if (a != null) {
-            out.println("Unsupported option: " + a);
-            out.println();
-        }
-        out.println("Starts H2 Servers");
-        out.println("By default, -tcp, -web, -browser and -pg are started. Options are case sensitive.");
-        out.println("java "+getClass().getName());
-        out.println("-web                  Start the Web Server and H2 Console");
-        out.println("-webAllowOthers       Allow other computers to connect");
-        out.println("-webPort <port>       The port (default: " + Constants.DEFAULT_HTTP_PORT+")");
-        out.println("-webSSL               Use encrypted HTTPS connections");
-        out.println("-browser              Start a browser to connect to the H2 Console");
-        out.println("-tcp                  Start the TCP Server");
-        out.println("-tcpAllowOthers       Allow other computers to connect");
-        out.println("-tcpPort <port>       The port (default: " + TcpServer.DEFAULT_PORT+")");
-        out.println("-tcpSSL               Use encrypted SSL connections");
-        out.println("-tcpPassword <pass>   The password for shutting down a TCP Server");
-        out.println("-tcpShutdown <url>    Shutdown the TCP Server; example: tcp://localhost:9094");
-        out.println("-tcpShutdownForce     Don't wait for other connections to close");
-        out.println("-pg                   Start the PG Server");
-        out.println("-pgAllowOthers        Allow other computers to connect");
-        out.println("-pgPort <port>        The port (default: " + PgServer.DEFAULT_PORT+")");
-        out.println("-ftp                  Start the FTP Server");
-        out.println("-ftpPort <port>       The port (default: " + Constants.DEFAULT_FTP_PORT+")");
-        out.println("-ftpDir <dir>         The base directory (default: " + FtpServer.DEFAULT_ROOT + ")");
-        out.println("-ftpRead <user>       The user name for reading (default: " + FtpServer.DEFAULT_READ+")");
-        out.println("-ftpWrite <user>      The user name for writing (default: " + FtpServer.DEFAULT_WRITE+")");
-        out.println("-ftpWritePassword <p> The write password (default: " + FtpServer.DEFAULT_WRITE_PASSWORD+")");
-        out.println("-baseDir <dir>        The base directory for H2 databases; for all servers");
-        out.println("-ifExists             Only existing databases may be opened; for all servers");
-        out.println("-trace                Print additional trace information; for all servers");
-        out.println("See also http://h2database.com/javadoc/" + getClass().getName().replace('.', '/') + ".html");
-    }
-
     /**
-     * The command line interface for this tool. The options must be split into
-     * strings like this: "-baseDir", "/temp/data",... By default, -tcp, -web,
-     * -browser and -pg are started. If there is a problem starting a service,
-     * the program terminates with an exit code of 1. Options are case
-     * sensitive. The following options are supported:
-     * <ul>
-     * <li>-help or -? (print the list of options) </li>
-     * <li>-web (start the Web Server and H2 Console) </li>
-     * <li>-browser (start a browser and open a page to connect to the
-     *     Web Server) </li>
-     * <li>-tcp (start the TCP Server) </li>
-     * <li>-tcpShutdown {url} (shutdown the running TCP Server,
-     *     URL example: tcp://localhost:9094) </li>
-     * <li>-pg (start the PG Server) </li>
-     * <li>-ftp (start the FTP Server) </li>
-     * <li>-trace (print additional trace information; for all servers) </li>
-     * <li>-baseDir {directory} (sets the base directory for H2 databases;
-     *     for all servers) </li>
-     * <li>-ifExists (only existing databases may be opened;
-     *     for all servers) </li>
-     * </ul>
-     * For each Server, additional options are available:
-     * <ul>
-     * <li>-webPort {port} (the port of Web Server, default: 8082) </li>
-     * <li>-webSSL (HTTPS is to be be used) </li>
-     * <li>-webAllowOthers (enable remote connections)
-     * </li>
-     * <li>-tcpPort {port} (the port of TCP Server, default: 9092) </li>
-     * <li>-tcpSSL (SSL is to be used) </li>
-     * <li>-tcpAllowOthers (enable remote connections)
-     * </li>
-     * <li>-tcpPassword {password} (the password for shutting down a TCP
-     * Server) </li>
-     * <li>-tcpShutdownForce (don't wait for other connections to
-     * close) </li>
-     * <li>-pgPort {port} (the port of PG Server, default: 5435) </li>
-     * <li>-pgAllowOthers (enable remote connections)
-     * </li>
-     * <li>-ftpPort {port} </li>
-     * <li>-ftpDir {directory} </li>
-     * <li>-ftpRead {readUserName} </li>
-     * <li>-ftpWrite {writeUserName} </li>
-     * <li>-ftpWritePassword {password} </li>
-     * </ul>
+     * When running without options, -tcp, -web, -browser and -pg are started.<br />
+     * Options are case sensitive. Supported options are:
+     * <table>
+     * <tr><td>[-help] or [-?]</td>
+     * <td>Print the list of options</td></tr>
+     * <tr><td>[-web]</td>
+     * <td>Start the web server with the H2 Console</td></tr>
+     * <tr><td>[-webAllowOthers]</td>
+     * <td>Allow other computers to connect</td></tr>
+     * <tr><td>[-webPort &lt;port&gt;]</td>
+     * <td>The port (default: 8082)</td></tr>
+     * <tr><td>[-webSSL]</td>
+     * <td>Use encrypted (HTTPS) connections</td></tr>
+     * <tr><td>[-browser]</td>
+     * <td>Start a browser and open a page to connect to the web server</td></tr>
+     * <tr><td>[-tcp]</td>
+     * <td>Start the TCP server</td></tr>
+     * <tr><td>[-tcpAllowOthers]</td>
+     * <td>Allow other computers to connect</td></tr>
+     * <tr><td>[-tcpPort &lt;port&gt;]</td>
+     * <td>The port (default: 9092)</td></tr>
+     * <tr><td>[-tcpSSL]</td>
+     * <td>Use encrypted (SSL) connections</td></tr>
+     * <tr><td>[-tcpPassword &lt;pwd&gt;]</td>
+     * <td>The password for shutting down a TCP server</td></tr>
+     * <tr><td>[-tcpShutdown &lt;url&gt;]</td>
+     * <td>Stop the TCP server; example: tcp://localhost:9094</td></tr>
+     * <tr><td>[-tcpShutdownForce]</td>
+     * <td>Do not wait until all connections are closed</td></tr>
+     * <tr><td>[-pg]</td>
+     * <td>Start the PG server</td></tr>
+     * <tr><td>[-pgAllowOthers]</td>
+     * <td>Allow other computers to connect</td></tr>
+     * <tr><td>[-pgPort &lt;port&gt;]</td>
+     * <td>The port (default: 5435)</td></tr>
+     * <tr><td>[-ftp]</td>
+     * <td>Start the FTP server</td></tr>
+     * <tr><td>[-ftpPort &lt;port&gt;]</td>
+     * <td>The port (default: 8021)</td></tr>
+     * <tr><td>[-ftpDir &lt;dir&gt;]</td>
+     * <td>The base directory (default: ftp)</td></tr>
+     * <tr><td>[-ftpRead &lt;user&gt;]</td>
+     * <td>The user name for reading (default: guest)</td></tr>
+     * <tr><td>[-ftpWrite &lt;user&gt;]</td>
+     * <td>The user name for writing (default: sa)</td></tr>
+     * <tr><td>[-ftpWritePassword &lt;p&gt;]</td>
+     * <td>The write password (default: sa)</td></tr>
+     * <tr><td>[-baseDir &lt;dir&gt;]</td>
+     * <td>The base directory for H2 databases; for all servers</td></tr>
+     * <tr><td>[-ifExists]</td>
+     * <td>Only existing databases may be opened; for all servers</td></tr>
+     * <tr><td>[-trace]</td>
+     * <td>Print additional trace information; for all servers</td></tr>
+     * </table>
+     * @h2.resource
      *
      * @param args the command line arguments
-     * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
-        int exitCode = new Server().run(args, System.out);
-        if (exitCode != 0) {
-            System.exit(exitCode);
-        }
+        new Server().run(args);
     }
 
-    /**
-     * INTERNAL
-     */
-    public int run(String[] args, PrintStream out) throws SQLException {
+    public void run(String[] args) throws SQLException {
         boolean tcpStart = false, pgStart = false, webStart = false, ftpStart = false;
         boolean browserStart = false;
         boolean tcpShutdown = false, tcpShutdownForce = false;
@@ -153,8 +120,8 @@ public class Server implements Runnable, ShutdownHandler {
             if (arg == null) {
                 continue;
             } else if ("-?".equals(arg) || "-help".equals(arg)) {
-                showUsage(null, out);
-                return EXIT_ERROR;
+                showUsage();
+                return;
             } else if (arg.startsWith("-web")) {
                 if ("-web".equals(arg)) {
                     startDefaultServers = false;
@@ -172,8 +139,7 @@ public class Server implements Runnable, ShutdownHandler {
                 } else if ("-webScript".equals(arg)) {
                     i++;
                 } else {
-                    showUsage(arg, out);
-                    return EXIT_ERROR;
+                    throwUnsupportedOption(arg);
                 }
             } else if ("-browser".equals(arg)) {
                 startDefaultServers = false;
@@ -206,8 +172,7 @@ public class Server implements Runnable, ShutdownHandler {
                         tcpShutdownForce = true;
                     }
                 } else {
-                    showUsage(arg, out);
-                    return EXIT_ERROR;
+                    throwUnsupportedOption(arg);
                 }
             } else if (arg.startsWith("-pg")) {
                 if ("-pg".equals(arg)) {
@@ -220,8 +185,7 @@ public class Server implements Runnable, ShutdownHandler {
                 } else if ("-pgPort".equals(arg)) {
                     i++;
                 } else {
-                    showUsage(arg, out);
-                    return EXIT_ERROR;
+                    throwUnsupportedOption(arg);
                 }
             } else if (arg.startsWith("-ftp")) {
                 if ("-ftp".equals(arg)) {
@@ -240,8 +204,7 @@ public class Server implements Runnable, ShutdownHandler {
                 } else if ("-ftpTask".equals(arg)) {
                     // no parameters
                 } else {
-                    showUsage(arg, out);
-                    return EXIT_ERROR;
+                    throwUnsupportedOption(arg);
                 }
             } else if ("-trace".equals(arg)) {
                 // no parameters
@@ -254,11 +217,9 @@ public class Server implements Runnable, ShutdownHandler {
             } else if ("-baseDir".equals(arg)) {
                 i++;
             } else {
-                showUsage(arg, out);
-                return EXIT_ERROR;
+                throwUnsupportedOption(arg);
             }
         }
-        int exitCode = 0;
         if (startDefaultServers) {
             tcpStart = true;
             pgStart = true;
@@ -270,58 +231,41 @@ public class Server implements Runnable, ShutdownHandler {
             out.println("Shutting down TCP Server at " + tcpShutdownServer);
             shutdownTcpServer(tcpShutdownServer, tcpPassword, tcpShutdownForce);
         }
-        if (tcpStart) {
-            tcp = createTcpServer(args);
-            try {
-                tcp.start();
-            } catch (SQLException e) {
-                // ignore (status is displayed)
-                e.printStackTrace();
-                exitCode = EXIT_ERROR;
-            }
-            out.println(tcp.getStatus());
-        }
-        if (pgStart) {
-            pg = createPgServer(args);
-            try {
-                pg.start();
-            } catch (SQLException e) {
-                // ignore (status is displayed)
-                e.printStackTrace();
-                exitCode = EXIT_ERROR;
-            }
-            out.println(pg.getStatus());
-        }
         if (webStart) {
             web = createWebServer(args);
             web.setShutdownHandler(this);
+            SQLException result = null;
             try {
                 web.start();
             } catch (SQLException e) {
-                // ignore (status is displayed)
-                e.printStackTrace();
-                exitCode = EXIT_ERROR;
+                result = e;
             }
             out.println(web.getStatus());
-            // start browser anyway (even if the server is already running)
+            // start browser in any case (even if the server is already running)
             // because some people don't look at the output,
             // but are wondering why nothing happens
             if (browserStart) {
                 StartBrowser.openURL(web.getURL());
             }
+            if (result != null) {
+                throw result;
+            }
+        }
+        if (tcpStart) {
+            tcp = createTcpServer(args);
+            tcp.start();
+            out.println(tcp.getStatus());
+        }
+        if (pgStart) {
+            pg = createPgServer(args);
+            pg.start();
+            out.println(pg.getStatus());
         }
         if (ftpStart) {
             ftp = createFtpServer(args);
-            try {
-                ftp.start();
-            } catch (SQLException e) {
-                // ignore (status is displayed)
-                e.printStackTrace();
-                exitCode = EXIT_ERROR;
-            }
+            ftp.start();
             out.println(ftp.getStatus());
         }
-        return exitCode;
     }
 
     /**

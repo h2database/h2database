@@ -106,6 +106,7 @@ public class Recover extends Tool implements DataHandler {
      * a hardware problem.
      *
      * @param args the command line arguments
+     * @return the exit code
      */
     public void run(String[] args) throws SQLException {
         String dir = ".";
@@ -124,9 +125,7 @@ public class Recover extends Tool implements DataHandler {
                 showUsage();
                 return;
             } else {
-                out.println("Unsupported option: " + arg);
-                showUsage();
-                return;
+                throwUnsupportedOption(arg);
             }
         }
         if (!SysProperties.PAGE_STORE && remove) {

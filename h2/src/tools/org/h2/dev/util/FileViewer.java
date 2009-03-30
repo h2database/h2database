@@ -9,8 +9,10 @@ package org.h2.dev.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
+import org.h2.message.Message;
 import org.h2.util.Tool;
 
 
@@ -24,7 +26,7 @@ public class FileViewer extends Tool {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws SQLException {
         new FileViewer().run(args);
     }
 
@@ -42,7 +44,7 @@ public class FileViewer extends Tool {
         // getClass().getName().replace('.', '/') + ".html");
     }
 
-    public void run(String[] args) {
+    public void run(String[] args) throws SQLException {
         String file = null;
         String find = null;
         boolean head = false, tail = false;
@@ -69,9 +71,7 @@ public class FileViewer extends Tool {
                 showUsage();
                 return;
             } else {
-                out.println("Unsupported option: " + arg);
-                showUsage();
-                return;
+                throwUnsupportedOption(arg);
             }
         }
         if (file == null) {
@@ -84,7 +84,7 @@ public class FileViewer extends Tool {
         try {
             process(file, find, head, tail, start, lines, quiet);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw Message.convert(e);
         }
     }
 

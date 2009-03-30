@@ -59,9 +59,7 @@ public class DeleteDbFiles extends Tool {
                 showUsage();
                 return;
             } else {
-                out.println("Unsupported option: " + arg);
-                showUsage();
-                return;
+                throwUnsupportedOption(arg);
             }
         }
         process(dir, db, quiet);

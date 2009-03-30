@@ -80,14 +80,12 @@ public class ChangeFileEncryption extends Tool {
                 showUsage();
                 return;
             } else {
-                out.println("Unsupported option: " + arg);
-                showUsage();
-                return;
+                throwUnsupportedOption(arg);
             }
         }
         if ((encryptPassword == null && decryptPassword == null) || cipher == null) {
             showUsage();
-            return;
+            throw new SQLException("Encryption or decryption password not set, or cipher not set");
         }
         process(dir, db, cipher, decryptPassword, encryptPassword, quiet);
     }

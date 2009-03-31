@@ -71,7 +71,7 @@ public class Shell extends Tool {
     /**
      * Sets the standard error stream.
      *
-     * @param out the new standard error stream
+     * @param err the new standard error stream
      */
     public void setErr(PrintStream err) {
         this.err = err;

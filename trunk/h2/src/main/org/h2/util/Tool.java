@@ -42,6 +42,12 @@ public abstract class Tool {
      */
     public abstract void run(String[] args) throws SQLException;
 
+    /**
+     * Throw a SQLException saying this command line option is not supported.
+     *
+     * @param option the unsupported option
+     * @return this method never returns normally
+     */
     protected SQLException throwUnsupportedOption(String option) throws SQLException {
         showUsage();
         throw new SQLException("Unsupported option: " + option);

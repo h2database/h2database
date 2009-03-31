@@ -18,10 +18,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
-
 import org.h2.constant.SysProperties;
 import org.h2.server.Service;
 import org.h2.store.fs.FileSystem;
+import org.h2.tools.Server;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
@@ -34,7 +34,7 @@ import org.h2.util.Tool;
  * Remote connections are possible.
  * See also http://cr.yp.to/ftp.html http://www.ftpguide.com/
  */
-public class FtpServer implements Service {
+public class FtpServer extends Tool implements Service {
 
     /**
      * The default port to use for the FTP server.
@@ -87,6 +87,105 @@ public class FtpServer implements Service {
     private boolean allowTask;
 
     private FtpEventListener eventListener;
+
+
+    /**
+     * When running without options, -tcp, -web, -browser and -pg are started.<br />
+     * Options are case sensitive. Supported options are:
+     * <table>
+     * <tr><td>[-help] or [-?]</td>
+     * <td>Print the list of options</td></tr>
+     * <tr><td>[-web]</td>
+     * <td>Start the web server with the H2 Console</td></tr>
+     * <tr><td>[-webAllowOthers]</td>
+     * <td>Allow other computers to connect</td></tr>
+     * <tr><td>[-webPort &lt;port&gt;]</td>
+     * <td>The port (default: 8082)</td></tr>
+     * <tr><td>[-webSSL]</td>
+     * <td>Use encrypted (HTTPS) connections</td></tr>
+     * <tr><td>[-browser]</td>
+     * <td>Start a browser and open a page to connect to the web server</td></tr>
+     * <tr><td>[-tcp]</td>
+     * <td>Start the TCP server</td></tr>
+     * <tr><td>[-tcpAllowOthers]</td>
+     * <td>Allow other computers to connect</td></tr>
+     * <tr><td>[-tcpPort &lt;port&gt;]</td>
+     * <td>The port (default: 9092)</td></tr>
+     * <tr><td>[-tcpSSL]</td>
+     * <td>Use encrypted (SSL) connections</td></tr>
+     * <tr><td>[-tcpPassword &lt;pwd&gt;]</td>
+     * <td>The password for shutting down a TCP server</td></tr>
+     * <tr><td>[-tcpShutdown &lt;url&gt;]</td>
+     * <td>Stop the TCP server; example: tcp://localhost:9094</td></tr>
+     * <tr><td>[-tcpShutdownForce]</td>
+     * <td>Do not wait until all connections are closed</td></tr>
+     * <tr><td>[-pg]</td>
+     * <td>Start the PG server</td></tr>
+     * <tr><td>[-pgAllowOthers]</td>
+     * <td>Allow other computers to connect</td></tr>
+     * <tr><td>[-pgPort &lt;port&gt;]</td>
+     * <td>The port (default: 5435)</td></tr>
+     * <tr><td>[-ftp]</td>
+     * <td>Start the FTP server</td></tr>
+     * <tr><td>[-ftpPort &lt;port&gt;]</td>
+     * <td>The port (default: 8021)</td></tr>
+     * <tr><td>[-ftpDir &lt;dir&gt;]</td>
+     * <td>The base directory (default: ftp)</td></tr>
+     * <tr><td>[-ftpRead &lt;user&gt;]</td>
+     * <td>The user name for reading (default: guest)</td></tr>
+     * <tr><td>[-ftpWrite &lt;user&gt;]</td>
+     * <td>The user name for writing (default: sa)</td></tr>
+     * <tr><td>[-ftpWritePassword &lt;p&gt;]</td>
+     * <td>The write password (default: sa)</td></tr>
+     * <tr><td>[-baseDir &lt;dir&gt;]</td>
+     * <td>The base directory for H2 databases; for all servers</td></tr>
+     * <tr><td>[-ifExists]</td>
+     * <td>Only existing databases may be opened; for all servers</td></tr>
+     * <tr><td>[-trace]</td>
+     * <td>Print additional trace information; for all servers</td></tr>
+     * </table>
+     * @h2.resource
+     *
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) throws SQLException {
+        new FtpServer().run(args);
+    }
+
+    public void run(String[] args) throws SQLException {
+        for (int i = 0; args != null && i < args.length; i++) {
+            String arg = args[i];
+            if (arg == null) {
+                continue;
+            } else if ("-?".equals(arg) || "-help".equals(arg)) {
+                showUsage();
+                return;
+            } else if (arg.startsWith("-ftp")) {
+                if ("-ftpPort".equals(arg)) {
+                    i++;
+                } else if ("-ftpDir".equals(arg)) {
+                    i++;
+                } else if ("-ftpRead".equals(arg)) {
+                    i++;
+                } else if ("-ftpWrite".equals(arg)) {
+                    i++;
+                } else if ("-ftpWritePassword".equals(arg)) {
+                    i++;
+                } else if ("-ftpTask".equals(arg)) {
+                    // no parameters
+                } else {
+                    throwUnsupportedOption(arg);
+                }
+            } else if ("-trace".equals(arg)) {
+                // no parameters
+            } else {
+                throwUnsupportedOption(arg);
+            }
+        }
+        Server server = new Server(this, args);
+        server.start();
+        out.println(server.getStatus());
+    }
 
     public void listen() {
         try {
@@ -446,6 +545,20 @@ public class FtpServer implements Service {
      */
     FtpEventListener getEventListener() {
         return eventListener;
+    }
+
+    /**
+     * Create a new FTP server, but does not start it yet. Example:
+     *
+     * <pre>
+     * Server server = FtpServer.createFtpServer(null).start();
+     * </pre>
+     *
+     * @param args the argument list
+     * @return the server
+     */
+    public static Server createFtpServer(String[] args) throws SQLException {
+        return new Server(new FtpServer(), args);
     }
 
 }

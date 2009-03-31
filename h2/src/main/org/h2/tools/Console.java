@@ -62,7 +62,8 @@ ShutdownHandler {
     private boolean isWindows;
 
     /**
-     * When running without options, -tcp, -web, -browser and -pg are started.<br />
+     * When running without options, -tcp, -web, -browser and -pg are started.
+     * <br />
      * Options are case sensitive. Supported options are:
      * <table>
      * <tr><td>[-help] or [-?]</td>
@@ -78,8 +79,10 @@ ShutdownHandler {
      * <tr><td>[-pg]</td>
      * <td>Start the PG server</td></tr>
      * </table>
-     * For each Server, additional options are available; for details, see the Server tool.<br />
-     * If a service can not be started, the program terminates with an exit code of 1.
+     * For each Server, additional options are available;
+     * for details, see the Server tool.<br />
+     * If a service can not be started, the program
+     * terminates with an exit code of 1.
      * @h2.resource
      *
      * @param args the command line arguments

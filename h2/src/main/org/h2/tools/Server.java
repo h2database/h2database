@@ -16,27 +16,32 @@ import org.h2.message.TraceSystem;
 import org.h2.server.Service;
 import org.h2.server.ShutdownHandler;
 import org.h2.server.TcpServer;
-import org.h2.server.ftp.FtpServer;
 import org.h2.server.pg.PgServer;
 import org.h2.server.web.WebServer;
 import org.h2.util.StartBrowser;
 import org.h2.util.Tool;
 
 /**
- * Starts the H2 Console (web-) server, TCP, PG, and FTP server.
+ * Starts the H2 Console (web-) server, TCP, and PG server.
  * @h2.resource
  */
 public class Server extends Tool implements Runnable, ShutdownHandler {
 
     private Service service;
-    private Server web, tcp, pg, ftp;
+    private Server web, tcp, pg;
     private ShutdownHandler shutdownHandler;
 
     public Server() {
         // nothing to do
     }
 
-    private Server(Service service, String[] args) throws SQLException {
+    /**
+     * Create a new server for the given service.
+     *
+     * @param service the service
+     * @param args the command line arguments
+     */
+    public Server(Service service, String[] args) throws SQLException {
         this.service = service;
         try {
             service.init(args);
@@ -46,7 +51,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     }
 
     /**
-     * When running without options, -tcp, -web, -browser and -pg are started.<br />
+     * When running without options, -tcp, -web, -browser and -pg are started.
+     * <br />
      * Options are case sensitive. Supported options are:
      * <table>
      * <tr><td>[-help] or [-?]</td>
@@ -81,18 +87,6 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <td>Allow other computers to connect</td></tr>
      * <tr><td>[-pgPort &lt;port&gt;]</td>
      * <td>The port (default: 5435)</td></tr>
-     * <tr><td>[-ftp]</td>
-     * <td>Start the FTP server</td></tr>
-     * <tr><td>[-ftpPort &lt;port&gt;]</td>
-     * <td>The port (default: 8021)</td></tr>
-     * <tr><td>[-ftpDir &lt;dir&gt;]</td>
-     * <td>The base directory (default: ftp)</td></tr>
-     * <tr><td>[-ftpRead &lt;user&gt;]</td>
-     * <td>The user name for reading (default: guest)</td></tr>
-     * <tr><td>[-ftpWrite &lt;user&gt;]</td>
-     * <td>The user name for writing (default: sa)</td></tr>
-     * <tr><td>[-ftpWritePassword &lt;p&gt;]</td>
-     * <td>The write password (default: sa)</td></tr>
      * <tr><td>[-baseDir &lt;dir&gt;]</td>
      * <td>The base directory for H2 databases; for all servers</td></tr>
      * <tr><td>[-ifExists]</td>
@@ -109,7 +103,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     }
 
     public void run(String[] args) throws SQLException {
-        boolean tcpStart = false, pgStart = false, webStart = false, ftpStart = false;
+        boolean tcpStart = false, pgStart = false, webStart = false;
         boolean browserStart = false;
         boolean tcpShutdown = false, tcpShutdownForce = false;
         String tcpPassword = "";
@@ -187,25 +181,6 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 } else {
                     throwUnsupportedOption(arg);
                 }
-            } else if (arg.startsWith("-ftp")) {
-                if ("-ftp".equals(arg)) {
-                    startDefaultServers = false;
-                    ftpStart = true;
-                } else if ("-ftpPort".equals(arg)) {
-                    i++;
-                } else if ("-ftpDir".equals(arg)) {
-                    i++;
-                } else if ("-ftpRead".equals(arg)) {
-                    i++;
-                } else if ("-ftpWrite".equals(arg)) {
-                    i++;
-                } else if ("-ftpWritePassword".equals(arg)) {
-                    i++;
-                } else if ("-ftpTask".equals(arg)) {
-                    // no parameters
-                } else {
-                    throwUnsupportedOption(arg);
-                }
             } else if ("-trace".equals(arg)) {
                 // no parameters
             } else if ("-log".equals(arg) && SysProperties.OLD_COMMAND_LINE_OPTIONS) {
@@ -261,11 +236,6 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
             pg.start();
             out.println(pg.getStatus());
         }
-        if (ftpStart) {
-            ftp = createFtpServer(args);
-            ftp.start();
-            out.println(ftp.getStatus());
-        }
     }
 
     /**
@@ -290,7 +260,12 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         TcpServer.shutdown(url, password, force);
     }
 
-    String getStatus() {
+    /**
+     * Get the status of this server.
+     *
+     * @return the status
+     */
+    public String getStatus() {
         StringBuffer buff = new StringBuffer();
         if (isRunning(false)) {
             buff.append(service.getType());
@@ -326,21 +301,6 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         Server server = new Server(service, args);
         service.setShutdownHandler(server);
         return server;
-    }
-
-    /**
-     * Create a new ftp server, but does not start it yet. Example:
-     *
-     * <pre>
-     * Server server = Server.createFtpServer(
-     *     new String[] { &quot;-trace&quot; }).start();
-     * </pre>
-     *
-     * @param args the argument list
-     * @return the server
-     */
-    public static Server createFtpServer(String[] args) throws SQLException {
-        return new Server(new FtpServer(), args);
     }
 
     /**
@@ -419,10 +379,6 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         if (pg != null && pg.isRunning(false)) {
             pg.stop();
             pg = null;
-        }
-        if (ftp != null && ftp.isRunning(false)) {
-            ftp.stop();
-            ftp = null;
         }
     }
 

@@ -241,6 +241,7 @@ public class Build extends BuildBase {
             exclude("temp/org/h2/jaqu/*").
             exclude("temp/org/h2/mode/*").
             exclude("temp/org/h2/samples/*").
+            exclude("temp/org/h2/server/ftp/*").
             exclude("temp/org/h2/test/*").
             exclude("*.bat").
             exclude("*.sh").

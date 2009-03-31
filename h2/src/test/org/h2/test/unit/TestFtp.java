@@ -33,7 +33,7 @@ public class TestFtp extends TestBase implements FtpEventListener {
     }
 
     private void test(String dir) throws Exception {
-        Server server = Server.createFtpServer(new String[]{"-ftpDir", dir, "-ftpPort", "8121"}).start();
+        Server server = FtpServer.createFtpServer(new String[]{"-ftpDir", dir, "-ftpPort", "8121"}).start();
         FtpServer ftp = (FtpServer) server.getService();
         ftp.setEventListener(this);
         FtpClient client = FtpClient.open("localhost:8121");

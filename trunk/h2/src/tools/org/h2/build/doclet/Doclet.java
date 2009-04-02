@@ -89,12 +89,14 @@ public class Doclet {
                 "lang=\"" + language + "\" xml:lang=\"" + language + "\">");
         writer.println("<head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" /><title>");
         writer.println(className);
-        writer.println("</title><link rel=\"stylesheet\" type=\"text/css\" href=\"../../../stylesheet.css\" /></head><body>");
+        writer.println("</title><link rel=\"stylesheet\" type=\"text/css\" href=\"../../../stylesheet.css\" />");
+        writer.println("<script type=\"text/javascript\" src=\"../../../animate.js\"></script>");
+        writer.println("</head><body onload=\"openLink();\">");
         writer.println("<table class=\"content\"><tr class=\"content\"><td class=\"content\"><div class=\"contentDiv\">");
         writer.println("<h1>" + className + "</h1>");
         writer.println(formatText(clazz.commentText()) + "<br /><br />");
 
-        // method overview
+        // methods
         MethodDoc[] methods = clazz.methods();
         Arrays.sort(methods, new Comparator() {
             public int compare(Object a, Object b) {
@@ -103,6 +105,7 @@ public class Doclet {
         });
         ArrayList signatures = new ArrayList();
         boolean hasMethods = false;
+        int id = 0;
         for (int i = 0; i < methods.length; i++) {
             MethodDoc method = methods[i];
             String name = method.name();
@@ -110,11 +113,11 @@ public class Doclet {
                 continue;
             }
             if (!hasMethods) {
-                writer.println("<table><tr><th colspan=\"2\">Methods</th></tr>");
+                writer.println("<table class=\"block\"><tr onclick=\"return allDetails()\"><th colspan=\"2\">Methods</th></tr>");
                 hasMethods = true;
             }
             String type = getTypeName(method.isStatic(), method.returnType());
-            writer.println("<tr><td class=\"return\">" + type + "</td><td class=\"method\">");
+            writer.println("<tr id=\"tm"+id+"\" onclick=\"return on('m"+ id +"')\"><td class=\"return\">" + type + "</td><td class=\"method\">");
             Parameter[] params = method.parameters();
             StringBuffer buff = new StringBuffer();
             StringBuffer buffSignature = new StringBuffer(name);
@@ -147,6 +150,12 @@ public class Doclet {
                 writer.println("<div class=\"methodText\">" + formatText(firstSentence) + "</div>");
             }
             writer.println("</td></tr>");
+            writer.println("<tr onclick=\"return off('m"+ id +"')\" class=\"detail\" id=\"m"+id+"\">");
+            writer.println("<td class=\"return\">" + type + "</td><td>");
+            writer.println("<a name=\"" + signature + "\"></a>");
+            writeMethodDetails(writer, clazz, method, signature);
+            writer.println("</td></tr>");
+            id++;
         }
         if (hasMethods) {
             writer.println("</table>");
@@ -198,113 +207,6 @@ public class Doclet {
             writer.println("</table>");
         }
 
-        // method details
-        for (int i = 0; i < methods.length; i++) {
-            MethodDoc method = methods[i];
-            String name = method.name();
-            if (skipMethod(method)) {
-                continue;
-            }
-            String type = getTypeName(method.isStatic(), method.returnType());
-            String signature = (String) signatures.get(i);
-            writer.println("<a name=\"" + signature + "\"></a>");
-            Parameter[] params = method.parameters();
-            StringBuffer buff = new StringBuffer();
-            buff.append('(');
-            for (int j = 0; j < params.length; j++) {
-                if (j > 0) {
-                    buff.append(", ");
-                }
-                buff.append(getTypeName(false, params[j].type()));
-                buff.append(' ');
-                buff.append(params[j].name());
-            }
-            buff.append(')');
-            ClassDoc[] exceptions = method.thrownExceptions();
-            if (exceptions.length > 0) {
-                buff.append(" throws ");
-                for (int k = 0; k < exceptions.length; k++) {
-                    if (k > 0) {
-                        buff.append(", ");
-                    }
-                    buff.append(exceptions[k].typeName());
-                }
-            }
-            if (isDeprecated(method)) {
-                name = "<span class=\"deprecated\">" + name + "</span>";
-            }
-            writer.println("<h4>" + type + " <span class=\"methodName\">" + name + "</span>" + buff.toString()
-                    + "</h4>");
-            boolean hasComment = method.commentText() != null && method.commentText().trim().length() != 0;
-            writer.println(formatText(method.commentText()));
-            ParamTag[] paramTags = method.paramTags();
-            ThrowsTag[] throwsTags = method.throwsTags();
-            boolean hasThrowsTag = throwsTags != null && throwsTags.length > 0;
-            boolean space = false;
-            if (paramTags.length != params.length) {
-                if (hasComment && !method.commentText().startsWith("[") && !hasThrowsTag) {
-                    // [Not supported] and such are not problematic
-                    // also not problematic are methods that always throw an exception
-                    addError("Undocumented parameter(s) (" +
-                            clazz.name() + ".java:" + method.position().line() + ") " + name + " documented: " + paramTags.length + " params: "+ params.length);
-                }
-            }
-            for (int j = 0; j < paramTags.length; j++) {
-                if (!space) {
-                    writer.println("<br /><br />");
-                    space = true;
-                }
-                String paramName = paramTags[j].parameterName();
-                String comment = paramTags[j].parameterComment();
-                if (comment.trim().length() == 0) {
-                    addError("Undocumented parameter (" +
-                            clazz.name() + ".java:" + method.position().line() + ") " + name + " " + paramName);
-                }
-                String p = paramName + " - " + comment;
-                if (j == 0) {
-                    writer.println("<div class=\"itemTitle\">Parameters:</div>");
-                }
-                writer.println("<div class=\"item\">" + p + "</div>");
-            }
-            Tag[] returnTags = method.tags("return");
-            if (returnTags != null && returnTags.length > 0) {
-                if (!space) {
-                    writer.println("<br /><br />");
-                    space = true;
-                }
-                writer.println("<div class=\"itemTitle\">Returns:</div>");
-                String returnComment = returnTags[0].text();
-                if (returnComment.trim().length() == 0) {
-                    addError("Undocumented return value (" +
-                            clazz.name() + ".java:" + method.position().line() + ") " + name);
-                }
-                writer.println("<div class=\"item\">" + returnComment + "</div>");
-            } else if (!method.returnType().toString().equals("void")) {
-                if (hasComment && !method.commentText().startsWith("[") && !hasThrowsTag) {
-                    // [Not supported] and such are not problematic
-                    // also not problematic are methods that always throw an exception
-                    addError("Undocumented return value (" +
-                            clazz.name() + ".java:" + method.position().line() + ") " + name + " " + method.returnType());
-                }
-            }
-            if (hasThrowsTag) {
-                if (!space) {
-                    writer.println("<br /><br />");
-                    space = true;
-                }
-                writer.println("<div class=\"itemTitle\">Throws:</div>");
-                for (int j = 0; j < throwsTags.length; j++) {
-                    String p = throwsTags[j].exceptionName();
-                    String c = throwsTags[j].exceptionComment();
-                    if (c.length() > 0) {
-                        p += " - " + c;
-                    }
-                    writer.println("<div class=\"item\">" + p + "</div>");
-                }
-            }
-            writer.println("<hr />");
-        }
-
         // field details
         Arrays.sort(fields, new Comparator() {
             public int compare(Object a, Object b) {
@@ -320,31 +222,122 @@ public class Doclet {
         });
         for (int i = 0; i < fields.length; i++) {
             FieldDoc field = fields[i];
-            if (skipField(clazz, field)) {
-                continue;
-            }
-            String text = field.commentText();
-            if (text.startsWith("INTERNAL")) {
-                continue;
-            }
-            String name = field.name();
-            String constant = field.constantValueExpression();
-            String link = getFieldLink(text, constant, clazz, name);
-            writer.println("<a name=\"" + link + "\"></a>");
-            writer.println("<h4><span class=\"methodName\">" + name);
-            if (constant == null) {
-                writer.println();
-            } else {
-                writer.println(" = " + constant);
-            }
-            writer.println("</span></h4>");
-            writer.println("<div class=\"item\">" + formatText(text) + "</div>");
-            writer.println("<hr />");
+            writeFieldDetails(writer, clazz, field);
         }
 
         writer.println("</div></td></tr></table></body></html>");
         writer.close();
         out.close();
+    }
+
+    private void writeFieldDetails(PrintWriter writer, ClassDoc clazz, FieldDoc field) {
+        if (skipField(clazz, field)) {
+            return;
+        }
+        String text = field.commentText();
+        if (text.startsWith("INTERNAL")) {
+            return;
+        }
+        String name = field.name();
+        String constant = field.constantValueExpression();
+        String link = getFieldLink(text, constant, clazz, name);
+        writer.println("<a name=\"" + link + "\"></a>");
+        writer.println("<h4><span class=\"methodName\">" + name);
+        if (constant == null) {
+            writer.println();
+        } else {
+            writer.println(" = " + constant);
+        }
+        writer.println("</span></h4>");
+        writer.println("<div class=\"item\">" + formatText(text) + "</div>");
+        writer.println("<hr />");
+    }
+
+    private void writeMethodDetails(PrintWriter writer, ClassDoc clazz, MethodDoc method, String signature) {
+        String name = method.name();
+        if (skipMethod(method)) {
+            return;
+        }
+        Parameter[] params = method.parameters();
+        StringBuffer buff = new StringBuffer();
+        buff.append('(');
+        for (int j = 0; j < params.length; j++) {
+            if (j > 0) {
+                buff.append(", ");
+            }
+            buff.append(getTypeName(false, params[j].type()));
+            buff.append(' ');
+            buff.append(params[j].name());
+        }
+        buff.append(')');
+        ClassDoc[] exceptions = method.thrownExceptions();
+        if (exceptions.length > 0) {
+            buff.append(" throws ");
+            for (int k = 0; k < exceptions.length; k++) {
+                if (k > 0) {
+                    buff.append(", ");
+                }
+                buff.append(exceptions[k].typeName());
+            }
+        }
+        if (isDeprecated(method)) {
+            name = "<span class=\"deprecated\">" + name + "</span>";
+        }
+        writer.println("<a href=\"#" + signature + "\">" + name + "</a>" + buff.toString());
+        boolean hasComment = method.commentText() != null && method.commentText().trim().length() != 0;
+        writer.println("<div class=\"methodText\">" + formatText(method.commentText()) + "</div>");
+        ParamTag[] paramTags = method.paramTags();
+        ThrowsTag[] throwsTags = method.throwsTags();
+        boolean hasThrowsTag = throwsTags != null && throwsTags.length > 0;
+        if (paramTags.length != params.length) {
+            if (hasComment && !method.commentText().startsWith("[") && !hasThrowsTag) {
+                // [Not supported] and such are not problematic
+                // also not problematic are methods that always throw an exception
+                addError("Undocumented parameter(s) (" +
+                        clazz.name() + ".java:" + method.position().line() + ") " + name + " documented: " + paramTags.length + " params: "+ params.length);
+            }
+        }
+        for (int j = 0; j < paramTags.length; j++) {
+            String paramName = paramTags[j].parameterName();
+            String comment = paramTags[j].parameterComment();
+            if (comment.trim().length() == 0) {
+                addError("Undocumented parameter (" +
+                        clazz.name() + ".java:" + method.position().line() + ") " + name + " " + paramName);
+            }
+            String p = paramName + " - " + comment;
+            if (j == 0) {
+                writer.println("<div class=\"itemTitle\">Parameters:</div>");
+            }
+            writer.println("<div class=\"item\">" + p + "</div>");
+        }
+        Tag[] returnTags = method.tags("return");
+        if (returnTags != null && returnTags.length > 0) {
+            writer.println("<div class=\"itemTitle\">Returns:</div>");
+            String returnComment = returnTags[0].text();
+            if (returnComment.trim().length() == 0) {
+                addError("Undocumented return value (" +
+                        clazz.name() + ".java:" + method.position().line() + ") " + name);
+            }
+            writer.println("<div class=\"item\">" + returnComment + "</div>");
+        } else if (!method.returnType().toString().equals("void")) {
+            if (hasComment && !method.commentText().startsWith("[") && !hasThrowsTag) {
+                // [Not supported] and such are not problematic
+                // also not problematic are methods that always throw an exception
+                addError("Undocumented return value (" +
+                        clazz.name() + ".java:" + method.position().line() + ") " + name + " " + method.returnType());
+            }
+        }
+        if (hasThrowsTag) {
+            writer.println("<div class=\"itemTitle\">Throws:</div>");
+            for (int j = 0; j < throwsTags.length; j++) {
+                String p = throwsTags[j].exceptionName();
+                String c = throwsTags[j].exceptionComment();
+                if (c.length() > 0) {
+                    p += " - " + c;
+                }
+                writer.println("<div class=\"item\">" + p + "</div>");
+            }
+        }
     }
 
     private String getFieldLink(String text, String constant, ClassDoc clazz, String name) {

@@ -52,12 +52,14 @@ public class TestResultSet extends TestBase {
 
         stat = conn.createStatement();
 
+        testSubstringPrecision();
+        testSubstringDataType();
+        testColumnLabelColumnName();
         testAbsolute();
         testFetchSize();
         testOwnUpdates();
         testUpdatePrimaryKey();
         testFindColumn();
-        testSubstringPrecision();
         testColumnLength();
         testArray();
         testLimitMaxRows();
@@ -80,6 +82,33 @@ public class TestResultSet extends TestBase {
         conn.close();
         deleteDb("resultSet");
 
+    }
+
+    private void testSubstringDataType() throws SQLException {
+        ResultSet rs = stat.executeQuery("select substr(x, 1, 1) from dual");
+        rs.next();
+        assertEquals(Types.VARCHAR, rs.getMetaData().getColumnType(1));
+    }
+
+    private void testColumnLabelColumnName() throws SQLException {
+        ResultSet rs = stat.executeQuery("select x as y from dual");
+        rs.next();
+        rs.getString("x");
+        rs.getString("y");
+        rs.close();
+        rs = conn.getMetaData().getColumns(null, null, null, null);
+        ResultSetMetaData meta = rs.getMetaData();
+        int columnCount = meta.getColumnCount();
+        String[] columnName = new String[columnCount];
+        for (int i = 1; i <= columnCount; i++) {
+            // columnName[i - 1] = meta.getColumnLabel(i);
+            columnName[i - 1] = meta.getColumnName(i);
+        }
+        while (rs.next()) {
+            for (int i = 0; i < columnCount; i++) {
+                rs.getObject(columnName[i]);
+            }
+        }
     }
 
     private void testAbsolute() throws SQLException {
@@ -155,10 +184,10 @@ public class TestResultSet extends TestBase {
         trace("testSubstringPrecision");
         stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR(10))");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'WorldPeace')");
+        checkPrecision(0, "SELECT SUBSTR(NAME, 12, 4) FROM TEST");
         checkPrecision(9, "SELECT SUBSTR(NAME, 2) FROM TEST");
         checkPrecision(10, "SELECT SUBSTR(NAME, ID) FROM TEST");
         checkPrecision(4, "SELECT SUBSTR(NAME, 2, 4) FROM TEST");
-        checkPrecision(0, "SELECT SUBSTR(NAME, 12, 4) FROM TEST");
         checkPrecision(3, "SELECT SUBSTR(NAME, 8, 4) FROM TEST");
         checkPrecision(4, "SELECT SUBSTR(NAME, 7, 4) FROM TEST");
         checkPrecision(8, "SELECT SUBSTR(NAME, 3, ID*0) FROM TEST");

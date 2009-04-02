@@ -600,7 +600,11 @@ public class ValueLob extends Value {
                 return (int) (precision ^ (precision >>> 32));
             }
             try {
-                hash = ByteUtils.getByteArrayHash(getBytes());
+                if (type == CLOB) {
+                    hash = getString().hashCode();
+                } else {
+                    hash = ByteUtils.getByteArrayHash(getBytes());
+                }
             } catch (SQLException e) {
                 throw Message.convertToInternal(e);
             }

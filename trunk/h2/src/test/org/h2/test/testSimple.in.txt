@@ -1,3 +1,7 @@
+create table test(t clob) as select 1;
+select distinct t from test;
+> 1;
+drop table test;
 create table test(id int unique not null);
 drop table test;
 create table test(id int not null unique);

@@ -86,6 +86,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant
 </li><li>Comparison: pluggable sort order: natural sort
 </li><li>Count index range query (count(*) where id between 10 and 20)
+</li><li>Optimize IN(...) for DELETE and UPDATE.
 </li><li>Eclipse plugin
 </li><li>Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait]
 </li><li>Fulltext search Lucene: analyzer configuration.
@@ -100,7 +101,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Automatic collection of statistics (auto ANALYZE)
 </li><li>Server: client ping from time to time (to avoid timeout - is timeout a problem?)
 </li><li>Copy database: Tool with config GUI and batch mode, extensible (example: compare)
-</li><li>Document, implement tool for long running transactions using user-defined compensation statements
+</li><li>Document, implement tool for long running transactions using user-defined compensation statements.
 </li><li>Support SET TABLE DUAL READONLY
 </li><li>GCJ: what is the state now?
 </li><li>Events for: Database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
@@ -324,7 +325,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Oracle compatibility: support NLS_DATE_FORMAT.
 </li><li>Support flashback queries as in Oracle.
 </li><li>Import / Export of fixed with text files.
-</li><li>Support for OUT parameters in user-defined procedures.
+</li><li>Support OUT parameters in user-defined procedures.
 </li><li>Support getGeneratedKeys to return multiple rows when used with batch updates.
     This is supported by MySQL, but not Derby. Both PostgreSQL and HSQLDB don't support getGeneratedKeys.
     Also support it when using INSERT ... SELECT.
@@ -352,13 +353,11 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Applets: Support read-only databases in a zip file (accessed as a resource).
 </li><li>Long running queries / errors / trace system table.
 </li><li>H2 Console should support JaQu directly.
-</li><li>Option to copy the old version of each changed page once after a checkpoint.
 </li><li>H2 Console: support single file upload and directory download (optional).
 </li><li>Document FTL_SEARCH, FTL_SEARCH_DATA.
 </li><li>Sequences: CURRVAL should be session specific. Compatibility with PostgreSQL.
 </li><li>Support DatabaseMetaData.insertsAreDetected: updatable result sets should detect inserts.
 </li><li>Auto-server: add option to define the IP address range or list.
-</li><li>Open a read-only database but don't share it with other connections. jdbc:h2:~/test;PRIVATE=TRUE
 </li><li>Index creation only using deterministic functions.
 </li><li>Use http://recaptcha.net somehow to secure the Google Group.
 </li><li>Support DELETE with TOP or LIMIT. See also: http://dev.mysql.com/doc/refman/5.1/de/delete.html
@@ -389,10 +388,9 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>PostgreSQL compatibility: test DbVisualizer and Squirrel SQL using a new PostgreSQL JDBC driver.
 </li><li>RunScript should be able to read from system in (or quite mode for Shell).
 </li><li>Natural join: support select x from dual natural join dual.
-</li><li>Optimize IN(...) for DELETE and UPDATE.
 </li><li>Natural join: somehow support this: select a.x, b.x, x from dual a natural join dual b
 </li><li>MySQL compatibility: for auto_increment columns, convert 0 to next value (as when inserting NULL).
-</li><li>Functions: support hashcode(value)
+</li><li>Functions: support hashcode(value); cryptographic and fast
 </li><li>Serialized file lock: support long running queries.
 </li><li>Network: use 127.0.0.1 if other addresses don't work.
 </li><li>Select for update in mvcc mode: only lock the selected records.
@@ -400,8 +398,9 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>OSGi: create a sample application, test, document.
 </li><li>help.csv: use complete examples for functions; run as test case.
 </li><li>Re-implement PooledConnection; use a lightweight connection object.
-</li><li>Doclet: convert some javadocs to a resource (man page for command line tools, tests, build tool).
-</li><li>Change package name in version 2.0: org.h2database
+</li><li>Doclet: convert tests in javadocs to a java class.
+</li><li>Doclet: format fields like methods, but support sorting by name and value.
+</li><li>Doclet: shrink the html files.
 </li></ul>
 
 <h2>Not Planned</h2>

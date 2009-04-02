@@ -85,6 +85,11 @@ public class PageStore implements CacheWriter {
     // TODO remove trace or use isDebugEnabled
     // TODO recover tool: don't re-do uncommitted operations
     // TODO no need to log old page if it was always empty
+    // TODO don't store default values (store a special value)
+    // TODO btree: maybe split at the insertion point
+    // TODO split files (1 GB max size)
+    // TODO add a setting (that can be changed at runtime) to call fsync
+    // and delay on each commit
 
     /**
      * The smallest possible page size.

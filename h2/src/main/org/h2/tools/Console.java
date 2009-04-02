@@ -137,13 +137,17 @@ ShutdownHandler {
             tcpStart = true;
             pgStart = true;
         }
+        SQLException startException = null;
+        boolean webRunning = false;
         if (webStart) {
             try {
                 web = Server.createWebServer(args);
                 web.setShutdownHandler(this);
                 web.start();
+                webRunning = true;
             } catch (SQLException e) {
                 printProblem(e, web);
+                startException = e;
             }
         }
         if (tcpStart) {
@@ -152,6 +156,9 @@ ShutdownHandler {
                 tcp.start();
             } catch (SQLException e) {
                 printProblem(e, tcp);
+                if (startException == null) {
+                    startException = e;
+                }
             }
         }
         if (pgStart) {
@@ -160,10 +167,13 @@ ShutdownHandler {
                 pg.start();
             } catch (SQLException e) {
                 printProblem(e, pg);
+                if (startException == null) {
+                    startException = e;
+                }
             }
         }
 //## AWT begin ##
-        if (toolStart && !GraphicsEnvironment.isHeadless()) {
+        if (toolStart && webRunning && !GraphicsEnvironment.isHeadless()) {
             if (isWindows) {
                 font = new Font("Dialog", Font.PLAIN, 11);
             } else {
@@ -187,8 +197,8 @@ ShutdownHandler {
         if (browserStart) {
             StartBrowser.openURL(web.getURL());
         }
-        if (!web.isRunning(true)) {
-            throw new SQLException("The web server is not running");
+        if (startException != null) {
+            throw startException;
         }
     }
 

@@ -93,18 +93,18 @@ public class TestTools extends TestBase {
         String result;
         Connection conn;
 
-        result = runServer(new String[]{"-?"}, 1);
-        assertTrue(result.indexOf("Starts H2 Servers") >= 0);
+        result = runServer(new String[]{"-?"}, 0);
+        assertTrue(result.indexOf("Starts the H2 Console") >= 0);
         assertTrue(result.indexOf("Unknown option") < 0);
 
         result = runServer(new String[]{"-xy"}, 1);
-        assertTrue(result.indexOf("Starts H2 Servers") >= 0);
+        assertTrue(result.indexOf("Starts the H2 Console") >= 0);
         assertTrue(result.indexOf("Unsupported option") >= 0);
         result = runServer(new String[]{"-tcp", "-tcpPort", "9001", "-tcpPassword", "abc"}, 0);
         assertTrue(result.indexOf("tcp://") >= 0);
         assertTrue(result.indexOf(":9001") >= 0);
         assertTrue(result.indexOf("only local") >= 0);
-        assertTrue(result.indexOf("Starts H2 Servers") < 0);
+        assertTrue(result.indexOf("Starts the H2 Console") < 0);
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9001/mem:", "sa", "sa");
         conn.close();
         result = runServer(new String[]{"-tcpShutdown", "tcp://localhost:9001", "-tcpPassword", "abc", "-tcpShutdownForce"}, 0);
@@ -114,7 +114,7 @@ public class TestTools extends TestBase {
         assertTrue(result.indexOf("ssl://") >= 0);
         assertTrue(result.indexOf(":9001") >= 0);
         assertTrue(result.indexOf("others can") >= 0);
-        assertTrue(result.indexOf("Starts H2 Servers") < 0);
+        assertTrue(result.indexOf("Starts the H2 Console") < 0);
         conn = DriverManager.getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
         conn.close();
 
@@ -130,7 +130,6 @@ public class TestTools extends TestBase {
         result = runServer(new String[]{
                 "-web", "-webPort", "9002", "-webAllowOthers", "-webSSL",
                 "-pg", "-pgAllowOthers", "-pgPort", "9003",
-                "-ftp", "-ftpPort", "9004", "-ftpDir", ".", "-ftpRead", "guest", "-ftpWrite", "sa", "-ftpWritePassword", "sa", "-ftpTask",
                 "-tcp", "-tcpAllowOthers", "-tcpPort", "9006", "-tcpPassword", "abc"}, 0);
         Server stop = server;
         assertTrue(result.indexOf("https://") >= 0);
@@ -139,8 +138,6 @@ public class TestTools extends TestBase {
         assertTrue(result.indexOf(":9003") >= 0);
         assertTrue(result.indexOf("others can") >= 0);
         assertTrue(result.indexOf("only local") < 0);
-        assertTrue(result.indexOf("ftp://") >= 0);
-        assertTrue(result.indexOf(":9004") >= 0);
         assertTrue(result.indexOf("tcp://") >= 0);
         assertTrue(result.indexOf(":9006") >= 0);
 
@@ -168,6 +165,7 @@ public class TestTools extends TestBase {
             server.run(args);
         } catch (SQLException e) {
             result = 1;
+            e.printStackTrace(ps);
         }
         assertEquals(exitCode, result);
         ps.flush();

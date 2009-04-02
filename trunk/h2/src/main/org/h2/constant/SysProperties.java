@@ -108,6 +108,8 @@ public class SysProperties {
      * System property <code>h2.browser</code> (default: null).<br />
      * The preferred browser to use. If not set, the default browser is used.
      * For Windows, to use the Internet Explorer, set this property to 'explorer'.
+     * For Mac OS, if the default browser is not Safari and you want to use Safari,
+     * use: <code>java -Dh2.browser="open,-a,Safari,%url" ...</code>.
      */
     public static final String BROWSER = getStringSetting("h2.browser", null);
 

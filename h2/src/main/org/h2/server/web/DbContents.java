@@ -41,6 +41,11 @@ public class DbContents {
     boolean isH2;
 
     /**
+     * True if this is a H2 database in MySQL mode.
+     */
+    boolean isH2ModeMySQL;
+
+    /**
      * True if this is a PostgreSQL database.
      */
     boolean isPostgreSQL;
@@ -94,6 +99,14 @@ public class DbContents {
         String url = meta.getURL();
         if (url != null) {
             isH2 = url.startsWith("jdbc:h2:");
+            if (isH2) {
+                ResultSet rs = meta.getConnection().createStatement().executeQuery(
+                        "SELECT UPPER(VALUE) FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME='MODE'");
+                rs.next();
+                if ("MYSQL".equals(rs.getString(1))) {
+                    isH2ModeMySQL = true;
+                }
+            }
             isOracle = url.startsWith("jdbc:oracle:");
             isPostgreSQL = url.startsWith("jdbc:postgresql:");
             // isHSQLDB = url.startsWith("jdbc:hsqldb:");
@@ -182,8 +195,7 @@ public class DbContents {
 
     /**
      * Add double quotes around an identifier if required.
-     * For the H2 database, only keywords are quoted; for other databases,
-     * all identifiers are.
+     * For the H2 database, all identifiers are quoted.
      *
      * @param identifier the identifier
      * @return the quoted identifier
@@ -192,7 +204,7 @@ public class DbContents {
         if (identifier == null) {
             return null;
         }
-        if (isH2) {
+        if (isH2 && !isH2ModeMySQL) {
             return Parser.quoteIdentifier(identifier);
         }
         return StringUtils.toUpperEnglish(identifier);

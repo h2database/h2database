@@ -18,7 +18,16 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The FTP server moved to the tools section and is no longer included in the h2*.jar file.
+<ul><li>The data type of a SUBSTRING method was wrong.
+</li><li>ResultSet.findColumn and get methods with column label parameters
+    now also check for matching column names (like most databases except MySQL).
+</li><li>H2 Console: the browser system property now supports a list of arguments.
+    Example: java -Dh2.browser="open,-a,Safari,%url" ...
+</li><li>Improved Javadoc navigation (similar to Scaladoc).
+</li><li>H2 Console: auto-complete of identifiers did not work correctly
+    for H2 databases in MySQL mode.
+</li><li>DISTINCT and GROUP BY on a CLOB column was broken.
+</li><li>The FTP server moved to the tools section and is no longer included in the h2*.jar file.
 </li><li>Improved error message for unsupported features:
     now the message says what exactly is not supported.
 </li><li>Improved OSGi support.

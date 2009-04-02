@@ -150,7 +150,6 @@ public class Test {
         List&lt;String> productNames =
             db.from(p).
             orderBy(p.productId).select(p.productName);
-        List&lt;Product> products = Product.getProductList();
     }
 
     public static class ProductPrice {
@@ -168,7 +167,6 @@ public class Test {
                     category = p.category;
                     price = p.unitPrice;
             }});
-        List&lt;Product> products = Product.getProductList();
     }
 
     public static class CustOrder {

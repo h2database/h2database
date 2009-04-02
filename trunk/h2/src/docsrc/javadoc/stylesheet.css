@@ -51,6 +51,23 @@ hr {
     margin: 10px 10px 10px 10px;
 }
 
+.block {
+    border: 0px;
+}
+
+.titleOff {
+    display: none;
+}
+
+.detail {
+    border: 0px;
+    display: none;
+}
+
+.detailOn {
+    border: 0px;
+}
+
 td.return {
     white-space:nowrap;
     width: 1%;

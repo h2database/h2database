@@ -282,11 +282,11 @@ java org.h2.test.TestAll timer
 
 /*
 
-Remove FTP server from the server tool.
-Move FTP server to tools.
-Javadoc: link to source code (line number?) - check ScalaDoc
+Check JBoss and Spring support models
 
-documentation: rolling review at roadmap.html:312
+Move issues to the roadmap
+
+documentation: rolling review at roadmap.html:done
 
 create a short 4 pages documentation
 
@@ -295,11 +295,6 @@ documentation: how can you improve performance (group of settings)
 test performance with log=2
 
 postgresql generate_series?
-don't store default values (store a special value)
-btree: maybe split at the insertion point
-split files (1 GB max size)
-add a setting (that can be changed at runtime) to call fsync
-and delay on each commit
 
 multithreaded kernel
 remove old TODO
@@ -353,7 +348,6 @@ http://www.w3schools.com/sql/
 
 kill a specific java process:
 kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
-
 
 */
         if (args.length > 0) {

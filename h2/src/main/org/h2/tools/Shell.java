@@ -326,7 +326,12 @@ public class Shell extends Tool {
         println("Connected");
     }
 
-    private void print(String s) {
+    /**
+     * Print the string without newline, and flush.
+     * 
+     * @param s the string to print
+     */
+    protected void print(String s) {
         out.print(s);
         out.flush();
     }
@@ -347,6 +352,7 @@ public class Shell extends Tool {
         } catch (Exception e) {
             // ignore, use the default solution
         }
+        
         /**
          * This thread hides the password by repeatedly printing
          * backspace, backspace, &gt;, &lt;.
@@ -355,7 +361,7 @@ public class Shell extends Tool {
             volatile boolean stop;
             public void run() {
                 while (!stop) {
-                    out.print("\b\b><");
+                    print("\b\b><");
                     try {
                         Thread.sleep(10);
                     } catch (InterruptedException e) {

@@ -59,7 +59,7 @@ public class TableLink extends Table {
 
     public TableLink(Schema schema, int id, String name, String driver, String url, String user, String password,
             String originalSchema, String originalTable, boolean emitUpdates, boolean force) throws SQLException {
-        super(schema, id, name, false);
+        super(schema, id, name, false, true);
         this.driver = driver;
         this.url = url;
         this.user = user;

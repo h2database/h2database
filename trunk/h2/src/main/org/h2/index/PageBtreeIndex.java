@@ -219,7 +219,7 @@ public class PageBtreeIndex extends BaseIndex {
             trace.debug("truncate");
         }
         removeAllRows();
-        if (tableData.getContainsLargeObject() && tableData.getPersistent()) {
+        if (tableData.getContainsLargeObject()) {
             ValueLob.removeAllForTable(database, table.getId());
         }
         tableData.setRowCount(0);

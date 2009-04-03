@@ -84,7 +84,8 @@ public abstract class Table extends SchemaObjectBase {
     protected int memoryPerRow;
 
     private final HashMap columnMap = new HashMap();
-    private final boolean persistent;
+    private boolean persistIndexes;
+    private boolean persistData;
     private ObjectArray triggers;
     private ObjectArray constraints;
     private ObjectArray sequences;
@@ -93,9 +94,10 @@ public abstract class Table extends SchemaObjectBase {
     private boolean onCommitDrop, onCommitTruncate;
     private Row nullRow;
 
-    Table(Schema schema, int id, String name, boolean persistent) {
+    Table(Schema schema, int id, String name, boolean persistIndexes, boolean persistData) {
         initSchemaObjectBase(schema, id, name, Trace.TABLE);
-        this.persistent = persistent;
+        this.persistIndexes = persistIndexes;
+        this.persistData = persistData;
     }
 
     public void rename(String newName) throws SQLException {
@@ -583,10 +585,6 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    public boolean getPersistent() {
-        return persistent;
-    }
-
     private void remove(ObjectArray list, DbObject obj) {
         if (list != null) {
             int i = list.indexOf(obj);
@@ -897,6 +895,14 @@ public abstract class Table extends SchemaObjectBase {
      */
     public ObjectArray checkDeadlock(Session session, Session clash) {
         return null;
+    }
+
+    public boolean isPersistIndexes() {
+        return persistIndexes;
+    }
+
+    public boolean isPersistData() {
+        return persistData;
     }
 
 }

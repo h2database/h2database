@@ -1,3 +1,11 @@
+create memory table test(id int) as select 1 from dual not persistent;
+insert into test values(1);
+select count(1) from test;
+> 2;
+@reconnect;
+select count(1) from test;
+> 0;
+drop table test;
 create table test(t clob) as select 1;
 select distinct t from test;
 > 1;

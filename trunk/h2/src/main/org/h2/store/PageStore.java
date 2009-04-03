@@ -823,7 +823,7 @@ trace.setLevel(TraceSystem.DEBUG);
         metaSchema = new Schema(database, 0, "", null, true);
         int headPos = metaTableRootPageId;
         metaTable = new TableData(metaSchema, "PAGE_INDEX",
-                META_TABLE_ID, cols, true, false, headPos);
+                META_TABLE_ID, cols, true, true, false, headPos);
         metaIndex = (PageScanIndex) metaTable.getScanIndex(
                 database.getSystemSession());
         metaObjects = new HashMap();
@@ -865,7 +865,7 @@ trace.setLevel(TraceSystem.DEBUG);
                 Column col = new Column("C" + i, Value.INT);
                 columnArray.add(col);
             }
-            TableData table = new TableData(metaSchema, "T" + id, id, columnArray, true, false, headPos);
+            TableData table = new TableData(metaSchema, "T" + id, id, columnArray, true, true, false, headPos);
             meta = table.getScanIndex(database.getSystemSession());
         } else {
             PageScanIndex p = (PageScanIndex) metaObjects.get(ObjectUtils.getInteger(parent));

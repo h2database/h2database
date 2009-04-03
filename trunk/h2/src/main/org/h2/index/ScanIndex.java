@@ -49,7 +49,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
             sessionRowCount = new HashMap();
         }
         tableData = table;
-        if (!database.isPersistent() || id < 0) {
+        if (!database.isPersistent() || id < 0 || !indexType.getPersistent()) {
             return;
         }
         this.storage = database.getStorage(table, id, true);
@@ -74,7 +74,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
         } else {
             storage.truncate(session);
         }
-        if (tableData.getContainsLargeObject() && tableData.getPersistent()) {
+        if (tableData.getContainsLargeObject() && tableData.isPersistData()) {
             ValueLob.removeAllForTable(database, table.getId());
         }
         tableData.setRowCount(0);

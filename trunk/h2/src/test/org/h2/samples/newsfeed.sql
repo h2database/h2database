@@ -13,6 +13,46 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(60,
+'New version available: 1.1.110 (2009-04-03)', '2009-04-03 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Improved OSGi support.
+</li><li>Support for non-persistent tables in regular databases.
+    Thanks a lot to Sergi Vladykin for the patch!
+</li><li>Creating a JdbcConnectionPool has been simplified a bit.
+</li><li>Improved Javadoc navigation (similar to Scaladoc).
+</li><li>The API of the tools changed a bit.
+</li><li>The FTP server is no longer included in the h2*.jar file.
+</li><li>Linked tables to SQLite database can now be created.
+</li><li>CREATE TABLE: improved compatibility with other databases.
+</li><li>Improved error message for unsupported features.
+</li><li>H2 Console: the browser setting now supports arguments.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>The built-in JdbcConnectionPool is now about 70 times faster.
+</li><li>The H2 Console no longer trims the password.
+</li><li>ResultSet.findColumn now also checks for column names, not only labels.
+</li><li>Nested IN(IN(...)) didn't work.
+</li><li>NIO storage: the nio: prefix was using memory mapped files.
+</li><li>Deterministic user defined functions did not work.
+</li><li>JdbcConnectionPool.setLoginTimeout with 0 was broken.
+</li><li>The data type of a SUBSTRING method was wrong.
+</li><li>H2 Console: auto-complete of identifiers did not work correctly.
+</li><li>DISTINCT and GROUP BY on a CLOB column was broken.
+</li><li>Some internal caches did not use the LRU mechanism.
+</li><li>DatabaseMetaData.getSQLKeywords now returns the correct list.
+</li><li>More bugs in the server-less multi-connection mode have been fixed.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(59,
 'New version available: 1.1.109 (2009-03-14)', '2009-03-14 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -398,37 +438,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>When using DB_CLOSE_DELAY, sometimes a NullPointerException is thrown when
     the database is opened almost at the same time as it is closed automatically.
     Thanks a lot to Dmitry Pekar for finding this!
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(47,
-'New version available: 1.0.77 (2008-08-16)', '2008-08-16 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>JaQu is now using prepared statements and supports Date, Time, Timestamp.
-</li><li>Support a comma before closing a list, as in: create table test(id int,)
-</li><li>DB2 compatibility: the DB2 fetch-first-clause is supported.
-</li><li>ResultSet.setFetchSize is now supported.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>When using remote in-memory databases, large LOB objects did not work.
-</li><li>Timestamp columns such as TIMESTAMP(6) were not compatible to other database.
-</li><li>Opening a large database was slow if there was a problem opening the previous time.
-</li><li>Oracle compatibility: old style outer join syntax using (+) did work correctly sometimes.
-</li><li>MySQL compatibility: linked tables had lower case column names on some systems.
-</li><li>NOT IN(SELECT ...) was incorrect if the subquery returns no rows.
-</li><li>CREATE TABLE AS SELECT did not work correctly in the multi-version concurrency mode.
-</li><li>It has been reported that when using Install4j on some Linux systems and enabling the 'pack200' option,
-    the h2.jar becomes corrupted by the install process, causing application failure.
-    A workaround is to add an empty file h2.jar.nopack next to the h2.jar file.
-    The reason for this problem is not known.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

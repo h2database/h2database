@@ -34,7 +34,7 @@ Features
 <a href="#memory_only_databases">
     Memory-Only Databases</a><br />
 <a href="#file_encryption">
-    Connecting to a Database with File Encryption</a><br />
+    Database Files Encryption</a><br />
 <a href="#database_file_locking">
     Database File Locking</a><br />
 <a href="#database_only_if_exists">
@@ -127,8 +127,8 @@ Features
 <h3>Security Features</h3>
 <ul>
 <li>Includes a solution for the SQL injection problem
-</li><li>User password authenticated uses SHA-256 and salt
-</li><li>User passwords are never transmitted in plain text over the network (even when using insecure connections)
+</li><li>User password authentication uses SHA-256 and salt
+</li><li>For server mode connections, user passwords are never transmitted in plain text over the network (even when using insecure connections; this only applies to the TCP server and not to the H2 Console however; it also doesn't apply if you set the password in the database URL)
 </li><li>All database files (including script files that can be used to backup data) can be encrypted using AES-256 and XTEA encryption algorithms
 </li><li>The remote JDBC driver supports TCP/IP connections over SSL/TLS
 </li><li>The built-in web server supports connections over SSL/TLS
@@ -633,11 +633,22 @@ jdbc:h2:mem:test;DB_CLOSE_DELAY=-1
 </p>
 
 <br /><a name="file_encryption"></a>
-<h2>Connecting to a Database with File Encryption</h2>
+<h2>Database Files Encryption</h2>
 <p>
-To use file encryption, it is required to specify the encryption algorithm (the 'cipher')
-and the file password. The algorithm needs to be specified using the connection parameter.
-Two algorithms are supported: XTEA and AES. The file password is specified in the password field,
+The database files can be encrypted. Two encryption algorithms are supported: AES and XTEA.
+To use file encryption, you need to specify the encryption algorithm (the 'cipher')
+and the file password (in addition to the user password) when connecting to the database.
+</p>
+
+<h3>Creating a New Database with File Encryption</h3>
+<p>
+By default, a new database is automatically created if it does not exist yet. 
+To create an encrypted database, connect to it as it would already exist.
+</p>
+
+<h3>Connecting to an Encrypted Database</h3>
+<p>
+The encryption algorithm is set in the database URL, and the file password is specified in the password field,
 before the user password. A single space needs to be added between the file password
 and the user password; the file password itself may not contain spaces. File passwords
 (as well as user passwords) are case sensitive. Here is an example to connect to a
@@ -650,6 +661,18 @@ String user = "sa";
 String pwds = "filepwd userpwd";
 conn = DriverManager.
     getConnection(url, user, pwds);
+</pre>
+
+<h3>Encrypting or Decrypting a Database</h3>
+<p>
+If you want to encrypt an existing database, use the ChangeFileEncryption tool. 
+This tool can also decrypt an encrypted database, or change the file encryption key. 
+It is available from within the H2 Console in the Tools section, or you can run it from the command line. 
+The following command line will encrypt the database 'test' in the user home directory
+with the file password 'filepwd' and the encryption algorithm AES:
+</p>
+<pre>
+java -cp h2*.jar org.h2.tools.ChangeFileEncryption -dir ~ -db test -cipher AES -encrypt filepwd
 </pre>
 
 <br /><a name="database_file_locking"></a>
@@ -1138,21 +1161,28 @@ contains all client side state that is re-created.
 <br /><a name="auto_mixed_mode"></a>
 <h2>Automatic Mixed Mode</h2>
 <p>
-Multiple processes can access the same database without having to explicitly
-start the server. To do that, append <code>;AUTO_SERVER=TRUE</code> to the database URL.
-In this case, the first connection to the database is made in embedded mode, and additionally a server is started.
-If the database is already open in another process, the server mode is used.
+Multiple processes can access the same database without having to start the server manually. 
+To do that, append <code>;AUTO_SERVER=TRUE</code> to the database URL.
+You can use the same database URL no matter if the database is already open or not.
 </p>
 <p>
-When using this feature, auto-reconnect is enabled as well.
+When using this mode, the first connection to the database is made in embedded mode, 
+and additionally a server is started internally.
+If the database is already open in another process, the server mode is used automatically.
 </p>
 <p>
 The application that opens the first connection to the database uses the embedded mode,
 which is faster than the server mode. Therefore the main application should open
-the database first if possible. A server is started on a random port.
-This server allows remote connections, however only to this database.
-In addition to the user name and password, the client sends the random key that is
-stored in .lock.db file to the server.
+the database first if possible. The first connection automatically starts a server on a random port.
+This server allows remote connections, however only to this database (to ensure that,
+the client reads .lock.db file and sends the the random key that is stored there to the server).
+When the first connection is closed, the server stops. If other (remote) connections are still
+open, one of them will then start a server (auto-reconnect is enabled automatically).
+</p>
+<p>
+This mode has two disadvantages: All processes need to have access to the database files.
+Then, if the first connection is closed (the connection that started the server), open transactions of 
+other connections will be rolled back.
 </p>
 
 <br /><a name="trace_options"></a>

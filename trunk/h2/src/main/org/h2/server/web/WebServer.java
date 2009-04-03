@@ -615,7 +615,9 @@ public class WebServer implements Service {
         org.h2.Driver.load();
         Properties p = new Properties();
         p.setProperty("user", user.trim());
-        p.setProperty("password", password.trim());
+        // do not trim the password, otherwise an
+        // encrypted H2 database with empty user password doesn't work
+        p.setProperty("password", password);
         if (url.startsWith("jdbc:h2:")) {
             if (ifExists) {
                 url += ";IFEXISTS=TRUE";

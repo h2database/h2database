@@ -328,7 +328,7 @@ public class Shell extends Tool {
 
     /**
      * Print the string without newline, and flush.
-     * 
+     *
      * @param s the string to print
      */
     protected void print(String s) {
@@ -352,7 +352,7 @@ public class Shell extends Tool {
         } catch (Exception e) {
             // ignore, use the default solution
         }
-        
+
         /**
          * This thread hides the password by repeatedly printing
          * backspace, backspace, &gt;, &lt;.

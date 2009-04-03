@@ -642,7 +642,7 @@ and the file password (in addition to the user password) when connecting to the 
 
 <h3>Creating a New Database with File Encryption</h3>
 <p>
-By default, a new database is automatically created if it does not exist yet. 
+By default, a new database is automatically created if it does not exist yet.
 To create an encrypted database, connect to it as it would already exist.
 </p>
 
@@ -665,9 +665,9 @@ conn = DriverManager.
 
 <h3>Encrypting or Decrypting a Database</h3>
 <p>
-If you want to encrypt an existing database, use the ChangeFileEncryption tool. 
-This tool can also decrypt an encrypted database, or change the file encryption key. 
-It is available from within the H2 Console in the Tools section, or you can run it from the command line. 
+If you want to encrypt an existing database, use the ChangeFileEncryption tool.
+This tool can also decrypt an encrypted database, or change the file encryption key.
+It is available from within the H2 Console in the Tools section, or you can run it from the command line.
 The following command line will encrypt the database 'test' in the user home directory
 with the file password 'filepwd' and the encryption algorithm AES:
 </p>
@@ -1161,12 +1161,12 @@ contains all client side state that is re-created.
 <br /><a name="auto_mixed_mode"></a>
 <h2>Automatic Mixed Mode</h2>
 <p>
-Multiple processes can access the same database without having to start the server manually. 
+Multiple processes can access the same database without having to start the server manually.
 To do that, append <code>;AUTO_SERVER=TRUE</code> to the database URL.
 You can use the same database URL no matter if the database is already open or not.
 </p>
 <p>
-When using this mode, the first connection to the database is made in embedded mode, 
+When using this mode, the first connection to the database is made in embedded mode,
 and additionally a server is started internally.
 If the database is already open in another process, the server mode is used automatically.
 </p>
@@ -1181,7 +1181,7 @@ open, one of them will then start a server (auto-reconnect is enabled automatica
 </p>
 <p>
 This mode has two disadvantages: All processes need to have access to the database files.
-Then, if the first connection is closed (the connection that started the server), open transactions of 
+Then, if the first connection is closed (the connection that started the server), open transactions of
 other connections will be rolled back.
 </p>
 

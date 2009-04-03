@@ -234,14 +234,13 @@ public class AlterTableAlterColumn extends SchemaCommand {
             newColumns.remove(position);
             newColumns.add(position, newColumn);
         }
-        boolean persistent = table.getPersistent();
         // create a table object in order to get the SQL statement
         // can't just use this table, because most column objects are 'shared'
         // with the old table
         // still need a new id because using 0 would mean: the new table tries
         // to use the rows of the table 0 (the meta table)
         int id = db.allocateObjectId(true, true);
-        TableData newTable = getSchema().createTable(tempName, id, newColumns, persistent, false, Index.EMPTY_HEAD);
+        TableData newTable = getSchema().createTable(tempName, id, newColumns, table.isPersistIndexes(), table.isPersistData(), false, Index.EMPTY_HEAD);
         newTable.setComment(table.getComment());
         StringBuffer buff = new StringBuffer(newTable.getCreateSQL());
         StringBuffer columnList = new StringBuffer();

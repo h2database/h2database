@@ -480,11 +480,12 @@ TABLE [IF NOT EXISTS] name
 [{AUTO_INCREMENT | IDENTITY}[(startInt [, incrementInt])]]
 [SELECTIVITY selectivity]
 [PRIMARY KEY [HASH] | UNIQUE]
-| constraint} [,...] ) [ AS select ] } | { AS select }
+| constraint} [,...] ) [AS select] [NOT PERSISTENT] } | { AS select }
 ","
 Creates a new table.
 Cached tables (the default) are persistent, and the number or rows is not limited by the main memory.
 Memory tables are persistent, but the index data is kept in the main memory, so memory tables should not get too large.
+Tables with the NOT PERSISTENT modifier are kept fully in memory, and all rows are lost when the database is closed.
 Temporary tables are not persistent. Temporary tables can be global (accessible by all connections)
 or local (only accessible by the current connection). The default is for temporary tables is global.
 Identity and auto-increment columns are columns with a sequence as the default.

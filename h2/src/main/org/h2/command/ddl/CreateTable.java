@@ -35,7 +35,8 @@ public class CreateTable extends SchemaCommand {
     private ObjectArray columns = new ObjectArray();
     private IndexColumn[] pkColumns;
     private boolean ifNotExists;
-    private boolean persistent = true;
+    private boolean persistIndexes = true;
+    private boolean persistData = true;
     private boolean temporary;
     private boolean globalTemporary;
     private boolean onCommitDrop;
@@ -103,7 +104,7 @@ public class CreateTable extends SchemaCommand {
         session.commit(true);
         Database db = session.getDatabase();
         if (!db.isPersistent()) {
-            persistent = false;
+            persistIndexes = false;
         }
         if (getSchema().findTableOrView(session, tableName) != null) {
             if (ifNotExists) {
@@ -143,7 +144,7 @@ public class CreateTable extends SchemaCommand {
             }
         }
         int id = getObjectId(true, true);
-        TableData table = getSchema().createTable(tableName, id, columns, persistent, clustered, headPos);
+        TableData table = getSchema().createTable(tableName, id, columns, persistIndexes, persistData, clustered, headPos);
         table.setComment(comment);
         table.setTemporary(temporary);
         table.setGlobalTemporary(globalTemporary);
@@ -239,8 +240,8 @@ public class CreateTable extends SchemaCommand {
         return false;
     }
 
-    public void setPersistent(boolean persistent) {
-        this.persistent = persistent;
+    public void setPersistIndexes(boolean persistIndexes) {
+        this.persistIndexes = persistIndexes;
     }
 
     public void setGlobalTemporary(boolean globalTemporary) {
@@ -267,6 +268,10 @@ public class CreateTable extends SchemaCommand {
 
     public void setClustered(boolean clustered) {
         this.clustered = clustered;
+    }
+
+    public void setPersistData(boolean persistData) {
+        this.persistData = persistData;
     }
 
 }

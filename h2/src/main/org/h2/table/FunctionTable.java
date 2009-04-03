@@ -40,7 +40,7 @@ public class FunctionTable extends Table {
     private Value cachedValue;
 
     public FunctionTable(Schema schema, Session session, Expression functionExpr, FunctionCall function) throws SQLException {
-        super(schema, 0, function.getName(), false);
+        super(schema, 0, function.getName(), false, true);
         this.functionExpr = functionExpr;
         this.function = function;
         if (function instanceof TableFunction) {

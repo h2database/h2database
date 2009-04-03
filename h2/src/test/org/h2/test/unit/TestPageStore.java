@@ -167,8 +167,7 @@ public class TestPageStore extends TestBase {
         ObjectArray cols = new ObjectArray();
         cols.add(new Column("ID", Value.INT));
         schema = new Schema(db, 0, "", null, true);
-        table = new TableData(schema, "PAGE_INDEX",
-                1, cols, true, false, 100);
+        table = new TableData(schema, "PAGE_INDEX", 1, cols, true, true, false, 100);
         index = (PageScanIndex) table.getScanIndex(
                 db.getSystemSession());
     }
@@ -178,8 +177,7 @@ public class TestPageStore extends TestBase {
         cols.add(new Column("ID", Value.INT));
         schema = new Schema(db, 0, "", null, true);
         int id = db.allocateObjectId(true, true);
-        table = new TableData(schema, "BTREE_INDEX",
-                id, cols, true, false, 100);
+        table = new TableData(schema, "BTREE_INDEX", id, cols, true, true, false, 100);
         id = db.allocateObjectId(true, true);
         table.addIndex(db.getSystemSession(), "BTREE", id,
                 IndexColumn.wrap(table.getColumns()),

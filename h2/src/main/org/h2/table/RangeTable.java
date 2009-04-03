@@ -41,7 +41,7 @@ public class RangeTable extends Table {
      * @param max the end expression
      */
     public RangeTable(Schema schema, Expression min, Expression max) throws SQLException {
-        super(schema, 0, NAME, true);
+        super(schema, 0, NAME, true, true);
         Column[] cols = new Column[]{
                 new Column("X", Value.LONG)
         };

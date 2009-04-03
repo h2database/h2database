@@ -59,7 +59,7 @@ public class CreateIndex extends SchemaCommand {
         Table table = getSchema().getTableOrView(session, tableName);
         session.getUser().checkRight(table, Right.ALL);
         table.lock(session, true, true);
-        if (!table.getPersistent()) {
+        if (!table.isPersistIndexes()) {
             persistent = false;
         }
         int id = getObjectId(true, false);

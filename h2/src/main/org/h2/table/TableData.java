@@ -61,17 +61,17 @@ public class TableData extends Table implements RecordReader {
     private boolean containsLargeObject;
 
     public TableData(Schema schema, String tableName, int id, ObjectArray columns,
-            boolean persistent, boolean clustered, int headPos) throws SQLException {
-        super(schema, id, tableName, persistent);
+            boolean persistIndexes, boolean persistData, boolean clustered, int headPos) throws SQLException {
+        super(schema, id, tableName, persistIndexes, persistData);
         Column[] cols = new Column[columns.size()];
         columns.toArray(cols);
         setColumns(cols);
         this.clustered = clustered;
         if (!clustered) {
-            if (SysProperties.PAGE_STORE && database.isPersistent()) {
-                scanIndex = new PageScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistent), headPos);
+            if (SysProperties.PAGE_STORE && persistData && database.isPersistent()) {
+                scanIndex = new PageScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistData), headPos);
             } else {
-                scanIndex = new ScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistent));
+                scanIndex = new ScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistData));
             }
             indexes.add(scanIndex);
         }
@@ -176,7 +176,7 @@ public class TableData extends Table implements RecordReader {
             }
         }
         Index index;
-        if (getPersistent() && indexType.getPersistent()) {
+        if (isPersistIndexes() && indexType.getPersistent()) {
             if (SysProperties.PAGE_STORE) {
                 index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, headPos);
             } else {
@@ -545,7 +545,7 @@ public class TableData extends Table implements RecordReader {
                 buff.append("LOCAL ");
             }
             buff.append("TEMPORARY ");
-        } else if (getPersistent()) {
+        } else if (isPersistIndexes()) {
             buff.append("CACHED ");
         } else {
             buff.append("MEMORY ");
@@ -565,6 +565,9 @@ public class TableData extends Table implements RecordReader {
             buff.append(column.getCreateSQL());
         }
         buff.append("\n)");
+        if (!getTemporary() && !isPersistIndexes() && !isPersistData()) {
+            buff.append("\nNOT PERSISTENT");
+        }
         return buff.toString();
     }
 

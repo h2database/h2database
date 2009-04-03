@@ -46,7 +46,7 @@ public class ResultTempTable implements ResultExternal {
         columns.add(column);
         int tableId = session.getDatabase().allocateObjectId(true, true);
         String tableName = "TEMP_RESULT_SET_" + tableId;
-        table = schema.createTable(tableName, tableId, columns, false, false, Index.EMPTY_HEAD);
+        table = schema.createTable(tableName, tableId, columns, false, true, false, Index.EMPTY_HEAD);
         int indexId = session.getDatabase().allocateObjectId(true, false);
         IndexColumn indexColumn = new IndexColumn();
         indexColumn.column = column;

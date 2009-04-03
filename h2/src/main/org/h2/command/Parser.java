@@ -3781,7 +3781,7 @@ public class Parser {
             columns.add(new Column(cols[i], Value.STRING));
         }
         int id = database.allocateObjectId(true, true);
-        recursiveTable = schema.createTable(tempViewName, id, columns, false, false, Index.EMPTY_HEAD);
+        recursiveTable = schema.createTable(tempViewName, id, columns, false, true, false, Index.EMPTY_HEAD);
         recursiveTable.setTemporary(true);
         session.addLocalTempTable(recursiveTable);
         String querySQL = StringCache.getNew(sqlCommand.substring(parseIndex));
@@ -4590,7 +4590,7 @@ public class Parser {
         return command;
     }
 
-    private CreateTable parseCreateTable(boolean temp, boolean globalTemp, boolean persistent) throws SQLException {
+    private CreateTable parseCreateTable(boolean temp, boolean globalTemp, boolean persistIndexes) throws SQLException {
         boolean ifNotExists = readIfNoExists();
         String tableName = readIdentifierWithSchema();
         if (temp && globalTemp && "SESSION".equals(schemaName)) {
@@ -4601,7 +4601,7 @@ public class Parser {
         }
         Schema schema = getSchema();
         CreateTable command = new CreateTable(session, schema);
-        command.setPersistent(persistent);
+        command.setPersistIndexes(persistIndexes);
         command.setTemporary(temp);
         command.setGlobalTemporary(globalTemp);
         command.setIfNotExists(ifNotExists);
@@ -4698,6 +4698,9 @@ public class Parser {
             } else if (readIf("NOT")) {
                 read("LOGGED");
             }
+        } else if (!persistIndexes && readIf("NOT")) {
+            read("PERSISTENT");
+            command.setPersistData(false);
         }
         if (readIf("CLUSTERED")) {
             command.setClustered(true);

@@ -134,7 +134,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 }
             }
             if (index == null) {
-                IndexType indexType = IndexType.createPrimaryKey(table.getPersistent(), primaryKeyHash);
+                IndexType indexType = IndexType.createPrimaryKey(table.isPersistIndexes(), primaryKeyHash);
                 String indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_PRIMARY_KEY);
                 int id = getObjectId(true, false);
                 try {
@@ -262,10 +262,10 @@ public class AlterTableAddConstraint extends SchemaCommand {
         IndexType indexType;
         if (unique) {
             // for unique constraints
-            indexType = IndexType.createUnique(t.getPersistent(), false);
+            indexType = IndexType.createUnique(t.isPersistIndexes(), false);
         } else {
             // constraints
-            indexType = IndexType.createNonUnique(t.getPersistent());
+            indexType = IndexType.createNonUnique(t.isPersistIndexes());
         }
         indexType.setBelongsToConstraint(true);
         String prefix = constraintName == null ? "CONSTRAINT" : constraintName;

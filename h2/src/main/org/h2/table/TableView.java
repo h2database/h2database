@@ -48,7 +48,7 @@ public class TableView extends Table {
 
     public TableView(Schema schema, int id, String name, String querySQL, ObjectArray params, String[] columnNames,
             Session session, boolean recursive) throws SQLException {
-        super(schema, id, name, false);
+        super(schema, id, name, false, true);
         this.querySQL = querySQL;
         this.columnNames = columnNames;
         this.recursive = recursive;

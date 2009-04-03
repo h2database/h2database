@@ -117,7 +117,7 @@ public class MetaTable extends Table {
      */
     public MetaTable(Schema schema, int id, int type) throws SQLException {
         // tableName will be set later
-        super(schema, id, null, true);
+        super(schema, id, null, true, true);
         this.type = type;
         Column[] cols;
         String indexColumnName = null;
@@ -632,7 +632,7 @@ public class MetaTable extends Table {
                         storageType = "LOCAL TEMPORARY";
                     }
                 } else {
-                    storageType = table.getPersistent() ? "CACHED" : "MEMORY";
+                    storageType = table.isPersistIndexes() ? "CACHED" : "MEMORY";
                 }
                 add(rows, new String[] {
                         // TABLE_CATALOG

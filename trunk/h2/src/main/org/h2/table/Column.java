@@ -298,7 +298,8 @@ public class Column {
                 if (s.length() > 127) {
                     s = s.substring(0, 128) + "...";
                 }
-                throw Message.getSQLException(ErrorCode.VALUE_TOO_LONG_2, new String[]{name, s});
+                throw Message.getSQLException(ErrorCode.VALUE_TOO_LONG_2,
+                        new String[] { getCreateSQL(), s + " (" + value.getPrecision() + ")" });
             }
         }
         updateSequenceIfRequired(session, value);

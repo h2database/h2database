@@ -36,6 +36,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 <h2>Priority 2</h2>
 <ul>
 <li>Improve test code coverage
+</li><li>Optimize IN(...) for DELETE and UPDATE.
 </li><li>Procedural language / script language (Java, Javascript)
 </li><li>Fulltext search: support streaming CLOB data.
 </li><li>Optimize .. OR .. to IN(..) or UNION if the cost is lower
@@ -86,7 +87,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant
 </li><li>Comparison: pluggable sort order: natural sort
 </li><li>Count index range query (count(*) where id between 10 and 20)
-</li><li>Optimize IN(...) for DELETE and UPDATE.
 </li><li>Eclipse plugin
 </li><li>Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait]
 </li><li>Fulltext search Lucene: analyzer configuration.
@@ -405,6 +405,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Finer granularity for SLF4J trace - See http://code.google.com/p/h2database/issues/detail?id=62
 </li><li>MySQL compatibility: support REPLACE - See http://code.google.com/p/h2database/issues/detail?id=73
 </li><li>MySQL compatibility: support SET NAMES 'latin1' - See also http://code.google.com/p/h2database/issues/detail?id=56
+</li><li>MySQL compatibility: DELETE .. FROM .. USING - See http://dev.mysql.com/doc/refman/5.0/en/delete.html
 </li></ul>
 
 <h2>Not Planned</h2>

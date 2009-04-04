@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.constant.ErrorCode;
@@ -379,6 +380,7 @@ public class TableData extends Table implements RecordReader {
     }
 
     private void doLock(Session session, int lockMode, boolean exclusive) throws SQLException {
+        traceLock(session, exclusive, "requesting for");
         long max = System.currentTimeMillis() + session.getLockTimeout();
         boolean checkDeadlock = false;
         while (true) {
@@ -486,16 +488,17 @@ public class TableData extends Table implements RecordReader {
         return buff.toString();
     }
 
-    public ObjectArray checkDeadlock(Session session, Session clash) {
+    public ObjectArray checkDeadlock(Session session, Set clash) {
         // only one deadlock check at any given time
         synchronized (TableData.class) {
             if (clash == null) {
                 // verification is started
-                clash = session;
-            } else if (clash == session) {
+                clash = new HashSet();
+            } else if (clash.contains(session)) {
                 // we found a circle
                 return new ObjectArray();
             }
+            clash.add(session);
             ObjectArray error = null;
             for (Iterator it = lockShared.iterator(); it.hasNext();) {
                 Session s = (Session) it.next();

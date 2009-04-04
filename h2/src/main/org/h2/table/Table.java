@@ -9,6 +9,7 @@ package org.h2.table;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
@@ -884,16 +885,16 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Check if a deadlock occurred. This method is called recursively. There is
-     * a circle if the session to be tested for is the same as the originating
-     * session (the 'clash session'). In this case the method must return an
+     * a circle if the session to be tested has already being visited (i.e., it
+     * is one of the 'clash sessions'). In this case the method must return an
      * empty object array. Once a deadlock has been detected, the methods must
      * add the session to the list.
      *
      * @param session the session to be tested for
-     * @param clash the originating session, and null when starting verification
+     * @param clash set with sessions already visited, and null when starting verification
      * @return an object array with the sessions involved in the deadlock
      */
-    public ObjectArray checkDeadlock(Session session, Session clash) {
+    public ObjectArray checkDeadlock(Session session, Set clash) {
         return null;
     }
 

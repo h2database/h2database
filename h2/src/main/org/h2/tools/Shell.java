@@ -464,6 +464,7 @@ public class Shell extends Tool {
             }
             println(buff.toString());
         }
+        boolean truncated = false;
         int rowCount = 0;
         while (rs.next()) {
             rowCount++;
@@ -494,8 +495,10 @@ public class Shell extends Tool {
                         s = "null";
                     }
                     int m = columnSizes[i];
-                    if (!listMode && s.length() > m) {
+                    // only truncate if more than once column
+                    if (len > 1 && !listMode && s.length() > m) {
                         s = s.substring(0, m);
+                        truncated = true;
                     }
                     buff.append(s);
                     if (i < len - 1) {
@@ -514,6 +517,9 @@ public class Shell extends Tool {
                 buff.append('\n');
             }
             println(buff.toString());
+        }
+        if (truncated) {
+            println("(data is partically truncated)");
         }
         return rowCount;
     }

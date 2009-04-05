@@ -23,7 +23,6 @@ package org.h2.jdbcx;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Stack;
 
 import javax.sql.ConnectionEvent;
@@ -66,7 +65,6 @@ public class JdbcConnectionPool implements DataSource {
 
     private final ConnectionPoolDataSource dataSource;
     private final Stack recycledConnections = new Stack();
-    private final HashMap poolToConnMap = new HashMap();
     private final PoolConnectionEventListener poolConnectionEventListener = new PoolConnectionEventListener();
     private PrintWriter logWriter;
     private int maxConnections = 10;
@@ -169,7 +167,6 @@ public class JdbcConnectionPool implements DataSource {
             PooledConnection pc = (PooledConnection) recycledConnections.pop();
             try {
                 pc.close();
-                poolToConnMap.remove(pc);
             } catch (SQLException e2) {
                 if (e == null) {
                     e = e2;
@@ -222,12 +219,7 @@ public class JdbcConnectionPool implements DataSource {
         } else {
             pc = dataSource.getPooledConnection();
         }
-        Connection conn;
-        conn = (Connection) poolToConnMap.get(pc);
-        if (conn == null) {
-            conn = pc.getConnection();
-            poolToConnMap.put(pc, conn);
-        }
+        Connection conn = pc.getConnection();
         activeConnections++;
         pc.addConnectionEventListener(poolConnectionEventListener);
         return conn;
@@ -260,7 +252,6 @@ public class JdbcConnectionPool implements DataSource {
     private void closeConnection(PooledConnection pc) {
         try {
             pc.close();
-            poolToConnMap.remove(pc);
         } catch (SQLException e) {
             log("Error while closing database connection: " + e.toString());
         }

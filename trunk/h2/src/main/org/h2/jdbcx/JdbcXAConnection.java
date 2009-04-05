@@ -19,13 +19,14 @@ import javax.sql.XAConnection;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
+import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.util.ByteUtils;
-import org.h2.util.JdbcConnectionListener;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 //## Java 1.4 end ##
 
+import org.h2.message.Message;
 import org.h2.message.TraceObject;
 
 /*## Java 1.6 begin ##
@@ -39,7 +40,7 @@ import javax.sql.StatementEventListener;
  */
 public class JdbcXAConnection extends TraceObject
 //## Java 1.4 begin ##
-implements XAConnection, XAResource, JdbcConnectionListener
+implements XAConnection, XAResource
 //## Java 1.4 end ##
 {
 
@@ -48,9 +49,8 @@ implements XAConnection, XAResource, JdbcConnectionListener
 
     private JdbcDataSourceFactory factory;
     private String url, user;
-    private char[] password;
-    private JdbcConnection connSentinel;
-    private JdbcConnection conn;
+    private JdbcConnection physicalConn;
+    private PooledJdbcConnection handleConn;
     private ArrayList listeners = new ArrayList();
     private Xid currentTransaction;
     private int currentTransactionId;
@@ -64,9 +64,10 @@ implements XAConnection, XAResource, JdbcConnectionListener
         setTrace(factory.getTrace(), TraceObject.XA_DATA_SOURCE, id);
         this.url = url;
         this.user = user;
-        this.password = password;
-        connSentinel = openConnection();
-        getConnection();
+        Properties info = new Properties();
+        info.setProperty("user", user);
+        info.put("password", StringUtils.cloneCharArray(password));
+        physicalConn = new JdbcConnection(url, info);
     }
 //## Java 1.4 end ##
 
@@ -91,33 +92,33 @@ implements XAConnection, XAResource, JdbcConnectionListener
 //## Java 1.4 begin ##
     public void close() throws SQLException {
         debugCodeCall("close");
-        try {
-            closeConnection(conn);
-            closeConnection(connSentinel);
-        } finally {
-            conn = null;
-            connSentinel = null;
+        if (handleConn != null) {
+            handleConn.close();
+        }
+        if (physicalConn != null) {
+            try {
+                physicalConn.close();
+            } finally {
+                physicalConn = null;
+            }
         }
     }
 //## Java 1.4 end ##
 
     /**
-     * Get a new connection. This method is usually called by the connection
-     * pool when there are no more connections in the pool.
+     * Get a connection that is a handle to the physical connection. This method is usually called by the connection
+     * pool. This method closes the last connection handle if one exists.
      *
      * @return the connection
-     * @throws SQLException
      */
 //## Java 1.4 begin ##
     public Connection getConnection() throws SQLException {
         debugCodeCall("getConnection");
-        if (conn != null) {
-            closeConnection(conn);
-            conn = null;
+        if (handleConn != null) {
+            handleConn.close();
         }
-        conn = openConnection();
-        conn.setJdbcConnectionListener(this);
-        return conn;
+        handleConn = new PooledJdbcConnection(physicalConn);
+        return handleConn;
     }
 //## Java 1.4 end ##
 
@@ -130,9 +131,6 @@ implements XAConnection, XAResource, JdbcConnectionListener
     public void addConnectionEventListener(ConnectionEventListener listener) {
         debugCode("addConnectionEventListener(listener);");
         listeners.add(listener);
-        if (conn != null) {
-            conn.setJdbcConnectionListener(this);
-        }
     }
 //## Java 1.4 end ##
 
@@ -152,7 +150,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * INTERNAL
      */
 //## Java 1.4 begin ##
-    public void fatalErrorOccurred(JdbcConnection conn, SQLException e) throws SQLException {
+    public void fatalErrorOccurred(PooledJdbcConnection conn, SQLException e) throws SQLException {
         debugCode("fatalErrorOccurred(conn, e);");
         for (int i = 0; i < listeners.size(); i++) {
             ConnectionEventListener listener = (ConnectionEventListener) listeners.get(i);
@@ -167,13 +165,14 @@ implements XAConnection, XAResource, JdbcConnectionListener
      * INTERNAL
      */
 //## Java 1.4 begin ##
-    public void closed(JdbcConnection conn) {
-        debugCode("closed(conn);");
+    void closedHandle() {
+        debugCode("closedHandle();");
         for (int i = 0; i < listeners.size(); i++) {
             ConnectionEventListener listener = (ConnectionEventListener) listeners.get(i);
             ConnectionEvent event = new ConnectionEvent(this);
             listener.connectionClosed(event);
         }
+        handleConn = null;
     }
 //## Java 1.4 end ##
 
@@ -230,7 +229,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
         checkOpen();
         Statement stat = null;
         try {
-            stat = conn.createStatement();
+            stat = physicalConn.createStatement();
             ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT ORDER BY TRANSACTION");
             ArrayList list = new ArrayList();
             while (rs.next()) {
@@ -269,7 +268,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
         }
         Statement stat = null;
         try {
-            stat = conn.createStatement();
+            stat = physicalConn.createStatement();
             currentTransactionId = nextTransactionId++;
             stat.execute("PREPARE COMMIT TX_" + currentTransactionId);
         } catch (SQLException e) {
@@ -307,7 +306,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
             debugCode("rollback("+quoteXid(xid)+");");
         }
         try {
-            conn.rollback();
+            physicalConn.rollback();
         } catch (SQLException e) {
             throw convertException(e);
         }
@@ -356,7 +355,7 @@ implements XAConnection, XAResource, JdbcConnectionListener
             throw new XAException(XAException.XAER_NOTA);
         }
         try {
-            conn.setAutoCommit(false);
+            physicalConn.setAutoCommit(false);
         } catch (SQLException e) {
             throw convertException(e);
         }
@@ -379,9 +378,9 @@ implements XAConnection, XAResource, JdbcConnectionListener
         Statement stat = null;
         try {
             if (onePhase) {
-                conn.commit();
+                physicalConn.commit();
             } else {
-                stat = conn.createStatement();
+                stat = physicalConn.createStatement();
                 stat.execute("COMMIT TRANSACTION TX_" + currentTransactionId);
             }
         } catch (SQLException e) {
@@ -421,24 +420,6 @@ implements XAConnection, XAResource, JdbcConnectionListener
 //## Java 1.4 begin ##
     public String toString() {
         return getTraceObjectName() + ": url=" + url + " user=" + user;
-    }
-
-    private void closeConnection(JdbcConnection conn) throws SQLException {
-        if (conn != null) {
-            conn.closeConnection();
-        }
-    }
-
-    private JdbcConnection openConnection() throws SQLException {
-        Properties info = new Properties();
-        info.setProperty("user", user);
-        info.put("password", StringUtils.cloneCharArray(password));
-        JdbcConnection conn = new JdbcConnection(url, info);
-        conn.setJdbcConnectionListener(this);
-        if (currentTransaction != null) {
-            conn.setAutoCommit(false);
-        }
-        return conn;
     }
 
     private XAException convertException(SQLException e) {
@@ -497,10 +478,43 @@ implements XAConnection, XAResource, JdbcConnectionListener
     }
 
     private void checkOpen() throws XAException {
-        if (conn == null) {
+        if (physicalConn == null) {
             throw new XAException(XAException.XAER_RMERR);
         }
     }
 //## Java 1.4 end ##
+
+    /**
+     * A pooled connection.
+     */
+    class PooledJdbcConnection extends JdbcConnection {
+
+        private boolean isClosed;
+
+        public PooledJdbcConnection(JdbcConnection conn) throws SQLException {
+            super(conn);
+        }
+
+        public synchronized void close() throws SQLException {
+            if (!isClosed) {
+                rollback();
+                setAutoCommit(true);
+                closedHandle();
+                isClosed = true;
+            }
+        }
+
+        public synchronized boolean isClosed() throws SQLException {
+            return isClosed || super.isClosed();
+        }
+
+        protected synchronized boolean checkClosed() throws SQLException {
+            if (isClosed) {
+                throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
+            }
+            return super.checkClosed();
+        }
+
+    }
 
 }

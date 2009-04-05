@@ -35,7 +35,6 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
-import org.h2.util.JdbcConnectionListener;
 import org.h2.util.ObjectUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -80,7 +79,6 @@ public class JdbcConnection extends TraceObject implements Connection {
     private int savepointId;
     //## Java 1.4 end ##
     private Trace trace;
-    private JdbcConnectionListener listener;
     private boolean isInternal;
     private String catalog;
     private Statement executingStatement;
@@ -120,6 +118,18 @@ public class JdbcConnection extends TraceObject implements Connection {
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    /**
+     * INTERNAL
+     */
+    public JdbcConnection(JdbcConnection clone) {
+        this.session = clone.session;
+        trace = session.getTrace();
+        int id = getNextId(TraceObject.CONNECTION);
+        setTrace(trace, TraceObject.CONNECTION, id);
+        this.user = clone.user;
+        this.url = clone.url;
     }
 
     /**
@@ -264,13 +274,6 @@ public class JdbcConnection extends TraceObject implements Connection {
     /**
      * INTERNAL
      */
-    public void setJdbcConnectionListener(JdbcConnectionListener listener) {
-        this.listener = listener;
-    }
-
-    /**
-     * INTERNAL
-     */
     public SessionInterface getSession() {
         return session;
     }
@@ -281,14 +284,8 @@ public class JdbcConnection extends TraceObject implements Connection {
      * calling this method. If there is an uncommitted transaction, it will be
      * rolled back.
      */
-    public void close() throws SQLException {
-        synchronized (this) {
-            if (listener == null) {
-                closeConnection();
-            } else {
-                listener.closed(this);
-            }
-        }
+    public synchronized void close() throws SQLException {
+        closeConnection();
     }
 
     /**
@@ -1252,12 +1249,13 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
+     * INTERNAL
      * Check if this connection is closed.
      *
      * @return true if the session was re-connected
      * @throws SQLException if the connection or session is closed
      */
-    boolean checkClosed() throws SQLException {
+    protected boolean checkClosed() throws SQLException {
         if (session == null) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }

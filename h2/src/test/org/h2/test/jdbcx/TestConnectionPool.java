@@ -31,11 +31,27 @@ public class TestConnectionPool extends TestBase {
 
     public void test() throws Exception {
         deleteDb("connectionPool");
+        testUncommittedTransaction();
         testPerformance();
         testKeepOpen();
         testConnect();
         testThreads();
         deleteDb("connectionPool");
+    }
+
+    private void testUncommittedTransaction() throws SQLException {
+        String url = getURL("connectionPool", true), user = getUser(), password = getPassword();
+        JdbcConnectionPool man = JdbcConnectionPool.create(url, user, password);
+        Connection conn1 = man.getConnection();
+        assertTrue(conn1.getAutoCommit());
+        conn1.setAutoCommit(false);
+        conn1.close();
+        assertTrue(conn1.isClosed());
+
+        Connection conn2 = man.getConnection();
+        assertTrue(conn2.getAutoCommit());
+
+        man.dispose();
     }
 
     private void testPerformance() throws SQLException {

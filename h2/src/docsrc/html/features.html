@@ -1180,10 +1180,23 @@ When the first connection is closed, the server stops. If other (remote) connect
 open, one of them will then start a server (auto-reconnect is enabled automatically).
 </p>
 <p>
-This mode has two disadvantages: All processes need to have access to the database files.
+This mode has three disadvantages: All processes need to have access to the database files.
 Then, if the first connection is closed (the connection that started the server), open transactions of
-other connections will be rolled back.
+other connections will be rolled back. 
+Also, explicit client/server connections (using jdbc:h2:tcp:// or ssl://) are not supported.
 </p>
+<p>
+Here is an example how to use this mode. Application 1 and 2 are not necessarily started
+on the same computer, but they need to have access to the database files. Application 1 
+and 2 are typically two different processes (however they could run within the same process).
+</p>
+<pre>
+// Application 1:
+DriverManager.getConnection("jdbc:h2:/data/test;AUTO_SERVER=TRUE");
+
+// Application 2:
+DriverManager.getConnection("jdbc:h2:/data/test;AUTO_SERVER=TRUE");
+</pre>
 
 <br /><a name="trace_options"></a>
 <h2>Using the Trace Options</h2>

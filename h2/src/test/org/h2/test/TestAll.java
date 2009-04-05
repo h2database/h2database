@@ -282,6 +282,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+website: remove redirect
+
 Check JBoss and Spring support models
 
 Move issues to the roadmap

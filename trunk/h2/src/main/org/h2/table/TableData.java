@@ -423,7 +423,7 @@ public class TableData extends Table implements RecordReader {
             }
             session.setWaitForLock(this);
             if (checkDeadlock) {
-                ObjectArray sessions = checkDeadlock(session, null);
+                ObjectArray sessions = checkDeadlock(session, null, null);
                 if (sessions != null) {
                     throw Message.getSQLException(ErrorCode.DEADLOCK_1, getDeadlockDetails(sessions));
                 }
@@ -488,17 +488,23 @@ public class TableData extends Table implements RecordReader {
         return buff.toString();
     }
 
-    public ObjectArray checkDeadlock(Session session, Set clash) {
+    public ObjectArray checkDeadlock(Session session, Session clash, Set visited) {
         // only one deadlock check at any given time
         synchronized (TableData.class) {
             if (clash == null) {
                 // verification is started
-                clash = new HashSet();
-            } else if (clash.contains(session)) {
-                // we found a circle
+                clash = session;
+                visited = new HashSet();
+            } else if (clash == session) {
+                // we found a circle where this session is involved
                 return new ObjectArray();
+            } else if (visited.contains(session)) {
+                // we have already checked this session.
+                // there is a circle, but the sessions in the circle need to
+                // find it out themselves
+                return null;
             }
-            clash.add(session);
+            visited.add(session);
             ObjectArray error = null;
             for (Iterator it = lockShared.iterator(); it.hasNext();) {
                 Session s = (Session) it.next();
@@ -508,7 +514,7 @@ public class TableData extends Table implements RecordReader {
                 }
                 Table t = s.getWaitForLock();
                 if (t != null) {
-                    error = t.checkDeadlock(s, clash);
+                    error = t.checkDeadlock(s, clash, visited);
                     if (error != null) {
                         error.add(session);
                         break;
@@ -518,7 +524,7 @@ public class TableData extends Table implements RecordReader {
             if (error == null && lockExclusive != null) {
                 Table t = lockExclusive.getWaitForLock();
                 if (t != null) {
-                    error = t.checkDeadlock(lockExclusive, clash);
+                    error = t.checkDeadlock(lockExclusive, clash, visited);
                     if (error != null) {
                         error.add(session);
                     }

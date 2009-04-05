@@ -885,16 +885,21 @@ public abstract class Table extends SchemaObjectBase {
 
     /**
      * Check if a deadlock occurred. This method is called recursively. There is
-     * a circle if the session to be tested has already being visited (i.e., it
-     * is one of the 'clash sessions'). In this case the method must return an
-     * empty object array. Once a deadlock has been detected, the methods must
-     * add the session to the list.
+     * a circle if the session to be tested has already being visited. If this
+     * session is part of the circle (if it is the clash session), the method
+     * must return an empty object array. Once a deadlock has been detected, the
+     * methods must add the session to the list. If this session is not part of
+     * the circle, or if no deadlock is detected, this method returns null.
      *
      * @param session the session to be tested for
-     * @param clash set with sessions already visited, and null when starting verification
-     * @return an object array with the sessions involved in the deadlock
+     * @param clash set with sessions already visited, and null when starting
+     *            verification
+     * @param visited set with sessions already visited, and null when starting
+     *            verification
+     * @return an object array with the sessions involved in the deadlock, or
+     *         null
      */
-    public ObjectArray checkDeadlock(Session session, Set clash) {
+    public ObjectArray checkDeadlock(Session session, Session clash, Set visited) {
         return null;
     }
 

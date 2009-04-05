@@ -181,7 +181,7 @@ public class TestDeadlock extends TestBase {
         }
         t2.join();
         t3.join();
-        checkDeadlock(1);
+        checkDeadlock();
         c1.commit();
         c2.commit();
         c3.commit();
@@ -226,7 +226,7 @@ public class TestDeadlock extends TestBase {
       }
       t2.join();
       t3.join();
-      checkDeadlock(2);
+      checkDeadlock();
       c1.commit();
       c2.commit();
       c3.commit();
@@ -260,7 +260,7 @@ public class TestDeadlock extends TestBase {
             catchDeadlock(e);
         }
         t1.join();
-        checkDeadlock(1);
+        checkDeadlock();
         c1.commit();
         c2.commit();
         c1.createStatement().execute("DROP TABLE TEST");
@@ -289,19 +289,19 @@ public class TestDeadlock extends TestBase {
             catchDeadlock(e);
         }
         t1.join();
-        checkDeadlock(1);
+        checkDeadlock();
         c1.commit();
         c2.commit();
         c1.createStatement().execute("DROP TABLE T1, T2");
         end();
     }
 
-    private void checkDeadlock(int max) throws SQLException {
+    private void checkDeadlock() throws SQLException {
         assertTrue(lastException != null);
         assertKnownException(lastException);
         assertEquals(ErrorCode.DEADLOCK_1, lastException.getErrorCode());
         SQLException e2 = lastException.getNextException();
-        if (e2 != null && max == 1) {
+        if (e2 != null) {
             // we have two exception, but there should only be one
             SQLException e3 = new SQLException("Expected one exception, got multiple");
             e3.initCause(e2);

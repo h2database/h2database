@@ -81,11 +81,11 @@ public class AlterUser extends DefineCommand {
     }
 
     private char[] getCharArray(Expression e) throws SQLException {
-        return e.getValue(session).getString().toCharArray();
+        return e.optimize(session).getValue(session).getString().toCharArray();
     }
 
     private byte[] getByteArray(Expression e) throws SQLException {
-        return ByteUtils.convertStringToBytes(e.getValue(session).getString());
+        return ByteUtils.convertStringToBytes(e.optimize(session).getValue(session).getString());
     }
 
     public int update() throws SQLException {

@@ -52,7 +52,7 @@ public class CreateUser extends DefineCommand {
     }
 
     private byte[] getByteArray(Expression e) throws SQLException {
-        return ByteUtils.convertStringToBytes(e.getValue(session).getString());
+        return ByteUtils.convertStringToBytes(e.optimize(session).getValue(session).getString());
     }
 
     public int update() throws SQLException {

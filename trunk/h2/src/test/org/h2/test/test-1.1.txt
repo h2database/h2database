@@ -2,6 +2,15 @@
 create table test(id identity);
 > ok
 
+set password test;
+> exception
+
+alter user sa set password test;
+> exception
+
+comment on table test is test;
+> exception
+
 select 1 from test a where 1 in(select 1 from test b where b.id in(select 1 from test c where c.id=a.id));
 > 1
 > -

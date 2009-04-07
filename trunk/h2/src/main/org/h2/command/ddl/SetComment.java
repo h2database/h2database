@@ -91,7 +91,7 @@ public class SetComment extends DefineCommand {
         if (object == null) {
             throw Message.getSQLException(errorCode, objectName);
         }
-        String text = expr.getValue(session).getString();
+        String text = expr.optimize(session).getValue(session).getString();
         if (column) {
             Table table = (Table) object;
             table.getColumn(columnName).setComment(text);

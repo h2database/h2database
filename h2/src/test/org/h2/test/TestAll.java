@@ -282,13 +282,11 @@ java org.h2.test.TestAll timer
 
 /*
 
-website: remove redirect
+automated tests (status on web site)
 
-Check JBoss and Spring support models
+documentation: rolling review at tutorial.html:701
 
-Move issues to the roadmap
-
-documentation: rolling review at roadmap.html:done
+test web site with firefox 3, internet explorer, opera, safari, google chrome
 
 create a short 4 pages documentation
 
@@ -301,7 +299,12 @@ postgresql generate_series?
 multithreaded kernel
 remove old TODO
 
-test web site with firefox 3, internet explorer, opera, safari, google chrome
+Check JBoss and Spring support models
+http://wiki.bonita.ow2.org/xwiki/bin/view/Main/BullOffer
+- starting 2500 euros / year
+- unlimited support requests
+- 2 named contacts
+- optional half days of technical aid by remote services
 
 auto_reconnect
 implemented:

@@ -106,8 +106,9 @@ implements XAConnection, XAResource
 //## Java 1.4 end ##
 
     /**
-     * Get a connection that is a handle to the physical connection. This method is usually called by the connection
-     * pool. This method closes the last connection handle if one exists.
+     * Get a connection that is a handle to the physical connection. This method
+     * is usually called by the connection pool. This method closes the last
+     * connection handle if one exists.
      *
      * @return the connection
      */

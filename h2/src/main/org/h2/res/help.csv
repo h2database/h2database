@@ -106,7 +106,8 @@ RUNSCRIPT FROM 'backup'
 "
 
 "Commands (DML)","SCRIPT","
-SCRIPT [SIMPLE] [NODATA] [NOPASSWORDS] [NOSETTINGS] [DROP] [BLOCKSIZE blockSizeInt]
+SCRIPT [SIMPLE] [NODATA] [NOPASSWORDS] [NOSETTINGS]
+[DROP] [BLOCKSIZE blockSizeInt]
 [TO fileNameString
 [COMPRESSION {DEFLATE|LZF|ZIP|GZIP}]
 [CIPHER cipher PASSWORD string]]
@@ -364,7 +365,8 @@ CREATE AGGREGATE MEDIAN FOR ""com.acme.db.Median""
 "
 
 "Commands (DDL)","CREATE ALIAS","
-CREATE ALIAS [IF NOT EXISTS] newFunctionAliasName [DETERMINISTIC] FOR classAndMethodName
+CREATE ALIAS [IF NOT EXISTS] newFunctionAliasName [DETERMINISTIC]
+FOR classAndMethodName
 ","
 Creates a new function alias. The method name must be the full qualified class and method name,
 and may optionally include the parameter classes as in ""java.lang.Integer.parseInt(java.lang.String, int)"").
@@ -1892,7 +1894,8 @@ COUNT(*)
 "
 
 "Functions (Aggregate)","GROUP_CONCAT","
-GROUP_CONCAT([DISTINCT] string [ORDER BY {expression [ASC|DESC]}[,...]] [SEPARATOR expression]): string
+GROUP_CONCAT([DISTINCT] string [ORDER BY {expression [ASC|DESC]}[,...]]
+[SEPARATOR expression]): string
 ","
 Concatenates strings with a separator. The default separator is a ',' (without space).
 If no rows are selected, the result is NULL.
@@ -2862,8 +2865,8 @@ CURRVAL('TEST_SEQ')
 "
 
 "Functions (System)","CSVREAD","
-CSVREAD(fileNameString [, columnNamesString [, charsetString [, fieldSeparatorString [, fieldDelimiterString
-[, escapeCharacterString [, nullString]]]]]]): resultSet
+CSVREAD(fileNameString [, columnNamesString [, charsetString [, fieldSeparatorString
+[, fieldDelimiterString [, escapeCharacterString [, nullString]]]]]]): resultSet
 ","
 Returns the result set of reading the CSV (comma separated values) file.
 For each parameter, NULL means the default value should be used.
@@ -2884,8 +2887,9 @@ SELECT * FROM CSVREAD('data/test.csv', NULL, NULL, ';');
 "
 
 "Functions (System)","CSVWRITE","
-CSVWRITE(fileNameString, queryString [, charsetString [, fieldSeparatorString [, fieldDelimiterString
-[, escapeCharacterString [, nullString [, lineSeparatorString]]]]]]): int
+CSVWRITE(fileNameString, queryString [, charsetString [, fieldSeparatorString
+[, fieldDelimiterString [, escapeCharacterString [, nullString
+[, lineSeparatorString]]]]]]): int
 ","
 Writes a CSV (comma separated values).
 The file is overwritten if it exists.

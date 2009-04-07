@@ -18,6 +18,7 @@ pre {
 
 body {
     margin: 0px;
+    max-width: 800px;
 }
 
 h1 {

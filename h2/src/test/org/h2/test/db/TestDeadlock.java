@@ -192,47 +192,47 @@ public class TestDeadlock extends TestBase {
     // test case for issue # 61
     // http://code.google.com/p/h2database/issues/detail?id=61)
     private void testThreeSome() throws Exception {
-      if (config.mvcc) {
-          return;
-      }
-      initTest();
-      c1.createStatement().execute("CREATE TABLE TEST_A(ID INT PRIMARY KEY)");
-      c1.createStatement().execute("CREATE TABLE TEST_B(ID INT PRIMARY KEY)");
-      c1.createStatement().execute("CREATE TABLE TEST_C(ID INT PRIMARY KEY)");
-      c1.commit();
-      c1.createStatement().execute("INSERT INTO TEST_A VALUES(1)");
-      c1.createStatement().execute("INSERT INTO TEST_B VALUES(1)");
-      c2.createStatement().execute("INSERT INTO TEST_C VALUES(1)");
-      DoIt t2 = new DoIt() {
-          public void execute() throws SQLException {
-            c3.createStatement().execute("INSERT INTO TEST_B VALUES(2)");
-            c3.commit();
-          }
-      };
-      t2.start();
-      DoIt t3 = new DoIt() {
-          public void execute() throws SQLException {
-              c2.createStatement().execute("INSERT INTO TEST_A VALUES(2)");
-              c2.commit();
-          }
-      };
-      t3.start();
-      try {
-        c1.createStatement().execute("INSERT INTO TEST_C VALUES(2)");
+        if (config.mvcc) {
+            return;
+        }
+        initTest();
+        c1.createStatement().execute("CREATE TABLE TEST_A(ID INT PRIMARY KEY)");
+        c1.createStatement().execute("CREATE TABLE TEST_B(ID INT PRIMARY KEY)");
+        c1.createStatement().execute("CREATE TABLE TEST_C(ID INT PRIMARY KEY)");
         c1.commit();
-      } catch (SQLException e) {
-          catchDeadlock(e);
-          c1.rollback();
-      }
-      t2.join();
-      t3.join();
-      checkDeadlock();
-      c1.commit();
-      c2.commit();
-      c3.commit();
-      c1.createStatement().execute("DROP TABLE TEST_A, TEST_B, TEST_C");
-      end();
-  }
+        c1.createStatement().execute("INSERT INTO TEST_A VALUES(1)");
+        c1.createStatement().execute("INSERT INTO TEST_B VALUES(1)");
+        c2.createStatement().execute("INSERT INTO TEST_C VALUES(1)");
+        DoIt t2 = new DoIt() {
+            public void execute() throws SQLException {
+                c3.createStatement().execute("INSERT INTO TEST_B VALUES(2)");
+                c3.commit();
+            }
+        };
+        t2.start();
+        DoIt t3 = new DoIt() {
+            public void execute() throws SQLException {
+                c2.createStatement().execute("INSERT INTO TEST_A VALUES(2)");
+                c2.commit();
+            }
+        };
+        t3.start();
+        try {
+            c1.createStatement().execute("INSERT INTO TEST_C VALUES(2)");
+            c1.commit();
+        } catch (SQLException e) {
+            catchDeadlock(e);
+            c1.rollback();
+        }
+        t2.join();
+        t3.join();
+        checkDeadlock();
+        c1.commit();
+        c2.commit();
+        c3.commit();
+        c1.createStatement().execute("DROP TABLE TEST_A, TEST_B, TEST_C");
+        end();
+    }
 
     private void testLockUpgrade() throws Exception {
         if (config.mvcc) {

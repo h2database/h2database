@@ -139,6 +139,15 @@ public class GenerateDoc {
                 // syntax = StringUtils.replaceAll(syntax, "<br />", " ");
                 syntax = bnf.getSyntaxHtml(syntax);
                 map.put("syntax", syntax);
+
+                // remove newlines in the regular text
+                // currently this looks bad (no paragraphs, no lists)
+                // String text = (String) map.get("text");
+                // if (text != null) {
+                //    text = StringUtils.replaceAll(text, "<br />", " ");
+                //    map.put("text", text);
+                // }
+
                 String link = topic.toLowerCase();
                 link = StringUtils.replaceAll(link, " ", "");
                 link = StringUtils.replaceAll(link, "_", "");

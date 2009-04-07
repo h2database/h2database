@@ -519,7 +519,7 @@ public class Shell extends Tool {
             println(buff.toString());
         }
         if (truncated) {
-            println("(data is partically truncated)");
+            println("(data is partially truncated)");
         }
         return rowCount;
     }

@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When using the built-in connection pool, connections were not rolled back and
+<ul><li>Queries that are ordered by an indexed column returned no rows in certain cases
+    (if all rows were deleted from the table previously, and there is a low number of rows
+    in the table, and when not using other conditions, and when using the default b tree index).
+</li><li>The wrong exception was thrown when using unquoted text for
+    the SQL statements COMMENT, ALTER USER, and SET PASSWORD.
+</li><li>When using the built-in connection pool, connections were not rolled back and
     autocommit was not enabled after closing a connection. Fixed.
 </li><li>Sometimes a StackOverflow occurred when checking for deadlock. See also
     http://code.google.com/p/h2database/issues/detail?id=61

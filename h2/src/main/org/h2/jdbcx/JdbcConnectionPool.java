@@ -42,17 +42,20 @@ import org.h2.message.Message;
  *  MiniConnectionPoolManager written by Christian d'Heureuse (Java 1.5)
  * </a>. It is used as follows:
  * <pre>
- * // init
- * import org.h2.jdbcx.*;
- * ...
- * JdbcConnectionPool cp = JdbcConnectionPool.create(
- *     "jdbc:h2:~/test", "sa", "sa");
- * // use
- * Connection conn = cp.getConnection();
- * ...
- * conn.close();
- * // dispose
- * cp.dispose();
+ * import java.sql.*;
+ * import org.h2.jdbcx.JdbcConnectionPool;
+ * public class Test {
+ *     public static void main(String[] args) throws Exception {
+ *         JdbcConnectionPool cp = JdbcConnectionPool.create(
+ *             "jdbc:h2:~/test", "sa", "sa");
+ *         for (int i = 0; i &lt; args.length; i++) {
+ *             Connection conn = cp.getConnection();
+ *             conn.createStatement().execute(args[i]);
+ *             conn.close();
+ *         }
+ *         cp.dispose();
+ *     }
+ * }
  * </pre>
  *
  * @author Christian d'Heureuse

@@ -314,7 +314,7 @@ public class BtreeNode extends BtreePage {
     }
 
     void first(BtreeCursor cursor) throws SQLException {
-        if (pageData.size() == 0) {
+        if (pageChildren.size() == 0) {
             if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
                 Message.throwInternalError("Empty btree page");
             }

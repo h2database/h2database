@@ -1,3 +1,10 @@
+create table test(id int primary key) as select x from system_range(1, 200);
+delete from test;
+insert into test(id) values(1);
+select * from test order by id;
+> 1;
+drop table test;
+
 create memory table test(id int) as select 1 from dual not persistent;
 insert into test values(1);
 select count(1) from test;

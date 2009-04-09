@@ -151,21 +151,6 @@ implements XAConnection, XAResource
      * INTERNAL
      */
 //## Java 1.4 begin ##
-    public void fatalErrorOccurred(PooledJdbcConnection conn, SQLException e) throws SQLException {
-        debugCode("fatalErrorOccurred(conn, e);");
-        for (int i = 0; i < listeners.size(); i++) {
-            ConnectionEventListener listener = (ConnectionEventListener) listeners.get(i);
-            ConnectionEvent event = new ConnectionEvent(this, e);
-            listener.connectionErrorOccurred(event);
-        }
-        close();
-    }
-//## Java 1.4 end ##
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.4 begin ##
     void closedHandle() {
         debugCode("closedHandle();");
         for (int i = 0; i < listeners.size(); i++) {

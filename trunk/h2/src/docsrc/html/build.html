@@ -55,7 +55,6 @@ Newer version or compatible software works too.
 </li><li>OpenOffice 3.0
 </li><li>NSIS 2.38 (Nullsoft Scriptable Install System)
 </li><li>Maven 2.0.9
-</li><li>YourKit Java Profiler
 </li></ul>
 
 <br /><a name="building"></a>
@@ -79,8 +78,8 @@ build jar
 
 <h3>Switching the Source Code</h3>
 <p>
-By default the source code uses Java 1.6 features, however Java 1.4 and 1.5 are supported as well.
-To disable Java 1.6 specific features, run:
+By default the source code uses Java 1.5 features, however Java 1.4 and 1.5 are supported as well.
+To switch the source code to the install version of Java, run:
 </p>
 <pre>
 build switchSource
@@ -91,7 +90,7 @@ build switchSource
 <p>
 The build system can generate smaller jar files as well. The following targets are currently supported:
 </p>
-<ul><li>jarClient: Create the h2client.jar. This only contains the remote JDBC implementation.
+<ul><li>jarClient: Create the h2client.jar. This only contains the JDBC client.
 </li><li>jarSmall: Create the file h2small.jar. This only contains the embedded database. Debug information is disabled.
 </li><li>jarJaqu: Create the file h2jaqu.jar. This only contains the JaQu (Java Query) implementation. All other jar files do not include JaQu.
 </li><li>javadocImpl: Create the Javadocs of the implementation.
@@ -152,7 +151,7 @@ The translation of this software is split into the following parts:
 </li><li>Web site: src/docsrc/text/_docs_*.utf8.txt
 </li></ul>
 <p>
-To translate the H2 Console, start it and select Options / Translate.
+To translate the H2 Console, start it and select Preferences / Translate.
 The conversion between UTF-8 and Java encoding (using the \u syntax), as well as the HTML entities (&amp;#..;)
 is automated by running the tool PropertiesToUTF8. The web site translation is automated as well,
 using <code>build docs</code>.
@@ -164,7 +163,8 @@ using <code>build docs</code>.
 If you like to provide patches, please consider the following guidelines to simplify merging them:
 </p>
 <ul><li>Only use Java 1.4 features (do not use Java 1.5 or 1.6) (see Environment).
-</li><li>Follow the coding style used in the project, use Checkstyle (see above) to check the coding style.
+</li><li>Follow the coding style used in the project, and use Checkstyle (see above) to verify.
+    For example, do not use tabs (use spaces instead).
     The checkstyle configuration is in <code>src/installer/checkstyle.xml</code>.
 </li><li>Please provide test cases and integrate them into the test suite.
     For Java level tests, see <code>src/test/org/h2/test/TestAll.java</code>.
@@ -177,7 +177,7 @@ If you like to provide patches, please consider the following guidelines to simp
 </li><li>Verify the spelling using <code>build spellcheck</code>. If required
     add the new words to <code>src/tools/org/h2/build/doc/dictionary.txt</code>.
 </li><li>Verify the formatting using <code>build docs</code> and <code>build javadoc</code>.
-</li><li>Submit patches as .patch files (compressed if big). To create a patch, use for example Eclipse Team/Create Patch.
+</li><li>Submit patches as .patch files (compressed if big). To create a patch using Eclipse, use Team / Create Patch.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

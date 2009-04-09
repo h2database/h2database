@@ -105,12 +105,12 @@ Connection conn = DriverManager.getConnection("jdbc:h2:~/test", "sa", "");
 <h3>Where are the Database Files Stored?</h3>
 <p>
 When using database URLs like jdbc:h2:~/test, the database is stored in the user directory.
-For Windows, this is usually C:\Documents and Settings\&lt;userName&gt;.
+For Windows, this is usually "C:\Documents and Settings\&lt;userName&gt;".
 If the base directory is not set (as in jdbc:h2:test), the database files are stored in the directory where the application is started
-(the current working directory). When using the H2 Console application from the start menu, this is [Installation Directory]/bin.
+(the current working directory). When using the H2 Console application from the start menu, this is "&lt;Installation Directory&gt;/bin".
 The base directory can be set in the database URL. A fixed or relative path can be used. When using the URL
-jdbc:h2:file:data/sample, the database is stored in the directory data (relative to the current working directory).
-The directory is created automatically if it does not yet exist. It is also possible to use the fully qualified directory (and for Windows, drive) name.
+jdbc:h2:file:data/sample, the database is stored in the directory "data" (relative to the current working directory).
+The directory is created automatically if it does not yet exist. It is also possible to use the fully qualified directory name (and for Windows, drive name).
 Example: jdbc:h2:file:C:/data/test
 </p>
 
@@ -118,14 +118,15 @@ Example: jdbc:h2:file:C:/data/test
 <h3>What is the Size Limit (Maximum Size) of a Database?</h3>
 <p>
 The theoretical limit is currently 256 GB for the data. This number is excluding BLOB and CLOB data:
-Every CLOB or BLOB can be up to 256 GB as well. The size limit of the index data is 256 GB as well.
+every CLOB or BLOB can be up to 256 GB as well. The size limit of the index data is 256 GB as well.
 </p>
 <p>
 The maximum number of rows per table is 2'147'483'648.
 </p>
 <p>
-The maximum file size for FAT or FAT32 file systems is 4 GB. So if you use FAT or FAT32, the
-limit is 4 GB for the data.
+The maximum file size for FAT or FAT32 file systems is usually 4 GB.
+The database does provide a workaround for this problem, it is to use the file
+name prefix 'split:'. See also Advanced / Limitations.
 </p>
 <p>
 The larger the database, the more main memory is required. Currently the minimum main memory required for a 12 GB database
@@ -137,33 +138,32 @@ is around 240 MB.
 <p>
 That is not easy to say. It is still a quite new product. A lot of tests have been written,
 and the code coverage of these tests is very high. Randomized stress tests
-are run regularly. But as this is a relatively new product, there are probably
-some problems that have not yet been found (as with most software). Some features are known
-to be dangerous by design, and some problems are hard to solve. Those are:
+are run regularly. But there are probably still
+bug that have not yet been found (as with most software). Some features are known
+to be dangerous, they are only supported for situations where performance is more important
+than reliability. Those dangerous features are:
 </p>
 <ul>
-<li>Using SET LOG 0 to disable the transaction log file.
+<li>Disabling the transaction log mechanism using SET LOG 0.
 </li><li>Using the transaction isolation level READ_UNCOMMITTED (LOCK_MODE 0) while at the same time using multiple
-    connections may result in inconsistent transactions.
-</li><li>Using FILE_LOCK=NO in the database URL.
+    connections.
+</li><li>Disabling database file protection using FILE_LOCK=NO in the database URL.
+</li><li>Disabling referential integrity using SET REFERENTIAL_INTEGRITY FALSE.
 </li></ul>
 <p>
 In addition to that, running out of memory should be avoided.
-In some versions, OutOfMemory errors while using the database could corrupt a databases.
-Not all such problems may be fixed.
+In older versions, OutOfMemory errors while using the database could corrupt a databases.
 </p>
-
 <p>
 Areas that are not fully tested:
 </p>
 <ul>
-<li>Platforms other than Windows XP or Linux, or JVMs other than Sun 1.4 - 1.6
+<li>Platforms other than Windows XP, Linux, Mac OS X, or JVMs other than Sun 1.4 - 1.6
 </li><li>The features AUTO_SERVER and AUTO_RECONNECT
 </li><li>The MVCC (multi version concurrency) mode
 </li><li>Cluster mode, 2-phase commit, savepoints
 </li><li>24/7 operation
 </li><li>Some operations on databases larger than 500 MB may be slower than expected
-</li><li>Multi-threading and using multiple connections
 </li><li>The optimizer may not always select the best plan
 </li></ul>
 
@@ -173,7 +173,6 @@ Areas considered Experimental:
 <ul>
 <li>The PostgreSQL server
 </li><li>Compatibility modes for other databases (only some features are implemented)
-</li><li>The ARRAY data type and related functionality
 </li></ul>
 
 <br /><a name="slow_open"></a>
@@ -184,6 +183,8 @@ This is specially a problem for larger databases.
 To close a database, close all connections to it before the application ends, or execute
 the command SHUTDOWN. The database is also closed when the virtual machine exits normally
 by using a shutdown hook. However killing a Java process or calling Runtime.halt will prevent this.
+The reason why opening is slow in this situations is that indexes are re-created.
+If you  can not guarantee the database is closed, consider using SET LOG 2 (see SQL Grammar).
 </p>
 <p>
 To find out what the problem is, open the database in embedded mode using the H2 Console.

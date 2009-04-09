@@ -98,8 +98,8 @@ For these data types, the objects are not fully read into memory, by using strea
 To store a BLOB, use PreparedStatement.setBinaryStream. To store a CLOB, use
 PreparedStatement.setCharacterStream. To read a BLOB, use ResultSet.getBinaryStream,
 and to read a CLOB, use ResultSet.getCharacterStream.
-If the client/server mode is used, the BLOB and CLOB data is fully read into memory when
-accessed. In this case, the size of a BLOB or CLOB is limited by the memory.
+When using the client/server mode, large BLOB and CLOB data is stored in a temporary file
+on the client side.
 </p>
 
 <br /><a name="linked_tables"></a>
@@ -123,9 +123,9 @@ target database, that means no joins. Prepared statements are used where possibl
 To view the statements that are executed against the target table, set the trace level to 3.
 </p>
 <p>
-There is a restriction when inserting data to this table: When inserting or updating rows into the table,
-NULL and values that are not set in the insert statement are both inserted as NULL.
-This may not have the desired effect if a default value in the target table is other than NULL.
+There is a restriction: When inserting into a linked table, and when updating a linked table,
+NULL and values that are not set are both inserted as NULL.
+This may not have the desired effect if the default value for this column in the target table is not NULL.
 </p>
 <p>
 If multiple linked tables point to the same database (using the same database URL), the connection
@@ -460,7 +460,7 @@ server.stop();
 </pre>
 <p>
 By default, only connections from localhost are allowed. To allow remote connections, use
-<code>-pgAllowOthers true</code> when starting the server.
+<code>-pgAllowOthers</code> when starting the server.
 </p>
 
 <h3>ODBC Configuration</h3>
@@ -585,8 +585,9 @@ Transactions in this database are always atomic.
 
 <h3>Consistency</h3>
 <p>
-This database is always in a consistent state.
-Referential integrity rules are always enforced.
+By default, this database is always in a consistent state.
+Referential integrity rules are enforced except when
+explicitly disabled.
 </p>
 
 <h3>Isolation</h3>
@@ -628,7 +629,6 @@ supports the modes "rws" and "rwd":
 </li><li>rws: In addition to rwd, every update to the metadata is written synchronously.</li>
 </ul>
 <p>
-This feature is used by Derby.
 A test (org.h2.test.poweroff.TestWrite) with one of those modes achieves around 50 thousand write operations per second.
 Even when the operating system write buffer is disabled, the write rate is around 50 thousand operations per second.
 This feature does not force changes to disk because it does not flush all buffers.
@@ -659,7 +659,7 @@ In Mac OS X, fsync does not flush hard drive buffers. See
 So the situation is confusing, and tests prove there is a problem.
 </p>
 <p>
-Trying to flush hard drive buffers hard, and if you do the performance is very bad.
+Trying to flush hard drive buffers is hard, and if you do the performance is very bad.
 First you need to make sure that the hard drive actually flushes all buffers.
 Tests show that this can not be done in a reliable way.
 Then the maximum number of transactions is around 60 per second.
@@ -695,13 +695,13 @@ It also extracts the content of the log file or large objects (CLOB or BLOB).
 To run the tool, type on the command line:
 </p>
 <pre>
-java org.h2.tools.Recover
+java -cp h2*.jar org.h2.tools.Recover
 </pre>
 <p>
 For each database in the current directory, a text file will be created.
-This file contains raw insert statement (for the data) and data definition (DDL) statement to recreate
+This file contains raw insert statements (for the data) and data definition (DDL) statements to recreate
 the schema of the database. This file can be executed using the RunScript tool or a
-<code>RUNSCRIPT FROM</code> SQL statement. The script include at least one
+<code>RUNSCRIPT FROM</code> SQL statement. The script includes at least one
 CREATE USER statement. If you run the script against a database that was created with the same
 user, or if there are conflicting users, running the script will fail. Consider running the script
 against a database that was created with a user name that is not in the script.
@@ -711,7 +711,7 @@ against a database that was created with a user name that is not in the script.
 <h2>File Locking Protocols</h2>
 <p>
 Whenever a database is opened, a lock file is created to signal other processes
-that the database is in use. If database is closed, or if the process that opened
+that the database is in use. If the database is closed, or if the process that opened
 the database terminates, this lock file is deleted.
 </p><p>
 In special cases (if the process did not terminate normally, for example because
@@ -909,9 +909,9 @@ the underlying security primitives.
 <h3>User Password Encryption</h3>
 <p>
 When a user tries to connect to a database, the combination of
-user name, @, and password hashed using SHA-256, and this hash value
+user name, @, and password are hashed using SHA-256, and this hash value
 is transmitted to the database.
-This step does not try to an attacker from re-using the value if he is able to listen to the
+This step does not protect against an attacker that re-uses the value if he is able to listen to the
 (unencrypted) transmission between the client and the server.
 But, the passwords are never transmitted as plain text,
 even when using an unencrypted connection between client and server.
@@ -921,21 +921,22 @@ this password is still protected up to some point. See also
 for more information.
 </p><p>
 When a new database or user is created, a new cryptographically secure
-random salt value is generated. The size of the salt is 64 bit.
+random salt value is generated. The size of the salt is 64 bits.
 Using the random salt reduces the risk of an attacker pre-calculating hash values
 for many different (commonly used) passwords.
 </p><p>
 The combination of user-password hash value (see above) and salt is hashed
 using SHA-256. The resulting value is stored in the database.
 When a user tries to connect to the database, the database combines
-user-password hash value with the stored salt value and calculated the
+user-password hash value with the stored salt value and calculates the
 hash value. Other products use multiple iterations (hash the hash value again and again),
 but this is not done in this product to reduce the risk of denial of service attacks
 (where the attacker tries to connect with bogus passwords, and the server
 spends a lot of time calculating the hash value for each password).
 The reasoning is: if the attacker has access to the hashed passwords, he also has
 access to the data in plain text, and therefore does not need the password any more.
-If the data is protected by storing it on another computer and only remotely, then the iteration count is not required at all.
+If the data is protected by storing it on another computer and only accessible remotely,
+then the iteration count is not required at all.
 </p>
 
 <h3>File Encryption</h3>
@@ -950,7 +951,7 @@ When a user tries to connect to an encrypted database, the combination of the wo
 transmitted to the server.
 </p><p>
 When a new database file is created, a new cryptographically secure
-random salt value is generated. The size of the salt is 64 bit.
+random salt value is generated. The size of the salt is 64 bits.
 The combination of the file password hash and the salt value is hashed 1024 times
 using SHA-256. The reason for the iteration is to make it harder for an attacker to
 calculate hash values for common passwords.
@@ -969,8 +970,8 @@ encrypted using the AES-128 or XTEA algorithm.
 When decrypting, the operation is done in reverse. First, the block is decrypted using the key,
 and then the IV is calculated combined with the decrypted text using XOR.
 </p><p>
-Therefore, the block cipher mode of operation is CBC (Cipher-block chaining), but each chain
-is only one block long. The advantage over the ECB (Electronic codebook) mode is that patterns
+Therefore, the block cipher mode of operation is CBC (cipher-block chaining), but each chain
+is only one block long. The advantage over the ECB (electronic codebook) mode is that patterns
 in the data are not revealed, and the advantage over multi block CBC is that flipped cipher text bits
 are not propagated to flipped plaintext bits in the next block.
 </p><p>
@@ -983,17 +984,22 @@ File encryption slows down the performance of the database engine. Compared to u
 database operations take about 2.2 times longer when using XTEA, and 2.5 times longer using AES (embedded mode).
 </p>
 
-<h3>Wrong Password Delay</h3>
+<h3>Wrong Password / User Name Delay</h3>
 <p>
 To protect against remote brute force password attacks, the delay after each unsuccessful
 login gets double as long. Use the system properties h2.delayWrongPasswordMin
 and h2.delayWrongPasswordMax to change the minimum (the default is 250 milliseconds)
 or maximum delay (the default is 4000 milliseconds, or 4 seconds). The delay only
 applies for those using the wrong password. Normally there is no delay for a user that knows the correct
-password, with one exception: after using the wrong password, there is a delay of up (randomly distributed)
+password, with one exception: after using the wrong password, there is a delay of up to (randomly distributed)
 the same delay as for a wrong password. This is to protect against parallel brute force attacks,
 so that an attacker needs to wait for the whole delay. Delays are synchronized. This is also required
 to protect against parallel attacks.
+</p>
+<p>
+There is only one exception message for both wrong user and for wrong password,
+to make it harder to get the list of user names. It is not possible from the stack trace to see
+if the user name was wrong or the password.
 </p>
 
 <h3>HTTPS Connections</h3>
@@ -1035,12 +1041,17 @@ Here is a small program to estimate the probability of having two identical UUID
 after generating a number of values:
 </p>
 <pre>
-double x = Math.pow(2, 122);
-for(int i=35; i&lt;62; i++) {
-    double n = Math.pow(2, i);
-    double p = 1 - Math.exp(-(n*n)/(2*x));
-    String ps = String.valueOf(1+p).substring(1);
-    System.out.println("2^"+i+"="+(1L&lt;&lt;i)+" probability: 0"+ps);
+public class Test {
+    public static void main(String[] args) throws Exception {
+        double x = Math.pow(2, 122);
+        for (int i = 35; i &lt; 62; i++) {
+            double n = Math.pow(2, i);
+            double p = 1 - Math.exp(-(n * n) / 2 / x);
+            System.out.println("2^" + i + "=" + (1L &lt;&lt; i) +
+                    " probability: 0" +
+                    String.valueOf(1 + p).substring(1));
+        }
+    }
 }
 </pre>
 <p>
@@ -1097,8 +1108,10 @@ This database has the following known limitations:
 This number is excluding BLOB and CLOB data:
 Every CLOB or BLOB can be up to 256 GB as well.
 </li><li>The maximum file size for FAT or FAT32 file systems is 4 GB. That means when using FAT or FAT32,
-the limit is 4 GB for the data. This is the limitation of the file system, and this database does not provide a
-workaround for this problem. The suggested solution is to use another file system.
+the limit is 4 GB for the data. This is the limitation of the file system. The database does provide a
+workaround for this problem, it is to use the file name prefix 'split:'. In that case files are split into
+files of 1 GB by default. An example database URL is:
+<code>jdbc:h2:split:~/test</code>.
 </li><li>There is a limit on the complexity of SQL statements.
 Statements of the following form will result in a stack overflow exception:
 <pre>
@@ -1174,8 +1187,8 @@ OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
     </tr>
     <tr>
         <td>SQL Injection</td>
-        <td>A security vulnerability where an application generates SQL
-        statements with embedded user input. See also: <a
+        <td>A security vulnerability where an application embeds SQL
+        statements or expressions in user input. See also: <a
             href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia:
         SQL Injection</a></td>
     </tr>

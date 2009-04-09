@@ -204,12 +204,13 @@ public class Engine {
      * method waits some time (to make brute force / rainbow table attacks
      * harder) and then throws a 'wrong user or password' exception. The delay
      * is a bit randomized to protect against timing attacks. Also the delay
-     * doubles after each unsuccessful logins, to make brute force attacks harder.
+     * doubles after each unsuccessful logins, to make brute force attacks
+     * harder.
      *
-     * There is only one exception both for wrong user and for wrong password,
-     * to make it harder to get the list of user names. This method must only be
-     * called from one place, so it is not possible from the stack trace to see
-     * if the user name was wrong or the password.
+     * There is only one exception message both for wrong user and for
+     * wrong password, to make it harder to get the list of user names. This
+     * method must only be called from one place, so it is not possible from the
+     * stack trace to see if the user name was wrong or the password.
      *
      * @param correct if the user name or the password was correct
      * @throws SQLException the exception 'wrong user or password'

@@ -91,7 +91,7 @@ Features
 <h3>Main Features</h3>
 <ul>
 <li>Very fast database engine
-</li><li>Free, with source code
+</li><li>Open source
 </li><li>Written in Java
 </li><li>Supports standard SQL, JDBC API
 </li><li>Embedded and Server mode, Clustering support
@@ -144,9 +144,9 @@ Features
 </li><li>Support for linked tables, and a built-in virtual 'range' table
 </li><li>EXPLAIN PLAN support, sophisticated trace options
 </li><li>Database closing can be delayed or disabled to improve the performance
-</li><li>Web-based Console application (English, German, partially French and Spanish) with autocomplete
+</li><li>Web-based Console application (translated to many languages) with autocomplete
 </li><li>The database can generate SQL script files
-</li><li>Contains a recovery tool that can dump the contents of the data file
+</li><li>Contains a recovery tool that can dump the contents of the database
 </li><li>Support for variables (for example to calculate running totals)
 </li><li>Automatic re-compilation of prepared statements
 </li><li>Uses a small number of database files
@@ -372,7 +372,7 @@ http://www.h2database.com/html/roadmap.html
 *5 The default H2 jar file contains debug information, jar files for other databases do not.<br />
 *6 PostgreSQL supports functional indexes.<br />
 *7 Derby only supports updatable result sets if the query is not sorted.<br />
-*8 Derby and HSQLDB don't support standard compliant information schema tables.
+*8 Derby and HSQLDB don't support standard compliant information schema tables.<br />
 *9 H2 supports row level locks when using multi version concurrency.
 </p>
 
@@ -408,7 +408,7 @@ The following connection modes are supported:
 </p>
 <ul>
 <li>Embedded mode (local connections using JDBC)
-</li><li>Remote mode (remote connections using JDBC or ODBC over TCP/IP)
+</li><li>Server mode (remote connections using JDBC or ODBC over TCP/IP)
 </li><li>Mixed mode (local and remote connections at the same time)
 </li></ul>
 
@@ -424,13 +424,13 @@ or on the number of open connections.
 <img src="images/connection-mode-embedded.png"
     alt="The database is embedded in the application" />
 
-<h3>Remote Mode</h3>
+<h3>Server Mode</h3>
 <p>
-When using the remote mode (sometimes called server mode or client/server mode), an application opens a
+When using the server mode (sometimes called remote mode or client/server mode), an application opens a
 database remotely using the JDBC or ODBC API. A server needs to be started within the same
-or another virtual machine (or on another computer).
+or another virtual machine, or on another computer.
 Many applications can connect to the same database at the same time.
-The remote mode is slower than the embedded mode, because all data
+The server mode is slower than the embedded mode, because all data
 is transferred over TCP/IP.
 As in all modes, both persistent and in-memory databases are supported.
 There is no limit on the number of database open concurrently,
@@ -441,13 +441,17 @@ or on the number of open connections.
 
 <h3>Mixed Mode</h3>
 <p>
-The mixed mode is a combination of the embedded and the remote mode.
+The mixed mode is a combination of the embedded and the server mode.
 The first application that connects to a database does that in embedded mode, but also starts
 a server so that other applications (running in different processes or virtual machines) can
-concurrently access the same data. The embedded connections are as fast as if
+concurrently access the same data. The local connections are as fast as if
 the database is used in just the embedded mode, while the remote
-connections are a bit slower. All clients that want to connect to the database (no matter if
-it's an embedded or remote connection) can do so using the exact same database URL.
+connections are a bit slower.
+</p><p>
+The server can be started and stopped from within the application (using the server API), 
+or automatically (automatic mixed mode). When using the <a href="#auto_mixed_mode">automatic mixed mode</a>,
+all clients that want to connect to the database (no matter if
+it's an local or remote connection) can do so using the exact same database URL.
 </p>
 <img src="images/connection-mode-mixed.png"
     alt="The database and the server is running inside the application; another application connects remotely" />
@@ -469,18 +473,18 @@ This is achieved using different database URLs. Settings in the URLs are not cas
     </td>
 </tr>
 <tr>
-    <td><a href="#memory_only_databases">In-Memory (private)</a></td>
+    <td><a href="#memory_only_databases">In-memory (private)</a></td>
     <td>jdbc:h2:mem:</td>
 </tr>
 <tr>
-    <td><a href="#memory_only_databases">In-Memory (named)</a></td>
+    <td><a href="#memory_only_databases">In-memory (named)</a></td>
     <td>
         jdbc:h2:mem:&lt;databaseName&gt;<br />
         jdbc:h2:mem:test_mem
     </td>
 </tr>
 <tr>
-    <td><a href="tutorial.html#using_server">Remote using TCP/IP</a></td>
+    <td><a href="tutorial.html#using_server">Server mode (remote connections)<br /> using TCP/IP</a></td>
     <td>
         jdbc:h2:tcp://&lt;server&gt;[:&lt;port&gt;]/[&lt;path&gt;]&lt;databaseName&gt;<br />
         jdbc:h2:tcp://localhost/~/test<br />
@@ -488,14 +492,14 @@ This is achieved using different database URLs. Settings in the URLs are not cas
     </td>
 </tr>
 <tr>
-    <td><a href="advanced.html#ssl_tls_connections">Remote using SSL/TLS</a></td>
+    <td><a href="advanced.html#ssl_tls_connections">Server mode (remote connections)<br /> using SSL/TLS</a></td>
     <td>
         jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;<br />
         jdbc:h2:ssl://secureserv:8085/~/sample;
     </td>
 </tr>
 <tr>
-    <td><a href="#file_encryption">Using Encrypted Files</a></td>
+    <td><a href="#file_encryption">Using encrypted files</a></td>
     <td>
         jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]<br />
         jdbc:h2:ssl://secureserv/~/testdb;CIPHER=AES<br />
@@ -503,7 +507,7 @@ This is achieved using different database URLs. Settings in the URLs are not cas
     </td>
 </tr>
 <tr>
-    <td><a href="#database_file_locking">File Locking Methods</a></td>
+    <td><a href="#database_file_locking">File locking methods</a></td>
     <td>
         jdbc:h2:&lt;url&gt;;FILE_LOCK={NO|FILE|SOCKET}<br />
         jdbc:h2:file:~/quickAndDirty;FILE_LOCK=NO<br />
@@ -511,81 +515,81 @@ This is achieved using different database URLs. Settings in the URLs are not cas
     </td>
 </tr>
 <tr>
-    <td><a href="#database_only_if_exists">Only Open if it Already Exists</a></td>
+    <td><a href="#database_only_if_exists">Only open if it already exists</a></td>
     <td>
         jdbc:h2:&lt;url&gt;;IFEXISTS=TRUE<br />
         jdbc:h2:file:~/sample;IFEXISTS=TRUE<br />
     </td>
 </tr>
 <tr>
-    <td><a href="#do_not_close_on_exit">Don't Close the Database when the VM Exits</a></td>
+    <td><a href="#do_not_close_on_exit">Don't close the database when the VM exits</a></td>
     <td>
         jdbc:h2:&lt;url&gt;;DB_CLOSE_ON_EXIT=FALSE
     </td>
 </tr>
 <tr>
-    <td><a href="#passwords">User Name and/or Password</a></td>
+    <td><a href="#passwords">User name and/or password</a></td>
     <td>
         jdbc:h2:&lt;url&gt;[;USER=&lt;username&gt;][;PASSWORD=&lt;value&gt;]<br />
         jdbc:h2:file:~/sample;USER=sa;PASSWORD=123<br />
     </td>
 </tr>
 <tr>
-    <td><a href="#log_index_changes">Log Index Changes</a></td>
+    <td><a href="#log_index_changes">Log index changes</a></td>
     <td>
         jdbc:h2:&lt;url&gt;;LOG=2<br />
         jdbc:h2:file:~/sample;LOG=2<br />
     </td>
 </tr>
 <tr>
-    <td><a href="#trace_options">Debug Trace Settings</a></td>
+    <td><a href="#trace_options">Debug trace settings</a></td>
     <td>
         jdbc:h2:&lt;url&gt;;TRACE_LEVEL_FILE=&lt;level 0..3&gt;<br />
         jdbc:h2:file:~/sample;TRACE_LEVEL_FILE=3<br />
     </td>
 </tr>
 <tr>
-    <td><a href="#ignore_unknown_settings">Ignore Unknown Settings</a></td>
+    <td><a href="#ignore_unknown_settings">Ignore unknown settings</a></td>
     <td>
         jdbc:h2:&lt;url&gt;;IGNORE_UNKNOWN_SETTINGS=TRUE<br />
     </td>
 </tr>
 <tr>
-    <td><a href="#custom_access_mode">Custom File Access Mode</a></td>
+    <td><a href="#custom_access_mode">Custom file access mode</a></td>
     <td>
         jdbc:h2:&lt;url&gt;;ACCESS_MODE_LOG=rws;ACCESS_MODE_DATA=rws<br />
     </td>
 </tr>
 <tr>
-    <td><a href="#database_in_zip">Database in or Zip File</a></td>
+    <td><a href="#database_in_zip">Database in a zip file</a></td>
     <td>
         jdbc:h2:zip:&lt;zipFileName&gt;!/&lt;databaseName&gt;<br />
         jdbc:h2:zip:~/db.zip!/test
     </td>
 </tr>
 <tr>
-    <td><a href="#compatibility">Compatibility Mode</a></td>
+    <td><a href="#compatibility">Compatibility mode</a></td>
     <td>
         jdbc:h2:&lt;url&gt;;MODE=&lt;databaseType&gt;<br />
         jdbc:h2:~/test;MODE=MYSQL
     </td>
 </tr>
 <tr>
-    <td><a href="#auto_reconnect">Auto-Reconnect</a></td>
+    <td><a href="#auto_reconnect">Auto-reconnect</a></td>
     <td>
         jdbc:h2:&lt;url&gt;;AUTO_RECONNECT=TRUE<br />
         jdbc:h2:tcp://localhost/~/test;AUTO_RECONNECT=TRUE
     </td>
 </tr>
 <tr>
-    <td><a href="#auto_mixed_mode">Automatic Mixed Mode</a></td>
+    <td><a href="#auto_mixed_mode">Automatic mixed mode</a></td>
     <td>
         jdbc:h2:&lt;url&gt;;AUTO_SERVER=TRUE<br />
         jdbc:h2:~/test;AUTO_SERVER=TRUE
     </td>
 </tr>
 <tr>
-    <td><a href="#other_settings">Changing Other Settings</a></td>
+    <td><a href="#other_settings">Changing other settings</a></td>
     <td>
         jdbc:h2:&lt;url&gt;;&lt;setting&gt;=&lt;value&gt;[;&lt;setting&gt;=&lt;value&gt;...]<br />
         jdbc:h2:file:~/sample;TRACE_LEVEL_SYSTEM_OUT=3<br />
@@ -608,7 +612,7 @@ To point to the user home directory, use ~/, as in: jdbc:h2:~/test.
 <h2>Memory-Only Databases</h2>
 <p>
 For certain use cases (for example: rapid prototyping, testing, high performance
-operations, read-only databases), it may not be required to persist (changes to) the data at all.
+operations, read-only databases), it may not be required to persist data, or persist changes to the data.
 This database supports the memory-only mode, where the data is not persisted.
 </p><p>
 In some cases, only one connection to a memory-only database is required.

@@ -282,11 +282,13 @@ java org.h2.test.TestAll timer
 
 /*
 
-automated tests (status on web site)
-
-documentation: rolling review at tutorial.html:701
-
 test web site with firefox 3, internet explorer, opera, safari, google chrome
+test loading time of page
+
+automated tests (status on web site)
+EclEmma
+
+documentation: rolling review at features.html: 612
 
 create a short 4 pages documentation
 

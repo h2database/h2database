@@ -10,7 +10,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.InetAddress;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Random;
@@ -65,24 +64,31 @@ public class RandomUtils {
                     }
                 }
             };
-            Thread t = new Thread(runnable);
-            // let the process terminate even if generating the seed is really slow
-            t.setDaemon(true);
-            t.start();
-            Thread.yield();
             try {
-                // normally, generateSeed takes less than 200 ms
-                t.join(400);
-            } catch (InterruptedException e) {
-                warn("InterruptedException", e);
-            }
-            if (!seeded) {
-                byte[] seed = generateAlternativeSeed();
-                // this never reduces randomness
-                synchronized (cachedSecureRandom) {
-                    cachedSecureRandom.setSeed(seed);
+                Thread t = new Thread(runnable);
+                // let the process terminate even if generating the seed is really slow
+                t.setDaemon(true);
+                t.start();
+                Thread.yield();
+                try {
+                    // normally, generateSeed takes less than 200 ms
+                    t.join(400);
+                } catch (InterruptedException e) {
+                    warn("InterruptedException", e);
                 }
+                if (!seeded) {
+                    byte[] seed = generateAlternativeSeed();
+                    // this never reduces randomness
+                    synchronized (cachedSecureRandom) {
+                        cachedSecureRandom.setSeed(seed);
+                    }
+                }
+            } catch (SecurityException e) {
+                // workaround for the Google App Engine: don't use a thread
+                runnable.run();
+                generateAlternativeSeed();
             }
+
         } catch (NoSuchAlgorithmException e) {
             warn("SecureRandom", e);
             cachedSecureRandom = new SecureRandom();
@@ -125,18 +131,27 @@ public class RandomUtils {
 
             // host name and ip addresses (if any)
             try {
-                String hostName = InetAddress.getLocalHost().getHostName();
+                // workaround for the Google App Engine: don't use InetAddress
+                Class inetAddressClass = Class.forName("java.net.InetAddress");
+                Object localHost = inetAddressClass.getMethod(
+                        "getLocalHost", new Class[0]).invoke(null, new Object[0]);
+                String hostName = inetAddressClass.getMethod(
+                        "getHostName", new Class[0]).invoke(localHost, new Object[0]).toString();
                 out.writeUTF(hostName);
-                InetAddress[] list = InetAddress.getAllByName(hostName);
+                Object[] list = (Object[]) inetAddressClass.getMethod(
+                        "getAllByName", new Class[] { String.class })
+                        .invoke(null, new Object[] { hostName });
+                Method getAddress = inetAddressClass.getMethod("getAddress", new Class[0]);
                 for (int i = 0; i < list.length; i++) {
-                    out.write(list[i].getAddress());
+                    out.write((byte[]) getAddress.invoke(list[i], new Object[0]));
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
+                // on some system, InetAddress is not supported
                 // on some system, InetAddress.getLocalHost() doesn't work
                 // for some reason (incorrect configuration)
             }
 
-            // timing (a second thread is already running)
+            // timing (a second thread is already running usually)
             for (int j = 0; j < 16; j++) {
                 int i = 0;
                 long end = System.currentTimeMillis();

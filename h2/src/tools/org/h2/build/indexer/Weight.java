@@ -35,4 +35,9 @@ public class Weight {
      * The weight value.
      */
     int value;
+
+    public String toString() {
+        return "" + value;
+    }
+
 }

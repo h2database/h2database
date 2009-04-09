@@ -16,7 +16,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.StringTokenizer;
-
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 
@@ -30,6 +29,10 @@ public class Indexer {
     private static final int MAX_RELATIONS = 20;
 
     private ArrayList pages = new ArrayList();
+
+    /**
+     * Lower case word to Word map.
+     */
     private HashMap words = new HashMap();
     private HashSet noIndex = new HashSet();
     private ArrayList wordList;
@@ -87,20 +90,35 @@ public class Indexer {
     }
 
     private void sortWords() {
+        ArrayList names = new ArrayList(words.keySet());
+        for (int i = 0; i < names.size(); i++) {
+            String name = (String) names.get(i);
+            if (name.endsWith("s")) {
+                String singular = name.substring(0, name.length() - 1);
+                if (words.containsKey(singular)) {
+                    Word wp = (Word) words.get(name);
+                    Word ws = (Word) words.get(singular);
+                    ws.addAll(wp);
+                    words.remove(name);
+                }
+            } else if (name.startsWith("abc")) {
+                words.remove(name);
+            }
+        }
         wordList = new ArrayList(words.values());
-        // TODO support ignored keywords (to shrink the index)
-        // String ignored = "";
-        // for(int i=0; i<wordList.size(); i++) {
-        // Word word = (Word) wordList.get(i);
-        // if(word.pages.size() >= pages.size()/4) {
-        // wordList.remove(i);
-        // if(ignored.length()==0) {
-        // ignored += ",";
-        // }
-        // ignored += word.name;
-        // i--;
-        // }
-        // }
+        // ignored very common words (to shrink the index)
+        String ignored = "";
+        for (int i = 0; i < wordList.size(); i++) {
+            Word word = (Word) wordList.get(i);
+            if (word.pages.size() >= pages.size() / 4) {
+                wordList.remove(i);
+                if (ignored.length() > 0) {
+                    ignored += ",";
+                }
+                ignored += word.name;
+                i--;
+            }
+        }
         // output.println("var ignored = '" + convertUTF(ignored) + "'");
         // TODO support A, B, C,... class links in the index file and use them
         // for combined AND searches

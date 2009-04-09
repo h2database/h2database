@@ -9,17 +9,21 @@ package org.h2.util;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileWriter;
+//import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Writer;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.Vector;
 
+import org.h2.message.Message;
 import org.h2.message.TraceSystem;
 
 /**
@@ -105,7 +109,12 @@ public class SortedProperties extends Properties {
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
         InputStreamReader reader = new InputStreamReader(in, "ISO8859-1");
         LineNumberReader r = new LineNumberReader(reader);
-        FileWriter w = new FileWriter(fileName);
+        Writer w;
+        try {
+            w = new OutputStreamWriter(FileUtils.openFileOutputStream(fileName, false));
+        } catch (SQLException e) {
+            throw Message.convertToIOException(e);
+        }
         PrintWriter writer = new PrintWriter(new BufferedWriter(w));
         while (true) {
             String line = r.readLine();

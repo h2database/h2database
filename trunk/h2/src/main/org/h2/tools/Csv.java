@@ -10,7 +10,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -25,7 +24,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
-
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.util.FileUtils;
@@ -221,12 +219,12 @@ public class Csv implements SimpleRowSource {
     private void initWrite() throws IOException {
         if (output == null) {
             try {
-                OutputStream out = new FileOutputStream(fileName);
+                OutputStream out = FileUtils.openFileOutputStream(fileName, false);
                 out = new BufferedOutputStream(out, bufferSize);
                 output = new BufferedWriter(new OutputStreamWriter(out, streamCharset));
-            } catch (IOException e) {
+            } catch (SQLException e) {
                 close();
-                throw e;
+                throw Message.convertToIOException(e);
             }
         }
     }

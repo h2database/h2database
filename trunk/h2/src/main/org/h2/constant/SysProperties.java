@@ -562,7 +562,7 @@ public class SysProperties {
      * System property <code>h2.splitFileSizeShift</code> (default: 30).<br />
      * The maximum file size of a split file is 1L &lt;&lt; x.
      */
-    public static final long SPLIT_FILE_SIZE_SHIFT = getIntSetting("h2.splitFileSizeShift", 20);
+    public static final long SPLIT_FILE_SIZE_SHIFT = getIntSetting("h2.splitFileSizeShift", 30);
 
     /**
      * System property <code>h2.traceIO</code> (default: false).<br />

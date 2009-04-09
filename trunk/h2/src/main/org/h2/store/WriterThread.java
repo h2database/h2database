@@ -25,7 +25,7 @@ import org.h2.util.ObjectArray;
  * The writer thread is responsible to flush the transaction log file from time
  * to time.
  */
-public class WriterThread extends Thread {
+public class WriterThread implements Runnable {
 
     /**
      * The reference to the database.
@@ -74,11 +74,12 @@ public class WriterThread extends Thread {
      * @return the writer thread object
      */
     public static WriterThread create(Database database, int writeDelay) {
-        WriterThread thread = new WriterThread(database, writeDelay);
+        WriterThread writer = new WriterThread(database, writeDelay);
+        Thread thread = new Thread(writer);
         thread.setName("H2 Log Writer " + database.getShortName());
         thread.setDaemon(true);
         thread.start();
-        return thread;
+        return writer;
     }
 
     private LogSystem getLog() {

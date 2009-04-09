@@ -222,8 +222,8 @@ public class Database implements DataHandler {
         try {
             open(traceLevelFile, traceLevelSystemOut);
             if (closeAtVmShutdown) {
-                closeOnExit = new DatabaseCloser(this, 0, true);
                 try {
+                    closeOnExit = new DatabaseCloser(this, 0, true);
                     Runtime.getRuntime().addShutdownHook(closeOnExit);
                 } catch (IllegalStateException e) {
                     // shutdown in progress - just don't register the handler
@@ -231,6 +231,8 @@ public class Database implements DataHandler {
                     // database at shutdown time)
                 } catch (SecurityException  e) {
                     // applets may not do that - ignore
+                    // Google App Engine doesn't allow
+                    // to instantiate classes that extend Thread
                 }
             }
         } catch (Throwable e) {

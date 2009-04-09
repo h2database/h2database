@@ -10,7 +10,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -145,7 +144,7 @@ public class Recover extends Tool implements DataHandler {
      * INTERNAL
      */
     public static InputStream readBlob(String fileName) throws IOException {
-        return new BufferedInputStream(new FileInputStream(fileName));
+        return new BufferedInputStream(FileUtils.openFileInputStream(fileName));
     }
 
     private void removePassword(String dir, String db) throws SQLException {

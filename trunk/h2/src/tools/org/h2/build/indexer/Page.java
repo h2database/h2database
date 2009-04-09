@@ -42,4 +42,8 @@ public class Page {
         this.fileName = fileName;
     }
 
+    public String toString() {
+        return "p" + id + "(" + fileName + ")";
+    }
+
 }

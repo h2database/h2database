@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Represents a word of the full text index.
@@ -21,7 +23,11 @@ public class Word {
      */
     String name;
 
-    private HashMap pages = new HashMap();
+    /**
+     * The pages map.
+     */
+    HashMap pages = new HashMap();
+
     private ArrayList weightList;
 
     Word(String name) {
@@ -43,6 +49,24 @@ public class Word {
         }
         w.value += weight;
         page.relations++;
+    }
+
+    public String toString() {
+        return name + ":" + pages;
+    }
+
+    /**
+     * Add all data of the other word to this word.
+     *
+     * @param other the other word
+     */
+    void addAll(Word other) {
+        for (Iterator it = other.pages.entrySet().iterator(); it.hasNext();) {
+            Map.Entry entry = (Map.Entry) it.next();
+            Page p = (Page) entry.getKey();
+            Weight w = (Weight) entry.getValue();
+            addPage(p, w.value);
+        }
     }
 
     ArrayList getSortedWeights() {

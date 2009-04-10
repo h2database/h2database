@@ -13,6 +13,29 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(61,
+'New version available: 1.1.111 (2009-04-10)', '2009-04-10 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>In-memory databases can now run inside the Google App Engine.
+</li><li>The Shell tool no longer truncates results with only one column.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Queries that are ordered by an indexed column returned no rows in certain cases.
+</li><li>The wrong exception was thrown when using unquoted text for some SQL statements.
+</li><li>The built-in connection pool did not roll back transactions and
+    enable autocommit enabled after closing a connection.
+</li><li>Sometimes a StackOverflow occurred when checking for deadlock.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(60,
 'New version available: 1.1.110 (2009-04-03)', '2009-04-03 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -408,36 +431,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>The data type JAVA_OBJECT could not be used in updatable result sets.
 </li><li>The system property h2.optimizeInJoin did not work correctly.
 </li><li>Conditions such as ID=? AND ID&gt;? were slow.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(48,
-'New version available: 1.0.78 (2008-08-28)', '2008-08-28 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Column aliases can now be used in GROUP BY and HAVING.
-</li><li>Java methods with variable number of parameters can now be used (for Java 1.5 or newer).
-</li><li>The build target 'build jarSmall' now includes the embedded database.
-</li><li>JdbcDataSource now keeps the password in a char array where possible.
-</li><li>Jason Brittain has contributed MySQL date functions. Thanks a lot!
-    They are not in the h2.jar file currently, but in src/tools/org/h2/mode/FunctionsMySQL.java.
-    To install, add this class to the classpath and call FunctionsMySQL.register(conn) in the Java code.
-</li><li>The Japanese translation has been improved by Masahiro Ikemoto. Thanks a lot!
-</li><li>The documentation no longer uses a frameset (except the Javadocs).
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>The H2 Console replaced an empty user name with a single space.
-</li><li>ResultSet.absolute did not always work with large result sets.
-</li><li>When using DB_CLOSE_DELAY, sometimes a NullPointerException is thrown when
-    the database is opened almost at the same time as it is closed automatically.
-    Thanks a lot to Dmitry Pekar for finding this!
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

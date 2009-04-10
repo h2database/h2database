@@ -282,9 +282,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-test web site with firefox 3, internet explorer, opera, safari, google chrome
-test loading time of page
-
 automated tests (status on web site)
 EclEmma
 

@@ -18,17 +18,21 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.1.111 (2009-04-10)</h2>
 <ul><li>In-memory databases can now run inside the Google App Engine.
 </li><li>Queries that are ordered by an indexed column returned no rows in certain cases
     (if all rows were deleted from the table previously, and there is a low number of rows
     in the table, and when not using other conditions, and when using the default b tree index).
 </li><li>The wrong exception was thrown when using unquoted text for
     the SQL statements COMMENT, ALTER USER, and SET PASSWORD.
-</li><li>When using the built-in connection pool, connections were not rolled back and
-    autocommit was not enabled after closing a connection. Fixed.
+</li><li>The built-in connection pool did not roll back transactions and
+    enable autocommit enabled after closing a connection.
 </li><li>Sometimes a StackOverflow occurred when checking for deadlock. See also
     http://code.google.com/p/h2database/issues/detail?id=61
-</li><li>The Shell tool does no longer truncate results with only one column, and displays
+</li><li>The Shell tool no longer truncates results with only one column, and displays
     a message if data was truncated.
 </li></ul>
 
@@ -623,138 +627,6 @@ Change Log
     at the end of the SQL script file (similar to the profiling data
     generated when using java -Xrunhprof).
 </li><li>Nested joins are now supported (A JOIN B JOIN C ON .. ON ..)
-</li></ul>
-
-<h2>Version 1.0.69 (2008-03-29)</h2>
-<ul>
-<li>Most command line tools can now be called from within the H2 Console.
-</li><li>A new Shell tools is now included (org.h2.tools.Shell) to query a
-    database from the command line.
-</li><li>The command line options in the tools have changed:
-    instead of '-log true' now '-trace' is used.
-    Also, '-ifExists', '-tcpSSL' and '-tcpAllowOthers' and so on have changed:
-    now the 'true' is no longer needed.
-    The old behavior is still supported.
-</li><li>New system property h2.sortNullsHigh to invert the default sorting behavior
-    for NULL. The default didn't change.
-</li><li>Performance was very slow when using LOG=2 and deleting or
-    updating all rows of a table in a loop. Fixed.
-</li><li>ALTER TABLE or CREATE TABLE now support parameters for the password field.
-</li><li>The linear hash has been removed. It was always slower than the b-tree index,
-    and there were some bugs that would be hard to fix.
-</li><li>TRACE_LEVEL_ settings are no longer persistent. This was a problem
-    when database initialization code caused a lot of trace output.
-</li><li>Fulltext search (native implementation): The words table is no longer
-    an in-memory table because this caused memory problems in some cases.
-</li><li>It was possible to create a role with the name as an existing user
-    (but not vice versa). This is not allowed any more.
-</li><li>The recovery tool didn't work correctly for tables without rows.
-</li><li>For years below 1, the YEAR method didn't return the correct value,
-    and the conversion from date and timestamp to varchar was incorrect.
-</li><li>CSVWRITE caused a NullPointerException when not specifying a nullString.
-</li><li>When a log file switch occurred just after a truncate table or drop table
-    statement, the database could not be started normally (RECOVER=1
-    was required). Fixed.
-</li><li>When a log file switch occurred in the middle of a sequence flush
-    (sequences are only flushed every 32 values by default), the sequence
-    value was lost. Fixed.
-</li><li>Altering a sequence didn't unlock the system table
-    when autocommit switched off.
-</li></ul>
-
-<h2>Version 1.0.68 (2008-03-18)</h2>
-<ul>
-<li>Very large SELECT DISTINCT and UNION EXCEPT queries are now supported,
-    however this feature is disabled by default. To enable it, set
-    the system property h2.maxMemoryRowsDistinct to a lower value, for example 10000.
-</li><li>A error is now thrown when trying to call a method
-    inside a trigger that implicitly commits the current transaction,
-    if an object is locked.
-</li><li>Unused LOB files were deleted much too late.
-    Now they are deleted if no longer referenced in memory.
-</li><li>ALTER SEQUENCE and ALTER TABLE ALTER COLUMN RESTART can now be used inside a transaction.
-</li><li>New system property h2.aliasColumnName. When enabled, aliased columns
-    (as in SELECT ID AS I FROM TEST) return the real table and column name in
-    ResultSetMetaData.getTableName() and getColumnName(). This is disabled by
-    default for compatibility with other databases (HSQLDB, Apache Derby, PostgreSQL,
-    some version of MySQL). In version 1.1 this setting will be enabled.
-</li><li>When using encrypted databases, and using the wrong file password,
-    the log file was renamed if the database was not already open. Fixed.
-</li><li>Improved performance when using lob files in directories
-    (however this is still disabled by default)
-</li><li>H2 Console: autocomplete didn't work with very large scripts. Fixed.
-</li><li>Fulltext search: new method SEARCH_DATA that returns the column
-    names and primary keys as arrays.
-</li><li>New experimental optimization for GROUP BY queries if an index can be used
-    that matches the group by columns. To enable this optimization, set the system
-    property h2.optimizeGroupSorted to true.
-</li><li>When using multi-version concurrency (MVCC=TRUE), duplicate rows could appear in the result set when running queries
-    with uncommitted changes in the same session.
-</li><li>H2 Console: remote connections were very slow because getHostName/getRemoteHost was used.
-    Fixed (now using getHostAddress/getRemoteAddr.
-</li><li>H2 Console: on Linux, Firefox, Konqueror, or Opera (in this order) are now started if available.
-    This has been tested on Ubuntu.
-</li><li>H2 Console: the start window works better with IKVM
-</li><li>H2 Console: improved compatibility with Safari (Safari requires keep-alive)
-</li><li>Random: the process didn't stop if generating the random seed using the standard
-    way (SecureRandom.generateSeed) was very slow. Now using a daemon thread
-    to avoid this problem.
-</li><li>SELECT UNION with a different number of ORDER BY columns did throw an ArrayIndexOutOfBoundsException.
-</li><li>When using a view, the column precision was changed to the default scale for some data types.
-</li><li>CSVWRITE now supports a 'null string' that is used for parsing and writing NULL.
-</li><li>Some long running queries could not be canceled.
-</li><li>Queries with many outer join tables were very slow. Fixed.
-</li><li>The performance of text comparison has been improved when using locale sensitive
-    string comparison (SET COLLATOR). Now CollationKey is used with a LRU cache.
-    The default cache size is 10000, and can be changed using the system property
-    h2.collatorCacheSize. Use 0 to disable the cache.
-</li><li>UPDATE SET column=DEFAULT is now supported.
-</li></ul>
-
-<h2>Version 1.0.67 (2008-02-22)</h2>
-<ul>
-<li>New function FILE_READ to read a file or from an URL. Both binary and text data is supported.
-</li><li>CREATE TABLE AS SELECT now supports specifying the column list and data types.
-</li><li>Connecting to a TCP server and at shutting it down at the same time could cause a Java level deadlock.
-</li><li>A user now has all rights on his own local temporary tables.
-</li><li>The CSV tool now supports a custom lineSeparator.
-</li><li>When using multiple connections, empty space was reused too early sometimes. This could corrupt the database when recovering.
-</li><li>The H2 Console has been translated to Dutch. Thanks a lot to Remco Schoen!
-</li><li>Databases can now be opened even if trigger classes are not in the classpath. The exception is thrown when trying to fire the trigger.
-</li><li>Opening databases with ACCESS_MODE_DATA=r is now supported. In this case the database is read-only, but the files don't not need to be read-only.
-</li><li>Security: The database now waits 200 ms before throwing an exception if the user name or password don't match, to slow down dictionary attacks.
-</li><li>The value cache is now a soft reference cache. This should help save memory.
-</li><li>CREATE INDEX on a table with many rows could run out of memory. Fixed.
-</li><li>Large result sets are now a bit faster.
-</li><li>ALTER TABLE ALTER COLUMN RESTART and ALTER SEQUENCE now support parameters (any expressions).
-</li><li>When setting the base directory on the command line, the user directory prefix ('~') was ignored.
-</li><li>The DbStarter servlet didn't start the TCP listener even if configured.
-</li><li>Statement.setQueryTimeout() is now supported.
-</li><li>New session setting QUERY_TIMEOUT, and new system property h2.maxQueryTimeout.
-</li><li>Changing the transaction log level (SET LOG) is now written to the trace file by default.
-</li><li>In a SQL script, primary key constraints are now ordered before foreign key constraints.
-</li><li>It was not possible to create a referential constraint to a table in a different schema in some situations.
-</li><li>The H2 Console was slow when the database contains many tables. Now the column names are not shown in this case.
-</li></ul>
-
-<h2>Version 1.0.66 (2008-02-02)</h2>
-<ul>
-<li>There is a new online error analyzer tool.
-</li><li>H2 Console: stack traces are now links to the source code in the source repository (H2 database only).
-</li><li>CHAR data type equals comparison was case insensitive instead of case sensitive.
-</li><li>The exception 'Value too long for column' now includes the data.
-</li><li>The table name was missing in the documentation of CREATE INDEX.
-</li><li>Better support for IKVM (www.ikvm.net): the H2 Console now opens a browser window.
-</li><li>The cache size was not correctly calculated for tables with large objects (specially if compression is used). This could lead to out-of-memory exceptions.
-</li><li>The exception "Hexadecimal string contains non-hex character" was not always thrown when it should have been. Fixed.
-</li><li>The H2 Console now provides a link to the documentation when an error occurs (H2 databases only so far).
-</li><li>The acting as PostgreSQL server, when a base directory was set, and the H2 Console was started as well, the base directory was applied twice.
-</li><li>Calling EXTRACT(HOUR FROM ...) or EXTRACT(HH FROM ...) returned the wrong values (0 to 11 instead of 0 to 23). All other tested databases return values from 0 to 23. Please check if your application relies on the old behavior before upgrading.
-</li><li>For compatibility with other databases the column default (COLUMN_DEF) for columns without default is now null (it was an empty string).
-</li><li>Statements that contain very large subqueries (where the subquery result does not fit in memory) are now faster.
-</li><li>Variables: large objects (CLOB and BLOB) that don't fit in memory did not work correctly when used as variables.
-</li><li>Fulltext search is now supported in named in-memory databases.
-</li><li>H2 Console: multiple consecutive spaces in the setting name did not work. Fixed.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

@@ -44,10 +44,12 @@ public class TestFileSystem extends TestBase {
         testFileSystem(FileSystem.PREFIX_SPLIT + baseDir + "/fs");
         testFileSystem(baseDir + "/fs");
         testFileSystem(FileSystem.PREFIX_MEMORY);
+        FileSystemDatabase fs = FileSystemDatabase.register("jdbc:h2:mem:fs");
         // testFileSystem("jdbc:h2:mem:fs;TRACE_LEVEL_FILE=3");
         testFileSystem("jdbc:h2:mem:fs");
         testFileSystem(FileSystem.PREFIX_MEMORY_LZF);
         testUserHome();
+        fs.unregister();
     }
 
     private void testDatabaseInMemFileSys() throws SQLException {
@@ -179,12 +181,11 @@ public class TestFileSystem extends TestBase {
         if (!fsBase.startsWith(FileSystem.PREFIX_MEMORY) && !fsBase.startsWith(FileSystem.PREFIX_MEMORY_LZF)) {
             fs.createDirs(fsBase + "/testDir/test");
             assertTrue(fs.isDirectory(fsBase + "/testDir"));
-            if (!fsBase.startsWith(FileSystem.PREFIX_DB)) {
+            if (!fsBase.startsWith("jdbc:")) {
                 fs.deleteRecursive(fsBase + "/testDir");
                 assertTrue(!fs.exists(fsBase + "/testDir"));
             }
         }
-        fs.close();
     }
 
     private void testRandomAccess(String fsBase) throws Exception {
@@ -267,7 +268,6 @@ public class TestFileSystem extends TestBase {
         }
         f.close();
         ra.close();
-        fs.close();
     }
 
     private void testTempFile(String fsBase) throws Exception {
@@ -288,7 +288,6 @@ public class TestFileSystem extends TestBase {
         assertEquals(in.read(), -1);
         in.close();
         out.close();
-        fs.close();
     }
 
 

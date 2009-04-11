@@ -17,7 +17,12 @@ public class FileObjectInputStream extends InputStream {
     private FileObject file;
     private byte[] buffer = new byte[1];
 
-    FileObjectInputStream(FileObject file) {
+    /**
+     * Create a new file object input stream from the file object.
+     *
+     * @param file the file object
+     */
+    public FileObjectInputStream(FileObject file) {
         this.file = file;
     }
 

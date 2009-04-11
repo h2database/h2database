@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 /**
  * The file system is a storage abstraction.
@@ -25,11 +26,6 @@ public abstract class FileSystem {
      * The prefix used for a compressed in-memory file system.
      */
     public static final String PREFIX_MEMORY_LZF = "memLZF:";
-
-    /**
-     * The prefix used for a database based file system.
-     */
-    public static final String PREFIX_DB = "jdbc:";
 
     /**
      * The prefix used for a read-only zip-file based file system.
@@ -52,6 +48,8 @@ public abstract class FileSystem {
      */
     public static final String PREFIX_NIO_MAPPED = "nioMapped:";
 
+    public static final ArrayList SERVICES = new ArrayList();
+
     /**
      * Get the file system object.
      *
@@ -61,8 +59,6 @@ public abstract class FileSystem {
     public static FileSystem getInstance(String fileName) {
         if (isInMemory(fileName)) {
             return FileSystemMemory.getInstance();
-        } else if (fileName.startsWith(PREFIX_DB)) {
-            return FileSystemDatabase.getInstance(fileName);
         } else if (fileName.startsWith(PREFIX_ZIP)) {
             return FileSystemZip.getInstance();
         } else if (fileName.startsWith(PREFIX_SPLIT)) {
@@ -72,7 +68,41 @@ public abstract class FileSystem {
         } else if (fileName.startsWith(PREFIX_NIO_MAPPED)) {
             return FileSystemDiskNioMapped.getInstance();
         }
+        for (int i = 0; i < SERVICES.size(); i++) {
+            FileSystem fs = (FileSystem) SERVICES.get(i);
+            if (fs.accepts(fileName)) {
+                return fs;
+            }
+        }
         return FileSystemDisk.getInstance();
+    }
+
+    /**
+     * Register a file system.
+     *
+     * @param service the file system
+     */
+    public static synchronized void register(FileSystem service) {
+        SERVICES.add(service);
+    }
+
+    /**
+     * Unregister a file system.
+     *
+     * @param service the file system
+     */
+    public static synchronized void unregister(FileSystem service) {
+        SERVICES.remove(service);
+    }
+
+    /**
+     * Check if the file system is responsible for this file name.
+     *
+     * @param fileName the file name
+     * @return true if it is
+     */
+    protected boolean accepts(String fileName) {
+        return false;
     }
 
     private static boolean isInMemory(String fileName) {
@@ -286,14 +316,5 @@ public abstract class FileSystem {
      * @return the input stream
      */
     public abstract InputStream openFileInputStream(String fileName) throws IOException;
-
-    /**
-     * Close the file system. This call normally does not have an effect, except
-     * if the file system is kept in a database, in which case the connection is
-     * closed.
-     */
-    public void close() {
-        // do nothing
-    }
 
 }

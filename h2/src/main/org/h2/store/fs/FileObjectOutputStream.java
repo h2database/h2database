@@ -17,7 +17,13 @@ public class FileObjectOutputStream extends OutputStream {
     private FileObject file;
     private byte[] buffer = new byte[1];
 
-    FileObjectOutputStream(FileObject file, boolean append) throws IOException {
+    /**
+     * Create a new file object output stream from the file object.
+     *
+     * @param file the file object
+     * @param append true for append mode, false for truncate and overwrite
+     */
+    public FileObjectOutputStream(FileObject file, boolean append) throws IOException {
         this.file = file;
         if (append) {
             file.seek(file.length());

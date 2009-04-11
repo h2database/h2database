@@ -4,11 +4,12 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.store.fs;
+package org.h2.test.unit;
 
 import java.io.EOFException;
 import java.io.IOException;
 
+import org.h2.store.fs.FileObject;
 import org.h2.util.ByteUtils;
 
 /**

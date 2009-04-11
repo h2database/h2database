@@ -377,7 +377,6 @@ public class FtpServer extends Tool implements Service {
             traceError(e);
         }
         serverSocket = null;
-        fs.close();
     }
 
     public boolean isRunning(boolean traceError) {

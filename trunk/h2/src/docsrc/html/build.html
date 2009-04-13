@@ -30,6 +30,8 @@ Build
     Translating</a><br />
 <a href="#providing_patches">
     Providing Patches</a><br />
+<a href="#code_coverage">
+    Code Coverage</a><br />
 
 <br /><a name="portability"></a>
 <h2>Portability</h2>
@@ -48,13 +50,17 @@ To build the database executables, the following software stack was used.
 Newer version or compatible software works too.
 </p>
 <ul><li>Mac OS X and Windows XP
-</li><li>Sun JDK Version 1.4, 1.5, and 1.6
-</li><li>Eclipse Version 3.4
-</li><li>Eclipse Plugins: Subclipse 1.4.6, EclEmma Java Code Coverage 1.3.0, Eclipse Checkstyle Plug-in 4.4.2
-</li><li>Mozilla Firefox 3.0
-</li><li>OpenOffice 3.0
-</li><li>NSIS 2.38 (Nullsoft Scriptable Install System)
-</li><li>Maven 2.0.9
+</li><li><a href="http://java.sun.com/javase/downloads">Sun JDK Version 1.4, 1.5, and 1.6</a>
+</li><li><a href="http://www.eclipse.org">Eclipse Version 3.4</a>
+</li><li>Eclipse Plugins:
+    <a href="http://subclipse.tigris.org">Subclipse 1.4.6</a>,
+    <a href="http://eclipse-cs.sourceforge.net">Eclipse Checkstyle Plug-in 4.4.2</a>,
+    <a href="http://www.eclemma.org">EclEmma Java Code Coverage 1.3.0</a>
+</li><li><a href="http://emma.sourceforge.net">Emma Java Code Coverage</a>
+</li><li><a href="http://www.mozilla.com/firefox">Mozilla Firefox 3.0</a>
+</li><li><a href="http://www.openoffice.org">OpenOffice 3.0</a>
+</li><li><a href="http://nsis.sourceforge.net">NSIS 2.38</a> (Nullsoft Scriptable Install System)
+</li><li><a href="http://maven.apache.org">Maven 2.0.9</a>
 </li></ul>
 
 <br /><a name="building"></a>
@@ -170,6 +176,7 @@ If you like to provide patches, please consider the following guidelines to simp
     For Java level tests, see <code>src/test/org/h2/test/TestAll.java</code>.
     For SQL level tests, see <code>src/test/org/h2/test/test.in.txt</code> or <code>testSimple.in.txt</code>.
 </li><li>The test cases should cover at least 90% of the changed and new code; use a code coverage tool to verify that (see above).
+    or use the build target 'coverage'.
 </li><li>Verify that you did not break other features: Run the test cases by executing <code>build test</code>.
 </li><li>Provide end user documentation if required (<code>src/docsrc/html/*</code>).
 </li><li>Document grammar changes in <code>src/main/org/h2/res/help.csv</code>
@@ -178,6 +185,21 @@ If you like to provide patches, please consider the following guidelines to simp
     add the new words to <code>src/tools/org/h2/build/doc/dictionary.txt</code>.
 </li><li>Verify the formatting using <code>build docs</code> and <code>build javadoc</code>.
 </li><li>Submit patches as .patch files (compressed if big). To create a patch using Eclipse, use Team / Create Patch.
+</li></ul>
+
+<br /><a name="code_coverage"></a>
+<h2>Code Coverage</h2>
+<p>
+To generate the code coverage data, execute the following command:
+</p>
+<pre>
+build compile coverage
+</pre>
+<p>
+The code coverage is run regularly, the last results are available here:
+</p>
+<ul><li><a href="http://h2database.com/coverage/overview.html">Overall Coverage Summary</a>
+</li><li><a href="http://h2database.com/coverage/coverage.zip">Details (download, 1.3 MB)</a>
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

@@ -282,8 +282,7 @@ java org.h2.test.TestAll timer
 
 /*
 
-automated tests (status on web site)
-EclEmma
+automated tests: code coverage
 
 documentation: rolling review at features.html: 612
 

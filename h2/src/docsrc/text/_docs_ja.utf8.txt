@@ -981,161 +981,185 @@ Maven 2 の利用
 @build_1007_a
 #Providing Patches
 
-@build_1008_h2
+@build_1008_a
+#Code Coverage
+
+@build_1009_h2
 ポータビリティ
 
-@build_1009_p
+@build_1010_p
 このデータベースはJavaによって記述されているため、多くのプラットフォームで動作します。また、GCJを利用することで、ネイティブでも実行可能に(ネイティブコードに)コンパイルすることが可能です
 
-@build_1010_h2
+@build_1011_h2
 環境
 
-@build_1011_p
+@build_1012_p
 #A Java Runtime Environment (JRE) version 1.4 or higher is required to run this database.
 
-@build_1012_p
+@build_1013_p
 #To build the database executables, the following software stack was used. Newer version or compatible software works too.
 
-@build_1013_li
+@build_1014_li
 #Mac OS X and Windows XP
 
-@build_1014_li
+@build_1015_a
 #Sun JDK Version 1.4, 1.5, and 1.6
 
-@build_1015_li
+@build_1016_a
 #Eclipse Version 3.4
 
-@build_1016_li
-#Eclipse Plugins: Subclipse 1.4.6, EclEmma Java Code Coverage 1.3.0, Eclipse Checkstyle Plug-in 4.4.2
-
 @build_1017_li
+#Eclipse Plugins: <a href="http://subclipse.tigris.org">Subclipse 1.4.6</a> , <a href="http://eclipse-cs.sourceforge.net">Eclipse Checkstyle Plug-in 4.4.2</a> , <a href="http://www.eclemma.org">EclEmma Java Code Coverage 1.3.0</a>
+
+@build_1018_a
+#Emma Java Code Coverage
+
+@build_1019_a
 #Mozilla Firefox 3.0
 
-@build_1018_li
+@build_1020_a
 #OpenOffice 3.0
 
-@build_1019_li
-#NSIS 2.38 (Nullsoft Scriptable Install System)
+@build_1021_a
+#NSIS 2.38
 
-@build_1020_li
+@build_1022_li
+#(Nullsoft Scriptable Install System)
+
+@build_1023_a
 #Maven 2.0.9
 
-@build_1021_h2
+@build_1024_h2
 ソフトウェアのビルド
 
-@build_1022_p
+@build_1025_p
 #You need to install a JDK, for example the Sun JDK version 1.4, 1.5 or 1.6. On the command line, go to the directory h2 and execute the following command:
 
-@build_1023_p
+@build_1026_p
 #For Linux and OS X, use <code>./build.sh</code> instead of <code>build</code> .
 
-@build_1024_p
+@build_1027_p
 #You will get a list of targets. If you want to build the jar file, execute (Windows):
 
-@build_1025_h3
+@build_1028_h3
 #Switching the Source Code
 
-@build_1026_p
+@build_1029_p
 #By default the source code uses Java 1.5 features, however Java 1.4 and 1.5 are supported as well. To switch the source code to the install version of Java, run:
 
-@build_1027_h2
+@build_1030_h2
 #Build Targets
 
-@build_1028_p
+@build_1031_p
 #The build system can generate smaller jar files as well. The following targets are currently supported:
 
-@build_1029_li
+@build_1032_li
 #jarClient: Create the h2client.jar. This only contains the JDBC client.
 
-@build_1030_li
+@build_1033_li
 #jarSmall: Create the file h2small.jar. This only contains the embedded database. Debug information is disabled.
 
-@build_1031_li
+@build_1034_li
 #jarJaqu: Create the file h2jaqu.jar. This only contains the JaQu (Java Query) implementation. All other jar files do not include JaQu.
 
-@build_1032_li
+@build_1035_li
 #javadocImpl: Create the Javadocs of the implementation.
 
-@build_1033_p
+@build_1036_p
 #To create the h2client.jar file, go to the directory h2 and execute the following command:
 
-@build_1034_h2
+@build_1037_h2
 Maven 2 の利用
 
-@build_1035_h3
+@build_1038_h3
 Centralリポジトリの利用
 
-@build_1036_p
+@build_1039_p
 依存関係を取ることで、Maven 2プロジェクトでデータベースを組み込むことも可能です。例:
 
-@build_1037_p
+@build_1040_p
 #New versions of this database are first uploaded to http://hsql.sourceforge.net/m2-repo/ and then automatically synchronized with the main maven repository; however after a new release it may take a few hours before they are available there.
 
-@build_1038_h3
+@build_1041_h3
 スナップショットバージョンの利用
 
-@build_1039_p
+@build_1042_p
 スナップショット版のH2.jarファイルをビルドし、ローカルのMaven2リポジトリを更新するには以下のコマンドを実行します:
 
-@build_1040_p
+@build_1043_p
 実行後、Maven2プロジェクトにH2DBを依存させ組み込むことが出来るようになります:
 
-@build_1041_h2
+@build_1044_h2
 #Translating
 
-@build_1042_p
+@build_1045_p
 #The translation of this software is split into the following parts:
 
-@build_1043_li
+@build_1046_li
 #H2 Console: src/main/org/h2/server/web/res/_text_*.properties
 
-@build_1044_li
+@build_1047_li
 #Error messages: src/main/org/h2/res/_messages_*.properties
 
-@build_1045_li
+@build_1048_li
 #Web site: src/docsrc/text/_docs_*.utf8.txt
 
-@build_1046_p
+@build_1049_p
 #To translate the H2 Console, start it and select Preferences / Translate. The conversion between UTF-8 and Java encoding (using the \u syntax), as well as the HTML entities (&amp;#..;) is automated by running the tool PropertiesToUTF8. The web site translation is automated as well, using <code>build docs</code> .
 
-@build_1047_h2
+@build_1050_h2
 #Providing Patches
 
-@build_1048_p
+@build_1051_p
 #If you like to provide patches, please consider the following guidelines to simplify merging them:
 
-@build_1049_li
+@build_1052_li
 #Only use Java 1.4 features (do not use Java 1.5 or 1.6) (see Environment).
 
-@build_1050_li
+@build_1053_li
 #Follow the coding style used in the project, and use Checkstyle (see above) to verify.  For example, do not use tabs (use spaces instead).  The checkstyle configuration is in <code>src/installer/checkstyle.xml</code> .
 
-@build_1051_li
+@build_1054_li
 #Please provide test cases and integrate them into the test suite.  For Java level tests, see <code>src/test/org/h2/test/TestAll.java</code> .  For SQL level tests, see <code>src/test/org/h2/test/test.in.txt</code> or <code>testSimple.in.txt</code> .
 
-@build_1052_li
-#The test cases should cover at least 90% of the changed and new code; use a code coverage tool to verify that (see above).
-
-@build_1053_li
-#Verify that you did not break other features: Run the test cases by executing <code>build test</code> .
-
-@build_1054_li
-#Provide end user documentation if required ( <code>src/docsrc/html/*</code> ).
-
 @build_1055_li
-#Document grammar changes in <code>src/main/org/h2/res/help.csv</code>
+#The test cases should cover at least 90% of the changed and new code; use a code coverage tool to verify that (see above).  or use the build target 'coverage'.
 
 @build_1056_li
-#Provide a change log entry ( <code>src/docsrc/html/changelog.html</code> ).
+#Verify that you did not break other features: Run the test cases by executing <code>build test</code> .
 
 @build_1057_li
-#Verify the spelling using <code>build spellcheck</code> . If required  add the new words to <code>src/tools/org/h2/build/doc/dictionary.txt</code> .
+#Provide end user documentation if required ( <code>src/docsrc/html/*</code> ).
 
 @build_1058_li
-#Verify the formatting using <code>build docs</code> and <code>build javadoc</code> .
+#Document grammar changes in <code>src/main/org/h2/res/help.csv</code>
 
 @build_1059_li
+#Provide a change log entry ( <code>src/docsrc/html/changelog.html</code> ).
+
+@build_1060_li
+#Verify the spelling using <code>build spellcheck</code> . If required  add the new words to <code>src/tools/org/h2/build/doc/dictionary.txt</code> .
+
+@build_1061_li
+#Verify the formatting using <code>build docs</code> and <code>build javadoc</code> .
+
+@build_1062_li
 #Submit patches as .patch files (compressed if big). To create a patch using Eclipse, use Team / Create Patch.
+
+@build_1063_h2
+#Code Coverage
+
+@build_1064_p
+#To generate the code coverage data, execute the following command:
+
+@build_1065_p
+#The code coverage is run regularly, the last results are available here:
+
+@build_1066_a
+#Overall Coverage Summary
+
+@build_1067_a
+#Details (download, 1.3 MB)
 
 @changelog_1000_h1
 変更履歴
@@ -1144,7 +1168,7 @@ Centralリポジトリの利用
 #Next Version (unreleased)
 
 @changelog_1002_li
-#-
+#A file system implementation can now be registered using FileSystem.register.  The database file system is no longer included in the jar file, it moved to the test section.
 
 @changelog_1003_h2
 #Version 1.1.111 (2009-04-10)

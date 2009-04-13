@@ -90,6 +90,42 @@ public class Build extends BuildBase {
     }
 
     /**
+     * Run the Emma code coverage.
+     */
+    public void coverage() {
+        download("ext/emma-2.0.5312.jar",
+                "http://repo2.maven.org/maven2/emma/emma/2.0.5312/emma-2.0.5312.jar",
+                "30a40933caf67d88d9e75957950ccf353b181ab7");
+        String cp = "temp" + File.pathSeparator + "bin" +
+            File.pathSeparator + "ext/emma-2.0.5312.jar" +
+            File.pathSeparator + "ext/postgresql-8.3-603.jdbc3.jar" +
+            File.pathSeparator + "ext/servlet-api-2.4.jar" +
+            File.pathSeparator + "ext/lucene-core-2.2.0.jar" +
+            File.pathSeparator + "ext/org.osgi.core-1.2.0.jar" +
+            File.pathSeparator + "ext/slf4j-api-1.5.0.jar";
+        exec("java", new String[] { "-Xmx128m", "-cp", cp, "emma", "run",
+                "-cp", "bin",
+                "-sp", "src/main",
+                "-r", "html,txt",
+                "-ix", "-org.h2.test.*,-org.h2.dev.*,-org.h2.jaqu.*,-org.h2.index.Page*,-org.h2.mode.*",
+                "org.h2.test.TestAll" });
+    }
+
+    /**
+     * Upload the Emma code coverage results to the web site.
+     */
+    public void coverageUpload() {
+        String password = System.getProperty("h2.ftpPassword");
+        if (password == null) {
+            throw new Error("h2.ftpPassword not set");
+        }
+        String cp = "temp" + File.pathSeparator + "bin";
+        exec("java", new String[] { "-Xmx128m", "-cp", cp,
+                "-Dh2.ftpPassword=" + password,
+                "org.h2.build.doc.UploadCoverage" });
+    }
+
+    /**
      * Switch the source code to the current JDK.
      */
     public void switchSource() {

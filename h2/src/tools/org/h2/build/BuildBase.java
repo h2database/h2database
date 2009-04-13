@@ -98,6 +98,17 @@ public class BuildBase {
                 String a = args[i];
                 if ("-quiet".equals(a)) {
                     quiet = true;
+                } else if (a.startsWith("-D")) {
+                    String value;
+                    String key = a.substring(2);
+                    int valueIndex = key.indexOf('=');
+                    if (valueIndex >= 0) {
+                        value = key.substring(valueIndex + 1);
+                        key = key.substring(0, valueIndex);
+                    } else {
+                        value = "true";
+                    }
+                    System.setProperty(key, value);
                 } else {
                     Method m = null;
                     try {

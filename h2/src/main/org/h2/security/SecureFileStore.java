@@ -8,9 +8,7 @@ package org.h2.security;
 
 import java.sql.SQLException;
 
-import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.message.Message;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.util.RandomUtils;
@@ -32,15 +30,8 @@ public class SecureFileStore extends FileStore {
     public SecureFileStore(DataHandler handler, String name, String mode, String cipher, byte[] key, int keyIterations) throws SQLException {
         super(handler, name, mode);
         this.key = key;
-        if ("XTEA".equalsIgnoreCase(cipher)) {
-            this.cipher = new XTEA();
-            this.cipherForInitVector = new XTEA();
-        } else if ("AES".equalsIgnoreCase(cipher)) {
-            this.cipher = new AES();
-            this.cipherForInitVector = new AES();
-        } else {
-            throw Message.getSQLException(ErrorCode.UNSUPPORTED_CIPHER, cipher);
-        }
+        this.cipher = CipherFactory.getBlockCipher(cipher);
+        this.cipherForInitVector = CipherFactory.getBlockCipher(cipher);
         this.keyIterations = keyIterations;
         bufferForInitVector = new byte[Constants.FILE_BLOCK_SIZE];
     }

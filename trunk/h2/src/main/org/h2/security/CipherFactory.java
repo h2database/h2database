@@ -31,9 +31,8 @@ public class CipherFactory {
             return new XTEA();
         } else if ("AES".equalsIgnoreCase(algorithm)) {
             return new AES();
-        } else {
-            throw Message.getSQLException(ErrorCode.UNSUPPORTED_CIPHER, algorithm);
         }
+        throw Message.getSQLException(ErrorCode.UNSUPPORTED_CIPHER, algorithm);
     }
 
     /**

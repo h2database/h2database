@@ -4,10 +4,12 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.unit;
+package org.h2.dev.ftp;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -45,7 +47,7 @@ public class FtpClient {
      * @param url the FTP URL
      * @return the ftp client object
      */
-    static FtpClient open(String url) throws IOException {
+    public static FtpClient open(String url) throws IOException {
         FtpClient client = new FtpClient();
         client.connect(url);
         return client;
@@ -61,15 +63,23 @@ public class FtpClient {
     }
 
     private void readLine() throws IOException {
-        message = reader.readLine();
-        if (message != null) {
-            int idx = message.indexOf(' ');
-            if (idx < 0) {
-                code = 0;
-            } else {
-                code = Integer.parseInt(message.substring(0, idx));
-                message = message.substring(idx + 1);
+        while (true) {
+            message = reader.readLine();
+            if (message != null) {
+                int idxSpace = message.indexOf(' ');
+                int idxMinus = message.indexOf('-');
+                int idx = idxSpace < 0 ? idxMinus : idxMinus < 0 ? idxSpace : Math.min(idxSpace, idxMinus);
+                if (idx < 0) {
+                    code = 0;
+                } else {
+                    code = Integer.parseInt(message.substring(0, idx));
+                    message = message.substring(idx + 1);
+                }
             }
+            if (message.equals("Quotas off")) {
+                continue;
+            }
+            break;
         }
     }
 
@@ -91,7 +101,7 @@ public class FtpClient {
      * @param userName the user name
      * @param password the password
      */
-    void login(String userName, String password) throws IOException {
+    public void login(String userName, String password) throws IOException {
         send("USER " + userName);
         readCode(331);
         send("PASS " + password);
@@ -109,7 +119,7 @@ public class FtpClient {
     /**
      * Close the connection (QUIT).
      */
-    void close() throws IOException {
+    public void close() throws IOException {
         if (socket != null) {
             send("QUIT");
             readCode(221);
@@ -122,7 +132,7 @@ public class FtpClient {
      *
      * @param dir the new directory
      */
-    void changeWorkingDirectory(String dir) throws IOException {
+    public void changeWorkingDirectory(String dir) throws IOException {
         send("CWD " + dir);
         readCode(250);
     }
@@ -130,7 +140,7 @@ public class FtpClient {
     /**
      * Change to the parent directory (CDUP).
      */
-    void changeDirectoryUp() throws IOException {
+    public void changeDirectoryUp() throws IOException {
         send("CDUP");
         readCode(250);
     }
@@ -150,7 +160,7 @@ public class FtpClient {
      *
      * @param dir the directory to create
      */
-    void makeDirectory(String dir) throws IOException {
+    public void makeDirectory(String dir) throws IOException {
         send("MKD " + dir);
         readCode(257);
     }
@@ -265,9 +275,28 @@ public class FtpClient {
      *
      * @param dir the directory to remove
      */
-    void removeDirectory(String dir) throws IOException {
+    public void removeDirectory(String dir) throws IOException {
         send("RMD " + dir);
         readCode(250);
+    }
+
+    /**
+     * Remove all files and directory in a directory, and then delete the
+     * directory itself.
+     *
+     * @param dir the directory to remove
+     */
+    public void removeDirectoryRecursive(String dir) throws IOException {
+        File[] list = listFiles(dir);
+        for (int i = 0; i < list.length; i++) {
+            File f = list[i];
+            if (f.isDirectory()) {
+                removeDirectoryRecursive(dir + "/" + f.getName());
+            } else {
+                delete(dir + "/" + f.getName());
+            }
+        }
+        removeDirectory(dir);
     }
 
     /**
@@ -289,7 +318,7 @@ public class FtpClient {
      * @param fileName the file name
      * @param in the input stream
      */
-    void store(String fileName, InputStream in) throws IOException {
+    public void store(String fileName, InputStream in) throws IOException {
         passive();
         send("STOR " + fileName);
         readCode(150);
@@ -298,12 +327,32 @@ public class FtpClient {
     }
 
     /**
+     * Copy a local file or directory to the FTP server, recursively.
+     *
+     * @param file the file to copy
+     */
+    public void storeRecursive(File file) throws IOException {
+        if (file.isDirectory()) {
+            makeDirectory(file.getName());
+            changeWorkingDirectory(file.getName());
+            File[] list = file.listFiles();
+            for (int i = 0; i < list.length; i++) {
+                storeRecursive(list[i]);
+            }
+            changeWorkingDirectory("..");
+        } else {
+            InputStream in = new FileInputStream(file);
+            store(file.getName(), in);
+        }
+    }
+
+    /**
      * Get the directory listing (NLST).
      *
      * @param dir the directory
      * @return the listing
      */
-    String nameList(String dir) throws IOException {
+    public String nameList(String dir) throws IOException {
         passive();
         send("NLST " + dir);
         readCode(150);
@@ -320,7 +369,7 @@ public class FtpClient {
      * @param dir the directory
      * @return the listing
      */
-    String list(String dir) throws IOException {
+    public String list(String dir) throws IOException {
         passive();
         send("LIST " + dir);
         readCode(150);
@@ -329,6 +378,77 @@ public class FtpClient {
         readCode(226);
         byte[] data = out.toByteArray();
         return new String(data);
+    }
+
+    /**
+     * A file on an FTP server.
+     */
+    static class FtpFile extends File {
+        private final boolean dir;
+        private final long length;
+        FtpFile(String name, boolean dir, long length) {
+            super(name);
+            this.dir = dir;
+            this.length = length;
+        }
+        public long length() {
+            return length;
+        }
+        public boolean isFile() {
+            return !dir;
+        }
+        public boolean isDirectory() {
+            return dir;
+        }
+        public boolean exists() {
+            return true;
+        }
+    }
+
+    /**
+     * Check if a file exists on the FTP server.
+     *
+     * @param dir the directory
+     * @param name the directory or file name
+     * @return true if it exists
+     */
+    public boolean exists(String dir, String name) throws IOException  {
+        File[] list = listFiles(dir);
+        for (int i = 0; i < list.length; i++) {
+            if (list[i].getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * List the files on the FTP server.
+     *
+     * @param dir the directory
+     * @return the list of files
+     */
+    public File[] listFiles(String dir) throws IOException {
+        String content = list(dir);
+        String[] list = StringUtils.arraySplit(content.trim(), '\n', true);
+        File[] files = new File[list.length];
+        for (int i = 0; i < files.length; i++) {
+            String s = list[i];
+            while (true) {
+                String s2 = StringUtils.replaceAll(s, "  ", " ");
+                if (s2.equals(s)) {
+                    break;
+                }
+                s = s2;
+            }
+            String[] tokens = StringUtils.arraySplit(s, ' ', true);
+            boolean directory = tokens[0].charAt(0) == 'd';
+            long length = Long.parseLong(tokens[4]);
+            String name = tokens[8];
+            File f = new FtpFile(name, directory, length);
+            files[i] = f;
+        }
+        return files;
     }
 
 }

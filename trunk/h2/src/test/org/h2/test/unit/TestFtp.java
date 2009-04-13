@@ -6,9 +6,10 @@
  */
 package org.h2.test.unit;
 
-import org.h2.server.ftp.FtpEvent;
-import org.h2.server.ftp.FtpEventListener;
-import org.h2.server.ftp.FtpServer;
+import org.h2.dev.ftp.FtpClient;
+import org.h2.dev.ftp.server.FtpEvent;
+import org.h2.dev.ftp.server.FtpEventListener;
+import org.h2.dev.ftp.server.FtpServer;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
 

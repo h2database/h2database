@@ -7,12 +7,15 @@
 package org.h2.test.unit;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -31,11 +34,13 @@ public class TestSampleApps extends TestBase {
 
     public void test() throws Exception {
         deleteDb("optimizations");
+        InputStream in = getClass().getClassLoader().getResourceAsStream("org/h2/samples/optimizations.sql");
+        FileOutputStream out = new FileOutputStream(baseDir + "/optimizations.sql");
+        IOUtils.copyAndClose(in, out);
         String url = "jdbc:h2:" + baseDir + "/optimizations";
         testApp(org.h2.tools.RunScript.class, new String[] { "-url", url, "-user", "sa", "-password", "sa", "-script",
-                "src/test/org/h2/samples/optimizations.sql", "-checkResults" }, "");
+            baseDir + "/optimizations.sql", "-checkResults" }, "");
         deleteDb("optimizations");
-
         testApp(org.h2.samples.Compact.class, null, "Compacting...\nDone.");
         testApp(org.h2.samples.CsvSample.class, null, "NAME: Bob Meier\n" + "EMAIL: bob.meier@abcde.abc\n"
                 + "PHONE: +41123456789\n\n" + "NAME: John Jones\n" + "EMAIL: john.jones@abcde.abc\n"

@@ -48,7 +48,7 @@ public abstract class FileSystem {
      */
     public static final String PREFIX_NIO_MAPPED = "nioMapped:";
 
-    public static final ArrayList SERVICES = new ArrayList();
+    private static final ArrayList SERVICES = new ArrayList();
 
     /**
      * Get the file system object.

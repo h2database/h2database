@@ -4,7 +4,7 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.server.ftp;
+package org.h2.dev.ftp.server;
 
 /**
  * Describes an FTP event. This class is used by the FtpEventListener.

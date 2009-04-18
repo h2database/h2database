@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Running code coverage is now automated.
+<ul><li>The MERGE statement now returns 0 as the generated key if the row was updated.
+</li><li>Running code coverage is now automated.
 </li><li>A file system implementation can now be registered using FileSystem.register.
     The database file system is no longer included in the jar file, it moved to the test section.
 </li></ul>
@@ -102,6 +103,7 @@ Change Log
 <h2>Version 1.1.108 (2009-02-28)</h2>
 <ul><li>When the shutdown hook closed the database, the last log file
     was deleted too early. This could cause uncommitted changes to be persisted.
+    In some cases, this could cause data corruption.
 </li><li>JdbcConnectionPool: it was possible to set a negative connection pool size.
 </li><li>Fulltext search did not support table names with a backslash.
 </li><li>The internal IntArray class did not work correctly when initialized with a zero length array.

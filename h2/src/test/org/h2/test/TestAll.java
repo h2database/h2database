@@ -284,7 +284,7 @@ java org.h2.test.TestAll timer
 
 automated tests: code coverage
 
-documentation: rolling review at features.html: 612
+documentation: rolling review at features.html: done
 
 create a short 4 pages documentation
 

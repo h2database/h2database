@@ -49,7 +49,8 @@ public class Compact {
      * @param user the user name
      * @param password the password
      */
-    public static void compact(String dir, String dbName, String user, String password) throws SQLException {
+    public static void compact(String dir, String dbName,
+            String user, String password) throws SQLException {
         String url = "jdbc:h2:" + dir + "/" + dbName;
         String file = "data/test.sql";
         Script.execute(url, user, password, file);

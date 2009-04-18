@@ -24,6 +24,7 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
+import org.h2.value.ValueLong;
 
 /**
  * This class represents the statement
@@ -106,6 +107,7 @@ public class Merge extends Prepared {
         String sql = buff.toString();
         update = session.prepare(sql);
         setCurrentRowNumber(0);
+        session.setLastIdentity(ValueLong.get(0));
         if (list.size() > 0) {
             count = 0;
             for (int x = 0; x < list.size(); x++) {

@@ -43,6 +43,7 @@ public class TestStatement extends TestBase {
         testConnectionRollback();
         testStatement();
         if (config.jdk14) {
+            testIdentityMerge();
             testIdentity();
         }
         conn.close();
@@ -316,6 +317,29 @@ public class TestStatement extends TestBase {
         assertTrue(conn == stat.getConnection());
 
         stat.close();
+    }
+
+    private void testIdentityMerge() throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("drop table if exists test1");
+        stat.execute("create table test1(id identity, x int)");
+        stat.execute("drop table if exists test2");
+        stat.execute("create table test2(id identity, x int)");
+        stat.execute("merge into test1(x) key(x) values(5)");
+        ResultSet keys;
+        keys = stat.getGeneratedKeys();
+        keys.next();
+        assertEquals(1, keys.getInt(1));
+        stat.execute("insert into test2(x) values(10), (11), (12)");
+        stat.execute("merge into test1(x) key(x) values(5)");
+        keys = stat.getGeneratedKeys();
+        keys.next();
+        assertEquals(0, keys.getInt(1));
+        stat.execute("merge into test1(x) key(x) values(6)");
+        keys = stat.getGeneratedKeys();
+        keys.next();
+        assertEquals(2, keys.getInt(1));
+        stat.execute("drop table test1, test2");
     }
 
     private void testIdentity() throws SQLException {

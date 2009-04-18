@@ -82,8 +82,9 @@ MERGE INTO tableName [(columnName [,...])] [KEY(columnName [,...])]
 Updates the row if it exists, and if the row does not exist, inserts a new row.
 If the key columns are not specified, the primary key columns are used to find the row.
 This command is sometimes called 'UPSERT' as it updates a row if it exists,
-or inserts the row if it does not yet exist.
-If more than one row per new row is affected, an exception is thrown.
+or inserts the row if it does not yet exist. If more than one row per new row is affected,
+an exception is thrown. If the table contains an auto-incremented key or identity column, a
+nd the row was updated, the generated key is set to 0; otherwise it is set to the new key.
 ","
 MERGE INTO TEST KEY(ID) VALUES(2, 'World')
 "

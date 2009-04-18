@@ -100,7 +100,6 @@ public class Database implements DataHandler {
     private final HashMap userDataTypes = new HashMap();
     private final HashMap aggregates = new HashMap();
     private final HashMap comments = new HashMap();
-    private IntHashMap tableMap = new IntHashMap();
     private final HashMap databaseObjects = new HashMap();
 
     private final Set userSessions = Collections.synchronizedSet(new HashSet());
@@ -599,7 +598,6 @@ public class Database implements DataHandler {
             headPos = pageStore.getSystemTableHeadPos();
         }
         meta = mainSchema.createTable("SYS", 0, cols, persistent, persistent, false, headPos);
-        tableMap.put(0, meta);
         IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
         metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(
                 false, false), Index.EMPTY_HEAD, null);
@@ -865,9 +863,6 @@ public class Database implements DataHandler {
         }
         obj.getSchema().add(obj);
         addMeta(session, obj);
-        if (obj instanceof TableData) {
-            tableMap.put(id, obj);
-        }
     }
 
     /**
@@ -1669,9 +1664,6 @@ public class Database implements DataHandler {
         }
         int id = obj.getId();
         removeMeta(session, id);
-        if (obj instanceof TableData) {
-            tableMap.remove(id);
-        }
     }
 
     /**

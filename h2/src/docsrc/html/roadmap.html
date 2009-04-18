@@ -51,6 +51,7 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Triggers for metadata tables; use for PostgreSQL catalog
 </li><li>Support triggers for INFORMATION_SCHEMA tables (to better support PostgreSQL catalog: rebuild after creating new tables)
 </li><li>Full outer joins
+</li><li>Maven: deploy / upload h2..-sources.jar and javadocs as well.
 </li><li>Support trigger on the tables information_schema.tables and ...columns
 </li><li>Test very large databases and LOBs (up to 256 GB)
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
@@ -276,7 +277,6 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Remember the user defined data type (domain) of a column
 </li><li>Support Jackcess (MS Access databases)
 </li><li>Built-in methods to write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World')
-</li><li>Maven: deploy / upload h2..-sources.jar and javadocs as well.
 </li><li>MVCC: support transactionally consistent backups using SCRIPT
 </li><li>Improve time to open large databases (see mail 'init time for distributed setup')
 </li><li>Move Maven 2 repository from hsql.sf.net to h2database.sf.net
@@ -406,6 +406,8 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>MySQL compatibility: support REPLACE - See http://code.google.com/p/h2database/issues/detail?id=73
 </li><li>MySQL compatibility: support SET NAMES 'latin1' - See also http://code.google.com/p/h2database/issues/detail?id=56
 </li><li>MySQL compatibility: DELETE .. FROM .. USING - See http://dev.mysql.com/doc/refman/5.0/en/delete.html
+</li><li>Allow to scan index backwards starting with a value (to better support ORDER BY DESC).
+</li><li>Java Service Wrapper: try http://yajsw.sourceforge.net/
 </li></ul>
 
 <h2>Not Planned</h2>

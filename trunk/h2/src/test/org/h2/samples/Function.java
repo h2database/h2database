@@ -55,9 +55,19 @@ public class Function {
                 new Integer[] { new Integer(30), new Integer(20) });
         prep.setObject(2,
                 new Integer[] { new Integer(1), new Integer(2) });
-        ResultSet rs2 = prep.executeQuery();
-        while (rs2.next()) {
-            System.out.println(rs2.getInt(1));
+        rs = prep.executeQuery();
+        while (rs.next()) {
+            System.out.println(rs.getInt(1));
+        }
+
+        // Using a custom function like table
+        stat.execute("CREATE ALIAS MATRIX FOR \"org.h2.samples.Function.getMatrix\" ");
+        prep = conn.prepareStatement("SELECT * FROM MATRIX(?) " +
+                "ORDER BY X, Y");
+        prep.setInt(1, 2);
+        rs = prep.executeQuery();
+        while (rs.next()) {
+            System.out.println(rs.getInt(1) + "/" + rs.getInt(2));
         }
 
         conn.close();
@@ -94,6 +104,31 @@ public class Function {
         rs.addColumn("ID", Types.INTEGER, 10, 0);
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);
         rs.addRow(new Object[] { new Integer(0), "Hello" });
+        return rs;
+    }
+
+    /**
+     * Creates a simple result set with two columns.
+     *
+     * @param conn the connection
+     * @param size the number of x and y values
+     * @return the result set with two columns
+     */
+    public static ResultSet getMatrix(Connection conn, Integer size)
+            throws SQLException {
+        SimpleResultSet rs = new SimpleResultSet();
+        rs.addColumn("X", Types.INTEGER, 10, 0);
+        rs.addColumn("Y", Types.INTEGER, 10, 0);
+        String url = conn.getMetaData().getURL();
+        if (url.equals("jdbc:columnlist:connection")) {
+            return rs;
+        }
+        for (int s = size.intValue(), x = 0; x < s; x++) {
+            for (int y = 0; y < s; y++) {
+                rs.addRow(new Object[] {
+                        new Integer(x), new Integer(y) });
+            }
+        }
         return rs;
     }
 

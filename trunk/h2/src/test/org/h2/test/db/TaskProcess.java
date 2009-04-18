@@ -131,6 +131,11 @@ public class TaskProcess {
         process.destroy();
     }
 
+    /**
+     * Trace the operation. Tracing is disabled by default.
+     *
+     * @param s the string to print
+     */
     private void traceOperation(String s) {
         // ignore
     }

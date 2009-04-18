@@ -44,31 +44,31 @@ public class Mode {
 
     /**
      * When converting the scale of decimal data, the number is only converted
-     * if the new scale is smaller then current scale. Usually, the scale is
+     * if the new scale is smaller than the current scale. Usually, the scale is
      * converted and 0s are added if required.
      */
     public boolean convertOnlyToSmallerScale;
 
     /**
-     * Creating indexes in the CREATE TABLE statement should be supported.
+     * Creating indexes in the CREATE TABLE statement is allowed.
      */
     public boolean indexDefinitionInCreateTable;
 
     /**
-     * The identifiers should be returned in lower case.
+     * Meta data calls return identifiers in lower case.
      */
     public boolean lowerCaseIdentifiers;
 
     /**
-     * Concatenation of a NULL with another value results in NULL. Usually, the
-     * NULL is treated as an empty string if only one of the operators is NULL,
-     * and NULL is only returned if both values are NULL.
+     * Concatenation with NULL results in NULL. Usually, NULL is treated as an
+     * empty string if only one of the operands is NULL, and NULL is only
+     * returned if both operands are NULL.
      */
     public boolean nullConcatIsNull;
 
     /**
-     * When converting a floating point number to a integer, the fractional
-     * digits should not be truncated, but the value should be rounded.
+     * When converting a floating point number to an integer, the fractional
+     * digits are not truncated, but the value is rounded.
      */
     public boolean roundWhenConvertToLong;
 
@@ -79,12 +79,12 @@ public class Mode {
 
     /**
      * Support for the syntax [OFFSET .. ROW] [FETCH ... ONLY]
-     * as an alternative syntax for LIMIT .. OFFSET.
+     * as an alternative for LIMIT .. OFFSET.
      */
     public boolean supportOffsetFetch;
 
     /**
-     * The system columns 'CTID' and 'OID' should be supported.
+     * The system columns 'CTID' and 'OID' are supported.
      */
     public boolean systemColumns;
 

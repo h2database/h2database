@@ -240,14 +240,14 @@ public class Select extends Query {
             if (index.getIndexType().getScan()) {
                 continue;
             }
-            if (isGroupSortedIndex(index)) {
+            if (isGroupSortedIndex(topTableFilter, index)) {
                 return index;
             }
         }
         return null;
     }
 
-    private boolean isGroupSortedIndex(Index index) {
+    private boolean isGroupSortedIndex(TableFilter tableFilter, Index index) {
         // check that all the GROUP BY expressions are part of the index
         Column[] indexColumns = index.getColumns();
         // also check that the first columns in the index are grouped
@@ -263,9 +263,11 @@ public class Select extends Query {
             }
             ExpressionColumn exprCol = (ExpressionColumn) expr;
             for (int j = 0; j < indexColumns.length; ++j) {
-                if (indexColumns[j].equals(exprCol.getColumn())) {
-                    grouped[j] = true;
-                    continue outerLoop;
+                if (tableFilter == exprCol.getTableFilter()) {
+                    if (indexColumns[j].equals(exprCol.getColumn())) {
+                        grouped[j] = true;
+                        continue outerLoop;
+                    }
                 }
             }
             // We didn't find a matching index column

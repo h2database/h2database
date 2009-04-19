@@ -1,4 +1,18 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id identity) as select x from system_range(1, 4);
+> ok
+
+select a.id from test a inner join test b on a.id > b.id and b.id < 3 group by a.id;
+> ID
+> --
+> 2
+> 3
+> 4
+> rows: 3
+
+drop table test;
+> ok
+
 create table test(id identity);
 > ok
 

@@ -277,7 +277,9 @@ public class FileLock {
             long last = fs.getLastModified(fileName);
             long dist = System.currentTimeMillis() - last;
             if (dist < -TIME_GRANULARITY) {
-                throw getExceptionFatal("Lock file modified in the future: dist=" + dist, null);
+                throw getExceptionFatal("Lock file modification time is in the future; " +
+                        "if required please delete the file " + fileName + " manually and retry; " +
+                        "dist=" + dist, null);
             } else if (dist > TIME_GRANULARITY) {
                 return;
             }

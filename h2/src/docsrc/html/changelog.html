@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The MERGE statement now returns 0 as the generated key if the row was updated.
+<ul><li>GROUP BY queries with a self-join (join to the same table) that were grouped by
+    columns with indexes returned the wrong result in some cases.
+</li><li>Improved error message when the .lock.db file modification time is in the future.
+</li><li>The MERGE statement now returns 0 as the generated key if the row was updated.
 </li><li>Running code coverage is now automated.
 </li><li>A file system implementation can now be registered using FileSystem.register.
     The database file system is no longer included in the jar file, it moved to the test section.

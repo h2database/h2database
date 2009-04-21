@@ -65,7 +65,6 @@ public class Set extends Prepared {
     }
 
     public int update() throws SQLException {
-        // Value v = expr.getValue();
         Database database = session.getDatabase();
         String name = SetTypes.getTypeName(type);
         switch (type) {

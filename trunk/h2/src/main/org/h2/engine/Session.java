@@ -634,7 +634,6 @@ public class Session extends SessionWithState {
                 Message.throwInternalError();
             }
         }
-        database.afterWriting();
         if (locks.size() > 0) {
             synchronized (database) {
                 for (int i = 0; i < locks.size(); i++) {
@@ -1112,8 +1111,20 @@ public class Session extends SessionWithState {
         return modificationId;
     }
 
-    public boolean isReconnectNeeded() {
-        return database.isReconnectNeeded();
+    public boolean isReconnectNeeded(boolean write) {
+        while (true) {
+            boolean reconnect = database.isReconnectNeeded();
+            if (reconnect) {
+                return true;
+            }
+            if (write) {
+                if (database.beforeWriting()) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
     }
 
     public SessionInterface reconnect() throws SQLException {

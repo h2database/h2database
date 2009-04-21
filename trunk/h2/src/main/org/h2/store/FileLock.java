@@ -200,8 +200,10 @@ public class FileLock {
 
     /**
      * Save the lock file.
+     *
+     * @return the saved properties
      */
-    public void save() throws SQLException {
+    public Properties save() throws SQLException {
         try {
             OutputStream out = fs.openFileOutputStream(fileName, false);
             try {
@@ -213,6 +215,7 @@ public class FileLock {
             if (trace.isDebugEnabled()) {
                 trace.debug("save " + properties);
             }
+            return properties;
         } catch (IOException e) {
             throw getExceptionFatal("Could not save properties " + fileName, e);
         }
@@ -301,9 +304,21 @@ public class FileLock {
 
     private void lockSerialized() throws SQLException {
         method = SERIALIZED;
-        properties = new SortedProperties();
-        properties.setProperty("method", String.valueOf(method));
-        setUniqueId();
+        if (fs.createNewFile(fileName)) {
+            properties = new SortedProperties();
+            properties.setProperty("method", String.valueOf(method));
+            setUniqueId();
+            save();
+        } else {
+            while (true) {
+                try {
+                    properties = load();
+                } catch (SQLException e) {
+                    // ignore
+                }
+                return;
+            }
+        }
     }
 
     private void lockFile() throws SQLException {

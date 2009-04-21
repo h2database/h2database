@@ -22,6 +22,7 @@ import org.h2.command.dml.SetTypes;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
+import org.h2.index.BtreeIndex;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -310,32 +311,61 @@ public class Database implements DataHandler {
         return modificationDataId;
     }
 
-    private void reconnectModified(boolean pending) {
-        if (readOnly || lock == null) {
-            return;
+    /**
+     * Set or reset the pending change flag in the .lock.db file.
+     *
+     * @param pending the new value of the flag
+     * @return true if the call was successful,
+     *          false if another connection was faster
+     */
+    synchronized boolean reconnectModified(boolean pending) {
+        if (readOnly || lock == null || fileLockMethod != FileLock.LOCK_SERIALIZED) {
+            return true;
         }
         try {
             if (pending == reconnectChangePending) {
                 long now = System.currentTimeMillis();
                 if (now > reconnectCheckNext) {
-                    lock.save();
+                    if (pending) {
+                        String pos = log == null ? null : log.getWritePos();
+                        lock.setProperty("logPos", pos);
+                        lock.save();
+                    }
                     reconnectCheckNext = now + SysProperties.RECONNECT_CHECK_DELAY;
                 }
-                return;
+                return true;
             }
+            Properties old = lock.load();
             if (pending) {
                 getTrace().debug("wait before writing");
                 Thread.sleep((int) (SysProperties.RECONNECT_CHECK_DELAY * 1.1));
+                Properties now = lock.load();
+                if (!now.equals(old)) {
+                    // somebody else was faster
+                    return false;
+                }
             }
-            lock.setProperty("modificationDataId", Long.toString(modificationDataId));
-            lock.setProperty("modificationMetaId", Long.toString(modificationMetaId));
+            String pos = log == null ? null : log.getWritePos();
+            lock.setProperty("logPos", pos);
             lock.setProperty("changePending", pending ? "true" : null);
-            lock.save();
-            reconnectLastLock = lock.load();
+            old = lock.save();
+
+            if (pending) {
+                getTrace().debug("wait before writing again");
+                Thread.sleep((int) (SysProperties.RECONNECT_CHECK_DELAY * 1.1));
+                Properties now = lock.load();
+                if (!now.equals(old)) {
+                    // somebody else was faster
+                    return false;
+                }
+            }
+            reconnectLastLock = old;
             reconnectChangePending = pending;
             reconnectCheckNext = System.currentTimeMillis() + SysProperties.RECONNECT_CHECK_DELAY;
+            return true;
         } catch (Exception e) {
             getTrace().error("pending:"+ pending, e);
+            return false;
         }
     }
 
@@ -533,7 +563,9 @@ public class Database implements DataHandler {
             }
             // wait until pending changes are written
             isReconnectNeeded();
-            beforeWriting();
+            while (!beforeWriting()) {
+                // until we can write (file are not open - no need to re-connect)
+            }
             if (SysProperties.PAGE_STORE) {
                 starting = true;
                 getPageStore();
@@ -635,7 +667,6 @@ public class Database implements DataHandler {
         }
         systemSession.commit(true);
         traceSystem.getTrace(Trace.DATABASE).info("opened " + databaseName);
-        afterWriting();
     }
 
     public Schema getMainSchema() {
@@ -1055,9 +1086,11 @@ public class Database implements DataHandler {
         if (closing) {
             return;
         }
-        if (isReconnectNeeded()) {
-            // another connection wrote - don't write anything
+        if (fileLockMethod == FileLock.LOCK_SERIALIZED && !reconnectChangePending) {
+            // another connection may have written something - don't write
             try {
+                // make sure the log doesn't try to write
+                log.setReadOnly(true);
                 closeOpenFilesAndUnlock(false);
             } catch (SQLException e) {
                 // ignore
@@ -1194,6 +1227,7 @@ public class Database implements DataHandler {
                 pageStore.checkpoint();
             }
         }
+        reconnectModified(false);
         closeFiles();
         if (persistent && lock == null && fileLockMethod != FileLock.LOCK_NO) {
             // everything already closed (maybe in checkPowerOff)
@@ -1736,6 +1770,11 @@ public class Database implements DataHandler {
         if (noDiskSpace) {
             throw Message.getSQLException(ErrorCode.NO_DISK_SPACE_AVAILABLE);
         }
+        if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
+            if (!reconnectChangePending) {
+                throw Message.getSQLException(ErrorCode.DATABASE_IS_READ_ONLY);
+            }
+        }
     }
 
     public boolean getReadOnly() {
@@ -2183,8 +2222,19 @@ public class Database implements DataHandler {
         return null;
     }
 
+    /**
+     * Check if the contents of the database was changed and therefore it is
+     * required to re-connect. This method waits until pending changes are
+     * completed. If a pending change takes too long (more than 2 seconds), the
+     * pending change is broken.
+     *
+     * @return true if reconnecting is required
+     */
     public boolean isReconnectNeeded() {
         if (fileLockMethod != FileLock.LOCK_SERIALIZED) {
+            return false;
+        }
+        if (reconnectChangePending) {
             return false;
         }
         long now = System.currentTimeMillis();
@@ -2195,25 +2245,27 @@ public class Database implements DataHandler {
         if (lock == null) {
             lock = new FileLock(traceSystem, databaseName + Constants.SUFFIX_LOCK_FILE, Constants.LOCK_SLEEP);
         }
-        Properties prop;
         try {
+            Properties prop = lock.load(), first = prop;
             while (true) {
-                prop = lock.load();
                 if (prop.equals(reconnectLastLock)) {
                     return false;
                 }
                 if (prop.getProperty("changePending", null) == null) {
                     break;
                 }
-                if (System.currentTimeMillis() > now + SysProperties.RECONNECT_CHECK_DELAY * 4) {
-                    // the writing process didn't update the file -
-                    // it may have terminated
-                    lock.setProperty("changePending", null);
-                    lock.save();
-                    break;
+                if (System.currentTimeMillis() > now + SysProperties.RECONNECT_CHECK_DELAY * 10) {
+                    if (first.equals(prop)) {
+                        // the writing process didn't update the file -
+                        // it may have terminated
+                        lock.setProperty("changePending", null);
+                        lock.save();
+                        break;
+                    }
                 }
                 getTrace().debug("delay (change pending)");
                 Thread.sleep(SysProperties.RECONNECT_CHECK_DELAY);
+                prop = lock.load();
             }
             reconnectLastLock = prop;
         } catch (Exception e) {
@@ -2224,28 +2276,52 @@ public class Database implements DataHandler {
     }
 
     /**
-     * This method is called after writing to the database.
-     */
-    public void afterWriting() throws SQLException {
-        if (fileLockMethod != FileLock.LOCK_SERIALIZED || readOnly) {
-            return;
-        }
-        reconnectCheckNext = System.currentTimeMillis() + 1;
-    }
-
-    /**
      * Flush all changes when using the serialized mode, and if there are
-     * pending changes.
+     * pending changes, and some time has passed. This switches to a new
+     * transaction log and resets the change pending flag in
+     * the .lock.db file.
      */
     public void checkpointIfRequired() throws SQLException {
         if (fileLockMethod != FileLock.LOCK_SERIALIZED || readOnly || !reconnectChangePending) {
             return;
         }
         long now = System.currentTimeMillis();
-        if (now > reconnectCheckNext) {
+        if (now > reconnectCheckNext + SysProperties.RECONNECT_CHECK_DELAY) {
             getTrace().debug("checkpoint");
+            flushIndexes(0);
             checkpoint();
             reconnectModified(false);
+        }
+    }
+
+    /**
+     * Flush the indexes that were last changed prior to some time.
+     *
+     * @param maxLastChange indexes that were changed
+     *          afterwards are not flushed; 0 to flush all indexes
+     */
+    public synchronized void flushIndexes(long maxLastChange) {
+        ObjectArray array = getAllSchemaObjects(DbObject.INDEX);
+        for (int i = 0; i < array.size(); i++) {
+            DbObject obj = (DbObject) array.get(i);
+            if (obj instanceof BtreeIndex) {
+                BtreeIndex idx = (BtreeIndex) obj;
+                if (idx.getLastChange() == 0) {
+                    continue;
+                }
+                Table tab = idx.getTable();
+                if (tab.isLockedExclusively()) {
+                    continue;
+                }
+                if (maxLastChange != 0 && idx.getLastChange() > maxLastChange) {
+                    continue;
+                }
+                try {
+                    idx.flush(systemSession);
+                } catch (SQLException e) {
+                    getTrace().error("flush index " + idx.getName(), e);
+                }
+            }
         }
     }
 
@@ -2262,11 +2338,15 @@ public class Database implements DataHandler {
 
     /**
      * This method is called before writing to the log file.
+     *
+     * @return true if the call was successful,
+     *          false if another connection was faster
      */
-    public void beforeWriting() {
+    public boolean beforeWriting() {
         if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
-            reconnectModified(true);
+            return reconnectModified(true);
         }
+        return true;
     }
 
     /**

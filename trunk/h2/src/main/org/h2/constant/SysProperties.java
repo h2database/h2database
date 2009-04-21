@@ -463,13 +463,13 @@ public class SysProperties {
     public static final boolean RECOMPILE_ALWAYS = getBooleanSetting("h2.recompileAlways", false);
 
     /**
-     * System property <code>h2.reconnectCheckDelay</code> (default: 250).<br />
+     * System property <code>h2.reconnectCheckDelay</code> (default: 100).<br />
      * Check the .lock.db file every this many milliseconds to detect that the
      * database was changed. The process writing to the database must first
      * notify a change in the .lock.db file, then wait twice this many
      * milliseconds before updating the database.
      */
-    public static final int RECONNECT_CHECK_DELAY = getIntSetting("h2.reconnectCheckDelay", 250);
+    public static final int RECONNECT_CHECK_DELAY = getIntSetting("h2.reconnectCheckDelay", 100);
 
     /**
      * System property <code>h2.redoBufferSize</code> (default: 262144).<br />

@@ -76,9 +76,10 @@ public interface SessionInterface {
     /**
      * Check if the database changed and therefore reconnecting is required.
      *
+     * @param write if the next operation may be writing
      * @return true if reconnecting is required
      */
-    boolean isReconnectNeeded();
+    boolean isReconnectNeeded(boolean write);
 
     /**
      * Close the connection and open a new connection.

@@ -20,7 +20,7 @@ public class RuleFixed implements Rule {
     static final int ANY_UNTIL_END = 6;
     static final int ANY_WORD = 7;
     static final int ANY_EXCEPT_2_DOLLAR = 8;
-    static final int HEX_START = 10, CONCAT = 11, AZ_UNDERLINE = 12, AF = 13, DIGIT = 14;
+    static final int HEX_START = 10, CONCAT = 11, AZ_UNDERSCORE = 12, AF = 13, DIGIT = 14;
 
     private final int type;
 
@@ -48,7 +48,7 @@ public class RuleFixed implements Rule {
             return "0x";
         case CONCAT:
             return "||";
-        case AZ_UNDERLINE:
+        case AZ_UNDERSCORE:
             return "A";
         case AF:
             return "F";
@@ -85,7 +85,7 @@ public class RuleFixed implements Rule {
             return "0x";
         case CONCAT:
             return "||";
-        case AZ_UNDERLINE:
+        case AZ_UNDERSCORE:
             return "" + (char) ('A' + r.nextInt('C' - 'A'));
         case AF:
             return "" + (char) ('A' + r.nextInt('F' - 'A'));
@@ -194,7 +194,7 @@ public class RuleFixed implements Rule {
                 s = s.substring(1);
             }
             break;
-        case AZ_UNDERLINE:
+        case AZ_UNDERSCORE:
             if (s.length() > 0 && (Character.isLetter(s.charAt(0)) || s.charAt(0) == '_')) {
                 s = s.substring(1);
             }
@@ -276,7 +276,7 @@ public class RuleFixed implements Rule {
                 sentence.add("||", "|", Sentence.KEYWORD);
             }
             break;
-        case AZ_UNDERLINE:
+        case AZ_UNDERSCORE:
             if (query.length() == 0) {
                 sentence.add("character", "A", Sentence.KEYWORD);
             }

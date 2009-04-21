@@ -652,7 +652,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         return TempFileDeleter.getInstance();
     }
 
-    public boolean isReconnectNeeded() {
+    public boolean isReconnectNeeded(boolean write) {
         return false;
     }
 

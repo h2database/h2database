@@ -8,18 +8,13 @@ package org.h2.store;
 
 import java.lang.ref.WeakReference;
 import java.sql.SQLException;
-
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
-import org.h2.engine.DbObject;
-import org.h2.index.BtreeIndex;
 import org.h2.log.LogSystem;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
-import org.h2.table.Table;
 import org.h2.util.FileUtils;
-import org.h2.util.ObjectArray;
 
 /**
  * The writer thread is responsible to flush the transaction log file from time
@@ -91,35 +86,12 @@ public class WriterThread implements Runnable {
         return log;
     }
 
-    private void flushIndexes(Database database) {
+    private void flushIndexesIfRequired(Database database) {
         long time = System.currentTimeMillis();
         if (lastIndexFlush + Constants.FLUSH_INDEX_DELAY > time) {
             return;
         }
-        synchronized (database) {
-            ObjectArray array = database.getAllSchemaObjects(DbObject.INDEX);
-            for (int i = 0; i < array.size(); i++) {
-                DbObject obj = (DbObject) array.get(i);
-                if (obj instanceof BtreeIndex) {
-                    BtreeIndex idx = (BtreeIndex) obj;
-                    if (idx.getLastChange() == 0) {
-                        continue;
-                    }
-                    Table tab = idx.getTable();
-                    if (tab.isLockedExclusively()) {
-                        continue;
-                    }
-                    if (idx.getLastChange() + Constants.FLUSH_INDEX_DELAY > time) {
-                        continue;
-                    }
-                    try {
-                        idx.flush(database.getSystemSession());
-                    } catch (SQLException e) {
-                        database.getTrace(Trace.DATABASE).error("flush index " + idx.getName(), e);
-                    }
-                }
-            }
-        }
+        database.flushIndexes(time - Constants.FLUSH_INDEX_DELAY);
         lastIndexFlush = time;
     }
 
@@ -141,7 +113,7 @@ public class WriterThread implements Runnable {
                 break;
             }
             if (Constants.FLUSH_INDEX_DELAY != 0) {
-                flushIndexes(database);
+                flushIndexesIfRequired(database);
             }
 
             // checkpoint if required

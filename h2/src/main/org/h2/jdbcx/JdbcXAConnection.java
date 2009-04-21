@@ -494,11 +494,11 @@ implements XAConnection, XAResource
             return isClosed || super.isClosed();
         }
 
-        protected synchronized boolean checkClosed() throws SQLException {
+        protected synchronized boolean checkClosed(boolean write) throws SQLException {
             if (isClosed) {
                 throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
             }
-            return super.checkClosed();
+            return super.checkClosed(write);
         }
 
     }

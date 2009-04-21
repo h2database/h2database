@@ -34,11 +34,62 @@ public class TestFileLockSerialized extends TestBase {
 
     public void test() throws Exception {
         Class.forName("org.h2.Driver");
+        testThreeMostlyReaders(true);
+        testThreeMostlyReaders(false);
         testTwoReaders();
         testTwoWriters();
         testPendingWrite();
         testKillWriter();
         testConcurrentReadWrite();
+    }
+
+    private void testThreeMostlyReaders(final boolean write) throws Exception {
+        deleteDb("fileLockSerialized");
+        String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
+        int len = 3;
+        final Exception[] ex = new Exception[1];
+        final Connection[] conn = new Connection[len];
+        final boolean[] stop = new boolean[1];
+        Thread[] threads = new Thread[len];
+        for (int i = 0; i < len; i++) {
+            final Connection c = DriverManager.getConnection(url);
+            conn[i] = c;
+            if (i == 0) {
+                conn[i].createStatement().execute("create table test(id int) as select 1");
+            }
+            Thread t = new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        PreparedStatement p = c.prepareStatement("select * from test where id = ?");
+                        while (!stop[0]) {
+                            if (write) {
+                                if (Math.random() > 0.9) {
+                                    c.createStatement().execute("update test set id = id");
+                                }
+                            }
+                            p.setInt(1, 1);
+                            Thread.sleep(10);
+                            p.executeQuery();
+                            p.clearParameters();
+                        }
+                        c.close();
+                    } catch (Exception e) {
+                        ex[0] = e;
+                    }
+                }
+            });
+            t.start();
+            threads[i] = t;
+        }
+        Thread.sleep(1000);
+        stop[0] = true;
+        for (int i = 0; i < len; i++) {
+            threads[i].join();
+        }
+        if (ex[0] != null) {
+            throw ex[0];
+        }
+        DriverManager.getConnection(url).close();
     }
 
     private void testTwoReaders() throws Exception {

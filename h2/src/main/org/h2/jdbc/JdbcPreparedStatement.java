@@ -124,7 +124,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public int executeUpdate() throws SQLException {
         try {
             debugCodeCall("executeUpdate");
-            checkClosed();
+            checkClosedForWrite();
             return executeUpdateInternal();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -159,7 +159,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCodeCall("execute");
             }
-            checkClosed();
+            checkClosedForWrite();
             closeOldResultSet();
             boolean returnsResultSet;
             synchronized (conn.getSession()) {
@@ -703,7 +703,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setBlob("+parameterIndex+", x);");
             }
-            checkClosed();
+            checkClosedForWrite();
             Value v;
             if (x == null) {
                 v = ValueNull.INSTANCE;
@@ -728,7 +728,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setBlob("+parameterIndex+", x);");
             }
-            checkClosed();
+            checkClosedForWrite();
             Value v = conn.createBlob(x, -1);
             setParameter(parameterIndex, v);
         } catch (Exception e) {
@@ -748,7 +748,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setClob("+parameterIndex+", x);");
             }
-            checkClosed();
+            checkClosedForWrite();
             Value v;
             if (x == null) {
                 v = ValueNull.INSTANCE;
@@ -773,7 +773,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setClob("+parameterIndex+", x);");
             }
-            checkClosed();
+            checkClosedForWrite();
             Value v;
             if (x == null) {
                 v = ValueNull.INSTANCE;
@@ -832,7 +832,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setBinaryStream("+parameterIndex+", x, "+length+"L);");
             }
-            checkClosed();
+            checkClosedForWrite();
             Value v = conn.createBlob(x, length);
             setParameter(parameterIndex, v);
         } catch (Exception e) {
@@ -888,7 +888,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setAsciiStream("+parameterIndex+", x, "+length+"L);");
             }
-            checkClosed();
+            checkClosedForWrite();
             Value v = conn.createClob(IOUtils.getAsciiReader(x), length);
             setParameter(parameterIndex, v);
         } catch (Exception e) {
@@ -943,7 +943,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setCharacterStream("+parameterIndex+", x, "+length+"L);");
             }
-            checkClosed();
+            checkClosedForWrite();
             Value v = conn.createClob(x, length);
             setParameter(parameterIndex, v);
         } catch (Exception e) {
@@ -1031,7 +1031,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public int[] executeBatch() throws SQLException {
         try {
             debugCodeCall("executeBatch");
-            checkClosed();
+            checkClosedForWrite();
             if (batchParameters == null) {
                 // TODO batch: check what other database do if no parameters are set
                 batchParameters = new ObjectArray();
@@ -1081,7 +1081,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     public void addBatch() throws SQLException {
         try {
             debugCodeCall("addBatch");
-            checkClosed();
+            checkClosedForWrite();
             ObjectArray parameters = command.getParameters();
             Value[] set = new Value[parameters.size()];
             for (int i = 0; i < parameters.size(); i++) {
@@ -1271,7 +1271,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setNCharacterStream("+parameterIndex+", x, "+length+"L);");
             }
-            checkClosed();
+            checkClosedForWrite();
             Value v = conn.createClob(x, length);
             setParameter(parameterIndex, v);
         } catch (Exception e) {
@@ -1303,7 +1303,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setNClob("+parameterIndex+", x);");
             }
-            checkClosed();
+            checkClosedForWrite();
             Value v;
             if (x == null) {
                 v = ValueNull.INSTANCE;
@@ -1329,7 +1329,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setNClob("+parameterIndex+", x);");
             }
-            checkClosed();
+            checkClosedForWrite();
             Value v = conn.createClob(x, -1);
             setParameter(parameterIndex, v);
         } catch (Exception e) {
@@ -1349,7 +1349,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setClob("+parameterIndex+", x, "+length+"L);");
             }
-            checkClosed();
+            checkClosedForWrite();
             Value v = conn.createClob(x, length);
             setParameter(parameterIndex, v);
         } catch (Exception e) {
@@ -1369,7 +1369,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setBlob("+parameterIndex+", x, "+length+"L);");
             }
-            checkClosed();
+            checkClosedForWrite();
             Value v = conn.createBlob(x, length);
             setParameter(parameterIndex, v);
         } catch (Exception e) {
@@ -1389,7 +1389,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setNClob("+parameterIndex+", x, "+length+"L);");
             }
-            checkClosed();
+            checkClosedForWrite();
             Value v = conn.createClob(x, length);
             setParameter(parameterIndex, v);
         } catch (Exception e) {
@@ -1413,10 +1413,20 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         return getTraceObjectName() + ": " + command;
     }
 
-    boolean checkClosed() throws SQLException {
-        if (super.checkClosed()) {
+    protected boolean checkClosed(boolean write) throws SQLException {
+        if (super.checkClosed(write)) {
             // if the session was re-connected, re-prepare the statement
+            ObjectArray oldParams = command.getParameters();
             command = conn.prepareCommand(sql, fetchSize);
+            ObjectArray newParams = command.getParameters();
+            for (int i = 0; i < oldParams.size(); i++) {
+                ParameterInterface old = (ParameterInterface) oldParams.get(i);
+                Value value = old.getParamValue();
+                if (value != null) {
+                    ParameterInterface n = (ParameterInterface) newParams.get(i);
+                    n.setValue(value, false);
+                }
+            }
             return true;
         }
         return false;

@@ -240,14 +240,16 @@ public class LogSystem {
     /**
      * Roll back any uncommitted transactions if required, and apply committed
      * changed to the data files.
+     *
+     * @return if recovery was needed
      */
-    public void recover() throws SQLException {
+    public boolean recover() throws SQLException {
         if (database == null) {
-            return;
+            return false;
         }
         synchronized (database) {
             if (closed) {
-                return;
+                return false;
             }
             undo = new ObjectArray();
             for (int i = 0; i < activeLogs.size(); i++) {
@@ -282,7 +284,7 @@ public class LogSystem {
             if (!readOnly && fileChanged && !containsInDoubtTransactions()) {
                 checkpoint();
             }
-            return;
+            return fileChanged;
         }
     }
 
@@ -514,7 +516,6 @@ public class LogSystem {
                 return;
             }
             database.checkWritingAllowed();
-            database.beforeWriting();
             if (!file.isDataFile()) {
                 storageId = -storageId;
             }
@@ -541,7 +542,6 @@ public class LogSystem {
                 return;
             }
             database.checkWritingAllowed();
-            database.beforeWriting();
             int storageId = record.getStorageId();
             if (!file.isDataFile()) {
                 storageId = -storageId;
@@ -569,6 +569,7 @@ public class LogSystem {
             if (closed || disabled) {
                 return;
             }
+            database.checkWritingAllowed();
             flushAndCloseUnused();
             currentLog = new LogFile(this, currentLog.getId() + 1, fileNamePrefix);
             activeLogs.add(currentLog);
@@ -668,7 +669,7 @@ public class LogSystem {
      *
      * @param readOnly the new value
      */
-    void setReadOnly(boolean readOnly) {
+    public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
     }
 
@@ -704,6 +705,15 @@ public class LogSystem {
 
     String getAccessMode() {
         return accessMode;
+    }
+
+    /**
+     * Get the write position.
+     *
+     * @return the write position
+     */
+    public String getWritePos() {
+        return currentLog.getId() + "/" + currentLog.getPos();
     }
 
 }

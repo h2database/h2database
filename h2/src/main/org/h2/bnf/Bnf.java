@@ -128,7 +128,7 @@ public class Bnf {
         addFixedRule("anything", RuleFixed.ANY_WORD);
         addFixedRule("@hexStart@", RuleFixed.HEX_START);
         addFixedRule("@concat@", RuleFixed.CONCAT);
-        addFixedRule("@az_@", RuleFixed.AZ_UNDERLINE);
+        addFixedRule("@az_@", RuleFixed.AZ_UNDERSCORE);
         addFixedRule("@af@", RuleFixed.AF);
         addFixedRule("@digit@", RuleFixed.DIGIT);
     }

@@ -363,7 +363,11 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         head.setConsistent(database.getLogIndexChanges());
         lastChange = System.currentTimeMillis();
         flushHead(session);
+        int old = headPos;
         headPos = head.getPos();
+        if (old != Index.EMPTY_HEAD) {
+            database.update(session, this);
+        }
         rowCount = 0;
     }
 

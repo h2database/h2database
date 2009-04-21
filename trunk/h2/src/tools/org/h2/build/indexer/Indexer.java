@@ -27,6 +27,14 @@ public class Indexer {
 
     private static final int MIN_WORD_SIZE = 3;
     private static final int MAX_RELATIONS = 20;
+    private static final String VERY_COMMON =
+        ";the;be;to;of;and;a;in;that;have;i;it;for;not;on;with;he;as;you;do;at;" +
+        "this;but;his;by;from;they;we;say;her;she;or;an;will;my;one;all;would;" +
+        "there;their;what;so;up;out;if;about;who;get;which;go;me;when;make;" +
+        "can;like;no;just;him;know;take;into;your;good;some;" +
+        "could;them;see;other;than;then;now;look;only;come;its;over;think;" +
+        "also;back;after;use;two;how;our;work;first;well;way;even;new;want;" +
+        "because;any;these;give;most;us;";
 
     private ArrayList pages = new ArrayList();
 
@@ -108,9 +116,12 @@ public class Indexer {
         wordList = new ArrayList(words.values());
         // ignored very common words (to shrink the index)
         String ignored = "";
+        int maxSize = pages.size() / 4;
         for (int i = 0; i < wordList.size(); i++) {
             Word word = (Word) wordList.get(i);
-            if (word.pages.size() >= pages.size() / 4) {
+            String search = ";" + word.name.toLowerCase() + ";";
+            int idxCommon = VERY_COMMON.indexOf(search);
+            if (word.pages.size() >= maxSize || idxCommon >= 0) {
                 wordList.remove(i);
                 if (ignored.length() > 0) {
                     ignored += ",";

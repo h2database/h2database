@@ -18,7 +18,14 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>GROUP BY queries with a self-join (join to the same table) that were grouped by
+<ul><li>After truncating tables, opening large databases could become slow
+    because indexes are always re-built unnecessarily when opening.
+</li><li>More bugs in the server-less multi-connection mode have been fixed:
+    Sometimes parameters of prepared statements were lost when a reconnecting.
+    Concurrent read operations were slow.
+    To improve performance, executeQuery(..) must be used for queries
+    (execute(..) switches to the write mode, which is slow).
+</li><li>GROUP BY queries with a self-join (join to the same table) that were grouped by
     columns with indexes returned the wrong result in some cases.
 </li><li>Improved error message when the .lock.db file modification time is in the future.
 </li><li>The MERGE statement now returns 0 as the generated key if the row was updated.

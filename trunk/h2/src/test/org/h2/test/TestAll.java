@@ -282,6 +282,11 @@ java org.h2.test.TestAll timer
 
 /*
 
+auto-build: email with results
+auto-build: prepare release
+
+pool: change default login timeout to 15 min
+
 automated tests: code coverage
 
 documentation: rolling review at features.html: done
@@ -330,7 +335,7 @@ deleted the same row when exactly does it occur in other databases
 
 documentation: use 'server mode' not 'remote mode'.
 
-CREATE FUNCTION? Function interface
+CREATE FUNCTION? Function interface; HSQLDB compatibility
 
 find quote:
 You can't make a system that will not lose data, you can only make
@@ -382,8 +387,8 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
             }
         } else {
             test.runTests();
+            TestPerformance.main(new String[]{ "-init", "-db", "1"});
         }
-        TestPerformance.main(new String[]{ "-init", "-db", "1"});
         System.out.println(TestBase.formatTime(System.currentTimeMillis() - time) + " total");
     }
 

@@ -20,7 +20,7 @@ import org.h2.test.TestBase;
  */
 public class TestDatabaseEventListener extends TestBase implements DatabaseEventListener {
 
-    private boolean calledOpened, calledClosingDatabase, calledScan;
+    private boolean calledOpened, calledClosingDatabase, calledScan, calledCreateIndex;
 
     /**
      * Run just this test.
@@ -32,10 +32,44 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
     }
 
     public void test() throws SQLException {
+        testIndexNotRebuilt();
         testCalled();
         testCloseLog0(false);
         testCloseLog0(true);
         deleteDb("databaseEventListener");
+    }
+
+    private void testIndexNotRebuilt() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("databaseEventListener");
+        String url = getURL("databaseEventListener", true);
+        String user = getUser(), password = getPassword();
+        Properties p = new Properties();
+        p.setProperty("user", user);
+        p.setProperty("password", password);
+        Connection conn = DriverManager.getConnection(url, p);
+        Statement stat = conn.createStatement();
+        // the old.id index head is at position 0
+        stat.execute("create table old(id identity) as select 1");
+        // the test.id index head is at position 1
+        stat.execute("create table test(id identity) as select 1");
+        conn.close();
+        conn = DriverManager.getConnection(url, p);
+        stat = conn.createStatement();
+        // free up space at position 0
+        stat.execute("drop table old");
+        // truncate, relocating to position 0
+        stat.execute("truncate table test");
+        stat.execute("insert into test select 1");
+        conn.close();
+        TestDatabaseEventListener l = new TestDatabaseEventListener();
+        p.put("DATABASE_EVENT_LISTENER_OBJECT", l);
+        conn = org.h2.Driver.load().connect(url, p);
+        conn.close();
+        assertTrue(!l.calledCreateIndex);
+
     }
 
     private void testCloseLog0(boolean shutdown) throws SQLException {
@@ -104,6 +138,11 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
     public void setProgress(int state, String name, int x, int max) {
         if (state == DatabaseEventListener.STATE_SCAN_FILE) {
             calledScan = true;
+        }
+        if (state == DatabaseEventListener.STATE_CREATE_INDEX) {
+            if (!name.startsWith("SYS:")) {
+                calledCreateIndex = true;
+            }
         }
     }
 

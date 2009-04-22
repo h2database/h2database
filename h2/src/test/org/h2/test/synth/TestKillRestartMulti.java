@@ -6,7 +6,6 @@
  */
 package org.h2.test.synth;
 
-import java.io.File;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -46,7 +45,7 @@ public class TestKillRestartMulti extends TestBase {
         password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);
         String[] procDef = new String[] { "java", selfDestruct,
-                "-cp", "bin" + File.pathSeparator + ".",
+                "-cp", getClassPath(),
                 getClass().getName(), "-url", url, "-user", user,
                 "-password", password };
         deleteDb("killRestartMulti");

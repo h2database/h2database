@@ -1045,4 +1045,13 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Get the classpath list used to execute java -cp ...
+     *
+     * @return the classpath list
+     */
+    protected String getClassPath() {
+        return "temp" + File.pathSeparator + "bin" + File.pathSeparator + ".";
+    }
+
 }

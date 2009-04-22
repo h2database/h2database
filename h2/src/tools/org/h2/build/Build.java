@@ -104,7 +104,7 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/org.osgi.core-1.2.0.jar" +
             File.pathSeparator + "ext/slf4j-api-1.5.0.jar";
         exec("java", new String[] { "-Xmx128m", "-cp", cp, "emma", "run",
-                "-cp", "bin",
+                "-cp", "temp",
                 "-sp", "src/main",
                 "-r", "html,txt",
                 "-ix", "-org.h2.test.*,-org.h2.dev.*,-org.h2.jaqu.*,-org.h2.index.Page*,-org.h2.mode.*",

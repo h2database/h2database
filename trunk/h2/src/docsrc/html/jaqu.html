@@ -21,7 +21,7 @@ JaQu
 <p>
 JaQu stands for Java Query and allows to access databases using pure Java.
 JaQu provides a fluent interface (or internal DSL) for building SQL statements.
-JaQu replaces SQL, JDBC, and object/relation frameworks such as Hibernate.
+JaQu replaces SQL, JDBC, and persistence frameworks such as Hibernate.
 JaQu is something like LINQ for Java (LINQ stands for "language integrated query" and is a
 Microsoft .NET technology). The following JaQu code:
 </p>
@@ -38,14 +38,14 @@ SELECT * FROM PRODUCTS P
 WHERE P.UNITS_IN_STOCK = 0
 </pre>
 
-<h2>Advantages and Differences to other Data Access Tools</h2>
+<h2>Advantages and Differences to Other Data Access Tools</h2>
 <p>
 Unlike SQL, JaQu can be easily integrated in Java applications. Because JaQu is pure Java,
-Javadoc and auto-complete are supported. Type checking is performed by the compiler.
+auto-complete in the IDE and Javadoc and are supported. Type checking is performed by the compiler.
 JaQu fully protects against SQL injection.
 </p>
 <p>
-JaQu is much smaller than object/relation mapping tools such as Hibernate.
+JaQu is much smaller than persistence frameworks such as Hibernate.
 Unlike iBatis and Hibernate, no XML or annotation based configuration is required;
 instead the configuration (if required at all) is done in pure Java, in the application itself.
 </p>
@@ -56,15 +56,14 @@ JaQu provides full control over when and what SQL statements are executed.
 
 <h3>Restrictions</h3>
 <p>
-Primitive types (eg. boolean, int, long, double) are not supported. Instead,
-Boolean, Integer, Long, and Double must be used.
+Primitive types (eg. boolean, int, long, double) are not supported. Use
+Boolean, Integer, Long, and Double instead.
 </p>
 
 <h3>Why in Java?</h3>
 <p>
 Most people use Java in their application. Mixing Java and another language (for example Scala or Groovy)
-in the same application is complicated. It would be required to split the code to access the database
-and the application code.
+in the same application is complicated: You would need to split the application and database code.
 </p>
 
 <h2>Current State</h2>
@@ -162,7 +161,7 @@ public class Test {
         final Product p = new Product();
         List&lt;ProductPrice> productInfos =
             db.from(p).orderBy(p.productId).
-            select(new ProductPrice() { {
+            select(new ProductPrice() {{
                     productName = p.productName;
                     category = p.category;
                     price = p.unitPrice;
@@ -183,7 +182,7 @@ public class Test {
             innerJoin(o).on(c.customerId).is(o.customerId).
             where(o.total).smaller(new BigDecimal("500.00")).
             orderBy(1).
-            select(new CustOrder() { {
+            select(new CustOrder() {{
                 customerId = c.customerId;
                 orderId = o.orderId;
                 total = o.total;
@@ -192,7 +191,8 @@ public class Test {
 
     private void testLength() throws Exception {
         Product p = new Product();
-        List&lt;Integer> lengths = db.from(p).
+        List&lt;Integer> lengths =
+            db.from(p).
             where(length(p.productName)).smaller(10).
             orderBy(1).
             selectDistinct(length(p.productName));
@@ -213,7 +213,7 @@ public class Test {
             db.from(p).
             groupBy(p.category).
             orderBy(1).
-            select(new ProductGroup() { {
+            select(new ProductGroup() {{
                 category = p.category;
                 productCount = count();
             }});
@@ -224,7 +224,7 @@ public class Test {
 
 <h2>Configuration</h2>
 <p>
-JaQu does not require any kind of configuration is you want to use the default mapping.
+JaQu does not require any configuration when using the default mapping.
 To define table indices, or if you want to map a class to a table with a different name,
 or a field to a column with another name, create a function called 'define' in the data class.
 Example:
@@ -243,22 +243,23 @@ public class Product implements Table {
         primaryKey(productId);
         index(productName, category);
     }
+
+}
 </pre>
 <p>
 The method 'define()' contains the mapping definition. It is called once
 when the class is used for the first time. Like annotations, the mapping is defined in the class itself.
 Unlike when using annotations, the compiler can check the syntax even for multi-column
 objects (multi-column indexes, multi-column primary keys and so on).
-This solution is very flexible because the definition is written in regular Java code:
-Unlike when using annotations, your code can select the right configuration depending
-on the environment if required. Unlike XML mapping configuration, the configuration
-is integrated in the class itself.
+Because the definition is written in regular Java, the configuration can depend on the environment.
+This is not possible using annotations.
+Unlike XML mapping configuration, the configuration is integrated in the class itself.
 </p>
 
 <h2>Ideas</h2>
 <p>
 This project has just been started, and nothing is fixed yet.
-Some ideas for what to implement include:
+Some ideas for what to implement are:
 </p>
 <ul><li>Support queries on collections (instead of using a database).
 </li><li>Provide API level compatibility with JPA (so that JaQu can be used as an extension of JPA).

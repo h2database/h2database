@@ -30,7 +30,7 @@ Performance
 <br /><a name="performance_comparison"></a>
 <h2>Performance Comparison</h2>
 <p>
-In most cases H2 is a lot faster than all other
+In many cases H2 is a lot faster than other
 (open source and not open source) database engines.
 Please note this is mostly a single connection benchmark run on one computer.
 </p>
@@ -93,7 +93,7 @@ One situation where is H2 is slow is large result sets, because they are buffere
 disk if more than a certain number of records are returned.
 The advantage of buffering is, there is no limit on the result set size.
 The open/close time is almost fixed, because of the file locking protocol: The engine waits
-20 ms after opening a database to ensure the database files are not opened by another process.
+some time after opening a database to ensure the database files are not opened by another process.
 </p>
 
 <h4>HSQLDB</h4>
@@ -112,15 +112,15 @@ AND S_W_ID=? AND S_I_ID=OL_I_ID AND S_QUANTITY&lt;?
 </pre>
 <p>
 The PolePosition benchmark also shows that the query optimizer does not do a very good job for some queries.
-A disadvantage in HSQLDB is the slow startup / shutdown time (currently not listed) when using bigger databases.
-The reason is, a backup of the database is created whenever the database is opened or closed.
+Another disadvantage of HSQLDB is the slow startup / shutdown time (currently not listed) when using bigger databases.
+The reason is, a backup of the whole data is made whenever the database is opened or closed.
 </p>
 
 <h4>Derby</h4>
 <p>
 Version 10.4.2.0 was used for the test. Derby is clearly the slowest embedded database in this test.
 This seems to be a structural problem, because all operations are really slow.
-It will not be easy for the developers of Derby to improve the performance to a reasonable level.
+It will be hard for the developers of Derby to improve the performance to a reasonable level.
 A few problems have been identified: Leaving autocommit on is a problem for Derby.
 If it is switched off during the whole test, the results are about 20% better for Derby.
 Derby supports a testing mode (system property derby.system.durability=test) where durability is
@@ -190,7 +190,7 @@ BenchC is similar to the TPC-C test, but single connection / single threaded.
 <h4>Comparing Embedded with Server Databases</h4>
 <p>
 This is mainly a benchmark for embedded databases (where the application runs in the same
-virtual machine than the database engine). However MySQL and PostgreSQL are not Java
+virtual machine as the database engine). However MySQL and PostgreSQL are not Java
 databases and cannot be embedded into a Java application.
 For the Java databases, both embedded and server modes are tested.
 </p>
@@ -212,8 +212,7 @@ This benchmark runs three times, but only the last run is measured.
 <h4>Memory Usage</h4>
 <p>
 It is not enough to measure the time taken, the memory usage is important as well.
-Performance can be improved in databases by using a bigger in-memory cache,
-but there is only a limited amount of memory available on the system.
+Performance can be improved by using a bigger cache, but the amount of memory is limited.
 HSQLDB tables are kept fully in memory by default; this benchmark
 uses 'disk based' tables for all databases.
 Unfortunately, it is not so easy to calculate the memory usage of PostgreSQL
@@ -254,8 +253,6 @@ This time is not measured currently.
 Also, not tested is the time used to create a database and open an existing database.
 Here, one (wrapper) connection is opened at the start,
 and for each step a new connection is opened and then closed.
-That means the Open/Close time listed is for opening a connection
-if the database is already in use.
 </p>
 
 <br /><a name="poleposition_benchmark"></a>

@@ -259,7 +259,8 @@ public class SamplesTest extends TestBase {
 
     private void testLength() {
         Product p = new Product();
-        List<Integer> lengths = db.from(p).
+        List<Integer> lengths =
+            db.from(p).
             where(length(p.productName)).smaller(10).
             orderBy(1).
             selectDistinct(length(p.productName));

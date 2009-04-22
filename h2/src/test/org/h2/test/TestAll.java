@@ -282,14 +282,20 @@ java org.h2.test.TestAll timer
 
 /*
 
-auto-build: email with results
+copies db problems
+
+auto-build: newsfeed for results
 auto-build: prepare release
+
+new ftp password
 
 pool: change default login timeout to 15 min
 
 automated tests: code coverage
 
-documentation: rolling review at features.html: done
+documentation: rolling review at functions.html: start
+documentation: rolling review at grammar.html: start
+documentation: rolling review at performance.html: 303
 
 create a short 4 pages documentation
 

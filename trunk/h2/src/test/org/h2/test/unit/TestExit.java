@@ -55,7 +55,7 @@ public class TestExit extends TestBase implements DatabaseEventListener {
             fail("did not close database");
         }
         procDef = new String[] { "java",
-                "-cp", "bin" + File.pathSeparator + ".", getClass().getName(),
+                "-cp", getClassPath(), getClass().getName(),
                 "" + OPEN_WITHOUT_CLOSE_ON_EXIT };
         proc = Runtime.getRuntime().exec(procDef);
         proc.waitFor();

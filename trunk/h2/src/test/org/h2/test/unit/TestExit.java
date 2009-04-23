@@ -32,7 +32,7 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         deleteDb("exit");
         String selfDestruct = SelfDestructor.getPropertyString(60);
         String[] procDef = new String[] { "java", selfDestruct,
-                "-cp", "bin" + File.pathSeparator + ".",
+                "-cp", getClassPath(),
                 getClass().getName(), "" + OPEN_WITH_CLOSE_ON_EXIT };
         Process proc = Runtime.getRuntime().exec(procDef);
         while (true) {

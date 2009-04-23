@@ -64,7 +64,6 @@ import org.h2.util.FileUtils;
 import org.h2.util.IntHashMap;
 import org.h2.util.NetUtils;
 import org.h2.util.ObjectArray;
-import org.h2.util.ObjectUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
@@ -101,7 +100,6 @@ public class Database implements DataHandler {
     private final HashMap userDataTypes = new HashMap();
     private final HashMap aggregates = new HashMap();
     private final HashMap comments = new HashMap();
-    private final HashMap databaseObjects = new HashMap();
 
     private final Set userSessions = Collections.synchronizedSet(new HashSet());
     private Session exclusiveSession;
@@ -820,9 +818,6 @@ public class Database implements DataHandler {
                 session.log(meta, UndoLogRecord.INSERT, r);
             }
         }
-        if (SysProperties.PAGE_STORE && id > 0) {
-            databaseObjects.put(ObjectUtils.getInteger(id), obj);
-        }
     }
 
     /**
@@ -850,9 +845,6 @@ public class Database implements DataHandler {
                     checkMetaFree(session, id);
                 }
             }
-        }
-        if (SysProperties.PAGE_STORE) {
-            databaseObjects.remove(ObjectUtils.getInteger(id));
         }
     }
 
@@ -2347,16 +2339,6 @@ public class Database implements DataHandler {
             return reconnectModified(true);
         }
         return true;
-    }
-
-    /**
-     * Get a database object.
-     *
-     * @param id the object id
-     * @return the database object
-     */
-    DbObject getDbObject(int id) {
-        return (DbObject) databaseObjects.get(ObjectUtils.getInteger(id));
     }
 
 }

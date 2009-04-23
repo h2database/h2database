@@ -55,6 +55,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
     private int headPos;
     private long lastChange;
     private long rowCount;
+    private boolean headPosChanged;
 
     /**
      * Create a new b tree index with the given properties. If the index does
@@ -205,6 +206,10 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     public void close(Session session) throws SQLException {
         flush(session);
+        if (headPosChanged) {
+            database.update(session, this);
+            headPosChanged = false;
+        }
         storage = null;
     }
 
@@ -366,7 +371,9 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         int old = headPos;
         headPos = head.getPos();
         if (old != Index.EMPTY_HEAD) {
-            database.update(session, this);
+            // can not update the index entry now, because
+            // updates are ignored at startup
+            headPosChanged = true;
         }
         rowCount = 0;
     }

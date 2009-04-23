@@ -6,6 +6,9 @@ if [ -z "$JAVA_HOME" ] ; then
     echo "Error: JAVA_HOME is not defined."
   fi
 fi
+if [ $1 == "-Dclean" ] ; then
+  rm -rf temp bin
+fi
 if [ ! -d "temp" ] ; then
   mkdir temp
 fi

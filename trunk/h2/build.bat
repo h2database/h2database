@@ -1,5 +1,6 @@
 @echo off
 if "%JAVA_HOME%"=="" echo Error: JAVA_HOME is not defined.
+if "%1"=="-Dclean" rmdir /s /q temp | rmdir /s /q bin
 if not exist temp mkdir temp
 if not exist bin mkdir bin
 if exist bin/org/h2/build/Build.class goto buildOK

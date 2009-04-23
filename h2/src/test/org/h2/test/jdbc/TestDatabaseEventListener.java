@@ -32,11 +32,51 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
     }
 
     public void test() throws SQLException {
+        testIndexRebuiltOnce();
         testIndexNotRebuilt();
         testCalled();
         testCloseLog0(false);
         testCloseLog0(true);
         deleteDb("databaseEventListener");
+    }
+
+    private void testIndexRebuiltOnce() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("databaseEventListener");
+        String url = getURL("databaseEventListener", true);
+        String user = getUser(), password = getPassword();
+        Properties p = new Properties();
+        p.setProperty("user", user);
+        p.setProperty("password", password);
+        Connection conn = DriverManager.getConnection(url, p);
+        Statement stat = conn.createStatement();
+        // the old.id index head is at position 0
+        stat.execute("create table old(id identity) as select 1");
+        // the test.id index head is at position 1
+        stat.execute("create table test(id identity) as select 1");
+        conn.close();
+        conn = DriverManager.getConnection(url, p);
+        stat = conn.createStatement();
+        // free up space at position 0
+        stat.execute("drop table old");
+        stat.execute("insert into test values(2)");
+        stat.execute("checkpoint sync");
+        stat.execute("shutdown immediately");
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        // now the index should be re-built
+        conn = DriverManager.getConnection(url, p);
+        conn.close();
+        TestDatabaseEventListener l = new TestDatabaseEventListener();
+        p.put("DATABASE_EVENT_LISTENER_OBJECT", l);
+        conn = org.h2.Driver.load().connect(url, p);
+        conn.close();
+        assertTrue(!l.calledCreateIndex);
     }
 
     private void testIndexNotRebuilt() throws SQLException {
@@ -69,7 +109,6 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         conn = org.h2.Driver.load().connect(url, p);
         conn.close();
         assertTrue(!l.calledCreateIndex);
-
     }
 
     private void testCloseLog0(boolean shutdown) throws SQLException {

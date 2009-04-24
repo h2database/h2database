@@ -982,7 +982,7 @@ Maven 2 の利用
 #Providing Patches
 
 @build_1008_a
-#Code Coverage
+#Automated Build
 
 @build_1009_h2
 ポータビリティ
@@ -1147,19 +1147,19 @@ Centralリポジトリの利用
 #Submit patches as .patch files (compressed if big). To create a patch using Eclipse, use Team / Create Patch.
 
 @build_1063_h2
-#Code Coverage
+#Automated Build
 
 @build_1064_p
-#To generate the code coverage data, execute the following command:
+#This build process is automated and runs regularly. The build process includes running the tests and code coverage. The last results are available here:
 
-@build_1065_p
-#The code coverage is run regularly, the last results are available here:
+@build_1065_a
+#Test Output
 
 @build_1066_a
-#Overall Coverage Summary
+#Code Coverage Summary
 
 @build_1067_a
-#Details (download, 1.3 MB)
+#Code Coverage Details (download, 1.3 MB)
 
 @changelog_1000_h1
 変更履歴
@@ -4363,7 +4363,7 @@ H2 データベース エンジン
 このデータベースエンジンの歴史
 
 @history_1011_p
-H2DBの開発は2004年の5月に開始されましたが、初めて世に出たのは、2005年12月14日の事でした。生みの親であるThomas Muellerは、Hypersonic SQLの初期の開発者でもあります。2001年、彼はPointBaseMicroを生み出したPointBaseInc.に入社しました。この時点で彼はHypersonic SQLの開発を断念しなければなりませんでしたが、引き続きHypersonic SQLのコードベース開発を進める目的でHSQLDBグループが設立されました。H2DBの H2 は、このHypersonic 2を意味しています。とはいえ、H2DBはHypersonic SQLやHSQLDBとはコードの共有を一切行わず、すべてゼロから開発されました。
+#The development of H2 was started in May 2004, but it was first published on December 14th 2005. The main author of H2, Thomas Mueller, is also the original developer of Hypersonic SQL. In 2001, he joined PointBase Inc. where he created PointBase Micro. At that point, he had to discontinue Hypersonic SQL, but then the HSQLDB Group was formed to continued to work on the Hypersonic SQL codebase. The name H2 stands for Hypersonic 2; however H2 does not share any code with Hypersonic SQL or HSQLDB. H2 is built from scratch.
 
 @history_1012_h2
 なぜJavaなのか
@@ -4564,19 +4564,19 @@ Sourceファイル
 #What is JaQu
 
 @jaqu_1002_p
-#JaQu stands for Java Query and allows to access databases using pure Java. JaQu provides a fluent interface (or internal DSL) for building SQL statements. JaQu replaces SQL, JDBC, and object/relation frameworks such as Hibernate. JaQu is something like LINQ for Java (LINQ stands for "language integrated query" and is a Microsoft .NET technology). The following JaQu code:
+#JaQu stands for Java Query and allows to access databases using pure Java. JaQu provides a fluent interface (or internal DSL) for building SQL statements. JaQu replaces SQL, JDBC, and persistence frameworks such as Hibernate. JaQu is something like LINQ for Java (LINQ stands for "language integrated query" and is a Microsoft .NET technology). The following JaQu code:
 
 @jaqu_1003_p
 #stands for the SQL statement:
 
 @jaqu_1004_h2
-#Advantages and Differences to other Data Access Tools
+#Advantages and Differences to Other Data Access Tools
 
 @jaqu_1005_p
-#Unlike SQL, JaQu can be easily integrated in Java applications. Because JaQu is pure Java, Javadoc and auto-complete are supported. Type checking is performed by the compiler. JaQu fully protects against SQL injection.
+#Unlike SQL, JaQu can be easily integrated in Java applications. Because JaQu is pure Java, auto-complete in the IDE and Javadoc and are supported. Type checking is performed by the compiler. JaQu fully protects against SQL injection.
 
 @jaqu_1006_p
-#JaQu is much smaller than object/relation mapping tools such as Hibernate. Unlike iBatis and Hibernate, no XML or annotation based configuration is required; instead the configuration (if required at all) is done in pure Java, in the application itself.
+#JaQu is much smaller than persistence frameworks such as Hibernate. Unlike iBatis and Hibernate, no XML or annotation based configuration is required; instead the configuration (if required at all) is done in pure Java, in the application itself.
 
 @jaqu_1007_p
 #JaQu does not require or contain any data caching mechanism. Like JDBC and iBatis, JaQu provides full control over when and what SQL statements are executed.
@@ -4585,13 +4585,13 @@ Sourceファイル
 #Restrictions
 
 @jaqu_1009_p
-#Primitive types (eg. boolean, int, long, double) are not supported. Instead, Boolean, Integer, Long, and Double must be used.
+#Primitive types (eg. boolean, int, long, double) are not supported. Use Boolean, Integer, Long, and Double instead.
 
 @jaqu_1010_h3
 #Why in Java?
 
 @jaqu_1011_p
-#Most people use Java in their application. Mixing Java and another language (for example Scala or Groovy) in the same application is complicated. It would be required to split the code to access the database and the application code.
+#Most people use Java in their application. Mixing Java and another language (for example Scala or Groovy) in the same application is complicated: You would need to split the application and database code.
 
 @jaqu_1012_h2
 #Current State
@@ -4624,16 +4624,16 @@ Sourceファイル
 #Configuration
 
 @jaqu_1022_p
-#JaQu does not require any kind of configuration is you want to use the default mapping. To define table indices, or if you want to map a class to a table with a different name, or a field to a column with another name, create a function called 'define' in the data class. Example:
+#JaQu does not require any configuration when using the default mapping. To define table indices, or if you want to map a class to a table with a different name, or a field to a column with another name, create a function called 'define' in the data class. Example:
 
 @jaqu_1023_p
-#The method 'define()' contains the mapping definition. It is called once when the class is used for the first time. Like annotations, the mapping is defined in the class itself. Unlike when using annotations, the compiler can check the syntax even for multi-column objects (multi-column indexes, multi-column primary keys and so on). This solution is very flexible because the definition is written in regular Java code: Unlike when using annotations, your code can select the right configuration depending on the environment if required. Unlike XML mapping configuration, the configuration is integrated in the class itself.
+#The method 'define()' contains the mapping definition. It is called once when the class is used for the first time. Like annotations, the mapping is defined in the class itself. Unlike when using annotations, the compiler can check the syntax even for multi-column objects (multi-column indexes, multi-column primary keys and so on). Because the definition is written in regular Java, the configuration can depend on the environment. This is not possible using annotations. Unlike XML mapping configuration, the configuration is integrated in the class itself.
 
 @jaqu_1024_h2
 #Ideas
 
 @jaqu_1025_p
-#This project has just been started, and nothing is fixed yet. Some ideas for what to implement include:
+#This project has just been started, and nothing is fixed yet. Some ideas for what to implement are:
 
 @jaqu_1026_li
 #Support queries on collections (instead of using a database).
@@ -4657,21 +4657,24 @@ Sourceファイル
 #JEQUEL: Java Embedded QUEry Language
 
 @jaqu_1033_a
-#JoSQL
+#Joist
 
 @jaqu_1034_a
-#LIQUidFORM
+#JoSQL
 
 @jaqu_1035_a
-#Quaere (Alias implementation)
+#LIQUidFORM
 
 @jaqu_1036_a
-#Quaere
+#Quaere (Alias implementation)
 
 @jaqu_1037_a
-#Querydsl
+#Quaere
 
 @jaqu_1038_a
+#Querydsl
+
+@jaqu_1039_a
 #Squill
 
 @license_1000_h1
@@ -4699,7 +4702,7 @@ Sourceファイル
 #You don't need to provide the source code of H2 if you did not modify anything.
 
 @license_1008_p
-#However, nobody is allowed to rename H2, modify it a little, and sell it as a database engine without telling the customers it is in fact H2. This happened to HSQLDB, when a company called 'bungisoft' copied HSQLDB, renamed it to 'RedBase', and tried to sell it, hiding the fact that it was, in fact, just HSQLDB. At this time, it seems 'bungisoft' does not exist any more, but you can use the Wayback Machine of http://www.archive.org and look for old web pages of http://www.bungisoft.com .
+#However, nobody is allowed to rename H2, modify it a little, and sell it as a database engine without telling the customers it is in fact H2. This happened to HSQLDB: A company called 'bungisoft' copied HSQLDB, renamed it to 'RedBase', and tried to sell it, hiding the fact that it was in fact just HSQLDB. It seems 'bungisoft' does not exist any more, but you can use the Wayback Machine of http://www.archive.org and visit old web pages of http://www.bungisoft.com .
 
 @license_1009_p
 #About porting the source code to another language (for example C# or C++): Converted source code (even if done manually) stays under the same copyright and license as the original code. The copyright of the ported source code does not (automatically) go to the person who ported the code.
@@ -5404,7 +5407,7 @@ Sourceファイル
 #GNU Gluco Control
 
 @links_1086_p
-#Helps you to manage your diabetes..
+#Helps you to manage your diabetes.
 
 @links_1087_a
 #Golden T Studios
@@ -5599,201 +5602,207 @@ Sourceファイル
 #OpenGroove is a groupware program that allows users to synchronize data.
 
 @links_1151_a
-#Orion
+#OpenSocial Development Environment (OSDE)
 
 @links_1152_p
-#J2EE Application Server.
+#Development tool for OpenSocial application.
 
 @links_1153_a
-#P5H2
+#Orion
 
 @links_1154_p
-#A library for the <a href="http://www.processing.org">Processing</a> programming language and environment.
+#J2EE Application Server.
 
 @links_1155_a
-#Phase-6
+#P5H2
 
 @links_1156_p
-#A computer based learning software.
+#A library for the <a href="http://www.processing.org">Processing</a> programming language and environment.
 
 @links_1157_a
-#Pickle
+#Phase-6
 
 @links_1158_p
-#Pickle is a Java library containing classes for persistence, concurrency, and logging.
+#A computer based learning software.
 
 @links_1159_a
-#Piman
+#Pickle
 
 @links_1160_p
-#Water treatment projects data management.
+#Pickle is a Java library containing classes for persistence, concurrency, and logging.
 
 @links_1161_a
-#PolePosition
+#Piman
 
 @links_1162_p
-#Open source database benchmark.
+#Water treatment projects data management.
 
 @links_1163_a
-#Poormans
+#PolePosition
 
 @links_1164_p
-#Very basic CMS running as a SWT application and generating static html pages.
+#Open source database benchmark.
 
 @links_1165_a
-#Railo
+#Poormans
 
 @links_1166_p
-#Railo is an alternative engine for the Cold Fusion Markup Language, that compiles code programmed in CFML into Java bytecode and executes it on a servlet engine.
+#Very basic CMS running as a SWT application and generating static html pages.
 
 @links_1167_a
-#Razuna
+#Railo
 
 @links_1168_p
-#Open source Digital Asset Management System with integrated Web Content Management.
+#Railo is an alternative engine for the Cold Fusion Markup Language, that compiles code programmed in CFML into Java bytecode and executes it on a servlet engine.
 
 @links_1169_a
-#RIFE
+#Razuna
 
 @links_1170_p
-#A full-stack web application framework with tools and APIs to implement most common web features.
+#Open source Digital Asset Management System with integrated Web Content Management.
 
 @links_1171_a
-#Rutema
+#RIFE
 
 @links_1172_p
-#Rutema is a test execution and management tool for heterogeneous development environments written in Ruby.
+#A full-stack web application framework with tools and APIs to implement most common web features.
 
 @links_1173_a
-#Sava
+#Rutema
 
 @links_1174_p
-#Open-source web-based content management system.
+#Rutema is a test execution and management tool for heterogeneous development environments written in Ruby.
 
 @links_1175_a
-#Scriptella
+#Sava
 
 @links_1176_p
-#ETL (Extract-Transform-Load) and script execution tool.
+#Open-source web-based content management system.
 
 @links_1177_a
-#Sesar
+#Scriptella
 
 @links_1178_p
-#Dependency Injection Container with Aspect Oriented Programming.
+#ETL (Extract-Transform-Load) and script execution tool.
 
 @links_1179_a
-#SemmleCode
+#Sesar
 
 @links_1180_p
-#Eclipse plugin to help you improve software quality.
+#Dependency Injection Container with Aspect Oriented Programming.
 
 @links_1181_a
-#SeQuaLite
+#SemmleCode
 
 @links_1182_p
-#A free, light-weight, java data access framework.
+#Eclipse plugin to help you improve software quality.
 
 @links_1183_a
-#ShapeLogic
+#SeQuaLite
 
 @links_1184_p
-#Toolkit for declarative programming, image processing and computer vision.
+#A free, light-weight, java data access framework.
 
 @links_1185_a
-#Shellbook
+#ShapeLogic
 
 @links_1186_p
-#Desktop publishing application.
+#Toolkit for declarative programming, image processing and computer vision.
 
 @links_1187_a
-#Signsoft intelliBO
+#Shellbook
 
 @links_1188_p
-#Persistence middleware supporting the JDO specification.
+#Desktop publishing application.
 
 @links_1189_a
-#SimpleORM
+#Signsoft intelliBO
 
 @links_1190_p
-#Simple Java Object Relational Mapping.
+#Persistence middleware supporting the JDO specification.
 
 @links_1191_a
-#SymmetricDS
+#SimpleORM
 
 @links_1192_p
-#A web-enabled, database independent, data synchronization/replication software.
+#Simple Java Object Relational Mapping.
 
 @links_1193_a
-#SmartFoxServer
+#SymmetricDS
 
 @links_1194_p
-#Platform for developing multiuser applications and games with Macromedia Flash.
+#A web-enabled, database independent, data synchronization/replication software.
 
 @links_1195_a
-#Social Bookmarks Friend Finder
+#SmartFoxServer
 
 @links_1196_p
-#A GUI application that allows you to find users with similar bookmarks to the user specified (for delicious.com).
+#Platform for developing multiuser applications and games with Macromedia Flash.
 
 @links_1197_a
-#Springfuse
+#Social Bookmarks Friend Finder
 
 @links_1198_p
-#Code generation For Spring, Spring MVC & Hibernate.
+#A GUI application that allows you to find users with similar bookmarks to the user specified (for delicious.com).
 
 @links_1199_a
-#SQLOrm
+#Springfuse
 
 @links_1200_p
-#Java Object Relation Mapping.
+#Code generation For Spring, Spring MVC & Hibernate.
 
 @links_1201_a
-#StorYBook
+#SQLOrm
 
 @links_1202_p
-#A summary-based tool for novelist and script writers. It helps to keep the overview over the various traces a story has.
+#Java Object Relation Mapping.
 
 @links_1203_a
-#StreamCruncher
+#StorYBook
 
 @links_1204_p
-#Event (stream) processing kernel.
+#A summary-based tool for novelist and script writers. It helps to keep the overview over the various traces a story has.
 
 @links_1205_a
-#Tune Backup
+#StreamCruncher
 
 @links_1206_p
-#Easy-to-use backup solution for your iTunes library.
+#Event (stream) processing kernel.
 
 @links_1207_a
-#weblica
+#Tune Backup
 
 @links_1208_p
-#Desktop CMS.
+#Easy-to-use backup solution for your iTunes library.
 
 @links_1209_a
-#Web of Web
+#weblica
 
 @links_1210_p
-#Collaborative and realtime interactive media platform for the web.
+#Desktop CMS.
 
 @links_1211_a
-#Werkzeugkasten
+#Web of Web
 
 @links_1212_p
-#Minimum Java Toolset.
+#Collaborative and realtime interactive media platform for the web.
 
 @links_1213_a
-#VPDA
+#Werkzeugkasten
 
 @links_1214_p
-#View providers driven applications is a Java based application framework for building applications composed from server components - view providers.
+#Minimum Java Toolset.
 
 @links_1215_a
-#Volunteer database
+#VPDA
 
 @links_1216_p
+#View providers driven applications is a Java based application framework for building applications composed from server components - view providers.
+
+@links_1217_a
+#Volunteer database
+
+@links_1218_p
 #A database front end to register volunteers, partnership and donation for a Non Profit organization.
 
 @mainWeb_1000_h1
@@ -5803,10 +5812,10 @@ H2 データベース エンジン
 #Welcome to H2, the Java SQL database. The main feature of H2 are:
 
 @mainWeb_1002_li
-#Very fast, open source, JDBC and ODBC API
+#Very fast, open source, JDBC API
 
 @mainWeb_1003_li
-#Embedded, server and cluster modes; in-memory databases
+#Embedded and server modes; in-memory databases
 
 @mainWeb_1004_li
 #Browser based Console application
@@ -6061,7 +6070,7 @@ H2 データベース ニュース</a> (Googleアカウントが必要です)
 H2 データベース エンジン
 
 @main_1001_p
-ようこそ、無料のSQLデータベース、H2へ
+#Welcome to H2, the free Java SQL database engine.
 
 @main_1002_a
 クイックスタート
@@ -6103,7 +6112,7 @@ See what this database can do and how to use these features.
 #Performance Comparison
 
 @performance_1007_p
-#In most cases H2 is a lot faster than all other (open source and not open source) database engines. Please note this is mostly a single connection benchmark run on one computer.
+#In many cases H2 is a lot faster than other (open source and not open source) database engines. Please note this is mostly a single connection benchmark run on one computer.
 
 @performance_1008_h3
 #Embedded
@@ -6802,7 +6811,7 @@ MySQL
 H2
 
 @performance_1240_p
-#Version 1.0.78 (2008-08-28) was used for the test. For simpler operations, the performance of H2 is about the same as for HSQLDB. For more complex queries, the query optimizer is very important. However H2 is not very fast in every case, certain kind of queries may still be slow. One situation where is H2 is slow is large result sets, because they are buffered to disk if more than a certain number of records are returned. The advantage of buffering is, there is no limit on the result set size. The open/close time is almost fixed, because of the file locking protocol: The engine waits 20 ms after opening a database to ensure the database files are not opened by another process.
+#Version 1.0.78 (2008-08-28) was used for the test. For simpler operations, the performance of H2 is about the same as for HSQLDB. For more complex queries, the query optimizer is very important. However H2 is not very fast in every case, certain kind of queries may still be slow. One situation where is H2 is slow is large result sets, because they are buffered to disk if more than a certain number of records are returned. The advantage of buffering is, there is no limit on the result set size. The open/close time is almost fixed, because of the file locking protocol: The engine waits some time after opening a database to ensure the database files are not opened by another process.
 
 @performance_1241_h4
 HSQLDB
@@ -6811,13 +6820,13 @@ HSQLDB
 #Version 1.8.0.10 was used for the test. Cached tables are used in this test (hsqldb.default_table_type=cached), and the write delay is 1 second (SET WRITE_DELAY 1). HSQLDB is fast when using simple operations. HSQLDB is very slow in the last test (BenchC: Transactions), probably because is has a bad query optimizer. One query where HSQLDB is slow is a two-table join:
 
 @performance_1243_p
-#The PolePosition benchmark also shows that the query optimizer does not do a very good job for some queries. A disadvantage in HSQLDB is the slow startup / shutdown time (currently not listed) when using bigger databases. The reason is, a backup of the database is created whenever the database is opened or closed.
+#The PolePosition benchmark also shows that the query optimizer does not do a very good job for some queries. Another disadvantage of HSQLDB is the slow startup / shutdown time (currently not listed) when using bigger databases. The reason is, a backup of the whole data is made whenever the database is opened or closed.
 
 @performance_1244_h4
 Derby
 
 @performance_1245_p
-#Version 10.4.2.0 was used for the test. Derby is clearly the slowest embedded database in this test. This seems to be a structural problem, because all operations are really slow. It will not be easy for the developers of Derby to improve the performance to a reasonable level. A few problems have been identified: Leaving autocommit on is a problem for Derby. If it is switched off during the whole test, the results are about 20% better for Derby. Derby supports a testing mode (system property derby.system.durability=test) where durability is disabled. According to the documentation, this setting should be used for testing only, as the database may not recover after a crash. Enabling this setting improves performance by a factor of 2.6 (embedded mode) or 1.4 (server mode). Even if enabled, Derby is still less than half as fast as H2 in default mode.
+#Version 10.4.2.0 was used for the test. Derby is clearly the slowest embedded database in this test. This seems to be a structural problem, because all operations are really slow. It will be hard for the developers of Derby to improve the performance to a reasonable level. A few problems have been identified: Leaving autocommit on is a problem for Derby. If it is switched off during the whole test, the results are about 20% better for Derby. Derby supports a testing mode (system property derby.system.durability=test) where durability is disabled. According to the documentation, this setting should be used for testing only, as the database may not recover after a crash. Enabling this setting improves performance by a factor of 2.6 (embedded mode) or 1.4 (server mode). Even if enabled, Derby is still less than half as fast as H2 in default mode.
 
 @performance_1246_h4
 PostgreSQL
@@ -6862,7 +6871,7 @@ MySQL
 #Comparing Embedded with Server Databases
 
 @performance_1260_p
-#This is mainly a benchmark for embedded databases (where the application runs in the same virtual machine than the database engine). However MySQL and PostgreSQL are not Java databases and cannot be embedded into a Java application. For the Java databases, both embedded and server modes are tested.
+#This is mainly a benchmark for embedded databases (where the application runs in the same virtual machine as the database engine). However MySQL and PostgreSQL are not Java databases and cannot be embedded into a Java application. For the Java databases, both embedded and server modes are tested.
 
 @performance_1261_h4
 #Test Platform
@@ -6880,7 +6889,7 @@ MySQL
 #Memory Usage
 
 @performance_1266_p
-#It is not enough to measure the time taken, the memory usage is important as well. Performance can be improved in databases by using a bigger in-memory cache, but there is only a limited amount of memory available on the system. HSQLDB tables are kept fully in memory by default; this benchmark uses 'disk based' tables for all databases. Unfortunately, it is not so easy to calculate the memory usage of PostgreSQL and MySQL, because they run in a different process than the test. This benchmark currently does not print memory usage of those databases.
+#It is not enough to measure the time taken, the memory usage is important as well. Performance can be improved by using a bigger cache, but the amount of memory is limited. HSQLDB tables are kept fully in memory by default; this benchmark uses 'disk based' tables for all databases. Unfortunately, it is not so easy to calculate the memory usage of PostgreSQL and MySQL, because they run in a different process than the test. This benchmark currently does not print memory usage of those databases.
 
 @performance_1267_h4
 #Delayed Operations
@@ -6904,7 +6913,7 @@ MySQL
 #Currently Not Tested: Startup Time
 
 @performance_1274_p
-#The startup time of a database engine is important as well for embedded use. This time is not measured currently. Also, not tested is the time used to create a database and open an existing database. Here, one (wrapper) connection is opened at the start, and for each step a new connection is opened and then closed. That means the Open/Close time listed is for opening a connection if the database is already in use.
+#The startup time of a database engine is important as well for embedded use. This time is not measured currently. Also, not tested is the time used to create a database and open an existing database. Here, one (wrapper) connection is opened at the start, and for each step a new connection is opened and then closed.
 
 @performance_1275_h2
 #PolePosition Benchmark
@@ -8559,13 +8568,19 @@ SQLコマンドがコマンドエリアに表示されます。
 @roadmap_1377_li
 #Java Service Wrapper: try http://yajsw.sourceforge.net/
 
-@roadmap_1378_h2
-#Not Planned
+@roadmap_1378_li
+#Batch parameter for INSERT, UPDATE, and DELETE, and commit after each batch. See also MySQL DELETE.
 
 @roadmap_1379_li
-#HSQLDB (did) support this: select id i from test where i>0 (other databases don't). Supporting it may break compatibility.
+#MySQL compatibility: support ALTER TABLE .. MODIFY COLUMN.
 
-@roadmap_1380_li
+@roadmap_1380_h2
+#Not Planned
+
+@roadmap_1381_li
+#HSQLDB (did) support this: select id i from test where i&lt;0 (other databases don't). Supporting it may break compatibility.
+
+@roadmap_1382_li
 #String.intern (so that Strings can be compared with ==) will not be used because some VMs have problems when used extensively.
 
 @search_1000_b

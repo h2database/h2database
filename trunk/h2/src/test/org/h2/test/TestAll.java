@@ -131,6 +131,7 @@ import org.h2.test.unit.TestTools;
 import org.h2.test.unit.TestValue;
 import org.h2.test.unit.TestValueHashMap;
 import org.h2.test.unit.TestValueMemory;
+import org.h2.test.utils.OutputCatcher;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
 import org.h2.util.MemoryUtils;
@@ -271,6 +272,13 @@ java org.h2.test.TestAll timer
      * @param args the command line arguments
      */
     public static void main(String[] args) throws Exception {
+        OutputCatcher catcher = OutputCatcher.start();
+        run(args);
+        catcher.stop();
+        catcher.writeTo("Test Output", "docs/html/testOutput.html");
+    }
+
+    private static void run(String[] args) throws Exception {
         SelfDestructor.startCountdown(6 * 60);
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
@@ -282,12 +290,10 @@ java org.h2.test.TestAll timer
 
 /*
 
-copies db problems
+test shell tool on windows with special characters, try with
+java -Dfile.encoding=UTF-8
 
-auto-build: newsfeed for results
 auto-build: prepare release
-
-new ftp password
 
 pool: change default login timeout to 15 min
 
@@ -677,7 +683,7 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
 
     private void printSystem() {
         Properties prop = System.getProperties();
-        System.out.println("H2 " + Constants.getFullVersion());
+        System.out.println("H2 " + Constants.getFullVersion() + " @ " + new java.sql.Timestamp(System.currentTimeMillis()).toString());
         System.out.println("Java " +
                 prop.getProperty("java.runtime.version") + ", " +
                 prop.getProperty("java.vm.name")+", " +

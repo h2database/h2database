@@ -370,14 +370,14 @@ public abstract class TestBase {
         if (e == null) {
             e = new Exception(s);
         }
-        System.out.println("ERROR: " + s + " " + e.toString() + " ------------------------------");
         System.out.flush();
+        System.err.println("ERROR: " + s + " " + e.toString() + " ------------------------------");
         e.printStackTrace();
         try {
             TraceSystem ts = new TraceSystem(null, false);
             FileLock lock = new FileLock(ts, "error.lock", 1000);
             lock.lock(FileLock.LOCK_FILE);
-            FileWriter fw = new FileWriter("ERROR.txt", true);
+            FileWriter fw = new FileWriter("error.txt", true);
             PrintWriter pw = new PrintWriter(fw);
             e.printStackTrace(pw);
             pw.close();

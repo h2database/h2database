@@ -409,11 +409,12 @@ Of course, patches are always welcome, but are not always applied as is. Patches
 </li><li>Allow to scan index backwards starting with a value (to better support ORDER BY DESC).
 </li><li>Java Service Wrapper: try http://yajsw.sourceforge.net/
 </li><li>Batch parameter for INSERT, UPDATE, and DELETE, and commit after each batch. See also MySQL DELETE.
+</li><li>MySQL compatibility: support ALTER TABLE .. MODIFY COLUMN.
 </li></ul>
 
 <h2>Not Planned</h2>
 <ul>
-<li>HSQLDB (did) support this: select id i from test where i>0 (other databases don't). Supporting it may break compatibility.
+<li>HSQLDB (did) support this: select id i from test where i&lt;0 (other databases don't). Supporting it may break compatibility.
 </li><li>String.intern (so that Strings can be compared with ==) will not be used because some VMs have problems when used extensively.
 </li></ul>
 

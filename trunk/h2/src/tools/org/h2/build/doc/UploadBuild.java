@@ -69,7 +69,6 @@ public class UploadBuild {
         if (password == null) {
             return;
         }
-
         FtpClient ftp = FtpClient.open("h2database.com");
         ftp.login("h2database", password);
         ftp.changeWorkingDirectory("/httpdocs");
@@ -77,10 +76,8 @@ public class UploadBuild {
             ftp.removeDirectoryRecursive("/httpdocs/coverage");
         }
         ftp.makeDirectory("/httpdocs/coverage");
-
         String testOutput = IOUtils.readStringAndClose(new FileReader("docs/html/testOutput.html"), -1);
         boolean error = testOutput.indexOf(OutputCatcher.START_ERROR) >= 0;
-
         if (!ftp.exists("/httpdocs", "automated")) {
             ftp.makeDirectory("/httpdocs/automated");
         }
@@ -96,11 +93,10 @@ public class UploadBuild {
             "', '" + ts + "', '<a href=\"http://www.h2database.com/html/testOutput.html\">Output</a>" +
             " - <a href=\"http://www.h2database.com/coverage/overview.html\">Coverage</a>');\n";
         buildSql += sql;
-
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:");
         RunScript.execute(conn, new StringReader(buildSql));
-        InputStream in = UploadBuild.class.getResourceAsStream("buildNewsfeed.sql");
+        InputStream in = new FileInputStream("tools/org/h2/build/doc/buildNewsfeed.sql");
         ResultSet rs = RunScript.execute(conn, new InputStreamReader(in, "ISO-8859-1"));
         in.close();
         rs.next();
@@ -108,7 +104,6 @@ public class UploadBuild {
         conn.close();
         ftp.store("/httpdocs/automated/history.sql", new ByteArrayInputStream(buildSql.getBytes()));
         ftp.store("/httpdocs/automated/newsfeed.xml", new ByteArrayInputStream(content.getBytes()));
-
         ftp.store("/httpdocs/html/testOutput.html", new ByteArrayInputStream(testOutput.getBytes()));
         ftp.store("/httpdocs/coverage/overview.html", new FileInputStream("coverage/overview.html"));
         ftp.store("/httpdocs/coverage/coverage.zip", new FileInputStream("coverage.zip"));

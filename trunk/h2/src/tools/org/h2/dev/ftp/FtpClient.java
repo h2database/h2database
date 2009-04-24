@@ -76,18 +76,22 @@ public class FtpClient {
                     message = message.substring(idx + 1);
                 }
             }
-            if (message.equals("Quotas off")) {
-                continue;
-            }
             break;
         }
     }
 
-    private void readCode(int expected) throws IOException {
+    private void readCode(int optional, int expected) throws IOException {
         readLine();
-        if (code != expected) {
-            throw new IOException("Expected: " + expected + " got: " + message);
+        if (code == optional) {
+            readLine();
         }
+        if (code != expected) {
+            throw new IOException("Expected: " + expected + " got: " + code + " " + message);
+        }
+    }
+
+    private void readCode(int expected) throws IOException {
+        readCode(-1, expected);
     }
 
     private void send(String command) {
@@ -152,7 +156,7 @@ public class FtpClient {
      */
     void delete(String fileName) throws IOException {
         send("DELE " + fileName);
-        readCode(250);
+        readCode(226, 250);
     }
 
     /**
@@ -162,7 +166,7 @@ public class FtpClient {
      */
     public void makeDirectory(String dir) throws IOException {
         send("MKD " + dir);
-        readCode(257);
+        readCode(226, 257);
     }
 
     /**
@@ -220,7 +224,7 @@ public class FtpClient {
 
     private void passive() throws IOException {
         send("PASV");
-        readCode(227);
+        readCode(226, 227);
         int first = message.indexOf('(') + 1;
         int last = message.indexOf(')');
         String[] address = StringUtils.arraySplit(message.substring(first, last), ',', true);
@@ -253,6 +257,18 @@ public class FtpClient {
     }
 
     /**
+     * Read a file.
+     *
+     * @param fileName the file name
+     * @return the content, null if the file doesn't exist
+     */
+    public byte[] retrieve(String fileName) throws IOException {
+        ByteArrayOutputStream buff = new ByteArrayOutputStream();
+        retrieve(fileName, buff, 0);
+        return buff.toByteArray();
+    }
+
+    /**
      * Read a file ([REST] RETR).
      *
      * @param fileName the file name
@@ -267,7 +283,7 @@ public class FtpClient {
         }
         send("RETR " + fileName);
         IOUtils.copyAndClose(inData, out);
-        readCode(226);
+        readCode(150, 226);
     }
 
     /**
@@ -277,7 +293,7 @@ public class FtpClient {
      */
     public void removeDirectory(String dir) throws IOException {
         send("RMD " + dir);
-        readCode(250);
+        readCode(226, 250);
     }
 
     /**

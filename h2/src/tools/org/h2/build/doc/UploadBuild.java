@@ -96,7 +96,7 @@ public class UploadBuild {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:");
         RunScript.execute(conn, new StringReader(buildSql));
-        InputStream in = new FileInputStream("tools/org/h2/build/doc/buildNewsfeed.sql");
+        InputStream in = new FileInputStream("src/tools/org/h2/build/doc/buildNewsfeed.sql");
         ResultSet rs = RunScript.execute(conn, new InputStreamReader(in, "ISO-8859-1"));
         in.close();
         rs.next();

@@ -58,7 +58,7 @@ public class RunScript extends Tool {
      * <tr><td>[-checkResults]</td>
      * <td>Check if the query results match the expected results</td></tr>
      * <tr><td>[-options ...]</td>
-     * <td>A list of options (only for embedded H2, see RUNSCRIPT; incompatible with -*Results)</td></tr>
+     * <td>RUNSCRIPT options (embedded H2; -*Results not supported)</td></tr>
      * </table>
      * @h2.resource
      *

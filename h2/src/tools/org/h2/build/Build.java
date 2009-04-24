@@ -112,20 +112,6 @@ public class Build extends BuildBase {
     }
 
     /**
-     * Upload the Emma code coverage results to the web site.
-     */
-    public void coverageUpload() {
-        String password = System.getProperty("h2.ftpPassword");
-        if (password == null) {
-            throw new Error("h2.ftpPassword not set");
-        }
-        String cp = "temp" + File.pathSeparator + "bin";
-        exec("java", new String[] { "-Xmx128m", "-cp", cp,
-                "-Dh2.ftpPassword=" + password,
-                "org.h2.build.doc.UploadCoverage" });
-    }
-
-    /**
      * Switch the source code to the current JDK.
      */
     public void switchSource() {
@@ -555,6 +541,22 @@ public class Build extends BuildBase {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * This build target is used for the automated build. It copies the result
+     * of the automated build (including test results, newsfeed, code coverage)
+     * to the public web site.
+     */
+    public void uploadBuild() {
+        String password = System.getProperty("h2.ftpPassword");
+        if (password == null) {
+            throw new Error("h2.ftpPassword not set");
+        }
+        String cp = "bin" + File.pathSeparator + "temp";
+        exec("java", new String[] { "-Xmx128m", "-cp", cp,
+                "-Dh2.ftpPassword=" + password,
+                "org.h2.build.doc.UploadBuild" });
     }
 
     /**

@@ -64,7 +64,7 @@ import org.h2.message.Message;
  */
 public class JdbcConnectionPool implements DataSource {
 
-    private static final int DEFAULT_TIMEOUT = 60;
+    private static final int DEFAULT_TIMEOUT = 5 * 60;
 
     private final ConnectionPoolDataSource dataSource;
     private final Stack recycledConnections = new Stack();
@@ -145,7 +145,7 @@ public class JdbcConnectionPool implements DataSource {
 
     /**
      * Sets the maximum time in seconds to wait for a free connection.
-     * The default timeout is 60 seconds. Calling this method with the
+     * The default timeout is 5 minutes. Calling this method with the
      * value 0 will set the timeout to the default value.
      *
      * @param seconds the timeout, 0 meaning the default

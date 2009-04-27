@@ -187,6 +187,7 @@ public class Build extends BuildBase {
         java("org.h2.build.doc.LinkChecker", null);
         java("org.h2.build.doc.XMLChecker", null);
         java("org.h2.build.doc.SpellChecker", null);
+        java("org.h2.build.code.CheckTextFiles", null);
         beep();
     }
 

@@ -295,13 +295,14 @@ java -Dfile.encoding=UTF-8
 
 auto-build: prepare release
 
-pool: change default login timeout to 15 min
-
-automated tests: code coverage
-
+documentation: rolling review at grammar.html: SELECT
 documentation: rolling review at functions.html: start
-documentation: rolling review at grammar.html: start
-documentation: rolling review at performance.html: 303
+documentation: rolling review at roadmap.html: done
+
+checksum for downloads
+
+lazy file input stream
+auto close input stream
 
 create a short 4 pages documentation
 

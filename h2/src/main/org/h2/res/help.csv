@@ -4,7 +4,7 @@
 # Initial Developer: H2 Group
 "SECTION","TOPIC","SYNTAX","TEXT","EXAMPLE"
 "Commands (DML)","SELECT","
-{SELECT selectPart FROM fromPart|FROM fromPart SELECT selectPart}
+{SELECT selectPart FROM fromPart | FROM fromPart SELECT selectPart}
 [WHERE expression]
 [GROUP BY expression [,...]]
 [HAVING expression]
@@ -14,8 +14,9 @@
 [FOR UPDATE]
 ","
 Selects data from a table or multiple tables.
-If a sample size is specified, this limits the number of rows read for aggregate queries.
-If FOR UPDATE is specified, the tables are locked for writing.
+LIMIT limits the number of rows returned by the query, OFFSET specified how
+many rows to skip. SAMPLE_SIZE limits the number of rows read for aggregate
+queries. If FOR UPDATE is specified, the tables are locked for writing.
 ","
 SELECT * FROM TEST
 "
@@ -660,24 +661,6 @@ This command commits an open transaction.
 TRUNCATE TABLE TEST
 "
 
-"Commands (Other)","COMMIT","
-COMMIT [WORK]
-","
-Commits a transaction.
-","
-COMMIT
-"
-
-"Commands (Other)","COMMIT TRANSACTION","
-COMMIT TRANSACTION transactionName
-","
-Sets the resolution of an in-doubt transaction to 'commit'.
-Admin rights are required to execute this command.
-This command is part of the 2-phase-commit protocol.
-","
-COMMIT TRANSACTION XID_TEST
-"
-
 "Commands (Other)","CHECKPOINT","
 CHECKPOINT
 ","
@@ -694,6 +677,24 @@ Flushes the log, data and index files and forces all system buffers be written t
 Admin rights are required to execute this command.
 ","
 CHECKPOINT SYNC
+"
+
+"Commands (Other)","COMMIT","
+COMMIT [WORK]
+","
+Commits a transaction.
+","
+COMMIT
+"
+
+"Commands (Other)","COMMIT TRANSACTION","
+COMMIT TRANSACTION transactionName
+","
+Sets the resolution of an in-doubt transaction to 'commit'.
+Admin rights are required to execute this command.
+This command is part of the 2-phase-commit protocol.
+","
+COMMIT TRANSACTION XID_TEST
 "
 
 "Commands (Other)","GRANT RIGHT","
@@ -1099,6 +1100,15 @@ This setting can be appended to the database URL: jdbc:h2:test;OPTIMIZE_REUSE_RE
 SET OPTIMIZE_REUSE_RESULTS 0
 "
 
+"Commands (Other)","SET PASSWORD","
+SET PASSWORD string
+","
+Changes the password of the current user.
+The password must be in single quotes. It is case sensitive and can contain spaces.
+","
+SET PASSWORD 'abcstzri!.5'
+"
+
 "Commands (Other)","SET QUERY_TIMEOUT","
 SET QUERY_TIMEOUT int
 ","
@@ -1109,15 +1119,6 @@ The default timeout is 0, meaning no timeout.
 This command does not commit a transaction, and rollback does not affect it.
 ","
 SET QUERY_TIMEOUT 10000
-"
-
-"Commands (Other)","SET PASSWORD","
-SET PASSWORD string
-","
-Changes the password of the current user.
-The password must be in single quotes. It is case sensitive and can contain spaces.
-","
-SET PASSWORD 'abcstzri!.5'
 "
 
 "Commands (Other)","SET REFERENTIAL_INTEGRITY","
@@ -1182,6 +1183,7 @@ SET {TRACE_LEVEL_FILE | TRACE_LEVEL_SYSTEM_OUT} int
 ","
 Sets the trace level for file the file or system out stream.
 Levels are: 0=off, 1=error, 2=info, 3=debug.
+The default level is 1 for file and 0 for system out.
 This setting is not persistent.
 Admin rights are required to execute this command.
 This command does not commit a transaction, and rollback does not affect it.
@@ -1221,7 +1223,7 @@ SET UNDO_LOG 0
 SET WRITE_DELAY int
 ","
 Set the maximum delay between a commit and flushing the log, in milliseconds.
-This setting is persistent.
+This setting is persistent. The default is 500 ms.
 Admin rights are required to execute this command.
 This setting can be appended to the database URL: jdbc:h2:test;WRITE_DELAY=0
 ","

@@ -304,17 +304,14 @@ Unfortunately, the PolePosition test does not take this into account.
 
 <h3>Analyze First</h3>
 <p>
-Before trying to optimize the performance, it is important to know where the time is actually spent.
-The same is true for memory problems.
-Premature or 'blind' optimization should be avoided, as it is not an efficient way to solve the problem.
-There are various ways to analyze the application. In some situations it is possible to
-compare two implementations and use System.currentTimeMillis() to find out which one is faster.
-But this does not work for complex applications with many modules, and for memory problems.
+Before trying to optimize performance, it is important to understand where the problem is (what part of the application is slow).
+Blind optimization or optimization based on guesses should be avoided, because usually it is not an efficient strategy.
+There are various ways to analyze an application. Sometimes two implementations can be compared using
+System.currentTimeMillis(). But this does not work for complex applications with many modules, and for memory problems.
 </p>
 <p>
-A very good tool to measure both the memory and the CPU is the
-<a href="http://www.yourkit.com">YourKit Java Profiler</a>. This tool is also used
-to optimize the performance and memory footprint of this database engine.
+A good tool to measure both memory usage and performance is the
+<a href="http://www.yourkit.com">YourKit Java Profiler</a>.
 </p>
 <p>
 A simple way to profile an application is to use the built-in profiling tool of java. Example:
@@ -323,7 +320,10 @@ A simple way to profile an application is to use the built-in profiling tool of 
 java -Xrunhprof:cpu=samples,depth=16 com.acme.Test
 </pre>
 <p>
-Unfortunately, it is only possible to profile the application from start to end.
+Unfortunately, it is only possible to profile the application from start to end. Another solution is to create
+a number of full thread dumps. To do that, first run <code>jps -l</code> to get the process id, and then
+run <code>jstack &lt;pid&gt;</code> or <code>kill -QUIT &lt;pid&gt;</code> (Linux) or press
+Ctrl+C (Windows).
 </p>
 
 <br /><a name="database_profiling"></a>
@@ -375,7 +375,7 @@ It is very important for performance that database files are not scanned for vir
 The database engine does never interprets the data stored in the files as programs,
 that means even if somebody would store a virus in a database file, this would
 be harmless (when the virus does not run, it cannot spread).
-Some virus scanners allow excluding file endings. Make sure files ending with .db are not scanned.
+Some virus scanners allow to exclude files by suffix. Make sure files ending with .db are not scanned.
 </p>
 
 <h3>Using the Trace Options</h3>
@@ -393,7 +393,8 @@ This database uses indexes to improve the performance of SELECT, UPDATE and DELE
 If a column is used in the WHERE clause of a query, and if an index exists on this column,
 then the index can be used. Multi-column indexes are used if all or the first columns of the index are used.
 Both equality lookup and range scans are supported.
-Indexes are not used to order result sets: The results are sorted in memory if required.
+Indexes are used to order result sets, but only if the condition uses the same index or no index at all.
+The results are sorted in memory if required.
 Indexes are created automatically for primary key and unique constraints.
 Indexes are also created for foreign key constraints, if required.
 For other columns, indexes need to be created manually using the CREATE INDEX statement.

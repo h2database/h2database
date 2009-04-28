@@ -1171,7 +1171,7 @@ Centralリポジトリの利用
 #Connection pool: the default login timeout is now 5 minutes.
 
 @changelog_1003_li
-#After truncating tables, opening large databases could become slow  because indexes are always re-built unnecessarily when opening.
+#After truncating tables, opening large databases could become slow  because indexes were always re-built unnecessarily when opening.
 
 @changelog_1004_li
 #More bugs in the server-less multi-connection mode have been fixed:  Sometimes parameters of prepared statements were lost when a reconnecting.  Concurrent read operations were slow.  To improve performance, executeQuery(..) must be used for queries  (execute(..) switches to the write mode, which is slow).

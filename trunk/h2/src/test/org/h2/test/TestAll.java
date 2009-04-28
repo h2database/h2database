@@ -295,8 +295,6 @@ java -Dfile.encoding=UTF-8
 
 auto-build: prepare release
 
-documentation: rolling review at grammar.html: SELECT
-documentation: rolling review at functions.html: start
 documentation: rolling review at roadmap.html: done
 
 checksum for downloads

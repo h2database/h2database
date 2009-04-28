@@ -141,12 +141,14 @@ public class GenerateDoc {
                 map.put("syntax", syntax);
 
                 // remove newlines in the regular text
-                // currently this looks bad (no paragraphs, no lists)
-                // String text = (String) map.get("text");
-                // if (text != null) {
-                //    text = StringUtils.replaceAll(text, "<br />", " ");
-                //    map.put("text", text);
-                // }
+                String text = (String) map.get("text");
+                if (text != null) {
+                    text = text.trim();
+                    // text is enclosed in <p> .. </p> so this works.
+                    text = StringUtils.replaceAll(text, "<br /><br />", "</p><p>");
+                    text = StringUtils.replaceAll(text, "<br />", " ");
+                    map.put("text", text);
+                }
 
                 String link = topic.toLowerCase();
                 link = StringUtils.replaceAll(link, " ", "");

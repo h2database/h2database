@@ -119,6 +119,10 @@ public class H2Platform extends DatabasePlatform {
         return false;
     }
 
+    public boolean supportsSequenceObjects() {
+        return true;
+    }
+
     public boolean supportsIdentity() {
         return true;
     }

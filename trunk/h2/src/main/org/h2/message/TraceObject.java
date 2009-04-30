@@ -417,7 +417,8 @@ public class TraceObject {
      * INTERNAL
      */
     public static String toString(String sql, ObjectArray params) {
-        StringBuffer buff = new StringBuffer(sql);
+        StringBuffer buff = new StringBuffer();
+        buff.append(sql);
         if (params != null && params.size() > 0) {
             buff.append(" {");
             for (int i = 0; i < params.size(); i++) {
@@ -429,7 +430,7 @@ public class TraceObject {
                     buff.append(": ");
                     ParameterInterface p = (ParameterInterface) params.get(i);
                     if (p == null || p.getParamValue() == null) {
-                        buff.append("unset");
+                        buff.append("-");
                     } else {
                         buff.append(p.getParamValue().getSQL());
                     }

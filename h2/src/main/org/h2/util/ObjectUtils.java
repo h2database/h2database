@@ -26,7 +26,7 @@ public class ObjectUtils {
      * found by running tests using the Sun JDK 1.4 and JDK 1.6 on Windows XP.
      * The biggest difference is for size smaller than 40 (more than 50% saving).
      */
-    private static final int MAX_JAVA_LOOP_COPY = 100;
+    private static final int MAX_JAVA_LOOP_COPY = 50;
 
     private ObjectUtils() {
         // utility class

@@ -28,6 +28,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Page store: new storage mechanism
 </li><li>[Requires page store] Support large updates (use the transaction log to undo).
 </li><li>[Requires page store] Shutdown compact
+</li><li>Optimize IN(...) for SELECT, DELETE, and UPDATE.
 </li><li>More tests with MULTI_THREADED=1
 </li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
 </li><li>Optimization: result set caching (like MySQL)
@@ -37,7 +38,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 <h2>Priority 2</h2>
 <ul>
 <li>Improve test code coverage
-</li><li>Optimize IN(...) for DELETE and UPDATE.
 </li><li>Procedural language / script language (Java, Javascript)
 </li><li>Fulltext search: support streaming CLOB data.
 </li><li>Optimize .. OR .. to IN(..) or UNION if the cost is lower
@@ -180,8 +180,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Make sure H2 is supported by Execute Query: http://executequery.org/
 </li><li>Read InputStream when executing, as late as possible (maybe only embedded mode). Problem with re-execute.
 </li><li>Native fulltext search: min word length; store word positions
-</li><li>FTP Server: Implement a client to send / receive files to server (dir, get, put)
-</li><li>FTP Server: Implement SFTP / FTPS
+</li><li>Recursive Queries (see details)
 </li><li>Add an option to the SCRIPT command to generate only portable / standard SQL
 </li><li>Test Dezign for Databases (http://www.datanamic.com)
 </li><li>Fast library for parsing / formatting: http://javolution.org/
@@ -208,7 +207,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support Sequoia (Continuent.org)
 </li><li>Dynamic length numbers / special methods for DataPage.writeByte / writeShort / Ronni Nielsen
 </li><li>Pluggable ThreadPool, (AvalonDB / deebee / Paul Hammant)
-</li><li>Recursive Queries (see details)
 </li><li>Release locks (shared or exclusive) on demand
 </li><li>Support OUTER UNION
 </li><li>Support parameterized views (similar to CSVREAD, but using just SQL for the definition)
@@ -270,6 +268,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimization: don't lock when the database is read-only
 </li><li>Integrate spatial functions from http://geosysin.iict.ch/irstv-trac/wiki/H2spatial/Download
 </li><li>Support COSH, SINH, and TANH functions
+</li><li>FTP Server: Implement SFTP / FTPS
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
 </li><li>Improve documentation of access rights
 </li><li>Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others)
@@ -411,6 +410,11 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Java Service Wrapper: try http://yajsw.sourceforge.net/
 </li><li>Batch parameter for INSERT, UPDATE, and DELETE, and commit after each batch. See also MySQL DELETE.
 </li><li>MySQL compatibility: support ALTER TABLE .. MODIFY COLUMN.
+</li><li>Use a lazy and auto-close input stream (open resource when reading, close on eof).
+</li><li>PostgreSQL compatibility: generate_series.
+</li><li>Connection pool: 'reset session' command (delete temp tables, rollback, autocommit true).
+</li><li>Improve SQL documentation, see http://www.w3schools.com/sql/
+</li><li>MySQL compatibility: DatabaseMetaData.stores*() methods should return the same values. Test with SquirrelSQL.
 </li></ul>
 
 <h2>Not Planned</h2>

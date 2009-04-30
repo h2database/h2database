@@ -16,7 +16,10 @@ LIMIT limits the number of rows returned by the query, OFFSET specified how many
 rows to skip. SAMPLE_SIZE limits the number of rows read for aggregate queries.
 If FOR UPDATE is specified, the tables are locked for writing.
 ","
-SELECT * FROM TEST
+SELECT * FROM TEST;
+SELECT * FROM (SELECT ID, COUNT(*) FROM TEST
+    GROUP BY ID UNION SELECT NULL, COUNT(*) FROM TEST)
+    ORDER BY 1 NULLS LAST;
 "
 
 "Commands (DML)","INSERT","
@@ -921,19 +924,23 @@ SET IGNORECASE TRUE
 "Commands (Other)","SET LOCK_MODE","
 SET LOCK_MODE int
 ","
-Sets the lock mode. The values 0, 1, 2, and 3 are supported.
+Sets the lock mode. The values 0, 1, 2, and 3 are supported. The default is 3
+(READ_COMMITTED).
 
 The value 0 means no locking (should only be used for testing; also known as
-READ_UNCOMMITTED). The value 1 means table level locking (also known as
-SERIALIZABLE). The value 2 means table level locking with garbage collection (if
-the application does not close all connections). The value 3 means table level
-locking, but read locks are released immediately (default; also known as
-READ_COMMITTED).
+READ_UNCOMMITTED). Please note that using SET LOCK_MODE 0 while at the same time
+using multiple connections may result in inconsistent transactions.
 
-This setting is not persistent. Please note that using SET LOCK_MODE 0 while at
-the same time using multiple connections may result in inconsistent
-transactions. Admin rights are required to execute this command. This setting
-can be appended to the database URL: jdbc:h2:test;LOCK_MODE=3
+The value 1 means table level locking (also known as SERIALIZABLE).
+
+The value 2 means table level locking with garbage collection (if the
+application does not close all connections).
+
+The value 3 means table level locking, but read locks are released immediately
+(default; also known as READ_COMMITTED).
+
+This setting is persistent. Admin rights are required to execute this command.
+This setting can be appended to the database URL: jdbc:h2:test;LOCK_MODE=3
 ","
 SET LOCK_MODE 1
 "

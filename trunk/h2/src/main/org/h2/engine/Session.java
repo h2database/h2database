@@ -100,6 +100,7 @@ public class Session extends SessionWithState {
     private Table waitForLock;
     private int modificationId;
     private int modificationIdState;
+    private int objectId;
 
     Session(Database database, User user, int id) {
         this.database = database;
@@ -1145,6 +1146,15 @@ public class Session extends SessionWithState {
             return ValueNull.INSTANCE;
         }
         return ValueString.get(firstUncommittedLog+"-" + firstUncommittedPos + "-" + id);
+    }
+
+    /**
+     * Get the next object id.
+     *
+     * @return the next object id
+     */
+    public int nextObjectId() {
+        return objectId++;
     }
 
 }

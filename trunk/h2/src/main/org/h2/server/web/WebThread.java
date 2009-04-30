@@ -1508,10 +1508,8 @@ class WebThread extends Thread implements DatabaseEventListener {
             rs.addRow(new String[] { "meta.isReadOnly", "" + meta.isReadOnly() });
             rs.addRow(new String[] { "meta.allProceduresAreCallable", "" + meta.allProceduresAreCallable() });
             rs.addRow(new String[] { "meta.allTablesAreSelectable", "" + meta.allTablesAreSelectable() });
-            rs.addRow(new String[] { "meta.dataDefinitionCausesTransactionCommit",
-                    "" + meta.dataDefinitionCausesTransactionCommit() });
-            rs.addRow(new String[] { "meta.dataDefinitionIgnoredInTransactions",
-                    "" + meta.dataDefinitionIgnoredInTransactions() });
+            rs.addRow(new String[] { "meta.dataDefinitionCausesTransactionCommit", "" + meta.dataDefinitionCausesTransactionCommit() });
+            rs.addRow(new String[] { "meta.dataDefinitionIgnoredInTransactions", "" + meta.dataDefinitionIgnoredInTransactions() });
             rs.addRow(new String[] { "meta.doesMaxRowSizeIncludeBlobs", "" + meta.doesMaxRowSizeIncludeBlobs() });
             rs.addRow(new String[] { "meta.nullPlusNonNullIsNull", "" + meta.nullPlusNonNullIsNull() });
             rs.addRow(new String[] { "meta.nullsAreSortedAtEnd", "" + meta.nullsAreSortedAtEnd() });
@@ -1519,18 +1517,13 @@ class WebThread extends Thread implements DatabaseEventListener {
             rs.addRow(new String[] { "meta.nullsAreSortedHigh", "" + meta.nullsAreSortedHigh() });
             rs.addRow(new String[] { "meta.nullsAreSortedLow", "" + meta.nullsAreSortedLow() });
             rs.addRow(new String[] { "meta.storesLowerCaseIdentifiers", "" + meta.storesLowerCaseIdentifiers() });
-            rs.addRow(new String[] { "meta.storesLowerCaseQuotedIdentifiers",
-                    "" + meta.storesLowerCaseQuotedIdentifiers() });
+            rs.addRow(new String[] { "meta.storesLowerCaseQuotedIdentifiers", "" + meta.storesLowerCaseQuotedIdentifiers() });
             rs.addRow(new String[] { "meta.storesMixedCaseIdentifiers", "" + meta.storesMixedCaseIdentifiers() });
-            rs.addRow(new String[] { "meta.storesMixedCaseQuotedIdentifiers",
-                    "" + meta.storesMixedCaseQuotedIdentifiers() });
+            rs.addRow(new String[] { "meta.storesMixedCaseQuotedIdentifiers", "" + meta.storesMixedCaseQuotedIdentifiers() });
             rs.addRow(new String[] { "meta.storesUpperCaseIdentifiers", "" + meta.storesUpperCaseIdentifiers() });
-            rs.addRow(new String[] { "meta.storesUpperCaseQuotedIdentifiers",
-                    "" + meta.storesUpperCaseQuotedIdentifiers() });
-            rs.addRow(new String[] { "meta.supportsAlterTableWithAddColumn",
-                    "" + meta.supportsAlterTableWithAddColumn() });
-            rs.addRow(new String[] { "meta.supportsAlterTableWithDropColumn",
-                    "" + meta.supportsAlterTableWithDropColumn() });
+            rs.addRow(new String[] { "meta.storesUpperCaseQuotedIdentifiers", "" + meta.storesUpperCaseQuotedIdentifiers() });
+            rs.addRow(new String[] { "meta.supportsAlterTableWithAddColumn", "" + meta.supportsAlterTableWithAddColumn() });
+            rs.addRow(new String[] { "meta.supportsAlterTableWithDropColumn", "" + meta.supportsAlterTableWithDropColumn() });
             rs.addRow(new String[] { "meta.supportsANSI92EntryLevelSQL", "" + meta.supportsANSI92EntryLevelSQL() });
             rs.addRow(new String[] { "meta.supportsANSI92FullSQL", "" + meta.supportsANSI92FullSQL() });
             rs.addRow(new String[] { "meta.supportsANSI92IntermediateSQL", "" + meta.supportsANSI92IntermediateSQL() });

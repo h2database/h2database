@@ -242,7 +242,8 @@ public class AlterTableAlterColumn extends SchemaCommand {
         int id = db.allocateObjectId(true, true);
         TableData newTable = getSchema().createTable(tempName, id, newColumns, table.isPersistIndexes(), table.isPersistData(), false, Index.EMPTY_HEAD);
         newTable.setComment(table.getComment());
-        StringBuffer buff = new StringBuffer(newTable.getCreateSQL());
+        StringBuffer buff = new StringBuffer();
+        buff.append(newTable.getCreateSQL());
         StringBuffer columnList = new StringBuffer();
         for (int i = 0; i < newColumns.size(); i++) {
             Column nc = (Column) newColumns.get(i);

@@ -67,6 +67,7 @@ public class TableFilter implements ColumnResolver {
     private ObjectArray naturalJoinColumns;
     private boolean foundOne;
     private Expression fullCondition;
+    private final int hashCode;
 
     /**
      * Create a new table filter object.
@@ -86,6 +87,7 @@ public class TableFilter implements ColumnResolver {
         if (!rightsChecked) {
             session.getUser().checkRight(table, Right.SELECT);
         }
+        hashCode = session.nextObjectId();
     }
 
     public Select getSelect() {
@@ -752,6 +754,10 @@ public class TableFilter implements ColumnResolver {
      */
     public boolean isNaturalJoinColumn(Column c) {
         return naturalJoinColumns != null && naturalJoinColumns.indexOf(c) >= 0;
+    }
+
+    public int hashCode() {
+        return hashCode;
     }
 
 }

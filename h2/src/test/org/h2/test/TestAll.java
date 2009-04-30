@@ -290,6 +290,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+test case for running out of disk space (using a special file system)
+
 test shell tool on windows with special characters, try with
 java -Dfile.encoding=UTF-8
 
@@ -297,73 +299,20 @@ auto-build: prepare release
 
 documentation: rolling review at roadmap.html: done
 
-checksum for downloads
-
-lazy file input stream
-auto close input stream
-
-create a short 4 pages documentation
-
-documentation: how can you improve performance (group of settings)
+create a short documentation
 
 test performance with log=2
 
-postgresql generate_series?
-
 multithreaded kernel
+
 remove old TODO
-
-Check JBoss and Spring support models
-http://wiki.bonita.ow2.org/xwiki/bin/view/Main/BullOffer
-- starting 2500 euros / year
-- unlimited support requests
-- 2 named contacts
-- optional half days of technical aid by remote services
-
-auto_reconnect
-implemented:
-- auto_server includes auto_reconnect
-- works with server mode
-- works with auto_server mode
-- keep temporary linked tables, variables on client
-- statements
-- prepared statements
-- small result sets (up to fetch size)
-- throws an error when autocommit is false
-- an error is thrown when the connection is lost
-    while looping over large result sets (larger than fetch size)
-not implemented / not tested
-- batch updates
-- ignored in embedded mode
-- keep temporary tables (including data) on client
-- keep identity, getGeneratedKeys on client
-- throw error when in cluster mode
 
 TestMVCC:
 Concurrent update in table test: another transaction has updated or
 deleted the same row when exactly does it occur in other databases
 (PostgreSQL, Oracle)?
 
-documentation: use 'server mode' not 'remote mode'.
-
 CREATE FUNCTION? Function interface; HSQLDB compatibility
-
-find quote:
-You can't make a system that will not lose data, you can only make
-a system that knows the last save point of 100% integrity. There are
-too many variables and too much randomness on a cold hard power failure.
-
-not tested:
-PreparedProcedure PREPARE <name>(column,...) AS ...
-Procedure
-DeallocateProcedure DEALLOCATE [PLAN] <name>
-ExecuteProcedure EXECUTE <name>[([p[,...])]
-
-optimize where x not in (select):
-SELECT c FROM color LEFT OUTER JOIN (SELECT c FROM TABLE(c
-VARCHAR= ?)) p ON color.c = p.c WHERE p.c IS NULL;
-
-http://www.w3schools.com/sql/
 
 kill a specific java process:
 kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`

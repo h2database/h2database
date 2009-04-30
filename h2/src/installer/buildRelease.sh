@@ -1,8 +1,6 @@
 #!/bin/sh
 echo $(date "+%H:%M:%S") Start
 cd ../..
-TODAY=$(date "+%Y-%m-%d")
-rm -rf ../h2web_$TODAY
 rm -rf ../h2web
 mkdir ../h2web
 
@@ -24,11 +22,11 @@ PATH=$JAVA14/bin:$PATH
 ./build.sh -quiet installer mavenDeployCentral
 
 # ./build.sh -quiet compile benchmark
-# == Copy the benchmark results and update the performance page and diagram
+# == Copy the benchmark results 
+# == and update the performance page and diagram
 
 JAVA_HOME=$JAVA15
 PATH=$JAVA15/bin:$PATH
 ./build.sh -quiet switchSource
-mv ../h2web ../h2web_$TODAY
 
 echo $(date "+%H:%M:%S") Done

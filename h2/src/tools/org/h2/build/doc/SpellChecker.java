@@ -28,6 +28,7 @@ public class SpellChecker {
             "csv", "xml", "js", "Driver", "properties", "task", "MF", "sh", "" };
     private static final String[] IGNORE = new String[] { "dev", "nsi", "gif", "png", "odg", "ico", "sxd", "zip",
             "bz2", "rc", "layout", "res", "dll", "jar", "svg" };
+    private static final String DELIMITERS = " \n.();-\"=,*/{}_<>+\r:'@[]&\\!#|?$^%~`\t";
     private static final String PREFIX_IGNORE = "abc";
     private static final String IGNORE_FILE = "mainWeb.html";
 
@@ -149,7 +150,7 @@ public class SpellChecker {
     private void scan(String fileName, String text) {
         HashSet notFound = new HashSet();
         text = removeLinks(fileName, text);
-        StringTokenizer tokenizer = new StringTokenizer(text, "\r\n \t+\"*%&/()='[]{},.-;:_<>\\!?$@#|~^`");
+        StringTokenizer tokenizer = new StringTokenizer(text, DELIMITERS);
         while (tokenizer.hasMoreTokens()) {
             String token = tokenizer.nextToken();
             char first = token.charAt(0);

@@ -45,7 +45,8 @@ public class PageParser {
     private void setError(int i) {
         String s = page.substring(0, i) + "####BUG####" + page.substring(i);
         s = PageParser.escapeHtml(s);
-        result = new StringBuffer(s);
+        result = new StringBuffer();
+        result.append(s);
     }
 
     private String parseBlockUntil(String end) throws ParseException {

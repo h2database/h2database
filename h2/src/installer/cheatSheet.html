@@ -1,0 +1,175 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
+and under the Eclipse Public License, Version 1.0
+(http://h2database.com/html/license.html).
+Initial Developer: H2 Group
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
+H2 Database Engine
+</title>
+<style type="text/css">
+td, input, select, textarea, body, code, pre, td, th {
+    font: 9pt/130% Tahoma, Arial, Helvetica, sans-serif;
+    font-weight: normal;
+}
+
+h1, h2, h3, h4, h5 {
+    font: 9pt Tahoma, Arial, Helvetica, sans-serif;
+    font-weight: bold;
+}
+
+td, input, select, textarea, body, code, pre {
+    font-size: 9pt;
+}
+
+pre {
+    background-color: #ece9d8;
+    border: 1px solid rgb(172, 168, 153);
+    padding: 4px;
+}
+
+code {
+    background-color: #ece9d8;
+    padding: 0px 2px;
+}
+
+h1 {
+    background-color: #0000bb;
+    padding: 2px 4px 2px 4px;
+    color: #fff;
+    font-size: 15pt;
+    line-height: normal;
+}
+
+h2 {
+    font-size: 13pt;
+}
+
+h3 {
+    font-size: 10pt;
+}
+
+h4 {
+    font-size: 9pt;
+}
+
+table {
+    background-color: #ffffff;
+    border-collapse: collapse;
+    border: 1px solid #aca899;
+}
+
+th {
+    text-align: left;
+    background-color: #ece9d8;
+    border: 1px solid #aca899;
+    padding: 2px;
+}
+
+td {
+    background-color: #ffffff;
+    text-align: left;
+    vertical-align: top;
+    border: 1px solid #aca899;
+    padding: 2px;
+}
+</style>
+</head><body>
+<h1>H2 Database Engine Cheat Sheet</h1>
+
+<h2>Downloads</h2>
+<a href="http://www.h2database.com/h2-setup-2009-04-10.exe">Windows Installer</a> - 
+<a href="http://www.h2database.com/h2-2009-04-10.zip">Zip</a> -
+<a href="http://repo1.maven.org/maven2/com/h2database/h2/1.1.111/h2-1.1.111.jar">Jar</a>
+
+<h2>Using H2</h2>
+<ul><li>Add h2*.jar to the classpath (the only dependency is Java 1.4 or newer)
+</li><li>JDBC driver class: <code>org.h2.Driver</code>
+</li><li>Database URL: <code>jdbc:h2:~/test</code>
+</li><li>A new database is automatically created if it does not exist
+</li><li>Closing the last connection closes a database
+</li><li>H2 is open source, free to use and distribute. See also license.
+</li></ul>
+
+<h2>Database URL Shortlist</h2>
+<table>
+<tr><td rowspan="3">Embedded</td>
+<td>jdbc:h2:~/test</td><td>'test' in the current user home directory</td></tr>
+<tr><td>jdbc:h2:/data/test</td><td>'test' in the directory /data/</td></tr>
+<tr><td>jdbc:h2:test</td><td>'test' in the current working directory</td></tr>
+
+<tr><td rowspan="2">In-Memory</td>
+<td>jdbc:h2:mem:test</td><td>named; multiple connections within the same process</td></tr>
+<tr><td>jdbc:h2:mem:</td><td>unnamed private database; only one connections</td></tr>
+
+<tr><td rowspan="2">Server Mode</td>
+<td>jdbc:h2:tcp://localhost/~/test</td><td>'test' in the current user home directory</td></tr>
+<tr><td>jdbc:h2:tcp://localhost//data/test</td><td>'test' in the directory /data/</td></tr>
+
+<tr><td>Compatibility</td>
+<td>jdbc:h2:...;MODE=MySQL</td><td>or DB2, Derby, HSQLDB, MSSQLServer, Oracle, PostgreSQL</td></tr>
+
+<tr><td>Debug</td>
+<td>jdbc:...;TRACE_LEVEL_FILE=3</td><td>logs JDBC calls to test.trace.db</td></tr>
+</table>
+
+<h2>H2 Console Tool</h2>
+Start: double click the h2*.jar file, or run <code>java -jar h2*.jar</code>, <code>h2.bat</code> or <code>h2.sh</code>.
+
+<h2>Maven</h2>
+<pre>
+&lt;dependency&gt;
+    &lt;groupId&gt;com.h2database&lt;/groupId&gt;
+    &lt;artifactId&gt;h2&lt;/artifactId&gt;
+    &lt;version&gt;${version}&lt;/version&gt;
+&lt;/dependency&gt;
+</pre>
+
+<h2>Hibernate</h2>
+Use the H2 or the HSQLDB dialect.
+
+<h2>TopLink and Glassfish</h2>
+Datasource Classname: org.h2.jdbcx.JdbcDataSource<br />
+toplink.target-database: oracle.toplink.essentials.platform.database.H2Platform
+
+<h2>Connect using JDBC</h2>
+<pre>
+Class.forName("org.h2.Driver");
+Connection conn = DriverManager.getConnection("jdbc:h2:~/test", "sa", "");
+conn.close();
+</pre>
+
+<h2>Connection Pool</h2>
+<pre>
+JdbcConnectionPool cp = JdbcConnectionPool.create("jdbc:h2:~/test", "sa", "");
+Connection conn = cp.getConnection(); ... conn.close();
+cp.dispose();
+</pre>
+
+<h2>Start a Server</h2>
+<pre>
+java -cp h2*.jar org.h2.tools.Server
+</pre>
+
+<h2>Reference</h2>
+<a href="http://www.h2database.com/html/grammar.html">SQL Grammar</a>
+(or run 'HELP &lt;command&gt;' in the H2 Console) -
+<a href="http://www.h2database.com/html/functions.html">Functions</a> -
+<a href="http://www.h2database.com/html/datatypes.html">Data Types</a>
+
+<h2>Other Features</h2>
+Fulltext search -
+Database Files Encryption -
+Read Only Databases -
+Read Only Databases in Zip or Jar File
+
+<h2>Command Line Tools</h2>
+Backup - ChangeFileEncryption - Console - ConvertTraceFile - CreateCluster -
+DeleteDbFiles - Recover - Restore - RunScript - Script - Server - Shell
+
+<h2>Reading CSV files</h2>
+SELECT * FROM CSVREAD('test.csv');
+
+</body></html>

@@ -876,8 +876,6 @@ public class StringUtils {
      */
     public static String trim(String s, boolean leading, boolean trailing, String sp) {
         char space = (sp == null || sp.length() < 1) ? ' ' : sp.charAt(0);
-        // TODO function trim: HSQLDB says 'tabs are not removed', but they are.
-        // check what other databases do
         if (leading) {
             int len = s.length(), i = 0;
             while (i < len && s.charAt(i) == space) {

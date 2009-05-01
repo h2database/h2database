@@ -24,6 +24,7 @@ import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.dev.ftp.FtpClient;
+import org.h2.engine.Constants;
 import org.h2.test.utils.OutputCatcher;
 import org.h2.tools.RunScript;
 import org.h2.util.FileUtils;
@@ -91,7 +92,8 @@ public class UploadBuild {
         String now = ts.substring(0, 16);
         String sql = "insert into item(title, issued, desc) values('Build " + now + (error ? " FAILED" : "") +
             "', '" + ts + "', '<a href=\"http://www.h2database.com/html/testOutput.html\">Output</a>" +
-            " - <a href=\"http://www.h2database.com/coverage/overview.html\">Coverage</a>');\n";
+            " - <a href=\"http://www.h2database.com/coverage/overview.html\">Coverage</a>" +
+            " - <a href=\"http://www.h2database.com/automated/h2-latest.jar\">Jar</a>');\n";
         buildSql += sql;
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:");
@@ -106,6 +108,10 @@ public class UploadBuild {
         ftp.store("/httpdocs/automated/newsfeed.xml", new ByteArrayInputStream(content.getBytes()));
         ftp.store("/httpdocs/html/testOutput.html", new ByteArrayInputStream(testOutput.getBytes()));
         ftp.store("/httpdocs/coverage/overview.html", new FileInputStream("coverage/overview.html"));
+        String jarFileName = "bin/h2-" + Constants.getVersion() + ".jar";
+        if (FileUtils.exists(jarFileName)) {
+            ftp.store("/httpdocs/automated/h2-latest.jar", new FileInputStream(jarFileName));
+        }
         ftp.store("/httpdocs/coverage/coverage.zip", new FileInputStream("coverage.zip"));
         ftp.close();
         FileUtils.delete("coverage.zip");

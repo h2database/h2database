@@ -13,6 +13,31 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(62,
+'New version available: 1.1.112 (2009-05-01)', '2009-05-01 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>MERGE now returns 0 as the generated on update.
+</li><li>A file system implementation can now be registered.
+</li><li>The database file system is no longer included.
+</li><li>EclipseLink: Added H2Platform.supportsIdentity().
+</li><li>Connection pool: the login timeout is now 5 minutes.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Opening large databases could become slow.
+</li><li>GROUP BY queries with a self-join were wrong sometimes.
+</li><li>Bugs in the server-less multi-connection mode have been fixed.
+</li><li>JdbcPreparedStatement.toString() could fail.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(61,
 'New version available: 1.1.111 (2009-04-10)', '2009-04-10 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -390,47 +415,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 <ul><li>Connections from a local address other than 'localhost' were not allowed by default.
 </li><li>Large objects did not work for in-memory databases in server mode in Linux.
 </li><li>The ConvertTraceFile tool could not parse some files.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(49,
-'New version available: 1.0.79 (2008-09-26)', '2008-09-26 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>Row level locking for MVCC is now enabled.
-</li><li>Multiple processes can now access the same database by appending
-    ;AUTO_SERVER=TRUE to the database URL.
-</li><li>The database supports the SHOW command for better MySQL and PostgreSQL compatibility.
-</li><li>Result sets with just a unique index can now be updated.
-</li><li>Linked tables can now share the connection.
-</li><li>Linked tables can now be read-only.
-</li><li>Linked tables: the schema name can now be set.
-</li><li>Linked tables: worked around a bug in Oracle with the CHAR data type.
-</li><li>Temporary linked tables are now supported.
-</li><li>Faster storage re-use algorithm thanks to Greg Dhuse from cleversafe.com.
-</li><li>Faster hash code calculation for large binary arrays.
-</li><li>Multi-Version Concurrency may no longer be used when using
-    the multi-threaded kernel feature.
-</li><li>The H2 Console now abbreviates large texts in results.
-</li><li>SET SCHEMA_SEARCH_PATH is now documented.
-</li><li>Can now start a TCP server with port 0 (automatically select a port).
-</li><li>The server tool now displays the correct IP address if networked.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Multiple UNION queries could not be used in derived tables.
-</li><li>It was possible to create tables in read-only databases.
-</li><li>SET SCHEMA did not work for views.
-</li><li>The maximum log file size setting was ignored for large databases.
-</li><li>The data type JAVA_OBJECT could not be used in updatable result sets.
-</li><li>The system property h2.optimizeInJoin did not work correctly.
-</li><li>Conditions such as ID=? AND ID&gt;? were slow.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

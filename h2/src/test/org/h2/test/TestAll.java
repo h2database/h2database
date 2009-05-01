@@ -290,6 +290,9 @@ java org.h2.test.TestAll timer
 
 /*
 
+disable page store files, move multi dimension tool
+integrate grammar help or move to docs (except syntax)
+
 test case for running out of disk space (using a special file system)
 
 test shell tool on windows with special characters, try with

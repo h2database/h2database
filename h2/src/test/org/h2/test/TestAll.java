@@ -149,7 +149,7 @@ public class TestAll {
 Random test:
 
 java15
-cd bin
+cd h2database/h2/bin
 del *.db
 start cmd /k "java -cp .;%H2DRIVERS% org.h2.test.TestAll join >testJoin.txt"
 start cmd /k "java -cp . org.h2.test.TestAll synth >testSynth.txt"

@@ -197,6 +197,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Feature matrix like in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
 </li><li>Updatable result set on table without primary key or unique index
 </li><li>Use LinkedList instead of ArrayList where applicable
+</li><li>Optimizer: use an index for IS NULL and IS NOT NULL (including linked tables). 
+    ID IS NOT NULL could be converted to ID >= Integer.MIN_VALUE.
 </li><li>Support % operator (modulo)
 </li><li>Support 1+'2'=3, '1'+'2'='12' (MS SQL Server compatibility)
 </li><li>Support nested transactions
@@ -212,7 +214,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support parameterized views (similar to CSVREAD, but using just SQL for the definition)
 </li><li>A way (JDBC driver) to map an URL (jdbc:h2map:c1) to a connection object
 </li><li>Option for SCRIPT to only process one or a set of tables, and append to a file
-</li><li>Support using a unique index for IS NULL (including linked tables)
 </li><li>Support linked tables to the current database
 </li><li>Support dynamic linked schema (automatically adding/updating/removing tables)
 </li><li>Compatibility with Derby: VALUES(1), (2); SELECT * FROM (VALUES (1), (2)) AS myTable(c1)
@@ -415,6 +416,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Connection pool: 'reset session' command (delete temp tables, rollback, autocommit true).
 </li><li>Improve SQL documentation, see http://www.w3schools.com/sql/
 </li><li>MySQL compatibility: DatabaseMetaData.stores*() methods should return the same values. Test with SquirrelSQL.
+</li><li>Support table partitioning.
+</li><li>MS SQL Server compatibility: support DATEPART syntax.
 </li></ul>
 
 <h2>Not Planned</h2>

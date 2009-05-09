@@ -290,12 +290,12 @@ java org.h2.test.TestAll timer
 
 /*
 
-disable page store files, move multi dimension tool
-integrate grammar help or move to docs (except syntax)
+what do other databases do when calling prepareStatement(null)
+and execute(null)?
 
 test case for running out of disk space (using a special file system)
 
-test shell tool on windows with special characters, try with
+shell tool: document encoding problem. mac: use
 java -Dfile.encoding=UTF-8
 
 auto-build: prepare release

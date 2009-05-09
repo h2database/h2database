@@ -858,6 +858,9 @@ need to wait.
 <p>
 The database uses table level locks to give each connection a consistent state of the data.
 There are two kinds of locks: read locks (shared locks) and write locks (exclusive locks).
+All locks are released when the transaction commits or rolls back.
+When using the default transaction isolation level 'read committed', read locks are already released after each statement.
+</p><p>
 If a connection wants to reads from a table, and there is no write lock on the table,
 then a read lock is added to the table. If there is a write lock, then this connection waits
 for the other connection to release the lock. If a connection cannot get a lock for a specified time,

@@ -26,7 +26,6 @@ function set(s) {
 
 <h3>${text.helpImportantCommands}</h3>
 <table>
-<tr><th>${text.helpIcon}</th><th>${text.helpAction}</th></tr>
 <tr>
     <td style="padding:0px"><img src="icon_help.gif" alt="${text.a.help}"/></td>
     <td style="vertical-align: middle;">
@@ -52,8 +51,9 @@ function set(s) {
     </td>
 </tr>
 </table>
+
 <h3>${text.helpSampleSQL}</h3>
-<table><tr><th>${text.helpOperations}</th><th>${text.helpStatements}</th></tr>
+<table>
 <tr><td><a href="javascript:set('DROP TABLE IF EXISTS TEST;\rCREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));\rINSERT INTO TEST VALUES(1, \'Hello\');\rINSERT INTO TEST VALUES(2, \'World\');\rSELECT * FROM TEST ORDER BY ID;\rUPDATE TEST SET NAME=\'Hi\' WHERE ID=1;\rDELETE FROM TEST WHERE ID=2;');">
     ${text.helpDropTable}<br />
     ${text.helpCreateTable}<br />
@@ -73,7 +73,13 @@ function set(s) {
     UPDATE TEST SET NAME='Hi' WHERE ID=1;<br />
     DELETE FROM TEST WHERE ID=2;
 </td></tr>
+<tr><td><a href="javascript:set('HELP ');">
+    ${text.a.help}
+</a></td><td>
+    HELP ...
+</td></tr>
 </table>
+
 <h3>${text.helpAddDrivers}</h3>
 <p>
 ${text.helpAddDriversText}

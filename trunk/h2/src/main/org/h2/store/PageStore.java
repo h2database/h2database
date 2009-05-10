@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.WeakHashMap;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -30,13 +31,13 @@ import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.util.Cache;
-import org.h2.util.Cache2Q;
 import org.h2.util.CacheLRU;
 import org.h2.util.CacheObject;
 import org.h2.util.CacheWriter;
 import org.h2.util.FileUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
+import org.h2.util.SoftHashMap;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -167,7 +168,7 @@ public class PageStore implements CacheWriter {
      * @param accessMode the access mode
      * @param cacheSizeDefault the default cache size
      */
-    public PageStore(Database database, String fileName, String accessMode, int cacheSizeDefault) {
+    public PageStore(Database database, String fileName, String accessMode, int cacheSizeDefault) throws SQLException {
         this.fileName = fileName;
         this.accessMode = accessMode;
         this.database = database;
@@ -176,11 +177,7 @@ public class PageStore implements CacheWriter {
 trace.setLevel(TraceSystem.DEBUG);
         this.cacheSize = cacheSizeDefault;
         String cacheType = database.getCacheType();
-        if (Cache2Q.TYPE_NAME.equals(cacheType)) {
-            this.cache = new Cache2Q(this, cacheSize);
-        } else {
-            this.cache = new CacheLRU(this, cacheSize);
-        }
+        this.cache = CacheLRU.getCache(this, cacheType, cacheSize);
     }
 
     /**

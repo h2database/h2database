@@ -7,6 +7,8 @@
 package org.h2.util;
 
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -17,24 +19,58 @@ import org.h2.message.Message;
  */
 public class CacheLRU implements Cache {
 
-    public static final String TYPE_NAME = "LRU";
+    static final String TYPE_NAME = "LRU";
 
     private final CacheWriter writer;
-    private int len;
+    private final CacheObject head = new CacheHead();
+    private final int len;
+    private final int mask;
     private int maxSize;
     private CacheObject[] values;
-    private int mask;
     private int recordCount;
     private int sizeMemory;
-    private CacheObject head = new CacheHead();
 
-    public CacheLRU(CacheWriter writer, int maxKb) {
+    private CacheLRU(CacheWriter writer, int maxKb) {
         this.maxSize = maxKb * 1024 / 4;
         this.writer = writer;
         this.len = MathUtils.nextPowerOf2(maxSize / 64);
         this.mask = len - 1;
         MathUtils.checkPowerOf2(len);
         clear();
+    }
+
+    /**
+     * Create a cache of the given type and size.
+     *
+     * @param writer the cache writer
+     * @param cacheType the cache type
+     * @param cacheSize the size
+     * @return the cache object
+     */
+    public static Cache getCache(CacheWriter writer, String cacheType, int cacheSize) throws SQLException {
+        Map secondLevel = null;
+        String prefix = null;
+        if (cacheType.startsWith("SOFT_")) {
+            secondLevel = new SoftHashMap();
+            cacheType = cacheType.substring("SOFT_".length());
+            prefix = "SOFT_";
+        } else if (cacheType.startsWith("WEAK_")) {
+            secondLevel = new WeakHashMap();
+            cacheType = cacheType.substring("WEAK_".length());
+            prefix = "WEAK_";
+        }
+        Cache cache;
+        if (CacheTQ.TYPE_NAME.equals(cacheType)) {
+            cache = new CacheTQ(writer, cacheSize);
+        } else if (CacheLRU.TYPE_NAME.equals(cacheType)) {
+            cache = new CacheLRU(writer, cacheSize);
+        } else {
+            throw Message.getInvalidValueException(cacheType, "CACHE_TYPE");
+        }
+        if (secondLevel != null) {
+            cache = new CacheSecondLevel(cache, prefix, secondLevel);
+        }
+        return cache;
     }
 
     public void clear() {

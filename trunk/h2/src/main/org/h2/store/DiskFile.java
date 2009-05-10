@@ -29,7 +29,6 @@ import org.h2.message.Trace;
 import org.h2.util.BitField;
 import org.h2.util.ByteUtils;
 import org.h2.util.Cache;
-import org.h2.util.Cache2Q;
 import org.h2.util.CacheLRU;
 import org.h2.util.CacheObject;
 import org.h2.util.CacheWriter;
@@ -123,11 +122,8 @@ public class DiskFile implements CacheWriter {
         this.dataFile = dataFile;
         this.logChanges = logChanges;
         String cacheType = database.getCacheType();
-        if (Cache2Q.TYPE_NAME.equals(cacheType)) {
-            this.cache = new Cache2Q(this, cacheSize);
-        } else {
-            this.cache = new CacheLRU(this, cacheSize);
-        }
+        this.cache = CacheLRU.getCache(this, cacheType, cacheSize);
+
         rowBuff = DataPage.create(database, BLOCK_SIZE);
         // TODO: the overhead is larger in the log file, so this value is too high :-(
         recordOverhead = 4 * DataPage.LENGTH_INT + 1 + DataPage.LENGTH_FILLER;

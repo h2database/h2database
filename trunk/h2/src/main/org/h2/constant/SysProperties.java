@@ -146,6 +146,14 @@ public class SysProperties {
     public static final int CACHE_SIZE_INDEX_DEFAULT = CACHE_SIZE_DEFAULT >> CACHE_SIZE_INDEX_SHIFT;
 
     /**
+     * System property <code>h2.cacheTypeDefault</code> (default: LRU).<br />
+     * How many time the cache size value is divided by two to get the index
+     * cache size. The index cache size is calculated like this: cacheSize >>
+     * cacheSizeIndexShift.
+     */
+    public static final String CACHE_TYPE_DEFAULT = getStringSetting("h2.cacheTypeDefault", "LRU");
+
+    /**
      * System property <code>h2.check</code> (default: true).<br />
      * Assertions in the database engine.
      */

@@ -113,7 +113,6 @@ public class WebServer implements Service {
 //    }
 
     // private URLClassLoader urlClassLoader;
-    private String driverList;
     private int port;
     private boolean allowOthers;
     private Set running = Collections.synchronizedSet(new HashSet());
@@ -221,7 +220,6 @@ public class WebServer implements Service {
     public void init(String[] args) {
         // TODO web: support using a different properties file
         Properties prop = loadProperties();
-        driverList = prop.getProperty("drivers");
         port = SortedProperties.getIntProperty(prop, "webPort", Constants.DEFAULT_HTTP_PORT);
         ssl = SortedProperties.getBooleanProperty(prop, "webSSL", Constants.DEFAULT_HTTP_SSL);
         allowOthers = SortedProperties.getBooleanProperty(prop, "webAllowOthers", Constants.DEFAULT_HTTP_ALLOW_OTHERS);
@@ -573,16 +571,18 @@ public class WebServer implements Service {
 
     /**
      * Save the settings to the properties file.
+     *
+     * @param prop null or the properties webPort, webAllowOthers, and webSSL
      */
-    synchronized void saveSettings() {
+    synchronized void saveSettings(Properties prop) {
         try {
-            Properties prop = new SortedProperties();
-            if (driverList != null) {
-                prop.setProperty("drivers", driverList);
+            if (prop == null) {
+                Properties old = loadProperties();
+                prop = new SortedProperties();
+                prop.setProperty("webPort", old.getProperty("webPort"));
+                prop.setProperty("webAllowOthers", old.getProperty("webAllowOthers"));
+                prop.setProperty("webSSL", old.getProperty("webSSL"));
             }
-            prop.setProperty("webPort", String.valueOf(port));
-            prop.setProperty("webAllowOthers", String.valueOf(allowOthers));
-            prop.setProperty("webSSL", String.valueOf(ssl));
             ArrayList settings = getSettings();
             int len = settings.size();
             for (int i = 0; i < len; i++) {

@@ -73,6 +73,7 @@ import org.h2.util.NetUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.util.ScriptReader;
+import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 
@@ -567,10 +568,17 @@ class WebThread extends Thread implements DatabaseEventListener {
 
     private String adminSave() {
         try {
-            server.setPort(MathUtils.decodeInt((String) attributes.get("port")));
-            server.setAllowOthers(Boolean.valueOf((String) attributes.get("allowOthers")).booleanValue());
-            server.setSSL(Boolean.valueOf((String) attributes.get("ssl")).booleanValue());
-            server.saveSettings();
+            Properties prop = new SortedProperties();
+            int port = MathUtils.decodeInt((String) attributes.get("port"));
+            prop.setProperty("webPort", String.valueOf(port));
+            server.setPort(port);
+            boolean allowOthers = Boolean.valueOf((String) attributes.get("allowOthers")).booleanValue();
+            prop.setProperty("webAllowOthers", String.valueOf(allowOthers));
+            server.setAllowOthers(allowOthers);
+            boolean ssl = Boolean.valueOf((String) attributes.get("ssl")).booleanValue();
+            prop.setProperty("webSSL", String.valueOf(ssl));
+            server.setSSL(ssl);
+            server.saveSettings(prop);
         } catch (Exception e) {
             trace(e.toString());
         }
@@ -2065,7 +2073,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         info.user = attributes.getProperty("user", "");
         server.updateSetting(info);
         attributes.put("setting", info.name);
-        server.saveSettings();
+        server.saveSettings(null);
         return "index.do";
     }
 
@@ -2102,7 +2110,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         if (settings.size() > 0) {
             attributes.put("setting", settings.get(0));
         }
-        server.saveSettings();
+        server.saveSettings(null);
         return "index.do";
     }
 

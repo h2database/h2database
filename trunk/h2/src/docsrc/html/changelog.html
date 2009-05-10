@@ -18,7 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>H2 Console: command line settings are now longer stored in the properties file.
+    They are now only used for the current process, except if they are explicitly saved.
+</li><li>Cache: support for a second level soft-references cache.
+    To enable it, append ;CACHE_TYPE=SOFT_LRU (or SOFT_TQ) to the database URL, or
+    set the system property h2.cacheTypeDefault to "SOFT_LRU" / "SOFT_TQ".
+    Enabling the second level cache reduces performance for
+    small databases, but speeds up large databases. It makes sense to use it
+    if the available memory size is unknown. Thanks a lot to Jan Kotek!
+</li><li>
 </li></ul>
 
 <h2>Version 1.1.112 (2009-05-01)</h2>

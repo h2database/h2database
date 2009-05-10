@@ -58,7 +58,6 @@ import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
 import org.h2.util.BitField;
 import org.h2.util.ByteUtils;
-import org.h2.util.CacheLRU;
 import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IntHashMap;
@@ -212,7 +211,7 @@ public class Database implements DataHandler {
         int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
         int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
                 TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
-        this.cacheType = StringUtils.toUpperEnglish(ci.removeProperty("CACHE_TYPE", CacheLRU.TYPE_NAME));
+        this.cacheType = StringUtils.toUpperEnglish(ci.removeProperty("CACHE_TYPE", SysProperties.CACHE_TYPE_DEFAULT));
         openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown);
     }
 

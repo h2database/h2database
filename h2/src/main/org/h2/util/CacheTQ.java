@@ -19,25 +19,26 @@ import org.h2.message.Message;
  * In this implementation, items are moved from 'in'
  * queue and move to the 'main' queue if the are referenced again.
  */
-public class Cache2Q implements Cache {
+class CacheTQ implements Cache {
 
-    public static final String TYPE_NAME = "TQ";
+    static final String TYPE_NAME = "TQ";
+
     private static final int MAIN = 1, IN = 2, OUT = 3;
     private static final int PERCENT_IN = 20, PERCENT_OUT = 50;
 
     private final CacheWriter writer;
+    private final CacheObject headMain = new CacheHead();
+    private final CacheObject headIn = new CacheHead();
+    private final CacheObject headOut = new CacheHead();
+    private final int len;
+    private final int mask;
     private int maxSize;
     private int maxMain, maxIn, maxOut;
-    private CacheObject headMain = new CacheHead();
-    private CacheObject headIn = new CacheHead();
-    private CacheObject headOut = new CacheHead();
     private int sizeMain, sizeIn, sizeOut;
     private int recordCount;
-    private int len;
     private CacheObject[] values;
-    private int mask;
 
-    public Cache2Q(CacheWriter writer, int maxKb) {
+    CacheTQ(CacheWriter writer, int maxKb) {
         int maxSize = maxKb * 1024 / 4;
         this.writer = writer;
         this.maxSize = maxSize;

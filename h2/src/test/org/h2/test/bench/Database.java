@@ -317,7 +317,9 @@ class Database {
     void update(PreparedStatement prep, String trace) throws SQLException {
         test.trace(trace);
         prep.executeUpdate();
-        executedStatements++;
+        if (test.collect) {
+            executedStatements++;
+        }
     }
 
     /**
@@ -328,7 +330,9 @@ class Database {
     void update(String sql) throws SQLException {
         sql = getSQL(sql);
         if (sql.trim().length() > 0) {
-            executedStatements++;
+            if (test.collect) {
+                executedStatements++;
+            }
             stat.execute(sql);
         } else {
             System.out.println("?");
@@ -414,7 +418,9 @@ class Database {
 //        if(time > 100) {
 //            System.out.println("time="+time);
 //        }
-        executedStatements++;
+        if (test.collect) {
+            executedStatements++;
+        }
         return rs;
     }
 

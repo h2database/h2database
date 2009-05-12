@@ -89,8 +89,6 @@ public class TestPerformance {
                 exit = true;
             }
         }
-        openResults(init);
-
         Properties prop = new Properties();
         InputStream in = getClass().getResourceAsStream("test.properties");
         prop.load(in);
@@ -129,6 +127,7 @@ public class TestPerformance {
         Statement stat = null;
         PrintWriter writer = null;
         try {
+            openResults(init);
             conn = getResultConnection();
             stat = conn.createStatement();
             prep = conn

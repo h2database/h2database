@@ -63,9 +63,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             }
             checkClosed();
             closeOldResultSet();
-            if (escapeProcessing) {
-                sql = conn.translateSQL(sql);
-            }
+            sql = conn.translateSQL(sql, escapeProcessing);
             synchronized (session) {
                 CommandInterface command = conn.prepareCommand(sql, fetchSize);
                 ResultInterface result;
@@ -107,9 +105,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("executeUpdate", sql);
             checkClosedForWrite();
             closeOldResultSet();
-            if (escapeProcessing) {
-                sql = conn.translateSQL(sql);
-            }
+            sql = conn.translateSQL(sql, escapeProcessing);
             CommandInterface command = conn.prepareCommand(sql, fetchSize);
             synchronized (session) {
                 setExecutingStatement(command);
@@ -146,9 +142,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             }
             checkClosedForWrite();
             closeOldResultSet();
-            if (escapeProcessing) {
-                sql = conn.translateSQL(sql);
-            }
+            sql = conn.translateSQL(sql, escapeProcessing);
             CommandInterface command = conn.prepareCommand(sql, fetchSize);
             boolean returnsResultSet;
             synchronized (session) {
@@ -577,9 +571,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         try {
             debugCodeCall("addBatch", sql);
             checkClosed();
-            if (escapeProcessing) {
-                sql = conn.translateSQL(sql);
-            }
+            sql = conn.translateSQL(sql, escapeProcessing);
             if (batchCommands == null) {
                 batchCommands = new ObjectArray();
             }

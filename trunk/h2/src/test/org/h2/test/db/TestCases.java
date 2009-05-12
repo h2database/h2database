@@ -412,11 +412,11 @@ public class TestCases extends TestBase {
         conn = getConnection("cases");
         ResultSet rs = conn.createStatement().executeQuery("SELECT NAME FROM TEST ORDER BY NAME");
         rs.next();
-        assertEquals(rs.getString(1), "Bach");
+        assertEquals("Bach", rs.getString(1));
         rs.next();
-        assertEquals(rs.getString(1), "B\u00f6hlen");
+        assertEquals("B\u00f6hlen", rs.getString(1));
         rs.next();
-        assertEquals(rs.getString(1), "Bucher");
+        assertEquals("Bucher", rs.getString(1));
         conn.close();
     }
 
@@ -442,7 +442,7 @@ public class TestCases extends TestBase {
         ps.setString(10, "test desc");
         ps.setString(11, "test_state");
         ps.setString(12, "testid");
-        assertEquals(ps.executeUpdate(), 2);
+        assertEquals(2, ps.executeUpdate());
         ps.close();
         conn.close();
     }

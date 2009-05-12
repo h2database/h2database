@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>H2 Console: command line settings are now longer stored in the properties file.
+<ul><li>Calling execute() or prepareStatement() with null as the SQL statement 
+    now throws an exception.
+</li><li>Benchmark: the number of executed statements was incorrect. The H2 database
+    was loaded at the beginning of the test to collect results, now it is loaded at the very end.
+    Thanks to Fred Toussi from HSQLDB for reporting those problems. However the changed
+    do not affect the relative performance.
+</li><li>H2 Console: command line settings are now longer stored in the properties file.
     They are now only used for the current process, except if they are explicitly saved.
 </li><li>Cache: support for a second level soft-references cache.
     To enable it, append ;CACHE_TYPE=SOFT_LRU (or SOFT_TQ) to the database URL, or

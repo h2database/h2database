@@ -1111,13 +1111,32 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * Convert JDBC escape sequences in the SQL statement.
+     * Convert JDBC escape sequences in the SQL statement. This
+     * method throws an exception if the SQL statement is null.
      *
      * @param sql the SQL statement with or without JDBC escape sequences
      * @return the SQL statement without JDBC escape sequences
      */
-    String translateSQL(String sql) throws SQLException {
-        if (sql == null || sql.indexOf('{') < 0) {
+    private String translateSQL(String sql) throws SQLException {
+        return translateSQL(sql, true);
+    }
+
+    /**
+     * Convert JDBC escape sequences in the SQL statement if required. This
+     * method throws an exception if the SQL statement is null.
+     *
+     * @param sql the SQL statement with or without JDBC escape sequences
+     * @param escapeProcessing whether escape sequences should be replaced
+     * @return the SQL statement without JDBC escape sequences
+     */
+    String translateSQL(String sql, boolean escapeProcessing) throws SQLException {
+        if (sql == null) {
+            throw Message.getInvalidValueException(sql, "SQL");
+        }
+        if (!escapeProcessing) {
+            return sql;
+        }
+        if (sql.indexOf('{') < 0) {
             return sql;
         }
         int len = sql.length();

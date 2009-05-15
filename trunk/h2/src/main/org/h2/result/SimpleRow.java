@@ -50,4 +50,23 @@ public class SimpleRow implements SearchRow {
         return data[i];
     }
 
+    public String toString() {
+        StringBuffer buff = new StringBuffer(data.length * 5);
+        buff.append("( /* pos:");
+        buff.append(getPos());
+        if (version != 0) {
+            buff.append(" v:" + version);
+        }
+        buff.append(" */ ");
+        for (int i = 0; i < data.length; i++) {
+            if (i > 0) {
+                buff.append(", ");
+            }
+            Value v = data[i];
+            buff.append(v == null ? "null" : v.getTraceSQL());
+        }
+        buff.append(')');
+        return buff.toString();
+    }
+
 }

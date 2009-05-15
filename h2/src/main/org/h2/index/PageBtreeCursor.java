@@ -68,9 +68,9 @@ public class PageBtreeCursor implements Cursor {
             }
         }
         currentSearchRow = current.getRow(i);
+        currentRow = null;
         if (last != null && index.compareRows(currentSearchRow, last) > 0) {
             currentSearchRow = null;
-            currentRow = null;
             return false;
         }
         i++;

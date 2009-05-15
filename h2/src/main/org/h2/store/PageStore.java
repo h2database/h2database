@@ -11,7 +11,6 @@ import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.WeakHashMap;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -37,8 +36,8 @@ import org.h2.util.CacheWriter;
 import org.h2.util.FileUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
-import org.h2.util.SoftHashMap;
 import org.h2.util.StringUtils;
+import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueString;
@@ -61,9 +60,13 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
+    // TODO PageDataLeaf and Node: support random delete/add
+
+    // TODO PageStore.openMetaIndex (add collation for indexes,
+    // desc columns support)
+
     // TODO btree index with fixed size values doesn't need offset and so on
     // TODO log block allocation
-    // TODO use free-space bitmap
     // TODO block compression: maybe http://en.wikipedia.org/wiki/LZJB
     // with RLE, specially for 0s.
     // TODO test that setPageId updates parent, overflow parent
@@ -91,6 +94,7 @@ public class PageStore implements CacheWriter {
     // TODO split files (1 GB max size)
     // TODO add a setting (that can be changed at runtime) to call fsync
     // and delay on each commit
+    // TODO var int: see google protocol buffers
 
     /**
      * The smallest possible page size.
@@ -174,7 +178,7 @@ public class PageStore implements CacheWriter {
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
         int test;
-trace.setLevel(TraceSystem.DEBUG);
+// trace.setLevel(TraceSystem.DEBUG);
         this.cacheSize = cacheSizeDefault;
         String cacheType = database.getCacheType();
         this.cache = CacheLRU.getCache(this, cacheType, cacheSize);
@@ -257,7 +261,7 @@ trace.setLevel(TraceSystem.DEBUG);
      */
     public void checkpoint() throws SQLException {
         trace.debug("checkpoint");
-        if (getLog() == null) {
+        if (getLog() == null || database.isReadOnly()) {
             // the file was never fully opened
             return;
         }
@@ -270,6 +274,8 @@ trace.setLevel(TraceSystem.DEBUG);
                 writeBack(rec);
             }
             int todoFlushBeforeReopen;
+            // switch twice so there are no redo entries
+            switchLogIfPossible();
             switchLogIfPossible();
             int todoWriteDeletedPages;
         }
@@ -280,6 +286,9 @@ trace.setLevel(TraceSystem.DEBUG);
 
     private void switchLogIfPossible() throws SQLException {
         trace.debug("switchLogIfPossible");
+        if (database.isReadOnly()) {
+            return;
+        }
         int id = getLog().getId();
         getLog().close();
         activeLog = (activeLog + 1) % LOG_COUNT;
@@ -409,10 +418,6 @@ trace.setLevel(TraceSystem.DEBUG);
         synchronized (database) {
             Record record = (Record) obj;
             if (trace.isDebugEnabled()) {
-                int test;
-                if (record.getPos() == 1) {
-                    System.out.println("pause");
-                }
                 trace.debug("writeBack " + record);
             }
             int todoRemoveParameter;
@@ -432,10 +437,6 @@ trace.setLevel(TraceSystem.DEBUG);
         synchronized (database) {
             if (trace.isDebugEnabled()) {
                 if (!record.isChanged()) {
-                    int test;
-                    if(record.getPos() == 1) {
-                        System.out.println("pause");
-                    }
                     trace.debug("updateRecord " + record.toString());
                 }
             }
@@ -817,6 +818,7 @@ trace.setLevel(TraceSystem.DEBUG);
         cols.add(new Column("PARENT", Value.INT));
         cols.add(new Column("HEAD", Value.INT));
         cols.add(new Column("COLUMNS", Value.STRING));
+//        new CompareMode()
         metaSchema = new Schema(database, 0, "", null, true);
         int headPos = metaTableRootPageId;
         metaTable = new TableData(metaSchema, "PAGE_INDEX",
@@ -906,6 +908,9 @@ trace.setLevel(TraceSystem.DEBUG);
         row.setValue(4, ValueString.get(columnList));
         row.setPos(id + 1);
         metaIndex.add(database.getSystemSession(), row);
+
+int assertion;
+metaIndex.getRow(database.getSystemSession(), row.getPos());
     }
 
     /**

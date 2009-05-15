@@ -6,7 +6,6 @@
  */
 package org.h2.index;
 import java.sql.SQLException;
-import java.util.Arrays;
 
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
@@ -106,6 +105,7 @@ class PageDataLeaf extends PageData {
         if (entryCount == 0) {
             x = 0;
         } else {
+            readAllRows();
             x = find(row.getPos());
             System.arraycopy(offsets, 0, newOffsets, 0, x);
             System.arraycopy(keys, 0, newKeys, 0, x);
@@ -118,6 +118,7 @@ class PageDataLeaf extends PageData {
                 System.arraycopy(rows, x, newRows, x + 1, entryCount - x);
             }
         }
+        written = false;
         last = x == 0 ? pageSize : offsets[x - 1];
         offset = last - rowLength;
         entryCount++;
@@ -168,6 +169,8 @@ class PageDataLeaf extends PageData {
     }
 
     private void removeRow(int i) throws SQLException {
+        written = false;
+        readAllRows();
         entryCount--;
         if (entryCount <= 0) {
             Message.throwInternalError();
@@ -178,8 +181,8 @@ class PageDataLeaf extends PageData {
         System.arraycopy(offsets, 0, newOffsets, 0, i);
         System.arraycopy(keys, 0, newKeys, 0, i);
         System.arraycopy(rows, 0, newRows, 0, i);
-        int startNext = i < entryCount - 1 ? offsets[i + 1] : index.getPageStore().getPageSize();
-        int rowLength = offsets[i] - startNext;
+        int startNext = i > 0 ? offsets[i - 1] : index.getPageStore().getPageSize();
+        int rowLength = startNext - offsets[i];
         for (int j = i; j < entryCount; j++) {
             newOffsets[j] = offsets[j + 1] + rowLength;
         }
@@ -202,6 +205,10 @@ class PageDataLeaf extends PageData {
      * @return the row
      */
     Row getRowAt(int at) throws SQLException {
+int test;
+if (at >= rows.length) {
+    System.out.println("stop");
+}
         Row r = rows[at];
         if (r == null) {
             if (firstOverflowPageId != 0) {
@@ -320,14 +327,17 @@ class PageDataLeaf extends PageData {
         return index.getPageStore();
     }
 
+    private void readAllRows() throws SQLException {
+        for (int i = 0; i < entryCount; i++) {
+            getRowAt(i);
+        }
+    }
+
     private void write() throws SQLException {
         if (written) {
             return;
         }
-        // make sure rows are read
-        for (int i = 0; i < entryCount; i++) {
-            getRowAt(i);
-        }
+        readAllRows();
         data.reset();
         data.writeInt(parentPageId);
         int type;
@@ -341,9 +351,6 @@ class PageDataLeaf extends PageData {
         data.writeShortInt(entryCount);
         if (firstOverflowPageId != 0) {
             data.writeInt(firstOverflowPageId);
-        }
-        if (getPos() == 1) {
-            System.out.println("pause");
         }
         for (int i = 0; i < entryCount; i++) {
             data.writeInt(keys[i]);

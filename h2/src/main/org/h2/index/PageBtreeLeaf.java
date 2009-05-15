@@ -9,7 +9,6 @@ package org.h2.index;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
-import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.DataPage;
 import org.h2.store.PageStore;
@@ -30,8 +29,6 @@ class PageBtreeLeaf extends PageBtree {
 
     private static final int KEY_OFFSET_PAIR_LENGTH = 6;
     private static final int KEY_OFFSET_PAIR_START = 11;
-
-    private boolean written;
 
     PageBtreeLeaf(PageBtreeIndex index, int pageId, int parentPageId, DataPage data) {
         super(index, pageId, parentPageId, data);
@@ -66,13 +63,12 @@ class PageBtreeLeaf extends PageBtree {
     int addRow(SearchRow row) throws SQLException {
         int rowLength = index.getRowSize(data, row);
         int pageSize = index.getPageStore().getPageSize();
-        // TODO currently the order is important
-        // TODO and can only add at the end
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (entryCount > 0 && last - rowLength < start + KEY_OFFSET_PAIR_LENGTH) {
             int todoSplitAtLastInsertionPoint;
             return (entryCount / 2) + 1;
         }
+        written = false;
         int offset = last - rowLength;
         int[] newOffsets = new int[entryCount + 1];
         SearchRow[] newRows = new SearchRow[entryCount + 1];
@@ -80,11 +76,14 @@ class PageBtreeLeaf extends PageBtree {
         if (entryCount == 0) {
             x = 0;
         } else {
-            x = find(row, false);
+            x = find(row, false, true);
             System.arraycopy(offsets, 0, newOffsets, 0, x);
             System.arraycopy(rows, 0, newRows, 0, x);
             if (x < entryCount) {
-                System.arraycopy(offsets, x, newOffsets, x + 1, entryCount - x);
+                for (int j = x; j < entryCount; j++) {
+                    newOffsets[j + 1] = offsets[j] - rowLength;
+                }
+                offset = (x == 0 ? pageSize : offsets[x - 1]) - rowLength;
                 System.arraycopy(rows, x, newRows, x + 1, entryCount - x);
             }
         }
@@ -111,14 +110,20 @@ class PageBtreeLeaf extends PageBtree {
 
     private void removeRow(int i) throws SQLException {
         entryCount--;
+        written = false;
         if (entryCount <= 0) {
             Message.throwInternalError();
         }
         int[] newOffsets = new int[entryCount];
-        Row[] newRows = new Row[entryCount];
+        SearchRow[] newRows = new SearchRow[entryCount];
         System.arraycopy(offsets, 0, newOffsets, 0, i);
         System.arraycopy(rows, 0, newRows, 0, i);
-        System.arraycopy(offsets, i + 1, newOffsets, i, entryCount - i);
+
+        int startNext = i > 0 ? offsets[i - 1] : index.getPageStore().getPageSize();
+        int rowLength = startNext - offsets[i];
+        for (int j = i; j < entryCount; j++) {
+            newOffsets[j] = offsets[j + 1] + rowLength;
+        }
         System.arraycopy(rows, i + 1, newRows, i, entryCount - i);
         start -= KEY_OFFSET_PAIR_LENGTH;
         offsets = newOffsets;
@@ -144,7 +149,7 @@ class PageBtreeLeaf extends PageBtree {
     }
 
     boolean remove(SearchRow row) throws SQLException {
-        int at = find(row, false);
+        int at = find(row, false, false);
         if (index.compareRows(row, getRow(at)) != 0) {
             throw Message.getSQLException(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL() + ": " + row);
         }
@@ -205,7 +210,7 @@ class PageBtreeLeaf extends PageBtree {
     }
 
     void find(PageBtreeCursor cursor, SearchRow first, boolean bigger) throws SQLException {
-        int i = find(first, bigger);
+        int i = find(first, bigger, false);
         if (i > entryCount) {
             if (parentPageId == Page.ROOT) {
                 return;

@@ -13,8 +13,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Iterator;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 import org.h2.constant.SysProperties;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Database;
@@ -58,13 +64,87 @@ public class TestPageStore extends TestBase {
     }
 
     public void test() throws Exception {
+        testFuzzOperations();
         testScanIndex();
-        testBtreeIndex();
+        // testBtreeIndex();
         // testAllocateFree();
         // testStreamFuzz();
         // testStreamPerformance(false, 1000);
-        // testPerformance(true, 1000000);
-        // testPerformance(false, 1000000);
+    }
+
+    private void testFuzzOperations() throws SQLException {
+        int best = Integer.MAX_VALUE;
+        for (int i = 0; i < 10; i++) {
+            int x = testFuzzOperationsSeed(i, 10);
+            if (x >= 0 && x < best) {
+                best = x;
+                fail("op:" + x + " seed:" + i);
+            }
+        }
+    }
+
+    private int testFuzzOperationsSeed(int seed, int len) throws SQLException {
+        deleteDb("test");
+        Connection conn = getConnection("test");
+        Statement stat = conn.createStatement();
+        log("DROP TABLE IF EXISTS TEST;");
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        log("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR DEFAULT 'Hello World');");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR DEFAULT 'Hello World')");
+        Set rows = new TreeSet();
+        Random random = new Random(seed);
+        for (int i = 0; i < len; i++) {
+            int op = random.nextInt(3);
+            Integer x = new Integer(random.nextInt(100));
+            switch(op) {
+            case 0:
+                if (!rows.contains(x)) {
+                    log("insert into test(id) values(" + x + ");");
+                    stat.execute("INSERT INTO TEST(ID) VALUES("+ x + ");");
+                    rows.add(x);
+                }
+                break;
+            case 1:
+                if (rows.contains(x)) {
+                    log("delete from test where id=" + x + ";");
+                    stat.execute("DELETE FROM TEST WHERE ID=" + x);
+                    rows.remove(x);
+                }
+                break;
+            case 2:
+                conn.close();
+                conn = getConnection("test");
+                stat = conn.createStatement();
+                ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
+                log("--reconnect");
+                for (Iterator it = rows.iterator(); it.hasNext();) {
+                    int test = ((Integer) it.next()).intValue();
+                    if (!rs.next()) {
+                        log("error: expected next");
+                        conn.close();
+                        return i;
+                    }
+                    int y = rs.getInt(1);
+                    // System.out.println(" " + x);
+                    if (y != test) {
+                        log("error: " + y + " <> " + test);
+                        conn.close();
+                        return i;
+                    }
+                }
+                if (rs.next()) {
+                    log("error: unexpected next");
+                    conn.close();
+                    return i;
+                }
+            }
+        }
+        conn.close();
+        return -1;
+    }
+
+    private void log(String m) {
+        trace("   " + m);
     }
 
     private void testBtreeIndex() throws SQLException {

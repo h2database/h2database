@@ -38,6 +38,7 @@ class PageBtreeNode extends PageBtree {
 
     PageBtreeNode(PageBtreeIndex index, int pageId, int parentPageId, DataPage data) {
         super(index, pageId, parentPageId, data);
+        start = CHILD_OFFSET_PAIR_START;
     }
 
     void read() {
@@ -53,6 +54,7 @@ class PageBtreeNode extends PageBtree {
             offsets[i] = data.readInt();
         }
         check();
+        start = data.length();
     }
 
     /**
@@ -81,14 +83,18 @@ class PageBtreeNode extends PageBtree {
             System.arraycopy(offsets, 0, newOffsets, 0, x);
             System.arraycopy(rows, 0, newRows, 0, x);
             if (x < entryCount) {
-                System.arraycopy(offsets, x, newOffsets, x + 1, entryCount - x);
+                for (int j = x; j < entryCount; j++) {
+                    newOffsets[j + 1] = offsets[j] - rowLength;
+                }
+                offset = (x == 0 ? pageSize : offsets[x - 1]) - rowLength;
                 System.arraycopy(rows, x, newRows, x + 1, entryCount - x);
-                System.arraycopy(childPageIds, x, newChildPageIds, x + 1, entryCount - x + 1);
+                System.arraycopy(childPageIds, x + 1, newChildPageIds, x + 2, entryCount - x);
             }
         }
         newOffsets[x] = offset;
         newRows[x] = row;
         newChildPageIds[x + 1] = childPageId;
+        start += CHILD_OFFSET_PAIR_LENGTH;
         offsets = newOffsets;
         rows = newRows;
         childPageIds = newChildPageIds;
@@ -98,7 +104,7 @@ class PageBtreeNode extends PageBtree {
 
     int addRow(SearchRow row) throws SQLException {
         while (true) {
-            int x = find(row, false);
+            int x = find(row, false, true);
             PageBtree page = index.getPage(childPageIds[x]);
             int splitPoint = page.addRow(row);
             if (splitPoint == 0) {
@@ -116,6 +122,7 @@ class PageBtreeNode extends PageBtree {
             index.getPageStore().updateRecord(this, true, data);
         }
         updateRowCount(1);
+        written = false;
         return 0;
     }
 
@@ -171,7 +178,7 @@ class PageBtreeNode extends PageBtree {
     }
 
     void find(PageBtreeCursor cursor, SearchRow first, boolean bigger) throws SQLException {
-        int i = find(first, bigger);
+        int i = find(first, bigger, false);
         if (i > entryCount) {
             if (parentPageId == Page.ROOT) {
                 return;
@@ -190,7 +197,7 @@ class PageBtreeNode extends PageBtree {
     }
 
     boolean remove(SearchRow row) throws SQLException {
-        int at = find(row, false);
+        int at = find(row, false, false);
         // merge is not implemented to allow concurrent usage of btrees
         // TODO maybe implement merge
         PageBtree page = index.getPage(childPageIds[at]);
@@ -206,6 +213,7 @@ class PageBtreeNode extends PageBtree {
             // no more children - this page is empty as well
             return true;
         }
+        written = false;
         removeChild(at);
         index.getPageStore().updateRecord(this, true, data);
         return false;
@@ -245,6 +253,18 @@ class PageBtreeNode extends PageBtree {
 
     public void write(DataPage buff) throws SQLException {
         check();
+        write();
+        index.getPageStore().writePage(getPos(), data);
+    }
+
+    private void write() throws SQLException {
+        if (written) {
+            return;
+        }
+        // make sure rows are read
+        for (int i = 0; i < entryCount; i++) {
+            getRow(i);
+        }
         data.reset();
         data.writeInt(parentPageId);
         data.writeByte((byte) Page.TYPE_BTREE_NODE);
@@ -255,28 +275,37 @@ class PageBtreeNode extends PageBtree {
             data.writeInt(childPageIds[i]);
             data.writeInt(offsets[i]);
         }
-        index.getPageStore().writePage(getPos(), data);
+        for (int i = 0; i < entryCount; i++) {
+            index.writeRow(data, offsets[i], rows[i]);
+        }
+        written = true;
     }
 
     private void removeChild(int i) throws SQLException {
         entryCount--;
+        written = false;
         if (entryCount < 0) {
             Message.throwInternalError();
         }
+        SearchRow[] newRows = new SearchRow[entryCount];
         int[] newOffsets = new int[entryCount];
-        SearchRow[] newRows = new SearchRow[entryCount + 1];
         int[] newChildPageIds = new int[entryCount + 1];
         System.arraycopy(offsets, 0, newOffsets, 0, Math.min(entryCount, i));
         System.arraycopy(rows, 0, newRows, 0, Math.min(entryCount, i));
         System.arraycopy(childPageIds, 0, newChildPageIds, 0, i);
         if (entryCount > i) {
-            System.arraycopy(offsets, i + 1, newOffsets, i, entryCount - i);
             System.arraycopy(rows, i + 1, newRows, i, entryCount - i);
+            int startNext = i > 0 ? offsets[i - 1] : index.getPageStore().getPageSize();
+            int rowLength = startNext - offsets[i];
+            for (int j = i; j < entryCount; j++) {
+                newOffsets[j] = offsets[j + 1] + rowLength;
+            }
         }
         System.arraycopy(childPageIds, i + 1, newChildPageIds, i, entryCount - i + 1);
         offsets = newOffsets;
         rows = newRows;
         childPageIds = newChildPageIds;
+        start -= CHILD_OFFSET_PAIR_LENGTH;
     }
 
     /**
@@ -286,7 +315,7 @@ class PageBtreeNode extends PageBtree {
      * @param row the current row
      */
     void nextPage(PageBtreeCursor cursor, SearchRow row) throws SQLException {
-        int i = find(row, true);
+        int i = find(row, true, false);
         if (i > entryCount) {
             if (parentPageId == Page.ROOT) {
                 cursor.setCurrent(null, 0);

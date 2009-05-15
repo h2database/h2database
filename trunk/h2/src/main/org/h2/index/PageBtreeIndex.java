@@ -38,7 +38,7 @@ public class PageBtreeIndex extends BaseIndex {
             IndexType indexType, int headPos) throws SQLException {
         initBaseIndex(table, id, indexName, columns, indexType);
         int test;
-        // trace.setLevel(TraceSystem.DEBUG);
+// trace.setLevel(TraceSystem.DEBUG);
         if (database.isMultiVersion()) {
             int todoMvcc;
         }

@@ -56,6 +56,11 @@ abstract class PageBtree extends Record {
      */
     protected int start;
 
+    /**
+     * If the page was already written to the buffer.
+     */
+    protected boolean written;
+
     PageBtree(PageBtreeIndex index, int pageId, int parentPageId, DataPage data) {
         this.index = index;
         this.parentPageId = parentPageId;
@@ -82,22 +87,35 @@ abstract class PageBtree extends Record {
      *
      * @param compare the row
      * @param bigger if looking for a larger row
+     * @param add if the row should be added (check for duplicate keys)
      * @return the index of the found row
      */
-    int find(SearchRow compare, boolean bigger) throws SQLException {
+    int find(SearchRow compare, boolean bigger, boolean add) throws SQLException {
         if (compare == null) {
             return 0;
         }
         int l = 0, r = entryCount;
+        int comp = 1;
         while (l < r) {
             int i = (l + r) >>> 1;
             SearchRow row = (SearchRow) getRow(i);
-            int comp = index.compareRows(row, compare);
+            comp = index.compareRows(row, compare);
+            if (comp == 0 && add) {
+                if (index.indexType.getUnique()) {
+                    if (!index.containsNullAndAllowMultipleNull(compare)) {
+                        throw index.getDuplicateKeyException();
+                    }
+                }
+                comp = index.compareKeys(row, compare);
+            }
             if (comp > 0 || (!bigger && comp == 0)) {
                 r = i;
             } else {
                 l = i + 1;
             }
+        }
+        if (bigger && comp < 0) {
+            l++;
         }
         return l;
     }

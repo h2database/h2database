@@ -691,7 +691,7 @@ public class Function extends Expression implements FunctionCall {
             result = ValueBoolean.get(session.getAutoCommit());
             break;
         case READONLY:
-            result = ValueBoolean.get(database.getReadOnly());
+            result = ValueBoolean.get(database.isReadOnly());
             break;
         case DATABASE_PATH: {
             String path = database.getDatabasePath();

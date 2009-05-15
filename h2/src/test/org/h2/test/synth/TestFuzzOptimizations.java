@@ -121,6 +121,7 @@ public class TestFuzzOptimizations extends TestBase {
                 group += " ORDER BY 1, 2, 3";
                 List a = db.query(x + "TEST" + group);
                 List b = db.query(x + "TEST_INDEXED" + group);
+                assertEquals(a.toString(), b.toString());
                 assertTrue(a.equals(b));
             }
             db.execute("DROP TABLE TEST_INDEXED");

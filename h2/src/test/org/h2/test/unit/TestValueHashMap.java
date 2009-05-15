@@ -29,7 +29,7 @@ import org.h2.value.ValueInt;
  */
 public class TestValueHashMap extends TestBase implements DataHandler {
 
-    CompareMode compareMode = new CompareMode(null, null, 0);
+    CompareMode compareMode = new CompareMode(null, 0);
 
     /**
      * Run just this test.

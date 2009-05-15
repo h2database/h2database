@@ -480,7 +480,7 @@ public class DiskFile implements CacheWriter {
     public void close() throws SQLException {
         synchronized (database) {
             SQLException closeException = null;
-            if (!database.getReadOnly()) {
+            if (!database.isReadOnly()) {
                 try {
                     flush();
                 } catch (SQLException e) {

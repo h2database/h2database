@@ -2872,7 +2872,7 @@ public class Parser {
                     command[i + 1] = ' ';
                     i++;
                 } else {
-                    if (lastType == CHAR_NAME) {
+                    if (lastType == CHAR_NAME || lastType == CHAR_VALUE) {
                         // $ inside an identifier is supported
                         type = CHAR_NAME;
                     } else {
@@ -2972,7 +2972,7 @@ public class Parser {
                     }
                 }
             }
-            types[i] = (byte) type;
+            types[i] = type;
             lastType = type;
         }
         sqlCommandChars = command;

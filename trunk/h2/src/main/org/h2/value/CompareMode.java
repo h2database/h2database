@@ -10,6 +10,7 @@ import java.text.CollationKey;
 import java.text.Collator;
 import java.util.Locale;
 
+import org.h2.constant.SysProperties;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 
@@ -35,13 +36,17 @@ public class CompareMode {
      * The cache is used to speed up comparison when using a collator;
      * CollationKey objects are cached.
      *
-     * @param collator the collator or null
      * @param name the collation name or null
-     * @param cacheSize the number of entries in the CollationKey cache
+     * @param strength the collation strength
      */
-    public CompareMode(Collator collator, String name, int cacheSize) {
-        this.collator = collator;
-        if (collator != null && cacheSize != 0) {
+    public CompareMode(String name, int strength) {
+        this.collator = CompareMode.getCollator(name);
+        int cacheSize = 0;
+        if (collator != null) {
+            this.collator.setStrength(strength);
+            cacheSize = SysProperties.getCollatorCacheSize();
+        }
+        if (cacheSize != 0) {
             collationKeys = new SmallLRUCache(cacheSize);
         } else {
             collationKeys = null;
@@ -140,6 +145,9 @@ public class CompareMode {
      * @return the collator
      */
     public static Collator getCollator(String name) {
+        if (name == null) {
+            return null;
+        }
         Collator result = null;
         if (name.length() == 2) {
             Locale locale = new Locale(name.toLowerCase(), "");

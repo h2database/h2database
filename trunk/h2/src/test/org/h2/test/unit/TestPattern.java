@@ -27,7 +27,7 @@ public class TestPattern extends TestBase {
     }
 
     public void test() throws SQLException {
-        CompareMode mode = new CompareMode(null, null, 100);
+        CompareMode mode = new CompareMode(null, 0);
         CompareLike comp = new CompareLike(mode, null, null, null, false);
         test(comp, "B", "%_");
         test(comp, "A", "A%");

@@ -107,7 +107,7 @@ One query where HSQLDB is slow is a two-table join:
 </p>
 <pre>
 SELECT COUNT(DISTINCT S_I_ID) FROM ORDER_LINE, STOCK
-WHERE OL_W_ID=? AND OL_D_ID=? AND OL_O_ID&lt;? AND OL_O_ID>=?
+WHERE OL_W_ID=? AND OL_D_ID=? AND OL_O_ID&lt;? AND OL_O_ID&gt;=?
 AND S_W_ID=? AND S_I_ID=OL_I_ID AND S_QUANTITY&lt;?
 </pre>
 <p>
@@ -171,6 +171,20 @@ SQLite was not tested because the JDBC driver doesn't support transactions.
 </p>
 
 <h3>About this Benchmark</h3>
+
+<h4>How to Run</h4>
+<p>
+This test was executed as follows:
+</p>
+<pre>
+build benchmark
+</pre>
+
+<h4>Separate Process per Database</h4>
+<p>
+For each database, a new process is started, to ensure the previous test does not impact
+the current test.
+</p>
 
 <h4>Number of Connections</h4>
 <p>

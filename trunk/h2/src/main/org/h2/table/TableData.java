@@ -246,7 +246,7 @@ public class TableData extends Table implements RecordReader {
                 // need to update, because maybe the index is rebuilt at startup,
                 // and so the head pos may have changed, which needs to be stored now.
                 // addSchemaObject doesn't update the sys table at startup
-                if (index.getIndexType().getPersistent() && !database.getReadOnly()
+                if (index.getIndexType().getPersistent() && !database.isReadOnly()
                         && !database.getLog().containsInDoubtTransactions()) {
                     // can not save anything in the log file if it contains in-doubt transactions
                     database.update(session, index);

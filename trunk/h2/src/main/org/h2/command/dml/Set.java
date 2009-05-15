@@ -12,7 +12,6 @@ import java.text.Collator;
 import org.h2.command.Prepared;
 import org.h2.compress.Compressor;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
@@ -99,21 +98,20 @@ public class Set extends Prepared {
             StringBuffer buff = new StringBuffer();
             buff.append(stringValue);
             if (stringValue.equals(CompareMode.OFF)) {
-                compareMode = new CompareMode(null, null, 0);
+                compareMode = new CompareMode(null, 0);
             } else {
-                Collator coll = CompareMode.getCollator(stringValue);
-                compareMode = new CompareMode(coll, stringValue, SysProperties.getCollatorCacheSize());
+                int strength = getIntValue();
                 buff.append(" STRENGTH ");
-                if (getIntValue() == Collator.IDENTICAL) {
+                if (strength == Collator.IDENTICAL) {
                     buff.append("IDENTICAL");
-                } else if (getIntValue() == Collator.PRIMARY) {
+                } else if (strength == Collator.PRIMARY) {
                     buff.append("PRIMARY");
-                } else if (getIntValue() == Collator.SECONDARY) {
+                } else if (strength == Collator.SECONDARY) {
                     buff.append("SECONDARY");
-                } else if (getIntValue() == Collator.TERTIARY) {
+                } else if (strength == Collator.TERTIARY) {
                     buff.append("TERTIARY");
                 }
-                coll.setStrength(getIntValue());
+                compareMode = new CompareMode(stringValue, strength);
             }
             addOrUpdateSetting(name, buff.toString(), 0);
             database.setCompareMode(compareMode);
@@ -341,7 +339,7 @@ public class Set extends Prepared {
 
     private void addOrUpdateSetting(String name, String s, int v) throws SQLException {
         Database database = session.getDatabase();
-        if (database.getReadOnly()) {
+        if (database.isReadOnly()) {
             return;
         }
         Setting setting = database.findSetting(name);

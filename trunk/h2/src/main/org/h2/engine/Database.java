@@ -170,7 +170,7 @@ public class Database implements DataHandler {
     private boolean reconnectChangePending;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
-        this.compareMode = new CompareMode(null, null, 0);
+        this.compareMode = new CompareMode(null, 0);
         this.persistent = ci.isPersistent();
         this.filePasswordHash = ci.getFilePasswordHash();
         this.databaseName = name;
@@ -1768,7 +1768,7 @@ public class Database implements DataHandler {
         }
     }
 
-    public boolean getReadOnly() {
+    public boolean isReadOnly() {
         return readOnly;
     }
 
@@ -2046,7 +2046,7 @@ public class Database implements DataHandler {
         }
     }
 
-    public boolean getIndexSummaryValid() {
+    public boolean isIndexSummaryValid() {
         return indexSummaryValid;
     }
 

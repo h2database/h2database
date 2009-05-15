@@ -85,7 +85,7 @@ public class LogFile {
         unwritten = new ObjectArray();
         try {
             readHeader();
-            if (!log.getDatabase().getReadOnly()) {
+            if (!log.getDatabase().isReadOnly()) {
                 writeHeader();
             }
             pos = getBlock();
@@ -243,7 +243,7 @@ public class LogFile {
         int blocks = in.readInt();
         if (blocks < 0) {
             return true;
-        } else if (blocks == 0 && !database.getReadOnly()) {
+        } else if (blocks == 0 && !database.isReadOnly()) {
             truncate(pos);
             return false;
         }
@@ -359,7 +359,7 @@ public class LogFile {
      * the file.
      */
     void redoAllGoEnd() throws SQLException {
-        boolean readOnly = logSystem.getDatabase().getReadOnly();
+        boolean readOnly = logSystem.getDatabase().isReadOnly();
         long length = file.length();
         if (length <= FileStore.HEADER_LENGTH) {
             return;

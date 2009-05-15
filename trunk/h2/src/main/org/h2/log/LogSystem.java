@@ -602,7 +602,7 @@ public class LogSystem {
         if (summary != null) {
             currentLog.addSummary(true, summary);
         }
-        if (database.getLogIndexChanges() || database.getIndexSummaryValid()) {
+        if (database.getLogIndexChanges() || database.isIndexSummaryValid()) {
             file = database.getIndexFile();
             summary = file.getSummary();
             if (summary != null) {

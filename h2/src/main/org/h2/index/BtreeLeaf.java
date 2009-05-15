@@ -63,7 +63,7 @@ public class BtreeLeaf extends BtreePage {
             int comp = index.compareRows(row, newRow);
             if (comp == 0) {
                 if (index.indexType.getUnique()) {
-                    if (!index.containsNullAndAllowMultipleNull(session, newRow)) {
+                    if (!index.containsNullAndAllowMultipleNull(newRow)) {
                         throw index.getDuplicateKeyException();
                     }
                 }

@@ -243,8 +243,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return 0;
     }
 
-    public boolean containsNullAndAllowMultipleNull(Session session, Row newRow) {
-        Mode mode = session.getDatabase().getMode();
+    public boolean containsNullAndAllowMultipleNull(SearchRow newRow) {
+        Mode mode = database.getMode();
         if (mode.uniqueIndexSingleNull) {
             return false;
         } else if (mode.uniqueIndexSingleNullExceptAllColumnsAreNull) {

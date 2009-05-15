@@ -191,7 +191,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         lastChange = 0;
         if (storage != null) {
             storage.getDiskFile().flush();
-            if (!database.getReadOnly()) {
+            if (!database.isReadOnly()) {
                 deletePage(session, head);
                 // if we log index changes now, then the index is consistent
                 // if we don't log index changes, then the index is only consistent
@@ -348,7 +348,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
 
     private void flushHead(Session session) throws SQLException {
         updatePage(session, head);
-        if (!database.getLogIndexChanges() && !database.getReadOnly()) {
+        if (!database.getLogIndexChanges() && !database.isReadOnly()) {
             storage.flushRecord(head);
         }
         if (trace.isDebugEnabled()) {

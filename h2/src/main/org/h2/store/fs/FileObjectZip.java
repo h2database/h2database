@@ -21,12 +21,15 @@ import org.h2.util.IOUtils;
  */
 public class FileObjectZip implements FileObject {
 
+    private static final byte[] SKIP_BUFFER = new byte[1024];
+
     private ZipFile file;
     private ZipEntry entry;
     private long pos;
     private InputStream in;
     private long inPos;
     private long length;
+    private boolean skipUsingRead;
 
     FileObjectZip(ZipFile file, ZipEntry entry) {
         this.file = file;
@@ -58,7 +61,22 @@ public class FileObjectZip implements FileObject {
             inPos = 0;
         }
         if (inPos < pos) {
-            IOUtils.skipFully(in, pos - inPos);
+            long skip = pos - inPos;
+            if (!skipUsingRead) {
+                try {
+                    IOUtils.skipFully(in, skip);
+                } catch (NullPointerException e) {
+                    // workaround for Google Android
+                    skipUsingRead = true;
+                }
+            }
+            if (skipUsingRead) {
+                while (skip > 0) {
+                    int s = (int) Math.min(SKIP_BUFFER.length, skip);
+                    s = in.read(SKIP_BUFFER, 0, s);
+                    skip -= s;
+                }
+            }
             inPos = pos;
         }
         int l = IOUtils.readFully(in, b, off, len);

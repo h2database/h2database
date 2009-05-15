@@ -66,6 +66,7 @@ public class Recover extends Tool implements DataHandler {
     private int block;
     private int blockCount;
     private int storageId;
+    private String storageName;
     private int recordLength;
     private int valueId;
     private boolean trace;
@@ -193,7 +194,7 @@ public class Recover extends Tool implements DataHandler {
             long start = store.getFilePointer();
             store.readFully(bytes, 0, blockSize);
             blockCount = s.readInt();
-            storageId = -1;
+            setStorage(-1);
             recordLength = -1;
             valueId = -1;
             if (blockCount == 0) {
@@ -219,7 +220,7 @@ public class Recover extends Tool implements DataHandler {
                 blockCount = 1;
                 continue;
             }
-            storageId = s.readInt();
+            setStorage(s.readInt());
             if (storageId != 0) {
                 continue;
             }
@@ -633,7 +634,7 @@ public class Recover extends Tool implements DataHandler {
                 DataPage s = DataPage.create(this, buff);
                 store.readFully(buff, 0, blockSize);
                 blockCount = s.readInt();
-                storageId = -1;
+                setStorage(-1);
                 recordLength = -1;
                 valueId = -1;
                 if (blockCount == 0) {
@@ -666,7 +667,7 @@ public class Recover extends Tool implements DataHandler {
                     blockCount = 1;
                     continue;
                 }
-                storageId = s.readInt();
+                setStorage(s.readInt());
                 if (storageId < 0) {
                     writeDataError(writer, "storageId<0", s.getBytes(), blockCount);
                     continue;
@@ -810,7 +811,7 @@ public class Recover extends Tool implements DataHandler {
                 writer.println("-- undo page " + pageId);
             } else if (x == PageLog.ADD || x == PageLog.REMOVE) {
                 int sessionId = in.readInt();
-                storageId = in.readInt();
+                setStorage(in.readInt());
                 Row row = PageLog.readRow(in, s);
                 writer.println("-- session " + sessionId +
                         " table " + storageId +
@@ -821,6 +822,11 @@ public class Recover extends Tool implements DataHandler {
             }
         }
 
+    }
+
+    private void setStorage(int storageId) {
+        this.storageId = storageId;
+        this.storageName = String.valueOf(storageId).replace('-', 'M');
     }
 
     /**
@@ -934,7 +940,7 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void dumpPageDataLeaf(FileStore store, int pageSize, PrintWriter writer, DataPage s, boolean last, long pageId) throws SQLException {
-        storageId = s.readInt();
+        setStorage(s.readInt());
         int entryCount = s.readShortInt();
         int[] keys = new int[entryCount];
         int[] offsets = new int[entryCount];
@@ -1036,7 +1042,7 @@ public class Recover extends Tool implements DataHandler {
 
     private void writeRow(PrintWriter writer, DataPage s, Value[] data) {
         StringBuffer sb = new StringBuffer();
-        sb.append("INSERT INTO O_" + storageId + " VALUES(");
+        sb.append("INSERT INTO O_" + storageName + " VALUES(");
         for (valueId = 0; valueId < recordLength; valueId++) {
             try {
                 Value v = s.readValue();
@@ -1103,7 +1109,7 @@ public class Recover extends Tool implements DataHandler {
                 DataPage s = DataPage.create(this, buff);
                 store.readFully(buff, 0, blockSize);
                 blockCount = s.readInt();
-                storageId = -1;
+                setStorage(-1);
                 recordLength = -1;
                 valueId = -1;
                 if (blockCount == 0) {
@@ -1149,7 +1155,7 @@ public class Recover extends Tool implements DataHandler {
                     blockCount = 1;
                     continue;
                 }
-                storageId = s.readInt();
+                setStorage(s.readInt());
                 if (storageId < 0) {
                     writeDataError(writer, "storageId<0", s.getBytes(), blockCount);
                     continue;
@@ -1203,7 +1209,7 @@ public class Recover extends Tool implements DataHandler {
         if (!objectIdSet.contains(ObjectUtils.getInteger(storageId))) {
             objectIdSet.add(ObjectUtils.getInteger(storageId));
             StringBuffer sb = new StringBuffer();
-            sb.append("CREATE TABLE O_" + storageId + "(");
+            sb.append("CREATE TABLE O_" + storageName + "(");
             for (int i = 0; i < recordLength; i++) {
                 if (i > 0) {
                     sb.append(", ");

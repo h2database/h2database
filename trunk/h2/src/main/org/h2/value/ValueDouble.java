@@ -33,6 +33,7 @@ public class ValueDouble extends Value {
     private static final double DOUBLE_ONE = 1.0;
     private static final ValueDouble ZERO = new ValueDouble(DOUBLE_ZERO);
     private static final ValueDouble ONE = new ValueDouble(DOUBLE_ONE);
+    private static final ValueDouble NAN = new ValueDouble(Double.NaN);
 
     private final double value;
 
@@ -132,6 +133,8 @@ public class ValueDouble extends Value {
             return ZERO;
         } else if (DOUBLE_ONE == d) {
             return ONE;
+        } else if (Double.isNaN(d)) {
+            return NAN;
         }
         return (ValueDouble) Value.cache(new ValueDouble(d));
     }

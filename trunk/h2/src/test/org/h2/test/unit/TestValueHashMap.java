@@ -22,6 +22,7 @@ import org.h2.util.TempFileDeleter;
 import org.h2.util.ValueHashMap;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
+import org.h2.value.ValueDouble;
 import org.h2.value.ValueInt;
 
 /**
@@ -41,6 +42,21 @@ public class TestValueHashMap extends TestBase implements DataHandler {
     }
 
     public void test() throws SQLException {
+        testNotANumber();
+        testRandomized();
+    }
+
+    private void testNotANumber() throws SQLException {
+        ValueHashMap map = new ValueHashMap(this);
+        for (int i = 1; i < 100; i++) {
+            double d = Double.longBitsToDouble(0x7ff0000000000000L | i);
+            ValueDouble v = ValueDouble.get(d);
+            map.put(v, null);
+            assertEquals(1, map.size());
+        }
+    }
+
+    private void testRandomized() throws SQLException {
         ValueHashMap map = new ValueHashMap(this);
         HashMap hash = new HashMap();
         Random random = new Random(1);

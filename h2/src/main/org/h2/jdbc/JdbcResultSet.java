@@ -2928,11 +2928,11 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 for (int i = 0; i < columnCount; i++) {
                     String colName = result.getColumnName(i);
                     if (colName != null) {
-                        colName = colName.toUpperCase();
+                        colName = StringUtils.toUpperEnglish(colName);
                         map.put(colName, ObjectUtils.getInteger(i));
                         String tabName = result.getTableName(i);
                         if (tabName != null) {
-                            colName = tabName.toUpperCase() + "." + colName;
+                            colName = StringUtils.toUpperEnglish(tabName) + "." + colName;
                             map.put(colName, ObjectUtils.getInteger(i));
                         }
                     }
@@ -2940,13 +2940,13 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 // column labels have higher priority
                 // column names with the same name are replaced
                 for (int i = 0; i < columnCount; i++) {
-                    String c = result.getAlias(i).toUpperCase();
+                    String c = StringUtils.toUpperEnglish(result.getAlias(i));
                     map.put(c, ObjectUtils.getInteger(i));
                 }
                 // assign at the end so concurrent access is supported
                 columnLabelMap = map;
             }
-            Integer index = (Integer) columnLabelMap.get(columnLabel.toUpperCase());
+            Integer index = (Integer) columnLabelMap.get(StringUtils.toUpperEnglish(columnLabel));
             if (index == null) {
                 throw Message.getSQLException(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel);
             }

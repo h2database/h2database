@@ -24,6 +24,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import org.h2.constant.SysProperties;
@@ -52,6 +53,7 @@ public class TestResultSet extends TestBase {
 
         stat = conn.createStatement();
 
+        testSpecialLocale();
         testSubstringPrecision();
         testSubstringDataType();
         testColumnLabelColumnName();
@@ -82,6 +84,24 @@ public class TestResultSet extends TestBase {
         conn.close();
         deleteDb("resultSet");
 
+    }
+
+    private void testSpecialLocale() throws SQLException {
+        Locale old = Locale.getDefault();
+        try {
+            // when using Turkish as the default locale, "i".toUpperCase() is not "I"
+            Locale.setDefault(new Locale("tr"));
+            stat.execute("create table test(I1 int, i2 int, b int, c int, d int) as select 1, 1, 1, 1, 1");
+            ResultSet rs = stat.executeQuery("select * from test");
+            rs.next();
+            rs.getString("I1");
+            rs.getString("i1");
+            rs.getString("I2");
+            rs.getString("i2");
+            stat.execute("drop table test");
+        } finally {
+            Locale.setDefault(old);
+        }
     }
 
     private void testSubstringDataType() throws SQLException {

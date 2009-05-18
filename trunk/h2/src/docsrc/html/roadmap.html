@@ -180,6 +180,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Make sure H2 is supported by Execute Query: http://executequery.org/
 </li><li>Read InputStream when executing, as late as possible (maybe only embedded mode). Problem with re-execute.
 </li><li>Native fulltext search: min word length; store word positions
+</li><li>Store dates in local time zone (portability of database files)
 </li><li>Recursive Queries (see details)
 </li><li>Add an option to the SCRIPT command to generate only portable / standard SQL
 </li><li>Test Dezign for Databases (http://www.datanamic.com)
@@ -234,7 +235,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support triggers with a string property or option: SpringTrigger, OSGITrigger
 </li><li>Clustering: adding a node should be very fast and without interrupting clients (very short lock)
 </li><li>Support materialized views (using triggers)
-</li><li>Store dates in local time zone (portability of database files)
 </li><li>Ability to resize the cache array when resizing the cache
 </li><li>Time based cache writing (one second after writing the log)
 </li><li>Check state of H2 driver for DDLUtils: https://issues.apache.org/jira/browse/DDLUTILS-185

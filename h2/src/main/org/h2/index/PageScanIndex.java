@@ -37,7 +37,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     private int lastKey;
     private long rowCount;
 
-    public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos) throws SQLException {
+    public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos, Session session) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
         int test;
 // trace.setLevel(TraceSystem.DEBUG);
@@ -54,7 +54,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (headPos == Index.EMPTY_HEAD) {
             // new table
             this.headPos = headPos = store.allocatePage();
-            store.addMeta(this);
+            store.addMeta(this, session);
             PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
             store.updateRecord(root, true, root.data);
 
@@ -227,7 +227,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("remove");
         }
-        store.removeMeta(this);
+        store.removeMeta(this, session);
     }
 
     public void truncate(Session session) throws SQLException {

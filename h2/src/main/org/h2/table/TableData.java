@@ -62,7 +62,7 @@ public class TableData extends Table implements RecordReader {
     private boolean containsLargeObject;
 
     public TableData(Schema schema, String tableName, int id, ObjectArray columns,
-            boolean persistIndexes, boolean persistData, boolean clustered, int headPos) throws SQLException {
+            boolean persistIndexes, boolean persistData, boolean clustered, int headPos, Session session) throws SQLException {
         super(schema, id, tableName, persistIndexes, persistData);
         Column[] cols = new Column[columns.size()];
         columns.toArray(cols);
@@ -70,7 +70,7 @@ public class TableData extends Table implements RecordReader {
         this.clustered = clustered;
         if (!clustered) {
             if (SysProperties.PAGE_STORE && persistData && database.isPersistent()) {
-                scanIndex = new PageScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistData), headPos);
+                scanIndex = new PageScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistData), headPos, session);
             } else {
                 scanIndex = new ScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistData));
             }
@@ -179,7 +179,7 @@ public class TableData extends Table implements RecordReader {
         Index index;
         if (isPersistIndexes() && indexType.getPersistent()) {
             if (SysProperties.PAGE_STORE) {
-                index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, headPos);
+                index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, headPos, session);
             } else {
                 index = new BtreeIndex(session, this, indexId, indexName, cols, indexType, headPos);
             }

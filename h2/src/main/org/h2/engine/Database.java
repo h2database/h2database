@@ -626,7 +626,7 @@ public class Database implements DataHandler {
         if (pageStore != null) {
             headPos = pageStore.getSystemTableHeadPos();
         }
-        meta = mainSchema.createTable("SYS", 0, cols, persistent, persistent, false, headPos);
+        meta = mainSchema.createTable("SYS", 0, cols, persistent, persistent, false, headPos, systemSession);
         IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
         metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(
                 false, false), Index.EMPTY_HEAD, null);

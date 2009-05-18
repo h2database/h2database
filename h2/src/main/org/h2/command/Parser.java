@@ -3781,7 +3781,7 @@ public class Parser {
             columns.add(new Column(cols[i], Value.STRING));
         }
         int id = database.allocateObjectId(true, true);
-        recursiveTable = schema.createTable(tempViewName, id, columns, false, true, false, Index.EMPTY_HEAD);
+        recursiveTable = schema.createTable(tempViewName, id, columns, false, true, false, Index.EMPTY_HEAD, session);
         recursiveTable.setTemporary(true);
         session.addLocalTempTable(recursiveTable);
         String querySQL = StringCache.getNew(sqlCommand.substring(parseIndex));

@@ -6,10 +6,10 @@
  */
 package org.h2.store;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-import org.h2.constant.ErrorCode;
 import org.h2.index.Page;
 import org.h2.message.Message;
 import org.h2.message.Trace;
@@ -19,8 +19,9 @@ import org.h2.message.Trace;
  * The format is:
  * <ul><li>0-3: parent page id
  * </li><li>4-4: page type
- * </li><li>5-8: the next page (if there is one) or length
- * </li><li>9-remainder: data
+ * </li><li>5-5: stream id
+ * </li><li>6-9: the next page (if there is one) or length
+ * </li><li>10-remainder: data
  * </li></ul>
  */
 public class PageInputStream extends InputStream {
@@ -29,6 +30,7 @@ public class PageInputStream extends InputStream {
     private final Trace trace;
     private int parentPage;
     private int type;
+    private int streamId = -1;
     private int nextPage;
     private DataPage page;
     private boolean endOfFile;
@@ -92,30 +94,31 @@ public class PageInputStream extends InputStream {
         page.reset();
         try {
             store.readPage(nextPage, page);
-            int p = page.readInt();
-            int t = page.readByte();
-            boolean last = (t & Page.FLAG_LAST) != 0;
-            t &= ~Page.FLAG_LAST;
-            if (type != t || p != parentPage) {
-                int todoNeedBetterWayToDetectEOF;
-                throw Message.getSQLException(
-                        ErrorCode.FILE_CORRUPTED_1,
-                        "page:" +nextPage+ " type:" + t + " parent:" + p +
-                        " expected type:" + type + " expected parent:" + parentPage);
-            }
-            parentPage = nextPage;
-            if (last) {
-                nextPage = 0;
-                remaining = page.readInt();
-            } else {
-                nextPage = page.readInt();
-                remaining = store.getPageSize() - page.length();
-            }
-            if (trace.isDebugEnabled()) {
-                // trace.debug("pageIn.readPage " + parentPage + " next:" + nextPage);
-            }
         } catch (SQLException e) {
             throw Message.convertToIOException(e);
+        }
+        int p = page.readInt();
+        int t = page.readByte();
+        int id = page.readByte();
+        if (streamId == -1) {
+            // set the stream id on the first page
+            streamId = id;
+        }
+        boolean last = (t & Page.FLAG_LAST) != 0;
+        t &= ~Page.FLAG_LAST;
+        if (type != t || p != parentPage || id != streamId) {
+            throw new EOFException();
+        }
+        parentPage = nextPage;
+        if (last) {
+            nextPage = 0;
+            remaining = page.readInt();
+        } else {
+            nextPage = page.readInt();
+            remaining = store.getPageSize() - page.length();
+        }
+        if (trace.isDebugEnabled()) {
+            // trace.debug("pageIn.readPage " + parentPage + " next:" + nextPage);
         }
     }
 

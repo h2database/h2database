@@ -476,9 +476,9 @@ public class Schema extends DbObjectBase {
      * @param headPos the position (page number) of the head
      * @return the created {@link TableData} object
      */
-    public TableData createTable(String tableName, int id, ObjectArray columns, boolean persistIndexes, boolean persistData, boolean clustered, int headPos)
+    public TableData createTable(String tableName, int id, ObjectArray columns, boolean persistIndexes, boolean persistData, boolean clustered, int headPos, Session session)
             throws SQLException {
-        return new TableData(this, tableName, id, columns, persistIndexes, persistData, clustered, headPos);
+        return new TableData(this, tableName, id, columns, persistIndexes, persistData, clustered, headPos, session);
     }
 
     /**

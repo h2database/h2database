@@ -471,11 +471,11 @@ public class LogSystem {
             return;
         }
         synchronized (database) {
-            if (closed) {
-                return;
-            }
             if (pageStore != null) {
                 pageStore.commit(session);
+            }
+            if (closed) {
+                return;
             }
             currentLog.commit(session);
             session.setAllCommitted();
@@ -490,6 +490,9 @@ public class LogSystem {
             return;
         }
         synchronized (database) {
+            if (pageStore != null) {
+                pageStore.flushLog();
+            }
             if (closed) {
                 return;
             }

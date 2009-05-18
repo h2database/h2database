@@ -46,7 +46,7 @@ public class ResultTempTable implements ResultExternal {
         columns.add(column);
         int tableId = session.getDatabase().allocateObjectId(true, true);
         String tableName = "TEMP_RESULT_SET_" + tableId;
-        table = schema.createTable(tableName, tableId, columns, false, true, false, Index.EMPTY_HEAD);
+        table = schema.createTable(tableName, tableId, columns, false, true, false, Index.EMPTY_HEAD, session);
         int indexId = session.getDatabase().allocateObjectId(true, false);
         IndexColumn indexColumn = new IndexColumn();
         indexColumn.column = column;
@@ -55,7 +55,7 @@ public class ResultTempTable implements ResultExternal {
         indexType = IndexType.createPrimaryKey(true, false);
         IndexColumn[] indexCols = new IndexColumn[]{indexColumn};
         if (SysProperties.PAGE_STORE) {
-            index = new PageBtreeIndex(table, indexId, tableName, indexCols, indexType, Index.EMPTY_HEAD);
+            index = new PageBtreeIndex(table, indexId, tableName, indexCols, indexType, Index.EMPTY_HEAD, session);
         } else {
             index = new BtreeIndex(session, table, indexId, tableName, indexCols, indexType, Index.EMPTY_HEAD);
         }

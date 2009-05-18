@@ -35,7 +35,7 @@ public class PageBtreeIndex extends BaseIndex {
     private boolean needRebuild;
 
     public PageBtreeIndex(TableData table, int id, String indexName, IndexColumn[] columns,
-            IndexType indexType, int headPos) throws SQLException {
+            IndexType indexType, int headPos, Session session) throws SQLException {
         initBaseIndex(table, id, indexName, columns, indexType);
         int test;
 // trace.setLevel(TraceSystem.DEBUG);
@@ -54,7 +54,7 @@ public class PageBtreeIndex extends BaseIndex {
             this.headPos = headPos = store.allocatePage();
             PageBtreeLeaf root = new PageBtreeLeaf(this, headPos, Page.ROOT, store.createDataPage());
             store.updateRecord(root, true, root.data);
-            store.addMeta(this);
+            store.addMeta(this, session);
         } else {
             this.headPos = headPos;
             PageBtree root = getPage(headPos);
@@ -211,7 +211,7 @@ public class PageBtreeIndex extends BaseIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("remove");
         }
-        store.removeMeta(this);
+        store.removeMeta(this, session);
     }
 
     public void truncate(Session session) throws SQLException {

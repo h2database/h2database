@@ -8,11 +8,12 @@ package org.h2.store;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.sql.SQLException;
-import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.Page;
+import org.h2.log.LogSystem;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.Row;
@@ -92,7 +93,7 @@ public class PageLog {
     void openForWriting(int id) throws SQLException {
         this.id = id;
         trace.debug("log openForWriting " + id + " firstPage:" + firstPage);
-        pageOut = new PageOutputStream(store, 0, firstPage, Page.TYPE_LOG, true);
+        pageOut = new PageOutputStream(store, 0, firstPage, Page.TYPE_LOG, id, true);
         out = new DataOutputStream(pageOut);
         try {
             out.writeInt(id);
@@ -159,20 +160,26 @@ public class PageLog {
                                 trace.debug("log redo " + (x == ADD ? "+" : "-") + " table:" + tableId + " " + row);
                             }
                             store.redo(tableId, row, x == ADD);
+                        } else {
+                            if (trace.isDebugEnabled()) {
+                                trace.debug("log ignore s:" + sessionId + " " + (x == ADD ? "+" : "-") + " table:" + tableId + " " + row);
+                            }
                         }
                     }
                 } else if (x == COMMIT) {
                     int sessionId = in.readInt();
+                    if (trace.isDebugEnabled()) {
+                        trace.debug("log commit " + sessionId + " id:" + id + " pos:" + pos);
+                    }
                     if (undo) {
                         store.setLastCommitForSession(sessionId, id, pos);
                     }
                 }
             }
-        } catch (Exception e) {
-e.printStackTrace();
-            int todoOnlyIOExceptionAndSQLException;
-            int todoSomeExceptionAreOkSomeNot;
+        } catch (EOFException e) {
             trace.debug("log recovery stopped: " + e.toString());
+        } catch (IOException e) {
+            throw Message.convertIOException(e, "recover");
         }
     }
 
@@ -227,15 +234,15 @@ e.printStackTrace();
 
     private void reservePages(int pageCount) throws SQLException {
         int testIfRequired;
-        if (pageCount > reservedPages.length) {
-            reservedPages = new int[pageCount];
-        }
-        for (int i = 0; i < pageCount; i++) {
-            reservedPages[i] = store.allocatePage();
-        }
-        for (int i = 0; i < pageCount; i++) {
-            store.freePage(reservedPages[i], false, null);
-        }
+//        if (pageCount > reservedPages.length) {
+//            reservedPages = new int[pageCount];
+//        }
+//        for (int i = 0; i < pageCount; i++) {
+//            reservedPages[i] = store.allocatePage();
+//        }
+//        for (int i = 0; i < pageCount; i++) {
+//            store.freePage(reservedPages[i], false, null);
+//        }
     }
 
     /**
@@ -245,11 +252,18 @@ e.printStackTrace();
      */
     void commit(Session session) throws SQLException {
         try {
-            trace.debug("log commit");
+            if (trace.isDebugEnabled()) {
+                trace.debug("log commit s:" + session.getId());
+            }
+            LogSystem log = store.getDatabase().getLog();
+            if (log == null) {
+                // database already closed
+                return;
+            }
             reservePages(1);
             out.write(COMMIT);
             out.writeInt(session.getId());
-            if (store.getDatabase().getLog().getFlushOnEachCommit()) {
+            if (log.getFlushOnEachCommit()) {
                 flush();
             }
         } catch (IOException e) {
@@ -268,7 +282,7 @@ e.printStackTrace();
     void logAddOrRemoveRow(Session session, int tableId, Row row, boolean add) throws SQLException {
         try {
             if (trace.isDebugEnabled()) {
-                trace.debug("log " + (add?"+":"-") + " table:" + tableId +
+                trace.debug("log " + (add?"+":"-") + " s:" + session.getId() + " table:" + tableId +
                         " row:" + row);
             }
             int todoLogPosShouldBeLong;
@@ -329,8 +343,6 @@ e.printStackTrace();
      */
     void flush() throws SQLException {
         try {
-            int todoUseLessSpace;
-            trace.debug("log flush");
             out.flush();
         } catch (IOException e) {
             throw Message.convertIOException(e, null);

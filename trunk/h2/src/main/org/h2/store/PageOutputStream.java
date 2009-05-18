@@ -29,6 +29,7 @@ public class PageOutputStream extends OutputStream {
     private final boolean allocateAtEnd;
     private byte[] buffer = new byte[1];
     private boolean needFlush;
+    private final int streamId;
 
     /**
      * Create a new page output stream.
@@ -37,14 +38,18 @@ public class PageOutputStream extends OutputStream {
      * @param parentPage the parent page id
      * @param headPage the first page
      * @param type the page type
+     * @param streamId the stream identifier
+     * @param allocateAtEnd whether new pages should be allocated at the end of
+     *            the file
      */
-    public PageOutputStream(PageStore store, int parentPage, int headPage, int type, boolean allocateAtEnd) {
+    public PageOutputStream(PageStore store, int parentPage, int headPage, int type, int streamId, boolean allocateAtEnd) {
         this.trace = store.getTrace();
         this.store = store;
         this.parentPage = parentPage;
         this.pageId = headPage;
         this.type = type;
         this.allocateAtEnd = allocateAtEnd;
+        this.streamId = streamId;
         page = store.createDataPage();
         initPage();
     }
@@ -62,6 +67,7 @@ public class PageOutputStream extends OutputStream {
         page.reset();
         page.writeInt(parentPage);
         page.writeByte((byte) type);
+        page.writeByte((byte) streamId);
         page.writeInt(0);
         remaining = store.getPageSize() - page.length();
     }
@@ -81,6 +87,7 @@ public class PageOutputStream extends OutputStream {
             }
             page.setPos(4);
             page.writeByte((byte) type);
+            page.writeByte((byte) streamId);
             page.writeInt(nextPage);
             storePage();
             parentPage = pageId;
@@ -108,6 +115,7 @@ public class PageOutputStream extends OutputStream {
             int len = page.length();
             page.setPos(4);
             page.writeByte((byte) (type | Page.FLAG_LAST));
+            page.writeByte((byte) streamId);
             page.writeInt(store.getPageSize() - remaining - 9);
             page.setPos(len);
             storePage();

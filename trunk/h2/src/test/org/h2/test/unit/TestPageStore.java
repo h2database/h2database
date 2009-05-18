@@ -247,7 +247,7 @@ public class TestPageStore extends TestBase {
         ObjectArray cols = new ObjectArray();
         cols.add(new Column("ID", Value.INT));
         schema = new Schema(db, 0, "", null, true);
-        table = new TableData(schema, "PAGE_INDEX", 1, cols, true, true, false, 100);
+        table = new TableData(schema, "PAGE_INDEX", 1, cols, true, true, false, 100, null);
         index = (PageScanIndex) table.getScanIndex(
                 db.getSystemSession());
     }
@@ -257,7 +257,7 @@ public class TestPageStore extends TestBase {
         cols.add(new Column("ID", Value.INT));
         schema = new Schema(db, 0, "", null, true);
         int id = db.allocateObjectId(true, true);
-        table = new TableData(schema, "BTREE_INDEX", id, cols, true, true, false, 100);
+        table = new TableData(schema, "BTREE_INDEX", id, cols, true, true, false, 100, null);
         id = db.allocateObjectId(true, true);
         table.addIndex(db.getSystemSession(), "BTREE", id,
                 IndexColumn.wrap(table.getColumns()),
@@ -314,7 +314,7 @@ public class TestPageStore extends TestBase {
         if (file) {
             out = new BufferedOutputStream(new FileOutputStream(f), 4 * 1024);
         } else {
-            out = new PageOutputStream(store, 0, head, Page.TYPE_LOG, false);
+            out = new PageOutputStream(store, 0, head, Page.TYPE_LOG, 0, false);
         }
         for (int i = 0; i < count; i++) {
             out.write(buff);
@@ -354,7 +354,7 @@ public class TestPageStore extends TestBase {
             byte[] data = new byte[len];
             random.nextBytes(data);
             int head = store.allocatePage();
-            PageOutputStream out = new PageOutputStream(store, 0, head, Page.TYPE_LOG, false);
+            PageOutputStream out = new PageOutputStream(store, 0, head, Page.TYPE_LOG, 0, false);
             for (int p = 0; p < len;) {
                 int l = len == 0 ? 0 : Math.min(len - p, random.nextInt(len / 10));
                 out.write(data, p, l);

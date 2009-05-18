@@ -37,7 +37,6 @@ import org.h2.util.FileUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
-import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueString;
@@ -60,11 +59,10 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
+    // TODO check if PageLog.reservePages is required
     // TODO PageDataLeaf and Node: support random delete/add
-
     // TODO PageStore.openMetaIndex (add collation for indexes,
     // desc columns support)
-
     // TODO btree index with fixed size values doesn't need offset and so on
     // TODO log block allocation
     // TODO block compression: maybe http://en.wikipedia.org/wiki/LZJB
@@ -406,8 +404,7 @@ public class PageStore implements CacheWriter {
     }
 
     public void flushLog() throws SQLException {
-        // TODO write log entries to increase Record.lastLog / lastPos
-        int todo;
+        getLog().flush();
     }
 
     public Trace getTrace() {
@@ -794,7 +791,7 @@ public class PageStore implements CacheWriter {
     void redo(int tableId, Row row, boolean add) throws SQLException {
         if (tableId == META_TABLE_ID) {
             if (add) {
-                addMeta(row);
+                addMeta(row, database.getSystemSession());
             } else {
                 removeMeta(row);
             }
@@ -822,7 +819,7 @@ public class PageStore implements CacheWriter {
         metaSchema = new Schema(database, 0, "", null, true);
         int headPos = metaTableRootPageId;
         metaTable = new TableData(metaSchema, "PAGE_INDEX",
-                META_TABLE_ID, cols, true, true, false, headPos);
+                META_TABLE_ID, cols, true, true, false, headPos, database.getSystemSession());
         metaIndex = (PageScanIndex) metaTable.getScanIndex(
                 database.getSystemSession());
         metaObjects = new HashMap();
@@ -833,7 +830,7 @@ public class PageStore implements CacheWriter {
         Cursor cursor = metaIndex.find(database.getSystemSession(), null, null);
         while (cursor.next()) {
             Row row = cursor.get();
-            addMeta(row);
+            addMeta(row, database.getSystemSession());
         }
     }
 
@@ -846,7 +843,7 @@ public class PageStore implements CacheWriter {
         }
     }
 
-    private void addMeta(Row row) throws SQLException {
+    private void addMeta(Row row, Session session) throws SQLException {
         int id = row.getValue(0).getInt();
         int type = row.getValue(1).getInt();
         int parent = row.getValue(2).getInt();
@@ -864,8 +861,8 @@ public class PageStore implements CacheWriter {
                 Column col = new Column("C" + i, Value.INT);
                 columnArray.add(col);
             }
-            TableData table = new TableData(metaSchema, "T" + id, id, columnArray, true, true, false, headPos);
-            meta = table.getScanIndex(database.getSystemSession());
+            TableData table = new TableData(metaSchema, "T" + id, id, columnArray, true, true, false, headPos, session);
+            meta = table.getScanIndex(session);
         } else {
             PageScanIndex p = (PageScanIndex) metaObjects.get(ObjectUtils.getInteger(parent));
             if (p == null) {
@@ -878,7 +875,7 @@ public class PageStore implements CacheWriter {
                 cols[i] = tableCols[Integer.parseInt(columns[i])];
             }
             IndexColumn[] indexColumns = IndexColumn.wrap(cols);
-            meta = table.addIndex(database.getSystemSession(), "I" + id, id, indexColumns, indexType, headPos, null);
+            meta = table.addIndex(session, "I" + id, id, indexColumns, indexType, headPos, null);
         }
         metaObjects.put(ObjectUtils.getInteger(id), meta);
     }
@@ -888,7 +885,7 @@ public class PageStore implements CacheWriter {
      *
      * @param index the index to add
      */
-    public void addMeta(Index index) throws SQLException {
+    public void addMeta(Index index, Session session) throws SQLException {
         int type = index instanceof PageScanIndex ? META_TYPE_SCAN_INDEX : META_TYPE_BTREE_INDEX;
         Column[] columns = index.getColumns();
         String[] columnIndexes = new String[columns.length];
@@ -896,10 +893,10 @@ public class PageStore implements CacheWriter {
             columnIndexes[i] = String.valueOf(columns[i].getColumnId());
         }
         String columnList = StringUtils.arrayCombine(columnIndexes, ',');
-        addMeta(index.getId(), type, index.getTable().getId(), index.getHeadPos(), columnList);
+        addMeta(index.getId(), type, index.getTable().getId(), index.getHeadPos(), columnList, session);
     }
 
-    private void addMeta(int id, int type, int parent, int headPos, String columnList) throws SQLException {
+    private void addMeta(int id, int type, int parent, int headPos, String columnList, Session session) throws SQLException {
         Row row = metaTable.getTemplateRow();
         row.setValue(0, ValueInt.get(id));
         row.setValue(1, ValueInt.get(type));
@@ -907,7 +904,7 @@ public class PageStore implements CacheWriter {
         row.setValue(3, ValueInt.get(headPos));
         row.setValue(4, ValueString.get(columnList));
         row.setPos(id + 1);
-        metaIndex.add(database.getSystemSession(), row);
+        metaIndex.add(session, row);
 
 int assertion;
 metaIndex.getRow(database.getSystemSession(), row.getPos());
@@ -918,8 +915,7 @@ metaIndex.getRow(database.getSystemSession(), row.getPos());
      *
      * @param index the index to remove
      */
-    public void removeMeta(Index index) throws SQLException {
-        Session session = database.getSystemSession();
+    public void removeMeta(Index index, Session session) throws SQLException {
         Row row = metaIndex.getRow(session, index.getId() + 1);
         metaIndex.remove(session, row);
     }

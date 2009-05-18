@@ -144,7 +144,7 @@ public class CreateTable extends SchemaCommand {
             }
         }
         int id = getObjectId(true, true);
-        TableData table = getSchema().createTable(tableName, id, columns, persistIndexes, persistData, clustered, headPos);
+        TableData table = getSchema().createTable(tableName, id, columns, persistIndexes, persistData, clustered, headPos, session);
         table.setComment(comment);
         table.setTemporary(temporary);
         table.setGlobalTemporary(globalTemporary);

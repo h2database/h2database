@@ -1023,7 +1023,7 @@ public abstract class TestBase {
         for (int i = 0; i < list1.size(); i++) {
             String s = (String) list1.get(i);
             if (!list2.remove(s)) {
-                fail("not found: " + s);
+                fail("only found in first: " + s);
             }
         }
         assertEquals(list2.size(), 0);

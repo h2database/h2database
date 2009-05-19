@@ -142,7 +142,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
      * @param p the page to update
      */
     void updatePage(Session session, Record p) throws SQLException {
-        if (database.getLogIndexChanges()) {
+        if (SysProperties.REUSE_SPACE_BTREE_INDEX || database.getLogIndexChanges()) {
             storage.addRecord(session, p, p.getPos());
         } else {
             storage.updateRecord(session, p);
@@ -156,7 +156,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
      * @param p the page to remove
      */
     void deletePage(Session session, Record p) throws SQLException {
-        if (database.getLogIndexChanges()) {
+        if (SysProperties.REUSE_SPACE_BTREE_INDEX || database.getLogIndexChanges()) {
             storage.removeRecord(session, p.getPos());
         }
     }

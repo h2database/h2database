@@ -424,10 +424,13 @@ public class Storage {
     }
 
     private void checkOnePage() throws SQLException {
-        pageCheckIndex = (pageCheckIndex + 1) % pages.size();
-        int page = pages.get(pageCheckIndex);
-        if (file.isPageFree(page) && file.getPageOwner(page) == id) {
-            file.freePage(page);
+        int size = pages.size();
+        if (size > 0) {
+            pageCheckIndex = (pageCheckIndex + 1) % size;
+            int page = pages.get(pageCheckIndex);
+            if (file.isPageFree(page) && file.getPageOwner(page) == id) {
+                file.freePage(page);
+            }
         }
     }
 

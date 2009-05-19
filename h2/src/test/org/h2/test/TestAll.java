@@ -286,15 +286,11 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
-// 2009-05-15: 25 test fail with page store (first loop)
+// 2009-05-15: 25 tests fail with page store (first loop)
+// 2009-05-18: 18 tests fail with page store (first loop)
 // System.setProperty("h2.pageStore", "true");
 
 /*
-
-index grows:
-runscript from '~/Desktop/merge.sql';
-create table test(id int, name varchar, primary key(id, name));
-@LOOP 10000 merge into test(id, name) values(?, 'test' || ?);
 
 BaseIndex or TableData should have its own compareMode
 (default is: Database.compareMode when created).

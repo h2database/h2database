@@ -679,7 +679,31 @@ public class Recover extends Tool implements DataHandler {
                 } else {
                     pageOwners[page] = storageId;
                 }
-                writer.println("// [" + block + "] page:" + page + " blocks:" + blockCount + " storage:" + storageId);
+                String data = "";
+                int type = s.readByte();
+                int len;
+                switch (type) {
+                case 'L':
+                    boolean pos = s.readByte() == 'P';
+                    len = s.readInt();
+                    data = "leaf(" + len + ")";
+                    if (pos) {
+                        data += " pos";
+                    }
+                    break;
+                case 'N':
+                    len = s.readInt();
+                    data = "node ";
+                    for (int i = 0; i < len; i++) {
+                        data += "[" + s.readInt() + "]";
+                    }
+                    break;
+                case 'H':
+                    int rootPos = s.readInt();
+                    data = "root [" + rootPos + "]";
+                    break;
+                }
+                writer.println("// [" + block + "] page:" + page + " blocks:" + blockCount + " storage:" + storageId + " " + data);
             }
             writer.close();
         } catch (Throwable e) {

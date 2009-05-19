@@ -514,6 +514,12 @@ public class SysProperties {
     public static final int REUSE_SPACE_AFTER = getIntSetting("h2.reuseSpaceAfter", 32);
 
     /**
+     * System property <code>h2.reuseSpaceBtreeIndex</code> (default: true).<br />
+     * Reuse space after deleting or updating many rows in a b-tree index.
+     */
+    public static final boolean REUSE_SPACE_BTREE_INDEX = getBooleanSetting("h2.reuseSpaceBtreeIndex", true);
+
+    /**
      * System property <code>h2.reuseSpaceQuickly</code> (default: true).<br />
      * Reuse space in database files quickly.
      */

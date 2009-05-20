@@ -34,7 +34,7 @@ public class GenerateDoc {
     private String inDir = "src/docsrc/html";
     private String outDir = "docs/html";
     private Connection conn;
-    private HashMap session = new HashMap();
+    private HashMap<String, Object> session = new HashMap<String, Object>();
     private Bnf bnf;
 
     /**
@@ -91,8 +91,7 @@ public class GenerateDoc {
             return;
         }
         File[] list = new File(inDir + "/" + dir).listFiles();
-        for (int i = 0; i < list.length; i++) {
-            File file = list[i];
+        for (File file : list) {
             if (file.isDirectory()) {
                 processAll(dir + file.getName());
             } else {
@@ -123,9 +122,9 @@ public class GenerateDoc {
         try {
             stat = conn.createStatement();
             rs = stat.executeQuery(sql);
-            ArrayList list = new ArrayList();
+            ArrayList<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
             while (rs.next()) {
-                HashMap map = new HashMap();
+                HashMap<String, String> map = new HashMap<String, String>();
                 ResultSetMetaData meta = rs.getMetaData();
                 for (int i = 0; i < meta.getColumnCount(); i++) {
                     String k = StringUtils.toLowerEnglish(meta.getColumnLabel(i + 1));
@@ -141,7 +140,7 @@ public class GenerateDoc {
                 map.put("syntax", syntax);
 
                 // remove newlines in the regular text
-                String text = (String) map.get("text");
+                String text = map.get("text");
                 if (text != null) {
                     text = text.trim();
                     // text is enclosed in <p> .. </p> so this works.

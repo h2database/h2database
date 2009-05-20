@@ -44,10 +44,9 @@ public class CheckJavadoc {
             if (name.equals("CVS") || name.equals(".svn")) {
                 return 0;
             }
-            File[] list = file.listFiles();
             boolean foundPackageHtml = false, foundJava = false;
-            for (int i = 0; i < list.length; i++) {
-                int type = check(list[i]);
+            for (File f  : file.listFiles()) {
+                int type = check(f);
                 if (type == 1) {
                     foundJava = true;
                 } else if (type == 2) {

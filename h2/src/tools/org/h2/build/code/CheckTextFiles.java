@@ -60,9 +60,8 @@ public class CheckTextFiles {
             if (name.equals("CVS") || name.equals(".svn")) {
                 return;
             }
-            File[] list = file.listFiles();
-            for (int i = 0; i < list.length; i++) {
-                check(list[i]);
+            for (File f : file.listFiles()) {
+                check(f);
             }
         } else {
             String suffix = "";
@@ -71,8 +70,8 @@ public class CheckTextFiles {
                 suffix = name.substring(lastDot + 1);
             }
             boolean check = false, ignore = false;
-            for (int i = 0; i < SUFFIX_CHECK.length; i++) {
-                if (suffix.equals(SUFFIX_CHECK[i])) {
+            for (String s : SUFFIX_CHECK) {
+                if (suffix.equals(s)) {
                     check = true;
                 }
             }
@@ -86,14 +85,13 @@ public class CheckTextFiles {
                 check = false;
                 ignore = true;
             }
-            for (int i = 0; i < SUFFIX_IGNORE.length; i++) {
-                if (suffix.equals(SUFFIX_IGNORE[i])) {
+            for (String s : SUFFIX_IGNORE) {
+                if (suffix.equals(s)) {
                     ignore = true;
                 }
             }
             boolean checkLicense = true;
-            for (int i = 0; i < suffixIgnoreLicense.length; i++) {
-                String ig = suffixIgnoreLicense[i];
+            for (String ig : suffixIgnoreLicense) {
                 if (suffix.equals(ig) || name.endsWith(ig)) {
                     checkLicense = false;
                     break;

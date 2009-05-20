@@ -6,8 +6,8 @@ mkdir ../h2web
 
 rm -rf bin
 rm -rf temp
-JAVA_HOME=$JAVA14
-PATH=$JAVA14/bin:$PATH
+JAVA_HOME=$JAVA15
+PATH=$JAVA15/bin:$PATH
 ./build.sh -quiet
 
 JAVA_HOME=$JAVA16

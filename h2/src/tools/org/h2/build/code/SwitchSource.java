@@ -18,8 +18,8 @@ import java.util.ArrayList;
  */
 public class SwitchSource {
 
-    private ArrayList enable = new ArrayList();
-    private ArrayList disable = new ArrayList();
+    private ArrayList<String> enable = new ArrayList<String>();
+    private ArrayList<String> disable = new ArrayList<String>();
 
     /**
      * This method is called when executing this application from the command
@@ -101,9 +101,8 @@ public class SwitchSource {
         } else if (name.endsWith(".java")) {
             processFile(f);
         } else if (f.isDirectory()) {
-            File[] files = f.listFiles();
-            for (int i = 0; i < files.length; i++) {
-                process(files[i]);
+            for (File file : f.listFiles()) {
+                process(file);
             }
         }
     }
@@ -135,13 +134,11 @@ public class SwitchSource {
         String source = new String(buffer);
         String target = source;
         target = replaceAll(target, "//##", "//##");
-        for (int i = 0; i < enable.size(); i++) {
-            String x = (String) enable.get(i);
+        for (String x : enable) {
             target = replaceAll(target, "/*## " + x + " begin ##", "//## " + x + " begin ##");
             target = replaceAll(target, "## " + x + " end ##*/", "//## " + x + " end ##");
         }
-        for (int i = 0; i < disable.size(); i++) {
-            String x = (String) disable.get(i);
+        for (String x : disable) {
             target = replaceAll(target, "//## " + x + " begin ##", "/*## " + x + " begin ##");
             target = replaceAll(target, "//## " + x + " end ##", "## " + x + " end ##*/");
         }

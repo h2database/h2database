@@ -10,7 +10,7 @@ mkdir ..\h2web
 
 rmdir /s /q bin 2>nul
 rmdir /s /q temp 2>nul
-call java14 >nul 2>nul
+call java15 >nul 2>nul
 call build -quiet
 
 call java16 >nul 2>nul

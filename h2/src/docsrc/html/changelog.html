@@ -18,12 +18,18 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When deleting or updating many rows in a table, the space in the index
+<ul><li>Shell tool: the built-in commands EXIT, HELP, ?, LIST, and so on didn't
+    work with a semicolon at the end.
+</li><li>JDK 1.5 is now required to build the jar file. However it is still possible to create
+    a jar file for Java 1.4. For details, see buildRelease.sh and buildRelease.bat.
+    As an alternative, compile using JDK 1.5 or 1.6 and use Retrotranslator to create a Java 1.4
+    version (http://retrotranslator.sourceforge.net/).
+</li><li>When deleting or updating many rows in a table, the space in the index
     file was not re-used in the default mode (persistent database, b-tree index,
     LOG=1). This caused the index file to grow over time. Workarounds were to
-    delete and re-created the index file, alter the table (add a remove a column), 
-    or use LOG=2. To disable the change, set the system property 
-    h2.reuseSpaceBtreeIndex to false.
+    delete and re-created the index file, alter the table (add a remove a column),
+    or append ;LOG=2 to the database URL. To disable the change, set the system
+    property h2.reuseSpaceBtreeIndex to false.
 </li><li>Identifiers with a digit and then a dollar sign didn't work. Example: A1$B.
 </li><li>MS SQL Server compatibility: support for linked tables with
     NVARCHAR, NCHAR, NCLOB, and LONGNVARCHAR.

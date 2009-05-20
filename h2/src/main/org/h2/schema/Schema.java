@@ -474,6 +474,7 @@ public class Schema extends DbObjectBase {
      * @param persistData if data of the table should be persistent
      * @param clustered if a clustered table should be created
      * @param headPos the position (page number) of the head
+     * @param session the session
      * @return the created {@link TableData} object
      */
     public TableData createTable(String tableName, int id, ObjectArray columns, boolean persistIndexes, boolean persistData, boolean clustered, int headPos, Session session)

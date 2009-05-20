@@ -44,11 +44,68 @@ import java.util.zip.ZipOutputStream;
 public class BuildBase {
 
     /**
+     * A list of strings.
+     */
+    public static class StringList extends ArrayList implements List {
+
+        private static final long serialVersionUID = 1L;
+
+        StringList() {
+            super();
+        }
+
+        StringList(String[] args) {
+            super();
+            addAll(Arrays.asList(args));
+        }
+
+        /**
+         * Add a list of strings.
+         *
+         * @param args the list to add
+         * @return the new list
+         */
+        public StringList plus(String[] args) {
+            StringList newList = new StringList();
+            newList.addAll(this);
+            newList.addAll(Arrays.asList(args));
+            return newList;
+        }
+
+        /**
+         * Add a string.
+         *
+         * @param s the string to add
+         * @return the new list
+         */
+        public StringList plus(String s) {
+            StringList newList = new StringList();
+            newList.addAll(this);
+            newList.add(s);
+            return newList;
+        }
+
+        /**
+         * Convert this list to a string array.
+         *
+         * @return the string array
+         */
+        public String[] toArray() {
+            String[] list = new String[size()];
+            for (int i = 0; i < size(); i++) {
+                list[i] = (String) get(i);
+            }
+            return list;
+        }
+
+    }
+
+    /**
      * A list of files.
      */
     public static class FileList extends ArrayList implements List {
 
-        private static final long serialVersionUID = -3241001695597802578L;
+        private static final long serialVersionUID = 1L;
 
         /**
          * Remove the files that match from the list.
@@ -190,7 +247,7 @@ public class BuildBase {
      * @param args the command line parameters
      * @return the exit value
      */
-    protected int execScript(String script, String[] args) {
+    protected int execScript(String script, StringList args) {
         if (isWindows()) {
             script = script + ".bat";
         }
@@ -204,19 +261,19 @@ public class BuildBase {
      * @param args the command line parameters
      * @return the exit value
      */
-    protected int exec(String command, String[] args) {
+    protected int exec(String command, StringList args) {
         try {
             print(command);
-            for (int i = 0; args != null && i < args.length; i++) {
-                print(" " + args[i]);
+            for (int i = 0; args != null && i < args.size(); i++) {
+                print(" " + args.get(i));
+            }
+            StringList cmd = new StringList();
+            cmd = cmd.plus(command);
+            if (args != null) {
+                cmd.addAll(args);
             }
             println("");
-            String[] cmdArray = new String[1 + (args == null ? 0 : args.length)];
-            cmdArray[0] = command;
-            if (args != null) {
-                System.arraycopy(args, 0, cmdArray, 1, args.length);
-            }
-            Process p = Runtime.getRuntime().exec(cmdArray);
+            Process p = Runtime.getRuntime().exec(cmd.toArray());
             copyInThread(p.getInputStream(), quiet ? null : out);
             copyInThread(p.getErrorStream(), quiet ? null : out);
             p.waitFor();
@@ -345,7 +402,7 @@ public class BuildBase {
      *
      * @param args the command line arguments to pass
      */
-    protected void javadoc(String[] args) {
+    protected void javadoc(StringList args) {
         int result;
         PrintStream old = System.out;
         try {
@@ -361,7 +418,8 @@ public class BuildBase {
             }
             Class clazz = Class.forName("com.sun.tools.javadoc.Main");
             Method execute = clazz.getMethod("execute", new Class[] { String[].class });
-            result = ((Integer) invoke(execute, null, new Object[] { args })).intValue();
+            String[] array = args.toArray();
+            result = ((Integer) invoke(execute, null, new Object[] { array })).intValue();
         } catch (Exception e) {
             result = exec("javadoc", args);
         } finally {
@@ -667,12 +725,12 @@ public class BuildBase {
      * @param args the command line parameters
      * @param files the file list
      */
-    protected void javac(String[] args, FileList files) {
+    protected void javac(StringList args, FileList files) {
         println("Compiling " + files.size() + " classes");
-        ArrayList argList = new ArrayList(Arrays.asList(args));
-        argList.addAll(getPaths(filterFiles(files, true, ".java")));
-        args = new String[argList.size()];
-        argList.toArray(args);
+        StringList params = new StringList();
+        params.addAll(args);
+        params.addAll(getPaths(filterFiles(files, true, ".java")));
+        String[] array = params.toArray();
         int result;
         PrintStream old = System.err;
         try {
@@ -684,7 +742,7 @@ public class BuildBase {
             Class clazz = Class.forName("com.sun.tools.javac.Main");
             Method compile = clazz.getMethod("compile", new Class[] { String[].class });
             Object instance = clazz.newInstance();
-            result = ((Integer) invoke(compile, instance, new Object[] { args })).intValue();
+            result = ((Integer) invoke(compile, instance, new Object[] { array })).intValue();
         } catch (Exception e) {
             e.printStackTrace();
             result = exec("javac", args);
@@ -702,14 +760,12 @@ public class BuildBase {
      * @param className the class name
      * @param args the command line parameters to pass
      */
-    protected void java(String className, String[] args) {
+    protected void java(String className, StringList args) {
         println("Running " + className);
-        if (args == null) {
-            args = new String[0];
-        }
+        String[] array = args == null ? new String[0] : args.toArray();
         try {
             Method main = Class.forName(className).getMethod("main", new Class[] { String[].class });
-            invoke(main, null, new Object[] { args });
+            invoke(main, null, new Object[] { array });
         } catch (Exception e) {
             throw new Error(e);
         }

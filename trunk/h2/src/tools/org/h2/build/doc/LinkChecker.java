@@ -11,7 +11,6 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import org.h2.util.IOUtils;
 import org.h2.util.StartBrowser;
@@ -28,8 +27,8 @@ public class LinkChecker {
         "SysProperties", "ErrorCode"
     };
 
-    private HashMap targets = new HashMap();
-    private HashMap links = new HashMap();
+    private HashMap<String, String> targets = new HashMap<String, String>();
+    private HashMap<String, String> links = new HashMap<String, String>();
 
     /**
      * This method is called when executing this application from the command
@@ -54,8 +53,7 @@ public class LinkChecker {
     }
 
     private void listExternalLinks() {
-        for (Iterator it = links.keySet().iterator(); it.hasNext();) {
-            String link = (String) it.next();
+        for (String link : links.keySet()) {
             if (link.startsWith("http")) {
                 if (link.indexOf("//localhost") > 0) {
                     continue;
@@ -74,9 +72,8 @@ public class LinkChecker {
     }
 
     private void listBadLinks() throws Exception {
-        ArrayList errors = new ArrayList();
-        for (Iterator it = links.keySet().iterator(); it.hasNext();) {
-            String link = (String) it.next();
+        ArrayList<String> errors = new ArrayList<String>();
+        for (String link : links.keySet()) {
             if (!link.startsWith("http") && !link.endsWith("h2.pdf")
                     && link.indexOf("_ja.") < 0) {
                 if (targets.get(link) == null) {
@@ -84,18 +81,16 @@ public class LinkChecker {
                 }
             }
         }
-        for (Iterator it = links.keySet().iterator(); it.hasNext();) {
-            String link = (String) it.next();
+        for (String link : links.keySet()) {
             if (!link.startsWith("http")) {
                 targets.remove(link);
             }
         }
-        for (Iterator it = targets.keySet().iterator(); it.hasNext();) {
-            String name = (String) it.next();
+        for (String name : targets.keySet()) {
             if (targets.get(name).equals("name")) {
                 boolean ignore = false;
-                for (int i = 0; i < IGNORE_MISSING_LINKS_TO.length; i++) {
-                    if (name.indexOf(IGNORE_MISSING_LINKS_TO[i]) >= 0) {
+                for (String to : IGNORE_MISSING_LINKS_TO) {
+                    if (name.indexOf(to) >= 0) {
                         ignore = true;
                         break;
                     }
@@ -106,8 +101,8 @@ public class LinkChecker {
             }
         }
         Collections.sort(errors);
-        for (int i = 0; i < errors.size(); i++) {
-            System.out.println(errors.get(i));
+        for (String error : errors) {
+            System.out.println(error);
         }
         if (errors.size() > 0) {
             throw new Exception("Problems where found by the Link Checker");
@@ -120,9 +115,8 @@ public class LinkChecker {
         }
         File file = new File(path);
         if (file.isDirectory()) {
-            String[] list = file.list();
-            for (int i = 0; i < list.length; i++) {
-                process(path + "/" + list[i]);
+            for (String n : file.list()) {
+                process(path + "/" + n);
             }
         } else {
             processFile(path);

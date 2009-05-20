@@ -884,6 +884,7 @@ public class PageStore implements CacheWriter {
      * Add the meta data of an index.
      *
      * @param index the index to add
+     * @param session the session
      */
     public void addMeta(Index index, Session session) throws SQLException {
         int type = index instanceof PageScanIndex ? META_TYPE_SCAN_INDEX : META_TYPE_BTREE_INDEX;
@@ -905,15 +906,13 @@ public class PageStore implements CacheWriter {
         row.setValue(4, ValueString.get(columnList));
         row.setPos(id + 1);
         metaIndex.add(session, row);
-
-int assertion;
-metaIndex.getRow(database.getSystemSession(), row.getPos());
     }
 
     /**
      * Remove the meta data of an index.
      *
      * @param index the index to remove
+     * @param session the session
      */
     public void removeMeta(Index index, Session session) throws SQLException {
         Row row = metaIndex.getRow(session, index.getId() + 1);

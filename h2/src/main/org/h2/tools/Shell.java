@@ -171,6 +171,7 @@ public class Shell extends Tool {
                 boolean end = trimmed.endsWith(";");
                 if (end) {
                     line = line.substring(0, line.lastIndexOf(';'));
+                    trimmed = trimmed.substring(0, trimmed.length() - 1);
                 }
                 String upper = trimmed.toUpperCase();
                 if ("EXIT".equals(upper) || "QUIT".equals(upper)) {

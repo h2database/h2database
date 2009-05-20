@@ -61,14 +61,15 @@ public class Build extends BuildBase {
         "ext/derbynet-10.4.2.0.jar" + File.pathSeparator +
         "ext/postgresql-8.3-603.jdbc3.jar" + File.pathSeparator +
         "ext/mysql-connector-java-5.1.6.jar";
-        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-init", "-db", "1"});
-        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "2"});
-        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "3", "-out", "pe.html"});
-        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-init", "-db", "4"});
-        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "5", "-exit"});
-        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "6"});
-        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "7"});
-        exec("java", new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance", "-db", "8", "-out", "ps.html"});
+        StringList args = new StringList(new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance"});
+        exec("java", args.plus(new String[]{"-init", "-db", "1"}));
+        exec("java", args.plus(new String[]{"-db", "2"}));
+        exec("java", args.plus(new String[]{"-db", "3", "-out", "pe.html"}));
+        exec("java", args.plus(new String[]{"-init", "-db", "4"}));
+        exec("java", args.plus(new String[]{"-db", "5", "-exit"}));
+        exec("java", args.plus(new String[]{"-db", "6"}));
+        exec("java", args.plus(new String[]{"-db", "7"}));
+        exec("java", args.plus(new String[]{"-db", "8", "-out", "ps.html"}));
     }
 
     /**
@@ -103,12 +104,12 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/lucene-core-2.2.0.jar" +
             File.pathSeparator + "ext/org.osgi.core-1.2.0.jar" +
             File.pathSeparator + "ext/slf4j-api-1.5.0.jar";
-        exec("java", new String[] { "-Xmx128m", "-cp", cp, "emma", "run",
+        exec("java", new StringList(new String[] { "-Xmx128m", "-cp", cp, "emma", "run",
                 "-cp", "temp",
                 "-sp", "src/main",
                 "-r", "html,txt",
                 "-ix", "-org.h2.test.*,-org.h2.dev.*,-org.h2.jaqu.*,-org.h2.index.Page*,-org.h2.mode.*",
-                "org.h2.test.TestAll" });
+                "org.h2.test.TestAll" }));
     }
 
     /**
@@ -116,7 +117,12 @@ public class Build extends BuildBase {
      */
     public void switchSource() {
         try {
-            SwitchSource.main(new String[] { "-dir", "src", "-auto" });
+            String version = System.getProperty("version");
+            if (version == null) {
+                SwitchSource.main(new String[] { "-dir", "src", "-auto" });
+            } else {
+                SwitchSource.main(new String[] { "-dir", "src", "-version", version });
+            }
         } catch (IOException e) {
             throw new Error(e);
         }
@@ -141,11 +147,18 @@ public class Build extends BuildBase {
         } else {
             files = getFiles("src/main");
         }
-        if (debugInfo) {
-            javac(new String[] { "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath }, files);
-        } else {
-            javac(new String[] { "-g:none", "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath }, files);
+        StringList args = new StringList();
+        if (System.getProperty("version") != null) {
+            String bcp = System.getProperty("bcp");
+            // /System/Library/Frameworks/JavaVM.framework/Versions/1.4/Classes/classes.jar
+            args = args.plus(new String[] { "-source", "1.5", "-target", "jsr14", "-bootclasspath", bcp});
         }
+        if (debugInfo) {
+            args = args.plus(new String[] { "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath});
+        } else {
+            args = args.plus(new String[] { "-g:none", "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath });
+        }
+        javac(args, files);
 
         files = getFiles("src/main/META-INF/services");
         copy("temp", files, "src/main");
@@ -153,8 +166,9 @@ public class Build extends BuildBase {
         if (!clientOnly) {
             files = getFiles("src/test");
             files.addAll(getFiles("src/tools"));
-            javac(new String[] { "-d", "temp", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
-                    "-classpath", classpath }, files);
+            args = new StringList(new String[] { "-d", "temp", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
+                    "-classpath", classpath });
+            javac(args, files);
             files = getFiles("src/test").
                 exclude("*.java").
                 exclude("*/package.html");
@@ -229,7 +243,7 @@ public class Build extends BuildBase {
         delete(getFiles("bin").keep("*.jar"));
         jar();
         docs();
-        exec("soffice", new String[]{"-invisible", "macro:///Standard.Module1.H2Pdf"});
+        exec("soffice", new StringList(new String[]{"-invisible", "macro:///Standard.Module1.H2Pdf"}));
         copy("docs", getFiles("../h2web/h2.pdf"), "../h2web");
         delete("docs/html/onePage.html");
         FileList files = getFiles("../h2").keep("../h2/build.*");
@@ -240,7 +254,7 @@ public class Build extends BuildBase {
         zip("../h2web/h2.zip", files, "../", false, false);
         boolean installer = false;
         try {
-            exec("makensis", new String[]{"/v2", "src/installer/h2.nsi"});
+            exec("makensis", new StringList(new String[]{"/v2", "src/installer/h2.nsi"}));
             installer = true;
         } catch (Error e) {
             print("NSIS is not available: " + e);
@@ -339,11 +353,11 @@ public class Build extends BuildBase {
     public void javadoc() {
         delete("docs");
         mkdir("docs/javadoc");
-        javadoc(new String[] { "-sourcepath", "src/main", "org.h2.jdbc", "org.h2.jdbcx",
+        javadoc(new StringList(new String[] { "-sourcepath", "src/main", "org.h2.jdbc", "org.h2.jdbcx",
                 "org.h2.tools", "org.h2.api", "org.h2.constant", "org.h2.fulltext",
                 "-doclet", "org.h2.build.doclet.Doclet",
                 "-classpath",
-                "ext/lucene-core-2.2.0.jar"});
+                "ext/lucene-core-2.2.0.jar"}));
         copy("docs/javadoc", getFiles("src/docsrc/javadoc"), "src/docsrc/javadoc");
     }
 
@@ -352,7 +366,7 @@ public class Build extends BuildBase {
      */
     public void javadocImpl() {
         mkdir("docs/javadocImpl2");
-        javadoc(new String[] {
+        javadoc(new StringList(new String[] {
                 "-sourcepath", "src/main" + File.pathSeparator +
                 "src/test" + File.pathSeparator + "src/tools" ,
                 "-noindex",
@@ -365,11 +379,11 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-2.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.core-1.2.0.jar",
                 "-subpackages", "org.h2",
-                "-exclude", "org.h2.test.jaqu:org.h2.jaqu" });
+                "-exclude", "org.h2.test.jaqu:org.h2.jaqu" }));
 
         System.setProperty("h2.interfacesOnly", "false");
         System.setProperty("h2.destDir", "docs/javadocImpl");
-        javadoc(new String[] {
+        javadoc(new StringList(new String[] {
                 "-sourcepath", "src/main" + File.pathSeparator + "src/test" + File.pathSeparator + "src/tools",
                 "-classpath", System.getProperty("java.home") + "/../lib/tools.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.5.0.jar" +
@@ -379,7 +393,7 @@ public class Build extends BuildBase {
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu",
                 "-package",
-                "-doclet", "org.h2.build.doclet.Doclet" });
+                "-doclet", "org.h2.build.doclet.Doclet" }));
         copy("docs/javadocImpl", getFiles("src/docsrc/javadoc"), "src/docsrc/javadoc");
     }
 
@@ -406,7 +420,7 @@ public class Build extends BuildBase {
         String pom = new String(readFile(new File("src/installer/pom.xml")));
         pom = replaceAll(pom, "@version@", getVersion());
         writeFile(new File("bin/pom.xml"), pom.getBytes());
-        execScript("mvn", new String[] {
+        execScript("mvn", new StringList(new String[] {
                 "deploy:deploy-file",
                 "-Dfile=bin/h2" + getJarSuffix(),
                 "-Durl=file:///data/h2database/m2-repo",
@@ -414,7 +428,7 @@ public class Build extends BuildBase {
                 "-Dversion=" + getVersion(),
                 "-DpomFile=bin/pom.xml",
                 "-DartifactId=h2",
-                "-DgroupId=com.h2database" });
+                "-DgroupId=com.h2database" }));
     }
 
     /**
@@ -426,20 +440,20 @@ public class Build extends BuildBase {
         String pom = new String(readFile(new File("src/installer/pom.xml")));
         pom = replaceAll(pom, "@version@", "1.0-SNAPSHOT");
         writeFile(new File("bin/pom.xml"), pom.getBytes());
-        execScript("mvn", new String[] {
+        execScript("mvn", new StringList(new String[] {
                 "install:install-file",
                 "-Dversion=1.0-SNAPSHOT",
                 "-Dfile=bin/h2" + getJarSuffix(),
                 "-Dpackaging=jar",
                 "-DpomFile=bin/pom.xml",
                 "-DartifactId=h2",
-                "-DgroupId=com.h2database" });
+                "-DgroupId=com.h2database" }));
     }
 
     private void resources(boolean clientOnly, boolean basicOnly) {
         if (!clientOnly) {
-            javadoc(new String[] { "-sourcepath", "src/main", "org.h2.tools",
-                    "-doclet", "org.h2.build.doclet.ResourceDoclet"});
+            javadoc(new StringList(new String[] { "-sourcepath", "src/main", "org.h2.tools",
+                    "-doclet", "org.h2.build.doclet.ResourceDoclet"}));
         }
         FileList files = getFiles("src/main").
             exclude("*.MF").
@@ -555,9 +569,9 @@ public class Build extends BuildBase {
             throw new Error("h2.ftpPassword not set");
         }
         String cp = "bin" + File.pathSeparator + "temp";
-        exec("java", new String[] { "-Xmx128m", "-cp", cp,
+        exec("java", new StringList(new String[] { "-Xmx128m", "-cp", cp,
                 "-Dh2.ftpPassword=" + password,
-                "org.h2.build.doc.UploadBuild" });
+                "org.h2.build.doc.UploadBuild" }));
     }
 
     /**

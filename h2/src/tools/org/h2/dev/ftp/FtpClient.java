@@ -400,6 +400,7 @@ public class FtpClient {
      * A file on an FTP server.
      */
     static class FtpFile extends File {
+        private static final long serialVersionUID = 1L;
         private final boolean dir;
         private final long length;
         FtpFile(String name, boolean dir, long length) {

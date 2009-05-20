@@ -90,6 +90,14 @@ public class UploadBuild {
         }
         String ts = new java.sql.Timestamp(System.currentTimeMillis()).toString();
         String now = ts.substring(0, 16);
+        int idx = testOutput.indexOf("Statements per second: ");
+        if (idx >= 0) {
+            int end = testOutput.indexOf("<br />", idx);
+            if (end >= 0) {
+                String result = testOutput.substring(idx + "Statements per second: ".length(), end);
+                now += " (" + result + " op/s)";
+            }
+        }
         String sql = "insert into item(title, issued, desc) values('Build " + now + (error ? " FAILED" : "") +
             "', '" + ts + "', '<a href=\"http://www.h2database.com/html/testOutput.html\">Output</a>" +
             " - <a href=\"http://www.h2database.com/coverage/overview.html\">Coverage</a>" +

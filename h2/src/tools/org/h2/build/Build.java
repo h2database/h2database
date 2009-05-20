@@ -12,8 +12,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Iterator;
 import java.util.TreeMap;
+import java.util.Map.Entry;
 
 import org.h2.build.code.SwitchSource;
 
@@ -61,15 +61,15 @@ public class Build extends BuildBase {
         "ext/derbynet-10.4.2.0.jar" + File.pathSeparator +
         "ext/postgresql-8.3-603.jdbc3.jar" + File.pathSeparator +
         "ext/mysql-connector-java-5.1.6.jar";
-        StringList args = new StringList(new String[]{"-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance"});
-        exec("java", args.plus(new String[]{"-init", "-db", "1"}));
-        exec("java", args.plus(new String[]{"-db", "2"}));
-        exec("java", args.plus(new String[]{"-db", "3", "-out", "pe.html"}));
-        exec("java", args.plus(new String[]{"-init", "-db", "4"}));
-        exec("java", args.plus(new String[]{"-db", "5", "-exit"}));
-        exec("java", args.plus(new String[]{"-db", "6"}));
-        exec("java", args.plus(new String[]{"-db", "7"}));
-        exec("java", args.plus(new String[]{"-db", "8", "-out", "ps.html"}));
+        StringList args = args("-Xmx128m", "-cp", cp, "org.h2.test.bench.TestPerformance");
+        exec("java", args.plus("-init", "-db", "1"));
+        exec("java", args.plus("-db", "2"));
+        exec("java", args.plus("-db", "3", "-out", "pe.html"));
+        exec("java", args.plus("-init", "-db", "4"));
+        exec("java", args.plus("-db", "5", "-exit"));
+        exec("java", args.plus("-db", "6"));
+        exec("java", args.plus("-db", "7"));
+        exec("java", args.plus("-db", "8", "-out", "ps.html"));
     }
 
     /**
@@ -80,7 +80,7 @@ public class Build extends BuildBase {
         delete("docs");
         mkdir("docs");
         mkdir("bin");
-        delete(getFiles(".").keep("*/Thumbs.db"));
+        delete(files(".").keep("*/Thumbs.db"));
     }
 
     /**
@@ -104,12 +104,12 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/lucene-core-2.2.0.jar" +
             File.pathSeparator + "ext/org.osgi.core-1.2.0.jar" +
             File.pathSeparator + "ext/slf4j-api-1.5.0.jar";
-        exec("java", new StringList(new String[] { "-Xmx128m", "-cp", cp, "emma", "run",
+        exec("java", args("-Xmx128m", "-cp", cp, "emma", "run",
                 "-cp", "temp",
                 "-sp", "src/main",
                 "-r", "html,txt",
                 "-ix", "-org.h2.test.*,-org.h2.dev.*,-org.h2.jaqu.*,-org.h2.index.Page*,-org.h2.mode.*",
-                "org.h2.test.TestAll" }));
+                "org.h2.test.TestAll"));
     }
 
     /**
@@ -141,35 +141,35 @@ public class Build extends BuildBase {
                 File.pathSeparator + System.getProperty("java.home") + "/../lib/tools.jar";
         FileList files;
         if (clientOnly) {
-            files = getFiles("src/main/org/h2/Driver.java");
-            files.addAll(getFiles("src/main/org/h2/jdbc"));
-            files.addAll(getFiles("src/main/org/h2/jdbcx"));
+            files = files("src/main/org/h2/Driver.java");
+            files.addAll(files("src/main/org/h2/jdbc"));
+            files.addAll(files("src/main/org/h2/jdbcx"));
         } else {
-            files = getFiles("src/main");
+            files = files("src/main");
         }
-        StringList args = new StringList();
+        StringList args = args();
         if (System.getProperty("version") != null) {
             String bcp = System.getProperty("bcp");
             // /System/Library/Frameworks/JavaVM.framework/Versions/1.4/Classes/classes.jar
-            args = args.plus(new String[] { "-source", "1.5", "-target", "jsr14", "-bootclasspath", bcp});
+            args = args.plus("-source", "1.5", "-target", "jsr14", "-bootclasspath", bcp);
         }
         if (debugInfo) {
-            args = args.plus(new String[] { "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath});
+            args = args.plus("-d", "temp", "-sourcepath", "src/main", "-classpath", classpath);
         } else {
-            args = args.plus(new String[] { "-g:none", "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath });
+            args = args.plus("-g:none", "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath);
         }
         javac(args, files);
 
-        files = getFiles("src/main/META-INF/services");
+        files = files("src/main/META-INF/services");
         copy("temp", files, "src/main");
 
         if (!clientOnly) {
-            files = getFiles("src/test");
-            files.addAll(getFiles("src/tools"));
-            args = new StringList(new String[] { "-d", "temp", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
-                    "-classpath", classpath });
+            files = files("src/test");
+            files.addAll(files("src/tools"));
+            args = args("-d", "temp", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
+                    "-classpath", classpath);
             javac(args, files);
-            files = getFiles("src/test").
+            files = files("src/test").
                 exclude("*.java").
                 exclude("*/package.html");
             copy("temp", files, "src/test");
@@ -189,7 +189,7 @@ public class Build extends BuildBase {
      */
     public void docs() {
         javadoc();
-        copy("docs", getFiles("src/docsrc/index.html"), "src/docsrc");
+        copy("docs", files("src/docsrc/index.html"), "src/docsrc");
         java("org.h2.build.doc.XMLChecker", null);
         java("org.h2.build.code.CheckJavadoc", null);
         java("org.h2.build.code.CheckTextFiles", null);
@@ -240,21 +240,21 @@ public class Build extends BuildBase {
      * Create the h2.zip file and the Windows installer.
      */
     public void installer() {
-        delete(getFiles("bin").keep("*.jar"));
+        delete(files("bin").keep("*.jar"));
         jar();
         docs();
-        exec("soffice", new StringList(new String[]{"-invisible", "macro:///Standard.Module1.H2Pdf"}));
-        copy("docs", getFiles("../h2web/h2.pdf"), "../h2web");
+        exec("soffice", args("-invisible", "macro:///Standard.Module1.H2Pdf"));
+        copy("docs", files("../h2web/h2.pdf"), "../h2web");
         delete("docs/html/onePage.html");
-        FileList files = getFiles("../h2").keep("../h2/build.*");
-        files.addAll(getFiles("../h2/bin").keep("../h2/bin/h2*"));
-        files.addAll(getFiles("../h2/docs"));
-        files.addAll(getFiles("../h2/service"));
-        files.addAll(getFiles("../h2/src"));
+        FileList files = files("../h2").keep("../h2/build.*");
+        files.addAll(files("../h2/bin").keep("../h2/bin/h2*"));
+        files.addAll(files("../h2/docs"));
+        files.addAll(files("../h2/service"));
+        files.addAll(files("../h2/src"));
         zip("../h2web/h2.zip", files, "../", false, false);
         boolean installer = false;
         try {
-            exec("makensis", new StringList(new String[]{"/v2", "src/installer/h2.nsi"}));
+            exec("makensis", args("/v2", "src/installer/h2.nsi"));
             installer = true;
         } catch (Error e) {
             print("NSIS is not available: " + e);
@@ -272,7 +272,7 @@ public class Build extends BuildBase {
     public void jar() {
         compile();
         manifest("H2 Database Engine", "org.h2.tools.Console");
-        FileList files = getFiles("temp").
+        FileList files = files("temp").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
             exclude("temp/org/h2/jaqu/*").
@@ -295,7 +295,7 @@ public class Build extends BuildBase {
      */
     public void jarClient() {
         compile(true, true, false);
-        FileList files = getFiles("temp").
+        FileList files = files("temp").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
             exclude("temp/org/h2/jaqu/*").
@@ -317,7 +317,7 @@ public class Build extends BuildBase {
      */
     public void jarSmall() {
         compile(false, false, true);
-        FileList files = getFiles("temp").
+        FileList files = files("temp").
             exclude("temp/org/h2/bnf/*").
             exclude("temp/org/h2/build/*").
             exclude("temp/org/h2/dev/*").
@@ -342,8 +342,8 @@ public class Build extends BuildBase {
     public void jarJaqu() {
         compile(true, false, true);
         manifest("H2 JaQu", "");
-        FileList files = getFiles("temp/org/h2/jaqu");
-        files.addAll(getFiles("temp/META-INF/MANIFEST.MF"));
+        FileList files = files("temp/org/h2/jaqu");
+        files.addAll(files("temp/META-INF/MANIFEST.MF"));
         jar("bin/h2jaqu" + getJarSuffix(), files, "temp");
     }
 
@@ -353,12 +353,12 @@ public class Build extends BuildBase {
     public void javadoc() {
         delete("docs");
         mkdir("docs/javadoc");
-        javadoc(new StringList(new String[] { "-sourcepath", "src/main", "org.h2.jdbc", "org.h2.jdbcx",
+        javadoc("-sourcepath", "src/main", "org.h2.jdbc", "org.h2.jdbcx",
                 "org.h2.tools", "org.h2.api", "org.h2.constant", "org.h2.fulltext",
                 "-doclet", "org.h2.build.doclet.Doclet",
                 "-classpath",
-                "ext/lucene-core-2.2.0.jar"}));
-        copy("docs/javadoc", getFiles("src/docsrc/javadoc"), "src/docsrc/javadoc");
+                "ext/lucene-core-2.2.0.jar");
+        copy("docs/javadoc", files("src/docsrc/javadoc"), "src/docsrc/javadoc");
     }
 
     /**
@@ -366,8 +366,7 @@ public class Build extends BuildBase {
      */
     public void javadocImpl() {
         mkdir("docs/javadocImpl2");
-        javadoc(new StringList(new String[] {
-                "-sourcepath", "src/main" + File.pathSeparator +
+        javadoc("-sourcepath", "src/main" + File.pathSeparator +
                 "src/test" + File.pathSeparator + "src/tools" ,
                 "-noindex",
                 "-tag", "h2.resource",
@@ -379,12 +378,11 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-2.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.core-1.2.0.jar",
                 "-subpackages", "org.h2",
-                "-exclude", "org.h2.test.jaqu:org.h2.jaqu" }));
+                "-exclude", "org.h2.test.jaqu:org.h2.jaqu");
 
         System.setProperty("h2.interfacesOnly", "false");
         System.setProperty("h2.destDir", "docs/javadocImpl");
-        javadoc(new StringList(new String[] {
-                "-sourcepath", "src/main" + File.pathSeparator + "src/test" + File.pathSeparator + "src/tools",
+        javadoc("-sourcepath", "src/main" + File.pathSeparator + "src/test" + File.pathSeparator + "src/tools",
                 "-classpath", System.getProperty("java.home") + "/../lib/tools.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.5.0.jar" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
@@ -393,8 +391,8 @@ public class Build extends BuildBase {
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu",
                 "-package",
-                "-doclet", "org.h2.build.doclet.Doclet" }));
-        copy("docs/javadocImpl", getFiles("src/docsrc/javadoc"), "src/docsrc/javadoc");
+                "-doclet", "org.h2.build.doclet.Doclet");
+        copy("docs/javadocImpl", files("src/docsrc/javadoc"), "src/docsrc/javadoc");
     }
 
     private void manifest(String title, String mainClassName) {
@@ -420,7 +418,7 @@ public class Build extends BuildBase {
         String pom = new String(readFile(new File("src/installer/pom.xml")));
         pom = replaceAll(pom, "@version@", getVersion());
         writeFile(new File("bin/pom.xml"), pom.getBytes());
-        execScript("mvn", new StringList(new String[] {
+        execScript("mvn", args(
                 "deploy:deploy-file",
                 "-Dfile=bin/h2" + getJarSuffix(),
                 "-Durl=file:///data/h2database/m2-repo",
@@ -428,7 +426,7 @@ public class Build extends BuildBase {
                 "-Dversion=" + getVersion(),
                 "-DpomFile=bin/pom.xml",
                 "-DartifactId=h2",
-                "-DgroupId=com.h2database" }));
+                "-DgroupId=com.h2database"));
     }
 
     /**
@@ -440,22 +438,22 @@ public class Build extends BuildBase {
         String pom = new String(readFile(new File("src/installer/pom.xml")));
         pom = replaceAll(pom, "@version@", "1.0-SNAPSHOT");
         writeFile(new File("bin/pom.xml"), pom.getBytes());
-        execScript("mvn", new StringList(new String[] {
+        execScript("mvn", args(
                 "install:install-file",
                 "-Dversion=1.0-SNAPSHOT",
                 "-Dfile=bin/h2" + getJarSuffix(),
                 "-Dpackaging=jar",
                 "-DpomFile=bin/pom.xml",
                 "-DartifactId=h2",
-                "-DgroupId=com.h2database" }));
+                "-DgroupId=com.h2database"));
     }
 
     private void resources(boolean clientOnly, boolean basicOnly) {
         if (!clientOnly) {
-            javadoc(new StringList(new String[] { "-sourcepath", "src/main", "org.h2.tools",
-                    "-doclet", "org.h2.build.doclet.ResourceDoclet"}));
+            javadoc("-sourcepath", "src/main", "org.h2.tools",
+                    "-doclet", "org.h2.build.doclet.ResourceDoclet");
         }
-        FileList files = getFiles("src/main").
+        FileList files = files("src/main").
             exclude("*.MF").
             exclude("*.java").
             exclude("*/package.html").
@@ -491,20 +489,18 @@ public class Build extends BuildBase {
     public void testNetwork() {
         try {
             System.out.println("environment settings:");
-            for (Iterator it = new TreeMap(System.getProperties()).entrySet().iterator(); it.hasNext();) {
-                System.out.println(it.next());
+            for (Entry<Object, Object> e : new TreeMap<Object, Object>(System.getProperties()).entrySet()) {
+                System.out.println(e);
             }
             System.out.println();
             System.out.println("localhost:" + InetAddress.getByName("localhost"));
-            InetAddress[] addresses = InetAddress.getAllByName("localhost");
-            for (int i = 0; i < addresses.length; i++) {
-                System.out.println(i + ":" + addresses[i]);
+            for (InetAddress address : InetAddress.getAllByName("localhost")) {
+                System.out.println("  " + address);
             }
             InetAddress localhost = InetAddress.getLocalHost();
             System.out.println("getLocalHost:" + localhost);
-            addresses = InetAddress.getAllByName(localhost.getHostAddress());
-            for (int i = 0; i < addresses.length; i++) {
-                System.out.println(i + ":" + addresses[i]);
+            for (InetAddress address : InetAddress.getAllByName(localhost.getHostAddress())) {
+                System.out.println("  " + address);
             }
             InetAddress address = InetAddress.getByName(localhost.getHostAddress());
             System.out.println("byName:" + address);
@@ -569,9 +565,9 @@ public class Build extends BuildBase {
             throw new Error("h2.ftpPassword not set");
         }
         String cp = "bin" + File.pathSeparator + "temp";
-        exec("java", new StringList(new String[] { "-Xmx128m", "-cp", cp,
+        exec("java", args("-Xmx128m", "-cp", cp,
                 "-Dh2.ftpPassword=" + password,
-                "org.h2.build.doc.UploadBuild" }));
+                "org.h2.build.doc.UploadBuild"));
     }
 
     /**
@@ -579,10 +575,10 @@ public class Build extends BuildBase {
      */
     public void warConsole() {
         jar();
-        copy("temp/WEB-INF", getFiles("src/tools/WEB-INF/web.xml"), "src/tools/WEB-INF");
-        copy("temp", getFiles("src/tools/WEB-INF/console.html"), "src/tools/WEB-INF");
-        copy("temp/WEB-INF/lib", getFiles("bin/h2" + getJarSuffix()), "bin");
-        FileList files = getFiles("temp").exclude("temp/org*").exclude("temp/META-INF*");
+        copy("temp/WEB-INF", files("src/tools/WEB-INF/web.xml"), "src/tools/WEB-INF");
+        copy("temp", files("src/tools/WEB-INF/console.html"), "src/tools/WEB-INF");
+        copy("temp/WEB-INF/lib", files("bin/h2" + getJarSuffix()), "bin");
+        FileList files = files("temp").exclude("temp/org*").exclude("temp/META-INF*");
         jar("bin/h2console.war", files, "temp");
     }
 

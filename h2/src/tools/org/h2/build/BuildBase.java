@@ -46,15 +46,11 @@ public class BuildBase {
     /**
      * A list of strings.
      */
-    public static class StringList extends ArrayList implements List {
+    public static class StringList extends ArrayList<String> implements List<String> {
 
         private static final long serialVersionUID = 1L;
 
-        StringList() {
-            super();
-        }
-
-        StringList(String[] args) {
+        private StringList(String... args) {
             super();
             addAll(Arrays.asList(args));
         }
@@ -65,23 +61,10 @@ public class BuildBase {
          * @param args the list to add
          * @return the new list
          */
-        public StringList plus(String[] args) {
+        public StringList plus(String...args) {
             StringList newList = new StringList();
             newList.addAll(this);
             newList.addAll(Arrays.asList(args));
-            return newList;
-        }
-
-        /**
-         * Add a string.
-         *
-         * @param s the string to add
-         * @return the new list
-         */
-        public StringList plus(String s) {
-            StringList newList = new StringList();
-            newList.addAll(this);
-            newList.add(s);
             return newList;
         }
 
@@ -90,10 +73,10 @@ public class BuildBase {
          *
          * @return the string array
          */
-        public String[] toArray() {
+        public String[] array() {
             String[] list = new String[size()];
             for (int i = 0; i < size(); i++) {
-                list[i] = (String) get(i);
+                list[i] = get(i);
             }
             return list;
         }
@@ -103,7 +86,7 @@ public class BuildBase {
     /**
      * A list of files.
      */
-    public static class FileList extends ArrayList implements List {
+    public static class FileList extends ArrayList<File> implements List<File> {
 
         private static final long serialVersionUID = 1L;
 
@@ -115,7 +98,7 @@ public class BuildBase {
          * @return the new file list
          */
         public FileList exclude(String pattern) {
-            return filterFiles(this, false, pattern);
+            return filter(false, pattern);
         }
 
         /**
@@ -126,7 +109,39 @@ public class BuildBase {
          * @return the new file list
          */
         public FileList keep(String pattern) {
-            return filterFiles(this, true, pattern);
+            return filter(true, pattern);
+        }
+
+        /**
+         * Filter a list of file names.
+         *
+         * @param files the original list
+         * @param keep if matching file names should be kept or removed
+         * @param pattern the file name pattern
+         * @return the filtered file list
+         */
+        private FileList filter(boolean keep, String pattern) {
+            boolean start = false;
+            if (pattern.endsWith("*")) {
+                pattern = pattern.substring(0, pattern.length() - 1);
+                start = true;
+            } else if (pattern.startsWith("*")) {
+                pattern = pattern.substring(1);
+            }
+            if (pattern.indexOf('*') >= 0) {
+                throw new Error("Unsupported pattern, may only start or end with *:" + pattern);
+            }
+            // normalize / and \
+            pattern = replaceAll(pattern, "/", File.separator);
+            FileList list = new FileList();
+            for (File f : this) {
+                String path = f.getPath();
+                boolean match = start ? path.startsWith(pattern) : path.endsWith(pattern);
+                if (match == keep) {
+                    list.add(f);
+                }
+            }
+            return list;
         }
 
     }
@@ -151,8 +166,7 @@ public class BuildBase {
         if (args.length == 0) {
             all();
         } else {
-            for (int i = 0; i < args.length; i++) {
-                String a = args[i];
+            for (String a : args) {
                 if ("-quiet".equals(a)) {
                     quiet = true;
                 } else if (a.startsWith("-D")) {
@@ -218,15 +232,13 @@ public class BuildBase {
      */
     protected void projectHelp() {
         Method[] methods = getClass().getDeclaredMethods();
-        Arrays.sort(methods, new Comparator() {
-            public int compare(Object o1, Object o2) {
-                Method a = (Method) o1, b = (Method) o2;
+        Arrays.sort(methods, new Comparator<Method>() {
+            public int compare(Method a, Method b) {
                 return a.getName().compareTo(b.getName());
             }
         });
         out.println("Targets:");
-        for (int i = 0; i < methods.length; i++) {
-            Method m = methods[i];
+        for (Method m : methods) {
             int mod = m.getModifiers();
             if (!Modifier.isStatic(mod) && Modifier.isPublic(mod) && m.getParameterTypes().length == 0) {
                 out.println(m.getName());
@@ -264,8 +276,8 @@ public class BuildBase {
     protected int exec(String command, StringList args) {
         try {
             print(command);
-            for (int i = 0; args != null && i < args.size(); i++) {
-                print(" " + args.get(i));
+            for (String a : args) {
+                print(" " + a);
             }
             StringList cmd = new StringList();
             cmd = cmd.plus(command);
@@ -273,7 +285,7 @@ public class BuildBase {
                 cmd.addAll(args);
             }
             println("");
-            Process p = Runtime.getRuntime().exec(cmd.toArray());
+            Process p = Runtime.getRuntime().exec(cmd.array());
             copyInThread(p.getInputStream(), quiet ? null : out);
             copyInThread(p.getErrorStream(), quiet ? null : out);
             p.waitFor();
@@ -329,9 +341,9 @@ public class BuildBase {
      */
     protected String getStaticValue(String className, String methodName) {
         try {
-            Class clazz = Class.forName(className);
-            Method method = clazz.getMethod(methodName, new Class[0]);
-            return method.invoke(null, new Object[0]).toString();
+            Class< ? > clazz = Class.forName(className);
+            Method method = clazz.getMethod(methodName);
+            return method.invoke(null).toString();
         } catch (Exception e) {
             throw new Error("Can not read value " + className + "." + methodName + "()", e);
         }
@@ -344,13 +356,12 @@ public class BuildBase {
      * @param files the list of files to copy
      * @param baseDir the base directory
      */
-    protected void copy(String targetDir, List files, String baseDir) {
+    protected void copy(String targetDir, FileList files, String baseDir) {
         File target = new File(targetDir);
         File base = new File(baseDir);
         println("Copying " + files.size() + " files to " + target.getPath());
         String basePath = base.getPath();
-        for (int i = 0; i < files.size(); i++) {
-            File f = (File) files.get(i);
+        for (File f : files) {
             File t = new File(target, removeBase(basePath, f.getPath()));
             byte[] data = readFile(f);
             mkdirs(t.getParentFile());
@@ -378,8 +389,8 @@ public class BuildBase {
                     byte[] data = buff.toByteArray();
                     String line = new String(data, "UTF-8");
                     boolean print = true;
-                    for (int i = 0; i < exclude.length; i++) {
-                        if (line.startsWith(exclude[i])) {
+                    for (String l : exclude) {
+                        if (line.startsWith(l)) {
                             print = false;
                             break;
                         }
@@ -402,7 +413,7 @@ public class BuildBase {
      *
      * @param args the command line arguments to pass
      */
-    protected void javadoc(StringList args) {
+    protected void javadoc(String...args) {
         int result;
         PrintStream old = System.out;
         try {
@@ -416,12 +427,11 @@ public class BuildBase {
                         "Building "
                 }));
             }
-            Class clazz = Class.forName("com.sun.tools.javadoc.Main");
-            Method execute = clazz.getMethod("execute", new Class[] { String[].class });
-            String[] array = args.toArray();
-            result = ((Integer) invoke(execute, null, new Object[] { array })).intValue();
+            Class< ? > clazz = Class.forName("com.sun.tools.javadoc.Main");
+            Method execute = clazz.getMethod("execute", new Class< ? >[] { String[].class });
+            result = (Integer) invoke(execute, null, new Object[] { args });
         } catch (Exception e) {
-            result = exec("javadoc", args);
+            result = exec("javadoc", args(args));
         } finally {
             System.setOut(old);
         }
@@ -494,7 +504,6 @@ public class BuildBase {
         if (sha1Checksum == null) {
             println("SHA1 checksum: " + got);
         } else {
-
             if (!got.equals(sha1Checksum)) {
                 throw new Error("SHA1 checksum mismatch");
             }
@@ -508,57 +517,33 @@ public class BuildBase {
      * @param dir the source directory
      * @return the file list
      */
-    protected FileList getFiles(String dir) {
+    protected FileList files(String dir) {
         FileList list = new FileList();
         addFiles(list, new File(dir));
         return list;
     }
 
-    private void addFiles(List list, File file) {
+    /**
+     * Create a string list.
+     *
+     * @param args the arguments
+     * @return the string list
+     */
+    protected StringList args(String...args) {
+        return new StringList(args);
+    }
+
+    private void addFiles(FileList list, File file) {
         if (file.getName().startsWith(".svn")) {
             // ignore
         } else if (file.isDirectory()) {
-            String[] fileNames = file.list();
             String path = file.getPath();
-            for (int i = 0; i < fileNames.length; i++) {
-                addFiles(list, new File(path, fileNames[i]));
+            for (String fileName : file.list()) {
+                addFiles(list, new File(path, fileName));
             }
         } else {
             list.add(file);
         }
-    }
-
-    /**
-     * Filter a list of file names.
-     *
-     * @param files the original list
-     * @param keep if matching file names should be kept or removed
-     * @param pattern the file name pattern
-     * @return the filtered file list
-     */
-    static FileList filterFiles(FileList files, boolean keep, String pattern) {
-        boolean start = false;
-        if (pattern.endsWith("*")) {
-            pattern = pattern.substring(0, pattern.length() - 1);
-            start = true;
-        } else if (pattern.startsWith("*")) {
-            pattern = pattern.substring(1);
-        }
-        if (pattern.indexOf('*') >= 0) {
-            throw new Error("Unsupported pattern, may only start or end with *:" + pattern);
-        }
-        // normalize / and \
-        pattern = replaceAll(pattern, "/", File.separator);
-        FileList list = new FileList();
-        for (int i = 0; i < files.size(); i++) {
-            File f = (File) files.get(i);
-            String path = f.getPath();
-            boolean match = start ? path.startsWith(pattern) : path.endsWith(pattern);
-            if (match == keep) {
-                list.add(f);
-            }
-        }
-        return list;
     }
 
     private String removeBase(String basePath, String path) {
@@ -630,7 +615,7 @@ public class BuildBase {
      * @param basePath the base path
      * @return the size of the jar file in KB
      */
-    protected long jar(String destFile, List files, String basePath) {
+    protected long jar(String destFile, FileList files, String basePath) {
         long kb = zipOrJar(destFile, files, basePath, false, false, true);
         println("Jar " + destFile + " (" + kb + " KB)");
         return kb;
@@ -645,18 +630,18 @@ public class BuildBase {
      * @param storeOnly if the files should not be compressed
      * @param sortBySuffix if the file should be sorted by the file suffix
      */
-    protected void zip(String destFile, List files, String basePath, boolean storeOnly, boolean sortBySuffix) {
+    protected void zip(String destFile, FileList files, String basePath, boolean storeOnly, boolean sortBySuffix) {
         long kb = zipOrJar(destFile, files, basePath, storeOnly, sortBySuffix, false);
         println("Zip " + destFile + " (" + kb + " KB)");
     }
 
-    private long zipOrJar(String destFile, List files, String basePath, boolean storeOnly, boolean sortBySuffix, boolean jar) {
+    private long zipOrJar(String destFile, FileList files, String basePath, boolean storeOnly, boolean sortBySuffix, boolean jar) {
         if (sortBySuffix) {
             // for better compressibility, sort by suffix, then name
-            Collections.sort(files, new Comparator() {
-                public int compare(Object o1, Object o2) {
-                    String p1 = ((File) o1).getPath();
-                    String p2 = ((File) o2).getPath();
+            Collections.sort(files, new Comparator<File>() {
+                public int compare(File f1, File f2) {
+                    String p1 = f1.getPath();
+                    String p2 = f2.getPath();
                     int comp = getSuffix(p1).compareTo(getSuffix(p2));
                     if (comp == 0) {
                         comp = p1.compareTo(p2);
@@ -680,8 +665,7 @@ public class BuildBase {
                 zipOut.setMethod(ZipOutputStream.STORED);
             }
             zipOut.setLevel(Deflater.BEST_COMPRESSION);
-            for (int i = 0; i < files.size(); i++) {
-                File file = (File) files.get(i);
+            for (File file : files) {
                 String fileName = file.getPath();
                 String entryName = removeBase(basePath, fileName);
                 byte[] data = readFile(file);
@@ -711,10 +695,10 @@ public class BuildBase {
         return System.getProperty("java.specification.version");
     }
 
-    private List getPaths(List files) {
-        ArrayList list = new ArrayList(files.size());
-        for (int i = 0; i < files.size(); i++) {
-            list.add(((File) files.get(i)).getPath());
+    private List<String> getPaths(FileList files) {
+        StringList list = new StringList();
+        for (File f : files) {
+            list.add(f.getPath());
         }
         return list;
     }
@@ -729,8 +713,8 @@ public class BuildBase {
         println("Compiling " + files.size() + " classes");
         StringList params = new StringList();
         params.addAll(args);
-        params.addAll(getPaths(filterFiles(files, true, ".java")));
-        String[] array = params.toArray();
+        params.addAll(getPaths(files.keep(".java")));
+        String[] array = params.array();
         int result;
         PrintStream old = System.err;
         try {
@@ -739,10 +723,10 @@ public class BuildBase {
                         "Note:"
                 }));
             }
-            Class clazz = Class.forName("com.sun.tools.javac.Main");
-            Method compile = clazz.getMethod("compile", new Class[] { String[].class });
+            Class< ? > clazz = Class.forName("com.sun.tools.javac.Main");
+            Method compile = clazz.getMethod("compile", new Class< ? >[] { String[].class });
             Object instance = clazz.newInstance();
-            result = ((Integer) invoke(compile, instance, new Object[] { array })).intValue();
+            result = (Integer) invoke(compile, instance, new Object[] { array });
         } catch (Exception e) {
             e.printStackTrace();
             result = exec("javac", args);
@@ -762,7 +746,7 @@ public class BuildBase {
      */
     protected void java(String className, StringList args) {
         println("Running " + className);
-        String[] array = args == null ? new String[0] : args.toArray();
+        String[] array = args == null ? new String[0] : args.array();
         try {
             Method main = Class.forName(className).getMethod("main", new Class[] { String[].class });
             invoke(main, null, new Object[] { array });
@@ -811,8 +795,7 @@ public class BuildBase {
      * @param files the name of the files to delete
      */
     protected void delete(FileList files) {
-        for (int i = 0; i < files.size(); i++) {
-            File f = (File) files.get(i);
+        for (File f : files) {
             delete(f);
         }
     }
@@ -820,10 +803,9 @@ public class BuildBase {
     private void delete(File file) {
         if (file.exists()) {
             if (file.isDirectory()) {
-                String[] fileNames = file.list();
                 String path = file.getPath();
-                for (int i = 0; i < fileNames.length; i++) {
-                    delete(new File(path, fileNames[i]));
+                for (String fileName : file.list()) {
+                    delete(new File(path, fileName));
                 }
             }
             if (!file.delete()) {

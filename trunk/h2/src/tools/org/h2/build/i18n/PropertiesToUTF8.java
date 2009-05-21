@@ -57,7 +57,7 @@ public class PropertiesToUTF8 {
         FileOutputStream out = new FileOutputStream(target);
         PrintWriter writer = new PrintWriter(new OutputStreamWriter(out, "UTF-8"));
         // keys is sorted
-        for (Enumeration en = prop.keys(); en.hasMoreElements();) {
+        for (Enumeration<Object> en = prop.keys(); en.hasMoreElements();) {
             String key = (String) en.nextElement();
             String value = prop.getProperty(key, null);
             writer.println("@" + key);
@@ -117,9 +117,7 @@ public class PropertiesToUTF8 {
     }
 
     private static void convert(String source) throws Exception {
-        File[] list = new File(source).listFiles();
-        for (int i = 0; list != null && i < list.length; i++) {
-            File f = list[i];
+        for (File f : new File(source).listFiles()) {
             if (!f.getName().endsWith(".properties")) {
                 continue;
             }

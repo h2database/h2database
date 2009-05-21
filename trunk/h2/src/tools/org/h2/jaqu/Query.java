@@ -27,19 +27,20 @@ public class Query<T> {
     private Db db;
     private SelectTable<T> from;
     private ArrayList<Token> conditions = Utils.newArrayList();
-    private ArrayList<SelectTable> joins = Utils.newArrayList();
-    private final HashMap<Object, SelectColumn> aliasMap = Utils.newHashMap();
-    private ArrayList<OrderExpression> orderByList = Utils.newArrayList();
+    private ArrayList<SelectTable< ? >> joins = Utils.newArrayList();
+    private final HashMap<Object, SelectColumn<T>> aliasMap = Utils.newHashMap();
+    private ArrayList<OrderExpression<T>> orderByList = Utils.newArrayList();
     private Object[] groupByExpressions;
 
     Query(Db db) {
         this.db = db;
     }
 
+    @SuppressWarnings("unchecked")
     static <T> Query<T> from(Db db, T alias) {
         Query<T> query = new Query<T>(db);
-        TableDefinition def = db.define(alias.getClass());
-        query.from = new SelectTable(db, query, alias, false);
+        TableDefinition<T> def = (TableDefinition<T>) db.define(alias.getClass());
+        query.from = new SelectTable<T>(db, query, alias, false);
         def.initSelectObject(query.from, alias, query.aliasMap);
         return query;
     }
@@ -65,6 +66,7 @@ public class Query<T> {
         return select(true);
     }
 
+    @SuppressWarnings("unchecked")
     public <X, Z> X selectFirst(Z x) {
         List<X> list = (List<X>) select(x);
         return list.isEmpty() ? null : list.get(0);
@@ -109,6 +111,7 @@ public class Query<T> {
         return select(x, false);
     }
 
+    @SuppressWarnings("unchecked")
     private <X, Z> List<X> select(Z x, boolean distinct) {
         Class< ? > clazz = x.getClass();
         if (Utils.isSimpleType(clazz)) {
@@ -135,6 +138,7 @@ public class Query<T> {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     private <X> List<X> getSimple(X x, boolean distinct) {
         SqlStatement selectList = new SqlStatement(db);
         appendSQL(selectList, x);
@@ -175,16 +179,16 @@ public class Query<T> {
 //## Java 1.5 begin ##
     public Query<T> orderBy(Object... expressions) {
         for (Object expr : expressions) {
-            OrderExpression<Object> e =
-                new OrderExpression<Object>(this, expr, false, false, false);
+            OrderExpression<T> e =
+                new OrderExpression<T>(this, expr, false, false, false);
             addOrderBy(e);
         }
         return this;
     }
 
     public Query<T> orderByDesc(Object expr) {
-        OrderExpression<Object> e =
-            new OrderExpression<Object>(this, expr, true, false, false);
+        OrderExpression<T> e =
+            new OrderExpression<T>(this, expr, true, false, false);
         addOrderBy(e);
         return this;
     }
@@ -204,7 +208,7 @@ public class Query<T> {
             token.appendSQL(stat, this);
             return;
         }
-        SelectColumn col = aliasMap.get(x);
+        SelectColumn<T> col = aliasMap.get(x);
         if (col != null) {
             col.appendSQL(stat);
             return;
@@ -227,6 +231,7 @@ public class Query<T> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     SqlStatement prepare(SqlStatement selectList, boolean distinct) {
         SqlStatement stat = selectList;
         String selectSQL = stat.getSQL();
@@ -275,9 +280,10 @@ public class Query<T> {
      * @return the joined query
      */
 //## Java 1.5 begin ##
-    public QueryJoin innerJoin(Object alias) {
-        TableDefinition def = db.define(alias.getClass());
-        SelectTable join = new SelectTable(db, this, alias, false);
+    @SuppressWarnings("unchecked")
+    public <U> QueryJoin innerJoin(U alias) {
+        TableDefinition<T> def = (TableDefinition<T>) db.define(alias.getClass());
+        SelectTable<T> join = new SelectTable(db, this, alias, false);
         def.initSelectObject(join, alias, aliasMap);
         joins.add(join);
         return new QueryJoin(this, join);
@@ -291,11 +297,11 @@ public class Query<T> {
         return !joins.isEmpty();
     }
 
-    SelectColumn getSelectColumn(Object obj) {
+    SelectColumn<T> getSelectColumn(Object obj) {
         return aliasMap.get(obj);
     }
 
-    void addOrderBy(OrderExpression expr) {
+    void addOrderBy(OrderExpression<T> expr) {
         orderByList.add(expr);
     }
 

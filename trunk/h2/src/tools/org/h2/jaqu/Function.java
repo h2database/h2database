@@ -26,7 +26,7 @@ public class Function implements Token {
         this.x = x;
     }
 
-    public void appendSQL(SqlStatement stat, Query query) {
+    public <T> void appendSQL(SqlStatement stat, Query<T> query) {
         stat.appendSQL(name);
         stat.appendSQL("(");
         for (int i = 0; i < x.length; i++) {
@@ -47,6 +47,7 @@ public class Function implements Token {
             Utils.newObject(Integer.class), new Function("LENGTH", x));
     }
 
+    @SuppressWarnings("unchecked")
     public static <T extends Number> T sum(T x) {
         return (T) Db.registerToken(
             Utils.newObject(x.getClass()), new Function("SUM", x));
@@ -60,7 +61,7 @@ public class Function implements Token {
     public static Boolean isNull(Object x) {
         return Db.registerToken(
             Utils.newObject(Boolean.class), new Function("", x) {
-                public void appendSQL(SqlStatement stat, Query query) {
+                public <T> void appendSQL(SqlStatement stat, Query<T> query) {
                     query.appendSQL(stat, x[0]);
                     stat.appendSQL(" IS NULL");
                 }
@@ -70,7 +71,7 @@ public class Function implements Token {
     public static Boolean isNotNull(Object x) {
         return Db.registerToken(
             Utils.newObject(Boolean.class), new Function("", x) {
-                public void appendSQL(SqlStatement stat, Query query) {
+                public <T> void appendSQL(SqlStatement stat, Query<T> query) {
                     query.appendSQL(stat, x[0]);
                     stat.appendSQL(" IS NOT NULL");
                 }
@@ -80,7 +81,7 @@ public class Function implements Token {
     public static Boolean not(Boolean x) {
         return Db.registerToken(
             Utils.newObject(Boolean.class), new Function("", x) {
-                public void appendSQL(SqlStatement stat, Query query) {
+                public <T> void appendSQL(SqlStatement stat, Query<T> query) {
                     stat.appendSQL("NOT ");
                     query.appendSQL(stat, x[0]);
                 }
@@ -91,7 +92,7 @@ public class Function implements Token {
         return Db.registerToken(
                 Utils.newObject(Boolean.class),
                 new Function("", (Object[]) x) {
-            public void appendSQL(SqlStatement stat, Query query) {
+            public <T> void appendSQL(SqlStatement stat, Query<T> query) {
                 for (int i = 0; i < x.length; i++) {
                     if (i > 0) {
                         stat.appendSQL(" OR ");
@@ -106,7 +107,7 @@ public class Function implements Token {
         return Db.registerToken(
                 Utils.newObject(Boolean.class),
                 new Function("", (Object[]) x) {
-            public void appendSQL(SqlStatement stat, Query query) {
+            public <T> void appendSQL(SqlStatement stat, Query<T> query) {
                 for (int i = 0; i < x.length; i++) {
                     if (i > 0) {
                         stat.appendSQL(" AND ");
@@ -117,12 +118,14 @@ public class Function implements Token {
         });
     }
 
+    @SuppressWarnings("unchecked")
     public static <X> X min(X x) {
         Class<X> clazz = (Class<X>) x.getClass();
         X o = Utils.newObject(clazz);
         return Db.registerToken(o, new Function("MIN", x));
     }
 
+    @SuppressWarnings("unchecked")
     public static <X> X max(X x) {
         Class<X> clazz = (Class<X>) x.getClass();
         X o = Utils.newObject(clazz);
@@ -132,7 +135,7 @@ public class Function implements Token {
     public static Boolean like(String x, String pattern) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("LIKE", x, pattern) {
-            public void appendSQL(SqlStatement stat, Query query) {
+            public <T> void appendSQL(SqlStatement stat, Query<T> query) {
                 stat.appendSQL("(");
                 query.appendSQL(stat, x[0]);
                 stat.appendSQL(" LIKE ");

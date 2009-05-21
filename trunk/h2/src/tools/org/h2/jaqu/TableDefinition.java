@@ -41,7 +41,7 @@ class TableDefinition<T> {
      * The meta data of a field.
      */
 //## Java 1.5 begin ##
-    static class FieldDefinition<X> {
+    static class FieldDefinition {
         String columnName;
         Field field;
         String dataType;
@@ -69,10 +69,9 @@ class TableDefinition<T> {
             }
         }
 
-        @SuppressWarnings("unchecked")
-        X read(ResultSet rs, int columnIndex) {
+        Object read(ResultSet rs, int columnIndex) {
             try {
-                return (X) rs.getObject(columnIndex);
+                return rs.getObject(columnIndex);
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -184,7 +183,7 @@ class TableDefinition<T> {
         stat.executeUpdate();
     }
 
-    TableDefinition createTableIfRequired(Db db) {
+    TableDefinition<T> createTableIfRequired(Db db) {
         SqlStatement stat = new SqlStatement(db);
         StringBuilder buff = new StringBuilder("CREATE TABLE IF NOT EXISTS ");
         buff.append(tableName);
@@ -232,11 +231,11 @@ class TableDefinition<T> {
         }
     }
 
-    void initSelectObject(SelectTable table, Object obj,
-            Map<Object, SelectColumn> map) {
+    void initSelectObject(SelectTable<T> table, Object obj,
+            Map<Object, SelectColumn<T>> map) {
         for (FieldDefinition def : fields) {
             def.initWithNewObject(obj);
-            SelectColumn column = new SelectColumn(table, def);
+            SelectColumn<T> column = new SelectColumn<T>(table, def);
             map.put(def.getValue(obj), column);
         }
     }
@@ -249,7 +248,7 @@ class TableDefinition<T> {
         }
     }
 
-    <X> SqlStatement getSelectList(Query query, X x) {
+    <Y, X> SqlStatement getSelectList(Query<Y> query, X x) {
         SqlStatement selectList = new SqlStatement(query.getDb());
         for (int i = 0; i < fields.size(); i++) {
             if (i > 0) {
@@ -262,10 +261,10 @@ class TableDefinition<T> {
         return selectList;
     }
 
-    <U, X> void copyAttributeValues(Query query, X to, X map) {
+    <Y, X> void copyAttributeValues(Query<Y> query, X to, X map) {
         for (FieldDefinition def : fields) {
             Object obj = def.getValue(map);
-            SelectColumn col = query.getSelectColumn(obj);
+            SelectColumn<Y> col = query.getSelectColumn(obj);
             Object value = col.getCurrentValue();
             def.setValue(to, value);
         }

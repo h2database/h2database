@@ -101,7 +101,7 @@ public class FunctionsMySQL {
      * @param timestamp the timestamp
      * @return the current timestamp in seconds (not milliseconds).
      */
-    public static int unixTimestamp(java.sql.Timestamp timestamp) throws SQLException {
+    public static int unixTimestamp(java.sql.Timestamp timestamp) {
         return (int) (timestamp.getTime() / 1000L);
     }
 

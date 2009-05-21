@@ -13,7 +13,7 @@ package org.h2.jaqu;
 //## Java 1.5 begin ##
 public class Define {
 
-    private static TableDefinition currentTableDefinition;
+    private static TableDefinition< ? > currentTableDefinition;
     private static Table currentTable;
 
     public static void primaryKey(Object... columns) {
@@ -35,7 +35,7 @@ public class Define {
         currentTableDefinition.setTableName(tableName);
     }
 
-    static synchronized void define(TableDefinition tableDefinition, Table table) {
+    static synchronized <T> void define(TableDefinition<T> tableDefinition, Table table) {
         currentTableDefinition = tableDefinition;
         currentTable = table;
         tableDefinition.mapObject(table);

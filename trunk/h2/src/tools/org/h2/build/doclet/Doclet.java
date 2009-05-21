@@ -35,7 +35,7 @@ public class Doclet {
     private static final boolean INTERFACES_ONLY = Boolean.getBoolean("h2.interfacesOnly");
     private String destDir = System.getProperty("h2.destDir", "docs/javadoc");
     private int errorCount;
-    private HashSet errors = new HashSet();
+    private HashSet<String> errors = new HashSet<String>();
 
     /**
      * This method is called by the javadoc framework and is required for all
@@ -51,13 +51,12 @@ public class Doclet {
     private boolean startDoc(RootDoc root) throws IOException {
         ClassDoc[] classes = root.classes();
         String[][] options = root.options();
-        for (int i = 0; i < options.length; i++) {
-            if (options[i][0].equals("destdir")) {
-                destDir = options[i][1];
+        for (String[] op : options) {
+            if (op[0].equals("destdir")) {
+                destDir = op[1];
             }
         }
-        for (int i = 0; i < classes.length; ++i) {
-            ClassDoc clazz = classes[i];
+        for (ClassDoc clazz : classes) {
             processClass(clazz);
         }
         if (errorCount > 0) {
@@ -98,12 +97,12 @@ public class Doclet {
 
         // methods
         MethodDoc[] methods = clazz.methods();
-        Arrays.sort(methods, new Comparator() {
-            public int compare(Object a, Object b) {
-                return ((MethodDoc) a).name().compareTo(((MethodDoc) b).name());
+        Arrays.sort(methods, new Comparator<MethodDoc>() {
+            public int compare(MethodDoc a, MethodDoc b) {
+                return a.name().compareTo(b.name());
             }
         });
-        ArrayList signatures = new ArrayList();
+        ArrayList<String> signatures = new ArrayList<String>();
         boolean hasMethods = false;
         int id = 0;
         for (int i = 0; i < methods.length; i++) {
@@ -166,14 +165,13 @@ public class Doclet {
         if (clazz.interfaces().length > 0) {
             fields = clazz.interfaces()[0].fields();
         }
-        Arrays.sort(fields, new Comparator() {
-            public int compare(Object a, Object b) {
-                return ((FieldDoc) a).name().compareTo(((FieldDoc) b).name());
+        Arrays.sort(fields, new Comparator<FieldDoc>() {
+            public int compare(FieldDoc a, FieldDoc b) {
+                return a.name().compareTo(b.name());
             }
         });
         int fieldId = 0;
-        for (int i = 0; i < fields.length; i++) {
-            FieldDoc field = fields[i];
+        for (FieldDoc field : fields) {
             if (skipField(clazz, field)) {
                 continue;
             }
@@ -208,20 +206,17 @@ public class Doclet {
         }
 
         // field details
-        Arrays.sort(fields, new Comparator() {
-            public int compare(Object a, Object b) {
-                FieldDoc fa = (FieldDoc) a;
-                FieldDoc fb = (FieldDoc) b;
-                String ca = fa.constantValueExpression();
-                String cb = fb.constantValueExpression();
+        Arrays.sort(fields, new Comparator<FieldDoc>() {
+            public int compare(FieldDoc a, FieldDoc b) {
+                String ca = a.constantValueExpression();
+                String cb = b.constantValueExpression();
                 if (ca != null && cb != null) {
                     return ca.compareTo(cb);
                 }
-                return fa.name().compareTo(fb.name());
+                return a.name().compareTo(b.name());
             }
         });
-        for (int i = 0; i < fields.length; i++) {
-            FieldDoc field = fields[i];
+        for (FieldDoc field : fields) {
             writeFieldDetails(writer, clazz, field);
         }
 
@@ -329,9 +324,9 @@ public class Doclet {
         }
         if (hasThrowsTag) {
             writer.println("<div class=\"itemTitle\">Throws:</div>");
-            for (int j = 0; j < throwsTags.length; j++) {
-                String p = throwsTags[j].exceptionName();
-                String c = throwsTags[j].exceptionComment();
+            for (ThrowsTag tag : throwsTags) {
+                String p = tag.exceptionName();
+                String c = tag.exceptionComment();
                 if (c.length() > 0) {
                     p += " - " + c;
                 }
@@ -420,17 +415,14 @@ public class Doclet {
 
     private boolean foundMethod(ClassDoc clazz, boolean include, String methodName, int parameterCount) {
         if (include) {
-            MethodDoc[] ms = clazz.methods();
-            for (int j = 0; j < ms.length; j++) {
-                MethodDoc m = ms[j];
+            for (MethodDoc m : clazz.methods()) {
                 if (m.name().equals(methodName) && m.parameters().length == parameterCount) {
                     return true;
                 }
             }
         }
-        ClassDoc[] ifs = clazz.interfaces();
-        for (int i = 0; i < ifs.length; i++) {
-            if (foundMethod(ifs[i], true, methodName, parameterCount)) {
+        for (ClassDoc doc : clazz.interfaces()) {
+            if (foundMethod(doc, true, methodName, parameterCount)) {
                 return true;
             }
         }

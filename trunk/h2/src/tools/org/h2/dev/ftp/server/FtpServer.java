@@ -80,7 +80,7 @@ public class FtpServer extends Tool implements Service {
     private String root = DEFAULT_ROOT;
     private String writeUserName = DEFAULT_WRITE, writePassword = DEFAULT_WRITE_PASSWORD;
     private String readUserName = DEFAULT_READ;
-    private HashMap tasks = new HashMap();
+    private HashMap<String, Process> tasks = new HashMap<String, Process>();
 
     private FileSystem fs;
     private boolean trace;
@@ -295,10 +295,8 @@ public class FtpServer extends Tool implements Service {
      * @return the list
      */
     String getDirectoryListing(String directory, boolean listDirectories) throws SQLException {
-        String[] list = fs.listFiles(directory);
         StringBuffer buff = new StringBuffer();
-        for (int i = 0; list != null && i < list.length; i++) {
-            String fileName = list[i];
+        for (String fileName : fs.listFiles(directory)) {
             if (!fs.isDirectory(fileName) || (fs.isDirectory(fileName) && listDirectories)) {
                 appendFile(buff, fileName);
             }
@@ -512,7 +510,7 @@ public class FtpServer extends Tool implements Service {
      */
     void stopTask(String processName) {
         trace("kill process: " + processName);
-        Process p = (Process) tasks.remove(processName);
+        Process p = tasks.remove(processName);
         if (p == null) {
             return;
         }

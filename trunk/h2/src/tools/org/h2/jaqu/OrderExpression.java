@@ -9,17 +9,17 @@ package org.h2.jaqu;
 /**
  * An expression to order by in a query.
  *
- * @param <T> the expression data type
+ * @param <T> the query data type
  */
 //## Java 1.5 begin ##
 class OrderExpression<T> {
-    private Query query;
-    private T expression;
+    private Query<T> query;
+    private Object expression;
     private boolean desc;
     private boolean nullsFirst;
     private boolean nullsLast;
 
-    OrderExpression(Query query, T expression, boolean desc,
+    OrderExpression(Query<T> query, Object expression, boolean desc,
             boolean nullsFirst, boolean nullsLast) {
         this.query = query;
         this.expression = expression;

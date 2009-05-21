@@ -13,14 +13,14 @@ import org.h2.jaqu.TableDefinition.FieldDefinition;
 /**
  * This class represents a column of a table in a query.
  *
- * @param <X> the column data type
+ * @param <T> the table data type
  */
 //## Java 1.5 begin ##
-class SelectColumn<X> {
-    private SelectTable selectTable;
-    private FieldDefinition<X> fieldDef;
+class SelectColumn<T> {
+    private SelectTable<T> selectTable;
+    private FieldDefinition fieldDef;
 
-    SelectColumn(SelectTable table, FieldDefinition<X> fieldDef) {
+    SelectColumn(SelectTable<T> table, FieldDefinition fieldDef) {
         this.selectTable = table;
         this.fieldDef = fieldDef;
     }
@@ -33,11 +33,11 @@ class SelectColumn<X> {
         }
     }
 
-    FieldDefinition<X> getFieldDefinition() {
+    FieldDefinition getFieldDefinition() {
         return fieldDef;
     }
 
-    SelectTable getSelectTable() {
+    SelectTable<T> getSelectTable() {
         return selectTable;
     }
 

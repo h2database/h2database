@@ -46,7 +46,7 @@ public class BuildBase {
     /**
      * A list of strings.
      */
-    public static class StringList extends ArrayList<String> implements List<String> {
+    public static class StringList extends ArrayList<String> {
 
         private static final long serialVersionUID = 1L;
 
@@ -86,7 +86,7 @@ public class BuildBase {
     /**
      * A list of files.
      */
-    public static class FileList extends ArrayList<File> implements List<File> {
+    public static class FileList extends ArrayList<File> {
 
         private static final long serialVersionUID = 1L;
 
@@ -276,12 +276,12 @@ public class BuildBase {
     protected int exec(String command, StringList args) {
         try {
             print(command);
-            for (String a : args) {
-                print(" " + a);
-            }
             StringList cmd = new StringList();
             cmd = cmd.plus(command);
             if (args != null) {
+                for (String a : args) {
+                    print(" " + a);
+                }
                 cmd.addAll(args);
             }
             println("");
@@ -324,7 +324,7 @@ public class BuildBase {
      */
     protected String getStaticField(String className, String fieldName) {
         try {
-            Class clazz = Class.forName(className);
+            Class< ? > clazz = Class.forName(className);
             Field field = clazz.getField(fieldName);
             return field.get(null).toString();
         } catch (Exception e) {

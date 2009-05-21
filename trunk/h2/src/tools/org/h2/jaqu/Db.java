@@ -30,7 +30,7 @@ public class Db {
         Utils.newWeakIdentityHashMap();
 
     private final Connection conn;
-    private final Map<Class, TableDefinition> classMap = Utils.newHashMap();
+    private final Map<Class< ? >, TableDefinition< ? >> classMap = Utils.newHashMap();
 
     Db(Connection conn) {
         this.conn = conn;
@@ -94,9 +94,9 @@ public class Db {
     }
 
     <T> TableDefinition<T> define(Class<T> clazz) {
-        TableDefinition def = classMap.get(clazz);
+        TableDefinition<T> def = getTableDefinition(clazz);
         if (def == null) {
-            def = new TableDefinition(clazz);
+            def = new TableDefinition<T>(clazz);
             def.mapFields();
             classMap.put(clazz, def);
             if (Table.class.isAssignableFrom(clazz)) {
@@ -134,8 +134,9 @@ public class Db {
         }
     }
 
-    TableDefinition getTableDefinition(Class< ? > clazz) {
-        return classMap.get(clazz);
+    @SuppressWarnings("unchecked")
+    <T> TableDefinition<T> getTableDefinition(Class<T> clazz) {
+        return (TableDefinition<T>) classMap.get(clazz);
     }
 
     ResultSet executeQuery(String sql) {

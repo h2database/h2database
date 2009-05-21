@@ -36,14 +36,14 @@ public class Indexer {
         "also;back;after;use;two;how;our;work;first;well;way;even;new;want;" +
         "because;any;these;give;most;us;";
 
-    private ArrayList pages = new ArrayList();
+    private ArrayList<Page> pages = new ArrayList<Page>();
 
     /**
      * Lower case word to Word map.
      */
-    private HashMap words = new HashMap();
-    private HashSet noIndex = new HashSet();
-    private ArrayList wordList;
+    private HashMap<String, Word> words = new HashMap<String, Word>();
+    private HashSet<String> noIndex = new HashSet<String>();
+    private ArrayList <Word>wordList;
     private int totalAllWeights;
     private PrintWriter output;
     private Page page;
@@ -92,20 +92,18 @@ public class Indexer {
     }
 
     private void setNoIndex(String[] strings) {
-        for (int i = 0; i < strings.length; i++) {
-            noIndex.add(strings[i]);
+        for (String s : strings) {
+            noIndex.add(s);
         }
     }
 
     private void sortWords() {
-        ArrayList names = new ArrayList(words.keySet());
-        for (int i = 0; i < names.size(); i++) {
-            String name = (String) names.get(i);
+        for (String name : words.keySet()) {
             if (name.endsWith("s")) {
                 String singular = name.substring(0, name.length() - 1);
                 if (words.containsKey(singular)) {
-                    Word wp = (Word) words.get(name);
-                    Word ws = (Word) words.get(singular);
+                    Word wp = words.get(name);
+                    Word ws = words.get(singular);
                     ws.addAll(wp);
                     words.remove(name);
                 }
@@ -113,12 +111,12 @@ public class Indexer {
                 words.remove(name);
             }
         }
-        wordList = new ArrayList(words.values());
+        wordList = new ArrayList<Word>(words.values());
         // ignored very common words (to shrink the index)
         String ignored = "";
         int maxSize = pages.size() / 4;
         for (int i = 0; i < wordList.size(); i++) {
-            Word word = (Word) wordList.get(i);
+            Word word = wordList.get(i);
             String search = ";" + word.name.toLowerCase() + ";";
             int idxCommon = VERY_COMMON.indexOf(search);
             if (word.pages.size() >= maxSize || idxCommon >= 0) {
@@ -133,23 +131,20 @@ public class Indexer {
         // output.println("var ignored = '" + convertUTF(ignored) + "'");
         // TODO support A, B, C,... class links in the index file and use them
         // for combined AND searches
-        Collections.sort(wordList, new Comparator() {
-            public int compare(Object o0, Object o1) {
-                Word w0 = (Word) o0;
-                Word w1 = (Word) o1;
+        Collections.sort(wordList, new Comparator<Word>() {
+            public int compare(Word w0, Word w1) {
                 return w0.name.compareToIgnoreCase(w1.name);
             }
         });
     }
 
     private void removeOverflowRelations() {
-        for (int i = 0; i < wordList.size(); i++) {
-            Word word = (Word) wordList.get(i);
-            ArrayList weights = word.getSortedWeights();
+        for (Word word : wordList) {
+            ArrayList<Weight> weights = word.getSortedWeights();
             int max = MAX_RELATIONS;
             if (weights.size() > max) {
                 while (max < weights.size()) {
-                    Weight weight = (Weight) weights.get(max);
+                    Weight weight = weights.get(max);
                     if (weight.value < Weight.HEADER) {
                         break;
                     }
@@ -157,7 +152,7 @@ public class Indexer {
                 }
             }
             while (max < weights.size()) {
-                Weight weight = (Weight) weights.get(max);
+                Weight weight = weights.get(max);
                 weights.remove(max);
                 weight.page.relations--;
             }
@@ -165,22 +160,19 @@ public class Indexer {
     }
 
     private void sortPages() {
-        Collections.sort(pages, new Comparator() {
-            public int compare(Object o0, Object o1) {
-                Page p0 = (Page) o0;
-                Page p1 = (Page) o1;
+        Collections.sort(pages, new Comparator<Page>() {
+            public int compare(Page p0, Page p1) {
                 return p0.relations == p1.relations ? 0 : p0.relations < p1.relations ? 1 : -1;
             }
         });
         for (int i = 0; i < pages.size(); i++) {
-            Page page = (Page) pages.get(i);
+            Page page = pages.get(i);
             page.id = i;
         }
     }
 
     private void listPages() {
-        for (int i = 0; i < pages.size(); i++) {
-            Page page = (Page) pages.get(i);
+        for (Page page : pages) {
             output.println("pages[" + page.id + "]=new Page('" + convertUTF(page.title) + "', '" + page.fileName
                     + "');");
         }
@@ -190,9 +182,8 @@ public class Indexer {
         String name = file.getName();
         String fileName = dir.length() > 0 ? dir + "/" + name : level > 0 ? name : "";
         if (file.isDirectory()) {
-            File[] list = file.listFiles();
-            for (int i = 0; i < list.length; i++) {
-                readPages(fileName, list[i], level + 1);
+            for (File f : file.listFiles()) {
+                readPages(fileName, f, level + 1);
             }
             return;
         }
@@ -216,9 +207,8 @@ public class Indexer {
         String first = "";
         int firstLen = 1;
         int totalRelations = 0;
-        for (int i = 0; i < wordList.size(); i++) {
-            Word word = (Word) wordList.get(i);
-            ArrayList weights = word.getSortedWeights();
+        for (Word word : wordList) {
+            ArrayList<Weight> weights = word.getSortedWeights();
             String lower = StringUtils.toLowerEnglish(word.name);
             if (!first.equals(lower.substring(0, firstLen))) {
                 if (buff.length() > 0) {
@@ -235,7 +225,7 @@ public class Indexer {
             String weightString = "r";
             totalRelations += weights.size();
             for (int j = 0; j < weights.size(); j++) {
-                Weight weight = (Weight) weights.get(j);
+                Weight weight = weights.get(j);
                 Page page = weight.page;
                 if (j > 0) {
                     buff.append(",");
@@ -356,7 +346,7 @@ public class Indexer {
                 continue;
             }
             String lower = StringUtils.toLowerEnglish(token);
-            Word word = (Word) words.get(lower);
+            Word word = words.get(lower);
             if (word == null) {
                 word = new Word(token);
                 words.put(lower, word);

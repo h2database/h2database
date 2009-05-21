@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.StringTokenizer;
 
 import org.h2.build.BuildBase;
@@ -32,9 +31,9 @@ public class SpellChecker {
     private static final String PREFIX_IGNORE = "abc";
     private static final String IGNORE_FILE = "mainWeb.html";
 
-    private HashSet dictionary = new HashSet();
-    private HashSet used = new HashSet();
-    private HashMap unknown = new HashMap();
+    private HashSet<String> dictionary = new HashSet<String>();
+    private HashSet<String> used = new HashSet<String>();
+    private HashMap<String, Integer> unknown = new HashMap<String, Integer>();
     private boolean debug;
     private boolean printDictionary;
     private boolean addToDictionary;
@@ -61,8 +60,7 @@ public class SpellChecker {
             used.toArray(list);
             Arrays.sort(list);
             StringBuffer buff = new StringBuffer();
-            for (int i = 0; i < list.length; i++) {
-                String s = list[i];
+            for (String s : list) {
                 if (buff.length() > 0) {
                     if (buff.length() + s.length() > 80) {
                         System.out.println(buff.toString());
@@ -78,9 +76,8 @@ public class SpellChecker {
         if (unknown.size() > 0) {
             System.out.println();
             System.out.println("UNKNOWN WORDS");
-            for (Iterator it = unknown.keySet().iterator(); it.hasNext();) {
-                String s = (String) it.next();
-                // int count = ((Integer) unknown.get(s)).intValue();
+            for (String s : unknown.keySet()) {
+                // int count = unknown.get(s);
                 System.out.print(s + " ");
                 errorCount++;
             }
@@ -101,9 +98,8 @@ public class SpellChecker {
             return;
         }
         if (file.isDirectory()) {
-            File[] list = file.listFiles();
-            for (int i = 0; i < list.length; i++) {
-                process(list[i]);
+            for (File f : file.listFiles()) {
+                process(f);
             }
         } else {
             String fileName = file.getAbsolutePath();
@@ -115,8 +111,8 @@ public class SpellChecker {
                 suffix = fileName.substring(idx + 1);
             }
             boolean ignore = false;
-            for (int i = 0; i < IGNORE.length; i++) {
-                if (IGNORE[i].equals(suffix)) {
+            for (String s : IGNORE) {
+                if (s.equals(suffix)) {
                     ignore = true;
                     break;
                 }
@@ -128,8 +124,8 @@ public class SpellChecker {
                 return;
             }
             boolean ok = false;
-            for (int i = 0; i < SUFFIX.length; i++) {
-                if (SUFFIX[i].equals(suffix)) {
+            for (String s : SUFFIX) {
+                if (s.equals(suffix)) {
                     ok = true;
                     break;
                 }
@@ -148,7 +144,7 @@ public class SpellChecker {
     }
 
     private void scan(String fileName, String text) {
-        HashSet notFound = new HashSet();
+        HashSet<String> notFound = new HashSet<String>();
         text = removeLinks(fileName, text);
         StringTokenizer tokenizer = new StringTokenizer(text, DELIMITERS);
         while (tokenizer.hasMoreTokens()) {
@@ -170,8 +166,7 @@ public class SpellChecker {
         }
         if (notFound.size() > 0) {
             System.out.println("file: " + fileName);
-            for (Iterator it = notFound.iterator(); it.hasNext();) {
-                String s = (String) it.next();
+            for (String s : notFound) {
                 System.out.print(s + " ");
             }
             System.out.println();
@@ -208,7 +203,7 @@ public class SpellChecker {
         return changed;
     }
 
-    private void scanCombinedToken(HashSet notFound, String token) {
+    private void scanCombinedToken(HashSet<String> notFound, String token) {
         for (int i = 1; i < token.length(); i++) {
             char charLeft = token.charAt(i - 1);
             char charRight = token.charAt(i);
@@ -225,7 +220,7 @@ public class SpellChecker {
         scanToken(notFound, token);
     }
 
-    private void scanToken(HashSet notFound, String token) {
+    private void scanToken(HashSet<String> notFound, String token) {
         if (token.length() < 3) {
             return;
         }
@@ -267,9 +262,9 @@ public class SpellChecker {
         }
     }
 
-    private void increment(HashMap map, String key) {
-        Integer value = (Integer) map.get(key);
-        value = new Integer(value == null ? 0 : value.intValue() + 1);
+    private void increment(HashMap<String, Integer> map, String key) {
+        Integer value = map.get(key);
+        value = new Integer(value == null ? 0 : value + 1);
         map.put(key, value);
         contextCount = 10;
     }

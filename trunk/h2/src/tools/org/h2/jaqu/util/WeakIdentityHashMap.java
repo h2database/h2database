@@ -24,7 +24,7 @@ import java.util.Set;
 //## Java 1.5 begin ##
 public class WeakIdentityHashMap<K, V> implements Map<K, V> {
     private static final int MAX_LOAD = 90;
-    private static final WeakReference DELETED_KEY = new WeakReference(null);
+    private static final WeakReference<Object> DELETED_KEY = new WeakReference<Object>(null);
     private int mask, len, size, deletedCount, level;
     private int maxSize, minSize, maxDeleted;
     private WeakReference<K>[] keys;
@@ -59,6 +59,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
         return System.identityHashCode(key) & mask;
     }
 
+    @SuppressWarnings("unchecked")
     private void reset(int newLevel) {
         minSize = size * 3 / 4;
         size = 0;
@@ -139,8 +140,9 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     private void delete(int index) {
-        keys[index] = DELETED_KEY;
+        keys[index] = (WeakReference<K>) DELETED_KEY;
         values[index] = null;
         deletedCount++;
         size--;

@@ -128,7 +128,7 @@ public class Utils {
         if (o == null) {
             return null;
         }
-        Class currentType = o.getClass();
+        Class< ? > currentType = o.getClass();
         if (currentType == targetType) {
             return o;
         }

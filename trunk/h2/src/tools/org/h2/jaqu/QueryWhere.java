@@ -35,7 +35,7 @@ public class QueryWhere<T> {
     }
 
     public <X, Z> List<X> select(Z x) {
-        return (List<X>) query.select(x);
+        return query.select(x);
     }
 
     public String getSQL() {
@@ -45,11 +45,11 @@ public class QueryWhere<T> {
     }
 
     public <X, Z> List<X> selectDistinct(Z x) {
-        return (List<X>) query.selectDistinct(x);
+        return query.selectDistinct(x);
     }
 
     public <X, Z> X selectFirst(Z x) {
-        List<X> list = (List<X>) query.select(x);
+        List<X> list = query.select(x);
         return list.isEmpty() ? null : list.get(0);
     }
 
@@ -77,44 +77,44 @@ public class QueryWhere<T> {
 //## Java 1.5 begin ##
     public QueryWhere<T> orderBy(Object... expressions) {
         for (Object expr : expressions) {
-            OrderExpression<Object> e =
-                new OrderExpression<Object>(query, expr, false, false, false);
+            OrderExpression<T> e =
+                new OrderExpression<T>(query, expr, false, false, false);
             query.addOrderBy(e);
         }
         return this;
     }
 
     public QueryWhere<T> orderByNullsFirst(Object expr) {
-        OrderExpression<Object> e =
-            new OrderExpression<Object>(query, expr, false, true, false);
+        OrderExpression<T> e =
+            new OrderExpression<T>(query, expr, false, true, false);
         query.addOrderBy(e);
         return this;
     }
 
     public QueryWhere<T> orderByNullsLast(Object expr) {
-        OrderExpression<Object> e =
-            new OrderExpression<Object>(query, expr, false, false, true);
+        OrderExpression<T> e =
+            new OrderExpression<T>(query, expr, false, false, true);
         query.addOrderBy(e);
         return this;
     }
 
     public QueryWhere<T> orderByDesc(Object expr) {
-        OrderExpression<Object> e =
-            new OrderExpression<Object>(query, expr, true, false, false);
+        OrderExpression<T> e =
+            new OrderExpression<T>(query, expr, true, false, false);
         query.addOrderBy(e);
         return this;
     }
 
     public QueryWhere<T> orderByDescNullsFirst(Object expr) {
-        OrderExpression<Object> e =
-            new OrderExpression<Object>(query, expr, true, true, false);
+        OrderExpression<T> e =
+            new OrderExpression<T>(query, expr, true, true, false);
         query.addOrderBy(e);
         return this;
     }
 
     public QueryWhere<T> orderByDescNullsLast(Object expr) {
-        OrderExpression<Object> e =
-            new OrderExpression<Object>(query, expr, true, false, true);
+        OrderExpression<T> e =
+            new OrderExpression<T>(query, expr, true, false, true);
         query.addOrderBy(e);
         return this;
     }

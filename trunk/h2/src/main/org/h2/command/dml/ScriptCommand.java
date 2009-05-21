@@ -411,7 +411,7 @@ public class ScriptCommand extends ScriptBase {
      * @param id the lob id
      * @return a stream for the combined data
      */
-    public static InputStream combineBlob(Connection conn, int id) throws SQLException, IOException {
+    public static InputStream combineBlob(Connection conn, int id) throws SQLException {
         if (id < 0) {
             return null;
         }
@@ -439,7 +439,7 @@ public class ScriptCommand extends ScriptBase {
                         }
                         current = null;
                     } catch (SQLException e) {
-                        Message.convertToIOException(e);
+                        throw Message.convertToIOException(e);
                     }
                 }
             }
@@ -451,7 +451,7 @@ public class ScriptCommand extends ScriptBase {
                 try {
                     rs.close();
                 } catch (SQLException e) {
-                    Message.convertToIOException(e);
+                    throw Message.convertToIOException(e);
                 }
             }
         };
@@ -465,7 +465,7 @@ public class ScriptCommand extends ScriptBase {
      * @param id the lob id
      * @return a reader for the combined data
      */
-    public static Reader combineClob(Connection conn, int id) throws SQLException, IOException {
+    public static Reader combineClob(Connection conn, int id) throws SQLException {
         if (id < 0) {
             return null;
         }
@@ -493,7 +493,7 @@ public class ScriptCommand extends ScriptBase {
                         }
                         current = null;
                     } catch (SQLException e) {
-                        Message.convertToIOException(e);
+                        throw Message.convertToIOException(e);
                     }
                 }
             }
@@ -505,7 +505,7 @@ public class ScriptCommand extends ScriptBase {
                 try {
                     rs.close();
                 } catch (SQLException e) {
-                    Message.convertToIOException(e);
+                    throw Message.convertToIOException(e);
                 }
             }
             public int read(char[] buffer, int off, int len) throws IOException {

@@ -18,8 +18,9 @@ call build -quiet compile
 call build -quiet spellcheck javadocImpl jarClient
 
 echo %time:~0,8% JDK 1.4
-call java14 >nul 2>nul
-call build -quiet clean compile
+call java15 >nul 2>nul
+set bcp=%JAVA_HOME14%\jre\lib\
+call build -quiet clean -Dversion=1.4 switchSource -Dbcp=%bcp%\rt.jar;%bcp%\jsse.jar compile
 call build -quiet installer mavenDeployCentral
 
 rem call build -quiet compile benchmark

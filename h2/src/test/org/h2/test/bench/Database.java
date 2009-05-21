@@ -16,7 +16,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
@@ -34,7 +33,7 @@ class Database {
     private TestPerformance test;
     private int id;
     private String name, url, user, password;
-    private ArrayList replace = new ArrayList();
+    private ArrayList<String[]> replace = new ArrayList<String[]>();
     private String action;
     private long startTime;
     private Connection conn;
@@ -42,7 +41,7 @@ class Database {
     private boolean trace = true;
     private long lastTrace;
     private Random random = new Random(1);
-    private ArrayList results = new ArrayList();
+    private ArrayList<Object[]> results = new ArrayList<Object[]>();
     private int totalTime;
     private int executedStatements;
 
@@ -73,7 +72,7 @@ class Database {
      *
      * @return the result array
      */
-    ArrayList getResults() {
+    ArrayList<Object[]> getResults() {
         return results;
     }
 
@@ -102,7 +101,7 @@ class Database {
             Thread.sleep(100);
         } else if (url.startsWith("jdbc:hsqldb:hsql:")) {
             if (!serverHSQLDB) {
-                Class c = Class.forName("org.hsqldb.Server");
+                Class< ? > c = Class.forName("org.hsqldb.Server");
                 Method m = c.getMethod("main", new Class[] { String[].class });
                 m.invoke(null, new Object[] { new String[] { "-database.0",
                         "data/mydb;hsqldb.default_table_type=cached", "-dbname.0", "xdb" } });
@@ -239,8 +238,8 @@ class Database {
     void setTranslations(Properties prop) {
         String id = url.substring("jdbc:".length());
         id = id.substring(0, id.indexOf(':'));
-        for (Iterator it = prop.keySet().iterator(); it.hasNext();) {
-            String key = (String) it.next();
+        for (Object k : prop.keySet()) {
+            String key = (String) k;
             if (key.startsWith(id + ".")) {
                 String pattern = key.substring(id.length() + 1);
                 pattern = StringUtils.replaceAll(pattern, "_", " ");
@@ -263,8 +262,7 @@ class Database {
     }
 
     private String getSQL(String sql) {
-        for (int i = 0; i < replace.size(); i++) {
-            String[] pair = (String[]) replace.get(i);
+        for (String[] pair : replace) {
             String pattern = pair[0];
             String replace = pair[1];
             sql = StringUtils.replaceAll(sql, pattern, replace);

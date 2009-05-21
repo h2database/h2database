@@ -123,7 +123,7 @@ public abstract class TestHalt extends TestBase {
      */
     abstract void processAppRun() throws SQLException;
 
-    public void test() throws SQLException {
+    public void test() {
         for (int i = 0;; i++) {
             operations = OP_INSERT | i;
             flags = i >> 4;

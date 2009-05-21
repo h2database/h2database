@@ -1009,8 +1009,8 @@ public abstract class TestBase {
     protected void assertEqualDatabases(Statement stat1, Statement stat2) throws SQLException {
         ResultSet rs1 = stat1.executeQuery("SCRIPT NOPASSWORDS");
         ResultSet rs2 = stat2.executeQuery("SCRIPT NOPASSWORDS");
-        ArrayList list1 = new ArrayList();
-        ArrayList list2 = new ArrayList();
+        ArrayList<String> list1 = new ArrayList<String>();
+        ArrayList<String> list2 = new ArrayList<String>();
         while (rs1.next()) {
             String s1 = rs1.getString(1);
             list1.add(s1);
@@ -1021,7 +1021,7 @@ public abstract class TestBase {
             list2.add(s2);
         }
         for (int i = 0; i < list1.size(); i++) {
-            String s = (String) list1.get(i);
+            String s = list1.get(i);
             if (!list2.remove(s)) {
                 fail("only found in first: " + s);
             }

@@ -155,7 +155,7 @@ public class TestTools extends TestBase {
         }
     }
 
-    private String runServer(String[] args, int exitCode) throws SQLException {
+    private String runServer(String[] args, int exitCode) {
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(buff);
         server = new Server();

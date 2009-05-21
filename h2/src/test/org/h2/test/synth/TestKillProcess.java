@@ -9,10 +9,8 @@ package org.h2.test.synth;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
-
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 import org.h2.test.unit.SelfDestructor;
@@ -31,7 +29,7 @@ public class TestKillProcess {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) {
         SelfDestructor.startCountdown(60);
         try {
             Class.forName("org.h2.Driver");

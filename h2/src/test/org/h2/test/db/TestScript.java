@@ -302,7 +302,7 @@ public class TestScript extends TestBase {
         writeResult((ordered ? "rows (ordered): " : "rows: ") + i, null);
     }
 
-    private String format(String[] row, int[] max) throws SQLException {
+    private String format(String[] row, int[] max) {
         int length = max.length;
         StringBuffer buff = new StringBuffer();
         for (int i = 0; i < length; i++) {

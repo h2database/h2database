@@ -11,10 +11,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
-
 import org.h2.test.TestBase;
 import org.h2.test.unit.SelfDestructor;
 
@@ -72,7 +70,7 @@ public class TestKillRestart extends TestBase {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) {
         SelfDestructor.startCountdown(60);
         String driver = "org.h2.Driver";
         String url = "jdbc:h2:test", user = "sa", password = "sa";

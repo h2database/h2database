@@ -17,6 +17,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.h2.util.JdbcDriverUtils;
 
@@ -33,7 +34,7 @@ public class Db {
 
     private Connection conn;
     private Statement stat;
-    private HashMap prepared = new HashMap();
+    private HashMap<String, PreparedStatement> prepared = new HashMap<String, PreparedStatement>();
 
     /**
      * Create a database object using the given connection.
@@ -75,7 +76,7 @@ public class Db {
      */
     public Prepared prepare(String sql) {
         try {
-            PreparedStatement prep = (PreparedStatement) prepared.get(sql);
+            PreparedStatement prep = prepared.get(sql);
             if (prep == null) {
                 prep = conn.prepareStatement(sql);
                 prepared.put(sql, prep);
@@ -105,12 +106,12 @@ public class Db {
      * @param rs the result set
      * @return a list of maps
      */
-    static List query(ResultSet rs) throws SQLException {
-        List list = new ArrayList();
+    static List<Map<String, Object>> query(ResultSet rs) throws SQLException {
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
         while (rs.next()) {
-            HashMap map = new HashMap();
+            HashMap<String, Object> map = new HashMap<String, Object>();
             for (int i = 0; i < columnCount; i++) {
                 map.put(meta.getColumnLabel(i+1), rs.getObject(i+1));
             }
@@ -125,7 +126,7 @@ public class Db {
      * @param sql the SQL statement
      * @return a list of maps
      */
-    public List query(String sql) {
+    public List<Map<String, Object>> query(String sql) {
         try {
             return query(stat.executeQuery(sql));
         } catch (SQLException e) {
@@ -231,7 +232,7 @@ public class Db {
          *
          * @return the result list
          */
-        public List query() {
+        public List<Map<String, Object>> query() {
             try {
                 return Db.query(prep.executeQuery());
             } catch (SQLException e) {

@@ -126,7 +126,7 @@ public class TestConnectionPool extends TestBase {
         man.dispose();
     }
 
-    private JdbcConnectionPool getConnectionPool(int poolSize) throws SQLException {
+    private JdbcConnectionPool getConnectionPool(int poolSize) {
         JdbcDataSource ds = new JdbcDataSource();
         ds.setURL(getURL("connectionPool", true));
         ds.setUser(getUser());

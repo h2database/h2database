@@ -75,8 +75,8 @@ public class BenchB implements Bench, Runnable {
                 "CREATE TABLE TELLERS(TID INT NOT NULL PRIMARY KEY, BID INT, TBALANCE INT, FILLER VARCHAR(84))",
                 "CREATE TABLE ACCOUNTS(AID INT NOT NULL PRIMARY KEY, BID INT, ABALANCE INT, FILLER VARCHAR(84))",
                 "CREATE TABLE HISTORY(TID INT, BID INT, AID INT, DELTA INT, TIME DATETIME, FILLER VARCHAR(22))" };
-        for (int i = 0; i < create.length; i++) {
-            db.update(create[i]);
+        for (String sql : create) {
+            db.update(sql);
         }
         PreparedStatement prep;
         db.setAutoCommit(false);
@@ -197,11 +197,11 @@ public class BenchB implements Bench, Runnable {
         for (int i = 0; i < clients; i++) {
             threads[i] = new Thread(new BenchB(this, i));
         }
-        for (int i = 0; i < clients; i++) {
-            threads[i].start();
+        for (Thread t : threads) {
+            t.start();
         }
-        for (int i = 0; i < clients; i++) {
-            threads[i].join();
+        for (Thread t : threads) {
+            t.join();
         }
     }
 

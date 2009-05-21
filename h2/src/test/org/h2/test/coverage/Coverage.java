@@ -479,7 +479,7 @@ public class Coverage {
         }
     }
 
-    private void setLine() throws IOException {
+    private void setLine() {
         add += "Profile.visit(" + index + ");";
         line = tokenizer.getLine();
     }

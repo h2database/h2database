@@ -235,11 +235,11 @@ public class TestJoin extends TestBase {
         buff.append(" ");
     }
 
-    private void execute(String sql, Object[] params) throws SQLException {
+    private void execute(String sql, Object[] params) {
         execute(sql, params, false);
     }
 
-    private void execute(String sql, Object[] params, boolean ignoreDifference) throws SQLException {
+    private void execute(String sql, Object[] params, boolean ignoreDifference) {
         String first = null;
         for (int i = 0; i < connections.size(); i++) {
             Connection conn = (Connection) connections.get(i);

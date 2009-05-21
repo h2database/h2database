@@ -7,7 +7,6 @@
 package org.h2.test.unit;
 
 import java.math.BigInteger;
-import java.sql.SQLException;
 import org.h2.test.TestBase;
 
 /**
@@ -24,7 +23,7 @@ public class TestMathUtils extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws SQLException {
+    public void test() {
         testFactorial();
     }
 

@@ -275,7 +275,7 @@ public class TestRights extends TestBase {
         executeSuccess("DROP TABLE TEST");
     }
 
-    private void executeError(String sql) throws SQLException {
+    private void executeError(String sql) {
         try {
             stat.execute(sql);
             fail("not admin");

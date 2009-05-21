@@ -789,7 +789,7 @@ public class Database implements DataHandler {
         Storage storage = (Storage) storageMap.get(id);
         if (storage != null) {
             if (SysProperties.CHECK && storage.getDiskFile() != file) {
-                Message.throwInternalError();
+                Message.throwInternalError(storage.getDiskFile() + " != " + file);
             }
         } else {
             storage = new Storage(this, file, null, id);

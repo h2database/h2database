@@ -122,7 +122,6 @@ public interface Index extends SchemaObject {
      * @param last the last row, or null for no limit
      * @return the cursor
      */
-
     Cursor findNext(Session session, SearchRow higherThan, SearchRow last) throws SQLException;
 
     /**

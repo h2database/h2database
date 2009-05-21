@@ -148,7 +148,7 @@ public class ConstraintUnique extends Constraint {
         return index;
     }
 
-    public void rebuild() throws SQLException {
+    public void rebuild() {
         // nothing to do
     }
 

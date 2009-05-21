@@ -18,7 +18,7 @@ import java.util.Set;
  * and removed. It is not a general purpose cache, as it doesn't implement some
  * methods, and others not according to the map definition, to improve speed.
  */
-public class SoftHashMap extends AbstractMap implements Map {
+public class SoftHashMap extends AbstractMap {
 
     private Map map;
     private ReferenceQueue queue = new ReferenceQueue();

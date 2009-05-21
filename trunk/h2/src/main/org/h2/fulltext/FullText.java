@@ -793,14 +793,14 @@ public class FullText {
         /**
          * INTERNAL
          */
-        public void close() throws SQLException {
+        public void close() {
             setting.removeIndexInfo(index);
         }
 
         /**
          * INTERNAL
          */
-        public void remove() throws SQLException {
+        public void remove() {
             setting.removeIndexInfo(index);
         }
 

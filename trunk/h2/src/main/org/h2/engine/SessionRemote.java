@@ -87,7 +87,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         // nothing to do
     }
 
-    private SessionRemote(ConnectionInfo ci) throws SQLException {
+    private SessionRemote(ConnectionInfo ci) {
         this.connectionInfo = ci;
     }
 

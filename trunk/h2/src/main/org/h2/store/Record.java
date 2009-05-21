@@ -44,6 +44,8 @@ public abstract class Record extends CacheObject {
      * If a read operation is required before writing, this needs to be done here.
      * Because the data page buffer is shared for read and write operations.
      * The method may read data and change the file pointer.
+     *
+     * @throws SQLException
      */
     public void prepareWrite() throws SQLException {
         // nothing to do

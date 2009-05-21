@@ -109,7 +109,7 @@ public class JavaFunction extends Expression implements FunctionCall {
         return functionAlias.getName();
     }
 
-    public int getParameterCount() throws SQLException {
+    public int getParameterCount() {
         return javaMethod.getParameterCount();
     }
 

@@ -193,6 +193,7 @@ public abstract class Expression {
      *
      * @param session the session
      * @param filter the table filter
+     * @throws SQLException
      */
     public void createIndexConditions(Session session, TableFilter filter) throws SQLException {
         // default is do nothing
@@ -300,6 +301,7 @@ public abstract class Expression {
      * @param session the session
      * @param select the query
      * @return the optimized expression
+     * @throws SQLException
      */
     public Expression optimizeInJoin(Session session, Select select) throws SQLException {
         return this;

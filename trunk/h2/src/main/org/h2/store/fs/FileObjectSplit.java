@@ -38,11 +38,11 @@ public class FileObjectSplit implements FileObject {
         }
     }
 
-    public long getFilePointer() throws IOException {
+    public long getFilePointer() {
         return filePointer;
     }
 
-    public long length() throws IOException {
+    public long length() {
         return length;
     }
 
@@ -67,7 +67,7 @@ public class FileObjectSplit implements FileObject {
         }
     }
 
-    public void seek(long pos) throws IOException {
+    public void seek(long pos) {
         filePointer = pos;
     }
 

@@ -110,7 +110,7 @@ public class FileSystemMemory extends FileSystem {
         }
     }
 
-    public void deleteRecursive(String fileName) throws SQLException {
+    public void deleteRecursive(String fileName) {
         fileName = normalize(fileName);
         synchronized (MEMORY_FILES) {
             Iterator it = MEMORY_FILES.keySet().iterator();

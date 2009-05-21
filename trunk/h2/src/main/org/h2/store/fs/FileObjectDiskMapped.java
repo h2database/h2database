@@ -106,7 +106,7 @@ public class FileObjectDiskMapped implements FileObject {
         file = null;
     }
 
-    public long getFilePointer() throws IOException {
+    public long getFilePointer() {
         return mapped.position();
     }
 
@@ -118,11 +118,11 @@ public class FileObjectDiskMapped implements FileObject {
         return file.length();
     }
 
-    public void readFully(byte[] b, int off, int len) throws IOException {
+    public void readFully(byte[] b, int off, int len) {
         mapped.get(b, off, len);
     }
 
-    public void seek(long pos) throws IOException {
+    public void seek(long pos) {
         mapped.position((int) pos);
     }
 

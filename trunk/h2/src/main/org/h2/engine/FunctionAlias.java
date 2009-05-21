@@ -322,7 +322,7 @@ public class FunctionAlias extends DbObjectBase {
             }
         }
 
-        public Class[] getColumnClasses() throws SQLException {
+        public Class[] getColumnClasses() {
             return method.getParameterTypes();
         }
 
@@ -330,7 +330,7 @@ public class FunctionAlias extends DbObjectBase {
             return dataType;
         }
 
-        public int getParameterCount() throws SQLException {
+        public int getParameterCount() {
             return paramCount;
         }
 

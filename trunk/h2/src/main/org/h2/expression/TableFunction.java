@@ -26,7 +26,7 @@ import org.h2.value.ValueResultSet;
 /**
  * Implementation of the functions TABLE(..) and TABLE_DISTINCT(..).
  */
-public class TableFunction extends Function implements FunctionCall {
+public class TableFunction extends Function {
     private final boolean distinct;
     private final long rowCount;
     private Column[] columnList;

@@ -94,7 +94,7 @@ public class TestPerformance {
         prop.load(in);
         in.close();
         int size = Integer.parseInt(prop.getProperty("size"));
-        ArrayList dbs = new ArrayList();
+        ArrayList<Database> dbs = new ArrayList<Database>();
         for (int i = 0; i < 100; i++) {
             if (dbId != -1 && i != dbId) {
                 continue;
@@ -108,7 +108,7 @@ public class TestPerformance {
                 }
             }
         }
-        ArrayList tests = new ArrayList();
+        ArrayList<Bench> tests = new ArrayList<Bench>();
         for (int i = 0; i < 100; i++) {
             String testString = prop.getProperty("test" + i);
             if (testString != null) {
@@ -121,7 +121,7 @@ public class TestPerformance {
         if (dbs.size() == 0) {
             return;
         }
-        ArrayList results = ((Database) dbs.get(0)).getResults();
+        ArrayList<Object[]> results = dbs.get(0).getResults();
         Connection conn = null;
         PreparedStatement prep = null;
         Statement stat = null;
@@ -133,16 +133,14 @@ public class TestPerformance {
             prep = conn
                     .prepareStatement("INSERT INTO RESULTS(TESTID, TEST, UNIT, DBID, DB, RESULT) VALUES(?, ?, ?, ?, ?, ?)");
             for (int i = 0; i < results.size(); i++) {
-                Object[] res = (Object[]) results.get(i);
+                Object[] res = results.get(i);
                 prep.setInt(1, i);
                 prep.setString(2, res[0].toString());
                 prep.setString(3, res[1].toString());
-                for (int j = 0; j < dbs.size(); j++) {
-                    Database db = (Database) dbs.get(j);
+                for (Database db : dbs) {
                     prep.setInt(4, db.getId());
                     prep.setString(5, db.getName());
-                    ArrayList r = db.getResults();
-                    Object[] v = (Object[]) r.get(i);
+                    Object[] v = db.getResults().get(i);
                     prep.setString(6, v[2].toString());
                     prep.execute();
                 }
@@ -215,14 +213,14 @@ public class TestPerformance {
         }
     }
 
-    private void testAll(ArrayList dbs, ArrayList tests, int size) throws Exception {
+    private void testAll(ArrayList<Database> dbs, ArrayList<Bench> tests, int size) throws Exception {
         for (int i = 0; i < dbs.size(); i++) {
             if (i > 0) {
                 Thread.sleep(1000);
             }
             // calls garbage collection
             TestBase.getMemoryUsed();
-            Database db = (Database) dbs.get(i);
+            Database db = dbs.get(i);
             System.out.println("Testing the performance of " + db.getName());
             db.startServer();
             Connection conn = db.openNewConnection();
@@ -243,9 +241,8 @@ public class TestPerformance {
         }
     }
 
-    private void runDatabase(Database db, ArrayList tests, int size) throws Exception {
-        for (int j = 0; j < tests.size(); j++) {
-            Bench bench = (Bench) tests.get(j);
+    private void runDatabase(Database db, ArrayList<Bench> tests, int size) throws Exception {
+        for (Bench bench : tests) {
             runTest(db, bench, size);
         }
     }

@@ -26,7 +26,7 @@ public class BenchCThread {
     private Database db;
     private int warehouseId;
     private int terminalId;
-    private HashMap prepared = new HashMap();
+    private HashMap<String, PreparedStatement> prepared = new HashMap<String, PreparedStatement>();
     private BenchCRandom random;
     private BenchC bench;
 
@@ -57,8 +57,7 @@ public class BenchCThread {
             deck[i] = deck[j];
             deck[j] = temp;
         }
-        for (int i = 0; i < len; i++) {
-            int op = deck[i];
+        for (int op : deck) {
             switch (op) {
             case OP_NEW_ORDER:
                 processNewOrder();
@@ -726,7 +725,7 @@ public class BenchCThread {
     }
 
     private PreparedStatement prepare(String sql) throws SQLException {
-        PreparedStatement prep = (PreparedStatement) prepared.get(sql);
+        PreparedStatement prep = prepared.get(sql);
         if (prep == null) {
             prep = db.prepare(sql);
             prepared.put(sql, prep);

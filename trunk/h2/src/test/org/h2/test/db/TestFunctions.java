@@ -625,11 +625,11 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     }
 //## Java 1.5 end ##
 
-    public void add(Object value) throws SQLException {
+    public void add(Object value) {
         // ignore
     }
 
-    public Object getResult() throws SQLException {
+    public Object getResult() {
         return new BigDecimal("1.6");
     }
 
@@ -640,7 +640,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         return Types.DECIMAL;
     }
 
-    public void init(Connection conn) throws SQLException {
+    public void init(Connection conn) {
         // ignore
     }
 

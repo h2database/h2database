@@ -246,7 +246,7 @@ public class TestCrashAPI extends TestBase {
                 " " + t.getMessage(), t);
     }
 
-    private Object callRandom(int seed, int id, int objectId, Object o, Method m) throws SQLException {
+    private Object callRandom(int seed, int id, int objectId, Object o, Method m) {
         Class[] paramClasses = m.getParameterTypes();
         Object[] params = new Object[paramClasses.length];
         for (int i = 0; i < params.length; i++) {

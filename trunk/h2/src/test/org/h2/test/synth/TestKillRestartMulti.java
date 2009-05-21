@@ -122,12 +122,12 @@ public class TestKillRestartMulti extends TestBase {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) {
         SelfDestructor.startCountdown(60);
         new TestKillRestartMulti().test(args);
     }
 
-    private void test(String[] args) throws SQLException {
+    private void test(String[] args) {
         for (int i = 0; i < args.length; i++) {
             if ("-url".equals(args[i])) {
                 url = args[++i];

@@ -123,7 +123,7 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testInvalidDatabaseName() throws SQLException {
+    private void testInvalidDatabaseName() {
         if (config.memory) {
             return;
         }

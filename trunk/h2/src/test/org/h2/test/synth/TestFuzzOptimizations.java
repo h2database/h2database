@@ -7,10 +7,8 @@
 package org.h2.test.synth;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Random;
-
 import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.db.Db;
@@ -42,7 +40,7 @@ public class TestFuzzOptimizations extends TestBase {
         deleteDb("optimizations");
     }
 
-    private void testInSelect() throws SQLException {
+    private void testInSelect() {
         boolean old = SysProperties.optimizeInJoin;
         Db db = new Db(conn);
         db.execute("CREATE TABLE TEST(A INT, B INT)");
@@ -72,7 +70,7 @@ public class TestFuzzOptimizations extends TestBase {
         SysProperties.optimizeInJoin = old;
     }
 
-    private void testGroupSorted() throws SQLException {
+    private void testGroupSorted() {
         Db db = new Db(conn);
         db.execute("CREATE TABLE TEST(A INT, B INT, C INT)");
         Random random = new Random();

@@ -129,11 +129,11 @@ public class BenchC implements Bench {
     }
 
     private void load() throws SQLException {
-        for (int i = 0; i < TABLES.length; i++) {
-            db.dropTable(TABLES[i]);
+        for (String sql : TABLES) {
+            db.dropTable(sql);
         }
-        for (int i = 0; i < CREATE_SQL.length; i++) {
-            db.update(CREATE_SQL[i]);
+        for (String sql : CREATE_SQL) {
+            db.update(sql);
         }
         db.setAutoCommit(false);
         loadItem();

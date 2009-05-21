@@ -596,7 +596,7 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
 
     private void runTest(String className) {
         try {
-            Class clazz = Class.forName(className);
+            Class< ? > clazz = Class.forName(className);
             TestBase test = (TestBase) clazz.newInstance();
             test.runTest(this);
         } catch (Exception e) {

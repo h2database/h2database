@@ -76,7 +76,7 @@ public class TestLogFile extends TestBase {
         deleteDb("logfile");
     }
 
-    private void checkLogSize() throws SQLException {
+    private void checkLogSize() {
         String[] files = new File(".").list();
         for (int j = 0; j < files.length; j++) {
             String name = files[j];

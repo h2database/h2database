@@ -115,7 +115,7 @@ public class TestFileSystem extends TestBase {
         conn.close();
     }
 
-    private void testUserHome() throws SQLException {
+    private void testUserHome() {
         FileSystem fs = FileSystem.getInstance("~/test");
         String fileName = fs.getAbsolutePath("~/test");
         String userDir = System.getProperty("user.home");

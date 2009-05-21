@@ -1019,7 +1019,7 @@ public class TestResultSet extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private byte[] readAllBytes(InputStream in) throws SQLException {
+    private byte[] readAllBytes(InputStream in) {
         if (in == null) {
             return null;
         }
@@ -1039,7 +1039,7 @@ public class TestResultSet extends TestBase {
         }
     }
 
-    private void checkBytes(byte[] test, byte[] good) throws SQLException {
+    private void checkBytes(byte[] test, byte[] good) {
         if (test == null || good == null) {
             assertTrue(test == good);
         } else {

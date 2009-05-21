@@ -778,7 +778,7 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("DROP TABLE TEST");
     }
 
-    private int getLength() throws SQLException {
+    private int getLength() {
         return getSize(LOB_SIZE, LOB_SIZE_BIG);
     }
 

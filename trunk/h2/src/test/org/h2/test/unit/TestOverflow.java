@@ -90,7 +90,7 @@ public class TestOverflow extends TestBase {
         }
     }
 
-    private void testValues(Value va, Value vb) throws SQLException {
+    private void testValues(Value va, Value vb) {
         BigInteger a = new BigInteger(va.getString());
         BigInteger b = new BigInteger(vb.getString());
         successExpected = inRange(a.negate());

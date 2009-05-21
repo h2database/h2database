@@ -73,8 +73,8 @@ public class TestBatchUpdates extends TestBase {
         call.addBatch();
         int[] updateCounts = call.executeBatch();
         int total = 0;
-        for (int i = 0; i < updateCounts.length; i++) {
-            total += updateCounts[i];
+        for (int t : updateCounts) {
+            total += t;
         }
         assertEquals(4, total);
         conn.close();

@@ -533,7 +533,7 @@ public class ConstraintReferential extends Constraint {
         updateSQL = buff.toString();
     }
 
-    public void rebuild() throws SQLException {
+    public void rebuild() {
         buildUpdateSQL();
         buildDeleteSQL();
     }

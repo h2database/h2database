@@ -138,6 +138,7 @@ public abstract class BtreePage extends Record {
      *
      * @param i the index
      * @return the row
+     * @throws SQLException
      */
     SearchRow getData(int i) throws SQLException {
         return (SearchRow) pageData.get(i);

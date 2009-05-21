@@ -858,6 +858,7 @@ public abstract class Value {
      * @param onlyToSmallerScale if the scale should not reduced
      * @param targetScale the requested scale
      * @return the value
+     * @throws SQLException
      */
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) throws SQLException {
         return this;
@@ -868,6 +869,7 @@ public abstract class Value {
      *
      * @param precision the new precision
      * @return the new value
+     * @throws SQLException
      */
     public Value convertPrecision(long precision) throws SQLException {
         return this;
@@ -922,6 +924,7 @@ public abstract class Value {
      * @param handler the data handler
      * @param tableId the table to link to
      * @return the new value or itself
+     * @throws SQLException
      */
     public Value link(DataHandler handler, int tableId) throws SQLException {
         return this;
@@ -940,6 +943,8 @@ public abstract class Value {
     /**
      * Mark any underlying resource as 'not linked to any table'. For values
      * that are kept fully in memory this method has no effect.
+     *
+     * @throws SQLException
      */
     public void unlink() throws SQLException {
         // nothing to do
@@ -958,6 +963,8 @@ public abstract class Value {
     /**
      * Close the underlying resource, if any. For values that are kept fully in
      * memory this method has no effect.
+     *
+     * @throws SQLException
      */
     public void close() throws SQLException {
         // nothing to do

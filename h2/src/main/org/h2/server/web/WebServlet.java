@@ -15,7 +15,6 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -32,7 +31,7 @@ public class WebServlet extends HttpServlet {
     private static final long serialVersionUID = 9171446624885086692L;
     private transient WebServer server;
 
-    public void init() throws ServletException {
+    public void init() {
         ServletConfig config = getServletConfig();
         Enumeration en = config.getInitParameterNames();
         ArrayList list = new ArrayList();

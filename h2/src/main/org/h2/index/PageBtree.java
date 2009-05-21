@@ -98,7 +98,7 @@ abstract class PageBtree extends Record {
         int comp = 1;
         while (l < r) {
             int i = (l + r) >>> 1;
-            SearchRow row = (SearchRow) getRow(i);
+            SearchRow row = getRow(i);
             comp = index.compareRows(row, compare);
             if (comp == 0 && add) {
                 if (index.indexType.getUnique()) {

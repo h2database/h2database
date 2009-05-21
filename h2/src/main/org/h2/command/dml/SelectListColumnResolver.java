@@ -6,8 +6,6 @@
  */
 package org.h2.command.dml;
 
-import java.sql.SQLException;
-
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.table.Column;
@@ -71,7 +69,7 @@ public class SelectListColumnResolver implements ColumnResolver {
         return null;
     }
 
-    public Value getValue(Column column) throws SQLException {
+    public Value getValue(Column column) {
         return null;
     }
 

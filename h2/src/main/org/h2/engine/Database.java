@@ -486,7 +486,7 @@ public class Database implements DataHandler {
      * @param testHash the hash code
      * @return true if the cipher algorithm and the password match
      */
-    public boolean validateFilePasswordHash(String testCipher, byte[] testHash) throws SQLException {
+    public boolean validateFilePasswordHash(String testCipher, byte[] testHash) {
         if (!StringUtils.equals(testCipher, this.cipher)) {
             return false;
         }

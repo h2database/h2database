@@ -174,6 +174,16 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return false;
     }
 
+    /**
+     * Find a row or a list of rows that is larger and create a cursor to
+     * iterate over the result. The base implementation doesn't support this feature.
+     *
+     * @param session the session
+     * @param higherThan the lower limit (excluding)
+     * @param last the last row, or null for no limit
+     * @return the cursor
+     * @throws SQLException
+     */
     public Cursor findNext(Session session, SearchRow first, SearchRow last) throws SQLException {
         throw Message.throwInternalError();
     }

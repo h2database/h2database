@@ -143,7 +143,7 @@ public class ConstraintCheck extends Constraint {
         return null;
     }
 
-    public void rebuild() throws SQLException {
+    public void rebuild() {
         // nothing to do
     }
 

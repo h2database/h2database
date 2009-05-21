@@ -171,7 +171,7 @@ public class FileLock {
      * @param key the key
      * @param value the value
      */
-    public void setProperty(String key, String value) throws SQLException {
+    public void setProperty(String key, String value) {
         if (value == null) {
             properties.remove(key);
         } else {

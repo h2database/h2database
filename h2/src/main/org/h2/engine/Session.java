@@ -629,7 +629,7 @@ public class Session extends SessionWithState {
         }
     }
 
-    private void unlockAll() throws SQLException {
+    private void unlockAll() {
         if (SysProperties.CHECK) {
             if (undoLog.size() > 0) {
                 Message.throwInternalError();

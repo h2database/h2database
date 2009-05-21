@@ -477,7 +477,7 @@ implements XAConnection, XAResource
 
         private boolean isClosed;
 
-        public PooledJdbcConnection(JdbcConnection conn) throws SQLException {
+        public PooledJdbcConnection(JdbcConnection conn) {
             super(conn);
         }
 

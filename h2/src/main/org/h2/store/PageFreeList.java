@@ -114,14 +114,13 @@ public class PageFreeList extends Record {
                 return -1;
             }
             return next.allocate(pos);
-        } else {
-            int idx = pos - firstAddressed;
-            if (idx >= 0 && !used.get(idx)) {
-                used.set(pos - firstAddressed);
-                store.updateRecord(this, true, data);
-            }
-            return pos;
         }
+        int idx = pos - firstAddressed;
+        if (idx >= 0 && !used.get(idx)) {
+            used.set(pos - firstAddressed);
+            store.updateRecord(this, true, data);
+        }
+        return pos;
     }
 
     /**
@@ -155,7 +154,7 @@ public class PageFreeList extends Record {
         }
     }
 
-    public int getByteCount(DataPage dummy) throws SQLException {
+    public int getByteCount(DataPage dummy) {
         return store.getPageSize();
     }
 

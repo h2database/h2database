@@ -13,6 +13,38 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(63,
+'New version available: 1.1.113 (2009-05-21)', '2009-05-21 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>This is the last version compiled against Java 1.4.
+</li><li>JDK 1.5 is now required to build the jar file.
+</li><li>A second level soft-references cache is now supported.
+    It speeds up large databases, but reduces performance for small
+    databases. Thanks a lot to Jan Kotek for the patch!
+</li><li>MS SQL Server compatibility: support for linked tables with
+    NVARCHAR, NCHAR, NCLOB, and LONGNVARCHAR.
+</li><li>Android workaround for read-only databases in zip files.
+</li><li>Calling execute() or prepareStatement() with null as the
+    SQL statement now throws an exception.
+</li><li>H2 Console: command line settings are no longer stored.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>When deleting or updating many rows in a table, the space
+    in the index file was not re-used.
+</li><li>Identifiers with a digit and then a dollar sign didn't work.
+</li><li>Shell tool: the built-in commands didn't work with a semicolon.
+</li><li>Benchmark: the number of executed statements was incorrect.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(62,
 'New version available: 1.1.112 (2009-05-01)', '2009-05-01 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.

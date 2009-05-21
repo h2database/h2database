@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.1.113 (2009-05-21)</h2>
 <ul><li>Shell tool: the built-in commands EXIT, HELP, ?, LIST, and so on didn't
     work with a semicolon at the end.
 </li><li>JDK 1.5 is now required to build the jar file. However it is still possible to create
@@ -41,7 +45,7 @@ Change Log
     was loaded at the beginning of the test to collect results, now it is loaded at the very end.
     Thanks to Fred Toussi from HSQLDB for reporting those problems. However the changed
     do not affect the relative performance.
-</li><li>H2 Console: command line settings are now longer stored in the properties file.
+</li><li>H2 Console: command line settings are no longer stored in the properties file.
     They are now only used for the current process, except if they are explicitly saved.
 </li><li>Cache: support for a second level soft-references cache.
     To enable it, append ;CACHE_TYPE=SOFT_LRU (or SOFT_TQ) to the database URL, or
@@ -49,7 +53,6 @@ Change Log
     Enabling the second level cache reduces performance for
     small databases, but speeds up large databases. It makes sense to use it
     if the available memory size is unknown. Thanks a lot to Jan Kotek!
-</li><li>
 </li></ul>
 
 <h2>Version 1.1.112 (2009-05-01)</h2>

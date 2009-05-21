@@ -83,7 +83,7 @@ public class SoftHashMap extends AbstractMap {
      * A soft reference that has a hard reference to the key.
      */
     private static class SoftValue extends SoftReference {
-        private final Object key;
+        final Object key;
 
         public SoftValue(Object ref, ReferenceQueue q, Object key) {
             super(ref, q);

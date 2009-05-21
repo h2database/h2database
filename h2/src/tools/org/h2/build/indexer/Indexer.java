@@ -98,7 +98,7 @@ public class Indexer {
     }
 
     private void sortWords() {
-        for (String name : words.keySet()) {
+        for (String name : new ArrayList<String>(words.keySet())) {
             if (name.endsWith("s")) {
                 String singular = name.substring(0, name.length() - 1);
                 if (words.containsKey(singular)) {

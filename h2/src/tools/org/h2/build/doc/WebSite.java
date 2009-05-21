@@ -31,7 +31,7 @@ public class WebSite {
 
     private String sourceDir = "docs";
     private String webDir = "../h2web";
-    private HashMap fragments = new HashMap();
+    private HashMap<String, String> fragments = new HashMap<String, String>();
 
     /**
      * This method is called when executing this application from the command
@@ -56,9 +56,7 @@ public class WebSite {
 
     private void loadFragments() throws IOException {
         File dir = new File(sourceDir, "html");
-        File[] list = dir.listFiles();
-        for (int i = 0; i < list.length; i++) {
-            File f = list[i];
+        for (File f : dir.listFiles()) {
             if (f.getName().startsWith("fragments")) {
                 FileInputStream in = new FileInputStream(f);
                 byte[] bytes = IOUtils.readBytesAndClose(in, 0);
@@ -78,7 +76,7 @@ public class WebSite {
             int end = fileName.indexOf('.');
             language = fileName.substring(index, end);
         }
-        String fragment = (String) fragments.get("fragments" + language + ".html");
+        String fragment = fragments.get("fragments" + language + ".html");
         int start = 0;
         while (true) {
             start = fragment.indexOf("<!-- [", start);
@@ -106,9 +104,8 @@ public class WebSite {
 
     private void deleteRecursive(File dir) {
         if (dir.isDirectory()) {
-            File[] list = dir.listFiles();
-            for (int i = 0; i < list.length; i++) {
-                deleteRecursive(list[i]);
+            for (File f : dir.listFiles()) {
+                deleteRecursive(f);
             }
         }
         dir.delete();
@@ -117,9 +114,8 @@ public class WebSite {
     private void copy(File source, File target, boolean replaceFragments, boolean web) throws IOException {
         if (source.isDirectory()) {
             target.mkdirs();
-            File[] list = source.listFiles();
-            for (int i = 0; i < list.length; i++) {
-                copy(list[i], new File(target, list[i].getName()), replaceFragments, web);
+            for (File f : source.listFiles()) {
+                copy(f, new File(target, f.getName()), replaceFragments, web);
             }
         } else {
             String name = source.getName();

@@ -10,7 +10,13 @@ package org.h2.jaqu;
  * Classes implementing this interface can be used as a token in a statement.
  */
 interface Token {
+    /**
+     * Append the SQL to the given statement using the given query.
+     *
+     * @param stat the statement to append the SQL to
+     * @param query the query to use
+     */
 //## Java 1.5 begin ##
-    void appendSQL(SqlStatement stat, Query query);
+    <T> void appendSQL(SqlStatement stat, Query<T> query);
 //## Java 1.5 end ##
 }

@@ -45,9 +45,8 @@ public class XMLChecker {
         }
         File file = new File(path);
         if (file.isDirectory()) {
-            String[] list = file.list();
-            for (int i = 0; i < list.length; i++) {
-                process(path + "/" + list[i]);
+            for (String name : file.list()) {
+                process(path + "/" + name);
             }
         } else {
             processFile(path);
@@ -84,7 +83,7 @@ public class XMLChecker {
         // use this for html file, for example if <li> is not closed
         String[] noClose = new String[] {};
         XMLParser parser = new XMLParser(xml);
-        Stack stack = new Stack();
+        Stack<Object[]> stack = new Stack<Object[]>();
         boolean rootElement = false;
         while (true) {
             int event = parser.next();
@@ -98,29 +97,33 @@ public class XMLChecker {
                     rootElement = true;
                 }
                 String name = parser.getName();
-                for (int i = 0; html && i < noClose.length; i++) {
-                    if (name.equals(noClose[i])) {
-                        name = null;
-                        break;
+                if (html) {
+                    for (String n : noClose) {
+                        if (name.equals(n)) {
+                            name = null;
+                            break;
+                        }
                     }
                 }
                 if (name != null) {
-                    stack.add(new Object[] { name, new Integer(parser.getPos()) });
+                    stack.add(new Object[] { name, parser.getPos() });
                 }
             } else if (event == XMLParser.END_ELEMENT) {
                 String name = parser.getName();
-                for (int i = 0; html && i < noClose.length; i++) {
-                    if (name.equals(noClose[i])) {
-                        throw new Exception("Unnecessary closing element " + name + " at " + parser.getRemaining());
+                if (html) {
+                    for (String n : noClose) {
+                        if (name.equals(n)) {
+                            throw new Exception("Unnecessary closing element " + name + " at " + parser.getRemaining());
+                        }
                     }
                 }
                 while (true) {
-                    Object[] pop = (Object[]) stack.pop();
+                    Object[] pop = stack.pop();
                     String p = (String) pop[0];
                     if (p.equals(name)) {
                         break;
                     }
-                    String remaining = xml.substring(((Integer) pop[1]).intValue());
+                    String remaining = xml.substring((Integer) pop[1]);
                     if (remaining.length() > 100) {
                         remaining = remaining.substring(0, 100);
                     }

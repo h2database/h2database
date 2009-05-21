@@ -10,8 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Represents a word of the full text index.
@@ -26,9 +25,9 @@ public class Word {
     /**
      * The pages map.
      */
-    HashMap pages = new HashMap();
+    HashMap<Page, Weight> pages = new HashMap<Page, Weight>();
 
-    private ArrayList weightList;
+    private ArrayList<Weight> weightList;
 
     Word(String name) {
         this.name = name;
@@ -41,7 +40,7 @@ public class Word {
      * @param weight the weight of this word in this page
      */
     void addPage(Page page, int weight) {
-        Weight w = (Weight) pages.get(page);
+        Weight w = pages.get(page);
         if (w == null) {
             w = new Weight();
             w.page = page;
@@ -61,21 +60,18 @@ public class Word {
      * @param other the other word
      */
     void addAll(Word other) {
-        for (Iterator it = other.pages.entrySet().iterator(); it.hasNext();) {
-            Map.Entry entry = (Map.Entry) it.next();
-            Page p = (Page) entry.getKey();
-            Weight w = (Weight) entry.getValue();
+        for (Entry<Page, Weight> entry : other.pages.entrySet()) {
+            Page p = entry.getKey();
+            Weight w = entry.getValue();
             addPage(p, w.value);
         }
     }
 
-    ArrayList getSortedWeights() {
+    ArrayList<Weight> getSortedWeights() {
         if (weightList == null) {
-            weightList = new ArrayList(pages.values());
-            Collections.sort(weightList, new Comparator() {
-                public int compare(Object o0, Object o1) {
-                    Weight w0 = (Weight) o0;
-                    Weight w1 = (Weight) o1;
+            weightList = new ArrayList<Weight>(pages.values());
+            Collections.sort(weightList, new Comparator<Weight>() {
+                public int compare(Weight w0, Weight w1) {
                     return w0.value < w1.value ? 1 : w0.value == w1.value ? 0 : -1;
                 }
             });

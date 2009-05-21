@@ -38,11 +38,10 @@ public class MergeDocs {
                 "performance.html", "advanced.html", "grammar.html", "functions.html", "datatypes.html", "build.html",
                 "history.html", "faq.html" };
         StringBuffer buff = new StringBuffer();
-        for (int i = 0; i < pages.length; i++) {
-            String fileName = pages[i];
+        for (String fileName : pages) {
             String text = getContent(fileName);
-            for (int j = 0; j < pages.length; j++) {
-                text = StringUtils.replaceAll(text, pages[j] + "#", "#");
+            for (String page : pages) {
+                text = StringUtils.replaceAll(text, page + "#", "#");
             }
             text = removeHeaderFooter(fileName, text);
             buff.append(text);

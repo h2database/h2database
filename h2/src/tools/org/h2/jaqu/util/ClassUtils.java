@@ -20,8 +20,7 @@ public class ClassUtils {
 //## Java 1.5 begin ##
 
     @SuppressWarnings("unchecked")
-    public
-    static <X> Class<X> getClass(X x) {
+    public static <X> Class<X> getClass(X x) {
         return (Class<X>) x.getClass();
     }
 

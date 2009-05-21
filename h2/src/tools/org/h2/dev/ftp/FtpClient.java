@@ -303,9 +303,7 @@ public class FtpClient {
      * @param dir the directory to remove
      */
     public void removeDirectoryRecursive(String dir) throws IOException {
-        File[] list = listFiles(dir);
-        for (int i = 0; i < list.length; i++) {
-            File f = list[i];
+        for (File f : listFiles(dir)) {
             if (f.isDirectory()) {
                 removeDirectoryRecursive(dir + "/" + f.getName());
             } else {
@@ -351,9 +349,8 @@ public class FtpClient {
         if (file.isDirectory()) {
             makeDirectory(file.getName());
             changeWorkingDirectory(file.getName());
-            File[] list = file.listFiles();
-            for (int i = 0; i < list.length; i++) {
-                storeRecursive(list[i]);
+            for (File f : file.listFiles()) {
+                storeRecursive(f);
             }
             changeWorkingDirectory("..");
         } else {
@@ -430,9 +427,8 @@ public class FtpClient {
      * @return true if it exists
      */
     public boolean exists(String dir, String name) throws IOException  {
-        File[] list = listFiles(dir);
-        for (int i = 0; i < list.length; i++) {
-            if (list[i].getName().equals(name)) {
+        for (File f : listFiles(dir)) {
+            if (f.getName().equals(name)) {
                 return true;
             }
         }

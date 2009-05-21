@@ -22,7 +22,7 @@ import org.h2.jaqu.util.Utils;
 class SelectTable <T> {
 
     private static int asCounter;
-    private Query query;
+    private Query<T> query;
     private Class<T> clazz;
     private T current;
     private String as;
@@ -30,10 +30,11 @@ class SelectTable <T> {
     private boolean outerJoin;
     private ArrayList<Token> joinConditions = Utils.newArrayList();
 
-    SelectTable(Db db, Query query, T alias, boolean outerJoin) {
+    @SuppressWarnings("unchecked")
+    SelectTable(Db db, Query<T> query, T alias, boolean outerJoin) {
         this.query = query;
         this.outerJoin = outerJoin;
-        aliasDef = db.getTableDefinition(alias.getClass());
+        aliasDef = (TableDefinition<T>) db.getTableDefinition(alias.getClass());
         clazz = ClassUtils.getClass(alias);
         as = "T" + asCounter++;
     }
@@ -42,7 +43,7 @@ class SelectTable <T> {
         return Utils.newObject(clazz);
     }
 
-    TableDefinition getAliasDefinition() {
+    TableDefinition<T> getAliasDefinition() {
         return aliasDef;
     }
 
@@ -54,7 +55,7 @@ class SelectTable <T> {
         }
     }
 
-    void appendSQLAsJoin(SqlStatement stat, Query query) {
+    void appendSQLAsJoin(SqlStatement stat, Query<T> query) {
         if (outerJoin) {
             stat.appendSQL(" LEFT OUTER JOIN ");
         } else {
@@ -74,7 +75,7 @@ class SelectTable <T> {
         return outerJoin;
     }
 
-    Query getQuery() {
+    Query<T> getQuery() {
         return query;
     }
 

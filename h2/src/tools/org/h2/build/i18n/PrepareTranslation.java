@@ -21,7 +21,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -86,10 +85,9 @@ public class PrepareTranslation {
                 "src/docsrc/text/_docs_ja.utf8.txt");
 
         // delete temporary files
-        File[] list = new File("src/docsrc/text").listFiles();
-        for (int i = 0; i < list.length; i++) {
-            if (!list[i].getName().endsWith(".utf8.txt")) {
-                list[i].delete();
+        for (File f : new File("src/docsrc/text").listFiles()) {
+            if (!f.getName().endsWith(".utf8.txt")) {
+                f.delete();
             }
         }
     }
@@ -105,8 +103,8 @@ public class PrepareTranslation {
             throw new IOException("Translation not found: " + propName);
         }
         Properties transProp = SortedProperties.loadProperties(propName);
-        for (Iterator it = transProp.keySet().iterator(); it.hasNext();) {
-            String key = (String) it.next();
+        for (Object k : transProp.keySet()) {
+            String key = (String) k;
             String t = transProp.getProperty(key);
             // overload with translations, but not the ones starting with #
             if (t.startsWith("##")) {
@@ -116,15 +114,15 @@ public class PrepareTranslation {
             }
         }
         // add spaces to each token
-        for (Iterator it = prop.keySet().iterator(); it.hasNext();) {
-            String key = (String) it.next();
+        for (Object k : prop.keySet()) {
+            String key = (String) k;
             String t = prop.getProperty(key);
             prop.put(key, " " + t + " ");
         }
 
-        ArrayList fileNames = new ArrayList();
-        for (int i = 0; i < list.length; i++) {
-            String name = list[i].getName();
+        ArrayList <String>fileNames = new ArrayList<String>();
+        for (File f : list) {
+            String name = f.getName();
             if (!name.endsWith(".jsp")) {
                 continue;
             }
@@ -132,8 +130,8 @@ public class PrepareTranslation {
             name = name.substring(0, name.length() - 4);
             fileNames.add(name);
         }
-        for (int i = 0; i < list.length; i++) {
-            String name = list[i].getName();
+        for (File f : list) {
+            String name = f.getName();
             if (!name.endsWith(".jsp")) {
                 continue;
             }
@@ -142,8 +140,7 @@ public class PrepareTranslation {
             String template = IOUtils.readStringAndClose(new FileReader(templateDir + "/" + name + ".jsp"), -1);
             String html = PageParser.parse(template, prop);
             html = StringUtils.replaceAll(html, "lang=\"" + MAIN_LANGUAGE + "\"", "lang=\"" + language + "\"");
-            for (int j = 0; j < fileNames.size(); j++) {
-                String n = (String) fileNames.get(j);
+            for (String n : fileNames) {
                 if ("frame".equals(n)) {
                     // don't translate 'frame.html' to 'frame_ja.html',
                     // otherwise we can't switch back to English
@@ -166,8 +163,8 @@ public class PrepareTranslation {
     }
 
     private static boolean exclude(String fileName) {
-        for (int i = 0; i < EXCLUDE.length; i++) {
-            if (fileName.endsWith(EXCLUDE[i])) {
+        for (String e : EXCLUDE) {
+            if (fileName.endsWith(e)) {
                 return true;
             }
         }
@@ -175,9 +172,7 @@ public class PrepareTranslation {
     }
 
     private static void extractFromHtml(String dir, String target) throws Exception {
-        File[] list = new File(dir).listFiles();
-        for (int i = 0; i < list.length; i++) {
-            File f = list[i];
+        for (File f : new File(dir).listFiles()) {
             String name = f.getName();
             if (!name.endsWith(".html")) {
                 continue;
@@ -242,7 +237,7 @@ public class PrepareTranslation {
         SortedProperties prop = new SortedProperties();
         XMLParser parser = new XMLParser(xml);
         StringBuffer buff = new StringBuffer();
-        Stack stack = new Stack();
+        Stack<String> stack = new Stack<String>();
         String tag = "";
         boolean ignoreEnd = false;
         String nextKey = "";
@@ -344,7 +339,7 @@ public class PrepareTranslation {
                     }
                     template.append(parser.getToken());
                 }
-                tag = (String) stack.pop();
+                tag = stack.pop();
             } else if (event == XMLParser.DTD) {
                 template.append(parser.getToken());
             } else if (event == XMLParser.COMMENT) {
@@ -408,11 +403,9 @@ public class PrepareTranslation {
 
     private void prepare(String baseDir, String path) throws IOException {
         File dir = new File(path);
-        File[] list = dir.listFiles();
         File main = null;
-        ArrayList translations = new ArrayList();
-        for (int i = 0; list != null && i < list.length; i++) {
-            File f = list[i];
+        ArrayList<File> translations = new ArrayList<File>();
+        for (File f : dir.listFiles()) {
             if (f.getName().endsWith(".properties") && f.getName().indexOf('_') >= 0) {
                 if (f.getName().endsWith("_" + MAIN_LANGUAGE + ".properties")) {
                     main = f;
@@ -424,8 +417,7 @@ public class PrepareTranslation {
         SortedProperties p = SortedProperties.loadProperties(main.getAbsolutePath());
         Properties base = SortedProperties.loadProperties(baseDir + "/" + main.getName());
         p.store(main.getAbsolutePath());
-        for (int i = 0; i < translations.size(); i++) {
-            File trans = (File) translations.get(i);
+        for (File trans : translations) {
             String language = trans.getName();
             language = language.substring(language.lastIndexOf('_') + 1, language.lastIndexOf('.'));
             prepare(p, base, trans, language);
@@ -436,19 +428,18 @@ public class PrepareTranslation {
     private void prepare(Properties main, Properties base, File trans, String language) throws IOException {
         SortedProperties p = SortedProperties.loadProperties(trans.getAbsolutePath());
         Properties oldTranslations = new Properties();
-        for (Iterator it = base.keySet().iterator(); it.hasNext();) {
-            String key = (String) it.next();
+        for (Object k : base.keySet()) {
+            String key = (String) k;
             String m = base.getProperty(key);
             String t = p.getProperty(key);
             if (t != null && !t.startsWith("#")) {
                 oldTranslations.setProperty(m, t);
             }
         }
-        HashSet toTranslate = new HashSet();
+        HashSet<String> toTranslate = new HashSet<String>();
         // add missing keys, using # and the value from the main file
-        Iterator it = main.keySet().iterator();
-        while (it.hasNext()) {
-            String key = (String) it.next();
+        for (Object k : main.keySet()) {
+            String key = (String) k;
             String now = main.getProperty(key);
             if (!p.containsKey(key)) {
                 String t = oldTranslations.getProperty(now);
@@ -494,11 +485,10 @@ public class PrepareTranslation {
                 }
             }
         }
-        Map autoTranslated = new HashMap();
+        Map<String, String> autoTranslated = new HashMap<String, String>();
         if (AUTO_TRANSLATE) {
-            HashSet set = new HashSet();
-            for (it = toTranslate.iterator(); it.hasNext();) {
-                String key = (String) it.next();
+            HashSet<String> set = new HashSet<String>();
+            for (String key : toTranslate) {
                 String now = main.getProperty(key);
                 set.add(now);
             }
@@ -506,8 +496,7 @@ public class PrepareTranslation {
                 autoTranslated = autoTranslate(set, "en", language);
             }
         }
-        for (it = toTranslate.iterator(); it.hasNext();) {
-            String key = (String) it.next();
+        for (String key : toTranslate) {
             String now = main.getProperty(key);
             String t;
             if (AUTO_TRANSLATE) {
@@ -519,9 +508,8 @@ public class PrepareTranslation {
             p.put(key, t);
         }
         // remove keys that don't exist in the main file (deleted or typo in the key)
-        it = new ArrayList(p.keySet()).iterator();
-        while (it.hasNext()) {
-            String key = (String) it.next();
+        for (Object k : new ArrayList<Object>(p.keySet())) {
+            String key = (String) k;
             if (!main.containsKey(key)) {
                 p.remove(key);
             }
@@ -529,26 +517,25 @@ public class PrepareTranslation {
         p.store(trans.getAbsolutePath());
     }
 
-    private Map autoTranslate(Set toTranslate, String  sourceLanguage, String targetLanguage) {
-        HashMap results = new HashMap();
+    private Map<String, String> autoTranslate(Set<String> toTranslate, String  sourceLanguage, String targetLanguage) {
+        HashMap<String, String> results = new HashMap<String, String>();
         if (toTranslate.size() == 0) {
             return results;
         }
         int maxLength = 1500;
         int minSeparator = 100000;
-        HashMap keyMap = new HashMap(toTranslate.size());
+        HashMap<Integer, String> keyMap = new HashMap<Integer, String>(toTranslate.size());
         StringBuffer buff = new StringBuffer(maxLength);
         // TODO make sure these numbers don't occur in the original text
         int separator = minSeparator;
-        for (Iterator it = toTranslate.iterator(); it.hasNext();) {
-            String original = (String) it.next();
+        for (String original : toTranslate) {
             if (original != null) {
                 original = original.trim();
                 if (buff.length() + original.length() > maxLength) {
                     System.out.println("remaining: " + (toTranslate.size() - separator + minSeparator));
                     translateChunk(buff, separator, sourceLanguage, targetLanguage, keyMap, results);
                 }
-                keyMap.put(new Integer(separator), original);
+                keyMap.put(separator, original);
                 buff.append(separator);
                 buff.append(' ');
                 buff.append(original);
@@ -560,7 +547,7 @@ public class PrepareTranslation {
         return results;
     }
 
-    private void translateChunk(StringBuffer buff, int separator, String source, String target, HashMap keyMap, HashMap results) {
+    private void translateChunk(StringBuffer buff, int separator, String source, String target, HashMap<Integer, String> keyMap, HashMap<String, String> results) {
         buff.append(separator);
         String original = buff.toString();
         String translation = "";
@@ -572,10 +559,9 @@ public class PrepareTranslation {
             System.out.println("Exception translating [" + original + "]: " + e);
             e.printStackTrace();
         }
-        for (Iterator it = keyMap.entrySet().iterator(); it.hasNext();) {
-            Entry entry = (Entry) it.next();
-            separator = ((Integer) entry.getKey()).intValue();
-            String o = (String) entry.getValue();
+        for (Entry<Integer, String> entry : keyMap.entrySet()) {
+            separator = entry.getKey();
+            String o = entry.getValue();
             String startSeparator = String.valueOf(separator);
             int start = translation.indexOf(startSeparator);
             int end = translation.indexOf(String.valueOf(separator + 1));

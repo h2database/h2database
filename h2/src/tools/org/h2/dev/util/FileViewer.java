@@ -105,7 +105,7 @@ public class FileViewer extends Tool {
         }
         if (tail) {
             long pos = length - 100 * lines;
-            ArrayList list = null;
+            ArrayList<String> list = null;
             while (pos > 0) {
                 file.seek(pos);
                 list = readLines(file, Integer.MAX_VALUE);
@@ -165,18 +165,18 @@ public class FileViewer extends Tool {
         return -1;
     }
 
-    private void list(long pos, String header, ArrayList list) {
+    private void list(long pos, String header, ArrayList<String> list) {
         System.out.println("-----------------------------------------------");
         System.out.println("[" + pos + "]: " + header);
         System.out.println("-----------------------------------------------");
-        for (int i = 0; i < list.size(); i++) {
-            System.out.println(list.get(i));
+        for (String l : list) {
+            System.out.println(l);
         }
         System.out.println("-----------------------------------------------");
     }
 
-    private ArrayList readLines(RandomAccessFile file, int maxLines) throws IOException {
-        ArrayList lines = new ArrayList();
+    private ArrayList<String> readLines(RandomAccessFile file, int maxLines) throws IOException {
+        ArrayList<String> lines = new ArrayList<String>();
         ByteArrayOutputStream buff = new ByteArrayOutputStream(100);
         boolean lastNewline = false;
         while (maxLines > 0) {

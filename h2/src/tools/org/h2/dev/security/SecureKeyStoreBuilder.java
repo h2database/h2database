@@ -50,9 +50,9 @@ public class SecureKeyStoreBuilder {
         System.out.println("KeyStore store = KeyStore.getInstance(\""+store.getType()+"\");");
         System.out.println("store.load(null, password.toCharArray());");
         //System.out.println("keystore provider="+store.getProvider().getName());
-        Enumeration en = store.aliases();
+        Enumeration<String> en = store.aliases();
         while (en.hasMoreElements()) {
-            String alias = (String) en.nextElement();
+            String alias = en.nextElement();
             Key key = store.getKey(alias, password.toCharArray());
             System.out.println("KeyFactory keyFactory = KeyFactory.getInstance(\"" + key.getAlgorithm() + "\");");
             System.out.println("store.load(null, password.toCharArray());");
@@ -61,10 +61,8 @@ public class SecureKeyStoreBuilder {
             System.out.println(pkFormat + "EncodedKeySpec keySpec = new " + pkFormat + "EncodedKeySpec(getBytes(\""
                     + encoded + "\"));");
             System.out.println("PrivateKey privateKey = keyFactory.generatePrivate(keySpec);");
-            System.out.println("Certificate[] certs = new Certificate[]{");
-            Certificate[] certs = store.getCertificateChain(alias);
-            for (int i = 0; i < certs.length; i++) {
-                Certificate cert = certs[i];
+            System.out.println("Certificate[] certs = new Certificate[] {");
+            for (Certificate cert : store.getCertificateChain(alias)) {
                 System.out.println("  CertificateFactory.getInstance(\""+cert.getType()+"\").");
                 String enc = ByteUtils.convertBytesToString(cert.getEncoded());
                 System.out.println("        generateCertificate(new ByteArrayInputStream(getBytes(\""+enc+"\"))),");

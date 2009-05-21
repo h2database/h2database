@@ -139,9 +139,8 @@ public class UploadBuild {
 
     private static void addFiles(File base, File file, ZipOutputStream out) throws IOException {
         if (file.isDirectory()) {
-            File[] files = file.listFiles();
-            for (int i = 0; i < files.length; i++) {
-                addFiles(base, files[i], out);
+            for (File f : file.listFiles()) {
+                addFiles(base, f, out);
             }
         } else {
             String path = file.getAbsolutePath().substring(base.getAbsolutePath().length());

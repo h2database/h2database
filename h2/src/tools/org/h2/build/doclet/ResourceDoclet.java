@@ -41,27 +41,24 @@ public class ResourceDoclet {
     private boolean startDoc(RootDoc root) throws IOException {
         ClassDoc[] classes = root.classes();
         String[][] options = root.options();
-        for (int i = 0; i < options.length; i++) {
-            if (options[i][0].equals("dest")) {
-                destFile = options[i][1];
+        for (String[] op : options) {
+            if (op[0].equals("dest")) {
+                destFile = op[1];
             }
         }
-        for (int i = 0; i < classes.length; ++i) {
-            ClassDoc clazz = classes[i];
+        for (ClassDoc clazz : classes) {
             processClass(clazz);
         }
         resources.store(destFile);
         return true;
     }
 
-    private void processClass(ClassDoc clazz) throws IOException {
+    private void processClass(ClassDoc clazz) {
         String packageName = clazz.containingPackage().name();
         String className = clazz.name();
         addResource(packageName + "." + className, clazz);
 
-        MethodDoc[] methods = clazz.methods();
-        for (int i = 0; i < methods.length; i++) {
-            MethodDoc method = methods[i];
+        for (MethodDoc method : clazz.methods()) {
             String name = method.name();
             addResource(packageName + "." + className + "." + name, method);
         }
@@ -124,9 +121,7 @@ public class ResourceDoclet {
     }
 
     private static boolean isResource(Doc doc) {
-        Tag[] tags = doc.tags();
-        for (int j = 0; j < tags.length; j++) {
-            Tag t = tags[j];
+        for (Tag t : doc.tags()) {
             if (t.kind().equals("@h2.resource")) {
                 return true;
             }

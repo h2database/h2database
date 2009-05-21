@@ -20,7 +20,7 @@ import java.util.ArrayList;
 public class SqlStatement {
     private Db db;
     private String sql = "";
-    private ArrayList params = new ArrayList();
+    private ArrayList<Object> params = new ArrayList<Object>();
 
     SqlStatement(Db db) {
         this.db = db;

@@ -30,7 +30,8 @@ public class Db {
         Utils.newWeakIdentityHashMap();
 
     private final Connection conn;
-    private final Map<Class< ? >, TableDefinition< ? >> classMap = Utils.newHashMap();
+    private final Map<Class< ? >, TableDefinition< ? >> classMap =
+        Utils.newHashMap();
 
     Db(Connection conn) {
         this.conn = conn;

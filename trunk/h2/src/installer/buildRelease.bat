@@ -20,8 +20,7 @@ call build -quiet spellcheck javadocImpl jarClient
 echo %time:~0,8% JDK 1.4
 call java15 >nul 2>nul
 set bcp=%JAVA_HOME14%\jre\lib\
-call build -quiet clean -Dversion=1.4 switchSource -Dbcp=%bcp%\rt.jar;%bcp%\jsse.jar compile
-call build -quiet installer mavenDeployCentral
+call build -quiet clean -Dversion=1.4 switchSource -Dbcp=%bcp%\rt.jar;%bcp%\jsse.jar compile installer mavenDeployCentral
 
 rem call build -quiet compile benchmark
 rem == Copy the benchmark results and update the performance page and diagram

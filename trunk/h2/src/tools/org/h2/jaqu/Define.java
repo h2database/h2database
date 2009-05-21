@@ -35,7 +35,8 @@ public class Define {
         currentTableDefinition.setTableName(tableName);
     }
 
-    static synchronized <T> void define(TableDefinition<T> tableDefinition, Table table) {
+    static synchronized <T> void define(TableDefinition<T> tableDefinition,
+            Table table) {
         currentTableDefinition = tableDefinition;
         currentTable = table;
         tableDefinition.mapObject(table);

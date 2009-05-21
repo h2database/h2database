@@ -26,7 +26,7 @@ call build -quiet installer mavenDeployCentral
 rem call build -quiet compile benchmark
 rem == Copy the benchmark results and update the performance page and diagram
 
-call java16 >nul 2>nul
+call java15 >nul 2>nul
 call build -quiet switchSource
 ren ..\h2web h2web-%today%
 

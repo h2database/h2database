@@ -85,8 +85,12 @@ public class OutputCatcher {
      */
     static class DualOutputStream extends FilterOutputStream {
 
+        /**
+         * The original print stream.
+         */
+        final PrintStream print;
+
         private final HtmlOutputStream out;
-        private final PrintStream print;
         private final boolean error;
 
         DualOutputStream(HtmlOutputStream out, PrintStream print, boolean error) {

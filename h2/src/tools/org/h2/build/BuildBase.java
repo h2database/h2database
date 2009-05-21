@@ -50,7 +50,7 @@ public class BuildBase {
 
         private static final long serialVersionUID = 1L;
 
-        private StringList(String... args) {
+        StringList(String... args) {
             super();
             addAll(Arrays.asList(args));
         }

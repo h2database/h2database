@@ -62,6 +62,7 @@ import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IntHashMap;
 import org.h2.util.NetUtils;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
@@ -100,7 +101,7 @@ public class Database implements DataHandler {
     private final HashMap aggregates = new HashMap();
     private final HashMap comments = new HashMap();
 
-    private final Set userSessions = Collections.synchronizedSet(new HashSet());
+    private final Set<Session> userSessions = Collections.synchronizedSet(new HashSet<Session>());
     private Session exclusiveSession;
     private final BitField objectIds = new BitField();
     private final Object lobSyncObject = new Object();

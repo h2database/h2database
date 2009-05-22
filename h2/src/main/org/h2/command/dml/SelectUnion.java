@@ -22,6 +22,7 @@ import org.h2.result.LocalResult;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
+import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
@@ -240,8 +241,8 @@ public class SelectUnion extends Query {
         return left.getCost() + right.getCost();
     }
 
-    public HashSet getTables() {
-        HashSet set = left.getTables();
+    public HashSet<Table> getTables() {
+        HashSet<Table> set = left.getTables();
         set.addAll(right.getTables());
         return set;
     }

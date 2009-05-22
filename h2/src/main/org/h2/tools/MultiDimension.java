@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import org.h2.util.New;
 import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
 
@@ -207,7 +208,7 @@ public class MultiDimension {
             }
         }
         int total = getSize(min, max, len);
-        ArrayList list = new ArrayList();
+        ArrayList<long[]> list = New.arrayList();
         addMortonRanges(list, min, max, len, 0);
         optimize(list, total);
         long[][] ranges = new long[list.size()][2];
@@ -233,18 +234,16 @@ public class MultiDimension {
         return size;
     }
 
-    private void optimize(ArrayList list, int total) {
-        Collections.sort(list, new Comparator() {
-            public int compare(Object a, Object b) {
-                long[] la = (long[]) a;
-                long[] lb = (long[]) b;
-                return la[0] > lb[0] ? 1 : -1;
+    private void optimize(ArrayList<long[]> list, int total) {
+        Collections.sort(list, new Comparator<long[]>() {
+            public int compare(long[] a, long[] b) {
+                return a[0] > b[0] ? 1 : -1;
             }
         });
         for (int minGap = 10;; minGap += minGap / 2) {
             for (int i = 0; i < list.size() - 1; i++) {
-                long[] current = (long[]) list.get(i);
-                long[] next = (long[]) list.get(i + 1);
+                long[] current = list.get(i);
+                long[] next = list.get(i + 1);
                 if (current[1] + minGap >= next[0]) {
                     current[1] = next[1];
                     list.remove(i + 1);
@@ -253,7 +252,7 @@ public class MultiDimension {
             }
             int searched = 0;
             for (int j = 0; j < list.size(); j++) {
-                long[] range = (long[]) list.get(j);
+                long[] range = list.get(j);
                 searched += range[1] - range[0] + 1;
             }
             if (searched > 2 * total || list.size() < 3 /* || minGap > total */) {
@@ -262,7 +261,7 @@ public class MultiDimension {
         }
     }
 
-    private void addMortonRanges(ArrayList list, int[] min, int[] max, int len, int level) {
+    private void addMortonRanges(ArrayList<long[]> list, int[] min, int[] max, int len, int level) {
         if (level > 100) {
             throw new IllegalArgumentException("Stop");
         }

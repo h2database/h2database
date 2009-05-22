@@ -22,6 +22,7 @@ import org.h2.store.PageStore;
 import org.h2.store.Record;
 import org.h2.store.Storage;
 import org.h2.util.FileUtils;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 
@@ -41,8 +42,8 @@ public class LogSystem {
     private ObjectArray activeLogs;
     private LogFile currentLog;
     private String fileNamePrefix;
-    private HashMap storages = new HashMap();
-    private HashMap sessionStates = new HashMap();
+    private HashMap<Integer, Storage> storages = New.hashMap();
+    private HashMap<Integer, SessionState> sessionStates = New.hashMap();
     private DataPage rowBuff;
     private ObjectArray undo;
     // TODO log file / deleteOldLogFilesAutomatically:
@@ -320,9 +321,9 @@ public class LogSystem {
                 }
             }
         }
-        activeLogs.sort(new Comparator() {
-            public int compare(Object a, Object b) {
-                return ((LogFile) a).getId() - ((LogFile) b).getId();
+        activeLogs.sort(new Comparator<LogFile>() {
+            public int compare(LogFile a, LogFile b) {
+                return a.getId() - b.getId();
             }
         });
         if (activeLogs.size() == 0) {
@@ -347,11 +348,10 @@ public class LogSystem {
         } else {
             dataFile = true;
         }
-        Integer i = ObjectUtils.getInteger(id);
-        Storage storage = (Storage) storages.get(i);
+        Storage storage = storages.get(id);
         if (storage == null) {
             storage = database.getStorage(null, id, dataFile);
-            storages.put(i, storage);
+            storages.put(id, storage);
         }
         return storage;
     }
@@ -365,8 +365,7 @@ public class LogSystem {
      * @return true if this session contains an uncommitted transaction
      */
     boolean isSessionCommitted(int sessionId, int logId, int pos) {
-        Integer key = ObjectUtils.getInteger(sessionId);
-        SessionState state = (SessionState) sessionStates.get(key);
+        SessionState state = sessionStates.get(sessionId);
         if (state == null) {
             return true;
         }
@@ -395,11 +394,10 @@ public class LogSystem {
      * @return the session state object
      */
     SessionState getOrAddSessionState(int sessionId) {
-        Integer key = ObjectUtils.getInteger(sessionId);
-        SessionState state = (SessionState) sessionStates.get(key);
+        SessionState state = sessionStates.get(sessionId);
         if (state == null) {
             state = new SessionState();
-            sessionStates.put(key, state);
+            sessionStates.put(sessionId, state);
             state.sessionId = sessionId;
         }
         return state;

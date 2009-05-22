@@ -15,6 +15,7 @@ import java.util.Iterator;
 
 import org.h2.message.Message;
 import org.h2.util.IOUtils;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
 
@@ -25,7 +26,7 @@ import org.h2.util.RandomUtils;
 public class FileSystemMemory extends FileSystem {
 
     private static final FileSystemMemory INSTANCE = new FileSystemMemory();
-    private static final HashMap MEMORY_FILES = new HashMap();
+    private static final HashMap<String, FileObjectMemory> MEMORY_FILES = New.hashMap();
 
     private FileSystemMemory() {
         // don't allow construction
@@ -98,8 +99,7 @@ public class FileSystemMemory extends FileSystem {
     public String[] listFiles(String path) {
         ObjectArray list = new ObjectArray();
         synchronized (MEMORY_FILES) {
-            for (Iterator it = MEMORY_FILES.keySet().iterator(); it.hasNext();) {
-                String name = (String) it.next();
+            for (String name : MEMORY_FILES.keySet()) {
                 if (name.startsWith(path)) {
                     list.add(name);
                 }
@@ -113,9 +113,9 @@ public class FileSystemMemory extends FileSystem {
     public void deleteRecursive(String fileName) {
         fileName = normalize(fileName);
         synchronized (MEMORY_FILES) {
-            Iterator it = MEMORY_FILES.keySet().iterator();
+            Iterator<String> it = MEMORY_FILES.keySet().iterator();
             while (it.hasNext()) {
-                String name = (String) it.next();
+                String name = it.next();
                 if (name.startsWith(fileName)) {
                     it.remove();
                 }
@@ -218,7 +218,7 @@ public class FileSystemMemory extends FileSystem {
     private FileObjectMemory getMemoryFile(String fileName) {
         fileName = normalize(fileName);
         synchronized (MEMORY_FILES) {
-            FileObjectMemory m = (FileObjectMemory) MEMORY_FILES.get(fileName);
+            FileObjectMemory m = MEMORY_FILES.get(fileName);
             if (m == null) {
                 boolean compress = fileName.startsWith(FileSystem.PREFIX_MEMORY_LZF);
                 m = new FileObjectMemory(fileName, compress);

@@ -459,7 +459,7 @@ public class StringUtils {
         if (s.length() == 0) {
             return new String[0];
         }
-        ArrayList list = new ArrayList();
+        ArrayList<String> list = New.arrayList();
         StringBuffer buff = new StringBuffer(s.length());
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);

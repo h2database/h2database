@@ -38,7 +38,7 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.util.ByteUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
-import org.h2.util.ObjectUtils;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 
@@ -125,13 +125,13 @@ public class FullText {
             setIgnoreList(setting, commaSeparatedList);
         }
         rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".WORDS");
-        HashMap map = setting.getWordList();
+        HashMap<String, Integer> map = setting.getWordList();
         while (rs.next()) {
             String word = rs.getString("NAME");
             int id = rs.getInt("ID");
             word = setting.convertWord(word);
             if (word != null) {
-                map.put(word, ObjectUtils.getInteger(id));
+                map.put(word, id);
             }
         }
     }
@@ -386,8 +386,8 @@ public class FullText {
      * @return an array containing the column name list and the data list
      */
     protected static Object[][] parseKey(Connection conn, String key) throws SQLException {
-        ArrayList columns = new ArrayList();
-        ArrayList data = new ArrayList();
+        ArrayList<String> columns = New.arrayList();
+        ArrayList<String> data = New.arrayList();
         JdbcConnection c = (JdbcConnection) conn;
         Session session = (Session) c.getSession();
         Parser p = new Parser(session);
@@ -482,12 +482,12 @@ public class FullText {
      * @param keys the key list
      * @param columns the column list
      */
-    protected static void setColumns(int[] index, ArrayList keys, ArrayList columns) throws SQLException {
+    protected static void setColumns(int[] index, ArrayList<String> keys, ArrayList<String> columns) throws SQLException {
         for (int i = 0; i < keys.size(); i++) {
-            String key = (String) keys.get(i);
+            String key = keys.get(i);
             int found = -1;
             for (int j = 0; found == -1 && j < columns.size(); j++) {
-                String column = (String) columns.get(j);
+                String column = columns.get(j);
                 if (column.equals(key)) {
                     found = j;
                 }
@@ -506,24 +506,23 @@ public class FullText {
             return result;
         }
         FullTextSettings setting = FullTextSettings.getInstance(conn);
-        HashSet words = new HashSet();
+        HashSet<String> words = New.hashSet();
         addWords(setting, words, text);
-        HashSet rIds = null, lastRowIds = null;
-        HashMap allWords = setting.getWordList();
+        HashSet<Integer> rIds = null, lastRowIds = null;
+        HashMap<String, Integer> allWords = setting.getWordList();
 
         PreparedStatement prepSelectMapByWordId = setting.getPrepSelectMapByWordId();
-        for (Iterator it = words.iterator(); it.hasNext();) {
+        for (String word : words) {
             lastRowIds = rIds;
-            rIds = new HashSet();
-            String word = (String) it.next();
-            Integer wId = (Integer) allWords.get(word);
+            rIds = New.hashSet();
+            Integer wId = allWords.get(word);
             if (wId == null) {
                 continue;
             }
             prepSelectMapByWordId.setInt(1, wId.intValue());
             ResultSet rs = prepSelectMapByWordId.executeQuery();
             while (rs.next()) {
-                Integer rId = ObjectUtils.getInteger(rs.getInt(1));
+                Integer rId = rs.getInt(1);
                 if (lastRowIds == null || lastRowIds.contains(rId)) {
                     rIds.add(rId);
                 }
@@ -534,8 +533,7 @@ public class FullText {
         }
         PreparedStatement prepSelectRowById = setting.getPrepSelectRowById();
         int rowCount = 0;
-        for (Iterator it = rIds.iterator(); it.hasNext();) {
-            int rowId = ((Integer) it.next()).intValue();
+        for (int rowId : rIds) {
             prepSelectRowById.setInt(1, rowId);
             ResultSet rs = prepSelectRowById.executeQuery();
             if (!rs.next()) {
@@ -575,7 +573,7 @@ public class FullText {
         return result;
     }
 
-    private static void addColumnData(ArrayList columns, ArrayList data, Expression expr) {
+    private static void addColumnData(ArrayList<String> columns, ArrayList<String> data, Expression expr) {
         if (expr instanceof ConditionAndOr) {
             ConditionAndOr and = (ConditionAndOr) expr;
             Expression left = and.getExpression(true);
@@ -603,7 +601,7 @@ public class FullText {
      * @param set the hash set
      * @param text the text
      */
-    static void addWords(FullTextSettings setting, HashSet set, String text) {
+    static void addWords(FullTextSettings setting, HashSet<String> set, String text) {
         StringTokenizer tokenizer = new StringTokenizer(text, " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]");
         while (tokenizer.hasMoreTokens()) {
             String word = tokenizer.nextToken();
@@ -670,12 +668,11 @@ public class FullText {
 
     private static void setIgnoreList(FullTextSettings setting, String commaSeparatedList) {
         String[] list = StringUtils.arraySplit(commaSeparatedList, ',', true);
-        HashSet set = setting.getIgnoreList();
-        for (int i = 0; i < list.length; i++) {
-            String word = list[i];
-            word = setting.convertWord(word);
-            if (word != null) {
-                set.add(list[i]);
+        HashSet<String> set = setting.getIgnoreList();
+        for (String word : list) {
+            String converted = setting.convertWord(word);
+            if (converted != null) {
+                set.add(word);
             }
         }
     }
@@ -698,13 +695,13 @@ public class FullText {
         public void init(Connection conn, String schemaName, String triggerName,
                 String tableName, boolean before, int type) throws SQLException {
             setting = FullTextSettings.getInstance(conn);
-            ArrayList keyList = new ArrayList();
+            ArrayList<String> keyList = New.arrayList();
             DatabaseMetaData meta = conn.getMetaData();
             ResultSet rs = meta.getColumns(null,
                     JdbcUtils.escapeMetaDataPattern(schemaName),
                     JdbcUtils.escapeMetaDataPattern(tableName),
                     null);
-            ArrayList columnList = new ArrayList();
+            ArrayList<String> columnList = New.arrayList();
             while (rs.next()) {
                 columnList.add(rs.getString("COLUMN_NAME"));
             }
@@ -732,7 +729,7 @@ public class FullText {
             if (keyList.size() == 0) {
                 throw new SQLException("No primary key for table " + tableName);
             }
-            ArrayList indexList = new ArrayList();
+            ArrayList<String> indexList = New.arrayList();
             PreparedStatement prep = conn.prepareStatement(
                     "SELECT ID, COLUMNS FROM " + SCHEMA + ".INDEXES WHERE SCHEMA=? AND TABLE=?");
             prep.setString(1, schemaName);
@@ -845,18 +842,18 @@ public class FullText {
         }
 
         private int[] getWordIds(FullTextSettings setting, Object[] row) throws SQLException {
-            HashSet words = new HashSet();
+            HashSet<String> words = New.hashSet();
             for (int i = 0; i < index.indexColumns.length; i++) {
                 int idx = index.indexColumns[i];
                 String data = asString(row[idx], columnTypes[idx]);
                 addWords(setting, words, data);
             }
-            HashMap allWords = setting.getWordList();
+            HashMap<String, Integer> allWords = setting.getWordList();
             int[] wordIds = new int[words.size()];
-            Iterator it = words.iterator();
+            Iterator<String> it = words.iterator();
             for (int i = 0; it.hasNext(); i++) {
-                String word = (String) it.next();
-                Integer wId = (Integer) allWords.get(word);
+                String word = it.next();
+                Integer wId = allWords.get(word);
                 int wordId;
                 if (wId == null) {
                     prepInsertWord.setString(1, word);
@@ -864,7 +861,7 @@ public class FullText {
                     ResultSet rs = JdbcUtils.getGeneratedKeys(prepInsertWord);
                     rs.next();
                     wordId = rs.getInt(1);
-                    allWords.put(word, ObjectUtils.getInteger(wordId));
+                    allWords.put(word, wordId);
                 } else {
                     wordId = wId.intValue();
                 }

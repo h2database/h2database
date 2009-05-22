@@ -51,7 +51,7 @@ public class RuleElement implements Rule {
         return this;
     }
 
-    public void setLinks(HashMap ruleMap) {
+    public void setLinks(HashMap<String, RuleHead> ruleMap) {
         if (link != null) {
             link.setLinks(ruleMap);
         }
@@ -60,7 +60,7 @@ public class RuleElement implements Rule {
         }
         for (int i = 0; i < name.length() && link == null; i++) {
             String test = StringUtils.toLowerEnglish(name.substring(i));
-            RuleHead r = (RuleHead) ruleMap.get(test);
+            RuleHead r = ruleMap.get(test);
             if (r != null) {
                 link = r.getRule();
                 return;

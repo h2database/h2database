@@ -10,7 +10,6 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.h2.constant.SysProperties;
@@ -349,7 +348,7 @@ public class TraceObject {
      * @param map the map to convert
      * @return the Java source code
      */
-    protected String quoteMap(Map map) {
+    protected String quoteMap(Map<String, Class< ? >> map) {
         if (map == null) {
             return "null";
         }
@@ -358,13 +357,11 @@ public class TraceObject {
         }
         StringBuffer buff = new StringBuffer("new Map() /* ");
         try {
-            // Map<String, Class>
-            for (Iterator it = map.entrySet().iterator(); it.hasNext();) {
-                Map.Entry entry = (Map.Entry) it.next();
-                String key = (String) entry.getKey();
+            for (Map.Entry<String, Class < ? >> entry : map.entrySet()) {
+                String key = entry.getKey();
                 buff.append(key);
                 buff.append(':');
-                Class clazz = (Class) entry.getValue();
+                Class< ? > clazz = entry.getValue();
                 buff.append(clazz.getName());
             }
         } catch (Exception e) {

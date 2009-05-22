@@ -11,6 +11,7 @@ import java.util.HashSet;
 
 import org.h2.server.web.DbSchema;
 import org.h2.server.web.DbTableOrView;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -40,7 +41,7 @@ public class Sentence {
     /**
      * The map of next tokens in the form type#tokenName token.
      */
-    private HashMap next = new HashMap();
+    private HashMap<String, String> next = New.hashMap();
 
     /**
      * The complete query string.
@@ -56,8 +57,8 @@ public class Sentence {
     private DbSchema lastMatchedSchema;
     private DbTableOrView lastMatchedTable;
     private DbTableOrView lastTable;
-    private HashSet tables;
-    private HashMap aliases;
+    private HashSet<DbTableOrView> tables;
+    private HashMap<String, DbTableOrView> aliases;
 
     /**
      * Start the timer to make sure processing doesn't take too long.
@@ -95,7 +96,7 @@ public class Sentence {
      */
     public void addAlias(String alias, DbTableOrView table) {
         if (aliases == null) {
-            aliases = new HashMap();
+            aliases = New.hashMap();
         }
         aliases.put(alias, table);
     }
@@ -108,7 +109,7 @@ public class Sentence {
     public void addTable(DbTableOrView table) {
         lastTable = table;
         if (tables == null) {
-            tables = new HashSet();
+            tables = New.hashSet();
         }
         tables.add(table);
     }
@@ -118,7 +119,7 @@ public class Sentence {
      *
      * @return the set of tables
      */
-    public HashSet getTables() {
+    public HashSet<DbTableOrView> getTables() {
         return tables;
     }
 
@@ -127,7 +128,7 @@ public class Sentence {
      *
      * @return the alias map
      */
-    public HashMap getAliases() {
+    public HashMap<String, DbTableOrView> getAliases() {
         return aliases;
     }
 
@@ -212,7 +213,7 @@ public class Sentence {
      *
      * @return the next token map
      */
-    public HashMap getNext() {
+    public HashMap<String, String> getNext() {
         return next;
     }
 

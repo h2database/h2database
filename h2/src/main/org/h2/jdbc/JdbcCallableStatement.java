@@ -171,7 +171,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported]
      */
-    public Object getObject(int parameterIndex, Map map) throws SQLException {
+    public Object getObject(int parameterIndex, Map<String, Class< ? >> map) throws SQLException {
         throw throwGetUnsupportedException();
     }
 
@@ -292,7 +292,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported]
      */
-    public Object getObject(String parameterName, Map map) throws SQLException {
+    public Object getObject(String parameterName, Map<String, Class< ? >> map) throws SQLException {
         throw throwParameterNameNotSupported();
     }
 

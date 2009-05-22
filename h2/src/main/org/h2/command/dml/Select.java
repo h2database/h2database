@@ -35,6 +35,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
@@ -69,7 +70,7 @@ public class Select extends Query {
     private int[] groupIndex;
     private boolean[] groupByExpression;
     private boolean distinct;
-    private HashMap currentGroup;
+    private HashMap<Expression, Object> currentGroup;
     private int havingIndex;
     private boolean isGroupQuery, isGroupSortedQuery;
     private boolean isForUpdate;
@@ -123,7 +124,7 @@ public class Select extends Query {
         this.group = group;
     }
 
-    public HashMap getCurrentGroup() {
+    public HashMap<Expression, Object> getCurrentGroup() {
         return currentGroup;
     }
 
@@ -167,11 +168,11 @@ public class Select extends Query {
 
                 if (previousKeyValues == null) {
                     previousKeyValues = keyValues;
-                    currentGroup = new HashMap();
+                    currentGroup = New.hashMap();
                 } else if (!Arrays.equals(previousKeyValues, keyValues)) {
                     addGroupSortedRow(previousKeyValues, columnCount, result);
                     previousKeyValues = keyValues;
-                    currentGroup = new HashMap();
+                    currentGroup = New.hashMap();
                 }
                 currentGroupRowId++;
 
@@ -321,9 +322,9 @@ public class Select extends Query {
                     }
                     key = ValueArray.get(keyValues);
                 }
-                HashMap values = (HashMap) groups.get(key);
+                HashMap<Expression, Object> values = (HashMap) groups.get(key);
                 if (values == null) {
-                    values = new HashMap();
+                    values = new HashMap<Expression, Object>();
                     groups.put(key, values);
                 }
                 currentGroup = values;
@@ -341,7 +342,7 @@ public class Select extends Query {
             }
         }
         if (groupIndex == null && groups.size() == 0) {
-            groups.put(defaultGroup, new HashMap());
+            groups.put(defaultGroup, New.hashMap());
         }
         ObjectArray keys = groups.keys();
         for (int i = 0; i < keys.size(); i++) {
@@ -792,8 +793,8 @@ public class Select extends Query {
         return cost;
     }
 
-    public HashSet getTables() {
-        HashSet set = new HashSet();
+    public HashSet<Table> getTables() {
+        HashSet<Table> set = New.hashSet();
         for (int i = 0; i < filters.size(); i++) {
             TableFilter filter = (TableFilter) filters.get(i);
             set.add(filter.getTable());

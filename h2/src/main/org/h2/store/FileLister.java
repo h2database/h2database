@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.util.FileUtils;
+import org.h2.util.New;
 
 /**
  * Utility class to list the files of a database.
@@ -52,12 +53,12 @@ public class FileLister {
      *            are returned
      * @return the list of files
      */
-    public static ArrayList getDatabaseFiles(String dir, String db, boolean all) throws SQLException {
+    public static ArrayList<String> getDatabaseFiles(String dir, String db, boolean all) throws SQLException {
         if (dir == null || dir.equals("")) {
             dir = ".";
         }
         dir = FileUtils.normalize(dir);
-        ArrayList files = new ArrayList();
+        ArrayList<String> files = New.arrayList();
         String start = db == null ? null : FileUtils.normalize(dir + "/" + db);
         String[] list = FileUtils.listFiles(dir);
         for (int i = 0; list != null && i < list.length; i++) {

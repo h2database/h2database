@@ -23,6 +23,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.util.ByteUtils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 //## Java 1.4 end ##
 
@@ -51,7 +52,7 @@ implements XAConnection, XAResource
     private String url, user;
     private JdbcConnection physicalConn;
     private PooledJdbcConnection handleConn;
-    private ArrayList listeners = new ArrayList();
+    private ArrayList<ConnectionEventListener> listeners = New.arrayList();
     private Xid currentTransaction;
     private int currentTransactionId;
 
@@ -154,7 +155,7 @@ implements XAConnection, XAResource
     void closedHandle() {
         debugCode("closedHandle();");
         for (int i = 0; i < listeners.size(); i++) {
-            ConnectionEventListener listener = (ConnectionEventListener) listeners.get(i);
+            ConnectionEventListener listener = listeners.get(i);
             ConnectionEvent event = new ConnectionEvent(this);
             listener.connectionClosed(event);
         }
@@ -217,7 +218,7 @@ implements XAConnection, XAResource
         try {
             stat = physicalConn.createStatement();
             ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT ORDER BY TRANSACTION");
-            ArrayList list = new ArrayList();
+            ArrayList<Xid> list = New.arrayList();
             while (rs.next()) {
                 String tid = rs.getString("TRANSACTION");
                 int id = getNextId(XID);

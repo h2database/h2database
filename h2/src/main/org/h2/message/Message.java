@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.text.MessageFormat;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Map.Entry;
@@ -45,8 +44,7 @@ public class Message {
                 if (translations != null) {
                     Properties p = new Properties();
                     p.load(new ByteArrayInputStream(translations));
-                    for (Iterator it = p.entrySet().iterator(); it.hasNext();) {
-                        Entry e = (Entry) it.next();
+                    for (Entry<Object, Object> e : p.entrySet()) {
                         String key = (String) e.getKey();
                         String translation = (String) e.getValue();
                         if (translation != null && !translation.startsWith("#")) {

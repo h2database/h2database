@@ -8,6 +8,7 @@ package org.h2.bnf;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import org.h2.util.New;
 
 /**
  * Represents a sequence of BNF rules, or a list of alternative rules.
@@ -15,11 +16,11 @@ import java.util.HashMap;
 public class RuleList implements Rule {
 
     private boolean or;
-    private ArrayList list;
+    private ArrayList<Rule> list;
     private boolean mapSet;
 
     RuleList(Rule first, Rule next, boolean or) {
-        list = new ArrayList();
+        list = New.arrayList();
         if (first instanceof RuleList && ((RuleList) first).or == or) {
             list.addAll(((RuleList) first).list);
         } else {
@@ -75,7 +76,7 @@ public class RuleList implements Rule {
     }
 
     private Rule get(int idx) {
-        return (Rule) list.get(idx);
+        return list.get(idx);
     }
 
     public String name() {
@@ -86,7 +87,7 @@ public class RuleList implements Rule {
         return get(list.size() - 1);
     }
 
-    public void setLinks(HashMap ruleMap) {
+    public void setLinks(HashMap<String, RuleHead> ruleMap) {
         if (!mapSet) {
             for (int i = 0; i < list.size(); i++) {
                 get(i).setLinks(ruleMap);

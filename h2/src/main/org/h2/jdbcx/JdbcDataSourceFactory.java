@@ -57,7 +57,7 @@ implements ObjectFactory
      *         not JdbcDataSource.
      */
 //## Java 1.4 begin ##
-    public synchronized Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable environment) {
+    public synchronized Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable< ? , ? > environment) {
         if (trace.isDebugEnabled()) {
             trace.debug("getObjectInstance obj=" + obj + " name=" + name + " nameCtx=" + nameCtx + " environment=" + environment);
         }

@@ -21,6 +21,7 @@ import java.util.StringTokenizer;
 
 import org.h2.server.web.DbContextRule;
 import org.h2.tools.Csv;
+import org.h2.util.New;
 import org.h2.util.Resources;
 import org.h2.util.StringCache;
 import org.h2.util.StringUtils;
@@ -32,14 +33,14 @@ import org.h2.util.StringUtils;
 public class Bnf {
 
     private final Random random = new Random();
-    private final HashMap ruleMap = new HashMap();
+    private final HashMap<String, RuleHead> ruleMap = New.hashMap();
     private String syntax;
     private String currentToken;
     private String[] tokens;
     private char firstChar;
     private int index;
     private Rule lastRepeat;
-    private ArrayList statements;
+    private ArrayList<RuleHead> statements;
     private String currentTopic;
 
     Bnf() {
@@ -83,7 +84,7 @@ public class Bnf {
     private void parse(Reader csv) throws SQLException, IOException {
         csv = new BufferedReader(csv);
         Rule functions = null;
-        statements = new ArrayList();
+        statements = New.arrayList();
         ResultSet rs = Csv.getInstance().read(csv, null);
         for (int id = 0; rs.next(); id++) {
             String section = rs.getString("SECTION").trim();
@@ -151,7 +152,7 @@ public class Bnf {
             RuleHead found = null;
             for (int i = 0; i < s.length(); i++) {
                 String test = StringUtils.toLowerEnglish(s.substring(i));
-                RuleHead r = (RuleHead) ruleMap.get(test);
+                RuleHead r = ruleMap.get(test);
                 if (r != null) {
                     found = r;
                     break;
@@ -241,7 +242,7 @@ public class Bnf {
     }
 
     private String[] tokenize() {
-        ArrayList list = new ArrayList();
+        ArrayList<String> list = New.arrayList();
         syntax = StringUtils.replaceAll(syntax, "yyyy-MM-dd", "@ymd@");
         syntax = StringUtils.replaceAll(syntax, "hh:mm:ss", "@hms@");
         syntax = StringUtils.replaceAll(syntax, "nnnnnnnnn", "@nanos@");
@@ -267,7 +268,7 @@ public class Bnf {
             }
             list.add(s);
         }
-        return (String[]) list.toArray(new String[0]);
+        return list.toArray(new String[0]);
     }
 
     /**
@@ -282,11 +283,10 @@ public class Bnf {
      * @param query the start of the statement
      * @return the map of possible token types / tokens
      */
-    public HashMap getNextTokenList(String query) {
+    public HashMap<String, String> getNextTokenList(String query) {
         Sentence sentence = new Sentence();
         sentence.setQuery(query);
-        for (int i = 0; i < statements.size(); i++) {
-            RuleHead head = (RuleHead) statements.get(i);
+        for (RuleHead head : statements) {
             if (!head.getSection().startsWith("Commands")) {
                 continue;
             }
@@ -301,8 +301,8 @@ public class Bnf {
      * This method is called after updating the topics.
      */
     public void linkStatements() {
-        for (Iterator it = ruleMap.values().iterator(); it.hasNext();) {
-            RuleHead r = (RuleHead) it.next();
+        for (Iterator<RuleHead> it = ruleMap.values().iterator(); it.hasNext();) {
+            RuleHead r = it.next();
             r.getRule().setLinks(ruleMap);
         }
     }
@@ -316,7 +316,7 @@ public class Bnf {
      */
     public void updateTopic(String topic, DbContextRule rule) {
         topic = StringUtils.toLowerEnglish(topic);
-        RuleHead head = (RuleHead) ruleMap.get(topic);
+        RuleHead head = ruleMap.get(topic);
         if (head == null) {
             head = new RuleHead("db", topic, rule);
             ruleMap.put(topic, head);
@@ -331,7 +331,7 @@ public class Bnf {
      *
      * @return the list of statements
      */
-    public ArrayList getStatements() {
+    public ArrayList<RuleHead> getStatements() {
         return statements;
     }
 

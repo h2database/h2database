@@ -20,13 +20,14 @@ import org.h2.security.SHA256;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
  * Encapsulates the connection settings, including user name and password.
  */
 public class ConnectionInfo implements Cloneable {
-    private static final HashSet KNOWN_SETTINGS = new HashSet();
+    private static final HashSet<String> KNOWN_SETTINGS = New.hashSet();
     private Properties prop = new Properties();
     private String originalURL;
     private String url;
@@ -74,18 +75,15 @@ public class ConnectionInfo implements Cloneable {
     }
 
     static {
-        ArrayList list = SetTypes.getTypes();
-        HashSet set = KNOWN_SETTINGS;
-        for (int i = 0; i < list.size(); i++) {
-            set.add(list.get(i));
-        }
+        ArrayList<String> list = SetTypes.getTypes();
+        HashSet<String> set = KNOWN_SETTINGS;
+        set.addAll(list);
         // TODO document these settings
         String[] connectionTime = new String[] { "ACCESS_MODE_LOG", "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "DB_CLOSE_ON_EXIT", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS",
                 "PASSWORD", "RECOVER", "USER", "DATABASE_EVENT_LISTENER_OBJECT", "AUTO_SERVER",
                 "AUTO_RECONNECT", "OPEN_NEW" };
-        for (int i = 0; i < connectionTime.length; i++) {
-            String key = connectionTime[i];
+        for (String key : connectionTime) {
             if (SysProperties.CHECK && set.contains(key)) {
                 Message.throwInternalError(key);
             }

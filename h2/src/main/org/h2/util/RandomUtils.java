@@ -132,7 +132,7 @@ public class RandomUtils {
             // host name and ip addresses (if any)
             try {
                 // workaround for the Google App Engine: don't use InetAddress
-                Class inetAddressClass = Class.forName("java.net.InetAddress");
+                Class< ? > inetAddressClass = Class.forName("java.net.InetAddress");
                 Object localHost = inetAddressClass.getMethod(
                         "getLocalHost", new Class[0]).invoke(null, new Object[0]);
                 String hostName = inetAddressClass.getMethod(

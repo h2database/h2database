@@ -9,6 +9,7 @@ package org.h2.engine;
 import java.util.HashMap;
 
 import org.h2.constant.SysProperties;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -22,7 +23,7 @@ public class Mode {
      */
     public static final String REGULAR = "REGULAR";
 
-    private static final HashMap MODES = new HashMap();
+    private static final HashMap<String, Mode> MODES = New.hashMap();
 
     // Modes are also documented in the features section
 
@@ -166,7 +167,7 @@ public class Mode {
      * @return the mode object
      */
     public static Mode getInstance(String name) {
-        return (Mode) MODES.get(StringUtils.toUpperEnglish(name));
+        return MODES.get(StringUtils.toUpperEnglish(name));
     }
 
     public String getName() {

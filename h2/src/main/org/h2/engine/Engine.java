@@ -17,6 +17,7 @@ import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.store.FileLock;
+import org.h2.util.New;
 import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
 
@@ -28,7 +29,7 @@ import org.h2.util.StringUtils;
 public class Engine {
 
     private static final Engine INSTANCE = new Engine();
-    private static final HashMap DATABASES = new HashMap();
+    private static final HashMap<String, Database> DATABASES = New.hashMap();
     private static volatile long wrongPasswordDelay = SysProperties.DELAY_WRONG_PASSWORD_MIN;
 
     private Engine() {
@@ -46,7 +47,7 @@ public class Engine {
         if (openNew || ci.isUnnamedInMemory()) {
             database = null;
         } else {
-            database = (Database) DATABASES.get(name);
+            database = DATABASES.get(name);
         }
         User user = null;
         boolean opened = false;

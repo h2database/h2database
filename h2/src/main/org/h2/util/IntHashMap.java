@@ -13,7 +13,7 @@ import java.util.HashMap;
  * A hash map with int keys and object values.
  */
 public class IntHashMap {
-    private final HashMap map = new HashMap();
+    private final HashMap<Integer, Object> map = New.hashMap();
 
     /**
      * Get the value for the given key. This method returns null if the
@@ -23,7 +23,7 @@ public class IntHashMap {
      * @return the value or null
      */
     public Object get(int key) {
-        return map.get(ObjectUtils.getInteger(key));
+        return map.get(key);
     }
 
     /**
@@ -33,7 +33,7 @@ public class IntHashMap {
      * @param value the value
      */
     public void put(int key, Object value) {
-        map.put(ObjectUtils.getInteger(key), value);
+        map.put(key, value);
     }
 
     /**
@@ -42,7 +42,7 @@ public class IntHashMap {
      * @param key the key
      */
     public void remove(int key) {
-        map.remove(ObjectUtils.getInteger(key));
+        map.remove(key);
     }
 
     /**
@@ -57,7 +57,7 @@ public class IntHashMap {
      *
      * @return the values
      */
-    public Collection values() {
+    public Collection<Object> values() {
         return map.values();
     }
 }

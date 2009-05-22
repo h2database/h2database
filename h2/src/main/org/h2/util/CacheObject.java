@@ -20,10 +20,10 @@ public abstract class CacheObject {
     /**
      * Compare cache objects by position.
      */
-    static class CacheComparator implements Comparator {
-        public int compare(Object a, Object b) {
-            int pa = ((CacheObject) a).getPos();
-            int pb = ((CacheObject) b).getPos();
+    static class CacheComparator implements Comparator<CacheObject> {
+        public int compare(CacheObject a, CacheObject b) {
+            int pa = a.getPos();
+            int pb = b.getPos();
             return pa == pb ? 0 : (pa < pb ? -1 : 1);
         }
     }

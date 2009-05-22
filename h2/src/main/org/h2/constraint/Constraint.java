@@ -22,7 +22,7 @@ import org.h2.table.Table;
 /**
  * The base class for constraint checking.
  */
-public abstract class Constraint extends SchemaObjectBase implements Comparable {
+public abstract class Constraint extends SchemaObjectBase implements Comparable<Constraint> {
 
     /**
      * The constraint type name for check constraints.
@@ -167,13 +167,12 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable 
         }
     }
 
-    public int compareTo(Object other) {
+    public int compareTo(Constraint other) {
         if (this == other) {
             return 0;
         }
-        Constraint otherConstraint = (Constraint) other;
         int thisType = getConstraintTypeOrder();
-        int otherType = otherConstraint.getConstraintTypeOrder();
+        int otherType = other.getConstraintTypeOrder();
         return thisType - otherType;
     }
 

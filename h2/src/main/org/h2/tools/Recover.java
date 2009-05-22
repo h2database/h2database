@@ -20,9 +20,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import org.h2.command.Parser;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -47,8 +45,8 @@ import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
-import org.h2.util.ObjectUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
@@ -72,8 +70,8 @@ public class Recover extends Tool implements DataHandler {
     private boolean trace;
     private boolean lobFilesInDirectories;
     private ObjectArray schema;
-    private HashSet objectIdSet;
-    private HashMap tableMap;
+    private HashSet<Integer> objectIdSet;
+    private HashMap<Integer, String> tableMap;
     private boolean remove;
 
     /**
@@ -149,12 +147,11 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void removePassword(String dir, String db) throws SQLException {
-        ArrayList list = FileLister.getDatabaseFiles(dir, db, true);
+        ArrayList<String> list = FileLister.getDatabaseFiles(dir, db, true);
         if (list.size() == 0) {
             printNoDatabaseFilesFound(dir, db);
         }
-        for (int i = 0; i < list.size(); i++) {
-            String fileName = (String) list.get(i);
+        for (String fileName : list) {
             if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
                 removePassword(fileName);
             }
@@ -303,12 +300,11 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void process(String dir, String db) throws SQLException {
-        ArrayList list = FileLister.getDatabaseFiles(dir, db, true);
+        ArrayList<String> list = FileLister.getDatabaseFiles(dir, db, true);
         if (list.size() == 0) {
             printNoDatabaseFilesFound(dir, db);
         }
-        for (int i = 0; i < list.size(); i++) {
-            String fileName = (String) list.get(i);
+        for (String fileName : list) {
             if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
                 dumpData(fileName);
             } else if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
@@ -1094,7 +1090,7 @@ public class Recover extends Tool implements DataHandler {
                 if (meta.getObjectType() == DbObject.TABLE_OR_VIEW) {
                     String sql = data[3].getString();
                     String name = extractTableOrViewName(sql);
-                    tableMap.put(ObjectUtils.getInteger(meta.getId()), name);
+                    tableMap.put(meta.getId(), name);
                 }
             } catch (Throwable t) {
                 writeError(writer, t);
@@ -1109,8 +1105,8 @@ public class Recover extends Tool implements DataHandler {
 
     private void resetSchema() {
         schema = new ObjectArray();
-        objectIdSet = new HashSet();
-        tableMap = new HashMap();
+        objectIdSet = New.hashSet();
+        tableMap = New.hashMap();
     }
 
     private void dumpData(String fileName, String outputName, int offset) {
@@ -1213,16 +1209,14 @@ public class Recover extends Tool implements DataHandler {
             MetaRecord m = (MetaRecord) schema.get(i);
             writer.println(m.getSQL() + ";");
         }
-        for (Iterator it = tableMap.entrySet().iterator(); it.hasNext();) {
-            Map.Entry entry = (Entry) it.next();
-            Integer objectId = (Integer) entry.getKey();
-            String name = (String) entry.getValue();
+        for (Map.Entry<Integer, String> entry : tableMap.entrySet()) {
+            Integer objectId = entry.getKey();
+            String name = entry.getValue();
             if (objectIdSet.contains(objectId)) {
                 writer.println("INSERT INTO " + name + " SELECT * FROM O_" + objectId + ";");
             }
         }
-        for (Iterator it = objectIdSet.iterator(); it.hasNext();) {
-            Integer objectId = (Integer) it.next();
+        for (Integer objectId : objectIdSet) {
             writer.println("DROP TABLE O_" + objectId + ";");
         }
         writer.println("DROP ALIAS READ_CLOB;");
@@ -1230,8 +1224,8 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void createTemporaryTable(PrintWriter writer) {
-        if (!objectIdSet.contains(ObjectUtils.getInteger(storageId))) {
-            objectIdSet.add(ObjectUtils.getInteger(storageId));
+        if (!objectIdSet.contains(storageId)) {
+            objectIdSet.add(storageId);
             StringBuffer sb = new StringBuffer();
             sb.append("CREATE TABLE O_" + storageName + "(");
             for (int i = 0; i < recordLength; i++) {

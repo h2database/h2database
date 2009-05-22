@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import org.h2.util.New;
 
 /**
  * The file system is a storage abstraction.
@@ -48,7 +49,7 @@ public abstract class FileSystem {
      */
     public static final String PREFIX_NIO_MAPPED = "nioMapped:";
 
-    private static final ArrayList SERVICES = new ArrayList();
+    private static final ArrayList<FileSystem> SERVICES = New.arrayList();
 
     /**
      * Get the file system object.
@@ -68,8 +69,7 @@ public abstract class FileSystem {
         } else if (fileName.startsWith(PREFIX_NIO_MAPPED)) {
             return FileSystemDiskNioMapped.getInstance();
         }
-        for (int i = 0; i < SERVICES.size(); i++) {
-            FileSystem fs = (FileSystem) SERVICES.get(i);
+        for (FileSystem fs : SERVICES) {
             if (fs.accepts(fileName)) {
                 return fs;
             }

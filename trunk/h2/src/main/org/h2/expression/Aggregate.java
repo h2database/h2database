@@ -24,6 +24,7 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
@@ -112,7 +113,7 @@ public class Aggregate extends Expression {
      */
     static final int SELECTIVITY = 13;
 
-    private static final HashMap AGGREGATES = new HashMap();
+    private static final HashMap<String, Integer> AGGREGATES = New.hashMap();
 
     private final int type;
     private final Select select;
@@ -179,7 +180,7 @@ public class Aggregate extends Expression {
      * @return -1 if no aggregate function has been found, or the aggregate type
      */
     public static int getAggregateType(String name) {
-        Integer type = (Integer) AGGREGATES.get(name);
+        Integer type = AGGREGATES.get(name);
         return type == null ? -1 : type.intValue();
     }
 
@@ -218,7 +219,7 @@ public class Aggregate extends Expression {
         // if(on != null) {
         // on.updateAggregate();
         // }
-        HashMap group = select.getCurrentGroup();
+        HashMap<Expression, Object> group = select.getCurrentGroup();
         if (group == null) {
             // this is a different level (the enclosing query)
             return;
@@ -281,7 +282,7 @@ public class Aggregate extends Expression {
                 Message.throwInternalError("type=" + type);
             }
         }
-        HashMap group = select.getCurrentGroup();
+        HashMap<Expression, Object> group = select.getCurrentGroup();
         if (group == null) {
             throw Message.getSQLException(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
@@ -298,11 +299,11 @@ public class Aggregate extends Expression {
             if (orderList != null) {
                 try {
                     final SortOrder sortOrder = sort;
-                    list.sort(new Comparator() {
-                        public int compare(Object o1, Object o2) {
+                    list.sort(new Comparator<ValueArray>() {
+                        public int compare(ValueArray v1, ValueArray v2) {
                             try {
-                                Value[] a1 = ((ValueArray) o1).getList();
-                                Value[] a2 = ((ValueArray) o2).getList();
+                                Value[] a1 = v1.getList();
+                                Value[] a2 = v2.getList();
                                 return sortOrder.compare(a1, a2);
                             } catch (SQLException e) {
                                 throw Message.convertToInternal(e);

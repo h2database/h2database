@@ -138,12 +138,12 @@ public class ChangeFileEncryption extends Tool {
 
         // first, test only if the file can be renamed
         // (to find errors with locked files early)
-        ArrayList files = FileLister.getDatabaseFiles(dir, db, false);
+        ArrayList<String> files = FileLister.getDatabaseFiles(dir, db, false);
         if (files.size() == 0 && !quiet) {
             printNoDatabaseFilesFound(dir, db);
         }
         for (int i = 0; i < files.size(); i++) {
-            String fileName = (String) files.get(i);
+            String fileName = files.get(i);
             String temp = dir + "/temp.db";
             FileUtils.delete(temp);
             FileUtils.rename(fileName, temp);
@@ -153,7 +153,7 @@ public class ChangeFileEncryption extends Tool {
         // TODO changeFileEncryption: this is a workaround!
         // make the operation atomic (all files or none)
         for (int i = 0; i < files.size(); i++) {
-            String fileName = (String) files.get(i);
+            String fileName = files.get(i);
             change.process(fileName);
         }
     }

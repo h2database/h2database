@@ -7,9 +7,9 @@
 package org.h2.engine;
 
 import java.util.HashMap;
-import java.util.Iterator;
 
 import org.h2.table.Table;
+import org.h2.util.New;
 
 /**
  * A right owner (sometimes called principal).
@@ -18,17 +18,13 @@ public abstract class RightOwner extends DbObjectBase {
 
     /**
      * The map of granted roles.
-     * The key is the role,
-     * and the value is the right.
      */
-    private HashMap grantedRoles;
+    private HashMap<Role, Right> grantedRoles;
 
     /**
      * The map of granted rights.
-     * The key is the table,
-     * and the value is the right.
      */
-    private HashMap grantedRights;
+    private HashMap<Table, Right> grantedRights;
 
     protected RightOwner(Database database, int id, String name, String traceModule) {
         initDbObjectBase(database, id, name, traceModule);
@@ -45,9 +41,7 @@ public abstract class RightOwner extends DbObjectBase {
             return true;
         }
         if (grantedRoles != null) {
-            Iterator it = grantedRoles.keySet().iterator();
-            while (it.hasNext()) {
-                Role role = (Role) it.next();
+            for (Role role : grantedRoles.keySet()) {
                 if (role == grantedRole) {
                     return true;
                 }
@@ -70,7 +64,7 @@ public abstract class RightOwner extends DbObjectBase {
     boolean isRightGrantedRecursive(Table table, int rightMask) {
         Right right;
         if (grantedRights != null) {
-            right = (Right) grantedRights.get(table);
+            right = grantedRights.get(table);
             if (right != null) {
                 if ((right.getRightMask() & rightMask) == rightMask) {
                     return true;
@@ -78,9 +72,7 @@ public abstract class RightOwner extends DbObjectBase {
             }
         }
         if (grantedRoles != null) {
-            Iterator it = grantedRoles.keySet().iterator();
-            while (it.hasNext()) {
-                RightOwner role = (RightOwner) it.next();
+            for (RightOwner role : grantedRoles.keySet()) {
                 if (role.isRightGrantedRecursive(table, rightMask)) {
                     return true;
                 }
@@ -98,7 +90,7 @@ public abstract class RightOwner extends DbObjectBase {
      */
     public void grantRight(Table table, Right right) {
         if (grantedRights == null) {
-            grantedRights = new HashMap();
+            grantedRights = New.hashMap();
         }
         grantedRights.put(table, right);
     }
@@ -126,7 +118,7 @@ public abstract class RightOwner extends DbObjectBase {
      */
     public void grantRole(Role role, Right right) {
         if (grantedRoles == null) {
-            grantedRoles = new HashMap();
+            grantedRoles = New.hashMap();
         }
         grantedRoles.put(role, right);
     }
@@ -141,7 +133,7 @@ public abstract class RightOwner extends DbObjectBase {
         if (grantedRoles == null) {
             return;
         }
-        Right right = (Right) grantedRoles.get(role);
+        Right right = grantedRoles.get(role);
         if (right == null) {
             return;
         }
@@ -161,7 +153,7 @@ public abstract class RightOwner extends DbObjectBase {
         if (grantedRights == null) {
             return null;
         }
-        return (Right) grantedRights.get(table);
+        return grantedRights.get(table);
     }
 
     /**
@@ -174,7 +166,7 @@ public abstract class RightOwner extends DbObjectBase {
         if (grantedRoles == null) {
             return null;
         }
-        return (Right) grantedRoles.get(role);
+        return grantedRoles.get(role);
     }
 
 }

@@ -34,6 +34,7 @@ import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.store.DataHandler;
 import org.h2.table.Table;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 import org.h2.value.Value;
@@ -72,9 +73,9 @@ public class Session extends SessionWithState {
     private int firstUncommittedPos = LogSystem.LOG_WRITTEN;
     private HashMap savepoints;
     private Exception stackTrace = new Exception();
-    private HashMap localTempTables;
-    private HashMap localTempTableIndexes;
-    private HashMap localTempTableConstraints;
+    private HashMap<String, Table> localTempTables;
+    private HashMap<String, Index> localTempTableIndexes;
+    private HashMap<String, Constraint> localTempTableConstraints;
     private int throttle;
     private long lastThrottle;
     private Command currentCommand;
@@ -242,9 +243,9 @@ public class Session extends SessionWithState {
         return (Index) localTempTableIndexes.get(name);
     }
 
-    public HashMap getLocalTempTableIndexes() {
+    public HashMap<String, Index> getLocalTempTableIndexes() {
         if (localTempTableIndexes == null) {
-            return new HashMap();
+            return New.hashMap();
         }
         return localTempTableIndexes;
     }
@@ -297,9 +298,9 @@ public class Session extends SessionWithState {
      *
      * @return the map of constraints, or null
      */
-    public HashMap getLocalTempTableConstraints() {
+    public HashMap<String, Constraint> getLocalTempTableConstraints() {
         if (localTempTableConstraints == null) {
-            return new HashMap();
+            return New.hashMap();
         }
         return localTempTableConstraints;
     }

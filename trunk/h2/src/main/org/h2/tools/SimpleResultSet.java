@@ -26,6 +26,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Map;
+import org.h2.util.New;
 
 /*## Java 1.6 begin ##
 import java.sql.NClob;
@@ -53,12 +54,12 @@ import java.sql.SQLXML;
  */
 public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 
-    private ArrayList rows;
+    private ArrayList<Object[]> rows;
     private Object[] currentRow;
     private int rowId = -1;
     private boolean wasNull;
     private SimpleRowSource source;
-    private ArrayList columns = new ArrayList();
+    private ArrayList<Column> columns = New.arrayList();
 
     /**
      * This class holds the data of a result column.
@@ -110,7 +111,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         /**
          * INTERNAL
          */
-        public Object getArray(Map map) throws SQLException {
+        public Object getArray(Map<String, Class< ? >> map) throws SQLException {
             throw getUnsupportedException();
         }
 
@@ -124,7 +125,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         /**
          * INTERNAL
          */
-        public Object getArray(long index, int count, Map map) throws SQLException {
+        public Object getArray(long index, int count, Map<String, Class< ? >> map) throws SQLException {
             throw getUnsupportedException();
         }
 
@@ -156,7 +157,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         /**
          * INTERNAL
          */
-        public ResultSet getResultSet(Map map) throws SQLException {
+        public ResultSet getResultSet(Map<String, Class< ? >> map) throws SQLException {
             throw getUnsupportedException();
         }
 
@@ -170,7 +171,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         /**
          * INTERNAL
          */
-        public ResultSet getResultSet(long index, int count, Map map) throws SQLException {
+        public ResultSet getResultSet(long index, int count, Map<String, Class< ? >> map) throws SQLException {
             throw getUnsupportedException();
         }
 
@@ -187,7 +188,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * This constructor is used if the result set is later populated with addRow.
      */
     public SimpleResultSet() {
-        rows = new ArrayList();
+        rows = New.arrayList();
     }
 
     /**
@@ -309,7 +310,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         } else if (rows != null && rowId < rows.size()) {
             rowId++;
             if (rowId < rows.size()) {
-                currentRow = (Object[]) rows.get(rowId);
+                currentRow = rows.get(rowId);
                 return true;
             }
         }
@@ -1450,7 +1451,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * INTERNAL
      */
-    public Object getObject(int i, Map map) throws SQLException {
+    public Object getObject(int i, Map<String, Class< ? >> map) throws SQLException {
         throw getUnsupportedException();
     }
 
@@ -1576,7 +1577,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * INTERNAL
      */
-    public Object getObject(String colName, Map map) throws SQLException {
+    public Object getObject(String colName, Map<String, Class< ? >> map) throws SQLException {
         throw getUnsupportedException();
     }
 
@@ -1626,7 +1627,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 
     private Column getColumn(int i) throws SQLException {
         checkColumnIndex(i);
-        return (Column) columns.get(i);
+        return columns.get(i);
     }
 
     /**

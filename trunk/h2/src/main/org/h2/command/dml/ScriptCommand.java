@@ -186,10 +186,8 @@ public class ScriptCommand extends ScriptBase {
             ObjectArray tables = db.getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
             // sort by id, so that views are after tables and views on views
             // after the base views
-            tables.sort(new Comparator() {
-                public int compare(Object o1, Object o2) {
-                    Table t1 = (Table) o1;
-                    Table t2 = (Table) o2;
+            tables.sort(new Comparator<Table>() {
+                public int compare(Table t1, Table t2) {
                     return t1.getId() - t2.getId();
                 }
             });
@@ -305,10 +303,8 @@ public class ScriptCommand extends ScriptBase {
                 tempLobTableCreated = false;
             }
             ObjectArray constraints = db.getAllSchemaObjects(DbObject.CONSTRAINT);
-            constraints.sort(new Comparator() {
-                public int compare(Object o1, Object o2) {
-                    Constraint c1 = (Constraint) o1;
-                    Constraint c2 = (Constraint) o2;
+            constraints.sort(new Comparator<Constraint>() {
+                public int compare(Constraint c1, Constraint c2) {
                     return c1.compareTo(c2);
                 }
             });

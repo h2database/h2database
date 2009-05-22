@@ -17,9 +17,9 @@ class CacheSecondLevel implements Cache {
 
     private final Cache baseCache;
     private final String prefix;
-    private final Map map;
+    private final Map<Integer, CacheObject> map;
 
-    CacheSecondLevel(Cache cache, String prefix, Map map) {
+    CacheSecondLevel(Cache cache, String prefix, Map<Integer, CacheObject> map) {
         this.baseCache = cache;
         this.prefix = prefix;
         this.map = map;
@@ -33,7 +33,7 @@ class CacheSecondLevel implements Cache {
     public CacheObject find(int pos) {
         CacheObject ret = baseCache.find(pos);
         if (ret == null) {
-            ret = (CacheObject) map.get(ObjectUtils.getInteger(pos));
+            ret = map.get(pos);
         }
         return ret;
     }
@@ -41,7 +41,7 @@ class CacheSecondLevel implements Cache {
     public CacheObject get(int pos) {
         CacheObject ret = baseCache.get(pos);
         if (ret == null) {
-            ret = (CacheObject) map.get(ObjectUtils.getInteger(pos));
+            ret = map.get(pos);
         }
         return ret;
     }
@@ -64,8 +64,7 @@ class CacheSecondLevel implements Cache {
 
     public void put(CacheObject r) throws SQLException {
         baseCache.put(r);
-        Integer pos = ObjectUtils.getInteger(r.getPos());
-        map.put(pos, r);
+        map.put(r.getPos(), r);
     }
 
     public void remove(int pos) {

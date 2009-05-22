@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.h2.command.Parser;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -152,7 +153,7 @@ public class DbContents {
             return new String[] { null };
         }
         ResultSet rs = meta.getSchemas();
-        ArrayList schemas = new ArrayList();
+        ArrayList<String> schemas = New.arrayList();
         while (rs.next()) {
             String schema = rs.getString(findColumn(rs, "TABLE_SCHEM", 1));
             if (schema == null) {

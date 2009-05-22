@@ -15,6 +15,7 @@ import java.util.ArrayList;
 
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
+import org.h2.util.New;
 
 /**
  * A file system that may split files into multiple smaller files.
@@ -155,7 +156,7 @@ public class FileSystemSplit extends FileSystem {
     public String[] listFiles(String directory) throws SQLException {
         directory = translateFileName(directory);
         String[] array = getFileSystem(directory).listFiles(directory);
-        ArrayList list = new ArrayList();
+        ArrayList<String> list = New.arrayList();
         for (int i = 0; i < array.length; i++) {
             String f = array[i];
             if (f.endsWith(PART_SUFFIX)) {
@@ -193,7 +194,7 @@ public class FileSystemSplit extends FileSystem {
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {
         fileName = translateFileName(fileName);
-        ArrayList list = new ArrayList();
+        ArrayList<FileObject> list = New.arrayList();
         FileObject o = getFileSystem(fileName).openFileObject(fileName, mode);
         list.add(o);
         for (int i = 1;; i++) {

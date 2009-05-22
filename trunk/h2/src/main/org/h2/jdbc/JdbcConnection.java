@@ -754,7 +754,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      * @throws SQLException
      *             if the connection is closed
      */
-    public Map getTypeMap() throws SQLException {
+    public Map<String, Class< ? >> getTypeMap() throws SQLException {
         try {
             debugCodeCall("getTypeMap");
             checkClosed();
@@ -768,7 +768,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      * [Partially supported] Sets the type map. This is only supported if the
      * map is empty or null.
      */
-    public void setTypeMap(Map map) throws SQLException {
+    public void setTypeMap(Map<String, Class< ? >> map) throws SQLException {
         try {
             debugCode("setTypeMap(" + quoteMap(map) + ");");
             checkMap(map);
@@ -1026,7 +1026,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         try {
             //## Java 1.4 begin ##
             // check for existence of this class (avoiding Class . forName)
-            Class clazz = java.sql.Savepoint.class;
+            Class< ? > clazz = java.sql.Savepoint.class;
             clazz.getClass();
             //## Java 1.4 end ##
         } catch (NoClassDefFoundError e) {
@@ -1578,7 +1578,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         return v;
     }
 
-    private void checkMap(Map map) throws SQLException {
+    private void checkMap(Map<String, Class< ? >> map) throws SQLException {
         if (map != null && map.size() > 0) {
             throw Message.getUnsupportedException("map.size > 0");
         }

@@ -90,7 +90,7 @@ public class Backup extends Tool {
     }
 
     private void process(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
-        ArrayList list = FileLister.getDatabaseFiles(directory, db, true);
+        ArrayList<String> list = FileLister.getDatabaseFiles(directory, db, true);
         if (list.size() == 0) {
             if (!quiet) {
                 printNoDatabaseFilesFound(directory, db);
@@ -107,13 +107,13 @@ public class Backup extends Tool {
             ZipOutputStream zipOut = new ZipOutputStream(fileOut);
             String base = "";
             for (int i = 0; i < list.size(); i++) {
-                String fileName = (String) list.get(i);
+                String fileName = list.get(i);
                 if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
                     base = FileUtils.getParent(fileName);
                 }
             }
             for (int i = 0; i < list.size(); i++) {
-                String fileName = (String) list.get(i);
+                String fileName = list.get(i);
                 String f = FileUtils.getAbsolutePath(fileName);
                 if (!f.startsWith(base)) {
                     Message.throwInternalError(f + " does not start with " + base);

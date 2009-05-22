@@ -15,7 +15,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +31,7 @@ import org.h2.message.TraceSystem;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
+import org.h2.util.New;
 import org.h2.util.Tool;
 
 /**
@@ -53,14 +53,14 @@ public class TcpServer implements Service {
     private static final int SHUTDOWN_NORMAL = 0;
     private static final int SHUTDOWN_FORCE = 1;
 
-    private static final Map SERVERS = Collections.synchronizedMap(new HashMap());
+    private static final Map<Integer, TcpServer> SERVERS = Collections.synchronizedMap(new HashMap<Integer, TcpServer>());
 
     private int port;
     private boolean trace;
     private boolean ssl;
     private boolean stop;
     private ServerSocket serverSocket;
-    private Set running = Collections.synchronizedSet(new HashSet());
+    private Set<TcpServerThread> running = Collections.synchronizedSet(new HashSet<TcpServerThread>());
     private String baseDir;
     private boolean allowOthers;
     private boolean ifExists;
@@ -100,7 +100,7 @@ public class TcpServer implements Service {
         } finally {
             JdbcUtils.closeSilently(stat);
         }
-        SERVERS.put("" + port, this);
+        SERVERS.put(port, this);
     }
 
     /**
@@ -266,7 +266,7 @@ public class TcpServer implements Service {
         // TODO server: share code between web and tcp servers
         // need to remove the server first, otherwise the connection is broken
         // while the server is still registered in this map
-        SERVERS.remove("" + port);
+        SERVERS.remove(port);
         if (!stop) {
             stopManagementDb();
             stop = true;
@@ -287,9 +287,7 @@ public class TcpServer implements Service {
             }
         }
         // TODO server: using a boolean 'now' argument? a timeout?
-        ArrayList list = new ArrayList(running);
-        for (int i = 0; i < list.size(); i++) {
-            TcpServerThread c = (TcpServerThread) list.get(i);
+        for (TcpServerThread c : New.arrayList(running)) {
             if (c != null) {
                 c.close();
                 try {
@@ -310,7 +308,7 @@ public class TcpServer implements Service {
      * @param shutdownMode the shutdown mode, SHUTDOWN_NORMAL or SHUTDOWN_FORCE.
      */
     public static void stopServer(int port, String password, int shutdownMode) {
-        TcpServer server = (TcpServer) SERVERS.get("" + port);
+        TcpServer server = SERVERS.get(port);
         if (server == null) {
             return;
         }
@@ -447,9 +445,7 @@ public class TcpServer implements Service {
      * @param statementId the statement id
      */
     void cancelStatement(String sessionId, int statementId) throws SQLException {
-        ArrayList list = new ArrayList(running);
-        for (int i = 0; i < list.size(); i++) {
-            TcpServerThread c = (TcpServerThread) list.get(i);
+        for (TcpServerThread c : New.arrayList(running)) {
             if (c != null) {
                 c.cancelStatement(sessionId, statementId);
             }

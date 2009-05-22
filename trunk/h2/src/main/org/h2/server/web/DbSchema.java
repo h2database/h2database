@@ -10,6 +10,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import org.h2.util.New;
 
 /**
  * Contains meta data information about a database schema.
@@ -67,7 +68,7 @@ public class DbSchema {
      */
     void readTables(DatabaseMetaData meta, String[] tableTypes) throws SQLException {
         ResultSet rs = meta.getTables(null, name, null, tableTypes);
-        ArrayList list = new ArrayList();
+        ArrayList<DbTableOrView> list = New.arrayList();
         while (rs.next()) {
             DbTableOrView table = new DbTableOrView(this, rs);
             if (contents.isOracle && table.name.indexOf('$') > 0) {

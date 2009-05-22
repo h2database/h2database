@@ -47,8 +47,8 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
-import org.h2.util.ObjectUtils;
 import org.h2.util.RandomUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -103,8 +103,8 @@ public class Function extends Expression implements FunctionCall {
     private static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
 
-    private static final HashMap FUNCTIONS = new HashMap();
-    private static final HashMap DATE_PART = new HashMap();
+    private static final HashMap<String, FunctionInfo> FUNCTIONS = New.hashMap();
+    private static final HashMap<String, Integer> DATE_PART = New.hashMap();
     private static final SimpleDateFormat FORMAT_DAYNAME = new SimpleDateFormat("EEEE", Locale.ENGLISH);
     private static final SimpleDateFormat FORMAT_MONTHNAME = new SimpleDateFormat("MMMM", Locale.ENGLISH);
     private static final char[] SOUNDEX_INDEX = new char[128];
@@ -120,31 +120,31 @@ public class Function extends Expression implements FunctionCall {
 
     static {
         // DATE_PART
-        DATE_PART.put("YEAR", ObjectUtils.getInteger(Calendar.YEAR));
-        DATE_PART.put("YYYY", ObjectUtils.getInteger(Calendar.YEAR));
-        DATE_PART.put("YY", ObjectUtils.getInteger(Calendar.YEAR));
-        DATE_PART.put("MONTH", ObjectUtils.getInteger(Calendar.MONTH));
-        DATE_PART.put("MM", ObjectUtils.getInteger(Calendar.MONTH));
-        DATE_PART.put("M", ObjectUtils.getInteger(Calendar.MONTH));
-        DATE_PART.put("WW", ObjectUtils.getInteger(Calendar.WEEK_OF_YEAR));
-        DATE_PART.put("WK", ObjectUtils.getInteger(Calendar.WEEK_OF_YEAR));
-        DATE_PART.put("DAY", ObjectUtils.getInteger(Calendar.DAY_OF_MONTH));
-        DATE_PART.put("DD", ObjectUtils.getInteger(Calendar.DAY_OF_MONTH));
-        DATE_PART.put("D", ObjectUtils.getInteger(Calendar.DAY_OF_MONTH));
-        DATE_PART.put("DAYOFYEAR", ObjectUtils.getInteger(Calendar.DAY_OF_YEAR));
-        DATE_PART.put("DAY_OF_YEAR", ObjectUtils.getInteger(Calendar.DAY_OF_YEAR));
-        DATE_PART.put("DY", ObjectUtils.getInteger(Calendar.DAY_OF_YEAR));
-        DATE_PART.put("DOY", ObjectUtils.getInteger(Calendar.DAY_OF_YEAR));
-        DATE_PART.put("HOUR", ObjectUtils.getInteger(Calendar.HOUR_OF_DAY));
-        DATE_PART.put("HH", ObjectUtils.getInteger(Calendar.HOUR_OF_DAY));
-        DATE_PART.put("MINUTE", ObjectUtils.getInteger(Calendar.MINUTE));
-        DATE_PART.put("MI", ObjectUtils.getInteger(Calendar.MINUTE));
-        DATE_PART.put("N", ObjectUtils.getInteger(Calendar.MINUTE));
-        DATE_PART.put("SECOND", ObjectUtils.getInteger(Calendar.SECOND));
-        DATE_PART.put("SS", ObjectUtils.getInteger(Calendar.SECOND));
-        DATE_PART.put("S", ObjectUtils.getInteger(Calendar.SECOND));
-        DATE_PART.put("MILLISECOND", ObjectUtils.getInteger(Calendar.MILLISECOND));
-        DATE_PART.put("MS", ObjectUtils.getInteger(Calendar.MILLISECOND));
+        DATE_PART.put("YEAR", Calendar.YEAR);
+        DATE_PART.put("YYYY", Calendar.YEAR);
+        DATE_PART.put("YY", Calendar.YEAR);
+        DATE_PART.put("MONTH", Calendar.MONTH);
+        DATE_PART.put("MM", Calendar.MONTH);
+        DATE_PART.put("M", Calendar.MONTH);
+        DATE_PART.put("WW", Calendar.WEEK_OF_YEAR);
+        DATE_PART.put("WK", Calendar.WEEK_OF_YEAR);
+        DATE_PART.put("DAY", Calendar.DAY_OF_MONTH);
+        DATE_PART.put("DD", Calendar.DAY_OF_MONTH);
+        DATE_PART.put("D", Calendar.DAY_OF_MONTH);
+        DATE_PART.put("DAYOFYEAR", Calendar.DAY_OF_YEAR);
+        DATE_PART.put("DAY_OF_YEAR", Calendar.DAY_OF_YEAR);
+        DATE_PART.put("DY", Calendar.DAY_OF_YEAR);
+        DATE_PART.put("DOY", Calendar.DAY_OF_YEAR);
+        DATE_PART.put("HOUR", Calendar.HOUR_OF_DAY);
+        DATE_PART.put("HH", Calendar.HOUR_OF_DAY);
+        DATE_PART.put("MINUTE", Calendar.MINUTE);
+        DATE_PART.put("MI", Calendar.MINUTE);
+        DATE_PART.put("N", Calendar.MINUTE);
+        DATE_PART.put("SECOND", Calendar.SECOND);
+        DATE_PART.put("SS", Calendar.SECOND);
+        DATE_PART.put("S", Calendar.SECOND);
+        DATE_PART.put("MILLISECOND", Calendar.MILLISECOND);
+        DATE_PART.put("MS", Calendar.MILLISECOND);
 
         // SOUNDEX_INDEX
         String index = "7AEIOUY8HW1BFPV2CGJKQSXZ3DT4L5MN6R";
@@ -366,7 +366,7 @@ public class Function extends Expression implements FunctionCall {
      * @return the function info
      */
     public static FunctionInfo getFunctionInfo(String name) {
-        return (FunctionInfo) FUNCTIONS.get(name);
+        return FUNCTIONS.get(name);
     }
 
     /**
@@ -1210,12 +1210,12 @@ public class Function extends Expression implements FunctionCall {
      * @return true if it is
      */
     public static boolean isDatePart(String part) {
-        Integer p = (Integer) DATE_PART.get(StringUtils.toUpperEnglish(part));
+        Integer p = DATE_PART.get(StringUtils.toUpperEnglish(part));
         return p != null;
     }
 
     private static int getDatePart(String part) throws SQLException {
-        Integer p = (Integer) DATE_PART.get(StringUtils.toUpperEnglish(part));
+        Integer p = DATE_PART.get(StringUtils.toUpperEnglish(part));
         if (p == null) {
             throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[] { "date part", part });
         }

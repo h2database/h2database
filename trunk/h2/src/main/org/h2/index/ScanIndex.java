@@ -22,8 +22,8 @@ import org.h2.store.Storage;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
-import org.h2.util.ObjectUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
 
@@ -39,14 +39,14 @@ public class ScanIndex extends BaseIndex implements RowIndex {
     private Storage storage;
     private TableData tableData;
     private int rowCountDiff;
-    private HashMap sessionRowCount;
-    private HashSet delta;
+    private HashMap<Integer, Integer> sessionRowCount;
+    private HashSet<Row> delta;
     private long rowCount;
 
     public ScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType) {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
         if (database.isMultiVersion()) {
-            sessionRowCount = new HashMap();
+            sessionRowCount = New.hashMap();
         }
         tableData = table;
         if (!database.isPersistent() || id < 0 || !indexType.getPersistent()) {
@@ -133,7 +133,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
         }
         if (database.isMultiVersion()) {
             if (delta == null) {
-                delta = new HashSet();
+                delta = New.hashSet();
             }
             boolean wasDeleted = delta.remove(row);
             if (!wasDeleted) {
@@ -155,10 +155,10 @@ public class ScanIndex extends BaseIndex implements RowIndex {
 
     private void incrementRowCount(int sessionId, int count) {
         if (database.isMultiVersion()) {
-            Integer id = ObjectUtils.getInteger(sessionId);
-            Integer c = (Integer) sessionRowCount.get(id);
+            Integer id = sessionId;
+            Integer c = sessionRowCount.get(id);
             int current = c == null ? 0 : c.intValue();
-            sessionRowCount.put(id, ObjectUtils.getInteger(current + count));
+            sessionRowCount.put(id, current + count);
             rowCountDiff += count;
         }
     }
@@ -191,7 +191,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
             // if storage is null, the delete flag is not yet set
             row.setDeleted(true);
             if (delta == null) {
-                delta = new HashSet();
+                delta = New.hashSet();
             }
             boolean wasAdded = delta.remove(row);
             if (!wasAdded) {
@@ -216,7 +216,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
 
     public long getRowCount(Session session) {
         if (database.isMultiVersion()) {
-            Integer i = (Integer) sessionRowCount.get(ObjectUtils.getInteger(session.getId()));
+            Integer i = sessionRowCount.get(session.getId());
             long count = i == null ? 0 : i.intValue();
             count += rowCount;
             count -= rowCountDiff;
@@ -279,7 +279,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
         throw Message.getUnsupportedException("SCAN");
     }
 
-    public Iterator getDelta() {
+    public Iterator<Row> getDelta() {
         return delta == null ? Collections.EMPTY_LIST.iterator() : delta.iterator();
     }
 

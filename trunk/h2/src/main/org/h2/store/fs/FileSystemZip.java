@@ -17,6 +17,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.h2.message.Message;
+import org.h2.util.New;
 
 /**
  * This is a read-only file system that allows
@@ -121,9 +122,9 @@ public class FileSystemZip extends FileSystem {
                 return true;
             }
             ZipFile file = openZipFile(fileName);
-            Enumeration en = file.entries();
+            Enumeration< ? extends ZipEntry> en = file.entries();
             while (en.hasMoreElements()) {
-                ZipEntry entry = (ZipEntry) en.nextElement();
+                ZipEntry entry = en.nextElement();
                 String n = entry.getName();
                 if (n.equals(entryName)) {
                     return entry.isDirectory();
@@ -166,10 +167,10 @@ public class FileSystemZip extends FileSystem {
             ZipFile file = openZipFile(path);
             String dirName = getEntryName(path);
             String prefix = path.substring(0, path.length() - dirName.length());
-            Enumeration en = file.entries();
-            ArrayList list = new ArrayList();
+            Enumeration< ? extends ZipEntry> en = file.entries();
+            ArrayList<String> list = New.arrayList();
             while (en.hasMoreElements()) {
-                ZipEntry entry = (ZipEntry) en.nextElement();
+                ZipEntry entry = en.nextElement();
                 String name = entry.getName();
                 if (!name.startsWith(dirName)) {
                     continue;

@@ -19,7 +19,7 @@ import java.util.zip.ZipInputStream;
  */
 public class Resources {
 
-    private static final HashMap FILES = new HashMap();
+    private static final HashMap<String, byte[]> FILES = New.hashMap();
 
     private Resources() {
         // utility class
@@ -74,7 +74,7 @@ public class Resources {
                 data = IOUtils.readBytesAndClose(in, 0);
             }
         } else {
-            data = (byte[]) FILES.get(name);
+            data = FILES.get(name);
         }
         return data == null ? new byte[0] : data;
     }

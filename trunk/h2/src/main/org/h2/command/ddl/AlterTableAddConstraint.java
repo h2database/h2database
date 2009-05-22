@@ -27,6 +27,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 
 /**
@@ -315,7 +316,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         if (indexCols.length > cols.length) {
             return false;
         }
-        HashSet set = new HashSet();
+        HashSet<Column> set = New.hashSet();
         for (int i = 0; i < cols.length; i++) {
             set.add(cols[i].column);
         }

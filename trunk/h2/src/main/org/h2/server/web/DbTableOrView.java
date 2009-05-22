@@ -10,6 +10,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import org.h2.util.New;
 
 /**
  * Contains meta data information about a table or a view.
@@ -57,7 +58,7 @@ public class DbTableOrView {
      */
     void readColumns(DatabaseMetaData meta) throws SQLException {
         ResultSet rs = meta.getColumns(null, schema.name, name, null);
-        ArrayList list = new ArrayList();
+        ArrayList<DbColumn> list = New.arrayList();
         while (rs.next()) {
             DbColumn column = new DbColumn(rs);
             list.add(column);

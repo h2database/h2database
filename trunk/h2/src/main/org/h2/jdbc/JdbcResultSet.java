@@ -41,6 +41,7 @@ import org.h2.result.UpdatableRow;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.New;
 import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -87,8 +88,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     private boolean wasNull;
     private Value[] insertRow;
     private Value[] updateRow;
-    private HashMap columnLabelMap;
-    private HashMap patchedRows;
+    private HashMap<String, Integer> columnLabelMap;
+    private HashMap<Integer, Value[]> patchedRows;
 
     JdbcResultSet(JdbcConnection conn, JdbcStatement stat, ResultInterface result, int id,
                 boolean closeStatement, boolean scrollable) {
@@ -767,7 +768,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * [Not supported] Gets a column as a object using the specified type
      * mapping.
      */
-    public Object getObject(int columnIndex, Map map) throws SQLException {
+    public Object getObject(int columnIndex, Map<String, Class< ? >> map) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getObject(" + columnIndex + ", map);");
@@ -782,7 +783,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * [Not supported] Gets a column as a object using the specified type
      * mapping.
      */
-    public Object getObject(String columnLabel, Map map) throws SQLException {
+    public Object getObject(String columnLabel, Map<String, Class< ? >> map) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getObject(" + quote(columnLabel) + ", map);");
@@ -2923,7 +2924,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         }
         if (columnCount >= SysProperties.MIN_COLUMN_NAME_MAP) {
             if (columnLabelMap == null) {
-                HashMap map = new HashMap(columnCount);
+                HashMap<String, Integer> map = New.hashMap(columnCount);
                 // first column names
                 for (int i = 0; i < columnCount; i++) {
                     String colName = result.getColumnName(i);
@@ -2946,7 +2947,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 // assign at the end so concurrent access is supported
                 columnLabelMap = map;
             }
-            Integer index = (Integer) columnLabelMap.get(StringUtils.toUpperEnglish(columnLabel));
+            Integer index = columnLabelMap.get(StringUtils.toUpperEnglish(columnLabel));
             if (index == null) {
                 throw Message.getSQLException(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel);
             }
@@ -3013,7 +3014,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         if (patchedRows == null) {
             list = result.currentRow();
         } else {
-            list = (Value[]) patchedRows.get(ObjectUtils.getInteger(result.getRowId()));
+            list = patchedRows.get(result.getRowId());
             if (list == null) {
                 list = result.currentRow();
             }
@@ -3519,7 +3520,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             }
         }
         if (patchedRows == null) {
-            patchedRows = new HashMap();
+            patchedRows = New.hashMap();
         }
         Integer rowId = ObjectUtils.getInteger(result.getRowId());
         if (!changed) {

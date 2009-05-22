@@ -104,7 +104,7 @@ public class RuleFixed implements Rule {
         return this;
     }
 
-    public void setLinks(HashMap ruleMap) {
+    public void setLinks(HashMap<String, RuleHead> ruleMap) {
         // nothing to do
     }
 

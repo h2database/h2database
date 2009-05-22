@@ -29,6 +29,7 @@ import org.h2.message.Message;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.New;
 import org.h2.util.StringCache;
 
 /**
@@ -295,7 +296,7 @@ public class Csv implements SimpleRowSource {
     }
 
     private void readHeader() throws IOException {
-        ArrayList list = new ArrayList();
+        ArrayList<String> list = New.arrayList();
         while (true) {
             String v = readValue();
             if (v == null) {

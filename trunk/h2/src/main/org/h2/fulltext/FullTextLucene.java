@@ -39,6 +39,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileSystem;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 //## Java 1.4 end ##
 
@@ -54,7 +55,7 @@ public class FullTextLucene extends FullText {
     static final boolean STORE_DOCUMENT_TEXT_IN_INDEX = Boolean.getBoolean("h2.storeDocumentTextInIndex");
 
     //## Java 1.4 begin ##
-    private static final HashMap INDEX_MODIFIERS = new HashMap();
+    private static final HashMap<String, IndexModifier> INDEX_MODIFIERS = New.hashMap();
     private static final String TRIGGER_PREFIX = "FTL_";
     private static final String SCHEMA = "FTL";
     private static final String FIELD_DATA = "DATA";
@@ -241,7 +242,7 @@ public class FullTextLucene extends FullText {
         String path = getIndexPath(conn);
         IndexModifier indexer;
         synchronized (INDEX_MODIFIERS) {
-            indexer = (IndexModifier) INDEX_MODIFIERS.get(path);
+            indexer = INDEX_MODIFIERS.get(path);
             if (indexer == null) {
                 try {
                     boolean recreate = !IndexReader.indexExists(path);
@@ -292,7 +293,7 @@ public class FullTextLucene extends FullText {
 
     private static void removeIndexFiles(Connection conn) throws SQLException {
         String path = getIndexPath(conn);
-        IndexModifier index = (IndexModifier) INDEX_MODIFIERS.get(path);
+        IndexModifier index = INDEX_MODIFIERS.get(path);
         if (index != null) {
             removeIndexModifier(index, path);
         }
@@ -401,13 +402,13 @@ public class FullTextLucene extends FullText {
             this.table = tableName;
             this.indexPath = getIndexPath(conn);
             this.indexModifier = getIndexModifier(conn);
-            ArrayList keyList = new ArrayList();
+            ArrayList<String> keyList = New.arrayList();
             DatabaseMetaData meta = conn.getMetaData();
             ResultSet rs = meta.getColumns(null,
                     JdbcUtils.escapeMetaDataPattern(schemaName),
                     JdbcUtils.escapeMetaDataPattern(tableName),
                     null);
-            ArrayList columnList = new ArrayList();
+            ArrayList<String> columnList = New.arrayList();
             while (rs.next()) {
                 columnList.add(rs.getString("COLUMN_NAME"));
             }
@@ -432,7 +433,7 @@ public class FullTextLucene extends FullText {
             if (keyList.size() == 0) {
                 throw new SQLException("No primary key for table " + tableName);
             }
-            ArrayList indexList = new ArrayList();
+            ArrayList<String> indexList = New.arrayList();
             PreparedStatement prep = conn.prepareStatement(
                     "SELECT COLUMNS FROM " + SCHEMA
                     + ".INDEXES WHERE SCHEMA=? AND TABLE=?");

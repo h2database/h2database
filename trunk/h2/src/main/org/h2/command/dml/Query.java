@@ -23,6 +23,7 @@ import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
+import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
@@ -92,7 +93,7 @@ public abstract class Query extends Prepared {
      *
      * @return the set of tables
      */
-    public abstract HashSet getTables();
+    public abstract HashSet<Table> getTables();
 
     /**
      * Set the order by list.

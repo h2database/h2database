@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import org.h2.util.New;
 import org.h2.util.ObjectUtils;
 
 /**
@@ -21,11 +22,11 @@ import org.h2.util.ObjectUtils;
  */
 class FullTextSettings {
 
-    private static final HashMap SETTINGS = new HashMap();
+    private static final HashMap<String, FullTextSettings> SETTINGS = New.hashMap();
 
-    private HashSet ignoreList = new HashSet();
-    private HashMap words = new HashMap();
-    private HashMap indexes = new HashMap();
+    private HashSet<String> ignoreList = New.hashSet();
+    private HashMap<String, Integer> words = New.hashMap();
+    private HashMap<Integer, IndexInfo> indexes = New.hashMap();
     private PreparedStatement prepSelectMapByWordId;
     private PreparedStatement prepSelectRowById;
 
@@ -33,11 +34,11 @@ class FullTextSettings {
         // don't allow construction
     }
 
-    HashSet getIgnoreList() {
+    HashSet<String> getIgnoreList() {
         return ignoreList;
     }
 
-    HashMap getWordList() {
+    HashMap<String, Integer> getWordList() {
         return words;
     }
 
@@ -47,8 +48,8 @@ class FullTextSettings {
      * @param indexId the index id
      * @return the index info
      */
-    IndexInfo getIndexInfo(long indexId) {
-        return (IndexInfo) indexes.get(ObjectUtils.getLong(indexId));
+    IndexInfo getIndexInfo(int indexId) {
+        return indexes.get(indexId);
     }
 
     /**
@@ -57,7 +58,7 @@ class FullTextSettings {
      * @param index the index
      */
     void addIndexInfo(IndexInfo index) {
-        indexes.put(ObjectUtils.getLong(index.id), index);
+        indexes.put(index.id, index);
     }
 
     /**
@@ -84,7 +85,7 @@ class FullTextSettings {
      */
     static FullTextSettings getInstance(Connection conn) throws SQLException {
         String path = getIndexPath(conn);
-        FullTextSettings setting = (FullTextSettings) SETTINGS.get(path);
+        FullTextSettings setting = SETTINGS.get(path);
         if (setting == null) {
             setting = new FullTextSettings();
             SETTINGS.put(path, setting);

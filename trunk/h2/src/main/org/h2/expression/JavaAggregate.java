@@ -140,7 +140,7 @@ public class JavaAggregate extends Expression {
     }
 
     public Value getValue(Session session) throws SQLException {
-        HashMap group = select.getCurrentGroup();
+        HashMap<Expression, Object> group = select.getCurrentGroup();
         if (group == null) {
             throw Message.getSQLException(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
@@ -156,7 +156,7 @@ public class JavaAggregate extends Expression {
     }
 
     public void updateAggregate(Session session) throws SQLException {
-        HashMap group = select.getCurrentGroup();
+        HashMap<Expression, Object> group = select.getCurrentGroup();
         if (group == null) {
             // this is a different level (the enclosing query)
             return;

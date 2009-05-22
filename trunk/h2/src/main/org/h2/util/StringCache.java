@@ -18,7 +18,7 @@ import org.h2.constant.SysProperties;
 public class StringCache {
 
     private static final boolean ENABLED = true;
-    private static SoftReference softCache = new SoftReference(null);
+    private static SoftReference<String[]> softCache = new SoftReference<String[]>(null);
 
     private StringCache() {
         // utility class
@@ -99,7 +99,7 @@ public class StringCache {
         // a workaround is disable the system property org.apache.
         // catalina.loader.WebappClassLoader.ENABLE_CLEAR_REFERENCES
         if (softCache != null) {
-            cache = (String[]) softCache.get();
+            cache = softCache.get();
             if (cache != null) {
                 return cache;
             }
@@ -109,7 +109,7 @@ public class StringCache {
         } catch (OutOfMemoryError e) {
             return null;
         }
-        softCache = new SoftReference(cache);
+        softCache = new SoftReference<String[]>(cache);
         return cache;
     }
 
@@ -117,7 +117,7 @@ public class StringCache {
      * Clear the cache. This method is used for testing.
      */
     public static void clearCache() {
-        softCache = new SoftReference(null);
+        softCache = new SoftReference<String[]>(null);
     }
 
 }

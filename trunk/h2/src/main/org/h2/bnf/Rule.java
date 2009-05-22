@@ -41,7 +41,7 @@ public interface Rule {
      *
      * @param ruleMap the reference map
      */
-    void setLinks(HashMap ruleMap);
+    void setLinks(HashMap<String, RuleHead> ruleMap);
 
     /**
      * Add the next possible token for a query.

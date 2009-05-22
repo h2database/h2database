@@ -17,6 +17,7 @@ import java.util.StringTokenizer;
 import org.h2.message.Message;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 
@@ -28,20 +29,19 @@ import org.h2.util.Tool;
  */
 public class ConvertTraceFile extends Tool {
 
-    private HashMap stats = new HashMap();
+    private HashMap<String, Stat> stats = New.hashMap();
     private long timeTotal;
 
     /**
      * This class holds statistics about a SQL statement.
      */
-    static class Stat implements Comparable {
+    static class Stat implements Comparable<Stat> {
         String sql;
         int executeCount;
         long time;
         long resultCount;
 
-        public int compareTo(Object o) {
-            Stat other = (Stat) o;
+        public int compareTo(Stat other) {
             if (other == this) {
                 return 0;
             }
@@ -175,13 +175,13 @@ public class ConvertTraceFile extends Tool {
             scriptWriter.println("-----------------------------------------");
             scriptWriter.println("-- self accu    time   count  result sql");
             int accumTime = 0;
-            ArrayList list = new ArrayList(stats.values());
+            ArrayList<Stat> list = New.arrayList(stats.values());
             Collections.sort(list);
             if (timeTotal == 0) {
                 timeTotal = 1;
             }
             for (int i = 0; i < list.size(); i++) {
-                Stat stat = (Stat) list.get(i);
+                Stat stat = list.get(i);
                 StringBuffer buff = new StringBuffer(100);
                 buff.append("-- ");
                 buff.append(padNumberLeft(100 * stat.time / timeTotal, 3));
@@ -205,7 +205,7 @@ public class ConvertTraceFile extends Tool {
     }
 
     private void addToStats(String sql, int resultCount, int time) {
-        Stat stat = (Stat) stats.get(sql);
+        Stat stat = stats.get(sql);
         if (stat == null) {
             stat = new Stat();
             stat.sql = sql;

@@ -21,7 +21,7 @@ public class ScanCursor implements Cursor {
     private Row row;
     private final Session session;
     private final boolean multiVersion;
-    private Iterator delta;
+    private Iterator<Row> delta;
 
     ScanCursor(Session session, ScanIndex scan, boolean multiVersion) {
         this.session = session;
@@ -54,7 +54,7 @@ public class ScanCursor implements Cursor {
                         row = null;
                         continue;
                     }
-                    row = (Row) delta.next();
+                    row = delta.next();
                     if (!row.getDeleted() || row.getSessionId() == session.getId()) {
                         continue;
                     }

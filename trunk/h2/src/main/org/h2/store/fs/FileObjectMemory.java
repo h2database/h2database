@@ -28,7 +28,7 @@ public class FileObjectMemory implements FileObject {
     private static byte[] cachedCompressedEmptyBlock;
 
 //## Java 1.4 begin ##
-    private static final Cache COMPRESS_LATER = new Cache(CACHE_SIZE);
+    private static final Cache<CompressItem, CompressItem> COMPRESS_LATER = new Cache<CompressItem, CompressItem>(CACHE_SIZE);
 //## Java 1.4 end ##
 
     private String name;
@@ -42,7 +42,7 @@ public class FileObjectMemory implements FileObject {
      * This small cache compresses the data if an element leaves the cache.
      */
 //## Java 1.4 begin ##
-    static class Cache extends LinkedHashMap {
+    static class Cache<K, V> extends LinkedHashMap<K, V> {
         private static final long serialVersionUID = 5549197956072850355L;
         private int size;
 
@@ -51,7 +51,7 @@ public class FileObjectMemory implements FileObject {
             this.size = size;
         }
 
-        protected boolean removeEldestEntry(Map.Entry eldest) {
+        protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
             if (size() < size) {
                 return false;
             }

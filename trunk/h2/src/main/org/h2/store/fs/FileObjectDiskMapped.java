@@ -62,7 +62,7 @@ public class FileObjectDiskMapped implements FileObject {
                 useSystemGc = true;
             }
             if (useSystemGc) {
-                WeakReference bufferWeakRef = new WeakReference(mapped);
+                WeakReference<MappedByteBuffer> bufferWeakRef = new WeakReference<MappedByteBuffer>(mapped);
                 mapped = null;
                 long start = System.currentTimeMillis();
                 while (bufferWeakRef.get() != null) {

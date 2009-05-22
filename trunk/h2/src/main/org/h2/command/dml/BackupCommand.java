@@ -96,11 +96,10 @@ public class BackupCommand extends Prepared {
                     }
                     String prefix = db.getDatabasePath();
                     String dir = FileUtils.getParent(prefix);
-                    ArrayList fileList = FileLister.getDatabaseFiles(dir, name, true);
-                    for (int i = 0; i < fileList.size(); i++) {
-                        fn = (String) fileList.get(i);
-                        if (fn.endsWith(Constants.SUFFIX_LOB_FILE)) {
-                            backupFile(out, base, fn);
+                    ArrayList<String> fileList = FileLister.getDatabaseFiles(dir, name, true);
+                    for (String n : fileList) {
+                        if (n.endsWith(Constants.SUFFIX_LOB_FILE)) {
+                            backupFile(out, base, n);
                         }
                     }
                 }

@@ -67,7 +67,7 @@ public class JdbcConnectionPool implements DataSource {
     private static final int DEFAULT_TIMEOUT = 5 * 60;
 
     private final ConnectionPoolDataSource dataSource;
-    private final Stack recycledConnections = new Stack();
+    private final Stack<PooledConnection> recycledConnections = new Stack<PooledConnection>();
     private final PoolConnectionEventListener poolConnectionEventListener = new PoolConnectionEventListener();
     private PrintWriter logWriter;
     private int maxConnections = 10;
@@ -167,7 +167,7 @@ public class JdbcConnectionPool implements DataSource {
         isDisposed = true;
         SQLException e = null;
         while (!recycledConnections.isEmpty()) {
-            PooledConnection pc = (PooledConnection) recycledConnections.pop();
+            PooledConnection pc = recycledConnections.pop();
             try {
                 pc.close();
             } catch (SQLException e2) {
@@ -218,7 +218,7 @@ public class JdbcConnectionPool implements DataSource {
         }
         PooledConnection pc;
         if (!recycledConnections.empty()) {
-            pc = (PooledConnection) recycledConnections.pop();
+            pc = recycledConnections.pop();
         } else {
             pc = dataSource.getPooledConnection();
         }

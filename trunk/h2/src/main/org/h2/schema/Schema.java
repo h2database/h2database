@@ -24,6 +24,7 @@ import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.table.TableLink;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 
 /**
@@ -35,19 +36,19 @@ public class Schema extends DbObjectBase {
     private User owner;
     private boolean system;
 
-    private HashMap tablesAndViews = new HashMap();
-    private HashMap indexes = new HashMap();
-    private HashMap sequences = new HashMap();
-    private HashMap triggers = new HashMap();
-    private HashMap constraints = new HashMap();
-    private HashMap constants = new HashMap();
+    private HashMap<String, Table> tablesAndViews = New.hashMap();
+    private HashMap<String, Index> indexes = New.hashMap();
+    private HashMap<String, Sequence> sequences = New.hashMap();
+    private HashMap<String, TriggerObject> triggers = New.hashMap();
+    private HashMap<String, Constraint> constraints = New.hashMap();
+    private HashMap<String, Constant> constants = New.hashMap();
 
     /**
      * The set of returned unique names that are not yet stored. It is used to
      * avoid returning the same unique name twice when multiple threads
      * concurrently create objects.
      */
-    private HashSet temporaryUniqueNames = new HashSet();
+    private HashSet<String> temporaryUniqueNames = New.hashSet();
 
     /**
      * Create a new schema object.
@@ -141,23 +142,32 @@ public class Schema extends DbObjectBase {
         return owner;
     }
 
-    private HashMap getMap(int type) {
+    @SuppressWarnings("unchecked")
+    private HashMap<String, SchemaObject> getMap(int type) {
+        HashMap<String, ? extends SchemaObject> result;
         switch (type) {
         case DbObject.TABLE_OR_VIEW:
-            return tablesAndViews;
+            result = tablesAndViews;
+            break;
         case DbObject.SEQUENCE:
-            return sequences;
+            result = sequences;
+            break;
         case DbObject.INDEX:
-            return indexes;
+            result = indexes;
+            break;
         case DbObject.TRIGGER:
-            return triggers;
+            result = triggers;
+            break;
         case DbObject.CONSTRAINT:
-            return constraints;
+            result = constraints;
+            break;
         case DbObject.CONSTANT:
-            return constants;
+            result = constants;
+            break;
         default:
             throw Message.throwInternalError("type=" + type);
         }
+        return (HashMap<String, SchemaObject>) result;
     }
 
     /**
@@ -170,7 +180,7 @@ public class Schema extends DbObjectBase {
             Message.throwInternalError("wrong schema");
         }
         String name = obj.getName();
-        HashMap map = getMap(obj.getType());
+        HashMap<String, SchemaObject> map = getMap(obj.getType());
         if (SysProperties.CHECK && map.get(name) != null) {
             Message.throwInternalError("object already exists");
         }
@@ -186,7 +196,7 @@ public class Schema extends DbObjectBase {
      */
     public void rename(SchemaObject obj, String newName) throws SQLException {
         int type = obj.getType();
-        HashMap map = getMap(type);
+        HashMap<String, SchemaObject> map = getMap(type);
         if (SysProperties.CHECK) {
             if (!map.containsKey(obj.getName())) {
                 Message.throwInternalError("not found: " + obj.getName());
@@ -213,7 +223,7 @@ public class Schema extends DbObjectBase {
      * @return the object or null
      */
     public Table findTableOrView(Session session, String name) {
-        Table table = (Table) tablesAndViews.get(name);
+        Table table = tablesAndViews.get(name);
         if (table == null && session != null) {
             table = session.findLocalTempTable(name);
         }
@@ -229,7 +239,7 @@ public class Schema extends DbObjectBase {
      * @return the object or null
      */
     public Index findIndex(Session session, String name) {
-        Index index = (Index) indexes.get(name);
+        Index index = indexes.get(name);
         if (index == null) {
             index = session.findLocalTempTableIndex(name);
         }
@@ -244,7 +254,7 @@ public class Schema extends DbObjectBase {
      * @return the object or null
      */
     public TriggerObject findTrigger(String name) {
-        return (TriggerObject) triggers.get(name);
+        return triggers.get(name);
     }
 
     /**
@@ -255,7 +265,7 @@ public class Schema extends DbObjectBase {
      * @return the object or null
      */
     public Sequence findSequence(String sequenceName) {
-        return (Sequence) sequences.get(sequenceName);
+        return sequences.get(sequenceName);
     }
 
     /**
@@ -267,7 +277,7 @@ public class Schema extends DbObjectBase {
      * @return the object or null
      */
     public Constraint findConstraint(Session session, String name) {
-        Constraint constraint = (Constraint) constraints.get(name);
+        Constraint constraint = constraints.get(name);
         if (constraint == null) {
             constraint = session.findLocalTempTableConstraint(name);
         }
@@ -282,7 +292,7 @@ public class Schema extends DbObjectBase {
      * @return the object or null
      */
     public Constant findConstant(String constantName) {
-        return (Constant) constants.get(constantName);
+        return constants.get(constantName);
     }
 
     /**
@@ -298,7 +308,7 @@ public class Schema extends DbObjectBase {
         }
     }
 
-    private String getUniqueName(DbObject obj, HashMap map, String prefix) {
+    private String getUniqueName(DbObject obj, HashMap<String, ? extends SchemaObject> map, String prefix) {
         String hash = Integer.toHexString(obj.getName().hashCode()).toUpperCase();
         String name = null;
         synchronized (temporaryUniqueNames) {
@@ -331,7 +341,7 @@ public class Schema extends DbObjectBase {
      * @return the unique name
      */
     public String getUniqueConstraintName(Session session, Table table) {
-        HashMap tableConstraints;
+        HashMap<String, Constraint> tableConstraints;
         if (table.getTemporary() && !table.getGlobalTemporary()) {
             tableConstraints = session.getLocalTempTableConstraints();
         } else {
@@ -349,7 +359,7 @@ public class Schema extends DbObjectBase {
      * @return the unique name
      */
     public String getUniqueIndexName(Session session, Table table, String prefix) {
-        HashMap tableIndexes;
+        HashMap<String, Index> tableIndexes;
         if (table.getTemporary() && !table.getGlobalTemporary()) {
             tableIndexes = session.getLocalTempTableIndexes();
         } else {
@@ -368,7 +378,7 @@ public class Schema extends DbObjectBase {
      * @throws SQLException if no such object exists
      */
     public Table getTableOrView(Session session, String name) throws SQLException {
-        Table table = (Table) tablesAndViews.get(name);
+        Table table = tablesAndViews.get(name);
         if (table == null && session != null) {
             table = session.findLocalTempTable(name);
         }
@@ -386,7 +396,7 @@ public class Schema extends DbObjectBase {
      * @throws SQLException if no such object exists
      */
     public Index getIndex(String name) throws SQLException {
-        Index index = (Index) indexes.get(name);
+        Index index = indexes.get(name);
         if (index == null) {
             throw Message.getSQLException(ErrorCode.INDEX_NOT_FOUND_1, name);
         }
@@ -401,7 +411,7 @@ public class Schema extends DbObjectBase {
      * @throws SQLException if no such object exists
      */
     public Constraint getConstraint(String name) throws SQLException {
-        Constraint constraint = (Constraint) constraints.get(name);
+        Constraint constraint = constraints.get(name);
         if (constraint == null) {
             throw Message.getSQLException(ErrorCode.CONSTRAINT_NOT_FOUND_1, name);
         }
@@ -416,7 +426,7 @@ public class Schema extends DbObjectBase {
      * @throws SQLException if no such object exists
      */
     public Constant getConstant(String constantName) throws SQLException {
-        Constant constant = (Constant) constants.get(constantName);
+        Constant constant = constants.get(constantName);
         if (constant == null) {
             throw Message.getSQLException(ErrorCode.CONSTANT_NOT_FOUND_1, constantName);
         }
@@ -431,7 +441,7 @@ public class Schema extends DbObjectBase {
      * @throws SQLException if no such object exists
      */
     public Sequence getSequence(String sequenceName) throws SQLException {
-        Sequence sequence = (Sequence) sequences.get(sequenceName);
+        Sequence sequence = sequences.get(sequenceName);
         if (sequence == null) {
             throw Message.getSQLException(ErrorCode.SEQUENCE_NOT_FOUND_1, sequenceName);
         }
@@ -445,7 +455,7 @@ public class Schema extends DbObjectBase {
      * @return a  (possible empty) list of all objects
      */
     public ObjectArray getAll(int type) {
-        HashMap map = getMap(type);
+        HashMap<String, SchemaObject> map = getMap(type);
         return new ObjectArray(map.values());
     }
 
@@ -456,7 +466,7 @@ public class Schema extends DbObjectBase {
      */
     public void remove(SchemaObject obj) {
         String objName = obj.getName();
-        HashMap map = getMap(obj.getType());
+        HashMap<String, SchemaObject> map = getMap(obj.getType());
         if (SysProperties.CHECK && !map.containsKey(objName)) {
             Message.throwInternalError("not found: " + objName);
         }

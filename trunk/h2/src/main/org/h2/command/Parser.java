@@ -127,6 +127,7 @@ import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.ByteUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringCache;
 import org.h2.util.StringUtils;
@@ -742,7 +743,7 @@ public class Parser {
 
     private Column[] parseColumnList(Table table) throws SQLException {
         ObjectArray columns = new ObjectArray();
-        HashSet set = new HashSet();
+        HashSet<Column> set = New.hashSet();
         if (!readIf(")")) {
             do {
                 Column column = table.getColumn(readColumnIdentifier());

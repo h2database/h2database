@@ -138,7 +138,7 @@ public class ExpressionColumn extends Expression {
         if (select == null) {
             throw Message.getSQLException(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
         }
-        HashMap values = select.getCurrentGroup();
+        HashMap<Expression, Object> values = select.getCurrentGroup();
         if (values == null) {
             // this is a different level (the enclosing query)
             return;
@@ -159,7 +159,7 @@ public class ExpressionColumn extends Expression {
         // usage of non-grouped by columns without aggregate function
         Select select = resolver.getSelect();
         if (select != null) {
-            HashMap values = select.getCurrentGroup();
+            HashMap<Expression, Object> values = select.getCurrentGroup();
             if (values != null) {
                 Value v = (Value) values.get(this);
                 if (v != null) {

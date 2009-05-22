@@ -48,10 +48,8 @@ public class MetaRecord {
      * @param records the list of meta records
      */
     public static void sort(ObjectArray records) {
-        records.sort(new Comparator() {
-            public int compare(Object o1, Object o2) {
-                MetaRecord m1 = (MetaRecord) o1;
-                MetaRecord m2 = (MetaRecord) o2;
+        records.sort(new Comparator<MetaRecord>() {
+            public int compare(MetaRecord m1, MetaRecord m2) {
                 int c1 = DbObjectBase.getCreateOrder(m1.getObjectType());
                 int c2 = DbObjectBase.getCreateOrder(m2.getObjectType());
                 if (c1 != c2) {

@@ -7,6 +7,7 @@
 package org.h2.command.dml;
 
 import java.util.ArrayList;
+import org.h2.util.New;
 
 /**
  * The list of setting for a SET statement.
@@ -193,14 +194,14 @@ public class SetTypes {
      */
     public static final int QUERY_TIMEOUT = 36;
 
-    private static final ArrayList TYPES = new ArrayList();
+    private static final ArrayList<String> TYPES = New.arrayList();
 
     private SetTypes() {
         // utility class
     }
 
     static {
-        ArrayList list = TYPES;
+        ArrayList<String> list = TYPES;
         list.add(null);
         list.add(IGNORECASE, "IGNORECASE");
         list.add(MAX_LOG_SIZE, "MAX_LOG_SIZE");
@@ -255,7 +256,7 @@ public class SetTypes {
         return -1;
     }
 
-    public static ArrayList getTypes() {
+    public static ArrayList<String> getTypes() {
         return TYPES;
     }
 
@@ -266,7 +267,7 @@ public class SetTypes {
      * @return the name
      */
     public static String getTypeName(int type) {
-        return (String) getTypes().get(type);
+        return getTypes().get(type);
     }
 
 }

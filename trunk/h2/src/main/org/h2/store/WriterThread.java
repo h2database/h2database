@@ -32,7 +32,7 @@ public class WriterThread implements Runnable {
      * the database object cannot get reclaimed
      * by the garbage collector if we use a hard reference.
      */
-    private volatile WeakReference databaseRef;
+    private volatile WeakReference<Database> databaseRef;
 
     private int writeDelay;
     private long lastIndexFlush;
@@ -41,7 +41,7 @@ public class WriterThread implements Runnable {
     private String oldLogFile;
 
     private WriterThread(Database database, int writeDelay) {
-        this.databaseRef = new WeakReference(database);
+        this.databaseRef = new WeakReference<Database>(database);
         this.writeDelay = writeDelay;
     }
 
@@ -78,7 +78,7 @@ public class WriterThread implements Runnable {
     }
 
     private LogSystem getLog() {
-        Database database = (Database) databaseRef.get();
+        Database database = databaseRef.get();
         if (database == null) {
             return null;
         }
@@ -108,7 +108,7 @@ public class WriterThread implements Runnable {
                     }
                 }
             }
-            Database database = (Database) databaseRef.get();
+            Database database = databaseRef.get();
             if (database == null) {
                 break;
             }

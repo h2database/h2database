@@ -31,7 +31,7 @@ public class RuleRepeat implements Rule {
         return this;
     }
 
-    public void setLinks(HashMap ruleMap) {
+    public void setLinks(HashMap<String, RuleHead> ruleMap) {
         // rule.setLinks(ruleMap);
     }
 

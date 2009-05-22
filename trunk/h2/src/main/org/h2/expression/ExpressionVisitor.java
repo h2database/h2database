@@ -68,7 +68,7 @@ public class ExpressionVisitor {
     private int type;
     private long maxDataModificationId;
     private ColumnResolver resolver;
-    private HashSet dependencies;
+    private HashSet<DbObject> dependencies;
 
     private ExpressionVisitor(int type) {
         this.type = type;
@@ -100,7 +100,7 @@ public class ExpressionVisitor {
      *
      * @return the set
      */
-    public HashSet getDependencies() {
+    public HashSet<DbObject> getDependencies() {
         return dependencies;
     }
 
@@ -110,7 +110,7 @@ public class ExpressionVisitor {
      *
      * @param dependencies the dependency set
      */
-    public void setDependencies(HashSet dependencies) {
+    public void setDependencies(HashSet<DbObject> dependencies) {
         this.dependencies = dependencies;
     }
 

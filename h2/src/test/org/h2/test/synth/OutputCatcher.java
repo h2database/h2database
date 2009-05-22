@@ -17,7 +17,7 @@ import org.h2.util.IOUtils;
  */
 class OutputCatcher extends Thread {
     private InputStream in;
-    private LinkedList list = new LinkedList();
+    private LinkedList<String> list = new LinkedList<String>();
 
     OutputCatcher(InputStream in) {
         this.in = in;
@@ -34,7 +34,7 @@ class OutputCatcher extends Thread {
         while (true) {
             synchronized (list) {
                 if (list.size() > 0) {
-                    return (String) list.removeFirst();
+                    return list.removeFirst();
                 }
                 try {
                     list.wait(wait);

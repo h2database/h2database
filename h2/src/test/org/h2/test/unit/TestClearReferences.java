@@ -11,6 +11,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import org.h2.test.TestBase;
+import org.h2.util.New;
 
 /**
  * Tests if Tomcat would clear static fields when re-loading a web application.
@@ -46,10 +47,9 @@ public class TestClearReferences extends TestBase {
 
     public void test() throws Exception {
         String baseDir = "bin/org/h2";
-        ArrayList classes = new ArrayList();
+        ArrayList<Class < ? >> classes = New.arrayList();
         check(classes, new File(baseDir));
-        for (int i = 0; i < classes.size(); i++) {
-            Class clazz = (Class) classes.get(i);
+        for (Class< ? > clazz : classes) {
             clearClass(clazz);
         }
         if (hasError) {
@@ -57,7 +57,7 @@ public class TestClearReferences extends TestBase {
         }
     }
 
-    private void check(ArrayList classes, File file) {
+    private void check(ArrayList<Class < ? >> classes, File file) {
         String name = file.getName();
         if (file.isDirectory()) {
             if (name.equals("CVS") || name.equals(".svn")) {
@@ -79,7 +79,7 @@ public class TestClearReferences extends TestBase {
             }
             className = className.replace('/', '.');
             className = className.substring(0, className.length() - ".class".length());
-            Class clazz = null;
+            Class< ? > clazz = null;
             try {
                 clazz = Class.forName(className);
             } catch (ClassNotFoundException e) {
@@ -96,7 +96,7 @@ public class TestClearReferences extends TestBase {
      *
      * @param clazz the class to clear
      */
-    private void clearClass(Class clazz) throws Exception {
+    private void clearClass(Class< ? > clazz) throws Exception {
         Field[] fields = clazz.getDeclaredFields();
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];

@@ -63,7 +63,7 @@ public class TestSampleApps extends TestBase {
                 "Deletes all files belonging to a database.*");
     }
 
-    private void testApp(Class clazz, String[] args, String expected) throws Exception {
+    private void testApp(Class< ? > clazz, String[] args, String expected) throws Exception {
         DeleteDbFiles.execute("data", "test", true);
         Method m = clazz.getMethod("main", new Class[] { String[].class });
         PrintStream oldOut = System.out, oldErr = System.err;

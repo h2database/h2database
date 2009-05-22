@@ -20,6 +20,7 @@ import org.h2.test.TestBase;
 import org.h2.test.unit.SelfDestructor;
 import org.h2.tools.Backup;
 import org.h2.util.FileUtils;
+import org.h2.util.New;
 
 /**
  * Standalone recovery test. A new process is started and then killed while it
@@ -31,8 +32,8 @@ public class TestKillRestartMulti extends TestBase {
     private String url;
     private String user = "sa";
     private String password = "sa";
-    private ArrayList connections = new ArrayList();
-    private ArrayList tables = new ArrayList();
+    private ArrayList<Connection> connections = New.arrayList();
+    private ArrayList<String> tables = New.arrayList();
     private int openCount;
 
     public void test() throws Exception {
@@ -164,7 +165,7 @@ public class TestKillRestartMulti extends TestBase {
                 } else if ((p -= 1) <= 0) {
                     // 1%: close connection
                     if (connections.size() > 1) {
-                        Connection conn = (Connection) connections.remove(random.nextInt(connections.size()));
+                        Connection conn = connections.remove(random.nextInt(connections.size()));
                         if (random.nextBoolean()) {
                             conn.close();
                         }
@@ -175,9 +176,9 @@ public class TestKillRestartMulti extends TestBase {
                 } else if ((p -= 20) <= 0) {
                     // 20% large insert, delete, or update
                     if (tables.size() > 0) {
-                        Connection conn = (Connection) connections.get(random.nextInt(connections.size()));
+                        Connection conn = connections.get(random.nextInt(connections.size()));
                         Statement stat = conn.createStatement();
-                        String table = (String) tables.get(random.nextInt(tables.size()));
+                        String table = tables.get(random.nextInt(tables.size()));
                         if (random.nextBoolean()) {
                             // 10% insert
                             stat.execute("INSERT INTO " + table + "(NAME) SELECT 'Hello ' || X FROM SYSTEM_RANGE(0, 20)");
@@ -192,9 +193,9 @@ public class TestKillRestartMulti extends TestBase {
                 } else if ((p -= 5) < 0) {
                     // 5% truncate or drop table
                     if (tables.size() > 0) {
-                        Connection conn = (Connection) connections.get(random.nextInt(connections.size()));
+                        Connection conn = connections.get(random.nextInt(connections.size()));
                         Statement stat = conn.createStatement();
-                        String table = (String) tables.get(random.nextInt(tables.size()));
+                        String table = tables.get(random.nextInt(tables.size()));
                         if (random.nextBoolean()) {
                             stat.execute("TRUNCATE TABLE " + table);
                         } else {
@@ -206,17 +207,17 @@ public class TestKillRestartMulti extends TestBase {
                 } else if ((p -= 30) <= 0) {
                     // 30% insert
                     if (tables.size() > 0) {
-                        Connection conn = (Connection) connections.get(random.nextInt(connections.size()));
+                        Connection conn = connections.get(random.nextInt(connections.size()));
                         Statement stat = conn.createStatement();
-                        String table = (String) tables.get(random.nextInt(tables.size()));
+                        String table = tables.get(random.nextInt(tables.size()));
                         stat.execute("INSERT INTO " + table + "(NAME) VALUES('Hello World')");
                     }
                 } else {
                     // 32% delete
                     if (tables.size() > 0) {
-                        Connection conn = (Connection) connections.get(random.nextInt(connections.size()));
+                        Connection conn = connections.get(random.nextInt(connections.size()));
                         Statement stat = conn.createStatement();
-                        String table = (String) tables.get(random.nextInt(tables.size()));
+                        String table = tables.get(random.nextInt(tables.size()));
                         stat.execute("DELETE FROM " + table + " WHERE ID = SELECT MIN(ID) FROM " + table);
                     }
                 }
@@ -239,7 +240,7 @@ public class TestKillRestartMulti extends TestBase {
     }
 
     private void createTable(Random random) throws SQLException {
-        Connection conn = (Connection) connections.get(random.nextInt(connections.size()));
+        Connection conn = connections.get(random.nextInt(connections.size()));
         Statement stat = conn.createStatement();
         String table = "TEST" + random.nextInt(10);
         try {

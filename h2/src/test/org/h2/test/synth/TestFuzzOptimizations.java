@@ -8,6 +8,7 @@ package org.h2.test.synth;
 
 import java.sql.Connection;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
@@ -61,9 +62,9 @@ public class TestFuzzOptimizations extends TestBase {
             sql += "=?) ORDER BY 1, 2";
             int v = random.nextInt(3);
             SysProperties.optimizeInJoin = false;
-            List a = db.prepare(sql).set(v).query();
+            List<Map<String, Object>> a = db.prepare(sql).set(v).query();
             SysProperties.optimizeInJoin = true;
-            List b = db.prepare(sql).set(v).query();
+            List<Map<String, Object>> b = db.prepare(sql).set(v).query();
             assertTrue(a.equals(b));
         }
         db.execute("DROP TABLE TEST");
@@ -117,8 +118,8 @@ public class TestFuzzOptimizations extends TestBase {
                     group += new String[] { "A", "B", "C" }[random.nextInt(3)];
                 }
                 group += " ORDER BY 1, 2, 3";
-                List a = db.query(x + "TEST" + group);
-                List b = db.query(x + "TEST_INDEXED" + group);
+                List<Map<String, Object>> a = db.query(x + "TEST" + group);
+                List<Map<String, Object>> b = db.query(x + "TEST_INDEXED" + group);
                 assertEquals(a.toString(), b.toString());
                 assertTrue(a.equals(b));
             }

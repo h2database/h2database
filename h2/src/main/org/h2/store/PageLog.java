@@ -108,7 +108,7 @@ public class PageLog {
      *
      * @return the log id
      */
-    int openForReading() throws SQLException {
+    int openForReading() {
         in = new DataInputStream(new PageInputStream(store, 0, firstPage, Page.TYPE_LOG));
         try {
             id = in.readInt();

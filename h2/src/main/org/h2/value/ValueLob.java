@@ -308,7 +308,7 @@ public class ValueLob extends Value {
     }
 
     private void invalidateFileList(DataHandler handler, String dir) {
-        SmallLRUCache cache = handler.getLobFileListCache();
+        SmallLRUCache<String, String[]> cache = handler.getLobFileListCache();
         if (cache != null) {
             synchronized (cache) {
                 cache.remove(dir);
@@ -317,13 +317,13 @@ public class ValueLob extends Value {
     }
 
     private String[] getFileList(DataHandler handler, String dir) throws SQLException {
-        SmallLRUCache cache = handler.getLobFileListCache();
+        SmallLRUCache<String, String[]> cache = handler.getLobFileListCache();
         String[] list;
         if (cache == null) {
             list = FileUtils.listFiles(dir);
         } else {
             synchronized (cache) {
-                list = (String[]) cache.get(dir);
+                list = cache.get(dir);
                 if (list == null) {
                     list = FileUtils.listFiles(dir);
                     cache.put(dir, list);

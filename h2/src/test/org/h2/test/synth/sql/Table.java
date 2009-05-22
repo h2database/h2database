@@ -7,6 +7,7 @@
 package org.h2.test.synth.sql;
 
 import java.util.ArrayList;
+import org.h2.util.New;
 
 /**
  * Represents a table.
@@ -18,7 +19,7 @@ class Table {
     private boolean globalTemporary;
     private Column[] columns;
     private Column[] primaryKeys;
-    private ArrayList indexes = new ArrayList();
+    private ArrayList<Index> indexes = New.arrayList();
 
     Table(TestSynth config) {
         this.config = config;
@@ -177,7 +178,7 @@ class Table {
      * @return the column
      */
     Column getRandomConditionColumn() {
-        ArrayList list = new ArrayList();
+        ArrayList<Column> list = New.arrayList();
         for (int i = 0; i < columns.length; i++) {
             if (Column.isConditionType(config, columns[i].getType())) {
                 list.add(columns[i]);
@@ -186,7 +187,7 @@ class Table {
         if (list.size() == 0) {
             return null;
         }
-        return (Column) list.get(config.random().getInt(list.size()));
+        return list.get(config.random().getInt(list.size()));
     }
 
     Column getRandomColumn() {
@@ -204,7 +205,7 @@ class Table {
      * @return the column or null if no such column was found
      */
     Column getRandomColumnOfType(int type) {
-        ArrayList list = new ArrayList();
+        ArrayList<Column> list = New.arrayList();
         for (int i = 0; i < columns.length; i++) {
             if (columns[i].getType() == type) {
                 list.add(columns[i]);
@@ -213,7 +214,7 @@ class Table {
         if (list.size() == 0) {
             return null;
         }
-        return (Column) list.get(config.random().getInt(list.size()));
+        return list.get(config.random().getInt(list.size()));
     }
 
     /**

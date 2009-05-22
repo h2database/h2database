@@ -12,6 +12,7 @@ import java.util.HashMap;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 
@@ -21,7 +22,7 @@ import org.h2.util.ObjectUtils;
  */
 public class Plan {
     private final TableFilter[] filters;
-    private final HashMap planItems = new HashMap();
+    private final HashMap<TableFilter, PlanItem> planItems = New.hashMap();
     private final Expression[] allConditions;
     private final TableFilter[] allFilters;
 
@@ -63,7 +64,7 @@ public class Plan {
      * @return the plan item
      */
     public PlanItem getItem(TableFilter filter) {
-        return (PlanItem) planItems.get(filter);
+        return planItems.get(filter);
     }
 
     /**

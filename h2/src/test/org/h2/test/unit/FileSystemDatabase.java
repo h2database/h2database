@@ -28,6 +28,7 @@ import org.h2.store.fs.FileObjectOutputStream;
 import org.h2.store.fs.FileSystem;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -37,7 +38,7 @@ public class FileSystemDatabase extends FileSystem {
 
     private Connection conn;
     private String url;
-    private HashMap preparedMap = new HashMap();
+    private HashMap<String, PreparedStatement> preparedMap = New.hashMap();
     private boolean log;
 
     private FileSystemDatabase(String url, Connection conn, boolean log) throws SQLException {
@@ -158,7 +159,7 @@ public class FileSystemDatabase extends FileSystem {
     }
 
     private PreparedStatement prepare(String sql) throws SQLException {
-        PreparedStatement prep = (PreparedStatement) preparedMap.get(sql);
+        PreparedStatement prep = preparedMap.get(sql);
         if (prep == null) {
             prep = conn.prepareStatement(sql);
             preparedMap.put(sql, prep);
@@ -350,7 +351,7 @@ public class FileSystemDatabase extends FileSystem {
             PreparedStatement prep = prepare("SELECT NAME FROM FILES WHERE PARENTID=? ORDER BY NAME");
             prep.setLong(1, id);
             ResultSet rs = prep.executeQuery();
-            ArrayList list = new ArrayList();
+            ArrayList<String> list = New.arrayList();
             while (rs.next()) {
                 list.add(name + rs.getString(1));
             }

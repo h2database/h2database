@@ -9,7 +9,6 @@ package org.h2.table;
 import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.h2.api.DatabaseEventListener;
@@ -39,6 +38,7 @@ import org.h2.store.DataPage;
 import org.h2.store.Record;
 import org.h2.store.RecordReader;
 import org.h2.util.MathUtils;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -54,7 +54,7 @@ public class TableData extends Table implements RecordReader {
     private RowIndex scanIndex;
     private long rowCount;
     private Session lockExclusive;
-    private HashSet lockShared = new HashSet();
+    private HashSet<Session> lockShared = New.hashSet();
     private Trace traceLock;
     private boolean globalTemporary;
     private final ObjectArray indexes = new ObjectArray();
@@ -265,10 +265,8 @@ public class TableData extends Table implements RecordReader {
     private void addRowsToIndex(Session session, ObjectArray list, Index index) throws SQLException {
         final Index idx = index;
         try {
-            list.sort(new Comparator() {
-                public int compare(Object o1, Object o2) {
-                    Row r1 = (Row) o1;
-                    Row r2 = (Row) o2;
+            list.sort(new Comparator<Row>() {
+                public int compare(Row r1, Row r2) {
                     try {
                         return idx.compareRows(r1, r2);
                     } catch (SQLException e) {
@@ -488,13 +486,13 @@ public class TableData extends Table implements RecordReader {
         return buff.toString();
     }
 
-    public ObjectArray checkDeadlock(Session session, Session clash, Set visited) {
+    public ObjectArray checkDeadlock(Session session, Session clash, Set<Session> visited) {
         // only one deadlock check at any given time
         synchronized (TableData.class) {
             if (clash == null) {
                 // verification is started
                 clash = session;
-                visited = new HashSet();
+                visited = New.hashSet();
             } else if (clash == session) {
                 // we found a circle where this session is involved
                 return new ObjectArray();
@@ -506,8 +504,7 @@ public class TableData extends Table implements RecordReader {
             }
             visited.add(session);
             ObjectArray error = null;
-            for (Iterator it = lockShared.iterator(); it.hasNext();) {
-                Session s = (Session) it.next();
+            for (Session s : lockShared) {
                 if (s == session) {
                     // it doesn't matter if we have locked the object already
                     continue;

@@ -106,18 +106,18 @@ public class TestLob extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT, DATA CLOB)");
         stat.execute("INSERT INTO TEST SELECT X, SPACE(10000) FROM SYSTEM_RANGE(1, 10)");
-        ArrayList list = FileLister.getDatabaseFiles(baseDir, "lob", true);
+        ArrayList<String> list = FileLister.getDatabaseFiles(baseDir, "lob", true);
         stat.execute("UPDATE TEST SET DATA = SPACE(5000)");
         collectAndWait();
         stat.execute("CHECKPOINT");
-        ArrayList list2 = FileLister.getDatabaseFiles(baseDir, "lob", true);
+        ArrayList<String> list2 = FileLister.getDatabaseFiles(baseDir, "lob", true);
         if (list2.size() >= list.size() + 5) {
             fail("Expected not many more files, got " + list2.size() + " was " + list.size());
         }
         stat.execute("DELETE FROM TEST");
         collectAndWait();
         stat.execute("CHECKPOINT");
-        ArrayList list3 = FileLister.getDatabaseFiles(baseDir, "lob", true);
+        ArrayList<String> list3 = FileLister.getDatabaseFiles(baseDir, "lob", true);
         if (list3.size() >= list.size()) {
             fail("Expected less files, got " + list2.size() + " was " + list.size());
         }

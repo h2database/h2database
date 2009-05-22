@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -212,7 +213,7 @@ class Parser {
                     read("[");
                     read("]");
                     read("{");
-                    ArrayList values = new ArrayList();
+                    ArrayList<Object> values = New.arrayList();
                     do {
                         values.add(parseValue().getValue());
                     } while (readIf(","));
@@ -254,7 +255,7 @@ class Parser {
 
     private void parseCall(String objectName, Object o, String methodName) {
         stat.setMethodCall(objectName, o, methodName);
-        ArrayList args = new ArrayList();
+        ArrayList<Arg> args = New.arrayList();
         read("(");
         while (true) {
             if (readIf(")")) {

@@ -17,7 +17,7 @@ import org.h2.message.Message;
  * A simple hash table with an optimization for the last recently used object.
  */
 public class SmallMap {
-    private HashMap map = new HashMap();
+    private HashMap<Integer, Object> map = New.hashMap();
     private Object cache;
     private int cacheId;
     private int lastId;
@@ -42,9 +42,9 @@ public class SmallMap {
      */
     public int addObject(int id, Object o) {
         if (map.size() > maxElements * 2) {
-            Iterator it = map.keySet().iterator();
+            Iterator<Integer> it = map.keySet().iterator();
             while (it.hasNext()) {
-                Integer k = (Integer) it.next();
+                Integer k = it.next();
                 if (k.intValue() + maxElements < lastId) {
                     it.remove();
                 }

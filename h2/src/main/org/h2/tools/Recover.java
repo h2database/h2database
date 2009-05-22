@@ -1391,7 +1391,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public SmallLRUCache getLobFileListCache() {
+    public SmallLRUCache<String, String[]> getLobFileListCache() {
         return null;
     }
 

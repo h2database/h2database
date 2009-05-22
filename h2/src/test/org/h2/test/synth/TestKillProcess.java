@@ -48,7 +48,7 @@ public class TestKillProcess {
             for (int i = 0;; i++) {
                 long t = System.currentTimeMillis();
                 if (t > time + 1000) {
-                    ArrayList list = FileLister.getDatabaseFiles(baseDir, "kill", true);
+                    ArrayList<String> list = FileLister.getDatabaseFiles(baseDir, "kill", true);
                     System.out.println("inserting... i:" + i + " d:" + d + " files:" + list.size());
                     time = t;
                 }

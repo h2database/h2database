@@ -16,7 +16,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.Collator;
-import java.util.ArrayList;
 import java.util.Locale;
 
 import org.h2.command.Command;
@@ -888,9 +887,7 @@ public class MetaTable extends Table {
             break;
         }
         case TYPE_INFO: {
-            ArrayList types = DataType.getTypes();
-            for (int i = 0; i < types.size(); i++) {
-                DataType t = (DataType) types.get(i);
+            for (DataType t : DataType.getTypes()) {
                 if (t.hidden || t.sqlType == Value.NULL) {
                     continue;
                 }
@@ -1132,9 +1129,9 @@ public class MetaTable extends Table {
                 FunctionAlias.JavaMethod[] methods = alias.getJavaMethods();
                 for (int j = 0; j < methods.length; j++) {
                     FunctionAlias.JavaMethod method = methods[j];
-                    Class[] columns = method.getColumnClasses();
+                    Class< ? >[] columns = method.getColumnClasses();
                     for (int k = 0; k < columns.length; k++) {
-                        Class clazz = columns[k];
+                        Class< ? > clazz = columns[k];
                         int type = DataType.getTypeFromClass(clazz);
                         DataType dt = DataType.getDataType(type);
                         int nullable = clazz.isPrimitive() ? DatabaseMetaData.columnNoNulls

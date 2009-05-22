@@ -10,7 +10,6 @@ import java.lang.ref.PhantomReference;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
@@ -20,8 +19,8 @@ import org.h2.message.Message;
  */
 public class TempFileDeleter {
 
-    private final ReferenceQueue queue = new ReferenceQueue();
-    private final HashMap refMap = new HashMap();
+    private final ReferenceQueue<Object> queue = new ReferenceQueue<Object>();
+    private final HashMap<PhantomReference< ? >, TempFile> refMap = New.hashMap();
 
     private TempFileDeleter() {
         // utility class
@@ -55,9 +54,9 @@ public class TempFileDeleter {
      * @param file the object to monitor
      * @return the reference that can be used to stop deleting the file
      */
-    public synchronized Reference addFile(String fileName, Object file) {
+    public synchronized Reference< ? > addFile(String fileName, Object file) {
         FileUtils.trace("TempFileDeleter.addFile", fileName, file);
-        PhantomReference ref = new PhantomReference(file, queue);
+        PhantomReference< ? > ref = new PhantomReference<Object>(file, queue);
         TempFile f = new TempFile();
         f.fileName = fileName;
         f.lastModified = FileUtils.getLastModified(fileName);
@@ -73,8 +72,8 @@ public class TempFileDeleter {
      *
      * @param ref the reference
      */
-    public synchronized void updateAutoDelete(Reference ref) {
-        TempFile f2 = (TempFile) refMap.get(ref);
+    public synchronized void updateAutoDelete(Reference< ? > ref) {
+        TempFile f2 = refMap.get(ref);
         if (f2 != null) {
             String fileName = f2.fileName;
             long mod = FileUtils.getLastModified(fileName);
@@ -88,9 +87,9 @@ public class TempFileDeleter {
      * @param ref the reference as returned by addFile
      * @param fileName the file name
      */
-    public synchronized void deleteFile(Reference ref, String fileName) {
+    public synchronized void deleteFile(Reference< ? > ref, String fileName) {
         if (ref != null) {
-            TempFile f2 = (TempFile) refMap.remove(ref);
+            TempFile f2 = refMap.remove(ref);
             if (f2 != null) {
                 if (SysProperties.CHECK && fileName != null && !f2.fileName.equals(fileName)) {
                     Message.throwInternalError("f2:" + f2.fileName + " f:" + fileName);
@@ -118,9 +117,7 @@ public class TempFileDeleter {
      * Delete all registered temp files.
      */
     public void deleteAll() {
-        Iterator it = refMap.values().iterator();
-        while (it.hasNext()) {
-            TempFile tempFile = (TempFile) it.next();
+        for (TempFile tempFile : refMap.values()) {
             deleteFile(null, tempFile.fileName);
         }
         deleteUnused();
@@ -131,7 +128,7 @@ public class TempFileDeleter {
      */
     public void deleteUnused() {
         while (queue != null) {
-            Reference ref = queue.poll();
+            Reference< ? extends Object> ref = queue.poll();
             if (ref == null) {
                 break;
             }
@@ -146,10 +143,10 @@ public class TempFileDeleter {
      * @param ref the reference as returned by addFile
      * @param fileName the file name
      */
-    public void stopAutoDelete(Reference ref, String fileName) {
+    public void stopAutoDelete(Reference< ? > ref, String fileName) {
         FileUtils.trace("TempFileDeleter.stopAutoDelete", fileName, ref);
         if (ref != null) {
-            TempFile f2 = (TempFile) refMap.remove(ref);
+            TempFile f2 = refMap.remove(ref);
             if (SysProperties.CHECK && (f2 == null || !f2.fileName.equals(fileName))) {
                 Message.throwInternalError("f2:" + f2 + " " + (f2 == null ? "" : f2.fileName) + " f:" + fileName);
             }

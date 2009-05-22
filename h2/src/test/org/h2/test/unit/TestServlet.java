@@ -24,6 +24,7 @@ import javax.servlet.ServletContextEvent;
 
 import org.h2.server.web.DbStarter;
 import org.h2.test.TestBase;
+import org.h2.util.New;
 
 /**
  * Tests the DbStarter servlet.
@@ -47,7 +48,7 @@ public class TestServlet extends TestBase {
     static class TestServletContext implements ServletContext {
 
         private Properties initParams = new Properties();
-        private HashMap attributes = new HashMap();
+        private HashMap<String, Object> attributes = New.hashMap();
 
         public void setAttribute(String key, Object value) {
             attributes.put(key, value);
@@ -71,7 +72,7 @@ public class TestServlet extends TestBase {
             return initParams.getProperty(key);
         }
 
-        public Enumeration getAttributeNames() {
+        public Enumeration<Object> getAttributeNames() {
             throw new UnsupportedOperationException();
         }
 
@@ -79,7 +80,7 @@ public class TestServlet extends TestBase {
             throw new UnsupportedOperationException();
         }
 
-        public Enumeration getInitParameterNames() {
+        public Enumeration<Object> getInitParameterNames() {
             throw new UnsupportedOperationException();
         }
 
@@ -115,7 +116,7 @@ public class TestServlet extends TestBase {
             throw new UnsupportedOperationException();
         }
 
-        public Set getResourcePaths(String string) {
+        public Set<Object> getResourcePaths(String string) {
             throw new UnsupportedOperationException();
         }
 
@@ -137,14 +138,14 @@ public class TestServlet extends TestBase {
         /**
          * @deprecated
          */
-        public Enumeration getServletNames() {
+        public Enumeration<Object> getServletNames() {
             throw new UnsupportedOperationException();
         }
 
         /**
          * @deprecated
          */
-        public Enumeration getServlets() {
+        public Enumeration<Object> getServlets() {
             throw new UnsupportedOperationException();
         }
 

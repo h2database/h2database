@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.Random;
 
 import org.h2.test.TestBase;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -26,7 +27,7 @@ import org.h2.util.StringUtils;
  */
 public class TestJoin extends TestBase {
 
-    private ArrayList connections = new ArrayList();
+    private ArrayList<Connection> connections = New.arrayList();
     private Random random;
     private int paramCount;
     private StringBuffer buff;
@@ -242,7 +243,7 @@ public class TestJoin extends TestBase {
     private void execute(String sql, Object[] params, boolean ignoreDifference) {
         String first = null;
         for (int i = 0; i < connections.size(); i++) {
-            Connection conn = (Connection) connections.get(i);
+            Connection conn = connections.get(i);
             String s;
             try {
                 Statement stat;
@@ -289,7 +290,7 @@ public class TestJoin extends TestBase {
         }
         buff.append(":\n");
         String result = buff.toString();
-        ArrayList list = new ArrayList();
+        ArrayList<String> list = New.arrayList();
         while (rs.next()) {
             buff = new StringBuffer();
             for (int i = 0; i < columnCount; i++) {

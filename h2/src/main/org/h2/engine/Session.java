@@ -10,7 +10,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Random;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
@@ -36,7 +35,6 @@ import org.h2.store.DataHandler;
 import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
-import org.h2.util.ObjectUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLong;
@@ -71,7 +69,7 @@ public class Session extends SessionWithState {
     private Value lastIdentity = ValueLong.get(0);
     private int firstUncommittedLog = LogSystem.LOG_WRITTEN;
     private int firstUncommittedPos = LogSystem.LOG_WRITTEN;
-    private HashMap savepoints;
+    private HashMap<String, Integer> savepoints;
     private Exception stackTrace = new Exception();
     private HashMap<String, Table> localTempTables;
     private HashMap<String, Index> localTempTableIndexes;
@@ -83,9 +81,9 @@ public class Session extends SessionWithState {
     private String currentSchemaName;
     private String[] schemaSearchPath;
     private String traceModuleName;
-    private HashMap unlinkMap;
+    private HashMap<String, ValueLob> unlinkMap;
     private int systemIdentifier;
-    private HashMap procedures;
+    private HashMap<String, Procedure> procedures;
     private boolean undoLogEnabled = true;
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;
@@ -93,8 +91,8 @@ public class Session extends SessionWithState {
     private boolean closed;
     private long sessionStart = System.currentTimeMillis();
     private long currentCommandStart;
-    private HashMap variables;
-    private HashSet temporaryResults;
+    private HashMap<String, Value> variables;
+    private HashSet<LocalResult> temporaryResults;
     private int queryTimeout = SysProperties.getMaxQueryTimeout();
     private int lastUncommittedDelete;
     private boolean commitOrRollbackDisabled;
@@ -122,7 +120,7 @@ public class Session extends SessionWithState {
 
     private void initVariables() {
         if (variables == null) {
-            variables = new HashMap();
+            variables = New.hashMap();
         }
     }
 
@@ -137,13 +135,13 @@ public class Session extends SessionWithState {
         modificationId++;
         Value old;
         if (value == ValueNull.INSTANCE) {
-            old = (Value) variables.remove(name);
+            old = variables.remove(name);
         } else {
             if (value instanceof ValueLob) {
                 // link it, to make sure we have our own file
                 value = value.link(database, ValueLob.TABLE_ID_SESSION_VARIABLE);
             }
-            old = (Value) variables.put(name, value);
+            old = variables.put(name, value);
         }
         if (old != null) {
             // close the old value (in case it is a lob)
@@ -162,7 +160,7 @@ public class Session extends SessionWithState {
      */
     public Value getVariable(String name) {
         initVariables();
-        Value v = (Value) variables.get(name);
+        Value v = variables.get(name);
         return v == null ? ValueNull.INSTANCE : v;
     }
 
@@ -191,7 +189,7 @@ public class Session extends SessionWithState {
         if (localTempTables == null) {
             return null;
         }
-        return (Table) localTempTables.get(name);
+        return localTempTables.get(name);
     }
 
     public ObjectArray getLocalTempTables() {
@@ -209,7 +207,7 @@ public class Session extends SessionWithState {
      */
     public void addLocalTempTable(Table table) throws SQLException {
         if (localTempTables == null) {
-            localTempTables = new HashMap();
+            localTempTables = New.hashMap();
         }
         if (localTempTables.get(table.getName()) != null) {
             throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, table.getSQL());
@@ -240,7 +238,7 @@ public class Session extends SessionWithState {
         if (localTempTableIndexes == null) {
             return null;
         }
-        return (Index) localTempTableIndexes.get(name);
+        return localTempTableIndexes.get(name);
     }
 
     public HashMap<String, Index> getLocalTempTableIndexes() {
@@ -258,7 +256,7 @@ public class Session extends SessionWithState {
      */
     public void addLocalTempTableIndex(Index index) throws SQLException {
         if (localTempTableIndexes == null) {
-            localTempTableIndexes = new HashMap();
+            localTempTableIndexes = New.hashMap();
         }
         if (localTempTableIndexes.get(index.getName()) != null) {
             throw Message.getSQLException(ErrorCode.INDEX_ALREADY_EXISTS_1, index.getSQL());
@@ -289,7 +287,7 @@ public class Session extends SessionWithState {
         if (localTempTableConstraints == null) {
             return null;
         }
-        return (Constraint) localTempTableConstraints.get(name);
+        return localTempTableConstraints.get(name);
     }
 
     /**
@@ -313,7 +311,7 @@ public class Session extends SessionWithState {
      */
     public void addLocalTempTableConstraint(Constraint constraint) throws SQLException {
         if (localTempTableConstraints == null) {
-            localTempTableConstraints = new HashMap();
+            localTempTableConstraints = New.hashMap();
         }
         String name = constraint.getName();
         if (localTempTableConstraints.get(name) != null) {
@@ -449,7 +447,7 @@ public class Session extends SessionWithState {
         }
         if (undoLog.size() > 0) {
             if (database.isMultiVersion()) {
-                ArrayList rows = new ArrayList();
+                ArrayList<Row> rows = New.arrayList();
                 synchronized (database) {
                     while (undoLog.size() > 0) {
                         UndoLogRecord entry = undoLog.getLast();
@@ -457,8 +455,7 @@ public class Session extends SessionWithState {
                         rows.add(entry.getRow());
                         undoLog.removeLast(false);
                     }
-                    for (int i = 0; i < rows.size(); i++) {
-                        Row r = (Row) rows.get(i);
+                    for (Row r : rows) {
                         r.commit();
                     }
                 }
@@ -478,9 +475,7 @@ public class Session extends SessionWithState {
             // need to flush the log file, because we can't unlink lobs if the
             // commit record is not written
             logSystem.flush();
-            Iterator it = unlinkMap.values().iterator();
-            while (it.hasNext()) {
-                Value v = (Value) it.next();
+            for (Value v : unlinkMap.values()) {
                 v.unlink();
             }
             unlinkMap = null;
@@ -533,7 +528,7 @@ public class Session extends SessionWithState {
             savepoints.keySet().toArray(names);
             for (int i = 0; i < names.length; i++) {
                 String name = names[i];
-                Integer savepointIndex = (Integer) savepoints.get(names[i]);
+                Integer savepointIndex = savepoints.get(names[i]);
                 if (savepointIndex.intValue() > index) {
                     savepoints.remove(name);
                 }
@@ -735,9 +730,9 @@ public class Session extends SessionWithState {
      */
     public void addSavepoint(String name) {
         if (savepoints == null) {
-            savepoints = new HashMap();
+            savepoints = New.hashMap();
         }
-        savepoints.put(name, ObjectUtils.getInteger(getLogId()));
+        savepoints.put(name, getLogId());
     }
 
     /**
@@ -750,7 +745,7 @@ public class Session extends SessionWithState {
         if (savepoints == null) {
             throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
-        Integer savepointIndex = (Integer) savepoints.get(name);
+        Integer savepointIndex = savepoints.get(name);
         if (savepointIndex == null) {
             throw Message.getSQLException(ErrorCode.SAVEPOINT_IS_INVALID_1, name);
         }
@@ -920,7 +915,7 @@ public class Session extends SessionWithState {
             Message.throwInternalError();
         }
         if (unlinkMap == null) {
-            unlinkMap = new HashMap();
+            unlinkMap = New.hashMap();
         }
         unlinkMap.put(v.toString(), v);
     }
@@ -958,7 +953,7 @@ public class Session extends SessionWithState {
      */
     public void addProcedure(Procedure procedure) {
         if (procedures == null) {
-            procedures = new HashMap();
+            procedures = New.hashMap();
         }
         procedures.put(procedure.getName(), procedure);
     }
@@ -985,7 +980,7 @@ public class Session extends SessionWithState {
         if (procedures == null) {
             return null;
         }
-        return (Procedure) procedures.get(name);
+        return procedures.get(name);
     }
 
     public void setSchemaSearchPath(String[] schemas) {
@@ -1063,7 +1058,7 @@ public class Session extends SessionWithState {
             return;
         }
         if (temporaryResults == null) {
-            temporaryResults = new HashSet();
+            temporaryResults = New.hashSet();
         }
         if (temporaryResults.size() < 100) {
             // reference at most 100 result sets to avoid memory problems
@@ -1077,8 +1072,7 @@ public class Session extends SessionWithState {
      */
     public void closeTemporaryResults() {
         if (temporaryResults != null) {
-            for (Iterator it = temporaryResults.iterator(); it.hasNext();) {
-                LocalResult result = (LocalResult) it.next();
+            for (LocalResult result : temporaryResults) {
                 result.close();
             }
             temporaryResults = null;

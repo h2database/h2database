@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 
 import org.h2.test.TestBase;
+import org.h2.util.New;
 
 /**
  * Tests for the two-phase-commit feature.
@@ -65,13 +66,13 @@ public class TestTwoPhaseCommit extends TestBase {
     private void openWith(boolean rollback) throws SQLException {
         Connection conn = getConnection("twoPhaseCommit");
         Statement stat = conn.createStatement();
-        ArrayList list = new ArrayList();
+        ArrayList<String> list = New.arrayList();
         ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT");
         while (rs.next()) {
             list.add(rs.getString("TRANSACTION"));
         }
         for (int i = 0; i < list.size(); i++) {
-            String s = (String) list.get(i);
+            String s = list.get(i);
             if (rollback) {
                 stat.execute("ROLLBACK TRANSACTION " + s);
             } else {

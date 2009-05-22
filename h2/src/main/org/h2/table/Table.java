@@ -33,6 +33,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -84,7 +85,7 @@ public abstract class Table extends SchemaObjectBase {
      */
     protected int memoryPerRow;
 
-    private final HashMap columnMap = new HashMap();
+    private final HashMap<String, Column> columnMap = New.hashMap();
     private boolean persistIndexes;
     private boolean persistData;
     private ObjectArray triggers;
@@ -261,10 +262,10 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param dependencies the current set of dependencies
      */
-    public void addDependencies(HashSet dependencies) {
+    public void addDependencies(HashSet<DbObject> dependencies) {
         if (sequences != null) {
             for (int i = 0; i < sequences.size(); i++) {
-                dependencies.add(sequences.get(i));
+                dependencies.add((Sequence) sequences.get(i));
             }
         }
         ExpressionVisitor visitor = ExpressionVisitor.get(ExpressionVisitor.GET_DEPENDENCIES);
@@ -507,7 +508,7 @@ public abstract class Table extends SchemaObjectBase {
      * @throws SQLException if the column was not found
      */
     public Column getColumn(String columnName) throws SQLException {
-        Column column = (Column) columnMap.get(columnName);
+        Column column = columnMap.get(columnName);
         if (column == null) {
             throw Message.getSQLException(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
         }
@@ -899,7 +900,7 @@ public abstract class Table extends SchemaObjectBase {
      * @return an object array with the sessions involved in the deadlock, or
      *         null
      */
-    public ObjectArray checkDeadlock(Session session, Session clash, Set visited) {
+    public ObjectArray checkDeadlock(Session session, Session clash, Set<Session> visited) {
         return null;
     }
 

@@ -7,6 +7,7 @@
 package org.h2.test.synth.sql;
 
 import java.util.ArrayList;
+import org.h2.util.New;
 
 /**
  * Represents a connection to a simulated database.
@@ -16,16 +17,16 @@ public class DbState implements DbInterface {
     private boolean connected;
     private boolean autoCommit;
     private TestSynth config;
-    private ArrayList tables = new ArrayList();
-    private ArrayList indexes = new ArrayList();
+    private ArrayList<Table> tables = New.arrayList();
+    private ArrayList<Index> indexes = New.arrayList();
 
     DbState(TestSynth config) {
         this.config = config;
     }
 
     public void reset() {
-        tables = new ArrayList();
-        indexes = new ArrayList();
+        tables = New.arrayList();
+        indexes = New.arrayList();
     }
 
     public void connect() {
@@ -90,7 +91,7 @@ public class DbState implements DbInterface {
             return null;
         }
         int i = config.random().getInt(tables.size());
-        return (Table) tables.get(i);
+        return tables.get(i);
     }
 
     public void end() {

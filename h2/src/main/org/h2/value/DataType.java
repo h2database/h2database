@@ -29,6 +29,7 @@ import org.h2.jdbc.JdbcBlob;
 import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.Message;
+import org.h2.util.New;
 import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
 
@@ -78,9 +79,9 @@ public class DataType {
      * The list of types. An ArrayList so that Tomcat doesn't set it to null
      * when clearing references.
      */
-    private static final ArrayList TYPES = new ArrayList();
-    private static final HashMap TYPES_BY_NAME = new HashMap();
-    private static final ArrayList TYPES_BY_VALUE_TYPE = new ArrayList();
+    private static final ArrayList<DataType> TYPES = New.arrayList();
+    private static final HashMap<String, DataType> TYPES_BY_NAME = New.hashMap();
+    private static final ArrayList<DataType> TYPES_BY_VALUE_TYPE = New.arrayList();
 
     /**
      * The value type of this data type.
@@ -345,7 +346,7 @@ public class DataType {
                 20
         );
         for (int i = 0; i < TYPES_BY_VALUE_TYPE.size(); i++) {
-            DataType dt = (DataType) TYPES_BY_VALUE_TYPE.get(i);
+            DataType dt = TYPES_BY_VALUE_TYPE.get(i);
             if (dt == null) {
                 Message.throwInternalError("unmapped type " + i);
             }
@@ -376,8 +377,7 @@ public class DataType {
             dt.caseSensitive = dataType.caseSensitive;
             dt.hidden = i > 0;
             dt.memory = memory;
-            for (int j = 0; j < TYPES.size(); j++) {
-                DataType t2 = (DataType) TYPES.get(j);
+            for (DataType t2 : TYPES) {
                 if (t2.sqlType == dt.sqlType) {
                     dt.sqlTypePos++;
                 }
@@ -437,7 +437,7 @@ public class DataType {
      *
      * @return the list
      */
-    public static ArrayList getTypes() {
+    public static ArrayList<DataType> getTypes() {
         return TYPES;
     }
 
@@ -665,9 +665,9 @@ public class DataType {
      * @return the data type object
      */
     public static DataType getDataType(int type) {
-        DataType dt = (DataType) TYPES_BY_VALUE_TYPE.get(type);
+        DataType dt = TYPES_BY_VALUE_TYPE.get(type);
         if (dt == null) {
-            dt = (DataType) TYPES_BY_VALUE_TYPE.get(Value.NULL);
+            dt = TYPES_BY_VALUE_TYPE.get(Value.NULL);
         }
         return dt;
     }
@@ -750,7 +750,7 @@ public class DataType {
      * @param x the Java class
      * @return the value type
      */
-    public static int getTypeFromClass(Class x) throws SQLException {
+    public static int getTypeFromClass(Class < ? > x) throws SQLException {
         // TODO refactor: too many if/else in functions, can reduce!
         if (x == null) {
             return Value.NULL;
@@ -887,7 +887,7 @@ public class DataType {
      * @return the data type object
      */
     public static DataType getTypeByName(String s) {
-        return (DataType) TYPES_BY_NAME.get(s);
+        return TYPES_BY_NAME.get(s);
     }
 
     /**
@@ -953,7 +953,7 @@ public class DataType {
      * @param clazz the Java class
      * @return the default object
      */
-    public static Object getDefaultForPrimitiveType(Class clazz) {
+    public static Object getDefaultForPrimitiveType(Class< ? > clazz) {
         if (clazz == Boolean.TYPE) {
             return Boolean.FALSE;
         } else if (clazz == Byte.TYPE) {
@@ -983,7 +983,7 @@ public class DataType {
      * @param paramClass the target class
      * @return the converted object
      */
-    public static Object convertTo(SessionInterface session, JdbcConnection conn, Value v, Class paramClass)
+    public static Object convertTo(SessionInterface session, JdbcConnection conn, Value v, Class< ? > paramClass)
             throws SQLException {
         if (paramClass == Blob.class) {
             return new JdbcBlob(conn, v, 0);

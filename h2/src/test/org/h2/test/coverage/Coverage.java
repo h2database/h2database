@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
+import org.h2.util.New;
 
 /**
  * Tool to instrument java files with profiler calls. The tool can be used for
@@ -23,8 +24,8 @@ import java.util.ArrayList;
  */
 public class Coverage {
     private static final String IMPORT = "import " + Coverage.class.getPackage().getName() + ".Profile";
-    private ArrayList files = new ArrayList();
-    private ArrayList exclude = new ArrayList();
+    private ArrayList<String> files = New.arrayList();
+    private ArrayList<String> exclude = New.arrayList();
     private Tokenizer tokenizer;
     private Writer writer;
     private Writer data;
@@ -127,7 +128,7 @@ public class Coverage {
                 System.out.println((i + 1) + " of " + len + " " + (100 * i / len) + "%");
                 time = t2;
             }
-            String fileName = (String) files.get(i);
+            String fileName = files.get(i);
             processFile(fileName);
         }
     }

@@ -12,10 +12,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Random;
-import java.util.Vector;
 
 import org.h2.test.TestBase;
+import org.h2.util.New;
 
 /**
  * Transactional tests, including transaction isolation tests, and tests related
@@ -189,9 +190,8 @@ public class TestTransaction extends TestBase {
         test(stat, "CREATE TABLE NEST1(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
         test(stat, "CREATE TABLE NEST2(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
         DatabaseMetaData meta = conn.getMetaData();
-        Vector result;
+        ArrayList<String> result = New.arrayList();
         ResultSet rs1, rs2;
-        result = new Vector();
         rs1 = meta.getTables(null, null, "NEST%", null);
         while (rs1.next()) {
             String table = rs1.getString("TABLE_NAME");
@@ -205,7 +205,7 @@ public class TestTransaction extends TestBase {
         if (result.size() != 4) {
             fail("Wrong result, should be NEST1.ID, NEST1.NAME, NEST2.ID, NEST2.NAME but is " + result);
         }
-        result = new Vector();
+        result = New.arrayList();
         test(stat, "INSERT INTO NEST1 VALUES(1,'A')");
         test(stat, "INSERT INTO NEST1 VALUES(2,'B')");
         test(stat, "INSERT INTO NEST2 VALUES(1,'1')");
@@ -224,7 +224,7 @@ public class TestTransaction extends TestBase {
         if (result.size() != 4) {
             fail("Wrong result, should be A/1, A/2, B/1, B/2 but is " + result);
         }
-        result = new Vector();
+        result = New.arrayList();
         rs1 = s1.executeQuery("SELECT * FROM NEST1 ORDER BY ID");
         rs2 = s1.executeQuery("SELECT * FROM NEST2 ORDER BY ID");
         try {

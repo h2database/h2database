@@ -91,7 +91,7 @@ public class TestPageStore extends TestBase {
         stat.execute("DROP TABLE IF EXISTS TEST");
         log("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR DEFAULT 'Hello World');");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR DEFAULT 'Hello World')");
-        Set rows = new TreeSet();
+        Set<Integer> rows = new TreeSet<Integer>();
         Random random = new Random(seed);
         for (int i = 0; i < len; i++) {
             int op = random.nextInt(3);
@@ -117,8 +117,7 @@ public class TestPageStore extends TestBase {
                 stat = conn.createStatement();
                 ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
                 log("--reconnect");
-                for (Iterator it = rows.iterator(); it.hasNext();) {
-                    int test = ((Integer) it.next()).intValue();
+                for (int test : rows) {
                     if (!rs.next()) {
                         log("error: expected next");
                         conn.close();

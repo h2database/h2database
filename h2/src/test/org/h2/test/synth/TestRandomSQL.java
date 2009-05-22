@@ -27,7 +27,7 @@ public class TestRandomSQL extends TestBase {
 
     private int dbId;
     private boolean showSQL;
-    private ArrayList statements;
+    private ArrayList<RuleHead> statements;
     private int seed;
     private boolean exitOnError = true;
     private Bnf bnf;
@@ -105,7 +105,7 @@ public class TestRandomSQL extends TestBase {
 
         // go backwards so we can append at the end
         for (int i = statements.size() - 1; i >= 0; i--) {
-            RuleHead r = (RuleHead) statements.get(i);
+            RuleHead r = statements.get(i);
             String topic = r.getTopic();
             int weight = 0;
             if (topic.equals("select")) {
@@ -143,7 +143,7 @@ public class TestRandomSQL extends TestBase {
         Statement stat = conn.createStatement();
         for (int i = 0; i < statements.size(); i++) {
             int sid = config.getRandom().nextInt(statements.size());
-            RuleHead r = (RuleHead) statements.get(sid);
+            RuleHead r = statements.get(sid);
             String rand = r.getRule().random(config, 0).trim();
             if (rand.length() > 0) {
                 try {

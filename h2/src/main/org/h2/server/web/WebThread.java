@@ -38,13 +38,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
-import java.util.Map.Entry;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.bnf.Bnf;
@@ -70,8 +68,8 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.util.NetUtils;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
-import org.h2.util.ObjectUtils;
 import org.h2.util.ScriptReader;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
@@ -509,7 +507,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 if (bnf == null) {
                     return "autoCompleteList.jsp";
                 }
-                HashMap map = bnf.getNextTokenList(sql);
+                HashMap<String, String> map = bnf.getNextTokenList(sql);
                 String space = "";
                 if (sql.length() > 0) {
                     char last = sql.charAt(sql.length() - 1);
@@ -517,13 +515,11 @@ class WebThread extends Thread implements DatabaseEventListener {
                         space = " ";
                     }
                 }
-                ArrayList list = new ArrayList(map.size());
-                Iterator it = map.entrySet().iterator();
-                while (it.hasNext()) {
-                    Map.Entry entry = (Entry) it.next();
-                    String key = (String) entry.getKey();
+                ArrayList<String> list = New.arrayList(map.size());
+                for (Map.Entry<String, String> entry : map.entrySet()) {
+                    String key = entry.getKey();
+                    String value = entry.getValue();
                     String type = "" + key.charAt(0);
-                    String value = (String) entry.getValue();
                     key = key.substring(2);
                     if (Character.isLetter(key.charAt(0)) && lowercase) {
                         key = StringUtils.toLowerEnglish(key);
@@ -547,7 +543,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                     if (i > 0) {
                         buff.append('|');
                     }
-                    buff.append((String) list.get(i));
+                    buff.append(list.get(i));
                 }
                 result = buff.toString();
             }
@@ -631,8 +627,9 @@ class WebThread extends Thread implements DatabaseEventListener {
         return "tools.jsp";
     }
 
+    @SuppressWarnings("unchecked")
     private String adminStartTranslate() {
-        Map p = (Map) session.map.get("text");
+        Map<Object, Object> p = (Map<Object, Object>) session.map.get("text");
         String file = server.startTranslate(p);
         session.put("translationFile", file);
         return "helpTranslate.jsp";
@@ -738,10 +735,10 @@ class WebThread extends Thread implements DatabaseEventListener {
         // index reading is very slow for oracle (2 seconds per index), so don't
         // do it
         ResultSet rs = meta.getIndexInfo(null, schema, table, false, true);
-        HashMap indexMap = new HashMap();
+        HashMap<String, IndexInfo> indexMap = New.hashMap();
         while (rs.next()) {
             String name = rs.getString("INDEX_NAME");
-            IndexInfo info = (IndexInfo) indexMap.get(name);
+            IndexInfo info = indexMap.get(name);
             if (info == null) {
                 int t = rs.getInt("TYPE");
                 String type;
@@ -770,8 +767,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         if (indexMap.size() > 0) {
             buff.append("setNode(" + treeIndex + ", 1, 1, 'index_az', '${text.tree.indexes}', null);\n");
             treeIndex++;
-            for (Iterator it = indexMap.values().iterator(); it.hasNext();) {
-                IndexInfo info = (IndexInfo) it.next();
+            for (IndexInfo info : indexMap.values()) {
                 buff.append("setNode(" + treeIndex + ", 2, 1, 'index', '" + PageParser.escapeJavaScript(info.name)
                         + "', null);\n");
                 treeIndex++;
@@ -1310,7 +1306,7 @@ class WebThread extends Thread implements DatabaseEventListener {
 
         private String name;
         private byte[] data;
-        private Class clazz;
+        private Class< ? > clazz;
 
         DynamicClassLoader(String name, byte[] data) {
             super(DynamicClassLoader.class.getClassLoader());
@@ -1318,11 +1314,11 @@ class WebThread extends Thread implements DatabaseEventListener {
             this.data = data;
         }
 
-        public Class loadClass(String className) throws ClassNotFoundException {
+        public Class< ? > loadClass(String className) throws ClassNotFoundException {
             return findClass(className);
         }
 
-        public Class findClass(String className) throws ClassNotFoundException {
+        public Class< ? > findClass(String className) throws ClassNotFoundException {
             if (className.equals(name)) {
                 if (clazz == null) {
                     clazz = defineClass(className, data, 0, data.length);
@@ -1353,7 +1349,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             out.println(importCode);
             out.println("public class Java { public static Object run() throws Throwable {" + code + "}}");
             out.close();
-            Class javacClass = Class.forName("com.sun.tools.javac.Main");
+            Class< ? > javacClass = Class.forName("com.sun.tools.javac.Main");
             Method compile = javacClass.getMethod("compile", new Class[] { String[].class });
             Object javac = javacClass.newInstance();
             compile.invoke(javac, new Object[] { new String[]{"Java.java"}});
@@ -1362,7 +1358,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             in.readFully(data);
             in.close();
             DynamicClassLoader cl = new DynamicClassLoader("Java", data);
-            Class clazz = cl.loadClass("Java");
+            Class< ? > clazz = cl.loadClass("Java");
             Method[] methods = clazz.getMethods();
             for (int i = 0; i < methods.length; i++) {
                 Method m = methods[i];
@@ -1761,7 +1757,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     }
 
     private String executeLoop(Connection conn, int count, String sql) throws SQLException {
-        ArrayList params = new ArrayList();
+        ArrayList<Integer> params = New.arrayList();
         int idx = 0;
         while (!stop) {
             idx = sql.indexOf('?', idx);
@@ -1769,10 +1765,10 @@ class WebThread extends Thread implements DatabaseEventListener {
                 break;
             }
             if (sql.substring(idx).startsWith("?/*RND*/")) {
-                params.add(ObjectUtils.getInteger(1));
+                params.add(1);
                 sql = sql.substring(0, idx) + "?" + sql.substring(idx + "/*RND*/".length() + 1);
             } else {
-                params.add(ObjectUtils.getInteger(0));
+                params.add(0);
             }
             idx++;
         }
@@ -1788,7 +1784,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 String s = sql;
                 for (int j = 0; j < params.size(); j++) {
                     idx = s.indexOf('?');
-                    Integer type = (Integer) params.get(j);
+                    Integer type = params.get(j);
                     if (type.intValue() == 1) {
                         s = s.substring(0, idx) + random.nextInt(count) + s.substring(idx + 1);
                     } else {
@@ -1810,7 +1806,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             PreparedStatement prep = conn.prepareStatement(sql);
             for (int i = 0; !stop && i < count; i++) {
                 for (int j = 0; j < params.size(); j++) {
-                    Integer type = (Integer) params.get(j);
+                    Integer type = params.get(j);
                     if (type.intValue() == 1) {
                         prep.setInt(j + 1, random.nextInt(count));
                     } else {
@@ -1845,7 +1841,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             if (i > 0) {
                 buff.append(", ");
             }
-            buff.append(((Integer) params.get(i)).intValue() == 0 ? "i" : "rnd");
+            buff.append(params.get(i) == 0 ? "i" : "rnd");
         }
         result += buff.toString();
         result += ") " + sql;
@@ -1854,11 +1850,11 @@ class WebThread extends Thread implements DatabaseEventListener {
 
     private String getHistoryString() {
         StringBuffer buff = new StringBuffer();
-        ArrayList history = session.getCommands();
+        ArrayList<String> history = session.getCommands();
         buff.append("<table cellspacing=0 cellpadding=0>");
         buff.append("<tr><th></th><th>Command</th></tr>");
         for (int i = history.size() - 1; i >= 0; i--) {
-            String sql = (String) history.get(i);
+            String sql = history.get(i);
             buff.append("<tr><td>");
             buff.append("<a href=\"getHistory.do?id=");
             buff.append(i);
@@ -2106,7 +2102,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     private String settingRemove() {
         String setting = attributes.getProperty("name", "");
         server.removeSetting(setting);
-        ArrayList settings = server.getSettings();
+        ArrayList<ConnectionInfo> settings = server.getSettings();
         if (settings.size() > 0) {
             attributes.put("setting", settings.get(0));
         }

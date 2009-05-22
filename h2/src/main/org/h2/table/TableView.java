@@ -40,7 +40,7 @@ public class TableView extends Table {
     private ViewIndex index;
     private boolean recursive;
     private SQLException createException;
-    private SmallLRUCache indexCache = new SmallLRUCache(Constants.VIEW_INDEX_CACHE_SIZE);
+    private SmallLRUCache<IntArray, ViewIndex> indexCache = SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
     private long lastModificationCheck;
     private long maxDataModificationId;
     private User owner;
@@ -138,7 +138,7 @@ public class TableView extends Table {
         PlanItem item = new PlanItem();
         item.cost = index.getCost(session, masks);
         IntArray masksArray = new IntArray(masks == null ? new int[0] : masks);
-        ViewIndex i2 = (ViewIndex) indexCache.get(masksArray);
+        ViewIndex i2 = indexCache.get(masksArray);
         if (i2 == null || i2.getSession() != session) {
             i2 = new ViewIndex(this, index, session, masks);
             indexCache.put(masksArray, i2);

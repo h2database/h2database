@@ -13,6 +13,7 @@ import java.util.Random;
 
 import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
+import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueString;
 
@@ -22,7 +23,7 @@ import org.h2.value.ValueString;
  */
 public class TestOverflow extends TestBase {
 
-    private ArrayList values;
+    private ArrayList<Value> values;
     private int type;
     private BigInteger min, max;
     private boolean successExpected;
@@ -44,7 +45,7 @@ public class TestOverflow extends TestBase {
     }
 
     private void test(int type, long min, long max) throws SQLException {
-        values = new ArrayList();
+        values = New.arrayList();
         this.type = type;
         this.min = new BigInteger("" + min);
         this.max = new BigInteger("" + max);
@@ -65,8 +66,8 @@ public class TestOverflow extends TestBase {
         }
         for (int a = 0; a < values.size(); a++) {
             for (int b = 0; b < values.size(); b++) {
-                Value va = (Value) values.get(a);
-                Value vb = (Value) values.get(b);
+                Value va = values.get(a);
+                Value vb = values.get(b);
                 testValues(va, vb);
             }
         }

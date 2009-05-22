@@ -26,6 +26,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.HashMap;
+import org.h2.util.New;
 
 /**
  * This tool can re-run Java style log files. There is no size limit.
@@ -49,7 +50,7 @@ public class Player {
 
     private static final String[] IMPORTED_PACKAGES = { "", "java.lang.", "java.sql.", "javax.sql." };
     private boolean trace;
-    private HashMap objects = new HashMap();
+    private HashMap<String, Object> objects = New.hashMap();
 
     /**
      * Execute a trace file using the command line. The log file name to execute
@@ -144,7 +145,7 @@ public class Player {
      * @param className the class name
      * @return the class
      */
-    static Class getClass(String className) {
+    static Class< ? > getClass(String className) {
         for (int i = 0; i < IMPORTED_PACKAGES.length; i++) {
             try {
                 return Class.forName(IMPORTED_PACKAGES[i] + className);

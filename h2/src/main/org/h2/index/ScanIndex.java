@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
@@ -280,7 +281,11 @@ public class ScanIndex extends BaseIndex implements RowIndex {
     }
 
     public Iterator<Row> getDelta() {
-        return delta == null ? Collections.EMPTY_LIST.iterator() : delta.iterator();
+        if (delta == null) {
+            List<Row> e = Collections.emptyList();
+            return e.iterator();
+        }
+        return delta.iterator();
     }
 
     public long getRowCountApproximation() {

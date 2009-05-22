@@ -15,7 +15,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,6 +24,7 @@ import org.h2.engine.Constants;
 import org.h2.server.Service;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
+import org.h2.util.New;
 import org.h2.util.Tool;
 
 /**
@@ -45,7 +45,7 @@ public class PgServer implements Service {
     private boolean stop;
     private boolean trace;
     private ServerSocket serverSocket;
-    private Set running = Collections.synchronizedSet(new HashSet());
+    private Set<PgServerThread> running = Collections.synchronizedSet(new HashSet<PgServerThread>());
     private String baseDir;
     private boolean allowOthers;
     private boolean ifExists;
@@ -183,9 +183,7 @@ public class PgServer implements Service {
             }
         }
         // TODO server: using a boolean 'now' argument? a timeout?
-        ArrayList list = new ArrayList(running);
-        for (int i = 0; i < list.size(); i++) {
-            PgServerThread c = (PgServerThread) list.get(i);
+        for (PgServerThread c : New.arrayList(running)) {
             c.close();
             try {
                 Thread t = c.getThread();

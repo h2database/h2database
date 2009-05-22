@@ -24,7 +24,7 @@ public class TableLinkConnection {
     /**
      * The map where the link is kept.
      */
-    private HashMap map;
+    private HashMap<TableLinkConnection, TableLinkConnection> map;
 
     /**
      * The connection information.
@@ -41,7 +41,7 @@ public class TableLinkConnection {
      */
     private int useCounter;
 
-    private TableLinkConnection(HashMap map, String driver, String url, String user, String password) {
+    private TableLinkConnection(HashMap<TableLinkConnection, TableLinkConnection> map, String driver, String url, String user, String password) {
         this.map = map;
         this.driver = driver;
         this.url = url;
@@ -60,7 +60,7 @@ public class TableLinkConnection {
      * @param password the password
      * @return a connection
      */
-    public static TableLinkConnection open(HashMap map, String driver, String url, String user, String password) throws SQLException {
+    public static TableLinkConnection open(HashMap<TableLinkConnection, TableLinkConnection> map, String driver, String url, String user, String password) throws SQLException {
         TableLinkConnection t = new TableLinkConnection(map, driver, url, user, password);
         if (!SysProperties.SHARE_LINKED_CONNECTIONS) {
             t.open();
@@ -68,7 +68,7 @@ public class TableLinkConnection {
         }
         synchronized (map) {
             TableLinkConnection result;
-            result = (TableLinkConnection) map.get(t);
+            result = map.get(t);
             if (result == null) {
                 synchronized (t) {
                     t.open();

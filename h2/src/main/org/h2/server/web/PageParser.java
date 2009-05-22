@@ -10,6 +10,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import org.h2.util.New;
 
 /**
  * A page parser can parse an HTML page and replace the tags there.
@@ -18,11 +19,11 @@ import java.util.Map;
 public class PageParser {
     private String page;
     private int pos;
-    private Map settings;
+    private Map<String, Object> settings;
     private int len;
     private StringBuffer result;
 
-    private PageParser(String page, Map settings, int pos) {
+    private PageParser(String page, Map<String, Object> settings, int pos) {
         this.page = page;
         this.pos = pos;
         this.len = page.length();
@@ -37,7 +38,7 @@ public class PageParser {
      * @param settings the settings
      * @return the converted page
      */
-    public static String parse(String page, Map settings) {
+    public static String parse(String page, Map<String, Object> settings) {
         PageParser block = new PageParser(page, settings, 0);
         return block.replaceTags();
     }
@@ -71,6 +72,7 @@ public class PageParser {
         return result.toString();
     }
 
+    @SuppressWarnings("unchecked")
     private void parseAll() throws ParseException {
         StringBuffer buff = result;
         String p = page;
@@ -90,16 +92,16 @@ public class PageParser {
                         String items = readParam("items");
                         read(">");
                         int start = pos;
-                        ArrayList list = (ArrayList) get(items);
+                        ArrayList<Object> list = (ArrayList<Object>) get(items);
                         if (list == null) {
                             result.append("?items?");
-                            list = new ArrayList();
+                            list = New.arrayList();
                         }
                         if (list.size() == 0) {
                             parseBlockUntil("</c:forEach>");
                         }
-                        for (int j = 0; j < list.size(); j++) {
-                            settings.put(var, list.get(j));
+                        for (Object o : list) {
+                            settings.put(var, o);
                             pos = start;
                             String block = parseBlockUntil("</c:forEach>");
                             result.append(block);
@@ -154,12 +156,13 @@ public class PageParser {
         pos = i;
     }
 
+    @SuppressWarnings("unchecked")
     private Object get(String item) {
         int dot = item.indexOf('.');
         if (dot >= 0) {
             String sub = item.substring(dot + 1);
             item = item.substring(0, dot);
-            HashMap map = (HashMap) settings.get(item);
+            HashMap<String, Object> map = (HashMap<String, Object>) settings.get(item);
             if (map == null) {
                 return "?" + item + "?";
             }

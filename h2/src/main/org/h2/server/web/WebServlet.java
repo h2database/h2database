@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -33,8 +34,8 @@ public class WebServlet extends HttpServlet {
 
     public void init() {
         ServletConfig config = getServletConfig();
-        Enumeration en = config.getInitParameterNames();
-        ArrayList list = new ArrayList();
+        Enumeration< ? > en = config.getInitParameterNames();
+        ArrayList<String> list = New.arrayList();
         while (en.hasMoreElements()) {
             String name = en.nextElement().toString();
             String value = config.getInitParameter(name);
@@ -91,7 +92,7 @@ public class WebServlet extends HttpServlet {
         file = getAllowedFile(req, file);
         byte[] bytes = null;
         Properties attributes = new Properties();
-        Enumeration en = req.getAttributeNames();
+        Enumeration< ? > en = req.getAttributeNames();
         while (en.hasMoreElements()) {
             String name = en.nextElement().toString();
             String value = req.getAttribute(name).toString();

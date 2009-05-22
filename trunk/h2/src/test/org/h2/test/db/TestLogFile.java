@@ -39,10 +39,10 @@ public class TestLogFile extends TestBase {
             conn.close();
         }
         long length = 0;
-        ArrayList files = FileLister.getDatabaseFiles(baseDir, "logfile", false);
+        ArrayList<String> files = FileLister.getDatabaseFiles(baseDir, "logfile", false);
         assertSmaller(files.size(), maxFiles + 2);
         for (int i = 0; i < files.size(); i++) {
-            String fileName = (String) files.get(i);
+            String fileName = files.get(i);
             long len = new File(fileName).length();
             length += len;
         }

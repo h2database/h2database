@@ -15,6 +15,7 @@ import java.util.HashSet;
 
 import org.h2.api.Trigger;
 import org.h2.test.TestBase;
+import org.h2.util.New;
 
 /**
  * Tests for trigger and constraints.
@@ -152,7 +153,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
     }
 
     private void checkRows(ResultSet rs, String[] expected) throws SQLException {
-        HashSet set = new HashSet(Arrays.asList(expected));
+        HashSet<String> set = New.hashSet(Arrays.asList(expected));
         while (rs.next()) {
             set.remove(rs.getString(1));
         }

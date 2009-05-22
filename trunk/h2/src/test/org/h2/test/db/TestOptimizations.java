@@ -20,6 +20,7 @@ import java.util.TreeSet;
 import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.New;
 
 /**
  * Test various optimizations (query cache, optimization for MIN(..), and
@@ -372,8 +373,8 @@ public class TestOptimizations extends TestBase {
         stat.execute("create " + (memory ? "memory" : "") + " table test(id int primary key, value int)");
         stat.execute("create index idx_value_id on test(value, id);");
         int len = getSize(1000, 10000);
-        HashMap map = new HashMap();
-        TreeSet set = new TreeSet();
+        HashMap<Integer, Integer> map = New.hashMap();
+        TreeSet<Integer> set = new TreeSet<Integer>();
         Random random = new Random(1);
         for (int i = 0; i < len; i++) {
             if (i == len / 2) {
@@ -405,8 +406,8 @@ public class TestOptimizations extends TestBase {
             case 8: {
                 if (map.size() > 0) {
                     for (int j = random.nextInt(i), k = 0; k < 10; k++, j++) {
-                        if (map.containsKey(new Integer(j))) {
-                            Integer x = (Integer) map.remove(new Integer(j));
+                        if (map.containsKey(j)) {
+                            Integer x = map.remove(j);
                             if (x != null) {
                                 set.remove(x);
                             }
@@ -417,12 +418,12 @@ public class TestOptimizations extends TestBase {
                 break;
             }
             case 9: {
-                ArrayList list = new ArrayList(map.values());
+                ArrayList<Integer> list = New.arrayList(map.values());
                 int count = list.size();
                 Integer min = null, max = null;
                 if (count > 0) {
-                    min = (Integer) set.first();
-                    max = (Integer) set.last();
+                    min = set.first();
+                    max = set.last();
                 }
                 ResultSet rs = stat.executeQuery("select min(value), max(value), count(*) from test");
                 rs.next();

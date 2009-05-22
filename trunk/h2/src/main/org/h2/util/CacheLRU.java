@@ -48,14 +48,14 @@ public class CacheLRU implements Cache {
      * @return the cache object
      */
     public static Cache getCache(CacheWriter writer, String cacheType, int cacheSize) throws SQLException {
-        Map secondLevel = null;
+        Map<Integer, CacheObject> secondLevel = null;
         String prefix = null;
         if (cacheType.startsWith("SOFT_")) {
-            secondLevel = new SoftHashMap();
+            secondLevel = new SoftHashMap<Integer, CacheObject>();
             cacheType = cacheType.substring("SOFT_".length());
             prefix = "SOFT_";
         } else if (cacheType.startsWith("WEAK_")) {
-            secondLevel = new WeakHashMap();
+            secondLevel = new WeakHashMap<Integer, CacheObject>();
             cacheType = cacheType.substring("WEAK_".length());
             prefix = "WEAK_";
         }

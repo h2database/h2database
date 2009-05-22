@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -60,7 +59,6 @@ import org.h2.util.BitField;
 import org.h2.util.ByteUtils;
 import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
-import org.h2.util.IntHashMap;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
@@ -91,15 +89,15 @@ public class Database implements DataHandler {
     private final String cipher;
     private final byte[] filePasswordHash;
 
-    private final HashMap roles = new HashMap();
-    private final HashMap users = new HashMap();
-    private final HashMap settings = new HashMap();
-    private final HashMap schemas = new HashMap();
-    private final HashMap rights = new HashMap();
-    private final HashMap functionAliases = new HashMap();
-    private final HashMap userDataTypes = new HashMap();
-    private final HashMap aggregates = new HashMap();
-    private final HashMap comments = new HashMap();
+    private final HashMap<String, Role> roles = New.hashMap();
+    private final HashMap<String, User> users = New.hashMap();
+    private final HashMap<String, Setting> settings = New.hashMap();
+    private final HashMap<String, Schema> schemas = New.hashMap();
+    private final HashMap<String, Right> rights = New.hashMap();
+    private final HashMap<String, FunctionAlias> functionAliases = New.hashMap();
+    private final HashMap<String, UserDataType> userDataTypes = New.hashMap();
+    private final HashMap<String, UserAggregate> aggregates = New.hashMap();
+    private final HashMap<String, Comment> comments = New.hashMap();
 
     private final Set<Session> userSessions = Collections.synchronizedSet(new HashSet<Session>());
     private Session exclusiveSession;
@@ -116,7 +114,7 @@ public class Database implements DataHandler {
     private FileLock lock;
     private LogSystem log;
     private WriterThread writer;
-    private IntHashMap storageMap = new IntHashMap();
+    private HashMap<Integer, Storage> storageMap = New.hashMap();
     private boolean starting;
     private DiskFile fileData, fileIndex;
     private TraceSystem traceSystem;
@@ -159,10 +157,10 @@ public class Database implements DataHandler {
     private boolean multiThreaded;
     private int maxOperationMemory = SysProperties.DEFAULT_MAX_OPERATION_MEMORY;
     private boolean lobFilesInDirectories = SysProperties.LOB_FILES_IN_DIRECTORIES;
-    private SmallLRUCache lobFileListCache = new SmallLRUCache(128);
+    private SmallLRUCache<String, String[]> lobFileListCache = SmallLRUCache.newInstance(128);
     private boolean autoServerMode;
     private Server server;
-    private HashMap linkConnections;
+    private HashMap<TableLinkConnection, TableLinkConnection> linkConnections;
     private TempFileDeleter tempFileDeleter = TempFileDeleter.getInstance();
     private PageStore pageStore;
 
@@ -587,9 +585,9 @@ public class Database implements DataHandler {
                 } catch (Exception e) {
                     if (recovery) {
                         traceSystem.getTrace(Trace.DATABASE).error("opening index", e);
-                        ArrayList list = new ArrayList(storageMap.values());
+                        ArrayList<Storage> list = New.arrayList(storageMap.values());
                         for (int i = 0; i < list.size(); i++) {
-                            Storage s = (Storage) list.get(i);
+                            Storage s = list.get(i);
                             if (s.getDiskFile() == fileIndex) {
                                 removeStorage(s.getId(), fileIndex);
                             }
@@ -770,7 +768,7 @@ public class Database implements DataHandler {
      */
     public void removeStorage(int id, DiskFile file) {
         if (SysProperties.CHECK) {
-            Storage s = (Storage) storageMap.get(id);
+            Storage s = storageMap.get(id);
             if (s == null || s.getDiskFile() != file) {
                 Message.throwInternalError();
             }
@@ -787,7 +785,7 @@ public class Database implements DataHandler {
      * @return the storage object
      */
     public Storage getStorage(int id, DiskFile file) {
-        Storage storage = (Storage) storageMap.get(id);
+        Storage storage = storageMap.get(id);
         if (storage != null) {
             if (SysProperties.CHECK && storage.getDiskFile() != file) {
                 Message.throwInternalError(storage.getDiskFile() + " != " + file);
@@ -848,29 +846,41 @@ public class Database implements DataHandler {
         }
     }
 
-    private HashMap getMap(int type) {
+    @SuppressWarnings("unchecked")
+    private HashMap<String, DbObject> getMap(int type) {
+        HashMap<String, ? extends DbObject> result;
         switch (type) {
         case DbObject.USER:
-            return users;
+            result = users;
+            break;
         case DbObject.SETTING:
-            return settings;
+            result = settings;
+            break;
         case DbObject.ROLE:
-            return roles;
+            result = roles;
+            break;
         case DbObject.RIGHT:
-            return rights;
+            result = rights;
+            break;
         case DbObject.FUNCTION_ALIAS:
-            return functionAliases;
+            result = functionAliases;
+            break;
         case DbObject.SCHEMA:
-            return schemas;
+            result = schemas;
+            break;
         case DbObject.USER_DATATYPE:
-            return userDataTypes;
+            result = userDataTypes;
+            break;
         case DbObject.COMMENT:
-            return comments;
+            result = comments;
+            break;
         case DbObject.AGGREGATE:
-            return aggregates;
+            result = aggregates;
+            break;
         default:
             throw Message.throwInternalError("type=" + type);
         }
+        return (HashMap<String, DbObject>) result;
     }
 
     /**
@@ -899,7 +909,7 @@ public class Database implements DataHandler {
         if (id > 0 && !starting) {
             checkWritingAllowed();
         }
-        HashMap map = getMap(obj.getType());
+        HashMap<String, DbObject> map = getMap(obj.getType());
         if (obj.getType() == DbObject.USER) {
             User user = (User) obj;
             if (user.getAdmin() && systemUser.getName().equals(Constants.DBA_NAME)) {
@@ -921,7 +931,7 @@ public class Database implements DataHandler {
      * @return the aggregate function or null
      */
     public UserAggregate findAggregate(String name) {
-        return (UserAggregate) aggregates.get(name);
+        return aggregates.get(name);
     }
 
     /**
@@ -936,7 +946,7 @@ public class Database implements DataHandler {
             return null;
         }
         String key = Comment.getKey(object);
-        return (Comment) comments.get(key);
+        return comments.get(key);
     }
 
     /**
@@ -946,7 +956,7 @@ public class Database implements DataHandler {
      * @return the function or null
      */
     public FunctionAlias findFunctionAlias(String name) {
-        return (FunctionAlias) functionAliases.get(name);
+        return functionAliases.get(name);
     }
 
     /**
@@ -956,7 +966,7 @@ public class Database implements DataHandler {
      * @return the role or null
      */
     public Role findRole(String roleName) {
-        return (Role) roles.get(roleName);
+        return roles.get(roleName);
     }
 
     /**
@@ -966,7 +976,7 @@ public class Database implements DataHandler {
      * @return the schema or null
      */
     public Schema findSchema(String schemaName) {
-        return (Schema) schemas.get(schemaName);
+        return schemas.get(schemaName);
     }
 
     /**
@@ -976,7 +986,7 @@ public class Database implements DataHandler {
      * @return the setting or null
      */
     public Setting findSetting(String name) {
-        return (Setting) settings.get(name);
+        return settings.get(name);
     }
 
     /**
@@ -986,7 +996,7 @@ public class Database implements DataHandler {
      * @return the user or null
      */
     public User findUser(String name) {
-        return (User) users.get(name);
+        return users.get(name);
     }
 
     /**
@@ -996,7 +1006,7 @@ public class Database implements DataHandler {
      * @return the user defined data type or null
      */
     public UserDataType findUserDataType(String name) {
-        return (UserDataType) userDataTypes.get(name);
+        return userDataTypes.get(name);
     }
 
     /**
@@ -1334,8 +1344,7 @@ public class Database implements DataHandler {
      */
     public ObjectArray getAllSchemaObjects(int type) {
         ObjectArray list = new ObjectArray();
-        for (Iterator it = schemas.values().iterator(); it.hasNext();) {
-            Schema schema = (Schema) it.next();
+        for (Schema schema : schemas.values()) {
             list.addAll(schema.getAll(type));
         }
         return list;
@@ -1408,7 +1417,7 @@ public class Database implements DataHandler {
      * @return the list of sessions
      */
     public Session[] getSessions(boolean includingSystemSession) {
-        ArrayList list = new ArrayList(userSessions);
+        ArrayList<Session> list = New.arrayList(userSessions);
         if (includingSystemSession && systemSession != null) {
             list.add(systemSession);
         }
@@ -1468,7 +1477,7 @@ public class Database implements DataHandler {
     public synchronized void renameDatabaseObject(Session session, DbObject obj, String newName) throws SQLException {
         checkWritingAllowed();
         int type = obj.getType();
-        HashMap map = getMap(type);
+        HashMap<String, DbObject> map = getMap(type);
         if (SysProperties.CHECK) {
             if (!map.containsKey(obj.getName())) {
                 Message.throwInternalError("not found: " + obj.getName());
@@ -1576,7 +1585,7 @@ public class Database implements DataHandler {
         checkWritingAllowed();
         String objName = obj.getName();
         int type = obj.getType();
-        HashMap map = getMap(type);
+        HashMap<String, DbObject> map = getMap(type);
         if (SysProperties.CHECK && !map.containsKey(objName)) {
             Message.throwInternalError("not found: " + objName);
         }
@@ -1609,7 +1618,7 @@ public class Database implements DataHandler {
         default:
         }
         ObjectArray list = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
-        HashSet set = new HashSet();
+        HashSet<DbObject> set = New.hashSet();
         for (int i = 0; i < list.size(); i++) {
             Table t = (Table) list.get(i);
             if (except == t) {
@@ -2136,7 +2145,7 @@ public class Database implements DataHandler {
         return lobFilesInDirectories;
     }
 
-    public SmallLRUCache getLobFileListCache() {
+    public SmallLRUCache<String, String[]> getLobFileListCache() {
         return lobFileListCache;
     }
 
@@ -2160,7 +2169,7 @@ public class Database implements DataHandler {
      */
     public TableLinkConnection getLinkConnection(String driver, String url, String user, String password) throws SQLException {
         if (linkConnections == null) {
-            linkConnections = new HashMap();
+            linkConnections = New.hashMap();
         }
         return TableLinkConnection.open(linkConnections, driver, url, user, password);
     }

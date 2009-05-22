@@ -16,6 +16,7 @@ import org.h2.message.Trace;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.test.TestBase;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
@@ -58,12 +59,10 @@ public class TestValueHashMap extends TestBase implements DataHandler {
 
     private void testRandomized() throws SQLException {
         ValueHashMap map = new ValueHashMap(this);
-        HashMap hash = new HashMap();
+        HashMap<Value, Value> hash = New.hashMap();
         Random random = new Random(1);
-        Comparator vc = new Comparator() {
-            public int compare(Object o1, Object o2) {
-                Value v1 = (Value) o1;
-                Value v2 = (Value) o2;
+        Comparator<Value> vc = new Comparator<Value>() {
+            public int compare(Value v1, Value v2) {
                 try {
                     return v1.compareTo(v2, compareMode);
                 } catch (SQLException e) {
@@ -86,7 +85,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
                 break;
             case 2:
                 Value v1 = (Value) map.get(key);
-                Value v2 = (Value) hash.get(key);
+                Value v2 = hash.get(key);
                 assertTrue((v1 == null && v2 == null) || v1.compareEqual(v2));
                 break;
             case 3: {
@@ -171,7 +170,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         return SysProperties.LOB_FILES_IN_DIRECTORIES;
     }
 
-    public SmallLRUCache getLobFileListCache() {
+    public SmallLRUCache<String, String[]> getLobFileListCache() {
         return null;
     }
 

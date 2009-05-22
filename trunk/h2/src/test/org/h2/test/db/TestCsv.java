@@ -22,6 +22,7 @@ import org.h2.test.TestBase;
 import org.h2.tools.Csv;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -126,7 +127,7 @@ public class TestCsv extends TestBase {
         stat.execute("create table test(a varchar, b varchar)");
         int len = getSize(1000, 10000);
         PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?)");
-        ArrayList list = new ArrayList();
+        ArrayList<String[]> list = New.arrayList();
         Random random = new Random(1);
         for (int i = 0; i < len; i++) {
             String a = randomData(random), b = randomData(random);
@@ -142,7 +143,7 @@ public class TestCsv extends TestBase {
         ResultSet rs = csv.read(baseDir + "/test.csv", null, "UTF-8");
         for (int i = 0; i < len; i++) {
             assertTrue(rs.next());
-            String[] pair = (String[]) list.get(i);
+            String[] pair = list.get(i);
             assertEquals(pair[0], rs.getString(1));
             assertEquals(pair[1], rs.getString(2));
         }

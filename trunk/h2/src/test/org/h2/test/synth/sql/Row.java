@@ -12,7 +12,7 @@ import java.sql.SQLException;
 /**
  * Represents a row.
  */
-class Row implements Comparable {
+class Row implements Comparable<Row> {
     private Value[] data;
 
     public Row(TestSynth config, ResultSet rs, int len) throws SQLException {
@@ -32,8 +32,7 @@ class Row implements Comparable {
         return s;
     }
 
-    public int compareTo(Object o) {
-        Row r2 = (Row) o;
+    public int compareTo(Row r2) {
         int result = 0;
         for (int i = 0; i < data.length && result == 0; i++) {
             Object o1 = data[i];

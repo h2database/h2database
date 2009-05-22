@@ -180,9 +180,9 @@ public class TestPowerOff extends TestBase {
             assertKnownException(e);
         }
         boolean deleted = false;
-        ArrayList files = FileLister.getDatabaseFiles(dir, dbName, false);
+        ArrayList<String> files = FileLister.getDatabaseFiles(dir, dbName, false);
         for (int i = 0; i < files.size(); i++) {
-            String fileName = (String) files.get(i);
+            String fileName = files.get(i);
             if (fileName.endsWith(Constants.SUFFIX_INDEX_FILE)) {
                 FileUtils.delete(fileName);
                 deleted = true;

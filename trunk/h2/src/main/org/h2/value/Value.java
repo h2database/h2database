@@ -154,7 +154,7 @@ public abstract class Value {
      */
     public static final int TYPE_COUNT = STRING_FIXED + 1;
 
-    private static SoftReference softCache = new SoftReference(null);
+    private static SoftReference<Value[]> softCache = new SoftReference<Value[]>(null);
     private static final BigDecimal MAX_LONG_DECIMAL = new BigDecimal("" + Long.MAX_VALUE);
     private static final BigDecimal MIN_LONG_DECIMAL = new BigDecimal("" + Long.MIN_VALUE);
 
@@ -331,12 +331,12 @@ public abstract class Value {
         if (SysProperties.OBJECT_CACHE) {
             int hash = v.hashCode();
             if (softCache == null) {
-                softCache = new SoftReference(null);
+                softCache = new SoftReference<Value[]>(null);
             }
-            Value[] cache = (Value[]) softCache.get();
+            Value[] cache = softCache.get();
             if (cache == null) {
                 cache = new Value[SysProperties.OBJECT_CACHE_SIZE];
-                softCache = new SoftReference(cache);
+                softCache = new SoftReference<Value[]>(cache);
             }
             int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
             Value cached = cache[index];

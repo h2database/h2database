@@ -55,7 +55,7 @@ import org.h2.value.ValueUuid;
 public class TestValueMemory extends TestBase implements DataHandler {
 
     private Random random = new Random(1);
-    private SmallLRUCache lobFileListCache = new SmallLRUCache(128);
+    private SmallLRUCache<String, String[]> lobFileListCache = SmallLRUCache.newInstance(128);
 
     /**
      * Run just this test.
@@ -76,7 +76,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         System.gc();
         System.gc();
         long first = MemoryUtils.getMemoryUsed();
-        ArrayList list = new ArrayList();
+        ArrayList<Value> list = new ArrayList<Value>();
         long memory = 0;
         for (int i = 0; memory < 1000000; i++) {
             Value v = create(type);
@@ -84,7 +84,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
             list.add(v);
         }
         Object[] array = list.toArray();
-        IdentityHashMap map = new IdentityHashMap();
+        IdentityHashMap<Object, Object> map = new IdentityHashMap<Object, Object>();
         for (int i = 0; i < array.length; i++) {
             map.put(array[i], array[i]);
         }
@@ -246,7 +246,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         return SysProperties.LOB_FILES_IN_DIRECTORIES;
     }
 
-    public SmallLRUCache getLobFileListCache() {
+    public SmallLRUCache<String, String[]> getLobFileListCache() {
         return lobFileListCache;
     }
 

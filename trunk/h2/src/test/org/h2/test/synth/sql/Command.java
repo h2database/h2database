@@ -8,6 +8,7 @@ package org.h2.test.synth.sql;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+import org.h2.util.New;
 
 /**
  * Represents a statement.
@@ -25,7 +26,7 @@ class Command {
     private TestSynth config;
     private int type;
     private Table table;
-    private HashMap tables;
+    private HashMap<String, Table> tables;
     private Index index;
     private Column[] columns;
     private Value[] values;
@@ -50,7 +51,7 @@ class Command {
         this.config = config;
         this.type = type;
         this.table = table;
-        this.tables = new HashMap();
+        this.tables = New.hashMap();
         this.tables.put(alias, table);
     }
 
@@ -410,7 +411,7 @@ class Command {
         if (alias == null) {
             return table;
         }
-        return (Table) tables.get(alias);
+        return tables.get(alias);
     }
 
 //    public void addJoin(String string) {

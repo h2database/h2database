@@ -636,7 +636,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         return false;
     }
 
-    public SmallLRUCache getLobFileListCache() {
+    public SmallLRUCache<String, String[]> getLobFileListCache() {
         return null;
     }
 

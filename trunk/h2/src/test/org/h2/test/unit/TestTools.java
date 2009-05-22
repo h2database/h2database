@@ -253,9 +253,8 @@ public class TestTools extends TestBase {
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test values(1, 'Hello')");
         conn.close();
-        ArrayList list = FileLister.getDatabaseFiles(baseDir, "toolsRemove", true);
-        for (int i = 0; i < list.size(); i++) {
-            String fileName = (String) list.get(i);
+        ArrayList<String> list = FileLister.getDatabaseFiles(baseDir, "toolsRemove", true);
+        for (String fileName : list) {
             if (fileName.endsWith(Constants.SUFFIX_LOG_FILE)) {
                 FileUtils.delete(fileName);
             }
@@ -292,9 +291,8 @@ public class TestTools extends TestBase {
 
         // deleteDb would delete the .lob.db directory as well
         // deleteDb("toolsRecover");
-        ArrayList list = FileLister.getDatabaseFiles(baseDir, "toolsRecover", true);
-        for (int i = 0; i < list.size(); i++) {
-            String fileName = (String) list.get(i);
+        ArrayList<String> list = FileLister.getDatabaseFiles(baseDir, "toolsRecover", true);
+        for (String fileName : list) {
             if (!FileUtils.isDirectory(fileName)) {
                 FileUtils.delete(fileName);
             }

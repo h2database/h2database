@@ -29,6 +29,7 @@ import org.h2.result.RowList;
 import org.h2.schema.Schema;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -46,7 +47,7 @@ public class TableLink extends Table {
 
     private String driver, url, user, password, originalSchema, originalTable, qualifiedTableName;
     private TableLinkConnection conn;
-    private HashMap prepared = new HashMap();
+    private HashMap<String, PreparedStatement> prepared = New.hashMap();
     private final ObjectArray indexes = new ObjectArray();
     private final boolean emitUpdates;
     private LinkedIndex linkedIndex;
@@ -107,7 +108,7 @@ public class TableLink extends Table {
         rs = meta.getColumns(null, originalSchema, originalTable, null);
         int i = 0;
         ObjectArray columnList = new ObjectArray();
-        HashMap columnMap = new HashMap();
+        HashMap<String, Column> columnMap = New.hashMap();
         String catalog = null, schema = null;
         while (rs.next()) {
             String thisCatalog = rs.getString("TABLE_CAT");
@@ -203,7 +204,7 @@ public class TableLink extends Table {
                 }
                 String col = rs.getString("COLUMN_NAME");
                 col = convertColumnName(col);
-                Column column = (Column) columnMap.get(col);
+                Column column = columnMap.get(col);
                 if (idx == 0) {
                     // workaround for a bug in the SQLite JDBC driver
                     list.add(column);
@@ -246,7 +247,7 @@ public class TableLink extends Table {
                 indexType = unique ? IndexType.createUnique(false, false) : IndexType.createNonUnique(false);
                 String col = rs.getString("COLUMN_NAME");
                 col = convertColumnName(col);
-                Column column = (Column) columnMap.get(col);
+                Column column = columnMap.get(col);
                 list.add(column);
             }
             rs.close();
@@ -418,7 +419,7 @@ public class TableLink extends Table {
         if (conn == null) {
             throw connectException;
         }
-        PreparedStatement prep = (PreparedStatement) prepared.get(sql);
+        PreparedStatement prep = prepared.get(sql);
         if (prep == null) {
             prep = conn.getConnection().prepareStatement(sql);
             prepared.put(sql, prep);

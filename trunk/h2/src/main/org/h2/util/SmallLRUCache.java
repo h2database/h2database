@@ -16,26 +16,33 @@ import java.util.Map;
 
 /**
  * This class implements a small LRU object cache.
+ *
+ * @param <K> the key
+ * @param <V> the value
  */
-public class SmallLRUCache
+public class SmallLRUCache<K, V>
 //## Java 1.4 begin ##
-extends LinkedHashMap
+extends LinkedHashMap<K, V>
 //## Java 1.4 end ##
 /*## Java 1.3 only begin ##
 extends HashMap
 ## Java 1.3 only end ##*/
 {
 
-    private static final long serialVersionUID = 3643268440910181829L;
+    private static final long serialVersionUID = 1L;
     private int size;
 
-    public SmallLRUCache(int size) {
+    private SmallLRUCache(int size) {
         super(size, (float) 0.75, true);
         this.size = size;
     }
 
+    public static <K, V> SmallLRUCache<K, V> newInstance(int size) {
+        return new SmallLRUCache<K, V>(size);
+    }
+
 //## Java 1.4 begin ##
-    protected boolean removeEldestEntry(Map.Entry eldest) {
+    protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
         return size() > size;
     }
 //## Java 1.4 end ##

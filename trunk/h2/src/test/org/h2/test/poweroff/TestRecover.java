@@ -30,6 +30,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.h2.util.IOUtils;
+import org.h2.util.New;
 
 /**
  * This standalone test checks if recovery of a database works after power
@@ -108,7 +109,7 @@ public class TestRecover {
         SimpleDateFormat sd = new SimpleDateFormat("yyMMdd-HHmmss");
         String date = sd.format(new Date());
         File zipFile = new File(root, "backup-" + date + "-" + node + ".zip");
-        ArrayList list = new ArrayList();
+        ArrayList<File> list = New.arrayList();
         File base = new File(sourcePath);
         listRecursive(list, base);
         if (list.size() == 0) {
@@ -121,7 +122,7 @@ public class TestRecover {
                 ZipOutputStream zipOut = new ZipOutputStream(out);
                 String baseName = base.getAbsolutePath();
                 for (int i = 0; i < list.size(); i++) {
-                    File f = (File) list.get(i);
+                    File f = list.get(i);
                     String fileName = f.getAbsolutePath();
                     String entryName = fileName;
                     if (fileName.startsWith(baseName)) {
@@ -153,7 +154,7 @@ public class TestRecover {
         return zipFile;
     }
 
-    private static void listRecursive(List list, File file) throws IOException {
+    private static void listRecursive(List<File> list, File file) throws IOException {
         File[] l = file.listFiles();
         for (int i = 0; l != null && i < l.length; i++) {
             File f = l[i];

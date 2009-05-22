@@ -131,9 +131,9 @@ public class TestReadOnly extends TestBase {
 
     private void setReadOnly() throws SQLException {
         String lastLogFile = null;
-        ArrayList list = FileLister.getDatabaseFiles(TestBase.baseDir, "readonly", true);
+        ArrayList<String> list = FileLister.getDatabaseFiles(TestBase.baseDir, "readonly", true);
         for (int i = 0; i < list.size(); i++) {
-            String fileName = (String) list.get(i);
+            String fileName = list.get(i);
             File file = new File(fileName);
             file.setReadOnly();
             if (fileName.endsWith(Constants.SUFFIX_LOG_FILE)) {
@@ -144,7 +144,7 @@ public class TestReadOnly extends TestBase {
         }
         // delete all log files except the last one
         for (int i = 0; i < list.size(); i++) {
-            String fileName = (String) list.get(i);
+            String fileName = list.get(i);
             if (fileName.endsWith(Constants.SUFFIX_LOG_FILE)) {
                 if (!lastLogFile.equals(fileName)) {
                     File file = new File(fileName);

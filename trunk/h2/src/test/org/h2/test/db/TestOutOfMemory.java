@@ -22,7 +22,7 @@ import org.h2.test.TestBase;
  */
 public class TestOutOfMemory extends TestBase {
 
-    private LinkedList list = new LinkedList();
+    private LinkedList<byte[]> list = new LinkedList<byte[]>();
 
     /**
      * Run just this test.

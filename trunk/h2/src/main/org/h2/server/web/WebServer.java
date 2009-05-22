@@ -18,10 +18,10 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -40,6 +40,7 @@ import org.h2.util.FileUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
+import org.h2.util.New;
 import org.h2.util.RandomUtils;
 import org.h2.util.Resources;
 import org.h2.util.SortedProperties;
@@ -115,13 +116,13 @@ public class WebServer implements Service {
     // private URLClassLoader urlClassLoader;
     private int port;
     private boolean allowOthers;
-    private Set running = Collections.synchronizedSet(new HashSet());
+    private Set<WebThread> running = Collections.synchronizedSet(new HashSet<WebThread>());
     private boolean ssl;
-    private HashMap connInfoMap = new HashMap();
+    private HashMap<String, ConnectionInfo> connInfoMap = New.hashMap();
 
     private long lastTimeoutCheck;
-    private HashMap sessions = new HashMap();
-    private HashSet languages = new HashSet();
+    private HashMap<String, WebSession> sessions = New.hashMap();
+    private HashSet<String> languages = New.hashSet();
     private String startDateTime;
     private ServerSocket serverSocket;
     private String url;
@@ -175,7 +176,7 @@ public class WebServer implements Service {
             Object[] list = sessions.keySet().toArray();
             for (int i = 0; i < list.length; i++) {
                 String id = (String) list[i];
-                WebSession session = (WebSession) sessions.get(id);
+                WebSession session = sessions.get(id);
                 Long last = (Long) session.get("lastAccess");
                 if (last != null && last.longValue() + SESSION_TIMEOUT < now) {
                     trace("timeout for " + id);
@@ -184,7 +185,7 @@ public class WebServer implements Service {
             }
             lastTimeoutCheck = now;
         }
-        WebSession session = (WebSession) sessions.get(sessionId);
+        WebSession session = sessions.get(sessionId);
         if (session != null) {
             session.lastAccess = System.currentTimeMillis();
         }
@@ -346,14 +347,10 @@ public class WebServer implements Service {
             }
         }
         // TODO server: using a boolean 'now' argument? a timeout?
-        ArrayList list = new ArrayList(sessions.values());
-        for (int i = 0; i < list.size(); i++) {
-            WebSession session = (WebSession) list.get(i);
+        for (WebSession session : New.arrayList(sessions.values())) {
             session.close();
         }
-        list = new ArrayList(running);
-        for (int i = 0; i < list.size(); i++) {
-            WebThread c = (WebThread) list.get(i);
+        for (WebThread c : New.arrayList(running)) {
             try {
                 c.stopNow();
                 c.join(100);
@@ -410,8 +407,7 @@ public class WebServer implements Service {
             trace("  "+new String(trans));
             text.load(new ByteArrayInputStream(trans));
             // remove starting # (if not translated yet)
-            for (Iterator it = text.entrySet().iterator(); it.hasNext();) {
-                Entry entry = (Entry) it.next();
+            for (Entry<Object, Object> entry : text.entrySet()) {
                 String value = (String) entry.getValue();
                 if (value.startsWith("#")) {
                     entry.setValue(value.substring(1));
@@ -420,18 +416,17 @@ public class WebServer implements Service {
         } catch (IOException e) {
             TraceSystem.traceThrowable(e);
         }
-        session.put("text", new HashMap(text));
+        session.put("text", new HashMap<Object, Object>(text));
     }
 
     String[][] getLanguageArray() {
         return LANGUAGES;
     }
 
-    ArrayList getSessions() {
-        ArrayList list = new ArrayList(sessions.values());
-        for (int i = 0; i < list.size(); i++) {
-            WebSession s = (WebSession) list.get(i);
-            list.set(i, s.getInfo());
+    ArrayList<HashMap<String, Object>> getSessions() {
+        ArrayList<HashMap<String, Object>> list = New.arrayList();
+        for (WebSession s : sessions.values()) {
+            list.add(s.getInfo());
         }
         return list;
     }
@@ -475,7 +470,7 @@ public class WebServer implements Service {
      * @return the connection information
      */
     ConnectionInfo getSetting(String name) {
-        return (ConnectionInfo) connInfoMap.get(name);
+        return connInfoMap.get(name);
     }
 
     /**
@@ -518,10 +513,10 @@ public class WebServer implements Service {
      * @return the connection info names
      */
     String[] getSettingNames() {
-        ArrayList list = getSettings();
+        ArrayList<ConnectionInfo> list = getSettings();
         String[] names = new String[list.size()];
         for (int i = 0; i < list.size(); i++) {
-            names[i] = ((ConnectionInfo) list.get(i)).name;
+            names[i] = list.get(i).name;
         }
         return names;
     }
@@ -531,13 +526,13 @@ public class WebServer implements Service {
      *
      * @return the list
      */
-    synchronized ArrayList getSettings() {
-        ArrayList settings = new ArrayList();
+    synchronized ArrayList<ConnectionInfo> getSettings() {
+        ArrayList<ConnectionInfo> settings = New.arrayList();
         if (connInfoMap.size() == 0) {
             Properties prop = loadProperties();
             if (prop.size() == 0) {
-                for (int i = 0; i < GENERIC.length; i++) {
-                    ConnectionInfo info = new ConnectionInfo(GENERIC[i]);
+                for (String gen : GENERIC) {
+                    ConnectionInfo info = new ConnectionInfo(gen);
                     settings.add(info);
                     updateSetting(info);
                 }
@@ -555,18 +550,14 @@ public class WebServer implements Service {
         } else {
             settings.addAll(connInfoMap.values());
         }
-        sortConnectionInfo(settings);
-        return settings;
-    }
-
-    private void sortConnectionInfo(ArrayList list) {
-        for (int i = 1, j; i < list.size(); i++) {
-            ConnectionInfo t = (ConnectionInfo) list.get(i);
-            for (j = i - 1; j >= 0 && (((ConnectionInfo) list.get(j)).lastAccess < t.lastAccess); j--) {
-                list.set(j + 1, list.get(j));
+        Collections.sort(settings, new Comparator<ConnectionInfo>() {
+            public int compare(ConnectionInfo o1, ConnectionInfo o2) {
+                int c = o2.lastAccess - o1.lastAccess;
+                return c < 0 ? -1 : c > 0 ? 1 : 0;
             }
-            list.set(j + 1, t);
         }
+        );
+        return settings;
     }
 
     /**
@@ -583,10 +574,10 @@ public class WebServer implements Service {
                 prop.setProperty("webAllowOthers", old.getProperty("webAllowOthers"));
                 prop.setProperty("webSSL", old.getProperty("webSSL"));
             }
-            ArrayList settings = getSettings();
+            ArrayList<ConnectionInfo> settings = getSettings();
             int len = settings.size();
             for (int i = 0; i < len; i++) {
-                ConnectionInfo info = (ConnectionInfo) settings.get(i);
+                ConnectionInfo info = settings.get(i);
                 if (info != null) {
                     prop.setProperty(String.valueOf(len - i - 1), info.getString());
                 }
@@ -677,10 +668,10 @@ public class WebServer implements Service {
     private class TranslateThread extends Thread {
 
         private final File file = new File("translation.properties");
-        private final Map translation;
+        private final Map<Object, Object> translation;
         private volatile boolean stopNow;
 
-        TranslateThread(Map translation) {
+        TranslateThread(Map<Object, Object> translation) {
             this.translation = translation;
         }
 
@@ -725,7 +716,7 @@ public class WebServer implements Service {
      * @param translation the translation map
      * @return the name of the file to translate
      */
-    String startTranslate(Map translation) {
+    String startTranslate(Map<Object, Object> translation) {
         if (translateThread != null) {
             translateThread.stopNow();
         }

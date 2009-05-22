@@ -189,7 +189,7 @@ public class TestFile extends TestBase implements DataHandler {
         return SysProperties.LOB_FILES_IN_DIRECTORIES;
     }
 
-    public SmallLRUCache getLobFileListCache() {
+    public SmallLRUCache<String, String[]> getLobFileListCache() {
         return null;
     }
 

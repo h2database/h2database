@@ -29,7 +29,7 @@ public class CompareMode {
 
     private final Collator collator;
     private final String name;
-    private final SmallLRUCache collationKeys;
+    private final SmallLRUCache<String, CollationKey> collationKeys;
 
     /**
      * Create a new compare mode with the given collator and cache size.
@@ -47,7 +47,7 @@ public class CompareMode {
             cacheSize = SysProperties.getCollatorCacheSize();
         }
         if (cacheSize != 0) {
-            collationKeys = new SmallLRUCache(cacheSize);
+            collationKeys = SmallLRUCache.newInstance(cacheSize);
         } else {
             collationKeys = null;
         }
@@ -111,7 +111,7 @@ public class CompareMode {
 
     private CollationKey getKey(String a) {
         synchronized (collationKeys) {
-            CollationKey key = (CollationKey) collationKeys.get(a);
+            CollationKey key = collationKeys.get(a);
             if (key == null) {
                 key = collator.getCollationKey(a);
                 collationKeys.put(a, key);

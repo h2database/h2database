@@ -32,7 +32,7 @@ public class ViewIndex extends BaseIndex {
     private final TableView view;
     private final String querySQL;
     private final ObjectArray originalParameters;
-    private final SmallLRUCache costCache = new SmallLRUCache(Constants.VIEW_INDEX_CACHE_SIZE);
+    private final SmallLRUCache<IntArray, CostElement> costCache = SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
     private boolean recursive;
     private int[] masks;
     private String planSQL;
@@ -99,7 +99,7 @@ public class ViewIndex extends BaseIndex {
 
     public double getCost(Session session, int[] masks) throws SQLException {
         IntArray masksArray = new IntArray(masks == null ? new int[0] : masks);
-        CostElement cachedCost = (CostElement) costCache.get(masksArray);
+        CostElement cachedCost = costCache.get(masksArray);
         if (cachedCost != null) {
             long time = System.currentTimeMillis();
             if (time < cachedCost.evaluatedAt + Constants.VIEW_COST_CACHE_MAX_AGE) {

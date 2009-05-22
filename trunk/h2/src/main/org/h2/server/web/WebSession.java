@@ -18,6 +18,7 @@ import java.util.Locale;
 
 import org.h2.bnf.Bnf;
 import org.h2.message.TraceSystem;
+import org.h2.util.New;
 
 /**
  * The web session keeps all data of a user session.
@@ -35,7 +36,7 @@ class WebSession {
     /**
      * The session attribute map.
      */
-    HashMap map = new HashMap();
+    HashMap<String, Object> map = New.hashMap();
 
     /**
      * The current locale.
@@ -54,7 +55,7 @@ class WebSession {
 
     private WebServer server;
 
-    private ArrayList commandHistory = new ArrayList();
+    private ArrayList<String> commandHistory = New.arrayList();
 
     private Connection conn;
     private DatabaseMetaData meta;
@@ -146,7 +147,7 @@ class WebSession {
      * @return the SQL statement
      */
     String getCommand(int id) {
-        return (String) commandHistory.get(id);
+        return commandHistory.get(id);
     }
 
     /**
@@ -177,7 +178,7 @@ class WebSession {
      *
      * @return the commands
      */
-    ArrayList getCommands() {
+    ArrayList<String> getCommands() {
         return commandHistory;
     }
 
@@ -186,8 +187,8 @@ class WebSession {
      *
      * @return a map containing the session meta data
      */
-    HashMap getInfo() {
-        HashMap m = new HashMap();
+    HashMap<String, Object> getInfo() {
+        HashMap<String, Object> m = New.hashMap();
         m.putAll(map);
         m.put("lastAccess", new Timestamp(lastAccess).toString());
         try {

@@ -243,7 +243,7 @@ public abstract class ScriptBase extends Prepared implements DataHandler {
         return session.getDatabase().getLobFilesInDirectories();
     }
 
-    public SmallLRUCache getLobFileListCache() {
+    public SmallLRUCache<String, String[]> getLobFileListCache() {
         return null;
     }
 

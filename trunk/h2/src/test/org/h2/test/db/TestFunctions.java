@@ -27,6 +27,7 @@ import org.h2.api.AggregateFunction;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
+import org.h2.util.New;
 
 /**
  * Tests for user defined functions and aggregates.
@@ -197,7 +198,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      */
     public static class MedianString implements AggregateFunction {
 
-        private ArrayList list = new ArrayList();
+        private ArrayList<String> list = New.arrayList();
 
         public void add(Object value) {
             list.add(value.toString());

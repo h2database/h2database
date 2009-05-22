@@ -86,7 +86,7 @@ public class TraceSystem implements TraceWriter {
     private int level;
     private int maxFileSize = DEFAULT_MAX_FILE_SIZE;
     private String fileName;
-    private SmallLRUCache traces;
+    private SmallLRUCache<String, Trace> traces;
     private SimpleDateFormat dateFormat;
     private Writer fileWriter;
     private PrintWriter printWriter;
@@ -104,7 +104,7 @@ public class TraceSystem implements TraceWriter {
     public TraceSystem(String fileName, boolean init) {
         this.fileName = fileName;
         updateLevel();
-        traces = new SmallLRUCache(100);
+        traces = SmallLRUCache.newInstance(100);
         dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
         if (fileName != null && init) {
             try {
@@ -138,7 +138,7 @@ public class TraceSystem implements TraceWriter {
      * @return the trace object
      */
     public synchronized Trace getTrace(String module) {
-        Trace t = (Trace) traces.get(module);
+        Trace t = traces.get(module);
         if (t == null) {
             t = new Trace(writer, module);
             traces.put(module, t);

@@ -46,7 +46,7 @@ public class StartBrowser {
             }
 
             try {
-                Class desktopClass = Class.forName("java.awt.Desktop");
+                Class< ? > desktopClass = Class.forName("java.awt.Desktop");
                 // Desktop.isDesktopSupported()
                 Boolean supported = (Boolean) desktopClass.
                     getMethod("isDesktopSupported", new Class[0]).

@@ -22,16 +22,14 @@ import org.h2.message.Message;
 public class ClassUtils {
 
     private static final boolean ALLOW_ALL;
-    private static final HashSet ALLOWED_CLASS_NAMES = new HashSet();
+    private static final HashSet<String> ALLOWED_CLASS_NAMES = New.hashSet();
     private static final String[] ALLOWED_CLASS_NAME_PREFIXES;
 
     static {
         String s = SysProperties.ALLOWED_CLASSES;
-        String[] list = StringUtils.arraySplit(s, ',', true);
-        ArrayList prefixes = new ArrayList();
+        ArrayList<String> prefixes = New.arrayList();
         boolean allowAll = false;
-        for (int i = 0; i < list.length; i++) {
-            String p = list[i];
+        for (String p : StringUtils.arraySplit(s, ',', true)) {
             if (p.equals("*")) {
                 allowAll = true;
             } else if (p.endsWith("*")) {
@@ -55,7 +53,7 @@ public class ClassUtils {
      * @param className the name of the class
      * @return the class object
      */
-    public static Class loadSystemClass(String className) throws ClassNotFoundException {
+    public static Class< ? > loadSystemClass(String className) throws ClassNotFoundException {
         return Class.forName(className);
     }
 
@@ -67,7 +65,7 @@ public class ClassUtils {
      * @param className the name of the class
      * @return the class object
      */
-    public static Class loadUserClass(String className) throws SQLException {
+    public static Class< ? > loadUserClass(String className) throws SQLException {
         if (!ALLOW_ALL && !ALLOWED_CLASS_NAMES.contains(className)) {
             boolean allowed = false;
             for (int i = 0; i < ALLOWED_CLASS_NAME_PREFIXES.length; i++) {

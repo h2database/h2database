@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import org.h2.engine.Constants;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -38,10 +39,10 @@ public class TestScript extends TestBase {
     private LineNumberReader in;
     private int line;
     private PrintStream out;
-    private ArrayList result = new ArrayList();
+    private ArrayList<String[]> result = New.arrayList();
     private String putBack;
     private StringBuffer errors;
-    private ArrayList statements;
+    private ArrayList<String> statements;
     private String fileName = "org/h2/test/test-" +
         Constants.VERSION_MAJOR + "." + Constants.VERSION_MINOR + ".txt";
 
@@ -60,9 +61,9 @@ public class TestScript extends TestBase {
      * @param conf the configuration
      * @return the list of statements
      */
-    public ArrayList getAllStatements(TestAll conf) throws Exception {
+    public ArrayList<String> getAllStatements(TestAll conf) throws Exception {
         config = conf;
-        statements = new ArrayList();
+        statements = New.arrayList();
         test();
         return statements;
     }
@@ -290,7 +291,7 @@ public class TestScript extends TestBase {
         writeResult(format(null, max), null);
         String[] array = new String[result.size()];
         for (int i = 0; i < result.size(); i++) {
-            array[i] = format((String[]) result.get(i), max);
+            array[i] = format(result.get(i), max);
         }
         if (!ordered) {
             sort(array);

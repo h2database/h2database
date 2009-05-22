@@ -61,6 +61,16 @@ public class New {
     }
 
     /**
+     * Create a new HashSet.
+     *
+     * @param <T> the type
+     * @return the object
+     */
+    public static <T> HashSet<T> hashSet(Collection<T> c) {
+        return new HashSet<T>(c);
+    }
+
+    /**
      * Create a new ArrayList.
      *
      * @param <T> the type
@@ -69,6 +79,17 @@ public class New {
      */
     public static <T> ArrayList<T> arrayList(Collection<T> c) {
         return new ArrayList<T>(c);
+    }
+
+    /**
+     * Create a new ArrayList.
+     *
+     * @param <T> the type
+     * @param initialCapacity the initial capacity
+     * @return the object
+     */
+    public static <T> ArrayList<T> arrayList(int initialCapacity) {
+        return new ArrayList<T>(initialCapacity);
     }
 
 }

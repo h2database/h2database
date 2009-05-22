@@ -44,7 +44,7 @@ import org.h2.util.RandomUtils;
  */
 public class TestCrashAPI extends TestBase {
 
-    private static final Class[] INTERFACES = { Connection.class, PreparedStatement.class, Statement.class,
+    private static final Class< ? >[] INTERFACES = { Connection.class, PreparedStatement.class, Statement.class,
             ResultSet.class, ResultSetMetaData.class, Savepoint.class,
             ParameterMetaData.class, Clob.class, Blob.class, Array.class, CallableStatement.class };
 

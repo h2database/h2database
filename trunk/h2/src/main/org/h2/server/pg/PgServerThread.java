@@ -37,7 +37,7 @@ import org.h2.message.Message;
 import org.h2.util.ByteUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
-import org.h2.util.ObjectUtils;
+import org.h2.util.New;
 import org.h2.util.Resources;
 import org.h2.util.ScriptReader;
 
@@ -63,9 +63,9 @@ public class PgServerThread implements Runnable {
     private int processId;
     private String clientEncoding = "UTF-8";
     private String dateStyle = "ISO";
-    private HashMap prepared = new HashMap();
-    private HashMap portals = new HashMap();
-    private HashSet types = new HashSet();
+    private HashMap<String, Prepared> prepared = New.hashMap();
+    private HashMap<String, Portal> portals = New.hashMap();
+    private HashSet<Integer> types = New.hashSet();
 
     PgServerThread(Socket socket, PgServer server) {
         this.server = server;
@@ -229,7 +229,7 @@ public class PgServerThread implements Runnable {
             Portal portal = new Portal();
             portal.name = readString();
             String prepName = readString();
-            Prepared prep = (Prepared) prepared.get(prepName);
+            Prepared prep = prepared.get(prepName);
             if (prep == null) {
                 sendErrorResponse("Portal not found");
                 break;
@@ -266,14 +266,14 @@ public class PgServerThread implements Runnable {
             String name = readString();
             server.trace("Describe");
             if (type == 'S') {
-                Prepared p = (Prepared) prepared.get(name);
+                Prepared p = prepared.get(name);
                 if (p == null) {
                     sendErrorResponse("Prepared not found: " + name);
                 } else {
                     sendParameterDescription(p);
                 }
             } else if (type == 'P') {
-                Portal p = (Portal) portals.get(name);
+                Portal p = portals.get(name);
                 if (p == null) {
                     sendErrorResponse("Portal not found: " + name);
                 } else {
@@ -294,7 +294,7 @@ public class PgServerThread implements Runnable {
         case 'E': {
             String name = readString();
             server.trace("Execute");
-            Portal p = (Portal) portals.get(name);
+            Portal p = portals.get(name);
             if (p == null) {
                 sendErrorResponse("Portal not found: " + name);
                 break;
@@ -376,7 +376,7 @@ public class PgServerThread implements Runnable {
     }
 
     private void checkType(int type) {
-        if (types.contains(ObjectUtils.getInteger(type))) {
+        if (types.contains(type)) {
             server.trace("Unsupported type: " + type);
         }
     }
@@ -621,7 +621,7 @@ public class PgServerThread implements Runnable {
 
             rs = stat.executeQuery("SELECT OID FROM PG_CATALOG.PG_TYPE");
             while (rs.next()) {
-                types.add(ObjectUtils.getInteger(rs.getInt(1)));
+                types.add(rs.getInt(1));
             }
         } finally {
             JdbcUtils.closeSilently(stat);

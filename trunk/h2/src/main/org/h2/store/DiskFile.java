@@ -35,6 +35,7 @@ import org.h2.util.CacheWriter;
 import org.h2.util.FileUtils;
 import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
 
@@ -84,7 +85,7 @@ public class DiskFile implements CacheWriter {
     private FileStore file;
     private BitField used;
     private BitField deleted;
-    private HashSet potentiallyFreePages;
+    private HashSet<Integer> potentiallyFreePages;
     private int fileBlockCount;
     private IntArray pageOwners;
     private Cache cache;
@@ -153,7 +154,7 @@ public class DiskFile implements CacheWriter {
         // init pageOwners
         setBlockCount(fileBlockCount);
         redoBuffer = new ObjectArray();
-        potentiallyFreePages = new HashSet();
+        potentiallyFreePages = New.hashSet();
     }
 
     private void setBlockCount(int count) {
@@ -176,19 +177,18 @@ public class DiskFile implements CacheWriter {
     private void freeUnusedPages() throws SQLException {
         // first, store the unused pages and current owner in a temporary list
         IntArray freePages = new IntArray();
-        HashSet owners = new HashSet();
+        HashSet<Integer> owners = New.hashSet();
         for (int i = 0; i < pageOwners.size(); i++) {
             int owner = pageOwners.get(i);
             if (owner != FREE_PAGE && isPageFree(i)) {
-                owners.add(ObjectUtils.getInteger(owner));
+                owners.add(owner);
                 freePages.add(i);
             }
         }
         // now, for each current owner, remove those
         // this is much faster than removing them individually
         // as this would cause O(n^2) behavior
-        for (Iterator it = owners.iterator(); it.hasNext();) {
-            int owner = ((Integer) it.next()).intValue();
+        for (int owner : owners) {
             database.getStorage(owner, this).removePages(freePages);
         }
         // now free up the pages
@@ -695,8 +695,8 @@ public class DiskFile implements CacheWriter {
                         oldest = deleteId;
                     }
                 }
-                for (Iterator it = potentiallyFreePages.iterator(); it.hasNext();) {
-                    int p = ((Integer) it.next()).intValue();
+                for (Iterator<Integer> it = potentiallyFreePages.iterator(); it.hasNext();) {
+                    int p = it.next();
                     if (oldest == 0) {
                         if (isPageFree(p)) {
                             // the page may not be free: the storage
@@ -737,7 +737,7 @@ public class DiskFile implements CacheWriter {
             setPageOwner(page, FREE_PAGE);
         } else {
             if (SysProperties.REUSE_SPACE_QUICKLY) {
-                potentiallyFreePages.add(ObjectUtils.getInteger(page));
+                potentiallyFreePages.add(page);
             }
         }
     }
@@ -1187,10 +1187,8 @@ public class DiskFile implements CacheWriter {
             if (redoBuffer.size() == 0) {
                 return;
             }
-            redoBuffer.sort(new Comparator() {
-                public int compare(Object o1, Object o2) {
-                    RedoLogRecord e1 = (RedoLogRecord) o1;
-                    RedoLogRecord e2 = (RedoLogRecord) o2;
+            redoBuffer.sort(new Comparator<RedoLogRecord>() {
+                public int compare(RedoLogRecord e1, RedoLogRecord e2) {
                     int comp = e1.recordId - e2.recordId;
                     if (comp == 0) {
                         comp = e1.sequenceId - e2.sequenceId;

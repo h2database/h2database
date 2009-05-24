@@ -276,9 +276,7 @@ public class DiskFile implements CacheWriter {
     public void initFromSummary(byte[] summary) {
         synchronized (database) {
             if (summary == null || summary.length == 0) {
-                ObjectArray<Storage> list = database.getAllStorages();
-                for (int i = 0; i < list.size(); i++) {
-                    Storage s = list.get(i);
+                for (Storage s : database.getAllStorages()) {
                     if (s != null && s.getDiskFile() == this) {
                         database.removeStorage(s.getId(), this);
                     }
@@ -428,8 +426,7 @@ public class DiskFile implements CacheWriter {
             database.checkPowerOff();
             ObjectArray<CacheObject> list = cache.getAllChanged();
             CacheObject.sort(list);
-            for (int i = 0; i < list.size(); i++) {
-                Record rec = (Record) list.get(i);
+            for (CacheObject rec : list) {
                 writeBack(rec);
             }
             for (int i = 0; i < fileBlockCount; i++) {
@@ -1072,9 +1069,8 @@ public class DiskFile implements CacheWriter {
             int storageId = storage.getId();
             // make sure the cache records of this storage are not flushed to disk
             // afterwards
-            ObjectArray<CacheObject> list = cache.getAllChanged();
-            for (int i = 0; i < list.size(); i++) {
-                Record r = (Record) list.get(i);
+            for (CacheObject obj : cache.getAllChanged()) {
+                Record r = (Record) obj;
                 if (r.getStorageId() == storageId) {
                     r.setChanged(false);
                 }

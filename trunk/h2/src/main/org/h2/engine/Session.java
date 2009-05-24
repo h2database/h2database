@@ -649,9 +649,7 @@ public class Session extends SessionWithState {
 
     private void cleanTempTables(boolean closeSession) throws SQLException {
         if (localTempTables != null && localTempTables.size() > 0) {
-            ObjectArray<Table> list = ObjectArray.newInstance(localTempTables.values());
-            for (int i = 0; i < list.size(); i++) {
-                Table table = list.get(i);
+            for (Table table : ObjectArray.newInstance(localTempTables.values())) {
                 if (closeSession || table.getOnCommitDrop()) {
                     modificationId++;
                     table.setModified();

@@ -15,7 +15,6 @@ import org.h2.result.LocalResult;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableData;
-import org.h2.util.ObjectArray;
 
 /**
  * This class represents the statement
@@ -33,10 +32,8 @@ public class Analyze extends DefineCommand {
         session.commit(true);
         Database db = session.getDatabase();
         session.getUser().checkAdmin();
-        ObjectArray<Table> tables = db.getAllTablesAndViews();
         // TODO do we need to lock the table?
-        for (int i = 0; i < tables.size(); i++) {
-            Table table = tables.get(i);
+        for (Table table : db.getAllTablesAndViews()) {
             if (!(table instanceof TableData)) {
                 continue;
             }

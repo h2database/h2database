@@ -450,9 +450,7 @@ public class Parser {
                     p.setValue(expr.getValue(session));
                 } while (readIf(","));
                 read("}");
-                int len = parameters.size();
-                for (int i = 0; i < len; i++) {
-                    Parameter p = parameters.get(i);
+                for (Parameter p : parameters) {
                     p.checkSet();
                 }
                 parameters.clear();
@@ -3778,10 +3776,10 @@ public class Parser {
         Schema schema = getSchema();
         TableData recursiveTable;
         read("(");
-        String[] cols = parseColumnList();
         ObjectArray<Column> columns = ObjectArray.newInstance();
-        for (int i = 0; i < cols.length; i++) {
-            columns.add(new Column(cols[i], Value.STRING));
+        String[] cols = parseColumnList();
+        for (String c : cols) {
+            columns.add(new Column(c, Value.STRING));
         }
         int id = database.allocateObjectId(true, true);
         recursiveTable = schema.createTable(tempViewName, id, columns, false, true, false, Index.EMPTY_HEAD, session);

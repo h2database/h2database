@@ -45,28 +45,23 @@ public class DropDatabase extends DefineCommand {
         session.commit(true);
         Database db = session.getDatabase();
         // TODO local temp tables are not removed
-        ObjectArray<Schema> schemas = db.getAllSchemas();
-        for (int i = 0; i < schemas.size(); i++) {
-            Schema schema = schemas.get(i);
+        for (Schema schema : db.getAllSchemas()) {
             if (schema.canDrop()) {
                 db.removeDatabaseObject(session, schema);
             }
         }
         ObjectArray<Table> tables = db.getAllTablesAndViews();
-        for (int i = 0; i < tables.size(); i++) {
-            Table t = tables.get(i);
+        for (Table t : tables) {
             if (t.getName() != null && Table.VIEW.equals(t.getTableType())) {
                 db.removeSchemaObject(session, t);
             }
         }
-        for (int i = 0; i < tables.size(); i++) {
-            Table t = tables.get(i);
+        for (Table t : tables) {
             if (t.getName() != null && Table.TABLE_LINK.equals(t.getTableType())) {
                 db.removeSchemaObject(session, t);
             }
         }
-        for (int i = 0; i < tables.size(); i++) {
-            Table t = tables.get(i);
+        for (Table t : tables) {
             if (t.getName() != null && Table.TABLE.equals(t.getTableType())) {
                 db.removeSchemaObject(session, t);
             }
@@ -79,20 +74,15 @@ public class DropDatabase extends DefineCommand {
         list.addAll(db.getAllSchemaObjects(DbObject.CONSTRAINT));
         list.addAll(db.getAllSchemaObjects(DbObject.TRIGGER));
         list.addAll(db.getAllSchemaObjects(DbObject.CONSTANT));
-        for (int i = 0; i < list.size(); i++) {
-            SchemaObject obj = list.get(i);
+        for (SchemaObject obj : list) {
             db.removeSchemaObject(session, obj);
         }
-        ObjectArray<User> users = db.getAllUsers();
-        for (int i = 0; i < users.size(); i++) {
-            User user = users.get(i);
+        for (User user : db.getAllUsers()) {
             if (user != session.getUser()) {
                 db.removeDatabaseObject(session, user);
             }
         }
-        ObjectArray<Role> roles = db.getAllRoles();
-        for (int i = 0; i < roles.size(); i++) {
-            Role role = roles.get(i);
+        for (Role role : db.getAllRoles()) {
             String sql = role.getCreateSQL();
             // the role PUBLIC must not be dropped
             if (sql != null) {
@@ -104,8 +94,7 @@ public class DropDatabase extends DefineCommand {
         dbObjects.addAll(db.getAllFunctionAliases());
         dbObjects.addAll(db.getAllAggregates());
         dbObjects.addAll(db.getAllUserDataTypes());
-        for (int i = 0; i < dbObjects.size(); i++) {
-            DbObject obj = dbObjects.get(i);
+        for (DbObject obj : dbObjects) {
             String sql = obj.getCreateSQL();
             // the role PUBLIC must not be dropped
             if (sql != null) {

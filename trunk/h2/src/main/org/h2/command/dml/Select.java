@@ -291,8 +291,8 @@ public class Select extends Query {
             return 0;
         }
         int count = 0;
-        for (int i = 0; i < groupByExpression.length; i++) {
-            if (groupByExpression[i]) {
+        for (boolean b : groupByExpression) {
+            if (b) {
                 ++count;
             }
         }
@@ -345,8 +345,8 @@ public class Select extends Query {
             groups.put(defaultGroup, new HashMap<Expression, Object>());
         }
         ObjectArray<Value> keys = groups.keys();
-        for (int i = 0; i < keys.size(); i++) {
-            ValueArray key = (ValueArray) keys.get(i);
+        for (Value v : keys) {
+            ValueArray key = (ValueArray) v;
             currentGroup = groups.get(key);
             Value[] keyValues = key.getList();
             Value[] row = new Value[columnCount];
@@ -380,10 +380,8 @@ public class Select extends Query {
         if (sort == null) {
             return null;
         }
-        int[] indexes = sort.getIndexes();
         ObjectArray<Column> sortColumns = ObjectArray.newInstance();
-        for (int i = 0; i < indexes.length; i++) {
-            int idx = indexes[i];
+        for (int idx : sort.getIndexes()) {
             if (idx < 0 || idx >= expressions.size()) {
                 throw Message.getInvalidValueException("" + (idx + 1), "ORDER BY");
             }
@@ -685,16 +683,14 @@ public class Select extends Query {
                 }
             }
             groupByExpression = new boolean[expressions.size()];
-            for (int i = 0; i < groupIndex.length; i++) {
-                groupByExpression[groupIndex[i]] = true;
+            for (int gi : groupIndex) {
+                groupByExpression[gi] = true;
             }
             group = null;
         }
         // map columns in select list and condition
-        for (int i = 0; i < filters.size(); i++) {
-            TableFilter f = filters.get(i);
-            for (int j = 0; j < expressions.size(); j++) {
-                Expression expr = expressions.get(j);
+        for (TableFilter f : filters) {
+            for (Expression expr : expressions) {
                 expr.mapColumns(f, 0);
             }
             if (condition != null) {
@@ -795,19 +791,17 @@ public class Select extends Query {
 
     public HashSet<Table> getTables() {
         HashSet<Table> set = New.hashSet();
-        for (int i = 0; i < filters.size(); i++) {
-            TableFilter filter = filters.get(i);
+        for (TableFilter filter : filters) {
             set.add(filter.getTable());
         }
         return set;
     }
 
     private double preparePlan() throws SQLException {
-
         TableFilter[] topArray = new TableFilter[topFilters.size()];
         topFilters.toArray(topArray);
-        for (int i = 0; i < topArray.length; i++) {
-            topArray[i].setFullCondition(condition);
+        for (TableFilter t : topArray) {
+            t.setFullCondition(condition);
         }
 
         Optimizer optimizer = new Optimizer(topArray, condition, session);
@@ -845,8 +839,7 @@ public class Select extends Query {
             }
             // this is only important for subqueries, so they know
             // the result columns are evaluatable
-            for (int i = 0; i < expressions.size(); i++) {
-                Expression e = expressions.get(i);
+            for (Expression e : expressions) {
                 e.setEvaluatable(f, true);
             }
             f = f.getJoin();
@@ -995,8 +988,7 @@ public class Select extends Query {
     }
 
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
-        for (int i = 0; i < expressions.size(); i++) {
-            Expression e = expressions.get(i);
+        for (Expression e : expressions) {
             e.mapColumns(resolver, level);
         }
         if (condition != null) {
@@ -1005,8 +997,7 @@ public class Select extends Query {
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        for (int i = 0; i < expressions.size(); i++) {
-            Expression e = expressions.get(i);
+        for (Expression e : expressions) {
             e.setEvaluatable(tableFilter, b);
         }
         if (condition != null) {
@@ -1061,8 +1052,7 @@ public class Select extends Query {
     }
 
     public void updateAggregate(Session s) throws SQLException {
-        for (int i = 0; i < expressions.size(); i++) {
-            Expression e = expressions.get(i);
+        for (Expression e : expressions) {
             e.updateAggregate(s);
         }
         if (condition != null) {
@@ -1076,8 +1066,7 @@ public class Select extends Query {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch(visitor.getType()) {
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID: {
-            for (int i = 0; i < filters.size(); i++) {
-                TableFilter f = filters.get(i);
+            for (TableFilter f : filters) {
                 long m = f.getTable().getMaxDataModificationId();
                 visitor.addDataModificationId(m);
             }
@@ -1090,8 +1079,7 @@ public class Select extends Query {
             break;
         }
         case ExpressionVisitor.GET_DEPENDENCIES: {
-            for (int i = 0; i < filters.size(); i++) {
-                TableFilter filter = filters.get(i);
+            for (TableFilter filter : filters) {
                 Table table = filter.getTable();
                 visitor.addDependency(table);
                 table.addDependencies(visitor.getDependencies());
@@ -1102,8 +1090,7 @@ public class Select extends Query {
         }
         visitor.incrementQueryLevel(1);
         boolean result = true;
-        for (int i = 0; i < expressions.size(); i++) {
-            Expression e = expressions.get(i);
+        for (Expression e : expressions) {
             if (!e.isEverything(visitor)) {
                 result = false;
                 break;

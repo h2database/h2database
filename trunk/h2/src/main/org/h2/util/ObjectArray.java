@@ -18,7 +18,7 @@ import org.h2.constant.SysProperties;
  *
  * @param <T> the element type
  */
-public class ObjectArray<T> {
+public class ObjectArray<T> implements Iterable<T> {
     private static final int CAPACITY_INIT = 4, CAPACITY_SHRINK = 256;
 
     private T[] data;
@@ -41,6 +41,7 @@ public class ObjectArray<T> {
      * Create a new object with the given initial capacity.
      *
      * @param capacity the initial capacity
+     * @return the object
      */
     public static <T> ObjectArray<T> newInstance(int capacity) {
         return new ObjectArray<T>(CAPACITY_INIT);
@@ -48,6 +49,8 @@ public class ObjectArray<T> {
 
     /**
      * Create a new object with the default initial capacity.
+     *
+     * @return the object
      */
     public static <T> ObjectArray<T> newInstance() {
         return new ObjectArray<T>(CAPACITY_INIT);
@@ -57,6 +60,7 @@ public class ObjectArray<T> {
      * Create a new object with all elements of the given collection.
      *
      * @param collection the collection with all elements
+     * @return the object
      */
     public static <T> ObjectArray<T> newInstance(Collection<T> collection) {
         return new ObjectArray<T>(collection);
@@ -314,6 +318,29 @@ public class ObjectArray<T> {
             }
             set(j + 1, t);
         }
+    }
+
+    /**
+     * The iterator for this list.
+     */
+    private class ObjectArrayIterator implements Iterator<T> {
+        private int index;
+
+        public boolean hasNext() {
+            return index < size;
+        }
+
+        public T next() {
+            return get(index++);
+        }
+
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public Iterator<T> iterator() {
+        return new ObjectArrayIterator();
     }
 
 //    public void sortInsertion(Comparator comp) {

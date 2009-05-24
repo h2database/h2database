@@ -64,6 +64,7 @@ public class New {
      * Create a new HashSet.
      *
      * @param <T> the type
+     * @param c the collection
      * @return the object
      */
     public static <T> HashSet<T> hashSet(Collection<T> c) {

@@ -199,9 +199,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     }
 
     private void checkNoViews() throws SQLException {
-        ObjectArray<DbObject> children = table.getChildren();
-        for (int i = 0; i < children.size(); i++) {
-            DbObject child = children.get(i);
+        for (DbObject child : table.getChildren()) {
             if (child.getType() == DbObject.TABLE_OR_VIEW) {
                 throw Message.getSQLException(ErrorCode.OPERATION_NOT_SUPPORTED_WITH_VIEWS_2, new String[] {
                         table.getName(), child.getName() });
@@ -214,9 +212,8 @@ public class AlterTableAlterColumn extends SchemaCommand {
         String tempName = db.getTempTableName(session.getId());
         Column[] columns = table.getColumns();
         ObjectArray<Column> newColumns = ObjectArray.newInstance();
-        for (int i = 0; i < columns.length; i++) {
-            Column col = columns[i].getClone();
-            newColumns.add(col);
+        for (Column col : columns) {
+            newColumns.add(col.getClone());
         }
         if (type == DROP) {
             int position = oldColumn.getColumnId();
@@ -245,8 +242,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         StringBuffer buff = new StringBuffer();
         buff.append(newTable.getCreateSQL());
         StringBuffer columnList = new StringBuffer();
-        for (int i = 0; i < newColumns.size(); i++) {
-            Column nc = newColumns.get(i);
+        for (Column nc : newColumns) {
             if (columnList.length() > 0) {
                 columnList.append(", ");
             }
@@ -269,10 +265,8 @@ public class AlterTableAlterColumn extends SchemaCommand {
         String newTableSQL = buff.toString();
         execute(newTableSQL, true);
         newTable = (TableData) newTable.getSchema().getTableOrView(session, newTable.getName());
-        ObjectArray<DbObject> children = table.getChildren();
         ObjectArray<String> triggers = ObjectArray.newInstance();
-        for (int i = 0; i < children.size(); i++) {
-            DbObject child = children.get(i);
+        for (DbObject child : table.getChildren()) {
             if (child instanceof Sequence) {
                 continue;
             } else if (child instanceof Index) {
@@ -309,24 +303,21 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
         String tableName = table.getName();
         table.setModified();
-        for (int i = 0; i < columns.length; i++) {
+        for (Column col : columns) {
             // if we don't do that, the sequence is dropped when the table is
             // dropped
-            Sequence seq = columns[i].getSequence();
+            Sequence seq = col.getSequence();
             if (seq != null) {
                 table.removeSequence(session, seq);
-                columns[i].setSequence(null);
+                col.setSequence(null);
             }
         }
-        for (int i = 0; i < triggers.size(); i++) {
-            String sql = triggers.get(i);
+        for (String sql : triggers) {
             execute(sql, true);
         }
         execute("DROP TABLE " + table.getSQL(), true);
         db.renameSchemaObject(session, newTable, tableName);
-        children = newTable.getChildren();
-        for (int i = 0; i < children.size(); i++) {
-            DbObject child = children.get(i);
+        for (DbObject child : newTable.getChildren()) {
             if (child instanceof Sequence) {
                 continue;
             }
@@ -378,9 +369,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     }
 
     private void checkNullable() throws SQLException {
-        ObjectArray<Index> indexes = table.getIndexes();
-        for (int i = 0; i < indexes.size(); i++) {
-            Index index = indexes.get(i);
+        for (Index index : table.getIndexes()) {
             if (index.getColumnIndex(oldColumn) < 0) {
                 continue;
             }

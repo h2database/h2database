@@ -180,8 +180,7 @@ public class ConvertTraceFile extends Tool {
             if (timeTotal == 0) {
                 timeTotal = 1;
             }
-            for (int i = 0; i < list.size(); i++) {
-                Stat stat = list.get(i);
+            for (Stat stat : list) {
                 StringBuffer buff = new StringBuffer(100);
                 buff.append("-- ");
                 buff.append(padNumberLeft(100 * stat.time / timeTotal, 3));

@@ -205,9 +205,7 @@ public class CommandRemote implements CommandInterface {
     }
 
     private void checkParameters() throws SQLException {
-        int len = parameters.size();
-        for (int i = 0; i < len; i++) {
-            ParameterInterface p = parameters.get(i);
+        for (ParameterInterface p : parameters) {
             p.checkSet();
         }
     }
@@ -215,8 +213,7 @@ public class CommandRemote implements CommandInterface {
     private void sendParameters(Transfer transfer) throws IOException, SQLException {
         int len = parameters.size();
         transfer.writeInt(len);
-        for (int i = 0; i < len; i++) {
-            ParameterInterface p = parameters.get(i);
+        for (ParameterInterface p : parameters) {
             transfer.writeValue(p.getParamValue());
         }
     }
@@ -226,10 +223,9 @@ public class CommandRemote implements CommandInterface {
             return;
         }
         synchronized (session) {
-            for (int i = 0; i < transferList.size(); i++) {
+            session.traceOperation("COMMAND_CLOSE", id);
+            for (Transfer transfer : transferList) {
                 try {
-                    Transfer transfer = transferList.get(i);
-                    session.traceOperation("COMMAND_CLOSE", id);
                     transfer.writeInt(SessionRemote.COMMAND_CLOSE).writeInt(id);
                 } catch (IOException e) {
                     trace.error("close", e);
@@ -237,10 +233,8 @@ public class CommandRemote implements CommandInterface {
             }
         }
         session = null;
-        int len = parameters.size();
         try {
-            for (int i = 0; i < len; i++) {
-                ParameterInterface p = parameters.get(i);
+            for (ParameterInterface p : parameters) {
                 Value v = p.getParamValue();
                 if (v != null) {
                     v.close();

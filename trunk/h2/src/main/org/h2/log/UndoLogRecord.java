@@ -19,7 +19,6 @@ import org.h2.result.Row;
 import org.h2.store.DataPage;
 import org.h2.store.FileStore;
 import org.h2.table.Table;
-import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
 /**
@@ -212,9 +211,7 @@ public class UndoLogRecord {
      * It commits the change to the indexes.
      */
     public void commit() throws SQLException {
-        ObjectArray<Index> list = table.getIndexes();
-        for (int i = 0; i < list.size(); i++) {
-            Index index = list.get(i);
+        for (Index index : table.getIndexes()) {
             index.commit(operation, row);
         }
     }

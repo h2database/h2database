@@ -106,14 +106,12 @@ public class Backup extends Tool {
             fileOut = FileUtils.openFileOutputStream(zipFileName, false);
             ZipOutputStream zipOut = new ZipOutputStream(fileOut);
             String base = "";
-            for (int i = 0; i < list.size(); i++) {
-                String fileName = list.get(i);
+            for (String fileName : list) {
                 if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
                     base = FileUtils.getParent(fileName);
                 }
             }
-            for (int i = 0; i < list.size(); i++) {
-                String fileName = list.get(i);
+            for (String fileName : list) {
                 String f = FileUtils.getAbsolutePath(fileName);
                 if (!f.startsWith(base)) {
                     Message.throwInternalError(f + " does not start with " + base);

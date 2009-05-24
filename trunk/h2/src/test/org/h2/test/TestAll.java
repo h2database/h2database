@@ -464,7 +464,7 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
         beforeTest();
 
         // db
-        new TestScriptSimple().runTest(this);
+//        new TestScriptSimple().runTest(this);
         new TestScript().runTest(this);
         new TestAlter().runTest(this);
         new TestAutoRecompile().runTest(this);

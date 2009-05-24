@@ -805,9 +805,7 @@ public class MetaTable extends Table {
             break;
         }
         case SETTINGS: {
-            ObjectArray<Setting> list = database.getAllSettings();
-            for (int i = 0; i < list.size(); i++) {
-                Setting s = list.get(i);
+            for (Setting s : database.getAllSettings()) {
                 String value = s.getStringValue();
                 if (value == null) {
                     value = "" + s.getIntValue();

@@ -213,7 +213,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         Database db = session.getDatabase();
         String tempName = db.getTempTableName(session.getId());
         Column[] columns = table.getColumns();
-        ObjectArray newColumns = new ObjectArray();
+        ObjectArray newColumns = ObjectArray.newInstance();
         for (int i = 0; i < columns.length; i++) {
             Column col = columns[i].getClone();
             newColumns.add(col);
@@ -270,7 +270,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         execute(newTableSQL, true);
         newTable = (TableData) newTable.getSchema().getTableOrView(session, newTable.getName());
         ObjectArray children = table.getChildren();
-        ObjectArray triggers = new ObjectArray();
+        ObjectArray triggers = ObjectArray.newInstance();
         for (int i = 0; i < children.size(); i++) {
             DbObject child = (DbObject) children.get(i);
             if (child instanceof Sequence) {

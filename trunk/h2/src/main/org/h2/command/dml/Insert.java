@@ -32,7 +32,7 @@ public class Insert extends Prepared {
 
     private Table table;
     private Column[] columns;
-    private ObjectArray list = new ObjectArray();
+    private ObjectArray list = ObjectArray.newInstance();
     private Query query;
 
     public Insert(Session session) {

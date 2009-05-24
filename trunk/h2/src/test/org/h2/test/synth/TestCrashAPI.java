@@ -36,6 +36,7 @@ import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.test.db.TestScript;
 import org.h2.test.synth.sql.RandomGen;
+import org.h2.util.New;
 import org.h2.util.RandomUtils;
 
 /**
@@ -50,10 +51,10 @@ public class TestCrashAPI extends TestBase {
 
     private static final String DIR = "synth";
 
-    private ArrayList objects = new ArrayList();
-    private HashMap classMethods = new HashMap();
+    private ArrayList<Object> objects = New.arrayList();
+    private HashMap<Class < ? >, ArrayList<Method>> classMethods = New.hashMap();
     private RandomGen random = new RandomGen();
-    private ArrayList statements = new ArrayList();
+    private ArrayList<String> statements = New.arrayList();
     private int openCount;
     private long callCount;
 
@@ -134,7 +135,7 @@ public class TestCrashAPI extends TestBase {
                 printIfBad(seed, -i, -1, t);
             }
 
-            String sql = (String) statements.get(i);
+            String sql = statements.get(i);
             try {
 //                if(openCount == 32) {
 //                    int test;
@@ -212,9 +213,9 @@ public class TestCrashAPI extends TestBase {
                 objects.remove(objectId);
                 continue;
             }
-            Class in = getJdbcInterface(o);
-            ArrayList methods = (ArrayList) classMethods.get(in);
-            Method m = (Method) methods.get(random.getInt(methods.size()));
+            Class< ? > in = getJdbcInterface(o);
+            ArrayList<Method> methods = classMethods.get(in);
+            Method m = methods.get(random.getInt(methods.size()));
             Object o2 = callRandom(seed, i, objectId, o, m);
             if (o2 != null) {
                 objects.add(o2);
@@ -247,7 +248,7 @@ public class TestCrashAPI extends TestBase {
     }
 
     private Object callRandom(int seed, int id, int objectId, Object o, Method m) {
-        Class[] paramClasses = m.getParameterTypes();
+        Class< ? >[] paramClasses = m.getParameterTypes();
         Object[] params = new Object[paramClasses.length];
         for (int i = 0; i < params.length; i++) {
             params[i] = getRandomParam(paramClasses[i]);
@@ -267,7 +268,7 @@ public class TestCrashAPI extends TestBase {
         if (result == null) {
             return null;
         }
-        Class in = getJdbcInterface(result);
+        Class< ? > in = getJdbcInterface(result);
         if (in == null) {
             return null;
         }
@@ -299,7 +300,7 @@ public class TestCrashAPI extends TestBase {
         }
     }
 
-    private Object getRandomParam(Class type) {
+    private Object getRandomParam(Class< ? > type) {
         if (type == int.class) {
             return new Integer(random.getRandomInt());
         } else if (type == byte.class) {
@@ -319,7 +320,7 @@ public class TestCrashAPI extends TestBase {
                 return null;
             }
             int randomId = random.getInt(statements.size());
-            String sql = (String) statements.get(randomId);
+            String sql = statements.get(randomId);
             if (random.getInt(10) == 0) {
                 sql = random.modify(sql);
             }
@@ -369,10 +370,10 @@ public class TestCrashAPI extends TestBase {
         return null;
     }
 
-    private Class getJdbcInterface(Object o) {
-        Class[] list = o.getClass().getInterfaces();
+    private Class< ? > getJdbcInterface(Object o) {
+        Class< ? >[] list = o.getClass().getInterfaces();
         for (int i = 0; i < list.length; i++) {
-            Class in = list[i];
+            Class< ? > in = list[i];
             if (classMethods.get(in) != null) {
                 return in;
             }
@@ -382,12 +383,12 @@ public class TestCrashAPI extends TestBase {
 
     private void initMethods() {
         for (int i = 0; i < INTERFACES.length; i++) {
-            Class inter = INTERFACES[i];
-            classMethods.put(inter, new ArrayList());
+            Class< ? > inter = INTERFACES[i];
+            classMethods.put(inter, new ArrayList<Method>());
         }
         for (int i = 0; i < INTERFACES.length; i++) {
-            Class inter = INTERFACES[i];
-            ArrayList list = (ArrayList) classMethods.get(inter);
+            Class< ? > inter = INTERFACES[i];
+            ArrayList<Method> list = classMethods.get(inter);
             Method[] methods = inter.getMethods();
             for (int j = 0; j < methods.length; j++) {
                 Method m = methods[j];
@@ -404,7 +405,7 @@ public class TestCrashAPI extends TestBase {
         baseDir = TestBase.getTestDir("crash");
         startServerIfRequired();
         TestScript script = new TestScript();
-        ArrayList add = script.getAllStatements(config);
+        ArrayList<String> add = script.getAllStatements(config);
         initMethods();
         org.h2.Driver.load();
         statements.addAll(add);

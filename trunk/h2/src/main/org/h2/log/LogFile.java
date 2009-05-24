@@ -82,7 +82,7 @@ public class LogFile {
         file = log.getDatabase().openFile(fileName, log.getAccessMode(), false);
         rowBuff = log.getRowBuffer();
         buffer = new byte[BUFFER_SIZE];
-        unwritten = new ObjectArray();
+        unwritten = ObjectArray.newInstance();
         try {
             readHeader();
             if (!log.getDatabase().isReadOnly()) {

@@ -612,7 +612,7 @@ public class MetaTable extends Table {
             }
         }
 
-        ObjectArray rows = new ObjectArray();
+        ObjectArray rows = ObjectArray.newInstance();
         String catalog = identifier(database.getShortName());
         switch (type) {
         case TABLES: {
@@ -1772,7 +1772,7 @@ public class MetaTable extends Table {
         if (index == null) {
             return null;
         }
-        ObjectArray list = new ObjectArray();
+        ObjectArray list = ObjectArray.newInstance();
         list.add(new MetaIndex(this, IndexColumn.wrap(columns), true));
         // TODO fixed scan index
         list.add(index);

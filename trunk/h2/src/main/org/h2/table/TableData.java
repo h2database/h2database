@@ -57,7 +57,7 @@ public class TableData extends Table implements RecordReader {
     private HashSet<Session> lockShared = New.hashSet();
     private Trace traceLock;
     private boolean globalTemporary;
-    private final ObjectArray indexes = new ObjectArray();
+    private final ObjectArray indexes = ObjectArray.newInstance();
     private long lastModificationId;
     private boolean containsLargeObject;
 
@@ -201,7 +201,7 @@ public class TableData extends Table implements RecordReader {
                 Cursor cursor = scan.find(session, null, null);
                 long i = 0;
                 int bufferSize = Constants.DEFAULT_MAX_MEMORY_ROWS;
-                ObjectArray buffer = new ObjectArray(bufferSize);
+                ObjectArray buffer = ObjectArray.newInstance(bufferSize);
                 while (cursor.next()) {
                     database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, getName() + ":" + index.getName(), MathUtils
                             .convertLongToInt(i++), MathUtils.convertLongToInt(total));
@@ -495,7 +495,7 @@ public class TableData extends Table implements RecordReader {
                 visited = New.hashSet();
             } else if (clash == session) {
                 // we found a circle where this session is involved
-                return new ObjectArray();
+                return ObjectArray.newInstance();
             } else if (visited.contains(session)) {
                 // we have already checked this session.
                 // there is a circle, but the sessions in the circle need to

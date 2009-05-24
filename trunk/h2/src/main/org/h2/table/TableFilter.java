@@ -49,7 +49,7 @@ public class TableFilter implements ColumnResolver {
     private boolean used;
 
     // conditions that can be used for direct index lookup (start or end)
-    private final ObjectArray indexConditions = new ObjectArray();
+    private final ObjectArray indexConditions = ObjectArray.newInstance();
 
     // conditions that can't be used for index lookup,
     // but for row filter for this table (ID=ID, NAME LIKE '%X%')
@@ -741,7 +741,7 @@ public class TableFilter implements ColumnResolver {
      */
     public void addNaturalJoinColumn(Column c) {
         if (naturalJoinColumns == null) {
-            naturalJoinColumns = new ObjectArray();
+            naturalJoinColumns = ObjectArray.newInstance();
         }
         naturalJoinColumns.add(c);
     }

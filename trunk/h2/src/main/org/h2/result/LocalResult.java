@@ -38,7 +38,7 @@ public class LocalResult implements ResultInterface {
     private int rowId, rowCount;
     private ObjectArray rows;
     private SortOrder sort;
-    private ValueHashMap distinctRows;
+    private ValueHashMap<Value[]> distinctRows;
     private Value[] currentRow;
     private int offset, limit;
     private ResultExternal disk;
@@ -67,7 +67,7 @@ public class LocalResult implements ResultInterface {
         } else {
             this.maxMemoryRows = session.getDatabase().getMaxMemoryRows();
         }
-        rows = new ObjectArray();
+        rows = ObjectArray.newInstance();
         this.visibleColumnCount = visibleColumnCount;
         rowId = -1;
         this.expressions = expressions;
@@ -111,7 +111,7 @@ public class LocalResult implements ResultInterface {
     private static ObjectArray getExpressionColumns(Session session, ResultSet rs) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
-        ObjectArray cols = new ObjectArray(columnCount);
+        ObjectArray cols = ObjectArray.newInstance(columnCount);
         Database db = session == null ? null : session.getDatabase();
         for (int i = 0; i < columnCount; i++) {
             String name = meta.getColumnLabel(i + 1);
@@ -176,7 +176,7 @@ public class LocalResult implements ResultInterface {
      */
     public void setDistinct() {
         distinct = true;
-        distinctRows = new ValueHashMap(session.getDatabase());
+        distinctRows = ValueHashMap.newInstance(session.getDatabase());
     }
 
     /**
@@ -304,7 +304,7 @@ public class LocalResult implements ResultInterface {
                     ResultExternal temp = disk;
                     disk = null;
                     temp.reset();
-                    rows = new ObjectArray();
+                    rows = ObjectArray.newInstance();
                     // TODO use offset directly if possible
                     while (true) {
                         Value[] list = temp.next();

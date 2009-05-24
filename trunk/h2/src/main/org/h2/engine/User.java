@@ -189,7 +189,7 @@ public class User extends RightOwner {
 
     public ObjectArray getChildren() {
         ObjectArray all = database.getAllRights();
-        ObjectArray children = new ObjectArray();
+        ObjectArray children = ObjectArray.newInstance();
         for (int i = 0; i < all.size(); i++) {
             Right right = (Right) all.get(i);
             if (right.getGrantee() == this) {

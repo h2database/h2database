@@ -1034,7 +1034,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             checkClosedForWrite();
             if (batchParameters == null) {
                 // TODO batch: check what other database do if no parameters are set
-                batchParameters = new ObjectArray();
+                batchParameters = ObjectArray.newInstance();
             }
             int[] result = new int[batchParameters.size()];
             boolean error = false;
@@ -1090,7 +1090,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 set[i] = value;
             }
             if (batchParameters == null) {
-                batchParameters = new ObjectArray();
+                batchParameters = ObjectArray.newInstance();
             }
             batchParameters.add(set);
         } catch (Exception e) {

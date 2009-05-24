@@ -316,7 +316,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
      */
     ObjectArray readRowArray(DataPage s) throws SQLException {
         int len = s.readInt();
-        ObjectArray rows = new ObjectArray(len);
+        ObjectArray rows = ObjectArray.newInstance(len);
         for (int i = 0; i < len; i++) {
             int pos = s.readInt();
             SearchRow r;
@@ -361,7 +361,7 @@ public class BtreeIndex extends BaseIndex implements RecordReader {
         storage.truncate(session);
         head = new BtreeHead();
         addPage(session, head);
-        BtreePage root = setRoot(new BtreeLeaf(this, new ObjectArray()));
+        BtreePage root = setRoot(new BtreeLeaf(this, ObjectArray.newInstance()));
         addPage(session, root);
         deletePage(session, head);
         head.setRootPosition(root.getPos());

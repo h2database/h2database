@@ -27,7 +27,7 @@ import org.h2.value.ValueLob;
 public class RowList {
 
     private final Session session;
-    private final ObjectArray list = new ObjectArray();
+    private final ObjectArray list = ObjectArray.newInstance();
     private int size;
     private int index, listIndex;
     private FileStore file;
@@ -68,7 +68,7 @@ public class RowList {
                 ValueLob lob = (ValueLob) v;
                 if (lob.getSmall() == null && lob.getTableId() == 0) {
                     if (lobs == null) {
-                        lobs = new ObjectArray();
+                        lobs = ObjectArray.newInstance();
                     }
                     lobs.add(lob);
                 }

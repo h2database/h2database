@@ -614,7 +614,7 @@ public class Database implements DataHandler {
         roles.put(Constants.PUBLIC_ROLE_NAME, publicRole);
         systemUser.setAdmin(true);
         systemSession = new Session(this, systemUser, ++nextSessionId);
-        ObjectArray cols = new ObjectArray();
+        ObjectArray cols = ObjectArray.newInstance();
         Column columnId = new Column("ID", Value.INT);
         columnId.setNullable(false);
         cols.add(columnId);
@@ -638,7 +638,7 @@ public class Database implements DataHandler {
         Cursor cursor = metaIdIndex.find(systemSession, null, null);
         // first, create all function aliases and sequences because
         // they might be used in create table / view / constraints and so on
-        ObjectArray records = new ObjectArray();
+        ObjectArray records = ObjectArray.newInstance();
         while (cursor.next()) {
             MetaRecord rec = new MetaRecord(cursor.get());
             objectIds.set(rec.getId());
@@ -1310,15 +1310,15 @@ public class Database implements DataHandler {
     }
 
     public ObjectArray getAllAggregates() {
-        return new ObjectArray(aggregates.values());
+        return ObjectArray.newInstance(aggregates.values());
     }
 
     public ObjectArray getAllComments() {
-        return new ObjectArray(comments.values());
+        return ObjectArray.newInstance(comments.values());
     }
 
     public ObjectArray getAllFunctionAliases() {
-        return new ObjectArray(functionAliases.values());
+        return ObjectArray.newInstance(functionAliases.values());
     }
 
     public int getAllowLiterals() {
@@ -1329,11 +1329,11 @@ public class Database implements DataHandler {
     }
 
     public ObjectArray getAllRights() {
-        return new ObjectArray(rights.values());
+        return ObjectArray.newInstance(rights.values());
     }
 
     public ObjectArray getAllRoles() {
-        return new ObjectArray(roles.values());
+        return ObjectArray.newInstance(roles.values());
     }
 
     /**
@@ -1343,7 +1343,7 @@ public class Database implements DataHandler {
      * @return all objects of that type
      */
     public ObjectArray getAllSchemaObjects(int type) {
-        ObjectArray list = new ObjectArray();
+        ObjectArray list = ObjectArray.newInstance();
         for (Schema schema : schemas.values()) {
             list.addAll(schema.getAll(type));
         }
@@ -1351,23 +1351,23 @@ public class Database implements DataHandler {
     }
 
     public ObjectArray getAllSchemas() {
-        return new ObjectArray(schemas.values());
+        return ObjectArray.newInstance(schemas.values());
     }
 
     public ObjectArray getAllSettings() {
-        return new ObjectArray(settings.values());
+        return ObjectArray.newInstance(settings.values());
     }
 
     public ObjectArray getAllStorages() {
-        return new ObjectArray(storageMap.values());
+        return ObjectArray.newInstance(storageMap.values());
     }
 
     public ObjectArray getAllUserDataTypes() {
-        return new ObjectArray(userDataTypes.values());
+        return ObjectArray.newInstance(userDataTypes.values());
     }
 
     public ObjectArray getAllUsers() {
-        return new ObjectArray(users.values());
+        return ObjectArray.newInstance(users.values());
     }
 
     public String getCacheType() {

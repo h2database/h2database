@@ -40,7 +40,7 @@ public class BtreeLeaf extends BtreePage {
         if (writePos) {
             int size = s.readInt();
             // should be 1, but may not be 1
-            pageData = new ObjectArray(size);
+            pageData = ObjectArray.newInstance(size);
             for (int i = 0; i < size; i++) {
                 Row r = index.getRow(session, s.readInt());
                 pageData.add(r);
@@ -133,7 +133,7 @@ public class BtreeLeaf extends BtreePage {
     }
 
     BtreePage split(Session session, int splitPoint) throws SQLException {
-        ObjectArray data = new ObjectArray();
+        ObjectArray data = ObjectArray.newInstance();
         int max = pageData.size();
         for (int i = splitPoint; i < max; i++) {
             data.add(getData(splitPoint));

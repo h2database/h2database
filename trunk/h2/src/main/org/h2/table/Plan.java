@@ -36,8 +36,8 @@ public class Plan {
     public Plan(TableFilter[] filters, int count, Expression condition) {
         this.filters = new TableFilter[count];
         ObjectUtils.arrayCopy(filters, this.filters, count);
-        ObjectArray allCond = new ObjectArray();
-        ObjectArray all = new ObjectArray();
+        ObjectArray allCond = ObjectArray.newInstance();
+        ObjectArray all = ObjectArray.newInstance();
         if (condition != null) {
             allCond.add(condition);
         }

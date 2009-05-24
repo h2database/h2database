@@ -1272,7 +1272,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 result = "${text.result.maxrowsSet}";
             } else {
                 ScriptReader r = new ScriptReader(new StringReader(sql));
-                ObjectArray list = new ObjectArray();
+                ObjectArray list = ObjectArray.newInstance();
                 while (true) {
                     String s = r.readStatement();
                     if (s == null) {

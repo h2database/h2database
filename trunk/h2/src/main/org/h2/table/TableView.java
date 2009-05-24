@@ -77,9 +77,9 @@ public class TableView extends Table {
         removeViewFromTables();
         try {
             Query query = recompileQuery(session);
-            tables = new ObjectArray(query.getTables());
+            tables = ObjectArray.newInstance(query.getTables());
             ObjectArray expressions = query.getExpressions();
-            ObjectArray list = new ObjectArray();
+            ObjectArray list = ObjectArray.newInstance();
             for (int i = 0; i < query.getColumnCount(); i++) {
                 Expression expr = (Expression) expressions.get(i);
                 String name = null;
@@ -106,7 +106,7 @@ public class TableView extends Table {
             // if it can't be compiled, then it's a 'zero column table'
             // this avoids problems when creating the view when opening the
             // database
-            tables = new ObjectArray();
+            tables = ObjectArray.newInstance();
             cols = new Column[0];
             if (recursive && columnNames != null) {
                 cols = new Column[columnNames.length];

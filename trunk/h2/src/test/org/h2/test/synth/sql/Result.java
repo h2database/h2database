@@ -15,11 +15,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import org.h2.test.TestBase;
+import org.h2.util.New;
 
 /**
  * Represents an in-memory result.
  */
-class Result implements Comparable {
+class Result implements Comparable<Result> {
     static final int SUCCESS = 0, BOOLEAN = 1, INT = 2, EXCEPTION = 3, RESULT_SET = 4;
 
     String sql;
@@ -28,8 +29,8 @@ class Result implements Comparable {
     private boolean bool;
     private int intValue;
     private SQLException exception;
-    private ArrayList rows;
-    private ArrayList header;
+    private ArrayList<Row> rows;
+    private ArrayList<Column> header;
 
     Result(String sql) {
         this.sql = sql;
@@ -58,8 +59,8 @@ class Result implements Comparable {
         this.sql = sql;
         type = RESULT_SET;
         try {
-            rows = new ArrayList();
-            header = new ArrayList();
+            rows = New.arrayList();
+            header = New.arrayList();
             ResultSetMetaData meta = rs.getMetaData();
             int len = meta.getColumnCount();
             Column[] cols = new Column[len];
@@ -94,12 +95,12 @@ class Result implements Comparable {
         case RESULT_SET:
             String result = "ResultSet { // size=" + rows.size() + "\r\n  ";
             for (int i = 0; i < header.size(); i++) {
-                Column column = (Column) header.get(i);
+                Column column = header.get(i);
                 result += column.toString() + "; ";
             }
             result += "} = {\r\n";
             for (int i = 0; i < rows.size(); i++) {
-                Row row = (Row) rows.get(i);
+                Row row = rows.get(i);
                 result += "  { " + row.toString() + "};\r\n";
             }
             return result + "}";
@@ -108,8 +109,7 @@ class Result implements Comparable {
         }
     }
 
-    public int compareTo(Object o) {
-        Result r = (Result) o;
+    public int compareTo(Result r) {
         switch (type) {
         case EXCEPTION:
             if (r.type != EXCEPTION) {

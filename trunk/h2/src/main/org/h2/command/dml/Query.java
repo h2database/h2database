@@ -204,7 +204,7 @@ public abstract class Query extends Prepared {
     public final Value[] getParameterValues() {
         ObjectArray list = getParameters();
         if (list == null) {
-            list = new ObjectArray();
+            list = ObjectArray.newInstance();
         }
         Value[] params = new Value[list.size()];
         for (int i = 0; i < list.size(); i++) {
@@ -391,7 +391,7 @@ public abstract class Query extends Prepared {
      */
     void addParameter(Parameter param) {
         if (parameters == null) {
-            parameters = new ObjectArray();
+            parameters = ObjectArray.newInstance();
         }
         parameters.add(param);
     }

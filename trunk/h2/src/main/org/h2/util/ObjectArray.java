@@ -15,18 +15,26 @@ import org.h2.constant.SysProperties;
 /**
  * The object array is basically the same as ArrayList.
  * It is a bit faster than ArrayList in some versions of Java.
+ *
+ * @param <T> the element type
  */
-public class ObjectArray {
+public class ObjectArray<T> {
     private static final int CAPACITY_INIT = 4, CAPACITY_SHRINK = 256;
 
-    private Object[] data;
+    private T[] data;
     private int size;
 
-    /**
-     * Create a new object with the default initial capacity.
-     */
-    public ObjectArray() {
-        this(CAPACITY_INIT);
+    private ObjectArray(int capacity) {
+        data = createArray(capacity);
+    }
+
+    private ObjectArray(Collection<T> collection) {
+        size = collection.size();
+        data = createArray(size);
+        Iterator<T> it = collection.iterator();
+        for (int i = 0; i < size; i++) {
+            data[i] = it.next();
+        }
     }
 
     /**
@@ -34,8 +42,15 @@ public class ObjectArray {
      *
      * @param capacity the initial capacity
      */
-    public ObjectArray(int capacity) {
-        data = new Object[capacity > 1 ? capacity : 1];
+    public static <T> ObjectArray<T> newInstance(int capacity) {
+        return new ObjectArray<T>(CAPACITY_INIT);
+    }
+
+    /**
+     * Create a new object with the default initial capacity.
+     */
+    public static <T> ObjectArray<T> newInstance() {
+        return new ObjectArray<T>(CAPACITY_INIT);
     }
 
     /**
@@ -43,13 +58,13 @@ public class ObjectArray {
      *
      * @param collection the collection with all elements
      */
-    public ObjectArray(Collection collection) {
-        size = collection.size();
-        data = new Object[size];
-        Iterator it = collection.iterator();
-        for (int i = 0; i < size; i++) {
-            data[i] = it.next();
-        }
+    public static <T> ObjectArray<T> newInstance(Collection<T> collection) {
+        return new ObjectArray<T>(collection);
+    }
+
+    @SuppressWarnings("unchecked")
+    private T[] createArray(int capacity) {
+        return (T[]) new Object[capacity > 1 ? capacity : 1];
     }
 
     private void throwException(int index) {
@@ -61,7 +76,7 @@ public class ObjectArray {
      *
      * @param value the value
      */
-    public void add(Object value) {
+    public void add(T value) {
         if (size >= data.length) {
             ensureCapacity(size);
         }
@@ -74,8 +89,8 @@ public class ObjectArray {
      * @param index the index
      * @return the value
      */
-    public Object get(int index) {
-        if (SysProperties.CHECK && index >= size) {
+    public T get(int index) {
+        if (SysProperties.CHECK2 && index >= size) {
             throwException(index);
         }
         return data[index];
@@ -90,7 +105,7 @@ public class ObjectArray {
     public Object remove(int index) {
         // TODO performance: the app should (where possible)
         // remove from end to start, to avoid O(n^2)
-        if (SysProperties.CHECK && index >= size) {
+        if (SysProperties.CHECK2 && index >= size) {
             throwException(index);
         }
         Object value = data[index];
@@ -108,7 +123,7 @@ public class ObjectArray {
      * @param to the end index
      */
     public void removeRange(int from, int to) {
-        if (SysProperties.CHECK && (to > size || from > to)) {
+        if (SysProperties.CHECK2 && (to > size || from > to)) {
             throw new ArrayIndexOutOfBoundsException("to=" + to + " from="+from+" size=" + size);
         }
         System.arraycopy(data, to, data, from, size - to);
@@ -130,7 +145,7 @@ public class ObjectArray {
 
     private void ensureCapacity(int i) {
         while (i >= data.length) {
-            Object[] d = new Object[Math.max(CAPACITY_INIT, data.length * 2)];
+            T[] d = createArray(Math.max(CAPACITY_INIT, data.length * 2));
             System.arraycopy(data, 0, d, 0, size);
             data = d;
         }
@@ -140,7 +155,7 @@ public class ObjectArray {
      * Shrink the array to the required size.
      */
     public void trimToSize() {
-        Object[] d = new Object[size];
+        T[] d = createArray(size);
         System.arraycopy(data, 0, d, 0, size);
         data = d;
     }
@@ -152,8 +167,8 @@ public class ObjectArray {
      * @param index the index where to insert the object
      * @param value the object to insert
      */
-    public void add(int index, Object value) {
-        if (SysProperties.CHECK && index > size) {
+    public void add(int index, T value) {
+        if (SysProperties.CHECK2 && index > size) {
             throwException(index);
         }
         ensureCapacity(size);
@@ -172,8 +187,8 @@ public class ObjectArray {
      * @param index the index
      * @param value the new value
      */
-    public void set(int index, Object value) {
-        if (SysProperties.CHECK && index >= size) {
+    public void set(int index, T value) {
+        if (SysProperties.CHECK2 && index >= size) {
             throwException(index);
         }
         data[index] = value;
@@ -202,7 +217,7 @@ public class ObjectArray {
      */
     public void clear() {
         if (data.length > CAPACITY_SHRINK) {
-            data = new Object[CAPACITY_INIT];
+            data = createArray(CAPACITY_INIT);
         } else {
             for (int i = 0; i < size; i++) {
                 data[i] = null;
@@ -231,14 +246,14 @@ public class ObjectArray {
      *
      * @param list the list
      */
-    public void addAll(ObjectArray list) {
+    public void addAll(ObjectArray<T> list) {
         for (int i = 0; i < list.size; i++) {
             add(list.data[i]);
         }
     }
 
     private void swap(int l, int r) {
-        Object t = data[r];
+        T t = data[r];
         data[r] = data[l];
         data[l] = t;
     }
@@ -248,7 +263,7 @@ public class ObjectArray {
      *
      * @param comp the comparator
      */
-    public void sort(Comparator comp) {
+    public void sort(Comparator<T> comp) {
         sort(comp, 0, size - 1);
     }
 
@@ -259,7 +274,7 @@ public class ObjectArray {
      * @param l the first element (left)
      * @param r the last element (right)
      */
-    private void sort(Comparator comp, int l, int r) {
+    private void sort(Comparator<T> comp, int l, int r) {
         int i, j;
         while (r - l > 10) {
             // randomized pivot to avoid worst case
@@ -274,7 +289,7 @@ public class ObjectArray {
             }
             j = r - 1;
             swap(i, j);
-            Object p = get(j);
+            T p = get(j);
             i = l;
             while (true) {
                 do {
@@ -293,7 +308,7 @@ public class ObjectArray {
             l = i + 1;
         }
         for (i = l + 1; i <= r; i++) {
-            Object t = get(i);
+            T t = get(i);
             for (j = i - 1; j >= l && (comp.compare(get(j), t) > 0); j--) {
                 set(j + 1, get(j));
             }

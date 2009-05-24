@@ -28,7 +28,7 @@ class AggregateData {
     private final int aggregateType;
     private final int dataType;
     private long count;
-    private ValueHashMap distinctValues;
+    private ValueHashMap<AggregateData> distinctValues;
     private Value value;
     private double sum, vpn;
     private ObjectArray list;
@@ -49,11 +49,11 @@ class AggregateData {
         if (aggregateType == Aggregate.SELECTIVITY) {
             count++;
             if (distinctValues == null) {
-                distinctValues = new ValueHashMap(database);
+                distinctValues = ValueHashMap.newInstance(database);
             }
             int size = distinctValues.size();
             if (size > Constants.SELECTIVITY_DISTINCT_COUNT) {
-                distinctValues = new ValueHashMap(database);
+                distinctValues = ValueHashMap.newInstance(database);
                 sum += size;
             }
             distinctValues.put(v, this);
@@ -69,7 +69,7 @@ class AggregateData {
         count++;
         if (distinct) {
             if (distinctValues == null) {
-                distinctValues = new ValueHashMap(database);
+                distinctValues = ValueHashMap.newInstance(database);
             }
             distinctValues.put(v, this);
             return;
@@ -105,7 +105,7 @@ class AggregateData {
             break;
         case Aggregate.GROUP_CONCAT: {
             if (list == null) {
-                list = new ObjectArray();
+                list = ObjectArray.newInstance();
             }
             list.add(v);
             break;

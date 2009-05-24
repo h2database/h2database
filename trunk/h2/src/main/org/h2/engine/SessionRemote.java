@@ -66,7 +66,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
 
     private TraceSystem traceSystem;
     private Trace trace;
-    private ObjectArray transferList = new ObjectArray();
+    private ObjectArray transferList = ObjectArray.newInstance();
     private int nextId;
     private boolean autoCommit = true;
     private CommandInterface switchOffAutoCommit;

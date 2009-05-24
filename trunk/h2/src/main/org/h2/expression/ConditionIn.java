@@ -239,7 +239,7 @@ public class ConditionIn extends Condition {
         ExpressionList list = new ExpressionList(array);
         function.setParameter(0, list);
         function.doneWithParameters();
-        ObjectArray columns = new ObjectArray();
+        ObjectArray columns = ObjectArray.newInstance();
         int dataType = left.getType();
         String columnName = session.getNextSystemIdentifier(select.getSQL());
         Column col = new Column(columnName, dataType);

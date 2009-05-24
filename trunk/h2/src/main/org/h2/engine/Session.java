@@ -60,7 +60,7 @@ public class Session extends SessionWithState {
     private ConnectionInfo connectionInfo;
     private User user;
     private int id;
-    private ObjectArray locks = new ObjectArray();
+    private ObjectArray locks = ObjectArray.newInstance();
     private UndoLog undoLog;
     private boolean autoCommit = true;
     private Random random;
@@ -194,9 +194,9 @@ public class Session extends SessionWithState {
 
     public ObjectArray getLocalTempTables() {
         if (localTempTables == null) {
-            return new ObjectArray();
+            return ObjectArray.newInstance();
         }
-        return new ObjectArray(localTempTables.values());
+        return ObjectArray.newInstance(localTempTables.values());
     }
 
     /**
@@ -649,7 +649,7 @@ public class Session extends SessionWithState {
 
     private void cleanTempTables(boolean closeSession) throws SQLException {
         if (localTempTables != null && localTempTables.size() > 0) {
-            ObjectArray list = new ObjectArray(localTempTables.values());
+            ObjectArray list = ObjectArray.newInstance(localTempTables.values());
             for (int i = 0; i < list.size(); i++) {
                 Table table = (Table) list.get(i);
                 if (closeSession || table.getOnCommitDrop()) {

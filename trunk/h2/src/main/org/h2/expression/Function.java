@@ -328,7 +328,7 @@ public class Function extends Expression implements FunctionCall {
         this.database = database;
         this.info = info;
         if (info.parameterCount == VAR_ARGS) {
-            varArgs = new ObjectArray();
+            varArgs = ObjectArray.newInstance();
         } else {
             args = new Expression[info.parameterCount];
         }

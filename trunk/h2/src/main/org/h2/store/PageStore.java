@@ -809,7 +809,7 @@ public class PageStore implements CacheWriter {
     }
 
     private void openMetaIndex() throws SQLException {
-        ObjectArray cols = new ObjectArray();
+        ObjectArray cols = ObjectArray.newInstance();
         cols.add(new Column("ID", Value.INT));
         cols.add(new Column("TYPE", Value.INT));
         cols.add(new Column("PARENT", Value.INT));
@@ -856,7 +856,7 @@ public class PageStore implements CacheWriter {
             trace.debug("addMeta id=" + id + " type=" + type + " parent=" + parent + " columns=" + columnList);
         }
         if (type == META_TYPE_SCAN_INDEX) {
-            ObjectArray columnArray = new ObjectArray();
+            ObjectArray columnArray = ObjectArray.newInstance();
             for (int i = 0; i < columns.length; i++) {
                 Column col = new Column("C" + i, Value.INT);
                 columnArray.add(col);

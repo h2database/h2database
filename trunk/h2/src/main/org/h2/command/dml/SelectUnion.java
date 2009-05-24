@@ -196,7 +196,7 @@ public class SelectUnion extends Query {
         ObjectArray le = left.getExpressions();
         // set the expressions to get the right column count and names,
         // but can't validate at this time
-        expressions = new ObjectArray();
+        expressions = ObjectArray.newInstance();
         for (int i = 0; i < len; i++) {
             Expression l = (Expression) le.get(i);
             expressions.add(l);
@@ -216,7 +216,7 @@ public class SelectUnion extends Query {
         right.prepare();
         int len = left.getColumnCount();
         // set the correct expressions now
-        expressions = new ObjectArray();
+        expressions = ObjectArray.newInstance();
         ObjectArray le = left.getExpressions();
         ObjectArray re = right.getExpressions();
         for (int i = 0; i < len; i++) {

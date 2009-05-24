@@ -14,12 +14,14 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * This hash map supports keys of type Value and values of type Object.
+ * This hash map supports keys of type Value.
+ *
+ * @param <V> the value type
  */
-public class ValueHashMap extends HashBase {
+public class ValueHashMap<V> extends HashBase {
 
     private Value[] keys;
-    private Object[] values;
+    private V[] values;
     private DataHandler handler;
 
     /**
@@ -28,19 +30,30 @@ public class ValueHashMap extends HashBase {
      *
      * @param handler the data handler
      */
-    public ValueHashMap(DataHandler handler) {
+    private ValueHashMap(DataHandler handler) {
         this.handler = handler;
     }
 
+    /**
+     * Create a new value hash map using the given data handler.
+     * The data handler is used to compare values.
+     *
+     * @param handler the data handler
+     */
+    public static <T> ValueHashMap<T> newInstance(DataHandler handler) {
+        return new ValueHashMap<T>(handler);
+    }
+
+    @SuppressWarnings("unchecked")
     protected void reset(int newLevel) {
         super.reset(newLevel);
         keys = new Value[len];
-        values = new Object[len];
+        values = (V[]) new Object[len];
     }
 
     protected void rehash(int newLevel) throws SQLException {
         Value[] oldKeys = keys;
-        Object[] oldValues = values;
+        V[] oldValues = values;
         reset(newLevel);
         for (int i = 0; i < oldKeys.length; i++) {
             Value k = oldKeys[i];
@@ -60,7 +73,7 @@ public class ValueHashMap extends HashBase {
      * @param key the key
      * @param value the new value
      */
-    public void put(Value key, Object value) throws SQLException {
+    public void put(Value key, V value) throws SQLException {
         checkSizePut();
         int index = getIndex(key);
         int plus = 1;
@@ -129,7 +142,7 @@ public class ValueHashMap extends HashBase {
      * @param key the key
      * @return the value for the given key
      */
-    public Object get(Value key) throws SQLException {
+    public V get(Value key) throws SQLException {
         int index = getIndex(key);
         int plus = 1;
         do {
@@ -154,7 +167,7 @@ public class ValueHashMap extends HashBase {
      * @return all keys
      */
     public ObjectArray keys() {
-        ObjectArray list = new ObjectArray(size);
+        ObjectArray list = ObjectArray.newInstance(size);
         for (int i = 0; i < keys.length; i++) {
             Value k = keys[i];
             if (k != null && k != ValueNull.DELETED) {
@@ -170,7 +183,7 @@ public class ValueHashMap extends HashBase {
      * @return all values
      */
     public ObjectArray values() {
-        ObjectArray list = new ObjectArray(size);
+        ObjectArray list = ObjectArray.newInstance(size);
         for (int i = 0; i < keys.length; i++) {
             Value k = keys[i];
             if (k != null && k != ValueNull.DELETED) {

@@ -116,7 +116,7 @@ public interface DbObject {
      *
      * @return the list of children
      */
-    ObjectArray getChildren();
+    ObjectArray<DbObject> getChildren();
 
     /**
      * Get the database.

@@ -37,10 +37,10 @@ public class GrantRevoke extends DefineCommand {
      */
     public static final int REVOKE = 1;
 
-    private ObjectArray roleNames;
+    private ObjectArray<String> roleNames;
     private int operationType;
     private int rightMask;
-    private ObjectArray tables = ObjectArray.newInstance();
+    private ObjectArray<Table> tables = ObjectArray.newInstance();
     private RightOwner grantee;
 
     public GrantRevoke(Session session) {
@@ -89,7 +89,7 @@ public class GrantRevoke extends DefineCommand {
         Database db = session.getDatabase();
         if (roleNames != null) {
             for (int i = 0; i < roleNames.size(); i++) {
-                String name = (String) roleNames.get(i);
+                String name = roleNames.get(i);
                 Role grantedRole = db.findRole(name);
                 if (grantedRole == null) {
                     throw Message.getSQLException(ErrorCode.ROLE_NOT_FOUND_1, name);
@@ -117,7 +117,7 @@ public class GrantRevoke extends DefineCommand {
     private void grantRight() throws SQLException {
         Database db = session.getDatabase();
         for (int i = 0; i < tables.size(); i++) {
-            Table table = (Table) tables.get(i);
+            Table table = tables.get(i);
             Right right = grantee.getRightForTable(table);
             if (right == null) {
                 int id = getObjectId(true, true);
@@ -150,7 +150,7 @@ public class GrantRevoke extends DefineCommand {
 
     private void revokeRight() throws SQLException {
         for (int i = 0; i < tables.size(); i++) {
-            Table table = (Table) tables.get(i);
+            Table table = tables.get(i);
             Right right = grantee.getRightForTable(table);
             if (right == null) {
                 continue;

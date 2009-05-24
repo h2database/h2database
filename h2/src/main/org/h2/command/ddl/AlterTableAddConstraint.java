@@ -114,9 +114,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
         case PRIMARY_KEY: {
             IndexColumn.mapColumns(indexColumns, table);
             index = table.findPrimaryKey();
-            ObjectArray constraints = table.getConstraints();
+            ObjectArray<Constraint> constraints = table.getConstraints();
             for (int i = 0; constraints != null && i < constraints.size(); i++) {
-                Constraint c = (Constraint) constraints.get(i);
+                Constraint c = constraints.get(i);
                 if (Constraint.PRIMARY_KEY.equals(c.getConstraintType())) {
                     throw Message.getSQLException(ErrorCode.SECOND_PRIMARY_KEY);
                 }
@@ -287,9 +287,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
     }
 
     private Index getUniqueIndex(Table t, IndexColumn[] cols) {
-        ObjectArray list = t.getIndexes();
+        ObjectArray<Index> list = t.getIndexes();
         for (int i = 0; i < list.size(); i++) {
-            Index idx = (Index) list.get(i);
+            Index idx = list.get(i);
             if (canUseUniqueIndex(idx, t, cols)) {
                 return idx;
             }
@@ -298,9 +298,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
     }
 
     private Index getIndex(Table t, IndexColumn[] cols) {
-        ObjectArray list = t.getIndexes();
+        ObjectArray<Index> list = t.getIndexes();
         for (int i = 0; i < list.size(); i++) {
-            Index existingIndex = (Index) list.get(i);
+            Index existingIndex = list.get(i);
             if (canUseIndex(existingIndex, t, cols)) {
                 return existingIndex;
             }

@@ -243,7 +243,7 @@ class PageDataNode extends PageData {
         }
     }
 
-    public int getByteCount(DataPage dummy) throws SQLException {
+    public int getByteCount(DataPage dummy) {
         return index.getPageStore().getPageSize();
     }
 
@@ -262,7 +262,7 @@ class PageDataNode extends PageData {
         index.getPageStore().writePage(getPos(), data);
     }
 
-    private void removeChild(int i) throws SQLException {
+    private void removeChild(int i) {
         entryCount--;
         if (entryCount < 0) {
             Message.throwInternalError();

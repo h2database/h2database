@@ -181,7 +181,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         throw Message.getUnsupportedException("PAGE");
     }
 
-    public double getCost(Session session, int[] masks) throws SQLException {
+    public double getCost(Session session, int[] masks) {
         long cost = 10 * (tableData.getRowCountApproximation() + Constants.COST_ROW_OFFSET);
         return cost;
     }
@@ -292,7 +292,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         return -1;
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
         if (trace.isDebugEnabled()) {
             trace.debug("close");
         }

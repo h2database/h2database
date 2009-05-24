@@ -30,7 +30,6 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
-import org.h2.expression.ParameterInterface;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
@@ -629,7 +628,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             commit();
             setLockMode = prepareCommand("SET LOCK_MODE ?", setLockMode);
-            ((ParameterInterface) setLockMode.getParameters().get(0)).setValue(ValueInt.get(lockMode), false);
+            setLockMode.getParameters().get(0).setValue(ValueInt.get(lockMode), false);
             setLockMode.executeUpdate();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -644,7 +643,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeCall("setQueryTimeout", seconds);
             checkClosed();
             setQueryTimeout = prepareCommand("SET QUERY_TIMEOUT ?", setQueryTimeout);
-            ((ParameterInterface) setQueryTimeout.getParameters().get(0)).setValue(ValueInt.get(seconds * 1000), false);
+            setQueryTimeout.getParameters().get(0).setValue(ValueInt.get(seconds * 1000), false);
             setQueryTimeout.executeUpdate();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -659,7 +658,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeCall("getQueryTimeout");
             checkClosed();
             getQueryTimeout = prepareCommand("SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?", getQueryTimeout);
-            ((ParameterInterface) getQueryTimeout.getParameters().get(0)).setValue(ValueString.get("QUERY_TIMEOUT"), false);
+            getQueryTimeout.getParameters().get(0).setValue(ValueString.get("QUERY_TIMEOUT"), false);
             ResultInterface result = getQueryTimeout.executeQuery(0, false);
             result.next();
             int queryTimeout = result.currentRow()[0].getInt();

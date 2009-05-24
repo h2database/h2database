@@ -112,7 +112,7 @@ public class Function extends Expression implements FunctionCall {
     protected Expression[] args;
 
     private FunctionInfo info;
-    private ObjectArray varArgs;
+    private ObjectArray<Expression> varArgs;
     private int dataType, scale;
     private long precision = PRECISION_UNKNOWN;
     private int displaySize;

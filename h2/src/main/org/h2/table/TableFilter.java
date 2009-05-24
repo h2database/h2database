@@ -49,7 +49,7 @@ public class TableFilter implements ColumnResolver {
     private boolean used;
 
     // conditions that can be used for direct index lookup (start or end)
-    private final ObjectArray indexConditions = ObjectArray.newInstance();
+    private final ObjectArray<IndexCondition> indexConditions = ObjectArray.newInstance();
 
     // conditions that can't be used for index lookup,
     // but for row filter for this table (ID=ID, NAME LIKE '%X%')
@@ -64,7 +64,7 @@ public class TableFilter implements ColumnResolver {
     private TableFilter join;
 
     private boolean outerJoin;
-    private ObjectArray naturalJoinColumns;
+    private ObjectArray<Column> naturalJoinColumns;
     private boolean foundOne;
     private Expression fullCondition;
     private final int hashCode;
@@ -128,7 +128,7 @@ public class TableFilter implements ColumnResolver {
             int len = table.getColumns().length;
             int[] masks = new int[len];
             for (int i = 0; i < indexConditions.size(); i++) {
-                IndexCondition condition = (IndexCondition) indexConditions.get(i);
+                IndexCondition condition = indexConditions.get(i);
                 if (condition.isEvaluatable()) {
                     if (condition.isAlwaysFalse()) {
                         masks = null;
@@ -182,7 +182,7 @@ public class TableFilter implements ColumnResolver {
     public void prepare() throws SQLException {
         // forget all unused index conditions
         for (int i = 0; i < indexConditions.size(); i++) {
-            IndexCondition condition = (IndexCondition) indexConditions.get(i);
+            IndexCondition condition = indexConditions.get(i);
             if (!condition.isAlwaysFalse()) {
                 Column col = condition.getColumn();
                 if (index.getColumnIndex(col) < 0) {
@@ -254,7 +254,7 @@ public class TableFilter implements ColumnResolver {
         } else if (state == BEFORE_FIRST) {
             SearchRow start = null, end = null;
             for (int i = 0; i < indexConditions.size(); i++) {
-                IndexCondition condition = (IndexCondition) indexConditions.get(i);
+                IndexCondition condition = indexConditions.get(i);
                 if (condition.isAlwaysFalse()) {
                     alwaysFalse = true;
                     break;
@@ -525,7 +525,7 @@ public class TableFilter implements ColumnResolver {
             if (indexConditions.size() > 0) {
                 planBuff.append(": ");
                 for (int i = 0; i < indexConditions.size(); i++) {
-                    IndexCondition condition = (IndexCondition) indexConditions.get(i);
+                    IndexCondition condition = indexConditions.get(i);
                     if (i > 0) {
                         planBuff.append(" AND ");
                     }
@@ -561,7 +561,7 @@ public class TableFilter implements ColumnResolver {
      */
     void removeUnusableIndexConditions() {
         for (int i = 0; i < indexConditions.size(); i++) {
-            IndexCondition cond = (IndexCondition) indexConditions.get(i);
+            IndexCondition cond = indexConditions.get(i);
             if (!cond.isEvaluatable()) {
                 indexConditions.remove(i--);
             }

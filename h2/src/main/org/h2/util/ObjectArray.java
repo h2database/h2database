@@ -246,7 +246,7 @@ public class ObjectArray<T> {
      *
      * @param list the list
      */
-    public void addAll(ObjectArray<T> list) {
+    public void addAll(ObjectArray< ? extends T> list) {
         for (int i = 0; i < list.size; i++) {
             add(list.data[i]);
         }

@@ -31,8 +31,8 @@ public class ResultRemote implements ResultInterface {
     private ResultColumn[] columns;
     private Value[] currentRow;
     private int rowId, rowCount, rowOffset;
-    private ObjectArray result;
-    private ObjectArray lobValues;
+    private ObjectArray<Value[]> result;
+    private ObjectArray<Value> lobValues;
 
     public ResultRemote(SessionRemote session, Transfer transfer, int id, int columnCount, int fetchSize)
             throws IOException, SQLException {
@@ -119,7 +119,7 @@ public class ResultRemote implements ResultInterface {
                 if (rowId - rowOffset >= result.size()) {
                     fetchRows(true);
                 }
-                currentRow = (Value[]) result.get(rowId - rowOffset);
+                currentRow = result.get(rowId - rowOffset);
                 return true;
             }
             currentRow = null;
@@ -166,7 +166,7 @@ public class ResultRemote implements ResultInterface {
         sendClose();
         if (lobValues != null) {
             for (int i = 0; i < lobValues.size(); i++) {
-                Value v = (Value) lobValues.get(i);
+                Value v = lobValues.get(i);
                 try {
                     v.close();
                 } catch (SQLException e) {

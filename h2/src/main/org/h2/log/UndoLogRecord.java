@@ -212,9 +212,9 @@ public class UndoLogRecord {
      * It commits the change to the indexes.
      */
     public void commit() throws SQLException {
-        ObjectArray list = table.getIndexes();
+        ObjectArray<Index> list = table.getIndexes();
         for (int i = 0; i < list.size(); i++) {
-            Index index = (Index) list.get(i);
+            Index index = list.get(i);
             index.commit(operation, row);
         }
     }

@@ -148,7 +148,7 @@ public class RangeTable extends Table {
         }
     }
 
-    public ObjectArray getIndexes() {
+    public ObjectArray<Index> getIndexes() {
         return null;
     }
 

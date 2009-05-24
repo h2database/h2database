@@ -8,6 +8,7 @@ package org.h2.command;
 
 import java.sql.SQLException;
 
+import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
 import org.h2.util.ObjectArray;
 
@@ -28,7 +29,7 @@ public interface CommandInterface {
      *
      * @return the parameters
      */
-    ObjectArray getParameters();
+    ObjectArray< ? extends ParameterInterface> getParameters();
 
     /**
      * Execute the query.

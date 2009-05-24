@@ -96,7 +96,7 @@ public class DiskFile implements CacheWriter {
     private boolean logChanges;
     private int recordOverhead;
     private boolean init, initAlreadyTried;
-    private ObjectArray redoBuffer;
+    private ObjectArray<RedoLogRecord> redoBuffer;
     private int redoBufferSize;
     private int readCount, writeCount;
     private String mode;
@@ -221,7 +221,7 @@ public class DiskFile implements CacheWriter {
                     out.write(mask);
                 }
                 out.writeInt(pageOwners.size());
-                ObjectArray storages = ObjectArray.newInstance();
+                ObjectArray<Storage> storages = ObjectArray.newInstance();
                 for (int i = 0; i < pageOwners.size(); i++) {
                     int s = pageOwners.get(i);
                     out.writeInt(s);
@@ -234,7 +234,7 @@ public class DiskFile implements CacheWriter {
                     }
                 }
                 for (int i = 0; i < storages.size(); i++) {
-                    Storage storage = (Storage) storages.get(i);
+                    Storage storage = storages.get(i);
                     if (storage != null) {
                         out.writeInt(i);
                         out.writeInt(storage.getRecordCount());
@@ -276,9 +276,9 @@ public class DiskFile implements CacheWriter {
     public void initFromSummary(byte[] summary) {
         synchronized (database) {
             if (summary == null || summary.length == 0) {
-                ObjectArray list = database.getAllStorages();
+                ObjectArray<Storage> list = database.getAllStorages();
                 for (int i = 0; i < list.size(); i++) {
-                    Storage s = (Storage) list.get(i);
+                    Storage s = list.get(i);
                     if (s != null && s.getDiskFile() == this) {
                         database.removeStorage(s.getId(), this);
                     }
@@ -318,7 +318,7 @@ public class DiskFile implements CacheWriter {
                 }
                 stage++;
                 int len = in.readInt();
-                ObjectArray storages = ObjectArray.newInstance();
+                ObjectArray<Storage> storages = ObjectArray.newInstance();
                 for (int i = 0; i < len; i++) {
                     int s = in.readInt();
                     while (storages.size() <= s) {
@@ -345,7 +345,7 @@ public class DiskFile implements CacheWriter {
                         break;
                     }
                     int recordCount = in.readInt();
-                    Storage storage = (Storage) storages.get(s);
+                    Storage storage = storages.get(s);
                     if (init) {
                         if (storage != null) {
                             int current = storage.getRecordCount();
@@ -376,9 +376,9 @@ public class DiskFile implements CacheWriter {
             if (init) {
                 return;
             }
-            ObjectArray storages = database.getAllStorages();
+            ObjectArray<Storage> storages = database.getAllStorages();
             for (int i = 0; i < storages.size(); i++) {
-                Storage s = (Storage) storages.get(i);
+                Storage s = storages.get(i);
                 if (s != null && s.getDiskFile() == this) {
                     s.setRecordCount(0);
                 }
@@ -426,7 +426,7 @@ public class DiskFile implements CacheWriter {
     public void flush() throws SQLException {
         synchronized (database) {
             database.checkPowerOff();
-            ObjectArray list = cache.getAllChanged();
+            ObjectArray<CacheObject> list = cache.getAllChanged();
             CacheObject.sort(list);
             for (int i = 0; i < list.size(); i++) {
                 Record rec = (Record) list.get(i);
@@ -1072,7 +1072,7 @@ public class DiskFile implements CacheWriter {
             int storageId = storage.getId();
             // make sure the cache records of this storage are not flushed to disk
             // afterwards
-            ObjectArray list = cache.getAllChanged();
+            ObjectArray<CacheObject> list = cache.getAllChanged();
             for (int i = 0; i < list.size(); i++) {
                 Record r = (Record) list.get(i);
                 if (r.getStorageId() == storageId) {
@@ -1206,7 +1206,7 @@ public class DiskFile implements CacheWriter {
             // needs to be written in this order and not (A) (C) (B)
             RedoLogRecord last = null;
             for (int i = 0; i < redoBuffer.size(); i++) {
-                RedoLogRecord entry = (RedoLogRecord) redoBuffer.get(i);
+                RedoLogRecord entry = redoBuffer.get(i);
                 if (entry.data != null) {
                     continue;
                 }
@@ -1221,7 +1221,7 @@ public class DiskFile implements CacheWriter {
             // now write the last entry, skipping deleted entries
             last = null;
             for (int i = 0; i < redoBuffer.size(); i++) {
-                RedoLogRecord entry = (RedoLogRecord) redoBuffer.get(i);
+                RedoLogRecord entry = redoBuffer.get(i);
                 if (last != null && entry.recordId != last.recordId) {
                     if (last.data != null) {
                         writeRedoLog(last);

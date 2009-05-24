@@ -36,7 +36,7 @@ import org.h2.value.ValueLob;
  */
 public class ScanIndex extends BaseIndex implements RowIndex {
     private int firstFree = -1;
-    private ObjectArray rows = ObjectArray.newInstance();
+    private ObjectArray<Row> rows = ObjectArray.newInstance();
     private Storage storage;
     private TableData tableData;
     private int rowCountDiff;
@@ -99,7 +99,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
         if (storage != null) {
             return (Row) storage.getRecord(session, key);
         }
-        return (Row) rows.get(key);
+        return rows.get(key);
     }
 
     public void add(Session session, Row row) throws SQLException {
@@ -125,7 +125,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
                 rows.add(row);
             } else {
                 int key = firstFree;
-                Row free = (Row) rows.get(key);
+                Row free = rows.get(key);
                 firstFree = free.getPos();
                 row.setPos(key);
                 rows.set(key, row);
@@ -246,7 +246,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
                 if (key >= rows.size()) {
                     return null;
                 }
-                row = (Row) rows.get(key);
+                row = rows.get(key);
                 if (!row.isEmpty()) {
                     return row;
                 }

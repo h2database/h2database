@@ -33,7 +33,7 @@ public class UpdatableRow {
     private final int columnCount;
     private String schemaName;
     private String tableName;
-    private ObjectArray key;
+    private ObjectArray<String> key;
     private boolean isUpdatable;
 
     /**
@@ -132,14 +132,14 @@ public class UpdatableRow {
             if (i > 0) {
                 buff.append(" AND ");
             }
-            buff.append(StringUtils.quoteIdentifier((String) key.get(i)));
+            buff.append(StringUtils.quoteIdentifier(key.get(i)));
             buff.append("=?");
         }
     }
 
     private void setKey(PreparedStatement prep, int start, Value[] current) throws SQLException {
         for (int i = 0; i < key.size(); i++) {
-            String col = (String) key.get(i);
+            String col = key.get(i);
             int idx = getColumnIndex(col);
             Value v = current[idx];
             if (v == null || v == ValueNull.INSTANCE) {

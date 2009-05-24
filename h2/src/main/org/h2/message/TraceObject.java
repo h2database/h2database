@@ -413,7 +413,7 @@ public class TraceObject {
     /**
      * INTERNAL
      */
-    public static String toString(String sql, ObjectArray params) {
+    public static String toString(String sql, ObjectArray< ? extends ParameterInterface> params) {
         StringBuffer buff = new StringBuffer();
         buff.append(sql);
         if (params != null && params.size() > 0) {
@@ -425,7 +425,7 @@ public class TraceObject {
                     }
                     buff.append(i + 1);
                     buff.append(": ");
-                    ParameterInterface p = (ParameterInterface) params.get(i);
+                    ParameterInterface p = params.get(i);
                     if (p == null || p.getParamValue() == null) {
                         buff.append("-");
                     } else {

@@ -46,7 +46,7 @@ class CacheSecondLevel implements Cache {
         return ret;
     }
 
-    public ObjectArray getAllChanged() {
+    public ObjectArray<CacheObject> getAllChanged() {
         return baseCache.getAllChanged();
     }
 

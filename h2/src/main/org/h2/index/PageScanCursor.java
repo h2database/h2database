@@ -25,7 +25,7 @@ class PageScanCursor implements Cursor {
         this.index = index;
     }
 
-    public Row get() throws SQLException {
+    public Row get() {
         return row;
     }
 
@@ -33,7 +33,7 @@ class PageScanCursor implements Cursor {
         return row.getPos();
     }
 
-    public SearchRow getSearchRow() throws SQLException {
+    public SearchRow getSearchRow() {
         return get();
     }
 
@@ -50,7 +50,7 @@ class PageScanCursor implements Cursor {
         return true;
     }
 
-    public boolean previous() throws SQLException {
+    public boolean previous() {
         index--;
         int todo;
         return true;

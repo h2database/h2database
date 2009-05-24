@@ -31,8 +31,8 @@ import org.h2.value.DataType;
 public class CreateTable extends SchemaCommand {
 
     private String tableName;
-    private ObjectArray constraintCommands = ObjectArray.newInstance();
-    private ObjectArray columns = ObjectArray.newInstance();
+    private ObjectArray<Prepared> constraintCommands = ObjectArray.newInstance();
+    private ObjectArray<Column> columns = ObjectArray.newInstance();
     private IndexColumn[] pkColumns;
     private boolean ifNotExists;
     private boolean persistIndexes = true;
@@ -123,7 +123,7 @@ public class CreateTable extends SchemaCommand {
         if (pkColumns != null) {
             int len = pkColumns.length;
             for (int i = 0; i < columns.size(); i++) {
-                Column c = (Column) columns.get(i);
+                Column c = columns.get(i);
                 for (int j = 0; j < len; j++) {
                     if (c.getName().equals(pkColumns[j].columnName)) {
                         c.setNullable(false);
@@ -131,9 +131,9 @@ public class CreateTable extends SchemaCommand {
                 }
             }
         }
-        ObjectArray sequences = ObjectArray.newInstance();
+        ObjectArray<Sequence> sequences = ObjectArray.newInstance();
         for (int i = 0; i < columns.size(); i++) {
-            Column c = (Column) columns.get(i);
+            Column c = columns.get(i);
             if (c.getAutoIncrement()) {
                 int objId = getObjectId(true, true);
                 c.convertAutoIncrementToSequence(session, getSchema(), objId, temporary);
@@ -161,15 +161,15 @@ public class CreateTable extends SchemaCommand {
         }
         try {
             for (int i = 0; i < columns.size(); i++) {
-                Column c = (Column) columns.get(i);
+                Column c = columns.get(i);
                 c.prepareExpression(session);
             }
             for (int i = 0; i < sequences.size(); i++) {
-                Sequence sequence = (Sequence) sequences.get(i);
+                Sequence sequence = sequences.get(i);
                 table.addSequence(sequence);
             }
             for (int i = 0; i < constraintCommands.size(); i++) {
-                Prepared command = (Prepared) constraintCommands.get(i);
+                Prepared command = constraintCommands.get(i);
                 command.update();
             }
             if (asQuery != null) {
@@ -196,9 +196,9 @@ public class CreateTable extends SchemaCommand {
 
     private void generateColumnsFromQuery() {
         int columnCount = asQuery.getColumnCount();
-        ObjectArray expressions = asQuery.getExpressions();
+        ObjectArray<Expression> expressions = asQuery.getExpressions();
         for (int i = 0; i < columnCount; i++) {
-            Expression expr = (Expression) expressions.get(i);
+            Expression expr = expressions.get(i);
             int type = expr.getType();
             String name = expr.getAlias();
             long precision = expr.getPrecision();

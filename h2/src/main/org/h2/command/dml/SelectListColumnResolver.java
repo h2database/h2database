@@ -35,9 +35,9 @@ public class SelectListColumnResolver implements ColumnResolver {
         int columnCount = select.getColumnCount();
         columns = new Column[columnCount];
         expressions = new Expression[columnCount];
-        ObjectArray columnList = select.getExpressions();
+        ObjectArray<Expression> columnList = select.getExpressions();
         for (int i = 0; i < columnCount; i++) {
-            Expression expr = (Expression) columnList.get(i);
+            Expression expr = columnList.get(i);
             Column column = new Column(expr.getAlias(), Value.NULL);
             column.setTable(null, i);
             columns[i] = column;

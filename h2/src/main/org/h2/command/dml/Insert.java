@@ -32,7 +32,7 @@ public class Insert extends Prepared {
 
     private Table table;
     private Column[] columns;
-    private ObjectArray list = ObjectArray.newInstance();
+    private ObjectArray<Expression[]> list = ObjectArray.newInstance();
     private Query query;
 
     public Insert(Session session) {
@@ -74,7 +74,7 @@ public class Insert extends Prepared {
         if (list.size() > 0) {
             count = 0;
             for (int x = 0; x < list.size(); x++) {
-                Expression[] expr = (Expression[]) list.get(x);
+                Expression[] expr = list.get(x);
                 Row newRow = table.getTemplateRow();
                 setCurrentRowNumber(x + 1);
                 for (int i = 0; i < columns.length; i++) {
@@ -151,7 +151,7 @@ public class Insert extends Prepared {
         if (list.size() > 0) {
             buff.append("VALUES ");
             for (int x = 0; x < list.size(); x++) {
-                Expression[] expr = (Expression[]) list.get(x);
+                Expression[] expr = list.get(x);
                 if (x > 0) {
                     buff.append(", ");
                 }
@@ -177,7 +177,7 @@ public class Insert extends Prepared {
 
     public void prepare() throws SQLException {
         if (columns == null) {
-            if (list.size() > 0 && ((Expression[]) list.get(0)).length == 0) {
+            if (list.size() > 0 && list.get(0).length == 0) {
                 // special case where table is used as a sequence
                 columns = new Column[0];
             } else {
@@ -186,7 +186,7 @@ public class Insert extends Prepared {
         }
         if (list.size() > 0) {
             for (int x = 0; x < list.size(); x++) {
-                Expression[] expr = (Expression[]) list.get(x);
+                Expression[] expr = list.get(x);
                 if (expr.length != columns.length) {
                     throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }

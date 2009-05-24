@@ -28,7 +28,7 @@ class ResultDiskBuffer implements ResultExternal {
 
     private DataPage rowBuff;
     private FileStore file;
-    private ObjectArray tapes;
+    private ObjectArray<ResultDiskTape> tapes;
     private ResultDiskTape mainTape;
     private SortOrder sort;
     private int columnCount;
@@ -57,7 +57,7 @@ class ResultDiskBuffer implements ResultExternal {
         /**
          * A list of rows in the buffer.
          */
-        ObjectArray buffer = ObjectArray.newInstance();
+        ObjectArray<Value[]> buffer = ObjectArray.newInstance();
     }
 
     ResultDiskBuffer(Session session, SortOrder sort, int columnCount) throws SQLException {
@@ -77,7 +77,7 @@ class ResultDiskBuffer implements ResultExternal {
         }
     }
 
-    public void addRows(ObjectArray rows) throws SQLException {
+    public void addRows(ObjectArray<Value[]> rows) throws SQLException {
         if (sort != null) {
             sort.sort(rows);
         }
@@ -89,7 +89,7 @@ class ResultDiskBuffer implements ResultExternal {
         for (int i = 0; i < rows.size(); i++) {
             buff.reset();
             buff.writeInt(0);
-            Value[] row = (Value[]) rows.get(i);
+            Value[] row = rows.get(i);
             for (int j = 0; j < columnCount; j++) {
                 buff.writeValue(row[j]);
             }
@@ -172,7 +172,7 @@ class ResultDiskBuffer implements ResultExternal {
                 readRow(mainTape);
             }
         }
-        Value[] row = (Value[]) mainTape.buffer.get(0);
+        Value[] row = mainTape.buffer.get(0);
         mainTape.buffer.remove(0);
         return row;
     }
@@ -196,18 +196,18 @@ class ResultDiskBuffer implements ResultExternal {
             }
         }
         ResultDiskTape t = getTape(next);
-        Value[] row = (Value[]) t.buffer.get(0);
+        Value[] row = t.buffer.get(0);
         t.buffer.remove(0);
         return row;
     }
 
     private ResultDiskTape getTape(int i) {
-        return (ResultDiskTape) tapes.get(i);
+        return tapes.get(i);
     }
 
     private int compareTapes(ResultDiskTape a, ResultDiskTape b) throws SQLException {
-        Value[] va = (Value[]) a.buffer.get(0);
-        Value[] vb = (Value[]) b.buffer.get(0);
+        Value[] va = a.buffer.get(0);
+        Value[] vb = b.buffer.get(0);
         return sort.compare(va, vb);
     }
 

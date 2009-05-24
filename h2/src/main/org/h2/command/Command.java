@@ -12,6 +12,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.ParameterInterface;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
@@ -73,7 +74,7 @@ public abstract class Command implements CommandInterface {
      *
      * @return the list of parameters
      */
-    public abstract ObjectArray getParameters();
+    public abstract ObjectArray< ? extends ParameterInterface> getParameters();
 
     /**
      * Check if this command is read only.

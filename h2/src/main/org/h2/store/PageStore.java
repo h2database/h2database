@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.Iterator;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -22,7 +21,6 @@ import org.h2.index.PageScanIndex;
 import org.h2.log.SessionState;
 import org.h2.message.Message;
 import org.h2.message.Trace;
-import org.h2.message.TraceSystem;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
@@ -34,8 +32,8 @@ import org.h2.util.CacheLRU;
 import org.h2.util.CacheObject;
 import org.h2.util.CacheWriter;
 import org.h2.util.FileUtils;
+import org.h2.util.New;
 import org.h2.util.ObjectArray;
-import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -139,7 +137,7 @@ public class PageStore implements CacheWriter {
     private int activeLog;
     private int[] logRootPageIds = new int[LOG_COUNT];
     private boolean recoveryRunning;
-    private HashMap sessionStates = new HashMap();
+    private HashMap<Integer, SessionState> sessionStates = New.hashMap();
 
     /**
      * The file size in bytes.
@@ -159,7 +157,7 @@ public class PageStore implements CacheWriter {
     private Schema metaSchema;
     private TableData metaTable;
     private PageScanIndex metaIndex;
-    private HashMap metaObjects;
+    private HashMap<Integer, Index> metaObjects;
     private int systemTableHeadPos;
 
     /**
@@ -265,10 +263,10 @@ public class PageStore implements CacheWriter {
         }
         synchronized (database) {
             database.checkPowerOff();
-            ObjectArray list = cache.getAllChanged();
+            ObjectArray<CacheObject> list = cache.getAllChanged();
             CacheObject.sort(list);
             for (int i = 0; i < list.size(); i++) {
-                Record rec = (Record) list.get(i);
+                CacheObject rec = list.get(i);
                 writeBack(rec);
             }
             int todoFlushBeforeReopen;
@@ -671,7 +669,7 @@ public class PageStore implements CacheWriter {
             if (!undo) {
                 switchLogIfPossible();
                 int todoProbablyStillRequiredForTwoPhaseCommit;
-                sessionStates = new HashMap();
+                sessionStates = New.hashMap();
             }
         } catch (SQLException e) {
             int test;
@@ -685,14 +683,13 @@ public class PageStore implements CacheWriter {
             recoveryRunning = false;
         }
         if (!undo) {
-            PageScanIndex index = (PageScanIndex) metaObjects.get(ObjectUtils.getInteger(0));
+            PageScanIndex index = (PageScanIndex) metaObjects.get(0);
             if (index == null) {
                 systemTableHeadPos = Index.EMPTY_HEAD;
             } else {
                 systemTableHeadPos = index.getHeadPos();
             }
-            for (Iterator it = metaObjects.values().iterator(); it.hasNext();) {
-                Index openIndex = (Index) it.next();
+            for (Index openIndex : metaObjects.values()) {
                 openIndex.close(database.getSystemSession());
             }
             metaObjects = null;
@@ -731,8 +728,8 @@ public class PageStore implements CacheWriter {
      * @return the session state object
      */
     private SessionState getOrAddSessionState(int sessionId) {
-        Integer key = ObjectUtils.getInteger(sessionId);
-        SessionState state = (SessionState) sessionStates.get(key);
+        Integer key = sessionId;
+        SessionState state = sessionStates.get(key);
         if (state == null) {
             state = new SessionState();
             sessionStates.put(key, state);
@@ -764,8 +761,7 @@ public class PageStore implements CacheWriter {
      * @return true if this session contains an uncommitted transaction
      */
     boolean isSessionCommitted(int sessionId, int logId, int pos) {
-        Integer key = ObjectUtils.getInteger(sessionId);
-        SessionState state = (SessionState) sessionStates.get(key);
+        SessionState state = sessionStates.get(sessionId);
         if (state == null) {
             return true;
         }
@@ -777,7 +773,7 @@ public class PageStore implements CacheWriter {
      *
      * @return the system table head
      */
-    public int getSystemTableHeadPos() throws SQLException {
+    public int getSystemTableHeadPos() {
         return systemTableHeadPos;
     }
 
@@ -796,7 +792,7 @@ public class PageStore implements CacheWriter {
                 removeMeta(row);
             }
         }
-        PageScanIndex index = (PageScanIndex) metaObjects.get(ObjectUtils.getInteger(tableId));
+        PageScanIndex index = (PageScanIndex) metaObjects.get(tableId);
         if (index == null) {
             throw Message.throwInternalError("Table not found: " + tableId + " " + row + " " + add);
         }
@@ -809,7 +805,7 @@ public class PageStore implements CacheWriter {
     }
 
     private void openMetaIndex() throws SQLException {
-        ObjectArray cols = ObjectArray.newInstance();
+        ObjectArray<Column> cols = ObjectArray.newInstance();
         cols.add(new Column("ID", Value.INT));
         cols.add(new Column("TYPE", Value.INT));
         cols.add(new Column("PARENT", Value.INT));
@@ -822,8 +818,8 @@ public class PageStore implements CacheWriter {
                 META_TABLE_ID, cols, true, true, false, headPos, database.getSystemSession());
         metaIndex = (PageScanIndex) metaTable.getScanIndex(
                 database.getSystemSession());
-        metaObjects = new HashMap();
-        metaObjects.put(ObjectUtils.getInteger(-1), metaIndex);
+        metaObjects = New.hashMap();
+        metaObjects.put(-1, metaIndex);
     }
 
     private void readMetaData() throws SQLException {
@@ -836,7 +832,7 @@ public class PageStore implements CacheWriter {
 
     private void removeMeta(Row row) throws SQLException {
         int id = row.getValue(0).getInt();
-        Index index = (Index) metaObjects.remove(ObjectUtils.getInteger(id));
+        Index index = metaObjects.remove(id);
         index.getTable().removeIndex(index);
         if (index instanceof PageBtreeIndex) {
             index.getSchema().remove(index);
@@ -856,7 +852,7 @@ public class PageStore implements CacheWriter {
             trace.debug("addMeta id=" + id + " type=" + type + " parent=" + parent + " columns=" + columnList);
         }
         if (type == META_TYPE_SCAN_INDEX) {
-            ObjectArray columnArray = ObjectArray.newInstance();
+            ObjectArray<Column> columnArray = ObjectArray.newInstance();
             for (int i = 0; i < columns.length; i++) {
                 Column col = new Column("C" + i, Value.INT);
                 columnArray.add(col);
@@ -864,7 +860,7 @@ public class PageStore implements CacheWriter {
             TableData table = new TableData(metaSchema, "T" + id, id, columnArray, true, true, false, headPos, session);
             meta = table.getScanIndex(session);
         } else {
-            PageScanIndex p = (PageScanIndex) metaObjects.get(ObjectUtils.getInteger(parent));
+            PageScanIndex p = (PageScanIndex) metaObjects.get(parent);
             if (p == null) {
                 throw Message.throwInternalError("parent not found:" + parent);
             }
@@ -877,7 +873,7 @@ public class PageStore implements CacheWriter {
             IndexColumn[] indexColumns = IndexColumn.wrap(cols);
             meta = table.addIndex(session, "I" + id, id, indexColumns, indexType, headPos, null);
         }
-        metaObjects.put(ObjectUtils.getInteger(id), meta);
+        metaObjects.put(id, meta);
     }
 
     /**

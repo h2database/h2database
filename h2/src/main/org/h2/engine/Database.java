@@ -614,7 +614,7 @@ public class Database implements DataHandler {
         roles.put(Constants.PUBLIC_ROLE_NAME, publicRole);
         systemUser.setAdmin(true);
         systemSession = new Session(this, systemUser, ++nextSessionId);
-        ObjectArray cols = ObjectArray.newInstance();
+        ObjectArray<Column> cols = ObjectArray.newInstance();
         Column columnId = new Column("ID", Value.INT);
         columnId.setNullable(false);
         cols.add(columnId);
@@ -638,7 +638,7 @@ public class Database implements DataHandler {
         Cursor cursor = metaIdIndex.find(systemSession, null, null);
         // first, create all function aliases and sequences because
         // they might be used in create table / view / constraints and so on
-        ObjectArray records = ObjectArray.newInstance();
+        ObjectArray<MetaRecord> records = ObjectArray.newInstance();
         while (cursor.next()) {
             MetaRecord rec = new MetaRecord(cursor.get());
             objectIds.set(rec.getId());
@@ -646,7 +646,7 @@ public class Database implements DataHandler {
         }
         MetaRecord.sort(records);
         for (int i = 0; i < records.size(); i++) {
-            MetaRecord rec = (MetaRecord) records.get(i);
+            MetaRecord rec = records.get(i);
             rec.execute(this, systemSession, eventListener);
         }
         // try to recompile the views that are invalid
@@ -695,9 +695,9 @@ public class Database implements DataHandler {
         boolean recompileSuccessful;
         do {
             recompileSuccessful = false;
-            ObjectArray list = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
+            ObjectArray<Table> list = getAllTablesAndViews();
             for (int i = 0; i < list.size(); i++) {
-                DbObject obj = (DbObject) list.get(i);
+                Table obj = list.get(i);
                 if (obj instanceof TableView) {
                     TableView view = (TableView) obj;
                     if (view.getInvalid()) {
@@ -716,9 +716,9 @@ public class Database implements DataHandler {
         // when opening a database, views are initialized before indexes,
         // so they may not have the optimal plan yet
         // this is not a problem, it is just nice to see the newest plan
-        ObjectArray list = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
+        ObjectArray<Table> list = getAllTablesAndViews();
         for (int i = 0; i < list.size(); i++) {
-            DbObject obj = (DbObject) list.get(i);
+            Table obj = list.get(i);
             if (obj instanceof TableView) {
                 TableView view = (TableView) obj;
                 if (!view.getInvalid()) {
@@ -734,9 +734,9 @@ public class Database implements DataHandler {
 
     private void removeUnusedStorages(Session session) throws SQLException {
         if (persistent) {
-            ObjectArray storages = getAllStorages();
+            ObjectArray<Storage> storages = getAllStorages();
             for (int i = 0; i < storages.size(); i++) {
-                Storage storage = (Storage) storages.get(i);
+                Storage storage = storages.get(i);
                 if (storage != null && storage.getRecordReader() == null) {
                     storage.truncate(session);
                 }
@@ -1141,17 +1141,17 @@ public class Database implements DataHandler {
         }
         try {
             if (systemSession != null) {
-                ObjectArray tablesAndViews = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
+                ObjectArray<Table> tablesAndViews = getAllTablesAndViews();
                 for (int i = 0; i < tablesAndViews.size(); i++) {
-                    Table table = (Table) tablesAndViews.get(i);
+                    Table table = tablesAndViews.get(i);
                     table.close(systemSession);
                 }
-                ObjectArray sequences = getAllSchemaObjects(DbObject.SEQUENCE);
+                ObjectArray<SchemaObject> sequences = getAllSchemaObjects(DbObject.SEQUENCE);
                 for (int i = 0; i < sequences.size(); i++) {
                     Sequence sequence = (Sequence) sequences.get(i);
                     sequence.close();
                 }
-                ObjectArray triggers = getAllSchemaObjects(DbObject.TRIGGER);
+                ObjectArray<SchemaObject> triggers = getAllSchemaObjects(DbObject.TRIGGER);
                 for (int i = 0; i < triggers.size(); i++) {
                     TriggerObject trigger = (TriggerObject) triggers.get(i);
                     trigger.close();
@@ -1309,15 +1309,15 @@ public class Database implements DataHandler {
         return i;
     }
 
-    public ObjectArray getAllAggregates() {
+    public ObjectArray<UserAggregate> getAllAggregates() {
         return ObjectArray.newInstance(aggregates.values());
     }
 
-    public ObjectArray getAllComments() {
+    public ObjectArray<Comment> getAllComments() {
         return ObjectArray.newInstance(comments.values());
     }
 
-    public ObjectArray getAllFunctionAliases() {
+    public ObjectArray<FunctionAlias> getAllFunctionAliases() {
         return ObjectArray.newInstance(functionAliases.values());
     }
 
@@ -1328,11 +1328,11 @@ public class Database implements DataHandler {
         return allowLiterals;
     }
 
-    public ObjectArray getAllRights() {
+    public ObjectArray<Right> getAllRights() {
         return ObjectArray.newInstance(rights.values());
     }
 
-    public ObjectArray getAllRoles() {
+    public ObjectArray<Role> getAllRoles() {
         return ObjectArray.newInstance(roles.values());
     }
 
@@ -1342,31 +1342,44 @@ public class Database implements DataHandler {
      * @param type the object type
      * @return all objects of that type
      */
-    public ObjectArray getAllSchemaObjects(int type) {
-        ObjectArray list = ObjectArray.newInstance();
+    public ObjectArray<SchemaObject> getAllSchemaObjects(int type) {
+        ObjectArray<SchemaObject> list = ObjectArray.newInstance();
         for (Schema schema : schemas.values()) {
             list.addAll(schema.getAll(type));
         }
         return list;
     }
 
-    public ObjectArray getAllSchemas() {
+    /**
+     * Get all tables and views.
+     *
+     * @return all objects of that type
+     */
+    public ObjectArray<Table> getAllTablesAndViews() {
+        ObjectArray<Table> list = ObjectArray.newInstance();
+        for (Schema schema : schemas.values()) {
+            list.addAll(schema.getAllTablesAndViews());
+        }
+        return list;
+    }
+
+    public ObjectArray<Schema> getAllSchemas() {
         return ObjectArray.newInstance(schemas.values());
     }
 
-    public ObjectArray getAllSettings() {
+    public ObjectArray<Setting> getAllSettings() {
         return ObjectArray.newInstance(settings.values());
     }
 
-    public ObjectArray getAllStorages() {
+    public ObjectArray<Storage> getAllStorages() {
         return ObjectArray.newInstance(storageMap.values());
     }
 
-    public ObjectArray getAllUserDataTypes() {
+    public ObjectArray<UserDataType> getAllUserDataTypes() {
         return ObjectArray.newInstance(userDataTypes.values());
     }
 
-    public ObjectArray getAllUsers() {
+    public ObjectArray<User> getAllUsers() {
         return ObjectArray.newInstance(users.values());
     }
 
@@ -1452,7 +1465,7 @@ public class Database implements DataHandler {
     }
 
     private synchronized void updateWithChildren(Session session, DbObject obj) throws SQLException {
-        ObjectArray list = obj.getChildren();
+        ObjectArray<DbObject> list = obj.getChildren();
         Comment comment = findComment(obj);
         if (comment != null) {
             Message.throwInternalError();
@@ -1460,7 +1473,7 @@ public class Database implements DataHandler {
         update(session, obj);
         // remember that this scans only one level deep!
         for (int i = 0; list != null && i < list.size(); i++) {
-            DbObject o = (DbObject) list.get(i);
+            DbObject o = list.get(i);
             if (o.getCreateSQL() != null) {
                 update(session, o);
             }
@@ -1617,10 +1630,10 @@ public class Database implements DataHandler {
             return null;
         default:
         }
-        ObjectArray list = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
+        ObjectArray<Table> list = getAllTablesAndViews();
         HashSet<DbObject> set = New.hashSet();
         for (int i = 0; i < list.size(); i++) {
-            Table t = (Table) list.get(i);
+            Table t = list.get(i);
             if (except == t) {
                 continue;
             }
@@ -1636,9 +1649,9 @@ public class Database implements DataHandler {
     private String getFirstInvalidTable(Session session) {
         String conflict = null;
         try {
-            ObjectArray list = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
+            ObjectArray<Table> list = getAllTablesAndViews();
             for (int i = 0; i < list.size(); i++) {
-                Table t = (Table) list.get(i);
+                Table t = list.get(i);
                 conflict = t.getSQL();
                 session.prepare(t.getCreateSQL());
             }
@@ -2213,9 +2226,9 @@ public class Database implements DataHandler {
      * @return the table or null if no table is defined
      */
     public Table getFirstUserTable() {
-        ObjectArray array = getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
+        ObjectArray<Table> array = getAllTablesAndViews();
         for (int i = 0; i < array.size(); i++) {
-            Table table = (Table) array.get(i);
+            Table table = array.get(i);
             if (table.getCreateSQL() != null) {
                 return table;
             }
@@ -2302,9 +2315,9 @@ public class Database implements DataHandler {
      *          afterwards are not flushed; 0 to flush all indexes
      */
     public synchronized void flushIndexes(long maxLastChange) {
-        ObjectArray array = getAllSchemaObjects(DbObject.INDEX);
+        ObjectArray<SchemaObject> array = getAllSchemaObjects(DbObject.INDEX);
         for (int i = 0; i < array.size(); i++) {
-            DbObject obj = (DbObject) array.get(i);
+            SchemaObject obj = array.get(i);
             if (obj instanceof BtreeIndex) {
                 BtreeIndex idx = (BtreeIndex) obj;
                 if (idx.getLastChange() == 0) {

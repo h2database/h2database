@@ -42,7 +42,7 @@ public class ResultTempTable implements ResultExternal {
         Schema schema = session.getDatabase().getSchema(Constants.SCHEMA_MAIN);
         Column column = new Column(COLUMN_NAME, Value.ARRAY);
         column.setNullable(false);
-        ObjectArray columns = ObjectArray.newInstance();
+        ObjectArray<Column> columns = ObjectArray.newInstance();
         columns.add(column);
         int tableId = session.getDatabase().allocateObjectId(true, true);
         String tableName = "TEMP_RESULT_SET_" + tableId;
@@ -85,12 +85,12 @@ public class ResultTempTable implements ResultExternal {
         return (int) table.getRowCount(session);
     }
 
-    public void addRows(ObjectArray rows) throws SQLException {
+    public void addRows(ObjectArray<Value[]> rows) throws SQLException {
         if (sort != null) {
             sort.sort(rows);
         }
         for (int i = 0; i < rows.size(); i++) {
-            Value[] values = (Value[]) rows.get(i);
+            Value[] values = rows.get(i);
             addRow(values);
         }
     }
@@ -99,7 +99,7 @@ public class ResultTempTable implements ResultExternal {
         try {
             if (table != null) {
                 index.remove(session);
-                ObjectArray indexes = table.getIndexes();
+                ObjectArray<Index> indexes = table.getIndexes();
                 indexes.remove(indexes.indexOf(index));
                 table.removeChildrenAndResources(session);
             }

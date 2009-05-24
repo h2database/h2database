@@ -64,7 +64,7 @@ public class FunctionAlias extends DbObjectBase {
         }
         Class< ? > javaClass = ClassUtils.loadUserClass(className);
         Method[] methods = javaClass.getMethods();
-        ObjectArray list = ObjectArray.newInstance();
+        ObjectArray<JavaMethod> list = ObjectArray.newInstance();
         for (int i = 0; i < methods.length; i++) {
             Method m = methods[i];
             if (!Modifier.isStatic(m.getModifiers())) {
@@ -73,7 +73,7 @@ public class FunctionAlias extends DbObjectBase {
             if (m.getName().equals(methodName) || getMethodSignature(m).equals(methodName)) {
                 JavaMethod javaMethod = new JavaMethod(m, i);
                 for (int j = 0; j < list.size(); j++) {
-                    JavaMethod old = (JavaMethod) list.get(j);
+                    JavaMethod old = list.get(j);
                     if (old.getParameterCount() == javaMethod.getParameterCount()) {
                         throw Message.getSQLException(ErrorCode.METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2,
                                 new String[] {

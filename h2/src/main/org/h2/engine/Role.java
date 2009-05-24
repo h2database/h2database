@@ -60,25 +60,25 @@ public class Role extends RightOwner {
     }
 
     public void removeChildrenAndResources(Session session) throws SQLException {
-        ObjectArray users = database.getAllUsers();
+        ObjectArray<User> users = database.getAllUsers();
         for (int i = 0; i < users.size(); i++) {
-            User user = (User) users.get(i);
+            User user = users.get(i);
             Right right = user.getRightForRole(this);
             if (right != null) {
                 database.removeDatabaseObject(session, right);
             }
         }
-        ObjectArray roles = database.getAllRoles();
+        ObjectArray<Role> roles = database.getAllRoles();
         for (int i = 0; i < roles.size(); i++) {
-            Role r2 = (Role) roles.get(i);
+            Role r2 = roles.get(i);
             Right right = r2.getRightForRole(this);
             if (right != null) {
                 database.removeDatabaseObject(session, right);
             }
         }
-        ObjectArray rights = database.getAllRights();
+        ObjectArray<Right> rights = database.getAllRights();
         for (int i = 0; i < rights.size(); i++) {
-            Right right = (Right) rights.get(i);
+            Right right = rights.get(i);
             if (right.getGrantee() == this) {
                 database.removeDatabaseObject(session, right);
             }

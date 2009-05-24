@@ -205,10 +205,6 @@ class PageDataLeaf extends PageData {
      * @return the row
      */
     Row getRowAt(int at) throws SQLException {
-int test;
-if (at >= rows.length) {
-    System.out.println("stop");
-}
         Row r = rows[at];
         if (r == null) {
             if (firstOverflowPageId != 0) {
@@ -275,7 +271,7 @@ if (at >= rows.length) {
         return this;
     }
 
-    protected void remapChildren() throws SQLException {
+    protected void remapChildren() {
         if (firstOverflowPageId == 0) {
             return;
         }
@@ -306,15 +302,15 @@ if (at >= rows.length) {
         return getRowAt(index);
     }
 
-    int getRowCount() throws SQLException {
+    int getRowCount() {
         return entryCount;
     }
 
-    void setRowCountStored(int rowCount) throws SQLException {
+    void setRowCountStored(int rowCount) {
         // ignore
     }
 
-    public int getByteCount(DataPage dummy) throws SQLException {
+    public int getByteCount(DataPage dummy) {
         return index.getPageStore().getPageSize();
     }
 

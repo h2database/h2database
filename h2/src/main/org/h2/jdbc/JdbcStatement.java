@@ -36,7 +36,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     protected int resultSetType;
     protected boolean closedByResultSet;
     private CommandInterface executingCommand;
-    private ObjectArray batchCommands;
+    private ObjectArray<String> batchCommands;
     private boolean escapeProcessing = true;
 
     JdbcStatement(JdbcConnection conn, int resultSetType, int id, boolean closeWithResultSet) {
@@ -610,7 +610,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             int[] result = new int[batchCommands.size()];
             boolean error = false;
             for (int i = 0; i < batchCommands.size(); i++) {
-                String sql = (String) batchCommands.get(i);
+                String sql = batchCommands.get(i);
                 try {
                     result[i] = executeUpdate(sql);
                 } catch (SQLException e) {

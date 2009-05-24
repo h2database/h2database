@@ -24,7 +24,7 @@ public class UndoLog {
     private Database database;
     // TODO undo log entry: a chain would probably be faster
     //  and use less memory than an array
-    private ObjectArray records = ObjectArray.newInstance();
+    private ObjectArray<UndoLogRecord> records = ObjectArray.newInstance();
     private FileStore file;
     private DataPage rowBuff;
     private int memoryUndo;
@@ -71,12 +71,12 @@ public class UndoLog {
      */
     public UndoLogRecord getLast() throws SQLException {
         int i = records.size() - 1;
-        UndoLogRecord entry = (UndoLogRecord) records.get(i);
+        UndoLogRecord entry = records.get(i);
         if (entry.isStored()) {
             int start = Math.max(0, i - database.getMaxMemoryUndo() / 2);
             UndoLogRecord first = null;
             for (int j = start; j <= i; j++) {
-                UndoLogRecord e = (UndoLogRecord) records.get(j);
+                UndoLogRecord e = records.get(j);
                 if (e.isStored()) {
                     e.load(rowBuff, file);
                     memoryUndo++;
@@ -124,7 +124,7 @@ public class UndoLog {
                 rowBuff = DataPage.create(database, Constants.DEFAULT_DATA_PAGE_SIZE);
                 DataPage buff = rowBuff;
                 for (int i = 0; i < records.size(); i++) {
-                    UndoLogRecord r = (UndoLogRecord) records.get(i);
+                    UndoLogRecord r = records.get(i);
                     saveIfPossible(r, buff);
                 }
             } else {

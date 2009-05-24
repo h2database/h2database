@@ -56,8 +56,8 @@ public class SelectUnion extends Query {
 
     private int unionType;
     private Query left, right;
-    private ObjectArray expressions;
-    private ObjectArray orderList;
+    private ObjectArray<Expression> expressions;
+    private ObjectArray<SelectOrderBy> orderList;
     private SortOrder sort;
     private boolean distinct;
     private boolean isPrepared, checkInit;
@@ -80,20 +80,20 @@ public class SelectUnion extends Query {
         this.sqlStatement = sql;
     }
 
-    public void setOrder(ObjectArray order) {
+    public void setOrder(ObjectArray<SelectOrderBy> order) {
         orderList = order;
     }
 
     private Value[] convert(Value[] values, int columnCount) throws SQLException {
         for (int i = 0; i < columnCount; i++) {
-            Expression e = (Expression) expressions.get(i);
+            Expression e = expressions.get(i);
             values[i] = values[i].convertTo(e.getType());
         }
         return values;
     }
 
     public LocalResult queryMeta() throws SQLException {
-        ObjectArray leftExpressions = left.getExpressions();
+        ObjectArray<Expression> leftExpressions = left.getExpressions();
         int columnCount = left.getColumnCount();
         LocalResult result = new LocalResult(session, leftExpressions, columnCount);
         result.done();
@@ -193,12 +193,12 @@ public class SelectUnion extends Query {
         if (len != right.getColumnCount()) {
             throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
         }
-        ObjectArray le = left.getExpressions();
+        ObjectArray<Expression> le = left.getExpressions();
         // set the expressions to get the right column count and names,
         // but can't validate at this time
         expressions = ObjectArray.newInstance();
         for (int i = 0; i < len; i++) {
-            Expression l = (Expression) le.get(i);
+            Expression l = le.get(i);
             expressions.add(l);
         }
     }
@@ -217,11 +217,11 @@ public class SelectUnion extends Query {
         int len = left.getColumnCount();
         // set the correct expressions now
         expressions = ObjectArray.newInstance();
-        ObjectArray le = left.getExpressions();
-        ObjectArray re = right.getExpressions();
+        ObjectArray<Expression> le = left.getExpressions();
+        ObjectArray<Expression> re = right.getExpressions();
         for (int i = 0; i < len; i++) {
-            Expression l = (Expression) le.get(i);
-            Expression r = (Expression) re.get(i);
+            Expression l = le.get(i);
+            Expression r = re.get(i);
             int type = Value.getHigherOrder(l.getType(), r.getType());
             long prec = Math.max(l.getPrecision(), r.getPrecision());
             int scale = Math.max(l.getScale(), r.getScale());
@@ -251,7 +251,7 @@ public class SelectUnion extends Query {
         distinct = b;
     }
 
-    public ObjectArray getExpressions() {
+    public ObjectArray<Expression> getExpressions() {
         return expressions;
     }
 

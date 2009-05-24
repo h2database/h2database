@@ -43,7 +43,7 @@ public class MetaIndex extends BaseIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        ObjectArray rows = meta.generateRows(session, first, last);
+        ObjectArray<Row> rows = meta.generateRows(session, first, last);
         return new MetaCursor(rows);
     }
 

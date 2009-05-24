@@ -48,7 +48,7 @@ public class TableLink extends Table {
     private String driver, url, user, password, originalSchema, originalTable, qualifiedTableName;
     private TableLinkConnection conn;
     private HashMap<String, PreparedStatement> prepared = New.hashMap();
-    private final ObjectArray indexes = ObjectArray.newInstance();
+    private final ObjectArray<Index> indexes = ObjectArray.newInstance();
     private final boolean emitUpdates;
     private LinkedIndex linkedIndex;
     private SQLException connectException;
@@ -107,7 +107,7 @@ public class TableLink extends Table {
         rs.close();
         rs = meta.getColumns(null, originalSchema, originalTable, null);
         int i = 0;
-        ObjectArray columnList = ObjectArray.newInstance();
+        ObjectArray<Column> columnList = ObjectArray.newInstance();
         HashMap<String, Column> columnMap = New.hashMap();
         String catalog = null, schema = null;
         while (rs.next()) {
@@ -190,7 +190,7 @@ public class TableLink extends Table {
             rs = null;
         }
         String pkName = "";
-        ObjectArray list;
+        ObjectArray<Column> list;
         if (rs != null && rs.next()) {
             // the problem is, the rows are not sorted by KEY_SEQ
             list = ObjectArray.newInstance();
@@ -284,7 +284,7 @@ public class TableLink extends Table {
         return columnName;
     }
 
-    private void addIndex(ObjectArray list, IndexType indexType) {
+    private void addIndex(ObjectArray<Column> list, IndexType indexType) {
         Column[] cols = new Column[list.size()];
         list.toArray(cols);
         Index index = new LinkedIndex(this, 0, IndexColumn.wrap(cols), indexType);
@@ -472,7 +472,7 @@ public class TableLink extends Table {
         return url.startsWith("jdbc:oracle:");
     }
 
-    public ObjectArray getIndexes() {
+    public ObjectArray<Index> getIndexes() {
         return indexes;
     }
 
@@ -483,7 +483,7 @@ public class TableLink extends Table {
 
     public Index getUniqueIndex() {
         for (int i = 0; i < indexes.size(); i++) {
-            Index idx = (Index) indexes.get(i);
+            Index idx = indexes.get(i);
             if (idx.getIndexType().getUnique()) {
                 return idx;
             }

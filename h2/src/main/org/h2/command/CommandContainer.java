@@ -9,6 +9,7 @@ package org.h2.command;
 import java.sql.SQLException;
 
 import org.h2.expression.Parameter;
+import org.h2.expression.ParameterInterface;
 import org.h2.result.LocalResult;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
@@ -27,7 +28,7 @@ public class CommandContainer extends Command {
         this.prepared = prepared;
     }
 
-    public ObjectArray getParameters() {
+    public ObjectArray< ? extends ParameterInterface> getParameters() {
         return prepared.getParameters();
     }
 
@@ -44,17 +45,17 @@ public class CommandContainer extends Command {
             // TODO test with 'always recompile'
             prepared.setModificationMetaId(0);
             String sql = prepared.getSQL();
-            ObjectArray oldParams = prepared.getParameters();
+            ObjectArray<Parameter> oldParams = prepared.getParameters();
             Parser parser = new Parser(session);
             prepared = parser.parseOnly(sql);
             long mod = prepared.getModificationMetaId();
             prepared.setModificationMetaId(0);
-            ObjectArray newParams = prepared.getParameters();
+            ObjectArray<Parameter> newParams = prepared.getParameters();
             for (int i = 0; i < newParams.size(); i++) {
-                Parameter old = (Parameter) oldParams.get(i);
+                Parameter old = oldParams.get(i);
                 if (old.isValueSet()) {
                     Value v = old.getValue(session);
-                    Parameter p = (Parameter) newParams.get(i);
+                    Parameter p = newParams.get(i);
                     p.setValue(v);
                 }
             }

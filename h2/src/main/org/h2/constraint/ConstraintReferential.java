@@ -424,9 +424,9 @@ public class ConstraintReferential extends Constraint {
             } else {
                 Prepared updateCommand = getUpdate(session);
                 if (updateAction == CASCADE) {
-                    ObjectArray params = updateCommand.getParameters();
+                    ObjectArray<Parameter> params = updateCommand.getParameters();
                     for (int i = 0; i < columns.length; i++) {
-                        Parameter param = (Parameter) params.get(i);
+                        Parameter param = params.get(i);
                         Column refCol = refColumns[i].column;
                         param.setValue(newRow.getValue(refCol.getColumnId()));
                     }
@@ -454,8 +454,8 @@ public class ConstraintReferential extends Constraint {
         for (int i = 0; i < refColumns.length; i++) {
             int idx = refColumns[i].column.getColumnId();
             Value v = row.getValue(idx);
-            ObjectArray params = command.getParameters();
-            Parameter param = (Parameter) params.get(pos + i);
+            ObjectArray<Parameter> params = command.getParameters();
+            Parameter param = params.get(pos + i);
             param.setValue(v);
         }
     }
@@ -541,10 +541,10 @@ public class ConstraintReferential extends Constraint {
     private Prepared prepare(Session session, String sql, int action) throws SQLException {
         Prepared command = session.prepare(sql);
         if (action != CASCADE) {
-            ObjectArray params = command.getParameters();
+            ObjectArray<Parameter> params = command.getParameters();
             for (int i = 0; i < columns.length; i++) {
                 Column column = columns[i].column;
-                Parameter param = (Parameter) params.get(i);
+                Parameter param = params.get(i);
                 Value value;
                 if (action == SET_NULL) {
                     value = ValueNull.INSTANCE;

@@ -17,7 +17,7 @@ import org.h2.value.Value;
  */
 public abstract class SessionWithState implements SessionInterface {
 
-    protected ObjectArray sessionState;
+    protected ObjectArray<String> sessionState;
     protected boolean sessionStateChanged;
     private boolean sessionStateUpdating;
 
@@ -29,7 +29,7 @@ public abstract class SessionWithState implements SessionInterface {
             sessionStateUpdating = true;
             try {
                 for (int i = 0; i < sessionState.size(); i++) {
-                    String sql = (String) sessionState.get(i);
+                    String sql = sessionState.get(i);
                     CommandInterface ci = prepareCommand(sql, Integer.MAX_VALUE);
                     ci.executeUpdate();
                 }

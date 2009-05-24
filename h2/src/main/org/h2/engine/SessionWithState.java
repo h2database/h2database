@@ -48,7 +48,7 @@ public abstract class SessionWithState implements SessionInterface {
             return;
         }
         sessionStateChanged = false;
-        sessionState = new ObjectArray();
+        sessionState = ObjectArray.newInstance();
         CommandInterface ci = prepareCommand("SELECT * FROM INFORMATION_SCHEMA.SESSION_STATE", Integer.MAX_VALUE);
         ResultInterface result = ci.executeQuery(0, false);
         while (result.next()) {

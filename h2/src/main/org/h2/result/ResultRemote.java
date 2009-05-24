@@ -45,7 +45,7 @@ public class ResultRemote implements ResultInterface {
             columns[i] = new ResultColumn(transfer);
         }
         rowId = -1;
-        result = new ObjectArray();
+        result = ObjectArray.newInstance();
         this.fetchSize = fetchSize;
         fetchRows(false);
     }
@@ -221,7 +221,7 @@ public class ResultRemote implements ResultInterface {
                         values[i] = v;
                         if (v.isFileBased()) {
                             if (lobValues == null) {
-                                lobValues = new ObjectArray();
+                                lobValues = ObjectArray.newInstance();
                             }
                             lobValues.add(v);
                         }

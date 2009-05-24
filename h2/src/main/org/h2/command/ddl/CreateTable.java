@@ -31,8 +31,8 @@ import org.h2.value.DataType;
 public class CreateTable extends SchemaCommand {
 
     private String tableName;
-    private ObjectArray constraintCommands = new ObjectArray();
-    private ObjectArray columns = new ObjectArray();
+    private ObjectArray constraintCommands = ObjectArray.newInstance();
+    private ObjectArray columns = ObjectArray.newInstance();
     private IndexColumn[] pkColumns;
     private boolean ifNotExists;
     private boolean persistIndexes = true;
@@ -68,7 +68,7 @@ public class CreateTable extends SchemaCommand {
      */
     public void addColumn(Column column) {
         if (columns == null) {
-            columns = new ObjectArray();
+            columns = ObjectArray.newInstance();
         }
         columns.add(column);
     }
@@ -131,7 +131,7 @@ public class CreateTable extends SchemaCommand {
                 }
             }
         }
-        ObjectArray sequences = new ObjectArray();
+        ObjectArray sequences = ObjectArray.newInstance();
         for (int i = 0; i < columns.size(); i++) {
             Column c = (Column) columns.get(i);
             if (c.getAutoIncrement()) {

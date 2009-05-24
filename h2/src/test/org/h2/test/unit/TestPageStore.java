@@ -243,7 +243,7 @@ public class TestPageStore extends TestBase {
     }
 
     private void openScanIndex() throws SQLException {
-        ObjectArray cols = new ObjectArray();
+        ObjectArray cols = ObjectArray.newInstance();
         cols.add(new Column("ID", Value.INT));
         schema = new Schema(db, 0, "", null, true);
         table = new TableData(schema, "PAGE_INDEX", 1, cols, true, true, false, 100, null);
@@ -252,7 +252,7 @@ public class TestPageStore extends TestBase {
     }
 
     private void openBtreeIndex() throws SQLException {
-        ObjectArray cols = new ObjectArray();
+        ObjectArray cols = ObjectArray.newInstance();
         cols.add(new Column("ID", Value.INT));
         schema = new Schema(db, 0, "", null, true);
         int id = db.allocateObjectId(true, true);

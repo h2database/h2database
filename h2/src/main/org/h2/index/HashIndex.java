@@ -26,7 +26,7 @@ import org.h2.value.ValueArray;
  */
 public class HashIndex extends BaseIndex {
 
-    private ValueHashMap rows;
+    private ValueHashMap<Integer> rows;
     private IntIntHashMap intMap;
     private TableData tableData;
     private long rowCount;
@@ -41,7 +41,7 @@ public class HashIndex extends BaseIndex {
         if (columns.length == 1 && columns[0].getType() == Value.INT) {
             intMap = new IntIntHashMap();
         } else {
-            rows = new ValueHashMap(table.getDatabase());
+            rows = ValueHashMap.newInstance(table.getDatabase());
         }
     }
 
@@ -115,7 +115,7 @@ public class HashIndex extends BaseIndex {
                 result = null;
             }
         } else {
-            Integer pos = (Integer) rows.get(getKey(first));
+            Integer pos = rows.get(getKey(first));
             if (pos == null) {
                 result = null;
             } else {

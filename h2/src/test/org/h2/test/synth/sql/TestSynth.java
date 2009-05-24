@@ -10,6 +10,7 @@ import java.util.ArrayList;
 
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
+import org.h2.util.New;
 import org.h2.util.RandomUtils;
 
 /**
@@ -48,8 +49,8 @@ public class TestSynth extends TestBase {
     private static final String DIR = "synth";
 
     private DbState db = new DbState(this);
-    private ArrayList databases;
-    private ArrayList commands;
+    private ArrayList<DbInterface> databases;
+    private ArrayList<Command> commands;
     private RandomGen random = new RandomGen();
     private boolean showError, showLog;
     private boolean stopImmediately;
@@ -146,7 +147,7 @@ public class TestSynth extends TestBase {
 
     private void testRun(int seed) throws Exception {
         random.setSeed(seed);
-        commands = new ArrayList();
+        commands = New.arrayList();
         add(Command.getConnect(this));
         add(Command.getReset(this));
 
@@ -193,7 +194,7 @@ public class TestSynth extends TestBase {
         add(Command.getEnd(this));
 
         for (int i = 0; i < commands.size(); i++) {
-            Command command = (Command) commands.get(i);
+            Command command = commands.get(i);
             boolean stop = process(seed, i, command);
             if (stop) {
                 break;
@@ -204,9 +205,9 @@ public class TestSynth extends TestBase {
     private boolean process(int seed, int id, Command command) throws Exception {
         try {
 
-            ArrayList results = new ArrayList();
+            ArrayList<Result> results = New.arrayList();
             for (int i = 0; i < databases.size(); i++) {
-                DbInterface db = (DbInterface) databases.get(i);
+                DbInterface db = databases.get(i);
                 Result result = command.run(db);
                 results.add(result);
                 if (showError && i == 0) {
@@ -228,10 +229,10 @@ public class TestSynth extends TestBase {
         return false;
     }
 
-    private void compareResults(ArrayList results) {
-        Result original = (Result) results.get(0);
+    private void compareResults(ArrayList<Result> results) {
+        Result original = results.get(0);
         for (int i = 1; i < results.size(); i++) {
-            Result copy = (Result) results.get(i);
+            Result copy = results.get(i);
             if (original.compareTo(copy) != 0) {
                 if (showError) {
                     throw new Error("Results don't match: original (0): \r\n" + original + "\r\n" + "other:\r\n" + copy);
@@ -276,7 +277,7 @@ public class TestSynth extends TestBase {
         String old = baseDir;
         baseDir = TestBase.getTestDir("synth");
         deleteDb("synth");
-        databases = new ArrayList();
+        databases = New.arrayList();
 
         // mode = HSQLDB;
         // addDatabase("org.hsqldb.jdbcDriver", "jdbc:hsqldb:test", "sa", "" );

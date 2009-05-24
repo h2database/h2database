@@ -29,7 +29,7 @@ import org.h2.value.Value;
 public class CommandRemote implements CommandInterface {
 
     private final ObjectArray transferList;
-    private final ObjectArray parameters;
+    private final ObjectArray<ParameterInterface> parameters;
     private final Trace trace;
     private final String sql;
     private final int fetchSize;
@@ -44,7 +44,7 @@ public class CommandRemote implements CommandInterface {
         this.transferList = transferList;
         trace = session.getTrace();
         this.sql = sql;
-        parameters = new ObjectArray();
+        parameters = ObjectArray.newInstance();
         prepare(session, true);
         // set session late because prepare might fail - in this case we don't
         // need to close the object

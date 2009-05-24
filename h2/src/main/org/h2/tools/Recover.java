@@ -1104,7 +1104,7 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void resetSchema() {
-        schema = new ObjectArray();
+        schema = ObjectArray.newInstance();
         objectIdSet = New.hashSet();
         tableMap = New.hashMap();
     }

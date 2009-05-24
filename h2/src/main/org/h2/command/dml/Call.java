@@ -64,7 +64,7 @@ public class Call extends Prepared {
             return LocalResult.read(session, rs, maxrows);
         } else if (v.getType() == Value.ARRAY) {
             Value[] list = ((ValueArray) v).getList();
-            ObjectArray expr = new ObjectArray();
+            ObjectArray expr = ObjectArray.newInstance();
             for (int i = 0; i < list.length; i++) {
                 Value e = list[i];
                 Column col = new Column("C" + (i + 1), e.getType(), e.getPrecision(), e.getScale(), e.getDisplaySize());
@@ -85,7 +85,7 @@ public class Call extends Prepared {
 
     public void prepare() throws SQLException {
         value = value.optimize(session);
-        expressions = new ObjectArray();
+        expressions = ObjectArray.newInstance();
         expressions.add(value);
     }
 

@@ -24,7 +24,7 @@ public class UndoLog {
     private Database database;
     // TODO undo log entry: a chain would probably be faster
     //  and use less memory than an array
-    private ObjectArray records = new ObjectArray();
+    private ObjectArray records = ObjectArray.newInstance();
     private FileStore file;
     private DataPage rowBuff;
     private int memoryUndo;

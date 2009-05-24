@@ -252,7 +252,7 @@ public class LogSystem {
             if (closed) {
                 return false;
             }
-            undo = new ObjectArray();
+            undo = ObjectArray.newInstance();
             for (int i = 0; i < activeLogs.size(); i++) {
                 LogFile log = (LogFile) activeLogs.get(i);
                 log.redoAllGoEnd();
@@ -261,7 +261,7 @@ public class LogSystem {
             }
             int end = currentLog.getPos();
             Object[] states = sessionStates.values().toArray();
-            inDoubtTransactions = new ObjectArray();
+            inDoubtTransactions = ObjectArray.newInstance();
             for (int i = 0; i < states.length; i++) {
                 SessionState state = (SessionState) states[i];
                 if (state.inDoubtTransaction != null) {
@@ -299,7 +299,7 @@ public class LogSystem {
     public void open() throws SQLException {
         String path = FileUtils.getParent(fileNamePrefix);
         String[] list = FileUtils.listFiles(path);
-        activeLogs = new ObjectArray();
+        activeLogs = ObjectArray.newInstance();
         for (int i = 0; i < list.length; i++) {
             String s = list[i];
             LogFile l = null;
@@ -586,7 +586,7 @@ public class LogSystem {
      */
     public ObjectArray getActiveLogFiles() {
         synchronized (database) {
-            ObjectArray list = new ObjectArray();
+            ObjectArray list = ObjectArray.newInstance();
             list.addAll(activeLogs);
             return list;
         }

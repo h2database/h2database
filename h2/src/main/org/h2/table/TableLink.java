@@ -48,7 +48,7 @@ public class TableLink extends Table {
     private String driver, url, user, password, originalSchema, originalTable, qualifiedTableName;
     private TableLinkConnection conn;
     private HashMap<String, PreparedStatement> prepared = New.hashMap();
-    private final ObjectArray indexes = new ObjectArray();
+    private final ObjectArray indexes = ObjectArray.newInstance();
     private final boolean emitUpdates;
     private LinkedIndex linkedIndex;
     private SQLException connectException;
@@ -107,7 +107,7 @@ public class TableLink extends Table {
         rs.close();
         rs = meta.getColumns(null, originalSchema, originalTable, null);
         int i = 0;
-        ObjectArray columnList = new ObjectArray();
+        ObjectArray columnList = ObjectArray.newInstance();
         HashMap<String, Column> columnMap = New.hashMap();
         String catalog = null, schema = null;
         while (rs.next()) {
@@ -193,7 +193,7 @@ public class TableLink extends Table {
         ObjectArray list;
         if (rs != null && rs.next()) {
             // the problem is, the rows are not sorted by KEY_SEQ
-            list = new ObjectArray();
+            list = ObjectArray.newInstance();
             do {
                 int idx = rs.getInt("KEY_SEQ");
                 if (pkName == null) {
@@ -223,7 +223,7 @@ public class TableLink extends Table {
             rs = null;
         }
         String indexName = null;
-        list = new ObjectArray();
+        list = ObjectArray.newInstance();
         IndexType indexType = null;
         if (rs != null) {
             while (rs.next()) {

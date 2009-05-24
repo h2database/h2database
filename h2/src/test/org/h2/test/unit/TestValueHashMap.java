@@ -48,7 +48,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
     }
 
     private void testNotANumber() throws SQLException {
-        ValueHashMap map = new ValueHashMap(this);
+        ValueHashMap<Integer> map = ValueHashMap.newInstance(this);
         for (int i = 1; i < 100; i++) {
             double d = Double.longBitsToDouble(0x7ff0000000000000L | i);
             ValueDouble v = ValueDouble.get(d);
@@ -58,7 +58,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
     }
 
     private void testRandomized() throws SQLException {
-        ValueHashMap map = new ValueHashMap(this);
+        ValueHashMap<Value> map = ValueHashMap.newInstance(this);
         HashMap<Value, Value> hash = New.hashMap();
         Random random = new Random(1);
         Comparator<Value> vc = new Comparator<Value>() {
@@ -84,13 +84,13 @@ public class TestValueHashMap extends TestBase implements DataHandler {
                 hash.remove(key);
                 break;
             case 2:
-                Value v1 = (Value) map.get(key);
+                Value v1 = map.get(key);
                 Value v2 = hash.get(key);
                 assertTrue((v1 == null && v2 == null) || v1.compareEqual(v2));
                 break;
             case 3: {
                 ObjectArray a1 = map.keys();
-                ObjectArray a2 = new ObjectArray(hash.keySet());
+                ObjectArray a2 = ObjectArray.newInstance(hash.keySet());
                 assertEquals(a1.size(), a2.size());
                 a1.sort(vc);
                 a2.sort(vc);
@@ -101,7 +101,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
             }
             case 4:
                 ObjectArray a1 = map.values();
-                ObjectArray a2 = new ObjectArray(hash.values());
+                ObjectArray a2 = ObjectArray.newInstance(hash.values());
                 assertEquals(a1.size(), a2.size());
                 a1.sort(vc);
                 a2.sort(vc);

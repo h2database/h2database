@@ -573,7 +573,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             checkClosed();
             sql = conn.translateSQL(sql, escapeProcessing);
             if (batchCommands == null) {
-                batchCommands = new ObjectArray();
+                batchCommands = ObjectArray.newInstance();
             }
             batchCommands.add(sql);
         } catch (Exception e) {
@@ -605,7 +605,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             checkClosedForWrite();
             if (batchCommands == null) {
                 // TODO batch: check what other database do if no commands are set
-                batchCommands = new ObjectArray();
+                batchCommands = ObjectArray.newInstance();
             }
             int[] result = new int[batchCommands.size()];
             boolean error = false;

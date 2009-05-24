@@ -64,7 +64,7 @@ public class FunctionAlias extends DbObjectBase {
         }
         Class< ? > javaClass = ClassUtils.loadUserClass(className);
         Method[] methods = javaClass.getMethods();
-        ObjectArray list = new ObjectArray();
+        ObjectArray list = ObjectArray.newInstance();
         for (int i = 0; i < methods.length; i++) {
             Method m = methods[i];
             if (!Modifier.isStatic(m.getModifiers())) {

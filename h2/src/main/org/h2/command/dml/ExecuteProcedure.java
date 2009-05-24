@@ -22,7 +22,7 @@ import org.h2.util.ObjectArray;
  */
 public class ExecuteProcedure extends Prepared {
 
-    private ObjectArray expressions = new ObjectArray();
+    private ObjectArray expressions = ObjectArray.newInstance();
     private Procedure procedure;
 
     public ExecuteProcedure(Session session) {

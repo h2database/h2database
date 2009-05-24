@@ -456,7 +456,7 @@ public class Schema extends DbObjectBase {
      */
     public ObjectArray getAll(int type) {
         HashMap<String, SchemaObject> map = getMap(type);
-        return new ObjectArray(map.values());
+        return ObjectArray.newInstance(map.values());
     }
 
     /**

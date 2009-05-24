@@ -40,7 +40,7 @@ public class GrantRevoke extends DefineCommand {
     private ObjectArray roleNames;
     private int operationType;
     private int rightMask;
-    private ObjectArray tables = new ObjectArray();
+    private ObjectArray tables = ObjectArray.newInstance();
     private RightOwner grantee;
 
     public GrantRevoke(Session session) {
@@ -67,7 +67,7 @@ public class GrantRevoke extends DefineCommand {
      */
     public void addRoleName(String roleName) {
         if (roleNames == null) {
-            roleNames = new ObjectArray();
+            roleNames = ObjectArray.newInstance();
         }
         roleNames.add(roleName);
     }

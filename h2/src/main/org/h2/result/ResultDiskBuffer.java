@@ -57,7 +57,7 @@ class ResultDiskBuffer implements ResultExternal {
         /**
          * A list of rows in the buffer.
          */
-        ObjectArray buffer = new ObjectArray();
+        ObjectArray buffer = ObjectArray.newInstance();
     }
 
     ResultDiskBuffer(Session session, SortOrder sort, int columnCount) throws SQLException {
@@ -70,7 +70,7 @@ class ResultDiskBuffer implements ResultExternal {
         file.setCheckedWriting(false);
         file.seek(FileStore.HEADER_LENGTH);
         if (sort != null) {
-            tapes = new ObjectArray();
+            tapes = ObjectArray.newInstance();
         } else {
             mainTape = new ResultDiskTape();
             mainTape.pos = FileStore.HEADER_LENGTH;
@@ -134,11 +134,11 @@ class ResultDiskBuffer implements ResultExternal {
             for (int i = 0; i < tapes.size(); i++) {
                 ResultDiskTape tape = getTape(i);
                 tape.pos = tape.start;
-                tape.buffer = new ObjectArray();
+                tape.buffer = ObjectArray.newInstance();
             }
         } else {
             mainTape.pos = FileStore.HEADER_LENGTH;
-            mainTape.buffer = new ObjectArray();
+            mainTape.buffer = ObjectArray.newInstance();
         }
     }
 

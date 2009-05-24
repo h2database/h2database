@@ -76,7 +76,7 @@ public class UpdatableRow {
             // system table
             return;
         }
-        key = new ObjectArray();
+        key = ObjectArray.newInstance();
         rs = meta.getPrimaryKeys(null,
                 JdbcUtils.escapeMetaDataPattern(schemaName),
                 tableName);

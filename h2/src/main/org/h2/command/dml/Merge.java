@@ -35,7 +35,7 @@ public class Merge extends Prepared {
     private Table table;
     private Column[] columns;
     private Column[] keys;
-    private ObjectArray list = new ObjectArray();
+    private ObjectArray list = ObjectArray.newInstance();
     private Query query;
     private Prepared update;
 

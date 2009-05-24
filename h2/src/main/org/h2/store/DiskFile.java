@@ -153,7 +153,7 @@ public class DiskFile implements CacheWriter {
         pageOwners = new IntArray();
         // init pageOwners
         setBlockCount(fileBlockCount);
-        redoBuffer = new ObjectArray();
+        redoBuffer = ObjectArray.newInstance();
         potentiallyFreePages = New.hashSet();
     }
 
@@ -221,7 +221,7 @@ public class DiskFile implements CacheWriter {
                     out.write(mask);
                 }
                 out.writeInt(pageOwners.size());
-                ObjectArray storages = new ObjectArray();
+                ObjectArray storages = ObjectArray.newInstance();
                 for (int i = 0; i < pageOwners.size(); i++) {
                     int s = pageOwners.get(i);
                     out.writeInt(s);
@@ -318,7 +318,7 @@ public class DiskFile implements CacheWriter {
                 }
                 stage++;
                 int len = in.readInt();
-                ObjectArray storages = new ObjectArray();
+                ObjectArray storages = ObjectArray.newInstance();
                 for (int i = 0; i < len; i++) {
                     int s = in.readInt();
                     while (storages.size() <= s) {

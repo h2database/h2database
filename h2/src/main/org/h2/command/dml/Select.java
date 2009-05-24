@@ -59,8 +59,8 @@ import org.h2.value.ValueNull;
  */
 public class Select extends Query {
     private TableFilter topTableFilter;
-    private ObjectArray filters = new ObjectArray();
-    private ObjectArray topFilters = new ObjectArray();
+    private ObjectArray filters = ObjectArray.newInstance();
+    private ObjectArray topFilters = ObjectArray.newInstance();
     private ObjectArray expressions;
     private Expression having;
     private Expression condition;
@@ -300,7 +300,7 @@ public class Select extends Query {
     }
 
     private void queryGroup(int columnCount, LocalResult result) throws SQLException {
-        ValueHashMap groups = new ValueHashMap(session.getDatabase());
+        ValueHashMap<HashMap<Expression, Object>> groups = ValueHashMap.newInstance(session.getDatabase());
         int rowNumber = 0;
         setCurrentRowNumber(0);
         ValueArray defaultGroup = ValueArray.get(new Value[0]);
@@ -322,7 +322,7 @@ public class Select extends Query {
                     }
                     key = ValueArray.get(keyValues);
                 }
-                HashMap<Expression, Object> values = (HashMap) groups.get(key);
+                HashMap<Expression, Object> values = groups.get(key);
                 if (values == null) {
                     values = new HashMap<Expression, Object>();
                     groups.put(key, values);
@@ -342,12 +342,12 @@ public class Select extends Query {
             }
         }
         if (groupIndex == null && groups.size() == 0) {
-            groups.put(defaultGroup, New.hashMap());
+            groups.put(defaultGroup, new HashMap<Expression, Object>());
         }
         ObjectArray keys = groups.keys();
         for (int i = 0; i < keys.size(); i++) {
             ValueArray key = (ValueArray) keys.get(i);
-            currentGroup = (HashMap) groups.get(key);
+            currentGroup = groups.get(key);
             Value[] keyValues = key.getList();
             Value[] row = new Value[columnCount];
             for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
@@ -381,7 +381,7 @@ public class Select extends Query {
             return null;
         }
         int[] indexes = sort.getIndexes();
-        ObjectArray sortColumns = new ObjectArray();
+        ObjectArray sortColumns = ObjectArray.newInstance();
         for (int i = 0; i < indexes.length; i++) {
             int idx = indexes[i];
             if (idx < 0 || idx >= expressions.size()) {
@@ -627,7 +627,7 @@ public class Select extends Query {
         visibleColumnCount = expressions.size();
         ObjectArray expressionSQL;
         if (orderList != null || group != null) {
-            expressionSQL = new ObjectArray();
+            expressionSQL = ObjectArray.newInstance();
             for (int i = 0; i < visibleColumnCount; i++) {
                 Expression expr = (Expression) expressions.get(i);
                 expr = expr.getNonAliasExpression();

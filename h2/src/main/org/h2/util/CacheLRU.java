@@ -126,7 +126,7 @@ public class CacheLRU implements Cache {
 
     private void removeOld() throws SQLException {
         int i = 0;
-        ObjectArray changed = new ObjectArray();
+        ObjectArray changed = ObjectArray.newInstance();
         while (sizeMemory * 4 > maxSize * 3 && recordCount > Constants.CACHE_MIN_RECORDS) {
             i++;
             if (i == recordCount) {
@@ -268,7 +268,7 @@ public class CacheLRU implements Cache {
 //            testConsistency();
 //        }
         // TODO cache: should probably use the LRU list
-        ObjectArray list = new ObjectArray();
+        ObjectArray list = ObjectArray.newInstance();
         for (int i = 0; i < len; i++) {
             CacheObject rec = values[i];
             while (rec != null) {
@@ -362,7 +362,7 @@ public class CacheLRU implements Cache {
 //
 //    public ObjectArray getAllChanged() {
 //        Iterator it = values().iterator();
-//        ObjectArray list = new ObjectArray();
+//        ObjectArray list = ObjectArray.newInstance();
 //        while(it.hasNext()) {
 //            Record rec = (Record)it.next();
 //            if(rec.isChanged()) {

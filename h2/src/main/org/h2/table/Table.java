@@ -276,7 +276,7 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     public ObjectArray getChildren() {
-        ObjectArray children = new ObjectArray();
+        ObjectArray children = ObjectArray.newInstance();
         ObjectArray indexes = getIndexes();
         if (indexes != null) {
             children.addAll(indexes);
@@ -695,7 +695,7 @@ public abstract class Table extends SchemaObjectBase {
 
     private ObjectArray add(ObjectArray list, DbObject obj) {
         if (list == null) {
-            list = new ObjectArray();
+            list = ObjectArray.newInstance();
         }
         // self constraints are two entries in the list
         list.add(obj);

@@ -142,8 +142,7 @@ public class ChangeFileEncryption extends Tool {
         if (files.size() == 0 && !quiet) {
             printNoDatabaseFilesFound(dir, db);
         }
-        for (int i = 0; i < files.size(); i++) {
-            String fileName = files.get(i);
+        for (String fileName : files) {
             String temp = dir + "/temp.db";
             FileUtils.delete(temp);
             FileUtils.rename(fileName, temp);
@@ -152,8 +151,7 @@ public class ChangeFileEncryption extends Tool {
         // if this worked, the operation will (hopefully) be successful
         // TODO changeFileEncryption: this is a workaround!
         // make the operation atomic (all files or none)
-        for (int i = 0; i < files.size(); i++) {
-            String fileName = files.get(i);
+        for (String fileName : files) {
             change.process(fileName);
         }
     }

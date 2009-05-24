@@ -264,14 +264,14 @@ public abstract class Table extends SchemaObjectBase {
      */
     public void addDependencies(HashSet<DbObject> dependencies) {
         if (sequences != null) {
-            for (int i = 0; i < sequences.size(); i++) {
-                dependencies.add(sequences.get(i));
+            for (Sequence s : sequences) {
+                dependencies.add(s);
             }
         }
         ExpressionVisitor visitor = ExpressionVisitor.get(ExpressionVisitor.GET_DEPENDENCIES);
         visitor.setDependencies(dependencies);
-        for (int i = 0; i < columns.length; i++) {
-            columns[i].isEverything(visitor);
+        for (Column col : columns) {
+            col.isEverything(visitor);
         }
     }
 
@@ -294,8 +294,7 @@ public abstract class Table extends SchemaObjectBase {
             children.addAll(views);
         }
         ObjectArray<Right> rights = database.getAllRights();
-        for (int i = 0; i < rights.size(); i++) {
-            Right right = rights.get(i);
+        for (Right right : rights) {
             if (right.getGrantedTable() == this) {
                 children.add(right);
             }
@@ -333,8 +332,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param newName the new column name
      */
     public void renameColumn(Column column, String newName) throws SQLException {
-        for (int i = 0; i < columns.length; i++) {
-            Column c = columns[i];
+        for (Column c : columns) {
             if (c == column) {
                 continue;
             }
@@ -401,9 +399,7 @@ public abstract class Table extends SchemaObjectBase {
             constraints.remove(0);
             database.removeSchemaObject(session, constraint);
         }
-        ObjectArray<Right> rights = database.getAllRights();
-        for (int i = 0; i < rights.size(); i++) {
-            Right right = rights.get(i);
+        for (Right right : database.getAllRights()) {
             if (right.getGrantedTable() == this) {
                 database.removeDatabaseObject(session, right);
             }
@@ -606,9 +602,8 @@ public abstract class Table extends SchemaObjectBase {
         if (indexes != null) {
             remove(indexes, index);
             if (index.getIndexType().getPrimaryKey()) {
-                Column[] cols = index.getColumns();
-                for (int i = 0; i < cols.length; i++) {
-                    cols[i].setPrimaryKey(false);
+                for (Column col : index.getColumns()) {
+                    col.setPrimaryKey(false);
                 }
             }
         }
@@ -724,8 +719,7 @@ public abstract class Table extends SchemaObjectBase {
 
     private void fire(Session session, boolean beforeAction) throws SQLException {
         if (triggers != null) {
-            for (int i = 0; i < triggers.size(); i++) {
-                TriggerObject trigger = triggers.get(i);
+            for (TriggerObject trigger : triggers) {
                 trigger.fire(session, beforeAction);
             }
         }
@@ -755,8 +749,7 @@ public abstract class Table extends SchemaObjectBase {
 
     private void fireConstraints(Session session, Row oldRow, Row newRow, boolean before) throws SQLException {
         if (constraints != null) {
-            for (int i = 0; i < constraints.size(); i++) {
-                Constraint constraint = constraints.get(i);
+            for (Constraint constraint : constraints) {
                 if (constraint.isBefore() == before) {
                     constraint.checkRow(session, this, oldRow, newRow);
                 }
@@ -778,8 +771,7 @@ public abstract class Table extends SchemaObjectBase {
 
     private void fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction) throws SQLException {
         if (triggers != null) {
-            for (int i = 0; i < triggers.size(); i++) {
-                TriggerObject trigger = triggers.get(i);
+            for (TriggerObject trigger : triggers) {
                 trigger.fireRow(session, oldRow, newRow, beforeAction);
             }
         }

@@ -171,13 +171,13 @@ public class ConnectionInfo implements Cloneable {
     private void readProperties(Properties info) throws SQLException {
         Object[] list = new Object[info.size()];
         info.keySet().toArray(list);
-        for (int i = 0; i < list.length; i++) {
-            String key = StringUtils.toUpperEnglish(list[i].toString());
+        for (Object k : list) {
+            String key = StringUtils.toUpperEnglish(k.toString());
             if (prop.containsKey(key)) {
                 throw Message.getSQLException(ErrorCode.DUPLICATE_PROPERTY_1, key);
             }
             if (isKnownSetting(key)) {
-                prop.put(key, info.get(list[i]));
+                prop.put(key, info.get(k));
             }
         }
     }
@@ -188,8 +188,7 @@ public class ConnectionInfo implements Cloneable {
             String settings = url.substring(idx + 1);
             url = url.substring(0, idx);
             String[] list = StringUtils.arraySplit(settings, ';', false);
-            for (int i = 0; i < list.length; i++) {
-                String setting = list[i];
+            for (String setting : list) {
                 int equal = setting.indexOf('=');
                 if (equal < 0) {
                     throw getFormatException();

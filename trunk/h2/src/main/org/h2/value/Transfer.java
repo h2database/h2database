@@ -400,8 +400,8 @@ public class Transfer {
         case Value.ARRAY: {
             Value[] list = ((ValueArray) v).getList();
             writeInt(list.length);
-            for (int i = 0; i < list.length; i++) {
-                writeValue(list[i]);
+            for (Value value : list) {
+                writeValue(value);
             }
             break;
         }

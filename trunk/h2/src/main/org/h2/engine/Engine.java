@@ -149,10 +149,8 @@ public class Engine {
                 // ignore
             }
         }
-        String[] keys = ci.getKeys();
         session.setAllowLiterals(true);
-        for (int i = 0; i < keys.length; i++) {
-            String setting = keys[i];
+        for (String setting : ci.getKeys()) {
             String value = ci.getProperty(setting);
             try {
                 CommandInterface command = session.prepareCommand("SET " + Parser.quoteIdentifier(setting) + " "

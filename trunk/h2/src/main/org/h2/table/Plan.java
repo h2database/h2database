@@ -91,8 +91,7 @@ public class Plan {
             }
             f.removeUnusableIndexConditions();
         }
-        for (int i = 0; i < allFilters.length; i++) {
-            TableFilter f = allFilters[i];
+        for (TableFilter f : allFilters) {
             setEvaluatable(f, false);
         }
     }
@@ -106,8 +105,7 @@ public class Plan {
     public double calculateCost(Session session) throws SQLException {
         double cost = 1;
         boolean invalidPlan = false;
-        for (int i = 0; i < allFilters.length; i++) {
-            TableFilter tableFilter = allFilters[i];
+        for (TableFilter tableFilter : allFilters) {
             PlanItem item = tableFilter.getBestPlanItem(session);
             planItems.put(tableFilter, item);
             cost += cost * item.cost;
@@ -123,8 +121,8 @@ public class Plan {
         if (invalidPlan) {
             cost = Double.POSITIVE_INFINITY;
         }
-        for (int i = 0; i < allFilters.length; i++) {
-            setEvaluatable(allFilters[i], false);
+        for (TableFilter f : allFilters) {
+            setEvaluatable(f, false);
         }
         return cost;
     }

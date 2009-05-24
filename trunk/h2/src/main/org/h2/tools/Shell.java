@@ -512,8 +512,7 @@ public class Shell extends Tool {
             println(buff.toString());
         }
         if (rowCount == 0 && listMode) {
-            for (int i = 0; i < len; i++) {
-                String label = columns[i];
+            for (String label : columns) {
                 buff.append(label);
                 buff.append('\n');
             }

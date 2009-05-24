@@ -154,8 +154,7 @@ implements XAConnection, XAResource
 //## Java 1.4 begin ##
     void closedHandle() {
         debugCode("closedHandle();");
-        for (int i = 0; i < listeners.size(); i++) {
-            ConnectionEventListener listener = listeners.get(i);
+        for (ConnectionEventListener listener : New.arrayList(listeners)) {
             ConnectionEvent event = new ConnectionEvent(this);
             listener.connectionClosed(event);
         }

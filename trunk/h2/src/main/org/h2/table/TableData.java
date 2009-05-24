@@ -77,8 +77,8 @@ public class TableData extends Table implements RecordReader {
             }
             indexes.add(scanIndex);
         }
-        for (int i = 0; i < cols.length; i++) {
-            if (DataType.isLargeObject(cols[i].getType())) {
+        for (Column col : cols) {
+            if (DataType.isLargeObject(col.getType())) {
                 containsLargeObject = true;
                 memoryPerRow = Row.MEMORY_CALCULATE;
             }
@@ -91,8 +91,7 @@ public class TableData extends Table implements RecordReader {
     }
 
     public void close(Session session) throws SQLException {
-        for (int i = 0; i < indexes.size(); i++) {
-            Index index = indexes.get(i);
+        for (Index index : indexes) {
             index.close(session);
         }
     }
@@ -153,8 +152,7 @@ public class TableData extends Table implements RecordReader {
     }
 
     public Index getUniqueIndex() {
-        for (int i = 0; i < indexes.size(); i++) {
-            Index idx = indexes.get(i);
+        for (Index idx : indexes) {
             if (idx.getIndexType().getUnique()) {
                 return idx;
             }
@@ -460,9 +458,8 @@ public class TableData extends Table implements RecordReader {
 
     private String getDeadlockDetails(ObjectArray<Session> sessions) {
         StringBuffer buff = new StringBuffer();
-        for (int i = 0; i < sessions.size(); i++) {
+        for (Session s : sessions) {
             buff.append('\n');
-            Session s = sessions.get(i);
             Table lock = s.getWaitForLock();
             buff.append("Session ").append(s).append(" is waiting to lock ").append(lock);
             buff.append(" while locking ");

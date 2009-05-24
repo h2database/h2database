@@ -482,8 +482,7 @@ public class TableLink extends Table {
     }
 
     public Index getUniqueIndex() {
-        for (int i = 0; i < indexes.size(); i++) {
-            Index idx = indexes.get(i);
+        for (Index idx : indexes) {
             if (idx.getIndexType().getUnique()) {
                 return idx;
             }

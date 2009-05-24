@@ -739,9 +739,8 @@ public class FullText {
                 index.id = rs.getInt(1);
                 String columns = rs.getString(2);
                 if (columns != null) {
-                    String[] list = StringUtils.arraySplit(columns, ',', true);
-                    for (int i = 0; i < list.length; i++) {
-                        indexList.add(list[i]);
+                    for (String s : StringUtils.arraySplit(columns, ',', true)) {
+                        indexList.add(s);
                     }
                 }
             }
@@ -813,8 +812,8 @@ public class FullText {
             int rowId = rs.getInt(1);
             prepInsertMap.setInt(1, rowId);
             int[] wordIds = getWordIds(setting, row);
-            for (int i = 0; i < wordIds.length; i++) {
-                prepInsertMap.setInt(2, wordIds[i]);
+            for (int id : wordIds) {
+                prepInsertMap.setInt(2, id);
                 prepInsertMap.execute();
             }
         }
@@ -830,8 +829,8 @@ public class FullText {
                 int rowId = rs.getInt(1);
                 prepDeleteMap.setInt(1, rowId);
                 int[] wordIds = getWordIds(setting, row);
-                for (int i = 0; i < wordIds.length; i++) {
-                    prepDeleteMap.setInt(2, wordIds[i]);
+                for (int id : wordIds) {
+                    prepDeleteMap.setInt(2, id);
                     prepDeleteMap.executeUpdate();
                 }
                 prepDeleteRow.setInt(1, hash);

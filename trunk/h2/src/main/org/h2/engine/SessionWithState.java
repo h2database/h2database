@@ -28,8 +28,7 @@ public abstract class SessionWithState implements SessionInterface {
         if (sessionState != null && sessionState.size() > 0) {
             sessionStateUpdating = true;
             try {
-                for (int i = 0; i < sessionState.size(); i++) {
-                    String sql = sessionState.get(i);
+                for (String sql : sessionState) {
                     CommandInterface ci = prepareCommand(sql, Integer.MAX_VALUE);
                     ci.executeUpdate();
                 }

@@ -73,9 +73,9 @@ public class StartBrowser {
             } else {
                 String[] browsers = { "firefox", "mozilla-firefox", "mozilla", "konqueror", "netscape", "opera" };
                 boolean ok = false;
-                for (int i = 0; i < browsers.length; i++) {
+                for (String b : browsers) {
                     try {
-                        rt.exec(new String[] { browsers[i], url });
+                        rt.exec(new String[] { b, url });
                         ok = true;
                         break;
                     } catch (Exception e) {

@@ -443,9 +443,8 @@ public class FullTextLucene extends FullText {
             if (rs.next()) {
                 String columns = rs.getString(1);
                 if (columns != null) {
-                    String[] list = StringUtils.arraySplit(columns, ',', true);
-                    for (int i = 0; i < list.length; i++) {
-                        indexList.add(list[i]);
+                    for (String s : StringUtils.arraySplit(columns, ',', true)) {
+                        indexList.add(s);
                     }
                 }
             }

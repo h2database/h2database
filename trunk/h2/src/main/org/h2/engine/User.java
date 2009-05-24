@@ -189,16 +189,12 @@ public class User extends RightOwner {
 
     public ObjectArray<DbObject> getChildren() {
         ObjectArray<DbObject> children = ObjectArray.newInstance();
-        ObjectArray<Right> rights = database.getAllRights();
-        for (int i = 0; i < rights.size(); i++) {
-            Right right = rights.get(i);
+        for (Right right : database.getAllRights()) {
             if (right.getGrantee() == this) {
                 children.add(right);
             }
         }
-        ObjectArray<Schema> schemas = database.getAllSchemas();
-        for (int i = 0; i < schemas.size(); i++) {
-            Schema schema = schemas.get(i);
+        for (Schema schema : database.getAllSchemas()) {
             if (schema.getOwner() == this) {
                 children.add(schema);
             }
@@ -207,9 +203,7 @@ public class User extends RightOwner {
     }
 
     public void removeChildrenAndResources(Session session) throws SQLException {
-        ObjectArray<Right> rights = database.getAllRights();
-        for (int i = 0; i < rights.size(); i++) {
-            Right right = rights.get(i);
+        for (Right right : database.getAllRights()) {
             if (right.getGrantee() == this) {
                 database.removeDatabaseObject(session, right);
             }
@@ -232,9 +226,7 @@ public class User extends RightOwner {
      * @throws SQLException if this user owns a schema
      */
     public void checkOwnsNoSchemas() throws SQLException {
-        ObjectArray<Schema> schemas = database.getAllSchemas();
-        for (int i = 0; i < schemas.size(); i++) {
-            Schema s = schemas.get(i);
+        for (Schema s : database.getAllSchemas()) {
             if (this == s.getOwner()) {
                 throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, new String[]{ getName(), s.getName() });
             }

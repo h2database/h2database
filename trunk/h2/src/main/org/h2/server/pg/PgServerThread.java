@@ -427,8 +427,7 @@ public class PgServerThread implements Runnable {
             }
             startMessage('D');
             writeShort(columns);
-            for (int i = 0; i < columns; i++) {
-                String s = values[i];
+            for (String s : values) {
                 if (s == null) {
                     writeInt(-1);
                 } else {

@@ -68,8 +68,7 @@ public class ClassUtils {
     public static Class< ? > loadUserClass(String className) throws SQLException {
         if (!ALLOW_ALL && !ALLOWED_CLASS_NAMES.contains(className)) {
             boolean allowed = false;
-            for (int i = 0; i < ALLOWED_CLASS_NAME_PREFIXES.length; i++) {
-                String s = ALLOWED_CLASS_NAME_PREFIXES[i];
+            for (String s : ALLOWED_CLASS_NAME_PREFIXES) {
                 if (className.startsWith(s)) {
                     allowed = true;
                 }

@@ -116,8 +116,8 @@ public class Optimizer {
         Permutations p = new Permutations(filters, list, bruteForce);
         for (int x = 0; !canStop(x) && p.next(); x++) {
             // find out what filters are not used yet
-            for (int i = 0; i < filters.length; i++) {
-                filters[i].setUsed(false);
+            for (TableFilter f : filters) {
+                f.setUsed(false);
             }
             for (int i = 0; i < bruteForce; i++) {
                 list[i].setUsed(true);
@@ -237,9 +237,9 @@ public class Optimizer {
         for (int i = 0; i < f2.length - 1; i++) {
             f2[i].addJoin(f2[i + 1], false, null);
         }
-        for (int i = 0; i < f2.length; i++) {
-            PlanItem item = bestPlan.getItem(f2[i]);
-            f2[i].setPlanItem(item);
+        for (TableFilter f : f2) {
+            PlanItem item = bestPlan.getItem(f);
+            f.setPlanItem(item);
         }
     }
 

@@ -187,8 +187,8 @@ public class Csv implements SimpleRowSource {
         initRead();
         SimpleResultSet result = new SimpleResultSet(this);
         makeColumnNamesUnique();
-        for (int i = 0; i < columnNames.length; i++) {
-            result.addColumn(columnNames[i], Types.VARCHAR, Integer.MAX_VALUE, 0);
+        for (String columnName : columnNames) {
+            result.addColumn(columnName, Types.VARCHAR, Integer.MAX_VALUE, 0);
         }
         return result;
     }

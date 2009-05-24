@@ -299,8 +299,8 @@ public class ConstraintReferential extends Constraint {
             return;
         }
         boolean constraintColumnsEqual = oldRow != null;
-        for (int i = 0; i < columns.length; i++) {
-            int idx = columns[i].column.getColumnId();
+        for (IndexColumn col : columns) {
+            int idx = col.column.getColumnId();
             Value v = newRow.getValue(idx);
             if (v == ValueNull.INSTANCE) {
                 // return early if one of the columns is NULL
@@ -606,13 +606,13 @@ public class ConstraintReferential extends Constraint {
     }
 
     public boolean containsColumn(Column col) {
-        for (int i = 0; i < columns.length; i++) {
-            if (columns[i].column == col) {
+        for (IndexColumn c : columns) {
+            if (c.column == col) {
                 return true;
             }
         }
-        for (int i = 0; i < refColumns.length; i++) {
-            if (refColumns[i].column == col) {
+        for (IndexColumn c : refColumns) {
+            if (c.column == col) {
                 return true;
             }
         }

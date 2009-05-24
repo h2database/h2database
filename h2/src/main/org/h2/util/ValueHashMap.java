@@ -39,6 +39,7 @@ public class ValueHashMap<V> extends HashBase {
      * The data handler is used to compare values.
      *
      * @param handler the data handler
+     * @return the object
      */
     public static <T> ValueHashMap<T> newInstance(DataHandler handler) {
         return new ValueHashMap<T>(handler);

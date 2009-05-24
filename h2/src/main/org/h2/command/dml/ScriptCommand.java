@@ -126,9 +126,7 @@ public class ScriptCommand extends ScriptBase {
             }
             Database db = session.getDatabase();
             if (settings) {
-                ObjectArray<Setting> settingList = db.getAllSettings();
-                for (int i = 0; i < settingList.size(); i++) {
-                    Setting setting = settingList.get(i);
+                for (Setting setting : db.getAllSettings()) {
                     if (setting.getName().equals(SetTypes.getTypeName(SetTypes.CREATE_BUILD))) {
                         // don't add CREATE_BUILD to the script
                         // (it is only set when creating the database)
@@ -140,45 +138,32 @@ public class ScriptCommand extends ScriptBase {
             if (out != null) {
                 add("", true);
             }
-            ObjectArray<User> users = db.getAllUsers();
-            for (int i = 0; i < users.size(); i++) {
-                User user = users.get(i);
+            for (User user : db.getAllUsers()) {
                 add(user.getCreateSQL(passwords, true), false);
             }
-            ObjectArray<Role> roles = db.getAllRoles();
-            for (int i = 0; i < roles.size(); i++) {
-                Role role = roles.get(i);
+            for (Role role : db.getAllRoles()) {
                 add(role.getCreateSQL(true), false);
             }
-            ObjectArray<Schema> schemas = db.getAllSchemas();
-            for (int i = 0; i < schemas.size(); i++) {
-                Schema schema = schemas.get(i);
+            for (Schema schema : db.getAllSchemas()) {
                 add(schema.getCreateSQL(), false);
             }
-            ObjectArray<UserDataType> datatypes = db.getAllUserDataTypes();
-            for (int i = 0; i < datatypes.size(); i++) {
-                UserDataType datatype = datatypes.get(i);
+            for (UserDataType datatype : db.getAllUserDataTypes()) {
                 if (drop) {
                     add(datatype.getDropSQL(), false);
                 }
                 add(datatype.getCreateSQL(), false);
             }
-            ObjectArray<SchemaObject> constants = db.getAllSchemaObjects(DbObject.CONSTANT);
-            for (int i = 0; i < constants.size(); i++) {
-                Constant constant = (Constant) constants.get(i);
+            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.CONSTANT)) {
+                Constant constant = (Constant) obj;
                 add(constant.getCreateSQL(), false);
             }
-            ObjectArray<FunctionAlias> functionAliases = db.getAllFunctionAliases();
-            for (int i = 0; i < functionAliases.size(); i++) {
-                FunctionAlias alias = functionAliases.get(i);
+            for (FunctionAlias alias : db.getAllFunctionAliases()) {
                 if (drop) {
                     add(alias.getDropSQL(), false);
                 }
                 add(alias.getCreateSQL(), false);
             }
-            ObjectArray<UserAggregate> aggregates = db.getAllAggregates();
-            for (int i = 0; i < aggregates.size(); i++) {
-                UserAggregate agg = aggregates.get(i);
+            for (UserAggregate agg : db.getAllAggregates()) {
                 if (drop) {
                     add(agg.getDropSQL(), false);
                 }
@@ -192,8 +177,7 @@ public class ScriptCommand extends ScriptBase {
                     return t1.getId() - t2.getId();
                 }
             });
-            for (int i = 0; i < tables.size(); i++) {
-                Table table = tables.get(i);
+            for (Table table : tables) {
                 table.lock(session, false, false);
                 String sql = table.getCreateSQL();
                 if (sql == null) {
@@ -204,16 +188,14 @@ public class ScriptCommand extends ScriptBase {
                     add(table.getDropSQL(), false);
                 }
             }
-            ObjectArray<SchemaObject> sequences = db.getAllSchemaObjects(DbObject.SEQUENCE);
-            for (int i = 0; i < sequences.size(); i++) {
-                Sequence sequence = (Sequence) sequences.get(i);
+            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.SEQUENCE)) {
+                Sequence sequence = (Sequence) obj;
                 if (drop && !sequence.getBelongsToTable()) {
                     add(sequence.getDropSQL(), false);
                 }
                 add(sequence.getCreateSQL(), false);
             }
-            for (int i = 0; i < tables.size(); i++) {
-                Table table = tables.get(i);
+            for (Table table : tables) {
                 table.lock(session, false, false);
                 String sql = table.getCreateSQL();
                 if (sql == null) {
@@ -309,23 +291,18 @@ public class ScriptCommand extends ScriptBase {
                     return ((Constraint) c1).compareTo((Constraint) c2);
                 }
             });
-            for (int i = 0; i < constraints.size(); i++) {
-                Constraint constraint = (Constraint) constraints.get(i);
+            for (SchemaObject obj : constraints) {
+                Constraint constraint = (Constraint) obj;
                 add(constraint.getCreateSQLWithoutIndexes(), false);
             }
-            ObjectArray<SchemaObject> triggers = db.getAllSchemaObjects(DbObject.TRIGGER);
-            for (int i = 0; i < triggers.size(); i++) {
-                TriggerObject trigger = (TriggerObject) triggers.get(i);
+            for (SchemaObject obj : db.getAllSchemaObjects(DbObject.TRIGGER)) {
+                TriggerObject trigger = (TriggerObject) obj;
                 add(trigger.getCreateSQL(), false);
             }
-            ObjectArray<Right> rights = db.getAllRights();
-            for (int i = 0; i < rights.size(); i++) {
-                Right right = rights.get(i);
+            for (Right right : db.getAllRights()) {
                 add(right.getCreateSQL(), false);
             }
-            ObjectArray<Comment> comments = db.getAllComments();
-            for (int i = 0; i < comments.size(); i++) {
-                Comment comment = comments.get(i);
+            for (Comment comment : db.getAllComments()) {
                 add(comment.getCreateSQL(), false);
             }
             if (out != null) {

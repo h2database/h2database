@@ -121,19 +121,16 @@ public class CreateTable extends SchemaCommand {
             }
         }
         if (pkColumns != null) {
-            int len = pkColumns.length;
-            for (int i = 0; i < columns.size(); i++) {
-                Column c = columns.get(i);
-                for (int j = 0; j < len; j++) {
-                    if (c.getName().equals(pkColumns[j].columnName)) {
+            for (Column c : columns) {
+                for (IndexColumn idxCol : pkColumns) {
+                    if (c.getName().equals(idxCol.columnName)) {
                         c.setNullable(false);
                     }
                 }
             }
         }
         ObjectArray<Sequence> sequences = ObjectArray.newInstance();
-        for (int i = 0; i < columns.size(); i++) {
-            Column c = columns.get(i);
+        for (Column c : columns) {
             if (c.getAutoIncrement()) {
                 int objId = getObjectId(true, true);
                 c.convertAutoIncrementToSequence(session, getSchema(), objId, temporary);
@@ -160,16 +157,13 @@ public class CreateTable extends SchemaCommand {
             db.addSchemaObject(session, table);
         }
         try {
-            for (int i = 0; i < columns.size(); i++) {
-                Column c = columns.get(i);
+            for (Column c : columns) {
                 c.prepareExpression(session);
             }
-            for (int i = 0; i < sequences.size(); i++) {
-                Sequence sequence = sequences.get(i);
+            for (Sequence sequence : sequences) {
                 table.addSequence(sequence);
             }
-            for (int i = 0; i < constraintCommands.size(); i++) {
-                Prepared command = constraintCommands.get(i);
+            for (Prepared command : constraintCommands) {
                 command.update();
             }
             if (asQuery != null) {

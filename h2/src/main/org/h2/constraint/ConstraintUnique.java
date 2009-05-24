@@ -128,8 +128,8 @@ public class ConstraintUnique extends Constraint {
     }
 
     public boolean containsColumn(Column col) {
-        for (int i = 0; i < columns.length; i++) {
-            if (columns[i].column == col) {
+        for (IndexColumn c : columns) {
+            if (c.column == col) {
                 return true;
             }
         }

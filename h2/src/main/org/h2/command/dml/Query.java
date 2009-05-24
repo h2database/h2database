@@ -254,8 +254,7 @@ public abstract class Query extends Prepared {
      */
     void initOrder(ObjectArray<Expression> expressions, ObjectArray<String> expressionSQL, ObjectArray<SelectOrderBy> orderList, int visible,
             boolean mustBeInResult) throws SQLException {
-        for (int i = 0; i < orderList.size(); i++) {
-            SelectOrderBy o = orderList.get(i);
+        for (SelectOrderBy o : orderList) {
             Expression e = o.expression;
             if (e == null) {
                 continue;

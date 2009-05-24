@@ -88,8 +88,7 @@ public class GrantRevoke extends DefineCommand {
         session.commit(true);
         Database db = session.getDatabase();
         if (roleNames != null) {
-            for (int i = 0; i < roleNames.size(); i++) {
-                String name = roleNames.get(i);
+            for (String name : roleNames) {
                 Role grantedRole = db.findRole(name);
                 if (grantedRole == null) {
                     throw Message.getSQLException(ErrorCode.ROLE_NOT_FOUND_1, name);
@@ -116,8 +115,7 @@ public class GrantRevoke extends DefineCommand {
 
     private void grantRight() throws SQLException {
         Database db = session.getDatabase();
-        for (int i = 0; i < tables.size(); i++) {
-            Table table = tables.get(i);
+        for (Table table : tables) {
             Right right = grantee.getRightForTable(table);
             if (right == null) {
                 int id = getObjectId(true, true);
@@ -149,8 +147,7 @@ public class GrantRevoke extends DefineCommand {
     }
 
     private void revokeRight() throws SQLException {
-        for (int i = 0; i < tables.size(); i++) {
-            Table table = tables.get(i);
+        for (Table table : tables) {
             Right right = grantee.getRightForTable(table);
             if (right == null) {
                 continue;

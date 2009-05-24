@@ -287,9 +287,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     }
 
     private Index getUniqueIndex(Table t, IndexColumn[] cols) {
-        ObjectArray<Index> list = t.getIndexes();
-        for (int i = 0; i < list.size(); i++) {
-            Index idx = list.get(i);
+        for (Index idx : t.getIndexes()) {
             if (canUseUniqueIndex(idx, t, cols)) {
                 return idx;
             }
@@ -298,11 +296,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
     }
 
     private Index getIndex(Table t, IndexColumn[] cols) {
-        ObjectArray<Index> list = t.getIndexes();
-        for (int i = 0; i < list.size(); i++) {
-            Index existingIndex = list.get(i);
-            if (canUseIndex(existingIndex, t, cols)) {
-                return existingIndex;
+        for (Index idx : t.getIndexes()) {
+            if (canUseIndex(idx, t, cols)) {
+                return idx;
             }
         }
         return null;
@@ -317,13 +313,13 @@ public class AlterTableAddConstraint extends SchemaCommand {
             return false;
         }
         HashSet<Column> set = New.hashSet();
-        for (int i = 0; i < cols.length; i++) {
-            set.add(cols[i].column);
+        for (IndexColumn c : cols) {
+            set.add(c.column);
         }
-        for (int j = 0; j < indexCols.length; j++) {
+        for (Column c : indexCols) {
             // all columns of the index must be part of the list,
             // but not all columns of the list need to be part of the index
-            if (!set.contains(indexCols[j])) {
+            if (!set.contains(c)) {
                 return false;
             }
         }

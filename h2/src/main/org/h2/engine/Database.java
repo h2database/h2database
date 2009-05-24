@@ -585,9 +585,7 @@ public class Database implements DataHandler {
                 } catch (Exception e) {
                     if (recovery) {
                         traceSystem.getTrace(Trace.DATABASE).error("opening index", e);
-                        ArrayList<Storage> list = New.arrayList(storageMap.values());
-                        for (int i = 0; i < list.size(); i++) {
-                            Storage s = list.get(i);
+                        for (Storage s : New.arrayList(storageMap.values())) {
                             if (s.getDiskFile() == fileIndex) {
                                 removeStorage(s.getId(), fileIndex);
                             }
@@ -695,9 +693,7 @@ public class Database implements DataHandler {
         boolean recompileSuccessful;
         do {
             recompileSuccessful = false;
-            ObjectArray<Table> list = getAllTablesAndViews();
-            for (int i = 0; i < list.size(); i++) {
-                Table obj = list.get(i);
+            for (Table obj : getAllTablesAndViews()) {
                 if (obj instanceof TableView) {
                     TableView view = (TableView) obj;
                     if (view.getInvalid()) {
@@ -716,9 +712,7 @@ public class Database implements DataHandler {
         // when opening a database, views are initialized before indexes,
         // so they may not have the optimal plan yet
         // this is not a problem, it is just nice to see the newest plan
-        ObjectArray<Table> list = getAllTablesAndViews();
-        for (int i = 0; i < list.size(); i++) {
-            Table obj = list.get(i);
+        for (Table obj : getAllTablesAndViews()) {
             if (obj instanceof TableView) {
                 TableView view = (TableView) obj;
                 if (!view.getInvalid()) {
@@ -1630,10 +1624,8 @@ public class Database implements DataHandler {
             return null;
         default:
         }
-        ObjectArray<Table> list = getAllTablesAndViews();
         HashSet<DbObject> set = New.hashSet();
-        for (int i = 0; i < list.size(); i++) {
-            Table t = list.get(i);
+        for (Table t : getAllTablesAndViews()) {
             if (except == t) {
                 continue;
             }
@@ -1649,9 +1641,7 @@ public class Database implements DataHandler {
     private String getFirstInvalidTable(Session session) {
         String conflict = null;
         try {
-            ObjectArray<Table> list = getAllTablesAndViews();
-            for (int i = 0; i < list.size(); i++) {
-                Table t = list.get(i);
+            for (Table t : getAllTablesAndViews()) {
                 conflict = t.getSQL();
                 session.prepare(t.getCreateSQL());
             }
@@ -1971,7 +1961,9 @@ public class Database implements DataHandler {
             log.setDisabled(!logData);
             log.checkpoint();
         }
-        traceSystem.getTrace(Trace.DATABASE).error("SET LOG " + level, null);
+        if (level == 0) {
+            traceSystem.getTrace(Trace.DATABASE).error("SET LOG " + level, null);
+        }
         logLevel = level;
     }
 

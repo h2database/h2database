@@ -37,6 +37,14 @@ extends HashMap
         this.size = size;
     }
 
+    /**
+     * Create a new object with all elements of the given collection.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param size the number of elements
+     * @return the object
+     */
     public static <K, V> SmallLRUCache<K, V> newInstance(int size) {
         return new SmallLRUCache<K, V>(size);
     }

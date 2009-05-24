@@ -13,7 +13,6 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.table.Column;
 import org.h2.table.Table;
-import org.h2.util.ObjectArray;
 
 /**
  * This class represents the statement
@@ -49,9 +48,7 @@ public class AlterTableRenameColumn extends DefineCommand {
         table.renameColumn(column, newName);
         table.setModified();
         db.update(session, table);
-        ObjectArray<DbObject> children = table.getChildren();
-        for (int i = 0; i < children.size(); i++) {
-            DbObject child = children.get(i);
+        for (DbObject child : table.getChildren()) {
             if (child.getCreateSQL() != null) {
                 db.update(session, child);
             }

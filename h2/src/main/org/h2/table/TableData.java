@@ -278,8 +278,7 @@ public class TableData extends Table implements RecordReader {
         } catch (Exception e) {
             throw Message.convert(e);
         }
-        for (int i = 0; i < list.size(); i++) {
-            Row row = list.get(i);
+        for (Row row : list) {
             index.add(session, row);
         }
         list.clear();
@@ -640,9 +639,8 @@ public class TableData extends Table implements RecordReader {
             }
         }
         if (SysProperties.CHECK) {
-            ObjectArray<SchemaObject> list = database.getAllSchemaObjects(DbObject.INDEX);
-            for (int i = 0; i < list.size(); i++) {
-                Index index = (Index) list.get(i);
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.INDEX)) {
+                Index index = (Index) obj;
                 if (index.getTable() == this) {
                     Message.throwInternalError("index not dropped: " + index.getName());
                 }

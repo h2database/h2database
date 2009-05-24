@@ -265,8 +265,7 @@ public class PageStore implements CacheWriter {
             database.checkPowerOff();
             ObjectArray<CacheObject> list = cache.getAllChanged();
             CacheObject.sort(list);
-            for (int i = 0; i < list.size(); i++) {
-                CacheObject rec = list.get(i);
+            for (CacheObject rec : list) {
                 writeBack(rec);
             }
             int todoFlushBeforeReopen;

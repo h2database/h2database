@@ -158,9 +158,7 @@ public class TransactionCommand extends Prepared {
             // throttle, to allow testing concurrent
             // execution of shutdown and query
             session.throttle();
-            Session[] sessions = db.getSessions(false);
-            for (int i = 0; i < sessions.length; i++) {
-                Session s = sessions[i];
+            for (Session s : db.getSessions(false)) {
                 if (db.isMultiThreaded()) {
                     synchronized (s) {
                         s.rollback();

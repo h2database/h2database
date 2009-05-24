@@ -74,7 +74,7 @@ public class TableFunction extends Function {
         return getTable(session, args, true, false);
     }
 
-    public void setColumns(ObjectArray columns) {
+    public void setColumns(ObjectArray<Column> columns) {
         this.columnList = new Column[columns.size()];
         columns.toArray(columnList);
     }

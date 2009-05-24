@@ -85,10 +85,10 @@ public class BackupCommand extends Prepared {
                 String base = FileUtils.getParent(fn);
                 synchronized (db.getLobSyncObject()) {
                     if (!SysProperties.PAGE_STORE) {
-                        ObjectArray list = log.getActiveLogFiles();
+                        ObjectArray<LogFile> list = log.getActiveLogFiles();
                         int max = list.size();
                         for (int i = 0; i < list.size(); i++) {
-                            LogFile lf = (LogFile) list.get(i);
+                            LogFile lf = list.get(i);
                             fn = lf.getFileName();
                             backupFile(out, base, fn);
                             db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, name, i, max);

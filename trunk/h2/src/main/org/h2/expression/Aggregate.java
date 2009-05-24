@@ -121,7 +121,7 @@ public class Aggregate extends Expression {
 
     private Expression on;
     private Expression separator;
-    private ObjectArray orderList;
+    private ObjectArray<SelectOrderBy> orderList;
     private SortOrder sort;
     private int dataType, scale;
     private long precision;
@@ -189,7 +189,7 @@ public class Aggregate extends Expression {
      *
      * @param orderBy the order by list
      */
-    public void setOrder(ObjectArray orderBy) {
+    public void setOrder(ObjectArray<SelectOrderBy> orderBy) {
         this.orderList = orderBy;
     }
 
@@ -206,7 +206,7 @@ public class Aggregate extends Expression {
         int[] index = new int[orderList.size()];
         int[] sortType = new int[orderList.size()];
         for (int i = 0; i < orderList.size(); i++) {
-            SelectOrderBy o = (SelectOrderBy) orderList.get(i);
+            SelectOrderBy o = orderList.get(i);
             index[i] = i + 1;
             int order = o.descending ? SortOrder.DESCENDING : SortOrder.ASCENDING;
             sortType[i] = order;
@@ -245,7 +245,7 @@ public class Aggregate extends Expression {
                     Value[] array = new Value[1 + orderList.size()];
                     array[0] = v;
                     for (int i = 0; i < orderList.size(); i++) {
-                        SelectOrderBy o = (SelectOrderBy) orderList.get(i);
+                        SelectOrderBy o = orderList.get(i);
                         array[i + 1] = o.expression.getValue(session);
                     }
                     v = ValueArray.get(array);
@@ -292,18 +292,18 @@ public class Aggregate extends Expression {
         }
         Value v = data.getValue(session.getDatabase(), distinct);
         if (type == GROUP_CONCAT) {
-            ObjectArray list = data.getList();
+            ObjectArray<Value> list = data.getList();
             if (list == null || list.size() == 0) {
                 return ValueNull.INSTANCE;
             }
             if (orderList != null) {
                 try {
                     final SortOrder sortOrder = sort;
-                    list.sort(new Comparator<ValueArray>() {
-                        public int compare(ValueArray v1, ValueArray v2) {
+                    list.sort(new Comparator<Value>() {
+                        public int compare(Value v1, Value v2) {
                             try {
-                                Value[] a1 = v1.getList();
-                                Value[] a2 = v2.getList();
+                                Value[] a1 = ((ValueArray) v1).getList();
+                                Value[] a2 = ((ValueArray) v2).getList();
                                 return sortOrder.compare(a1, a2);
                             } catch (SQLException e) {
                                 throw Message.convertToInternal(e);
@@ -317,7 +317,7 @@ public class Aggregate extends Expression {
             StringBuffer buff = new StringBuffer();
             String sep = separator == null ? "," : separator.getValue(session).getString();
             for (int i = 0; i < list.size(); i++) {
-                Value val = (Value) list.get(i);
+                Value val = list.get(i);
                 String s;
                 if (val.getType() == Value.ARRAY) {
                     s = ((ValueArray) val).getList()[0].getString();
@@ -347,7 +347,7 @@ public class Aggregate extends Expression {
         }
         if (orderList != null) {
             for (int i = 0; i < orderList.size(); i++) {
-                SelectOrderBy o = (SelectOrderBy) orderList.get(i);
+                SelectOrderBy o = orderList.get(i);
                 o.expression.mapColumns(resolver, level);
             }
         }
@@ -366,7 +366,7 @@ public class Aggregate extends Expression {
         }
         if (orderList != null) {
             for (int i = 0; i < orderList.size(); i++) {
-                SelectOrderBy o = (SelectOrderBy) orderList.get(i);
+                SelectOrderBy o = orderList.get(i);
                 o.expression = o.expression.optimize(session);
             }
             sort = initOrder(session);
@@ -436,7 +436,7 @@ public class Aggregate extends Expression {
         }
         if (orderList != null) {
             for (int i = 0; i < orderList.size(); i++) {
-                SelectOrderBy o = (SelectOrderBy) orderList.get(i);
+                SelectOrderBy o = orderList.get(i);
                 o.expression.setEvaluatable(tableFilter, b);
             }
         }
@@ -464,7 +464,7 @@ public class Aggregate extends Expression {
         if (orderList != null) {
             buff.append(" ORDER BY ");
             for (int i = 0; i < orderList.size(); i++) {
-                SelectOrderBy o = (SelectOrderBy) orderList.get(i);
+                SelectOrderBy o = orderList.get(i);
                 if (i > 0) {
                     buff.append(", ");
                 }
@@ -572,7 +572,7 @@ public class Aggregate extends Expression {
             return false;
         }
         for (int i = 0; orderList != null && i < orderList.size(); i++) {
-            SelectOrderBy o = (SelectOrderBy) orderList.get(i);
+            SelectOrderBy o = orderList.get(i);
             if (!o.expression.isEverything(visitor)) {
                 return false;
             }

@@ -50,7 +50,7 @@ public class BtreeLeaf extends BtreePage {
         }
     }
 
-    BtreeLeaf(BtreeIndex index, ObjectArray pageData) {
+    BtreeLeaf(BtreeIndex index, ObjectArray<SearchRow> pageData) {
         super(index);
         this.pageData = pageData;
     }
@@ -59,7 +59,7 @@ public class BtreeLeaf extends BtreePage {
         int l = 0, r = pageData.size();
         while (l < r) {
             int i = (l + r) >>> 1;
-            SearchRow row = (SearchRow) pageData.get(i);
+            SearchRow row = pageData.get(i);
             int comp = index.compareRows(row, newRow);
             if (comp == 0) {
                 if (index.indexType.getUnique()) {
@@ -97,7 +97,7 @@ public class BtreeLeaf extends BtreePage {
         }
         while (l < r) {
             int i = (l + r) >>> 1;
-            SearchRow row = (SearchRow) pageData.get(i);
+            SearchRow row = pageData.get(i);
             if (SysProperties.CHECK && row == null) {
                 Message.throwInternalError("btree corrupt");
             }
@@ -133,7 +133,7 @@ public class BtreeLeaf extends BtreePage {
     }
 
     BtreePage split(Session session, int splitPoint) throws SQLException {
-        ObjectArray data = ObjectArray.newInstance();
+        ObjectArray<SearchRow> data = ObjectArray.newInstance();
         int max = pageData.size();
         for (int i = splitPoint; i < max; i++) {
             data.add(getData(splitPoint));
@@ -153,7 +153,7 @@ public class BtreeLeaf extends BtreePage {
         }
         while (l < r) {
             int i = (l + r) >>> 1;
-            SearchRow row = (SearchRow) pageData.get(i);
+            SearchRow row = pageData.get(i);
             int comp = index.compareRows(row, compare);
             if (comp > 0 || (!bigger && comp == 0)) {
                 r = i;
@@ -165,7 +165,7 @@ public class BtreeLeaf extends BtreePage {
             return false;
         }
         cursor.push(this, l);
-        SearchRow row = (SearchRow) pageData.get(l);
+        SearchRow row = pageData.get(l);
         cursor.setCurrentRow(row);
         return true;
     }
@@ -173,7 +173,7 @@ public class BtreeLeaf extends BtreePage {
     void next(BtreeCursor cursor, int i) throws SQLException {
         i++;
         if (i < pageData.size()) {
-            SearchRow r = (SearchRow) pageData.get(i);
+            SearchRow r = pageData.get(i);
             cursor.setCurrentRow(r);
             cursor.setStackPosition(i);
             return;
@@ -185,7 +185,7 @@ public class BtreeLeaf extends BtreePage {
     void previous(BtreeCursor cursor, int i) throws SQLException {
         i--;
         if (i >= 0) {
-            SearchRow r = (SearchRow) pageData.get(i);
+            SearchRow r = pageData.get(i);
             cursor.setCurrentRow(r);
             cursor.setStackPosition(i);
             return;
@@ -203,7 +203,7 @@ public class BtreeLeaf extends BtreePage {
             return;
         }
         cursor.push(this, 0);
-        SearchRow row = (SearchRow) pageData.get(0);
+        SearchRow row = pageData.get(0);
         cursor.setCurrentRow(row);
     }
 
@@ -217,7 +217,7 @@ public class BtreeLeaf extends BtreePage {
             return;
         }
         cursor.push(this, last);
-        SearchRow row = (SearchRow) pageData.get(last);
+        SearchRow row = pageData.get(last);
         cursor.setCurrentRow(row);
     }
 
@@ -260,7 +260,7 @@ public class BtreeLeaf extends BtreePage {
         buff.writeInt(len);
         Column[] columns = index.getColumns();
         for (int i = 0; i < len; i++) {
-            SearchRow row = (SearchRow) pageData.get(i);
+            SearchRow row = pageData.get(i);
             buff.writeInt(row.getPos());
             if (!writePos) {
                 for (int j = 0; j < columns.length; j++) {
@@ -288,7 +288,7 @@ public class BtreeLeaf extends BtreePage {
         int len = pageData.size();
         int size = 2 + DataPage.LENGTH_INT * (len + 1);
         for (int i = 0; i < len; i++) {
-            SearchRow row = (SearchRow) pageData.get(i);
+            SearchRow row = pageData.get(i);
             size += getRowSize(dummy, row);
         }
         size += index.getRecordOverhead();
@@ -303,7 +303,7 @@ public class BtreeLeaf extends BtreePage {
             }
             return null;
         }
-        return (SearchRow) pageData.get(0);
+        return pageData.get(0);
     }
 
 }

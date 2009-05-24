@@ -21,6 +21,7 @@ import org.h2.engine.User;
 import org.h2.index.Index;
 import org.h2.message.Message;
 import org.h2.message.Trace;
+import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableData;
 import org.h2.table.TableLink;
@@ -454,9 +455,18 @@ public class Schema extends DbObjectBase {
      * @param type the object type
      * @return a  (possible empty) list of all objects
      */
-    public ObjectArray getAll(int type) {
+    public ObjectArray<SchemaObject> getAll(int type) {
         HashMap<String, SchemaObject> map = getMap(type);
         return ObjectArray.newInstance(map.values());
+    }
+
+    /**
+     * Get all tables and views.
+     *
+     * @return a  (possible empty) list of all objects
+     */
+    public ObjectArray<Table> getAllTablesAndViews() {
+        return ObjectArray.newInstance(tablesAndViews.values());
     }
 
     /**
@@ -487,7 +497,7 @@ public class Schema extends DbObjectBase {
      * @param session the session
      * @return the created {@link TableData} object
      */
-    public TableData createTable(String tableName, int id, ObjectArray columns, boolean persistIndexes, boolean persistData, boolean clustered, int headPos, Session session)
+    public TableData createTable(String tableName, int id, ObjectArray<Column> columns, boolean persistIndexes, boolean persistData, boolean clustered, int headPos, Session session)
             throws SQLException {
         return new TableData(this, tableName, id, columns, persistIndexes, persistData, clustered, headPos, session);
     }

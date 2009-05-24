@@ -7,7 +7,6 @@
 package org.h2.expression;
 
 import java.sql.SQLException;
-
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.message.Message;
@@ -31,7 +30,7 @@ class AggregateData {
     private ValueHashMap<AggregateData> distinctValues;
     private Value value;
     private double sum, vpn;
-    private ObjectArray list;
+    private ObjectArray<Value> list;
 
     AggregateData(int aggregateType, int dataType) {
         this.aggregateType = aggregateType;
@@ -146,7 +145,7 @@ class AggregateData {
         }
     }
 
-    ObjectArray getList() {
+    ObjectArray<Value> getList() {
         return list;
     }
 
@@ -247,9 +246,9 @@ class AggregateData {
             count = distinctValues.size();
         } else {
             count = 0;
-            ObjectArray l2 = distinctValues.keys();
+            ObjectArray<Value> l2 = distinctValues.keys();
             for (int i = 0; i < l2.size(); i++) {
-                add(database, false, (Value) l2.get(i));
+                add(database, false, l2.get(i));
             }
         }
     }

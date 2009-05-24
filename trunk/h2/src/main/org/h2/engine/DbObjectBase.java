@@ -117,7 +117,7 @@ public abstract class DbObjectBase implements DbObject {
         return Parser.quoteIdentifier(objectName);
     }
 
-    public ObjectArray getChildren() {
+    public ObjectArray<DbObject> getChildren() {
         return null;
     }
 

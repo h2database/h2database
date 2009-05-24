@@ -34,6 +34,7 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
+import org.h2.schema.SchemaObject;
 import org.h2.store.DataPage;
 import org.h2.store.Record;
 import org.h2.store.RecordReader;
@@ -57,11 +58,11 @@ public class TableData extends Table implements RecordReader {
     private HashSet<Session> lockShared = New.hashSet();
     private Trace traceLock;
     private boolean globalTemporary;
-    private final ObjectArray indexes = ObjectArray.newInstance();
+    private final ObjectArray<Index> indexes = ObjectArray.newInstance();
     private long lastModificationId;
     private boolean containsLargeObject;
 
-    public TableData(Schema schema, String tableName, int id, ObjectArray columns,
+    public TableData(Schema schema, String tableName, int id, ObjectArray<Column> columns,
             boolean persistIndexes, boolean persistData, boolean clustered, int headPos, Session session) throws SQLException {
         super(schema, id, tableName, persistIndexes, persistData);
         Column[] cols = new Column[columns.size()];
@@ -91,7 +92,7 @@ public class TableData extends Table implements RecordReader {
 
     public void close(Session session) throws SQLException {
         for (int i = 0; i < indexes.size(); i++) {
-            Index index = (Index) indexes.get(i);
+            Index index = indexes.get(i);
             index.close(session);
         }
     }
@@ -115,7 +116,7 @@ public class TableData extends Table implements RecordReader {
         }
         try {
             for (; i < indexes.size(); i++) {
-                Index index = (Index) indexes.get(i);
+                Index index = indexes.get(i);
                 index.add(session, row);
                 checkRowCount(session, index, 1);
             }
@@ -123,7 +124,7 @@ public class TableData extends Table implements RecordReader {
         } catch (Throwable e) {
             try {
                 while (--i >= 0) {
-                    Index index = (Index) indexes.get(i);
+                    Index index = indexes.get(i);
                     index.remove(session, row);
                     checkRowCount(session, index, 0);
                 }
@@ -148,12 +149,12 @@ public class TableData extends Table implements RecordReader {
     }
 
     public Index getScanIndex(Session session) {
-        return (Index) indexes.get(0);
+        return indexes.get(0);
     }
 
     public Index getUniqueIndex() {
         for (int i = 0; i < indexes.size(); i++) {
-            Index idx = (Index) indexes.get(i);
+            Index idx = indexes.get(i);
             if (idx.getIndexType().getUnique()) {
                 return idx;
             }
@@ -161,7 +162,7 @@ public class TableData extends Table implements RecordReader {
         return null;
     }
 
-    public ObjectArray getIndexes() {
+    public ObjectArray<Index> getIndexes() {
         return indexes;
     }
 
@@ -201,7 +202,7 @@ public class TableData extends Table implements RecordReader {
                 Cursor cursor = scan.find(session, null, null);
                 long i = 0;
                 int bufferSize = Constants.DEFAULT_MAX_MEMORY_ROWS;
-                ObjectArray buffer = ObjectArray.newInstance(bufferSize);
+                ObjectArray<Row> buffer = ObjectArray.newInstance(bufferSize);
                 while (cursor.next()) {
                     database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, getName() + ":" + index.getName(), MathUtils
                             .convertLongToInt(i++), MathUtils.convertLongToInt(total));
@@ -262,7 +263,7 @@ public class TableData extends Table implements RecordReader {
         return true;
     }
 
-    private void addRowsToIndex(Session session, ObjectArray list, Index index) throws SQLException {
+    private void addRowsToIndex(Session session, ObjectArray<Row> list, Index index) throws SQLException {
         final Index idx = index;
         try {
             list.sort(new Comparator<Row>() {
@@ -278,7 +279,7 @@ public class TableData extends Table implements RecordReader {
             throw Message.convert(e);
         }
         for (int i = 0; i < list.size(); i++) {
-            Row row = (Row) list.get(i);
+            Row row = list.get(i);
             index.add(session, row);
         }
         list.clear();
@@ -312,7 +313,7 @@ public class TableData extends Table implements RecordReader {
         int i = indexes.size() - 1;
         try {
             for (; i >= 0; i--) {
-                Index index = (Index) indexes.get(i);
+                Index index = indexes.get(i);
                 index.remove(session, row);
                 checkRowCount(session, index, -1);
             }
@@ -320,7 +321,7 @@ public class TableData extends Table implements RecordReader {
         } catch (Throwable e) {
             try {
                 while (++i < indexes.size()) {
-                    Index index = (Index) indexes.get(i);
+                    Index index = indexes.get(i);
                     index.add(session, row);
                     checkRowCount(session, index, 0);
                 }
@@ -338,7 +339,7 @@ public class TableData extends Table implements RecordReader {
     public void truncate(Session session) throws SQLException {
         lastModificationId = database.getNextModificationDataId();
         for (int i = indexes.size() - 1; i >= 0; i--) {
-            Index index = (Index) indexes.get(i);
+            Index index = indexes.get(i);
             index.truncate(session);
             if (SysProperties.CHECK) {
                 long rc = index.getRowCount(session);
@@ -421,7 +422,7 @@ public class TableData extends Table implements RecordReader {
             }
             session.setWaitForLock(this);
             if (checkDeadlock) {
-                ObjectArray sessions = checkDeadlock(session, null, null);
+                ObjectArray<Session> sessions = checkDeadlock(session, null, null);
                 if (sessions != null) {
                     throw Message.getSQLException(ErrorCode.DEADLOCK_1, getDeadlockDetails(sessions));
                 }
@@ -458,11 +459,11 @@ public class TableData extends Table implements RecordReader {
         }
     }
 
-    private String getDeadlockDetails(ObjectArray sessions) {
+    private String getDeadlockDetails(ObjectArray<Session> sessions) {
         StringBuffer buff = new StringBuffer();
         for (int i = 0; i < sessions.size(); i++) {
             buff.append('\n');
-            Session s = (Session) sessions.get(i);
+            Session s = sessions.get(i);
             Table lock = s.getWaitForLock();
             buff.append("Session ").append(s).append(" is waiting to lock ").append(lock);
             buff.append(" while locking ");
@@ -486,7 +487,7 @@ public class TableData extends Table implements RecordReader {
         return buff.toString();
     }
 
-    public ObjectArray checkDeadlock(Session session, Session clash, Set<Session> visited) {
+    public ObjectArray<Session> checkDeadlock(Session session, Session clash, Set<Session> visited) {
         // only one deadlock check at any given time
         synchronized (TableData.class) {
             if (clash == null) {
@@ -503,7 +504,7 @@ public class TableData extends Table implements RecordReader {
                 return null;
             }
             visited.add(session);
-            ObjectArray error = null;
+            ObjectArray<Session> error = null;
             for (Session s : lockShared) {
                 if (s == session) {
                     // it doesn't matter if we have locked the object already
@@ -633,13 +634,13 @@ public class TableData extends Table implements RecordReader {
         super.removeChildrenAndResources(session);
         // go backwards because database.removeIndex will call table.removeIndex
         while (indexes.size() > 1) {
-            Index index = (Index) indexes.get(1);
+            Index index = indexes.get(1);
             if (index.getName() != null) {
                 database.removeSchemaObject(session, index);
             }
         }
         if (SysProperties.CHECK) {
-            ObjectArray list = database.getAllSchemaObjects(DbObject.INDEX);
+            ObjectArray<SchemaObject> list = database.getAllSchemaObjects(DbObject.INDEX);
             for (int i = 0; i < list.size(); i++) {
                 Index index = (Index) list.get(i);
                 if (index.getTable() == this) {
@@ -668,9 +669,9 @@ public class TableData extends Table implements RecordReader {
     }
 
     public boolean canTruncate() {
-        ObjectArray constraints = getConstraints();
+        ObjectArray<Constraint> constraints = getConstraints();
         for (int i = 0; constraints != null && i < constraints.size(); i++) {
-            Constraint c = (Constraint) constraints.get(i);
+            Constraint c = constraints.get(i);
             if (!(c.getConstraintType().equals(Constraint.REFERENTIAL))) {
                 continue;
             }

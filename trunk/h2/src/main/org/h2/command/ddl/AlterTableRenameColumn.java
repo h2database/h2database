@@ -49,9 +49,9 @@ public class AlterTableRenameColumn extends DefineCommand {
         table.renameColumn(column, newName);
         table.setModified();
         db.update(session, table);
-        ObjectArray children = table.getChildren();
+        ObjectArray<DbObject> children = table.getChildren();
         for (int i = 0; i < children.size(); i++) {
-            DbObject child = (DbObject) children.get(i);
+            DbObject child = children.get(i);
             if (child.getCreateSQL() != null) {
                 db.update(session, child);
             }

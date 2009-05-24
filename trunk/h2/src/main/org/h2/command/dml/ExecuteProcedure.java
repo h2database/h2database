@@ -22,7 +22,7 @@ import org.h2.util.ObjectArray;
  */
 public class ExecuteProcedure extends Prepared {
 
-    private ObjectArray expressions = ObjectArray.newInstance();
+    private ObjectArray<Expression> expressions = ObjectArray.newInstance();
     private Procedure procedure;
 
     public ExecuteProcedure(Session session) {
@@ -45,10 +45,10 @@ public class ExecuteProcedure extends Prepared {
 
     private void setParameters() throws SQLException {
         Prepared prepared = procedure.getPrepared();
-        ObjectArray params = prepared.getParameters();
+        ObjectArray<Parameter> params = prepared.getParameters();
         for (int i = 0; params != null && i < params.size() && i < expressions.size(); i++) {
-            Expression expr = (Expression) expressions.get(i);
-            Parameter p = (Parameter) params.get(i);
+            Expression expr = expressions.get(i);
+            Parameter p = params.get(i);
             p.setValue(expr.getValue(session));
         }
     }

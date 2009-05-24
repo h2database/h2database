@@ -21,6 +21,7 @@ import org.h2.engine.Engine;
 import org.h2.engine.Session;
 import org.h2.engine.SessionRemote;
 import org.h2.expression.Parameter;
+import org.h2.expression.ParameterInterface;
 import org.h2.expression.ParameterRemote;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
@@ -203,7 +204,7 @@ public class TcpServerThread implements Runnable {
 
     private void setParameters(Command command) throws IOException, SQLException {
         int len = transfer.readInt();
-        ObjectArray params = command.getParameters();
+        ObjectArray< ? extends ParameterInterface> params = command.getParameters();
         for (int i = 0; i < len; i++) {
             Parameter p = (Parameter) params.get(i);
             p.setValue(transfer.readValue());
@@ -222,13 +223,13 @@ public class TcpServerThread implements Runnable {
             boolean readonly = command.isReadOnly();
             cache.addObject(id, command);
             boolean isQuery = command.isQuery();
-            ObjectArray params = command.getParameters();
+            ObjectArray< ? extends ParameterInterface> params = command.getParameters();
             int paramCount = params.size();
             transfer.writeInt(getState(old)).writeBoolean(isQuery).writeBoolean(readonly)
                     .writeInt(paramCount);
             if (operation == SessionRemote.SESSION_PREPARE_READ_PARAMS) {
                 for (int i = 0; i < paramCount; i++) {
-                    Parameter p = (Parameter) params.get(i);
+                    ParameterInterface p = params.get(i);
                     ParameterRemote.writeMetaData(transfer, p);
                 }
             }

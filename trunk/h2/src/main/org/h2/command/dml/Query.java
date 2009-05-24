@@ -79,7 +79,7 @@ public abstract class Query extends Prepared {
      *
      * @return the list of expressions
      */
-    public abstract ObjectArray getExpressions();
+    public abstract ObjectArray<Expression> getExpressions();
 
     /**
      * Calculate the cost to execute this query.
@@ -100,7 +100,7 @@ public abstract class Query extends Prepared {
      *
      * @param order the order by list
      */
-    public abstract void setOrder(ObjectArray order);
+    public abstract void setOrder(ObjectArray<SelectOrderBy> order);
 
     /**
      * Set the 'for update' flag.
@@ -202,13 +202,13 @@ public abstract class Query extends Prepared {
     }
 
     public final Value[] getParameterValues() {
-        ObjectArray list = getParameters();
+        ObjectArray<Parameter> list = getParameters();
         if (list == null) {
             list = ObjectArray.newInstance();
         }
         Value[] params = new Value[list.size()];
         for (int i = 0; i < list.size(); i++) {
-            Value v = ((Parameter) list.get(i)).getParamValue();
+            Value v = list.get(i).getParamValue();
             params[i] = v;
         }
         return params;
@@ -252,10 +252,10 @@ public abstract class Query extends Prepared {
      * @param visible the number of visible columns in the select list
      * @param mustBeInResult all order by expressions must be in the select list
      */
-    void initOrder(ObjectArray expressions, ObjectArray expressionSQL, ObjectArray orderList, int visible,
+    void initOrder(ObjectArray<Expression> expressions, ObjectArray<String> expressionSQL, ObjectArray<SelectOrderBy> orderList, int visible,
             boolean mustBeInResult) throws SQLException {
         for (int i = 0; i < orderList.size(); i++) {
-            SelectOrderBy o = (SelectOrderBy) orderList.get(i);
+            SelectOrderBy o = orderList.get(i);
             Expression e = o.expression;
             if (e == null) {
                 continue;
@@ -272,7 +272,7 @@ public abstract class Query extends Prepared {
                 String col = exprCol.getOriginalColumnName();
                 for (int j = 0; j < visible; j++) {
                     boolean found = false;
-                    Expression ec = (Expression) expressions.get(j);
+                    Expression ec = expressions.get(j);
                     if (ec instanceof ExpressionColumn) {
                         ExpressionColumn c = (ExpressionColumn) ec;
                         found = col.equals(c.getColumnName());
@@ -309,7 +309,7 @@ public abstract class Query extends Prepared {
             } else {
                 String s = e.getSQL();
                 for (int j = 0; expressionSQL != null && j < expressionSQL.size(); j++) {
-                    String s2 = (String) expressionSQL.get(j);
+                    String s2 = expressionSQL.get(j);
                     if (s2.equals(s)) {
                         idx = j;
                         isAlias = true;
@@ -337,11 +337,11 @@ public abstract class Query extends Prepared {
      * @param expressionCount the number of columns in the query
      * @return the {@link SortOrder} object
      */
-    public SortOrder prepareOrder(ObjectArray orderList, int expressionCount) throws SQLException {
+    public SortOrder prepareOrder(ObjectArray<SelectOrderBy> orderList, int expressionCount) throws SQLException {
         int[] index = new int[orderList.size()];
         int[] sortType = new int[orderList.size()];
         for (int i = 0; i < orderList.size(); i++) {
-            SelectOrderBy o = (SelectOrderBy) orderList.get(i);
+            SelectOrderBy o = orderList.get(i);
             int idx;
             boolean reverse = false;
             Expression expr = o.columnIndexExpr;

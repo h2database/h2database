@@ -54,14 +54,14 @@ public class BtreeNode extends BtreePage {
         pageData.add(pivot);
     }
 
-    BtreeNode(BtreeIndex index, IntArray pageChildren, ObjectArray pageData) {
+    BtreeNode(BtreeIndex index, IntArray pageChildren, ObjectArray<SearchRow> pageData) {
         super(index);
         this.pageChildren = pageChildren;
         this.pageData = pageData;
     }
 
     SearchRow getData(int i) throws SQLException {
-        SearchRow r = (SearchRow) pageData.get(i);
+        SearchRow r = pageData.get(i);
         if (r == null) {
             int p = pageChildren.get(i + 1);
             Session sysSession = index.getDatabase().getSystemSession();
@@ -97,7 +97,8 @@ public class BtreeNode extends BtreePage {
         }
         int at = l;
         if (pageChildren.size() == 0) {
-            BtreeLeaf newLeaf = new BtreeLeaf(index, ObjectArray.newInstance());
+            ObjectArray<SearchRow> empty = ObjectArray.newInstance();
+            BtreeLeaf newLeaf = new BtreeLeaf(index, empty);
             index.addPage(session, newLeaf);
             pageChildren.add(newLeaf.getPos());
         }
@@ -187,7 +188,7 @@ public class BtreeNode extends BtreePage {
     }
 
     BtreePage split(Session session, int splitPoint) throws SQLException {
-        ObjectArray data = ObjectArray.newInstance();
+        ObjectArray<SearchRow> data = ObjectArray.newInstance();
         IntArray children = new IntArray();
         splitPoint++;
         int max = pageData.size();

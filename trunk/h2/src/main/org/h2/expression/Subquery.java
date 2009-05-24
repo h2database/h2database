@@ -95,7 +95,7 @@ public class Subquery extends Expression {
     }
 
     private Expression getExpression() {
-        return (Expression) query.getExpressions().get(0);
+        return query.getExpressions().get(0);
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {

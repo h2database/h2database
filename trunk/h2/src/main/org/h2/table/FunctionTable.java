@@ -124,7 +124,7 @@ public class FunctionTable extends Table {
         return new FunctionIndex(this, IndexColumn.wrap(columns));
     }
 
-    public ObjectArray getIndexes() {
+    public ObjectArray<Index> getIndexes() {
         return null;
     }
 

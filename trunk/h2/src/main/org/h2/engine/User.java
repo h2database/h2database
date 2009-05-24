@@ -187,18 +187,18 @@ public class User extends RightOwner {
         return DbObject.USER;
     }
 
-    public ObjectArray getChildren() {
-        ObjectArray all = database.getAllRights();
-        ObjectArray children = ObjectArray.newInstance();
-        for (int i = 0; i < all.size(); i++) {
-            Right right = (Right) all.get(i);
+    public ObjectArray<DbObject> getChildren() {
+        ObjectArray<DbObject> children = ObjectArray.newInstance();
+        ObjectArray<Right> rights = database.getAllRights();
+        for (int i = 0; i < rights.size(); i++) {
+            Right right = rights.get(i);
             if (right.getGrantee() == this) {
                 children.add(right);
             }
         }
-        all = database.getAllSchemas();
-        for (int i = 0; i < all.size(); i++) {
-            Schema schema = (Schema) all.get(i);
+        ObjectArray<Schema> schemas = database.getAllSchemas();
+        for (int i = 0; i < schemas.size(); i++) {
+            Schema schema = schemas.get(i);
             if (schema.getOwner() == this) {
                 children.add(schema);
             }
@@ -207,9 +207,9 @@ public class User extends RightOwner {
     }
 
     public void removeChildrenAndResources(Session session) throws SQLException {
-        ObjectArray rights = database.getAllRights();
+        ObjectArray<Right> rights = database.getAllRights();
         for (int i = 0; i < rights.size(); i++) {
-            Right right = (Right) rights.get(i);
+            Right right = rights.get(i);
             if (right.getGrantee() == this) {
                 database.removeDatabaseObject(session, right);
             }
@@ -232,9 +232,9 @@ public class User extends RightOwner {
      * @throws SQLException if this user owns a schema
      */
     public void checkOwnsNoSchemas() throws SQLException {
-        ObjectArray schemas = database.getAllSchemas();
+        ObjectArray<Schema> schemas = database.getAllSchemas();
         for (int i = 0; i < schemas.size(); i++) {
-            Schema s = (Schema) schemas.get(i);
+            Schema s = schemas.get(i);
             if (this == s.getOwner()) {
                 throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, new String[]{ getName(), s.getName() });
             }

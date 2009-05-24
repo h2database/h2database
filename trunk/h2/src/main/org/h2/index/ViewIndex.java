@@ -31,7 +31,7 @@ public class ViewIndex extends BaseIndex {
 
     private final TableView view;
     private final String querySQL;
-    private final ObjectArray originalParameters;
+    private final ObjectArray<Parameter> originalParameters;
     private final SmallLRUCache<IntArray, CostElement> costCache = SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
     private boolean recursive;
     private int[] masks;
@@ -39,7 +39,7 @@ public class ViewIndex extends BaseIndex {
     private Query query;
     private Session session;
 
-    public ViewIndex(TableView view, String querySQL, ObjectArray originalParameters, boolean recursive) {
+    public ViewIndex(TableView view, String querySQL, ObjectArray<Parameter> originalParameters, boolean recursive) {
         initBaseIndex(view, 0, null, null, IndexType.createNonUnique(false));
         this.view = view;
         this.querySQL = querySQL;
@@ -155,13 +155,13 @@ public class ViewIndex extends BaseIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        ObjectArray paramList = query.getParameters();
+        ObjectArray<Parameter> paramList = query.getParameters();
         for (int i = 0; originalParameters != null && i < originalParameters.size(); i++) {
-            Parameter orig = (Parameter) originalParameters.get(i);
+            Parameter orig = originalParameters.get(i);
             int idx = orig.getIndex();
             // the parameter may have been optimized away
             if (idx < paramList.size()) {
-                Parameter param = (Parameter) paramList.get(idx);
+                Parameter param = paramList.get(idx);
                 Value value = orig.getValue(session);
                 param.setValue(value);
             }
@@ -180,7 +180,7 @@ public class ViewIndex extends BaseIndex {
             if (first != null) {
                 Value v = first.getValue(i);
                 if (v != null) {
-                    Parameter param = (Parameter) paramList.get(idx++);
+                    Parameter param = paramList.get(idx++);
                     param.setValue(v);
                 }
             }
@@ -188,7 +188,7 @@ public class ViewIndex extends BaseIndex {
             if (last != null && masks[i] != IndexCondition.EQUALITY) {
                 Value v = last.getValue(i);
                 if (v != null) {
-                    Parameter param = (Parameter) paramList.get(idx++);
+                    Parameter param = paramList.get(idx++);
                     param.setValue(v);
                 }
             }

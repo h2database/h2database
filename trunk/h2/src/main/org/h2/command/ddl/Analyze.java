@@ -7,11 +7,9 @@
 package org.h2.command.ddl;
 
 import java.sql.SQLException;
-
 import org.h2.command.Prepared;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
-import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.result.LocalResult;
 import org.h2.table.Column;
@@ -35,10 +33,10 @@ public class Analyze extends DefineCommand {
         session.commit(true);
         Database db = session.getDatabase();
         session.getUser().checkAdmin();
-        ObjectArray tables = db.getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
+        ObjectArray<Table> tables = db.getAllTablesAndViews();
         // TODO do we need to lock the table?
         for (int i = 0; i < tables.size(); i++) {
-            Table table = (Table) tables.get(i);
+            Table table = tables.get(i);
             if (!(table instanceof TableData)) {
                 continue;
             }

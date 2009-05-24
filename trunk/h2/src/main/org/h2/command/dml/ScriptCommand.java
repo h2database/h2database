@@ -39,6 +39,7 @@ import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.schema.Constant;
 import org.h2.schema.Schema;
+import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.table.Column;
@@ -125,9 +126,9 @@ public class ScriptCommand extends ScriptBase {
             }
             Database db = session.getDatabase();
             if (settings) {
-                ObjectArray settingList = db.getAllSettings();
+                ObjectArray<Setting> settingList = db.getAllSettings();
                 for (int i = 0; i < settingList.size(); i++) {
-                    Setting setting = (Setting) settingList.get(i);
+                    Setting setting = settingList.get(i);
                     if (setting.getName().equals(SetTypes.getTypeName(SetTypes.CREATE_BUILD))) {
                         // don't add CREATE_BUILD to the script
                         // (it is only set when creating the database)
@@ -139,51 +140,51 @@ public class ScriptCommand extends ScriptBase {
             if (out != null) {
                 add("", true);
             }
-            ObjectArray users = db.getAllUsers();
+            ObjectArray<User> users = db.getAllUsers();
             for (int i = 0; i < users.size(); i++) {
-                User user = (User) users.get(i);
+                User user = users.get(i);
                 add(user.getCreateSQL(passwords, true), false);
             }
-            ObjectArray roles = db.getAllRoles();
+            ObjectArray<Role> roles = db.getAllRoles();
             for (int i = 0; i < roles.size(); i++) {
-                Role role = (Role) roles.get(i);
+                Role role = roles.get(i);
                 add(role.getCreateSQL(true), false);
             }
-            ObjectArray schemas = db.getAllSchemas();
+            ObjectArray<Schema> schemas = db.getAllSchemas();
             for (int i = 0; i < schemas.size(); i++) {
-                Schema schema = (Schema) schemas.get(i);
+                Schema schema = schemas.get(i);
                 add(schema.getCreateSQL(), false);
             }
-            ObjectArray datatypes = db.getAllUserDataTypes();
+            ObjectArray<UserDataType> datatypes = db.getAllUserDataTypes();
             for (int i = 0; i < datatypes.size(); i++) {
-                UserDataType datatype = (UserDataType) datatypes.get(i);
+                UserDataType datatype = datatypes.get(i);
                 if (drop) {
                     add(datatype.getDropSQL(), false);
                 }
                 add(datatype.getCreateSQL(), false);
             }
-            ObjectArray constants = db.getAllSchemaObjects(DbObject.CONSTANT);
+            ObjectArray<SchemaObject> constants = db.getAllSchemaObjects(DbObject.CONSTANT);
             for (int i = 0; i < constants.size(); i++) {
                 Constant constant = (Constant) constants.get(i);
                 add(constant.getCreateSQL(), false);
             }
-            ObjectArray functionAliases = db.getAllFunctionAliases();
+            ObjectArray<FunctionAlias> functionAliases = db.getAllFunctionAliases();
             for (int i = 0; i < functionAliases.size(); i++) {
-                FunctionAlias alias = (FunctionAlias) functionAliases.get(i);
+                FunctionAlias alias = functionAliases.get(i);
                 if (drop) {
                     add(alias.getDropSQL(), false);
                 }
                 add(alias.getCreateSQL(), false);
             }
-            ObjectArray aggregates = db.getAllAggregates();
+            ObjectArray<UserAggregate> aggregates = db.getAllAggregates();
             for (int i = 0; i < aggregates.size(); i++) {
-                UserAggregate agg = (UserAggregate) aggregates.get(i);
+                UserAggregate agg = aggregates.get(i);
                 if (drop) {
                     add(agg.getDropSQL(), false);
                 }
                 add(agg.getCreateSQL(), false);
             }
-            ObjectArray tables = db.getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
+            ObjectArray<Table> tables = db.getAllTablesAndViews();
             // sort by id, so that views are after tables and views on views
             // after the base views
             tables.sort(new Comparator<Table>() {
@@ -192,7 +193,7 @@ public class ScriptCommand extends ScriptBase {
                 }
             });
             for (int i = 0; i < tables.size(); i++) {
-                Table table = (Table) tables.get(i);
+                Table table = tables.get(i);
                 table.lock(session, false, false);
                 String sql = table.getCreateSQL();
                 if (sql == null) {
@@ -203,7 +204,7 @@ public class ScriptCommand extends ScriptBase {
                     add(table.getDropSQL(), false);
                 }
             }
-            ObjectArray sequences = db.getAllSchemaObjects(DbObject.SEQUENCE);
+            ObjectArray<SchemaObject> sequences = db.getAllSchemaObjects(DbObject.SEQUENCE);
             for (int i = 0; i < sequences.size(); i++) {
                 Sequence sequence = (Sequence) sequences.get(i);
                 if (drop && !sequence.getBelongsToTable()) {
@@ -212,7 +213,7 @@ public class ScriptCommand extends ScriptBase {
                 add(sequence.getCreateSQL(), false);
             }
             for (int i = 0; i < tables.size(); i++) {
-                Table table = (Table) tables.get(i);
+                Table table = tables.get(i);
                 table.lock(session, false, false);
                 String sql = table.getCreateSQL();
                 if (sql == null) {
@@ -287,9 +288,9 @@ public class ScriptCommand extends ScriptBase {
                         }
                     }
                 }
-                ObjectArray indexes = table.getIndexes();
+                ObjectArray<Index> indexes = table.getIndexes();
                 for (int j = 0; indexes != null && j < indexes.size(); j++) {
-                    Index index = (Index) indexes.get(j);
+                    Index index = indexes.get(j);
                     if (!index.getIndexType().getBelongsToConstraint()) {
                         add(index.getCreateSQL(), false);
                     }
@@ -302,29 +303,29 @@ public class ScriptCommand extends ScriptBase {
                 add("DROP ALIAS IF EXISTS SYSTEM_COMBINE_BLOB", true);
                 tempLobTableCreated = false;
             }
-            ObjectArray constraints = db.getAllSchemaObjects(DbObject.CONSTRAINT);
-            constraints.sort(new Comparator<Constraint>() {
-                public int compare(Constraint c1, Constraint c2) {
-                    return c1.compareTo(c2);
+            ObjectArray<SchemaObject> constraints = db.getAllSchemaObjects(DbObject.CONSTRAINT);
+            constraints.sort(new Comparator<SchemaObject>() {
+                public int compare(SchemaObject c1, SchemaObject c2) {
+                    return ((Constraint) c1).compareTo((Constraint) c2);
                 }
             });
             for (int i = 0; i < constraints.size(); i++) {
                 Constraint constraint = (Constraint) constraints.get(i);
                 add(constraint.getCreateSQLWithoutIndexes(), false);
             }
-            ObjectArray triggers = db.getAllSchemaObjects(DbObject.TRIGGER);
+            ObjectArray<SchemaObject> triggers = db.getAllSchemaObjects(DbObject.TRIGGER);
             for (int i = 0; i < triggers.size(); i++) {
                 TriggerObject trigger = (TriggerObject) triggers.get(i);
                 add(trigger.getCreateSQL(), false);
             }
-            ObjectArray rights = db.getAllRights();
+            ObjectArray<Right> rights = db.getAllRights();
             for (int i = 0; i < rights.size(); i++) {
-                Right right = (Right) rights.get(i);
+                Right right = rights.get(i);
                 add(right.getCreateSQL(), false);
             }
-            ObjectArray comments = db.getAllComments();
+            ObjectArray<Comment> comments = db.getAllComments();
             for (int i = 0; i < comments.size(); i++) {
-                Comment comment = (Comment) comments.get(i);
+                Comment comment = comments.get(i);
                 add(comment.getCreateSQL(), false);
             }
             if (out != null) {

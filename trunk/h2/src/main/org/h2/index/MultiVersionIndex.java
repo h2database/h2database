@@ -8,6 +8,7 @@ package org.h2.index;
 
 import java.sql.SQLException;
 import org.h2.engine.Database;
+import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
@@ -260,7 +261,7 @@ public class MultiVersionIndex implements Index {
         base.checkRename();
     }
 
-    public ObjectArray getChildren() {
+    public ObjectArray<DbObject> getChildren() {
         return base.getChildren();
     }
 

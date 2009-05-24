@@ -104,13 +104,12 @@ public class PageDataLeafOverflow extends Record {
         if (type == (Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST)) {
             target.write(data.getBytes(), START_LAST, size);
             return 0;
-        } else {
-            target.write(data.getBytes(), START_MORE, size);
-            return next;
         }
+        target.write(data.getBytes(), START_MORE, size);
+        return next;
     }
 
-    public int getByteCount(DataPage dummy) throws SQLException {
+    public int getByteCount(DataPage dummy) {
         return leaf.getByteCount(dummy);
     }
 

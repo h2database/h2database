@@ -60,7 +60,7 @@ public class Session extends SessionWithState {
     private ConnectionInfo connectionInfo;
     private User user;
     private int id;
-    private ObjectArray locks = ObjectArray.newInstance();
+    private ObjectArray<Table> locks = ObjectArray.newInstance();
     private UndoLog undoLog;
     private boolean autoCommit = true;
     private Random random;
@@ -192,7 +192,7 @@ public class Session extends SessionWithState {
         return localTempTables.get(name);
     }
 
-    public ObjectArray getLocalTempTables() {
+    public ObjectArray<Table> getLocalTempTables() {
         if (localTempTables == null) {
             return ObjectArray.newInstance();
         }
@@ -614,7 +614,7 @@ public class Session extends SessionWithState {
             return;
         }
         for (int i = 0; i < locks.size(); i++) {
-            Table t = (Table) locks.get(i);
+            Table t = locks.get(i);
             if (!t.isLockedExclusively()) {
                 synchronized (database) {
                     t.unlock(this);
@@ -634,7 +634,7 @@ public class Session extends SessionWithState {
         if (locks.size() > 0) {
             synchronized (database) {
                 for (int i = 0; i < locks.size(); i++) {
-                    Table t = (Table) locks.get(i);
+                    Table t = locks.get(i);
                     t.unlock(this);
                 }
                 locks.clear();
@@ -649,9 +649,9 @@ public class Session extends SessionWithState {
 
     private void cleanTempTables(boolean closeSession) throws SQLException {
         if (localTempTables != null && localTempTables.size() > 0) {
-            ObjectArray list = ObjectArray.newInstance(localTempTables.values());
+            ObjectArray<Table> list = ObjectArray.newInstance(localTempTables.values());
             for (int i = 0; i < list.size(); i++) {
-                Table table = (Table) list.get(i);
+                Table table = list.get(i);
                 if (closeSession || table.getOnCommitDrop()) {
                     modificationId++;
                     table.setModified();
@@ -781,11 +781,11 @@ public class Session extends SessionWithState {
                 rollback();
             }
         } else {
-            ObjectArray list = logSystem.getInDoubtTransactions();
+            ObjectArray<InDoubtTransaction> list = logSystem.getInDoubtTransactions();
             int state = commit ? InDoubtTransaction.COMMIT : InDoubtTransaction.ROLLBACK;
             boolean found = false;
             for (int i = 0; list != null && i < list.size(); i++) {
-                InDoubtTransaction p = (InDoubtTransaction) list.get(i);
+                InDoubtTransaction p = list.get(i);
                 if (p.getTransaction().equals(transactionName)) {
                     p.setState(state);
                     found = true;

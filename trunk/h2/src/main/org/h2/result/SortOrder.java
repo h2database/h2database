@@ -156,41 +156,41 @@ public class SortOrder {
      *
      * @param rows the list of rows
      */
-    public void sort(ObjectArray rows) throws SQLException {
+    public void sort(ObjectArray<Value[]> rows) throws SQLException {
         sort(rows, 0, rows.size() - 1);
     }
 
-    private void swap(ObjectArray rows, int a, int b) {
-        Object t = rows.get(a);
+    private void swap(ObjectArray<Value[]> rows, int a, int b) {
+        Value[] t = rows.get(a);
         rows.set(a, rows.get(b));
         rows.set(b, t);
     }
 
-    private void sort(ObjectArray rows, int l, int r) throws SQLException {
+    private void sort(ObjectArray<Value[]> rows, int l, int r) throws SQLException {
         // quicksort
         int i, j;
         while (r - l > 10) {
             // randomized pivot to avoid worst case
             i = RandomUtils.nextInt(r - l - 4) + l + 2;
-            if (compare((Value[]) rows.get(l), (Value[]) rows.get(r)) > 0) {
+            if (compare(rows.get(l), rows.get(r)) > 0) {
                 swap(rows, l, r);
             }
-            if (compare((Value[]) rows.get(i), (Value[]) rows.get(l)) < 0) {
+            if (compare(rows.get(i), rows.get(l)) < 0) {
                 swap(rows, l, i);
-            } else if (compare((Value[]) rows.get(i), (Value[]) rows.get(r)) > 0) {
+            } else if (compare(rows.get(i), rows.get(r)) > 0) {
                 swap(rows, i, r);
             }
             j = r - 1;
             swap(rows, i, j);
-            Value[] p = (Value[]) rows.get(j);
+            Value[] p = rows.get(j);
             i = l;
             while (true) {
                 do {
                     ++i;
-                } while (compare((Value[]) rows.get(i), p) < 0);
+                } while (compare(rows.get(i), p) < 0);
                 do {
                     --j;
-                } while (compare((Value[]) rows.get(j), p) > 0);
+                } while (compare(rows.get(j), p) > 0);
                 if (i >= j) {
                     break;
                 }
@@ -201,8 +201,8 @@ public class SortOrder {
             l = i + 1;
         }
         for (i = l + 1; i <= r; i++) {
-            Value[] t = (Value[]) rows.get(i);
-            for (j = i - 1; j >= l && (compare((Value[]) rows.get(j), t) > 0); j--) {
+            Value[] t = rows.get(i);
+            for (j = i - 1; j >= l && (compare(rows.get(j), t) > 0); j--) {
                 rows.set(j + 1, rows.get(j));
             }
             rows.set(j + 1, t);

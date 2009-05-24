@@ -69,7 +69,7 @@ public class Recover extends Tool implements DataHandler {
     private int valueId;
     private boolean trace;
     private boolean lobFilesInDirectories;
-    private ObjectArray schema;
+    private ObjectArray<MetaRecord> schema;
     private HashSet<Integer> objectIdSet;
     private HashMap<Integer, String> tableMap;
     private boolean remove;
@@ -1206,7 +1206,7 @@ public class Recover extends Tool implements DataHandler {
     private void writeSchema(PrintWriter writer) {
         MetaRecord.sort(schema);
         for (int i = 0; i < schema.size(); i++) {
-            MetaRecord m = (MetaRecord) schema.get(i);
+            MetaRecord m = schema.get(i);
             writer.println(m.getSQL() + ";");
         }
         for (Map.Entry<Integer, String> entry : tableMap.entrySet()) {

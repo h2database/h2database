@@ -88,10 +88,10 @@ public abstract class Table extends SchemaObjectBase {
     private final HashMap<String, Column> columnMap = New.hashMap();
     private boolean persistIndexes;
     private boolean persistData;
-    private ObjectArray triggers;
-    private ObjectArray constraints;
-    private ObjectArray sequences;
-    private ObjectArray views;
+    private ObjectArray<TriggerObject> triggers;
+    private ObjectArray<Constraint> constraints;
+    private ObjectArray<Sequence> sequences;
+    private ObjectArray<TableView> views;
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
     private Row nullRow;
@@ -105,7 +105,7 @@ public abstract class Table extends SchemaObjectBase {
     public void rename(String newName) throws SQLException {
         super.rename(newName);
         for (int i = 0; constraints != null && i < constraints.size(); i++) {
-            Constraint constraint = (Constraint) constraints.get(i);
+            Constraint constraint = constraints.get(i);
             constraint.rebuild();
         }
     }
@@ -208,7 +208,7 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @return the list of indexes
      */
-    public abstract ObjectArray getIndexes();
+    public abstract ObjectArray<Index> getIndexes();
 
     /**
      * Check if this table is locked exclusively.
@@ -265,7 +265,7 @@ public abstract class Table extends SchemaObjectBase {
     public void addDependencies(HashSet<DbObject> dependencies) {
         if (sequences != null) {
             for (int i = 0; i < sequences.size(); i++) {
-                dependencies.add((Sequence) sequences.get(i));
+                dependencies.add(sequences.get(i));
             }
         }
         ExpressionVisitor visitor = ExpressionVisitor.get(ExpressionVisitor.GET_DEPENDENCIES);
@@ -275,9 +275,9 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    public ObjectArray getChildren() {
-        ObjectArray children = ObjectArray.newInstance();
-        ObjectArray indexes = getIndexes();
+    public ObjectArray<DbObject> getChildren() {
+        ObjectArray<DbObject> children = ObjectArray.newInstance();
+        ObjectArray<Index> indexes = getIndexes();
         if (indexes != null) {
             children.addAll(indexes);
         }
@@ -293,9 +293,9 @@ public abstract class Table extends SchemaObjectBase {
         if (views != null) {
             children.addAll(views);
         }
-        ObjectArray rights = database.getAllRights();
+        ObjectArray<Right> rights = database.getAllRights();
         for (int i = 0; i < rights.size(); i++) {
-            Right right = (Right) rights.get(i);
+            Right right = rights.get(i);
             if (right.getGrantedTable() == this) {
                 children.add(right);
             }
@@ -387,23 +387,23 @@ public abstract class Table extends SchemaObjectBase {
 
     public void removeChildrenAndResources(Session session) throws SQLException {
         while (views != null && views.size() > 0) {
-            TableView view = (TableView) views.get(0);
+            TableView view = views.get(0);
             views.remove(0);
             database.removeSchemaObject(session, view);
         }
         while (triggers != null && triggers.size() > 0) {
-            TriggerObject trigger = (TriggerObject) triggers.get(0);
+            TriggerObject trigger = triggers.get(0);
             triggers.remove(0);
             database.removeSchemaObject(session, trigger);
         }
         while (constraints != null && constraints.size() > 0) {
-            Constraint constraint = (Constraint) constraints.get(0);
+            Constraint constraint = constraints.get(0);
             constraints.remove(0);
             database.removeSchemaObject(session, constraint);
         }
-        ObjectArray rights = database.getAllRights();
+        ObjectArray<Right> rights = database.getAllRights();
         for (int i = 0; i < rights.size(); i++) {
-            Right right = (Right) rights.get(i);
+            Right right = rights.get(i);
             if (right.getGrantedTable() == this) {
                 database.removeDatabaseObject(session, right);
             }
@@ -412,7 +412,7 @@ public abstract class Table extends SchemaObjectBase {
         // must delete sequences later (in case there is a power failure
         // before removing the table object)
         while (sequences != null && sequences.size() > 0) {
-            Sequence sequence = (Sequence) sequences.get(0);
+            Sequence sequence = sequences.get(0);
             sequences.remove(0);
             if (!getTemporary()) {
                 // only remove if no other table depends on this sequence
@@ -433,14 +433,14 @@ public abstract class Table extends SchemaObjectBase {
      */
     public void checkColumnIsNotReferenced(Column col) throws SQLException {
         for (int i = 0; constraints != null && i < constraints.size(); i++) {
-            Constraint constraint = (Constraint) constraints.get(i);
+            Constraint constraint = constraints.get(i);
             if (constraint.containsColumn(col)) {
                 throw Message.getSQLException(ErrorCode.COLUMN_MAY_BE_REFERENCED_1, constraint.getSQL());
             }
         }
-        ObjectArray indexes = getIndexes();
+        ObjectArray<Index> indexes = getIndexes();
         for (int i = 0; indexes != null && i < indexes.size(); i++) {
-            Index index = (Index) indexes.get(i);
+            Index index = indexes.get(i);
             if (index.getColumns().length == 1) {
                 continue;
             }
@@ -526,9 +526,9 @@ public abstract class Table extends SchemaObjectBase {
         PlanItem item = new PlanItem();
         item.setIndex(getScanIndex(session));
         item.cost = item.getIndex().getCost(session, null);
-        ObjectArray indexes = getIndexes();
+        ObjectArray<Index> indexes = getIndexes();
         for (int i = 1; indexes != null && masks != null && i < indexes.size(); i++) {
-            Index index = (Index) indexes.get(i);
+            Index index = indexes.get(i);
             double cost = index.getCost(session, masks);
             if (cost < item.cost) {
                 item.cost = cost;
@@ -544,9 +544,9 @@ public abstract class Table extends SchemaObjectBase {
      * @return the primary key index or null
      */
     public Index findPrimaryKey() {
-        ObjectArray indexes = getIndexes();
+        ObjectArray<Index> indexes = getIndexes();
         for (int i = 0; indexes != null && i < indexes.size(); i++) {
-            Index idx = (Index) indexes.get(i);
+            Index idx = indexes.get(i);
             if (idx.getIndexType().getPrimaryKey()) {
                 return idx;
             }
@@ -587,7 +587,7 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    private void remove(ObjectArray list, DbObject obj) {
+    private void remove(ObjectArray< ? extends DbObject> list, DbObject obj) {
         if (list != null) {
             int i = list.indexOf(obj);
             if (i >= 0) {
@@ -602,7 +602,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param index the index to remove
      */
     public void removeIndex(Index index) {
-        ObjectArray indexes = getIndexes();
+        ObjectArray<Index> indexes = getIndexes();
         if (indexes != null) {
             remove(indexes, index);
             if (index.getIndexType().getPrimaryKey()) {
@@ -671,7 +671,7 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    public ObjectArray getConstraints() {
+    public ObjectArray<Constraint> getConstraints() {
         return constraints;
     }
 
@@ -693,7 +693,7 @@ public abstract class Table extends SchemaObjectBase {
         triggers = add(triggers, trigger);
     }
 
-    private ObjectArray add(ObjectArray list, DbObject obj) {
+    private <T> ObjectArray<T> add(ObjectArray<T> list, T obj) {
         if (list == null) {
             list = ObjectArray.newInstance();
         }
@@ -725,7 +725,7 @@ public abstract class Table extends SchemaObjectBase {
     private void fire(Session session, boolean beforeAction) throws SQLException {
         if (triggers != null) {
             for (int i = 0; i < triggers.size(); i++) {
-                TriggerObject trigger = (TriggerObject) triggers.get(i);
+                TriggerObject trigger = triggers.get(i);
                 trigger.fire(session, beforeAction);
             }
         }
@@ -756,7 +756,7 @@ public abstract class Table extends SchemaObjectBase {
     private void fireConstraints(Session session, Row oldRow, Row newRow, boolean before) throws SQLException {
         if (constraints != null) {
             for (int i = 0; i < constraints.size(); i++) {
-                Constraint constraint = (Constraint) constraints.get(i);
+                Constraint constraint = constraints.get(i);
                 if (constraint.isBefore() == before) {
                     constraint.checkRow(session, this, oldRow, newRow);
                 }
@@ -779,7 +779,7 @@ public abstract class Table extends SchemaObjectBase {
     private void fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction) throws SQLException {
         if (triggers != null) {
             for (int i = 0; i < triggers.size(); i++) {
-                TriggerObject trigger = (TriggerObject) triggers.get(i);
+                TriggerObject trigger = triggers.get(i);
                 trigger.fireRow(session, oldRow, newRow, beforeAction);
             }
         }
@@ -809,7 +809,7 @@ public abstract class Table extends SchemaObjectBase {
             throws SQLException {
         if (enabled && checkExisting) {
             for (int i = 0; constraints != null && i < constraints.size(); i++) {
-                Constraint c = (Constraint) constraints.get(i);
+                Constraint c = constraints.get(i);
                 c.checkExistingData(session);
             }
         }
@@ -829,9 +829,9 @@ public abstract class Table extends SchemaObjectBase {
      * @return the index or null
      */
     public Index getIndexForColumn(Column column, boolean first) {
-        ObjectArray indexes = getIndexes();
+        ObjectArray<Index> indexes = getIndexes();
         for (int i = 1; indexes != null && i < indexes.size(); i++) {
-            Index index = (Index) indexes.get(i);
+            Index index = indexes.get(i);
             if (index.canGetFirstOrLast()) {
                 int idx = index.getColumnIndex(column);
                 if (idx == 0) {
@@ -872,7 +872,7 @@ public abstract class Table extends SchemaObjectBase {
     public void removeIndexOrTransferOwnership(Session session, Index index) throws SQLException {
         boolean stillNeeded = false;
         for (int i = 0; constraints != null && i < constraints.size(); i++) {
-            Constraint cons = (Constraint) constraints.get(i);
+            Constraint cons = constraints.get(i);
             if (cons.usesIndex(index)) {
                 cons.setIndexOwner(index);
                 database.update(session, cons);
@@ -900,7 +900,7 @@ public abstract class Table extends SchemaObjectBase {
      * @return an object array with the sessions involved in the deadlock, or
      *         null
      */
-    public ObjectArray checkDeadlock(Session session, Session clash, Set<Session> visited) {
+    public ObjectArray<Session> checkDeadlock(Session session, Session clash, Set<Session> visited) {
         return null;
     }
 

@@ -247,7 +247,7 @@ class PageBtreeNode extends PageBtree {
         }
     }
 
-    public int getByteCount(DataPage dummy) throws SQLException {
+    public int getByteCount(DataPage dummy) {
         return index.getPageStore().getPageSize();
     }
 
@@ -281,7 +281,7 @@ class PageBtreeNode extends PageBtree {
         written = true;
     }
 
-    private void removeChild(int i) throws SQLException {
+    private void removeChild(int i) {
         entryCount--;
         written = false;
         if (entryCount < 0) {

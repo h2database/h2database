@@ -27,13 +27,13 @@ import org.h2.value.ValueLob;
 public class RowList {
 
     private final Session session;
-    private final ObjectArray list = ObjectArray.newInstance();
+    private final ObjectArray<Row> list = ObjectArray.newInstance();
     private int size;
     private int index, listIndex;
     private FileStore file;
     private DataPage rowBuff;
     private Cache cache;
-    private ObjectArray lobs;
+    private ObjectArray<ValueLob> lobs;
     private int memory, maxMemory;
     private boolean written;
     private boolean readUncached;
@@ -97,7 +97,7 @@ public class RowList {
                 flushBuffer(buff);
                 initBuffer(buff);
             }
-            Row r = (Row) list.get(i);
+            Row r = list.get(i);
             writeRow(buff, r);
         }
         flushBuffer(buff);
@@ -209,7 +209,7 @@ public class RowList {
     public Row next() throws SQLException {
         Row r;
         if (file == null) {
-            r = (Row) list.get(index++);
+            r = list.get(index++);
         } else {
             if (listIndex >= list.size()) {
                 list.clear();
@@ -233,7 +233,7 @@ public class RowList {
                 }
             }
             index++;
-            r = (Row) list.get(listIndex++);
+            r = list.get(listIndex++);
         }
         return r;
     }

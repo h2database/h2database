@@ -39,7 +39,7 @@ public abstract class BtreePage extends Record {
     /**
      * The list of data pages.
      */
-    protected ObjectArray pageData;
+    protected ObjectArray<SearchRow> pageData;
 
     /**
      * If this is the root page of the index.
@@ -141,7 +141,7 @@ public abstract class BtreePage extends Record {
      * @throws SQLException
      */
     SearchRow getData(int i) throws SQLException {
-        return (SearchRow) pageData.get(i);
+        return pageData.get(i);
     }
 
     public int getByteCount(DataPage dummy) {

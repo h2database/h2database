@@ -199,9 +199,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
     }
 
     private void checkNoViews() throws SQLException {
-        ObjectArray children = table.getChildren();
+        ObjectArray<DbObject> children = table.getChildren();
         for (int i = 0; i < children.size(); i++) {
-            DbObject child = (DbObject) children.get(i);
+            DbObject child = children.get(i);
             if (child.getType() == DbObject.TABLE_OR_VIEW) {
                 throw Message.getSQLException(ErrorCode.OPERATION_NOT_SUPPORTED_WITH_VIEWS_2, new String[] {
                         table.getName(), child.getName() });
@@ -213,7 +213,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         Database db = session.getDatabase();
         String tempName = db.getTempTableName(session.getId());
         Column[] columns = table.getColumns();
-        ObjectArray newColumns = ObjectArray.newInstance();
+        ObjectArray<Column> newColumns = ObjectArray.newInstance();
         for (int i = 0; i < columns.length; i++) {
             Column col = columns[i].getClone();
             newColumns.add(col);
@@ -246,7 +246,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         buff.append(newTable.getCreateSQL());
         StringBuffer columnList = new StringBuffer();
         for (int i = 0; i < newColumns.size(); i++) {
-            Column nc = (Column) newColumns.get(i);
+            Column nc = newColumns.get(i);
             if (columnList.length() > 0) {
                 columnList.append(", ");
             }
@@ -269,10 +269,10 @@ public class AlterTableAlterColumn extends SchemaCommand {
         String newTableSQL = buff.toString();
         execute(newTableSQL, true);
         newTable = (TableData) newTable.getSchema().getTableOrView(session, newTable.getName());
-        ObjectArray children = table.getChildren();
-        ObjectArray triggers = ObjectArray.newInstance();
+        ObjectArray<DbObject> children = table.getChildren();
+        ObjectArray<String> triggers = ObjectArray.newInstance();
         for (int i = 0; i < children.size(); i++) {
-            DbObject child = (DbObject) children.get(i);
+            DbObject child = children.get(i);
             if (child instanceof Sequence) {
                 continue;
             } else if (child instanceof Index) {
@@ -319,14 +319,14 @@ public class AlterTableAlterColumn extends SchemaCommand {
             }
         }
         for (int i = 0; i < triggers.size(); i++) {
-            String sql = (String) triggers.get(i);
+            String sql = triggers.get(i);
             execute(sql, true);
         }
         execute("DROP TABLE " + table.getSQL(), true);
         db.renameSchemaObject(session, newTable, tableName);
         children = newTable.getChildren();
         for (int i = 0; i < children.size(); i++) {
-            DbObject child = (DbObject) children.get(i);
+            DbObject child = children.get(i);
             if (child instanceof Sequence) {
                 continue;
             }
@@ -352,9 +352,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
 
     private void dropSingleColumnIndexes() throws SQLException {
         Database db = session.getDatabase();
-        ObjectArray indexes = table.getIndexes();
+        ObjectArray<Index> indexes = table.getIndexes();
         for (int i = 0; i < indexes.size(); i++) {
-            Index index = (Index) indexes.get(i);
+            Index index = indexes.get(i);
             if (index.getCreateSQL() == null) {
                 continue;
             }
@@ -378,9 +378,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
     }
 
     private void checkNullable() throws SQLException {
-        ObjectArray indexes = table.getIndexes();
+        ObjectArray<Index> indexes = table.getIndexes();
         for (int i = 0; i < indexes.size(); i++) {
-            Index index = (Index) indexes.get(i);
+            Index index = indexes.get(i);
             if (index.getColumnIndex(oldColumn) < 0) {
                 continue;
             }

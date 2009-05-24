@@ -30,7 +30,7 @@ implements ParameterMetaData
 
     private JdbcPreparedStatement prep;
     private int paramCount;
-    private ObjectArray parameters;
+    private ObjectArray< ? extends ParameterInterface> parameters;
 
     JdbcParameterMetaData(Trace trace, JdbcPreparedStatement prep, CommandInterface command, int id) {
         setTrace(trace, TraceObject.PARAMETER_META_DATA, id);
@@ -208,7 +208,7 @@ implements ParameterMetaData
         if (param < 1 || param > paramCount) {
             throw Message.getInvalidValueException("" + param, "param");
         }
-        return (ParameterInterface) parameters.get(param - 1);
+        return parameters.get(param - 1);
     }
 
     private void checkClosed() throws SQLException {

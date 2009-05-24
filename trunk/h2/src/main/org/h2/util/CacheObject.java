@@ -81,7 +81,7 @@ public abstract class CacheObject {
      *
      * @param recordList the list of cache objects
      */
-    public static void sort(ObjectArray recordList) {
+    public static void sort(ObjectArray<CacheObject> recordList) {
         recordList.sort(new CacheComparator());
     }
 

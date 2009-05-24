@@ -66,7 +66,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
 
     private TraceSystem traceSystem;
     private Trace trace;
-    private ObjectArray transferList = ObjectArray.newInstance();
+    private ObjectArray<Transfer> transferList = ObjectArray.newInstance();
     private int nextId;
     private boolean autoCommit = true;
     private CommandInterface switchOffAutoCommit;
@@ -142,7 +142,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             return;
         }
         for (int i = 0; i < transferList.size(); i++) {
-            Transfer transfer = (Transfer) transferList.get(i);
+            Transfer transfer = transferList.get(i);
             try {
                 Transfer trans = transfer.openNewConnection();
                 trans.init();
@@ -187,7 +187,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             // (update set id=1 where id=0, but update set id=2 where id=0 is
             // faster)
             for (int i = 0, count = 0; i < transferList.size(); i++) {
-                Transfer transfer = (Transfer) transferList.get(i);
+                Transfer transfer = transferList.get(i);
                 try {
                     traceOperation("COMMAND_COMMIT", 0);
                     transfer.writeInt(SessionRemote.COMMAND_COMMIT);
@@ -358,7 +358,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             // TODO check if a newer client version can be used
             // not required when sending TCP_DRIVER_VERSION_6
             CommandInterface command = prepareCommand("SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?", 1);
-            ParameterInterface param = (ParameterInterface) command.getParameters().get(0);
+            ParameterInterface param = command.getParameters().get(0);
             param.setValue(ValueString.get("info.BUILD_ID"), false);
             ResultInterface result = command.executeQuery(1, false);
             if (result.next()) {
@@ -377,7 +377,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             sessionId = ByteUtils.convertBytesToString(RandomUtils.getSecureBytes(32));
             synchronized (this) {
                 for (int i = 0; i < transferList.size(); i++) {
-                    Transfer transfer = (Transfer) transferList.get(i);
+                    Transfer transfer = transferList.get(i);
                     try {
                         traceOperation("SESSION_SET_ID", 0);
                         transfer.writeInt(SessionRemote.SESSION_SET_ID);
@@ -471,7 +471,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         if (transferList != null) {
             synchronized (this) {
                 for (int i = 0; i < transferList.size(); i++) {
-                    Transfer transfer = (Transfer) transferList.get(i);
+                    Transfer transfer = transferList.get(i);
                     try {
                         traceOperation("SESSION_CLOSE", 0);
                         transfer.writeInt(SessionRemote.SESSION_CLOSE);

@@ -27,7 +27,7 @@ import org.h2.value.ValueResultSet;
  */
 public class Call extends Prepared {
     private Expression value;
-    private ObjectArray expressions;
+    private ObjectArray<Expression> expressions;
 
     public Call(Session session) {
         super(session);
@@ -64,7 +64,7 @@ public class Call extends Prepared {
             return LocalResult.read(session, rs, maxrows);
         } else if (v.getType() == Value.ARRAY) {
             Value[] list = ((ValueArray) v).getList();
-            ObjectArray expr = ObjectArray.newInstance();
+            ObjectArray<Expression> expr = ObjectArray.newInstance();
             for (int i = 0; i < list.length; i++) {
                 Value e = list[i];
                 Column col = new Column("C" + (i + 1), e.getType(), e.getPrecision(), e.getScale(), e.getDisplaySize());

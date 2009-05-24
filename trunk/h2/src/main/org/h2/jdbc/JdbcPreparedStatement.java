@@ -64,7 +64,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     private final String sql;
     private CommandInterface command;
-    private ObjectArray batchParameters;
+    private ObjectArray<Value[]> batchParameters;
 
     JdbcPreparedStatement(JdbcConnection conn, String sql, int resultSetType, int id,
                 boolean closeWithResultSet) throws SQLException {
@@ -193,9 +193,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         try {
             debugCodeCall("clearParameters");
             checkClosed();
-            ObjectArray parameters = command.getParameters();
+            ObjectArray< ? extends ParameterInterface> parameters = command.getParameters();
             for (int i = 0; i < parameters.size(); i++) {
-                ParameterInterface param = (ParameterInterface) parameters.get(i);
+                ParameterInterface param = parameters.get(i);
                 // can only delete old temp files if they are not in the batch
                 param.setValue(null, batchParameters == null);
             }
@@ -1040,11 +1040,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             boolean error = false;
             SQLException next = null;
             for (int i = 0; i < batchParameters.size(); i++) {
-                ObjectArray parameters = command.getParameters();
-                Value[] set = (Value[]) batchParameters.get(i);
+                ObjectArray< ? extends ParameterInterface> parameters = command.getParameters();
+                Value[] set = batchParameters.get(i);
                 for (int j = 0; j < set.length; j++) {
                     Value value = set[j];
-                    ParameterInterface param = (ParameterInterface) parameters.get(j);
+                    ParameterInterface param = parameters.get(j);
                     param.setValue(value, false);
                 }
                 try {
@@ -1082,10 +1082,10 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         try {
             debugCodeCall("addBatch");
             checkClosedForWrite();
-            ObjectArray parameters = command.getParameters();
+            ObjectArray< ? extends ParameterInterface> parameters = command.getParameters();
             Value[] set = new Value[parameters.size()];
             for (int i = 0; i < parameters.size(); i++) {
-                ParameterInterface param = (ParameterInterface) parameters.get(i);
+                ParameterInterface param = parameters.get(i);
                 Value value = param.getParamValue();
                 set[i] = value;
             }
@@ -1221,11 +1221,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     private void setParameter(int parameterIndex, Value value) throws SQLException {
         checkClosed();
         parameterIndex--;
-        ObjectArray parameters = command.getParameters();
+        ObjectArray< ? extends ParameterInterface> parameters = command.getParameters();
         if (parameterIndex < 0 || parameterIndex >= parameters.size()) {
             throw Message.getInvalidValueException("" + (parameterIndex + 1), "parameterIndex");
         }
-        ParameterInterface param = (ParameterInterface) parameters.get(parameterIndex);
+        ParameterInterface param = parameters.get(parameterIndex);
         // can only delete old temp files if they are not in the batch
         param.setValue(value, batchParameters == null);
     }
@@ -1416,14 +1416,14 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     protected boolean checkClosed(boolean write) throws SQLException {
         if (super.checkClosed(write)) {
             // if the session was re-connected, re-prepare the statement
-            ObjectArray oldParams = command.getParameters();
+            ObjectArray< ? extends ParameterInterface> oldParams = command.getParameters();
             command = conn.prepareCommand(sql, fetchSize);
-            ObjectArray newParams = command.getParameters();
+            ObjectArray< ? extends ParameterInterface> newParams = command.getParameters();
             for (int i = 0; i < oldParams.size(); i++) {
-                ParameterInterface old = (ParameterInterface) oldParams.get(i);
+                ParameterInterface old = oldParams.get(i);
                 Value value = old.getParamValue();
                 if (value != null) {
-                    ParameterInterface n = (ParameterInterface) newParams.get(i);
+                    ParameterInterface n = newParams.get(i);
                     n.setValue(value, false);
                 }
             }

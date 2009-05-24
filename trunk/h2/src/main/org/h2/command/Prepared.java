@@ -44,7 +44,7 @@ public abstract class Prepared {
     /**
      * The list of parameters.
      */
-    protected ObjectArray parameters;
+    protected ObjectArray<Parameter> parameters;
 
     /**
      * If the query should be prepared before each execution. This is set for
@@ -131,7 +131,7 @@ public abstract class Prepared {
      *
      * @param parameters the parameter list
      */
-    public void setParameterList(ObjectArray parameters) {
+    public void setParameterList(ObjectArray<Parameter> parameters) {
         this.parameters = parameters;
     }
 
@@ -140,7 +140,7 @@ public abstract class Prepared {
      *
      * @return the parameter list
      */
-    public ObjectArray getParameters() {
+    public ObjectArray<Parameter> getParameters() {
         return parameters;
     }
 
@@ -151,7 +151,7 @@ public abstract class Prepared {
      */
     protected void checkParameters() throws SQLException {
         for (int i = 0; parameters != null && i < parameters.size(); i++) {
-            Parameter param = (Parameter) parameters.get(i);
+            Parameter param = parameters.get(i);
             param.checkSet();
         }
     }
@@ -320,7 +320,7 @@ public abstract class Prepared {
                     }
                     buff.append(i + 1);
                     buff.append(": ");
-                    Expression e = (Expression) parameters.get(i);
+                    Expression e = parameters.get(i);
                     Value v = e.getValue(session);
                     buff.append(v.getTraceSQL());
                 }

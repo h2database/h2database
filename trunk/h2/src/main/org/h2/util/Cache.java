@@ -18,7 +18,7 @@ public interface Cache {
      *
      * @return the list of objects
      */
-    ObjectArray getAllChanged();
+    ObjectArray<CacheObject> getAllChanged();
 
     /**
      * Clear the cache.

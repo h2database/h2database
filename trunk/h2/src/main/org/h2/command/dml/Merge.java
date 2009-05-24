@@ -35,7 +35,7 @@ public class Merge extends Prepared {
     private Table table;
     private Column[] columns;
     private Column[] keys;
-    private ObjectArray list = ObjectArray.newInstance();
+    private ObjectArray<Expression[]> list = ObjectArray.newInstance();
     private Query query;
     private Prepared update;
 
@@ -112,7 +112,7 @@ public class Merge extends Prepared {
             count = 0;
             for (int x = 0; x < list.size(); x++) {
                 setCurrentRowNumber(x + 1);
-                Expression[] expr = (Expression[]) list.get(x);
+                Expression[] expr = list.get(x);
                 Row newRow = table.getTemplateRow();
                 for (int i = 0; i < columns.length; i++) {
                     Column c = columns[i];
@@ -161,11 +161,11 @@ public class Merge extends Prepared {
     }
 
     private void merge(Row row) throws SQLException {
-        ObjectArray k = update.getParameters();
+        ObjectArray<Parameter> k = update.getParameters();
         for (int i = 0; i < columns.length; i++) {
             Column col = columns[i];
             Value v = row.getValue(col.getColumnId());
-            Parameter p = (Parameter) k.get(i);
+            Parameter p = k.get(i);
             p.setValue(v);
         }
         for (int i = 0; i < keys.length; i++) {
@@ -174,7 +174,7 @@ public class Merge extends Prepared {
             if (v == null) {
                 throw Message.getSQLException(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, col.getSQL());
             }
-            Parameter p = (Parameter) k.get(columns.length + i);
+            Parameter p = k.get(columns.length + i);
             p.setValue(v);
         }
         int count = update.update();
@@ -218,7 +218,7 @@ public class Merge extends Prepared {
         if (list.size() > 0) {
             buff.append("VALUES ");
             for (int x = 0; x < list.size(); x++) {
-                Expression[] expr = (Expression[]) list.get(x);
+                Expression[] expr = list.get(x);
                 if (x > 0) {
                     buff.append(", ");
                 }
@@ -244,7 +244,7 @@ public class Merge extends Prepared {
 
     public void prepare() throws SQLException {
         if (columns == null) {
-            if (list.size() > 0 && ((Expression[]) list.get(0)).length == 0) {
+            if (list.size() > 0 && list.get(0).length == 0) {
                 // special case where table is used as a sequence
                 columns = new Column[0];
             } else {
@@ -253,7 +253,7 @@ public class Merge extends Prepared {
         }
         if (list.size() > 0) {
             for (int x = 0; x < list.size(); x++) {
-                Expression[] expr = (Expression[]) list.get(x);
+                Expression[] expr = list.get(x);
                 if (expr.length != columns.length) {
                     throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }

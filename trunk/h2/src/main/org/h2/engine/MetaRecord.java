@@ -47,7 +47,7 @@ public class MetaRecord {
      *
      * @param records the list of meta records
      */
-    public static void sort(ObjectArray records) {
+    public static void sort(ObjectArray<MetaRecord> records) {
         records.sort(new Comparator<MetaRecord>() {
             public int compare(MetaRecord m1, MetaRecord m2) {
                 int c1 = DbObjectBase.getCreateOrder(m1.getObjectType());

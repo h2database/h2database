@@ -36,7 +36,7 @@ public class LocalResult implements ResultInterface {
     private int visibleColumnCount;
     private Expression[] expressions;
     private int rowId, rowCount;
-    private ObjectArray rows;
+    private ObjectArray<Value[]> rows;
     private SortOrder sort;
     private ValueHashMap<Value[]> distinctRows;
     private Value[] currentRow;
@@ -80,7 +80,7 @@ public class LocalResult implements ResultInterface {
      * @param expressionList the expression list
      * @param visibleColumnCount the number of visible columns
      */
-    public LocalResult(Session session, ObjectArray expressionList, int visibleColumnCount) {
+    public LocalResult(Session session, ObjectArray<Expression> expressionList, int visibleColumnCount) {
         this(session, getList(expressionList), visibleColumnCount);
     }
 
@@ -93,7 +93,7 @@ public class LocalResult implements ResultInterface {
      * @return the local result set
      */
     public static LocalResult read(Session session, ResultSet rs, int maxrows) throws SQLException {
-        ObjectArray cols = getExpressionColumns(session, rs);
+        ObjectArray<Expression> cols = getExpressionColumns(session, rs);
         int columnCount = cols.size();
         LocalResult result = new LocalResult(session, cols, columnCount);
         for (int i = 0; (maxrows == 0 || i < maxrows) && rs.next(); i++) {
@@ -108,10 +108,10 @@ public class LocalResult implements ResultInterface {
         return result;
     }
 
-    private static ObjectArray getExpressionColumns(Session session, ResultSet rs) throws SQLException {
+    private static ObjectArray<Expression> getExpressionColumns(Session session, ResultSet rs) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
-        ObjectArray cols = ObjectArray.newInstance(columnCount);
+        ObjectArray<Expression> cols = ObjectArray.newInstance(columnCount);
         Database db = session == null ? null : session.getDatabase();
         for (int i = 0; i < columnCount; i++) {
             String name = meta.getColumnLabel(i + 1);
@@ -156,7 +156,7 @@ public class LocalResult implements ResultInterface {
         return copy;
     }
 
-    private static Expression[] getList(ObjectArray expressionList) {
+    private static Expression[] getList(ObjectArray<Expression> expressionList) {
         Expression[] expressions = new Expression[expressionList.size()];
         expressionList.toArray(expressions);
         return expressions;
@@ -237,7 +237,7 @@ public class LocalResult implements ResultInterface {
                 if (disk != null) {
                     currentRow = disk.next();
                 } else {
-                    currentRow = (Value[]) rows.get(rowId);
+                    currentRow = rows.get(rowId);
                 }
                 return true;
             }

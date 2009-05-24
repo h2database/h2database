@@ -14,6 +14,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
+import org.h2.expression.Parameter;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.ViewIndex;
@@ -34,7 +35,7 @@ public class TableView extends Table {
     private static final long ROW_COUNT_APPROXIMATION = 100;
 
     private String querySQL;
-    private ObjectArray tables;
+    private ObjectArray<Table> tables;
     private final String[] columnNames;
     private Query viewQuery;
     private ViewIndex index;
@@ -46,7 +47,7 @@ public class TableView extends Table {
     private User owner;
     private Query topQuery;
 
-    public TableView(Schema schema, int id, String name, String querySQL, ObjectArray params, String[] columnNames,
+    public TableView(Schema schema, int id, String name, String querySQL, ObjectArray<Parameter> params, String[] columnNames,
             Session session, boolean recursive) throws SQLException {
         super(schema, id, name, false, true);
         this.querySQL = querySQL;
@@ -78,10 +79,10 @@ public class TableView extends Table {
         try {
             Query query = recompileQuery(session);
             tables = ObjectArray.newInstance(query.getTables());
-            ObjectArray expressions = query.getExpressions();
-            ObjectArray list = ObjectArray.newInstance();
+            ObjectArray<Expression> expressions = query.getExpressions();
+            ObjectArray<Column> list = ObjectArray.newInstance();
             for (int i = 0; i < query.getColumnCount(); i++) {
-                Expression expr = (Expression) expressions.get(i);
+                Expression expr = expressions.get(i);
                 String name = null;
                 if (columnNames != null && columnNames.length > i) {
                     name = columnNames[i];
@@ -270,7 +271,7 @@ public class TableView extends Table {
         return item.getIndex();
     }
 
-    public ObjectArray getIndexes() {
+    public ObjectArray<Index> getIndexes() {
         return null;
     }
 
@@ -281,7 +282,7 @@ public class TableView extends Table {
      */
     public void recompile(Session session) throws SQLException {
         for (int i = 0; i < tables.size(); i++) {
-            Table t = (Table) tables.get(i);
+            Table t = tables.get(i);
             t.removeView(this);
         }
         tables.clear();
@@ -313,7 +314,7 @@ public class TableView extends Table {
     private void removeViewFromTables() {
         if (tables != null) {
             for (int i = 0; i < tables.size(); i++) {
-                Table t = (Table) tables.get(i);
+                Table t = tables.get(i);
                 t.removeView(this);
             }
             tables.clear();
@@ -322,7 +323,7 @@ public class TableView extends Table {
 
     private void addViewToTables() {
         for (int i = 0; i < tables.size(); i++) {
-            Table t = (Table) tables.get(i);
+            Table t = tables.get(i);
             t.addView(this);
         }
     }

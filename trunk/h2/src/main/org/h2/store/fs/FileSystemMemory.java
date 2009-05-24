@@ -97,7 +97,7 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public String[] listFiles(String path) {
-        ObjectArray list = ObjectArray.newInstance();
+        ObjectArray<String> list = ObjectArray.newInstance();
         synchronized (MEMORY_FILES) {
             for (String name : MEMORY_FILES.keySet()) {
                 if (name.startsWith(path)) {

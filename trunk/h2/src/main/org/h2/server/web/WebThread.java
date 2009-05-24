@@ -1272,7 +1272,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 result = "${text.result.maxrowsSet}";
             } else {
                 ScriptReader r = new ScriptReader(new StringReader(sql));
-                ObjectArray list = ObjectArray.newInstance();
+                ObjectArray<String> list = ObjectArray.newInstance();
                 while (true) {
                     String s = r.readStatement();
                     if (s == null) {
@@ -1282,7 +1282,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                 }
                 StringBuffer buff = new StringBuffer();
                 for (int i = 0; i < list.size(); i++) {
-                    String s = (String) list.get(i);
+                    String s = list.get(i);
                     if (!s.startsWith("@")) {
                         buff.append(PageParser.escapeHtml(s + ";"));
                         buff.append("<br />");

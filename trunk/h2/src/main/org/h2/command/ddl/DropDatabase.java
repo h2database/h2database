@@ -44,67 +44,68 @@ public class DropDatabase extends DefineCommand {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
-        ObjectArray list;
         // TODO local temp tables are not removed
-        list = db.getAllSchemas();
-        for (int i = 0; i < list.size(); i++) {
-            Schema schema = (Schema) list.get(i);
+        ObjectArray<Schema> schemas = db.getAllSchemas();
+        for (int i = 0; i < schemas.size(); i++) {
+            Schema schema = schemas.get(i);
             if (schema.canDrop()) {
                 db.removeDatabaseObject(session, schema);
             }
         }
-        list = db.getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
-        for (int i = 0; i < list.size(); i++) {
-            Table t = (Table) list.get(i);
+        ObjectArray<Table> tables = db.getAllTablesAndViews();
+        for (int i = 0; i < tables.size(); i++) {
+            Table t = tables.get(i);
             if (t.getName() != null && Table.VIEW.equals(t.getTableType())) {
                 db.removeSchemaObject(session, t);
             }
         }
-        for (int i = 0; i < list.size(); i++) {
-            Table t = (Table) list.get(i);
+        for (int i = 0; i < tables.size(); i++) {
+            Table t = tables.get(i);
             if (t.getName() != null && Table.TABLE_LINK.equals(t.getTableType())) {
                 db.removeSchemaObject(session, t);
             }
         }
-        for (int i = 0; i < list.size(); i++) {
-            Table t = (Table) list.get(i);
+        for (int i = 0; i < tables.size(); i++) {
+            Table t = tables.get(i);
             if (t.getName() != null && Table.TABLE.equals(t.getTableType())) {
                 db.removeSchemaObject(session, t);
             }
         }
         session.findLocalTempTable(null);
-        list = db.getAllSchemaObjects(DbObject.SEQUENCE);
+        ObjectArray<SchemaObject> list = ObjectArray.newInstance();
+        list.addAll(db.getAllSchemaObjects(DbObject.SEQUENCE));
         // maybe constraints and triggers on system tables will be allowed in
         // the future
         list.addAll(db.getAllSchemaObjects(DbObject.CONSTRAINT));
         list.addAll(db.getAllSchemaObjects(DbObject.TRIGGER));
         list.addAll(db.getAllSchemaObjects(DbObject.CONSTANT));
         for (int i = 0; i < list.size(); i++) {
-            SchemaObject obj = (SchemaObject) list.get(i);
+            SchemaObject obj = list.get(i);
             db.removeSchemaObject(session, obj);
         }
-        list = db.getAllUsers();
-        for (int i = 0; i < list.size(); i++) {
-            User user = (User) list.get(i);
+        ObjectArray<User> users = db.getAllUsers();
+        for (int i = 0; i < users.size(); i++) {
+            User user = users.get(i);
             if (user != session.getUser()) {
                 db.removeDatabaseObject(session, user);
             }
         }
-        list = db.getAllRoles();
-        for (int i = 0; i < list.size(); i++) {
-            Role role = (Role) list.get(i);
+        ObjectArray<Role> roles = db.getAllRoles();
+        for (int i = 0; i < roles.size(); i++) {
+            Role role = roles.get(i);
             String sql = role.getCreateSQL();
             // the role PUBLIC must not be dropped
             if (sql != null) {
                 db.removeDatabaseObject(session, role);
             }
         }
-        list = db.getAllRights();
-        list.addAll(db.getAllFunctionAliases());
-        list.addAll(db.getAllAggregates());
-        list.addAll(db.getAllUserDataTypes());
-        for (int i = 0; i < list.size(); i++) {
-            DbObject obj = (DbObject) list.get(i);
+        ObjectArray<DbObject> dbObjects = ObjectArray.newInstance();
+        dbObjects.addAll(db.getAllRights());
+        dbObjects.addAll(db.getAllFunctionAliases());
+        dbObjects.addAll(db.getAllAggregates());
+        dbObjects.addAll(db.getAllUserDataTypes());
+        for (int i = 0; i < dbObjects.size(); i++) {
+            DbObject obj = dbObjects.get(i);
             String sql = obj.getCreateSQL();
             // the role PUBLIC must not be dropped
             if (sql != null) {

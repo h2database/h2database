@@ -8,6 +8,7 @@ package org.h2.command;
 
 import java.sql.SQLException;
 
+import org.h2.expression.ParameterInterface;
 import org.h2.result.LocalResult;
 import org.h2.util.ObjectArray;
 
@@ -27,7 +28,7 @@ public class CommandList extends Command {
         this.remaining = remaining;
     }
 
-    public ObjectArray getParameters() {
+    public ObjectArray< ? extends ParameterInterface> getParameters() {
         return command.getParameters();
     }
 

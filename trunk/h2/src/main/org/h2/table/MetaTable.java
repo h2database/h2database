@@ -46,6 +46,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.schema.Constant;
 import org.h2.schema.Schema;
+import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.store.DiskFile;
@@ -565,9 +566,9 @@ public class MetaTable extends Table {
         return s;
     }
 
-    private ObjectArray getAllTables(Session session) {
-        ObjectArray tables = database.getAllSchemaObjects(DbObject.TABLE_OR_VIEW);
-        ObjectArray tempTables = session.getLocalTempTables();
+    private ObjectArray<Table> getAllTables(Session session) {
+        ObjectArray<Table> tables = database.getAllTablesAndViews();
+        ObjectArray<Table> tempTables = session.getLocalTempTables();
         tables.addAll(tempTables);
         return tables;
     }
@@ -600,7 +601,7 @@ public class MetaTable extends Table {
      * @param last the last row to return
      * @return the generated rows
      */
-    public ObjectArray generateRows(Session session, SearchRow first, SearchRow last) throws SQLException {
+    public ObjectArray<Row> generateRows(Session session, SearchRow first, SearchRow last) throws SQLException {
         Value indexFrom = null, indexTo = null;
 
         if (indexColumn >= 0) {
@@ -612,13 +613,13 @@ public class MetaTable extends Table {
             }
         }
 
-        ObjectArray rows = ObjectArray.newInstance();
+        ObjectArray<Row> rows = ObjectArray.newInstance();
         String catalog = identifier(database.getShortName());
         switch (type) {
         case TABLES: {
-            ObjectArray tables = getAllTables(session);
+            ObjectArray<Table> tables = getAllTables(session);
             for (int i = 0; i < tables.size(); i++) {
-                Table table = (Table) tables.get(i);
+                Table table = tables.get(i);
                 String tableName = identifier(table.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
@@ -657,9 +658,9 @@ public class MetaTable extends Table {
             break;
         }
         case COLUMNS: {
-            ObjectArray tables = getAllTables(session);
+            ObjectArray<Table> tables = getAllTables(session);
             for (int i = 0; i < tables.size(); i++) {
-                Table table = (Table) tables.get(i);
+                Table table = tables.get(i);
                 String tableName = identifier(table.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
@@ -720,23 +721,23 @@ public class MetaTable extends Table {
             break;
         }
         case INDEXES: {
-            ObjectArray tables = getAllTables(session);
+            ObjectArray<Table> tables = getAllTables(session);
             for (int i = 0; i < tables.size(); i++) {
-                Table table = (Table) tables.get(i);
+                Table table = tables.get(i);
                 String tableName = identifier(table.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
-                ObjectArray indexes = table.getIndexes();
-                ObjectArray constraints = table.getConstraints();
+                ObjectArray<Index> indexes = table.getIndexes();
+                ObjectArray<Constraint> constraints = table.getConstraints();
                 for (int j = 0; indexes != null && j < indexes.size(); j++) {
-                    Index index = (Index) indexes.get(j);
+                    Index index = indexes.get(j);
                     if (index.getCreateSQL() == null) {
                         continue;
                     }
                     String constraintName = null;
                     for (int k = 0; constraints != null && k < constraints.size(); k++) {
-                        Constraint constraint = (Constraint) constraints.get(k);
+                        Constraint constraint = constraints.get(k);
                         if (constraint.getUniqueIndex() == index) {
                             constraintName = constraint.getName();
                         }
@@ -804,9 +805,9 @@ public class MetaTable extends Table {
             break;
         }
         case SETTINGS: {
-            ObjectArray list = database.getAllSettings();
+            ObjectArray<Setting> list = database.getAllSettings();
             for (int i = 0; i < list.size(); i++) {
-                Setting s = (Setting) list.get(i);
+                Setting s = list.get(i);
                 String value = s.getStringValue();
                 if (value == null) {
                     value = "" + s.getIntValue();
@@ -952,7 +953,7 @@ public class MetaTable extends Table {
             break;
         }
         case SEQUENCES: {
-            ObjectArray sequences = database.getAllSchemaObjects(DbObject.SEQUENCE);
+            ObjectArray<SchemaObject> sequences = database.getAllSchemaObjects(DbObject.SEQUENCE);
             for (int i = 0; i < sequences.size(); i++) {
                 Sequence s = (Sequence) sequences.get(i);
                 add(rows, new String[] {
@@ -979,9 +980,9 @@ public class MetaTable extends Table {
             break;
         }
         case USERS: {
-            ObjectArray users = database.getAllUsers();
+            ObjectArray<User> users = database.getAllUsers();
             for (int i = 0; i < users.size(); i++) {
-                User u = (User) users.get(i);
+                User u = users.get(i);
                 add(rows, new String[] {
                         // NAME
                         identifier(u.getName()),
@@ -996,9 +997,9 @@ public class MetaTable extends Table {
             break;
         }
         case ROLES: {
-            ObjectArray roles = database.getAllRoles();
+            ObjectArray<Role> roles = database.getAllRoles();
             for (int i = 0; i < roles.size(); i++) {
-                Role r = (Role) roles.get(i);
+                Role r = roles.get(i);
                 add(rows, new String[] {
                         // NAME
                         identifier(r.getName()),
@@ -1011,9 +1012,9 @@ public class MetaTable extends Table {
             break;
         }
         case RIGHTS: {
-            ObjectArray rights = database.getAllRights();
+            ObjectArray<Right> rights = database.getAllRights();
             for (int i = 0; i < rights.size(); i++) {
-                Right r = (Right) rights.get(i);
+                Right r = rights.get(i);
                 Role role = r.getGrantedRole();
                 DbObject grantee = r.getGrantee();
                 String type = grantee.getType() == DbObject.USER ? "USER" : "ROLE";
@@ -1061,9 +1062,9 @@ public class MetaTable extends Table {
             break;
         }
         case FUNCTION_ALIASES: {
-            ObjectArray aliases = database.getAllFunctionAliases();
+            ObjectArray<FunctionAlias> aliases = database.getAllFunctionAliases();
             for (int i = 0; i < aliases.size(); i++) {
-                FunctionAlias alias = (FunctionAlias) aliases.get(i);
+                FunctionAlias alias = aliases.get(i);
                 FunctionAlias.JavaMethod[] methods = alias.getJavaMethods();
                 for (int j = 0; j < methods.length; j++) {
                     FunctionAlias.JavaMethod method = methods[j];
@@ -1093,9 +1094,9 @@ public class MetaTable extends Table {
                     });
                 }
             }
-            ObjectArray aggregates = database.getAllAggregates();
+            ObjectArray<UserAggregate> aggregates = database.getAllAggregates();
             for (int i = 0; i < aggregates.size(); i++) {
-                UserAggregate agg = (UserAggregate) aggregates.get(i);
+                UserAggregate agg = aggregates.get(i);
                 int returnsResult = DatabaseMetaData.procedureReturnsResult;
                 add(rows, new String[] {
                         // ALIAS_CATALOG
@@ -1123,9 +1124,9 @@ public class MetaTable extends Table {
             break;
         }
         case FUNCTION_COLUMNS: {
-            ObjectArray aliases = database.getAllFunctionAliases();
+            ObjectArray<FunctionAlias> aliases = database.getAllFunctionAliases();
             for (int i = 0; i < aliases.size(); i++) {
-                FunctionAlias alias = (FunctionAlias) aliases.get(i);
+                FunctionAlias alias = aliases.get(i);
                 FunctionAlias.JavaMethod[] methods = alias.getJavaMethods();
                 for (int j = 0; j < methods.length; j++) {
                     FunctionAlias.JavaMethod method = methods[j];
@@ -1176,10 +1177,10 @@ public class MetaTable extends Table {
             break;
         }
         case SCHEMATA: {
-            ObjectArray schemas = database.getAllSchemas();
+            ObjectArray<Schema> schemas = database.getAllSchemas();
             String collation = database.getCompareMode().getName();
             for (int i = 0; i < schemas.size(); i++) {
-                Schema schema = (Schema) schemas.get(i);
+                Schema schema = schemas.get(i);
                 add(rows, new String[] {
                         // CATALOG_NAME
                         catalog,
@@ -1202,9 +1203,9 @@ public class MetaTable extends Table {
             break;
         }
         case TABLE_PRIVILEGES: {
-            ObjectArray rights = database.getAllRights();
+            ObjectArray<Right> rights = database.getAllRights();
             for (int i = 0; i < rights.size(); i++) {
-                Right r = (Right) rights.get(i);
+                Right r = rights.get(i);
                 Table table = r.getGrantedTable();
                 if (table == null) {
                     continue;
@@ -1218,9 +1219,9 @@ public class MetaTable extends Table {
             break;
         }
         case COLUMN_PRIVILEGES: {
-            ObjectArray rights = database.getAllRights();
+            ObjectArray<Right> rights = database.getAllRights();
             for (int i = 0; i < rights.size(); i++) {
-                Right r = (Right) rights.get(i);
+                Right r = rights.get(i);
                 Table table = r.getGrantedTable();
                 if (table == null) {
                     continue;
@@ -1253,9 +1254,9 @@ public class MetaTable extends Table {
             break;
         }
         case VIEWS: {
-            ObjectArray tables = getAllTables(session);
+            ObjectArray<Table> tables = getAllTables(session);
             for (int i = 0; i < tables.size(); i++) {
-                Table table = (Table) tables.get(i);
+                Table table = tables.get(i);
                 if (!table.getTableType().equals(Table.VIEW)) {
                     continue;
                 }
@@ -1288,9 +1289,9 @@ public class MetaTable extends Table {
             break;
         }
         case IN_DOUBT: {
-            ObjectArray prepared = database.getLog().getInDoubtTransactions();
+            ObjectArray<InDoubtTransaction> prepared = database.getLog().getInDoubtTransactions();
             for (int i = 0; prepared != null && i < prepared.size(); i++) {
-                InDoubtTransaction prep = (InDoubtTransaction) prepared.get(i);
+                InDoubtTransaction prep = prepared.get(i);
                 add(rows, new String[] {
                         // TRANSACTION
                         prep.getTransaction(),
@@ -1301,7 +1302,7 @@ public class MetaTable extends Table {
             break;
         }
         case CROSS_REFERENCES: {
-            ObjectArray constraints = database.getAllSchemaObjects(DbObject.CONSTRAINT);
+            ObjectArray<SchemaObject> constraints = database.getAllSchemaObjects(DbObject.CONSTRAINT);
             for (int i = 0; i < constraints.size(); i++) {
                 Constraint constraint = (Constraint) constraints.get(i);
                 if (!(constraint.getConstraintType().equals(Constraint.REFERENTIAL))) {
@@ -1354,7 +1355,7 @@ public class MetaTable extends Table {
             break;
         }
         case CONSTRAINTS: {
-            ObjectArray constraints = database.getAllSchemaObjects(DbObject.CONSTRAINT);
+            ObjectArray<SchemaObject> constraints = database.getAllSchemaObjects(DbObject.CONSTRAINT);
             for (int i = 0; i < constraints.size(); i++) {
                 Constraint constraint = (Constraint) constraints.get(i);
                 String type = constraint.getConstraintType();
@@ -1420,7 +1421,7 @@ public class MetaTable extends Table {
             break;
         }
         case CONSTANTS: {
-            ObjectArray constants = database.getAllSchemaObjects(DbObject.CONSTANT);
+            ObjectArray<SchemaObject> constants = database.getAllSchemaObjects(DbObject.CONSTANT);
             for (int i = 0; i < constants.size(); i++) {
                 Constant constant = (Constant) constants.get(i);
                 ValueExpression expr = constant.getValue();
@@ -1444,9 +1445,9 @@ public class MetaTable extends Table {
             break;
         }
         case DOMAINS: {
-            ObjectArray userDataTypes = database.getAllUserDataTypes();
+            ObjectArray<UserDataType> userDataTypes = database.getAllUserDataTypes();
             for (int i = 0; i < userDataTypes.size(); i++) {
-                UserDataType dt = (UserDataType) userDataTypes.get(i);
+                UserDataType dt = userDataTypes.get(i);
                 Column col = dt.getColumn();
                 add(rows, new String[] {
                         // DOMAIN_CATALOG
@@ -1482,7 +1483,7 @@ public class MetaTable extends Table {
             break;
         }
         case TRIGGERS: {
-            ObjectArray triggers = database.getAllSchemaObjects(DbObject.TRIGGER);
+            ObjectArray<SchemaObject> triggers = database.getAllSchemaObjects(DbObject.TRIGGER);
             for (int i = 0; i < triggers.size(); i++) {
                 TriggerObject trigger = (TriggerObject) triggers.get(i);
                 Table table = trigger.getTable();
@@ -1578,9 +1579,9 @@ public class MetaTable extends Table {
                         "SET @" + name + " " + v.getSQL()
                 });
             }
-            ObjectArray tables = session.getLocalTempTables();
+            ObjectArray<Table> tables = session.getLocalTempTables();
             for (int i = 0; i < tables.size(); i++) {
-                Table table = (Table) tables.get(i);
+                Table table = tables.get(i);
                 add(rows, new String[] {
                         // KEY
                         "TABLE " + table.getName(),
@@ -1657,7 +1658,7 @@ public class MetaTable extends Table {
         // nothing to do
     }
 
-    private void addPrivileges(ObjectArray rows, DbObject grantee, String catalog, Table table, String column,
+    private void addPrivileges(ObjectArray<Row> rows, DbObject grantee, String catalog, Table table, String column,
             int rightMask) throws SQLException {
         if ((rightMask & Right.SELECT) != 0) {
             addPrivilege(rows, grantee, catalog, table, column, "SELECT");
@@ -1673,7 +1674,7 @@ public class MetaTable extends Table {
         }
     }
 
-    private void addPrivilege(ObjectArray rows, DbObject grantee, String catalog, Table table, String column,
+    private void addPrivilege(ObjectArray<Row> rows, DbObject grantee, String catalog, Table table, String column,
             String right) throws SQLException {
         String isGrantable = "NO";
         if (grantee.getType() == DbObject.USER) {
@@ -1722,7 +1723,7 @@ public class MetaTable extends Table {
         }
     }
 
-    private void add(ObjectArray rows, String[] strings) throws SQLException {
+    private void add(ObjectArray<Row> rows, String[] strings) throws SQLException {
         Value[] values = new Value[strings.length];
         for (int i = 0; i < strings.length; i++) {
             String s = strings[i];
@@ -1768,11 +1769,11 @@ public class MetaTable extends Table {
         return new MetaIndex(this, IndexColumn.wrap(columns), true);
     }
 
-    public ObjectArray getIndexes() {
+    public ObjectArray<Index> getIndexes() {
         if (index == null) {
             return null;
         }
-        ObjectArray list = ObjectArray.newInstance();
+        ObjectArray <Index>list = ObjectArray.newInstance();
         list.add(new MetaIndex(this, IndexColumn.wrap(columns), true));
         // TODO fixed scan index
         list.add(index);

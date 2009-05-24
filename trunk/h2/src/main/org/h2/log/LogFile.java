@@ -67,7 +67,7 @@ public class LogFile {
     private FileStore file;
     private int bufferPos;
     private byte[] buffer;
-    private ObjectArray unwritten;
+    private ObjectArray<Record> unwritten;
     private DataPage rowBuff;
     private int pos = LogSystem.LOG_WRITTEN;
     private int firstUncommittedPos = LogSystem.LOG_WRITTEN;
@@ -426,7 +426,7 @@ public class LogFile {
             file.write(buffer, 0, bufferPos);
             pos = getBlock();
             for (int i = 0; i < unwritten.size(); i++) {
-                Record r = (Record) unwritten.get(i);
+                Record r = unwritten.get(i);
                 r.setLogWritten(id, pos);
             }
             unwritten.clear();

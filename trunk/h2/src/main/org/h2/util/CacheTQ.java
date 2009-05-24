@@ -168,7 +168,7 @@ class CacheTQ implements Cache {
 
     private void removeOld() throws SQLException {
         int i = 0;
-        ObjectArray changed = ObjectArray.newInstance();
+        ObjectArray<CacheObject> changed = ObjectArray.newInstance();
         while (((sizeIn * 4 > maxIn * 3) || (sizeOut * 4 > maxOut * 3) || (sizeMain * 4 > maxMain * 3))
                 && recordCount > Constants.CACHE_MIN_RECORDS) {
             i++;
@@ -226,14 +226,14 @@ class CacheTQ implements Cache {
         if (changed.size() > 0) {
             CacheObject.sort(changed);
             for (i = 0; i < changed.size(); i++) {
-                CacheObject rec = (CacheObject) changed.get(i);
+                CacheObject rec = changed.get(i);
                 writer.writeBack(rec);
             }
         }
     }
 
-    public ObjectArray getAllChanged() {
-        ObjectArray list = ObjectArray.newInstance();
+    public ObjectArray<CacheObject> getAllChanged() {
+        ObjectArray<CacheObject> list = ObjectArray.newInstance();
         for (CacheObject o = headMain.next; o != headMain; o = o.next) {
             if (o.isChanged()) {
                 list.add(o);

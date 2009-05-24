@@ -18,10 +18,10 @@ import org.h2.util.ObjectArray;
 public class MetaCursor implements Cursor {
 
     private Row current;
-    private ObjectArray rows;
+    private ObjectArray<Row> rows;
     private int index;
 
-    MetaCursor(ObjectArray rows) {
+    MetaCursor(ObjectArray<Row> rows) {
         this.rows = rows;
     }
 
@@ -38,7 +38,7 @@ public class MetaCursor implements Cursor {
     }
 
     public boolean next() {
-        current =  (Row) (index >= rows.size() ? null : rows.get(index++));
+        current = index >= rows.size() ? null : rows.get(index++);
         return current != null;
     }
 

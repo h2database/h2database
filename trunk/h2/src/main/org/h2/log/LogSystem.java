@@ -39,20 +39,20 @@ public class LogSystem {
     public static final int LOG_WRITTEN = -1;
 
     private Database database;
-    private ObjectArray activeLogs;
+    private ObjectArray<LogFile> activeLogs;
     private LogFile currentLog;
     private String fileNamePrefix;
     private HashMap<Integer, Storage> storages = New.hashMap();
     private HashMap<Integer, SessionState> sessionStates = New.hashMap();
     private DataPage rowBuff;
-    private ObjectArray undo;
+    private ObjectArray<LogRecord> undo;
     // TODO log file / deleteOldLogFilesAutomatically:
     // make this a setting, so they can be backed up
     private boolean deleteOldLogFilesAutomatically = true;
     private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE;
     private boolean readOnly;
     private boolean flushOnEachCommit;
-    private ObjectArray inDoubtTransactions;
+    private ObjectArray<InDoubtTransaction> inDoubtTransactions;
     private boolean disabled;
     private int keepFiles;
     private boolean closed;
@@ -140,7 +140,7 @@ public class LogSystem {
             }
         }
         for (int i = activeLogs.size() - 1; i >= 0; i--) {
-            LogFile l = (LogFile) activeLogs.get(i);
+            LogFile l = activeLogs.get(i);
             if (l.getId() < firstUncommittedLog) {
                 l.setFirstUncommittedPos(LOG_WRITTEN);
             } else if (l.getId() == firstUncommittedLog) {
@@ -156,7 +156,7 @@ public class LogSystem {
             }
         }
         for (int i = 0; i < activeLogs.size(); i++) {
-            LogFile l = (LogFile) activeLogs.get(i);
+            LogFile l = activeLogs.get(i);
             if (l.getFirstUncommittedPos() == LOG_WRITTEN) {
                 // must remove the log file first
                 // if we don't do that, the file is closed but still in the list
@@ -182,7 +182,7 @@ public class LogSystem {
             }
             if (readOnly) {
                 for (int i = 0; i < activeLogs.size(); i++) {
-                    LogFile l = (LogFile) activeLogs.get(i);
+                    LogFile l = activeLogs.get(i);
                     l.close(false);
                 }
                 closed = true;
@@ -202,7 +202,7 @@ public class LogSystem {
                 closeException = Message.convert(e);
             }
             for (int i = 0; i < activeLogs.size(); i++) {
-                LogFile l = (LogFile) activeLogs.get(i);
+                LogFile l = activeLogs.get(i);
                 try {
                     // if there are any in-doubt transactions
                     // (even if they are resolved), can't delete the log files
@@ -254,7 +254,7 @@ public class LogSystem {
             }
             undo = ObjectArray.newInstance();
             for (int i = 0; i < activeLogs.size(); i++) {
-                LogFile log = (LogFile) activeLogs.get(i);
+                LogFile log = activeLogs.get(i);
                 log.redoAllGoEnd();
                 database.getDataFile().flushRedoLog();
                 database.getIndexFile().flushRedoLog();
@@ -270,7 +270,7 @@ public class LogSystem {
             }
             for (int i = undo.size() - 1; i >= 0 && sessionStates.size() > 0; i--) {
                 database.setProgress(DatabaseEventListener.STATE_RECOVER, null, undo.size() - 1 - i, undo.size());
-                LogRecord record = (LogRecord) undo.get(i);
+                LogRecord record = undo.get(i);
                 if (sessionStates.get(ObjectUtils.getInteger(record.sessionId)) != null) {
                     // undo only if the session is not yet committed
                     record.log.undo(record.logRecordId);
@@ -330,7 +330,7 @@ public class LogSystem {
             LogFile l = new LogFile(this, 0, fileNamePrefix);
             activeLogs.add(l);
         }
-        currentLog = (LogFile) activeLogs.get(activeLogs.size() - 1);
+        currentLog = activeLogs.get(activeLogs.size() - 1);
         closed = false;
     }
 
@@ -426,7 +426,7 @@ public class LogSystem {
      *
      * @return the list
      */
-    public ObjectArray getInDoubtTransactions() {
+    public ObjectArray<InDoubtTransaction> getInDoubtTransactions() {
         return inDoubtTransactions;
     }
 
@@ -584,9 +584,9 @@ public class LogSystem {
      *
      * @return the list of log files
      */
-    public ObjectArray getActiveLogFiles() {
+    public ObjectArray<LogFile> getActiveLogFiles() {
         synchronized (database) {
-            ObjectArray list = ObjectArray.newInstance();
+            ObjectArray<LogFile> list = ObjectArray.newInstance();
             list.addAll(activeLogs);
             return list;
         }

@@ -108,7 +108,7 @@ class PageBtreeLeaf extends PageBtree {
         return 0;
     }
 
-    private void removeRow(int i) throws SQLException {
+    private void removeRow(int i) {
         entryCount--;
         written = false;
         if (entryCount <= 0) {
@@ -161,15 +161,15 @@ class PageBtreeLeaf extends PageBtree {
         return false;
     }
 
-    int getRowCount() throws SQLException {
+    int getRowCount() {
         return entryCount;
     }
 
-    void setRowCountStored(int rowCount) throws SQLException {
+    void setRowCountStored(int rowCount) {
         // ignore
     }
 
-    public int getByteCount(DataPage dummy) throws SQLException {
+    public int getByteCount(DataPage dummy) {
         return index.getPageStore().getPageSize();
     }
 
@@ -222,7 +222,7 @@ class PageBtreeLeaf extends PageBtree {
         cursor.setCurrent(this, i);
     }
 
-    void remapChildren() throws SQLException {
+    void remapChildren() {
     }
 
     /**

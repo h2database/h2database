@@ -108,8 +108,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         trans.writeBytes(ci.getFilePasswordHash());
         String[] keys = ci.getKeys();
         trans.writeInt(keys.length);
-        for (int i = 0; i < keys.length; i++) {
-            String key = keys[i];
+        for (String key : keys) {
             trans.writeString(key).writeString(ci.getProperty(key));
         }
         try {
@@ -141,8 +140,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
             // older servers don't support this feature
             return;
         }
-        for (int i = 0; i < transferList.size(); i++) {
-            Transfer transfer = transferList.get(i);
+        for (Transfer transfer : transferList) {
             try {
                 Transfer trans = transfer.openNewConnection();
                 trans.init();
@@ -376,8 +374,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
         if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_6) {
             sessionId = ByteUtils.convertBytesToString(RandomUtils.getSecureBytes(32));
             synchronized (this) {
-                for (int i = 0; i < transferList.size(); i++) {
-                    Transfer transfer = transferList.get(i);
+                for (Transfer transfer : transferList) {
                     try {
                         traceOperation("SESSION_SET_ID", 0);
                         transfer.writeInt(SessionRemote.SESSION_SET_ID);
@@ -470,8 +467,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
     public void close() throws SQLException {
         if (transferList != null) {
             synchronized (this) {
-                for (int i = 0; i < transferList.size(); i++) {
-                    Transfer transfer = transferList.get(i);
+                for (Transfer transfer : transferList) {
                     try {
                         traceOperation("SESSION_CLOSE", 0);
                         transfer.writeInt(SessionRemote.SESSION_CLOSE);

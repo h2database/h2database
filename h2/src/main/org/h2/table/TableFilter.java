@@ -127,8 +127,7 @@ public class TableFilter implements ColumnResolver {
         } else {
             int len = table.getColumns().length;
             int[] masks = new int[len];
-            for (int i = 0; i < indexConditions.size(); i++) {
-                IndexCondition condition = indexConditions.get(i);
+            for (IndexCondition condition : indexConditions) {
                 if (condition.isEvaluatable()) {
                     if (condition.isAlwaysFalse()) {
                         masks = null;
@@ -253,8 +252,7 @@ public class TableFilter implements ColumnResolver {
             return false;
         } else if (state == BEFORE_FIRST) {
             SearchRow start = null, end = null;
-            for (int i = 0; i < indexConditions.size(); i++) {
-                IndexCondition condition = indexConditions.get(i);
+            for (IndexCondition condition : indexConditions) {
                 if (condition.isAlwaysFalse()) {
                     alwaysFalse = true;
                     break;

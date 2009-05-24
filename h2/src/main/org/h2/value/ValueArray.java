@@ -37,8 +37,8 @@ public class ValueArray extends Value {
             return hash;
         }
         int h = 1;
-        for (int i = 0; i < values.length;) {
-            h = h * 31 + values[i++].hashCode();
+        for (Value v : values) {
+            h = h * 31 + v.hashCode();
         }
         hash = h;
         return h;
@@ -127,8 +127,8 @@ public class ValueArray extends Value {
     }
     public int getDisplaySize() {
         long size = 0;
-        for (int i = 0; i < values.length; i++) {
-            size += values[i].getDisplaySize();
+        for (Value v : values) {
+            size += v.getDisplaySize();
         }
         return MathUtils.convertLongToInt(size);
     }
@@ -154,8 +154,8 @@ public class ValueArray extends Value {
 
     public int getMemory() {
         int memory = 0;
-        for (int i = 0; i < values.length; i++) {
-            memory += values[i].getMemory();
+        for (Value v : values) {
+            memory += v.getMemory();
         }
         return memory;
     }

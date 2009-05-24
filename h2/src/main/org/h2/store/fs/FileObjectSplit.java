@@ -33,8 +33,8 @@ public class FileObjectSplit implements FileObject {
     }
 
     public void close() throws IOException {
-        for (int i = 0; i < list.length; i++) {
-            list[i].close();
+        for (FileObject f : list) {
+            f.close();
         }
     }
 
@@ -123,8 +123,8 @@ public class FileObjectSplit implements FileObject {
     }
 
     public void sync() throws IOException {
-        for (int i = 0; i < list.length; i++) {
-            list[i].sync();
+        for (FileObject f : list) {
+            f.sync();
         }
     }
 

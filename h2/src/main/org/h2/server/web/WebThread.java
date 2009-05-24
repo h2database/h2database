@@ -286,8 +286,7 @@ class WebThread extends Thread implements DatabaseEventListener {
 
     private String getComboBox(String[] elements, String selected) {
         StringBuffer buff = new StringBuffer();
-        for (int i = 0; i < elements.length; i++) {
-            String value = elements[i];
+        for (String value : elements) {
             buff.append("<option value=\"");
             buff.append(PageParser.escapeHtmlData(value));
             buff.append("\"");
@@ -303,8 +302,7 @@ class WebThread extends Thread implements DatabaseEventListener {
 
     private String getComboBox(String[][] elements, String selected) {
         StringBuffer buff = new StringBuffer();
-        for (int i = 0; i < elements.length; i++) {
-            String[] n = elements[i];
+        for (String[] n : elements) {
             buff.append("<option value=\"");
             buff.append(PageParser.escapeHtmlData(n[0]));
             buff.append("\"");
@@ -797,8 +795,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         }
         boolean isOracle = schema.contents.isOracle;
         boolean notManyTables = tables.length < DbSchema.MAX_TABLES_LIST_INDEXES;
-        for (int i = 0; i < tables.length; i++) {
-            DbTableOrView table = tables[i];
+        for (DbTableOrView table : tables) {
             if (table.isView) {
                 continue;
             }
@@ -822,8 +819,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             }
         }
         tables = schema.tables;
-        for (int i = 0; i < tables.length; i++) {
-            DbTableOrView view = tables[i];
+        for (DbTableOrView view : tables) {
             if (!view.isView) {
                 continue;
             }
@@ -881,8 +877,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             DbSchema defaultSchema = contents.defaultSchema;
             treeIndex = addTablesAndViews(defaultSchema, true, buff, treeIndex);
             DbSchema[] schemas = contents.schemas;
-            for (int i = 0; i < schemas.length; i++) {
-                DbSchema schema = schemas[i];
+            for (DbSchema schema : schemas) {
                 if (schema == defaultSchema || schema == null) {
                     continue;
                 }
@@ -1360,8 +1355,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             DynamicClassLoader cl = new DynamicClassLoader("Java", data);
             Class< ? > clazz = cl.loadClass("Java");
             Method[] methods = clazz.getMethods();
-            for (int i = 0; i < methods.length; i++) {
-                Method m = methods[i];
+            for (Method m : methods) {
                 if (m.getName().equals("run")) {
                     return "" + m.invoke(null, new Object[0]);
                 }

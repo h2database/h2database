@@ -165,8 +165,7 @@ public class FunctionAlias extends DbObjectBase {
     public JavaMethod findJavaMethod(Expression[] args) throws SQLException {
         load();
         int parameterCount = args.length;
-        for (int i = 0; i < javaMethods.length; i++) {
-            JavaMethod m = javaMethods[i];
+        for (JavaMethod m : javaMethods) {
             int count = m.getParameterCount();
             if (count == parameterCount || (m.isVarArgs() && count <= parameterCount + 1)) {
                 return m;

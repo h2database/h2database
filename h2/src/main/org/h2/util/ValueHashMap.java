@@ -169,8 +169,7 @@ public class ValueHashMap<V> extends HashBase {
      */
     public ObjectArray<Value> keys() {
         ObjectArray<Value> list = ObjectArray.newInstance(size);
-        for (int i = 0; i < keys.length; i++) {
-            Value k = keys[i];
+        for (Value k : keys) {
             if (k != null && k != ValueNull.DELETED) {
                 list.add(k);
             }

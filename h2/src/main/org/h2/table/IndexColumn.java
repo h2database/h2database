@@ -73,8 +73,7 @@ public class IndexColumn {
      * @param table the table from where to map the column names to columns
      */
     public static void mapColumns(IndexColumn[] indexColumns, Table table) throws SQLException {
-        for (int i = 0; i < indexColumns.length; i++) {
-            IndexColumn col = indexColumns[i];
+        for (IndexColumn col : indexColumns) {
             col.column = table.getColumn(col.columnName);
         }
     }

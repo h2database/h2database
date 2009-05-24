@@ -194,8 +194,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             debugCodeCall("clearParameters");
             checkClosed();
             ObjectArray< ? extends ParameterInterface> parameters = command.getParameters();
-            for (int i = 0; i < parameters.size(); i++) {
-                ParameterInterface param = parameters.get(i);
+            for (ParameterInterface param : parameters) {
                 // can only delete old temp files if they are not in the batch
                 param.setValue(null, batchParameters == null);
             }

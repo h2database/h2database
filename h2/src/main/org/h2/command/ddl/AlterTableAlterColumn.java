@@ -351,8 +351,8 @@ public class AlterTableAlterColumn extends SchemaCommand {
             }
             boolean dropIndex = false;
             Column[] cols = index.getColumns();
-            for (int j = 0; j < cols.length; j++) {
-                if (cols[j] == oldColumn) {
+            for (Column c : cols) {
+                if (c == oldColumn) {
                     if (cols.length == 1) {
                         dropIndex = true;
                     } else {

@@ -80,8 +80,7 @@ public class DbSchema {
         tables = new DbTableOrView[list.size()];
         list.toArray(tables);
         if (tables.length < MAX_TABLES_LIST_COLUMNS) {
-            for (int i = 0; i < tables.length; i++) {
-                DbTableOrView tab = tables[i];
+            for (DbTableOrView tab : tables) {
                 tab.readColumns(meta);
             }
         }

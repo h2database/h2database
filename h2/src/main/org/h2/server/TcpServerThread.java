@@ -224,12 +224,10 @@ public class TcpServerThread implements Runnable {
             cache.addObject(id, command);
             boolean isQuery = command.isQuery();
             ObjectArray< ? extends ParameterInterface> params = command.getParameters();
-            int paramCount = params.size();
             transfer.writeInt(getState(old)).writeBoolean(isQuery).writeBoolean(readonly)
-                    .writeInt(paramCount);
+                    .writeInt(params.size());
             if (operation == SessionRemote.SESSION_PREPARE_READ_PARAMS) {
-                for (int i = 0; i < paramCount; i++) {
-                    ParameterInterface p = params.get(i);
+                for (ParameterInterface p : params) {
                     ParameterRemote.writeMetaData(transfer, p);
                 }
             }

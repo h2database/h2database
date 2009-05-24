@@ -1205,8 +1205,7 @@ public class Recover extends Tool implements DataHandler {
 
     private void writeSchema(PrintWriter writer) {
         MetaRecord.sort(schema);
-        for (int i = 0; i < schema.size(); i++) {
-            MetaRecord m = schema.get(i);
+        for (MetaRecord m : schema) {
             writer.println(m.getSQL() + ";");
         }
         for (Map.Entry<Integer, String> entry : tableMap.entrySet()) {

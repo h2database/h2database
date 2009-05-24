@@ -256,8 +256,7 @@ public class ValueLob extends Value {
             String[] list = getFileList(handler, dir);
             int fileCount = 0;
             boolean[] used = new boolean[SysProperties.LOB_FILES_PER_DIRECTORY];
-            for (int i = 0; i < list.length; i++) {
-                String name = list[i];
+            for (String name : list) {
                 if (name.endsWith(Constants.SUFFIX_DB_FILE)) {
                     name = name.substring(name.lastIndexOf(File.separatorChar) + 1);
                     String n = name.substring(0, name.indexOf('.'));
@@ -754,8 +753,7 @@ public class ValueLob extends Value {
             String prefix = handler.getDatabasePath();
             String dir = FileUtils.getParent(prefix);
             String[] list = FileUtils.listFiles(dir);
-            for (int i = 0; i < list.length; i++) {
-                String name = list[i];
+            for (String name : list) {
                 if (name.startsWith(prefix + "." + tableId + ".") && name.endsWith(Constants.SUFFIX_LOB_FILE)) {
                     deleteFile(handler, name);
                 }
@@ -772,8 +770,7 @@ public class ValueLob extends Value {
     public static boolean existsLobFile(String prefix) throws SQLException {
         String dir = FileUtils.getParent(prefix);
         String[] list = FileUtils.listFiles(dir);
-        for (int i = 0; i < list.length; i++) {
-            String name = list[i];
+        for (String name: list) {
             if (name.startsWith(prefix + ".") && name.endsWith(Constants.SUFFIX_LOB_FILE)) {
                 return true;
             }
@@ -782,12 +779,10 @@ public class ValueLob extends Value {
     }
 
     private static void removeAllForTable(DataHandler handler, String dir, int tableId) throws SQLException {
-        String[] list = FileUtils.listFiles(dir);
-        for (int i = 0; i < list.length; i++) {
-            if (FileUtils.isDirectory(list[i])) {
-                removeAllForTable(handler, list[i], tableId);
+        for (String name : FileUtils.listFiles(dir)) {
+            if (FileUtils.isDirectory(name)) {
+                removeAllForTable(handler, name, tableId);
             } else {
-                String name = list[i];
                 if (name.endsWith(".t" + tableId + Constants.SUFFIX_LOB_FILE)) {
                     deleteFile(handler, name);
                 }

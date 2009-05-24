@@ -643,8 +643,7 @@ public class Database implements DataHandler {
             records.add(rec);
         }
         MetaRecord.sort(records);
-        for (int i = 0; i < records.size(); i++) {
-            MetaRecord rec = records.get(i);
+        for (MetaRecord rec : records) {
             rec.execute(this, systemSession, eventListener);
         }
         // try to recompile the views that are invalid
@@ -729,8 +728,7 @@ public class Database implements DataHandler {
     private void removeUnusedStorages(Session session) throws SQLException {
         if (persistent) {
             ObjectArray<Storage> storages = getAllStorages();
-            for (int i = 0; i < storages.size(); i++) {
-                Storage storage = storages.get(i);
+            for (Storage storage : storages) {
                 if (storage != null && storage.getRecordReader() == null) {
                     storage.truncate(session);
                 }
@@ -1104,8 +1102,7 @@ public class Database implements DataHandler {
             traceSystem.getTrace(Trace.DATABASE).info("closing " + databaseName + " from shutdown hook");
             Session[] all = new Session[userSessions.size()];
             userSessions.toArray(all);
-            for (int i = 0; i < all.length; i++) {
-                Session s = all[i];
+            for (Session s : all) {
                 try {
                     // must roll back, otherwise the session is removed and
                     // the log file that contains its uncommitted operations as well
@@ -1135,19 +1132,15 @@ public class Database implements DataHandler {
         }
         try {
             if (systemSession != null) {
-                ObjectArray<Table> tablesAndViews = getAllTablesAndViews();
-                for (int i = 0; i < tablesAndViews.size(); i++) {
-                    Table table = tablesAndViews.get(i);
+                for (Table table : getAllTablesAndViews()) {
                     table.close(systemSession);
                 }
-                ObjectArray<SchemaObject> sequences = getAllSchemaObjects(DbObject.SEQUENCE);
-                for (int i = 0; i < sequences.size(); i++) {
-                    Sequence sequence = (Sequence) sequences.get(i);
+                for (SchemaObject obj : getAllSchemaObjects(DbObject.SEQUENCE)) {
+                    Sequence sequence = (Sequence) obj;
                     sequence.close();
                 }
-                ObjectArray<SchemaObject> triggers = getAllSchemaObjects(DbObject.TRIGGER);
-                for (int i = 0; i < triggers.size(); i++) {
-                    TriggerObject trigger = (TriggerObject) triggers.get(i);
+                for (SchemaObject obj : getAllSchemaObjects(DbObject.TRIGGER)) {
+                    TriggerObject trigger = (TriggerObject) obj;
                     trigger.close();
                 }
                 meta.close(systemSession);
@@ -1519,8 +1512,7 @@ public class Database implements DataHandler {
         String prefix = FileUtils.normalize(databaseName) + ".";
         String path = FileUtils.getParent(databaseName);
         String[] list = FileUtils.listFiles(path);
-        for (int i = 0; i < list.length; i++) {
-            String name = list[i];
+        for (String name : list) {
             if (name.endsWith(Constants.SUFFIX_LOB_FILE) && FileUtils.fileStartsWith(name, prefix)) {
                 name = name.substring(prefix.length());
                 name = name.substring(0, name.length() - Constants.SUFFIX_LOB_FILE.length());
@@ -1538,8 +1530,7 @@ public class Database implements DataHandler {
         String path = FileUtils.getParent(databaseName);
         String prefix = FileUtils.normalize(databaseName);
         String[] list = FileUtils.listFiles(path);
-        for (int i = 0; i < list.length; i++) {
-            String name = list[i];
+        for (String name : list) {
             if (name.endsWith(Constants.SUFFIX_TEMP_FILE) && FileUtils.fileStartsWith(name, prefix)) {
                 // can't always delete the files, they may still be open
                 FileUtils.tryDelete(name);
@@ -2218,9 +2209,7 @@ public class Database implements DataHandler {
      * @return the table or null if no table is defined
      */
     public Table getFirstUserTable() {
-        ObjectArray<Table> array = getAllTablesAndViews();
-        for (int i = 0; i < array.size(); i++) {
-            Table table = array.get(i);
+        for (Table table : getAllTablesAndViews()) {
             if (table.getCreateSQL() != null) {
                 return table;
             }
@@ -2307,9 +2296,7 @@ public class Database implements DataHandler {
      *          afterwards are not flushed; 0 to flush all indexes
      */
     public synchronized void flushIndexes(long maxLastChange) {
-        ObjectArray<SchemaObject> array = getAllSchemaObjects(DbObject.INDEX);
-        for (int i = 0; i < array.size(); i++) {
-            SchemaObject obj = array.get(i);
+        for (SchemaObject obj : getAllSchemaObjects(DbObject.INDEX)) {
             if (obj instanceof BtreeIndex) {
                 BtreeIndex idx = (BtreeIndex) obj;
                 if (idx.getLastChange() == 0) {

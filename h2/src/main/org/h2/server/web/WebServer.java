@@ -173,9 +173,7 @@ public class WebServer implements Service {
     WebSession getSession(String sessionId) {
         long now = System.currentTimeMillis();
         if (lastTimeoutCheck + SESSION_TIMEOUT < now) {
-            Object[] list = sessions.keySet().toArray();
-            for (int i = 0; i < list.length; i++) {
-                String id = (String) list[i];
+            for (String id : New.arrayList(sessions.keySet())) {
                 WebSession session = sessions.get(id);
                 Long last = (Long) session.get("lastAccess");
                 if (last != null && last.longValue() + SESSION_TIMEOUT < now) {
@@ -280,8 +278,8 @@ public class WebServer implements Service {
             startDateTime = format.format(new Date());
         }
         trace(startDateTime);
-        for (int i = 0; i < LANGUAGES.length; i++) {
-            languages.add(LANGUAGES[i][0]);
+        for (String[] lang : LANGUAGES) {
+            languages.add(lang[0]);
         }
         updateURL();
     }

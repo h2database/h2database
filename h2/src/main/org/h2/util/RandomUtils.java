@@ -142,8 +142,8 @@ public class RandomUtils {
                         "getAllByName", new Class[] { String.class })
                         .invoke(null, new Object[] { hostName });
                 Method getAddress = inetAddressClass.getMethod("getAddress", new Class[0]);
-                for (int i = 0; i < list.length; i++) {
-                    out.write((byte[]) getAddress.invoke(list[i], new Object[0]));
+                for (Object o : list) {
+                    out.write((byte[]) getAddress.invoke(o, new Object[0]));
                 }
             } catch (Throwable e) {
                 // on some system, InetAddress is not supported

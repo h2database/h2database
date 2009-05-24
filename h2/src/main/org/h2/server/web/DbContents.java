@@ -132,15 +132,15 @@ public class DbContents {
         }
         if (defaultSchema == null) {
             String best = null;
-            for (int i = 0; i < schemas.length; i++) {
-                if ("dbo".equals(schemas[i].name)) {
+            for (DbSchema schema : schemas) {
+                if ("dbo".equals(schema.name)) {
                     // MS SQL Server
-                    defaultSchema = schemas[i];
+                    defaultSchema = schema;
                     break;
                 }
-                if (defaultSchema == null || best == null || schemas[i].name.length() < best.length()) {
-                    best = schemas[i].name;
-                    defaultSchema = schemas[i];
+                if (defaultSchema == null || best == null || schema.name.length() < best.length()) {
+                    best = schema.name;
+                    defaultSchema = schema;
                 }
             }
         }

@@ -114,9 +114,9 @@ public class MultiDimension {
         buff.append(" D, TABLE(_FROM_ BIGINT=?, _TO_ BIGINT=?) WHERE ");
         buff.append(StringUtils.quoteIdentifier(scalarColumn));
         buff.append(" BETWEEN _FROM_ AND _TO_");
-        for (int i = 0; i < columns.length; i++) {
+        for (String col : columns) {
             buff.append(" AND ");
-            buff.append(StringUtils.quoteIdentifier(columns[i]));
+            buff.append(StringUtils.quoteIdentifier(col));
             buff.append("+1 BETWEEN ?+1 AND ?+1");
         }
         return buff.toString();

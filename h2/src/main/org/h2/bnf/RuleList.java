@@ -69,8 +69,8 @@ public class RuleList implements Rule {
             return get(idx).random(config, level + 1);
         }
         StringBuffer buff = new StringBuffer();
-        for (int i = 0; i < list.size(); i++) {
-            buff.append(get(i).random(config, level+1));
+        for (Rule r : list) {
+            buff.append(r.random(config, level+1));
         }
         return buff.toString();
     }
@@ -89,8 +89,8 @@ public class RuleList implements Rule {
 
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
         if (!mapSet) {
-            for (int i = 0; i < list.size(); i++) {
-                get(i).setLinks(ruleMap);
+            for (Rule r : list) {
+                r.setLinks(ruleMap);
             }
             mapSet = true;
         }
@@ -102,15 +102,14 @@ public class RuleList implements Rule {
             return false;
         }
         if (or) {
-            for (int i = 0; i < list.size(); i++) {
-                if (get(i).matchRemove(sentence)) {
+            for (Rule r : list) {
+                if (r.matchRemove(sentence)) {
                     return true;
                 }
             }
             return false;
         }
-        for (int i = 0; i < list.size(); i++) {
-            Rule r = get(i);
+        for (Rule r : list) {
             if (!r.matchRemove(sentence)) {
                 return false;
             }
@@ -121,14 +120,12 @@ public class RuleList implements Rule {
     public void addNextTokenList(Sentence sentence) {
         String old = sentence.getQuery();
         if (or) {
-            for (int i = 0; i < list.size(); i++) {
+            for (Rule r : list) {
                 sentence.setQuery(old);
-                Rule r = get(i);
                 r.addNextTokenList(sentence);
             }
         } else {
-            for (int i = 0; i < list.size(); i++) {
-                Rule r = get(i);
+            for (Rule r : list) {
                 r.addNextTokenList(sentence);
                 if (!r.matchRemove(sentence)) {
                     break;

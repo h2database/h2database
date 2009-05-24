@@ -281,8 +281,7 @@ public class TableView extends Table {
      * @param session the session
      */
     public void recompile(Session session) throws SQLException {
-        for (int i = 0; i < tables.size(); i++) {
-            Table t = tables.get(i);
+        for (Table t : tables) {
             t.removeView(this);
         }
         tables.clear();
@@ -313,8 +312,7 @@ public class TableView extends Table {
 
     private void removeViewFromTables() {
         if (tables != null) {
-            for (int i = 0; i < tables.size(); i++) {
-                Table t = tables.get(i);
+            for (Table t : tables) {
                 t.removeView(this);
             }
             tables.clear();
@@ -322,8 +320,7 @@ public class TableView extends Table {
     }
 
     private void addViewToTables() {
-        for (int i = 0; i < tables.size(); i++) {
-            Table t = tables.get(i);
+        for (Table t : tables) {
             t.addView(this);
         }
     }

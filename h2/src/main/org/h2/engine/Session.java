@@ -526,9 +526,8 @@ public class Session extends SessionWithState {
         if (savepoints != null) {
             String[] names = new String[savepoints.size()];
             savepoints.keySet().toArray(names);
-            for (int i = 0; i < names.length; i++) {
-                String name = names[i];
-                Integer savepointIndex = savepoints.get(names[i]);
+            for (String name : names) {
+                Integer savepointIndex = savepoints.get(name);
                 if (savepointIndex.intValue() > index) {
                     savepoints.remove(name);
                 }
@@ -633,8 +632,7 @@ public class Session extends SessionWithState {
         }
         if (locks.size() > 0) {
             synchronized (database) {
-                for (int i = 0; i < locks.size(); i++) {
-                    Table t = locks.get(i);
+                for (Table t : locks) {
                     t.unlock(this);
                 }
                 locks.clear();

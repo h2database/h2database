@@ -167,9 +167,7 @@ public class CompareMode {
             }
         }
         if (result == null) {
-            Locale[] locales = Collator.getAvailableLocales();
-            for (int i = 0; i < locales.length; i++) {
-                Locale locale = locales[i];
+            for (Locale locale : Collator.getAvailableLocales()) {
                 if (compareLocaleNames(locale, name)) {
                     result = Collator.getInstance(locale);
                     break;

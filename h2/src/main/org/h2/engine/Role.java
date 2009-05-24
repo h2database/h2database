@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.table.Table;
-import org.h2.util.ObjectArray;
 
 /**
  * Represents a role. Roles can be granted to users, and to other roles.
@@ -60,25 +59,19 @@ public class Role extends RightOwner {
     }
 
     public void removeChildrenAndResources(Session session) throws SQLException {
-        ObjectArray<User> users = database.getAllUsers();
-        for (int i = 0; i < users.size(); i++) {
-            User user = users.get(i);
+        for (User user : database.getAllUsers()) {
             Right right = user.getRightForRole(this);
             if (right != null) {
                 database.removeDatabaseObject(session, right);
             }
         }
-        ObjectArray<Role> roles = database.getAllRoles();
-        for (int i = 0; i < roles.size(); i++) {
-            Role r2 = roles.get(i);
+        for (Role r2 : database.getAllRoles()) {
             Right right = r2.getRightForRole(this);
             if (right != null) {
                 database.removeDatabaseObject(session, right);
             }
         }
-        ObjectArray<Right> rights = database.getAllRights();
-        for (int i = 0; i < rights.size(); i++) {
-            Right right = rights.get(i);
+        for (Right right : database.getAllRights()) {
             if (right.getGrantee() == this) {
                 database.removeDatabaseObject(session, right);
             }

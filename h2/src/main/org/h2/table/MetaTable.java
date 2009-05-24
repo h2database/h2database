@@ -617,9 +617,7 @@ public class MetaTable extends Table {
         String catalog = identifier(database.getShortName());
         switch (type) {
         case TABLES: {
-            ObjectArray<Table> tables = getAllTables(session);
-            for (int i = 0; i < tables.size(); i++) {
-                Table table = tables.get(i);
+            for (Table table : getAllTables(session)) {
                 String tableName = identifier(table.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
@@ -658,9 +656,7 @@ public class MetaTable extends Table {
             break;
         }
         case COLUMNS: {
-            ObjectArray<Table> tables = getAllTables(session);
-            for (int i = 0; i < tables.size(); i++) {
-                Table table = tables.get(i);
+            for (Table table : getAllTables(session)) {
                 String tableName = identifier(table.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
@@ -721,9 +717,7 @@ public class MetaTable extends Table {
             break;
         }
         case INDEXES: {
-            ObjectArray<Table> tables = getAllTables(session);
-            for (int i = 0; i < tables.size(); i++) {
-                Table table = tables.get(i);
+            for (Table table : getAllTables(session)) {
                 String tableName = identifier(table.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
@@ -827,8 +821,7 @@ public class MetaTable extends Table {
                         "file.separator", "path.separator", "line.separator",
                         "user.country", "user.language", "user.variant", "file.encoding"
                 };
-                for (int i = 0; i < settings.length; i++) {
-                    String s = settings[i];
+                for (String s : settings) {
                     add(rows, new String[] { "property." + s, SysProperties.getStringSetting(s, "") });
                 }
             }
@@ -951,9 +944,8 @@ public class MetaTable extends Table {
             break;
         }
         case SEQUENCES: {
-            ObjectArray<SchemaObject> sequences = database.getAllSchemaObjects(DbObject.SEQUENCE);
-            for (int i = 0; i < sequences.size(); i++) {
-                Sequence s = (Sequence) sequences.get(i);
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.SEQUENCE)) {
+                Sequence s = (Sequence) obj;
                 add(rows, new String[] {
                         // SEQUENCE_CATALOG
                         catalog,
@@ -978,9 +970,7 @@ public class MetaTable extends Table {
             break;
         }
         case USERS: {
-            ObjectArray<User> users = database.getAllUsers();
-            for (int i = 0; i < users.size(); i++) {
-                User u = users.get(i);
+            for (User u : database.getAllUsers()) {
                 add(rows, new String[] {
                         // NAME
                         identifier(u.getName()),
@@ -995,9 +985,7 @@ public class MetaTable extends Table {
             break;
         }
         case ROLES: {
-            ObjectArray<Role> roles = database.getAllRoles();
-            for (int i = 0; i < roles.size(); i++) {
-                Role r = roles.get(i);
+            for (Role r : database.getAllRoles()) {
                 add(rows, new String[] {
                         // NAME
                         identifier(r.getName()),
@@ -1010,9 +998,7 @@ public class MetaTable extends Table {
             break;
         }
         case RIGHTS: {
-            ObjectArray<Right> rights = database.getAllRights();
-            for (int i = 0; i < rights.size(); i++) {
-                Right r = rights.get(i);
+            for (Right r : database.getAllRights()) {
                 Role role = r.getGrantedRole();
                 DbObject grantee = r.getGrantee();
                 String type = grantee.getType() == DbObject.USER ? "USER" : "ROLE";
@@ -1060,9 +1046,7 @@ public class MetaTable extends Table {
             break;
         }
         case FUNCTION_ALIASES: {
-            ObjectArray<FunctionAlias> aliases = database.getAllFunctionAliases();
-            for (int i = 0; i < aliases.size(); i++) {
-                FunctionAlias alias = aliases.get(i);
+            for (FunctionAlias alias : database.getAllFunctionAliases()) {
                 FunctionAlias.JavaMethod[] methods = alias.getJavaMethods();
                 for (int j = 0; j < methods.length; j++) {
                     FunctionAlias.JavaMethod method = methods[j];
@@ -1092,9 +1076,7 @@ public class MetaTable extends Table {
                     });
                 }
             }
-            ObjectArray<UserAggregate> aggregates = database.getAllAggregates();
-            for (int i = 0; i < aggregates.size(); i++) {
-                UserAggregate agg = aggregates.get(i);
+            for (UserAggregate agg : database.getAllAggregates()) {
                 int returnsResult = DatabaseMetaData.procedureReturnsResult;
                 add(rows, new String[] {
                         // ALIAS_CATALOG
@@ -1122,9 +1104,7 @@ public class MetaTable extends Table {
             break;
         }
         case FUNCTION_COLUMNS: {
-            ObjectArray<FunctionAlias> aliases = database.getAllFunctionAliases();
-            for (int i = 0; i < aliases.size(); i++) {
-                FunctionAlias alias = aliases.get(i);
+            for (FunctionAlias alias : database.getAllFunctionAliases()) {
                 FunctionAlias.JavaMethod[] methods = alias.getJavaMethods();
                 for (int j = 0; j < methods.length; j++) {
                     FunctionAlias.JavaMethod method = methods[j];
@@ -1175,10 +1155,8 @@ public class MetaTable extends Table {
             break;
         }
         case SCHEMATA: {
-            ObjectArray<Schema> schemas = database.getAllSchemas();
             String collation = database.getCompareMode().getName();
-            for (int i = 0; i < schemas.size(); i++) {
-                Schema schema = schemas.get(i);
+            for (Schema schema : database.getAllSchemas()) {
                 add(rows, new String[] {
                         // CATALOG_NAME
                         catalog,
@@ -1201,9 +1179,7 @@ public class MetaTable extends Table {
             break;
         }
         case TABLE_PRIVILEGES: {
-            ObjectArray<Right> rights = database.getAllRights();
-            for (int i = 0; i < rights.size(); i++) {
-                Right r = rights.get(i);
+            for (Right r : database.getAllRights()) {
                 Table table = r.getGrantedTable();
                 if (table == null) {
                     continue;
@@ -1217,9 +1193,7 @@ public class MetaTable extends Table {
             break;
         }
         case COLUMN_PRIVILEGES: {
-            ObjectArray<Right> rights = database.getAllRights();
-            for (int i = 0; i < rights.size(); i++) {
-                Right r = rights.get(i);
+            for (Right r : database.getAllRights()) {
                 Table table = r.getGrantedTable();
                 if (table == null) {
                     continue;
@@ -1239,9 +1213,7 @@ public class MetaTable extends Table {
             break;
         }
         case COLLATIONS: {
-            Locale[] locales = Collator.getAvailableLocales();
-            for (int i = 0; i < locales.length; i++) {
-                Locale l = locales[i];
+            for (Locale l : Collator.getAvailableLocales()) {
                 add(rows, new String[] {
                         // NAME
                         CompareMode.getName(l),
@@ -1252,9 +1224,7 @@ public class MetaTable extends Table {
             break;
         }
         case VIEWS: {
-            ObjectArray<Table> tables = getAllTables(session);
-            for (int i = 0; i < tables.size(); i++) {
-                Table table = tables.get(i);
+            for (Table table : getAllTables(session)) {
                 if (!table.getTableType().equals(Table.VIEW)) {
                     continue;
                 }
@@ -1300,9 +1270,8 @@ public class MetaTable extends Table {
             break;
         }
         case CROSS_REFERENCES: {
-            ObjectArray<SchemaObject> constraints = database.getAllSchemaObjects(DbObject.CONSTRAINT);
-            for (int i = 0; i < constraints.size(); i++) {
-                Constraint constraint = (Constraint) constraints.get(i);
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                Constraint constraint = (Constraint) obj;
                 if (!(constraint.getConstraintType().equals(Constraint.REFERENTIAL))) {
                     continue;
                 }
@@ -1353,9 +1322,8 @@ public class MetaTable extends Table {
             break;
         }
         case CONSTRAINTS: {
-            ObjectArray<SchemaObject> constraints = database.getAllSchemaObjects(DbObject.CONSTRAINT);
-            for (int i = 0; i < constraints.size(); i++) {
-                Constraint constraint = (Constraint) constraints.get(i);
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTRAINT)) {
+                Constraint constraint = (Constraint) obj;
                 String type = constraint.getConstraintType();
                 String checkExpression = null;
                 IndexColumn[] columns = null;
@@ -1419,9 +1387,8 @@ public class MetaTable extends Table {
             break;
         }
         case CONSTANTS: {
-            ObjectArray<SchemaObject> constants = database.getAllSchemaObjects(DbObject.CONSTANT);
-            for (int i = 0; i < constants.size(); i++) {
-                Constant constant = (Constant) constants.get(i);
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.CONSTANT)) {
+                Constant constant = (Constant) obj;
                 ValueExpression expr = constant.getValue();
                 add(rows, new String[] {
                         // CONSTANT_CATALOG
@@ -1443,9 +1410,7 @@ public class MetaTable extends Table {
             break;
         }
         case DOMAINS: {
-            ObjectArray<UserDataType> userDataTypes = database.getAllUserDataTypes();
-            for (int i = 0; i < userDataTypes.size(); i++) {
-                UserDataType dt = userDataTypes.get(i);
+            for (UserDataType dt : database.getAllUserDataTypes()) {
                 Column col = dt.getColumn();
                 add(rows, new String[] {
                         // DOMAIN_CATALOG
@@ -1481,9 +1446,8 @@ public class MetaTable extends Table {
             break;
         }
         case TRIGGERS: {
-            ObjectArray<SchemaObject> triggers = database.getAllSchemaObjects(DbObject.TRIGGER);
-            for (int i = 0; i < triggers.size(); i++) {
-                TriggerObject trigger = (TriggerObject) triggers.get(i);
+            for (SchemaObject obj : database.getAllSchemaObjects(DbObject.TRIGGER)) {
+                TriggerObject trigger = (TriggerObject) obj;
                 Table table = trigger.getTable();
                 add(rows, new String[] {
                         // TRIGGER_CATALOG
@@ -1519,10 +1483,8 @@ public class MetaTable extends Table {
             break;
         }
         case SESSIONS: {
-            Session[] sessions = database.getSessions(false);
             boolean admin = session.getUser().getAdmin();
-            for (int i = 0; i < sessions.length; i++) {
-                Session s = sessions[i];
+            for (Session s : database.getSessions(false)) {
                 if (admin || s == session) {
                     Command command = s.getCurrentCommand();
                     add(rows, new String[] {
@@ -1542,10 +1504,8 @@ public class MetaTable extends Table {
             break;
         }
         case LOCKS: {
-            Session[] sessions = database.getSessions(false);
             boolean admin = session.getUser().getAdmin();
-            for (int i = 0; i < sessions.length; i++) {
-                Session s = sessions[i];
+            for (Session s : database.getSessions(false)) {
                 if (admin || s == session) {
                     Table[] locks = s.getLocks();
                     for (int j = 0; j < locks.length; j++) {
@@ -1566,9 +1526,7 @@ public class MetaTable extends Table {
             break;
         }
         case SESSION_STATE: {
-            String[] variableNames = session.getVariableNames();
-            for (int i = 0; i < variableNames.length; i++) {
-                String name = variableNames[i];
+            for (String name : session.getVariableNames()) {
                 Value v = session.getVariable(name);
                 add(rows, new String[] {
                         // KEY
@@ -1577,9 +1535,7 @@ public class MetaTable extends Table {
                         "SET @" + name + " " + v.getSQL()
                 });
             }
-            ObjectArray<Table> tables = session.getLocalTempTables();
-            for (int i = 0; i < tables.size(); i++) {
-                Table table = tables.get(i);
+            for (Table table : session.getLocalTempTables()) {
                 add(rows, new String[] {
                         // KEY
                         "TABLE " + table.getName(),

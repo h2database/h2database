@@ -94,7 +94,6 @@ public class StatementBuilder {
      * Append a text, but only if appendExceptFirst was never called.
      *
      * @param s the text to append
-     * @return itself
      */
     public void appendOnlyFirst(String s) {
         if (index == 0) {

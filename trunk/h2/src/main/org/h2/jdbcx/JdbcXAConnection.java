@@ -415,7 +415,7 @@ implements XAConnection, XAResource
     }
 
     private String quoteXid(Xid xid) {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         buff.append("\"f:");
         buff.append(xid.getFormatId());
         buff.append(",bq:");
@@ -429,7 +429,7 @@ implements XAConnection, XAResource
     }
 
     private String quoteFlags(int flags) {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         if ((flags & XAResource.TMENDRSCAN) != 0) {
             buff.append("|XAResource.TMENDRSCAN");
         }

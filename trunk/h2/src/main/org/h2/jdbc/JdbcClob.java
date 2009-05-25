@@ -152,7 +152,7 @@ public class JdbcClob extends TraceObject implements Clob
             if (length < 0) {
                 throw Message.getInvalidValueException("length", "" + length);
             }
-            StringBuffer buff = new StringBuffer(Math.min(4096, length));
+            StringBuilder buff = new StringBuilder(Math.min(4096, length));
             Reader reader = value.getReader();
             try {
                 IOUtils.skipFully(reader, pos - 1);

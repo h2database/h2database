@@ -88,7 +88,7 @@ public class Schema extends DbObjectBase {
         if (system) {
             return null;
         }
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         buff.append("CREATE SCHEMA IF NOT EXISTS ");
         buff.append(getSQL());
         buff.append(" AUTHORIZATION ");

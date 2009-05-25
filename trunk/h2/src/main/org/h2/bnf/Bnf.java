@@ -141,7 +141,7 @@ public class Bnf {
      */
     public String getSyntaxHtml(String bnf) {
         StringTokenizer tokenizer = getTokenizer(bnf);
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         while (tokenizer.hasMoreTokens()) {
             String s = tokenizer.nextToken();
             if (s.length() == 1 || StringUtils.toUpperEnglish(s).equals(s)) {

@@ -71,7 +71,7 @@ public class ResourceDoclet {
         }
         String xhtml = doc.commentText();
         XMLParser p = new XMLParser(xhtml);
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         int column = 0;
         int firstColumnSize = 0;
         boolean inColumn = false;

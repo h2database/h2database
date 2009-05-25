@@ -458,7 +458,7 @@ public class TableData extends Table implements RecordReader {
     }
 
     private String getDeadlockDetails(ObjectArray<Session> sessions) {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (Session s : sessions) {
             buff.append('\n');
             Table lock = s.getWaitForLock();

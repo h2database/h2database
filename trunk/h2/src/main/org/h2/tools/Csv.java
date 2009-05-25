@@ -267,7 +267,7 @@ public class Csv implements SimpleRowSource {
                 return data;
             }
         }
-        StringBuffer buff = new StringBuffer(data.length());
+        StringBuilder buff = new StringBuilder(data.length());
         for (int i = 0; i < data.length(); i++) {
             char ch = data.charAt(i);
             if (ch == fieldDelimiter || ch == escapeCharacter) {
@@ -352,7 +352,7 @@ public class Csv implements SimpleRowSource {
                 continue;
             } else if (ch == fieldDelimiter) {
                 // delimited value
-                StringBuffer buff = new StringBuffer();
+                StringBuilder buff = new StringBuilder();
                 boolean containsEscape = false;
                 while (true) {
                     ch = readChar();
@@ -413,7 +413,7 @@ public class Csv implements SimpleRowSource {
                 break;
             } else {
                 // un-delimited value
-                StringBuffer buff = new StringBuffer();
+                StringBuilder buff = new StringBuilder();
                 buff.append((char) ch);
                 while (true) {
                     ch = readChar();
@@ -442,7 +442,7 @@ public class Csv implements SimpleRowSource {
     }
 
     private String unEscape(String s) {
-        StringBuffer buff = new StringBuffer(s.length());
+        StringBuilder buff = new StringBuilder(s.length());
         int start = 0;
         char[] chars = null;
         while (true) {

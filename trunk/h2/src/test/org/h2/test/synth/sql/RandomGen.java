@@ -87,7 +87,7 @@ public class RandomGen {
      * @return the string
      */
     public String randomString(int len) {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (int i = 0; i < len; i++) {
             String from = (i % 2 == 0) ? "bdfghklmnpqrst" : "aeiou";
             buff.append(from.charAt(getInt(from.length())));
@@ -227,7 +227,7 @@ public class RandomGen {
         if (random.nextInt(10) == 0) {
             return null;
         }
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         buff.append(getInt(24));
         buff.append(':');
         buff.append(getInt(24));
@@ -246,7 +246,7 @@ public class RandomGen {
         if (random.nextInt(10) == 0) {
             return null;
         }
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         buff.append(getInt(10) + 2000);
         buff.append('-');
         int month = getInt(12) + 1;
@@ -291,7 +291,7 @@ public class RandomGen {
         if (random.nextInt(10) == 0) {
             return null;
         }
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         buff.append(getInt(10) + 2000);
         buff.append('-');
         buff.append(getInt(11) + 1);

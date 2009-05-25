@@ -47,7 +47,7 @@ public class TestSimpleIndex extends TestBase {
         random.setSeed(seed);
         String unique = random.nextBoolean() ? "UNIQUE " : "";
         int len = random.getInt(2) + 1;
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (int i = 0; i < len; i++) {
             if (i > 0) {
                 buff.append(", ");
@@ -100,7 +100,7 @@ public class TestSimpleIndex extends TestBase {
             execute("INSERT INTO TEST_M " + sql);
             execute("INSERT INTO TEST_D " + sql);
         }
-        StringBuffer buff = new StringBuffer("WHERE 1=1");
+        StringBuilder buff = new StringBuilder("WHERE 1=1");
         int len = random.getLog(10);
         for (int i = 0; i < len; i++) {
             buff.append(" AND ");
@@ -149,7 +149,7 @@ public class TestSimpleIndex extends TestBase {
 
     private String getResult(String sql) throws SQLException {
         ResultSet rs = stat.executeQuery(sql);
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         while (rs.next()) {
             buff.append(rs.getString(1));
             buff.append("; ");

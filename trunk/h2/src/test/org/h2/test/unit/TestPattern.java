@@ -51,7 +51,7 @@ public class TestPattern extends TestBase {
     }
 
     private static String getRandomValue() {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         int len = (int) (Math.random() * 10);
         String s = "AB_%\\";
         for (int i = 0; i < len; i++) {
@@ -61,7 +61,7 @@ public class TestPattern extends TestBase {
     }
 
     private static String getRandomPattern() {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         int len = (int) (Math.random() * 4);
         String s = "A%_\\";
         for (int i = 0; i < len; i++) {
@@ -78,7 +78,7 @@ public class TestPattern extends TestBase {
 
     private String initPatternRegexp(String pattern, char escape) {
         int len = pattern.length();
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (int i = 0; i < len; i++) {
             char c = pattern.charAt(i);
             if (escape == c) {

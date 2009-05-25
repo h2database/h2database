@@ -74,7 +74,7 @@ public class RuleFixed implements Rule {
         case ANY_WORD:
         case ANY_EXCEPT_2_DOLLAR:
         case ANY_UNTIL_END: {
-            StringBuffer buff = new StringBuffer();
+            StringBuilder buff = new StringBuilder();
             int len = r.nextBoolean() ? 1 : r.nextInt(5);
             for (int i = 0; i < len; i++) {
                 buff.append((char) ('A' + r.nextInt('C' - 'A')));

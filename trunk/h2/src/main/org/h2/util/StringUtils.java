@@ -76,7 +76,7 @@ public class StringUtils {
         if (s == null) {
             return "NULL";
         }
-        StringBuffer buff = new StringBuffer(s.length() + 2);
+        StringBuilder buff = new StringBuilder(s.length() + 2);
         buff.append('\'');
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
@@ -102,7 +102,7 @@ public class StringUtils {
      * @return the Java representation
      */
     public static String javaEncode(String s) {
-        StringBuffer buff = new StringBuffer(s.length());
+        StringBuilder buff = new StringBuilder(s.length());
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             switch (c) {
@@ -181,7 +181,7 @@ public class StringUtils {
      * @return the string
      */
     public static String javaDecode(String s) throws SQLException {
-        StringBuffer buff = new StringBuffer(s.length());
+        StringBuilder buff = new StringBuilder(s.length());
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             if (c == '"') {
@@ -331,7 +331,7 @@ public class StringUtils {
             buff.appendExceptFirst(", ");
             buff.append(quoteJavaString(a));
         }
-        return buff.append("}").toString();
+        return buff.append('}').toString();
     }
 
     /**
@@ -350,7 +350,7 @@ public class StringUtils {
             buff.appendExceptFirst(", ");
             buff.append(a);
         }
-        return buff.append("}").toString();
+        return buff.append('}').toString();
     }
 
     /**
@@ -400,7 +400,7 @@ public class StringUtils {
 */
 //## Java 1.4 end ##
 //        byte[] utf = utf8Encode(s);
-//        StringBuffer buff = new StringBuffer(utf.length);
+//        StringBuilder buff = new StringBuilder(utf.length);
 //        for(int i=0; i<utf.length; i++) {
 //
 //            buff.append()
@@ -452,7 +452,7 @@ public class StringUtils {
             return new String[0];
         }
         ArrayList<String> list = New.arrayList();
-        StringBuffer buff = new StringBuffer(s.length());
+        StringBuilder buff = new StringBuilder(s.length());
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             if (c == separatorChar) {
@@ -608,7 +608,7 @@ public class StringUtils {
      * @return the indented string
      */
     private static String indent(String s, int spaces) {
-        StringBuffer buff = new StringBuffer(s.length() + spaces);
+        StringBuilder buff = new StringBuilder(s.length() + spaces);
         for (int i = 0; i < s.length();) {
             for (int j = 0; j < spaces; j++) {
                 buff.append(' ');
@@ -680,7 +680,7 @@ public class StringUtils {
      * @return the escaped text
      */
     public static String xmlText(String text) {
-        StringBuffer buff = new StringBuffer(text.length());
+        StringBuilder buff = new StringBuilder(text.length());
         for (int i = 0; i < text.length(); i++) {
             char ch = text.charAt(i);
             switch (ch) {
@@ -726,7 +726,7 @@ public class StringUtils {
      * @return the string with the before string replaced
      */
     public static String replaceAll(String s, String before, String after) {
-        StringBuffer buff = new StringBuffer(s.length());
+        StringBuilder buff = new StringBuilder(s.length());
         int index = 0;
         while (true) {
             int next = s.indexOf(before, index);
@@ -749,7 +749,7 @@ public class StringUtils {
      * @return the double quoted text
      */
     public static String quoteIdentifier(String s) {
-        StringBuffer buff = new StringBuffer(s.length() + 2);
+        StringBuilder buff = new StringBuilder(s.length() + 2);
         buff.append('\"');
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
@@ -819,7 +819,7 @@ public class StringUtils {
         } else {
             paddingChar = padding.charAt(0);
         }
-        StringBuffer buff = new StringBuffer(n);
+        StringBuilder buff = new StringBuilder(n);
         n -= string.length();
         if (right) {
             buff.append(string);

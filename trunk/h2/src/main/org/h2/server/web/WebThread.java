@@ -286,7 +286,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     }
 
     private String getComboBox(String[] elements, String selected) {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (String value : elements) {
             buff.append("<option value=\"");
             buff.append(PageParser.escapeHtmlData(value));
@@ -302,7 +302,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     }
 
     private String getComboBox(String[][] elements, String selected) {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (String[] n : elements) {
             buff.append("<option value=\"");
             buff.append(PageParser.escapeHtmlData(n[0]));
@@ -318,7 +318,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     }
 
     private String readHeaderLine() throws IOException {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         while (true) {
             int i = input.read();
             if (i == -1) {
@@ -684,8 +684,8 @@ class WebThread extends Thread implements DatabaseEventListener {
         return "query.jsp";
     }
 
-    private int addColumns(DbTableOrView table, StringBuffer buff, int treeIndex, boolean showColumnTypes,
-            StringBuffer columnsBuffer) {
+    private int addColumns(DbTableOrView table, StringBuilder buff, int treeIndex, boolean showColumnTypes,
+            StringBuilder columnsBuffer) {
         DbColumn[] columns = table.columns;
         for (int i = 0; columns != null && i < columns.length; i++) {
             DbColumn column = columns[i];
@@ -727,7 +727,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         String columns;
     }
 
-    private int addIndexes(DatabaseMetaData meta, String table, String schema, StringBuffer buff, int treeIndex)
+    private int addIndexes(DatabaseMetaData meta, String table, String schema, StringBuilder buff, int treeIndex)
             throws SQLException {
         // index reading is very slow for oracle (2 seconds per index), so don't
         // do it
@@ -778,7 +778,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         return treeIndex;
     }
 
-    private int addTablesAndViews(DbSchema schema, boolean mainSchema, StringBuffer buff, int treeIndex)
+    private int addTablesAndViews(DbSchema schema, boolean mainSchema, StringBuilder buff, int treeIndex)
             throws SQLException {
         if (schema == null) {
             return treeIndex;
@@ -808,7 +808,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                     + "', 'javascript:ins(\\'" + tab + "\\',true)');\n");
             treeIndex++;
             if (mainSchema) {
-                StringBuffer columnsBuffer = new StringBuffer();
+                StringBuilder columnsBuffer = new StringBuilder();
                 treeIndex = addColumns(table, buff, treeIndex, notManyTables, columnsBuffer);
                 if (!isOracle && notManyTables) {
                     treeIndex = addIndexes(meta, table.name, schema.name, buff, treeIndex);
@@ -832,7 +832,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                     + "', 'javascript:ins(\\'" + tab + "\\',true)');\n");
             treeIndex++;
             if (mainSchema) {
-                StringBuffer columnsBuffer = new StringBuffer();
+                StringBuilder columnsBuffer = new StringBuilder();
                 treeIndex = addColumns(view, buff, treeIndex, notManyTables, columnsBuffer);
                 if (schema.contents.isH2) {
                     PreparedStatement prep = null;
@@ -868,7 +868,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             DatabaseMetaData meta = session.getMetaData();
             isH2 = contents.isH2;
 
-            StringBuffer buff = new StringBuffer();
+            StringBuilder buff = new StringBuilder();
             buff.append("setNode(0, 0, 0, 'database', '" + PageParser.escapeJavaScript((String) session.get("url"))
                     + "', null);\n");
             int treeIndex = 1;
@@ -979,7 +979,7 @@ class WebThread extends Thread implements DatabaseEventListener {
 
     private String linkToSource(String s) {
         try {
-            StringBuffer result = new StringBuffer(s.length());
+            StringBuilder result = new StringBuilder(s.length());
             int idx = s.indexOf("<br />");
             result.append(s.substring(0, idx));
             while (true) {
@@ -1274,7 +1274,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                     }
                     list.add(s);
                 }
-                StringBuffer buff = new StringBuffer();
+                StringBuilder buff = new StringBuilder();
                 for (int i = 0; i < list.size(); i++) {
                     String s = list.get(i);
                     if (!s.startsWith("@")) {
@@ -1642,7 +1642,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     private String getResult(Connection conn, int id, String sql, boolean allowEdit, boolean forceEdit) {
         try {
             sql = sql.trim();
-            StringBuffer buff = new StringBuffer();
+            StringBuilder buff = new StringBuilder();
             String sqlUpper = StringUtils.toUpperEnglish(sql);
             if (sqlUpper.indexOf("CREATE") >= 0 || sqlUpper.indexOf("DROP") >= 0 || sqlUpper.indexOf("ALTER") >= 0
                     || sqlUpper.indexOf("RUNSCRIPT") >= 0) {
@@ -1837,7 +1837,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     }
 
     private String getHistoryString() {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         ArrayList<String> history = session.getCommands();
         buff.append("<table cellspacing=0 cellpadding=0>");
         buff.append("<tr><th></th><th>Command</th></tr>");
@@ -1857,7 +1857,7 @@ class WebThread extends Thread implements DatabaseEventListener {
     }
 
     private String getParameterResultSet(ParameterMetaData meta) throws SQLException {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         if (meta == null) {
             return "No parameter meta data";
         }
@@ -1887,7 +1887,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             boolean allowEdit) throws SQLException {
         int maxrows = getMaxrows();
         time = System.currentTimeMillis() - time;
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         if (edit) {
             buff.append("<form id=\"editing\" name=\"editing\" method=\"post\" "
                     + "action=\"editResult.do?jsessionid=${sessionId}\" id=\"mainForm\" target=\"h2result\">");

@@ -37,7 +37,7 @@ public class MergeDocs {
         String[] pages = { "quickstart.html", "installation.html", "tutorial.html", "features.html",
                 "performance.html", "advanced.html", "grammar.html", "functions.html", "datatypes.html", "build.html",
                 "history.html", "faq.html" };
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (String fileName : pages) {
             String text = getContent(fileName);
             for (String page : pages) {

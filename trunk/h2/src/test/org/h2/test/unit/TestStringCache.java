@@ -67,7 +67,7 @@ public class TestStringCache extends TestBase {
             return s;
         }
         int len = random.nextBoolean() ? random.nextInt(1000) : random.nextInt(10);
-        StringBuffer buff = new StringBuffer(len);
+        StringBuilder buff = new StringBuilder(len);
         for (int i = 0; i < len; i++) {
             buff.append(random.nextInt(0xfff));
         }

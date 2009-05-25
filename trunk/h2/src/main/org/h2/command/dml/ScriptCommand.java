@@ -49,6 +49,7 @@ import org.h2.util.ByteUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
@@ -215,15 +216,11 @@ public class ScriptCommand extends ScriptBase {
                         Index index = plan.getIndex();
                         Cursor cursor = index.find(session, null, null);
                         Column[] columns = table.getColumns();
-                        StringBuffer buff = new StringBuffer();
-                        buff.append("INSERT INTO ");
-                        buff.append(table.getSQL());
-                        buff.append('(');
-                        for (int j = 0; j < columns.length; j++) {
-                            if (j > 0) {
-                                buff.append(", ");
-                            }
-                            buff.append(Parser.quoteIdentifier(columns[j].getName()));
+                        StatementBuilder buff = new StatementBuilder("INSERT INTO ");
+                        buff.append(table.getSQL()).append('(');
+                        for (Column col : columns) {
+                            buff.appendExceptFirst(", ");
+                            buff.append(Parser.quoteIdentifier(col.getName()));
                         }
                         buff.append(") VALUES");
                         if (!simple) {
@@ -235,7 +232,7 @@ public class ScriptCommand extends ScriptBase {
                         while (cursor.next()) {
                             Row row = cursor.get();
                             if (buff == null) {
-                                buff = new StringBuffer(ins);
+                                buff = new StatementBuilder(ins);
                             } else {
                                 buff.append(",\n(");
                             }
@@ -333,7 +330,7 @@ public class ScriptCommand extends ScriptBase {
             InputStream input = v.getInputStream();
             try {
                 for (int i = 0;; i++) {
-                    StringBuffer buff = new StringBuffer(lobBlockSize * 2);
+                    StringBuilder buff = new StringBuilder(lobBlockSize * 2);
                     buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id + ", " + i + ", NULL, '");
                     int len = IOUtils.readFully(input, bytes, 0, lobBlockSize);
                     if (len <= 0) {
@@ -354,7 +351,7 @@ public class ScriptCommand extends ScriptBase {
             Reader reader = v.getReader();
             try {
                 for (int i = 0;; i++) {
-                    StringBuffer buff = new StringBuffer(lobBlockSize * 2);
+                    StringBuilder buff = new StringBuilder(lobBlockSize * 2);
                     buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id + ", " + i + ", ");
                     int len = IOUtils.readFully(reader, chars, lobBlockSize);
                     if (len < 0) {

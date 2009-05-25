@@ -150,7 +150,7 @@ public class UpdatableRow {
     }
 
 //    public boolean isRowDeleted(Value[] row) throws SQLException {
-//        StringBuffer buff = new StringBuffer();
+//        StringBuilder buff = new StringBuilder();
 //        buff.append("SELECT COUNT(*) FROM ");
 //        buff.append(StringUtils.quoteIdentifier(tableName));
 //        appendKeyCondition(buff);

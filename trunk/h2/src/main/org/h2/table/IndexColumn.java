@@ -38,7 +38,7 @@ public class IndexColumn {
      * @return the SQL snippet
      */
     public String getSQL() {
-        StringBuffer buff = new StringBuffer(column.getSQL());
+        StringBuilder buff = new StringBuilder(column.getSQL());
         if ((sortType & SortOrder.DESCENDING) != 0) {
             buff.append(" DESC");
         }

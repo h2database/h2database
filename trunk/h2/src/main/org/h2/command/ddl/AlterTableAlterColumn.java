@@ -239,9 +239,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
         int id = db.allocateObjectId(true, true);
         TableData newTable = getSchema().createTable(tempName, id, newColumns, table.isPersistIndexes(), table.isPersistData(), false, Index.EMPTY_HEAD, session);
         newTable.setComment(table.getComment());
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         buff.append(newTable.getCreateSQL());
-        StringBuffer columnList = new StringBuffer();
+        StringBuilder columnList = new StringBuilder();
         for (Column nc : newColumns) {
             if (columnList.length() > 0) {
                 columnList.append(", ");

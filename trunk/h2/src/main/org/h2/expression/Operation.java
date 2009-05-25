@@ -114,9 +114,8 @@ public class Operation extends Expression {
                 return l;
             }
             String s1 = l.getString(), s2 = r.getString();
-            StringBuffer buff = new StringBuffer(s1.length() + s2.length());
-            buff.append(s1);
-            buff.append(s2);
+            StringBuilder buff = new StringBuilder(s1.length() + s2.length());
+            buff.append(s1).append(s2);
             return ValueString.get(buff.toString());
         }
         case PLUS:

@@ -41,7 +41,7 @@ public class TestScript extends TestBase {
     private PrintStream out;
     private ArrayList<String[]> result = New.arrayList();
     private String putBack;
-    private StringBuffer errors;
+    private StringBuilder errors;
     private ArrayList<String> statements;
     private String fileName = "org/h2/test/test-" +
         Constants.VERSION_MAJOR + "." + Constants.VERSION_MINOR + ".txt";
@@ -90,7 +90,7 @@ public class TestScript extends TestBase {
         conn = getConnection("script");
         stat = conn.createStatement();
         out = new PrintStream(new FileOutputStream(outFile));
-        errors = new StringBuffer();
+        errors = new StringBuilder();
         testFile(inFile);
         conn.close();
         out.close();
@@ -121,7 +121,7 @@ public class TestScript extends TestBase {
     private void testFile(String inFile) throws Exception {
         InputStream is = getClass().getClassLoader().getResourceAsStream(inFile);
         in = new LineNumberReader(new InputStreamReader(is, "Cp1252"));
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         while (true) {
             String sql = readLine();
             if (sql == null) {
@@ -135,7 +135,7 @@ public class TestScript extends TestBase {
                 write(sql);
                 buff.append(sql.substring(0, sql.length() - 1));
                 sql = buff.toString();
-                buff = new StringBuffer();
+                buff = new StringBuilder();
                 process(sql);
             } else {
                 write(sql);
@@ -209,13 +209,13 @@ public class TestScript extends TestBase {
 
     private int processPrepared(String sql, PreparedStatement prep, String param) throws Exception {
         try {
-            StringBuffer buff = new StringBuffer();
+            StringBuilder buff = new StringBuilder();
             int index = 0;
             for (int i = 0; i < param.length(); i++) {
                 char c = param.charAt(i);
                 if (c == ',') {
                     setParameter(prep, ++index, buff.toString());
-                    buff = new StringBuffer();
+                    buff = new StringBuilder();
                 } else if (c == '"') {
                     while (true) {
                         c = param.charAt(++i);
@@ -305,7 +305,7 @@ public class TestScript extends TestBase {
 
     private String format(String[] row, int[] max) {
         int length = max.length;
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (int i = 0; i < length; i++) {
             if (i > 0) {
                 buff.append(' ');

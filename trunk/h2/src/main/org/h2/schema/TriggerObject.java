@@ -229,7 +229,7 @@ public class TriggerObject extends SchemaObjectBase {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         buff.append("CREATE FORCE TRIGGER ");
         buff.append(quotedName);
         if (before) {
@@ -255,7 +255,7 @@ public class TriggerObject extends SchemaObjectBase {
     }
 
     public String getTypeNameList() {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         if ((typeMask & Trigger.INSERT) != 0) {
             buff.append("INSERT");
         }

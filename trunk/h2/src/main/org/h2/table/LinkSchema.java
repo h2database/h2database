@@ -51,14 +51,14 @@ public class LinkSchema {
             rs = c2.getMetaData().getTables(null, sourceSchema, null, null);
             while (rs.next()) {
                 String table = rs.getString("TABLE_NAME");
-                StringBuffer buff = new StringBuffer();
+                StringBuilder buff = new StringBuilder();
                 buff.append("DROP TABLE IF EXISTS ");
                 buff.append(StringUtils.quoteIdentifier(targetSchema));
                 buff.append('.');
                 buff.append(StringUtils.quoteIdentifier(table));
                 String sql = buff.toString();
                 stat.execute(sql);
-                buff = new StringBuffer();
+                buff = new StringBuilder();
                 buff.append("CREATE LINKED TABLE ");
                 buff.append(StringUtils.quoteIdentifier(targetSchema));
                 buff.append('.');

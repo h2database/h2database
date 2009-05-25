@@ -41,7 +41,7 @@ public class SelectOrderBy {
     public boolean nullsLast;
 
     public String getSQL() {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         if (expression != null) {
             buff.append('=').append(expression.getSQL());
         } else {

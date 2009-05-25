@@ -212,7 +212,7 @@ public class FtpClient {
     private String removeQuotes() {
         int first = message.indexOf('"') + 1;
         int last = message.lastIndexOf('"');
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (int i = first; i < last; i++) {
             char ch = message.charAt(i);
             buff.append(ch);

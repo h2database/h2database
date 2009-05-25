@@ -572,7 +572,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @return the string, reversed
      */
     public static String reverse(String s) {
-        return new StringBuffer(s).reverse().toString();
+        return new StringBuilder(s).reverse().toString();
     }
 
     /**

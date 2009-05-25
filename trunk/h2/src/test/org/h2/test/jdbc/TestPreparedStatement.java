@@ -871,7 +871,7 @@ public class TestPreparedStatement extends TestBase {
         PreparedStatement prep;
         ResultSet rs;
         stat.execute("CREATE TABLE T_CLOB(ID INT PRIMARY KEY,V1 CLOB,V2 CLOB)");
-        StringBuffer asciiBuffer = new StringBuffer();
+        StringBuilder asciiBuffer = new StringBuilder();
         int len = getLength();
         for (int i = 0; i < len; i++) {
             asciiBuffer.append((char) ('a' + (i % 20)));

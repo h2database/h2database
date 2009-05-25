@@ -81,8 +81,8 @@ public class TestNativeSQL extends TestBase {
         Random random = new Random(1);
         String s = "'\"$/-* \n";
         for (int i = 0; i < 200; i++) {
-            StringBuffer buffQuoted = new StringBuffer();
-            StringBuffer buffRaw = new StringBuffer();
+            StringBuilder buffQuoted = new StringBuilder();
+            StringBuilder buffRaw = new StringBuilder();
             if (random.nextBoolean()) {
                 buffQuoted.append("'");
                 for (int j = 0; j < 10; j++) {
@@ -118,7 +118,7 @@ public class TestNativeSQL extends TestBase {
     private void testRandom() throws SQLException {
         Random random = new Random(1);
         for (int i = 0; i < 100; i++) {
-            StringBuffer buff = new StringBuffer("{oj }");
+            StringBuilder buff = new StringBuilder("{oj }");
             String s = "{}\'\"-/*$ $-";
             for (int j = random.nextInt(30); j > 0; j--) {
                 buff.append(s.charAt(random.nextInt(s.length())));
@@ -132,7 +132,7 @@ public class TestNativeSQL extends TestBase {
         }
         String smallest = null;
         for (int i = 0; i < 1000; i++) {
-            StringBuffer buff = new StringBuffer("{oj }");
+            StringBuilder buff = new StringBuilder("{oj }");
             for (int j = random.nextInt(10); j > 0; j--) {
                 String s;
                 switch(random.nextInt(7)) {

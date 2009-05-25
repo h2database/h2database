@@ -203,7 +203,7 @@ public class Indexer {
 
     private void listWords() {
         output.println("// words: " + wordList.size());
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         String first = "";
         int firstLen = 1;
         int totalRelations = 0;
@@ -213,7 +213,7 @@ public class Indexer {
             if (!first.equals(lower.substring(0, firstLen))) {
                 if (buff.length() > 0) {
                     output.println("ref['" + convertUTF(first) + "']='" + buff.toString() + "';");
-                    buff = new StringBuffer();
+                    buff = new StringBuilder();
                 }
                 first = lower.substring(0, firstLen);
             }

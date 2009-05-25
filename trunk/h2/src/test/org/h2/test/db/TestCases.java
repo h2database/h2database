@@ -629,7 +629,7 @@ public class TestCases extends TestBase {
         stat.execute("CREATE TABLE TEST(A INT, B INT, C INT, DATA VARCHAR)");
         int increment = getSize(100, 1);
         for (int i = 1; i < 500; i += increment) {
-            StringBuffer buff = new StringBuffer();
+            StringBuilder buff = new StringBuilder();
             buff.append("CREATE TABLE TEST");
             for (int j = 0; j < i; j++) {
                 buff.append('a');

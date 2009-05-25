@@ -80,7 +80,7 @@ public class PgTcpRedirect {
         }
 
         String readStringNull(InputStream in) throws IOException {
-            StringBuffer buff = new StringBuffer();
+            StringBuilder buff = new StringBuilder();
             while (true) {
                 int x = in.read();
                 if (x <= 0) {

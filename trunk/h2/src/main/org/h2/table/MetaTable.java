@@ -1341,7 +1341,7 @@ public class MetaTable extends Table {
                 }
                 String columnList = null;
                 if (columns != null) {
-                    StringBuffer buff = new StringBuffer();
+                    StringBuilder buff = new StringBuilder();
                     for (int j = 0; j < columns.length; j++) {
                         if (j > 0) {
                             buff.append(',');

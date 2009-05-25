@@ -356,7 +356,7 @@ public class TraceObject {
         if (map.size() == 0) {
             return "new Map()";
         }
-        StringBuffer buff = new StringBuffer("new Map() /* ");
+        StringBuilder buff = new StringBuilder("new Map() /* ");
         try {
             for (Map.Entry<String, Class < ? >> entry : map.entrySet()) {
                 String key = entry.getKey();

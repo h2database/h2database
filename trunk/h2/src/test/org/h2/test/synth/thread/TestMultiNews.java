@@ -95,7 +95,7 @@ public class TestMultiNews extends TestMultiThread {
         PreparedStatement prep2 = conn.prepareStatement("INSERT INTO TEST (NAME) VALUES (?)");
         for (int i = 0; i < len; i++) {
             int x = random.nextInt(10) * 128;
-            StringBuffer buff = new StringBuffer();
+            StringBuilder buff = new StringBuilder();
             while (buff.length() < x) {
                 buff.append("Test ");
                 buff.append(buff.length());

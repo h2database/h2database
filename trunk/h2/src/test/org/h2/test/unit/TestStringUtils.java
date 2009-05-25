@@ -107,7 +107,7 @@ public class TestStringUtils extends TestBase {
         Random random = new Random(1);
         for (int i = 0; i < 100; i++) {
             int len = random.nextInt(10);
-            StringBuffer buff = new StringBuffer();
+            StringBuilder buff = new StringBuilder();
             for (int j = 0; j < len; j++) {
                 if (random.nextBoolean()) {
                     buff.append((char) random.nextInt(0x3000));
@@ -128,7 +128,7 @@ public class TestStringUtils extends TestBase {
         Random random = new Random(1);
         for (int i = 0; i < 1000; i++) {
             int len = random.nextInt(10);
-            StringBuffer buff = new StringBuffer();
+            StringBuilder buff = new StringBuilder();
             for (int j = 0; j < len; j++) {
                 if (random.nextBoolean()) {
                     buff.append((char) random.nextInt(0x3000));
@@ -149,7 +149,7 @@ public class TestStringUtils extends TestBase {
         Random random = new Random(1);
         for (int i = 0; i < 100; i++) {
             int len = random.nextInt(10);
-            StringBuffer buff = new StringBuffer();
+            StringBuilder buff = new StringBuilder();
             String select = "abcd,";
             for (int j = 0; j < len; j++) {
                 char c = select.charAt(random.nextInt(select.length()));

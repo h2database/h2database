@@ -67,12 +67,9 @@ public class Comment extends DbObjectBase {
     }
 
     public String getCreateSQL() {
-        StringBuffer buff = new StringBuffer();
-        buff.append("COMMENT ON ");
-        buff.append(getTypeName(objectType));
-        buff.append(' ');
-        buff.append(objectName);
-        buff.append(" IS ");
+        StringBuilder buff = new StringBuilder("COMMENT ON ");
+        buff.append(getTypeName(objectType)).append(' ').
+            append(objectName).append(" IS ");
         if (commentText == null) {
             buff.append("NULL");
         } else {

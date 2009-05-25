@@ -49,10 +49,8 @@ public class Setting extends DbObjectBase {
     }
 
     public String getCreateSQL() {
-        StringBuffer buff = new StringBuffer();
-        buff.append("SET ");
-        buff.append(getSQL());
-        buff.append(' ');
+        StringBuilder buff = new StringBuilder("SET ");
+        buff.append(getSQL()).append(' ');
         if (stringValue != null) {
             buff.append(stringValue);
         } else {

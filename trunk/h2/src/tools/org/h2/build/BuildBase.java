@@ -441,7 +441,7 @@ public class BuildBase {
     }
 
     private String convertBytesToString(byte[] value) {
-        StringBuffer buff = new StringBuffer(value.length * 2);
+        StringBuilder buff = new StringBuilder(value.length * 2);
         for (byte c : value) {
             int x = c & 0xff;
             buff.append(Integer.toString(x >> 4, 16));

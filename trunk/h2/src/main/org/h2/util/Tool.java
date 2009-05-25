@@ -60,7 +60,7 @@ public abstract class Tool {
      * @param db the database name or null
      */
     protected void printNoDatabaseFilesFound(String dir, String db) {
-        StringBuffer buff = new StringBuffer("No database files have been found");
+        StringBuilder buff = new StringBuilder("No database files have been found");
         if (dir != null) {
             buff.append(" in directory ");
             buff.append(dir);

@@ -295,11 +295,8 @@ java org.h2.test.TestAll timer
 recover tool: move
 alter table add constraint behind insert into select
 
-i > 0 -> StatementBuidler
-StringBuffer > StringBuilder
+j > 0 -> StatementBuilder
 buff.append... chain
-SqlStatement.appendExceptFirst
-append(".") > append('.')
 
 BaseIndex or TableData should have its own compareMode
 (default is: Database.compareMode when created).
@@ -669,7 +666,7 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
     }
 
     public String toString() {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         appendIf(buff, big, "big");
         appendIf(buff, networked, "net");
         appendIf(buff, memory, "memory");
@@ -693,7 +690,7 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
         return buff.toString();
     }
 
-    private void appendIf(StringBuffer buff, boolean flag, String text) {
+    private void appendIf(StringBuilder buff, boolean flag, String text) {
         if (flag) {
             buff.append(text);
             buff.append(' ');

@@ -63,7 +63,7 @@ public class ScriptReader {
         if (end) {
             return null;
         }
-        StringBuffer buff = new StringBuffer(200);
+        StringBuilder buff = new StringBuilder(200);
         int previous = 0;
         int c = read();
         while (true) {

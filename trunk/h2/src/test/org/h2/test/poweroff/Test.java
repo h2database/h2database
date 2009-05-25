@@ -154,8 +154,8 @@ public class Test {
                 new Test("org.h2.Driver", "jdbc:h2:test5", "sa", "", true),
                 new Test("org.h2.Driver", "jdbc:h2:test6", "sa", "", false), };
         for (int i = 0;; i++) {
-            for (int j = 0; j < dbs.length; j++) {
-                dbs[j].insert(i);
+            for (Test t : dbs) {
+                t.insert(i);
             }
             out.writeInt(i);
             out.flush();

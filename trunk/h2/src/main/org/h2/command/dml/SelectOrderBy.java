@@ -43,8 +43,7 @@ public class SelectOrderBy {
     public String getSQL() {
         StringBuffer buff = new StringBuffer();
         if (expression != null) {
-            buff.append("=");
-            buff.append(expression.getSQL());
+            buff.append('=').append(expression.getSQL());
         } else {
             buff.append(columnIndexExpr.getSQL());
         }

@@ -18,6 +18,7 @@ import org.h2.result.SearchRow;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableLink;
+import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -86,35 +87,28 @@ public class LinkedIndex extends BaseIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        StringBuffer buff = new StringBuffer();
+        StatementBuilder buff = new StatementBuilder("SELECT * FROM ");
+        buff.append(targetTableName).append(" T");
         for (int i = 0; first != null && i < first.getColumnCount(); i++) {
             Value v = first.getValue(i);
             if (v != null) {
-                if (buff.length() != 0) {
-                    buff.append(" AND ");
-                }
+                buff.appendOnlyFirst(" WHERE ");
+                buff.appendExceptFirst(" AND ");
                 Column col = table.getColumn(i);
-                buff.append(col.getSQL());
-                buff.append(">=");
+                buff.append(col.getSQL()).append(">=");
                 addParameter(buff, col);
             }
         }
         for (int i = 0; last != null && i < last.getColumnCount(); i++) {
             Value v = last.getValue(i);
             if (v != null) {
-                if (buff.length() != 0) {
-                    buff.append(" AND ");
-                }
+                buff.appendOnlyFirst(" WHERE ");
+                buff.appendExceptFirst(" AND ");
                 Column col = table.getColumn(i);
-                buff.append(col.getSQL());
-                buff.append("<=");
+                buff.append(col.getSQL()).append("<=");
                 addParameter(buff, col);
             }
         }
-        if (buff.length() > 0) {
-            buff.insert(0, " WHERE ");
-        }
-        buff.insert(0, "SELECT * FROM " + targetTableName + " T");
         String sql = buff.toString();
         synchronized (link.getConnection()) {
             try {
@@ -142,17 +136,15 @@ public class LinkedIndex extends BaseIndex {
         }
     }
 
-    private void addParameter(StringBuffer buff, Column col) {
+    private void addParameter(StatementBuilder buff, Column col) {
         if (col.getType() == Value.STRING_FIXED && link.isOracle()) {
             // workaround for Oracle
             // create table test(id int primary key, name char(15));
             // insert into test values(1, 'Hello')
             // select * from test where name = ? -- where ? = "Hello" > no rows
-            buff.append("CAST(? AS CHAR(");
-            buff.append(col.getPrecision());
-            buff.append("))");
+            buff.append("CAST(? AS CHAR(").append(col.getPrecision()).append("))");
         } else {
-            buff.append("?");
+            buff.append('?');
         }
     }
 
@@ -187,13 +179,10 @@ public class LinkedIndex extends BaseIndex {
     }
 
     public void remove(Session session, Row row) throws SQLException {
-        StringBuffer buff = new StringBuffer("DELETE FROM ");
-        buff.append(targetTableName);
-        buff.append(" WHERE ");
+        StatementBuilder buff = new StatementBuilder("DELETE FROM ");
+        buff.append(targetTableName).append(" WHERE ");
         for (int i = 0; i < row.getColumnCount(); i++) {
-            if (i > 0) {
-                buff.append("AND ");
-            }
+            buff.appendExceptFirst("AND ");
             Column col = table.getColumn(i);
             buff.append(col.getSQL());
             Value v = row.getValue(i);
@@ -232,28 +221,24 @@ public class LinkedIndex extends BaseIndex {
      * @param newRow the new data
      */
     public void update(Row oldRow, Row newRow) throws SQLException {
-        StringBuffer buff = new StringBuffer("UPDATE ");
+        StatementBuilder buff = new StatementBuilder("UPDATE ");
         buff.append(targetTableName).append(" SET ");
         for (int i = 0; i < newRow.getColumnCount(); i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
+            buff.appendExceptFirst(", ");
             buff.append(table.getColumn(i).getSQL()).append("=?");
         }
         buff.append(" WHERE ");
+        buff.resetCount();
         for (int i = 0; i < oldRow.getColumnCount(); i++) {
-            if (i > 0) {
-                buff.append("AND ");
-            }
             Column col = table.getColumn(i);
+            buff.appendExceptFirst(" AND ");
             buff.append(col.getSQL());
             Value v = oldRow.getValue(i);
             if (isNull(v)) {
-                buff.append(" IS NULL ");
+                buff.append(" IS NULL");
             } else {
                 buff.append('=');
                 addParameter(buff, col);
-                buff.append(' ');
             }
         }
         String sql = buff.toString();

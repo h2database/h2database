@@ -40,6 +40,7 @@ import org.h2.store.fs.FileSystem;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 //## Java 1.4 end ##
 
@@ -498,19 +499,16 @@ public class FullTextLucene extends FullText {
             doc.add(new Field(FIELD_QUERY, query, Field.Store.YES, Field.Index.UN_TOKENIZED));
             long time = System.currentTimeMillis();
             doc.add(new Field("modified", DateTools.timeToString(time, DateTools.Resolution.SECOND), Field.Store.YES, Field.Index.UN_TOKENIZED));
-            StringBuffer allData = new StringBuffer();
-            for (int i = 0; i < indexColumns.length; i++) {
-                int index = indexColumns[i];
+            StatementBuilder buff = new StatementBuilder();
+            for (int index : indexColumns) {
                 String columnName = columns[index];
                 String data = asString(row[index], columnTypes[index]);
                 doc.add(new Field(FIELD_COLUMN_PREFIX + columnName, data, Field.Store.NO, Field.Index.TOKENIZED));
-                if (i > 0) {
-                    allData.append(" ");
-                }
-                allData.append(data);
+                buff.appendExceptFirst(" ");
+                buff.append(data);
             }
             Field.Store storeText = STORE_DOCUMENT_TEXT_IN_INDEX ? Field.Store.YES : Field.Store.NO;
-            doc.add(new Field(FIELD_DATA, allData.toString(), storeText,
+            doc.add(new Field(FIELD_DATA, buff.toString(), storeText,
                     Field.Index.TOKENIZED));
             try {
                 indexModifier.addDocument(doc);
@@ -530,29 +528,22 @@ public class FullTextLucene extends FullText {
         }
 
         private String getQuery(Object[] row) throws SQLException {
-            StringBuffer buff = new StringBuffer();
+            StatementBuilder buff = new StatementBuilder();
             if (schema != null) {
-                buff.append(StringUtils.quoteIdentifier(schema));
-                buff.append(".");
+                buff.append(StringUtils.quoteIdentifier(schema)).append(".");
             }
-            buff.append(StringUtils.quoteIdentifier(table));
-            buff.append(" WHERE ");
-            for (int i = 0; i < keys.length; i++) {
-                if (i > 0) {
-                    buff.append(" AND ");
-                }
-                int columnIndex = keys[i];
+            buff.append(StringUtils.quoteIdentifier(table)).append(" WHERE ");
+            for (int columnIndex : keys) {
+                buff.appendExceptFirst(" AND ");
                 buff.append(StringUtils.quoteIdentifier(columns[columnIndex]));
                 Object o = row[columnIndex];
                 if (o == null) {
                     buff.append(" IS NULL");
                 } else {
-                    buff.append("=");
-                    buff.append(FullText.quoteSQL(o, columnTypes[columnIndex]));
+                    buff.append('=').append(FullText.quoteSQL(o, columnTypes[columnIndex]));
                 }
             }
-            String key = buff.toString();
-            return key;
+            return buff.toString();
         }
     }
 

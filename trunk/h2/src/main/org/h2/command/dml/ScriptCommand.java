@@ -259,7 +259,7 @@ public class ScriptCommand extends ScriptBase {
                                     buff.append(v.getSQL());
                                 }
                             }
-                            buff.append(")");
+                            buff.append(')');
                             if (simple || buff.length() > Constants.IO_BUFFER_SIZE) {
                                 add(buff.toString(), true);
                                 buff = null;

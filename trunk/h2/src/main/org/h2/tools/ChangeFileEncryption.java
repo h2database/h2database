@@ -124,8 +124,8 @@ public class ChangeFileEncryption extends Tool {
     private void process(String dir, String db, String cipher, char[] decryptPassword, char[] encryptPassword, boolean quiet) throws SQLException {
         ChangeFileEncryption change = new ChangeFileEncryption();
         if (encryptPassword != null) {
-            for (int i = 0; i < encryptPassword.length; i++) {
-                if (encryptPassword[i] == ' ') {
+            for (char c : encryptPassword) {
+                if (c == ' ') {
                     throw new SQLException("The file password may not contain spaces");
                 }
             }

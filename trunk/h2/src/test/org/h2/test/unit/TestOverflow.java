@@ -64,10 +64,8 @@ public class TestOverflow extends TestBase {
                 add((random.nextBoolean() ? 1 : -1) * random.nextInt((int) max));
             }
         }
-        for (int a = 0; a < values.size(); a++) {
-            for (int b = 0; b < values.size(); b++) {
-                Value va = values.get(a);
-                Value vb = values.get(b);
+        for (Value va : values) {
+            for (Value vb : values) {
                 testValues(va, vb);
             }
         }

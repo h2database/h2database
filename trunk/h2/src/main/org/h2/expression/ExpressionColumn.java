@@ -78,15 +78,13 @@ public class ExpressionColumn extends Expression {
         if (schemaName != null && !schemaName.equals(resolver.getSchemaName())) {
             return;
         }
-        Column[] columns = resolver.getColumns();
-        for (int i = 0; i < columns.length; i++) {
-            Column col = columns[i];
+        for (Column col : resolver.getColumns()) {
             if (columnName.equals(col.getName())) {
                 mapColumn(resolver, col, level);
                 return;
             }
         }
-        columns = resolver.getSystemColumns();
+        Column[] columns = resolver.getSystemColumns();
         for (int i = 0; columns != null && i < columns.length; i++) {
             Column col = columns[i];
             if (columnName.equals(col.getName())) {

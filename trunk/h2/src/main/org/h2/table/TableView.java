@@ -24,6 +24,7 @@ import org.h2.schema.Schema;
 import org.h2.util.IntArray;
 import org.h2.util.ObjectArray;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
@@ -153,35 +154,27 @@ public class TableView extends Table {
     }
 
     public String getCreateSQL() {
-        StringBuffer buff = new StringBuffer();
-        buff.append("CREATE FORCE VIEW ");
+        StatementBuilder buff = new StatementBuilder("CREATE FORCE VIEW ");
         buff.append(getSQL());
         if (comment != null) {
-            buff.append(" COMMENT ");
-            buff.append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }
         if (columns.length > 0) {
             buff.append('(');
-            for (int i = 0; i < columns.length; i++) {
-                if (i > 0) {
-                    buff.append(", ");
-                }
-                buff.append(columns[i].getSQL());
+            for (Column c : columns) {
+                buff.appendExceptFirst(", ");
+                buff.append(c.getSQL());
             }
-            buff.append(")");
+            buff.append(')');
         } else if (columnNames != null) {
             buff.append('(');
-            for (int i = 0; i < columnNames.length; i++) {
-                if (i > 0) {
-                    buff.append(", ");
-                }
-                buff.append(columnNames[i]);
+            for (String n : columnNames) {
+                buff.appendExceptFirst(", ");
+                buff.append(n);
             }
-            buff.append(")");
+            buff.append(')');
         }
-        buff.append(" AS\n");
-        buff.append(querySQL);
-        return buff.toString();
+        return buff.append(" AS\n").append(querySQL).toString();
     }
 
     public void checkRename() {

@@ -22,6 +22,7 @@ import java.net.Socket;
 import org.h2.engine.Constants;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
 /**
@@ -228,11 +229,9 @@ public class FtpClient {
         int first = message.indexOf('(') + 1;
         int last = message.indexOf(')');
         String[] address = StringUtils.arraySplit(message.substring(first, last), ',', true);
-        StringBuffer buff = new StringBuffer();
+        StatementBuilder buff = new StatementBuilder();
         for (int i = 0; i < 4; i++) {
-            if (i > 0) {
-                buff.append('.');
-            }
+            buff.appendExceptFirst(".");
             buff.append(address[i]);
         }
         String ip = buff.toString();

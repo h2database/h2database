@@ -13,6 +13,7 @@ import org.h2.engine.Database;
 import org.h2.expression.Expression;
 import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -77,19 +78,16 @@ public class SortOrder {
      * @return the SQL snippet
      */
     public String getSQL(Expression[] list, int visible) {
-        StringBuffer buff = new StringBuffer();
-        for (int i = 0; i < len; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            int idx = indexes[i];
+        StatementBuilder buff = new StatementBuilder();
+        int i = 0;
+        for (int idx : indexes) {
+            buff.appendExceptFirst(", ");
             if (idx < visible) {
                 buff.append(idx + 1);
             } else {
-                buff.append("=");
-                buff.append(StringUtils.unEnclose(list[idx].getSQL()));
+                buff.append('=').append(StringUtils.unEnclose(list[idx].getSQL()));
             }
-            int type = sortTypes[i];
+            int type = sortTypes[i++];
             if ((type & DESCENDING) != 0) {
                 buff.append(" DESC");
             }

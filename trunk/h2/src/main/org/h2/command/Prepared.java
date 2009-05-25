@@ -19,6 +19,7 @@ import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.util.ObjectArray;
+import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
 /**
@@ -312,20 +313,14 @@ public abstract class Prepared {
             long time = System.currentTimeMillis() - startTime;
             String params;
             if (parameters.size() > 0) {
-                StringBuffer buff = new StringBuffer(parameters.size() * 10);
-                buff.append(" {");
-                for (int i = 0; i < parameters.size(); i++) {
-                    if (i > 0) {
-                        buff.append(", ");
-                    }
-                    buff.append(i + 1);
-                    buff.append(": ");
-                    Expression e = parameters.get(i);
+                StatementBuilder buff = new StatementBuilder(" {");
+                int i = 0;
+                for (Expression e : parameters) {
+                    buff.appendExceptFirst(", ");
                     Value v = e.getValue(session);
-                    buff.append(v.getTraceSQL());
+                    buff.append(++i).append(": ").append(v.getTraceSQL());
                 }
-                buff.append("}");
-                params = buff.toString();
+                params = buff.append('}').toString();
             } else {
                 params = "";
             }
@@ -377,12 +372,9 @@ public abstract class Prepared {
      * @return the SQL snippet
      */
     protected String getSQL(Value[] values) {
-        StringBuffer buff = new StringBuffer();
-        for (int i = 0; i < values.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            Value v = values[i];
+        StatementBuilder buff = new StatementBuilder();
+        for (Value v : values) {
+            buff.appendExceptFirst(", ");
             if (v != null) {
                 buff.append(v.getSQL());
             }
@@ -397,12 +389,9 @@ public abstract class Prepared {
      * @return the SQL snippet
      */
     protected String getSQL(Expression[] list) {
-        StringBuffer buff = new StringBuffer();
-        for (int i = 0; i < list.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            Expression e = list[i];
+        StatementBuilder buff = new StatementBuilder();
+        for (Expression e : list) {
+            buff.appendExceptFirst(", ");
             if (e != null) {
                 buff.append(e.getSQL());
             }
@@ -427,9 +416,9 @@ public abstract class Prepared {
             }
             buff.append(" -- ");
             if (rowId > 0) {
-                buff.append("row #").append(rowId + 1).append(" ");
+                buff.append("row #").append(rowId + 1).append(' ');
             }
-            buff.append("(").append(values).append(")");
+            buff.append('(').append(values).append(')');
             e.setSQL(buff.toString());
         }
         return ex;

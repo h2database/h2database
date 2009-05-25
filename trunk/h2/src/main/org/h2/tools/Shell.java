@@ -20,7 +20,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
-
 import org.h2.engine.Constants;
 import org.h2.server.web.ConnectionInfo;
 import org.h2.util.ClassUtils;

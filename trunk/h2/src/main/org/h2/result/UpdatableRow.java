@@ -16,6 +16,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.Message;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ObjectArray;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -113,11 +114,10 @@ public class UpdatableRow {
         throw Message.getSQLException(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
     }
 
-    private void appendColumnList(StringBuffer buff, boolean set) {
+    private void appendColumnList(StatementBuilder buff, boolean set) {
+        buff.resetCount();
         for (int i = 0; i < columnCount; i++) {
-            if (i > 0) {
-                buff.append(',');
-            }
+            buff.appendExceptFirst(",");
             String col = result.getColumnName(i);
             buff.append(StringUtils.quoteIdentifier(col));
             if (set) {
@@ -126,14 +126,12 @@ public class UpdatableRow {
         }
     }
 
-    private void appendKeyCondition(StringBuffer buff) {
+    private void appendKeyCondition(StatementBuilder buff) {
         buff.append(" WHERE ");
-        for (int i = 0; i < key.size(); i++) {
-            if (i > 0) {
-                buff.append(" AND ");
-            }
-            buff.append(StringUtils.quoteIdentifier(key.get(i)));
-            buff.append("=?");
+        buff.resetCount();
+        for (String k : key) {
+            buff.appendExceptFirst(" AND ");
+            buff.append(StringUtils.quoteIdentifier(k)).append("=?");
         }
     }
 
@@ -163,10 +161,9 @@ public class UpdatableRow {
 //        return rs.getInt(1) == 0;
 //    }
 
-    private void appendTableName(StringBuffer buff) {
+    private void appendTableName(StatementBuilder buff) {
         if (schemaName != null && schemaName.length() > 0) {
-            buff.append(StringUtils.quoteIdentifier(schemaName));
-            buff.append('.');
+            buff.append(StringUtils.quoteIdentifier(schemaName)).append('.');
         }
         buff.append(StringUtils.quoteIdentifier(tableName));
     }
@@ -178,8 +175,7 @@ public class UpdatableRow {
      * @return the row
      */
     public Value[] readRow(Value[] row) throws SQLException {
-        StringBuffer buff = new StringBuffer();
-        buff.append("SELECT ");
+        StatementBuilder buff = new StatementBuilder("SELECT ");
         appendColumnList(buff, false);
         buff.append(" FROM ");
         appendTableName(buff);
@@ -205,8 +201,7 @@ public class UpdatableRow {
      * @throws SQLException if this row has already been deleted
      */
     public void deleteRow(Value[] current) throws SQLException {
-        StringBuffer buff = new StringBuffer();
-        buff.append("DELETE FROM ");
+        StatementBuilder buff = new StatementBuilder("DELETE FROM ");
         appendTableName(buff);
         appendKeyCondition(buff);
         PreparedStatement prep = conn.prepareStatement(buff.toString());
@@ -226,8 +221,7 @@ public class UpdatableRow {
      * @throws SQLException if the row has been deleted
      */
     public void updateRow(Value[] current, Value[] updateRow) throws SQLException {
-        StringBuffer buff = new StringBuffer();
-        buff.append("UPDATE ");
+        StatementBuilder buff = new StatementBuilder("UPDATE ");
         appendTableName(buff);
         buff.append(" SET ");
         appendColumnList(buff, true);
@@ -259,16 +253,14 @@ public class UpdatableRow {
      * @throws SQLException if the row could not be inserted
      */
     public void insertRow(Value[] row) throws SQLException {
-        StringBuffer buff = new StringBuffer();
-        buff.append("INSERT INTO ");
+        StatementBuilder buff = new StatementBuilder("INSERT INTO ");
         appendTableName(buff);
         buff.append('(');
         appendColumnList(buff, false);
         buff.append(")VALUES(");
+        buff.resetCount();
         for (int i = 0; i < columnCount; i++) {
-            if (i > 0) {
-                buff.append(',');
-            }
+            buff.appendExceptFirst(",");
             buff.append('?');
         }
         buff.append(')');

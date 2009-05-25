@@ -38,6 +38,7 @@ import org.h2.table.TableFilter;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.ObjectUtils;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
@@ -580,16 +581,14 @@ public class Select extends Query {
             if (tableAlias == null) {
                 int temp = i;
                 expressions.remove(i);
-                for (int j = 0; j < filters.size(); j++) {
-                    TableFilter filter = filters.get(j);
+                for (TableFilter filter : filters) {
                     Wildcard c2 = new Wildcard(filter.getTable().getSchema().getName(), filter.getTableAlias());
                     expressions.add(i++, c2);
                 }
                 i = temp - 1;
             } else {
                 TableFilter filter = null;
-                for (int j = 0; j < filters.size(); j++) {
-                    TableFilter f = filters.get(j);
+                for (TableFilter f : filters) {
                     if (tableAlias.equals(f.getTableAlias())) {
                         if (schemaName == null || schemaName.equals(f.getSchemaName())) {
                             filter = f;
@@ -604,8 +603,7 @@ public class Select extends Query {
                 String alias = filter.getTableAlias();
                 expressions.remove(i);
                 Column[] columns = t.getColumns();
-                for (int j = 0; j < columns.length; j++) {
-                    Column c = columns[j];
+                for (Column c : columns) {
                     if (filter.isNaturalJoinColumn(c)) {
                         continue;
                     }
@@ -726,8 +724,7 @@ public class Select extends Query {
             if (SysProperties.optimizeInJoin) {
                 condition = condition.optimizeInJoin(session, this);
             }
-            for (int j = 0; j < filters.size(); j++) {
-                TableFilter f = filters.get(j);
+            for (TableFilter f : filters) {
                 condition.createIndexConditions(session, f);
             }
         }
@@ -852,62 +849,52 @@ public class Select extends Query {
         // can not use the field sqlStatement because the parameter
         // indexes may be incorrect: ? may be in fact ?2 for a subquery
         // but indexes may be set manually as well
-        StringBuffer buff = new StringBuffer();
         Expression[] exprList = new Expression[expressions.size()];
         expressions.toArray(exprList);
-        buff.append("SELECT ");
+        StatementBuilder buff = new StatementBuilder("SELECT ");
         if (distinct) {
             buff.append("DISTINCT ");
         }
         for (int i = 0; i < visibleColumnCount; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            Expression expr = exprList[i];
-            buff.append(expr.getSQL());
+            buff.appendExceptFirst(", ");
+            buff.append(exprList[i].getSQL());
         }
         buff.append("\nFROM ");
         TableFilter filter = topTableFilter;
         if (filter != null) {
+            buff.resetCount();
             int i = 0;
             do {
-                if (i > 0) {
-                    buff.append("\n");
-                }
-                buff.append(filter.getPlanSQL(i > 0));
-                i++;
+                buff.appendExceptFirst("\n");
+                buff.append(filter.getPlanSQL(i++ > 0));
                 filter = filter.getJoin();
             } while (filter != null);
         } else {
-            for (int i = 0; i < filters.size(); i++) {
-                if (i > 0) {
-                    buff.append("\n");
-                }
-                filter = filters.get(i);
-                buff.append(filter.getPlanSQL(i > 0));
+            buff.resetCount();
+            int i = 0;
+            for (TableFilter f : filters) {
+                buff.appendExceptFirst("\n");
+                buff.append(f.getPlanSQL(i++ > 0));
             }
         }
         if (condition != null) {
-            buff.append("\nWHERE " + StringUtils.unEnclose(condition.getSQL()));
+            buff.append("\nWHERE ").append(StringUtils.unEnclose(condition.getSQL()));
         }
         if (groupIndex != null) {
             buff.append("\nGROUP BY ");
-            for (int i = 0; i < groupIndex.length; i++) {
-                Expression g = exprList[groupIndex[i]];
+            buff.resetCount();
+            for (int gi : groupIndex) {
+                Expression g = exprList[gi];
                 g = g.getNonAliasExpression();
-                if (i > 0) {
-                    buff.append(", ");
-                }
+                buff.appendExceptFirst(", ");
                 buff.append(StringUtils.unEnclose(g.getSQL()));
             }
         }
         if (group != null) {
             buff.append("\nGROUP BY ");
-            for (int i = 0; i < group.size(); i++) {
-                Expression g = group.get(i);
-                if (i > 0) {
-                    buff.append(", ");
-                }
+            buff.resetCount();
+            for (Expression g : group) {
+                buff.appendExceptFirst(", ");
                 buff.append(StringUtils.unEnclose(g.getSQL()));
             }
         }
@@ -916,31 +903,26 @@ public class Select extends Query {
             // in this case the query is not run directly, just getPlanSQL is
             // called
             Expression h = having;
-            buff.append("\nHAVING " + StringUtils.unEnclose(h.getSQL()));
+            buff.append("\nHAVING ").append(StringUtils.unEnclose(h.getSQL()));
         } else if (havingIndex >= 0) {
             Expression h = exprList[havingIndex];
-            buff.append("\nHAVING " + StringUtils.unEnclose(h.getSQL()));
+            buff.append("\nHAVING ").append(StringUtils.unEnclose(h.getSQL()));
         }
         if (sort != null) {
-            buff.append("\nORDER BY ");
-            buff.append(sort.getSQL(exprList, visibleColumnCount));
+            buff.append("\nORDER BY ").append(sort.getSQL(exprList, visibleColumnCount));
         }
         if (orderList != null) {
             buff.append("\nORDER BY ");
-            for (int i = 0; i < orderList.size(); i++) {
-                if (i > 0) {
-                    buff.append(", ");
-                }
-                SelectOrderBy o = orderList.get(i);
+            buff.resetCount();
+            for (SelectOrderBy o : orderList) {
+                buff.appendExceptFirst(", ");
                 buff.append(StringUtils.unEnclose(o.getSQL()));
             }
         }
         if (limitExpr != null) {
-            buff.append("\nLIMIT ");
-            buff.append(StringUtils.unEnclose(limitExpr.getSQL()));
+            buff.append("\nLIMIT ").append(StringUtils.unEnclose(limitExpr.getSQL()));
             if (offsetExpr != null) {
-                buff.append(" OFFSET ");
-                buff.append(StringUtils.unEnclose(offsetExpr.getSQL()));
+                buff.append(" OFFSET ").append(StringUtils.unEnclose(offsetExpr.getSQL()));
             }
         }
         if (isForUpdate) {

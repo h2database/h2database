@@ -17,6 +17,7 @@ import org.h2.table.Column;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
+import org.h2.util.StatementBuilder;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -49,20 +50,14 @@ public class TableFunction extends Function {
     }
 
     public String getSQL() {
-        StringBuffer buff = new StringBuffer();
-        buff.append(getName());
+        StatementBuilder buff = new StatementBuilder(getName());
         buff.append('(');
-        for (int i = 0; i < args.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(columnList[i].getCreateSQL());
-            buff.append("=");
-            Expression e = args[i];
-            buff.append(e.getSQL());
+        int i = 0;
+        for (Expression e : args) {
+            buff.appendExceptFirst(", ");
+            buff.append(columnList[i++].getCreateSQL()).append("=").append(e.getSQL());
         }
-        buff.append(')');
-        return buff.toString();
+        return buff.append(')').toString();
     }
 
 

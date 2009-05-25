@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import org.h2.store.DataPage;
 import org.h2.store.DiskFile;
 import org.h2.store.Record;
+import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
 /**
@@ -46,8 +47,7 @@ public class Row extends Record implements SearchRow {
 
     public void write(DataPage buff) throws SQLException {
         buff.writeInt(data.length);
-        for (int i = 0; i < data.length; i++) {
-            Value v = data[i];
+        for (Value v : data) {
             buff.writeValue(v);
         }
     }
@@ -86,8 +86,7 @@ public class Row extends Record implements SearchRow {
     }
 
     public String toString() {
-        StringBuffer buff = new StringBuffer(data.length * 5);
-        buff.append("( /* pos:");
+        StatementBuilder buff = new StatementBuilder("( /* pos:");
         buff.append(getPos());
         if (version != 0) {
             buff.append(" v:" + version);
@@ -96,15 +95,11 @@ public class Row extends Record implements SearchRow {
             buff.append(" deleted");
         }
         buff.append(" */ ");
-        for (int i = 0; i < data.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            Value v = data[i];
+        for (Value v : data) {
+            buff.appendExceptFirst(", ");
             buff.append(v == null ? "null" : v.getTraceSQL());
         }
-        buff.append(')');
-        return buff.toString();
+        return buff.append(')').toString();
     }
 
 }

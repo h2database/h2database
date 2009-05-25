@@ -131,7 +131,7 @@ public class ConstraintCheck extends Constraint {
         buff.append(filter.getTable().getSQL());
         buff.append(" WHERE NOT(");
         buff.append(expr.getSQL());
-        buff.append(")");
+        buff.append(')');
         String sql = buff.toString();
         LocalResult r = session.prepare(sql).query(1);
         if (r.next()) {

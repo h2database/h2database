@@ -153,8 +153,7 @@ class PageBtreeNode extends PageBtree {
     }
 
     protected void remapChildren() throws SQLException {
-        for (int i = 0; i < childPageIds.length; i++) {
-            int child = childPageIds[i];
+        for (int child : childPageIds) {
             PageBtree p = index.getPage(child);
             p.setParentPageId(getPos());
             index.getPageStore().updateRecord(p, true, p.data);
@@ -222,8 +221,8 @@ class PageBtreeNode extends PageBtree {
     int getRowCount() throws SQLException {
         if (rowCount == UNKNOWN_ROWCOUNT) {
             int count = 0;
-            for (int i = 0; i < childPageIds.length; i++) {
-                PageBtree page = index.getPage(childPageIds[i]);
+            for (int child : childPageIds) {
+                PageBtree page = index.getPage(child);
                 count += page.getRowCount();
             }
             rowCount = count;
@@ -240,8 +239,8 @@ class PageBtreeNode extends PageBtree {
     }
 
     private void check() {
-        for (int i = 0; i < childPageIds.length; i++) {
-            if (childPageIds[i] == 0) {
+        for (int child : childPageIds) {
+            if (child == 0) {
                 Message.throwInternalError();
             }
         }

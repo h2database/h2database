@@ -442,10 +442,10 @@ public class BuildBase {
 
     private String convertBytesToString(byte[] value) {
         StringBuffer buff = new StringBuffer(value.length * 2);
-        for (int i = 0; i < value.length; i++) {
-            int c = value[i] & 0xff;
-            buff.append(Integer.toString(c >> 4, 16));
-            buff.append(Integer.toString(c & 0xf, 16));
+        for (byte c : value) {
+            int x = c & 0xff;
+            buff.append(Integer.toString(x >> 4, 16));
+            buff.append(Integer.toString(x & 0xf, 16));
         }
         return buff.toString();
     }

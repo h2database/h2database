@@ -146,9 +146,9 @@ public class Player {
      * @return the class
      */
     static Class< ? > getClass(String className) {
-        for (int i = 0; i < IMPORTED_PACKAGES.length; i++) {
+        for (String s : IMPORTED_PACKAGES) {
             try {
-                return Class.forName(IMPORTED_PACKAGES[i] + className);
+                return Class.forName(s + className);
             } catch (ClassNotFoundException e) {
                 // ignore
             }

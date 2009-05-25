@@ -128,8 +128,8 @@ public class Plan {
     }
 
     private void setEvaluatable(TableFilter filter, boolean b) {
-        for (int j = 0; j < allConditions.length; j++) {
-            allConditions[j].setEvaluatable(filter, b);
+        for (Expression e : allConditions) {
+            e.setEvaluatable(filter, b);
         }
     }
 }

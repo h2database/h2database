@@ -53,7 +53,7 @@ public class SmallMap {
         if (id > lastId) {
             lastId = id;
         }
-        map.put(ObjectUtils.getInteger(id), o);
+        map.put(id, o);
         cacheId = id;
         cache = o;
         return id;
@@ -69,7 +69,7 @@ public class SmallMap {
             cacheId = -1;
             cache = null;
         }
-        map.remove(ObjectUtils.getInteger(id));
+        map.remove(id);
     }
 
     /**
@@ -85,7 +85,7 @@ public class SmallMap {
         if (id == cacheId) {
             return cache;
         }
-        Object obj = map.get(ObjectUtils.getInteger(id));
+        Object obj = map.get(id);
         if (obj == null && !ifAvailable) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }

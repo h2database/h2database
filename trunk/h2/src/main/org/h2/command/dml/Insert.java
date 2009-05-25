@@ -22,6 +22,7 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.ObjectArray;
+import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
 /**
@@ -137,30 +138,24 @@ public class Insert extends Prepared {
     }
 
     public String getPlanSQL() {
-        StringBuffer buff = new StringBuffer();
-        buff.append("INSERT INTO ");
-        buff.append(table.getSQL());
-        buff.append('(');
-        for (int i = 0; i < columns.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(columns[i].getSQL());
+        StatementBuilder buff = new StatementBuilder("INSERT INTO ");
+        buff.append(table.getSQL()).append('(');
+        for (Column c : columns) {
+            buff.appendExceptFirst(", ");
+            buff.append(c.getSQL());
         }
         buff.append(")\n");
         if (list.size() > 0) {
             buff.append("VALUES ");
-            for (int x = 0; x < list.size(); x++) {
-                Expression[] expr = list.get(x);
-                if (x > 0) {
+            int row = 0;
+            for (Expression[] expr : list) {
+                if (row++ > 0) {
                     buff.append(", ");
                 }
-                buff.append("(");
-                for (int i = 0; i < columns.length; i++) {
-                    if (i > 0) {
-                        buff.append(", ");
-                    }
-                    Expression e = expr[i];
+                buff.append('(');
+                buff.resetCount();
+                for (Expression e : expr) {
+                    buff.appendExceptFirst(", ");
                     if (e == null) {
                         buff.append("DEFAULT");
                     } else {
@@ -185,8 +180,7 @@ public class Insert extends Prepared {
             }
         }
         if (list.size() > 0) {
-            for (int x = 0; x < list.size(); x++) {
-                Expression[] expr = list.get(x);
+            for (Expression[] expr : list) {
                 if (expr.length != columns.length) {
                     throw Message.getSQLException(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }

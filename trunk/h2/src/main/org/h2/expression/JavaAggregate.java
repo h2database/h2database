@@ -19,6 +19,7 @@ import org.h2.engine.UserAggregate;
 import org.h2.message.Message;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.StatementBuilder;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -45,8 +46,8 @@ public class JavaAggregate extends Expression {
 
     public int getCost() {
         int cost = 5;
-        for (int i = 0; i < args.length; i++) {
-            cost += args[i].getCost();
+        for (Expression e : args) {
+            cost += e.getCost();
         }
         return cost;
     }
@@ -64,18 +65,13 @@ public class JavaAggregate extends Expression {
     }
 
     public String getSQL() {
-        StringBuffer buff = new StringBuffer();
-        buff.append(Parser.quoteIdentifier(userAggregate.getName()));
-        buff.append('(');
-        for (int i = 0; i < args.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            Expression e = args[i];
+        StatementBuilder buff = new StatementBuilder();
+        buff.append(Parser.quoteIdentifier(userAggregate.getName())).append('(');
+        for (Expression e : args) {
+            buff.appendExceptFirst(", ");
             buff.append(e.getSQL());
         }
-        buff.append(')');
-        return buff.toString();
+        return buff.append(')').toString();
     }
 
     public int getType() {
@@ -96,8 +92,7 @@ public class JavaAggregate extends Expression {
             return false;
         default:
         }
-        for (int i = 0; i < args.length; i++) {
-            Expression e = args[i];
+        for (Expression e : args) {
             if (e != null && !e.isEverything(visitor)) {
                 return false;
             }
@@ -128,8 +123,8 @@ public class JavaAggregate extends Expression {
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        for (int i = 0; i < args.length; i++) {
-            args[i].setEvaluatable(tableFilter, b);
+        for (Expression e : args) {
+            e.setEvaluatable(tableFilter, b);
         }
     }
 

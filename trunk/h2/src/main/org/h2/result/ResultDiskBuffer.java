@@ -86,10 +86,9 @@ class ResultDiskBuffer implements ResultExternal {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int bufferLen = 0;
         int maxBufferSize = SysProperties.LARGE_RESULT_BUFFER_SIZE;
-        for (int i = 0; i < rows.size(); i++) {
+        for (Value[] row : rows) {
             buff.reset();
             buff.writeInt(0);
-            Value[] row = rows.get(i);
             for (int j = 0; j < columnCount; j++) {
                 buff.writeValue(row[j]);
             }
@@ -131,8 +130,7 @@ class ResultDiskBuffer implements ResultExternal {
 
     public void reset() {
         if (sort != null) {
-            for (int i = 0; i < tapes.size(); i++) {
-                ResultDiskTape tape = getTape(i);
+            for (ResultDiskTape tape : tapes) {
                 tape.pos = tape.start;
                 tape.buffer = ObjectArray.newInstance();
             }
@@ -180,7 +178,7 @@ class ResultDiskBuffer implements ResultExternal {
     private Value[] nextSorted() throws SQLException {
         int next = -1;
         for (int i = 0; i < tapes.size(); i++) {
-            ResultDiskTape tape = getTape(i);
+            ResultDiskTape tape = tapes.get(i);
             if (tape.buffer.size() == 0 && tape.pos < tape.end) {
                 file.seek(tape.pos);
                 for (int j = 0; tape.pos < tape.end && j < READ_AHEAD; j++) {
@@ -190,19 +188,15 @@ class ResultDiskBuffer implements ResultExternal {
             if (tape.buffer.size() > 0) {
                 if (next == -1) {
                     next = i;
-                } else if (compareTapes(tape, getTape(next)) < 0) {
+                } else if (compareTapes(tape, tapes.get(next)) < 0) {
                     next = i;
                 }
             }
         }
-        ResultDiskTape t = getTape(next);
+        ResultDiskTape t = tapes.get(next);
         Value[] row = t.buffer.get(0);
         t.buffer.remove(0);
         return row;
-    }
-
-    private ResultDiskTape getTape(int i) {
-        return tapes.get(i);
     }
 
     private int compareTapes(ResultDiskTape a, ResultDiskTape b) throws SQLException {

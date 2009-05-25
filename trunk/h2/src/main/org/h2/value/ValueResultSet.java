@@ -13,6 +13,7 @@ import java.sql.SQLException;
 
 import org.h2.message.Message;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.StatementBuilder;
 
 /**
  * Implementation of the RESULT_SET data type.
@@ -83,8 +84,7 @@ public class ValueResultSet extends Value {
 
     public String getString() {
         try {
-            StringBuffer buff = new StringBuffer();
-            buff.append("(");
+            StatementBuilder buff = new StatementBuilder("(");
             result.beforeFirst();
             ResultSetMetaData meta = result.getMetaData();
             int columnCount = meta.getColumnCount();
@@ -93,19 +93,17 @@ public class ValueResultSet extends Value {
                     buff.append(", ");
                 }
                 buff.append('(');
+                buff.resetCount();
                 for (int j = 0; j < columnCount; j++) {
-                    if (j > 0) {
-                        buff.append(", ");
-                    }
+                    buff.appendExceptFirst(", ");
                     int t = DataType.convertSQLTypeToValueType(meta.getColumnType(j + 1));
                     Value v = DataType.readValue(null, result, j+1, t);
                     buff.append(v.getString());
                 }
                 buff.append(')');
             }
-            buff.append(")");
             result.beforeFirst();
-            return buff.toString();
+            return buff.append(')').toString();
         } catch (SQLException e) {
             throw Message.convertToInternal(e);
         }

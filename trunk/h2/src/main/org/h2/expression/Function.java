@@ -50,6 +50,7 @@ import org.h2.util.MemoryUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -538,8 +539,8 @@ public class Function extends Expression implements FunctionCall {
             break;
         case CONCAT: {
             result = ValueNull.INSTANCE;
-            for (int i = 0; i < args.length; i++) {
-                Value v = args[i].getValue(session);
+            for (Expression e : args) {
+                Value v = e.getValue(session);
                 if (v == ValueNull.INSTANCE) {
                     continue;
                 }
@@ -830,8 +831,7 @@ public class Function extends Expression implements FunctionCall {
     private boolean cancelStatement(Session session, int targetSessionId) throws SQLException {
         session.getUser().checkAdmin();
         Session[] sessions = session.getDatabase().getSessions(false);
-        for (int i = 0; i < sessions.length; i++) {
-            Session s = sessions[i];
+        for (Session s : sessions) {
             if (s.getId() == targetSessionId) {
                 Command c = s.getCurrentCommand();
                 if (c == null) {
@@ -1488,8 +1488,8 @@ public class Function extends Expression implements FunctionCall {
     }
 
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
-        for (int i = 0; i < args.length; i++) {
-            args[i].mapColumns(resolver, level);
+        for (Expression e : args) {
+            e.mapColumns(resolver, level);
         }
     }
 
@@ -1626,8 +1626,7 @@ public class Function extends Expression implements FunctionCall {
             s = 0;
             p = 0;
             d = 0;
-            for (int i = 0; i < args.length; i++) {
-                Expression e = args[i];
+            for (Expression e : args) {
                 if (e != ValueExpression.getNull() && e.getType() != Value.UNKNOWN) {
                     t = Value.getHigherOrder(t, e.getType());
                     s = Math.max(s, e.getScale());
@@ -1732,8 +1731,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        for (int i = 0; i < args.length; i++) {
-            Expression e = args[i];
+        for (Expression e : args) {
             if (e != null) {
                 e.setEvaluatable(tableFilter, b);
             }
@@ -1776,9 +1774,9 @@ public class Function extends Expression implements FunctionCall {
         case CONCAT:
             precision = 0;
             displaySize = 0;
-            for (int i = 0; i < args.length; i++) {
-                precision += args[i].getPrecision();
-                displaySize = MathUtils.convertLongToInt((long) displaySize + args[i].getDisplaySize());
+            for (Expression e : args) {
+                precision += e.getPrecision();
+                displaySize = MathUtils.convertLongToInt((long) displaySize + e.getDisplaySize());
                 if (precision < 0) {
                     precision = Long.MAX_VALUE;
                 }
@@ -1823,46 +1821,38 @@ public class Function extends Expression implements FunctionCall {
     }
 
     public String getSQL() {
-        StringBuffer buff = new StringBuffer();
-        buff.append(info.name);
+        StatementBuilder buff = new StatementBuilder(info.name);
         buff.append('(');
         switch (info.type) {
         case CAST: {
-            buff.append(args[0].getSQL());
-            buff.append(" AS ");
-            buff.append(new Column(null, dataType, precision, scale, displaySize).getCreateSQL());
+            buff.append(args[0].getSQL()).
+                append(" AS ").
+                append(new Column(null, dataType, precision, scale, displaySize).getCreateSQL());
             break;
         }
         case CONVERT: {
-            buff.append(args[0].getSQL());
-            buff.append(",");
-            buff.append(new Column(null, dataType, precision, scale, displaySize).getCreateSQL());
+            buff.append(args[0].getSQL()).
+                append(",").
+                append(new Column(null, dataType, precision, scale, displaySize).getCreateSQL());
             break;
         }
         case EXTRACT: {
             ValueString v = (ValueString) ((ValueExpression) args[0]).getValue(null);
-            buff.append(v.getString());
-            buff.append(" FROM ");
-            buff.append(args[1].getSQL());
+            buff.append(v.getString()).append(" FROM ").append(args[1].getSQL());
             break;
         }
         default: {
-            for (int i = 0; i < args.length; i++) {
-                if (i > 0) {
-                    buff.append(", ");
-                }
-                Expression e = args[i];
+            for (Expression e : args) {
+                buff.appendExceptFirst(", ");
                 buff.append(e.getSQL());
             }
         }
         }
-        buff.append(')');
-        return buff.toString();
+        return buff.append(')').toString();
     }
 
     public void updateAggregate(Session session) throws SQLException {
-        for (int i = 0; i < args.length; i++) {
-            Expression e = args[i];
+        for (Expression e : args) {
             if (e != null) {
                 e.updateAggregate(session);
             }
@@ -1933,8 +1923,7 @@ public class Function extends Expression implements FunctionCall {
         if (visitor.getType() == ExpressionVisitor.DETERMINISTIC && !info.deterministic) {
             return false;
         }
-        for (int i = 0; i < args.length; i++) {
-            Expression e = args[i];
+        for (Expression e : args) {
             if (e != null && !e.isEverything(visitor)) {
                 return false;
             }
@@ -1944,8 +1933,8 @@ public class Function extends Expression implements FunctionCall {
 
     public int getCost() {
         int cost = 3;
-        for (int i = 0; i < args.length; i++) {
-            cost += args[i].getCost();
+        for (Expression e : args) {
+            cost += e.getCost();
         }
         return cost;
     }

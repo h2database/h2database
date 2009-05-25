@@ -28,7 +28,7 @@ class OrderExpression<T> {
         this.nullsLast = nullsLast;
     }
 
-    void appendSQL(SqlStatement stat) {
+    void appendSQL(SQLStatement stat) {
         query.appendSQL(stat, expression);
         if (desc) {
             stat.appendSQL(" DESC");

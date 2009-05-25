@@ -381,8 +381,7 @@ public class Column {
     public String getCreateSQL() {
         StringBuffer buff = new StringBuffer();
         if (name != null) {
-            buff.append(Parser.quoteIdentifier(name));
-            buff.append(' ');
+            buff.append(Parser.quoteIdentifier(name)).append(' ');
         }
         if (originalSQL != null) {
             buff.append(originalSQL);
@@ -390,20 +389,14 @@ public class Column {
             buff.append(DataType.getDataType(type).name);
             switch (type) {
             case Value.DECIMAL:
-                buff.append("(");
-                buff.append(precision);
-                buff.append(", ");
-                buff.append(scale);
-                buff.append(")");
+                buff.append('(').append(precision).append(", ").append(scale).append(')');
                 break;
             case Value.BYTES:
             case Value.STRING:
             case Value.STRING_IGNORECASE:
             case Value.STRING_FIXED:
                 if (precision < Integer.MAX_VALUE) {
-                    buff.append("(");
-                    buff.append(precision);
-                    buff.append(")");
+                    buff.append('(').append(precision).append(")");
                 }
                 break;
             default:
@@ -413,11 +406,9 @@ public class Column {
             String sql = defaultExpression.getSQL();
             if (sql != null) {
                 if (isComputed) {
-                    buff.append(" AS ");
-                    buff.append(sql);
+                    buff.append(" AS ").append(sql);
                 } else if (defaultExpression != null) {
-                    buff.append(" DEFAULT ");
-                    buff.append(sql);
+                    buff.append(" DEFAULT ").append(sql);
                 }
             }
         }
@@ -428,20 +419,16 @@ public class Column {
             buff.append(" NULL_TO_DEFAULT");
         }
         if (sequence != null) {
-            buff.append(" SEQUENCE ");
-            buff.append(sequence.getSQL());
+            buff.append(" SEQUENCE ").append(sequence.getSQL());
         }
         if (selectivity != 0) {
-            buff.append(" SELECTIVITY ");
-            buff.append(selectivity);
+            buff.append(" SELECTIVITY ").append(selectivity);
         }
         if (checkConstraint != null) {
-            buff.append(" CHECK ");
-            buff.append(checkConstraintSQL);
+            buff.append(" CHECK ").append(checkConstraintSQL);
         }
         if (comment != null) {
-            buff.append(" COMMENT ");
-            buff.append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }
         return buff.toString();
     }

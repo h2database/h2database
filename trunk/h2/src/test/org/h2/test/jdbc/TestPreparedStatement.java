@@ -948,8 +948,7 @@ public class TestPreparedStatement extends TestBase {
     }
 
     private void checkBigDecimal(ResultSet rs, String[] value) throws SQLException {
-        for (int i = 0; i < value.length; i++) {
-            String v = value[i];
+        for (String v : value) {
             assertTrue(rs.next());
             java.math.BigDecimal x = rs.getBigDecimal(1);
             trace("v=" + v + " x=" + x);

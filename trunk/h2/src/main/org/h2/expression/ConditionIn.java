@@ -21,6 +21,7 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.FunctionTable;
 import org.h2.table.TableFilter;
 import org.h2.util.ObjectArray;
+import org.h2.util.StatementBuilder;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -53,8 +54,7 @@ public class ConditionIn extends Condition {
         }
         boolean result = false;
         boolean hasNull = false;
-        for (int i = 0; i < values.size(); i++) {
-            Expression e = values.get(i);
+        for (Expression e : values) {
             Value r = e.getValue(session);
             if (r == ValueNull.INSTANCE) {
                 hasNull = true;
@@ -73,8 +73,7 @@ public class ConditionIn extends Condition {
 
     public void mapColumns(ColumnResolver resolver, int queryLevel) throws SQLException {
         left.mapColumns(resolver, queryLevel);
-        for (int i = 0; i < values.size(); i++) {
-            Expression e = values.get(i);
+        for (Expression e : values) {
             e.mapColumns(resolver, queryLevel);
         }
         this.queryLevel = Math.max(queryLevel, this.queryLevel);
@@ -157,31 +156,24 @@ public class ConditionIn extends Condition {
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         left.setEvaluatable(tableFilter, b);
-        for (int i = 0; i < values.size(); i++) {
-            Expression e = values.get(i);
+        for (Expression e : values) {
             e.setEvaluatable(tableFilter, b);
         }
     }
 
     public String getSQL() {
-        StringBuffer buff = new StringBuffer("(");
-        buff.append(left.getSQL());
-        buff.append(" IN(");
-        for (int i = 0; i < values.size(); i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            Expression e = values.get(i);
+        StatementBuilder buff = new StatementBuilder("(");
+        buff.append(left.getSQL()).append(" IN(");
+        for (Expression e : values) {
+            buff.appendExceptFirst(", ");
             buff.append(e.getSQL());
         }
-        buff.append("))");
-        return buff.toString();
+        return buff.append("))").toString();
     }
 
     public void updateAggregate(Session session) throws SQLException {
         left.updateAggregate(session);
-        for (int i = 0; i < values.size(); i++) {
-            Expression e = values.get(i);
+        for (Expression e : values) {
             e.updateAggregate(session);
         }
     }
@@ -194,8 +186,7 @@ public class ConditionIn extends Condition {
     }
 
     private boolean areAllValues(ExpressionVisitor visitor) {
-        for (int i = 0; i < values.size(); i++) {
-            Expression e = values.get(i);
+        for (Expression e : values) {
             if (!e.isEverything(visitor)) {
                 return false;
             }
@@ -205,8 +196,7 @@ public class ConditionIn extends Condition {
 
     public int getCost() {
         int cost = left.getCost();
-        for (int i = 0; i < values.size(); i++) {
-            Expression e = values.get(i);
+        for (Expression e : values) {
             cost += e.getCost();
         }
         return cost;

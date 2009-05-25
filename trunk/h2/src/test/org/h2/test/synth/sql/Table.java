@@ -179,9 +179,9 @@ class Table {
      */
     Column getRandomConditionColumn() {
         ArrayList<Column> list = New.arrayList();
-        for (int i = 0; i < columns.length; i++) {
-            if (Column.isConditionType(config, columns[i].getType())) {
-                list.add(columns[i]);
+        for (Column col : columns) {
+            if (Column.isConditionType(config, col.getType())) {
+                list.add(col);
             }
         }
         if (list.size() == 0) {
@@ -206,9 +206,9 @@ class Table {
      */
     Column getRandomColumnOfType(int type) {
         ArrayList<Column> list = New.arrayList();
-        for (int i = 0; i < columns.length; i++) {
-            if (columns[i].getType() == type) {
-                list.add(columns[i]);
+        for (Column col : columns) {
+            if (col.getType() == type) {
+                list.add(col);
             }
         }
         if (list.size() == 0) {

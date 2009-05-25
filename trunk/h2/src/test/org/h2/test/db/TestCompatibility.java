@@ -76,8 +76,7 @@ public class TestCompatibility extends TestBase {
             columnAlias = "MySQL,Regular";
         }
         stat.execute("CREATE TABLE TEST(ID INT)");
-        for (int i = 0; i < modes.length; i++) {
-            String mode = modes[i];
+        for (String mode : modes) {
             stat.execute("SET MODE " + mode);
             ResultSet rs = stat.executeQuery("SELECT ID I FROM TEST");
             ResultSetMetaData meta = rs.getMetaData();
@@ -98,8 +97,7 @@ public class TestCompatibility extends TestBase {
         Statement stat = conn.createStatement();
         String[] modes = new String[] { "PostgreSQL", "MySQL", "HSQLDB", "MSSQLServer", "Derby", "Oracle", "Regular" };
         String multiNull = "PostgreSQL,MySQL,Oracle,Regular";
-        for (int i = 0; i < modes.length; i++) {
-            String mode = modes[i];
+        for (String mode : modes) {
             stat.execute("SET MODE " + mode);
             stat.execute("CREATE TABLE TEST(ID INT)");
             stat.execute("CREATE UNIQUE INDEX IDX_ID_U ON TEST(ID)");

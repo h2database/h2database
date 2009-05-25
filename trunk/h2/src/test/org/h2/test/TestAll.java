@@ -292,6 +292,15 @@ java org.h2.test.TestAll timer
 
 /*
 
+recover tool: move
+alter table add constraint behind insert into select
+
+i > 0 -> StatementBuidler
+StringBuffer > StringBuilder
+buff.append... chain
+SqlStatement.appendExceptFirst
+append(".") > append('.')
+
 BaseIndex or TableData should have its own compareMode
 (default is: Database.compareMode when created).
 standard: COLLATE for each column (MySQL, SQL Server)
@@ -464,7 +473,7 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
         beforeTest();
 
         // db
-//        new TestScriptSimple().runTest(this);
+        new TestScriptSimple().runTest(this);
         new TestScript().runTest(this);
         new TestAlter().runTest(this);
         new TestAutoRecompile().runTest(this);

@@ -47,7 +47,7 @@ class SelectTable <T> {
         return aliasDef;
     }
 
-    void appendSQL(SqlStatement stat) {
+    void appendSQL(SQLStatement stat) {
         if (query.isJoin()) {
             stat.appendSQL(aliasDef.tableName + " AS " + as);
         } else {
@@ -55,7 +55,7 @@ class SelectTable <T> {
         }
     }
 
-    void appendSQLAsJoin(SqlStatement stat, Query<T> query) {
+    void appendSQLAsJoin(SQLStatement stat, Query<T> query) {
         if (outerJoin) {
             stat.appendSQL(" LEFT OUTER JOIN ");
         } else {

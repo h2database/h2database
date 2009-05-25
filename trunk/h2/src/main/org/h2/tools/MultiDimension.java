@@ -12,9 +12,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-
 import org.h2.util.New;
-import org.h2.util.ObjectUtils;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
 /**
@@ -136,8 +135,8 @@ public class MultiDimension {
         Long[] from = new Long[len];
         Long[] to = new Long[len];
         for (int i = 0; i < len; i++) {
-            from[i] = ObjectUtils.getLong(ranges[i][0]);
-            to[i] = ObjectUtils.getLong(ranges[i][1]);
+            from[i] = Long.valueOf(ranges[i][0]);
+            to[i] = Long.valueOf(ranges[i][1]);
         }
         prep.setObject(1, from);
         prep.setObject(2, to);
@@ -163,24 +162,31 @@ public class MultiDimension {
      */
     public String generateQuery(String table, String scalarColumn, String[] columns, int[] min, int[] max) {
         long[][] ranges = getMortonRanges(min, max);
-        StringBuffer buff = new StringBuffer("SELECT * FROM (");
-        for (int i = 0; i < ranges.length; i++) {
-            if (i > 0) {
-                buff.append(" UNION ALL ");
-            }
-            long minScalar = ranges[i][0];
-            long maxScalar = ranges[i][1];
-            buff.append("SELECT * FROM ").append(table).append(" WHERE ");
-            buff.append(scalarColumn).append(" BETWEEN ");
-            buff.append(minScalar).append(" AND ").append(maxScalar);
+        StatementBuilder buff = new StatementBuilder("SELECT * FROM (");
+        for (long[] range : ranges) {
+            long minScalar = range[0];
+            long maxScalar = range[1];
+            buff.appendExceptFirst(" UNION ALL ");
+            buff.append("SELECT * FROM ").
+                append(table).
+                append(" WHERE ").
+                append(scalarColumn).
+                append(" BETWEEN ").
+                append(minScalar).
+                append(" AND ").
+                append(maxScalar);
         }
         buff.append(") WHERE ");
-        for (int j = 0; j < columns.length; j++) {
-            if (j > 0) {
-                buff.append(" AND ");
-            }
-            buff.append(columns[j]).append(" BETWEEN ");
-            buff.append(min[j]).append(" AND ").append(max[j]);
+        int i = 0;
+        buff.resetCount();
+        for (String col : columns) {
+            buff.appendExceptFirst(" AND ");
+            buff.append(col).
+                append(" BETWEEN ").
+                append(min[i]).
+                append(" AND ").
+                append(max[i]);
+            i++;
         }
         return buff.toString();
     }
@@ -251,8 +257,7 @@ public class MultiDimension {
                 }
             }
             int searched = 0;
-            for (int j = 0; j < list.size(); j++) {
-                long[] range = list.get(j);
+            for (long[] range : list) {
                 searched += range[1] - range[0] + 1;
             }
             if (searched > 2 * total || list.size() < 3 /* || minGap > total */) {

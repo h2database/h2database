@@ -122,8 +122,8 @@ public class Value {
         byte[] bytes = (byte[]) data;
         // StringBuffer buff = new StringBuffer("X'");
         StringBuffer buff = new StringBuffer("'");
-        for (int i = 0; i < bytes.length; i++) {
-            int c = bytes[i] & 0xff;
+        for (byte b : bytes) {
+            int c = b & 0xff;
             buff.append(Integer.toHexString(c >> 4 & 0xf));
             buff.append(Integer.toHexString(c & 0xf));
 

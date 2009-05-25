@@ -26,14 +26,14 @@ public class Function implements Token {
         this.x = x;
     }
 
-    public <T> void appendSQL(SqlStatement stat, Query<T> query) {
-        stat.appendSQL(name);
-        stat.appendSQL("(");
-        for (int i = 0; i < x.length; i++) {
-            if (i > 0) {
+    public <T> void appendSQL(SQLStatement stat, Query<T> query) {
+        stat.appendSQL(name).appendSQL("(");
+        int i = 0;
+        for (Object o : x) {
+            if (i++ > 0) {
                 stat.appendSQL(",");
             }
-            query.appendSQL(stat, x[i]);
+            query.appendSQL(stat, o);
         }
         stat.appendSQL(")");
     }
@@ -61,7 +61,7 @@ public class Function implements Token {
     public static Boolean isNull(Object x) {
         return Db.registerToken(
             Utils.newObject(Boolean.class), new Function("", x) {
-                public <T> void appendSQL(SqlStatement stat, Query<T> query) {
+                public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                     query.appendSQL(stat, x[0]);
                     stat.appendSQL(" IS NULL");
                 }
@@ -71,7 +71,7 @@ public class Function implements Token {
     public static Boolean isNotNull(Object x) {
         return Db.registerToken(
             Utils.newObject(Boolean.class), new Function("", x) {
-                public <T> void appendSQL(SqlStatement stat, Query<T> query) {
+                public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                     query.appendSQL(stat, x[0]);
                     stat.appendSQL(" IS NOT NULL");
                 }
@@ -81,7 +81,7 @@ public class Function implements Token {
     public static Boolean not(Boolean x) {
         return Db.registerToken(
             Utils.newObject(Boolean.class), new Function("", x) {
-                public <T> void appendSQL(SqlStatement stat, Query<T> query) {
+                public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                     stat.appendSQL("NOT ");
                     query.appendSQL(stat, x[0]);
                 }
@@ -92,12 +92,13 @@ public class Function implements Token {
         return Db.registerToken(
                 Utils.newObject(Boolean.class),
                 new Function("", (Object[]) x) {
-            public <T> void appendSQL(SqlStatement stat, Query<T> query) {
-                for (int i = 0; i < x.length; i++) {
-                    if (i > 0) {
+            public <T> void appendSQL(SQLStatement stat, Query<T> query) {
+                int i = 0;
+                for (Object o : x) {
+                    if (i++ > 0) {
                         stat.appendSQL(" OR ");
                     }
-                    query.appendSQL(stat, x[i]);
+                    query.appendSQL(stat, o);
                 }
             }
         });
@@ -107,12 +108,13 @@ public class Function implements Token {
         return Db.registerToken(
                 Utils.newObject(Boolean.class),
                 new Function("", (Object[]) x) {
-            public <T> void appendSQL(SqlStatement stat, Query<T> query) {
-                for (int i = 0; i < x.length; i++) {
-                    if (i > 0) {
+            public <T> void appendSQL(SQLStatement stat, Query<T> query) {
+                int i = 0;
+                for (Object o : x) {
+                    if (i++ > 0) {
                         stat.appendSQL(" AND ");
                     }
-                    query.appendSQL(stat, x[i]);
+                    query.appendSQL(stat, o);
                 }
             }
         });
@@ -135,7 +137,7 @@ public class Function implements Token {
     public static Boolean like(String x, String pattern) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("LIKE", x, pattern) {
-            public <T> void appendSQL(SqlStatement stat, Query<T> query) {
+            public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 stat.appendSQL("(");
                 query.appendSQL(stat, x[0]);
                 stat.appendSQL(" LIKE ");

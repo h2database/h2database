@@ -17,29 +17,37 @@ import java.util.ArrayList;
  * This class represents a parameterized SQL statement.
  */
 //## Java 1.5 begin ##
-public class SqlStatement {
+public class SQLStatement {
     private Db db;
-    private String sql = "";
+    private StringBuilder buff = new StringBuilder();
+    private String sql;
     private ArrayList<Object> params = new ArrayList<Object>();
 
-    SqlStatement(Db db) {
+    SQLStatement(Db db) {
         this.db = db;
     }
 
     void setSQL(String sql) {
         this.sql = sql;
+        buff = new StringBuilder(sql);
     }
 
-    void appendSQL(String s) {
-        sql += s;
+    SQLStatement appendSQL(String s) {
+        buff.append(s);
+        sql = null;
+        return this;
     }
 
     String getSQL() {
+        if (sql == null) {
+            sql = buff.toString();
+        }
         return sql;
     }
 
-    void addParameter(Object o) {
+    SQLStatement addParameter(Object o) {
         params.add(o);
+        return this;
     }
 
     ResultSet executeQuery() {
@@ -67,7 +75,7 @@ public class SqlStatement {
     }
 
     private PreparedStatement prepare() {
-        PreparedStatement prep = db.prepare(sql);
+        PreparedStatement prep = db.prepare(getSQL());
         for (int i = 0; i < params.size(); i++) {
             Object o = params.get(i);
             setValue(prep, i + 1, o);

@@ -88,11 +88,9 @@ public class TestRecover {
             root.mkdirs();
         }
         while (true) {
-            File[] list = root.listFiles();
             File oldest = null;
             int count = 0;
-            for (int i = 0; i < list.length; i++) {
-                File f = list[i];
+            for (File f : root.listFiles()) {
                 String name = f.getName();
                 if (f.isFile() && name.startsWith("backup") && name.endsWith(".zip")) {
                     count++;
@@ -121,8 +119,7 @@ public class TestRecover {
                 out = new FileOutputStream(zipFile);
                 ZipOutputStream zipOut = new ZipOutputStream(out);
                 String baseName = base.getAbsolutePath();
-                for (int i = 0; i < list.size(); i++) {
-                    File f = list.get(i);
+                for (File f : list) {
                     String fileName = f.getAbsolutePath();
                     String entryName = fileName;
                     if (fileName.startsWith(baseName)) {
@@ -168,9 +165,8 @@ public class TestRecover {
 
     private static void deleteRecursive(File file) throws IOException {
         if (file.isDirectory()) {
-            File[] list = file.listFiles();
-            for (int i = 0; i < list.length; i++) {
-                deleteRecursive(list[i]);
+            for (File f : file.listFiles()) {
+                deleteRecursive(f);
             }
         }
         if (file.exists() && !file.delete()) {

@@ -448,9 +448,7 @@ public class Doclet {
     }
 
     private static boolean isDeprecated(MethodDoc method) {
-        Tag[] tags = method.tags();
-        for (int j = 0; j < tags.length; j++) {
-            Tag t = tags[j];
+        for (Tag t : method.tags()) {
             if (t.kind().equals("@deprecated")) {
                 return true;
             }

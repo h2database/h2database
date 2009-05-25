@@ -76,10 +76,9 @@ public class TestCompress extends TestBase {
                     }
                 }
             }
-            String[] algorithm = new String[] { "LZF", "Deflate", "No" };
             CompressTool utils = CompressTool.getInstance();
-            for (int i = 0; i < algorithm.length; i++) {
-                byte[] out = utils.compress(buff, algorithm[i]);
+            for (String a : new String[] { "LZF", "Deflate", "No" }) {
+                byte[] out = utils.compress(buff, a);
                 byte[] test = utils.expand(out);
                 assertEquals(test.length, buff.length);
                 assertEquals(buff, test);

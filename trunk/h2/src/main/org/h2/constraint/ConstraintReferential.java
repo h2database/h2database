@@ -25,6 +25,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.util.ObjectArray;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -74,7 +75,7 @@ public class ConstraintReferential extends Constraint {
         return Constraint.REFERENTIAL;
     }
 
-    private void appendAction(StringBuffer buff, int action) {
+    private void appendAction(StatementBuilder buff, int action) {
         switch (action) {
         case CASCADE:
             buff.append("CASCADE");
@@ -111,29 +112,22 @@ public class ConstraintReferential extends Constraint {
      * @return the SQL statement
      */
     public String getCreateSQLForCopy(Table forTable, Table forRefTable, String quotedName, boolean internalIndex) {
-        StringBuffer buff = new StringBuffer();
-        buff.append("ALTER TABLE ");
+        StatementBuilder buff = new StatementBuilder("ALTER TABLE ");
         String mainTable = forTable.getSQL();
-        buff.append(mainTable);
-        buff.append(" ADD CONSTRAINT ");
-        buff.append(quotedName);
+        buff.append(mainTable).append(" ADD CONSTRAINT ").append(quotedName);
         if (comment != null) {
-            buff.append(" COMMENT ");
-            buff.append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }
         IndexColumn[] cols = columns;
         IndexColumn[] refCols = refColumns;
         buff.append(" FOREIGN KEY(");
-        for (int i = 0; i < cols.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(cols[i].getSQL());
+        for (IndexColumn c : cols) {
+            buff.appendExceptFirst(", ");
+            buff.append(c.getSQL());
         }
-        buff.append(")");
+        buff.append(')');
         if (internalIndex && indexOwner && forTable == this.table) {
-            buff.append(" INDEX ");
-            buff.append(index.getSQL());
+            buff.append(" INDEX ").append(index.getSQL());
         }
         buff.append(" REFERENCES ");
         String quotedRefTable;
@@ -143,18 +137,15 @@ public class ConstraintReferential extends Constraint {
         } else {
             quotedRefTable = forRefTable.getSQL();
         }
-        buff.append(quotedRefTable);
-        buff.append("(");
-        for (int i = 0; i < refCols.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(refCols[i].getSQL());
+        buff.append(quotedRefTable).append('(');
+        buff.resetCount();
+        for (IndexColumn r : refCols) {
+            buff.appendExceptFirst(", ");
+            buff.append(r.getSQL());
         }
-        buff.append(")");
+        buff.append(')');
         if (internalIndex && refIndexOwner && forTable == this.table) {
-            buff.append(" INDEX ");
-            buff.append(refIndex.getSQL());
+            buff.append(" INDEX ").append(refIndex.getSQL());
         }
         if (deleteAction != RESTRICT) {
             buff.append(" ON DELETE ");
@@ -164,8 +155,7 @@ public class ConstraintReferential extends Constraint {
             buff.append(" ON UPDATE ");
             appendAction(buff, updateAction);
         }
-        buff.append(" NOCHECK");
-        return buff.toString();
+        return buff.append(" NOCHECK").toString();
     }
 
 
@@ -176,29 +166,19 @@ public class ConstraintReferential extends Constraint {
      * @return the description
      */
     public String getShortDescription() {
-        StringBuffer buff = new StringBuffer();
-        buff.append(getName());
-        buff.append(": ");
-        buff.append(table.getSQL());
-        buff.append(" FOREIGN KEY(");
-        for (int i = 0; i < columns.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(columns[i].getSQL());
+        StatementBuilder buff = new StatementBuilder(getName());
+        buff.append(": ").append(table.getSQL()).append(" FOREIGN KEY(");
+        for (IndexColumn c : columns) {
+            buff.appendExceptFirst(", ");
+            buff.append(c.getSQL());
         }
-        buff.append(")");
-        buff.append(" REFERENCES ");
-        buff.append(refTable.getSQL());
-        buff.append("(");
-        for (int i = 0; i < refColumns.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(refColumns[i].getSQL());
+        buff.append(") REFERENCES ").append(refTable.getSQL()).append('(');
+        buff.resetCount();
+        for (IndexColumn r : refColumns) {
+            buff.appendExceptFirst(", ");
+            buff.append(r.getSQL());
         }
-        buff.append(")");
-        return buff.toString();
+        return buff.append(')').toString();
     }
 
     public String getCreateSQLWithoutIndexes() {
@@ -484,10 +464,9 @@ public class ConstraintReferential extends Constraint {
         if (deleteAction == RESTRICT) {
             return;
         }
-        StringBuffer buff = new StringBuffer();
+        StatementBuilder buff = new StatementBuilder();
         if (deleteAction == CASCADE) {
-            buff.append("DELETE FROM ");
-            buff.append(table.getSQL());
+            buff.append("DELETE FROM ").append(table.getSQL());
         } else {
             appendUpdate(buff);
         }
@@ -527,7 +506,7 @@ public class ConstraintReferential extends Constraint {
         if (updateAction == RESTRICT) {
             return;
         }
-        StringBuffer buff = new StringBuffer();
+        StatementBuilder buff = new StatementBuilder();
         appendUpdate(buff);
         appendWhere(buff);
         updateSQL = buff.toString();
@@ -561,29 +540,21 @@ public class ConstraintReferential extends Constraint {
         return command;
     }
 
-    private void appendUpdate(StringBuffer buff) {
-        buff.append("UPDATE ");
-        buff.append(table.getSQL());
-        buff.append(" SET ");
-        for (int i = 0; i < columns.length; i++) {
-            if (i > 0) {
-                buff.append(" , ");
-            }
-            Column column = columns[i].column;
-            buff.append(Parser.quoteIdentifier(column.getName()));
-            buff.append("=?");
+    private void appendUpdate(StatementBuilder buff) {
+        buff.append("UPDATE ").append(table.getSQL()).append(" SET ");
+        buff.resetCount();
+        for (IndexColumn c : columns) {
+            buff.appendExceptFirst(" , ");
+            buff.append(Parser.quoteIdentifier(c.column.getName())).append("=?");
         }
     }
 
-    private void appendWhere(StringBuffer buff) {
+    private void appendWhere(StatementBuilder buff) {
         buff.append(" WHERE ");
-        for (int i = 0; i < columns.length; i++) {
-            if (i > 0) {
-                buff.append(" AND ");
-            }
-            Column column = columns[i].column;
-            buff.append(Parser.quoteIdentifier(column.getName()));
-            buff.append("=?");
+        buff.resetCount();
+        for (IndexColumn c : columns) {
+            buff.appendExceptFirst(" AND ");
+            buff.append(Parser.quoteIdentifier(c.column.getName())).append("=?");
         }
     }
 
@@ -628,45 +599,33 @@ public class ConstraintReferential extends Constraint {
             // don't check at startup
             return;
         }
-        StringBuffer buff = new StringBuffer();
-        buff.append("SELECT 1 FROM (SELECT ");
-        for (int i = 0; i < columns.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(columns[i].getSQL());
+        StatementBuilder buff = new StatementBuilder("SELECT 1 FROM (SELECT ");
+        for (IndexColumn c : columns) {
+            buff.appendExceptFirst(", ");
+            buff.append(c.getSQL());
         }
-        buff.append(" FROM ");
-        buff.append(table.getSQL());
-        buff.append(" WHERE ");
-        for (int i = 0; i < columns.length; i++) {
-            if (i > 0) {
-                buff.append(" AND ");
-            }
-            buff.append(columns[i].getSQL());
-            buff.append(" IS NOT NULL ");
+        buff.append(" FROM ").append(table.getSQL()).append(" WHERE ");
+        buff.resetCount();
+        for (IndexColumn c : columns) {
+            buff.appendExceptFirst(" AND ");
+            buff.append(c.getSQL()).append(" IS NOT NULL ");
         }
         buff.append(" ORDER BY ");
-        for (int i = 0; i < columns.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(columns[i].getSQL());
+        buff.resetCount();
+        for (IndexColumn c : columns) {
+            buff.appendExceptFirst(", ");
+            buff.append(c.getSQL());
         }
         buff.append(") C WHERE NOT EXISTS(SELECT 1 FROM ");
-        buff.append(refTable.getSQL());
-        buff.append(" P WHERE ");
-        for (int i = 0; i < columns.length; i++) {
-            if (i > 0) {
-                buff.append(" AND ");
-            }
-            buff.append("C.");
-            buff.append(columns[i].getSQL());
-            buff.append("=");
-            buff.append("P.");
-            buff.append(refColumns[i].getSQL());
+        buff.append(refTable.getSQL()).append(" P WHERE ");
+        buff.resetCount();
+        int i = 0;
+        for (IndexColumn c : columns) {
+            buff.appendExceptFirst(" AND ");
+            buff.append("C.").append(c.getSQL()).append('=');
+            buff.append("P.").append(refColumns[i++].getSQL());
         }
-        buff.append(")");
+        buff.append(')');
         String sql = buff.toString();
         LocalResult r = session.prepare(sql).query(1);
         if (r.next()) {

@@ -41,8 +41,7 @@ public class TestLogFile extends TestBase {
         long length = 0;
         ArrayList<String> files = FileLister.getDatabaseFiles(baseDir, "logfile", false);
         assertSmaller(files.size(), maxFiles + 2);
-        for (int i = 0; i < files.size(); i++) {
-            String fileName = files.get(i);
+        for (String fileName : files) {
             long len = new File(fileName).length();
             length += len;
         }
@@ -77,9 +76,7 @@ public class TestLogFile extends TestBase {
     }
 
     private void checkLogSize() {
-        String[] files = new File(".").list();
-        for (int j = 0; j < files.length; j++) {
-            String name = files[j];
+        for (String name : new File(getTestDir("")).list()) {
             if (name.startsWith("logfile") && name.endsWith(".log.db")) {
                 long length = new File(name).length();
                 assertSmaller(length, MAX_LOG_SIZE * 1024 * 1024 * 2);

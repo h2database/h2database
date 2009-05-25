@@ -72,6 +72,7 @@ import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.ScriptReader;
 import org.h2.util.SortedProperties;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 
@@ -293,7 +294,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             if (value.equals(selected)) {
                 buff.append(" selected");
             }
-            buff.append(">");
+            buff.append('>');
             buff.append(PageParser.escapeHtml(value));
             buff.append("</option>");
         }
@@ -309,7 +310,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             if (n[0].equals(selected)) {
                 buff.append(" selected");
             }
-            buff.append(">");
+            buff.append('>');
             buff.append(PageParser.escapeHtml(n[1]));
             buff.append("</option>");
         }
@@ -533,15 +534,13 @@ class WebThread extends Thread implements DatabaseEventListener {
                     list.add(type + "#" + key + "#" + value);
                 }
                 Collections.sort(list);
-                StringBuffer buff = new StringBuffer();
                 if (query.endsWith("\n") || query.trim().endsWith(";")) {
                     list.add(0, "1#(Newline)#\n");
                 }
-                for (int i = 0; i < list.size(); i++) {
-                    if (i > 0) {
-                        buff.append('|');
-                    }
-                    buff.append(list.get(i));
+                StatementBuilder buff = new StatementBuilder();
+                for (String s : list) {
+                    buff.appendExceptFirst("|");
+                    buff.append(s);
                 }
                 result = buff.toString();
             }
@@ -1776,9 +1775,8 @@ class WebThread extends Thread implements DatabaseEventListener {
             Statement stat = conn.createStatement();
             for (int i = 0; !stop && i < count; i++) {
                 String s = sql;
-                for (int j = 0; j < params.size(); j++) {
+                for (Integer type : params) {
                     idx = s.indexOf('?');
-                    Integer type = params.get(j);
                     if (type.intValue() == 1) {
                         s = s.substring(0, idx) + random.nextInt(count) + s.substring(idx + 1);
                     } else {
@@ -1823,23 +1821,19 @@ class WebThread extends Thread implements DatabaseEventListener {
             }
         }
         time = System.currentTimeMillis() - time;
-        String result = time + " ms: " + count + " * ";
+        StatementBuilder buff = new StatementBuilder();
+        buff.append(time).append(" ms: ").append(count).append(" * ");
         if (prepared) {
-            result += "(Prepared) ";
+            buff.append("(Prepared) ");
         } else {
-            result += "(Statement) ";
+            buff.append("(Statement) ");
         }
-        result += "(";
-        StringBuffer buff = new StringBuffer();
-        for (int i = 0; i < params.size(); i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(params.get(i) == 0 ? "i" : "rnd");
+        buff.append('(');
+        for (int p : params) {
+            buff.appendExceptFirst(", ");
+            buff.append(p == 0 ? "i" : "rnd");
         }
-        result += buff.toString();
-        result += ") " + sql;
-        return result;
+        return buff.append(") ").append(sql).toString();
     }
 
     private String getHistoryString() {
@@ -2032,7 +2026,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         } else if (rows == 1) {
             buff.append("(${text.result.1row}");
         } else {
-            buff.append("(");
+            buff.append('(');
             buff.append(rows);
             buff.append(" ${text.result.rows}");
         }

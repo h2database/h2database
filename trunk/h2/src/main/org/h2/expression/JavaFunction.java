@@ -13,6 +13,7 @@ import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.StatementBuilder;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -42,8 +43,8 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
-        for (int i = 0; i < args.length; i++) {
-            args[i].mapColumns(resolver, level);
+        for (Expression e : args) {
+            e.mapColumns(resolver, level);
         }
     }
 
@@ -61,8 +62,7 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        for (int i = 0; i < args.length; i++) {
-            Expression e = args[i];
+        for (Expression e : args) {
             if (e != null) {
                 e.setEvaluatable(tableFilter, b);
             }
@@ -82,23 +82,17 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     public String getSQL() {
-        StringBuffer buff = new StringBuffer();
-        buff.append(Parser.quoteIdentifier(functionAlias.getName()));
-        buff.append('(');
-        for (int i = 0; i < args.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            Expression e = args[i];
+        StatementBuilder buff = new StatementBuilder();
+        buff.append(Parser.quoteIdentifier(functionAlias.getName())).append('(');
+        for (Expression e : args) {
+            buff.appendExceptFirst(", ");
             buff.append(e.getSQL());
         }
-        buff.append(')');
-        return buff.toString();
+        return buff.append(')').toString();
     }
 
     public void updateAggregate(Session session) throws SQLException {
-        for (int i = 0; i < args.length; i++) {
-            Expression e = args[i];
+        for (Expression e : args) {
             if (e != null) {
                 e.updateAggregate(session);
             }
@@ -135,8 +129,7 @@ public class JavaFunction extends Expression implements FunctionCall {
             break;
         default:
         }
-        for (int i = 0; i < args.length; i++) {
-            Expression e = args[i];
+        for (Expression e : args) {
             if (e != null && !e.isEverything(visitor)) {
                 return false;
             }
@@ -146,8 +139,8 @@ public class JavaFunction extends Expression implements FunctionCall {
 
     public int getCost() {
         int cost = javaMethod.hasConnectionParam() ? 25 : 5;
-        for (int i = 0; i < args.length; i++) {
-            cost += args[i].getCost();
+        for (Expression e : args) {
+            cost += e.getCost();
         }
         return cost;
     }

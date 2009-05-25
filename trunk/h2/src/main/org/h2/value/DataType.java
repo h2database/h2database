@@ -957,19 +957,19 @@ public class DataType {
         if (clazz == Boolean.TYPE) {
             return Boolean.FALSE;
         } else if (clazz == Byte.TYPE) {
-            return ObjectUtils.getByte((byte) 0);
+            return Byte.valueOf((byte) 0);
         } else if (clazz == Character.TYPE) {
-            return ObjectUtils.getCharacter((char) 0);
+            return Character.valueOf((char) 0);
         } else if (clazz == Short.TYPE) {
-            return ObjectUtils.getShort((short) 0);
+            return Short.valueOf((short) 0);
         } else if (clazz == Integer.TYPE) {
-            return ObjectUtils.getInteger(0);
+            return Integer.valueOf(0);
         } else if (clazz == Long.TYPE) {
-            return ObjectUtils.getLong(0);
+            return Long.valueOf(0);
         } else if (clazz == Float.TYPE) {
-            return ObjectUtils.getFloat(0);
+            return Float.valueOf(0);
         } else if (clazz == Double.TYPE) {
-            return ObjectUtils.getDouble(0);
+            return Double.valueOf(0);
         }
         throw Message.throwInternalError("primitive=" + clazz.toString());
     }

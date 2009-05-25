@@ -17,6 +17,7 @@ import org.h2.result.SearchRow;
 import org.h2.store.DataPage;
 import org.h2.store.PageStore;
 import org.h2.store.Record;
+import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 import org.h2.value.Value;
@@ -291,8 +292,8 @@ public class PageBtreeIndex extends BaseIndex {
         data.setPos(offset);
         SearchRow row = table.getTemplateSimpleRow(columns.length == 1);
         row.setPos(data.readInt());
-        for (int i = 0; i < columns.length; i++) {
-            int idx = columns[i].getColumnId();
+        for (Column col : columns) {
+            int idx = col.getColumnId();
             row.setValue(idx, data.readValue());
         }
         return row;
@@ -308,8 +309,8 @@ public class PageBtreeIndex extends BaseIndex {
     void writeRow(DataPage data, int offset, SearchRow row) throws SQLException {
         data.setPos(offset);
         data.writeInt(row.getPos());
-        for (int i = 0; i < columns.length; i++) {
-            int idx = columns[i].getColumnId();
+        for (Column col : columns) {
+            int idx = col.getColumnId();
             data.writeValue(row.getValue(idx));
         }
     }
@@ -323,8 +324,8 @@ public class PageBtreeIndex extends BaseIndex {
      */
     int getRowSize(DataPage dummy, SearchRow row) throws SQLException {
         int rowsize = DataPage.LENGTH_INT;
-        for (int i = 0; i < columns.length; i++) {
-            Value v = row.getValue(columns[i].getColumnId());
+        for (Column col : columns) {
+            Value v = row.getValue(col.getColumnId());
             rowsize += dummy.getValueLen(v);
         }
         return rowsize;

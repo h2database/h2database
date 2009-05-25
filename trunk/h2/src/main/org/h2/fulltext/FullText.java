@@ -39,6 +39,7 @@ import org.h2.util.ByteUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 
@@ -871,23 +872,18 @@ public class FullText {
         }
 
         private String getKey(Object[] row) throws SQLException {
-            StringBuffer buff = new StringBuffer();
-            for (int i = 0; i < index.keys.length; i++) {
-                if (i > 0) {
-                    buff.append(" AND ");
-                }
-                int columnIndex = index.keys[i];
+            StatementBuilder buff = new StatementBuilder();
+            for (int columnIndex : index.keys) {
+                buff.appendExceptFirst(" AND ");
                 buff.append(StringUtils.quoteIdentifier(index.columns[columnIndex]));
                 Object o = row[columnIndex];
                 if (o == null) {
                     buff.append(" IS NULL");
                 } else {
-                    buff.append("=");
-                    buff.append(quoteSQL(o, columnTypes[columnIndex]));
+                    buff.append('=').append(quoteSQL(o, columnTypes[columnIndex]));
                 }
             }
-            String key = buff.toString();
-            return key;
+            return buff.toString();
         }
 
     }

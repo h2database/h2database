@@ -20,6 +20,7 @@ import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
 /**
@@ -127,15 +128,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             checkClosed();
             String tableType;
             if (types != null && types.length > 0) {
-                StringBuffer buff = new StringBuffer("TABLE_TYPE IN(");
+                StatementBuilder buff = new StatementBuilder("TABLE_TYPE IN(");
                 for (int i = 0; i < types.length; i++) {
-                    if (i > 0) {
-                        buff.append(", ");
-                    }
-                    buff.append("?");
+                    buff.appendExceptFirst(", ");
+                    buff.append('?');
                 }
-                buff.append(")");
-                tableType = buff.toString();
+                tableType = buff.append(')').toString();
             } else {
                 tableType = "TRUE";
             }
@@ -1363,20 +1361,18 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
 
     private String getFunctions(String section) throws SQLException {
         try {
-            StringBuffer buff = new StringBuffer();
             checkClosed();
             PreparedStatement prep = conn.prepareAutoCloseStatement("SELECT TOPIC "
                     + "FROM INFORMATION_SCHEMA.HELP WHERE SECTION = ?");
             prep.setString(1, section);
             ResultSet rs = prep.executeQuery();
+            StatementBuilder buff = new StatementBuilder();
             while (rs.next()) {
                 String s = rs.getString(1).trim();
                 String[] array = StringUtils.arraySplit(s, ',', true);
-                for (int i = 0; i < array.length; i++) {
-                    if (buff.length() > 0) {
-                        buff.append(",");
-                    }
-                    String f = array[i].trim();
+                for (String a : array) {
+                    buff.appendExceptFirst(",");
+                    String f = a.trim();
                     if (f.indexOf(' ') >= 0) {
                         // remove 'Function' from 'INSERT Function'
                         f = f.substring(0, f.indexOf(' ')).trim();

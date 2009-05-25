@@ -63,9 +63,8 @@ public class TestClearReferences extends TestBase {
             if (name.equals("CVS") || name.equals(".svn")) {
                 return;
             }
-            File[] list = file.listFiles();
-            for (int i = 0; i < list.length; i++) {
-                check(classes, list[i]);
+            for (File f : file.listFiles()) {
+                check(classes, f);
             }
         } else {
             if (!name.endsWith(".class")) {
@@ -97,9 +96,7 @@ public class TestClearReferences extends TestBase {
      * @param clazz the class to clear
      */
     private void clearClass(Class< ? > clazz) throws Exception {
-        Field[] fields = clazz.getDeclaredFields();
-        for (int i = 0; i < fields.length; i++) {
-            Field field = fields[i];
+        for (Field field : clazz.getDeclaredFields()) {
             if (field.getType().isPrimitive() || field.getName().indexOf("$") != -1) {
                 continue;
             }
@@ -127,9 +124,7 @@ public class TestClearReferences extends TestBase {
     }
 
     private void clearInstance(Object instance) throws Exception {
-        Field[] fields = instance.getClass().getDeclaredFields();
-        for (int i = 0; i < fields.length; i++) {
-            Field field = fields[i];
+        for (Field field : instance.getClass().getDeclaredFields()) {
             if (field.getType().isPrimitive() || (field.getName().indexOf("$") != -1)) {
                 continue;
             }
@@ -147,8 +142,8 @@ public class TestClearReferences extends TestBase {
     }
 
     private void clearField(String s) {
-        for (int i = 0; i < KNOWN_REFRESHED.length; i++) {
-            if (s.startsWith(KNOWN_REFRESHED[i])) {
+        for (String k : KNOWN_REFRESHED) {
+            if (s.startsWith(k)) {
                 return;
             }
         }

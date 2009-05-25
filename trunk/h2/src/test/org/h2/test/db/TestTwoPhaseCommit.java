@@ -71,8 +71,7 @@ public class TestTwoPhaseCommit extends TestBase {
         while (rs.next()) {
             list.add(rs.getString("TRANSACTION"));
         }
-        for (int i = 0; i < list.size(); i++) {
-            String s = list.get(i);
+        for (String s : list) {
             if (rollback) {
                 stat.execute("ROLLBACK TRANSACTION " + s);
             } else {

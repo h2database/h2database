@@ -266,18 +266,16 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * @return the status
      */
     public String getStatus() {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         if (isRunning(false)) {
-            buff.append(service.getType());
-            buff.append(" server running on ");
-            buff.append(service.getURL());
-            buff.append(" (");
+            buff.append(service.getType()).append(" server running on ");
+            buff.append(service.getURL()).append(" (");
             if (service.getAllowOthers()) {
                 buff.append("others can connect");
             } else {
                 buff.append("only local connections");
             }
-            buff.append(")");
+            buff.append(')');
         } else {
             buff.append("The " + service.getType() + " server could not be started. Possible cause: another server is already running on ");
             buff.append(service.getURL());

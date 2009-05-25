@@ -339,7 +339,7 @@ public abstract class TestHalt extends TestBase {
      * @return the random string
      */
     protected String getRandomString(int len) {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (int i = 0; i < len; i++) {
             buff.append('a' + random.nextInt(20));
         }

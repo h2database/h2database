@@ -448,7 +448,7 @@ public class Shell extends Tool {
             longest = Math.max(longest, l);
             total += l;
         }
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         if (!listMode) {
             for (int i = 0; i < len; i++) {
                 if (i > 0) {

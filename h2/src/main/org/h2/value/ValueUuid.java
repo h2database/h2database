@@ -119,7 +119,7 @@ public class ValueUuid extends Value {
         return PRECISION;
     }
 
-    private void appendHex(StringBuffer buff, long x, int bytes) {
+    private void appendHex(StringBuilder buff, long x, int bytes) {
         for (int i = bytes * 8 - 4; i >= 0; i -= 8) {
             buff.append(Integer.toHexString((int) (x >> i) & 0xf));
             buff.append(Integer.toHexString((int) (x >> (i - 4)) & 0xf));
@@ -127,7 +127,7 @@ public class ValueUuid extends Value {
     }
 
     public String getString() {
-        StringBuffer buff = new StringBuffer(36);
+        StringBuilder buff = new StringBuilder(36);
         appendHex(buff, high >> 32, 4);
         buff.append('-');
         appendHex(buff, high >> 16, 2);

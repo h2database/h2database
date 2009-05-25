@@ -62,7 +62,7 @@ public class TestBtreeIndex extends TestBase {
             prefixLength = random.nextInt(10) + 1;
         }
         boolean delete = random.nextBoolean();
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (int j = 0; j < prefixLength; j++) {
             buff.append("x");
         }

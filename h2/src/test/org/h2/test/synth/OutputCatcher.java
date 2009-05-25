@@ -50,7 +50,7 @@ class OutputCatcher extends Thread {
     }
 
     public void run() {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         while (true) {
             try {
                 int x = in.read();

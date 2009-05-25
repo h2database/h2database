@@ -118,8 +118,8 @@ public class Doclet {
             String type = getTypeName(method.isStatic(), method.returnType());
             writer.println("<tr id=\"tm"+id+"\" onclick=\"return on('m"+ id +"')\"><td class=\"return\">" + type + "</td><td class=\"method\">");
             Parameter[] params = method.parameters();
-            StringBuffer buff = new StringBuffer();
-            StringBuffer buffSignature = new StringBuffer(name);
+            StringBuilder buff = new StringBuilder();
+            StringBuilder buffSignature = new StringBuilder(name);
             buffSignature.append('(');
             buff.append('(');
             for (int j = 0; j < params.length; j++) {
@@ -254,7 +254,7 @@ public class Doclet {
             return;
         }
         Parameter[] params = method.parameters();
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         buff.append('(');
         for (int j = 0; j < params.length; j++) {
             if (j > 0) {

@@ -181,7 +181,7 @@ public class ConvertTraceFile extends Tool {
                 timeTotal = 1;
             }
             for (Stat stat : list) {
-                StringBuffer buff = new StringBuffer(100);
+                StringBuilder buff = new StringBuilder(100);
                 buff.append("-- ");
                 buff.append(padNumberLeft(100 * stat.time / timeTotal, 3));
                 buff.append("% ");

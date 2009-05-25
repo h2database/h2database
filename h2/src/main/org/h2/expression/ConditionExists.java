@@ -41,8 +41,7 @@ public class ConditionExists extends Condition {
     }
 
     public String getSQL() {
-        StringBuffer buff = new StringBuffer("EXISTS(");
-        return buff.append(query.getPlanSQL()).append(')').toString();
+        return "EXISTS(" + query.getPlanSQL() + ")";
     }
 
     public void updateAggregate(Session session) {

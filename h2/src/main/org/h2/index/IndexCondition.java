@@ -85,7 +85,7 @@ public class IndexCondition {
         if (compareType == Comparison.FALSE) {
             return "FALSE";
         }
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         buff.append(column.getSQL());
         switch(compareType) {
         case Comparison.EQUAL:

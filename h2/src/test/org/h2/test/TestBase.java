@@ -945,7 +945,7 @@ public abstract class TestBase {
         if (reader == null) {
             return null;
         }
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         try {
             while (true) {
                 int c = reader.read();

@@ -70,7 +70,7 @@ public class BenchCRandom {
      */
     String replace(String text, String replacement) {
         int pos = getInt(0, text.length() - replacement.length());
-        StringBuffer buffer = new StringBuffer(text);
+        StringBuilder buffer = new StringBuilder(text);
         buffer.replace(pos, pos + 7, replacement);
         return buffer.toString();
     }
@@ -170,7 +170,7 @@ public class BenchCRandom {
     String getLastname(int i) {
         String[] n = { "BAR", "OUGHT", "ABLE", "PRI", "PRES", "ESE", "ANTI",
                 "CALLY", "ATION", "EING" };
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         buff.append(n[i / 100]);
         buff.append(n[(i / 10) % 10]);
         buff.append(n[i % 10]);

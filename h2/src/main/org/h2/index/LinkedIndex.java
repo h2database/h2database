@@ -51,7 +51,7 @@ public class LinkedIndex extends BaseIndex {
     }
 
     public void add(Session session, Row row) throws SQLException {
-        StringBuffer buff = new StringBuffer("INSERT INTO ");
+        StringBuilder buff = new StringBuilder("INSERT INTO ");
         buff.append(targetTableName);
         buff.append(" VALUES(");
         for (int i = 0, j = 0; i < row.getColumnCount(); i++) {

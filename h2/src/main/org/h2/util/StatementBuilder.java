@@ -7,13 +7,14 @@
 package org.h2.util;
 
 /**
- * A utility class to build a statement. In addition to the methods supported by StringBuilder,
- * it allows to add a text only in the second iteration. This simplified constructs such as:
+ * A utility class to build a statement. In addition to the methods supported by
+ * StringBuilder, it allows to add a text only in the second iteration. This
+ * simplified constructs such as:
  * <pre>
  * StringBuilder buff = new StringBuilder();
  * for (int i = 0; i &lt; args.length; i++) {
  *     if (i &gt; 0) {
- *         buff.append(", ");
+ *         buff.append(&quot;, &quot;);
  *     }
  *     buff.append(args[i]);
  * }
@@ -22,7 +23,7 @@ package org.h2.util;
  * <pre>
  * StatementBuilder buff = new StatementBuilder();
  * for (String s : args) {
- *     buff.appendExceptFirst(", ");
+ *     buff.appendExceptFirst(&quot;, &quot;);
  *     buff.append(a);
  * }
  *</pre>
@@ -114,6 +115,15 @@ public class StatementBuilder {
 
     public String toString() {
         return builder.toString();
+    }
+
+    /**
+     * Get the length.
+     *
+     * @return the length
+     */
+    public int length() {
+        return builder.length();
     }
 
 }

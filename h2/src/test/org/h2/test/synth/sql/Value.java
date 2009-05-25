@@ -120,8 +120,8 @@ public class Value {
 
     private String getBlobSQL() {
         byte[] bytes = (byte[]) data;
-        // StringBuffer buff = new StringBuffer("X'");
-        StringBuffer buff = new StringBuffer("'");
+        // StringBuilder buff = new StringBuilder("X'");
+        StringBuilder buff = new StringBuilder("'");
         for (byte b : bytes) {
             int c = b & 0xff;
             buff.append(Integer.toHexString(c >> 4 & 0xf));
@@ -275,7 +275,7 @@ public class Value {
         if (len == 0) {
             len++;
         }
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (int i = 0; i < len; i++) {
             buff.append((char) ('0' + config.random().getInt(10)));
         }

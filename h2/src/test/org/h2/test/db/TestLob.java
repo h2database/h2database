@@ -388,7 +388,7 @@ public class TestLob extends TestBase {
         PreparedStatement prep1 = conn0
                 .prepareStatement("insert into CLOB_ENTITY (DATA, CLOB_DATA, ID) values (?, ?, ?)");
         prep1.setNull(1, 2005);
-        StringBuffer buff = new StringBuffer(10000);
+        StringBuilder buff = new StringBuilder(10000);
         for (int i = 0; i < 10000; i++) {
             buff.append((char) ('0' + (i % 10)));
         }
@@ -453,7 +453,7 @@ public class TestLob extends TestBase {
         assertFalse(rs.next());
         stat.execute("create table test(text clob)");
         stat.execute("create table test2(text clob)");
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (int i = 0; i < 1000; i++) {
             buff.append(' ');
         }
@@ -490,7 +490,7 @@ public class TestLob extends TestBase {
         if (config.networked && config.big) {
             len = 5;
         }
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (int i = 0; i < 100; i++) {
             buff.append(StringUtils.xmlNode("content", null, "This is a test " + i));
         }

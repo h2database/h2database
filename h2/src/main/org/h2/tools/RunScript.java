@@ -116,7 +116,7 @@ public class RunScript extends Tool {
                 String driver = args[++i];
                 ClassUtils.loadUserClass(driver);
             } else if (arg.equals("-options")) {
-                StringBuffer buff = new StringBuffer();
+                StringBuilder buff = new StringBuilder();
                 i++;
                 for (; i < args.length; i++) {
                     buff.append(' ');
@@ -218,7 +218,7 @@ public class RunScript extends Tool {
                             if (query) {
                                 ResultSet rs = stat.getResultSet();
                                 int columns = rs.getMetaData().getColumnCount();
-                                StringBuffer buff = new StringBuffer();
+                                StringBuilder buff = new StringBuilder();
                                 while (rs.next()) {
                                     buff.append("\n-->");
                                     for (int i = 0; i < columns; i++) {

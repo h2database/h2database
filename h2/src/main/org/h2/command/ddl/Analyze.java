@@ -15,6 +15,7 @@ import org.h2.result.LocalResult;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableData;
+import org.h2.util.StatementBuilder;
 
 /**
  * This class represents the statement
@@ -37,22 +38,15 @@ public class Analyze extends DefineCommand {
             if (!(table instanceof TableData)) {
                 continue;
             }
+            StatementBuilder buff = new StatementBuilder("SELECT ");
             Column[] columns = table.getColumns();
-            StringBuffer buff = new StringBuffer();
-            buff.append("SELECT ");
-            for (int j = 0; j < columns.length; j++) {
-                if (j > 0) {
-                    buff.append(", ");
-                }
-                buff.append("SELECTIVITY(");
-                buff.append(columns[j].getSQL());
-                buff.append(')');
+            for (Column col : columns) {
+                buff.appendExceptFirst(", ");
+                buff.append("SELECTIVITY(").append(col.getSQL()).append(')');
             }
-            buff.append(" FROM ");
-            buff.append(table.getSQL());
+            buff.append(" FROM ").append(table.getSQL());
             if (sampleRows > 0) {
-                buff.append(" LIMIT 1 SAMPLE_SIZE ");
-                buff.append(sampleRows);
+                buff.append(" LIMIT 1 SAMPLE_SIZE ").append(sampleRows);
             }
             String sql = buff.toString();
             Prepared command = session.prepare(sql);

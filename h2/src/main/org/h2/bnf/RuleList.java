@@ -65,7 +65,7 @@ public class RuleList implements Rule {
             int idx = config.getRandom().nextInt(list.size());
             return get(idx).random(config, level + 1);
         }
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (Rule r : list) {
             buff.append(r.random(config, level+1));
         }

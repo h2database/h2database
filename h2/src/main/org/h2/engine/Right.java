@@ -62,7 +62,7 @@ public class Right extends DbObjectBase {
         this.grantedTable = grantedRightOnTable;
     }
 
-    private boolean appendRight(StringBuffer buff, int right, int mask, String name, boolean comma) {
+    private boolean appendRight(StringBuilder buff, int right, int mask, String name, boolean comma) {
         if ((right & mask) != 0) {
             if (comma) {
                 buff.append(", ");
@@ -74,7 +74,7 @@ public class Right extends DbObjectBase {
     }
 
     public String getRights() {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         if (grantedRight == ALL) {
             buff.append("ALL");
         } else {
@@ -104,18 +104,15 @@ public class Right extends DbObjectBase {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         buff.append("GRANT ");
         if (grantedRole != null) {
             buff.append(grantedRole.getSQL());
         } else {
-            buff.append(getRights());
-            buff.append(" ON ");
-            buff.append(table.getSQL());
+            buff.append(getRights()).append(" ON ").append(table.getSQL());
         }
-        buff.append(" TO ");
         // TODO rights: need role 'PUBLIC'
-        buff.append(grantee.getSQL());
+        buff.append(" TO ").append(grantee.getSQL());
         return buff.toString();
     }
 

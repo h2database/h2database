@@ -680,7 +680,7 @@ public class ValueLob extends Value {
         if (small != null && getPrecision() <= SysProperties.MAX_TRACE_DATA_LENGTH) {
             return getSQL();
         }
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         if (type == Value.CLOB) {
             buff.append("SPACE(");
             buff.append(getPrecision());

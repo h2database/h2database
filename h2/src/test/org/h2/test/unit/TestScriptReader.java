@@ -38,7 +38,7 @@ public class TestScriptReader extends TestBase {
         for (int i = 0; i < len; i++) {
             int l = random.nextInt(10);
             String[] sql = new String[l];
-            StringBuffer buff = new StringBuffer();
+            StringBuilder buff = new StringBuilder();
             for (int j = 0; j < l; j++) {
                 sql[j] = randomStatement(random);
                 buff.append(sql[j]);
@@ -62,7 +62,7 @@ public class TestScriptReader extends TestBase {
     }
 
     private String randomStatement(Random random) {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         int len = random.nextInt(5);
         for (int i = 0; i < len; i++) {
             switch (random.nextInt(10)) {

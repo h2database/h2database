@@ -1311,7 +1311,7 @@ public class Function extends Expression implements FunctionCall {
             // avoid out of memory
             return s;
         }
-        StringBuffer buff = new StringBuffer(s.length());
+        StringBuilder buff = new StringBuilder(s.length());
         int start = 0;
         int len = replace.length();
         while (true) {
@@ -1328,7 +1328,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static String repeat(String s, int count) {
-        StringBuffer buff = new StringBuffer(s.length() * count);
+        StringBuilder buff = new StringBuilder(s.length() * count);
         while (count-- > 0) {
             buff.append(s);
         }
@@ -1336,7 +1336,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static String rawToHex(String s) {
-        StringBuffer buff = new StringBuffer(4 * s.length());
+        StringBuilder buff = new StringBuilder(4 * s.length());
         for (int i = 0; i < s.length(); i++) {
             String hex = Integer.toHexString(s.charAt(i) & 0xffff);
             for (int j = hex.length(); j < 4; j++) {
@@ -1399,7 +1399,7 @@ public class Function extends Expression implements FunctionCall {
         if (len % 4 != 0) {
             throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, s);
         }
-        StringBuffer buff = new StringBuffer(len / 4);
+        StringBuilder buff = new StringBuilder(len / 4);
         for (int i = 0; i < len; i += 4) {
             try {
                 char raw = (char) Integer.parseInt(s.substring(i, i + 4), 16);
@@ -1431,7 +1431,7 @@ public class Function extends Expression implements FunctionCall {
         if ((d > 1000000000000.) || (d < -1000000000000.)) {
             return d;
         }
-        StringBuffer s = new StringBuffer();
+        StringBuilder s = new StringBuilder();
         s.append(d);
         if (s.toString().indexOf("E") >= 0) {
             return d;
@@ -1825,14 +1825,12 @@ public class Function extends Expression implements FunctionCall {
         buff.append('(');
         switch (info.type) {
         case CAST: {
-            buff.append(args[0].getSQL()).
-                append(" AS ").
+            buff.append(args[0].getSQL()).append(" AS ").
                 append(new Column(null, dataType, precision, scale, displaySize).getCreateSQL());
             break;
         }
         case CONVERT: {
-            buff.append(args[0].getSQL()).
-                append(",").
+            buff.append(args[0].getSQL()).append(',').
                 append(new Column(null, dataType, precision, scale, displaySize).getCreateSQL());
             break;
         }

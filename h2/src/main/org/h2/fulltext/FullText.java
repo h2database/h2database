@@ -556,12 +556,12 @@ public class FullText {
                     };
                     result.addRow(row);
                 } else {
-                    StringBuffer buff = new StringBuffer();
-                    buff.append(StringUtils.quoteIdentifier(index.schema));
-                    buff.append('.');
-                    buff.append(StringUtils.quoteIdentifier(index.table));
-                    buff.append(" WHERE ");
-                    buff.append(key);
+                    StringBuilder buff = new StringBuilder();
+                    buff.append(StringUtils.quoteIdentifier(index.schema)).
+                        append('.').
+                        append(StringUtils.quoteIdentifier(index.table)).
+                        append(" WHERE ").
+                        append(key);
                     String query = buff.toString();
                     result.addRow(new String[] { query });
                 }
@@ -623,13 +623,15 @@ public class FullText {
                 + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
         stat.execute("DROP TRIGGER IF EXISTS " + trigger);
         if (create) {
-            StringBuffer buff = new StringBuffer("CREATE TRIGGER IF NOT EXISTS ");
-            buff.append(trigger);
-            buff.append(" AFTER INSERT, UPDATE, DELETE ON ");
-            buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
-            buff.append(" FOR EACH ROW CALL \"");
-            buff.append(FullText.FullTextTrigger.class.getName());
-            buff.append("\"");
+            StringBuilder buff = new StringBuilder("CREATE TRIGGER IF NOT EXISTS ");
+            buff.append(trigger).
+                append(" AFTER INSERT, UPDATE, DELETE ON ").
+                append(StringUtils.quoteIdentifier(schema)).
+                append('.').
+                append(StringUtils.quoteIdentifier(table)).
+                append(" FOR EACH ROW CALL \"").
+                append(FullText.FullTextTrigger.class.getName()).
+                append("\"");
             stat.execute(buff.toString());
         }
     }
@@ -637,8 +639,9 @@ public class FullText {
     private static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
         FullText.FullTextTrigger existing = new FullText.FullTextTrigger();
         existing.init(conn, schema, null, table, false, Trigger.INSERT);
-        StringBuffer buff = new StringBuffer("SELECT * FROM ");
-        buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
+        StringBuilder buff = new StringBuilder("SELECT * FROM ");
+        buff.append(StringUtils.quoteIdentifier(schema)).
+            append('.').append(StringUtils.quoteIdentifier(table));
         ResultSet rs = conn.createStatement().executeQuery(buff.toString());
         int columnCount = rs.getMetaData().getColumnCount();
         while (rs.next()) {
@@ -654,7 +657,7 @@ public class FullText {
         if (data.indexOf('\'') < 0) {
             return "'" + data + "'";
         }
-        StringBuffer buff = new StringBuffer(data.length() + 2);
+        StringBuilder buff = new StringBuilder(data.length() + 2);
         buff.append('\'');
         for (int i = 0; i < data.length(); i++) {
             char ch = data.charAt(i);

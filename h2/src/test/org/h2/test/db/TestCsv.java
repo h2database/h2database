@@ -157,7 +157,7 @@ public class TestCsv extends TestBase {
             return null;
         }
         int len = random.nextInt(5);
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         String chars = "\\\'\",\r\n\t ;.-123456|#";
         for (int i = 0; i < len; i++) {
             buff.append(chars.charAt(random.nextInt(chars.length())));

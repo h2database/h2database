@@ -69,7 +69,7 @@ public class Sequence extends SchemaObjectBase {
     }
 
     public synchronized String getCreateSQL() {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         buff.append("CREATE SEQUENCE ");
         buff.append(getSQL());
         buff.append(" START WITH ");

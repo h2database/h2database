@@ -30,7 +30,7 @@ public class TestJoin extends TestBase {
     private ArrayList<Connection> connections = New.arrayList();
     private Random random;
     private int paramCount;
-    private StringBuffer buff;
+    private StringBuilder buff;
 
     /**
      * Run just this test.
@@ -103,7 +103,7 @@ public class TestJoin extends TestBase {
         long start = System.currentTimeMillis();
         for (int i = 0;; i++) {
             paramCount = 0;
-            buff = new StringBuffer();
+            buff = new StringBuilder();
             long time = System.currentTimeMillis();
             if (time - start > 5000) {
                 printTime("i:" + i);
@@ -279,7 +279,7 @@ public class TestJoin extends TestBase {
     }
 
     private String readResult(ResultSet rs) throws SQLException {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
         for (int i = 0; i < columnCount; i++) {
@@ -292,7 +292,7 @@ public class TestJoin extends TestBase {
         String result = buff.toString();
         ArrayList<String> list = New.arrayList();
         while (rs.next()) {
-            buff = new StringBuffer();
+            buff = new StringBuilder();
             for (int i = 0; i < columnCount; i++) {
                 if (i > 0) {
                     buff.append(",");

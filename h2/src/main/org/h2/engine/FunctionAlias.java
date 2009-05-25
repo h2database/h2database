@@ -121,14 +121,12 @@ public class FunctionAlias extends DbObjectBase {
     }
 
     public String getCreateSQL() {
-        StringBuffer buff = new StringBuffer();
-        buff.append("CREATE FORCE ALIAS ");
+        StringBuilder buff = new StringBuilder("CREATE FORCE ALIAS ");
         buff.append(getSQL());
         if (deterministic) {
             buff.append(" DETERMINISTIC");
         }
-        buff.append(" FOR ");
-        buff.append(Parser.quoteIdentifier(className + "." + methodName));
+        buff.append(" FOR ").append(Parser.quoteIdentifier(className + "." + methodName));
         return buff.toString();
     }
 

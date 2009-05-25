@@ -53,7 +53,7 @@ implements Xid
      * INTERNAL
      */
     public String getAsString() {
-        StringBuffer buff = new StringBuffer(PREFIX);
+        StringBuilder buff = new StringBuilder(PREFIX);
         buff.append('_');
         buff.append(formatId);
         buff.append('_');

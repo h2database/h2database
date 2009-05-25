@@ -108,7 +108,7 @@ public class MultiDimension {
      * @return the query
      */
     public String generatePreparedQuery(String table, String scalarColumn, String[] columns) {
-        StringBuffer buff = new StringBuffer("SELECT D.* FROM ");
+        StringBuilder buff = new StringBuilder("SELECT D.* FROM ");
         buff.append(StringUtils.quoteIdentifier(table));
         buff.append(" D, TABLE(_FROM_ BIGINT=?, _TO_ BIGINT=?) WHERE ");
         buff.append(StringUtils.quoteIdentifier(scalarColumn));

@@ -146,10 +146,8 @@ public class Update extends Prepared {
     }
 
     public String getPlanSQL() {
-        StringBuffer buff = new StringBuffer();
-        buff.append("UPDATE ");
-        buff.append(tableFilter.getPlanSQL(false));
-        buff.append("\nSET ");
+        StringBuilder buff = new StringBuilder("UPDATE ");
+        buff.append(tableFilter.getPlanSQL(false)).append("\nSET ");
         Table table = tableFilter.getTable();
         int columnCount = table.getColumns().length;
         for (int i = 0, j = 0; i < columnCount; i++) {
@@ -160,13 +158,11 @@ public class Update extends Prepared {
                 }
                 j++;
                 Column column = table.getColumn(i);
-                buff.append(column.getName());
-                buff.append(" = ");
-                buff.append(newExpr.getSQL());
+                buff.append(column.getName()).append(" = ").append(newExpr.getSQL());
             }
         }
         if (condition != null) {
-            buff.append("\nWHERE " + StringUtils.unEnclose(condition.getSQL()));
+            buff.append("\nWHERE ").append(StringUtils.unEnclose(condition.getSQL()));
         }
         return buff.toString();
     }

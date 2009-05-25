@@ -237,11 +237,11 @@ public class PrepareTranslation {
 
     private static String extract(String documentName, File f, String target) throws Exception {
         String xml = IOUtils.readStringAndClose(new InputStreamReader(new FileInputStream(f), "UTF-8"), -1);
-        StringBuffer template = new StringBuffer(xml.length());
+        StringBuilder template = new StringBuilder(xml.length());
         int id = 0;
         SortedProperties prop = new SortedProperties();
         XMLParser parser = new XMLParser(xml);
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         Stack<String> stack = new Stack<String>();
         String tag = "";
         boolean ignoreEnd = false;
@@ -400,7 +400,7 @@ public class PrepareTranslation {
         return text;
     }
 
-    private static void add(Properties prop, String document, StringBuffer text) {
+    private static void add(Properties prop, String document, StringBuilder text) {
         String s = text.toString().trim();
         text.setLength(0);
         prop.setProperty(document, s);
@@ -530,7 +530,7 @@ public class PrepareTranslation {
         int maxLength = 1500;
         int minSeparator = 100000;
         HashMap<Integer, String> keyMap = new HashMap<Integer, String>(toTranslate.size());
-        StringBuffer buff = new StringBuffer(maxLength);
+        StringBuilder buff = new StringBuilder(maxLength);
         // TODO make sure these numbers don't occur in the original text
         int separator = minSeparator;
         for (String original : toTranslate) {
@@ -552,7 +552,7 @@ public class PrepareTranslation {
         return results;
     }
 
-    private void translateChunk(StringBuffer buff, int separator, String source, String target, HashMap<Integer, String> keyMap, HashMap<String, String> results) {
+    private void translateChunk(StringBuilder buff, int separator, String source, String target, HashMap<Integer, String> keyMap, HashMap<String, String> results) {
         buff.append(separator);
         String original = buff.toString();
         String translation = "";

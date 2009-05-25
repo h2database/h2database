@@ -42,7 +42,7 @@ public class Role extends RightOwner {
         if (system) {
             return null;
         }
-        StringBuffer buff = new StringBuffer("CREATE ROLE ");
+        StringBuilder buff = new StringBuilder("CREATE ROLE ");
         if (ifNotExists) {
             buff.append("IF NOT EXISTS ");
         }

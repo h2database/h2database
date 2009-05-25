@@ -134,22 +134,20 @@ public class User extends RightOwner {
      * @return the SQL statement
      */
     public String getCreateSQL(boolean password, boolean ifNotExists) {
-        StringBuffer buff = new StringBuffer();
-        buff.append("CREATE USER ");
+        StringBuilder buff = new StringBuilder("CREATE USER ");
         if (ifNotExists) {
             buff.append("IF NOT EXISTS ");
         }
         buff.append(getSQL());
         if (comment != null) {
-            buff.append(" COMMENT ");
-            buff.append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }
         if (password) {
-            buff.append(" SALT '");
-            buff.append(ByteUtils.convertBytesToString(salt));
-            buff.append("' HASH '");
-            buff.append(ByteUtils.convertBytesToString(passwordHash));
-            buff.append('\'');
+            buff.append(" SALT '").
+                append(ByteUtils.convertBytesToString(salt)).
+                append("' HASH '").
+                append(ByteUtils.convertBytesToString(passwordHash)).
+                append('\'');
         } else {
             buff.append(" PASSWORD ''");
         }

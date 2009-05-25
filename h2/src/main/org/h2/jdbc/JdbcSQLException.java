@@ -148,7 +148,7 @@ public class JdbcSQLException extends SQLException {
     }
 
     private void buildMessage() {
-        StringBuffer buff = new StringBuffer(originalMessage == null ? "- " : originalMessage);
+        StringBuilder buff = new StringBuilder(originalMessage == null ? "- " : originalMessage);
         if (sql != null) {
             buff.append("; SQL statement:\n");
             buff.append(sql);

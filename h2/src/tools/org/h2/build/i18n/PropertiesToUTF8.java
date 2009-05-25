@@ -81,7 +81,7 @@ public class PropertiesToUTF8 {
         LineNumberReader reader = new LineNumberReader(new InputStreamReader(new FileInputStream(source), "UTF-8"));
         try {
             SortedProperties prop = new SortedProperties();
-            StringBuffer buff = new StringBuffer();
+            StringBuilder buff = new StringBuilder();
             String key = null;
             boolean found = false;
             while (true) {

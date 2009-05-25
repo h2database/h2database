@@ -26,7 +26,7 @@ public class Tokenizer {
     private static final byte ALPHA = 4;
     private static final byte QUOTE = 8;
 
-    private StringBuffer buffer;
+    private StringBuilder buffer;
 
     private Reader reader;
 
@@ -86,7 +86,7 @@ public class Tokenizer {
      * Initialize the tokenizer.
      */
     void initToken() {
-        buffer = new StringBuffer();
+        buffer = new StringBuilder();
     }
 
     String getToken() {

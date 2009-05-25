@@ -764,7 +764,7 @@ public class Parser {
     }
 
     private Prepared parseHelp() throws SQLException {
-        StringBuffer buff = new StringBuffer("SELECT * FROM INFORMATION_SCHEMA.HELP");
+        StringBuilder buff = new StringBuilder("SELECT * FROM INFORMATION_SCHEMA.HELP");
         int i = 0;
         ObjectArray<Value> paramValues = ObjectArray.newInstance();
         while (currentTokenType != END) {
@@ -784,7 +784,7 @@ public class Parser {
 
     private Prepared parseShow() throws SQLException {
         ObjectArray<Value> paramValues = ObjectArray.newInstance();
-        StringBuffer buff = new StringBuffer("SELECT ");
+        StringBuilder buff = new StringBuilder("SELECT ");
         if (readIf("CLIENT_ENCODING")) {
             // for PostgreSQL compatibility
             buff.append("'UNICODE' AS CLIENT_ENCODING FROM DUAL");

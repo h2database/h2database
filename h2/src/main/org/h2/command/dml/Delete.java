@@ -83,11 +83,10 @@ public class Delete extends Prepared {
     }
 
     public String getPlanSQL() {
-        StringBuffer buff = new StringBuffer();
-        buff.append("DELETE FROM ");
-        buff.append(tableFilter.getPlanSQL(false));
+        StringBuilder buff = new StringBuilder();
+        buff.append("DELETE FROM ").append(tableFilter.getPlanSQL(false));
         if (condition != null) {
-            buff.append("\nWHERE " + StringUtils.unEnclose(condition.getSQL()));
+            buff.append("\nWHERE ").append(StringUtils.unEnclose(condition.getSQL()));
         }
         return buff.toString();
     }

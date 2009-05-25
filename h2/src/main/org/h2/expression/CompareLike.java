@@ -166,7 +166,7 @@ public class CompareLike extends Condition {
             return;
         }
         int maxMatch = 0;
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         while (maxMatch < patternLength && types[maxMatch] == MATCH) {
             buff.append(pattern[maxMatch++]);
         }

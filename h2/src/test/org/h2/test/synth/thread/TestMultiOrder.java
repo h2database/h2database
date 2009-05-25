@@ -87,7 +87,7 @@ public class TestMultiOrder extends TestMultiThread {
     }
 
     private String getString(int id) {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         Random rnd = new Random(id);
         int len = rnd.nextInt(40);
         for (int i = 0; i < len; i++) {

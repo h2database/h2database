@@ -69,8 +69,8 @@ public class Script extends Tool {
             } else if (arg.equals("-script")) {
                 file = args[++i];
             } else if (arg.equals("-options")) {
-                StringBuffer buff1 = new StringBuffer();
-                StringBuffer buff2 = new StringBuffer();
+                StringBuilder buff1 = new StringBuilder();
+                StringBuilder buff2 = new StringBuilder();
                 i++;
                 for (; i < args.length; i++) {
                     String a = args[i];

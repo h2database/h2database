@@ -46,26 +46,20 @@ public class ConstraintCheck extends Constraint {
     }
 
     public String getCreateSQLForCopy(Table forTable, String quotedName) {
-        StringBuffer buff = new StringBuffer();
-        buff.append("ALTER TABLE ");
-        buff.append(forTable.getSQL());
-        buff.append(" ADD CONSTRAINT ");
+        StringBuilder buff = new StringBuilder("ALTER TABLE ");
+        buff.append(forTable.getSQL()).append(" ADD CONSTRAINT ");
         buff.append(quotedName);
         if (comment != null) {
-            buff.append(" COMMENT ");
-            buff.append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }
-        buff.append(" CHECK");
-        buff.append(StringUtils.enclose(expr.getSQL()));
+        buff.append(" CHECK").append(StringUtils.enclose(expr.getSQL()));
         buff.append(" NOCHECK");
         return buff.toString();
     }
 
     public String getShortDescription() {
-        StringBuffer buff = new StringBuffer();
-        buff.append(getName());
-        buff.append(": ");
-        buff.append(expr.getSQL());
+        StringBuilder buff = new StringBuilder(getName());
+        buff.append(": ").append(expr.getSQL());
         return buff.toString();
     }
 
@@ -126,12 +120,9 @@ public class ConstraintCheck extends Constraint {
             // don't check at startup
             return;
         }
-        StringBuffer buff = new StringBuffer();
-        buff.append("SELECT 1 FROM ");
+        StringBuilder buff = new StringBuilder("SELECT 1 FROM ");
         buff.append(filter.getTable().getSQL());
-        buff.append(" WHERE NOT(");
-        buff.append(expr.getSQL());
-        buff.append(')');
+        buff.append(" WHERE NOT(").append(expr.getSQL()).append(')');
         String sql = buff.toString();
         LocalResult r = session.prepare(sql).query(1);
         if (r.next()) {

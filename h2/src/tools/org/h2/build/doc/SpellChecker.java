@@ -59,7 +59,7 @@ public class SpellChecker {
             String[] list = new String[used.size()];
             used.toArray(list);
             Arrays.sort(list);
-            StringBuffer buff = new StringBuffer();
+            StringBuilder buff = new StringBuilder();
             for (String s : list) {
                 if (buff.length() > 0) {
                     if (buff.length() + s.length() > 80) {
@@ -174,7 +174,7 @@ public class SpellChecker {
     }
 
     private String removeLinks(String fileName, String text) {
-        StringBuffer buff = new StringBuffer(text.length());
+        StringBuilder buff = new StringBuilder(text.length());
         int pos = 0, last = 0;
         while (true) {
             pos = text.indexOf("http://", pos);

@@ -159,7 +159,7 @@ public class TestIndex extends TestBase {
     }
 
     private String getRandomString(int len) {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         for (int i = 0; i < len; i++) {
             buff.append((char) ('a' + random.nextInt(26)));
         }
@@ -351,7 +351,7 @@ public class TestIndex extends TestBase {
         ResultSet rs = stat.executeQuery(sql);
         int cols = rs.getMetaData().getColumnCount();
         while (rs.next()) {
-            StringBuffer buff = new StringBuffer();
+            StringBuilder buff = new StringBuilder();
             for (int i = 0; i < cols; i++) {
                 if (i > 0) {
                     buff.append(", ");

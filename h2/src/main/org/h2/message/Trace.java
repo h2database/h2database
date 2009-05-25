@@ -214,7 +214,7 @@ public class Trace {
         if (!isEnabled(TraceSystem.INFO)) {
             return;
         }
-        StringBuffer buff = new StringBuffer(sql.length() + params.length() + 20);
+        StringBuilder buff = new StringBuilder(sql.length() + params.length() + 20);
         buff.append(lineSeparator);
         buff.append("/*SQL");
         boolean space = false;

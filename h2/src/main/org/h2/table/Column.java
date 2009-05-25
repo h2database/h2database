@@ -379,7 +379,7 @@ public class Column {
     }
 
     public String getCreateSQL() {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         if (name != null) {
             buff.append(Parser.quoteIdentifier(name)).append(' ');
         }
@@ -396,7 +396,7 @@ public class Column {
             case Value.STRING_IGNORECASE:
             case Value.STRING_FIXED:
                 if (precision < Integer.MAX_VALUE) {
-                    buff.append('(').append(precision).append(")");
+                    buff.append('(').append(precision).append(')');
                 }
                 break;
             default:

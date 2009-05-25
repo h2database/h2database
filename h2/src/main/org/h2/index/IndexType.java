@@ -130,7 +130,7 @@ public class IndexType {
      * @return the SQL snippet
      */
     public String getSQL() {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         if (primaryKey) {
             buff.append("PRIMARY KEY");
             if (hash) {

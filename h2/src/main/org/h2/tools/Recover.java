@@ -259,14 +259,14 @@ public class Recover extends Tool implements DataHandler {
                     byte[] salt = RandomUtils.getSecureBytes(Constants.SALT_LEN);
                     byte[] passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
                     boolean admin = sql.indexOf("ADMIN") >= 0;
-                    StringBuffer buff = new StringBuffer();
+                    StringBuilder buff = new StringBuilder();
                     buff.append("CREATE USER ");
                     buff.append(Parser.quoteIdentifier(userName));
                     buff.append(" SALT '");
                     buff.append(ByteUtils.convertBytesToString(salt));
                     buff.append("' HASH '");
                     buff.append(ByteUtils.convertBytesToString(passwordHash));
-                    buff.append("'");
+                    buff.append('\'');
                     if (admin) {
                         buff.append(" ADMIN");
                     }
@@ -331,7 +331,7 @@ public class Recover extends Tool implements DataHandler {
     private void writeDataError(PrintWriter writer, String error, byte[] data, int dumpBlocks) {
         writer.println("-- ERROR: " + error + " block:" + block + " blockCount:" + blockCount + " storageId:"
                 + storageId + " recordLength:" + recordLength + " valueId:" + valueId);
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
             int x = data[i] & 0xff;
             if (x >= ' ' && x < 128) {
@@ -341,7 +341,7 @@ public class Recover extends Tool implements DataHandler {
             }
         }
         writer.println("-- dump: " + sb.toString());
-        sb = new StringBuffer();
+        sb = new StringBuilder();
         for (int i = 0; i < dumpBlocks * DiskFile.BLOCK_SIZE; i++) {
             int x = data[i] & 0xff;
             sb.append(' ');
@@ -407,7 +407,7 @@ public class Recover extends Tool implements DataHandler {
             writeDataError(writer, "out of memory", s.getBytes(), blockCount);
             return;
         }
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("//     data: ");
         for (valueId = 0; valueId < recordLength; valueId++) {
             try {
@@ -1024,12 +1024,12 @@ public class Recover extends Tool implements DataHandler {
                             byte[] userPasswordHash = sha.getKeyPasswordHash(userName, "".toCharArray());
                             byte[] salt = RandomUtils.getSecureBytes(Constants.SALT_LEN);
                             byte[] passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
-                            StringBuffer buff = new StringBuffer();
+                            StringBuilder buff = new StringBuilder();
                             buff.append("SALT '");
                             buff.append(ByteUtils.convertBytesToString(salt));
                             buff.append("' HASH '");
                             buff.append(ByteUtils.convertBytesToString(passwordHash));
-                            buff.append("'");
+                            buff.append('\'');
                             byte[] replacement = buff.toString().getBytes();
                             System.arraycopy(replacement, 0, s.getBytes(), saltIndex, replacement.length);
                             store.seek(pageSize * pageId);
@@ -1062,7 +1062,7 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void writeRow(PrintWriter writer, DataPage s, Value[] data) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("INSERT INTO O_" + storageName + " VALUES(");
         for (valueId = 0; valueId < recordLength; valueId++) {
             try {

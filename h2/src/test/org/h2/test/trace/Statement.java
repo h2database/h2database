@@ -96,7 +96,7 @@ class Statement {
     }
 
     public String toString() {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         if (assignment) {
             buff.append(assignClass);
             buff.append(' ');

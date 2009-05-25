@@ -785,10 +785,9 @@ public class TestResultSet extends TestBase {
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?, ?, ?)");
         Calendar regular = Calendar.getInstance();
         Calendar other = null;
-        String[] timeZones = TimeZone.getAvailableIDs();
         // search a locale that has a _different_ raw offset
-        for (int i = 0; i < timeZones.length; i++) {
-            TimeZone zone = TimeZone.getTimeZone(timeZones[i]);
+        for (String s : TimeZone.getAvailableIDs()) {
+            TimeZone zone = TimeZone.getTimeZone(s);
             if (regular.getTimeZone().getRawOffset() != zone.getRawOffset()) {
                 other = Calendar.getInstance(zone);
                 break;

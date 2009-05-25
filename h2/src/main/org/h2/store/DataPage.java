@@ -485,8 +485,8 @@ public class DataPage {
         case Value.ARRAY: {
             Value[] list = ((ValueArray) v).getList();
             writeInt(list.length);
-            for (int i = 0; i < list.length; i++) {
-                writeValue(list[i]);
+            for (Value x : list) {
+                writeValue(x);
             }
             break;
         }
@@ -561,8 +561,8 @@ public class DataPage {
         case Value.ARRAY: {
             Value[] list = ((ValueArray) v).getList();
             int len = 1 + LENGTH_INT;
-            for (int i = 0; i < list.length; i++) {
-                len += getValueLen(list[i]);
+            for (Value x : list) {
+                len += getValueLen(x);
             }
             return len;
         }

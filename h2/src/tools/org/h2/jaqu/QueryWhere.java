@@ -39,7 +39,7 @@ public class QueryWhere<T> {
     }
 
     public String getSQL() {
-        SqlStatement selectList = new SqlStatement(query.getDb());
+        SQLStatement selectList = new SQLStatement(query.getDb());
         selectList.appendSQL("*");
         return query.prepare(selectList, false).getSQL().trim();
     }

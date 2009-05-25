@@ -9,7 +9,6 @@ package org.h2.expression;
 import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
-
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
 import org.h2.constant.ErrorCode;
@@ -26,7 +25,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
-import org.h2.util.ObjectUtils;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -169,7 +168,7 @@ public class Aggregate extends Expression {
     }
 
     private static void addAggregate(String name, int type) {
-        AGGREGATES.put(name, ObjectUtils.getInteger(type));
+        AGGREGATES.put(name, type);
     }
 
     /**
@@ -314,10 +313,9 @@ public class Aggregate extends Expression {
                     throw Message.convert(e);
                 }
             }
-            StringBuffer buff = new StringBuffer();
+            StatementBuilder buff = new StatementBuilder();
             String sep = separator == null ? "," : separator.getValue(session).getString();
-            for (int i = 0; i < list.size(); i++) {
-                Value val = list.get(i);
+            for (Value val : list) {
                 String s;
                 if (val.getType() == Value.ARRAY) {
                     s = ((ValueArray) val).getList()[0].getString();
@@ -327,8 +325,8 @@ public class Aggregate extends Expression {
                 if (s == null) {
                     continue;
                 }
-                if (i > 0 && sep != null) {
-                    buff.append(sep);
+                if (sep != null) {
+                    buff.appendExceptFirst(sep);
                 }
                 buff.append(s);
             }
@@ -346,8 +344,7 @@ public class Aggregate extends Expression {
             on.mapColumns(resolver, level);
         }
         if (orderList != null) {
-            for (int i = 0; i < orderList.size(); i++) {
-                SelectOrderBy o = orderList.get(i);
+            for (SelectOrderBy o : orderList) {
                 o.expression.mapColumns(resolver, level);
             }
         }
@@ -365,8 +362,7 @@ public class Aggregate extends Expression {
             displaySize = on.getDisplaySize();
         }
         if (orderList != null) {
-            for (int i = 0; i < orderList.size(); i++) {
-                SelectOrderBy o = orderList.get(i);
+            for (SelectOrderBy o : orderList) {
                 o.expression = o.expression.optimize(session);
             }
             sort = initOrder(session);
@@ -435,8 +431,7 @@ public class Aggregate extends Expression {
             on.setEvaluatable(tableFilter, b);
         }
         if (orderList != null) {
-            for (int i = 0; i < orderList.size(); i++) {
-                SelectOrderBy o = orderList.get(i);
+            for (SelectOrderBy o : orderList) {
                 o.expression.setEvaluatable(tableFilter, b);
             }
         }
@@ -458,16 +453,12 @@ public class Aggregate extends Expression {
     }
 
     private String getSQLGroupConcat() {
-        StringBuffer buff = new StringBuffer();
-        buff.append("GROUP_CONCAT(");
+        StatementBuilder buff = new StatementBuilder("GROUP_CONCAT(");
         buff.append(on.getSQL());
         if (orderList != null) {
             buff.append(" ORDER BY ");
-            for (int i = 0; i < orderList.size(); i++) {
-                SelectOrderBy o = orderList.get(i);
-                if (i > 0) {
-                    buff.append(", ");
-                }
+            for (SelectOrderBy o : orderList) {
+                buff.appendExceptFirst(", ");
                 buff.append(o.expression.getSQL());
                 if (o.descending) {
                     buff.append(" DESC");
@@ -475,11 +466,9 @@ public class Aggregate extends Expression {
             }
         }
         if (separator != null) {
-            buff.append(" SEPARATOR ");
-            buff.append(separator.getSQL());
+            buff.append(" SEPARATOR ").append(separator.getSQL());
         }
-        buff.append(")");
-        return buff.toString();
+        return buff.append(')').toString();
     }
 
     public String getSQL() {

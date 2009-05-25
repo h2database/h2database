@@ -22,6 +22,7 @@ import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -149,14 +150,9 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     public SQLException getDuplicateKeyException() {
-        StringBuffer buff = new StringBuffer();
-        buff.append(getName());
-        buff.append(" ");
-        buff.append(" ON ");
-        buff.append(table.getSQL());
-        buff.append("(");
-        buff.append(getColumnListSQL());
-        buff.append(")");
+        StringBuffer buff = new StringBuffer(getName());
+        buff.append(" ON ").append(table.getSQL()).append('(');
+        buff.append(getColumnListSQL()).append(')');
         return Message.getSQLException(ErrorCode.DUPLICATE_KEY_1, buff.toString());
     }
 
@@ -258,8 +254,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         if (mode.uniqueIndexSingleNull) {
             return false;
         } else if (mode.uniqueIndexSingleNullExceptAllColumnsAreNull) {
-            for (int i = 0; i < columns.length; i++) {
-                int index = columnIds[i];
+            for (int index : columnIds) {
                 Value v = newRow.getValue(index);
                 if (v != ValueNull.INSTANCE) {
                     return false;
@@ -267,8 +262,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
             }
             return true;
         }
-        for (int i = 0; i < columns.length; i++) {
-            int index = columnIds[i];
+        for (int index : columnIds) {
             Value v = newRow.getValue(index);
             if (v == ValueNull.INSTANCE) {
                 return true;
@@ -316,33 +310,25 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     public String getColumnListSQL() {
-        StringBuffer buff = new StringBuffer();
-        for (int i = 0; i < indexColumns.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(indexColumns[i].getSQL());
+        StatementBuilder buff = new StatementBuilder();
+        for (IndexColumn c : indexColumns) {
+            buff.appendExceptFirst(", ");
+            buff.append(c.getSQL());
         }
         return buff.toString();
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        StringBuffer buff = new StringBuffer();
-        buff.append("CREATE ");
+        StringBuffer buff = new StringBuffer("CREATE ");
         buff.append(indexType.getSQL());
         if (!indexType.getPrimaryKey()) {
-            buff.append(' ');
-            buff.append(quotedName);
+            buff.append(' ').append(quotedName);
         }
-        buff.append(" ON ");
-        buff.append(table.getSQL());
+        buff.append(" ON ").append(table.getSQL());
         if (comment != null) {
-            buff.append(" COMMENT ");
-            buff.append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }
-        buff.append("(");
-        buff.append(getColumnListSQL());
-        buff.append(")");
+        buff.append('(').append(getColumnListSQL()).append(")");
         return buff.toString();
     }
 

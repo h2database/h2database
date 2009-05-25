@@ -906,8 +906,8 @@ public abstract class TestBase {
 
     private String formatRow(String[] row) {
         String sb = "";
-        for (int i = 0; i < row.length; i++) {
-            sb += "{" + row[i] + "}";
+        for (String r : row) {
+            sb += "{" + r + "}";
         }
         return "{" + sb + "}";
     }
@@ -1020,8 +1020,7 @@ public abstract class TestBase {
             String s2 = rs2.getString(1);
             list2.add(s2);
         }
-        for (int i = 0; i < list1.size(); i++) {
-            String s = list1.get(i);
+        for (String s : list1) {
             if (!list2.remove(s)) {
                 fail("only found in first: " + s);
             }

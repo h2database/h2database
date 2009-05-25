@@ -42,7 +42,6 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.ObjectUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -2930,11 +2929,11 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                     String colName = result.getColumnName(i);
                     if (colName != null) {
                         colName = StringUtils.toUpperEnglish(colName);
-                        map.put(colName, ObjectUtils.getInteger(i));
+                        map.put(colName, i);
                         String tabName = result.getTableName(i);
                         if (tabName != null) {
                             colName = StringUtils.toUpperEnglish(tabName) + "." + colName;
-                            map.put(colName, ObjectUtils.getInteger(i));
+                            map.put(colName, i);
                         }
                     }
                 }
@@ -2942,7 +2941,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 // column names with the same name are replaced
                 for (int i = 0; i < columnCount; i++) {
                     String c = StringUtils.toUpperEnglish(result.getAlias(i));
-                    map.put(c, ObjectUtils.getInteger(i));
+                    map.put(c, i);
                 }
                 // assign at the end so concurrent access is supported
                 columnLabelMap = map;
@@ -3522,7 +3521,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         if (patchedRows == null) {
             patchedRows = New.hashMap();
         }
-        Integer rowId = ObjectUtils.getInteger(result.getRowId());
+        Integer rowId = result.getRowId();
         if (!changed) {
             patchedRows.remove(rowId);
         } else {

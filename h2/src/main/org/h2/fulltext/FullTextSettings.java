@@ -13,9 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.HashSet;
-
 import org.h2.util.New;
-import org.h2.util.ObjectUtils;
 
 /**
  * The global settings of a full text search.
@@ -134,7 +132,7 @@ class FullTextSettings {
      * @param index the index to remove
      */
     void removeIndexInfo(IndexInfo index) {
-        indexes.remove(ObjectUtils.getLong(index.id));
+        indexes.remove(index.id);
     }
 
 }

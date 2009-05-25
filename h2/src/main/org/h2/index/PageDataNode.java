@@ -133,8 +133,7 @@ class PageDataNode extends PageData {
     }
 
     protected void remapChildren() throws SQLException {
-        for (int i = 0; i < childPageIds.length; i++) {
-            int child = childPageIds[i];
+        for (int child : childPageIds) {
             PageData p = index.getPage(child);
             p.setParentPageId(getPos());
             index.getPageStore().updateRecord(p, true, p.data);
@@ -215,8 +214,8 @@ class PageDataNode extends PageData {
     int getRowCount() throws SQLException {
         if (rowCount == UNKNOWN_ROWCOUNT) {
             int count = 0;
-            for (int i = 0; i < childPageIds.length; i++) {
-                PageData page = index.getPage(childPageIds[i]);
+            for (int child : childPageIds) {
+                PageData page = index.getPage(child);
                 if (getPos() == page.getPos()) {
                     throw Message.throwInternalError("Page it its own child: " + getPageId());
                 }
@@ -236,8 +235,8 @@ class PageDataNode extends PageData {
     }
 
     private void check() {
-        for (int i = 0; i < childPageIds.length; i++) {
-            if (childPageIds[i] == 0) {
+        for (int child : childPageIds) {
+            if (child == 0) {
                 Message.throwInternalError();
             }
         }

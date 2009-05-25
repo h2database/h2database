@@ -21,6 +21,7 @@ import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.util.ClassUtils;
 import org.h2.util.ObjectArray;
+import org.h2.util.StatementBuilder;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -72,8 +73,7 @@ public class FunctionAlias extends DbObjectBase {
             }
             if (m.getName().equals(methodName) || getMethodSignature(m).equals(methodName)) {
                 JavaMethod javaMethod = new JavaMethod(m, i);
-                for (int j = 0; j < list.size(); j++) {
-                    JavaMethod old = list.get(j);
+                for (JavaMethod old : list) {
                     if (old.getParameterCount() == javaMethod.getParameterCount()) {
                         throw Message.getSQLException(ErrorCode.METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2,
                                 new String[] {
@@ -99,24 +99,17 @@ public class FunctionAlias extends DbObjectBase {
     }
 
     private String getMethodSignature(Method m) {
-        StringBuffer buff = new StringBuffer();
-        buff.append(m.getName());
+        StatementBuilder buff = new StatementBuilder(m.getName());
         buff.append('(');
-        Class< ? >[] params = m.getParameterTypes();
-        for (int i = 0; i < params.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            Class< ? > p = params[i];
+        for (Class< ? > p : m.getParameterTypes()) {
+            buff.appendExceptFirst(", ");
             if (p.isArray()) {
-                buff.append(p.getComponentType().getName());
-                buff.append("[]");
+                buff.append(p.getComponentType().getName()).append("[]");
             } else {
                 buff.append(p.getName());
             }
         }
-        buff.append(')');
-        return buff.toString();
+        return buff.append(')').toString();
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {

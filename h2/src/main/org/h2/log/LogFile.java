@@ -425,8 +425,7 @@ public class LogFile {
             }
             file.write(buffer, 0, bufferPos);
             pos = getBlock();
-            for (int i = 0; i < unwritten.size(); i++) {
-                Record r = unwritten.get(i);
+            for (Record r : unwritten) {
                 r.setLogWritten(id, pos);
             }
             unwritten.clear();

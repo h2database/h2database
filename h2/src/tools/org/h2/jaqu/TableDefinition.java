@@ -15,6 +15,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 import org.h2.jaqu.util.Utils;
+import org.h2.util.StatementBuilder;
 
 /**
  * A table definition contains the index definitions of a table, the field
@@ -165,16 +166,12 @@ class TableDefinition<T> {
     }
 
     void insert(Db db, Object obj) {
-        SqlStatement stat = new SqlStatement(db);
-        StringBuilder buff = new StringBuilder("INSERT INTO ");
-        buff.append(tableName);
-        buff.append(" VALUES(");
-        for (int i = 0; i < fields.size(); i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
+        SQLStatement stat = new SQLStatement(db);
+        StatementBuilder buff = new StatementBuilder("INSERT INTO ");
+        buff.append(tableName).append(" VALUES(");
+        for (FieldDefinition field : fields) {
+            buff.appendExceptFirst(", ");
             buff.append('?');
-            FieldDefinition field = fields.get(i);
             Object value = field.getValue(obj);
             stat.addParameter(value);
         }
@@ -184,31 +181,22 @@ class TableDefinition<T> {
     }
 
     TableDefinition<T> createTableIfRequired(Db db) {
-        SqlStatement stat = new SqlStatement(db);
-        StringBuilder buff = new StringBuilder("CREATE TABLE IF NOT EXISTS ");
-        buff.append(tableName);
-        buff.append('(');
-        for (int i = 0; i < fields.size(); i++) {
-            FieldDefinition field = fields.get(i);
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(field.columnName);
-            buff.append(' ');
-            buff.append(field.dataType);
+        SQLStatement stat = new SQLStatement(db);
+        StatementBuilder buff = new StatementBuilder("CREATE TABLE IF NOT EXISTS ");
+        buff.append(tableName).append('(');
+        for (FieldDefinition field : fields) {
+            buff.appendExceptFirst(", ");
+            buff.append(field.columnName).append(' ').append(field.dataType);
             if (field.maxLength != 0) {
-                buff.append('(');
-                buff.append(field.maxLength);
-                buff.append(')');
+                buff.append('(').append(field.maxLength).append(')');
             }
         }
         if (primaryKeyColumnNames != null) {
             buff.append(", PRIMARY KEY(");
-            for (int i = 0; i < primaryKeyColumnNames.length; i++) {
-                if (i > 0) {
-                    buff.append(", ");
-                }
-                buff.append(primaryKeyColumnNames[i]);
+            buff.resetCount();
+            for (String n : primaryKeyColumnNames) {
+                buff.appendExceptFirst(", ");
+                buff.append(n);
             }
             buff.append(')');
         }
@@ -248,8 +236,8 @@ class TableDefinition<T> {
         }
     }
 
-    <Y, X> SqlStatement getSelectList(Query<Y> query, X x) {
-        SqlStatement selectList = new SqlStatement(query.getDb());
+    <Y, X> SQLStatement getSelectList(Query<Y> query, X x) {
+        SQLStatement selectList = new SQLStatement(query.getDb());
         for (int i = 0; i < fields.size(); i++) {
             if (i > 0) {
                 selectList.appendSQL(", ");

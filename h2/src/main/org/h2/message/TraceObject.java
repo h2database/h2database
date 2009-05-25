@@ -18,6 +18,7 @@ import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.ObjectArray;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
 /**
@@ -414,29 +415,22 @@ public class TraceObject {
      * INTERNAL
      */
     public static String toString(String sql, ObjectArray< ? extends ParameterInterface> params) {
-        StringBuffer buff = new StringBuffer();
-        buff.append(sql);
+        StatementBuilder buff = new StatementBuilder(sql);
         if (params != null && params.size() > 0) {
             buff.append(" {");
-            for (int i = 0; i < params.size(); i++) {
+            int i = 0;
+            for (ParameterInterface p : params) {
+                i++;
                 try {
-                    if (i > 0) {
-                        buff.append(", ");
-                    }
-                    buff.append(i + 1);
-                    buff.append(": ");
-                    ParameterInterface p = params.get(i);
+                    buff.appendExceptFirst(", ");
+                    buff.append(i).append(": ");
                     if (p == null || p.getParamValue() == null) {
-                        buff.append("-");
+                        buff.append('-');
                     } else {
                         buff.append(p.getParamValue().getSQL());
                     }
                 } catch (SQLException e) {
-                    buff.append("/* ");
-                    buff.append(i + 1);
-                    buff.append(": ");
-                    buff.append(e.toString());
-                    buff.append("*/ ");
+                    buff.append("/* ").append(i).append(": ").append(e.toString()).append("*/ ");
                 }
             }
             buff.append("};");

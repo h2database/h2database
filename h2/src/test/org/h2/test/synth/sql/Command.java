@@ -9,6 +9,7 @@ package org.h2.test.synth.sql;
 import java.sql.SQLException;
 import java.util.HashMap;
 import org.h2.util.New;
+import org.h2.util.StatementBuilder;
 
 /**
  * Represents a statement.
@@ -287,22 +288,20 @@ class Command {
     }
 
     private Result select(DbInterface db) throws SQLException {
-        String sql = "SELECT ";
-        for (int i = 0; i < selectList.length; i++) {
-            if (i > 0) {
-                sql += ", ";
-            }
-            sql += selectList[i];
+        StatementBuilder buff = new StatementBuilder("SELECT ");
+        for (String s : selectList) {
+            buff.appendExceptFirst(", ");
+            buff.append(s);
         }
-        sql += "  FROM " + table.getName() + " M";
-        sql += " " + join;
+        buff.append("  FROM ").append(table.getName()).append(" M").
+            append(' ').append(join);
         if (condition != null) {
-            sql += "  WHERE " + condition;
+            buff.append("  WHERE ").append(condition);
         }
         if (order.trim().length() > 0) {
-            sql += "  ORDER BY " + order;
+            buff.append("  ORDER BY ").append(order);
         }
-        return db.select(sql);
+        return db.select(buff.toString());
     }
 
     /**

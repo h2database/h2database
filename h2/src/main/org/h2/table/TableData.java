@@ -41,6 +41,7 @@ import org.h2.store.RecordReader;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -167,8 +168,8 @@ public class TableData extends Table implements RecordReader {
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             int headPos, String indexComment) throws SQLException {
         if (indexType.getPrimaryKey()) {
-            for (int i = 0; i < cols.length; i++) {
-                Column column = cols[i].column;
+            for (IndexColumn c : cols) {
+                Column column = c.column;
                 if (column.getNullable()) {
                     throw Message.getSQLException(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
                 }
@@ -539,8 +540,7 @@ public class TableData extends Table implements RecordReader {
     }
 
     public String getCreateSQL() {
-        StringBuffer buff = new StringBuffer();
-        buff.append("CREATE ");
+        StatementBuilder buff = new StatementBuilder("CREATE ");
         if (getTemporary()) {
             if (globalTemporary) {
                 buff.append("GLOBAL ");
@@ -556,15 +556,11 @@ public class TableData extends Table implements RecordReader {
         buff.append("TABLE ");
         buff.append(getSQL());
         if (comment != null) {
-            buff.append(" COMMENT ");
-            buff.append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }
         buff.append("(\n    ");
-        for (int i = 0; i < columns.length; i++) {
-            Column column = columns[i];
-            if (i > 0) {
-                buff.append(",\n    ");
-            }
+        for (Column column : columns) {
+            buff.appendExceptFirst(",\n    ");
             buff.append(column.getCreateSQL());
         }
         buff.append("\n)");

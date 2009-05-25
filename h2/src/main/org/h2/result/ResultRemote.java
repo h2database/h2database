@@ -165,8 +165,7 @@ public class ResultRemote implements ResultInterface {
         Trace trace = session.getTrace();
         sendClose();
         if (lobValues != null) {
-            for (int i = 0; i < lobValues.size(); i++) {
-                Value v = lobValues.get(i);
+            for (Value v : lobValues) {
                 try {
                     v.close();
                 } catch (SQLException e) {

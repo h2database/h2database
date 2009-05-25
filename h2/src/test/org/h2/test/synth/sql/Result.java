@@ -94,13 +94,11 @@ class Result implements Comparable<Result> {
         }
         case RESULT_SET:
             String result = "ResultSet { // size=" + rows.size() + "\r\n  ";
-            for (int i = 0; i < header.size(); i++) {
-                Column column = header.get(i);
+            for (Column column : header) {
                 result += column.toString() + "; ";
             }
             result += "} = {\r\n";
-            for (int i = 0; i < rows.size(); i++) {
-                Row row = rows.get(i);
+            for (Row row : rows) {
                 result += "  { " + row.toString() + "};\r\n";
             }
             return result + "}";

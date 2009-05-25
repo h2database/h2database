@@ -150,9 +150,9 @@ public class TestLinkedTable extends TestBase {
             sb.execute(sql);
             sb.executeQuery("SELECT * FROM T");
             String[] update = new String[]{"DELETE FROM T", "INSERT INTO T VALUES(2)", "UPDATE T SET ID = 3"};
-            for (int j = 0; j < update.length; j++) {
+            for (String u : update) {
                 try {
-                    sb.execute(update[j]);
+                    sb.execute(u);
                     if (i == 1) {
                         fail();
                     }

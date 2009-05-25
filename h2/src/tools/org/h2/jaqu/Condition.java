@@ -22,7 +22,7 @@ class Condition<A> implements Token {
         this.y = y;
     }
 
-    public <T> void appendSQL(SqlStatement stat, Query<T> query) {
+    public <T> void appendSQL(SQLStatement stat, Query<T> query) {
         query.appendSQL(stat, x);
         stat.appendSQL(" ");
         stat.appendSQL(compareType.getString());

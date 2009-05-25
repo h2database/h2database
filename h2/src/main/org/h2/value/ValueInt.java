@@ -8,11 +8,9 @@ package org.h2.value;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
-import org.h2.util.ObjectUtils;
 
 /**
  * Implementation of the INT data type.
@@ -149,7 +147,7 @@ public class ValueInt extends Value {
     }
 
     public Object getObject() {
-        return ObjectUtils.getInteger(value);
+        return value;
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {

@@ -326,16 +326,12 @@ public class StringUtils {
         if (array == null) {
             return "null";
         }
-        StringBuffer buff = new StringBuffer(5 * array.length);
-        buff.append("new String[]{");
-        for (int i = 0; i < array.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(quoteJavaString(array[i]));
+        StatementBuilder buff = new StatementBuilder("new String[]{");
+        for (String a : array) {
+            buff.appendExceptFirst(", ");
+            buff.append(quoteJavaString(a));
         }
-        buff.append("}");
-        return buff.toString();
+        return buff.append("}").toString();
     }
 
     /**
@@ -349,16 +345,12 @@ public class StringUtils {
         if (array == null) {
             return "null";
         }
-        StringBuffer buff = new StringBuffer(2 * array.length);
-        buff.append("new int[]{");
-        for (int i = 0; i < array.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(array[i]);
+        StatementBuilder buff = new StatementBuilder("new int[]{");
+        for (int a : array) {
+            buff.appendExceptFirst(", ");
+            buff.append(a);
         }
-        buff.append("}");
-        return buff.toString();
+        return buff.append("}").toString();
     }
 
     /**
@@ -490,12 +482,9 @@ public class StringUtils {
      * @return the combined string
      */
     public static String arrayCombine(String[] list, char separatorChar) {
-        StringBuffer buff = new StringBuffer(5 * list.length);
-        for (int i = 0; i < list.length; i++) {
-            if (i > 0) {
-                buff.append(separatorChar);
-            }
-            String s = list[i];
+        StatementBuilder buff = new StatementBuilder();
+        for (String s : list) {
+            buff.appendExceptFirst(String.valueOf(separatorChar));
             if (s == null) {
                 s = "";
             }

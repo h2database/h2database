@@ -17,6 +17,6 @@ interface Token {
      * @param query the query to use
      */
 //## Java 1.5 begin ##
-    <T> void appendSQL(SqlStatement stat, Query<T> query);
+    <T> void appendSQL(SQLStatement stat, Query<T> query);
 //## Java 1.5 end ##
 }

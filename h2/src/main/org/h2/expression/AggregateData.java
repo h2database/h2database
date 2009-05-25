@@ -246,9 +246,8 @@ class AggregateData {
             count = distinctValues.size();
         } else {
             count = 0;
-            ObjectArray<Value> l2 = distinctValues.keys();
-            for (int i = 0; i < l2.size(); i++) {
-                add(database, false, l2.get(i));
+            for (Value v : distinctValues.keys()) {
+                add(database, false, v);
             }
         }
     }

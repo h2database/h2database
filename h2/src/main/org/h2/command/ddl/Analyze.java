@@ -46,7 +46,7 @@ public class Analyze extends DefineCommand {
                 }
                 buff.append("SELECTIVITY(");
                 buff.append(columns[j].getSQL());
-                buff.append(")");
+                buff.append(')');
             }
             buff.append(" FROM ");
             buff.append(table.getSQL());

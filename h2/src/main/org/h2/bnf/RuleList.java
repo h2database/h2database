@@ -9,6 +9,7 @@ package org.h2.bnf;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.h2.util.New;
+import org.h2.util.StatementBuilder;
 
 /**
  * Represents a sequence of BNF rules, or a list of alternative rules.
@@ -35,22 +36,18 @@ public class RuleList implements Rule {
     }
 
     public String toString() {
-        StringBuffer buff = new StringBuffer();
+        StatementBuilder buff = new StatementBuilder();
         if (or) {
-            buff.append("{");
-            for (int i = 0; i < list.size(); i++) {
-                if (i > 0) {
-                    buff.append("|");
-                }
-                buff.append(list.get(i).toString());
+            buff.append('{');
+            for (Rule r : list) {
+                buff.appendExceptFirst("|");
+                buff.append(r.toString());
             }
-            buff.append("}");
+            buff.append('}');
         } else {
-            for (int i = 0; i < list.size(); i++) {
-                if (i > 0) {
-                    buff.append(" ");
-                }
-                buff.append(list.get(i).toString());
+            for (Rule r : list) {
+                buff.appendExceptFirst(" ");
+                buff.append(r.toString());
             }
         }
         return buff.toString();

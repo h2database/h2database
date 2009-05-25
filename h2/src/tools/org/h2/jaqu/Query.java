@@ -46,7 +46,7 @@ public class Query<T> {
     }
 
     public long selectCount() {
-        SqlStatement selectList = new SqlStatement(db);
+        SQLStatement selectList = new SQLStatement(db);
         selectList.setSQL("COUNT(*)");
         ResultSet rs = prepare(selectList, false).executeQuery();
         try {
@@ -73,14 +73,14 @@ public class Query<T> {
     }
 
     public String getSQL() {
-        SqlStatement selectList = new SqlStatement(db);
+        SQLStatement selectList = new SQLStatement(db);
         selectList.setSQL("*");
         return prepare(selectList, false).getSQL().trim();
     }
 
     private List<T> select(boolean distinct) {
         List<T> result = Utils.newArrayList();
-        SqlStatement selectList = new SqlStatement(db);
+        SQLStatement selectList = new SQLStatement(db);
         selectList.setSQL("*");
         ResultSet rs = prepare(selectList, distinct).executeQuery();
         try {
@@ -96,7 +96,7 @@ public class Query<T> {
     }
 
     public int delete() {
-        SqlStatement stat = new SqlStatement(db);
+        SQLStatement stat = new SQLStatement(db);
         stat.appendSQL("DELETE FROM ");
         from.appendSQL(stat);
         appendWhere(stat);
@@ -123,7 +123,7 @@ public class Query<T> {
 
     private <X> List<X> select(Class<X> clazz, X x, boolean distinct) {
         TableDefinition<X> def = db.define(clazz);
-        SqlStatement selectList = def.getSelectList(this, x);
+        SQLStatement selectList = def.getSelectList(this, x);
         ResultSet rs = prepare(selectList, distinct).executeQuery();
         List<X> result = Utils.newArrayList();
         try {
@@ -140,7 +140,7 @@ public class Query<T> {
 
     @SuppressWarnings("unchecked")
     private <X> List<X> getSimple(X x, boolean distinct) {
-        SqlStatement selectList = new SqlStatement(db);
+        SQLStatement selectList = new SQLStatement(db);
         appendSQL(selectList, x);
         ResultSet rs = prepare(selectList, distinct).executeQuery();
         List<X> result = Utils.newArrayList();
@@ -198,7 +198,7 @@ public class Query<T> {
         return this;
     }
 
-    void appendSQL(SqlStatement stat, Object x) {
+    void appendSQL(SQLStatement stat, Object x) {
         if (x == Function.count()) {
             stat.appendSQL("COUNT(*)");
             return;
@@ -221,7 +221,7 @@ public class Query<T> {
         conditions.add(condition);
     }
 
-    void appendWhere(SqlStatement stat) {
+    void appendWhere(SQLStatement stat) {
         if (!conditions.isEmpty()) {
             stat.appendSQL(" WHERE ");
             for (Token token : conditions) {
@@ -232,8 +232,8 @@ public class Query<T> {
     }
 
     @SuppressWarnings("unchecked")
-    SqlStatement prepare(SqlStatement selectList, boolean distinct) {
-        SqlStatement stat = selectList;
+    SQLStatement prepare(SQLStatement selectList, boolean distinct) {
+        SQLStatement stat = selectList;
         String selectSQL = stat.getSQL();
         stat.setSQL("");
         stat.appendSQL("SELECT ");
@@ -249,22 +249,22 @@ public class Query<T> {
         appendWhere(stat);
         if (groupByExpressions != null) {
             stat.appendSQL(" GROUP BY ");
-            for (int i = 0; i < groupByExpressions.length; i++) {
-                if (i > 0) {
+            int i = 0;
+            for (Object obj : groupByExpressions) {
+                if (i++ > 0) {
                     stat.appendSQL(", ");
                 }
-                Object obj = groupByExpressions[i];
                 appendSQL(stat, obj);
                 stat.appendSQL(" ");
             }
         }
         if (!orderByList.isEmpty()) {
             stat.appendSQL(" ORDER BY ");
-            for (int i = 0; i < orderByList.size(); i++) {
-                if (i > 0) {
+            int i = 0;
+            for (OrderExpression o : orderByList) {
+                if (i++ > 0) {
                     stat.appendSQL(", ");
                 }
-                OrderExpression o = orderByList.get(i);
                 o.appendSQL(stat);
                 stat.appendSQL(" ");
             }

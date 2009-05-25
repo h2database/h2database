@@ -15,7 +15,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Random;
 import java.util.StringTokenizer;
 
@@ -301,8 +300,7 @@ public class Bnf {
      * This method is called after updating the topics.
      */
     public void linkStatements() {
-        for (Iterator<RuleHead> it = ruleMap.values().iterator(); it.hasNext();) {
-            RuleHead r = it.next();
+        for (RuleHead r : ruleMap.values()) {
             r.getRule().setLinks(ruleMap);
         }
     }

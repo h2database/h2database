@@ -8,11 +8,9 @@ package org.h2.value;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
-import org.h2.util.ObjectUtils;
 
 /**
  * Implementation of the BYTE data type.
@@ -119,7 +117,7 @@ public class ValueByte extends Value {
     }
 
     public Object getObject() {
-        return ObjectUtils.getByte(value);
+        return Byte.valueOf(value);
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {

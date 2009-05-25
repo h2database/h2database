@@ -7,7 +7,6 @@
 package org.h2.index;
 
 import java.sql.SQLException;
-
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
@@ -16,7 +15,6 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 import org.h2.util.IntIntHashMap;
-import org.h2.util.ObjectUtils;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -68,8 +66,7 @@ public class HashIndex extends BaseIndex {
                 // TODO index duplicate key for hash indexes: is this allowed?
                 throw getDuplicateKeyException();
             }
-            Integer pos = ObjectUtils.getInteger(row.getPos());
-            rows.put(getKey(row), pos);
+            rows.put(getKey(row), row.getPos());
         }
         rowCount++;
     }
@@ -126,8 +123,7 @@ public class HashIndex extends BaseIndex {
     }
 
     public double getCost(Session session, int[] masks) {
-        for (int i = 0; i < columns.length; i++) {
-            Column column = columns[i];
+        for (Column column : columns) {
             int index = column.getColumnId();
             int mask = masks[index];
             if ((mask & IndexCondition.EQUALITY) != IndexCondition.EQUALITY) {

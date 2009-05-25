@@ -9,7 +9,6 @@ package org.h2.log;
 import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -24,7 +23,6 @@ import org.h2.store.Storage;
 import org.h2.util.FileUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
-import org.h2.util.ObjectUtils;
 
 /**
  * The transaction log system is responsible for the write ahead log mechanism
@@ -271,7 +269,7 @@ public class LogSystem {
             for (int i = undo.size() - 1; i >= 0 && sessionStates.size() > 0; i--) {
                 database.setProgress(DatabaseEventListener.STATE_RECOVER, null, undo.size() - 1 - i, undo.size());
                 LogRecord record = undo.get(i);
-                if (sessionStates.get(ObjectUtils.getInteger(record.sessionId)) != null) {
+                if (sessionStates.get(record.sessionId) != null) {
                     // undo only if the session is not yet committed
                     record.log.undo(record.logRecordId);
                     database.getDataFile().flushRedoLog();
@@ -438,7 +436,7 @@ public class LogSystem {
      * @param sessionId the session id
      */
     void removeSession(int sessionId) {
-        sessionStates.remove(ObjectUtils.getInteger(sessionId));
+        sessionStates.remove(sessionId);
     }
 
     /**

@@ -49,6 +49,7 @@ import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.StatementBuilder;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
 import org.h2.value.Value;
@@ -1225,18 +1226,13 @@ public class Recover extends Tool implements DataHandler {
     private void createTemporaryTable(PrintWriter writer) {
         if (!objectIdSet.contains(storageId)) {
             objectIdSet.add(storageId);
-            StringBuffer sb = new StringBuffer();
-            sb.append("CREATE TABLE O_" + storageName + "(");
+            StatementBuilder buff = new StatementBuilder("CREATE TABLE O_");
+            buff.append(storageName).append('(');
             for (int i = 0; i < recordLength; i++) {
-                if (i > 0) {
-                    sb.append(", ");
-                }
-                sb.append("C");
-                sb.append(i);
-                sb.append(" VARCHAR");
+                buff.appendExceptFirst(", ");
+                buff.append('C').append(i).append(" VARCHAR");
             }
-            sb.append(");");
-            writer.println(sb.toString());
+            writer.println(buff.append(");").toString());
             writer.flush();
         }
     }

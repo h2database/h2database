@@ -339,8 +339,8 @@ public class CompareLike extends Condition {
         if (types == null) {
             return false;
         }
-        for (int i = 0; i < types.length; i++) {
-            if (types[i] != MATCH) {
+        for (int type : types) {
+            if (type != MATCH) {
                 return false;
             }
         }

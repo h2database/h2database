@@ -129,6 +129,7 @@ import org.h2.util.ByteUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringCache;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
@@ -467,12 +468,10 @@ public class Parser {
         if (expectedList == null || expectedList.size() == 0) {
             return Message.getSyntaxError(sqlCommand, parseIndex);
         }
-        StringBuffer buff = new StringBuffer();
-        for (int i = 0; i < expectedList.size(); i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(expectedList.get(i));
+        StatementBuilder buff = new StatementBuilder();
+        for (String e : expectedList) {
+            buff.appendExceptFirst(", ");
+            buff.append(e);
         }
         return Message.getSyntaxError(sqlCommand, parseIndex, buff.toString());
     }
@@ -1247,10 +1246,9 @@ public class Parser {
                 String tableSchema = last.getTable().getSchema().getName();
                 String joinSchema = join.getTable().getSchema().getName();
                 Expression on = null;
-                for (int t = 0; t < tableCols.length; t++) {
-                    String tableColumnName = tableCols[t].getName();
-                    for (int j = 0; j < joinCols.length; j++) {
-                        Column c = joinCols[j];
+                for (Column tc : tableCols) {
+                    String tableColumnName = tc.getName();
+                    for (Column c : joinCols) {
                         String joinColumnName = c.getName();
                         if (tableColumnName.equals(joinColumnName)) {
                             join.addNaturalJoinColumn(c);

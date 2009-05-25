@@ -37,7 +37,6 @@ import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
-import org.h2.util.ObjectUtils;
 
 /**
  * This class represents a file that is usually written to disk. The two main
@@ -795,7 +794,7 @@ public class DiskFile implements CacheWriter {
         if (storageId >= 0) {
             database.getStorage(storageId, this).addPage(page);
             if (SysProperties.REUSE_SPACE_QUICKLY) {
-                potentiallyFreePages.remove(ObjectUtils.getInteger(page));
+                potentiallyFreePages.remove(page);
             }
         } else {
             firstFreePage = Math.min(firstFreePage, page);

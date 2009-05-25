@@ -256,7 +256,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         buff.append(" AS SELECT ");
         if (columnList.length() == 0) {
             // special case insert into test select * from test
-            buff.append("*");
+            buff.append('*');
         } else {
             buff.append(columnList);
         }

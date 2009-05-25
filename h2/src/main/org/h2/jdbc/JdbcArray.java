@@ -11,12 +11,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Map;
-
 import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.message.TraceObject;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.ObjectUtils;
 import org.h2.value.Value;
 
 /**
@@ -245,7 +243,7 @@ public class JdbcArray extends TraceObject implements Array {
         rs.addColumn("VALUE", Types.NULL, 0, 0);
         for (int i = 0; i < array.length; i++) {
             Object[] row = new Object[2];
-            row[0] = ObjectUtils.getLong(offset + i + 1);
+            row[0] = Long.valueOf(offset + i + 1);
             row[1] = array[i];
             rs.addRow(row);
         }

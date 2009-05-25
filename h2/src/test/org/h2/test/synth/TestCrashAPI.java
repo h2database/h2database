@@ -371,9 +371,7 @@ public class TestCrashAPI extends TestBase {
     }
 
     private Class< ? > getJdbcInterface(Object o) {
-        Class< ? >[] list = o.getClass().getInterfaces();
-        for (int i = 0; i < list.length; i++) {
-            Class< ? > in = list[i];
+        for (Class < ? > in : o.getClass().getInterfaces()) {
             if (classMethods.get(in) != null) {
                 return in;
             }
@@ -382,16 +380,12 @@ public class TestCrashAPI extends TestBase {
     }
 
     private void initMethods() {
-        for (int i = 0; i < INTERFACES.length; i++) {
-            Class< ? > inter = INTERFACES[i];
+        for (Class< ? > inter : INTERFACES) {
             classMethods.put(inter, new ArrayList<Method>());
         }
-        for (int i = 0; i < INTERFACES.length; i++) {
-            Class< ? > inter = INTERFACES[i];
+        for (Class< ? > inter : INTERFACES) {
             ArrayList<Method> list = classMethods.get(inter);
-            Method[] methods = inter.getMethods();
-            for (int j = 0; j < methods.length; j++) {
-                Method m = methods[j];
+            for (Method m : inter.getMethods()) {
                 list.add(m);
             }
         }

@@ -25,7 +25,7 @@ public class TestCondition<A> {
     public Boolean is(A y) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("=", x, y) {
-            public <T> void appendSQL(SqlStatement stat, Query<T> query) {
+            public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 stat.appendSQL("(");
                 query.appendSQL(stat, x[0]);
                 stat.appendSQL(" = ");
@@ -38,7 +38,7 @@ public class TestCondition<A> {
     public Boolean bigger(A y) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function(">", x, y) {
-            public <T> void appendSQL(SqlStatement stat, Query<T> query) {
+            public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 stat.appendSQL("(");
                 query.appendSQL(stat, x[0]);
                 stat.appendSQL(" > ");
@@ -51,7 +51,7 @@ public class TestCondition<A> {
     public Boolean biggerEqual(A y) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function(">=", x, y) {
-            public <T> void appendSQL(SqlStatement stat, Query<T> query) {
+            public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 stat.appendSQL("(");
                 query.appendSQL(stat, x[0]);
                 stat.appendSQL(" >= ");
@@ -64,7 +64,7 @@ public class TestCondition<A> {
     public Boolean smaller(A y) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("<", x, y) {
-            public <T> void appendSQL(SqlStatement stat, Query<T> query) {
+            public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 stat.appendSQL("(");
                 query.appendSQL(stat, x[0]);
                 stat.appendSQL(" < ");
@@ -77,7 +77,7 @@ public class TestCondition<A> {
     public Boolean smallerEqual(A y) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("<=", x, y) {
-            public <T> void appendSQL(SqlStatement stat, Query<T> query) {
+            public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 stat.appendSQL("(");
                 query.appendSQL(stat, x[0]);
                 stat.appendSQL(" <= ");
@@ -90,7 +90,7 @@ public class TestCondition<A> {
     public Boolean like(A pattern) {
         Boolean o = Utils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("LIKE", x, pattern) {
-            public <T> void appendSQL(SqlStatement stat, Query<T> query) {
+            public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 stat.appendSQL("(");
                 query.appendSQL(stat, x[0]);
                 stat.appendSQL(" LIKE ");

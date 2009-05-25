@@ -24,8 +24,7 @@ class Row implements Comparable<Row> {
 
     public String toString() {
         String s = "";
-        for (int i = 0; i < data.length; i++) {
-            Object o = data[i];
+        for (Object o : data) {
             s += o == null ? "NULL" : o.toString();
             s += "; ";
         }

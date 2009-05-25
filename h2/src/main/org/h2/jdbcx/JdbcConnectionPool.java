@@ -48,9 +48,9 @@ import org.h2.message.Message;
  *     public static void main(String[] args) throws Exception {
  *         JdbcConnectionPool cp = JdbcConnectionPool.create(
  *             "jdbc:h2:~/test", "sa", "sa");
- *         for (int i = 0; i &lt; args.length; i++) {
+ *         for (String sql : args) {
  *             Connection conn = cp.getConnection();
- *             conn.createStatement().execute(args[i]);
+ *             conn.createStatement().execute(sql);
  *             conn.close();
  *         }
  *         cp.dispose();

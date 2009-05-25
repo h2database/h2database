@@ -53,6 +53,7 @@ import org.h2.store.DiskFile;
 import org.h2.tools.Csv;
 import org.h2.util.ObjectArray;
 import org.h2.util.Resources;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
@@ -1047,9 +1048,7 @@ public class MetaTable extends Table {
         }
         case FUNCTION_ALIASES: {
             for (FunctionAlias alias : database.getAllFunctionAliases()) {
-                FunctionAlias.JavaMethod[] methods = alias.getJavaMethods();
-                for (int j = 0; j < methods.length; j++) {
-                    FunctionAlias.JavaMethod method = methods[j];
+                for (FunctionAlias.JavaMethod method : alias.getJavaMethods()) {
                     int returnsResult = method.getDataType() == Value.NULL ? DatabaseMetaData.procedureNoResult
                             : DatabaseMetaData.procedureReturnsResult;
                     add(rows, new String[] {
@@ -1105,9 +1104,7 @@ public class MetaTable extends Table {
         }
         case FUNCTION_COLUMNS: {
             for (FunctionAlias alias : database.getAllFunctionAliases()) {
-                FunctionAlias.JavaMethod[] methods = alias.getJavaMethods();
-                for (int j = 0; j < methods.length; j++) {
-                    FunctionAlias.JavaMethod method = methods[j];
+                for (FunctionAlias.JavaMethod method : alias.getJavaMethods()) {
                     Class< ? >[] columns = method.getColumnClasses();
                     for (int k = 0; k < columns.length; k++) {
                         Class< ? > clazz = columns[k];
@@ -1204,10 +1201,8 @@ public class MetaTable extends Table {
                 }
                 DbObject grantee = r.getGrantee();
                 int mask = r.getRightMask();
-                Column[] columns = table.getColumns();
-                for (int j = 0; j < columns.length; j++) {
-                    String column = columns[j].getName();
-                    addPrivileges(rows, grantee, catalog, table, column, mask);
+                for (Column column : table.getColumns()) {
+                    addPrivileges(rows, grantee, catalog, table, column.getName(), mask);
                 }
             }
             break;
@@ -1507,9 +1502,7 @@ public class MetaTable extends Table {
             boolean admin = session.getUser().getAdmin();
             for (Session s : database.getSessions(false)) {
                 if (admin || s == session) {
-                    Table[] locks = s.getLocks();
-                    for (int j = 0; j < locks.length; j++) {
-                        Table table = locks[j];
+                    for (Table table : s.getLocks()) {
                         add(rows, new String[] {
                                 // TABLE_SCHEMA
                                 table.getSchema().getName(),
@@ -1545,13 +1538,10 @@ public class MetaTable extends Table {
             }
             String[] path = session.getSchemaSearchPath();
             if (path != null && path.length > 0) {
-                StringBuffer buff = new StringBuffer();
-                buff.append("SET SCHEMA_SEARCH_PATH ");
-                for (int i = 0; i < path.length; i++) {
-                    if (i > 0) {
-                        buff.append(", ");
-                    }
-                    buff.append(StringUtils.quoteIdentifier(path[i]));
+                StatementBuilder buff = new StatementBuilder("SET SCHEMA_SEARCH_PATH ");
+                for (String p : path) {
+                    buff.appendExceptFirst(", ");
+                    buff.append(StringUtils.quoteIdentifier(p));
                 }
                 add(rows, new String[] {
                         // KEY

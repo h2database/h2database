@@ -69,7 +69,7 @@ class CacheSecondLevel implements Cache {
 
     public void remove(int pos) {
         baseCache.remove(pos);
-        map.remove(ObjectUtils.getInteger(pos));
+        map.remove(pos);
     }
 
     public void setMaxSize(int size) throws SQLException {
@@ -78,7 +78,7 @@ class CacheSecondLevel implements Cache {
 
     public CacheObject update(int pos, CacheObject record) throws SQLException {
         CacheObject oldRec = baseCache.update(pos, record);
-        map.put(ObjectUtils.getInteger(pos), record);
+        map.put(pos, record);
         return oldRec;
     }
 

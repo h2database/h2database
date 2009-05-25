@@ -85,8 +85,8 @@ public class TestValueMemory extends TestBase implements DataHandler {
         }
         Object[] array = list.toArray();
         IdentityHashMap<Object, Object> map = new IdentityHashMap<Object, Object>();
-        for (int i = 0; i < array.length; i++) {
-            map.put(array[i], array[i]);
+        for (Object a : array) {
+            map.put(a, a);
         }
         int size = map.size();
         map.clear();

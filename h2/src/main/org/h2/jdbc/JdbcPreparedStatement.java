@@ -1039,8 +1039,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             boolean error = false;
             SQLException next = null;
             for (int i = 0; i < batchParameters.size(); i++) {
-                ObjectArray< ? extends ParameterInterface> parameters = command.getParameters();
                 Value[] set = batchParameters.get(i);
+                ObjectArray< ? extends ParameterInterface> parameters = command.getParameters();
                 for (int j = 0; j < set.length; j++) {
                     Value value = set[j];
                     ParameterInterface param = parameters.get(j);

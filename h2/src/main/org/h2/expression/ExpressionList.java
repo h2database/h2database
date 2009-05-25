@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import org.h2.engine.Session;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -39,8 +40,8 @@ public class ExpressionList extends Expression {
     }
 
     public void mapColumns(ColumnResolver resolver, int level) throws SQLException {
-        for (int i = 0; i < list.length; i++) {
-            list[i].mapColumns(resolver, level);
+        for (Expression e : list) {
+            e.mapColumns(resolver, level);
         }
     }
 
@@ -60,8 +61,8 @@ public class ExpressionList extends Expression {
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
-        for (int i = 0; i < list.length; i++) {
-            list[i].setEvaluatable(tableFilter, b);
+        for (Expression e : list) {
+            e.setEvaluatable(tableFilter, b);
         }
     }
 
@@ -78,27 +79,23 @@ public class ExpressionList extends Expression {
     }
 
     public String getSQL() {
-        StringBuffer buff = new StringBuffer();
-        buff.append('(');
-        for (int i = 0; i < list.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(list[i].getSQL());
+        StatementBuilder buff = new StatementBuilder("(");
+        for (Expression e: list) {
+            buff.appendExceptFirst(", ");
+            buff.append(e.getSQL());
         }
-        buff.append(')');
-        return buff.toString();
+        return buff.append(')').toString();
     }
 
     public void updateAggregate(Session session) throws SQLException {
-        for (int i = 0; i < list.length; i++) {
-            list[i].updateAggregate(session);
+        for (Expression e : list) {
+            e.updateAggregate(session);
         }
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {
-        for (int i = 0; i < list.length; i++) {
-            if (!list[i].isEverything(visitor)) {
+        for (Expression e : list) {
+            if (!e.isEverything(visitor)) {
                 return false;
             }
         }
@@ -107,8 +104,8 @@ public class ExpressionList extends Expression {
 
     public int getCost() {
         int cost = 1;
-        for (int i = 0; i < list.length; i++) {
-            cost += list[i].getCost();
+        for (Expression e : list) {
+            cost += e.getCost();
         }
         return cost;
     }

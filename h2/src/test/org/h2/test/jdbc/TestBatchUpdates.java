@@ -439,9 +439,8 @@ public class TestBatchUpdates extends TestBase {
             stat.executeBatch();
         } catch (BatchUpdateException b) {
             batchExceptionFlag = true;
-            int[] updCounts = b.getUpdateCounts();
-            for (int i = 0; i < updCounts.length; i++) {
-                trace("Update counts:" + updCounts[i]);
+            for (int uc : b.getUpdateCounts()) {
+                trace("Update counts:" + uc);
             }
         }
         if (batchExceptionFlag) {

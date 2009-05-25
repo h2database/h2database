@@ -20,7 +20,7 @@ enum ConditionAndOr implements Token {
         this.text = text;
     }
 
-    public <T> void appendSQL(SqlStatement stat, Query<T> query) {
+    public <T> void appendSQL(SQLStatement stat, Query<T> query) {
         stat.appendSQL(text);
     }
 

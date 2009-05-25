@@ -6,6 +6,7 @@
  */
 package org.h2.result;
 
+import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
 /**
@@ -51,22 +52,17 @@ public class SimpleRow implements SearchRow {
     }
 
     public String toString() {
-        StringBuffer buff = new StringBuffer(data.length * 5);
-        buff.append("( /* pos:");
+        StatementBuilder buff = new StatementBuilder("( /* pos:");
         buff.append(getPos());
         if (version != 0) {
             buff.append(" v:" + version);
         }
         buff.append(" */ ");
-        for (int i = 0; i < data.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            Value v = data[i];
+        for (Value v : data) {
+            buff.appendExceptFirst(", ");
             buff.append(v == null ? "null" : v.getTraceSQL());
         }
-        buff.append(')');
-        return buff.toString();
+        return buff.append(')').toString();
     }
 
 }

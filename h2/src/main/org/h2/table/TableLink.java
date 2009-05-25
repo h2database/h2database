@@ -310,7 +310,7 @@ public class TableLink extends Table {
             buff.append(" COMMENT ");
             buff.append(StringUtils.quoteStringSQL(comment));
         }
-        buff.append("(");
+        buff.append('(');
         buff.append(StringUtils.quoteStringSQL(driver));
         buff.append(", ");
         buff.append(StringUtils.quoteStringSQL(url));
@@ -320,7 +320,7 @@ public class TableLink extends Table {
         buff.append(StringUtils.quoteStringSQL(password));
         buff.append(", ");
         buff.append(StringUtils.quoteStringSQL(originalTable));
-        buff.append(")");
+        buff.append(')');
         if (emitUpdates) {
             buff.append(" EMIT UPDATES");
         }

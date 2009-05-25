@@ -16,6 +16,7 @@ import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
 /**
@@ -42,28 +43,19 @@ public class ConstraintUnique extends Constraint {
     }
 
     private String getCreateSQLForCopy(Table forTable, String quotedName, boolean internalIndex) {
-        StringBuffer buff = new StringBuffer();
-        buff.append("ALTER TABLE ");
-        buff.append(forTable.getSQL());
-        buff.append(" ADD CONSTRAINT ");
-        buff.append(quotedName);
+        StatementBuilder buff = new StatementBuilder("ALTER TABLE ");
+        buff.append(forTable.getSQL()).append(" ADD CONSTRAINT ").append(quotedName);
         if (comment != null) {
-            buff.append(" COMMENT ");
-            buff.append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }
-        buff.append(' ');
-        buff.append(getTypeName());
-        buff.append('(');
-        for (int i = 0; i < columns.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(Parser.quoteIdentifier(columns[i].column.getName()));
+        buff.append(' ').append(getTypeName()).append('(');
+        for (IndexColumn c : columns) {
+            buff.appendExceptFirst(", ");
+            buff.append(Parser.quoteIdentifier(c.column.getName()));
         }
         buff.append(')');
         if (internalIndex && indexOwner && forTable == this.table) {
-            buff.append(" INDEX ");
-            buff.append(index.getSQL());
+            buff.append(" INDEX ").append(index.getSQL());
         }
         return buff.toString();
     }

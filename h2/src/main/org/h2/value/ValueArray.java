@@ -9,6 +9,7 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.util.MathUtils;
+import org.h2.util.StatementBuilder;
 
 /**
  * Implementation of the ARRAY data type.
@@ -57,16 +58,12 @@ public class ValueArray extends Value {
     }
 
     public String getString() {
-        StringBuffer buff = new StringBuffer();
-        buff.append('(');
-        for (int i = 0; i < values.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(values[i].getString());
+        StatementBuilder buff = new StatementBuilder("(");
+        for (Value v : values) {
+            buff.appendExceptFirst(", ");
+            buff.append(v.getString());
         }
-        buff.append(')');
-        return buff.toString();
+        return buff.append(')').toString();
     }
 
     protected int compareSecure(Value o, CompareMode mode) throws SQLException {
@@ -101,30 +98,23 @@ public class ValueArray extends Value {
     }
 
     public String getSQL() {
-        StringBuffer buff = new StringBuffer();
-        buff.append('(');
-        for (int i = 0; i < values.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(values[i].getSQL());
+        StatementBuilder buff = new StatementBuilder("(");
+        for (Value v : values) {
+            buff.appendExceptFirst(", ");
+            buff.append(v.getSQL());
         }
-        buff.append(')');
-        return buff.toString();
+        return buff.append(')').toString();
     }
 
     public String getTraceSQL() {
-        StringBuffer buff = new StringBuffer();
-        buff.append('(');
-        for (int i = 0; i < values.length; i++) {
-            if (i > 0) {
-                buff.append(", ");
-            }
-            buff.append(values[i].getTraceSQL());
+        StatementBuilder buff = new StatementBuilder("(");
+        for (Value v : values) {
+            buff.appendExceptFirst(", ");
+            buff.append(v.getTraceSQL());
         }
-        buff.append(')');
-        return buff.toString();
+        return buff.append(')').toString();
     }
+
     public int getDisplaySize() {
         long size = 0;
         for (Value v : values) {

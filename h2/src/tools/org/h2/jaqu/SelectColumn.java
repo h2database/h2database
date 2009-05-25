@@ -25,7 +25,7 @@ class SelectColumn<T> {
         this.fieldDef = fieldDef;
     }
 
-    void appendSQL(SqlStatement stat) {
+    void appendSQL(SQLStatement stat) {
         if (selectTable.getQuery().isJoin()) {
             stat.appendSQL(selectTable.getAs() + "." + fieldDef.columnName);
         } else {

@@ -97,8 +97,8 @@ public class Coverage {
     }
 
     private boolean isExcluded(String s) {
-        for (int i = 0; i < exclude.size(); i++) {
-            if (s.startsWith(exclude.get(i).toString())) {
+        for (String e : exclude) {
+            if (s.startsWith(e)) {
                 return true;
             }
         }
@@ -112,9 +112,8 @@ public class Coverage {
                 files.add(path);
             }
         } else if (f.isDirectory() && recurse > 0) {
-            String[] list = f.list();
-            for (int i = 0; i < list.length; i++) {
-                addDir(path + "/" + list[i], recurse - 1);
+            for (String name : f.list()) {
+                addDir(path + "/" + name, recurse - 1);
             }
         }
     }

@@ -89,8 +89,7 @@ public class ResultTempTable implements ResultExternal {
         if (sort != null) {
             sort.sort(rows);
         }
-        for (int i = 0; i < rows.size(); i++) {
-            Value[] values = rows.get(i);
+        for (Value[] values : rows) {
             addRow(values);
         }
     }

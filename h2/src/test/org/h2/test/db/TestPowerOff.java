@@ -11,7 +11,6 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Random;
 
 import org.h2.constant.SysProperties;
@@ -180,9 +179,7 @@ public class TestPowerOff extends TestBase {
             assertKnownException(e);
         }
         boolean deleted = false;
-        ArrayList<String> files = FileLister.getDatabaseFiles(dir, dbName, false);
-        for (int i = 0; i < files.size(); i++) {
-            String fileName = files.get(i);
+        for (String fileName : FileLister.getDatabaseFiles(dir, dbName, false)) {
             if (fileName.endsWith(Constants.SUFFIX_INDEX_FILE)) {
                 FileUtils.delete(fileName);
                 deleted = true;

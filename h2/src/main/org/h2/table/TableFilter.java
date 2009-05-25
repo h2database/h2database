@@ -24,6 +24,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.util.ObjectArray;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
@@ -503,7 +504,7 @@ public class TableFilter implements ColumnResolver {
      * @return the SQL statement snippet
      */
     public String getPlanSQL(boolean join) {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         if (join) {
             if (outerJoin) {
                 buff.append("LEFT OUTER JOIN ");
@@ -513,27 +514,21 @@ public class TableFilter implements ColumnResolver {
         }
         buff.append(table.getSQL());
         if (alias != null) {
-            buff.append(' ');
-            buff.append(Parser.quoteIdentifier(alias));
+            buff.append(' ').append(Parser.quoteIdentifier(alias));
         }
         if (index != null) {
             buff.append(" /* ");
-            StringBuffer planBuff = new StringBuffer();
+            StatementBuilder planBuff = new StatementBuilder();
             planBuff.append(index.getPlanSQL());
             if (indexConditions.size() > 0) {
                 planBuff.append(": ");
-                for (int i = 0; i < indexConditions.size(); i++) {
-                    IndexCondition condition = indexConditions.get(i);
-                    if (i > 0) {
-                        planBuff.append(" AND ");
-                    }
+                for (IndexCondition condition : indexConditions) {
+                    planBuff.appendExceptFirst(" AND ");
                     planBuff.append(condition.getSQL());
                 }
             }
-            String plan = planBuff.toString();
-            plan = StringUtils.quoteRemarkSQL(plan);
-            buff.append(plan);
-            buff.append(" */");
+            String plan = StringUtils.quoteRemarkSQL(planBuff.toString());
+            buff.append(plan).append(" */");
         }
         if (join) {
             buff.append(" ON ");
@@ -548,8 +543,7 @@ public class TableFilter implements ColumnResolver {
             buff.append(" /* WHERE ");
             String condition = StringUtils.unEnclose(filterCondition.getSQL());
             condition = StringUtils.quoteRemarkSQL(condition);
-            buff.append(condition);
-            buff.append(" */");
+            buff.append(condition).append(" */");
         }
         return buff.toString();
     }

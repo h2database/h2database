@@ -90,9 +90,7 @@ public class TestFileSystem extends TestBase {
 
         deleteDb("fsJar");
         FileSystem fs = FileSystem.getInstance("zip:" + baseDir + "/fsJar.zip");
-        String[] files = fs.listFiles("zip:" + baseDir + "/fsJar.zip");
-        for (int i = 0; i < files.length; i++) {
-            String f = files[i];
+        for (String f : fs.listFiles("zip:" + baseDir + "/fsJar.zip")) {
             assertTrue(fs.isAbsolute(f));
             assertTrue(!fs.isDirectory(f));
             assertTrue(fs.length(f) > 0);
@@ -131,9 +129,8 @@ public class TestFileSystem extends TestBase {
     private void testSimple(String fsBase) throws Exception {
         FileSystem fs = FileSystem.getInstance(fsBase);
         long time = System.currentTimeMillis();
-        String[] list = fs.listFiles(fsBase);
-        for (int i = 0; i < list.length; i++) {
-            fs.delete(list[i]);
+        for (String s : fs.listFiles(fsBase)) {
+            fs.delete(s);
         }
         fs.mkdirs(fsBase + "/test");
         fs.delete(fsBase + "/test");
@@ -152,7 +149,7 @@ public class TestFileSystem extends TestBase {
             assertEquals(lastMod, time);
         }
         assertEquals(fs.length(fsBase + "/test"), 10000);
-        list = fs.listFiles(fsBase);
+        String[] list = fs.listFiles(fsBase);
         assertEquals(list.length, 1);
         assertTrue(list[0].endsWith("test"));
 

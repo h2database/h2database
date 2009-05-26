@@ -5,10 +5,10 @@
     Icon "favicon.ico"
     OutFile "../../../h2web/h2-setup.exe"
     CRCCheck on
-
-    InstallDir "$PROGRAMFILES\H2"
-
+    
+    InstallDir "$PROGRAMFILES\H2"    
     InstallDirRegKey HKCU "Software\H2" ""
+    RequestExecutionLevel highest
 
 ;--------------------------------
 ;Variables

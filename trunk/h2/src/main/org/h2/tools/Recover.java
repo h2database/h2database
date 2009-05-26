@@ -1207,7 +1207,11 @@ public class Recover extends Tool implements DataHandler {
     private void writeSchema(PrintWriter writer) {
         MetaRecord.sort(schema);
         for (MetaRecord m : schema) {
-            writer.println(m.getSQL() + ";");
+            String sql = m.getSQL();
+            // create, but not referential integrity constraints and so on
+            if (sql.startsWith("CREATE ")) {
+                writer.println(sql + ";");
+            }
         }
         for (Map.Entry<Integer, String> entry : tableMap.entrySet()) {
             Integer objectId = entry.getKey();
@@ -1221,6 +1225,13 @@ public class Recover extends Tool implements DataHandler {
         }
         writer.println("DROP ALIAS READ_CLOB;");
         writer.println("DROP ALIAS READ_BLOB;");
+        for (MetaRecord m : schema) {
+            String sql = m.getSQL();
+            // everything except create
+            if (!sql.startsWith("CREATE ")) {
+                writer.println(sql + ";");
+            }
+        }
     }
 
     private void createTemporaryTable(PrintWriter writer) {

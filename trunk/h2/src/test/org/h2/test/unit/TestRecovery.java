@@ -7,12 +7,11 @@
 package org.h2.test.unit;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.tools.Recover;
 
 /**
  * Tests database recovery.
@@ -31,24 +30,22 @@ public class TestRecovery extends TestBase {
     public void test() throws SQLException {
         DeleteDbFiles.execute(baseDir, "recovery", true);
         org.h2.Driver.load();
-        String url = "jdbc:h2:" + baseDir + "/recovery;write_delay=0";
-        Connection conn1 = DriverManager.getConnection(url, "sa", "sa");
-        Statement stat1 = conn1.createStatement();
-        Connection conn2 = DriverManager.getConnection(url, "sa", "sa");
-        Statement stat2 = conn2.createStatement();
-        stat1.execute("create table test as select * from system_range(1, 100)");
-        stat1.execute("create table abc(id int)");
-        conn2.setAutoCommit(false);
-        // this is not committed
-        // recovery might try to roll back this
-        stat2.execute("delete from test");
-        // overwrite the data of test
-        stat1.execute("insert into abc select * from system_range(1, 100)");
-        stat1.execute("shutdown immediately");
-        // Recover.execute("data", null);
-        Connection conn = DriverManager.getConnection(url, "sa", "sa");
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test as select * from system_range(1, 100)");
+        stat.execute("create table a(id int primary key) as select * from system_range(1, 100)");
+        stat.execute("create table b(id int references a(id)) as select * from system_range(1, 100)");
+        stat.execute("alter table a add foreign key(id) references b(id)");
         conn.close();
+
+        Recover.execute(baseDir, "recovery");
         DeleteDbFiles.execute(baseDir, "recovery", true);
+
+        conn = getConnection("recovery", "diff", "");
+        stat = conn.createStatement();
+        stat.execute("runscript from '" + baseDir + "/recovery.data.sql'");
+        stat.execute("select * from test");
+        conn.close();
     }
 
 }

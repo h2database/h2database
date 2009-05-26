@@ -416,15 +416,15 @@ implements XAConnection, XAResource
 
     private String quoteXid(Xid xid) {
         StringBuilder buff = new StringBuilder();
-        buff.append("\"f:");
-        buff.append(xid.getFormatId());
-        buff.append(",bq:");
-        buff.append(ByteUtils.convertBytesToString(xid.getBranchQualifier()));
-        buff.append(",gx:");
-        buff.append(ByteUtils.convertBytesToString(xid.getGlobalTransactionId()));
-        buff.append(",c:");
-        buff.append(xid.getClass().getName());
-        buff.append("\"");
+        buff.append("\"f:").
+            append(xid.getFormatId()).
+            append(",bq:").
+            append(ByteUtils.convertBytesToString(xid.getBranchQualifier())).
+            append(",gx:").
+            append(ByteUtils.convertBytesToString(xid.getGlobalTransactionId())).
+            append(",c:").
+            append(xid.getClass().getName()).
+            append("\"");
         return buff.toString();
     }
 

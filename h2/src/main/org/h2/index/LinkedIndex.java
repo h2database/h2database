@@ -51,15 +51,11 @@ public class LinkedIndex extends BaseIndex {
     }
 
     public void add(Session session, Row row) throws SQLException {
-        StringBuilder buff = new StringBuilder("INSERT INTO ");
-        buff.append(targetTableName);
-        buff.append(" VALUES(");
-        for (int i = 0, j = 0; i < row.getColumnCount(); i++) {
+        StatementBuilder buff = new StatementBuilder("INSERT INTO ");
+        buff.append(targetTableName).append(" VALUES(");
+        for (int i = 0; i < row.getColumnCount(); i++) {
             Value v = row.getValue(i);
-            if (j > 0) {
-                buff.append(',');
-            }
-            j++;
+            buff.appendExceptFirst(",");
             if (isNull(v)) {
                 buff.append("NULL");
             } else {

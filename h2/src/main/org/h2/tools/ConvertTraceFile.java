@@ -181,18 +181,18 @@ public class ConvertTraceFile extends Tool {
                 timeTotal = 1;
             }
             for (Stat stat : list) {
-                StringBuilder buff = new StringBuilder(100);
-                buff.append("-- ");
-                buff.append(padNumberLeft(100 * stat.time / timeTotal, 3));
-                buff.append("% ");
                 accumTime += stat.time;
-                buff.append(padNumberLeft(100 * accumTime / timeTotal, 3));
-                buff.append('%');
-                buff.append(padNumberLeft(stat.time, 8));
-                buff.append(padNumberLeft(stat.executeCount, 8));
-                buff.append(padNumberLeft(stat.resultCount, 8));
-                buff.append(' ');
-                buff.append(stat.sql);
+                StringBuilder buff = new StringBuilder(100);
+                buff.append("-- ").
+                    append(padNumberLeft(100 * stat.time / timeTotal, 3)).
+                    append("% ").
+                    append(padNumberLeft(100 * accumTime / timeTotal, 3)).
+                    append('%').
+                    append(padNumberLeft(stat.time, 8)).
+                    append(padNumberLeft(stat.executeCount, 8)).
+                    append(padNumberLeft(stat.resultCount, 8)).
+                    append(' ').
+                    append(stat.sql);
                 scriptWriter.println(buff.toString());
             }
         }

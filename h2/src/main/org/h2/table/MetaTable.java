@@ -1341,12 +1341,10 @@ public class MetaTable extends Table {
                 }
                 String columnList = null;
                 if (columns != null) {
-                    StringBuilder buff = new StringBuilder();
-                    for (int j = 0; j < columns.length; j++) {
-                        if (j > 0) {
-                            buff.append(',');
-                        }
-                        buff.append(columns[j].column.getName());
+                    StatementBuilder buff = new StatementBuilder();
+                    for (IndexColumn col : columns) {
+                        buff.appendExceptFirst(",");
+                        buff.append(col.column.getName());
                     }
                     columnList = buff.toString();
                 }

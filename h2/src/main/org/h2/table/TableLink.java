@@ -296,31 +296,28 @@ public class TableLink extends Table {
     }
 
     public String getCreateSQL() {
-        StringBuilder buff = new StringBuilder();
-        buff.append("CREATE FORCE ");
+        StringBuilder buff = new StringBuilder("CREATE FORCE ");
         if (getTemporary()) {
             if (globalTemporary) {
                 buff.append("GLOBAL ");
             }
             buff.append("TEMP ");
         }
-        buff.append("LINKED TABLE ");
-        buff.append(getSQL());
+        buff.append("LINKED TABLE ").append(getSQL());
         if (comment != null) {
-            buff.append(" COMMENT ");
-            buff.append(StringUtils.quoteStringSQL(comment));
+            buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }
-        buff.append('(');
-        buff.append(StringUtils.quoteStringSQL(driver));
-        buff.append(", ");
-        buff.append(StringUtils.quoteStringSQL(url));
-        buff.append(", ");
-        buff.append(StringUtils.quoteStringSQL(user));
-        buff.append(", ");
-        buff.append(StringUtils.quoteStringSQL(password));
-        buff.append(", ");
-        buff.append(StringUtils.quoteStringSQL(originalTable));
-        buff.append(')');
+        buff.append('(').
+            append(StringUtils.quoteStringSQL(driver)).
+            append(", ").
+            append(StringUtils.quoteStringSQL(url)).
+            append(", ").
+            append(StringUtils.quoteStringSQL(user)).
+            append(", ").
+            append(StringUtils.quoteStringSQL(password)).
+            append(", ").
+            append(StringUtils.quoteStringSQL(originalTable)).
+            append(')');
         if (emitUpdates) {
             buff.append(" EMIT UPDATES");
         }

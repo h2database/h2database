@@ -88,12 +88,8 @@ public class Schema extends DbObjectBase {
         if (system) {
             return null;
         }
-        StringBuilder buff = new StringBuilder();
-        buff.append("CREATE SCHEMA IF NOT EXISTS ");
-        buff.append(getSQL());
-        buff.append(" AUTHORIZATION ");
-        buff.append(owner.getSQL());
-        return buff.toString();
+        return "CREATE SCHEMA IF NOT EXISTS " +
+            getSQL() + " AUTHORIZATION " + owner.getSQL();
     }
 
     public int getType() {

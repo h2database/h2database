@@ -458,19 +458,17 @@ public class TableData extends Table implements RecordReader {
     }
 
     private String getDeadlockDetails(ObjectArray<Session> sessions) {
-        StringBuilder buff = new StringBuilder();
+        StatementBuilder buff = new StatementBuilder();
         for (Session s : sessions) {
-            buff.append('\n');
             Table lock = s.getWaitForLock();
-            buff.append("Session ").append(s).append(" is waiting to lock ").append(lock);
-            buff.append(" while locking ");
-            Table[] locks = s.getLocks();
-            for (int j = 0; j < locks.length; j++) {
-                if (j > 0) {
-                    buff.append(", ");
-                }
-                Table t = locks[j];
-                buff.append(t);
+            buff.append("\nSession ").
+                append(s.toString()).
+                append(" is waiting to lock ").
+                append(lock.toString()).
+                append(" while locking ");
+            for (Table t : s.getLocks()) {
+                buff.appendExceptFirst(", ");
+                buff.append(t.toString());
                 if (t instanceof TableData) {
                     if (((TableData) t).lockExclusive == s) {
                         buff.append(" (exclusive)");

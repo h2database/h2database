@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.FieldDoc;
@@ -254,25 +255,22 @@ public class Doclet {
             return;
         }
         Parameter[] params = method.parameters();
-        StringBuilder buff = new StringBuilder();
+        StatementBuilder buff = new StatementBuilder();
         buff.append('(');
-        for (int j = 0; j < params.length; j++) {
-            if (j > 0) {
-                buff.append(", ");
-            }
-            buff.append(getTypeName(false, params[j].type()));
+        for (Parameter p : params) {
+            buff.appendExceptFirst(", ");
+            buff.append(getTypeName(false, p.type()));
             buff.append(' ');
-            buff.append(params[j].name());
+            buff.append(p.name());
         }
         buff.append(')');
         ClassDoc[] exceptions = method.thrownExceptions();
         if (exceptions.length > 0) {
             buff.append(" throws ");
-            for (int k = 0; k < exceptions.length; k++) {
-                if (k > 0) {
-                    buff.append(", ");
-                }
-                buff.append(exceptions[k].typeName());
+            buff.resetCount();
+            for (ClassDoc ex : exceptions) {
+                buff.appendExceptFirst(", ");
+                buff.append(ex.typeName());
             }
         }
         if (isDeprecated(method)) {

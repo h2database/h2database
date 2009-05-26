@@ -286,9 +286,7 @@ public class PageParser {
                 break;
             default:
                 if (c >= 128) {
-                    buff.append("&#");
-                    buff.append((int) c);
-                    buff.append(';');
+                    buff.append("&#").append((int) c).append(';');
                 } else {
                     buff.append(c);
                 }

@@ -23,6 +23,7 @@ import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
@@ -146,18 +147,15 @@ public class Update extends Prepared {
     }
 
     public String getPlanSQL() {
-        StringBuilder buff = new StringBuilder("UPDATE ");
+        StatementBuilder buff = new StatementBuilder("UPDATE ");
         buff.append(tableFilter.getPlanSQL(false)).append("\nSET ");
         Table table = tableFilter.getTable();
         int columnCount = table.getColumns().length;
-        for (int i = 0, j = 0; i < columnCount; i++) {
+        for (int i = 0; i < columnCount; i++) {
             Expression newExpr = expressions[i];
             if (newExpr != null) {
-                if (j > 0) {
-                    buff.append(",\n");
-                }
-                j++;
                 Column column = table.getColumn(i);
+                buff.appendExceptFirst(",\n");
                 buff.append(column.getName()).append(" = ").append(newExpr.getSQL());
             }
         }

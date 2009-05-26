@@ -224,12 +224,14 @@ public class FullTextLucene extends FullText {
         String trigger = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
         stat.execute("DROP TRIGGER IF EXISTS " + trigger);
         StringBuilder buff = new StringBuilder("CREATE TRIGGER IF NOT EXISTS ");
-        buff.append(trigger);
-        buff.append(" AFTER INSERT, UPDATE, DELETE ON ");
-        buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
-        buff.append(" FOR EACH ROW CALL \"");
-        buff.append(FullTextLucene.FullTextTrigger.class.getName());
-        buff.append("\"");
+        buff.append(trigger).
+            append(" AFTER INSERT, UPDATE, DELETE ON ").
+            append(StringUtils.quoteIdentifier(schema)).
+            append('.').
+            append(StringUtils.quoteIdentifier(table)).
+            append(" FOR EACH ROW CALL \"").
+            append(FullTextLucene.FullTextTrigger.class.getName()).
+            append("\"");
         stat.execute(buff.toString());
     }
 
@@ -279,9 +281,8 @@ public class FullTextLucene extends FullText {
     private static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
         FullTextLucene.FullTextTrigger existing = new FullTextLucene.FullTextTrigger();
         existing.init(conn, schema, null, table, false, Trigger.INSERT);
-        StringBuilder buff = new StringBuilder("SELECT * FROM ");
-        buff.append(StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table));
-        ResultSet rs = conn.createStatement().executeQuery(buff.toString());
+        String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table);
+        ResultSet rs = conn.createStatement().executeQuery(sql);
         int columnCount = rs.getMetaData().getColumnCount();
         while (rs.next()) {
             Object[] row = new Object[columnCount];

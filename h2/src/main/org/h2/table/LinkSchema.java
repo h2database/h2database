@@ -52,30 +52,28 @@ public class LinkSchema {
             while (rs.next()) {
                 String table = rs.getString("TABLE_NAME");
                 StringBuilder buff = new StringBuilder();
-                buff.append("DROP TABLE IF EXISTS ");
-                buff.append(StringUtils.quoteIdentifier(targetSchema));
-                buff.append('.');
-                buff.append(StringUtils.quoteIdentifier(table));
-                String sql = buff.toString();
-                stat.execute(sql);
+                buff.append("DROP TABLE IF EXISTS ").
+                    append(StringUtils.quoteIdentifier(targetSchema)).
+                    append('.').
+                    append(StringUtils.quoteIdentifier(table));
+                stat.execute(buff.toString());
                 buff = new StringBuilder();
-                buff.append("CREATE LINKED TABLE ");
-                buff.append(StringUtils.quoteIdentifier(targetSchema));
-                buff.append('.');
-                buff.append(StringUtils.quoteIdentifier(table));
-                buff.append('(');
-                buff.append(StringUtils.quoteStringSQL(driver));
-                buff.append(", ");
-                buff.append(StringUtils.quoteStringSQL(url));
-                buff.append(", ");
-                buff.append(StringUtils.quoteStringSQL(user));
-                buff.append(", ");
-                buff.append(StringUtils.quoteStringSQL(password));
-                buff.append(", ");
-                buff.append(StringUtils.quoteStringSQL(table));
-                buff.append(')');
-                sql = buff.toString();
-                stat.execute(sql);
+                buff.append("CREATE LINKED TABLE ").
+                    append(StringUtils.quoteIdentifier(targetSchema)).
+                    append('.').
+                    append(StringUtils.quoteIdentifier(table)).
+                    append('(').
+                    append(StringUtils.quoteStringSQL(driver)).
+                    append(", ").
+                    append(StringUtils.quoteStringSQL(url)).
+                    append(", ").
+                    append(StringUtils.quoteStringSQL(user)).
+                    append(", ").
+                    append(StringUtils.quoteStringSQL(password)).
+                    append(", ").
+                    append(StringUtils.quoteStringSQL(table)).
+                    append(')');
+                stat.execute(buff.toString());
                 result.addRow(new String[] { table });
             }
         } finally {

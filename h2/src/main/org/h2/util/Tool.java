@@ -62,12 +62,10 @@ public abstract class Tool {
     protected void printNoDatabaseFilesFound(String dir, String db) {
         StringBuilder buff = new StringBuilder("No database files have been found");
         if (dir != null) {
-            buff.append(" in directory ");
-            buff.append(dir);
+            buff.append(" in directory ").append(dir);
         }
         if (db != null) {
-            buff.append(" for the database ");
-            buff.append(db);
+            buff.append(" for the database ").append(db);
         }
         out.println(buff.toString());
     }

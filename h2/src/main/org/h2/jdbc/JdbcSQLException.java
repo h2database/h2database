@@ -150,14 +150,9 @@ public class JdbcSQLException extends SQLException {
     private void buildMessage() {
         StringBuilder buff = new StringBuilder(originalMessage == null ? "- " : originalMessage);
         if (sql != null) {
-            buff.append("; SQL statement:\n");
-            buff.append(sql);
+            buff.append("; SQL statement:\n").append(sql);
         }
-        buff.append(" [");
-        buff.append(getErrorCode());
-        buff.append('-');
-        buff.append(Constants.BUILD_ID);
-        buff.append(']');
+        buff.append(" [").append(getErrorCode()).append('-').append(Constants.BUILD_ID).append(']');
         message = buff.toString();
     }
 

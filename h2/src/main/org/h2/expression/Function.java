@@ -1319,8 +1319,7 @@ public class Function extends Expression implements FunctionCall {
             if (i == -1) {
                 break;
             }
-            buff.append(s.substring(start, i));
-            buff.append(with);
+            buff.append(s.substring(start, i)).append(with);
             start = i + len;
         }
         buff.append(s.substring(start));

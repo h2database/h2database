@@ -215,8 +215,7 @@ public class Trace {
             return;
         }
         StringBuilder buff = new StringBuilder(sql.length() + params.length() + 20);
-        buff.append(lineSeparator);
-        buff.append("/*SQL");
+        buff.append(lineSeparator).append("/*SQL");
         boolean space = false;
         if (params.length() > 0) {
             // This looks like a bug, but it is intentional:
@@ -226,26 +225,23 @@ public class Trace {
             // of the statement simplifies separating the SQL statement
             // from the parameters (no need to parse).
             space = true;
-            buff.append(" l:");
-            buff.append(sql.length());
+            buff.append(" l:").append(sql.length());
         }
         if (count > 0) {
             space = true;
-            buff.append(" #:");
-            buff.append(count);
+            buff.append(" #:").append(count);
         }
         if (time > 0) {
             space = true;
-            buff.append(" t:");
-            buff.append(time);
+            buff.append(" t:").append(time);
         }
         if (!space) {
             buff.append(' ');
         }
-        buff.append("*/");
-        buff.append(StringUtils.javaEncode(sql));
-        buff.append(StringUtils.javaEncode(params));
-        buff.append(';');
+        buff.append("*/").
+            append(StringUtils.javaEncode(sql)).
+            append(StringUtils.javaEncode(params)).
+            append(';');
         sql = buff.toString();
         traceWriter.write(TraceSystem.INFO, module, sql, null);
     }

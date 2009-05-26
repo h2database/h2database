@@ -47,20 +47,16 @@ public class ConstraintCheck extends Constraint {
 
     public String getCreateSQLForCopy(Table forTable, String quotedName) {
         StringBuilder buff = new StringBuilder("ALTER TABLE ");
-        buff.append(forTable.getSQL()).append(" ADD CONSTRAINT ");
-        buff.append(quotedName);
+        buff.append(forTable.getSQL()).append(" ADD CONSTRAINT ").append(quotedName);
         if (comment != null) {
             buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }
-        buff.append(" CHECK").append(StringUtils.enclose(expr.getSQL()));
-        buff.append(" NOCHECK");
+        buff.append(" CHECK").append(StringUtils.enclose(expr.getSQL())).append(" NOCHECK");
         return buff.toString();
     }
 
     public String getShortDescription() {
-        StringBuilder buff = new StringBuilder(getName());
-        buff.append(": ").append(expr.getSQL());
-        return buff.toString();
+        return getName() + ": " + expr.getSQL();
     }
 
     public String  getCreateSQLWithoutIndexes() {
@@ -120,10 +116,7 @@ public class ConstraintCheck extends Constraint {
             // don't check at startup
             return;
         }
-        StringBuilder buff = new StringBuilder("SELECT 1 FROM ");
-        buff.append(filter.getTable().getSQL());
-        buff.append(" WHERE NOT(").append(expr.getSQL()).append(')');
-        String sql = buff.toString();
+        String sql = "SELECT 1 FROM " + filter.getTable().getSQL() + " WHERE NOT(" + expr.getSQL() + ")";
         LocalResult r = session.prepare(sql).query(1);
         if (r.next()) {
             throw Message.getSQLException(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, getName());

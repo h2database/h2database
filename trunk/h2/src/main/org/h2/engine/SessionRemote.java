@@ -198,8 +198,7 @@ public class SessionRemote extends SessionWithState implements SessionFactory, D
     }
 
     private String getFilePrefix(String dir) {
-        StringBuilder buff = new StringBuilder();
-        buff.append(dir);
+        StringBuilder buff = new StringBuilder(dir);
         buff.append('/');
         for (int i = 0; i < databaseName.length(); i++) {
             char ch = databaseName.charAt(i);

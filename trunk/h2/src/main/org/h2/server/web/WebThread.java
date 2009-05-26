@@ -288,15 +288,15 @@ class WebThread extends Thread implements DatabaseEventListener {
     private String getComboBox(String[] elements, String selected) {
         StringBuilder buff = new StringBuilder();
         for (String value : elements) {
-            buff.append("<option value=\"");
-            buff.append(PageParser.escapeHtmlData(value));
-            buff.append("\"");
+            buff.append("<option value=\"").
+                append(PageParser.escapeHtmlData(value)).
+                append("\"");
             if (value.equals(selected)) {
                 buff.append(" selected");
             }
-            buff.append('>');
-            buff.append(PageParser.escapeHtml(value));
-            buff.append("</option>");
+            buff.append('>').
+                append(PageParser.escapeHtml(value)).
+                append("</option>");
         }
         return buff.toString();
     }
@@ -1278,11 +1278,9 @@ class WebThread extends Thread implements DatabaseEventListener {
                 for (int i = 0; i < list.size(); i++) {
                     String s = list.get(i);
                     if (!s.startsWith("@")) {
-                        buff.append(PageParser.escapeHtml(s + ";"));
-                        buff.append("<br />");
+                        buff.append(PageParser.escapeHtml(s + ";")).append("<br />");
                     }
-                    buff.append(getResult(conn, i + 1, s, list.size() == 1, false));
-                    buff.append("<br />");
+                    buff.append(getResult(conn, i + 1, s, list.size() == 1, false)).append("<br />");
                 }
                 result = buff.toString();
             }
@@ -1721,9 +1719,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                     if (!isResultSet) {
                         buff.append("${text.result.updateCount}: " + stat.getUpdateCount());
                         time = System.currentTimeMillis() - time;
-                        buff.append("<br />(");
-                        buff.append(time);
-                        buff.append(" ms)");
+                        buff.append("<br />(").append(time).append(" ms)");
                         stat.close();
                         return buff.toString();
                     }
@@ -1839,18 +1835,18 @@ class WebThread extends Thread implements DatabaseEventListener {
     private String getHistoryString() {
         StringBuilder buff = new StringBuilder();
         ArrayList<String> history = session.getCommands();
-        buff.append("<table cellspacing=0 cellpadding=0>");
-        buff.append("<tr><th></th><th>Command</th></tr>");
+        buff.append("<table cellspacing=0 cellpadding=0><tr><th></th><th>Command</th></tr>");
         for (int i = history.size() - 1; i >= 0; i--) {
             String sql = history.get(i);
-            buff.append("<tr><td>");
-            buff.append("<a href=\"getHistory.do?id=");
-            buff.append(i);
-            buff
-                    .append("&jsessionid=${sessionId}\" target=\"h2query\" ><img width=16 height=16 src=\"ico_write.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.edit}\" title=\"${text.resultEdit.edit}\" border=\"1\"/></a>");
-            buff.append("</td><td>");
-            buff.append(PageParser.escapeHtml(sql));
-            buff.append("</td></tr>");
+            buff.append("<tr><td><a href=\"getHistory.do?id=").
+                append(i).
+                append("&jsessionid=${sessionId}\" target=\"h2query\" >").
+                append("<img width=16 height=16 src=\"ico_write.gif\" onmouseover = \"this.className ='icon_hover'\" ").
+                append("onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.edit}\" ").
+                append("title=\"${text.resultEdit.edit}\" border=\"1\"/></a>").
+                append("</td><td>").
+                append(PageParser.escapeHtml(sql)).
+                append("</td></tr>");
         }
         buff.append("</table>");
         return buff.toString();
@@ -1861,23 +1857,23 @@ class WebThread extends Thread implements DatabaseEventListener {
         if (meta == null) {
             return "No parameter meta data";
         }
-        buff.append("<table cellspacing=0 cellpadding=0>");
-        buff.append("<tr><th>className</th><th>mode</th><th>type</th>");
-        buff.append("<th>typeName</th><th>precision</th><th>scale</th></tr>");
+        buff.append("<table cellspacing=0 cellpadding=0>").
+            append("<tr><th>className</th><th>mode</th><th>type</th>").
+            append("<th>typeName</th><th>precision</th><th>scale</th></tr>");
         for (int i = 0; i < meta.getParameterCount(); i++) {
-            buff.append("</tr><td>");
-            buff.append(meta.getParameterClassName(i + 1));
-            buff.append("</td><td>");
-            buff.append(meta.getParameterMode(i + 1));
-            buff.append("</td><td>");
-            buff.append(meta.getParameterType(i + 1));
-            buff.append("</td><td>");
-            buff.append(meta.getParameterTypeName(i + 1));
-            buff.append("</td><td>");
-            buff.append(meta.getPrecision(i + 1));
-            buff.append("</td><td>");
-            buff.append(meta.getScale(i + 1));
-            buff.append("</td></tr>");
+            buff.append("</tr><td>").
+                append(meta.getParameterClassName(i + 1)).
+                append("</td><td>").
+                append(meta.getParameterMode(i + 1)).
+                append("</td><td>").
+                append(meta.getParameterType(i + 1)).
+                append("</td><td>").
+                append(meta.getParameterTypeName(i + 1)).
+                append("</td><td>").
+                append(meta.getPrecision(i + 1)).
+                append("</td><td>").
+                append(meta.getScale(i + 1)).
+                append("</td></tr>");
         }
         buff.append("</table>");
         return buff.toString();
@@ -1889,11 +1885,11 @@ class WebThread extends Thread implements DatabaseEventListener {
         time = System.currentTimeMillis() - time;
         StringBuilder buff = new StringBuilder();
         if (edit) {
-            buff.append("<form id=\"editing\" name=\"editing\" method=\"post\" "
-                    + "action=\"editResult.do?jsessionid=${sessionId}\" id=\"mainForm\" target=\"h2result\">");
-            buff.append("<input type=\"hidden\" name=\"op\" value=\"1\" />");
-            buff.append("<input type=\"hidden\" name=\"row\" value=\"\" />");
-            buff.append("<table cellspacing=0 cellpadding=0 id=\"editTable\">");
+            buff.append("<form id=\"editing\" name=\"editing\" method=\"post\" " +
+                    "action=\"editResult.do?jsessionid=${sessionId}\" id=\"mainForm\" target=\"h2result\">" +
+                    "<input type=\"hidden\" name=\"op\" value=\"1\" />" +
+                    "<input type=\"hidden\" name=\"row\" value=\"\" />" +
+                    "<table cellspacing=0 cellpadding=0 id=\"editTable\">");
         } else {
             buff.append("<table cellspacing=0 cellpadding=0>");
         }

@@ -246,9 +246,7 @@ public class TableView extends Table {
 
     public String getSQL() {
         if (getTemporary()) {
-            StringBuilder buff = new StringBuilder(querySQL.length());
-            buff.append('(').append(querySQL).append(')');
-            return buff.toString();
+            return "(" + querySQL + ")";
         }
         return super.getSQL();
     }

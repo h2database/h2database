@@ -119,8 +119,7 @@ public class RunScript extends Tool {
                 StringBuilder buff = new StringBuilder();
                 i++;
                 for (; i < args.length; i++) {
-                    buff.append(' ');
-                    buff.append(args[i]);
+                    buff.append(' ').append(args[i]);
                 }
                 options = buff.toString();
             } else if (arg.equals("-help") || arg.equals("-?")) {
@@ -228,8 +227,7 @@ public class RunScript extends Tool {
                                             s = StringUtils.replaceAll(s, "\n", "\n-->    ");
                                             s = StringUtils.replaceAll(s, "\r", "\r-->    ");
                                         }
-                                        buff.append(' ');
-                                        buff.append(s);
+                                        buff.append(' ').append(s);
                                     }
                                 }
                                 buff.append("\n;");

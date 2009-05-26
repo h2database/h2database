@@ -150,10 +150,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     public SQLException getDuplicateKeyException() {
-        StringBuilder buff = new StringBuilder(getName());
-        buff.append(" ON ").append(table.getSQL()).append('(');
-        buff.append(getColumnListSQL()).append(')');
-        return Message.getSQLException(ErrorCode.DUPLICATE_KEY_1, buff.toString());
+        String sql = getName() + " ON " + table.getSQL() + "(" + getColumnListSQL() + ")";
+        return Message.getSQLException(ErrorCode.DUPLICATE_KEY_1, sql);
     }
 
     public String getPlanSQL() {

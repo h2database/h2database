@@ -54,12 +54,12 @@ implements Xid
      */
     public String getAsString() {
         StringBuilder buff = new StringBuilder(PREFIX);
-        buff.append('_');
-        buff.append(formatId);
-        buff.append('_');
-        buff.append(ByteUtils.convertBytesToString(branchQualifier));
-        buff.append('_');
-        buff.append(ByteUtils.convertBytesToString(globalTransactionId));
+        buff.append('_').
+            append(formatId).
+            append('_').
+            append(ByteUtils.convertBytesToString(branchQualifier)).
+            append('_').
+            append(ByteUtils.convertBytesToString(globalTransactionId));
         return buff.toString();
     }
 

@@ -54,9 +54,7 @@ public class UserAggregate extends DbObjectBase {
     }
 
     public String getCreateSQL() {
-        StringBuilder buff = new StringBuilder("CREATE FORCE AGGREGATE ");
-        buff.append(getSQL()).append(" FOR ").append(Parser.quoteIdentifier(className));
-        return buff.toString();
+        return "CREATE FORCE AGGREGATE " + getSQL() + " FOR " + Parser.quoteIdentifier(className);
     }
 
     public int getType() {

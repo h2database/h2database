@@ -229,28 +229,23 @@ public class TriggerObject extends SchemaObjectBase {
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        StringBuilder buff = new StringBuilder();
-        buff.append("CREATE FORCE TRIGGER ");
+        StringBuilder buff = new StringBuilder("CREATE FORCE TRIGGER ");
         buff.append(quotedName);
         if (before) {
             buff.append(" BEFORE ");
         } else {
             buff.append(" AFTER ");
         }
-        buff.append(getTypeNameList());
-        buff.append(" ON ");
-        buff.append(table.getSQL());
+        buff.append(getTypeNameList()).append(" ON ").append(table.getSQL());
         if (rowBased) {
             buff.append(" FOR EACH ROW");
         }
         if (noWait) {
             buff.append(" NOWAIT");
         } else {
-            buff.append(" QUEUE ");
-            buff.append(queueSize);
+            buff.append(" QUEUE ").append(queueSize);
         }
-        buff.append(" CALL ");
-        buff.append(Parser.quoteIdentifier(triggerClassName));
+        buff.append(" CALL ").append(Parser.quoteIdentifier(triggerClassName));
         return buff.toString();
     }
 

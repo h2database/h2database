@@ -682,16 +682,11 @@ public class ValueLob extends Value {
         }
         StringBuilder buff = new StringBuilder();
         if (type == Value.CLOB) {
-            buff.append("SPACE(");
-            buff.append(getPrecision());
+            buff.append("SPACE(").append(getPrecision());
         } else {
-            buff.append("CAST(REPEAT('00', ");
-            buff.append(getPrecision());
-            buff.append(") AS BINARY");
+            buff.append("CAST(REPEAT('00', ").append(getPrecision()).append(") AS BINARY");
         }
-        buff.append(" /* ");
-        buff.append(fileName);
-        buff.append(" */)");
+        buff.append(" /* ").append(fileName).append(" */)");
         return buff.toString();
     }
 

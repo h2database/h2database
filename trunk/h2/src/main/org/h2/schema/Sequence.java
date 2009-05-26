@@ -69,18 +69,13 @@ public class Sequence extends SchemaObjectBase {
     }
 
     public synchronized String getCreateSQL() {
-        StringBuilder buff = new StringBuilder();
-        buff.append("CREATE SEQUENCE ");
-        buff.append(getSQL());
-        buff.append(" START WITH ");
-        buff.append(value);
+        StringBuilder buff = new StringBuilder("CREATE SEQUENCE ");
+        buff.append(getSQL()).append(" START WITH ").append(value);
         if (increment != 1) {
-            buff.append(" INCREMENT BY ");
-            buff.append(increment);
+            buff.append(" INCREMENT BY ").append(increment);
         }
         if (cacheSize != DEFAULT_CACHE_SIZE) {
-            buff.append(" CACHE ");
-            buff.append(cacheSize);
+            buff.append(" CACHE ").append(cacheSize);
         }
         if (belongsToTable) {
             buff.append(" BELONGS_TO_TABLE");

@@ -38,12 +38,7 @@ public class Constant extends SchemaObjectBase {
     }
 
     public String getCreateSQL() {
-        StringBuilder buff = new StringBuilder();
-        buff.append("CREATE CONSTANT ");
-        buff.append(getSQL());
-        buff.append(" VALUE ");
-        buff.append(value.getSQL());
-        return buff.toString();
+        return "CREATE CONSTANT " + getSQL() + " VALUE " + value.getSQL();
     }
 
     public int getType() {

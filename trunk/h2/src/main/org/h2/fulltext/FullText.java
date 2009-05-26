@@ -556,13 +556,9 @@ public class FullText {
                     };
                     result.addRow(row);
                 } else {
-                    StringBuilder buff = new StringBuilder();
-                    buff.append(StringUtils.quoteIdentifier(index.schema)).
-                        append('.').
-                        append(StringUtils.quoteIdentifier(index.table)).
-                        append(" WHERE ").
-                        append(key);
-                    String query = buff.toString();
+                    String query = StringUtils.quoteIdentifier(index.schema) +
+                        "." + StringUtils.quoteIdentifier(index.table) +
+                        " WHERE " + key;
                     result.addRow(new String[] { query });
                 }
                 rowCount++;
@@ -639,10 +635,8 @@ public class FullText {
     private static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
         FullText.FullTextTrigger existing = new FullText.FullTextTrigger();
         existing.init(conn, schema, null, table, false, Trigger.INSERT);
-        StringBuilder buff = new StringBuilder("SELECT * FROM ");
-        buff.append(StringUtils.quoteIdentifier(schema)).
-            append('.').append(StringUtils.quoteIdentifier(table));
-        ResultSet rs = conn.createStatement().executeQuery(buff.toString());
+        String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table);
+        ResultSet rs = conn.createStatement().executeQuery(sql);
         int columnCount = rs.getMetaData().getColumnCount();
         while (rs.next()) {
             Object[] row = new Object[columnCount];

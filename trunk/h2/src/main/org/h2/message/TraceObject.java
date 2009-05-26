@@ -360,13 +360,11 @@ public class TraceObject {
         try {
             for (Map.Entry<String, Class < ? >> entry : map.entrySet()) {
                 String key = entry.getKey();
-                buff.append(key);
-                buff.append(':');
                 Class< ? > clazz = entry.getValue();
-                buff.append(clazz.getName());
+                buff.append(key).append(':').append(clazz.getName());
             }
         } catch (Exception e) {
-            buff.append(e.toString() + ": " + map.toString());
+            buff.append(e.toString()).append(": ").append(map.toString());
         }
         buff.append("*/");
         return buff.toString();

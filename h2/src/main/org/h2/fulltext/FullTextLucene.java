@@ -467,9 +467,18 @@ public class FullTextLucene extends FullText {
         public void fire(Connection conn, Object[] oldRow, Object[] newRow)
                 throws SQLException {
             if (oldRow != null) {
-                delete(oldRow);
-            }
-            if (newRow != null) {
+                if (newRow != null) {
+                    // update
+                    if (hasChanged(oldRow, newRow, indexColumns)) {
+                        delete(oldRow);
+                        insert(newRow);
+                    }
+                } else {
+                    // delete
+                    delete(oldRow);
+                }
+            } else if (newRow != null) {
+                // insert
                 insert(newRow);
             }
         }

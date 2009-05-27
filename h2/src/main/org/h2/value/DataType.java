@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.jdbc.JdbcBlob;
@@ -630,9 +631,17 @@ public class DataType {
             // "java.lang.String";
             return String.class.getName();
         case Value.BLOB:
+            if (SysProperties.RETURN_LOB_OBJECTS) {
+                // "java.sql.Blob";
+                return java.sql.Blob.class.getName();
+            }
             // "java.io.InputStream";
             return java.io.InputStream.class.getName();
         case Value.CLOB:
+            if (SysProperties.RETURN_LOB_OBJECTS) {
+                // "java.sql.Clob";
+                return java.sql.Clob.class.getName();
+            }
             // "java.io.Reader";
             return java.io.Reader.class.getName();
         case Value.DOUBLE:

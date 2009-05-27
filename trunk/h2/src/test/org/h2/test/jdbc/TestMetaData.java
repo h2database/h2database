@@ -217,8 +217,13 @@ public class TestMetaData extends TestBase {
         stat.execute("INSERT INTO t VALUES('', '')");
         ResultSet rs = stat.executeQuery("SELECT blob,clob FROM t");
         ResultSetMetaData meta = rs.getMetaData();
-        assertEquals("java.io.InputStream", meta.getColumnClassName(1));
-        assertEquals("java.io.Reader", meta.getColumnClassName(2));
+        if (SysProperties.RETURN_LOB_OBJECTS) {
+            assertEquals("java.sql.Blob", meta.getColumnClassName(1));
+            assertEquals("java.sql.Clob", meta.getColumnClassName(2));
+        } else {
+            assertEquals("java.io.InputStream", meta.getColumnClassName(1));
+            assertEquals("java.io.Reader", meta.getColumnClassName(2));
+        }
         rs.next();
         if (SysProperties.RETURN_LOB_OBJECTS) {
             assertTrue(rs.getObject(1) instanceof java.sql.Blob);

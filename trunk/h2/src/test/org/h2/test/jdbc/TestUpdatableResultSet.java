@@ -20,6 +20,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 
+import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 
 /**
@@ -228,9 +229,13 @@ public class TestUpdatableResultSet extends TestBase {
         assertEquals(meta.getColumnClassName(12), "java.lang.Long");
         assertEquals(meta.getColumnClassName(13), "java.lang.Integer");
         assertEquals(meta.getColumnClassName(14), "java.lang.Short");
-        assertEquals(meta.getColumnClassName(15), "java.io.Reader");
-        assertEquals(meta.getColumnClassName(16), "java.io.InputStream");
-
+        if (SysProperties.RETURN_LOB_OBJECTS) {
+            assertEquals(meta.getColumnClassName(15), "java.sql.Clob");
+            assertEquals(meta.getColumnClassName(16), "java.sql.Blob");
+        } else {
+            assertEquals(meta.getColumnClassName(15), "java.io.Reader");
+            assertEquals(meta.getColumnClassName(16), "java.io.InputStream");
+        }
         rs.moveToInsertRow();
         rs.updateInt(1, 0);
         rs.updateNull(2);

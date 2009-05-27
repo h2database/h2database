@@ -199,7 +199,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Updatable result set on table without primary key or unique index
 </li><li>Use LinkedList instead of ArrayList where applicable
 </li><li>Optimizer: use an index for IS NULL and IS NOT NULL (including linked tables).
-    ID IS NOT NULL could be converted to ID >= Integer.MIN_VALUE.
+    ID IS NOT NULL could be converted to ID &gt;= Integer.MIN_VALUE.
 </li><li>Support % operator (modulo)
 </li><li>Support 1+'2'=3, '1'+'2'='12' (MS SQL Server compatibility)
 </li><li>Support nested transactions
@@ -389,6 +389,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support PostgreSQL lock modes: http://www.postgresql.org/docs/8.3/static/explicit-locking.html
 </li><li>PostgreSQL compatibility: test DbVisualizer and Squirrel SQL using a new PostgreSQL JDBC driver.
 </li><li>RunScript should be able to read from system in (or quite mode for Shell).
+</li><li>Support table partitioning.
 </li><li>Natural join: support select x from dual natural join dual.
 </li><li>Natural join: somehow support this: select a.x, b.x, x from dual a natural join dual b
 </li><li>MySQL compatibility: for auto_increment columns, convert 0 to next value (as when inserting NULL).
@@ -416,7 +417,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Connection pool: 'reset session' command (delete temp tables, rollback, autocommit true).
 </li><li>Improve SQL documentation, see http://www.w3schools.com/sql/
 </li><li>MySQL compatibility: DatabaseMetaData.stores*() methods should return the same values. Test with SquirrelSQL.
-</li><li>Support table partitioning.
 </li><li>MS SQL Server compatibility: support DATEPART syntax.
 </li><li>Oracle compatibility: support CREATE OR REPLACE VIEW syntax.
 </li></ul>

@@ -616,14 +616,14 @@ public class ConstraintReferential extends Constraint {
             buff.appendExceptFirst(", ");
             buff.append(c.getSQL());
         }
-        buff.append(") C WHERE NOT EXISTS(SELECT 1 FROM ");
-        buff.append(refTable.getSQL()).append(" P WHERE ");
+        buff.append(") C WHERE NOT EXISTS(SELECT 1 FROM ").
+            append(refTable.getSQL()).append(" P WHERE ");
         buff.resetCount();
         int i = 0;
         for (IndexColumn c : columns) {
             buff.appendExceptFirst(" AND ");
-            buff.append("C.").append(c.getSQL()).append('=');
-            buff.append("P.").append(refColumns[i++].getSQL());
+            buff.append("C.").append(c.getSQL()).append('=').
+                append("P.").append(refColumns[i++].getSQL());
         }
         buff.append(')');
         String sql = buff.toString();

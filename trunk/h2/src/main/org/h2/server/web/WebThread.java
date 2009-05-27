@@ -304,15 +304,15 @@ class WebThread extends Thread implements DatabaseEventListener {
     private String getComboBox(String[][] elements, String selected) {
         StringBuilder buff = new StringBuilder();
         for (String[] n : elements) {
-            buff.append("<option value=\"");
-            buff.append(PageParser.escapeHtmlData(n[0]));
-            buff.append("\"");
+            buff.append("<option value=\"").
+                append(PageParser.escapeHtmlData(n[0])).
+                append("\"");
             if (n[0].equals(selected)) {
                 buff.append(" selected");
             }
-            buff.append('>');
-            buff.append(PageParser.escapeHtml(n[1]));
-            buff.append("</option>");
+            buff.append('>').
+                append(PageParser.escapeHtml(n[1])).
+                append("</option>");
         }
         return buff.toString();
     }
@@ -1730,8 +1730,8 @@ class WebThread extends Thread implements DatabaseEventListener {
             buff.append(getResultSet(sql, rs, metadata, list, edit, time, allowEdit));
             // SQLWarning warning = stat.getWarnings();
             // if(warning != null) {
-            // buff.append("<br />Warning:<br />");
-            // buff.append(getStackTrace(id, warning));
+            // buff.append("<br />Warning:<br />").
+            // append(getStackTrace(id, warning));
             // }
             if (!edit) {
                 stat.close();
@@ -1897,35 +1897,35 @@ class WebThread extends Thread implements DatabaseEventListener {
         int columns = meta.getColumnCount();
         int rows = 0;
         if (metadata) {
-            buff.append("<tr><th>i</th><th>label</th><th>cat</th><th>schem</th>");
-            buff.append("<th>tab</th><th>col</th><th>type</th><th>typeName</th><th>class</th>");
-            buff.append("<th>prec</th><th>scale</th><th>size</th><th>autoInc</th>");
-            buff.append("<th>case</th><th>currency</th><th>null</th><th>ro</th>");
-            buff.append("<th>search</th><th>sig</th><th>w</th><th>defW</th></tr>");
+            buff.append("<tr><th>i</th><th>label</th><th>cat</th><th>schem</th>" +
+                "<th>tab</th><th>col</th><th>type</th><th>typeName</th><th>class</th>" +
+                "<th>prec</th><th>scale</th><th>size</th><th>autoInc</th>" +
+                "<th>case</th><th>currency</th><th>null</th><th>ro</th>" +
+                "<th>search</th><th>sig</th><th>w</th><th>defW</th></tr>");
             for (int i = 1; i <= columns; i++) {
-                buff.append("<tr>");
-                buff.append("<td>").append(i).append("</td>");
-                buff.append("<td>").append(PageParser.escapeHtml(meta.getColumnLabel(i))).append("</td>");
-                buff.append("<td>").append(PageParser.escapeHtml(meta.getCatalogName(i))).append("</td>");
-                buff.append("<td>").append(PageParser.escapeHtml(meta.getSchemaName(i))).append("</td>");
-                buff.append("<td>").append(PageParser.escapeHtml(meta.getTableName(i))).append("</td>");
-                buff.append("<td>").append(PageParser.escapeHtml(meta.getColumnName(i))).append("</td>");
-                buff.append("<td>").append(meta.getColumnType(i)).append("</td>");
-                buff.append("<td>").append(PageParser.escapeHtml(meta.getColumnTypeName(i))).append("</td>");
-                buff.append("<td>").append(PageParser.escapeHtml(meta.getColumnClassName(i))).append("</td>");
-                buff.append("<td>").append(meta.getPrecision(i)).append("</td>");
-                buff.append("<td>").append(meta.getScale(i)).append("</td>");
-                buff.append("<td>").append(meta.getColumnDisplaySize(i)).append("</td>");
-                buff.append("<td>").append(meta.isAutoIncrement(i)).append("</td>");
-                buff.append("<td>").append(meta.isCaseSensitive(i)).append("</td>");
-                buff.append("<td>").append(meta.isCurrency(i)).append("</td>");
-                buff.append("<td>").append(meta.isNullable(i)).append("</td>");
-                buff.append("<td>").append(meta.isReadOnly(i)).append("</td>");
-                buff.append("<td>").append(meta.isSearchable(i)).append("</td>");
-                buff.append("<td>").append(meta.isSigned(i)).append("</td>");
-                buff.append("<td>").append(meta.isWritable(i)).append("</td>");
-                buff.append("<td>").append(meta.isDefinitelyWritable(i)).append("</td>");
-                buff.append("</tr>");
+                buff.append("<tr>").
+                    append("<td>").append(i).append("</td>").
+                    append("<td>").append(PageParser.escapeHtml(meta.getColumnLabel(i))).append("</td>").
+                    append("<td>").append(PageParser.escapeHtml(meta.getCatalogName(i))).append("</td>").
+                    append("<td>").append(PageParser.escapeHtml(meta.getSchemaName(i))).append("</td>").
+                    append("<td>").append(PageParser.escapeHtml(meta.getTableName(i))).append("</td>").
+                    append("<td>").append(PageParser.escapeHtml(meta.getColumnName(i))).append("</td>").
+                    append("<td>").append(meta.getColumnType(i)).append("</td>").
+                    append("<td>").append(PageParser.escapeHtml(meta.getColumnTypeName(i))).append("</td>").
+                    append("<td>").append(PageParser.escapeHtml(meta.getColumnClassName(i))).append("</td>").
+                    append("<td>").append(meta.getPrecision(i)).append("</td>").
+                    append("<td>").append(meta.getScale(i)).append("</td>").
+                    append("<td>").append(meta.getColumnDisplaySize(i)).append("</td>").
+                    append("<td>").append(meta.isAutoIncrement(i)).append("</td>").
+                    append("<td>").append(meta.isCaseSensitive(i)).append("</td>").
+                    append("<td>").append(meta.isCurrency(i)).append("</td>").
+                    append("<td>").append(meta.isNullable(i)).append("</td>").
+                    append("<td>").append(meta.isReadOnly(i)).append("</td>").
+                    append("<td>").append(meta.isSearchable(i)).append("</td>").
+                    append("<td>").append(meta.isSigned(i)).append("</td>").
+                    append("<td>").append(meta.isWritable(i)).append("</td>").
+                    append("<td>").append(meta.isDefinitelyWritable(i)).append("</td>").
+                    append("</tr>");
             }
         } else if (list) {
             buff.append("<tr><th>Column</th><th>Data</th></tr><tr>");
@@ -1934,16 +1934,14 @@ class WebThread extends Thread implements DatabaseEventListener {
                     break;
                 }
                 rows++;
-                buff.append("<tr><td>Row #</td><td>");
-                buff.append(rows);
-                buff.append("</tr>");
+                buff.append("<tr><td>Row #</td><td>").
+                    append(rows).append("</tr>");
                 for (int i = 0; i < columns; i++) {
-                    buff.append("<tr><td>");
-                    buff.append(PageParser.escapeHtml(meta.getColumnLabel(i + 1)));
-                    buff.append("</td>");
-                    buff.append("<td>");
-                    buff.append(escapeData(rs, i + 1));
-                    buff.append("</td></tr>");
+                    buff.append("<tr><td>").
+                        append(PageParser.escapeHtml(meta.getColumnLabel(i + 1))).
+                        append("</td><td>").
+                        append(escapeData(rs, i + 1)).
+                        append("</td></tr>");
                 }
             }
         } else {
@@ -1952,9 +1950,9 @@ class WebThread extends Thread implements DatabaseEventListener {
                 buff.append("<th>Action</th>");
             }
             for (int i = 0; i < columns; i++) {
-                buff.append("<th>");
-                buff.append(PageParser.escapeHtml(meta.getColumnLabel(i + 1)));
-                buff.append("</th>");
+                buff.append("<th>").
+                    append(PageParser.escapeHtml(meta.getColumnLabel(i + 1))).
+                    append("</th>");
             }
             buff.append("</tr>");
             while (rs.next()) {
@@ -1964,22 +1962,20 @@ class WebThread extends Thread implements DatabaseEventListener {
                 rows++;
                 buff.append("<tr>");
                 if (edit) {
-                    buff.append("<td>");
-                    buff.append("<img onclick=\"javascript:editRow(");
-                    buff.append(rs.getRow());
-                    buff.append(",'${sessionId}', '${text.resultEdit.save}', '${text.resultEdit.cancel}'");
-                    buff
-                            .append(")\" width=16 height=16 src=\"ico_write.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.edit}\" title=\"${text.resultEdit.edit}\" border=\"1\"/>");
-                    buff.append("<a href=\"editResult.do?op=2&row=");
-                    buff.append(rs.getRow());
-                    buff
-                            .append("&jsessionid=${sessionId}\" target=\"h2result\" ><img width=16 height=16 src=\"ico_remove.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.delete}\" title=\"${text.resultEdit.delete}\" border=\"1\" /></a>");
-                    buff.append("</td>");
+                    buff.append("<td>").
+                        append("<img onclick=\"javascript:editRow(").
+                        append(rs.getRow()).
+                        append(",'${sessionId}', '${text.resultEdit.save}', '${text.resultEdit.cancel}'").
+                        append(")\" width=16 height=16 src=\"ico_write.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.edit}\" title=\"${text.resultEdit.edit}\" border=\"1\"/>").
+                        append("<a href=\"editResult.do?op=2&row=").
+                        append(rs.getRow()).
+                        append("&jsessionid=${sessionId}\" target=\"h2result\" ><img width=16 height=16 src=\"ico_remove.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.delete}\" title=\"${text.resultEdit.delete}\" border=\"1\" /></a>").
+                        append("</td>");
                 }
                 for (int i = 0; i < columns; i++) {
-                    buff.append("<td>");
-                    buff.append(escapeData(rs, i + 1));
-                    buff.append("</td>");
+                    buff.append("<td>").
+                        append(escapeData(rs, i + 1)).
+                        append("</td>");
                 }
                 buff.append("</tr>");
             }
@@ -2002,12 +1998,10 @@ class WebThread extends Thread implements DatabaseEventListener {
             rs.close();
         }
         if (edit) {
-            buff.append("<tr><td>");
-            buff
-                    .append("<img onclick=\"javascript:editRow(-1, '${sessionId}', '${text.resultEdit.save}', '${text.resultEdit.cancel}'");
-            buff
-                    .append(")\" width=16 height=16 src=\"ico_add.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.add}\" title=\"${text.resultEdit.add}\" border=\"1\"/>");
-            buff.append("</td>");
+            buff.append("<tr><td>").
+                append("<img onclick=\"javascript:editRow(-1, '${sessionId}', '${text.resultEdit.save}', '${text.resultEdit.cancel}'").
+                append(")\" width=16 height=16 src=\"ico_add.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.add}\" title=\"${text.resultEdit.add}\" border=\"1\"/>").
+                append("</td>");
             for (int i = 0; i < columns; i++) {
                 buff.append("<td></td>");
             }
@@ -2022,20 +2016,17 @@ class WebThread extends Thread implements DatabaseEventListener {
         } else if (rows == 1) {
             buff.append("(${text.result.1row}");
         } else {
-            buff.append('(');
-            buff.append(rows);
-            buff.append(" ${text.result.rows}");
+            buff.append('(').append(rows).append(" ${text.result.rows}");
         }
         buff.append(", ");
         time = System.currentTimeMillis() - time;
-        buff.append(time);
-        buff.append(" ms)");
+        buff.append(time).append(" ms)");
         if (!edit && isUpdatable && allowEdit) {
-            buff
-                    .append("<br /><br /><form name=\"editResult\" method=\"post\" action=\"query.do?jsessionid=${sessionId}\" target=\"h2result\">");
-            buff.append("<input type=\"submit\" class=\"button\" value=\"${text.resultEdit.editResult}\" />");
-            buff.append("<input type=\"hidden\" name=\"sql\" value=\"@EDIT " + PageParser.escapeHtml(sql) + "\" />");
-            buff.append("</form>");
+            buff.append("<br /><br /><form name=\"editResult\" method=\"post\" action=\"query.do?jsessionid=${sessionId}\" target=\"h2result\">" +
+                "<input type=\"submit\" class=\"button\" value=\"${text.resultEdit.editResult}\" />" +
+                "<input type=\"hidden\" name=\"sql\" value=\"@EDIT ").
+                append(PageParser.escapeHtml(sql)).
+                append("\" /></form>");
         }
         return buff.toString();
     }

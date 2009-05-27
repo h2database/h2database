@@ -260,13 +260,13 @@ public class Recover extends Tool implements DataHandler {
                     byte[] passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
                     boolean admin = sql.indexOf("ADMIN") >= 0;
                     StringBuilder buff = new StringBuilder();
-                    buff.append("CREATE USER ");
-                    buff.append(Parser.quoteIdentifier(userName));
-                    buff.append(" SALT '");
-                    buff.append(ByteUtils.convertBytesToString(salt));
-                    buff.append("' HASH '");
-                    buff.append(ByteUtils.convertBytesToString(passwordHash));
-                    buff.append('\'');
+                    buff.append("CREATE USER ").
+                        append(Parser.quoteIdentifier(userName)).
+                        append(" SALT '").
+                        append(ByteUtils.convertBytesToString(salt)).
+                        append("' HASH '").
+                        append(ByteUtils.convertBytesToString(passwordHash)).
+                        append('\'');
                     if (admin) {
                         buff.append(" ADMIN");
                     }
@@ -1025,11 +1025,11 @@ public class Recover extends Tool implements DataHandler {
                             byte[] salt = RandomUtils.getSecureBytes(Constants.SALT_LEN);
                             byte[] passwordHash = sha.getHashWithSalt(userPasswordHash, salt);
                             StringBuilder buff = new StringBuilder();
-                            buff.append("SALT '");
-                            buff.append(ByteUtils.convertBytesToString(salt));
-                            buff.append("' HASH '");
-                            buff.append(ByteUtils.convertBytesToString(passwordHash));
-                            buff.append('\'');
+                            buff.append("SALT '").
+                                append(ByteUtils.convertBytesToString(salt)).
+                                append("' HASH '").
+                                append(ByteUtils.convertBytesToString(passwordHash)).
+                                append('\'');
                             byte[] replacement = buff.toString().getBytes();
                             System.arraycopy(replacement, 0, s.getBytes(), saltIndex, replacement.length);
                             store.seek(pageSize * pageId);

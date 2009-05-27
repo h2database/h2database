@@ -141,8 +141,7 @@ public class ScriptReader {
                     insideRemark = true;
                     blockRemark = true;
                     if (!skipRemarks) {
-                        buff.append((char) last);
-                        buff.append((char) c);
+                        buff.append((char) last).append((char) c);
                     }
                     while (true) {
                         c = read();
@@ -173,8 +172,7 @@ public class ScriptReader {
                     insideRemark = true;
                     blockRemark = false;
                     if (!skipRemarks) {
-                        buff.append((char) last);
-                        buff.append((char) c);
+                        buff.append((char) last).append((char) c);
                     }
                     while (true) {
                         c = read();
@@ -205,8 +203,7 @@ public class ScriptReader {
                     insideRemark = true;
                     blockRemark = false;
                     if (!skipRemarks) {
-                        buff.append((char) last);
-                        buff.append((char) c);
+                        buff.append((char) last).append((char) c);
                     }
                     while (true) {
                         c = read();

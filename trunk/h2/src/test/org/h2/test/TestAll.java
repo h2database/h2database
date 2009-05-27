@@ -292,11 +292,8 @@ java org.h2.test.TestAll timer
 
 /*
 
-recover tool: move
-alter table add constraint behind insert into select
-
-j > 0 -> StatementBuilder
-buff.append... chain
+shell tool: document encoding problem. mac: use
+java -Dfile.encoding=UTF-8;
 
 BaseIndex or TableData should have its own compareMode
 (default is: Database.compareMode when created).
@@ -306,9 +303,6 @@ check syntax in other databases.
 this mean changing the collation is allowed if there are tables.
 
 test case for running out of disk space (using a special file system)
-
-shell tool: document encoding problem. mac: use
-java -Dfile.encoding=UTF-8
 
 auto-build: prepare release
 

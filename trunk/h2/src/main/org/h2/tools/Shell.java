@@ -482,8 +482,7 @@ public class Shell extends Tool {
                     for (int j = label.length(); j < longest; j++) {
                         buff.append(' ');
                     }
-                    buff.append(": ");
-                    buff.append(rs.getString(i + 1));
+                    buff.append(": ").append(rs.getString(i + 1));
                 }
             } else {
                 for (int i = 0; i < len; i++) {
@@ -512,8 +511,7 @@ public class Shell extends Tool {
         }
         if (rowCount == 0 && listMode) {
             for (String label : columns) {
-                buff.append(label);
-                buff.append('\n');
+                buff.append(label).append('\n');
             }
             println(buff.toString());
         }

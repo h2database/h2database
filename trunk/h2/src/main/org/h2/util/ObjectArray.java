@@ -353,4 +353,14 @@ public class ObjectArray<T> implements Iterable<T> {
 //        }
 //    }
 
+    public String toString() {
+        StatementBuilder buff = new StatementBuilder("{");
+        for (int i = 0; i < size; i++) {
+            buff.appendExceptFirst(", ");
+            T t = get(i);
+            buff.append(t == null ? "" : t.toString());
+        }
+        return buff.append('}').toString();
+    }
+
 }

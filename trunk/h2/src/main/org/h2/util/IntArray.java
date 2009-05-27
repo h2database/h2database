@@ -301,39 +301,13 @@ public class IntArray {
         size = newSize;
     }
 
-//    ArrayList data = new ArrayList();
-//
-//    public IntArray() {
-//    }
-//
-//    public IntArray(int[] data) {
-//        for (int i = 0; i < data.length; i++) {
-//            this.data.add(new Integer(data[i]));
-//        }
-//    }
-//
-//    public void add(int value) {
-//        this.data.add(new Integer(value));
-//    }
-//
-//    public int get(int i) {
-//        return ((Integer) data.get(i)).intValue();
-//    }
-//
-//    public void remove(int i) {
-//        data.remove(i);
-//    }
-//
-//    public void add(int i, int value) {
-//        data.add(i, new Integer(value));
-//    }
-//
-//    public void set(int i, int value) {
-//        data.set(i, new Integer(value));
-//    }
-//
-//    public int size() {
-//        return data.size();
-//    }
+    public String toString() {
+        StatementBuilder buff = new StatementBuilder("{");
+        for (int i = 0; i < size; i++) {
+            buff.appendExceptFirst(", ");
+            buff.append(data[i]);
+        }
+        return buff.append('}').toString();
+    }
 
 }

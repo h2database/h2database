@@ -35,6 +35,8 @@ public class TestIndex extends TestBase {
     }
 
     public void test() throws SQLException {
+        deleteDb("index");
+        testRandomized();
         testDescIndex();
         testHashIndex();
 
@@ -79,6 +81,33 @@ public class TestIndex extends TestBase {
 
         conn.close();
         deleteDb("index");
+    }
+
+    private void testRandomized() throws SQLException {
+        boolean reopen = !config.memory;
+        Random random = new Random(1);
+        reconnect();
+        stat.execute("CREATE TABLE TEST(ID identity)");
+        int len = getSize(100, 1000);
+        for (int i = 0; i < len; i++) {
+            switch (random.nextInt(4)) {
+            case 0:
+                if (reopen) {
+                    reconnect();
+                }
+                break;
+            case 1:
+                stat.execute("insert into test(id) values(null)");
+                break;
+            case 2:
+                stat.execute("delete from test");
+                break;
+            case 3:
+                stat.execute("insert into test select null from system_range(1, 100)");
+                break;
+            }
+        }
+        stat.execute("drop table test");
     }
 
     private void testHashIndex() throws SQLException {

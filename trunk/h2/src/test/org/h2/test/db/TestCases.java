@@ -46,6 +46,7 @@ public class TestCases extends TestBase {
         if (config.memory || config.logMode == 0) {
             return;
         }
+        testEmptyBtreeIndex();
         testReservedKeywordReconnect();
         testSpecialSQL();
         testUpperCaseLowerCaseDatabase();
@@ -68,6 +69,23 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testEmptyBtreeIndex() throws SQLException {
+        deleteDb("cases");
+        Connection conn;
+        conn = getConnection("cases");
+        conn.createStatement().execute("CREATE TABLE test(id int PRIMARY KEY);");
+        conn.createStatement().execute("INSERT INTO test SELECT X FROM SYSTEM_RANGE(1, 77)");
+        conn.createStatement().execute("DELETE from test");
+        conn.close();
+        conn = getConnection("cases");
+        conn.createStatement().execute("INSERT INTO test (id) VALUES (1)");
+        conn.close();
+        conn = getConnection("cases");
+        conn.createStatement().execute("DELETE from test");
+        conn.createStatement().execute("drop table test");
+        conn.close();
     }
 
     private void testJoinWithView() throws SQLException {

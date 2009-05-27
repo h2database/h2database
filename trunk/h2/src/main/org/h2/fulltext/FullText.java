@@ -675,6 +675,16 @@ public class FullText {
         }
     }
 
+    static boolean hasChanged(Object[] oldRow, Object[] newRow, int[] indexColumns) {
+        for (int c : indexColumns) {
+            Object o = oldRow[c], n = newRow[c];
+            if (!o.equals(n)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Trigger updates the index when a inserting, updating, or deleting a row.
      */
@@ -777,9 +787,18 @@ public class FullText {
         public void fire(Connection conn, Object[] oldRow, Object[] newRow)
                 throws SQLException {
             if (oldRow != null) {
-                delete(setting, oldRow);
-            }
-            if (newRow != null) {
+                if (newRow != null) {
+                    // update
+                    if (hasChanged(oldRow, newRow, index.indexColumns)) {
+                        delete(setting, oldRow);
+                        insert(setting, newRow);
+                    }
+                } else {
+                    // delete
+                    delete(setting, oldRow);
+                }
+            } else if (newRow != null) {
+                // insert
                 insert(setting, newRow);
             }
         }

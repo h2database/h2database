@@ -336,8 +336,7 @@ public class ScriptCommand extends ScriptBase {
                     if (len <= 0) {
                         break;
                     }
-                    buff.append(ByteUtils.convertBytesToString(bytes, len));
-                    buff.append("')");
+                    buff.append(ByteUtils.convertBytesToString(bytes, len)).append("')");
                     String sql = buff.toString();
                     add(sql, true);
                 }
@@ -357,8 +356,8 @@ public class ScriptCommand extends ScriptBase {
                     if (len < 0) {
                         break;
                     }
-                    buff.append(StringUtils.quoteStringSQL(new String(chars, 0, len)));
-                    buff.append(", NULL)");
+                    buff.append(StringUtils.quoteStringSQL(new String(chars, 0, len))).
+                        append(", NULL)");
                     String sql = buff.toString();
                     add(sql, true);
                 }

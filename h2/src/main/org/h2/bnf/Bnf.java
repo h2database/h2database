@@ -168,9 +168,8 @@ public class Bnf {
                 page = "functions.html";
             }
             String link = StringUtils.urlEncode(found.getTopic().toLowerCase());
-            buff.append("<a href=\""+page+"#"+link+"\">");
-            buff.append(s);
-            buff.append("</a>");
+            buff.append("<a href=\"").append(page).append("#").
+                append(link).append("\">").append(s).append("</a>");
         }
         return buff.toString();
     }

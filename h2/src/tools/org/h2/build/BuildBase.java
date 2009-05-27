@@ -444,8 +444,8 @@ public class BuildBase {
         StringBuilder buff = new StringBuilder(value.length * 2);
         for (byte c : value) {
             int x = c & 0xff;
-            buff.append(Integer.toString(x >> 4, 16));
-            buff.append(Integer.toString(x & 0xf, 16));
+            buff.append(Integer.toString(x >> 4, 16)).
+                append(Integer.toString(x & 0xf, 16));
         }
         return buff.toString();
     }

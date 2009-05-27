@@ -109,14 +109,12 @@ public class MultiDimension {
      */
     public String generatePreparedQuery(String table, String scalarColumn, String[] columns) {
         StringBuilder buff = new StringBuilder("SELECT D.* FROM ");
-        buff.append(StringUtils.quoteIdentifier(table));
-        buff.append(" D, TABLE(_FROM_ BIGINT=?, _TO_ BIGINT=?) WHERE ");
-        buff.append(StringUtils.quoteIdentifier(scalarColumn));
-        buff.append(" BETWEEN _FROM_ AND _TO_");
+        buff.append(StringUtils.quoteIdentifier(table)).
+            append(" D, TABLE(_FROM_ BIGINT=?, _TO_ BIGINT=?) WHERE ").
+            append(StringUtils.quoteIdentifier(scalarColumn)).
+            append(" BETWEEN _FROM_ AND _TO_");
         for (String col : columns) {
-            buff.append(" AND ");
-            buff.append(StringUtils.quoteIdentifier(col));
-            buff.append("+1 BETWEEN ?+1 AND ?+1");
+            buff.append(" AND ").append(StringUtils.quoteIdentifier(col)).append("+1 BETWEEN ?+1 AND ?+1");
         }
         return buff.toString();
     }

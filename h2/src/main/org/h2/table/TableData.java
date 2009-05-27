@@ -551,8 +551,7 @@ public class TableData extends Table implements RecordReader {
         } else {
             buff.append("MEMORY ");
         }
-        buff.append("TABLE ");
-        buff.append(getSQL());
+        buff.append("TABLE ").append(getSQL());
         if (comment != null) {
             buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
         }

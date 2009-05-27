@@ -268,8 +268,10 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     public String getStatus() {
         StringBuilder buff = new StringBuilder();
         if (isRunning(false)) {
-            buff.append(service.getType()).append(" server running on ");
-            buff.append(service.getURL()).append(" (");
+            buff.append(service.getType()).
+                append(" server running on ").
+                append(service.getURL()).
+                append(" (");
             if (service.getAllowOthers()) {
                 buff.append("others can connect");
             } else {
@@ -277,8 +279,10 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
             }
             buff.append(')');
         } else {
-            buff.append("The " + service.getType() + " server could not be started. Possible cause: another server is already running on ");
-            buff.append(service.getURL());
+            buff.append("The ").
+                append(service.getType()).
+                append(" server could not be started. Possible cause: another server is already running on ").
+                append(service.getURL());
         }
         return buff.toString();
     }

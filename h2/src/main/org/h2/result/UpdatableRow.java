@@ -151,8 +151,8 @@ public class UpdatableRow {
 
 //    public boolean isRowDeleted(Value[] row) throws SQLException {
 //        StringBuilder buff = new StringBuilder();
-//        buff.append("SELECT COUNT(*) FROM ");
-//        buff.append(StringUtils.quoteIdentifier(tableName));
+//        buff.append("SELECT COUNT(*) FROM ").
+//               append(StringUtils.quoteIdentifier(tableName));
 //        appendKeyCondition(buff);
 //        PreparedStatement prep = conn.prepareStatement(buff.toString());
 //        setKey(prep, 1, row);

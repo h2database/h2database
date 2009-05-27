@@ -706,9 +706,9 @@ public class StringUtils {
                 break;
             default:
                 if (ch < ' ' || ch > 127) {
-                    buff.append("&#x");
-                    buff.append(Integer.toHexString(ch));
-                    buff.append(';');
+                    buff.append("&#x").
+                        append(Integer.toHexString(ch)).
+                        append(';');
                 } else {
                     buff.append(ch);
                 }
@@ -734,8 +734,7 @@ public class StringUtils {
                 buff.append(s.substring(index));
                 break;
             }
-            buff.append(s.substring(index, next));
-            buff.append(after);
+            buff.append(s.substring(index, next)).append(after);
             index = next + before.length();
         }
         return buff.toString();

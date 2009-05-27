@@ -260,8 +260,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         } else {
             buff.append(columnList);
         }
-        buff.append(" FROM ");
-        buff.append(table.getSQL());
+        buff.append(" FROM ").append(table.getSQL());
         String newTableSQL = buff.toString();
         execute(newTableSQL, true);
         newTable = (TableData) newTable.getSchema().getTableOrView(session, newTable.getName());

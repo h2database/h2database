@@ -100,7 +100,9 @@ public class BtreeNode extends BtreePage {
             ObjectArray<SearchRow> empty = ObjectArray.newInstance();
             BtreeLeaf newLeaf = new BtreeLeaf(index, empty);
             index.addPage(session, newLeaf);
+            index.deletePage(session, this);
             pageChildren.add(newLeaf.getPos());
+            index.updatePage(session, this);
         }
         BtreePage page = index.getPage(session, pageChildren.get(at));
         int splitPoint = page.add(newRow, session);

@@ -97,7 +97,7 @@ public class Set extends Prepared {
             CompareMode compareMode;
             StringBuilder buff = new StringBuilder(stringValue);
             if (stringValue.equals(CompareMode.OFF)) {
-                compareMode = new CompareMode(null, 0);
+                compareMode = CompareMode.getInstance(null, 0);
             } else {
                 int strength = getIntValue();
                 buff.append(" STRENGTH ");
@@ -110,7 +110,7 @@ public class Set extends Prepared {
                 } else if (strength == Collator.TERTIARY) {
                     buff.append("TERTIARY");
                 }
-                compareMode = new CompareMode(stringValue, strength);
+                compareMode = CompareMode.getInstance(stringValue, strength);
             }
             addOrUpdateSetting(name, buff.toString(), 0);
             database.setCompareMode(compareMode);

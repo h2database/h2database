@@ -43,6 +43,7 @@ import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 
@@ -697,6 +698,10 @@ public class TableData extends Table implements RecordReader {
 
     public long getRowCountApproximation() {
         return scanIndex.getRowCountApproximation();
+    }
+
+    public void setCompareMode(CompareMode compareMode) {
+        this.compareMode = compareMode;
     }
 
 }

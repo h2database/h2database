@@ -7,6 +7,7 @@
 package org.h2.test.unit;
 
 import java.sql.SQLException;
+import java.text.Collator;
 
 import org.h2.expression.CompareLike;
 import org.h2.test.TestBase;
@@ -27,7 +28,24 @@ public class TestPattern extends TestBase {
     }
 
     public void test() throws SQLException {
-        CompareMode mode = new CompareMode(null, 0);
+        testCompareModeReuse();
+        testPattern();
+    }
+
+    private void testCompareModeReuse() {
+        CompareMode mode1, mode2;
+        mode1 = CompareMode.getInstance(null, 0);
+        mode2 = CompareMode.getInstance(null, 0);
+        assertTrue(mode1 == mode2);
+
+        mode1 = CompareMode.getInstance("DE", Collator.SECONDARY);
+        assertFalse(mode1 == mode2);
+        mode2 = CompareMode.getInstance("DE", Collator.SECONDARY);
+        assertTrue(mode1 == mode2);
+    }
+
+    private void testPattern() throws SQLException {
+        CompareMode mode = CompareMode.getInstance(null, 0);
         CompareLike comp = new CompareLike(mode, null, null, null, false);
         test(comp, "B", "%_");
         test(comp, "A", "A%");

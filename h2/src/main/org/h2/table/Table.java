@@ -35,6 +35,7 @@ import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
+import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -85,6 +86,11 @@ public abstract class Table extends SchemaObjectBase {
      */
     protected int memoryPerRow;
 
+    /**
+     * The compare mode used for this table.
+     */
+    protected CompareMode compareMode;
+
     private final HashMap<String, Column> columnMap = New.hashMap();
     private boolean persistIndexes;
     private boolean persistData;
@@ -100,6 +106,7 @@ public abstract class Table extends SchemaObjectBase {
         initSchemaObjectBase(schema, id, name, Trace.TABLE);
         this.persistIndexes = persistIndexes;
         this.persistData = persistData;
+        compareMode = schema.getDatabase().getCompareMode();
     }
 
     public void rename(String newName) throws SQLException {
@@ -902,6 +909,23 @@ public abstract class Table extends SchemaObjectBase {
 
     public boolean isPersistData() {
         return persistData;
+    }
+
+    /**
+     * Compare two values with the current comparison mode. The values must be
+     * of the same type.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @return 0 if both values are equal, -1 if the first value is smaller, and
+     *         1 otherwise
+     */
+    public int compareTypeSave(Value a, Value b) throws SQLException {
+        return a.compareTypeSave(b, compareMode);
+    }
+
+    public CompareMode getCompareMode() {
+        return compareMode;
     }
 
 }

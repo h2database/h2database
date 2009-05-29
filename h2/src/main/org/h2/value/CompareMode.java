@@ -27,19 +27,16 @@ public class CompareMode {
      */
     public static final String OFF = "OFF";
 
-    private final Collator collator;
+    private static CompareMode lastUsed;
+
     private final String name;
+    private final int strength;
+    private final Collator collator;
     private final SmallLRUCache<String, CollationKey> collationKeys;
 
-    /**
-     * Create a new compare mode with the given collator and cache size.
-     * The cache is used to speed up comparison when using a collator;
-     * CollationKey objects are cached.
-     *
-     * @param name the collation name or null
-     * @param strength the collation strength
-     */
-    public CompareMode(String name, int strength) {
+    private CompareMode(String name, int strength) {
+        this.name = name;
+        this.strength = strength;
         this.collator = CompareMode.getCollator(name);
         int cacheSize = 0;
         if (collator != null) {
@@ -51,7 +48,28 @@ public class CompareMode {
         } else {
             collationKeys = null;
         }
-        this.name = name == null ? OFF : name;
+    }
+
+    /**
+     * Create a new compare mode with the given collator and strength. If
+     * required, a new CompareMode is created, or if possible the last one is
+     * returned. A cache is used to speed up comparison when using a collator;
+     * CollationKey objects are cached.
+     *
+     * @param name the collation name or null
+     * @param strength the collation strength
+     * @return the compare mode
+     */
+    public static CompareMode getInstance(String name, int strength) {
+        if (lastUsed != null) {
+            if (StringUtils.equals(lastUsed.name, name)) {
+                if (lastUsed.strength == strength) {
+                    return lastUsed;
+                }
+            }
+        }
+        lastUsed = new CompareMode(name, strength);
+        return lastUsed;
     }
 
     /**
@@ -178,7 +196,11 @@ public class CompareMode {
     }
 
     public String getName() {
-        return name;
+        return name == null ? OFF : name;
+    }
+
+    public int getStrength() {
+        return strength;
     }
 
 }

@@ -330,7 +330,8 @@ public class ConstraintReferential extends Constraint {
     }
 
     private boolean found(Session session, Index searchIndex, SearchRow check, Row excluding) throws SQLException {
-        searchIndex.getTable().lock(session, false, false);
+        Table table = searchIndex.getTable();
+        table.lock(session, false, false);
         Cursor cursor = searchIndex.find(session, check, check);
         while (cursor.next()) {
             SearchRow found;
@@ -344,7 +345,7 @@ public class ConstraintReferential extends Constraint {
                 int idx = cols[i].getColumnId();
                 Value c = check.getValue(idx);
                 Value f = found.getValue(idx);
-                if (database.compareTypeSave(c, f) != 0) {
+                if (table.compareTypeSave(c, f) != 0) {
                     allEqual = false;
                     break;
                 }

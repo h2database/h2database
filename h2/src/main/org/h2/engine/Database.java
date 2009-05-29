@@ -169,7 +169,7 @@ public class Database implements DataHandler {
     private boolean reconnectChangePending;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
-        this.compareMode = new CompareMode(null, 0);
+        this.compareMode = CompareMode.getInstance(null, 0);
         this.persistent = ci.isPersistent();
         this.filePasswordHash = ci.getFilePasswordHash();
         this.databaseName = name;

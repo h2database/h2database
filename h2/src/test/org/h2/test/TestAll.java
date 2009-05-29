@@ -295,12 +295,9 @@ java org.h2.test.TestAll timer
 shell tool: document encoding problem. mac: use
 java -Dfile.encoding=UTF-8;
 
-BaseIndex or TableData should have its own compareMode
-(default is: Database.compareMode when created).
-standard: COLLATE for each column (MySQL, SQL Server)
+TableData should have its own compareMode
+(copy of Database.compareMode when created).
 stored in the pageStore as well.
-check syntax in other databases.
-this mean changing the collation is allowed if there are tables.
 
 test case for running out of disk space (using a special file system)
 

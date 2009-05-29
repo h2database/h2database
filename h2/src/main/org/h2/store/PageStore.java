@@ -21,6 +21,7 @@ import org.h2.index.PageScanIndex;
 import org.h2.log.SessionState;
 import org.h2.message.Message;
 import org.h2.message.Trace;
+import org.h2.message.TraceSystem;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
@@ -35,6 +36,7 @@ import org.h2.util.FileUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.StringUtils;
+import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueString;
@@ -174,7 +176,7 @@ public class PageStore implements CacheWriter {
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
         int test;
-// trace.setLevel(TraceSystem.DEBUG);
+trace.setLevel(TraceSystem.DEBUG);
         this.cacheSize = cacheSizeDefault;
         String cacheType = database.getCacheType();
         this.cache = CacheLRU.getCache(this, cacheType, cacheSize);
@@ -809,8 +811,8 @@ public class PageStore implements CacheWriter {
         cols.add(new Column("TYPE", Value.INT));
         cols.add(new Column("PARENT", Value.INT));
         cols.add(new Column("HEAD", Value.INT));
+        cols.add(new Column("OPTIONS", Value.STRING));
         cols.add(new Column("COLUMNS", Value.STRING));
-//        new CompareMode()
         metaSchema = new Schema(database, 0, "", null, true);
         int headPos = metaTableRootPageId;
         metaTable = new TableData(metaSchema, "PAGE_INDEX",
@@ -843,7 +845,8 @@ public class PageStore implements CacheWriter {
         int type = row.getValue(1).getInt();
         int parent = row.getValue(2).getInt();
         int headPos = row.getValue(3).getInt();
-        String columnList = row.getValue(4).getString();
+        String options = row.getValue(4).getString();
+        String columnList = row.getValue(5).getString();
         String[] columns = StringUtils.arraySplit(columnList, ',', false);
         IndexType indexType = IndexType.createNonUnique(true);
         Index meta;
@@ -857,6 +860,9 @@ public class PageStore implements CacheWriter {
                 columnArray.add(col);
             }
             TableData table = new TableData(metaSchema, "T" + id, id, columnArray, true, true, false, headPos, session);
+            String[] ops = StringUtils.arraySplit(options, ',', true);
+            CompareMode mode = CompareMode.getInstance(ops[0], Integer.parseInt(ops[1]));
+            table.setCompareMode(mode);
             meta = table.getScanIndex(session);
         } else {
             PageScanIndex p = (PageScanIndex) metaObjects.get(parent);
@@ -889,16 +895,20 @@ public class PageStore implements CacheWriter {
             columnIndexes[i] = String.valueOf(columns[i].getColumnId());
         }
         String columnList = StringUtils.arrayCombine(columnIndexes, ',');
-        addMeta(index.getId(), type, index.getTable().getId(), index.getHeadPos(), columnList, session);
+        Table table = index.getTable();
+        CompareMode mode = table.getCompareMode();
+        String options = mode.getName()+ "," + mode.getStrength();
+        addMeta(index.getId(), type, table.getId(), index.getHeadPos(), options, columnList, session);
     }
 
-    private void addMeta(int id, int type, int parent, int headPos, String columnList, Session session) throws SQLException {
+    private void addMeta(int id, int type, int parent, int headPos, String options, String columnList, Session session) throws SQLException {
         Row row = metaTable.getTemplateRow();
         row.setValue(0, ValueInt.get(id));
         row.setValue(1, ValueInt.get(type));
         row.setValue(2, ValueInt.get(parent));
         row.setValue(3, ValueInt.get(headPos));
-        row.setValue(4, ValueString.get(columnList));
+        row.setValue(4, ValueString.get(options));
+        row.setValue(5, ValueString.get(columnList));
         row.setPos(id + 1);
         metaIndex.add(session, row);
     }

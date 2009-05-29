@@ -675,6 +675,14 @@ public class FullText {
         }
     }
 
+    /**
+     * Check if a the indexed columns of a row have changed.
+     *
+     * @param oldRow the old row
+     * @param newRow the new row
+     * @param indexColumns the indexed columns
+     * @return true if the indexed columns don't match
+     */
     static boolean hasChanged(Object[] oldRow, Object[] newRow, int[] indexColumns) {
         for (int c : indexColumns) {
             Object o = oldRow[c], n = newRow[c];

@@ -26,6 +26,11 @@ import org.h2.message.Trace;
  */
 public class PageInputStream extends InputStream {
 
+    /**
+     * The number of header bytes per stream page.
+     */
+    public static final int OVERHEAD = 10;
+
     private PageStore store;
     private final Trace trace;
     private int parentPage;
@@ -118,7 +123,7 @@ public class PageInputStream extends InputStream {
             remaining = store.getPageSize() - page.length();
         }
         if (trace.isDebugEnabled()) {
-            // trace.debug("pageIn.readPage " + parentPage + " next:" + nextPage);
+            trace.debug("pageIn.readPage " + parentPage + " next:" + nextPage);
         }
     }
 

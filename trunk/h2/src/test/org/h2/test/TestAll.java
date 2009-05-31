@@ -288,6 +288,7 @@ java org.h2.test.TestAll timer
 
 // 2009-05-15: 25 tests fail with page store (first loop)
 // 2009-05-18: 18 tests fail with page store (first loop)
+// 2009-05-30: 15 tests fail with page store (first loop)
 // System.setProperty("h2.pageStore", "true");
 
 /*
@@ -337,6 +338,7 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
                 new TestRandomSQL().runTest(test);
             } else if ("join".equals(args[0])) {
                 new TestJoin().runTest(test);
+                test.endless = true;
             } else if ("btree".equals(args[0])) {
                 new TestBtreeIndex().runTest(test);
             } else if ("all".equals(args[0])) {
@@ -546,6 +548,7 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
         new TestRowLocks().runTest(this);
 
         // synth
+        new TestBtreeIndex().runTest(this);
         new TestCrashAPI().runTest(this);
         new TestFuzzOptimizations().runTest(this);
         new TestRandomSQL().runTest(this);

@@ -59,10 +59,10 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
-    // TODO check if PageLog.reservePages is required
-    // TODO PageDataLeaf and Node: support random delete/add
-    // TODO PageStore.openMetaIndex (add collation for indexes,
-    // desc columns support)
+    // TODO implement unlimited number of log files (TestPageStoreDb)
+    // TODO check if PageLog.reservePages is required - yes it is - change it
+    // TODO PageStore.openMetaIndex (desc and nulls first / last columns support)
+
     // TODO btree index with fixed size values doesn't need offset and so on
     // TODO log block allocation
     // TODO block compression: maybe http://en.wikipedia.org/wiki/LZJB
@@ -511,6 +511,9 @@ trace.setLevel(TraceSystem.DEBUG);
     public void freePage(int pageId, boolean logUndo, DataPage old) throws SQLException {
         if (trace.isDebugEnabled()) {
             trace.debug("freePage " + pageId);
+        }
+        if (lastUsedPage == pageId) {
+            lastUsedPage--;
         }
         cache.remove(pageId);
         getFreeList().free(pageId);

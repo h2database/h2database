@@ -19,7 +19,7 @@ import org.h2.store.DataPage;
  * </li><li>5-6: entry count
  * </li><li>7-10: row count of all children (-1 if not known)
  * </li><li>11-14: rightmost child page id
- * </li><li>15- entries: 4 bytes leaf page id, 4 bytes offset
+ * </li><li>15- entries: 4 bytes leaf page id, 4 bytes offset to data
  * </li></ul>
  */
 class PageBtreeNode extends PageBtree {
@@ -80,6 +80,7 @@ class PageBtreeNode extends PageBtree {
             System.arraycopy(childPageIds, 0, newChildPageIds, 0, x + 1);
         }
         if (entryCount > 0) {
+            readAllRows();
             System.arraycopy(offsets, 0, newOffsets, 0, x);
             System.arraycopy(rows, 0, newRows, 0, x);
             if (x < entryCount) {
@@ -280,7 +281,8 @@ class PageBtreeNode extends PageBtree {
         written = true;
     }
 
-    private void removeChild(int i) {
+    private void removeChild(int i) throws SQLException {
+        readAllRows();
         entryCount--;
         written = false;
         if (entryCount < 0) {
@@ -314,7 +316,7 @@ class PageBtreeNode extends PageBtree {
      * @param row the current row
      */
     void nextPage(PageBtreeCursor cursor, SearchRow row) throws SQLException {
-        int i = find(row, true, false);
+        int i = find(row, false, false) + 1;
         if (i > entryCount) {
             if (parentPageId == Page.ROOT) {
                 cursor.setCurrent(null, 0);
@@ -322,6 +324,7 @@ class PageBtreeNode extends PageBtree {
             }
             PageBtreeNode next = (PageBtreeNode) index.getPage(parentPageId);
             next.nextPage(cursor, getRow(entryCount - 1));
+            return;
         }
         PageBtree page = index.getPage(childPageIds[i]);
         PageBtreeLeaf leaf = page.getFirstLeaf();

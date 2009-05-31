@@ -35,11 +35,6 @@ import org.h2.value.Value;
 public class PageLog {
 
     /**
-     * No operation.
-     */
-    public static final int NO_OP = 0;
-
-    /**
      * An undo log entry.
      * Format: page id, page.
      */
@@ -75,7 +70,7 @@ public class PageLog {
     private DataPage data;
     private long operation;
     private BitField undo = new BitField();
-    private int[] reservedPages = new int[2];
+    private int[] reservedPages = new int[3];
 
     PageLog(PageStore store, int firstPage) {
         this.store = store;
@@ -139,9 +134,7 @@ public class PageLog {
                     break;
                 }
                 pos++;
-                if (x == NO_OP) {
-                    // nothing to do
-                } else if (x == UNDO) {
+                if (x == UNDO) {
                     int pageId = in.readInt();
                     in.readFully(data.getBytes(), 0, store.getPageSize());
                     if (undo) {
@@ -173,6 +166,11 @@ public class PageLog {
                     }
                     if (undo) {
                         store.setLastCommitForSession(sessionId, id, pos);
+                    }
+                } else {
+                    if (trace.isDebugEnabled()) {
+                        trace.debug("log end");
+                        break;
                     }
                 }
             }
@@ -223,7 +221,7 @@ public class PageLog {
                 trace.debug("log undo " + pageId);
             }
             undo.set(pageId);
-            reservePages(2);
+            reservePages(3);
             out.write(UNDO);
             out.writeInt(pageId);
             out.write(page.getBytes(), 0, store.getPageSize());
@@ -233,16 +231,16 @@ public class PageLog {
     }
 
     private void reservePages(int pageCount) throws SQLException {
-        int testIfRequired;
-//        if (pageCount > reservedPages.length) {
-//            reservedPages = new int[pageCount];
-//        }
-//        for (int i = 0; i < pageCount; i++) {
-//            reservedPages[i] = store.allocatePage();
-//        }
-//        for (int i = 0; i < pageCount; i++) {
-//            store.freePage(reservedPages[i], false, null);
-//        }
+        int todoThisIsSlow;
+        if (pageCount > reservedPages.length) {
+            reservedPages = new int[pageCount];
+        }
+        for (int i = 0; i < pageCount; i++) {
+            reservedPages[i] = store.allocatePage(true);
+        }
+        for (int i = pageCount - 1; i >= 0; i--) {
+            store.freePage(reservedPages[i], false, null);
+        }
     }
 
     /**
@@ -293,7 +291,7 @@ public class PageLog {
             int todoWriteIntoOutputDirectly;
             row.write(data);
 
-            reservePages(1 + data.length() / store.getPageSize());
+            reservePages(3 + data.length() / (store.getPageSize() - PageInputStream.OVERHEAD));
 
             out.write(add ? ADD : REMOVE);
             out.writeInt(session.getId());

@@ -33,10 +33,34 @@ public class TestBtreeIndex extends TestBase {
 
     public void test() throws SQLException {
         Random random = new Random();
-        while (true) {
+        for (int i = 0; i < getSize(1, 4); i++) {
+            testAddDelete();
             int seed = random.nextInt();
             testCase(seed);
         }
+    }
+
+    private void testAddDelete() throws SQLException {
+        deleteDb("index");
+        Connection conn = getConnection("index");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID bigint primary key)");
+        int count = 1000;
+        stat.execute("insert into test select x from system_range(1, " + count + ")");
+        if (!config.memory) {
+            conn.close();
+            conn = getConnection("index");
+            stat = conn.createStatement();
+        }
+        for (int i = 1; i < count; i++) {
+            ResultSet rs = stat.executeQuery("select * from test order by id");
+            for (int j = i; rs.next(); j++) {
+                assertEquals(j, rs.getInt(1));
+            }
+            stat.execute("delete from test where id =" + i);
+        }
+        stat.execute("drop all objects delete files");
+        conn.close();
     }
 
     public void testCase(int seed) throws SQLException {
@@ -109,7 +133,7 @@ public class TestBtreeIndex extends TestBase {
                         int deleted = prepDelete.executeUpdate();
                         if (deleted > 1) {
                             System.out.println("ERROR deleted:" + deleted);
-                            System.out.println("new TestIndex().");
+                            System.out.println("seed: " + seed);
                         }
                         count -= deleted;
                     } catch (SQLException e) {
@@ -126,12 +150,12 @@ public class TestBtreeIndex extends TestBase {
         }
         if (testCount != count) {
             System.out.println("ERROR count:" + count + " testCount:" + testCount);
-            System.out.println("new TestIndex().");
+            System.out.println("seed: " + seed);
         }
         rs = conn.createStatement().executeQuery("SELECT text, count(*) FROM a GROUP BY text HAVING COUNT(*)>1");
         if (rs.next()) {
             System.out.println("ERROR");
-            System.out.println("new TestIndex().");
+            System.out.println("seed: " + seed);
         }
         conn.close();
     }

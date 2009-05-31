@@ -30,6 +30,7 @@ public class PageOutputStream extends OutputStream {
     private byte[] buffer = new byte[1];
     private boolean needFlush;
     private final int streamId;
+    private boolean writing;
 
     /**
      * Create a new page output stream.
@@ -76,27 +77,35 @@ public class PageOutputStream extends OutputStream {
         if (len <= 0) {
             return;
         }
-        while (len >= remaining) {
-            page.write(b, off, remaining);
-            off += remaining;
-            len -= remaining;
-            try {
-                nextPage = store.allocatePage(allocateAtEnd);
-            } catch (SQLException e) {
-                throw Message.convertToIOException(e);
-            }
-            page.setPos(4);
-            page.writeByte((byte) type);
-            page.writeByte((byte) streamId);
-            page.writeInt(nextPage);
-            storePage();
-            parentPage = pageId;
-            pageId = nextPage;
-            initPage();
+        if (writing) {
+            throw Message.throwInternalError("writing while still writing");
         }
-        page.write(b, off, len);
-        needFlush = true;
-        remaining -= len;
+        writing = true;
+        try {
+            while (len >= remaining) {
+                page.write(b, off, remaining);
+                off += remaining;
+                len -= remaining;
+                try {
+                    nextPage = store.allocatePage(allocateAtEnd);
+                } catch (SQLException e) {
+                    throw Message.convertToIOException(e);
+                }
+                page.setPos(4);
+                page.writeByte((byte) type);
+                page.writeByte((byte) streamId);
+                page.writeInt(nextPage);
+                storePage();
+                parentPage = pageId;
+                pageId = nextPage;
+                initPage();
+            }
+            page.write(b, off, len);
+            needFlush = true;
+            remaining -= len;
+        } finally {
+            writing = false;
+        }
     }
 
     private void storePage() throws IOException {

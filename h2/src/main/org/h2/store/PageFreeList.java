@@ -84,6 +84,7 @@ public class PageFreeList extends Record {
     public int getLastUsed() throws SQLException {
         if (nextPage < store.getPageCount()) {
             PageFreeList next = getNext();
+            // TODO avoid recursion
             return next.getLastUsed();
         }
         return used.getLastSetBit() + firstAddressed;

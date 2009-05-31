@@ -114,9 +114,6 @@ abstract class PageBtree extends Record {
                 l = i + 1;
             }
         }
-        if (bigger && comp < 0) {
-            l++;
-        }
         return l;
     }
 
@@ -209,5 +206,14 @@ abstract class PageBtree extends Record {
      * @return true if this page is now empty
      */
     abstract boolean remove(SearchRow row) throws SQLException;
+
+    /**
+     * Ensure all rows are read in memory.
+     */
+    protected void readAllRows() throws SQLException {
+        for (int i = 0; i < entryCount; i++) {
+            getRow(i);
+        }
+    }
 
 }

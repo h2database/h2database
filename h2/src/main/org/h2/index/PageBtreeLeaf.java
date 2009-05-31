@@ -76,6 +76,7 @@ class PageBtreeLeaf extends PageBtree {
         if (entryCount == 0) {
             x = 0;
         } else {
+            readAllRows();
             x = find(row, false, true);
             System.arraycopy(offsets, 0, newOffsets, 0, x);
             System.arraycopy(rows, 0, newRows, 0, x);
@@ -108,7 +109,8 @@ class PageBtreeLeaf extends PageBtree {
         return 0;
     }
 
-    private void removeRow(int i) {
+    private void removeRow(int i) throws SQLException {
+        readAllRows();
         entryCount--;
         written = false;
         if (entryCount <= 0) {
@@ -118,7 +120,6 @@ class PageBtreeLeaf extends PageBtree {
         SearchRow[] newRows = new SearchRow[entryCount];
         System.arraycopy(offsets, 0, newOffsets, 0, i);
         System.arraycopy(rows, 0, newRows, 0, i);
-
         int startNext = i > 0 ? offsets[i - 1] : index.getPageStore().getPageSize();
         int rowLength = startNext - offsets[i];
         for (int j = i; j < entryCount; j++) {
@@ -186,10 +187,7 @@ class PageBtreeLeaf extends PageBtree {
         if (written) {
             return;
         }
-        // make sure rows are read
-        for (int i = 0; i < entryCount; i++) {
-            getRow(i);
-        }
+        readAllRows();
         data.reset();
         data.writeInt(parentPageId);
         data.writeByte((byte) Page.TYPE_BTREE_LEAF);
@@ -236,7 +234,7 @@ class PageBtreeLeaf extends PageBtree {
             return;
         }
         PageBtreeNode next = (PageBtreeNode) index.getPage(parentPageId);
-        next.nextPage(cursor, getRow(entryCount - 1));
+        next.nextPage(cursor, getRow(0));
     }
 
     public String toString() {

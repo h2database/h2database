@@ -824,9 +824,7 @@ public class Recover extends Tool implements DataHandler {
             if (x < 0) {
                 break;
             }
-            if (x == PageLog.NO_OP) {
-                // nothing to do
-            } else if (x == PageLog.UNDO) {
+            if (x == PageLog.UNDO) {
                 int pageId = in.readInt();
                 in.readFully(new byte[pageSize]);
                 writer.println("-- undo page " + pageId);
@@ -840,6 +838,9 @@ public class Recover extends Tool implements DataHandler {
             } else if (x == PageLog.COMMIT) {
                 int sessionId = in.readInt();
                 writer.println("-- commit " + sessionId);
+            } else {
+                writer.println("-- end " + x);
+                break;
             }
         }
 

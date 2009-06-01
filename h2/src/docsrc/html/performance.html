@@ -38,54 +38,54 @@ Please note this is mostly a single connection benchmark run on one computer.
 <h3>Embedded</h3>
 <table border="1" class="bar">
 <tr><th>Test Case</th><th>Unit</th><th>H2</th><th>HSQLDB</th><th>Derby</th></tr>
-<tr><td>Simple: Init</td><td>ms</td><td>610</td><td>657</td><td>3187</td></tr>
-<tr><td>Simple: Query (random)</td><td>ms</td><td>297</td><td>312</td><td>1828</td></tr>
-<tr><td>Simple: Query (sequential)</td><td>ms</td><td>203</td><td>266</td><td>1766</td></tr>
-<tr><td>Simple: Update (random)</td><td>ms</td><td>1078</td><td>1484</td><td>22031</td></tr>
-<tr><td>Simple: Delete (sequential)</td><td>ms</td><td>234</td><td>281</td><td>7407</td></tr>
-<tr><td>Simple: Memory Usage</td><td>MB</td><td>6</td><td>7</td><td>11</td></tr>
-<tr><td>BenchA: Init</td><td>ms</td><td>859</td><td>438</td><td>4047</td></tr>
-<tr><td>BenchA: Transactions</td><td>ms</td><td>5266</td><td>2875</td><td>17500</td></tr>
-<tr><td>BenchA: Memory Usage</td><td>MB</td><td>9</td><td>14</td><td>10</td></tr>
-<tr><td>BenchB: Init</td><td>ms</td><td>4016</td><td>2687</td><td>16875</td></tr>
-<tr><td>BenchB: Transactions</td><td>ms</td><td>2609</td><td>3282</td><td>4250</td></tr>
-<tr><td>BenchB: Memory Usage</td><td>MB</td><td>9</td><td>10</td><td>8</td></tr>
-<tr><td>BenchC: Init</td><td>ms</td><td>891</td><td>594</td><td>5766</td></tr>
-<tr><td>BenchC: Transactions</td><td>ms</td><td>4359</td><td>75438</td><td>11718</td></tr>
-<tr><td>BenchC: Memory Usage</td><td>MB</td><td>9</td><td>18</td><td>9</td></tr>
-<tr><td>Executed statements</td><td>#</td><td>594255</td><td>594255</td><td>594255</td></tr>
-<tr><td>Total time</td><td>ms</td><td>20422</td><td>88314</td><td>96375</td></tr>
-<tr><td>Statements per second</td><td>#</td><td>29098</td><td>6728</td><td>6166</td></tr>
+<tr><td>Simple: Init</td><td>ms</td><td>547</td><td>532</td><td>2594</td></tr>
+<tr><td>Simple: Query (random)</td><td>ms</td><td>250</td><td>391</td><td>1515</td></tr>
+<tr><td>Simple: Query (sequential)</td><td>ms</td><td>188</td><td>313</td><td>1406</td></tr>
+<tr><td>Simple: Update (random)</td><td>ms</td><td>812</td><td>1750</td><td>17704</td></tr>
+<tr><td>Simple: Delete (sequential)</td><td>ms</td><td>203</td><td>250</td><td>8843</td></tr>
+<tr><td>Simple: Memory Usage</td><td>MB</td><td>7</td><td>11</td><td>11</td></tr>
+<tr><td>BenchA: Init</td><td>ms</td><td>578</td><td>719</td><td>3328</td></tr>
+<tr><td>BenchA: Transactions</td><td>ms</td><td>3047</td><td>2406</td><td>12907</td></tr>
+<tr><td>BenchA: Memory Usage</td><td>MB</td><td>10</td><td>15</td><td>10</td></tr>
+<tr><td>BenchB: Init</td><td>ms</td><td>2141</td><td>2406</td><td>11562</td></tr>
+<tr><td>BenchB: Transactions</td><td>ms</td><td>1125</td><td>1375</td><td>3625</td></tr>
+<tr><td>BenchB: Memory Usage</td><td>MB</td><td>9</td><td>11</td><td>8</td></tr>
+<tr><td>BenchC: Init</td><td>ms</td><td>688</td><td>594</td><td>4500</td></tr>
+<tr><td>BenchC: Transactions</td><td>ms</td><td>1906</td><td>64062</td><td>6047</td></tr>
+<tr><td>BenchC: Memory Usage</td><td>MB</td><td>11</td><td>17</td><td>11</td></tr>
+<tr><td>Executed statements</td><td>#</td><td>322929</td><td>322929</td><td>322929</td></tr>
+<tr><td>Total time</td><td>ms</td><td>11485</td><td>74798</td><td>74031</td></tr>
+<tr><td>Statements per second</td><td>#</td><td>28117</td><td>4317</td><td>4362</td></tr>
 </table>
 
 <h3>Client-Server</h3>
 <table border="1" class="bar">
 <tr><th>Test Case</th><th>Unit</th><th>H2</th><th>HSQLDB</th><th>Derby</th><th>PostgreSQL</th><th>MySQL</th></tr>
-<tr><td>Simple: Init</td><td>ms</td><td>3125</td><td>3312</td><td>7140</td><td>5109</td><td>3594</td></tr>
-<tr><td>Simple: Query (random)</td><td>ms</td><td>3390</td><td>3328</td><td>9953</td><td>5422</td><td>4812</td></tr>
-<tr><td>Simple: Query (sequential)</td><td>ms</td><td>3235</td><td>3219</td><td>9813</td><td>5296</td><td>3969</td></tr>
-<tr><td>Simple: Update (random)</td><td>ms</td><td>3437</td><td>4562</td><td>26594</td><td>6766</td><td>5703</td></tr>
-<tr><td>Simple: Delete (sequential)</td><td>ms</td><td>1391</td><td>1625</td><td>9343</td><td>2750</td><td>2094</td></tr>
-<tr><td>Simple: Memory Usage</td><td>MB</td><td>7</td><td>7</td><td>13</td><td>0</td><td>1</td></tr>
-<tr><td>BenchA: Init</td><td>ms</td><td>2781</td><td>2954</td><td>7828</td><td>4875</td><td>3859</td></tr>
-<tr><td>BenchA: Transactions</td><td>ms</td><td>13015</td><td>11718</td><td>30031</td><td>17672</td><td>13187</td></tr>
-<tr><td>BenchA: Memory Usage</td><td>MB</td><td>9</td><td>17</td><td>10</td><td>1</td><td>1</td></tr>
-<tr><td>BenchB: Init</td><td>ms</td><td>12000</td><td>13047</td><td>30562</td><td>20687</td><td>15328</td></tr>
-<tr><td>BenchB: Transactions</td><td>ms</td><td>5375</td><td>3688</td><td>8063</td><td>6250</td><td>4594</td></tr>
-<tr><td>BenchB: Memory Usage</td><td>MB</td><td>10</td><td>12</td><td>8</td><td>1</td><td>1</td></tr>
-<tr><td>BenchC: Init</td><td>ms</td><td>2390</td><td>1875</td><td>7015</td><td>2515</td><td>4062</td></tr>
-<tr><td>BenchC: Transactions</td><td>ms</td><td>11391</td><td>77922</td><td>23766</td><td>13203</td><td>8141</td></tr>
-<tr><td>BenchC: Memory Usage</td><td>MB</td><td>11</td><td>18</td><td>15</td><td>1</td><td>1</td></tr>
-<tr><td>Executed statements</td><td>#</td><td>594255</td><td>594255</td><td>594255</td><td>594255</td><td>594255</td></tr>
-<tr><td>Total time</td><td>ms</td><td>61530</td><td>127250</td><td>170108</td><td>90545</td><td>69343</td></tr>
-<tr><td>Statements per second</td><td>#</td><td>9657</td><td>4669</td><td>3493</td><td>6563</td><td>8569</td></tr>
+<tr><td>Simple: Init</td><td>ms</td><td>2782</td><td>2656</td><td>5625</td><td>4563</td><td>3484</td></tr>
+<tr><td>Simple: Query (random)</td><td>ms</td><td>3093</td><td>2703</td><td>6688</td><td>4812</td><td>3860</td></tr>
+<tr><td>Simple: Query (sequential)</td><td>ms</td><td>2969</td><td>2594</td><td>6437</td><td>4719</td><td>3625</td></tr>
+<tr><td>Simple: Update (random)</td><td>ms</td><td>2969</td><td>3531</td><td>18250</td><td>5953</td><td>5125</td></tr>
+<tr><td>Simple: Delete (sequential)</td><td>ms</td><td>1047</td><td>1250</td><td>6875</td><td>2485</td><td>2390</td></tr>
+<tr><td>Simple: Memory Usage</td><td>MB</td><td>7</td><td>11</td><td>14</td><td>0</td><td>0</td></tr>
+<tr><td>BenchA: Init</td><td>ms</td><td>2250</td><td>2453</td><td>6031</td><td>4328</td><td>3625</td></tr>
+<tr><td>BenchA: Transactions</td><td>ms</td><td>10250</td><td>9016</td><td>21484</td><td>15609</td><td>11172</td></tr>
+<tr><td>BenchA: Memory Usage</td><td>MB</td><td>10</td><td>15</td><td>10</td><td>0</td><td>1</td></tr>
+<tr><td>BenchB: Init</td><td>ms</td><td>9500</td><td>10672</td><td>22609</td><td>19609</td><td>13406</td></tr>
+<tr><td>BenchB: Transactions</td><td>ms</td><td>2734</td><td>2656</td><td>3875</td><td>4688</td><td>2531</td></tr>
+<tr><td>BenchB: Memory Usage</td><td>MB</td><td>10</td><td>11</td><td>11</td><td>1</td><td>1</td></tr>
+<tr><td>BenchC: Init</td><td>ms</td><td>1860</td><td>1484</td><td>6890</td><td>2219</td><td>3438</td></tr>
+<tr><td>BenchC: Transactions</td><td>ms</td><td>9046</td><td>63266</td><td>18641</td><td>11703</td><td>7421</td></tr>
+<tr><td>BenchC: Memory Usage</td><td>MB</td><td>12</td><td>17</td><td>13</td><td>0</td><td>1</td></tr>
+<tr><td>Executed statements</td><td>#</td><td>322929</td><td>322929</td><td>322929</td><td>322929</td><td>322929</td></tr>
+<tr><td>Total time</td><td>ms</td><td>48500</td><td>102281</td><td>123405</td><td>80688</td><td>60077</td></tr>
+<tr><td>Statements per second</td><td>#</td><td>6658</td><td>3157</td><td>2616</td><td>4002</td><td>5375</td></tr>
 </table>
 
 <h3>Benchmark Results and Comments</h3>
 
 <h4>H2</h4>
 <p>
-Version 1.0.78 (2008-08-28) was used for the test.
+Version 1.1.114 (2009-06-01) was used for the test.
 For simpler operations, the performance of H2 is about the same as for HSQLDB.
 For more complex queries, the query optimizer is very important.
 However H2 is not very fast in every case, certain kind of queries may still be slow.
@@ -132,7 +132,7 @@ than half as fast as H2 in default mode.
 
 <h4>PostgreSQL</h4>
 <p>
-Version 8.3.4 was used for the test.
+Version 8.3.7 was used for the test.
 The following options where changed in postgresql.conf:
 fsync = off, commit_delay = 1000.
 PostgreSQL is run in server mode. It looks like the base performance is slower than
@@ -142,7 +142,7 @@ The memory usage number is incorrect, because only the memory usage of the JDBC 
 
 <h4>MySQL</h4>
 <p>
-Version 5.0.67 was used for the test.
+Version 5.1.34-community was used for the test.
 MySQL was run with the InnoDB backend.
 The setting innodb_flush_log_at_trx_commit
 (found in the my.ini file) was set to 0. Otherwise (and by default), MySQL is really slow

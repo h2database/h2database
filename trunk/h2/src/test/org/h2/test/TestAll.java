@@ -296,10 +296,6 @@ java org.h2.test.TestAll timer
 shell tool: document encoding problem. mac: use
 java -Dfile.encoding=UTF-8;
 
-TableData should have its own compareMode
-(copy of Database.compareMode when created).
-stored in the pageStore as well.
-
 test case for running out of disk space (using a special file system)
 
 auto-build: prepare release

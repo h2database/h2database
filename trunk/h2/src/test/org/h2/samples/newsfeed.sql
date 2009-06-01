@@ -13,6 +13,33 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(64,
+'New version available: 1.1.114 (2009-06-01)', '2009-06-01 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Java 1.5 is now required to run H2.
+</li><li>Fulltext search: Data is no longer deleted and
+    re-inserted if there was no change.
+</li><li>Microsoft Windows: when using the the installer, Vista wrote
+    "This program may not have installed correctly."
+    This message should no longer appear.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>ResultSetMetaData.getColumnClassName returned the wrong
+    class for CLOB and BLOB columns.
+</li><li>In some situations, an ArrayIndexOutOfBoundsException was
+    thrown when adding rows.
+</li><li>The Recover tool did not always work.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(63,
 'New version available: 1.1.113 (2009-05-21)', '2009-05-21 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -418,35 +445,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>The optimization to group using an index didn't work sometimes.
 </li><li>The build didn't work if the directory temp didn't exist before.
 </li><li>WHERE .. IN (SELECT ...) could throw a NullPointerException.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(50,
-'New version available: 1.1.100 (beta; 2008-10-04)', '2008-10-04 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>In version H2 1.1, some features are now enabled by default.
-</li><li>New auto-reconnect feature.
-    To enable, append ;AUTO_RECONNECT=TRUE to the database URL.
-</li><li>The H2 Console tool now works with the JDBC-ODBC bridge.
-</li><li>The H2 Console tool now supports command line options.
-</li><li>The h2console.war can now be built using the Java build.
-</li><li>If you want that each connection opens its own database, append
-    ;OPEN_NEW=TRUE to the database URL.
-</li><li>CreateCluster: the property 'serverlist' is now called 'serverList'.
-</li><li>Databases names can now be one character long.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Connections from a local address other than 'localhost' were not allowed by default.
-</li><li>Large objects did not work for in-memory databases in server mode in Linux.
-</li><li>The ConvertTraceFile tool could not parse some files.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

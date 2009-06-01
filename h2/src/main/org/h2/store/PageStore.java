@@ -59,9 +59,9 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
-    // TODO implement unlimited number of log files (TestPageStoreDb)
+    // TODO unlimited number of log streams (TestPageStoreDb)
     // TODO check if PageLog.reservePages is required - yes it is - change it
-    // TODO PageStore.openMetaIndex (desc and nulls first / last columns support)
+    // TODO PageStore.openMetaIndex (desc and nulls first / last)
 
     // TODO btree index with fixed size values doesn't need offset and so on
     // TODO log block allocation

@@ -868,14 +868,14 @@ public class JdbcStatement extends TraceObject implements Statement {
         if (conn == null) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
-        if (!conn.checkClosed(write)) {
-            return false;
-        }
-        do {
-            session = conn.getSession();
+        conn.checkClosed(write);
+        SessionInterface s = conn.getSession();
+        if (s != session) {
+            session = s;
             setTrace(session.getTrace());
-        } while (conn.checkClosed(write));
-        return true;
+            return true;
+        }
+        return false;
     }
 
     /**

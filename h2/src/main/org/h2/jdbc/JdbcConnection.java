@@ -1273,22 +1273,20 @@ public class JdbcConnection extends TraceObject implements Connection {
      * Check if this connection is closed.
      * The next operation is a read request.
      *
-     * @return true if the session was re-connected
      * @throws SQLException if the connection or session is closed
      */
-    protected boolean checkClosed() throws SQLException {
-        return checkClosed(false);
+    protected void checkClosed() throws SQLException {
+        checkClosed(false);
     }
 
     /**
      * Check if this connection is closed.
      * The next operation may be a write request.
      *
-     * @return true if the session was re-connected
      * @throws SQLException if the connection or session is closed
      */
-    private boolean checkClosedForWrite() throws SQLException {
-        return checkClosed(true);
+    private void checkClosedForWrite() throws SQLException {
+        checkClosed();
     }
 
     /**
@@ -1296,10 +1294,9 @@ public class JdbcConnection extends TraceObject implements Connection {
      * Check if this connection is closed.
      *
      * @param write if the next operation is possibly writing
-     * @return true if the session was re-connected
      * @throws SQLException if the connection or session is closed
      */
-    protected boolean checkClosed(boolean write) throws SQLException {
+    protected void checkClosed(boolean write) throws SQLException {
         if (session == null) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
@@ -1310,9 +1307,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             trace.debug("reconnect");
             session = session.reconnect();
             setTrace(session.getTrace());
-            return true;
         }
-        return false;
     }
 
     String getURL() throws SQLException {

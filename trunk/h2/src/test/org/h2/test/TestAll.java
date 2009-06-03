@@ -293,8 +293,9 @@ java org.h2.test.TestAll timer
 
 /*
 
-shell tool: document encoding problem. mac: use
-java -Dfile.encoding=UTF-8;
+shell tool: document encoding problem.
+mac: java -Dfile.encoding=UTF-8
+windows:
 
 test case for running out of disk space (using a special file system)
 

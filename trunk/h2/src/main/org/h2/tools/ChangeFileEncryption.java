@@ -168,6 +168,9 @@ public class ChangeFileEncryption extends Tool {
     }
 
     private void copy(String fileName, FileStore in, byte[] key) throws SQLException {
+        if (FileUtils.isDirectory(fileName)) {
+            return;
+        }
         String temp = dir + "/temp.db";
         FileUtils.delete(temp);
         FileStore fileOut;

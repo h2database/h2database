@@ -116,6 +116,9 @@ public class Backup extends Tool {
                 if (!f.startsWith(base)) {
                     Message.throwInternalError(f + " does not start with " + base);
                 }
+                if (FileUtils.isDirectory(fileName)) {
+                    continue;
+                }
                 f = f.substring(base.length());
                 f = BackupCommand.correctFileName(f);
                 ZipEntry entry = new ZipEntry(f);

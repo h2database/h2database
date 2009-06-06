@@ -249,7 +249,7 @@ public class DataType {
         );
         add(Value.LONG, Types.BIGINT, "Long",
                 createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE, false, false),
-                new String[]{"BIGINT", "INT8"},
+                new String[]{"BIGINT", "INT8", "LONG"},
                 5
         );
         add(Value.LONG, Types.BIGINT, "Long",

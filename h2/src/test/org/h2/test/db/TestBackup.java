@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.test.TestBase;
+import org.h2.tools.Backup;
 import org.h2.tools.Restore;
 import org.h2.util.FileUtils;
 
@@ -32,8 +33,30 @@ public class TestBackup extends TestBase {
         if (config.memory || config.logMode == 0) {
             return;
         }
+        testBackupRestoreLobStatement();
+        testBackupRestoreLob();
         testBackup();
         deleteDb("backup");
+    }
+
+    private void testBackupRestoreLob() throws SQLException {
+        deleteDb("backup");
+        Connection conn = getConnection("backup");
+        conn.createStatement().execute("create table test(x clob) as select space(10000)");
+        conn.close();
+        Backup.execute(getTestDir("") + "/backup.zip", getTestDir(""), "backup", true);
+        deleteDb("backup");
+        Restore.execute(getTestDir("") + "/backup.zip", getTestDir(""), "backup", true);
+    }
+
+    private void testBackupRestoreLobStatement() throws SQLException {
+        deleteDb("backup");
+        Connection conn = getConnection("backup");
+        conn.createStatement().execute("create table test(x clob) as select space(10000)");
+        conn.createStatement().execute("backup to '"+getTestDir("") + "/backup.zip"+"'");
+        conn.close();
+        deleteDb("backup");
+        Restore.execute(getTestDir("") + "/backup.zip", getTestDir(""), "backup", true);
     }
 
     private void testBackup() throws SQLException {

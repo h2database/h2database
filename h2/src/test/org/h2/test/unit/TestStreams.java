@@ -8,6 +8,8 @@ package org.h2.test.unit;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Random;
 
@@ -31,6 +33,7 @@ public class TestStreams extends TestBase {
 
     public void test() throws IOException {
         testLZFStreams();
+        testLZFStreamClose();
     }
 
     private byte[] getRandomBytes(Random random) {
@@ -46,6 +49,18 @@ public class TestStreams extends TestBase {
             }
         }
         return buffer;
+    }
+
+    private void testLZFStreamClose() throws IOException {
+        String fileName = getTestDir("") + "/temp";
+        LZFOutputStream out = new LZFOutputStream(new FileOutputStream(fileName));
+        out.write("Hello".getBytes());
+        out.close();
+        LZFInputStream in = new LZFInputStream(new FileInputStream(fileName));
+        byte[] buff = new byte[100];
+        assertEquals(5, in.read(buff));
+        in.read();
+        in.close();
     }
 
     private void testLZFStreams() throws IOException {

@@ -104,7 +104,7 @@ public class Optimizer {
 
     private void calculateBruteForceAll() throws SQLException {
         TableFilter[] list = new TableFilter[filters.length];
-        Permutations p = new Permutations(filters, list);
+        Permutations<TableFilter> p = Permutations.create(filters, list);
         for (int x = 0; !canStop(x) && p.next(); x++) {
             testPlan(list);
         }
@@ -113,7 +113,7 @@ public class Optimizer {
     private void calculateBruteForceSome() throws SQLException {
         int bruteForce = getMaxBruteForceFilters(filters.length);
         TableFilter[] list = new TableFilter[filters.length];
-        Permutations p = new Permutations(filters, list, bruteForce);
+        Permutations<TableFilter> p = Permutations.create(filters, list, bruteForce);
         for (int x = 0; !canStop(x) && p.next(); x++) {
             // find out what filters are not used yet
             for (TableFilter f : filters) {

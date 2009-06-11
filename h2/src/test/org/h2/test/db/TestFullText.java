@@ -92,6 +92,8 @@ public class TestFullText extends TestBase {
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");
         assertTrue(rs.next());
+        stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH(NULL, 0, 0)");
+        stat.execute("INSERT INTO TEST VALUES(2, NULL)");
         conn.close();
     }
 

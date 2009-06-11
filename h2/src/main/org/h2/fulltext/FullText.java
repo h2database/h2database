@@ -469,7 +469,7 @@ public class FullText {
         while (rs.next()) {
             String schema = rs.getString("TRIGGER_SCHEMA");
             String name = rs.getString("TRIGGER_NAME");
-            if (name.startsWith(TRIGGER_PREFIX)) {
+            if (name.startsWith(prefix)) {
                 name = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(name);
                 stat2.execute("DROP TRIGGER " + name);
             }
@@ -504,6 +504,9 @@ public class FullText {
         SimpleResultSet result = createResultSet(data);
         if (conn.getMetaData().getURL().startsWith("jdbc:columnlist:")) {
             // this is just to query the result set columns
+            return result;
+        }
+        if (text == null || text.trim().length() == 0) {
             return result;
         }
         FullTextSettings setting = FullTextSettings.getInstance(conn);

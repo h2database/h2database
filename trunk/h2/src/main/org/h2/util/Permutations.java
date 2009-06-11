@@ -12,33 +12,18 @@ import org.h2.message.Message;
  * A class to iterate over all permutations of an array.
  * The algorithm is from Applied Combinatorics, by Alan Tucker as implemented in
  * http://www.koders.com/java/fidD3445CD11B1DC687F6B8911075E7F01E23171553.aspx
+ *
+ * @param <T> the element type
  */
-public class Permutations {
+public class Permutations<T> {
 
-    private Object[] in;
-    private Object[] out;
+    private T[] in;
+    private T[] out;
     private int n, m;
     private int[] index;
     private boolean hasNext = true;
 
-    /**
-     * Create a new permutations object.
-     *
-     * @param in the source array
-     * @param out the target array
-     */
-    public Permutations(Object[] in, Object[] out) {
-        this(in, out, in.length);
-    }
-
-    /**
-     * Create a new permutations object.
-     *
-     * @param in the source array
-     * @param out the target array
-     * @param m the number of output elements to generate
-     */
-    public Permutations(Object[] in, Object[] out, int m) {
+    private Permutations(T[] in, T[] out, int m) {
         this.n = in.length;
         this.m = m;
         if (n < m || m < 0) {
@@ -54,6 +39,31 @@ public class Permutations {
         // The elements from m to n are always kept ascending right to left.
         // This keeps the dip in the interesting region.
         reverseAfter(m - 1);
+    }
+
+    /**
+     * Create a new permutations object.
+     *
+     * @param <T> the type
+     * @param in the source array
+     * @param out the target array
+     * @return the generated permutations object
+     */
+    public static <T> Permutations<T> create(T[] in, T[] out) {
+        return new Permutations<T>(in, out, in.length);
+    }
+
+    /**
+     * Create a new permutations object.
+     *
+     * @param <T> the type
+     * @param in the source array
+     * @param out the target array
+     * @param m the number of output elements to generate
+     * @return the generated permutations object
+     */
+    public static <T> Permutations<T> create(T[] in, T[] out, int m) {
+        return new Permutations<T>(in, out, m);
     }
 
     /**

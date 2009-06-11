@@ -71,7 +71,6 @@ public class LZFInputStream extends InputStream {
     private int readInt() throws IOException {
         int x = in.read();
         if (x < 0) {
-            close();
             decompress = null;
             return 0;
         }

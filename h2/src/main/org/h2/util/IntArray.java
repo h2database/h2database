@@ -310,4 +310,20 @@ public class IntArray {
         return buff.append('}').toString();
     }
 
+    /**
+     * Remove a number of elements.
+     *
+     * @param fromIndex the index of the first item to remove
+     * @param toIndex upper bound (exclusive)
+     */
+    public void removeRange(int fromIndex, int toIndex) {
+        if (SysProperties.CHECK) {
+            if (fromIndex > toIndex || toIndex >= size) {
+                throw new ArrayIndexOutOfBoundsException("from=" + fromIndex + " to=" + toIndex + " size=" + size);
+            }
+        }
+        System.arraycopy(data, toIndex, data, fromIndex, size - toIndex);
+        size -= toIndex - fromIndex;
+    }
+
 }

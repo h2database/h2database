@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.zip.CRC32;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -42,20 +43,25 @@ import org.h2.value.ValueInt;
 import org.h2.value.ValueString;
 
 /**
- * This class represents a file that is organized as a number of pages. The
- * first page (page 0) contains the file header, which is never modified once
- * the database is created. The format is:
+ * This class represents a file that is organized as a number of pages. Page 0
+ * contains a static file header, and pages 1 and 2 both contain the variable
+ * file header (page 2 is a copy of page 1 and is only read if the checksum of
+ * page 1 is invalid). The format of page 0 is:
  * <ul>
  * <li>0-47: file header (3 time "-- H2 0.5/B -- \n")</li>
- * <li>48-51: database page size in bytes
- *     (512 - 32768, must be a power of 2)</li>
- * <li>52: write version (0, otherwise the file is opened in read-only mode)</li>
- * <li>53: read version (0, otherwise opening the file fails)</li>
- * <li>54-57: meta table root page number (usually 1)</li>
- * <li>58-61: free list head page number (usually 2)</li>
- * <li>62-65: log[0] head page number (usually 3)</li>
- * <li>66-69: log[1] head page number (usually 4)</li>
+ * <li>48-51: page size in bytes (512 - 32768, must be a power of 2)</li>
+ * <li>52: write version (if not 0 the file is opened in read-only mode)</li>
+ * <li>53: read version (if not 0 opening the file fails)</li>
  * </ul>
+ * The format of page 1 and 2 is:
+ * <ul>
+ * <li>0-7: write counter (incremented each time the header changes)</li>
+ * <li>8-11: log head page (initially 4)</li>
+ * <li>12-19: checksum of bytes 0-16 (CRC32)</li>
+ * </ul>
+ * Page 2 contains the first free list page.
+ * Page 3 contains the meta table root page.
+ * For a new database, page 4 contains the first log trunk page.
  */
 public class PageStore implements CacheWriter {
 
@@ -64,6 +70,7 @@ public class PageStore implements CacheWriter {
     // TODO PageStore.openMetaIndex (desc and nulls first / last)
 
     // TODO btree index with fixed size values doesn't need offset and so on
+    // TODO better checksums (for example, multiple fletcher)
     // TODO log block allocation
     // TODO block compression: maybe http://en.wikipedia.org/wiki/LZJB
     // with RLE, specially for 0s.
@@ -93,6 +100,7 @@ public class PageStore implements CacheWriter {
     // TODO add a setting (that can be changed at runtime) to call fsync
     // and delay on each commit
     // TODO var int: see google protocol buffers
+    // TODO SessionState.logId is no longer needed
 
     /**
      * The smallest possible page size.
@@ -109,12 +117,11 @@ public class PageStore implements CacheWriter {
      */
     public static final int PAGE_SIZE_DEFAULT = 1024;
 
-    /**
-     * The number of log streams.
-     */
-    public static final int LOG_COUNT = 2;
+    private static final int PAGE_ID_FREE_LIST_ROOT = 2;
+    private static final int PAGE_ID_META_ROOT = 3;
 
-    static final int INCREMENT_PAGES = 128;
+    private static final int INCREMENT_PAGES = 128;
+
     private static final int READ_VERSION = 0;
     private static final int WRITE_VERSION = 0;
 
@@ -127,17 +134,16 @@ public class PageStore implements CacheWriter {
     private String fileName;
     private FileStore file;
     private String accessMode;
+    private int pageSize;
+    private int pageSizeShift;
+    private long writeCounter;
+    private int logFirstTrunkPage;
+
     private int cacheSize;
     private Cache cache;
 
-    private int pageSize;
-    private int pageSizeShift;
-    private int metaTableRootPageId;
-    private int freeListRootPageId;
-    private int lastUsedPage;
+    private int freeListPagesPerList;
 
-    private int activeLog;
-    private int[] logRootPageIds = new int[LOG_COUNT];
     private boolean recoveryRunning;
     private HashMap<Integer, SessionState> sessionStates = New.hashMap();
 
@@ -151,10 +157,7 @@ public class PageStore implements CacheWriter {
      */
     private int pageCount;
 
-    /**
-     * The transaction logs.
-     */
-    private PageLog[] logs = new PageLog[LOG_COUNT];
+    private PageLog log;
 
     private Schema metaSchema;
     private TableData metaTable;
@@ -176,7 +179,7 @@ public class PageStore implements CacheWriter {
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
         int test;
-trace.setLevel(TraceSystem.DEBUG);
+// trace.setLevel(TraceSystem.DEBUG);
         this.cacheSize = cacheSizeDefault;
         String cacheType = database.getCacheType();
         this.cache = CacheLRU.getCache(this, cacheType, cacheSize);
@@ -215,42 +218,34 @@ trace.setLevel(TraceSystem.DEBUG);
                 // existing
                 file = database.openFile(fileName, accessMode, true);
                 readHeader();
+                freeListPagesPerList = PageFreeList.getPagesAddressed(pageSize);
                 fileLength = file.length();
                 pageCount = (int) (fileLength / pageSize);
-                initLogs();
+                initLog();
                 recover(true);
                 recover(false);
                 checkpoint();
             } else {
                 // new
                 setPageSize(PAGE_SIZE_DEFAULT);
+                freeListPagesPerList = PageFreeList.getPagesAddressed(pageSize);
                 file = database.openFile(fileName, accessMode, false);
-                metaTableRootPageId = 1;
-                freeListRootPageId = 2;
-                pageCount = 3 + LOG_COUNT;
+                logFirstTrunkPage = 4;
+                pageCount = 5;
                 increaseFileSize(INCREMENT_PAGES - pageCount);
-                getFreeList();
-                for (int i = 0; i < LOG_COUNT; i++) {
-                    logRootPageIds[i] = 3 + i;
-                }
-                writeHeader();
-                initLogs();
+                writeStaticHeader();
+                writeVariableHeader();
+                initLog();
                 openMetaIndex();
-                getLog().openForWriting(0);
-                switchLogIfPossible();
-                getLog().flush();
+                log.openForWriting();
+                switchLog();
+                log.flush();
                 systemTableHeadPos = Index.EMPTY_HEAD;
             }
-            lastUsedPage = getFreeList().getLastUsed() + 1;
+            // lastUsedPage = getFreeList().getLastUsed() + 1;
         } catch (SQLException e) {
             close();
             throw e;
-        }
-    }
-
-    private void initLogs() {
-        for (int i = 0; i < LOG_COUNT; i++) {
-            logs[i] = new PageLog(this, logRootPageIds[i]);
         }
     }
 
@@ -259,7 +254,7 @@ trace.setLevel(TraceSystem.DEBUG);
      */
     public void checkpoint() throws SQLException {
         trace.debug("checkpoint");
-        if (getLog() == null || database.isReadOnly()) {
+        if (log == null || database.isReadOnly()) {
             // the file was never fully opened
             return;
         }
@@ -271,26 +266,27 @@ trace.setLevel(TraceSystem.DEBUG);
                 writeBack(rec);
             }
             int todoFlushBeforeReopen;
-            // switch twice so there are no redo entries
-            switchLogIfPossible();
-            switchLogIfPossible();
+            switchLog();
             int todoWriteDeletedPages;
         }
-        int pageCount = getFreeList().getLastUsed() + 1;
-        trace.debug("pageCount:" + pageCount);
-        file.setLength(pageSize * pageCount);
+        // TODO shrink file if required here
+//        int pageCount = getFreeList().getLastUsed() + 1;
+//        trace.debug("pageCount:" + pageCount);
+//        file.setLength(pageSize * pageCount);
     }
 
-    private void switchLogIfPossible() throws SQLException {
+    private void initLog() {
+        log = new PageLog(this, logFirstTrunkPage);
+    }
+
+    private void switchLog() throws SQLException {
         trace.debug("switchLogIfPossible");
         if (database.isReadOnly()) {
             return;
         }
-        int id = getLog().getId();
-        getLog().close();
-        activeLog = (activeLog + 1) % LOG_COUNT;
+        log.close();
         int todoCanOnlyReuseAfterLoggedChangesAreWritten;
-        getLog().openForWriting(id + 1);
+        log.openForWriting();
 
 //        Session[] sessions = database.getSessions(true);
 //        int firstUncommittedLog = getLog().getId();
@@ -316,7 +312,7 @@ trace.setLevel(TraceSystem.DEBUG);
 
     private void readHeader() throws SQLException {
         long length = file.length();
-        if (length < PAGE_SIZE_MIN) {
+        if (length < PAGE_SIZE_MIN * 2) {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, fileName);
         }
         database.notifyFileSize(length);
@@ -338,10 +334,22 @@ trace.setLevel(TraceSystem.DEBUG);
             accessMode = "r";
             file = database.openFile(fileName, accessMode, true);
         }
-        metaTableRootPageId = page.readInt();
-        freeListRootPageId = page.readInt();
-        for (int i = 0; i < LOG_COUNT; i++) {
-            logRootPageIds[i] = page.readInt();
+        CRC32 crc = new CRC32();
+        for (int i = 1;; i++) {
+            if (i == 3) {
+                throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, fileName);
+            }
+            page.reset();
+            readPage(i, page);
+            writeCounter = page.readLong();
+            logFirstTrunkPage = page.readInt();
+            crc.update(page.getBytes(), 0, 12);
+            long expected = crc.getValue();
+            long got = page.readLong();
+            if (expected == got) {
+                break;
+            }
+            crc.reset();
         }
     }
 
@@ -372,19 +380,26 @@ trace.setLevel(TraceSystem.DEBUG);
         pageSizeShift = shift;
     }
 
-    private void writeHeader() throws SQLException {
-        int todoChecksumForHeader;
+    private void writeStaticHeader() throws SQLException {
         DataPage page = DataPage.create(database, new byte[pageSize - FileStore.HEADER_LENGTH]);
         page.writeInt(pageSize);
         page.writeByte((byte) WRITE_VERSION);
         page.writeByte((byte) READ_VERSION);
-        page.writeInt(metaTableRootPageId);
-        page.writeInt(freeListRootPageId);
-        for (int i = 0; i < LOG_COUNT; i++) {
-            page.writeInt(logRootPageIds[i]);
-        }
         file.seek(FileStore.HEADER_LENGTH);
         file.write(page.getBytes(), 0, pageSize - FileStore.HEADER_LENGTH);
+    }
+
+    private void writeVariableHeader() throws SQLException {
+        DataPage page = DataPage.create(database, new byte[pageSize]);
+        page.writeLong(writeCounter);
+        page.writeInt(logFirstTrunkPage);
+        CRC32 crc = new CRC32();
+        crc.update(page.getBytes(), 0, 12);
+        page.writeLong(crc.getValue());
+        file.seek(pageSize);
+        file.write(page.getBytes(), 0, page.length());
+        file.seek(pageSize + pageSize);
+        file.write(page.getBytes(), 0, page.length());
     }
 
     /**
@@ -403,7 +418,7 @@ trace.setLevel(TraceSystem.DEBUG);
     }
 
     public void flushLog() throws SQLException {
-        getLog().flush();
+        log.flush();
     }
 
     public Trace getTrace() {
@@ -436,15 +451,17 @@ trace.setLevel(TraceSystem.DEBUG);
                     trace.debug("updateRecord " + record.toString());
                 }
             }
+            database.checkWritingAllowed();
             record.setChanged(true);
             int pos = record.getPos();
-            getFreeList().allocate(pos);
+            allocatePage(pos);
+            // getFreeList().allocate(pos);
             cache.update(pos, record);
             if (logUndo && !recoveryRunning) {
                 if (old == null) {
                     old = readPage(pos);
                 }
-                getLog().addUndo(record.getPos(), old);
+                log.addUndo(record.getPos(), old);
             }
         }
     }
@@ -458,40 +475,65 @@ trace.setLevel(TraceSystem.DEBUG);
         return allocatePage(false);
     }
 
-    private PageFreeList getFreeList() throws SQLException {
-        PageFreeList free = (PageFreeList) cache.find(freeListRootPageId);
-        if (free == null) {
-            free = new PageFreeList(this, freeListRootPageId, 3 + LOG_COUNT);
-            free.read();
-            cache.put(free);
+    private PageFreeList getFreeList(int i) throws SQLException {
+        int p;
+        if (i == 0) {
+            // TODO simplify
+            p = PAGE_ID_FREE_LIST_ROOT;
+        } else {
+            p = i * freeListPagesPerList;
         }
-        return free;
+        PageFreeList list = (PageFreeList) getRecord(p);
+        if (list == null) {
+            list = new PageFreeList(this, p);
+            list.read();
+            cache.put(list);
+        }
+        return list;
+    }
+
+    private void freePage(int pageId) throws SQLException {
+        if (pageId < 0) {
+            System.out.println("stop");
+        }
+        PageFreeList list = getFreeList(pageId / freeListPagesPerList);
+        list.free(pageId);
+    }
+
+    private void allocatePage(int pageId) throws SQLException {
+        PageFreeList list = getFreeList(pageId / freeListPagesPerList);
+        list.allocate(pageId % freeListPagesPerList);
     }
 
     /**
-     * Allocate a page.
+     * Allocate a new page.
      *
-     * @param atEnd if the allocated page must be at the end of the file
+     * @param atEnd allocate at the end of the file
      * @return the page id
      */
-    public int allocatePage(boolean atEnd) throws SQLException {
-        PageFreeList list = getFreeList();
-        int id;
-        while (true) {
-            id = atEnd ? list.allocateAtEnd(++lastUsedPage) : list.allocate();
-            if (id < 0) {
-                increaseFileSize(INCREMENT_PAGES);
-            } else {
-                break;
+    int allocatePage(boolean atEnd) throws SQLException {
+        int pos;
+        if (atEnd) {
+            PageFreeList list = getFreeList(pageCount / freeListPagesPerList);
+            pos = list.getLastUsed() + 1;
+            list.allocate(pos);
+        } else {
+            // TODO could remember the first possible free list page
+            for (int i = 0;; i++) {
+                if (i * freeListPagesPerList > pageCount) {
+                    increaseFileSize(INCREMENT_PAGES);
+                }
+                PageFreeList list = getFreeList(i);
+                if (!list.isFull()) {
+                    pos = list.allocate();
+                    break;
+                }
             }
         }
-        if (trace.isDebugEnabled()) {
-            trace.debug("allocated " + id + " atEnd:" + atEnd);
-        }
-        if (id >= pageCount) {
+        if (pos > pageCount) {
             increaseFileSize(INCREMENT_PAGES);
         }
-        return id;
+        return pos;
     }
 
     private void increaseFileSize(int increment) throws SQLException {
@@ -512,18 +554,15 @@ trace.setLevel(TraceSystem.DEBUG);
         if (trace.isDebugEnabled()) {
             trace.debug("freePage " + pageId);
         }
-        if (lastUsedPage == pageId) {
-            lastUsedPage--;
-        }
         cache.remove(pageId);
-        getFreeList().free(pageId);
+        freePage(pageId);
         if (recoveryRunning) {
             writePage(pageId, createDataPage());
         } else if (logUndo) {
             if (old == null) {
                 old = readPage(pageId);
             }
-            getLog().addUndo(pageId, old);
+            log.addUndo(pageId, old);
         }
 
     }
@@ -612,25 +651,6 @@ trace.setLevel(TraceSystem.DEBUG);
         cache.remove(pageId);
     }
 
-    /**
-     * Set the root page of the free list.
-     *
-     * @param pageId the first free list page
-     * @param existing if the page already exists
-     * @param next the next page
-     */
-    void setFreeListRootPage(int pageId, boolean existing, int next) throws SQLException {
-        this.freeListRootPageId = pageId;
-        if (!existing) {
-            PageFreeList free = new PageFreeList(this, pageId, next);
-            updateRecord(free, false, null);
-        }
-    }
-
-    PageLog getLog() {
-        return logs[activeLog];
-    }
-
     Database getDatabase() {
         return database;
     }
@@ -652,26 +672,26 @@ trace.setLevel(TraceSystem.DEBUG);
         try {
             recoveryRunning = true;
             int maxId = 0;
-            for (int i = 0; i < LOG_COUNT; i++) {
-                int id = logs[i].openForReading();
-                if (id > maxId) {
-                    maxId = id;
-                    activeLog = i;
-                }
-            }
-            for (int i = 0; i < LOG_COUNT; i++) {
-                int j;
-                if (undo) {
-                    // undo: start with the newest file and go backward
-                    j = Math.abs(activeLog - i) % LOG_COUNT;
-                } else {
-                    // redo: start with the oldest log file
-                    j = (activeLog + 1 + i) % LOG_COUNT;
-                }
-                logs[j].recover(undo);
-            }
+//            for (int i = 0; i < LOG_COUNT; i++) {
+//                int id = logs[i].openForReading();
+//                if (id > maxId) {
+//                    maxId = id;
+//                    activeLog = i;
+//                }
+//            }
+//            for (int i = 0; i < LOG_COUNT; i++) {
+//                int j;
+//                if (undo) {
+//                    // undo: start with the newest file and go backward
+//                    j = Math.abs(activeLog - i) % LOG_COUNT;
+//                } else {
+//                    // redo: start with the oldest log file
+//                    j = (activeLog + 1 + i) % LOG_COUNT;
+//                }
+//                logs[j].recover(undo);
+//            }
             if (!undo) {
-                switchLogIfPossible();
+                switchLog();
                 int todoProbablyStillRequiredForTwoPhaseCommit;
                 sessionStates = New.hashMap();
             }
@@ -711,7 +731,7 @@ trace.setLevel(TraceSystem.DEBUG);
      */
     public void logAddOrRemoveRow(Session session, int tableId, Row row, boolean add) throws SQLException {
         if (!recoveryRunning) {
-            getLog().logAddOrRemoveRow(session, tableId, row, add);
+            log.logAddOrRemoveRow(session, tableId, row, add);
         }
     }
 
@@ -721,7 +741,7 @@ trace.setLevel(TraceSystem.DEBUG);
      * @param session the session
      */
     public void commit(Session session) throws SQLException {
-        getLog().commit(session);
+        log.commit(session);
     }
 
     /**
@@ -817,7 +837,7 @@ trace.setLevel(TraceSystem.DEBUG);
         cols.add(new Column("OPTIONS", Value.STRING));
         cols.add(new Column("COLUMNS", Value.STRING));
         metaSchema = new Schema(database, 0, "", null, true);
-        int headPos = metaTableRootPageId;
+        int headPos = PAGE_ID_META_ROOT;
         metaTable = new TableData(metaSchema, "PAGE_INDEX",
                 META_TABLE_ID, cols, true, true, false, headPos, database.getSystemSession());
         metaIndex = (PageScanIndex) metaTable.getScanIndex(
@@ -925,6 +945,32 @@ trace.setLevel(TraceSystem.DEBUG);
     public void removeMeta(Index index, Session session) throws SQLException {
         Row row = metaIndex.getRow(session, index.getId() + 1);
         metaIndex.remove(session, row);
+    }
+
+    private void updateChecksum(byte[] d, int pos) {
+        int ps = pageSize;
+        int s1 = 255 + (d[0] & 255), s2 = 255 + s1;
+        s2 += s1 += d[1] & 255;
+        s2 += s1 += d[(ps >> 1) - 1] & 255;
+        s2 += s1 += d[ps >> 1] & 255;
+        s2 += s1 += d[ps - 2] & 255;
+        s2 += s1 += d[ps - 1] & 255;
+        d[5] = (byte) (((s1 & 255) + (s1 >> 8)) ^ pos);
+        d[6] = (byte) (((s2 & 255) + (s2 >> 8)) ^ (pos >> 8));
+    }
+
+    private void verifyChecksum(byte[] d, int pos) throws SQLException {
+        int ps = pageSize;
+        int s1 = 255 + (d[0] & 255), s2 = 255 + s1;
+        s2 += s1 += d[1] & 255;
+        s2 += s1 += d[(ps >> 1) - 1] & 255;
+        s2 += s1 += d[ps >> 1] & 255;
+        s2 += s1 += d[ps - 2] & 255;
+        s2 += s1 += d[ps - 1] & 255;
+        if (d[5] != (byte) (((s1 & 255) + (s1 >> 8)) ^ pos)
+                || d[6] != (byte) (((s2 & 255) + (s2 >> 8)) ^ (pos >> 8))) {
+            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
+        }
     }
 
 }

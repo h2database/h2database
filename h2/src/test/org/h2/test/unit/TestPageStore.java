@@ -313,7 +313,7 @@ public class TestPageStore extends TestBase {
         if (file) {
             out = new BufferedOutputStream(new FileOutputStream(f), 4 * 1024);
         } else {
-            out = new PageOutputStream(store, 0, head, Page.TYPE_LOG, 0, false);
+            out = new PageOutputStream(store, 0);
         }
         for (int i = 0; i < count; i++) {
             out.write(buff);
@@ -322,7 +322,7 @@ public class TestPageStore extends TestBase {
         if (file) {
             in = new BufferedInputStream(new FileInputStream(f), 4 * 1024);
         } else {
-            in = new PageInputStream(store, 0, head, Page.TYPE_LOG);
+            in = new PageInputStream(store, 0);
         }
         while (true) {
             int len = in.read(buff);
@@ -353,14 +353,14 @@ public class TestPageStore extends TestBase {
             byte[] data = new byte[len];
             random.nextBytes(data);
             int head = store.allocatePage();
-            PageOutputStream out = new PageOutputStream(store, 0, head, Page.TYPE_LOG, 0, false);
+            PageOutputStream out = new PageOutputStream(store, 0);
             for (int p = 0; p < len;) {
                 int l = len == 0 ? 0 : Math.min(len - p, random.nextInt(len / 10));
                 out.write(data, p, l);
                 p += l;
             }
             out.close();
-            PageInputStream in = new PageInputStream(store, 0, head, Page.TYPE_LOG);
+            PageInputStream in = new PageInputStream(store, 0);
             byte[] data2 = new byte[len];
             for (int off = 0;;) {
                 int l = random.nextInt(1 + len / 10) + 1;

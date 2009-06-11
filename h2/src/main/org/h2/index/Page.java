@@ -57,9 +57,14 @@ public class Page {
     public static final int TYPE_FREE_LIST = 7;
 
     /**
-     * A log page.
+     * A stream trunk page.
      */
-    public static final int TYPE_LOG = 8;
+    public static final int TYPE_STREAM_TRUNK = 8;
+
+    /**
+     * A stream data page.
+     */
+    public static final int TYPE_STREAM_DATA = 9;
 
     /**
      * This is a root page.

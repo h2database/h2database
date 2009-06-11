@@ -790,9 +790,11 @@ public class Recover extends Tool implements DataHandler {
                 case Page.TYPE_FREE_LIST:
                     writer.println("-- page " + page + ": free list " + (last ? "(last)" : ""));
                     break;
-                case Page.TYPE_LOG:
-                    writer.println("-- page " + page + ": log " + (last ? "(last)" : ""));
-                    dumpPageLog(writer, s, last);
+                case Page.TYPE_STREAM_TRUNK:
+                    writer.println("-- page " + page + ": log trunk");
+                    break;
+                case Page.TYPE_STREAM_DATA:
+                    writer.println("-- page " + page + ": log data");
                     break;
                 default:
                     writer.println("-- page " + page + ": ERROR unknown type " + type);
@@ -800,9 +802,9 @@ public class Recover extends Tool implements DataHandler {
                 }
             }
             writeSchema(writer);
-            for (int i = 0; i < PageStore.LOG_COUNT; i++) {
-                dumpPageLogStream(writer, store, logHead + i, pageSize);
-            }
+//            for (int i = 0; i < PageStore.LOG_COUNT; i++) {
+//                dumpPageLogStream(writer, store, logHead + i, pageSize);
+//            }
             writer.close();
         } catch (Throwable e) {
             writeError(writer, e);
@@ -815,7 +817,8 @@ public class Recover extends Tool implements DataHandler {
     private void dumpPageLogStream(PrintWriter writer, FileStore store, int logHead, int pageSize) throws IOException, SQLException {
         DataPage s = DataPage.create(this, pageSize);
         DataInputStream in = new DataInputStream(
-                new PageInputStream(writer, this, store, logHead, pageSize, 0, Page.TYPE_LOG)
+                new PageInputStream(writer, this, store, logHead, pageSize, 0,
+                        Page.TYPE_STREAM_TRUNK)
         );
         int logId = in.readInt();
         writer.println("-- log " + logId);
@@ -843,7 +846,6 @@ public class Recover extends Tool implements DataHandler {
                 break;
             }
         }
-
     }
 
     private void setStorage(int storageId) {

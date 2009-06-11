@@ -59,7 +59,6 @@ public class PageLog {
     public static final int REMOVE = 4;
 
     private final PageStore store;
-    private int id;
     private int pos;
     private Trace trace;
 
@@ -70,7 +69,6 @@ public class PageLog {
     private DataPage data;
     private long operation;
     private BitField undo = new BitField();
-    private int[] reservedPages = new int[3];
 
     PageLog(PageStore store, int firstPage) {
         this.store = store;
@@ -82,35 +80,20 @@ public class PageLog {
     /**
      * Open the log for writing. For an existing database, the recovery
      * must be run first.
-     *
-     * @param id the log id
      */
-    void openForWriting(int id) throws SQLException {
-        this.id = id;
-        trace.debug("log openForWriting " + id + " firstPage:" + firstPage);
-        pageOut = new PageOutputStream(store, 0, firstPage, Page.TYPE_LOG, id, true);
+    void openForWriting() {
+        trace.debug("log openForWriting firstPage:" + firstPage);
+        pageOut = new PageOutputStream(store, firstPage);
         out = new DataOutputStream(pageOut);
-        try {
-            out.writeInt(id);
-            out.flush();
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
-        }
     }
 
     /**
-     * Open the log for reading. This will also read the log id.
-     *
-     * @return the log id
+     * Open the log for reading.
      */
-    int openForReading() {
-        in = new DataInputStream(new PageInputStream(store, 0, firstPage, Page.TYPE_LOG));
-        try {
-            id = in.readInt();
-            trace.debug("log openForReading " + id + " firstPage:" + firstPage + " id:" + id);
-            return id;
-        } catch (IOException e) {
-            return 0;
+    void openForReading() {
+        in = new DataInputStream(new PageInputStream(store, firstPage));
+        if (trace.isDebugEnabled()) {
+            trace.debug("log openForReading firstPage:" + firstPage);
         }
     }
 
@@ -123,8 +106,9 @@ public class PageLog {
      */
     void recover(boolean undo) throws SQLException {
         if (trace.isDebugEnabled()) {
-            trace.debug("log recover " + id + " undo:" + undo);
+            trace.debug("log recover undo:" + undo);
         }
+        int logId = 0;
         DataPage data = store.createDataPage();
         try {
             pos = 0;
@@ -148,7 +132,7 @@ public class PageLog {
                     int tableId = in.readInt();
                     Row row = readRow(in, data);
                     if (!undo) {
-                        if (store.isSessionCommitted(sessionId, id, pos)) {
+                        if (store.isSessionCommitted(sessionId, logId, pos)) {
                             if (trace.isDebugEnabled()) {
                                 trace.debug("log redo " + (x == ADD ? "+" : "-") + " table:" + tableId + " " + row);
                             }
@@ -162,10 +146,10 @@ public class PageLog {
                 } else if (x == COMMIT) {
                     int sessionId = in.readInt();
                     if (trace.isDebugEnabled()) {
-                        trace.debug("log commit " + sessionId + " id:" + id + " pos:" + pos);
+                        trace.debug("log commit " + sessionId + " pos:" + pos);
                     }
                     if (undo) {
-                        store.setLastCommitForSession(sessionId, id, pos);
+                        store.setLastCommitForSession(sessionId, logId, pos);
                     }
                 } else {
                     if (trace.isDebugEnabled()) {
@@ -221,25 +205,12 @@ public class PageLog {
                 trace.debug("log undo " + pageId);
             }
             undo.set(pageId);
-            reservePages(3);
+            pageOut.prepareWriting(store.getPageSize() * 3);
             out.write(UNDO);
             out.writeInt(pageId);
             out.write(page.getBytes(), 0, store.getPageSize());
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
-        }
-    }
-
-    private void reservePages(int pageCount) throws SQLException {
-        int todoThisIsSlow;
-        if (pageCount > reservedPages.length) {
-            reservedPages = new int[pageCount];
-        }
-        for (int i = 0; i < pageCount; i++) {
-            reservedPages[i] = store.allocatePage(true);
-        }
-        for (int i = pageCount - 1; i >= 0; i--) {
-            store.freePage(reservedPages[i], false, null);
         }
     }
 
@@ -258,7 +229,7 @@ public class PageLog {
                 // database already closed
                 return;
             }
-            reservePages(1);
+            pageOut.prepareWriting(store.getPageSize());
             out.write(COMMIT);
             out.writeInt(session.getId());
             if (log.getFlushOnEachCommit()) {
@@ -291,8 +262,7 @@ public class PageLog {
             int todoWriteIntoOutputDirectly;
             row.write(data);
 
-            reservePages(3 + data.length() / (store.getPageSize() - PageInputStream.OVERHEAD));
-
+            pageOut.prepareWriting(data.length() + store.getPageSize());
             out.write(add ? ADD : REMOVE);
             out.writeInt(session.getId());
             out.writeInt(tableId);
@@ -309,7 +279,7 @@ public class PageLog {
      */
     void close() throws SQLException {
         try {
-            trace.debug("log close " + id);
+            trace.debug("log close");
             if (out != null) {
                 out.close();
             }
@@ -324,11 +294,11 @@ public class PageLog {
      *
      * @param id the new log id
      */
-    private void reopen(int id) throws SQLException {
+    private void reopen() throws SQLException {
         try {
             trace.debug("log reopen");
             out.close();
-            openForWriting(id);
+            openForWriting();
             flush();
             int todoDeleteOrReUsePages;
         } catch (IOException e) {
@@ -345,15 +315,6 @@ public class PageLog {
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
         }
-    }
-
-    /**
-     * Get the log id.
-     *
-     * @return the log id
-     */
-    int getId() {
-        return id;
     }
 
     /**

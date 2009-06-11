@@ -26,25 +26,15 @@ public class PageFreeList extends Record {
 
     private final PageStore store;
     private final BitField used = new BitField();
-    private final int firstAddressed;
     private final int pageCount;
-    private final int nextPage;
     private boolean full;
     private DataPage data;
 
-    PageFreeList(PageStore store, int pageId, int firstAddressed) {
+    PageFreeList(PageStore store, int pageId) {
         setPos(pageId);
         this.store = store;
-        this.firstAddressed = firstAddressed;
         pageCount = (store.getPageSize() - DATA_START) * 8;
-        for (int i = firstAddressed; i <= pageId; i++) {
-            used.set(getAddress(i));
-        }
-        nextPage = firstAddressed + pageCount;
-    }
-
-    private int getAddress(int pageId) {
-        return pageId - firstAddressed;
+        used.set(pageId);
     }
 
     /**
@@ -54,20 +44,16 @@ public class PageFreeList extends Record {
      */
     int allocate() throws SQLException {
         if (full) {
-            PageFreeList next = getNext();
-            if (next == null) {
-                return -1;
-            }
-            return next.allocate();
+            return -1;
         }
         int free = used.nextClearBit(0);
         if (free > pageCount) {
             full = true;
-            return allocate();
+            return -1;
         }
         used.set(free);
         store.updateRecord(this, true, data);
-        return free + firstAddressed;
+        return free + getPos();
     }
 
     /**
@@ -81,25 +67,8 @@ public class PageFreeList extends Record {
         return allocate(pos);
     }
 
-    public int getLastUsed() throws SQLException {
-        if (nextPage < store.getPageCount()) {
-            PageFreeList next = getNext();
-            // TODO avoid recursion
-            return next.getLastUsed();
-        }
-        return used.getLastSetBit() + firstAddressed;
-    }
-
-    private PageFreeList getNext() throws SQLException {
-        PageFreeList next = (PageFreeList) store.getRecord(nextPage);
-        if (next == null) {
-            if (nextPage < store.getPageCount()) {
-                next = new PageFreeList(store, nextPage, nextPage);
-                next.read();
-                store.updateRecord(next, false, null);
-            }
-        }
-        return next;
+    int getLastUsed() {
+        return used.getLastSetBit() + getPos();
     }
 
     /**
@@ -109,16 +78,9 @@ public class PageFreeList extends Record {
      * @return the page id, or -1
      */
     int allocate(int pos) throws SQLException {
-        if (pos - firstAddressed > pageCount) {
-            PageFreeList next = getNext();
-            if (next == null) {
-                return -1;
-            }
-            return next.allocate(pos);
-        }
-        int idx = pos - firstAddressed;
+        int idx = pos - getPos();
         if (idx >= 0 && !used.get(idx)) {
-            used.set(pos - firstAddressed);
+            used.set(idx);
             store.updateRecord(this, true, data);
         }
         return pos;
@@ -131,7 +93,7 @@ public class PageFreeList extends Record {
      */
     void free(int pageId) throws SQLException {
         full = false;
-        used.clear(pageId - firstAddressed);
+        used.clear(pageId - getPos());
         store.updateRecord(this, true, data);
     }
 
@@ -153,6 +115,7 @@ public class PageFreeList extends Record {
         for (int i = 0; i < pageCount; i += 8) {
             used.setByte(i, data.readByte());
         }
+        full = used.nextClearBit(0) >= pageCount * 8;
     }
 
     public int getByteCount(DataPage dummy) {
@@ -168,6 +131,20 @@ public class PageFreeList extends Record {
             data.writeByte((byte) used.getByte(i));
         }
         store.writePage(getPos(), data);
+    }
+
+    boolean isFull() {
+        return full;
+    }
+
+    /**
+     * Get the number of pages that can fit in a free list.
+     *
+     * @param pageSize the page size
+     * @return the number of pages
+     */
+    static int getPagesAddressed(int pageSize) {
+        return (pageSize - DATA_START) * 8;
     }
 
 }

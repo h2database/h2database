@@ -6,49 +6,30 @@
  */
 package org.h2.store;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-import org.h2.index.Page;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 
 /**
- * An output stream that writes into a page store.
- * The format is:
- * <ul><li>0-3: parent page id
- * </li><li>4-4: page type
- * </li><li>5-5: stream id
- * </li><li>6-9: the next page (if there is one) or length
- * </li><li>10-remainder: data
- * </li></ul>
+ * An input stream that reads from a page store.
  */
 public class PageInputStream extends InputStream {
 
-    /**
-     * The number of header bytes per stream page.
-     */
-    public static final int OVERHEAD = 10;
-
     private PageStore store;
     private final Trace trace;
-    private int parentPage;
-    private int type;
-    private int streamId = -1;
-    private int nextPage;
-    private DataPage page;
+    private int trunkNext;
+    private PageStreamTrunk trunk;
+    private PageStreamData data;
     private boolean endOfFile;
     private int remaining;
     private byte[] buffer = new byte[1];
 
-    public PageInputStream(PageStore store, int parentPage, int headPage, int type) {
+    public PageInputStream(PageStore store, int trunkPage) {
         this.store = store;
         this.trace = store.getTrace();
-        this.parentPage = parentPage;
-        this.type = type;
-        nextPage = headPage;
-        page = store.createDataPage();
+        this.trunkNext = trunkPage;
     }
 
     public int read() throws IOException {
@@ -78,53 +59,47 @@ public class PageInputStream extends InputStream {
     }
 
     private int readBlock(byte[] buff, int off, int len) throws IOException {
-        fillBuffer();
-        if (endOfFile) {
-            return -1;
-        }
-        int l = Math.min(remaining, len);
-        page.read(buff, off, l);
-        remaining -= l;
-        return l;
-    }
-
-    private void fillBuffer() throws IOException {
-        if (remaining > 0 || endOfFile) {
-            return;
-        }
-        if (nextPage == 0) {
-            endOfFile = true;
-            return;
-        }
-        page.reset();
         try {
-            store.readPage(nextPage, page);
+            fillBuffer();
+            if (endOfFile) {
+                return -1;
+            }
+            int l = Math.min(remaining, len);
+            data.read(buff, off, l);
+            remaining -= l;
+            return l;
         } catch (SQLException e) {
             throw Message.convertToIOException(e);
         }
-        int p = page.readInt();
-        int t = page.readByte();
-        int id = page.readByte();
-        if (streamId == -1) {
-            // set the stream id on the first page
-            streamId = id;
+    }
+
+    private void fillBuffer() throws SQLException {
+        if (remaining > 0 || endOfFile) {
+            return;
         }
-        boolean last = (t & Page.FLAG_LAST) != 0;
-        t &= ~Page.FLAG_LAST;
-        if (type != t || p != parentPage || id != streamId) {
-            throw new EOFException();
+        if (trunkNext == 0) {
+            endOfFile = true;
+            return;
         }
-        parentPage = nextPage;
-        if (last) {
-            nextPage = 0;
-            remaining = page.readInt();
-        } else {
-            nextPage = page.readInt();
-            remaining = store.getPageSize() - page.length();
+        if (trunk == null) {
+            trunk = new PageStreamTrunk(store, trunkNext);
+            trunk.read();
+        }
+        int next;
+        while (true) {
+            next = trunk.getNextPage();
+            if (next >= 0) {
+                break;
+            }
+            trunk = new PageStreamTrunk(store, trunkNext);
+            trunk.read();
         }
         if (trace.isDebugEnabled()) {
-            trace.debug("pageIn.readPage " + parentPage + " next:" + nextPage);
+            trace.debug("pageIn.readPage " + next);
         }
+        data = new PageStreamData(store, next, 0);
+        data.read();
+        remaining = data.getLength();
     }
 
 }

@@ -9,50 +9,69 @@ package org.h2.store;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
-import org.h2.index.Page;
 import org.h2.message.Message;
 import org.h2.message.Trace;
+import org.h2.util.IntArray;
 
 /**
  * An output stream that writes into a page store.
  */
 public class PageOutputStream extends OutputStream {
 
-    private final Trace trace;
     private PageStore store;
-    private int type;
-    private int parentPage;
-    private int pageId;
-    private int nextPage;
-    private DataPage page;
+    private final Trace trace;
+    private int trunkPageId;
+    private int trunkNext;
+    private IntArray reservedPages = new IntArray();
+    private PageStreamTrunk trunk;
+    private PageStreamData data;
+    private int reserved;
     private int remaining;
-    private final boolean allocateAtEnd;
     private byte[] buffer = new byte[1];
     private boolean needFlush;
-    private final int streamId;
     private boolean writing;
 
     /**
      * Create a new page output stream.
      *
      * @param store the page store
-     * @param parentPage the parent page id
-     * @param headPage the first page
-     * @param type the page type
-     * @param streamId the stream identifier
-     * @param allocateAtEnd whether new pages should be allocated at the end of
-     *            the file
+     * @param trunkPage the first trunk page (already allocated)
      */
-    public PageOutputStream(PageStore store, int parentPage, int headPage, int type, int streamId, boolean allocateAtEnd) {
+    public PageOutputStream(PageStore store, int trunkPage) {
         this.trace = store.getTrace();
         this.store = store;
-        this.parentPage = parentPage;
-        this.pageId = headPage;
-        this.type = type;
-        this.allocateAtEnd = allocateAtEnd;
-        this.streamId = streamId;
-        page = store.createDataPage();
-        initPage();
+        this.trunkPageId = trunkPage;
+    }
+
+    /**
+     * Allocate the required pages so that no pages need to be allocated while
+     * writing.
+     *
+     * @param minBuffer the number of bytes to allocate
+     */
+    void prepareWriting(int minBuffer) throws SQLException {
+        if (reserved < minBuffer) {
+            int pageSize = store.getPageSize();
+            int capacityPerPage = PageStreamData.getCapacity(pageSize);
+            int pages = PageStreamTrunk.getPagesAddressed(pageSize);
+            // allocate x data pages
+            int pagesToAllocate = pages;
+            // the first trunk page is already allocated
+            if (reservedPages.size() == 0) {
+                reservedPages.add(trunkPageId);
+            }
+            int totalCapacity = pages * capacityPerPage;
+            while (totalCapacity < minBuffer) {
+                pagesToAllocate += pagesToAllocate;
+                totalCapacity += totalCapacity;
+            }
+            // allocate the next trunk page as well
+            pagesToAllocate++;
+            for (int i = 0; i < pagesToAllocate; i++) {
+                int page = store.allocatePage();
+                reservedPages.add(page);
+            }
+        }
     }
 
     public void write(int b) throws IOException {
@@ -64,13 +83,27 @@ public class PageOutputStream extends OutputStream {
         write(b, 0, b.length);
     }
 
-    private void initPage() {
-        page.reset();
-        page.writeInt(parentPage);
-        page.writeByte((byte) type);
-        page.writeByte((byte) streamId);
-        page.writeInt(0);
-        remaining = store.getPageSize() - page.length();
+    private void initNextData() {
+        int nextData = trunk == null ? -1 : trunk.getNextPage();
+        if (nextData < 0) {
+            int parent = trunkPageId;
+            if (trunkNext == 0) {
+                trunkPageId = reservedPages.get(0);
+                reservedPages.remove(0);
+            } else {
+                trunkPageId = trunkNext;
+            }
+            int len = PageStreamTrunk.getPagesAddressed(store.getPageSize());
+            int[] pageIds = new int[len];
+            for (int i = 0; i < len; i++) {
+                pageIds[i] = reservedPages.get(i);
+            }
+            trunkNext = reservedPages.get(len);
+            trunk = new PageStreamTrunk(store, parent, trunkPageId, trunkNext, pageIds);
+            reservedPages.removeRange(0, len + 1);
+        }
+        data = new PageStreamData(store, trunk.getNextPage(), trunk.getPos());
+        data.initWrite();
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
@@ -78,31 +111,24 @@ public class PageOutputStream extends OutputStream {
             return;
         }
         if (writing) {
-            throw Message.throwInternalError("writing while still writing");
+            Message.throwInternalError("writing while still writing");
         }
         writing = true;
         try {
-            while (len >= remaining) {
-                page.write(b, off, remaining);
-                off += remaining;
-                len -= remaining;
-                try {
-                    nextPage = store.allocatePage(allocateAtEnd);
-                } catch (SQLException e) {
-                    throw Message.convertToIOException(e);
+            while (len >= 0) {
+                int l = data.write(b, off, len);
+                if (l <= len) {
+                    data.write(null);
+                    initNextData();
                 }
-                page.setPos(4);
-                page.writeByte((byte) type);
-                page.writeByte((byte) streamId);
-                page.writeInt(nextPage);
-                storePage();
-                parentPage = pageId;
-                pageId = nextPage;
-                initPage();
+                reserved -= l;
+                off += l;
+                len -= l;
             }
-            page.write(b, off, len);
             needFlush = true;
             remaining -= len;
+        } catch (SQLException e) {
+            throw Message.convertToIOException(e);
         } finally {
             writing = false;
         }
@@ -111,9 +137,9 @@ public class PageOutputStream extends OutputStream {
     private void storePage() throws IOException {
         try {
             if (trace.isDebugEnabled()) {
-                trace.debug("pageOut.storePage " + pageId + " next:" + nextPage);
+                trace.debug("pageOut.storePage " + data.getPos());
             }
-            store.writePage(pageId, page);
+            data.write(null);
         } catch (SQLException e) {
             throw Message.convertToIOException(e);
         }
@@ -121,12 +147,6 @@ public class PageOutputStream extends OutputStream {
 
     public void flush() throws IOException {
         if (needFlush) {
-            int len = page.length();
-            page.setPos(4);
-            page.writeByte((byte) (type | Page.FLAG_LAST));
-            page.writeByte((byte) streamId);
-            page.writeInt(store.getPageSize() - remaining - 9);
-            page.setPos(len);
             storePage();
             needFlush = false;
         }

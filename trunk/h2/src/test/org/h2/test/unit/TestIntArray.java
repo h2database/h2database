@@ -28,6 +28,16 @@ public class TestIntArray extends TestBase {
     public void test() {
         testInit();
         testRandom();
+        testRemoveRange();
+    }
+
+    private void testRemoveRange() {
+        IntArray array = new IntArray(new int[] {1, 2, 3, 4, 5});
+        array.removeRange(1, 3);
+        assertEquals(3, array.size());
+        assertEquals(1, array.get(0));
+        assertEquals(4, array.get(1));
+        assertEquals(5, array.get(2));
     }
 
     private void testInit() {

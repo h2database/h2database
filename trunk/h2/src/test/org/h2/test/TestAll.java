@@ -297,6 +297,8 @@ shell tool: document encoding problem.
 mac: java -Dfile.encoding=UTF-8
 windows:
 
+download checksums (auto-verify every day)
+
 test case for running out of disk space (using a special file system)
 
 auto-build: prepare release

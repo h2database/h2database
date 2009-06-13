@@ -1286,7 +1286,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      * @throws SQLException if the connection or session is closed
      */
     private void checkClosedForWrite() throws SQLException {
-        checkClosed();
+        checkClosed(true);
     }
 
     /**

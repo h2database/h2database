@@ -61,9 +61,11 @@ public class PageLog {
     private Trace trace;
 
     private DataOutputStream out;
+    private ByteArrayOutputStream buffer;
     private PageOutputStream pageOut;
     private DataInputStream in;
     private int firstTrunkPage;
+    private int firstDataPage;
     private DataPage data;
     private int logId, logPos;
     private int firstLogId;
@@ -82,9 +84,13 @@ public class PageLog {
      *
      * @param firstTrunkPage the first trunk page
      */
-    void openForWriting(int firstTrunkPage) {
+    void openForWriting(int firstTrunkPage) throws SQLException {
         trace.debug("log openForWriting firstPage:" + firstTrunkPage);
         pageOut = new PageOutputStream(store, firstTrunkPage);
+        pageOut.reserve(1);
+        store.setLogFirstPage(firstTrunkPage, pageOut.getCurrentDataPageId());
+        buffer = new ByteArrayOutputStream();
+        out = new DataOutputStream(buffer);
     }
 
     /**
@@ -95,10 +101,7 @@ public class PageLog {
      */
     void openForReading(int firstTrunkPage, int firstDataPage) {
         this.firstTrunkPage = firstTrunkPage;
-        in = new DataInputStream(new PageInputStream(store, firstTrunkPage, firstDataPage));
-        if (trace.isDebugEnabled()) {
-            trace.debug("log openForReading firstPage:" + firstTrunkPage);
-        }
+        this.firstDataPage = firstDataPage;
     }
 
     /**
@@ -112,6 +115,7 @@ public class PageLog {
         if (trace.isDebugEnabled()) {
             trace.debug("log recover undo:" + undo);
         }
+        in = new DataInputStream(new PageInputStream(store, firstTrunkPage, firstDataPage));
         int logId = 0;
         DataPage data = store.createDataPage();
         try {
@@ -209,13 +213,19 @@ public class PageLog {
                 trace.debug("log undo " + pageId);
             }
             undo.set(pageId);
-            pageOut.reserve(store.getPageSize() * 3);
             out.write(UNDO);
             out.writeInt(pageId);
             out.write(page.getBytes(), 0, store.getPageSize());
+            flushOut();
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
         }
+    }
+
+    private void flushOut() throws IOException {
+        out.flush();
+        pageOut.write(buffer.toByteArray());
+        buffer.reset();
     }
 
     /**
@@ -233,9 +243,9 @@ public class PageLog {
                 // database already closed
                 return;
             }
-            pageOut.reserve(store.getPageSize());
             out.write(COMMIT);
             out.writeInt(session.getId());
+            flushOut();
             if (log.getFlushOnEachCommit()) {
                 flush();
             }
@@ -264,14 +274,13 @@ public class PageLog {
             data.reset();
             int todoWriteIntoOutputDirectly;
             row.write(data);
-
-            pageOut.reserve(data.length() + store.getPageSize());
             out.write(add ? ADD : REMOVE);
             out.writeInt(session.getId());
             out.writeInt(tableId);
             out.writeInt(row.getPos());
             out.writeInt(data.length());
             out.write(data.getBytes(), 0, data.length());
+            flushOut();
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
         }
@@ -282,7 +291,7 @@ public class PageLog {
      */
     void flush() throws SQLException {
         try {
-            out.flush();
+            pageOut.flush();
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
         }

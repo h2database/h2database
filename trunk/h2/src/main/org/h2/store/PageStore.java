@@ -61,9 +61,9 @@ import org.h2.value.ValueString;
  * <li>12-15: log data page (initially 5)</li>
  * <li>16-23: checksum of bytes 0-15 (CRC32)</li>
  * </ul>
- * Page 2 contains the first free list page.
- * Page 3 contains the meta table root page.
- * For a new database, page 4 contains the first log trunk page.
+ * Page 3 contains the first free list page.
+ * Page 4 contains the meta table root page.
+ * For a new database, page 5 contains the first log trunk page.
  */
 public class PageStore implements CacheWriter {
 
@@ -123,6 +123,7 @@ public class PageStore implements CacheWriter {
 
     private static final int PAGE_ID_FREE_LIST_ROOT = 2;
     private static final int PAGE_ID_META_ROOT = 3;
+    private static final int PAGE_ID_LOG_TRUNK = 5;
 
     private static final int INCREMENT_PAGES = 128;
 
@@ -221,27 +222,38 @@ public class PageStore implements CacheWriter {
             if (FileUtils.exists(fileName)) {
                 // existing
                 file = database.openFile(fileName, accessMode, true);
-                readHeader();
+                readStaticHeader();
                 freeListPagesPerList = PageFreeList.getPagesAddressed(pageSize);
                 fileLength = file.length();
                 pageCount = (int) (fileLength / pageSize);
+                if (pageCount < 6) {
+                    // not enough pages - must be a new database
+                    // that didn't get created correctly
+                    throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, fileName);
+                }
+                readVariableHeader();
                 log = new PageLog(this);
+                log.openForReading(logFirstTrunkPage, logFirstDataPage);
                 recover(true);
                 recover(false);
+                recoveryRunning = true;
+                log.openForWriting(logFirstTrunkPage);
+                recoveryRunning = false;
                 checkpoint();
             } else {
                 // new
                 setPageSize(PAGE_SIZE_DEFAULT);
                 freeListPagesPerList = PageFreeList.getPagesAddressed(pageSize);
                 file = database.openFile(fileName, accessMode, false);
-                logFirstTrunkPage = 4;
-                pageCount = 5;
-                increaseFileSize(INCREMENT_PAGES - pageCount);
+                recoveryRunning = true;
+                increaseFileSize(INCREMENT_PAGES);
                 writeStaticHeader();
                 log = new PageLog(this);
-                log.openForWriting(logFirstTrunkPage);
                 openMetaIndex();
+                logFirstTrunkPage = allocatePage();
+                log.openForWriting(logFirstTrunkPage);
                 systemTableHeadPos = Index.EMPTY_HEAD;
+                recoveryRunning = false;
             }
             // lastUsedPage = getFreeList().getLastUsed() + 1;
         } catch (SQLException e) {
@@ -293,7 +305,7 @@ public class PageStore implements CacheWriter {
         log.removeUntil(firstUncommittedLog);
     }
 
-    private void readHeader() throws SQLException {
+    private void readStaticHeader() throws SQLException {
         long length = file.length();
         if (length < PAGE_SIZE_MIN * 2) {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, fileName);
@@ -317,6 +329,10 @@ public class PageStore implements CacheWriter {
             accessMode = "r";
             file = database.openFile(fileName, accessMode, true);
         }
+    }
+
+    private void readVariableHeader() throws SQLException {
+        DataPage page = DataPage.create(database, pageSize);
         for (int i = 1;; i++) {
             if (i == 3) {
                 throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, fileName);
@@ -385,16 +401,17 @@ public class PageStore implements CacheWriter {
     }
 
     private void writeVariableHeader() throws SQLException {
-        DataPage page = DataPage.create(database, new byte[pageSize]);
+        DataPage page = DataPage.create(database, pageSize);
         page.writeLong(writeCounter);
         page.writeInt(logFirstTrunkPage);
+        page.writeInt(logFirstDataPage);
         CRC32 crc = new CRC32();
-        crc.update(page.getBytes(), 0, 12);
+        crc.update(page.getBytes(), 0, page.length());
         page.writeLong(crc.getValue());
         file.seek(pageSize);
-        file.write(page.getBytes(), 0, page.length());
+        file.write(page.getBytes(), 0, pageSize);
         file.seek(pageSize + pageSize);
-        file.write(page.getBytes(), 0, page.length());
+        file.write(page.getBytes(), 0, pageSize);
     }
 
     /**
@@ -413,7 +430,9 @@ public class PageStore implements CacheWriter {
     }
 
     public void flushLog() throws SQLException {
-        log.flush();
+        if (file != null) {
+            log.flush();
+        }
     }
 
     public Trace getTrace() {
@@ -478,10 +497,15 @@ public class PageStore implements CacheWriter {
         } else {
             p = i * freeListPagesPerList;
         }
+        while (p >= pageCount) {
+            increaseFileSize(INCREMENT_PAGES);
+        }
         PageFreeList list = (PageFreeList) getRecord(p);
         if (list == null) {
             list = new PageFreeList(this, p);
-            list.read();
+            if (p < pageCount) {
+                list.read();
+            }
             cache.put(list);
         }
         return list;
@@ -515,9 +539,6 @@ public class PageStore implements CacheWriter {
         } else {
             // TODO could remember the first possible free list page
             for (int i = 0;; i++) {
-                if (i * freeListPagesPerList > pageCount) {
-                    increaseFileSize(INCREMENT_PAGES);
-                }
                 PageFreeList list = getFreeList(i);
                 if (!list.isFull()) {
                     pos = list.allocate();
@@ -660,12 +681,13 @@ public class PageStore implements CacheWriter {
      */
     private void recover(boolean undo) throws SQLException {
         trace.debug("log recover #" + undo);
-        if (!undo) {
-            openMetaIndex();
-            readMetaData();
-        }
+
         try {
             recoveryRunning = true;
+            if (!undo) {
+                openMetaIndex();
+                readMetaData();
+            }
             log.recover(undo);
             if (!undo) {
                 switchLog();

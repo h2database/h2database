@@ -6,10 +6,10 @@
  */
 package org.h2.store;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-import org.h2.message.Message;
 import org.h2.message.Trace;
 
 /**
@@ -71,7 +71,7 @@ public class PageInputStream extends InputStream {
             remaining -= l;
             return l;
         } catch (SQLException e) {
-            throw Message.convertToIOException(e);
+            throw new EOFException();
         }
     }
 

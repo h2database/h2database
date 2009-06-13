@@ -260,10 +260,18 @@ public class Build extends BuildBase {
             print("NSIS is not available: " + e);
         }
         String buildDate = getStaticField("org.h2.engine.Constants", "BUILD_DATE");
-        writeFile(new File("../h2web/h2-" + buildDate + ".zip"), readFile(new File("../h2web/h2.zip")));
+        byte[] data = readFile(new File("../h2web/h2.zip"));
+        String sha1Zip = getSHA1(data), sha1Exe = "";
+        writeFile(new File("../h2web/h2-" + buildDate + ".zip"), data);
         if (installer) {
-            writeFile(new File("../h2web/h2-setup-" + buildDate + ".exe"), readFile(new File("../h2web/h2-setup.exe")));
+            data = readFile(new File("../h2web/h2-setup.exe"));
+            sha1Exe = getSHA1(data);
+            writeFile(new File("../h2web/h2-setup-" + buildDate + ".exe"), data);
         }
+        String checksums = "<h1>SHA1 Checksums</h1>" +
+            "<h2>h2-" + buildDate + ".zip</h2><p>" + sha1Zip + "</p>" +
+            "<h2>h2-setup-" + buildDate + ".exe</h2><p>" + sha1Exe + "</p>";
+        writeFile(new File("../h2web/html/checksums.html"), checksums.getBytes());
     }
 
     /**

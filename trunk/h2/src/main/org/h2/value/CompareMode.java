@@ -163,7 +163,7 @@ public class CompareMode {
      * @return the collator
      */
     public static Collator getCollator(String name) {
-        if (name == null) {
+        if (name == null || name.equals(OFF)) {
             return null;
         }
         Collator result = null;

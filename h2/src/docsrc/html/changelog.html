@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The RunScript tool and SQL statement did not work with the compression method LZF.
+<ul><li>Shell tool: the file encoding workaround is now documented
+    if you run java org.h2.tools.Shell -?.
+</li><li>The RunScript tool and SQL statement did not work with the compression method LZF.
 </li><li>Fulltext search: searching for NULL or an empty string threw an exception.
 </li><li>Lucene fulltext search: FTL_DROP_ALL did not drop the triggers.
 </li><li>Backup: if the database contained CLOB or BLOB data, the backup

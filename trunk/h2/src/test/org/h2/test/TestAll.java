@@ -293,9 +293,7 @@ java org.h2.test.TestAll timer
 
 /*
 
-shell tool: document encoding problem.
-mac: java -Dfile.encoding=UTF-8
-windows:
+test what is wrong with -Djava.net.preferIPv6Addresses=true
 
 download checksums (auto-verify every day)
 

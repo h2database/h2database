@@ -8,6 +8,7 @@ package org.h2.util;
 
 import java.io.IOException;
 import java.net.BindException;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -47,7 +48,24 @@ public class NetUtils {
         if (address == null) {
             address = InetAddress.getLocalHost();
         }
-        return createSocket(address.getHostAddress(), port, ssl);
+        return createSocket(getHostAddress(address), port, ssl);
+    }
+
+    /**
+     * Get the host address. This method adds '[' and ']' if required for
+     * Inet6Address that contain a ':'.
+     *
+     * @param address the address
+     * @return the host address
+     */
+    public static String getHostAddress(InetAddress address) {
+        String host = address.getHostAddress();
+        if (address instanceof Inet6Address) {
+            if (host.indexOf(':') >= 0 && !host.startsWith("[")) {
+                host = "[" + host + "]";
+            }
+        }
+        return host;
     }
 
     /**
@@ -210,7 +228,7 @@ public class NetUtils {
         } catch (UnknownHostException e) {
             // ignore
         }
-        String address = bind == null ? "localhost" : bind.getHostAddress();
+        String address = bind == null ? "localhost" : getHostAddress(bind);
         if (address.equals("127.0.0.1")) {
             address = "localhost";
         }

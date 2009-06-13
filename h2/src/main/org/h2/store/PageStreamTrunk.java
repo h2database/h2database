@@ -62,6 +62,7 @@ public class PageStreamTrunk extends Record {
         }
         nextTrunk = data.readInt();
         pageCount = data.readInt();
+        pageIds = new int[pageCount];
         for (int i = 0; i < pageCount; i++) {
             pageIds[i] = data.readInt();
         }

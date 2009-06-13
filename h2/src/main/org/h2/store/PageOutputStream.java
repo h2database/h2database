@@ -88,8 +88,8 @@ public class PageOutputStream extends OutputStream {
         write(b, 0, b.length);
     }
 
-    private void initNextData() {
-        int nextData = trunk == null ? 0 : trunk.getNextDataPage();
+    private void initNextData() throws SQLException {
+        int nextData = trunk == null ? -1 : trunk.getNextDataPage();
         if (nextData == -1) {
             int parent = trunkPageId;
             if (trunkNext == 0) {
@@ -105,9 +105,11 @@ public class PageOutputStream extends OutputStream {
             }
             trunkNext = reservedPages.get(len);
             trunk = new PageStreamTrunk(store, parent, trunkPageId, trunkNext, pageIds);
-            reservedPages.removeRange(0, len + 1);
+            trunk.write(null);
+            reservedPages.removeRange(0, len);
+            nextData = trunk.getNextDataPage();
         }
-        data = new PageStreamData(store, trunk.getNextDataPage(), trunk.getPos());
+        data = new PageStreamData(store, nextData, trunk.getPos());
         data.initWrite();
     }
 
@@ -118,12 +120,12 @@ public class PageOutputStream extends OutputStream {
         if (writing) {
             Message.throwInternalError("writing while still writing");
         }
-        writing = true;
         try {
             reserve(len);
-            while (len >= 0) {
+            writing = true;
+            while (len > 0) {
                 int l = data.write(b, off, len);
-                if (l <= len) {
+                if (l < len) {
                     data.write(null);
                     initNextData();
                 }

@@ -43,6 +43,7 @@ public class PageStreamData extends Record {
     void read() throws SQLException {
         data = store.createDataPage();
         store.readPage(getPos(), data);
+        data.setPos(4);
         int t = data.readByte();
         if (t != Page.TYPE_STREAM_DATA) {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "pos:" + getPos() + " type:" + t +

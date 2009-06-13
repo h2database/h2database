@@ -98,7 +98,7 @@
 	</target>
 
 	<target name="switchSourcePrepare" depends="clean">
-		<javac source="1.4" srcdir="src/tools" destdir="bin"
+		<javac source="1.5" srcdir="src/tools" destdir="bin"
 		    debug="true" debuglevel="lines,source"
 		    includes="org/h2/build/code/SwitchSource.java"/>
 	</target>

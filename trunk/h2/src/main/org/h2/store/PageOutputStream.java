@@ -20,6 +20,7 @@ public class PageOutputStream extends OutputStream {
 
     private PageStore store;
     private final Trace trace;
+    private int firstTrunkPageId;
     private int trunkPageId;
     private int trunkNext;
     private IntArray reservedPages = new IntArray();
@@ -41,6 +42,7 @@ public class PageOutputStream extends OutputStream {
         this.trace = store.getTrace();
         this.store = store;
         this.trunkPageId = trunkPage;
+        firstTrunkPageId = trunkPage;
     }
 
     /**
@@ -49,7 +51,7 @@ public class PageOutputStream extends OutputStream {
      *
      * @param minBuffer the number of bytes to allocate
      */
-    void prepareWriting(int minBuffer) throws SQLException {
+    void reserve(int minBuffer) throws SQLException {
         if (reserved < minBuffer) {
             int pageSize = store.getPageSize();
             int capacityPerPage = PageStreamData.getCapacity(pageSize);
@@ -71,6 +73,9 @@ public class PageOutputStream extends OutputStream {
                 int page = store.allocatePage();
                 reservedPages.add(page);
             }
+            if (data == null) {
+                initNextData();
+            }
         }
     }
 
@@ -84,8 +89,8 @@ public class PageOutputStream extends OutputStream {
     }
 
     private void initNextData() {
-        int nextData = trunk == null ? -1 : trunk.getNextPage();
-        if (nextData < 0) {
+        int nextData = trunk == null ? 0 : trunk.getNextDataPage();
+        if (nextData == -1) {
             int parent = trunkPageId;
             if (trunkNext == 0) {
                 trunkPageId = reservedPages.get(0);
@@ -102,7 +107,7 @@ public class PageOutputStream extends OutputStream {
             trunk = new PageStreamTrunk(store, parent, trunkPageId, trunkNext, pageIds);
             reservedPages.removeRange(0, len + 1);
         }
-        data = new PageStreamData(store, trunk.getNextPage(), trunk.getPos());
+        data = new PageStreamData(store, trunk.getNextDataPage(), trunk.getPos());
         data.initWrite();
     }
 
@@ -115,6 +120,7 @@ public class PageOutputStream extends OutputStream {
         }
         writing = true;
         try {
+            reserve(len);
             while (len >= 0) {
                 int l = data.write(b, off, len);
                 if (l <= len) {
@@ -155,6 +161,10 @@ public class PageOutputStream extends OutputStream {
     public void close() throws IOException {
         flush();
         store = null;
+    }
+
+    public int getCurrentDataPageId() {
+        return data.getPos();
     }
 
 }

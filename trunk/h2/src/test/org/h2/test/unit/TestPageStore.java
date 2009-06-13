@@ -17,7 +17,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
@@ -27,7 +26,6 @@ import org.h2.engine.Database;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.index.Page;
 import org.h2.index.PageScanIndex;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -322,7 +320,7 @@ public class TestPageStore extends TestBase {
         if (file) {
             in = new BufferedInputStream(new FileInputStream(f), 4 * 1024);
         } else {
-            in = new PageInputStream(store, 0);
+            in = new PageInputStream(store, 0, 0);
         }
         while (true) {
             int len = in.read(buff);
@@ -360,7 +358,7 @@ public class TestPageStore extends TestBase {
                 p += l;
             }
             out.close();
-            PageInputStream in = new PageInputStream(store, 0);
+            PageInputStream in = new PageInputStream(store, 0, 0);
             byte[] data2 = new byte[len];
             for (int off = 0;;) {
                 int l = random.nextInt(1 + len / 10) + 1;

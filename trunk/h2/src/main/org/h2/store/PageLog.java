@@ -6,31 +6,29 @@
  */
 package org.h2.store;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.sql.SQLException;
 import org.h2.engine.Session;
-import org.h2.index.Page;
 import org.h2.log.LogSystem;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.util.BitField;
+import org.h2.util.IntIntHashMap;
 import org.h2.value.Value;
 
 /**
- * Transaction log mechanism.
- * The format is:
- * <ul><li>0-3: log id
- * </li><li>records
- * </li></ul>
- * The data format for a record is:
- * <ul><li>0-0: type (0: undo,...)
- * </li><li>1-4: page id
- * </li><li>5-: data
- * </li></ul>
+ * Transaction log mechanism. The stream contains a list of records. The data
+ * format for a record is:
+ * <ul>
+ * <li>0-0: type (0: undo,...)</li>
+ * <li>1-4: page id</li>
+ * <li>5-: data</li>
+ * </ul>
  */
 public class PageLog {
 
@@ -62,17 +60,18 @@ public class PageLog {
     private int pos;
     private Trace trace;
 
-    private PageOutputStream pageOut;
     private DataOutputStream out;
+    private PageOutputStream pageOut;
     private DataInputStream in;
-    private int firstPage;
+    private int firstTrunkPage;
     private DataPage data;
-    private long operation;
+    private int logId, logPos;
+    private int firstLogId;
     private BitField undo = new BitField();
+    private IntIntHashMap logIdPageMap = new IntIntHashMap();
 
-    PageLog(PageStore store, int firstPage) {
+    PageLog(PageStore store) {
         this.store = store;
-        this.firstPage = firstPage;
         data = store.createDataPage();
         trace = store.getTrace();
     }
@@ -80,20 +79,25 @@ public class PageLog {
     /**
      * Open the log for writing. For an existing database, the recovery
      * must be run first.
+     *
+     * @param firstTrunkPage the first trunk page
      */
-    void openForWriting() {
-        trace.debug("log openForWriting firstPage:" + firstPage);
-        pageOut = new PageOutputStream(store, firstPage);
-        out = new DataOutputStream(pageOut);
+    void openForWriting(int firstTrunkPage) {
+        trace.debug("log openForWriting firstPage:" + firstTrunkPage);
+        pageOut = new PageOutputStream(store, firstTrunkPage);
     }
 
     /**
      * Open the log for reading.
+     *
+     * @param firstTrunkPage the first trunk page
+     * @param firstDataPage the index of the first data page
      */
-    void openForReading() {
-        in = new DataInputStream(new PageInputStream(store, firstPage));
+    void openForReading(int firstTrunkPage, int firstDataPage) {
+        this.firstTrunkPage = firstTrunkPage;
+        in = new DataInputStream(new PageInputStream(store, firstTrunkPage, firstDataPage));
         if (trace.isDebugEnabled()) {
-            trace.debug("log openForReading firstPage:" + firstPage);
+            trace.debug("log openForReading firstPage:" + firstTrunkPage);
         }
     }
 
@@ -205,7 +209,7 @@ public class PageLog {
                 trace.debug("log undo " + pageId);
             }
             undo.set(pageId);
-            pageOut.prepareWriting(store.getPageSize() * 3);
+            pageOut.reserve(store.getPageSize() * 3);
             out.write(UNDO);
             out.writeInt(pageId);
             out.write(page.getBytes(), 0, store.getPageSize());
@@ -229,7 +233,7 @@ public class PageLog {
                 // database already closed
                 return;
             }
-            pageOut.prepareWriting(store.getPageSize());
+            pageOut.reserve(store.getPageSize());
             out.write(COMMIT);
             out.writeInt(session.getId());
             if (log.getFlushOnEachCommit()) {
@@ -254,53 +258,20 @@ public class PageLog {
                 trace.debug("log " + (add?"+":"-") + " s:" + session.getId() + " table:" + tableId +
                         " row:" + row);
             }
-            int todoLogPosShouldBeLong;
-            session.addLogPos(0, (int) operation);
-            row.setLastLog(0, (int) operation);
+            session.addLogPos(logId, logPos);
+            row.setLastLog(logId, logPos);
 
             data.reset();
             int todoWriteIntoOutputDirectly;
             row.write(data);
 
-            pageOut.prepareWriting(data.length() + store.getPageSize());
+            pageOut.reserve(data.length() + store.getPageSize());
             out.write(add ? ADD : REMOVE);
             out.writeInt(session.getId());
             out.writeInt(tableId);
             out.writeInt(row.getPos());
             out.writeInt(data.length());
             out.write(data.getBytes(), 0, data.length());
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
-        }
-    }
-
-    /**
-     * Close the log.
-     */
-    void close() throws SQLException {
-        try {
-            trace.debug("log close");
-            if (out != null) {
-                out.close();
-            }
-            out = null;
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
-        }
-    }
-
-    /**
-     * Close the log, truncate it, and re-open it.
-     *
-     * @param id the new log id
-     */
-    private void reopen() throws SQLException {
-        try {
-            trace.debug("log reopen");
-            out.close();
-            openForWriting();
-            flush();
-            int todoDeleteOrReUsePages;
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
         }
@@ -318,15 +289,64 @@ public class PageLog {
     }
 
     /**
-     * Flush and close the log.
+     * Switch to a new log id.
+     *
+     * @throws SQLException
      */
-//    public void close() throws SQLException {
-//        try {
-//            trace.debug("log close");
-//            out.close();
-//        } catch (IOException e) {
-//            throw Message.convertIOException(e, null);
-//        }
-//    }
+    void checkpoint() {
+        int currentDataPage = pageOut.getCurrentDataPageId();
+        logIdPageMap.put(logId, currentDataPage);
+        logId++;
+    }
+
+    int getLogId() {
+        return logId;
+    }
+
+    int getLogPos() {
+        return logPos;
+    }
+
+    /**
+     * Remove all pages until the given log (excluding).
+     *
+     * @param firstUncommittedLog the first log id to keep
+     */
+    void removeUntil(int firstUncommittedLog) throws SQLException {
+        if (firstUncommittedLog == logId) {
+            return;
+        }
+        int firstDataPageToKeep = logIdPageMap.get(firstUncommittedLog);
+
+        while (true) {
+            // TODO keep trunk page in the cache
+            PageStreamTrunk t = new PageStreamTrunk(store, firstTrunkPage);
+            t.read();
+            if (t.contains(firstDataPageToKeep)) {
+                store.setLogFirstPage(t.getPos(), firstDataPageToKeep);
+                break;
+            }
+            t.free();
+        }
+        while (firstLogId < firstUncommittedLog) {
+            logIdPageMap.remove(firstLogId);
+            firstLogId++;
+        }
+    }
+
+    /**
+     * Close the log.
+     */
+    void close() throws SQLException {
+        try {
+            trace.debug("log close");
+            if (out != null) {
+                out.close();
+            }
+            out = null;
+        } catch (IOException e) {
+            throw Message.convertIOException(e, null);
+        }
+    }
 
 }

@@ -67,11 +67,11 @@ public class PageStreamTrunk extends Record {
         }
     }
 
-    void setNextPage(int page) {
+    void setNextDataPage(int page) {
         pageIds[index++] = page;
     }
 
-    int getNextPage() {
+    int getNextDataPage() {
         if (index >= pageIds.length) {
             return -1;
         }
@@ -106,6 +106,31 @@ public class PageStreamTrunk extends Record {
      */
     static int getPagesAddressed(int pageSize) {
         return (pageSize - DATA_START) / 4;
+    }
+
+    /**
+     * Check if the given data page is in this trunk page.
+     *
+     * @param dataPageId the page id
+     * @return true if it is
+     */
+    boolean contains(int dataPageId) {
+        for (int i = 0; i < pageCount; i++) {
+            if (pageIds[i] == dataPageId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Free this page and all data pages.
+     */
+    void free() throws SQLException {
+        store.freePage(getPos(), false, null);
+        for (int i = 0; i < pageCount; i++) {
+            store.freePage(pageIds[i], false, null);
+        }
     }
 
 }

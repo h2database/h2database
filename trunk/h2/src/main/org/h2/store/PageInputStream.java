@@ -20,16 +20,18 @@ public class PageInputStream extends InputStream {
     private PageStore store;
     private final Trace trace;
     private int trunkNext;
+    private int dataPage;
     private PageStreamTrunk trunk;
     private PageStreamData data;
     private boolean endOfFile;
     private int remaining;
     private byte[] buffer = new byte[1];
 
-    public PageInputStream(PageStore store, int trunkPage) {
+    public PageInputStream(PageStore store, int trunkPage, int dataPage) {
         this.store = store;
         this.trace = store.getTrace();
         this.trunkNext = trunkPage;
+        this.dataPage = dataPage;
     }
 
     public int read() throws IOException {
@@ -87,16 +89,19 @@ public class PageInputStream extends InputStream {
         }
         int next;
         while (true) {
-            next = trunk.getNextPage();
-            if (next >= 0) {
-                break;
+            next = trunk.getNextDataPage();
+            if (dataPage == -1 || dataPage == next) {
+                if (next != 0) {
+                    break;
+                }
+                trunk = new PageStreamTrunk(store, trunkNext);
+                trunk.read();
             }
-            trunk = new PageStreamTrunk(store, trunkNext);
-            trunk.read();
         }
         if (trace.isDebugEnabled()) {
             trace.debug("pageIn.readPage " + next);
         }
+        dataPage = -1;
         data = new PageStreamData(store, next, 0);
         data.read();
         remaining = data.getLength();

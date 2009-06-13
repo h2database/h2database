@@ -450,7 +450,13 @@ public class BuildBase {
         return buff.toString();
     }
 
-    private String getSHA1(byte[] data) {
+    /**
+     * Generate the SHA1 checksum of a byte array.
+     *
+     * @param data the byte array
+     * @return the SHA1 checksum
+     */
+    protected String getSHA1(byte[] data) {
         MessageDigest md;
         try {
             md = MessageDigest.getInstance("SHA-1");

@@ -56,17 +56,6 @@ public class PageFreeList extends Record {
         return free + getPos();
     }
 
-    /**
-     * Allocate a page at the end of the file
-     *
-     * @param min the minimum page number
-     * @return the page id
-     */
-    int allocateAtEnd(int min) throws SQLException {
-        int pos = Math.max(min, getLastUsed() + 1);
-        return allocate(pos);
-    }
-
     int getLastUsed() {
         return used.getLastSetBit() + getPos();
     }
@@ -131,10 +120,6 @@ public class PageFreeList extends Record {
             data.writeByte((byte) used.getByte(i));
         }
         store.writePage(getPos(), data);
-    }
-
-    boolean isFull() {
-        return full;
     }
 
     /**

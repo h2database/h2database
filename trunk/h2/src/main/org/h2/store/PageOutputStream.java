@@ -20,7 +20,6 @@ public class PageOutputStream extends OutputStream {
 
     private PageStore store;
     private final Trace trace;
-    private int firstTrunkPageId;
     private int trunkPageId;
     private int trunkNext;
     private IntArray reservedPages = new IntArray();
@@ -42,7 +41,6 @@ public class PageOutputStream extends OutputStream {
         this.trace = store.getTrace();
         this.store = store;
         this.trunkPageId = trunkPage;
-        firstTrunkPageId = trunkPage;
     }
 
     /**
@@ -58,10 +56,6 @@ public class PageOutputStream extends OutputStream {
             int pages = PageStreamTrunk.getPagesAddressed(pageSize);
             // allocate x data pages
             int pagesToAllocate = pages;
-            // the first trunk page is already allocated
-            if (reservedPages.size() == 0) {
-                reservedPages.add(trunkPageId);
-            }
             int totalCapacity = pages * capacityPerPage;
             while (totalCapacity < minBuffer) {
                 pagesToAllocate += pagesToAllocate;
@@ -73,6 +67,7 @@ public class PageOutputStream extends OutputStream {
                 int page = store.allocatePage();
                 reservedPages.add(page);
             }
+            reserved += totalCapacity;
             if (data == null) {
                 initNextData();
             }
@@ -92,10 +87,7 @@ public class PageOutputStream extends OutputStream {
         int nextData = trunk == null ? -1 : trunk.getNextDataPage();
         if (nextData == -1) {
             int parent = trunkPageId;
-            if (trunkNext == 0) {
-                trunkPageId = reservedPages.get(0);
-                reservedPages.remove(0);
-            } else {
+            if (trunkNext != 0) {
                 trunkPageId = trunkNext;
             }
             int len = PageStreamTrunk.getPagesAddressed(store.getPageSize());
@@ -106,7 +98,7 @@ public class PageOutputStream extends OutputStream {
             trunkNext = reservedPages.get(len);
             trunk = new PageStreamTrunk(store, parent, trunkPageId, trunkNext, pageIds);
             trunk.write(null);
-            reservedPages.removeRange(0, len);
+            reservedPages.removeRange(0, len + 1);
             nextData = trunk.getNextDataPage();
         }
         data = new PageStreamData(store, nextData, trunk.getPos());
@@ -126,7 +118,7 @@ public class PageOutputStream extends OutputStream {
             while (len > 0) {
                 int l = data.write(b, off, len);
                 if (l < len) {
-                    data.write(null);
+                    storePage();
                     initNextData();
                 }
                 reserved -= l;
@@ -165,8 +157,20 @@ public class PageOutputStream extends OutputStream {
         store = null;
     }
 
-    public int getCurrentDataPageId() {
+    int getCurrentDataPageId() {
         return data.getPos();
+    }
+
+    /**
+     * Fill the data page with zeros and write it.
+     * This is required for a checkpoint.
+     */
+    void fillDataPage() throws SQLException {
+        if (trace.isDebugEnabled()) {
+            trace.debug("pageOut.storePage fill " + data.getPos());
+        }
+        data.write(null);
+        initNextData();
     }
 
 }

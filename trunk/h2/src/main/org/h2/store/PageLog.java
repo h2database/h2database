@@ -12,13 +12,16 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
 import org.h2.engine.Session;
 import org.h2.log.LogSystem;
+import org.h2.log.SessionState;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.util.BitField;
 import org.h2.util.IntIntHashMap;
+import org.h2.util.New;
 import org.h2.value.Value;
 
 /**
@@ -31,6 +34,11 @@ import org.h2.value.Value;
  * </ul>
  */
 public class PageLog {
+
+    /**
+     * No operation.
+     */
+    public static final int NOOP = 0;
 
     /**
      * An undo log entry.
@@ -56,6 +64,12 @@ public class PageLog {
      */
     public static final int REMOVE = 4;
 
+    /**
+     * Perform a checkpoint. The log id is incremented.
+     * Format: -
+     */
+    public static final int CHECKPOINT = 5;
+
     private final PageStore store;
     private int pos;
     private Trace trace;
@@ -71,6 +85,7 @@ public class PageLog {
     private int firstLogId;
     private BitField undo = new BitField();
     private IntIntHashMap logIdPageMap = new IntIntHashMap();
+    private HashMap<Integer, SessionState> sessionStates = New.hashMap();
 
     PageLog(PageStore store) {
         this.store = store;
@@ -86,11 +101,24 @@ public class PageLog {
      */
     void openForWriting(int firstTrunkPage) throws SQLException {
         trace.debug("log openForWriting firstPage:" + firstTrunkPage);
+        this.firstTrunkPage = firstTrunkPage;
         pageOut = new PageOutputStream(store, firstTrunkPage);
         pageOut.reserve(1);
         store.setLogFirstPage(firstTrunkPage, pageOut.getCurrentDataPageId());
         buffer = new ByteArrayOutputStream();
         out = new DataOutputStream(buffer);
+    }
+
+    /**
+     * Free up all pages allocated by the log.
+     */
+    void free() throws SQLException {
+        if (this.firstTrunkPage != 0) {
+            // first remove all old log pages
+            PageStreamTrunk t = new PageStreamTrunk(store, this.firstTrunkPage);
+            t.read();
+            t.free();
+        }
     }
 
     /**
@@ -140,7 +168,7 @@ public class PageLog {
                     int tableId = in.readInt();
                     Row row = readRow(in, data);
                     if (!undo) {
-                        if (store.isSessionCommitted(sessionId, logId, pos)) {
+                        if (isSessionCommitted(sessionId, logId, pos)) {
                             if (trace.isDebugEnabled()) {
                                 trace.debug("log redo " + (x == ADD ? "+" : "-") + " table:" + tableId + " " + row);
                             }
@@ -157,14 +185,22 @@ public class PageLog {
                         trace.debug("log commit " + sessionId + " pos:" + pos);
                     }
                     if (undo) {
-                        store.setLastCommitForSession(sessionId, logId, pos);
+                        setLastCommitForSession(sessionId, logId, pos);
                     }
+                } else  if (x == NOOP) {
+                    // nothing to do
+                } else if (x == CHECKPOINT) {
+                    logId++;
                 } else {
                     if (trace.isDebugEnabled()) {
                         trace.debug("log end");
                         break;
                     }
                 }
+            }
+            if (!undo) {
+                // TODO probably still required for 2 phase commit
+                sessionStates = New.hashMap();
             }
         } catch (EOFException e) {
             trace.debug("log recovery stopped: " + e.toString());
@@ -299,13 +335,19 @@ public class PageLog {
 
     /**
      * Switch to a new log id.
-     *
-     * @throws SQLException
      */
-    void checkpoint() {
+    void checkpoint() throws SQLException {
+        try {
+            out.write(CHECKPOINT);
+            flushOut();
+        } catch (IOException e) {
+            throw Message.convertIOException(e, null);
+        }
+        undo = new BitField();
+        logId++;
+        pageOut.fillDataPage();
         int currentDataPage = pageOut.getCurrentDataPageId();
         logIdPageMap.put(logId, currentDataPage);
-        logId++;
     }
 
     int getLogId() {
@@ -322,11 +364,11 @@ public class PageLog {
      * @param firstUncommittedLog the first log id to keep
      */
     void removeUntil(int firstUncommittedLog) throws SQLException {
-        if (firstUncommittedLog == logId) {
+        if (firstUncommittedLog == 0) {
             return;
         }
         int firstDataPageToKeep = logIdPageMap.get(firstUncommittedLog);
-
+        trace.debug("log.removeUntil " + firstDataPageToKeep);
         while (true) {
             // TODO keep trunk page in the cache
             PageStreamTrunk t = new PageStreamTrunk(store, firstTrunkPage);
@@ -335,10 +377,14 @@ public class PageLog {
                 store.setLogFirstPage(t.getPos(), firstDataPageToKeep);
                 break;
             }
+            firstTrunkPage = t.getNextTrunk();
             t.free();
         }
         while (firstLogId < firstUncommittedLog) {
-            logIdPageMap.remove(firstLogId);
+            if (firstLogId > 0) {
+                // there is no entry for log 0
+                logIdPageMap.remove(firstLogId);
+            }
             firstLogId++;
         }
     }
@@ -356,6 +402,54 @@ public class PageLog {
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
         }
+    }
+
+    /**
+     * Check if the session committed after than the given position.
+     *
+     * @param sessionId the session id
+     * @param logId the log file id
+     * @param pos the position in the log file
+     * @return true if it is committed
+     */
+    private boolean isSessionCommitted(int sessionId, int logId, int pos) {
+        SessionState state = sessionStates.get(sessionId);
+        if (state == null) {
+            return false;
+        }
+        return state.isCommitted(logId, pos);
+    }
+
+    /**
+     * Set the last commit record for a session.
+     *
+     * @param sessionId the session id
+     * @param logId the log file id
+     * @param pos the position in the log file
+     */
+    private void setLastCommitForSession(int sessionId, int logId, int pos) {
+        SessionState state = getOrAddSessionState(sessionId);
+        state.lastCommitLog = logId;
+        state.lastCommitPos = pos;
+        state.inDoubtTransaction = null;
+    }
+
+    /**
+     * Get the session state for this session. A new object is created if there
+     * is no session state yet.
+     *
+     * @param sessionId the session id
+     * @return the session state object
+     */
+    private SessionState getOrAddSessionState(int sessionId) {
+        Integer key = sessionId;
+        SessionState state = sessionStates.get(key);
+        if (state == null) {
+            state = new SessionState();
+            sessionStates.put(key, state);
+            state.sessionId = sessionId;
+        }
+        return state;
     }
 
 }

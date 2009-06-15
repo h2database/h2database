@@ -121,8 +121,8 @@ public class PageStore implements CacheWriter {
      */
     public static final int PAGE_SIZE_DEFAULT = 1024;
 
-    private static final int PAGE_ID_FREE_LIST_ROOT = 2;
-    private static final int PAGE_ID_META_ROOT = 3;
+    private static final int PAGE_ID_FREE_LIST_ROOT = 3;
+    private static final int PAGE_ID_META_ROOT = 4;
     private static final int PAGE_ID_LOG_TRUNK = 5;
 
     private static final int INCREMENT_PAGES = 128;
@@ -150,7 +150,6 @@ public class PageStore implements CacheWriter {
     private int freeListPagesPerList;
 
     private boolean recoveryRunning;
-    private HashMap<Integer, SessionState> sessionStates = New.hashMap();
 
     /**
      * The file size in bytes.
@@ -237,6 +236,8 @@ public class PageStore implements CacheWriter {
                 recover(true);
                 recover(false);
                 recoveryRunning = true;
+                log.free();
+                logFirstTrunkPage = allocatePage();
                 log.openForWriting(logFirstTrunkPage);
                 recoveryRunning = false;
                 checkpoint();
@@ -278,6 +279,7 @@ public class PageStore implements CacheWriter {
             for (CacheObject rec : list) {
                 writeBack(rec);
             }
+            log.checkpoint();
             switchLog();
             // TODO shrink file if required here
             // int pageCount = getFreeList().getLastUsed() + 1;
@@ -287,7 +289,7 @@ public class PageStore implements CacheWriter {
     }
 
     private void switchLog() throws SQLException {
-        trace.debug("switchLogIfPossible");
+        trace.debug("switchLog");
         if (database.isReadOnly()) {
             return;
         }
@@ -302,7 +304,12 @@ public class PageStore implements CacheWriter {
                 }
             }
         }
-        log.removeUntil(firstUncommittedLog);
+        try {
+            log.removeUntil(firstUncommittedLog);
+        } catch (SQLException e) {
+            int test;
+            e.printStackTrace();
+        }
     }
 
     private void readStaticHeader() throws SQLException {
@@ -480,15 +487,6 @@ public class PageStore implements CacheWriter {
         }
     }
 
-    /**
-     * Allocate a page.
-     *
-     * @return the page id
-     */
-    public int allocatePage() throws SQLException {
-        return allocatePage(false);
-    }
-
     private PageFreeList getFreeList(int i) throws SQLException {
         int p;
         if (i == 0) {
@@ -512,41 +510,31 @@ public class PageStore implements CacheWriter {
     }
 
     private void freePage(int pageId) throws SQLException {
-        if (pageId < 0) {
-            System.out.println("stop");
-        }
         PageFreeList list = getFreeList(pageId / freeListPagesPerList);
         list.free(pageId);
     }
 
     private void allocatePage(int pageId) throws SQLException {
         PageFreeList list = getFreeList(pageId / freeListPagesPerList);
-        list.allocate(pageId % freeListPagesPerList);
+        list.allocate(pageId);
     }
 
     /**
-     * Allocate a new page.
+     * Allocate a page.
      *
-     * @param atEnd allocate at the end of the file
      * @return the page id
      */
-    int allocatePage(boolean atEnd) throws SQLException {
+    public int allocatePage() throws SQLException {
         int pos;
-        if (atEnd) {
-            PageFreeList list = getFreeList(pageCount / freeListPagesPerList);
-            pos = list.getLastUsed() + 1;
-            list.allocate(pos);
-        } else {
-            // TODO could remember the first possible free list page
-            for (int i = 0;; i++) {
-                PageFreeList list = getFreeList(i);
-                if (!list.isFull()) {
-                    pos = list.allocate();
-                    break;
-                }
+        // TODO could remember the first possible free list page
+        for (int i = 0;; i++) {
+            PageFreeList list = getFreeList(i);
+            pos = list.allocate();
+            if (pos >= 0) {
+                break;
             }
         }
-        if (pos > pageCount) {
+        if (pos >= pageCount) {
             increaseFileSize(INCREMENT_PAGES);
         }
         return pos;
@@ -654,7 +642,10 @@ public class PageStore implements CacheWriter {
      * @param data the data
      */
     public void writePage(int pageId, DataPage data) throws SQLException {
-        file.seek(pageId << pageSizeShift);
+        if ((pageId << pageSizeShift) <= 0) {
+            System.out.println("stop");
+        }
+        file.seek(((long) pageId) << pageSizeShift);
         file.write(data.getBytes(), 0, pageSize);
     }
 
@@ -691,8 +682,6 @@ public class PageStore implements CacheWriter {
             log.recover(undo);
             if (!undo) {
                 switchLog();
-                int todoProbablyStillRequiredForTwoPhaseCommit;
-                sessionStates = New.hashMap();
             }
         } catch (SQLException e) {
             int test;
@@ -741,54 +730,6 @@ public class PageStore implements CacheWriter {
      */
     public void commit(Session session) throws SQLException {
         log.commit(session);
-    }
-
-    /**
-     * Get the session state for this session. A new object is created if there
-     * is no session state yet.
-     *
-     * @param sessionId the session id
-     * @return the session state object
-     */
-    private SessionState getOrAddSessionState(int sessionId) {
-        Integer key = sessionId;
-        SessionState state = sessionStates.get(key);
-        if (state == null) {
-            state = new SessionState();
-            sessionStates.put(key, state);
-            state.sessionId = sessionId;
-        }
-        return state;
-    }
-
-    /**
-     * Set the last commit record for a session.
-     *
-     * @param sessionId the session id
-     * @param logId the log file id
-     * @param pos the position in the log file
-     */
-    void setLastCommitForSession(int sessionId, int logId, int pos) {
-        SessionState state = getOrAddSessionState(sessionId);
-        state.lastCommitLog = logId;
-        state.lastCommitPos = pos;
-        state.inDoubtTransaction = null;
-    }
-
-    /**
-     * Check if the session contains uncommitted log entries at the given position.
-     *
-     * @param sessionId the session id
-     * @param logId the log file id
-     * @param pos the position in the log file
-     * @return true if this session contains an uncommitted transaction
-     */
-    boolean isSessionCommitted(int sessionId, int logId, int pos) {
-        SessionState state = sessionStates.get(sessionId);
-        if (state == null) {
-            return true;
-        }
-        return state.isCommitted(logId, pos);
     }
 
     /**

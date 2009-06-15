@@ -35,6 +35,10 @@ public class PageStreamData extends Record {
         setPos(pageId);
         this.store = store;
         this.trunk = trunk;
+        int test;
+        if(pageId==5) {
+            System.out.println("stop!");
+        }
     }
 
     /**

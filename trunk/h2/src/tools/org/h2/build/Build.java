@@ -261,17 +261,26 @@ public class Build extends BuildBase {
         }
         String buildDate = getStaticField("org.h2.engine.Constants", "BUILD_DATE");
         byte[] data = readFile(new File("../h2web/h2.zip"));
-        String sha1Zip = getSHA1(data), sha1Exe = "";
+        String sha1Zip = getSHA1(data), sha1Exe = null;
         writeFile(new File("../h2web/h2-" + buildDate + ".zip"), data);
         if (installer) {
             data = readFile(new File("../h2web/h2-setup.exe"));
             sha1Exe = getSHA1(data);
             writeFile(new File("../h2web/h2-setup-" + buildDate + ".exe"), data);
         }
-        String checksums = "<h1>SHA1 Checksums</h1>" +
-            "<h2>h2-" + buildDate + ".zip</h2><p>" + sha1Zip + "</p>" +
-            "<h2>h2-setup-" + buildDate + ".exe</h2><p>" + sha1Exe + "</p>";
-        writeFile(new File("../h2web/html/checksums.html"), checksums.getBytes());
+        updateChecksum("../h2web/html/download.html", sha1Zip, sha1Exe);
+        updateChecksum("../h2web/html/download_ja.html", sha1Zip, sha1Exe);
+    }
+
+    private void updateChecksum(String fileName, String sha1Zip, String sha1Exe) {
+        String checksums = new String(readFile(new File(fileName)));
+        checksums = replaceAll(checksums, "<!-- sha1Zip -->",
+                "(SHA1 checksum: " + sha1Zip + ")");
+        if (sha1Exe != null) {
+            checksums = replaceAll(checksums, "<!-- sha1Exe -->",
+                    "(SHA1 checksum: " + sha1Exe + ")");
+        }
+        writeFile(new File(fileName), checksums.getBytes());
     }
 
     /**

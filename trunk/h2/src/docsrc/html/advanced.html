@@ -213,8 +213,8 @@ when dropping the table, and when using SELECT ... FOR UPDATE. Connections
 only 'see' committed data, and own changes. That means, if connection A updates
 a row but doesn't commit this change yet, connection B will see the old value.
 Only when the change is committed, the new value is visible by other connections
-(read committed). If multiple connections concurrently try to update the same row, this
-database fails fast: a concurrent update exception is thrown.
+(read committed). If multiple connections concurrently try to update the same row, the
+database waits until it can apply the change, but at most until the lock timeout expires.
 </p>
 <p>
 To use the MVCC feature, append MVCC=TRUE to the database URL:

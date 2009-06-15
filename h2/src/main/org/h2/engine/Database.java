@@ -1213,7 +1213,11 @@ public class Database implements DataHandler {
         }
         if (pageStore != null) {
             if (checkpoint) {
-                pageStore.checkpoint();
+                try {
+                    pageStore.checkpoint();
+                } catch (Throwable e) {
+                    traceSystem.getTrace(Trace.DATABASE).error("close", e);
+                }
             }
         }
         reconnectModified(false);

@@ -295,8 +295,6 @@ java org.h2.test.TestAll timer
 
 test what is wrong with -Djava.net.preferIPv6Addresses=true
 
-download checksums (auto-verify every day)
-
 test case for running out of disk space (using a special file system)
 
 auto-build: prepare release

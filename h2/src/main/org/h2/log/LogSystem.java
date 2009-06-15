@@ -469,6 +469,7 @@ public class LogSystem {
         synchronized (database) {
             if (pageStore != null) {
                 pageStore.commit(session);
+                session.setAllCommitted();
             }
             if (closed) {
                 return;

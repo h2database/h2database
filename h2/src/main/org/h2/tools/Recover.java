@@ -841,6 +841,10 @@ public class Recover extends Tool implements DataHandler {
             } else if (x == PageLog.COMMIT) {
                 int sessionId = in.readInt();
                 writer.println("-- commit " + sessionId);
+            } else if (x == PageLog.NOOP) {
+                // nothing to do
+            } else if (x == PageLog.CHECKPOINT) {
+                writer.println("-- checkpoint");
             } else {
                 writer.println("-- end " + x);
                 break;

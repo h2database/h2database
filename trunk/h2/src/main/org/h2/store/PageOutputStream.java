@@ -169,6 +169,7 @@ public class PageOutputStream extends OutputStream {
         if (trace.isDebugEnabled()) {
             trace.debug("pageOut.storePage fill " + data.getPos());
         }
+        reserved -= data.getRemaining();
         data.write(null);
         initNextData();
     }

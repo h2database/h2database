@@ -147,6 +147,10 @@ abstract class PageBtree extends Record {
      * @return the row
      */
     SearchRow getRow(int at) throws SQLException {
+int test;
+if (at < 0) {
+    System.out.println("stop");
+}
         SearchRow row = rows[at];
         if (row == null) {
             row = index.readRow(data, offsets[at]);

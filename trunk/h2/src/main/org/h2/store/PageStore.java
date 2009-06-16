@@ -20,7 +20,6 @@ import org.h2.index.IndexType;
 import org.h2.index.PageBtreeIndex;
 import org.h2.index.PageScanIndex;
 import org.h2.log.LogSystem;
-import org.h2.log.SessionState;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
@@ -67,9 +66,8 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
-    // TODO currently working on PageLog.removeUntil
-    // TODO unlimited number of log streams (TestPageStoreDb)
-    // TODO check if PageLog.reservePages is required - yes it is - change it
+    // TODO currently working on PageBtreeNode Wide indexes
+    // TODO implement redo log in Recover tool
     // TODO PageStore.openMetaIndex (desc and nulls first / last)
 
     // TODO btree index with fixed size values doesn't need offset and so on
@@ -233,14 +231,15 @@ public class PageStore implements CacheWriter {
                 readVariableHeader();
                 log = new PageLog(this);
                 log.openForReading(logFirstTrunkPage, logFirstDataPage);
-                recover(true);
-                recover(false);
-                recoveryRunning = true;
-                log.free();
-                logFirstTrunkPage = allocatePage();
-                log.openForWriting(logFirstTrunkPage);
-                recoveryRunning = false;
-                checkpoint();
+                recover();
+                if (!database.isReadOnly()) {
+                    recoveryRunning = true;
+                    log.free();
+                    logFirstTrunkPage = allocatePage();
+                    log.openForWriting(logFirstTrunkPage);
+                    recoveryRunning = false;
+                    checkpoint();
+                }
             } else {
                 // new
                 setPageSize(PAGE_SIZE_DEFAULT);
@@ -476,7 +475,6 @@ public class PageStore implements CacheWriter {
             record.setChanged(true);
             int pos = record.getPos();
             allocatePage(pos);
-            // getFreeList().allocate(pos);
             cache.update(pos, record);
             if (logUndo && !recoveryRunning) {
                 if (old == null) {
@@ -514,7 +512,7 @@ public class PageStore implements CacheWriter {
         list.free(pageId);
     }
 
-    private void allocatePage(int pageId) throws SQLException {
+    void allocatePage(int pageId) throws SQLException {
         PageFreeList list = getFreeList(pageId / freeListPagesPerList);
         list.allocate(pageId);
     }
@@ -642,9 +640,6 @@ public class PageStore implements CacheWriter {
      * @param data the data
      */
     public void writePage(int pageId, DataPage data) throws SQLException {
-        if ((pageId << pageSizeShift) <= 0) {
-            System.out.println("stop");
-        }
         file.seek(((long) pageId) << pageSizeShift);
         file.write(data.getBytes(), 0, pageSize);
     }
@@ -663,26 +658,21 @@ public class PageStore implements CacheWriter {
     }
 
     /**
-     * Run one recovery stage. There are two recovery stages: first (undo is
-     * true) only the undo steps are run (restoring the state before the last
-     * checkpoint). In the second stage (undo is false) the committed operations
-     * are re-applied.
-     *
-     * @param undo true if the undo step should be run
+     * Run one recovery stage. There are three recovery stages: 0: only the undo
+     * steps are run (restoring the state before the last checkpoint). 1: the
+     * pages that are used by the transaction log are allocated. 2: the
+     * committed operations are re-applied.
      */
-    private void recover(boolean undo) throws SQLException {
-        trace.debug("log recover #" + undo);
-
+    private void recover() throws SQLException {
+        trace.debug("log recover");
         try {
             recoveryRunning = true;
-            if (!undo) {
-                openMetaIndex();
-                readMetaData();
-            }
-            log.recover(undo);
-            if (!undo) {
-                switchLog();
-            }
+            log.recover(PageLog.RECOVERY_STAGE_UNDO);
+            log.recover(PageLog.RECOVERY_STAGE_ALLOCATE);
+            openMetaIndex();
+            readMetaData();
+            log.recover(PageLog.RECOVERY_STAGE_REDO);
+            switchLog();
         } catch (SQLException e) {
             int test;
             e.printStackTrace();
@@ -694,19 +684,17 @@ public class PageStore implements CacheWriter {
         } finally {
             recoveryRunning = false;
         }
-        if (!undo) {
-            PageScanIndex index = (PageScanIndex) metaObjects.get(0);
-            if (index == null) {
-                systemTableHeadPos = Index.EMPTY_HEAD;
-            } else {
-                systemTableHeadPos = index.getHeadPos();
-            }
-            for (Index openIndex : metaObjects.values()) {
-                openIndex.close(database.getSystemSession());
-            }
-            metaObjects = null;
-            trace.debug("log recover done");
+        PageScanIndex index = (PageScanIndex) metaObjects.get(0);
+        if (index == null) {
+            systemTableHeadPos = Index.EMPTY_HEAD;
+        } else {
+            systemTableHeadPos = index.getHeadPos();
         }
+        for (Index openIndex : metaObjects.values()) {
+            openIndex.close(database.getSystemSession());
+        }
+        metaObjects = null;
+        trace.debug("log recover done");
     }
 
     /**

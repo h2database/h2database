@@ -852,9 +852,10 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void setStorage(int storageId) {
+    private String setStorage(int storageId) {
         this.storageId = storageId;
-        this.storageName = String.valueOf(storageId).replace('-', 'M');
+        this.storageName = "O_" + String.valueOf(storageId).replace('-', 'M');
+        return storageName;
     }
 
     /**
@@ -1070,7 +1071,7 @@ public class Recover extends Tool implements DataHandler {
 
     private void writeRow(PrintWriter writer, DataPage s, Value[] data) {
         StringBuilder sb = new StringBuilder();
-        sb.append("INSERT INTO O_" + storageName + " VALUES(");
+        sb.append("INSERT INTO " + storageName + " VALUES(");
         for (valueId = 0; valueId < recordLength; valueId++) {
             try {
                 Value v = s.readValue();
@@ -1224,11 +1225,13 @@ public class Recover extends Tool implements DataHandler {
             Integer objectId = entry.getKey();
             String name = entry.getValue();
             if (objectIdSet.contains(objectId)) {
-                writer.println("INSERT INTO " + name + " SELECT * FROM O_" + objectId + ";");
+                setStorage(objectId);
+                writer.println("INSERT INTO " + name + " SELECT * FROM " + storageName + ";");
             }
         }
         for (Integer objectId : objectIdSet) {
-            writer.println("DROP TABLE O_" + objectId + ";");
+            setStorage(objectId);
+            writer.println("DROP TABLE " + storageName + ";");
         }
         writer.println("DROP ALIAS READ_CLOB;");
         writer.println("DROP ALIAS READ_BLOB;");
@@ -1244,7 +1247,7 @@ public class Recover extends Tool implements DataHandler {
     private void createTemporaryTable(PrintWriter writer) {
         if (!objectIdSet.contains(storageId)) {
             objectIdSet.add(storageId);
-            StatementBuilder buff = new StatementBuilder("CREATE TABLE O_");
+            StatementBuilder buff = new StatementBuilder("CREATE TABLE ");
             buff.append(storageName).append('(');
             for (int i = 0; i < recordLength; i++) {
                 buff.appendExceptFirst(", ");

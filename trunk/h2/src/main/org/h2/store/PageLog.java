@@ -36,6 +36,21 @@ import org.h2.value.Value;
 public class PageLog {
 
     /**
+     * The recovery stage to undo changes (re-apply the backup).
+     */
+    static final int RECOVERY_STAGE_UNDO = 0;
+
+    /**
+     * The recovery stage to allocate pages used by the transaction log.
+     */
+    static final int RECOVERY_STAGE_ALLOCATE = 1;
+
+    /**
+     * The recovery stage to redo operations.
+     */
+    static final int RECOVERY_STAGE_REDO = 2;
+
+    /**
      * No operation.
      */
     public static final int NOOP = 0;
@@ -133,15 +148,21 @@ public class PageLog {
     }
 
     /**
-     * Run the recovery process. There are two recovery stages: first only the
-     * undo steps are run (restoring the state before the last checkpoint). In
-     * the second stage the committed operations are re-applied.
+     * Run one recovery stage. There are three recovery stages: 0: only the undo
+     * steps are run (restoring the state before the last checkpoint). 1: the
+     * pages that are used by the transaction log are allocated. 2: the
+     * committed operations are re-applied.
      *
-     * @param undo true if the undo step should be run
+     * @param stage the recovery stage
      */
-    void recover(boolean undo) throws SQLException {
+    void recover(int stage) throws SQLException {
         if (trace.isDebugEnabled()) {
-            trace.debug("log recover undo:" + undo);
+            trace.debug("log recover stage:" + stage);
+        }
+        if (stage == RECOVERY_STAGE_ALLOCATE) {
+            PageInputStream in = new PageInputStream(store, firstTrunkPage, firstDataPage);
+            in.allocateAllPages();
+            return;
         }
         in = new DataInputStream(new PageInputStream(store, firstTrunkPage, firstDataPage));
         int logId = 0;
@@ -157,7 +178,7 @@ public class PageLog {
                 if (x == UNDO) {
                     int pageId = in.readInt();
                     in.readFully(data.getBytes(), 0, store.getPageSize());
-                    if (undo) {
+                    if (stage == RECOVERY_STAGE_UNDO) {
                         if (trace.isDebugEnabled()) {
                             trace.debug("log undo " + pageId);
                         }
@@ -167,7 +188,7 @@ public class PageLog {
                     int sessionId = in.readInt();
                     int tableId = in.readInt();
                     Row row = readRow(in, data);
-                    if (!undo) {
+                    if (stage == RECOVERY_STAGE_REDO) {
                         if (isSessionCommitted(sessionId, logId, pos)) {
                             if (trace.isDebugEnabled()) {
                                 trace.debug("log redo " + (x == ADD ? "+" : "-") + " table:" + tableId + " " + row);
@@ -184,7 +205,7 @@ public class PageLog {
                     if (trace.isDebugEnabled()) {
                         trace.debug("log commit " + sessionId + " pos:" + pos);
                     }
-                    if (undo) {
+                    if (stage == RECOVERY_STAGE_UNDO) {
                         setLastCommitForSession(sessionId, logId, pos);
                     }
                 } else  if (x == NOOP) {
@@ -198,7 +219,7 @@ public class PageLog {
                     }
                 }
             }
-            if (!undo) {
+            if (stage == RECOVERY_STAGE_REDO) {
                 // TODO probably still required for 2 phase commit
                 sessionStates = New.hashMap();
             }

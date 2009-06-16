@@ -60,8 +60,11 @@ public class PageBtreeIndex extends BaseIndex {
             this.headPos = headPos;
             PageBtree root = getPage(headPos);
             rowCount = root.getRowCount();
-            // could have been created before, but never committed
-            store.updateRecord(root, false, null);
+            if (!database.isReadOnly()) {
+                // could have been created before, but never committed
+                // TODO test if really required
+                store.updateRecord(root, false, null);
+            }
             int reuseKeysIfManyDeleted;
         }
         if (trace.isDebugEnabled()) {
@@ -307,6 +310,10 @@ public class PageBtreeIndex extends BaseIndex {
      * @param row the row to write
      */
     void writeRow(DataPage data, int offset, SearchRow row) throws SQLException {
+if (offset < 0) {
+    int test;
+    System.out.println("stop");
+}
         data.setPos(offset);
         data.writeInt(row.getPos());
         for (Column col : columns) {

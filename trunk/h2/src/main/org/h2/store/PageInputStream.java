@@ -107,6 +107,9 @@ public class PageInputStream extends InputStream {
         remaining = data.getLength();
     }
 
+    /**
+     * Set all pages as 'allocated' in the page store.
+     */
     public void allocateAllPages() throws SQLException {
         int trunkPage = trunkNext;
         while (trunkPage != 0) {

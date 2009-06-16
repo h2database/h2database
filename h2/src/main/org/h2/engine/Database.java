@@ -1087,7 +1087,9 @@ public class Database implements DataHandler {
             // another connection may have written something - don't write
             try {
                 // make sure the log doesn't try to write
-                log.setReadOnly(true);
+                if (log != null) {
+                    log.setReadOnly(true);
+                }
                 closeOpenFilesAndUnlock(false);
             } catch (SQLException e) {
                 // ignore
@@ -2284,7 +2286,7 @@ public class Database implements DataHandler {
      * the .lock.db file.
      */
     public void checkpointIfRequired() throws SQLException {
-        if (fileLockMethod != FileLock.LOCK_SERIALIZED || readOnly || !reconnectChangePending) {
+        if (fileLockMethod != FileLock.LOCK_SERIALIZED || readOnly || !reconnectChangePending || closing) {
             return;
         }
         long now = System.currentTimeMillis();

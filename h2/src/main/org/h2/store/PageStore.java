@@ -512,6 +512,11 @@ public class PageStore implements CacheWriter {
         list.free(pageId);
     }
 
+    /**
+     * Set the bit of an already allocated page.
+     *
+     * @param pageId the page to allocate
+     */
     void allocatePage(int pageId) throws SQLException {
         PageFreeList list = getFreeList(pageId / freeListPagesPerList);
         list.allocate(pageId);

@@ -35,10 +35,6 @@ public class PageStreamData extends Record {
         setPos(pageId);
         this.store = store;
         this.trunk = trunk;
-        int test;
-        if(pageId==5) {
-            System.out.println("stop!");
-        }
     }
 
     /**
@@ -115,6 +111,15 @@ public class PageStreamData extends Record {
      */
     void read(byte[] buff, int off, int len) {
         data.read(buff, off, len);
+    }
+
+    /**
+     * Get the number of remaining data bytes of this page.
+     *
+     * @return the remaining byte count
+     */
+    int getRemaining() {
+        return remaining;
     }
 
 }

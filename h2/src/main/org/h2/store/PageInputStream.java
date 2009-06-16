@@ -107,4 +107,24 @@ public class PageInputStream extends InputStream {
         remaining = data.getLength();
     }
 
+    public void allocateAllPages() throws SQLException {
+        int trunkPage = trunkNext;
+        while (trunkPage != 0) {
+            store.allocatePage(trunkPage);
+            PageStreamTrunk t = new PageStreamTrunk(store, trunkPage);
+            t.read();
+            while (true) {
+                int n = t.getNextDataPage();
+                if (n == -1) {
+                    break;
+                }
+                store.allocatePage(n);
+            }
+            trunkPage = t.getNextTrunk();
+            if (trunkPage != 0) {
+                break;
+            }
+        }
+    }
+
 }

@@ -445,12 +445,20 @@ public class TestTools extends TestBase {
     private void testServer() throws SQLException {
         Connection conn;
         deleteDb("test");
-        Server server = Server.createTcpServer(new String[] { "-baseDir", baseDir, "-tcpPort", "9192", "-tcpAllowOthers" }).start();
+        Server server = Server.createTcpServer(
+                new String[] {
+                        "-baseDir", baseDir,
+                        "-tcpPort", "9192",
+                        "-tcpAllowOthers" }).start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         conn.close();
         server.stop();
         Server.createTcpServer(
-                new String[] { "-ifExists", "-tcpPassword", "abc", "-baseDir", baseDir, "-tcpPort", "9192" }).start();
+                new String[] {
+                        "-ifExists",
+                        "-tcpPassword", "abc",
+                        "-baseDir", baseDir,
+                        "-tcpPort", "9192" }).start();
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
             fail("should not be able to create new db");

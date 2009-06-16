@@ -451,6 +451,9 @@ public class Database implements DataHandler {
      * @return true if one exists
      */
     public static boolean exists(String name) {
+        if (SysProperties.PAGE_STORE) {
+            return FileUtils.exists(name + Constants.SUFFIX_PAGE_FILE);
+        }
         return FileUtils.exists(name + Constants.SUFFIX_DATA_FILE);
     }
 

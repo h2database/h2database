@@ -69,7 +69,10 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             lastKey = root.getLastKey();
             rowCount = root.getRowCount();
             // could have been created before, but never committed
-            store.updateRecord(root, false, null);
+            if (!database.isReadOnly()) {
+                // TODO check if really required
+                store.updateRecord(root, false, null);
+            }
             int reuseKeysIfManyDeleted;
         }
         if (trace.isDebugEnabled()) {

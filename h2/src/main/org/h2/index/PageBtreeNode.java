@@ -7,6 +7,7 @@
 package org.h2.index;
 
 import java.sql.SQLException;
+import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.result.SearchRow;
 import org.h2.store.DataPage;
@@ -73,6 +74,9 @@ class PageBtreeNode extends PageBtree {
             return (entryCount / 2) + 1;
         }
         int offset = last - rowLength;
+        if(offset < 0) {
+            throw Message.getSQLException(ErrorCode.FEATURE_NOT_SUPPORTED_1, "Wide indexes");
+        }
         int[] newOffsets = new int[entryCount + 1];
         SearchRow[] newRows = new SearchRow[entryCount + 1];
         int[] newChildPageIds = new int[entryCount + 2];
@@ -105,7 +109,7 @@ class PageBtreeNode extends PageBtree {
 
     int addRow(SearchRow row) throws SQLException {
         while (true) {
-            int x = find(row, false, true);
+            int x = find(row, false, false);
             PageBtree page = index.getPage(childPageIds[x]);
             int splitPoint = page.addRow(row);
             if (splitPoint == 0) {
@@ -323,7 +327,8 @@ class PageBtreeNode extends PageBtree {
                 return;
             }
             PageBtreeNode next = (PageBtreeNode) index.getPage(parentPageId);
-            next.nextPage(cursor, getRow(entryCount - 1));
+            SearchRow r = entryCount == 0 ? row : getRow(entryCount - 1);
+            next.nextPage(cursor, r);
             return;
         }
         PageBtree page = index.getPage(childPageIds[i]);

@@ -477,7 +477,7 @@ public class SysProperties {
      * notify a change in the .lock.db file, then wait twice this many
      * milliseconds before updating the database.
      */
-    public static final int RECONNECT_CHECK_DELAY = getIntSetting("h2.reconnectCheckDelay", 100);
+    public static final int RECONNECT_CHECK_DELAY = getIntSetting("h2.reconnectCheckDelay", 200);
 
     /**
      * System property <code>h2.redoBufferSize</code> (default: 262144).<br />

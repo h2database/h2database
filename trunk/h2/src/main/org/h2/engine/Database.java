@@ -165,8 +165,8 @@ public class Database implements DataHandler {
     private PageStore pageStore;
 
     private Properties reconnectLastLock;
-    private long reconnectCheckNext;
-    private boolean reconnectChangePending;
+    private volatile long reconnectCheckNext;
+    private volatile boolean reconnectChangePending;
 
     public Database(String name, ConnectionInfo ci, String cipher) throws SQLException {
         this.compareMode = CompareMode.getInstance(null, 0);
@@ -344,6 +344,9 @@ public class Database implements DataHandler {
             String pos = log == null ? null : log.getWritePos();
             lock.setProperty("logPos", pos);
             lock.setProperty("changePending", pending ? "true" : null);
+            // ensure that the writer thread will 
+            // not reset the flag before we are done
+            reconnectCheckNext = System.currentTimeMillis() + 2 * SysProperties.RECONNECT_CHECK_DELAY;
             old = lock.save();
 
             if (pending) {
@@ -1802,6 +1805,14 @@ public class Database implements DataHandler {
      * @param fileName the name of the file to be deleted
      */
     public void deleteLogFileLater(String fileName) throws SQLException {
+        if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
+            // need to truncate the file, because another process could keep it open
+            try {
+                FileSystem.getInstance(fileName).openFileObject(fileName, "rw").setFileLength(0);
+            } catch (IOException e) {
+                throw Message.convertIOException(e, "could not truncate " + fileName);
+            }
+        }
         if (writer != null) {
             writer.deleteLogFileLater(fileName);
         } else {
@@ -2289,12 +2300,14 @@ public class Database implements DataHandler {
         if (fileLockMethod != FileLock.LOCK_SERIALIZED || readOnly || !reconnectChangePending || closing) {
             return;
         }
-        long now = System.currentTimeMillis();
-        if (now > reconnectCheckNext + SysProperties.RECONNECT_CHECK_DELAY) {
-            getTrace().debug("checkpoint");
-            flushIndexes(0);
-            checkpoint();
-            reconnectModified(false);
+        synchronized (this) {
+            long now = System.currentTimeMillis();
+            if (now > reconnectCheckNext + SysProperties.RECONNECT_CHECK_DELAY) {
+                getTrace().debug("checkpoint");
+                flushIndexes(0);
+                checkpoint();
+                reconnectModified(false);
+            }
         }
     }
 

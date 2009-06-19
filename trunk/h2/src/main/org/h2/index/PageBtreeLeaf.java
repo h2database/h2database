@@ -14,30 +14,30 @@ import org.h2.store.DataPage;
 import org.h2.store.PageStore;
 
 /**
- * A leaf page that contains index data.
+ * A b-tree leaf page that contains index data.
  * Format:
  * <ul><li>0-3: parent page id (0 for root)
  * </li><li>4-4: page type
  * </li><li>5-8: table id
  * </li><li>9-10: entry count
- * </li><li>overflow: 11-14: the row key
  * </li><li>11-: list of key / offset pairs (4 bytes key, 2 bytes offset)
  * </li><li>data
  * </li></ul>
  */
 class PageBtreeLeaf extends PageBtree {
 
-    private static final int KEY_OFFSET_PAIR_LENGTH = 6;
-    private static final int KEY_OFFSET_PAIR_START = 11;
+    private static final int OFFSET_LENGTH = 2;
+    private static final int OFFSET_START = 11;
 
     PageBtreeLeaf(PageBtreeIndex index, int pageId, int parentPageId, DataPage data) {
         super(index, pageId, parentPageId, data);
-        start = KEY_OFFSET_PAIR_START;
+        start = OFFSET_START;
     }
 
     void read() throws SQLException {
         data.setPos(4);
-        data.readByte();
+        int type = data.readByte();
+        onlyPosition = (type & Page.FLAG_LAST) == 0;
         int tableId = data.readInt();
         if (tableId != index.getId()) {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1,
@@ -60,13 +60,17 @@ class PageBtreeLeaf extends PageBtree {
      * @param row the now to add
      * @return the split point of this page, or 0 if no split is required
      */
-    int addRow(SearchRow row) throws SQLException {
-        int rowLength = index.getRowSize(data, row);
+    int addRowTry(SearchRow row) throws SQLException {
+        int rowLength = index.getRowSize(data, row, onlyPosition);
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
-        if (entryCount > 0 && last - rowLength < start + KEY_OFFSET_PAIR_LENGTH) {
-            int todoSplitAtLastInsertionPoint;
-            return (entryCount / 2) + 1;
+        if (last - rowLength < start + OFFSET_LENGTH) {
+            if (entryCount > 0) {
+                int todoSplitAtLastInsertionPoint;
+                return (entryCount / 2) + 1;
+            }
+            onlyPosition = true;
+            rowLength = index.getRowSize(data, row, onlyPosition);
         }
         written = false;
         int offset = last - rowLength;
@@ -89,23 +93,12 @@ class PageBtreeLeaf extends PageBtree {
             }
         }
         entryCount++;
-        start += KEY_OFFSET_PAIR_LENGTH;
+        start += OFFSET_LENGTH;
         newOffsets[x] = offset;
         newRows[x] = row;
         offsets = newOffsets;
         rows = newRows;
         index.getPageStore().updateRecord(this, true, data);
-        if (offset < start) {
-            if (entryCount > 1) {
-                Message.throwInternalError();
-            }
-            // need to write the overflow page id
-            start += 4;
-            int remaining = rowLength - (pageSize - start);
-            // fix offset
-            offset = start;
-            offsets[x] = offset;
-        }
         return 0;
     }
 
@@ -126,7 +119,7 @@ class PageBtreeLeaf extends PageBtree {
             newOffsets[j] = offsets[j + 1] + rowLength;
         }
         System.arraycopy(rows, i + 1, newRows, i, entryCount - i);
-        start -= KEY_OFFSET_PAIR_LENGTH;
+        start -= OFFSET_LENGTH;
         offsets = newOffsets;
         rows = newRows;
     }
@@ -139,7 +132,7 @@ class PageBtreeLeaf extends PageBtree {
         int newPageId = index.getPageStore().allocatePage();
         PageBtreeLeaf p2 = new PageBtreeLeaf(index, newPageId, parentPageId, index.getPageStore().createDataPage());
         for (int i = splitPoint; i < entryCount;) {
-            p2.addRow(getRow(splitPoint));
+            p2.addRowTry(getRow(splitPoint));
             removeRow(splitPoint);
         }
         return p2;
@@ -190,14 +183,14 @@ class PageBtreeLeaf extends PageBtree {
         readAllRows();
         data.reset();
         data.writeInt(parentPageId);
-        data.writeByte((byte) Page.TYPE_BTREE_LEAF);
+        data.writeByte((byte) (Page.TYPE_BTREE_LEAF | (onlyPosition ? 0 : Page.FLAG_LAST)));
         data.writeInt(index.getId());
         data.writeShortInt(entryCount);
         for (int i = 0; i < entryCount; i++) {
             data.writeShortInt(offsets[i]);
         }
         for (int i = 0; i < entryCount; i++) {
-            index.writeRow(data, offsets[i], rows[i]);
+            index.writeRow(data, offsets[i], rows[i], onlyPosition);
         }
         written = true;
     }
@@ -234,7 +227,7 @@ class PageBtreeLeaf extends PageBtree {
             return;
         }
         PageBtreeNode next = (PageBtreeNode) index.getPage(parentPageId);
-        next.nextPage(cursor, getRow(0));
+        next.nextPage(cursor, getPos());
     }
 
     public String toString() {

@@ -77,7 +77,7 @@ public class PageBtreeCursor implements Cursor {
         return true;
     }
 
-    public boolean previous() throws SQLException {
+    public boolean previous() {
         i--;
         int todo;
         return true;

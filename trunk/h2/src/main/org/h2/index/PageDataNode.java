@@ -77,24 +77,24 @@ class PageDataNode extends PageData {
         entryCount++;
     }
 
-    int addRow(Row row) throws SQLException {
+    int addRowTry(Row row) throws SQLException {
         while (true) {
             int x = find(row.getPos());
             PageData page = index.getPage(childPageIds[x]);
-            int splitPoint = page.addRow(row);
+            int splitPoint = page.addRowTry(row);
             if (splitPoint == 0) {
                 break;
+            }
+            int maxEntries = (index.getPageStore().getPageSize() - ENTRY_START) / ENTRY_LENGTH;
+            if (entryCount >= maxEntries) {
+                int todoSplitAtLastInsertionPoint;
+                return entryCount / 2;
             }
             int pivot = page.getKey(splitPoint - 1);
             PageData page2 = page.split(splitPoint);
             index.getPageStore().updateRecord(page, true, page.data);
             index.getPageStore().updateRecord(page2, true, page2.data);
             addChild(x, page2.getPageId(), pivot);
-            int maxEntries = (index.getPageStore().getPageSize() - ENTRY_START) / ENTRY_LENGTH;
-            if (entryCount >= maxEntries) {
-                int todoSplitAtLastInsertionPoint;
-                return entryCount / 2;
-            }
             index.getPageStore().updateRecord(this, true, data);
         }
         updateRowCount(1);
@@ -205,10 +205,10 @@ class PageDataNode extends PageData {
         return false;
     }
 
-    Row getRow(Session session, int key) throws SQLException {
+    Row getRow(int key) throws SQLException {
         int at = find(key);
         PageData page = index.getPage(childPageIds[at]);
-        return page.getRow(session, key);
+        return page.getRow(key);
     }
 
     int getRowCount() throws SQLException {

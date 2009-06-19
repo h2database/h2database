@@ -8,7 +8,6 @@ package org.h2.index;
 
 import java.sql.SQLException;
 
-import org.h2.engine.Session;
 import org.h2.result.Row;
 import org.h2.store.DataPage;
 import org.h2.store.Record;
@@ -97,13 +96,13 @@ abstract class PageData extends Record {
     abstract void read() throws SQLException;
 
     /**
-     * Add a row.
+     * Try to add a row.
      *
      * @param row the row
      * @return 0 if successful, or the split position if the page needs to be
      *         split
      */
-    abstract int addRow(Row row) throws SQLException;
+    abstract int addRowTry(Row row) throws SQLException;
 
     /**
      * Get a cursor.
@@ -188,6 +187,6 @@ abstract class PageData extends Record {
      * @param key the key
      * @return the row
      */
-    abstract Row getRow(Session session, int key) throws SQLException;
+    abstract Row getRow(int key) throws SQLException;
 
 }

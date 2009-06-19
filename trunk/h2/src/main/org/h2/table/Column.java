@@ -629,4 +629,8 @@ public class Column {
         return primaryKey;
     }
 
+    public String toString() {
+        return name;
+    }
+
 }

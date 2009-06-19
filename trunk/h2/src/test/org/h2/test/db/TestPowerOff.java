@@ -178,14 +178,16 @@ public class TestPowerOff extends TestBase {
         } catch (SQLException e) {
             assertKnownException(e);
         }
-        boolean deleted = false;
-        for (String fileName : FileLister.getDatabaseFiles(dir, dbName, false)) {
-            if (fileName.endsWith(Constants.SUFFIX_INDEX_FILE)) {
-                FileUtils.delete(fileName);
-                deleted = true;
+        if (!SysProperties.PAGE_STORE) {
+            boolean deleted = false;
+            for (String fileName : FileLister.getDatabaseFiles(dir, dbName, false)) {
+                if (fileName.endsWith(Constants.SUFFIX_INDEX_FILE)) {
+                    FileUtils.delete(fileName);
+                    deleted = true;
+                }
             }
+            assertTrue(deleted);
         }
-        assertTrue(deleted);
         conn = getConnection(url);
         conn.close();
     }

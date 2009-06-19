@@ -5,10 +5,9 @@
  * Initial Developer: H2 Group
  */
 package org.h2.index;
-import java.sql.SQLException;
 
+import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
-import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.store.DataPage;
@@ -89,7 +88,7 @@ class PageDataLeaf extends PageData {
      * @param row the now to add
      * @return the split point of this page, or 0 if no split is required
      */
-    int addRow(Row row) throws SQLException {
+    int addRowTry(Row row) throws SQLException {
         int rowLength = row.getByteCount(data);
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
@@ -245,7 +244,7 @@ class PageDataLeaf extends PageData {
         int newPageId = index.getPageStore().allocatePage();
         PageDataLeaf p2 = new PageDataLeaf(index, newPageId, parentPageId, index.getPageStore().createDataPage());
         for (int i = splitPoint; i < entryCount;) {
-            p2.addRow(getRowAt(splitPoint));
+            p2.addRowTry(getRowAt(splitPoint));
             removeRow(splitPoint);
         }
         return p2;
@@ -297,7 +296,7 @@ class PageDataLeaf extends PageData {
         return false;
     }
 
-    Row getRow(Session session, int key) throws SQLException {
+    Row getRow(int key) throws SQLException {
         int index = find(key);
         return getRowAt(index);
     }

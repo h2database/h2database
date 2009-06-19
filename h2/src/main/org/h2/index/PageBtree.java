@@ -57,6 +57,11 @@ abstract class PageBtree extends Record {
     protected int start;
 
     /**
+     * If only the position of the row is stored in the page
+     */
+    protected boolean onlyPosition;
+
+    /**
      * If the page was already written to the buffer.
      */
     protected boolean written;
@@ -123,13 +128,13 @@ abstract class PageBtree extends Record {
     abstract void read() throws SQLException;
 
     /**
-     * Add a row.
+     * Try to add a row.
      *
      * @param row the row
      * @return 0 if successful, or the split position if the page needs to be
      *         split
      */
-    abstract int addRow(SearchRow row) throws SQLException;
+    abstract int addRowTry(SearchRow row) throws SQLException;
 
     /**
      * Find the first row.
@@ -147,13 +152,9 @@ abstract class PageBtree extends Record {
      * @return the row
      */
     SearchRow getRow(int at) throws SQLException {
-int test;
-if (at < 0) {
-    System.out.println("stop");
-}
         SearchRow row = rows[at];
         if (row == null) {
-            row = index.readRow(data, offsets[at]);
+            row = index.readRow(data, offsets[at], onlyPosition);
             rows[at] = row;
         }
         return row;

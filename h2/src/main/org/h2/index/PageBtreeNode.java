@@ -7,13 +7,13 @@
 package org.h2.index;
 
 import java.sql.SQLException;
-import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.result.SearchRow;
 import org.h2.store.DataPage;
 
 /**
- * A leaf page that contains index data.
+ * A b-tree node page that contains index data.
+ * Data is organized as follows: [leaf 0] (largest value of leaf 0) [leaf 1]
  * Format:
  * <ul><li>0-3: parent page id
  * </li><li>4-4: page type
@@ -43,7 +43,9 @@ class PageBtreeNode extends PageBtree {
     }
 
     void read() {
-        data.setPos(5);
+        data.setPos(4);
+        int type = data.readByte();
+        onlyPosition = (type & Page.FLAG_LAST) == 0;
         entryCount = data.readShortInt();
         rowCount = rowCountStored = data.readInt();
         childPageIds = new int[entryCount + 1];
@@ -58,25 +60,39 @@ class PageBtreeNode extends PageBtree {
         start = data.length();
     }
 
+    private int addChildTry(SearchRow row) throws SQLException {
+        if (entryCount == 0) {
+            return 0;
+        }
+        int rowLength = index.getRowSize(data, row, onlyPosition);
+        int pageSize = index.getPageStore().getPageSize();
+        int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
+        if (last - rowLength < start + CHILD_OFFSET_PAIR_LENGTH) {
+            int todoSplitAtLastInsertionPoint;
+            return (entryCount / 2) + 1;
+        }
+        return 0;
+    }
+
     /**
-     * Add a row if possible. If it is possible this method returns 0, otherwise
+     * Add a row. If it is possible this method returns 0, otherwise
      * the split point. It is always possible to add one row.
      *
      * @param row the now to add
      * @return the split point of this page, or 0 if no split is required
      */
-    private int addChild(int x, int childPageId, SearchRow row) throws SQLException {
-        int rowLength = index.getRowSize(data, row);
+    private void addChild(int x, int childPageId, SearchRow row) throws SQLException {
+        int rowLength = index.getRowSize(data, row, onlyPosition);
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
-        if (entryCount > 0 && last - rowLength < start + CHILD_OFFSET_PAIR_LENGTH) {
-            int todoSplitAtLastInsertionPoint;
-            return (entryCount / 2) + 1;
+        if (last - rowLength < start + CHILD_OFFSET_PAIR_LENGTH) {
+            if (entryCount > 0) {
+                throw Message.throwInternalError();
+            }
+            onlyPosition = true;
+            rowLength = index.getRowSize(data, row, onlyPosition);
         }
         int offset = last - rowLength;
-        if(offset < 0) {
-            throw Message.getSQLException(ErrorCode.FEATURE_NOT_SUPPORTED_1, "Wide indexes");
-        }
         int[] newOffsets = new int[entryCount + 1];
         SearchRow[] newRows = new SearchRow[entryCount + 1];
         int[] newChildPageIds = new int[entryCount + 2];
@@ -84,7 +100,6 @@ class PageBtreeNode extends PageBtree {
             System.arraycopy(childPageIds, 0, newChildPageIds, 0, x + 1);
         }
         if (entryCount > 0) {
-            readAllRows();
             System.arraycopy(offsets, 0, newOffsets, 0, x);
             System.arraycopy(rows, 0, newRows, 0, x);
             if (x < entryCount) {
@@ -104,26 +119,25 @@ class PageBtreeNode extends PageBtree {
         rows = newRows;
         childPageIds = newChildPageIds;
         entryCount++;
-        return 0;
     }
 
-    int addRow(SearchRow row) throws SQLException {
+    int addRowTry(SearchRow row) throws SQLException {
         while (true) {
             int x = find(row, false, false);
             PageBtree page = index.getPage(childPageIds[x]);
-            int splitPoint = page.addRow(row);
+            int splitPoint = page.addRowTry(row);
             if (splitPoint == 0) {
                 break;
             }
             SearchRow pivot = page.getRow(splitPoint - 1);
+            int splitPoint2 = addChildTry(pivot);
+            if (splitPoint2 != 0) {
+                return splitPoint;
+            }
             PageBtree page2 = page.split(splitPoint);
+            addChild(x, page2.getPageId(), pivot);
             index.getPageStore().updateRecord(page, true, page.data);
             index.getPageStore().updateRecord(page2, true, page2.data);
-            splitPoint = addChild(x, page2.getPageId(), pivot);
-            if (splitPoint != 0) {
-                int todoSplitAtLastInsertionPoint;
-                return splitPoint / 2;
-            }
             index.getPageStore().updateRecord(this, true, data);
         }
         updateRowCount(1);
@@ -202,7 +216,7 @@ class PageBtreeNode extends PageBtree {
 
     boolean remove(SearchRow row) throws SQLException {
         int at = find(row, false, false);
-        // merge is not implemented to allow concurrent usage of btrees
+        // merge is not implemented to allow concurrent usage
         // TODO maybe implement merge
         PageBtree page = index.getPage(childPageIds[at]);
         boolean empty = page.remove(row);
@@ -265,13 +279,10 @@ class PageBtreeNode extends PageBtree {
         if (written) {
             return;
         }
-        // make sure rows are read
-        for (int i = 0; i < entryCount; i++) {
-            getRow(i);
-        }
+        readAllRows();
         data.reset();
         data.writeInt(parentPageId);
-        data.writeByte((byte) Page.TYPE_BTREE_NODE);
+        data.writeByte((byte) (Page.TYPE_BTREE_NODE | (onlyPosition ? 0 : Page.FLAG_LAST)));
         data.writeShortInt(entryCount);
         data.writeInt(rowCountStored);
         data.writeInt(childPageIds[entryCount]);
@@ -280,7 +291,7 @@ class PageBtreeNode extends PageBtree {
             data.writeInt(offsets[i]);
         }
         for (int i = 0; i < entryCount; i++) {
-            index.writeRow(data, offsets[i], rows[i]);
+            index.writeRow(data, offsets[i], rows[i], onlyPosition);
         }
         written = true;
     }
@@ -319,16 +330,22 @@ class PageBtreeNode extends PageBtree {
      * @param cursor the cursor
      * @param row the current row
      */
-    void nextPage(PageBtreeCursor cursor, SearchRow row) throws SQLException {
-        int i = find(row, false, false) + 1;
+    void nextPage(PageBtreeCursor cursor, int pageId) throws SQLException {
+        int i;
+        // TODO maybe keep the index in the child page (transiently)
+        for (i = 0; i < childPageIds.length; i++) {
+            if (childPageIds[i] == pageId) {
+                i++;
+                break;
+            }
+        }
         if (i > entryCount) {
             if (parentPageId == Page.ROOT) {
                 cursor.setCurrent(null, 0);
                 return;
             }
             PageBtreeNode next = (PageBtreeNode) index.getPage(parentPageId);
-            SearchRow r = entryCount == 0 ? row : getRow(entryCount - 1);
-            next.nextPage(cursor, r);
+            next.nextPage(cursor, getPos());
             return;
         }
         PageBtree page = index.getPage(childPageIds[i]);

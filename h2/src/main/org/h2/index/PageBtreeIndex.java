@@ -11,7 +11,6 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
-import org.h2.message.TraceSystem;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.DataPage;
@@ -94,7 +93,7 @@ public class PageBtreeIndex extends BaseIndex {
         }
         while (true) {
             PageBtree root = getPage(headPos);
-            int splitPoint = root.addRow(row);
+            int splitPoint = root.addRowTry(row);
             if (splitPoint == 0) {
                 break;
             }
@@ -275,7 +274,7 @@ public class PageBtreeIndex extends BaseIndex {
         return rowCount;
     }
 
-    public void close(Session session) throws SQLException {
+    public void close(Session session) {
         if (trace.isDebugEnabled()) {
             trace.debug("close");
         }
@@ -291,10 +290,14 @@ public class PageBtreeIndex extends BaseIndex {
      * @param offset the offset
      * @return the row
      */
-    SearchRow readRow(DataPage data, int offset) throws SQLException {
+    SearchRow readRow(DataPage data, int offset, boolean onlyPosition) throws SQLException {
         data.setPos(offset);
+        int pos = data.readInt();
+        if (onlyPosition) {
+            return tableData.getRow(null, pos);
+        }
         SearchRow row = table.getTemplateSimpleRow(columns.length == 1);
-        row.setPos(data.readInt());
+        row.setPos(pos);
         for (Column col : columns) {
             int idx = col.getColumnId();
             row.setValue(idx, data.readValue());
@@ -307,18 +310,17 @@ public class PageBtreeIndex extends BaseIndex {
      *
      * @param data the data
      * @param offset the offset
+     * @param onlyPosition whether only the position of the row is stored
      * @param row the row to write
      */
-    void writeRow(DataPage data, int offset, SearchRow row) throws SQLException {
-if (offset < 0) {
-    int test;
-    System.out.println("stop");
-}
+    void writeRow(DataPage data, int offset, SearchRow row, boolean onlyPosition) throws SQLException {
         data.setPos(offset);
         data.writeInt(row.getPos());
-        for (Column col : columns) {
-            int idx = col.getColumnId();
-            data.writeValue(row.getValue(idx));
+        if (!onlyPosition) {
+            for (Column col : columns) {
+                int idx = col.getColumnId();
+                data.writeValue(row.getValue(idx));
+            }
         }
     }
 
@@ -327,13 +329,16 @@ if (offset < 0) {
      *
      * @param dummy a dummy data page to calculate the size
      * @param row the row
+     * @param onlyPosition whether only the position of the row is stored
      * @return the number of bytes
      */
-    int getRowSize(DataPage dummy, SearchRow row) throws SQLException {
+    int getRowSize(DataPage dummy, SearchRow row, boolean onlyPosition) throws SQLException {
         int rowsize = DataPage.LENGTH_INT;
-        for (Column col : columns) {
-            Value v = row.getValue(col.getColumnId());
-            rowsize += dummy.getValueLen(v);
+        if (!onlyPosition) {
+            for (Column col : columns) {
+                Value v = row.getValue(col.getColumnId());
+                rowsize += dummy.getValueLen(v);
+            }
         }
         return rowsize;
     }

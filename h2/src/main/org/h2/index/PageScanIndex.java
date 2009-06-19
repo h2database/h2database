@@ -108,7 +108,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         }
         while (true) {
             PageData root = getPage(headPos);
-            int splitPoint = root.addRow(row);
+            int splitPoint = root.addRowTry(row);
             if (splitPoint == 0) {
                 break;
             }
@@ -260,7 +260,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 
     public Row getRow(Session session, int key) throws SQLException {
         PageData root = getPage(headPos);
-        return root.getRow(session, key);
+        return root.getRow(key);
     }
 
     PageStore getPageStore() {

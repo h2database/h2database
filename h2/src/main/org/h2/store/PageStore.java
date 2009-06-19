@@ -66,13 +66,14 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
-    // TODO currently working on PageBtreeNode Wide indexes
-    // TODO implement redo log in Recover tool
+    // TODO TestPowerOff
     // TODO PageStore.openMetaIndex (desc and nulls first / last)
-
+    // TODO PageBtreeIndex.canGetFirstOrLast
     // TODO btree index with fixed size values doesn't need offset and so on
     // TODO better checksums (for example, multiple fletcher)
     // TODO replace CRC32
+    // TODO PageBtreeNode: 4 bytes offset - others use only 2
+    // TODO PageBtreeLeaf: why table id
     // TODO log block allocation
     // TODO block compression: maybe http://en.wikipedia.org/wiki/LZJB
     // with RLE, specially for 0s.
@@ -103,6 +104,7 @@ public class PageStore implements CacheWriter {
     // and delay on each commit
     // TODO var int: see google protocol buffers
     // TODO SessionState.logId is no longer needed
+    // TODO PageData and PageBtree addRowTry: try to simplify
 
     /**
      * The smallest possible page size.

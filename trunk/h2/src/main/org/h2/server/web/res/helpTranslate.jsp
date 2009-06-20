@@ -26,6 +26,7 @@ The H2 Console reads the file every second.
 </p>
 <p>
 When done, please send the file to the H2 support.
+Please send the file as an attachment (to avoid line breaks).
 </p>
 <p>
 To translate from scratch:
@@ -34,7 +35,7 @@ To translate from scratch:
 </li><li>Rename or delete the translation file
 </li><li>Start the H2 Console
 </li><li>Select the source language of your choice
-</li><li>Go to options and click 'Translation'
+</li><li>Go to 'Preferences' and click 'Translation'
 </li></ul>
 
 <a href="index.do?jsessionid=${sessionId}">${text.adminLogout}</a>

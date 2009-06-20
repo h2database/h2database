@@ -97,8 +97,6 @@ class WebThread extends Thread implements DatabaseEventListener {
     private boolean stop;
     private String headerLanguage;
 
-    // TODO web: support online data editing like http://numsum.com/
-
     WebThread(Socket socket, WebServer server) {
         this.server = server;
         this.socket = socket;
@@ -346,9 +344,6 @@ class WebThread extends Thread implements DatabaseEventListener {
                 } else {
                     value = s;
                 }
-                // TODO compatibility problem with JDK 1.3
-                // String attr = URLDecoder.decode(value, "UTF-8");
-                // String attr = URLDecoder.decode(value);
                 String attr = StringUtils.urlDecode(value);
                 attributes.put(property, attr);
             } else {
@@ -641,11 +636,6 @@ class WebThread extends Thread implements DatabaseEventListener {
     private String index() {
         String[][] languageArray = server.getLanguageArray();
         String language = (String) attributes.get("language");
-        if (language == null) {
-            // if the language is not yet known
-            // use the last header
-            language = headerLanguage;
-        }
         Locale locale = session.locale;
         if (language != null) {
             if (locale == null || !StringUtils.toLowerEnglish(locale.getLanguage()).equals(language)) {
@@ -656,6 +646,11 @@ class WebThread extends Thread implements DatabaseEventListener {
             }
         } else {
             language = (String) session.get("language");
+        }
+        if (language == null) {
+            // if the language is not yet known
+            // use the last header
+            language = headerLanguage;
         }
         session.put("languageCombo", getComboBox(languageArray, language));
         String[] settingNames = server.getSettingNames();
@@ -1460,9 +1455,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             rs.addRow(new String[] { "meta.getCatalogTerm", "" + meta.getCatalogTerm() });
             rs.addRow(new String[] { "meta.getDatabaseProductName", "" + meta.getDatabaseProductName() });
             rs.addRow(new String[] { "meta.getDatabaseProductVersion", "" + meta.getDatabaseProductVersion() });
-            rs
-                    .addRow(new String[] { "meta.getDefaultTransactionIsolation",
-                            "" + meta.getDefaultTransactionIsolation() });
+            rs.addRow(new String[] { "meta.getDefaultTransactionIsolation", "" + meta.getDefaultTransactionIsolation() });
             rs.addRow(new String[] { "meta.getDriverMajorVersion", "" + meta.getDriverMajorVersion() });
             rs.addRow(new String[] { "meta.getDriverMinorVersion", "" + meta.getDriverMinorVersion() });
             rs.addRow(new String[] { "meta.getDriverName", "" + meta.getDriverName() });
@@ -1523,31 +1516,22 @@ class WebThread extends Thread implements DatabaseEventListener {
             rs.addRow(new String[] { "meta.supportsANSI92FullSQL", "" + meta.supportsANSI92FullSQL() });
             rs.addRow(new String[] { "meta.supportsANSI92IntermediateSQL", "" + meta.supportsANSI92IntermediateSQL() });
             rs.addRow(new String[] { "meta.supportsBatchUpdates", "" + meta.supportsBatchUpdates() });
-            rs.addRow(new String[] { "meta.supportsCatalogsInDataManipulation",
-                    "" + meta.supportsCatalogsInDataManipulation() });
-            rs.addRow(new String[] { "meta.supportsCatalogsInIndexDefinitions",
-                    "" + meta.supportsCatalogsInIndexDefinitions() });
-            rs.addRow(new String[] { "meta.supportsCatalogsInPrivilegeDefinitions",
-                    "" + meta.supportsCatalogsInPrivilegeDefinitions() });
-            rs.addRow(new String[] { "meta.supportsCatalogsInProcedureCalls",
-                    "" + meta.supportsCatalogsInProcedureCalls() });
-            rs.addRow(new String[] { "meta.supportsCatalogsInTableDefinitions",
-                    "" + meta.supportsCatalogsInTableDefinitions() });
+            rs.addRow(new String[] { "meta.supportsCatalogsInDataManipulation", "" + meta.supportsCatalogsInDataManipulation() });
+            rs.addRow(new String[] { "meta.supportsCatalogsInIndexDefinitions", "" + meta.supportsCatalogsInIndexDefinitions() });
+            rs.addRow(new String[] { "meta.supportsCatalogsInPrivilegeDefinitions", "" + meta.supportsCatalogsInPrivilegeDefinitions() });
+            rs.addRow(new String[] { "meta.supportsCatalogsInProcedureCalls", "" + meta.supportsCatalogsInProcedureCalls() });
+            rs.addRow(new String[] { "meta.supportsCatalogsInTableDefinitions", "" + meta.supportsCatalogsInTableDefinitions() });
             rs.addRow(new String[] { "meta.supportsColumnAliasing", "" + meta.supportsColumnAliasing() });
             rs.addRow(new String[] { "meta.supportsConvert", "" + meta.supportsConvert() });
             rs.addRow(new String[] { "meta.supportsCoreSQLGrammar", "" + meta.supportsCoreSQLGrammar() });
             rs.addRow(new String[] { "meta.supportsCorrelatedSubqueries", "" + meta.supportsCorrelatedSubqueries() });
-            rs.addRow(new String[] { "meta.supportsDataDefinitionAndDataManipulationTransactions",
-                    "" + meta.supportsDataDefinitionAndDataManipulationTransactions() });
-            rs.addRow(new String[] { "meta.supportsDataManipulationTransactionsOnly",
-                    "" + meta.supportsDataManipulationTransactionsOnly() });
-            rs.addRow(new String[] { "meta.supportsDifferentTableCorrelationNames",
-                    "" + meta.supportsDifferentTableCorrelationNames() });
+            rs.addRow(new String[] { "meta.supportsDataDefinitionAndDataManipulationTransactions", "" + meta.supportsDataDefinitionAndDataManipulationTransactions() });
+            rs.addRow(new String[] { "meta.supportsDataManipulationTransactionsOnly", "" + meta.supportsDataManipulationTransactionsOnly() });
+            rs.addRow(new String[] { "meta.supportsDifferentTableCorrelationNames", "" + meta.supportsDifferentTableCorrelationNames() });
             rs.addRow(new String[] { "meta.supportsExpressionsInOrderBy", "" + meta.supportsExpressionsInOrderBy() });
             rs.addRow(new String[] { "meta.supportsExtendedSQLGrammar", "" + meta.supportsExtendedSQLGrammar() });
             rs.addRow(new String[] { "meta.supportsFullOuterJoins", "" + meta.supportsFullOuterJoins() });
             rs.addRow(new String[] { "meta.supportsGroupBy", "" + meta.supportsGroupBy() });
-            // TODO meta data: more supports methods (I'm tired now)
             rs.addRow(new String[] { "meta.usesLocalFilePerTable", "" + meta.usesLocalFilePerTable() });
             rs.addRow(new String[] { "meta.usesLocalFiles", "" + meta.usesLocalFiles() });
 //## Java 1.4 begin ##

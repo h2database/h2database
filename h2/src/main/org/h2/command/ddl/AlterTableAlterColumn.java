@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
+import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -326,7 +327,17 @@ public class AlterTableAlterColumn extends SchemaCommand {
             }
             if (name.startsWith(tempName + "_")) {
                 name = name.substring(tempName.length() + 1);
-                db.renameSchemaObject(session, (SchemaObject) child, name);
+                SchemaObject so = (SchemaObject) child;
+                if (so instanceof Constraint) {
+                    if (so.getSchema().findConstraint(session, name) != null) {
+                        name = so.getSchema().getUniqueConstraintName(session, newTable);
+                    }
+                } else if (so instanceof Index) {
+                    if (so.getSchema().findIndex(session, name) != null) {
+                        name = so.getSchema().getUniqueIndexName(session, newTable, name);
+                    }
+                }
+                db.renameSchemaObject(session, so, name);
             }
         }
     }

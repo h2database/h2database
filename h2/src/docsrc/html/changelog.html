@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>H2 Console: the language was reset to the browser language when disconnecting.
+<ul><li>ALTER TABLE could throw an exception "object already exists" in some cases.
+</li><li>Views: in some situations, an ArrayIndexOutOfBoundsException
+    was thrown when using the same view concurrently.
+</li><li>java.util.UUID is now supported in PreparedStatement.setObject and user defined Java functions.
+    ResultSet.getObject() returns a java.util.UUID when using the UUID data type.
+</li><li>H2 Console: the language was reset to the browser language when disconnecting.
 </li><li>H2 Console: improved Polish translation.
 </li><li>Server-less multi-connection mode: more bugs are fixed.
 </li><li>The download page now included the SHA1 checksums.

@@ -84,7 +84,7 @@ public class TestView extends TestBase {
             s.execute("select * from t" + (i + 1));
             ResultSet rs = s.executeQuery("select count(*) from t" + (i + 1) + " where id=2");
             assertTrue(rs.next());
-            assertEquals(rs.getInt(1), 1);
+            assertEquals(1, rs.getInt(1));
         }
         conn.close();
         conn = getConnection("view");

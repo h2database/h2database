@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.UUID;
 
 import org.h2.test.TestBase;
 
@@ -42,6 +43,7 @@ public class TestPreparedStatement extends TestBase {
 
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testUUID(conn);
         testLobTempFiles(conn);
         testExecuteErrorTwice(conn);
         testTempView(conn);
@@ -300,6 +302,21 @@ public class TestPreparedStatement extends TestBase {
         rs.next();
         assertEquals(rs.getString(1), "2");
         assertFalse(rs.next());
+    }
+
+    private void testUUID(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("create table test_uuid(id uuid primary key)");
+        UUID uuid = new UUID(-2, -1);
+        PreparedStatement prep = conn.prepareStatement("insert into test_uuid values(?)");
+        prep.setObject(1, uuid);
+        prep.execute();
+        ResultSet rs = stat.executeQuery("select * from test_uuid");
+        rs.next();
+        assertEquals("ffffffff-ffff-fffe-ffff-ffffffffffff", rs.getString(1));
+        Object o = rs.getObject(1);
+        assertEquals("java.util.UUID", o.getClass().getName());
+        stat.execute("drop table test_uuid");
     }
 
     private void testUUIDGeneratedKeys(Connection conn) throws SQLException {

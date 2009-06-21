@@ -21,6 +21,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -804,6 +805,8 @@ public class DataType {
             return Value.BLOB;
         } else if (java.sql.Blob.class.isAssignableFrom(x)) {
             return Value.BLOB;
+        } else if (UUID.class.isAssignableFrom(x)) {
+            return Value.UUID;
         } else if (Object[].class.isAssignableFrom(x)) {
             return Value.ARRAY;
         } else if (Void.TYPE == x) {
@@ -871,6 +874,9 @@ public class DataType {
             return ValueLob.createBlob(((java.sql.Blob) x).getBinaryStream(), -1, session.getDataHandler());
         } else if (x instanceof ResultSet) {
             return ValueResultSet.get((ResultSet) x);
+        } else if (x instanceof UUID) {
+            UUID u = (UUID) x;
+            return ValueUuid.get(u.getMostSignificantBits(), u.getLeastSignificantBits());
         } else if (x instanceof Object[]) {
             // (a.getClass().isArray());
             // (a.getClass().getComponentType().isPrimitive());

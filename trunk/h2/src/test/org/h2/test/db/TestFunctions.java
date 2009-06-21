@@ -22,6 +22,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.UUID;
 
 import org.h2.api.AggregateFunction;
 import org.h2.test.TestBase;
@@ -47,6 +48,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     public void test() throws Exception {
         deleteDb("functions");
+        testUUID();
         testDeterministic();
         testTransactionId();
         testPrecision();
@@ -55,6 +57,22 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testFunctions();
         testFileRead();
         deleteDb("functions");
+    }
+
+    private void testUUID() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+
+        stat.execute("create alias xorUUID for \""+getClass().getName()+".xorUUID\"");
+        setCount(0);
+        rs = stat.executeQuery("call xorUUID(random_uuid(), random_uuid())");
+        rs.next();
+        Object o = rs.getObject(1);
+        assertEquals(UUID.class.toString(), o.getClass().toString());
+        stat.execute("drop alias xorUUID");
+
+        conn.close();
     }
 
     private void testDeterministic() throws SQLException {
@@ -625,6 +643,11 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         return prefix + ": " + (int) (sum / values.length);
     }
 //## Java 1.5 end ##
+
+    public static UUID xorUUID(UUID a, UUID b) {
+        return new UUID(a.getMostSignificantBits() ^ b.getMostSignificantBits(),
+                a.getLeastSignificantBits() ^ b.getLeastSignificantBits());
+    }
 
     public void add(Object value) {
         // ignore

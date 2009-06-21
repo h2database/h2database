@@ -8,6 +8,7 @@ package org.h2.value;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.UUID;
 
 import org.h2.util.ByteUtils;
 import org.h2.util.RandomUtils;
@@ -156,8 +157,7 @@ public class ValueUuid extends Value {
     }
 
     public Object getObject() {
-        // TODO needs to be documented
-        return new long[]{high, low};
+        return new UUID(high, low);
     }
 
     public byte[] getBytes() {

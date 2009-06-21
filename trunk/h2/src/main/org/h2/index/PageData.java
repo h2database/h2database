@@ -183,7 +183,6 @@ abstract class PageData extends Record {
     /**
      * Get the row for the given key.
      *
-     * @param session the session
      * @param key the key
      * @return the row
      */

@@ -288,6 +288,7 @@ public class PageBtreeIndex extends BaseIndex {
      *
      * @param data the data
      * @param offset the offset
+     * @param onlyPosition whether only the position of the row is stored
      * @return the row
      */
     SearchRow readRow(DataPage data, int offset, boolean onlyPosition) throws SQLException {

@@ -344,7 +344,7 @@ public class Database implements DataHandler {
             String pos = log == null ? null : log.getWritePos();
             lock.setProperty("logPos", pos);
             lock.setProperty("changePending", pending ? "true" : null);
-            // ensure that the writer thread will 
+            // ensure that the writer thread will
             // not reset the flag before we are done
             reconnectCheckNext = System.currentTimeMillis() + 2 * SysProperties.RECONNECT_CHECK_DELAY;
             old = lock.save();

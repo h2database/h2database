@@ -1172,951 +1172,966 @@ Change Log
 Next Version (unreleased)
 
 @changelog_1002_li
-Server-less multi-connection mode: more bugs are fixed.
+ALTER TABLE could throw an exception "object already exists" in some cases.
 
 @changelog_1003_li
-The download page now included the SHA1 checksums.
+Views: in some situations, an ArrayIndexOutOfBoundsException  was thrown when using the same view concurrently.
 
 @changelog_1004_li
-Shell tool: the file encoding workaround is now documented  if you run java org.h2.tools.Shell -?.
+java.util.UUID is now supported in PreparedStatement.setObject and user defined Java functions.  ResultSet.getObject() returns a java.util.UUID when using the UUID data type.
 
 @changelog_1005_li
-The RunScript tool and SQL statement did not work with the compression method LZF.
+H2 Console: the language was reset to the browser language when disconnecting.
 
 @changelog_1006_li
-Fulltext search: searching for NULL or an empty string threw an exception.
+H2 Console: improved Polish translation.
 
 @changelog_1007_li
-Lucene fulltext search: FTL_DROP_ALL did not drop the triggers.
+Server-less multi-connection mode: more bugs are fixed.
 
 @changelog_1008_li
-Backup: if the database contained CLOB or BLOB data, the backup  included a file entry for the LOB directory. This caused the  restore to fail.
+The download page now included the SHA1 checksums.
 
 @changelog_1009_li
-Data types: LONG is now an alias for BIGINT.
+Shell tool: the file encoding workaround is now documented  if you run java org.h2.tools.Shell -?.
 
 @changelog_1010_li
-More bugs in the server-less multi-connection mode have been fixed.
+The RunScript tool and SQL statement did not work with the compression method LZF.
 
-@changelog_1011_h2
-Version 1.1.114 (2009-06-01)
+@changelog_1011_li
+Fulltext search: searching for NULL or an empty string threw an exception.
 
 @changelog_1012_li
-ResultSetMetaData.getColumnClassName returned the wrong  class for CLOB and BLOB columns.
+Lucene fulltext search: FTL_DROP_ALL did not drop the triggers.
 
 @changelog_1013_li
-Fulltext search: Data is no longer deleted and  re-inserted if the indexed columns didn't change.
+Backup: if the database contained CLOB or BLOB data, the backup  included a file entry for the LOB directory. This caused the  restore to fail.
 
 @changelog_1014_li
-In some situations, an ArrayIndexOutOfBoundsException was thrown when adding rows.  This was caused by a bug in the b-tree code.
+Data types: LONG is now an alias for BIGINT.
 
 @changelog_1015_li
-Microsoft Windows Vista: when using the the installer, Vista wrote  "This program may not have installed correctly." This message should no longer appear  (in the h2.nsi file, the line 'RequestExecutionLevel highest' was added).
+More bugs in the server-less multi-connection mode have been fixed.
 
-@changelog_1016_li
-The Recover tool did not always work when the database contains  referential integrity constraints.
+@changelog_1016_h2
+Version 1.1.114 (2009-06-01)
 
 @changelog_1017_li
-Java 1.5 is now required to run H2. If required, Retrotranslator can be used  to create a Java 1.4 version (http://retrotranslator.sourceforge.net/).
+ResultSetMetaData.getColumnClassName returned the wrong  class for CLOB and BLOB columns.
 
-@changelog_1018_h2
-Version 1.1.113 (2009-05-21)
+@changelog_1018_li
+Fulltext search: Data is no longer deleted and  re-inserted if the indexed columns didn't change.
 
 @changelog_1019_li
-Shell tool: the built-in commands EXIT, HELP, ?, LIST, and so on didn't  work with a semicolon at the end.
+In some situations, an ArrayIndexOutOfBoundsException was thrown when adding rows.  This was caused by a bug in the b-tree code.
 
 @changelog_1020_li
-JDK 1.5 is now required to build the jar file. However it is still possible to create  a jar file for Java 1.4. For details, see buildRelease.sh and buildRelease.bat.  As an alternative, compile using JDK 1.5 or 1.6 and use Retrotranslator to create a Java 1.4  version (http://retrotranslator.sourceforge.net/).
+Microsoft Windows Vista: when using the the installer, Vista wrote  "This program may not have installed correctly." This message should no longer appear  (in the h2.nsi file, the line 'RequestExecutionLevel highest' was added).
 
 @changelog_1021_li
-When deleting or updating many rows in a table, the space in the index  file was not re-used in the default mode (persistent database, b-tree index,  LOG=1). This caused the index file to grow over time. Workarounds were to  delete and re-created the index file, alter the table (add a remove a column),  or append ;LOG=2 to the database URL. To disable the change, set the system  property h2.reuseSpaceBtreeIndex to false.
+The Recover tool did not always work when the database contains  referential integrity constraints.
 
 @changelog_1022_li
-Identifiers with a digit and then a dollar sign didn't work. Example: A1$B.
+Java 1.5 is now required to run H2. If required, Retrotranslator can be used  to create a Java 1.4 version (http://retrotranslator.sourceforge.net/).
 
-@changelog_1023_li
-MS SQL Server compatibility: support for linked tables with  NVARCHAR, NCHAR, NCLOB, and LONGNVARCHAR.
+@changelog_1023_h2
+Version 1.1.113 (2009-05-21)
 
 @changelog_1024_li
-Android: Workaround for a problem when using read-only databases in zip files  (skip seems to be implemented incorrectly on the Android system).
+Shell tool: the built-in commands EXIT, HELP, ?, LIST, and so on didn't  work with a semicolon at the end.
 
 @changelog_1025_li
-Calling execute() or prepareStatement() with null as the SQL statement  now throws an exception.
+JDK 1.5 is now required to build the jar file. However it is still possible to create  a jar file for Java 1.4. For details, see buildRelease.sh and buildRelease.bat.  As an alternative, compile using JDK 1.5 or 1.6 and use Retrotranslator to create a Java 1.4  version (http://retrotranslator.sourceforge.net/).
 
 @changelog_1026_li
-Benchmark: the number of executed statements was incorrect. The H2 database  was loaded at the beginning of the test to collect results, now it is loaded at the very end.  Thanks to Fred Toussi from HSQLDB for reporting those problems. However the changed  do not affect the relative performance.
+When deleting or updating many rows in a table, the space in the index  file was not re-used in the default mode (persistent database, b-tree index,  LOG=1). This caused the index file to grow over time. Workarounds were to  delete and re-created the index file, alter the table (add a remove a column),  or append ;LOG=2 to the database URL. To disable the change, set the system  property h2.reuseSpaceBtreeIndex to false.
 
 @changelog_1027_li
-H2 Console: command line settings are no longer stored in the properties file.  They are now only used for the current process, except if they are explicitly saved.
+Identifiers with a digit and then a dollar sign didn't work. Example: A1$B.
 
 @changelog_1028_li
-Cache: support for a second level soft-references cache.  To enable it, append ;CACHE_TYPE=SOFT_LRU (or SOFT_TQ) to the database URL, or  set the system property h2.cacheTypeDefault to "SOFT_LRU" / "SOFT_TQ".  Enabling the second level cache reduces performance for  small databases, but speeds up large databases. It makes sense to use it  if the available memory size is unknown. Thanks a lot to Jan Kotek!
+MS SQL Server compatibility: support for linked tables with  NVARCHAR, NCHAR, NCLOB, and LONGNVARCHAR.
 
-@changelog_1029_h2
-Version 1.1.112 (2009-05-01)
+@changelog_1029_li
+Android: Workaround for a problem when using read-only databases in zip files  (skip seems to be implemented incorrectly on the Android system).
 
 @changelog_1030_li
-JdbcPreparedStatement.toString() could throw a NullPointerException.
+Calling execute() or prepareStatement() with null as the SQL statement  now throws an exception.
 
 @changelog_1031_li
-EclipseLink: Added H2Platform.supportsIdentity().
+Benchmark: the number of executed statements was incorrect. The H2 database  was loaded at the beginning of the test to collect results, now it is loaded at the very end.  Thanks to Fred Toussi from HSQLDB for reporting those problems. However the changed  do not affect the relative performance.
 
 @changelog_1032_li
-Connection pool: the default login timeout is now 5 minutes.
+H2 Console: command line settings are no longer stored in the properties file.  They are now only used for the current process, except if they are explicitly saved.
 
 @changelog_1033_li
-After truncating tables, opening large databases could become slow  because indexes were always re-built unnecessarily when opening.
+Cache: support for a second level soft-references cache.  To enable it, append ;CACHE_TYPE=SOFT_LRU (or SOFT_TQ) to the database URL, or  set the system property h2.cacheTypeDefault to "SOFT_LRU" / "SOFT_TQ".  Enabling the second level cache reduces performance for  small databases, but speeds up large databases. It makes sense to use it  if the available memory size is unknown. Thanks a lot to Jan Kotek!
 
-@changelog_1034_li
-More bugs in the server-less multi-connection mode have been fixed:  Sometimes parameters of prepared statements were lost when a reconnecting.  Concurrent read operations were slow.  To improve performance, executeQuery(..) must be used for queries  (execute(..) switches to the write mode, which is slow).
+@changelog_1034_h2
+Version 1.1.112 (2009-05-01)
 
 @changelog_1035_li
-GROUP BY queries with a self-join (join to the same table) that were grouped by  columns with indexes returned the wrong result in some cases.
+JdbcPreparedStatement.toString() could throw a NullPointerException.
 
 @changelog_1036_li
-Improved error message when the .lock.db file modification time is in the future.
+EclipseLink: Added H2Platform.supportsIdentity().
 
 @changelog_1037_li
-The MERGE statement now returns 0 as the generated key if the row was updated.
+Connection pool: the default login timeout is now 5 minutes.
 
 @changelog_1038_li
-Running code coverage is now automated.
+After truncating tables, opening large databases could become slow  because indexes were always re-built unnecessarily when opening.
 
 @changelog_1039_li
-A file system implementation can now be registered using FileSystem.register.
+More bugs in the server-less multi-connection mode have been fixed:  Sometimes parameters of prepared statements were lost when a reconnecting.  Concurrent read operations were slow.  To improve performance, executeQuery(..) must be used for queries  (execute(..) switches to the write mode, which is slow).
 
 @changelog_1040_li
-The database file system is no longer included in the jar file, it moved to the test section.
+GROUP BY queries with a self-join (join to the same table) that were grouped by  columns with indexes returned the wrong result in some cases.
 
-@changelog_1041_h2
-Version 1.1.111 (2009-04-10)
+@changelog_1041_li
+Improved error message when the .lock.db file modification time is in the future.
 
 @changelog_1042_li
-In-memory databases can now run inside the Google App Engine.
+The MERGE statement now returns 0 as the generated key if the row was updated.
 
 @changelog_1043_li
-Queries that are ordered by an indexed column returned no rows in certain cases  (if all rows were deleted from the table previously, and there is a low number of rows  in the table, and when not using other conditions, and when using the default b tree index).
+Running code coverage is now automated.
 
 @changelog_1044_li
-The wrong exception was thrown when using unquoted text for  the SQL statements COMMENT, ALTER USER, and SET PASSWORD.
+A file system implementation can now be registered using FileSystem.register.
 
 @changelog_1045_li
-The built-in connection pool did not roll back transactions and  enable autocommit enabled after closing a connection.
+The database file system is no longer included in the jar file, it moved to the test section.
 
-@changelog_1046_li
-Sometimes a StackOverflow occurred when checking for deadlock. See also  http://code.google.com/p/h2database/issues/detail?id=61
+@changelog_1046_h2
+Version 1.1.111 (2009-04-10)
 
 @changelog_1047_li
-The Shell tool no longer truncates results with only one column, and displays  a message if data was truncated.
+In-memory databases can now run inside the Google App Engine.
 
-@changelog_1048_h2
-Version 1.1.110 (2009-04-03)
+@changelog_1048_li
+Queries that are ordered by an indexed column returned no rows in certain cases  (if all rows were deleted from the table previously, and there is a low number of rows  in the table, and when not using other conditions, and when using the default b tree index).
 
 @changelog_1049_li
-Support for not persistent in-memory tables in regular (persistent) databases  using CREATE MEMORY TABLE(..) NOT PERSISTENT. Thanks a lot to Sergi Vladykin for the patch!
+The wrong exception was thrown when using unquoted text for  the SQL statements COMMENT, ALTER USER, and SET PASSWORD.
 
 @changelog_1050_li
-The H2 Console trimmed the password (removed leading and trailing spaces).  This is no longer the case, to support encrypted H2 database with an empty user password.
+The built-in connection pool did not roll back transactions and  enable autocommit enabled after closing a connection.
 
 @changelog_1051_li
-The data type of a SUBSTRING method was wrong.
+Sometimes a StackOverflow occurred when checking for deadlock. See also  http://code.google.com/p/h2database/issues/detail?id=61
 
 @changelog_1052_li
-ResultSet.findColumn and get methods with column label parameters  now also check for matching column names (like most databases except MySQL).
+The Shell tool no longer truncates results with only one column, and displays  a message if data was truncated.
 
-@changelog_1053_li
-H2 Console: the browser system property now supports a list of arguments.  Example: java -Dh2.browser="open,-a,Safari,%url" ...
+@changelog_1053_h2
+Version 1.1.110 (2009-04-03)
 
 @changelog_1054_li
-Improved Javadoc navigation (similar to Scaladoc).
+Support for not persistent in-memory tables in regular (persistent) databases  using CREATE MEMORY TABLE(..) NOT PERSISTENT. Thanks a lot to Sergi Vladykin for the patch!
 
 @changelog_1055_li
-H2 Console: auto-complete of identifiers did not work correctly  for H2 databases in MySQL mode.
+The H2 Console trimmed the password (removed leading and trailing spaces).  This is no longer the case, to support encrypted H2 database with an empty user password.
 
 @changelog_1056_li
-DISTINCT and GROUP BY on a CLOB column was broken.
+The data type of a SUBSTRING method was wrong.
 
 @changelog_1057_li
-The FTP server moved to the tools section and is no longer included in the h2*.jar file.
+ResultSet.findColumn and get methods with column label parameters  now also check for matching column names (like most databases except MySQL).
 
 @changelog_1058_li
-Improved error message for unsupported features:  now the message says what exactly is not supported.
+H2 Console: the browser system property now supports a list of arguments.  Example: java -Dh2.browser="open,-a,Safari,%url" ...
 
 @changelog_1059_li
-Improved OSGi support.
+Improved Javadoc navigation (similar to Scaladoc).
 
 @changelog_1060_li
-Some internal caches did not use the LRU mechanism. Fixed  (LOB file list, optimizer cost cache, trace system, view indexes, collection keys,  compressed in-memory file system).
+H2 Console: auto-complete of identifiers did not work correctly  for H2 databases in MySQL mode.
 
 @changelog_1061_li
-The API of the tools changed a bit (each tool now returns an exit code).
+DISTINCT and GROUP BY on a CLOB column was broken.
 
 @changelog_1062_li
-Command line help of the tools now match the javadocs.  The build converts the javadocs to a resource that is read by the tool at runtime.  This should not have an effect on using the database, but it reduces duplicate  and out-of-sync documentation.
+The FTP server moved to the tools section and is no longer included in the h2*.jar file.
 
 @changelog_1063_li
-CREATE TABLE: improved compatibility (support for UNIQUE NOT NULL).
+Improved error message for unsupported features:  now the message says what exactly is not supported.
 
 @changelog_1064_li
-DatabaseMetaData.getSQLKeywords now returns the correct list.
+Improved OSGi support.
 
 @changelog_1065_li
-Deterministic user defined functions did not work when the parameter was a column. Fixed.
+Some internal caches did not use the LRU mechanism. Fixed  (LOB file list, optimizer cost cache, trace system, view indexes, collection keys,  compressed in-memory file system).
 
 @changelog_1066_li
-JdbcConnectionPool.setLoginTimeout with 0 now uses the default timeout.
+The API of the tools changed a bit (each tool now returns an exit code).
 
 @changelog_1067_li
-Creating a JdbcConnectionPool has been simplified a bit.
+Command line help of the tools now match the javadocs.  The build converts the javadocs to a resource that is read by the tool at runtime.  This should not have an effect on using the database, but it reduces duplicate  and out-of-sync documentation.
 
 @changelog_1068_li
-The built-in connection pool did not re-use connections.  Getting a connection using the built-in JdbcConnectionPool is now about 70 times faster  than opening connections using DriverManager.getConnection.
+CREATE TABLE: improved compatibility (support for UNIQUE NOT NULL).
 
 @changelog_1069_li
-More bugs in the server-less multi-connection mode have been fixed:  If a process terminated while writing, other open connections were blocked.  If two processes were writing to the database, sometimes the database was corrupt after closing.
+DatabaseMetaData.getSQLKeywords now returns the correct list.
 
 @changelog_1070_li
-Linked tables to SQLite database can now be created.
+Deterministic user defined functions did not work when the parameter was a column. Fixed.
 
 @changelog_1071_li
-Nested IN(IN(...)) didn't work.
+JdbcConnectionPool.setLoginTimeout with 0 now uses the default timeout.
 
 @changelog_1072_li
-NIO storage: the nio: prefix was using memory mapped files instead of FileChannel.
+Creating a JdbcConnectionPool has been simplified a bit.
 
-@changelog_1073_h2
-Version 1.1.109 (2009-03-14)
+@changelog_1073_li
+The built-in connection pool did not re-use connections.  Getting a connection using the built-in JdbcConnectionPool is now about 70 times faster  than opening connections using DriverManager.getConnection.
 
 @changelog_1074_li
-The optimization for IN(...) is now only used if comparing a column with an index.
+More bugs in the server-less multi-connection mode have been fixed:  If a process terminated while writing, other open connections were blocked.  If two processes were writing to the database, sometimes the database was corrupt after closing.
 
 @changelog_1075_li
-User defined functions can now be deterministic (see CREATE ALIAS documentation).
+Linked tables to SQLite database can now be created.
 
 @changelog_1076_li
-Multiple nested queries in the FROM clause with parameters did not always work.
+Nested IN(IN(...)) didn't work.
 
 @changelog_1077_li
-When converting CLOB to BINARY, each character resulted in one byte.  Now, the text is parsed as a hex as when converting VARCHAR.
+NIO storage: the nio: prefix was using memory mapped files instead of FileChannel.
 
-@changelog_1078_li
-New experimental NIO storage mechanism with both FileChannel and  memory mapped files. To use it, use the file name prefix nio: or nioMapped:  as in jdbc:h2:nio:~/test. So far it looks like NIO storage is faster on Mac OS  but slower on some Windows systems. Thanks a lot to Jan Kotek for the patch!
+@changelog_1078_h2
+Version 1.1.109 (2009-03-14)
 
 @changelog_1079_li
-The functions BITOR, BITAND, BITXOR, and MOD now accept  and return BIGINT instead of INT.
+The optimization for IN(...) is now only used if comparing a column with an index.
 
 @changelog_1080_li
-Could not use the same linked table multiple times in the same query.
+User defined functions can now be deterministic (see CREATE ALIAS documentation).
 
 @changelog_1081_li
-Bugs in the server-less multi-connection mode have been fixed.
+Multiple nested queries in the FROM clause with parameters did not always work.
 
 @changelog_1082_li
-Column names could not be named "UNIQUE" (with the quotes).
+When converting CLOB to BINARY, each character resulted in one byte.  Now, the text is parsed as a hex as when converting VARCHAR.
 
 @changelog_1083_li
-New system function TRANSACTION_ID() to get the current transaction  identifier for a session.
+New experimental NIO storage mechanism with both FileChannel and  memory mapped files. To use it, use the file name prefix nio: or nioMapped:  as in jdbc:h2:nio:~/test. So far it looks like NIO storage is faster on Mac OS  but slower on some Windows systems. Thanks a lot to Jan Kotek for the patch!
 
-@changelog_1084_h2
-Version 1.1.108 (2009-02-28)
+@changelog_1084_li
+The functions BITOR, BITAND, BITXOR, and MOD now accept  and return BIGINT instead of INT.
 
 @changelog_1085_li
-When the shutdown hook closed the database, the last log file  was deleted too early. This could cause uncommitted changes to be persisted.  In some cases, this could cause data corruption.
+Could not use the same linked table multiple times in the same query.
 
 @changelog_1086_li
-JdbcConnectionPool: it was possible to set a negative connection pool size.
+Bugs in the server-less multi-connection mode have been fixed.
 
 @changelog_1087_li
-Fulltext search did not support table names with a backslash.
+Column names could not be named "UNIQUE" (with the quotes).
 
 @changelog_1088_li
-The internal IntArray class did not work correctly when initialized with a zero length array.
+New system function TRANSACTION_ID() to get the current transaction  identifier for a session.
 
-@changelog_1089_li
-The H2 Console web application (war file) did only support ASCII characters.  Now UTF-8 is supported.
+@changelog_1089_h2
+Version 1.1.108 (2009-02-28)
 
 @changelog_1090_li
-DATEADD does no longer require that the argument is a timestamp.
+When the shutdown hook closed the database, the last log file  was deleted too early. This could cause uncommitted changes to be persisted.  In some cases, this could cause data corruption.
 
 @changelog_1091_li
-The database file locking mechanism didn't work correctly on Mac OS.
+JdbcConnectionPool: it was possible to set a negative connection pool size.
 
 @changelog_1092_li
-Some built-in functions reported the wrong precision, scale, and display size.
+Fulltext search did not support table names with a backslash.
 
 @changelog_1093_li
-MySQL compatibility for CREATE TABLE is improved (UNSIGNED, KEY).
+The internal IntArray class did not work correctly when initialized with a zero length array.
 
 @changelog_1094_li
-Recovery did not work if there were more than 255 lobs stored as files.
+The H2 Console web application (war file) did only support ASCII characters.  Now UTF-8 is supported.
 
 @changelog_1095_li
-New experimental mode to support multiple read-write connections without starting  a server. To enable this mode, append ;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE to the database URL.  Don't expect high performance when multiple concurrent writers.
+DATEADD does no longer require that the argument is a timestamp.
 
 @changelog_1096_li
-In a web application, the database classes are not unloaded if a connection is open.  This may cause out of memory when re-deploying a web application.  The DbStarter is changed to close all connections to the configured database  (by executing SHUTDOWN).
+The database file locking mechanism didn't work correctly on Mac OS.
 
 @changelog_1097_li
-The WebServlet did not close the database when un-deploying the web application.
+Some built-in functions reported the wrong precision, scale, and display size.
 
 @changelog_1098_li
-The exception message of failed INSERT or MERGE statements now includes all values and the row number.
+MySQL compatibility for CREATE TABLE is improved (UNSIGNED, KEY).
 
 @changelog_1099_li
-If opening a database failed with an out of memory exception, some files were not closed.
+Recovery did not work if there were more than 255 lobs stored as files.
 
 @changelog_1100_li
-Optimizer: the expected runtime calculation was incorrect. The fixed calculation  should give slightly better query plans when using many joins.
+New experimental mode to support multiple read-write connections without starting  a server. To enable this mode, append ;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE to the database URL.  Don't expect high performance when multiple concurrent writers.
 
 @changelog_1101_li
-Improved exception message when connecting to a just started server fails.
+In a web application, the database classes are not unloaded if a connection is open.  This may cause out of memory when re-deploying a web application.  The DbStarter is changed to close all connections to the configured database  (by executing SHUTDOWN).
 
 @changelog_1102_li
-Connection.isValid is a bit faster.
+The WebServlet did not close the database when un-deploying the web application.
 
 @changelog_1103_li
-H2 Console: The autocomplete feature has been improved a bit. It can now better  parse conditions.
+The exception message of failed INSERT or MERGE statements now includes all values and the row number.
 
 @changelog_1104_li
-When restarting a web application in Tomcat, an exception was thrown sometimes.  In most cases this was a NullPointerException. A workaround in H2 has been implemented.  The root cause of the problem is now documented in the FAQ:  Tomcat sets all static fields (final or non-final) to null when unloading a web application.  A workaround is to put the h2.jar in the lib directory, or set the system property  org.apache.catalina.loader.WebappClassLoader.ENABLE_CLEAR_REFERENCES  to false.
+If opening a database failed with an out of memory exception, some files were not closed.
 
-@changelog_1105_h2
-Version 1.1.107 (2009-01-24)
+@changelog_1105_li
+Optimizer: the expected runtime calculation was incorrect. The fixed calculation  should give slightly better query plans when using many joins.
 
 @changelog_1106_li
-Some DatabaseMetaData operations did not work for non-admin users for versions 1.1.x.
+Improved exception message when connecting to a just started server fails.
 
 @changelog_1107_li
-The MySQL compatibility extension fromUnixTime now used the English locale.
+Connection.isValid is a bit faster.
 
 @changelog_1108_li
-When using LOG=2 and repeatedly updating the last row rows of a table, the index file grew quickly.
+H2 Console: The autocomplete feature has been improved a bit. It can now better  parse conditions.
 
 @changelog_1109_li
-In versions 1.1.105 and 1.1.106, encrypted script files of earlier versions could not be processed.  This is now again possible. The problem was that such script files were stored in a special format  (STORAGE=TEXT) but support for this format was removed in version 1.1.105.
+When restarting a web application in Tomcat, an exception was thrown sometimes.  In most cases this was a NullPointerException. A workaround in H2 has been implemented.  The root cause of the problem is now documented in the FAQ:  Tomcat sets all static fields (final or non-final) to null when unloading a web application.  A workaround is to put the h2.jar in the lib directory, or set the system property  org.apache.catalina.loader.WebappClassLoader.ENABLE_CLEAR_REFERENCES  to false.
 
-@changelog_1110_li
-Enabling the trace mechanism by creating a specially named file is no longer supported.
+@changelog_1110_h2
+Version 1.1.107 (2009-01-24)
 
-@changelog_1111_h2
-Version 1.1.106 (2009-01-04)
+@changelog_1111_li
+Some DatabaseMetaData operations did not work for non-admin users for versions 1.1.x.
 
 @changelog_1112_li
-Statement.setQueryTimeout did not work correctly for some statements.
+The MySQL compatibility extension fromUnixTime now used the English locale.
 
 @changelog_1113_li
-CREATE DOMAIN: Built-in data types can now only be changed if no tables exist.
+When using LOG=2 and repeatedly updating the last row rows of a table, the index file grew quickly.
 
 @changelog_1114_li
-Linked tables: a workaround for Oracle DATE columns has been implemented.
+In versions 1.1.105 and 1.1.106, encrypted script files of earlier versions could not be processed.  This is now again possible. The problem was that such script files were stored in a special format  (STORAGE=TEXT) but support for this format was removed in version 1.1.105.
 
 @changelog_1115_li
-DatabaseMetaData.getPrimaryKeys: The column PK_NAME now contains the  constraint name instead of the index name (compatibility for PostgreSQL and Derby).
+Enabling the trace mechanism by creating a specially named file is no longer supported.
 
-@changelog_1116_li
-Using IN(..) inside a IN(SELECT..) did not always work.
+@changelog_1116_h2
+Version 1.1.106 (2009-01-04)
 
 @changelog_1117_li
-Views with IN(..) that used a view itself did not work.
+Statement.setQueryTimeout did not work correctly for some statements.
 
 @changelog_1118_li
-Union queries with LIMIT or ORDER BY that are used in a view or subquery did not work.
+CREATE DOMAIN: Built-in data types can now only be changed if no tables exist.
 
 @changelog_1119_li
-The license change a bit: so far the license was modified to say  'Swiss law'. This is now changed back to the original 'US law'.  This was requested by a user, and I don't see a problem.
+Linked tables: a workaround for Oracle DATE columns has been implemented.
 
 @changelog_1120_li
-Constraints for local temporary tables now session scoped. So far they were global.  Thanks a lot to Eric Faulhaber for finding and fixing this problem!
+DatabaseMetaData.getPrimaryKeys: The column PK_NAME now contains the  constraint name instead of the index name (compatibility for PostgreSQL and Derby).
 
 @changelog_1121_li
-When using the auto-server mode, and if the lock file was modified in the future,  the wrong exception was thrown ('Connection is broken' instead of 'Error opening database: Lock file modified in the future').
+Using IN(..) inside a IN(SELECT..) did not always work.
 
-@changelog_1122_h2
-Version 1.1.105 (2008-12-19)
+@changelog_1122_li
+Views with IN(..) that used a view itself did not work.
 
 @changelog_1123_li
-The setting STORAGE=TEXT is no longer supported.
+Union queries with LIMIT or ORDER BY that are used in a view or subquery did not work.
 
 @changelog_1124_li
-Deleting a database using the tool DeleteDbFiles deleted LOB files  of other databases in the same directory.
+The license change a bit: so far the license was modified to say  'Swiss law'. This is now changed back to the original 'US law'.  This was requested by a user, and I don't see a problem.
 
 @changelog_1125_li
-When used in a subquery, LIKE and IN(..) did not work correctly sometimes.
+Constraints for local temporary tables now session scoped. So far they were global.  Thanks a lot to Eric Faulhaber for finding and fixing this problem!
 
 @changelog_1126_li
-The fulltext search documentation has been improved.
+When using the auto-server mode, and if the lock file was modified in the future,  the wrong exception was thrown ('Connection is broken' instead of 'Error opening database: Lock file modified in the future').
 
-@changelog_1127_li
-ARRAY_GET returned the wrong data type (ARRAY). Now it returns VARCHAR.
+@changelog_1127_h2
+Version 1.1.105 (2008-12-19)
 
 @changelog_1128_li
-Natural join: the joined columns are not repeated any more when using SELECT *.
+The setting STORAGE=TEXT is no longer supported.
 
 @changelog_1129_li
-User defined aggregate functions: the method getType expected internal data types  instead of SQL types.
+Deleting a database using the tool DeleteDbFiles deleted LOB files  of other databases in the same directory.
 
 @changelog_1130_li
-User defined aggregate functions did not work if there was no group by expression.
+When used in a subquery, LIKE and IN(..) did not work correctly sometimes.
 
 @changelog_1131_li
-MySQL compatibility: support for := assignment as in @sum:=@sum+x
+The fulltext search documentation has been improved.
 
 @changelog_1132_li
-INSERT INTO TEST(SELECT * FROM TEST) is now supported.
+ARRAY_GET returned the wrong data type (ARRAY). Now it returns VARCHAR.
 
 @changelog_1133_li
-Each session threw an invisible exception when garbage collected.
+Natural join: the joined columns are not repeated any more when using SELECT *.
 
 @changelog_1134_li
-Foreign key constraints that refer to a quoted column did not work.
+User defined aggregate functions: the method getType expected internal data types  instead of SQL types.
 
 @changelog_1135_li
-New meta data column INFORMATION_SCHEMA.TABLES.LAST_MODIFICATION to get  the table modification counter.
+User defined aggregate functions did not work if there was no group by expression.
 
 @changelog_1136_li
-Shell: line comments didn't work correctly.
+MySQL compatibility: support for := assignment as in @sum:=@sum+x
 
 @changelog_1137_li
-H2 Console: Columns are now listed for up to 500 tables instead of 100.
+INSERT INTO TEST(SELECT * FROM TEST) is now supported.
 
 @changelog_1138_li
-H2 Console: Cmd+Enter executes the current statement, Alt+Space for autocomplete.
+Each session threw an invisible exception when garbage collected.
 
 @changelog_1139_li
-JaQu: the maximum length of a column can now be defined using maxLength.  For an example, see Product.java (maxLength(category, 255)).
+Foreign key constraints that refer to a quoted column did not work.
 
 @changelog_1140_li
-R&\#305;dvan A&\#287;ar has completed the Turkish translation of the H2 Console. Thanks a lot!
+New meta data column INFORMATION_SCHEMA.TABLES.LAST_MODIFICATION to get  the table modification counter.
 
-@changelog_1141_h2
-Version 1.1.104 (2008-11-28)
+@changelog_1141_li
+Shell: line comments didn't work correctly.
 
 @changelog_1142_li
-If a query that was used like a table contained group by and was ordered by an expression that  is not in the column list, an exception was thrown.
+H2 Console: Columns are now listed for up to 500 tables instead of 100.
 
 @changelog_1143_li
-JaQu: tables are now auto-created when running a query.
+H2 Console: Cmd+Enter executes the current statement, Alt+Space for autocomplete.
 
 @changelog_1144_li
-The optimizer had problems with function tables (for example CSVREAD and FTL_SEARCH).  A new system property h2.estimatedFunctionTableRows (default 1000) defines how many rows  can be expected in the table.
+JaQu: the maximum length of a column can now be defined using maxLength.  For an example, see Product.java (maxLength(category, 255)).
 
 @changelog_1145_li
-The function SUM could overflow when using large values. It returns now a data type that is safe.
+R&\#305;dvan A&\#287;ar has completed the Turkish translation of the H2 Console. Thanks a lot!
 
-@changelog_1146_li
-The function AVG could overflow when using large values. Fixed.
+@changelog_1146_h2
+Version 1.1.104 (2008-11-28)
 
 @changelog_1147_li
-The emergency reserve file has been removed. It didn't provide an appropriate  solution for the problem. It is still possible for an application to detect and deal with  the low disk space problem (deleting temporary files for example)  using DatabaseEventListener.diskSpaceIsLow, but this method is now always called  with stillAvailable=0.
+If a query that was used like a table contained group by and was ordered by an expression that  is not in the column list, an exception was thrown.
 
 @changelog_1148_li
-Build: JAVA_HOME is now automatically detected on Mac OS X.
+JaQu: tables are now auto-created when running a query.
 
 @changelog_1149_li
-Testing for local connections was very slow on some systems.
+The optimizer had problems with function tables (for example CSVREAD and FTL_SEARCH).  A new system property h2.estimatedFunctionTableRows (default 1000) defines how many rows  can be expected in the table.
 
 @changelog_1150_li
-The cache memory usage calculation is more conservative.
+The function SUM could overflow when using large values. It returns now a data type that is safe.
 
 @changelog_1151_li
-Allocating space got slower and slower the larger the database.
+The function AVG could overflow when using large values. Fixed.
 
 @changelog_1152_li
-ALTER TABLE ALTER COLUMN could throw the wrong exception in the last version  (Table not found).
+The emergency reserve file has been removed. It didn't provide an appropriate  solution for the problem. It is still possible for an application to detect and deal with  the low disk space problem (deleting temporary files for example)  using DatabaseEventListener.diskSpaceIsLow, but this method is now always called  with stillAvailable=0.
 
 @changelog_1153_li
-Updatable result sets: the key columns can now be updated.
+Build: JAVA_HOME is now automatically detected on Mac OS X.
 
 @changelog_1154_li
-The H2DatabaseProvider for ActiveObjects is now included in the tools section.
+Testing for local connections was very slow on some systems.
 
 @changelog_1155_li
-The H2Platform for Oracle Toplink Essential has been improved a bit.
+The cache memory usage calculation is more conservative.
 
 @changelog_1156_li
-The Windows service to start H2 didn't work in version 1.1.
+Allocating space got slower and slower the larger the database.
 
 @changelog_1157_li
-File systems with a maximum file size (for example FAT) are now supported using  the file prefix 'split:'. In this case the files are split in parts of 1 GB.  Example URL: jdbc:h2:split:~/db/test. If you want to split into parts of 1 MB, use  jdbc:h2:split:20:~/db/test (the part size is 1 &lt;&lt; x, the default is 30 meaning 1 GB).
+ALTER TABLE ALTER COLUMN could throw the wrong exception in the last version  (Table not found).
 
 @changelog_1158_li
-The database now tries to detect if the classloader or virtual machine has  almost shut down by checking if static final variables are set to null.  This should help reduce exceptions when stopping the web application.
+Updatable result sets: the key columns can now be updated.
 
 @changelog_1159_li
-Compatibility for MS SQL Server DATEDIFF(YYYY, .., ..)
+The H2DatabaseProvider for ActiveObjects is now included in the tools section.
 
 @changelog_1160_li
-ResultSet.getObject for CLOB or BLOB will return a java.sql.Clob / java.sql.Blob object instead of  a java.io.Reader / java.io.InputStream as in version 1.0. This behavior can be changed using the system  property h2.returnLobObjects (true by default for version 1.1).
+The H2Platform for Oracle Toplink Essential has been improved a bit.
 
 @changelog_1161_li
-The interface CloseListener has a new method 'remove' that is called when the trigger is dropped.
+The Windows service to start H2 didn't work in version 1.1.
 
 @changelog_1162_li
-Fulltext search: there was a memory leak when creating and dropping fulltext indexes in a loop.
+File systems with a maximum file size (for example FAT) are now supported using  the file prefix 'split:'. In this case the files are split in parts of 1 GB.  Example URL: jdbc:h2:split:~/db/test. If you want to split into parts of 1 MB, use  jdbc:h2:split:20:~/db/test (the part size is 1 &lt;&lt; x, the default is 30 meaning 1 GB).
 
-@changelog_1163_h2
-Version 1.1.103 (2008-11-07)
+@changelog_1163_li
+The database now tries to detect if the classloader or virtual machine has  almost shut down by checking if static final variables are set to null.  This should help reduce exceptions when stopping the web application.
 
 @changelog_1164_li
-Could not order by a formula when the formula was in the group by list  but not in the select list.
+Compatibility for MS SQL Server DATEDIFF(YYYY, .., ..)
 
 @changelog_1165_li
-Date values that match the daylight saving time end were not allowed in  times zones were the daylight saving time ends at midnight, for years larger than 2037.  Example: timezone Brasilia, date 2042-10-12. This is a problem of Java, however a  workaround is implemented in H2 that solves most problems (except the problems of  java.util.Date itself).
+ResultSet.getObject for CLOB or BLOB will return a java.sql.Clob / java.sql.Blob object instead of  a java.io.Reader / java.io.InputStream as in version 1.0. This behavior can be changed using the system  property h2.returnLobObjects (true by default for version 1.1).
 
 @changelog_1166_li
-ALTER TABLE used a lot of memory when using multi-version concurrency.
+The interface CloseListener has a new method 'remove' that is called when the trigger is dropped.
 
 @changelog_1167_li
-Referential integrity for in-memory databases didn't work in some cases in version 1.1.102.
+Fulltext search: there was a memory leak when creating and dropping fulltext indexes in a loop.
 
-@changelog_1168_li
-New column INFORMATION_SCHEMA.COLUMNS.SEQUENCE_NAME to get the name  of the sequence for auto-increment columns.
+@changelog_1168_h2
+Version 1.1.103 (2008-11-07)
 
 @changelog_1169_li
-Aliases for built-in data types (such as MEDIUMBLOB which is an alias for BLOB)  can now be re-mapped to another data type using CREATE DOMAIN. However  main built-in data types (such as INTEGER) can not be re-mapped.
+Could not order by a formula when the formula was in the group by list  but not in the select list.
 
 @changelog_1170_li
-The Japanese translation has been completed by Masahiro Ikemoto.  Thanks a lot!
+Date values that match the daylight saving time end were not allowed in  times zones were the daylight saving time ends at midnight, for years larger than 2037.  Example: timezone Brasilia, date 2042-10-12. This is a problem of Java, however a  workaround is implemented in H2 that solves most problems (except the problems of  java.util.Date itself).
 
 @changelog_1171_li
-Improved PostgreSQL compatibility for NEXTVAL and CURRVAL.
+ALTER TABLE used a lot of memory when using multi-version concurrency.
 
 @changelog_1172_li
-Less heap memory is needed when multiple databases are open at the same time: The memory reserve  (used to rollback after out of memory) is now global and no longer allocated for each database separately.
+Referential integrity for in-memory databases didn't work in some cases in version 1.1.102.
 
 @changelog_1173_li
-New system property h2.browser to set the browser to use.
+New column INFORMATION_SCHEMA.COLUMNS.SEQUENCE_NAME to get the name  of the sequence for auto-increment columns.
 
 @changelog_1174_li
-To start the browser, java.awt.Desktop.browse is now used if available.
+Aliases for built-in data types (such as MEDIUMBLOB which is an alias for BLOB)  can now be re-mapped to another data type using CREATE DOMAIN. However  main built-in data types (such as INTEGER) can not be re-mapped.
 
-@changelog_1175_h2
-Version 1.1.102 (2008-10-24)
+@changelog_1175_li
+The Japanese translation has been completed by Masahiro Ikemoto.  Thanks a lot!
 
 @changelog_1176_li
-The French translation of the H2 Console has been improved by Olivier Parent.  Thanks a lot!
+Improved PostgreSQL compatibility for NEXTVAL and CURRVAL.
 
 @changelog_1177_li
-There was a memory leak when creating and dropping tables and  indexes in a loop (persistent database only).
+Less heap memory is needed when multiple databases are open at the same time: The memory reserve  (used to rollback after out of memory) is now global and no longer allocated for each database separately.
 
 @changelog_1178_li
-SET LOG 2 was not effective if executed after opening the database.
+New system property h2.browser to set the browser to use.
 
 @changelog_1179_li
-Translating the H2 Console is now simpler.
+To start the browser, java.awt.Desktop.browse is now used if available.
 
-@changelog_1180_li
-Common exception (error code 23*) are no longer written to the .trace.db file by default.
+@changelog_1180_h2
+Version 1.1.102 (2008-10-24)
 
 @changelog_1181_li
-In-memory databases don't write LOBs to files any longer.
+The French translation of the H2 Console has been improved by Olivier Parent.  Thanks a lot!
 
 @changelog_1182_li
-Self referencing constraints didn't restrict deleting rows that reference  itself if there is another row that references it.
+There was a memory leak when creating and dropping tables and  indexes in a loop (persistent database only).
 
 @changelog_1183_li
-ResultSetMetaData.getColumnName now returns the alias name except for columns.
+SET LOG 2 was not effective if executed after opening the database.
 
 @changelog_1184_li
-Temporary files are now deleted when the database is closed, even  if they were not garbage collected so far.
+Translating the H2 Console is now simpler.
 
-@changelog_1185_h2
-Version 1.1.101 (2008-10-17)
+@changelog_1185_li
+Common exception (error code 23*) are no longer written to the .trace.db file by default.
 
 @changelog_1186_li
-Errors with code 42000 - 42999 are no longer written to the trace file by default.
+In-memory databases don't write LOBs to files any longer.
 
 @changelog_1187_li
-Queries with more than 10 tables are now faster.
+Self referencing constraints didn't restrict deleting rows that reference  itself if there is another row that references it.
 
 @changelog_1188_li
-Opening a connection with AUTO_SERVER=TRUE is now fast  when the database is already open in another process (less than 0.01 seconds  instead of 2 seconds).
+ResultSetMetaData.getColumnName now returns the alias name except for columns.
 
 @changelog_1189_li
-IF [NOT] EXISTS is supported for named constraints in  ALTER TABLE ... ADD/DROP CONSTRAINT.
+Temporary files are now deleted when the database is closed, even  if they were not garbage collected so far.
 
-@changelog_1190_li
-The error messages have been translated to Spanish by Dario V. Fassi.  Thanks a lot!
+@changelog_1190_h2
+Version 1.1.101 (2008-10-17)
 
 @changelog_1191_li
-Linked tables: the automatic connection sharing didn't work. Actually the  system property h2.shareLinkedConnections was working in the opposite direction:  it was disabled when set to true. Now it works as expected.
+Errors with code 42000 - 42999 are no longer written to the trace file by default.
 
 @changelog_1192_li
-Opening large database is now faster.
+Queries with more than 10 tables are now faster.
 
 @changelog_1193_li
-New system property h2.socketConnectTimeout, the timeout in milliseconds  to connect to a server. The default is 2000 (2 seconds).
+Opening a connection with AUTO_SERVER=TRUE is now fast  when the database is already open in another process (less than 0.01 seconds  instead of 2 seconds).
 
 @changelog_1194_li
-The wrong parameters were bound to subqueries with parameters, specially  when using IN(SELECT ...) and IN(...).
+IF [NOT] EXISTS is supported for named constraints in  ALTER TABLE ... ADD/DROP CONSTRAINT.
 
 @changelog_1195_li
-Unset parameters were not detected when the query was re-compiled.
+The error messages have been translated to Spanish by Dario V. Fassi.  Thanks a lot!
 
 @changelog_1196_li
-New functions ISO_YEAR, ISO_WEEK, ISO_DAY_OF_WEEK.  Thanks a lot to Robert Rathsack for implementing those!
+Linked tables: the automatic connection sharing didn't work. Actually the  system property h2.shareLinkedConnections was working in the opposite direction:  it was disabled when set to true. Now it works as expected.
 
 @changelog_1197_li
-The date functions DAYOFYEAR, DAYOFMONTH, DAYOFWEEK are now called  DAY_OF_YEAR, DAY_OF_MONTH, DAY_OF_WEEK (the old names still work).
+Opening large database is now faster.
 
 @changelog_1198_li
-An out of memory error while deleting or updating many rows could  result in a strange exception.
+New system property h2.socketConnectTimeout, the timeout in milliseconds  to connect to a server. The default is 2000 (2 seconds).
 
 @changelog_1199_li
-Linked tables: compatibility with MS SQL Server has been improved.
+The wrong parameters were bound to subqueries with parameters, specially  when using IN(SELECT ...) and IN(...).
 
 @changelog_1200_li
-Renaming tables that have foreign keys with cascade didn't work correctly.
+Unset parameters were not detected when the query was re-compiled.
 
 @changelog_1201_li
-The auto-reconnect feature didn't work when using the auto-server mode. Fixed.
+New functions ISO_YEAR, ISO_WEEK, ISO_DAY_OF_WEEK.  Thanks a lot to Robert Rathsack for implementing those!
 
 @changelog_1202_li
-Fulltext search: new method FT_DROP_INDEX.
+The date functions DAYOFYEAR, DAYOFMONTH, DAYOFWEEK are now called  DAY_OF_YEAR, DAY_OF_MONTH, DAY_OF_WEEK (the old names still work).
 
 @changelog_1203_li
-The optimization to group using an index didn't work in some cases in version 1.1  (see also system property h2.optimizeGroupSorted).
+An out of memory error while deleting or updating many rows could  result in a strange exception.
 
 @changelog_1204_li
-OSGi meta data is included in the manifest file.  An OSGi BundleActivator is included: it loads the database driver when starting the bundle,  and unloads it when stopping the bundle.
+Linked tables: compatibility with MS SQL Server has been improved.
 
 @changelog_1205_li
-The default value for MAX_MEMORY_UNDO is now 50000.
+Renaming tables that have foreign keys with cascade didn't work correctly.
 
 @changelog_1206_li
-For alias columns, ResultSetMetaData.getTableName() and getColumnName() now   return the real table and column name in the default mode.
+The auto-reconnect feature didn't work when using the auto-server mode. Fixed.
 
 @changelog_1207_li
-In SQL scripts created with SCRIPT TO, schemas are now only created if they don't exist yet.
+Fulltext search: new method FT_DROP_INDEX.
 
 @changelog_1208_li
-After re-connecting to a database, the database event listener (if set) is informed about it.
+The optimization to group using an index didn't work in some cases in version 1.1  (see also system property h2.optimizeGroupSorted).
 
 @changelog_1209_li
-Local temporary tables now support indexes. Thanks a lot to Matt Roy!
+OSGi meta data is included in the manifest file.  An OSGi BundleActivator is included: it loads the database driver when starting the bundle,  and unloads it when stopping the bundle.
 
 @changelog_1210_li
-RUNSCRIPT no longer uses a temporary file.
+The default value for MAX_MEMORY_UNDO is now 50000.
 
 @changelog_1211_li
-New system table INFORMATION_SCHEMA.SESSION_STATE containing the  SQL statements that make up the session state. The list currently contains  variables (SET @..) and local temporary tables (without data).
+For alias columns, ResultSetMetaData.getTableName() and getColumnName() now   return the real table and column name in the default mode.
 
 @changelog_1212_li
-After an automatic re-connect, part of the session state stays (the part  that is stored in the SESSION_STATE table).
+In SQL scripts created with SCRIPT TO, schemas are now only created if they don't exist yet.
 
 @changelog_1213_li
-The build didn't work if the directory temp didn't exist before.
+After re-connecting to a database, the database event listener (if set) is informed about it.
 
 @changelog_1214_li
-New system property h2.maxReconnect (default 3) to limit the number of re-connects  for the same SQL statement (this is usually only important for SHUTDOWN).
+Local temporary tables now support indexes. Thanks a lot to Matt Roy!
 
 @changelog_1215_li
-WHERE .. IN (SELECT ...) could throw a NullPointerException.
+RUNSCRIPT no longer uses a temporary file.
 
 @changelog_1216_li
-Improved Glassfish / Toplink support in H2Platform  thanks to Marcio Borges from Brazil. Thanks a lot!
+New system table INFORMATION_SCHEMA.SESSION_STATE containing the  SQL statements that make up the session state. The list currently contains  variables (SET @..) and local temporary tables (without data).
 
-@changelog_1217_h2
-Version 1.1.100 (2008-10-04)
+@changelog_1217_li
+After an automatic re-connect, part of the session state stays (the part  that is stored in the SESSION_STATE table).
 
 @changelog_1218_li
-In version 1.1, the following system properties are now enabled by default:  h2.lobFilesInDirectories, h2.optimizeGroupSorted, h2.optimizeInJoin, h2.shareLinkedConnections
+The build didn't work if the directory temp didn't exist before.
 
 @changelog_1219_li
-The H2 Console tool now works with the JDBC-ODBC bridge.
+New system property h2.maxReconnect (default 3) to limit the number of re-connects  for the same SQL statement (this is usually only important for SHUTDOWN).
 
 @changelog_1220_li
-The H2 Console tool now supports command line options to start things separately.
+WHERE .. IN (SELECT ...) could throw a NullPointerException.
 
 @changelog_1221_li
-Large objects did not work for in-memory databases in server mode in Linux.
+Improved Glassfish / Toplink support in H2Platform  thanks to Marcio Borges from Brazil. Thanks a lot!
 
-@changelog_1222_li
-Connections from a local address other than 'localhost' were not allowed if remote  connections were disabled. This was always a problem, but only got visible in the last release  because the server no longer connects to 'localhost' if networked.
+@changelog_1222_h2
+Version 1.1.100 (2008-10-04)
 
 @changelog_1223_li
-The h2console.war can now be built using the Java build.
+In version 1.1, the following system properties are now enabled by default:  h2.lobFilesInDirectories, h2.optimizeGroupSorted, h2.optimizeInJoin, h2.shareLinkedConnections
 
 @changelog_1224_li
-By default, databases are shared in the same process. For read-only databases  this causes unnecessary synchronization, but safes memory. If you want that each connection  opens its own database, append ;OPEN_NEW=TRUE to the database URL.
+The H2 Console tool now works with the JDBC-ODBC bridge.
 
 @changelog_1225_li
-New auto-reconnect feature will cause the JDBC driver to reconnect to  the database if the connection is lost. To enable, append ;AUTO_RECONNECT=TRUE to the database URL.  This is specially helpful when using AUTO_SERVER. AUTO_SERVER automatically uses auto-reconnect.
+The H2 Console tool now supports command line options to start things separately.
 
 @changelog_1226_li
-CreateCluster: the property 'serverlist' is now called 'serverList'.
+Large objects did not work for in-memory databases in server mode in Linux.
 
 @changelog_1227_li
-The ConvertTraceFile tool could not parse some files because the trace  mechanism did not encode prepared statement parameters.
+Connections from a local address other than 'localhost' were not allowed if remote  connections were disabled. This was always a problem, but only got visible in the last release  because the server no longer connects to 'localhost' if networked.
 
 @changelog_1228_li
-Databases names can now be one character long  (the minimum size used to be 2 characters).
+The h2console.war can now be built using the Java build.
 
-@changelog_1229_h2
-Version 1.0.79 (2008-09-26)
+@changelog_1229_li
+By default, databases are shared in the same process. For read-only databases  this causes unnecessary synchronization, but safes memory. If you want that each connection  opens its own database, append ;OPEN_NEW=TRUE to the database URL.
 
 @changelog_1230_li
-Linked tables that point to the same database can now share the connection  within the same database. Access to the same connection is serialized. To enable this feature,  set the system property h2.shareLinkedConnections to true.
+New auto-reconnect feature will cause the JDBC driver to reconnect to  the database if the connection is lost. To enable, append ;AUTO_RECONNECT=TRUE to the database URL.  This is specially helpful when using AUTO_SERVER. AUTO_SERVER automatically uses auto-reconnect.
 
 @changelog_1231_li
-Multiple processes can now access the same database without having to explicitly  start the server. To do that, append ;AUTO_SERVER=TRUE to the database URL.  In this case, the server is started automatically if the connection is in embedded mode,  and the server mode is used if a server is running. If the process that opened the first  connection is closed, the other client need to reconnect (there is no automatic re-connect so far).  Remote connections are allowed, but only to this database.
+CreateCluster: the property 'serverlist' is now called 'serverList'.
 
 @changelog_1232_li
-The server tool now displays the correct IP address if networked.
+The ConvertTraceFile tool could not parse some files because the trace  mechanism did not encode prepared statement parameters.
 
 @changelog_1233_li
-Can now start a TCP server with port 0 (automatically select a port).
+Databases names can now be one character long  (the minimum size used to be 2 characters).
 
-@changelog_1234_li
-Result sets with just a unique index can now be updated (previously a primary key was required).
+@changelog_1234_h2
+Version 1.0.79 (2008-09-26)
 
 @changelog_1235_li
-LINKED TABLE: the schema name can now be set. When multiple tables exist in different schema,  and the schema name is not set, an exception is thrown.
+Linked tables that point to the same database can now share the connection  within the same database. Access to the same connection is serialized. To enable this feature,  set the system property h2.shareLinkedConnections to true.
 
 @changelog_1236_li
-LINKED TABLE: worked around a bug in Oracle with the CHAR data type.
+Multiple processes can now access the same database without having to explicitly  start the server. To do that, append ;AUTO_SERVER=TRUE to the database URL.  In this case, the server is started automatically if the connection is in embedded mode,  and the server mode is used if a server is running. If the process that opened the first  connection is closed, the other client need to reconnect (there is no automatic re-connect so far).  Remote connections are allowed, but only to this database.
 
 @changelog_1237_li
-Faster hash code calculation for large binary arrays.
+The server tool now displays the correct IP address if networked.
 
 @changelog_1238_li
-Faster storage re-use algorithm thanks to Greg Dhuse from cleversafe.com.
+Can now start a TCP server with port 0 (automatically select a port).
 
 @changelog_1239_li
-The database supports the SHOW command for better MySQL and PostgreSQL compatibility.
+Result sets with just a unique index can now be updated (previously a primary key was required).
 
 @changelog_1240_li
-The H2 Console now abbreviates large texts in results.
+LINKED TABLE: the schema name can now be set. When multiple tables exist in different schema,  and the schema name is not set, an exception is thrown.
 
 @changelog_1241_li
-Multiple UNION queries could not be used in derived tables.
+LINKED TABLE: worked around a bug in Oracle with the CHAR data type.
 
 @changelog_1242_li
-Linked tables can now be read-only.
+Faster hash code calculation for large binary arrays.
 
 @changelog_1243_li
-Temporary linked tables are now supported.
+Faster storage re-use algorithm thanks to Greg Dhuse from cleversafe.com.
 
 @changelog_1244_li
-It was possible to create tables in read-only databases.
+The database supports the SHOW command for better MySQL and PostgreSQL compatibility.
 
 @changelog_1245_li
-SET SCHEMA_SEARCH_PATH is now documented.
+The H2 Console now abbreviates large texts in results.
 
 @changelog_1246_li
-SET SCHEMA did not work for views.
+Multiple UNION queries could not be used in derived tables.
 
 @changelog_1247_li
-Row level locking for MVCC is now enabled. The exception  'Concurrent update in table ...' is still thrown, but only after the lock timeout.
+Linked tables can now be read-only.
 
 @changelog_1248_li
-The maximum log file size setting was ignored for large databases.
+Temporary linked tables are now supported.
 
 @changelog_1249_li
-Multi-Version Concurrency (MVCC) may no longer be used when using  the multi-threaded kernel feature (MULTI_THREADED). An exception is thrown  when trying to connect with both settings. Additional synchronization  is required before those features can be used together.
+It was possible to create tables in read-only databases.
 
 @changelog_1250_li
-The data type JAVA_OBJECT could not be used in updatable result sets.
+SET SCHEMA_SEARCH_PATH is now documented.
 
 @changelog_1251_li
-The system property h2.optimizeInJoin did not work correctly.
+SET SCHEMA did not work for views.
 
 @changelog_1252_li
-Conditions such as ID=? AND ID>? were slow.
+Row level locking for MVCC is now enabled. The exception  'Concurrent update in table ...' is still thrown, but only after the lock timeout.
 
-@changelog_1253_h2
-Version 1.0.78 (2008-08-28)
+@changelog_1253_li
+The maximum log file size setting was ignored for large databases.
 
 @changelog_1254_li
-The documentation no longer uses a frameset (except the Javadocs).
+Multi-Version Concurrency (MVCC) may no longer be used when using  the multi-threaded kernel feature (MULTI_THREADED). An exception is thrown  when trying to connect with both settings. Additional synchronization  is required before those features can be used together.
 
 @changelog_1255_li
-When using DB_CLOSE_DELAY, sometimes a NullPointerException is thrown when  the database is opened almost at the same time as it is closed automatically.  Thanks a lot to Dmitry Pekar for finding this!
+The data type JAVA_OBJECT could not be used in updatable result sets.
 
 @changelog_1256_li
-Java methods with variable number of parameters can now be used (for Java 1.5 or newer).
+The system property h2.optimizeInJoin did not work correctly.
 
 @changelog_1257_li
-The Japanese translation has been improved by Masahiro Ikemoto. Thanks a lot!
+Conditions such as ID=? AND ID>? were slow.
 
-@changelog_1258_li
-The H2 Console replaced an empty user name with a single space.
+@changelog_1258_h2
+Version 1.0.78 (2008-08-28)
 
 @changelog_1259_li
-The build target 'build jarSmall' now includes the embedded database.
+The documentation no longer uses a frameset (except the Javadocs).
 
 @changelog_1260_li
-JdbcDataSource now keeps the password in a char array where possible.
+When using DB_CLOSE_DELAY, sometimes a NullPointerException is thrown when  the database is opened almost at the same time as it is closed automatically.  Thanks a lot to Dmitry Pekar for finding this!
 
 @changelog_1261_li
-ResultSet.absolute did not always work with large result sets.
+Java methods with variable number of parameters can now be used (for Java 1.5 or newer).
 
 @changelog_1262_li
-Column aliases can now be used in GROUP BY and HAVING.
+The Japanese translation has been improved by Masahiro Ikemoto. Thanks a lot!
 
 @changelog_1263_li
-Jason Brittain has contributed MySQL date functions. Thanks a lot!  They are not in the h2.jar file currently, but in src/tools/org/h2/mode/FunctionsMySQL.java.  To install, add this class to the classpath and call FunctionsMySQL.register(conn) in the Java code.
+The H2 Console replaced an empty user name with a single space.
 
-@changelog_1264_h2
-Version 1.0.77 (2008-08-16)
+@changelog_1264_li
+The build target 'build jarSmall' now includes the embedded database.
 
 @changelog_1265_li
-JaQu is now using prepared statements and supports Date, Time, Timestamp.
+JdbcDataSource now keeps the password in a char array where possible.
 
 @changelog_1266_li
-When using remote in-memory databases, large LOB objects did not work.
+ResultSet.absolute did not always work with large result sets.
 
 @changelog_1267_li
-Timestamp columns such as TIMESTAMP(6) were not compatible to other database.
+Column aliases can now be used in GROUP BY and HAVING.
 
 @changelog_1268_li
-Opening a large database was slow if there was a problem opening the previous time.
+Jason Brittain has contributed MySQL date functions. Thanks a lot!  They are not in the h2.jar file currently, but in src/tools/org/h2/mode/FunctionsMySQL.java.  To install, add this class to the classpath and call FunctionsMySQL.register(conn) in the Java code.
 
-@changelog_1269_li
-NOT IN(SELECT ...) was incorrect if the subquery returns no rows.
+@changelog_1269_h2
+Version 1.0.77 (2008-08-16)
 
 @changelog_1270_li
-CREATE TABLE AS SELECT did not work correctly in the multi-version concurrency mode.
+JaQu is now using prepared statements and supports Date, Time, Timestamp.
 
 @changelog_1271_li
-Support a comma before closing a list, as in: create table test(id int,)
+When using remote in-memory databases, large LOB objects did not work.
 
 @changelog_1272_li
-MySQL compatibility: linked tables had lower case column names on some systems.
+Timestamp columns such as TIMESTAMP(6) were not compatible to other database.
 
 @changelog_1273_li
-DB2 compatibility: the DB2 fetch-first-clause is supported.
+Opening a large database was slow if there was a problem opening the previous time.
 
 @changelog_1274_li
-Oracle compatibility: old style outer join syntax using (+) did work correctly sometimes.
+NOT IN(SELECT ...) was incorrect if the subquery returns no rows.
 
 @changelog_1275_li
-ResultSet.setFetchSize is now supported.
+CREATE TABLE AS SELECT did not work correctly in the multi-version concurrency mode.
 
 @changelog_1276_li
-It has been reported that when using Install4j on some Linux systems and enabling the 'pack200' option,  the h2.jar becomes corrupted by the install process, causing application failure.  A workaround is to add an empty file h2.jar.nopack next to the h2.jar file.  The reason for this problem is not known.
+Support a comma before closing a list, as in: create table test(id int,)
 
-@changelog_1277_h2
-Version 1.0.76 (2008-07-27)
+@changelog_1277_li
+MySQL compatibility: linked tables had lower case column names on some systems.
 
 @changelog_1278_li
-The comment of a domain (user defined data type) is now used as the  default column comment when creating a column with this domain.
+DB2 compatibility: the DB2 fetch-first-clause is supported.
 
 @changelog_1279_li
-Invalid database names are now detected and a better error message is thrown.
+Oracle compatibility: old style outer join syntax using (+) did work correctly sometimes.
 
 @changelog_1280_li
-ResultSetMetaData.getColumnClassName now returns the correct  class name for BLOB and CLOB.
+ResultSet.setFetchSize is now supported.
 
 @changelog_1281_li
-Fixed the Oracle mode: Oracle allows multiple rows only where  all columns of the unique index are NULL.
+It has been reported that when using Install4j on some Linux systems and enabling the 'pack200' option,  the h2.jar becomes corrupted by the install process, causing application failure.  A workaround is to add an empty file h2.jar.nopack next to the h2.jar file.  The reason for this problem is not known.
 
-@changelog_1282_li
-There is a problem with Hibernate when using Boolean columns.  A patch for Hibernate has been submitted at  http://opensource.atlassian.com/projects/hibernate/browse/HHH-3401
+@changelog_1282_h2
+Version 1.0.76 (2008-07-27)
 
 @changelog_1283_li
-ORDER BY on tableName.columnName didn't work correctly if the column  name was also used as an alias.
+The comment of a domain (user defined data type) is now used as the  default column comment when creating a column with this domain.
 
 @changelog_1284_li
-H2 Console: The progress display when opening a database has been improved.
+Invalid database names are now detected and a better error message is thrown.
 
 @changelog_1285_li
-The error message when the server doesn't start has been improved.
+ResultSetMetaData.getColumnClassName now returns the correct  class name for BLOB and CLOB.
 
 @changelog_1286_li
-Key values can now be changed in updatable result sets.
+Fixed the Oracle mode: Oracle allows multiple rows only where  all columns of the unique index are NULL.
 
 @changelog_1287_li
-Changes in updatable result sets are now visible even when resetting the result set.
+There is a problem with Hibernate when using Boolean columns.  A patch for Hibernate has been submitted at  http://opensource.atlassian.com/projects/hibernate/browse/HHH-3401
 
 @changelog_1288_li
-Temporary files were sometimes deleted too late when executing large insert, update,  or delete operations.
+ORDER BY on tableName.columnName didn't work correctly if the column  name was also used as an alias.
 
 @changelog_1289_li
-The database file was growing after deleting many rows, and after large update operations.
+H2 Console: The progress display when opening a database has been improved.
 
-@changelog_1290_h2
-Version 1.0.75 (2008-07-14)
+@changelog_1290_li
+The error message when the server doesn't start has been improved.
 
 @changelog_1291_li
-Multi version concurrency (MVCC): when a row was updated or deleted, but this change was rolled back,  the row was not visible by other sessions if no index was used to access it. Fixed.
+Key values can now be changed in updatable result sets.
 
 @changelog_1292_li
-Views with multiple joined tables (where one was an outer join) couldn't be used in some cases. Fixed.
+Changes in updatable result sets are now visible even when resetting the result set.
 
 @changelog_1293_li
-The CSVREAD method did not process NULL correctly when using a whitespace field separator.
+Temporary files were sometimes deleted too late when executing large insert, update,  or delete operations.
 
 @changelog_1294_li
-Fixed the Oracle mode: Oracle allows multiple rows with NULL in a unique index.
+The database file was growing after deleting many rows, and after large update operations.
 
-@changelog_1295_li
-Running out of memory could result in incomplete transactions or corrupted databases. Fixed.
+@changelog_1295_h2
+Version 1.0.75 (2008-07-14)
 
 @changelog_1296_li
-When using order by in a query that uses the same table multiple times, the order could  be incorrect. Fixed.
+Multi version concurrency (MVCC): when a row was updated or deleted, but this change was rolled back,  the row was not visible by other sessions if no index was used to access it. Fixed.
 
 @changelog_1297_li
-Referential constraint checking improvement: now the constraint is only checked  if the key column values change.
+Views with multiple joined tables (where one was an outer join) couldn't be used in some cases. Fixed.
 
 @changelog_1298_li
-Some database metadata calls returned the wrong data type for DATA_TYPE columns.
+The CSVREAD method did not process NULL correctly when using a whitespace field separator.
 
 @changelog_1299_li
-The Lucene fulltext index was empty when opening a database with fulltext  index enabled, and re-indexing it didn't work. Fixed.
+Fixed the Oracle mode: Oracle allows multiple rows with NULL in a unique index.
 
 @changelog_1300_li
-The character '$' could not be used in identifier names (table name,  column names and so on). Fixed.
+Running out of memory could result in incomplete transactions or corrupted databases. Fixed.
 
 @changelog_1301_li
-The new method org.h2.tools.Server.startWebServer(conn) starts the H2 Console  to inspect a database while debugging.
+When using order by in a query that uses the same table multiple times, the order could  be incorrect. Fixed.
 
 @changelog_1302_li
-Stopping a WebServer didn't always work. Fixed.
+Referential constraint checking improvement: now the constraint is only checked  if the key column values change.
 
-@changelog_1303_h2
-Version 1.0.74 (2008-06-21)
+@changelog_1303_li
+Some database metadata calls returned the wrong data type for DATA_TYPE columns.
 
 @changelog_1304_li
-Work on row level locking has been started (but there is nothing usable yet).
+The Lucene fulltext index was empty when opening a database with fulltext  index enabled, and re-indexing it didn't work. Fixed.
 
 @changelog_1305_li
-JaQu (Java Query), a tool similar to LINQ (Language Integrated Query; from Microsoft)  is now included under src/tools/org/h2/jaqu. A small sample application is included under  src/test/org/h2/test/jaqu.
+The character '$' could not be used in identifier names (table name,  column names and so on). Fixed.
 
 @changelog_1306_li
-The source code is now switched to Java 1.6 by default. To switch back to Java 1.4, run 'build compile'.  The h2.jar file is still Java 1.4.
+The new method org.h2.tools.Server.startWebServer(conn) starts the H2 Console  to inspect a database while debugging.
 
 @changelog_1307_li
-The ChangePassword tool is now called ChangeFileEncryption.
+Stopping a WebServer didn't always work. Fixed.
 
-@changelog_1308_li
-It is no longer allowed to create columns with the data type NULL.  Also, it is no longer allowed to convert a column to the data type NULL.  This was possible before but caused data loss.
+@changelog_1308_h2
+Version 1.0.74 (2008-06-21)
 
 @changelog_1309_li
-When using computed columns or default values with a different data type than the column data type,  a class cast exception could occur. Fixed.
+Work on row level locking has been started (but there is nothing usable yet).
 
 @changelog_1310_li
-Opening databases larger than 1 GB was sometimes very slow if a lot of data was deleted previously. Fixed.
+JaQu (Java Query), a tool similar to LINQ (Language Integrated Query; from Microsoft)  is now included under src/tools/org/h2/jaqu. A small sample application is included under  src/test/org/h2/test/jaqu.
 
 @changelog_1311_li
-RUNSCRIPT could throw a NullPointerException if the script name was an expression.
+The source code is now switched to Java 1.6 by default. To switch back to Java 1.4, run 'build compile'.  The h2.jar file is still Java 1.4.
 
 @changelog_1312_li
-Improved compatibility. New compatibility modes for Oracle and Derby.  New compatibility flag uniqueIndexNullDistinct to only allow one row with 'NULL' in a unique  index. This flag is enabled for Derby, Oracle, MSSQLServer, and HSQLDB.
+The ChangePassword tool is now called ChangeFileEncryption.
 
 @changelog_1313_li
-Linked tables: To view the statements that are executed against the target table, set the trace level to 3.
+It is no longer allowed to create columns with the data type NULL.  Also, it is no longer allowed to convert a column to the data type NULL.  This was possible before but caused data loss.
 
 @changelog_1314_li
-RunScript tool: new options to show and check the results of queries.
+When using computed columns or default values with a different data type than the column data type,  a class cast exception could occur. Fixed.
 
 @changelog_1315_li
-Deadlocks are now detected. One transaction is rolled back automatically.
+Opening databases larger than 1 GB was sometimes very slow if a lot of data was deleted previously. Fixed.
 
 @changelog_1316_li
-The Lucene fulltext index was always re-created when opening a  database with fulltext index enabled.
+RUNSCRIPT could throw a NullPointerException if the script name was an expression.
 
 @changelog_1317_li
+Improved compatibility. New compatibility modes for Oracle and Derby.  New compatibility flag uniqueIndexNullDistinct to only allow one row with 'NULL' in a unique  index. This flag is enabled for Derby, Oracle, MSSQLServer, and HSQLDB.
+
+@changelog_1318_li
+Linked tables: To view the statements that are executed against the target table, set the trace level to 3.
+
+@changelog_1319_li
+RunScript tool: new options to show and check the results of queries.
+
+@changelog_1320_li
+Deadlocks are now detected. One transaction is rolled back automatically.
+
+@changelog_1321_li
+The Lucene fulltext index was always re-created when opening a  database with fulltext index enabled.
+
+@changelog_1322_li
 Support for overloaded Java methods. A user defined function can  now be bound to multiple Java methods, if the Java methods have the same  name but a different number of parameters. Thanks to Gary Tong for  providing a patch!
 
 @download_1000_h1
@@ -5117,645 +5132,648 @@ H2Sharp: ADO.NET interface for the H2 database engine
 H2 Spatial: spatial functions to H2 database
 
 @links_1009_h2
-Blogs
+Blog Articles
 
 @links_1010_a
-Porting Flexive to the H2 Database (2008-12-05)
+Efficient sorting and iteration on large databases (2009-06-15)
 
 @links_1011_a
-H2 Database with GlassFish (2008-11-24)
+Porting Flexive to the H2 Database (2008-12-05)
 
 @links_1012_a
-Using H2 Database with Glassfish and Toplink (2008-08-07)
+H2 Database with GlassFish (2008-11-24)
 
 @links_1013_a
-H2 Database - Performance Tracing (2008-04-30)
+Using H2 Database with Glassfish and Toplink (2008-08-07)
 
 @links_1014_a
-Testing your JDBC data access layer with DBUnit and H2 (2007-09-18)
+H2 Database - Performance Tracing (2008-04-30)
 
 @links_1015_a
-Open Source Databases Comparison (2007-09-11)
+Testing your JDBC data access layer with DBUnit and H2 (2007-09-18)
 
 @links_1016_a
-The Codist: The Open Source Frameworks I Use (2007-07-23)
+Open Source Databases Comparison (2007-09-11)
 
 @links_1017_a
-The Codist:  SQL Injections: How Not To Get Stuck (2007-05-08)
+The Codist: The Open Source Frameworks I Use (2007-07-23)
 
 @links_1018_a
-One Man Band: (Helma + H2) == "to easy" (2007-03-11)
+The Codist:  SQL Injections: How Not To Get Stuck (2007-05-08)
 
 @links_1019_a
-David Coldrick's Weblog: New Version of H2 Database Released (2007-01-06)
+One Man Band: (Helma + H2) == "to easy" (2007-03-11)
 
 @links_1020_a
+David Coldrick's Weblog: New Version of H2 Database Released (2007-01-06)
+
+@links_1021_a
 The Codist: Write Your Own Database, Again (2006-11-13)
 
-@links_1021_h2
+@links_1022_h2
 Project Pages
 
-@links_1022_a
+@links_1023_a
 Ohloh
 
-@links_1023_a
+@links_1024_a
 Freshmeat Project Page
 
-@links_1024_a
+@links_1025_a
 Wikipedia
 
-@links_1025_a
+@links_1026_a
 Java Source Net
 
-@links_1026_a
+@links_1027_a
 Linux Package Manager
 
-@links_1027_h2
+@links_1028_h2
 Database Frontends / Tools
 
-@links_1028_a
+@links_1029_a
 DB Solo
 
-@links_1029_p
+@links_1030_p
 SQL query tool.
 
-@links_1030_a
+@links_1031_a
 DbVisualizer
 
-@links_1031_p
+@links_1032_p
 Database tool.
 
-@links_1032_a
+@links_1033_a
 Execute Query
 
-@links_1033_p
+@links_1034_p
 Database utility written in Java.
 
-@links_1034_a
+@links_1035_a
 [fleXive]
 
-@links_1035_p
+@links_1036_p
 JavaEE 5 open source framework for the development of complex and evolving (web-)applications.
 
-@links_1036_a
+@links_1037_a
 HenPlus
 
-@links_1037_p
+@links_1038_p
 HenPlus is a SQL shell written in Java.
 
-@links_1038_a
+@links_1039_a
 RazorSQL
 
-@links_1039_p
+@links_1040_p
 An SQL query tool, database browser, SQL editor, and database administration tool.
 
-@links_1040_a
+@links_1041_a
 SQL Developer
 
-@links_1041_p
+@links_1042_p
 Universal Database Frontend.
 
-@links_1042_a
+@links_1043_a
 SQL Workbench/J
 
-@links_1043_p
+@links_1044_p
 Free DBMS-independent SQL tool.
 
-@links_1044_a
+@links_1045_a
 SQuirreL SQL Client
 
-@links_1045_p
+@links_1046_p
 Graphical tool to view the structure of a database, browse the data, issue SQL commands etc.
 
-@links_1046_a
+@links_1047_a
 SQuirreL DB Copy Plugin
 
-@links_1047_p
+@links_1048_p
 Tool to copy data from one database to another.
 
-@links_1048_h2
+@links_1049_h2
 Products and Projects
 
-@links_1049_a
+@links_1050_a
 &AElig;jaks
 
-@links_1050_p
+@links_1051_p
 A server-side scripting environment to build AJAX enabled web applications.
 
-@links_1051_a
+@links_1052_a
 Axiom Stack
 
-@links_1052_p
+@links_1053_p
 A web framework that let's you write dynamic web applications with Zen-like simplicity.
 
-@links_1053_a
+@links_1054_a
 Apache Cayenne
 
-@links_1054_p
+@links_1055_p
 Open source persistence framework providing object-relational mapping (ORM) and remoting services.
 
-@links_1055_a
+@links_1056_a
 Apache Jackrabbit
 
-@links_1056_p
+@links_1057_p
 Open source implementation of the Java Content Repository API (JCR).
 
-@links_1057_a
+@links_1058_a
 Apache OpenJPA
 
-@links_1058_p
+@links_1059_p
 Open source implementation of the Java Persistence API (JPA).
 
-@links_1059_a
+@links_1060_a
 AppFuse
 
-@links_1060_p
+@links_1061_p
 Helps building web applications.
 
-@links_1061_a
+@links_1062_a
 BGBlitz
 
-@links_1062_p
+@links_1063_p
 The Swiss army knife of Backgammon.
 
-@links_1063_a
+@links_1064_a
 Blojsom
 
-@links_1064_p
+@links_1065_p
 Java-based multi-blog, multi-user software package (Mac OS X Weblog Server).
 
-@links_1065_a
+@links_1066_a
 Bonita
 
-@links_1066_p
+@links_1067_p
 Open source workflow solution for handing long-running, user-oriented processes providing out of the box workflow and business process management features.
 
-@links_1067_a
+@links_1068_a
 Bookmarks Portlet
 
-@links_1068_p
+@links_1069_p
 JSR 168 compliant bookmarks management portlet application.
 
-@links_1069_a
+@links_1070_a
 Claros inTouch
 
-@links_1070_p
+@links_1071_p
 Ajax communication suite with mail, addresses, notes, IM, and rss reader.
 
-@links_1071_a
+@links_1072_a
 CrashPlan PRO Server
 
-@links_1072_p
+@links_1073_p
 Easy and cross platform backup solution for business and service providers.
 
-@links_1073_a
+@links_1074_a
 DbUnit
 
-@links_1074_p
+@links_1075_p
 A JUnit extension (also usable with Ant) targeted for database-driven projects.
 
-@links_1075_a
+@links_1076_a
 Ebean ORM Persistence Layer
 
-@links_1076_p
+@links_1077_p
 Open source Java Object Relational Mapping tool.
 
-@links_1077_a
+@links_1078_a
 Epictetus
 
-@links_1078_p
+@links_1079_p
 Free cross platform database tool.
 
-@links_1079_a
+@links_1080_a
 Fabric3
 
-@links_1080_p
+@links_1081_p
 Fabric3 is a project implementing a federated service network based on the Service Component Architecture specification (http://www.osoa.org).
 
-@links_1081_a
+@links_1082_a
 FIT4Data
 
-@links_1082_p
+@links_1083_p
 A testing framework for data management applications built on the Java implementation of FIT.
 
-@links_1083_a
+@links_1084_a
 Flux
 
-@links_1084_p
+@links_1085_p
 Java job scheduler, file transfer, workflow, and BPM.
 
-@links_1085_a
+@links_1086_a
 GNU Gluco Control
 
-@links_1086_p
+@links_1087_p
 Helps you to manage your diabetes.
 
-@links_1087_a
+@links_1088_a
 Golden T Studios
 
-@links_1088_p
+@links_1089_p
 Fun-to-play games with a simple interface.
 
-@links_1089_a
+@links_1090_a
 Group Session
 
-@links_1090_p
+@links_1091_p
 Open source web groupware.
 
-@links_1091_a
+@links_1092_a
 HA-JDBC
 
-@links_1092_p
+@links_1093_p
 High-Availability JDBC: A JDBC proxy that provides light-weight, transparent, fault tolerant clustering capability to any underlying JDBC driver.
 
-@links_1093_a
+@links_1094_a
 Harbor
 
-@links_1094_p
+@links_1095_p
 Pojo Application Server.
 
-@links_1095_a
+@links_1096_a
 Hibernate
 
-@links_1096_p
+@links_1097_p
 Relational persistence for idiomatic Java (O-R mapping tool).
 
-@links_1097_a
+@links_1098_a
 Hibicius
 
-@links_1098_p
+@links_1099_p
 Online Banking Client for the HBCI protocol.
 
-@links_1099_a
+@links_1100_a
 ImageMapper
 
-@links_1100_p
+@links_1101_p
 ImageMapper frees users from having to use file browsers to view their images. They get fast access to images and easy cataloguing of them via a user friendly interface.
 
-@links_1101_a
+@links_1102_a
 JAMWiki
 
-@links_1102_p
+@links_1103_p
 Java-based Wiki engine.
 
-@links_1103_a
+@links_1104_a
 Jala
 
-@links_1104_p
+@links_1105_p
 Open source collection of JavaScript modules.
 
-@links_1105_a
+@links_1106_a
 Java Simon
 
-@links_1106_p
+@links_1107_p
 Simple Monitoring API.
 
-@links_1107_a
+@links_1108_a
 JBoss jBPM
 
-@links_1108_p
+@links_1109_p
 A platform for executable process languages ranging from business process management (BPM) over workflow to service orchestration.
 
-@links_1109_a
+@links_1110_a
 JBoss Jopr
 
-@links_1110_p
+@links_1111_p
 An enterprise management solution for JBoss middleware projects and other application technologies.
 
-@links_1111_a
+@links_1112_a
 JGeocoder
 
-@links_1112_p
+@links_1113_p
 Free Java geocoder. Geocoding is the process of estimating a latitude and longitude for a given location.
 
-@links_1113_a
+@links_1114_a
 JGrass
 
-@links_1114_p
+@links_1115_p
 Java Geographic Resources Analysis Support System. Free, multi platform, open source GIS based on the GIS framework of uDig.
 
-@links_1115_a
+@links_1116_a
 Jena
 
-@links_1116_p
+@links_1117_p
 Java framework for building Semantic Web applications.
 
-@links_1117_a
+@links_1118_a
 JMatter
 
-@links_1118_p
+@links_1119_p
 Framework for constructing workgroup business applications based on the Naked Objects Architectural Pattern.
 
-@links_1119_a
+@links_1120_a
 JotBot
 
-@links_1120_p
+@links_1121_p
 Records your day at user defined intervals.
 
-@links_1121_a
+@links_1122_a
 JPOX
 
-@links_1122_p
+@links_1123_p
 Java persistent objects.
 
-@links_1123_a
+@links_1124_a
 Liftweb
 
-@links_1124_p
+@links_1125_p
 A Scala-based, secure, developer friendly web framework.
 
-@links_1125_a
+@links_1126_a
 LiquiBase
 
-@links_1126_p
+@links_1127_p
 A tool to manage database changes and refactorings.
 
-@links_1127_a
+@links_1128_a
 Luntbuild
 
-@links_1128_p
+@links_1129_p
 Build automation and management tool.
 
-@links_1129_a
+@links_1130_a
 localdb
 
-@links_1130_p
+@links_1131_p
 A tool that locates the full file path of the folder containing the database files.
 
-@links_1131_a
+@links_1132_a
 Magnolia
 
-@links_1132_p
+@links_1133_p
 Microarray Data Management and Export System for PFGRC (Pathogen Functional Genomics Resource Center) Microarrays.
 
-@links_1133_a
+@links_1134_a
 MiniConnectionPoolManager
 
-@links_1134_p
+@links_1135_p
 A lightweight standalone JDBC connection pool manager.
 
-@links_1135_a
+@links_1136_a
 Mr. Persister
 
-@links_1136_p
+@links_1137_p
 Simple, small and fast object relational mapping.
 
-@links_1137_a
+@links_1138_a
 Myna Application Server
 
-@links_1138_p
+@links_1139_p
 Java web app that provides dynamic web content and Java libraries access from JavaScript.
 
-@links_1139_a
+@links_1140_a
 MyTunesRss
 
-@links_1140_p
+@links_1141_p
 MyTunesRSS lets you listen to your music wherever you are.
 
-@links_1141_a
+@links_1142_a
 NCGC CurveFit
 
-@links_1142_p
+@links_1143_p
 From: NIH Chemical Genomics Center, National Institutes of Health, USA. An open source application in the life sciences research field. This application handles chemical structures and biological responses of thousands of compounds with the potential to handle million+ compounds. It utilizes an embedded H2 database to enable flexible query/retrieval of all data including advanced chemical substructure and similarity searching. The application highlights an automated curve fitting and classification algorithm that outperforms commercial packages in the field. Commercial alternatives are typically small desktop software that handle a few dose response curves at a time. A couple of commercial packages that do handle several thousand curves are very expensive tools (&gt;60k USD) that require manual curation of analysis by the user; require a license to Oracle; lack advanced query/retrieval; and the ability to handle chemical structures.
 
-@links_1143_a
+@links_1144_a
 Nuxeo
 
-@links_1144_p
+@links_1145_p
 Standards-based, open source platform for building ECM applications.
 
-@links_1145_a
+@links_1146_a
 nWire
 
-@links_1146_p
+@links_1147_p
 Eclipse plug-in which expedites Java development. It's main purpose is to help developers find code quicker and easily understand how it relates to the rest of the application, thus, understand the application structure.
 
-@links_1147_a
+@links_1148_a
 Ontology Works
 
-@links_1148_p
+@links_1149_p
 This company provides semantic technologies including deductive information repositories (the Ontology Works Knowledge Servers), semantic information fusion and semantic federation of legacy databases, ontology-based domain modeling, and management of the distributed enterprise.
 
-@links_1149_a
+@links_1150_a
 Ontoprise OntoBroker
 
-@links_1150_p
+@links_1151_p
 SemanticWeb-Middleware. It supports all W3C Semantic Web recommendations: OWL, RDF, RDFS, SPARQL, and F-Logic.
 
-@links_1151_a
+@links_1152_a
 Open Anzo
 
-@links_1152_p
+@links_1153_p
 Semantic Application Server.
 
-@links_1153_a
+@links_1154_a
 OpenGroove
 
-@links_1154_p
+@links_1155_p
 OpenGroove is a groupware program that allows users to synchronize data.
 
-@links_1155_a
+@links_1156_a
 OpenSocial Development Environment (OSDE)
 
-@links_1156_p
+@links_1157_p
 Development tool for OpenSocial application.
 
-@links_1157_a
+@links_1158_a
 Orion
 
-@links_1158_p
+@links_1159_p
 J2EE Application Server.
 
-@links_1159_a
+@links_1160_a
 P5H2
 
-@links_1160_p
+@links_1161_p
 A library for the <a href="http://www.processing.org">Processing</a> programming language and environment.
 
-@links_1161_a
+@links_1162_a
 Phase-6
 
-@links_1162_p
+@links_1163_p
 A computer based learning software.
 
-@links_1163_a
+@links_1164_a
 Pickle
 
-@links_1164_p
+@links_1165_p
 Pickle is a Java library containing classes for persistence, concurrency, and logging.
 
-@links_1165_a
+@links_1166_a
 Piman
 
-@links_1166_p
+@links_1167_p
 Water treatment projects data management.
 
-@links_1167_a
+@links_1168_a
 PolePosition
 
-@links_1168_p
+@links_1169_p
 Open source database benchmark.
 
-@links_1169_a
+@links_1170_a
 Poormans
 
-@links_1170_p
+@links_1171_p
 Very basic CMS running as a SWT application and generating static html pages.
 
-@links_1171_a
+@links_1172_a
 Railo
 
-@links_1172_p
+@links_1173_p
 Railo is an alternative engine for the Cold Fusion Markup Language, that compiles code programmed in CFML into Java bytecode and executes it on a servlet engine.
 
-@links_1173_a
+@links_1174_a
 Razuna
 
-@links_1174_p
+@links_1175_p
 Open source Digital Asset Management System with integrated Web Content Management.
 
-@links_1175_a
+@links_1176_a
 RIFE
 
-@links_1176_p
+@links_1177_p
 A full-stack web application framework with tools and APIs to implement most common web features.
 
-@links_1177_a
+@links_1178_a
 Rutema
 
-@links_1178_p
+@links_1179_p
 Rutema is a test execution and management tool for heterogeneous development environments written in Ruby.
 
-@links_1179_a
+@links_1180_a
 Sava
 
-@links_1180_p
+@links_1181_p
 Open-source web-based content management system.
 
-@links_1181_a
+@links_1182_a
 Scriptella
 
-@links_1182_p
+@links_1183_p
 ETL (Extract-Transform-Load) and script execution tool.
 
-@links_1183_a
+@links_1184_a
 Sesar
 
-@links_1184_p
+@links_1185_p
 Dependency Injection Container with Aspect Oriented Programming.
 
-@links_1185_a
+@links_1186_a
 SemmleCode
 
-@links_1186_p
+@links_1187_p
 Eclipse plugin to help you improve software quality.
 
-@links_1187_a
+@links_1188_a
 SeQuaLite
 
-@links_1188_p
+@links_1189_p
 A free, light-weight, java data access framework.
 
-@links_1189_a
+@links_1190_a
 ShapeLogic
 
-@links_1190_p
+@links_1191_p
 Toolkit for declarative programming, image processing and computer vision.
 
-@links_1191_a
+@links_1192_a
 Shellbook
 
-@links_1192_p
+@links_1193_p
 Desktop publishing application.
 
-@links_1193_a
+@links_1194_a
 Signsoft intelliBO
 
-@links_1194_p
+@links_1195_p
 Persistence middleware supporting the JDO specification.
 
-@links_1195_a
+@links_1196_a
 SimpleORM
 
-@links_1196_p
+@links_1197_p
 Simple Java Object Relational Mapping.
 
-@links_1197_a
+@links_1198_a
 SymmetricDS
 
-@links_1198_p
+@links_1199_p
 A web-enabled, database independent, data synchronization/replication software.
 
-@links_1199_a
+@links_1200_a
 SmartFoxServer
 
-@links_1200_p
+@links_1201_p
 Platform for developing multiuser applications and games with Macromedia Flash.
 
-@links_1201_a
+@links_1202_a
 Social Bookmarks Friend Finder
 
-@links_1202_p
+@links_1203_p
 A GUI application that allows you to find users with similar bookmarks to the user specified (for delicious.com).
 
-@links_1203_a
+@links_1204_a
 Springfuse
 
-@links_1204_p
-Code generation For Spring, Spring MVC & Hibernate.
+@links_1205_p
+Code generation For Spring, Spring MVC &amp; Hibernate.
 
-@links_1205_a
+@links_1206_a
 SQLOrm
 
-@links_1206_p
+@links_1207_p
 Java Object Relation Mapping.
 
-@links_1207_a
+@links_1208_a
 StorYBook
 
-@links_1208_p
+@links_1209_p
 A summary-based tool for novelist and script writers. It helps to keep the overview over the various traces a story has.
 
-@links_1209_a
+@links_1210_a
 StreamCruncher
 
-@links_1210_p
+@links_1211_p
 Event (stream) processing kernel.
 
-@links_1211_a
+@links_1212_a
 Tune Backup
 
-@links_1212_p
+@links_1213_p
 Easy-to-use backup solution for your iTunes library.
 
-@links_1213_a
+@links_1214_a
 weblica
 
-@links_1214_p
+@links_1215_p
 Desktop CMS.
 
-@links_1215_a
+@links_1216_a
 Web of Web
 
-@links_1216_p
+@links_1217_p
 Collaborative and realtime interactive media platform for the web.
 
-@links_1217_a
+@links_1218_a
 Werkzeugkasten
 
-@links_1218_p
+@links_1219_p
 Minimum Java Toolset.
 
-@links_1219_a
+@links_1220_a
 VPDA
 
-@links_1220_p
+@links_1221_p
 View providers driven applications is a Java based application framework for building applications composed from server components - view providers.
 
-@links_1221_a
+@links_1222_a
 Volunteer database
 
-@links_1222_p
+@links_1223_p
 A database front end to register volunteers, partnership and donation for a Non Profit organization.
 
 @mainWeb_1000_h1

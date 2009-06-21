@@ -644,6 +644,13 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     }
 //## Java 1.5 end ##
 
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @param a the first UUID
+     * @param b the second UUID
+     * @return a xor b
+     */
     public static UUID xorUUID(UUID a, UUID b) {
         return new UUID(a.getMostSignificantBits() ^ b.getMostSignificantBits(),
                 a.getLeastSignificantBits() ^ b.getLeastSignificantBits());

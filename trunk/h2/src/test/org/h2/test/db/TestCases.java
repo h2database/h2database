@@ -36,6 +36,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testConstraintAlterTable();
         testJoinWithView();
         testLobDecrypt();
         testInvalidDatabaseName();
@@ -69,6 +70,18 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testConstraintAlterTable() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("create table parent (pid int)");
+        stat.execute("create table child (cid int primary key, pid int)");
+        stat.execute("alter table child add foreign key (pid) references parent(pid)");
+        stat.execute("alter table child add column c2 int");
+        stat.execute("alter table parent add column p2 varchar");
+        conn.close();
     }
 
     private void testEmptyBtreeIndex() throws SQLException {

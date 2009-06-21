@@ -116,6 +116,9 @@ public class Shell extends Tool {
             } else if (arg.equals("-driver")) {
                 String driver = args[++i];
                 ClassUtils.loadUserClass(driver);
+            } else if (arg.equals("-help") || arg.equals("-?")) {
+                showUsage();
+                return;
             } else {
                 throwUnsupportedOption(arg);
             }

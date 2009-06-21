@@ -27,7 +27,7 @@ Microsoft .NET technology). The following JaQu code:
 </p>
 <pre>
 Product p = new Product();
-List&lt;Product> soldOutProducts =
+List&lt;Product&gt; soldOutProducts =
     db.from(p).where(p.unitsInStock).is(0).select();
 </pre>
 <p>
@@ -121,7 +121,7 @@ public class Test {
 
     private void testWhereSimple2() throws Exception {
         Product p = new Product();
-        List&lt;Product> soldOutProducts =
+        List&lt;Product&gt; soldOutProducts =
             db.from(p).
             where(p.unitsInStock).is(0).
             orderBy(p.productId).select();
@@ -129,7 +129,7 @@ public class Test {
 
     private void testWhereSimple3() throws Exception {
         Product p = new Product();
-        List&lt;Product> expensiveInStockProducts =
+        List&lt;Product&gt; expensiveInStockProducts =
             db.from(p).
             where(p.unitsInStock).bigger(0).
             and(p.unitPrice).bigger(3.0).
@@ -138,7 +138,7 @@ public class Test {
 
     private void testWhereSimple4() throws Exception {
         Customer c = new Customer();
-        List&lt;Customer> waCustomers =
+        List&lt;Customer&gt; waCustomers =
             db.from(c).
             where(c.region).is("WA").
             select();
@@ -146,7 +146,7 @@ public class Test {
 
     private void testSelectSimple2() throws Exception {
         Product p = new Product();
-        List&lt;String> productNames =
+        List&lt;String&gt; productNames =
             db.from(p).
             orderBy(p.productId).select(p.productName);
     }
@@ -159,7 +159,7 @@ public class Test {
 
     private void testAnonymousTypes3() throws Exception {
         final Product p = new Product();
-        List&lt;ProductPrice> productInfos =
+        List&lt;ProductPrice&gt; productInfos =
             db.from(p).orderBy(p.productId).
             select(new ProductPrice() {{
                     productName = p.productName;
@@ -177,7 +177,7 @@ public class Test {
     private void testSelectManyCompoundFrom2() throws Exception {
         final Customer c = new Customer();
         final Order o = new Order();
-        List&lt;CustOrder> orders =
+        List&lt;CustOrder&gt; orders =
             db.from(c).
             innerJoin(o).on(c.customerId).is(o.customerId).
             where(o.total).smaller(new BigDecimal("500.00")).
@@ -191,7 +191,7 @@ public class Test {
 
     private void testLength() throws Exception {
         Product p = new Product();
-        List&lt;Integer> lengths =
+        List&lt;Integer&gt; lengths =
             db.from(p).
             where(length(p.productName)).smaller(10).
             orderBy(1).
@@ -209,7 +209,7 @@ public class Test {
 
     private void testGroup() throws Exception {
         final Product p = new Product();
-        List&lt;ProductGroup> list =
+        List&lt;ProductGroup&gt; list =
             db.from(p).
             groupBy(p.category).
             orderBy(1).

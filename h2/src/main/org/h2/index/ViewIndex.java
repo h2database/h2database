@@ -107,9 +107,7 @@ public class ViewIndex extends BaseIndex {
             }
         }
         Query query = (Query) session.prepare(querySQL, true);
-        if (masks == null) {
-            columns = new Column[0];
-        } else {
+        if (masks != null) {
             IntArray paramIndex = new IntArray();
             for (int i = 0; i < masks.length; i++) {
                 int mask = masks[i];
@@ -119,11 +117,8 @@ public class ViewIndex extends BaseIndex {
                 paramIndex.add(i);
             }
             int len = paramIndex.size();
-            columns = new Column[len];
             for (int i = 0; i < len; i++) {
                 int idx = paramIndex.get(i);
-                Column col = table.getColumn(idx);
-                columns[i] = col;
                 int mask = masks[idx];
                 int nextParamIndex = query.getParameters().size() + view.getParameterOffset();
                 if ((mask & IndexCondition.EQUALITY) != 0) {

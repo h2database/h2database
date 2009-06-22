@@ -122,4 +122,13 @@ public class PageStreamData extends Record {
         return remaining;
     }
 
+    /**
+     * Get the estimated memory size.
+     *
+     * @return number of double words (4 bytes)
+     */
+    public int getMemorySize() {
+        return store.getPageSize() >> 2;
+    }
+
 }

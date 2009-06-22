@@ -34,7 +34,7 @@ public class PageFreeList extends Record {
         setPos(pageId);
         this.store = store;
         pageCount = (store.getPageSize() - DATA_START) * 8;
-        used.set(pageId);
+        used.set(0);
     }
 
     /**
@@ -46,8 +46,9 @@ public class PageFreeList extends Record {
         if (full) {
             return -1;
         }
+        // TODO cache last result
         int free = used.nextClearBit(0);
-        if (free > pageCount) {
+        if (free >= pageCount) {
             full = true;
             return -1;
         }
@@ -130,6 +131,15 @@ public class PageFreeList extends Record {
      */
     static int getPagesAddressed(int pageSize) {
         return (pageSize - DATA_START) * 8;
+    }
+
+    /**
+     * Get the estimated memory size.
+     *
+     * @return number of double words (4 bytes)
+     */
+    public int getMemorySize() {
+        return store.getPageSize() >> 2;
     }
 
 }

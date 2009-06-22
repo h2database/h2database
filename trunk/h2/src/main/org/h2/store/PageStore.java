@@ -66,6 +66,8 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
+    // TODO auto checkpoint
+    // TODO check memory usage
     // TODO TestPowerOff
     // TODO PageStore.openMetaIndex (desc and nulls first / last)
     // TODO PageBtreeIndex.canGetFirstOrLast
@@ -105,6 +107,10 @@ public class PageStore implements CacheWriter {
     // TODO var int: see google protocol buffers
     // TODO SessionState.logId is no longer needed
     // TODO PageData and PageBtree addRowTry: try to simplify
+
+    // TODO when removing DiskFile:
+    // remove CacheObject.blockCount
+    // remove Record.getMemorySize
 
     /**
      * The smallest possible page size.

@@ -36,21 +36,6 @@ import org.h2.value.Value;
 public class PageLog {
 
     /**
-     * The recovery stage to undo changes (re-apply the backup).
-     */
-    static final int RECOVERY_STAGE_UNDO = 0;
-
-    /**
-     * The recovery stage to allocate pages used by the transaction log.
-     */
-    static final int RECOVERY_STAGE_ALLOCATE = 1;
-
-    /**
-     * The recovery stage to redo operations.
-     */
-    static final int RECOVERY_STAGE_REDO = 2;
-
-    /**
      * No operation.
      */
     public static final int NOOP = 0;
@@ -84,6 +69,21 @@ public class PageLog {
      * Format: -
      */
     public static final int CHECKPOINT = 5;
+
+    /**
+     * The recovery stage to undo changes (re-apply the backup).
+     */
+    static final int RECOVERY_STAGE_UNDO = 0;
+
+    /**
+     * The recovery stage to allocate pages used by the transaction log.
+     */
+    static final int RECOVERY_STAGE_ALLOCATE = 1;
+
+    /**
+     * The recovery stage to redo operations.
+     */
+    static final int RECOVERY_STAGE_REDO = 2;
 
     private final PageStore store;
     private int pos;

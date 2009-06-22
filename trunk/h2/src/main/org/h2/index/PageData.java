@@ -188,4 +188,13 @@ abstract class PageData extends Record {
      */
     abstract Row getRow(int key) throws SQLException;
 
+    /**
+     * Get the estimated memory size.
+     *
+     * @return number of double words (4 bytes)
+     */
+    public int getMemorySize() {
+        return index.getPageStore().getPageSize() >> 2;
+    }
+
 }

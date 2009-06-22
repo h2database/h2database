@@ -132,4 +132,13 @@ public class PageDataLeafOverflow extends Record {
         return "page[" + getPos() + "] data leaf overflow prev:" + previous + " next:" + next;
     }
 
+    /**
+     * Get the estimated memory size.
+     *
+     * @return number of double words (4 bytes)
+     */
+    public int getMemorySize() {
+        return leaf.getMemorySize();
+    }
+
 }

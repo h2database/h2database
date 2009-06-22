@@ -138,4 +138,13 @@ public class PageStreamTrunk extends Record {
         store.writePage(getPos(), empty);
     }
 
+    /**
+     * Get the estimated memory size.
+     *
+     * @return number of double words (4 bytes)
+     */
+    public int getMemorySize() {
+        return store.getPageSize() >> 2;
+    }
+
 }

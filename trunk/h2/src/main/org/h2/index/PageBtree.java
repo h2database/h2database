@@ -221,4 +221,13 @@ abstract class PageBtree extends Record {
         }
     }
 
+    /**
+     * Get the estimated memory size.
+     *
+     * @return number of double words (4 bytes)
+     */
+    public int getMemorySize() {
+        return index.getPageStore().getPageSize() >> 2;
+    }
+
 }

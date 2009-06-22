@@ -294,8 +294,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-test what is wrong with -Djava.net.preferIPv6Addresses=true
-
 test case for running out of disk space (using a special file system)
 
 auto-build: prepare release
@@ -306,9 +304,7 @@ create a short documentation
 
 test performance with log=2
 
-multithreaded kernel
-
-remove old TODO
+remove old TODO, move to roadmap
 
 TestMVCC:
 Concurrent update in table test: another transaction has updated or

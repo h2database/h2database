@@ -9,6 +9,7 @@ package org.h2.test.unit;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
@@ -43,7 +44,12 @@ public class TestRecovery extends TestBase {
 
         conn = getConnection("recovery", "diff", "");
         stat = conn.createStatement();
-        stat.execute("runscript from '" + baseDir + "/recovery.data.sql'");
+        String name = "recovery.data.sql";
+        if (SysProperties.PAGE_STORE) {
+            name = "recovery.h2.sql";
+        }
+
+        stat.execute("runscript from '" + baseDir + "/" + name + "'");
         stat.execute("select * from test");
         conn.close();
     }

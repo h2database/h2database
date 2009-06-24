@@ -21,6 +21,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueNull;
 
 /**
  * This is the most common type of index, a b tree index.
@@ -152,7 +153,7 @@ public class PageBtreeIndex extends BaseIndex {
     }
 
     public boolean canGetFirstOrLast() {
-        return false;
+        return true;
     }
 
     public Cursor findNext(Session session, SearchRow first, SearchRow last) throws SQLException {
@@ -174,7 +175,34 @@ public class PageBtreeIndex extends BaseIndex {
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
-        throw Message.getUnsupportedException("PAGE");
+        if (first) {
+            // TODO optimization: this loops through NULL elements
+            Cursor cursor = find(session, null, false, null);
+            while (cursor.next()) {
+                SearchRow row = cursor.getSearchRow();
+                Value v = row.getValue(columnIds[0]);
+                if (v != ValueNull.INSTANCE) {
+                    return cursor;
+                }
+            }
+            return cursor;
+        }
+        PageBtree root = getPage(headPos);
+        PageBtreeCursor cursor = new PageBtreeCursor(session, this, null);
+        root.last(cursor);
+        cursor.previous();
+        // TODO optimization: this loops through NULL elements
+        do {
+            SearchRow row = cursor.getSearchRow();
+            if (row == null) {
+                break;
+            }
+            Value v = row.getValue(columnIds[0]);
+            if (v != ValueNull.INSTANCE) {
+                return cursor;
+            }
+        } while (cursor.previous());
+        return cursor;
     }
 
     public double getCost(Session session, int[] masks) {
@@ -278,8 +306,6 @@ public class PageBtreeIndex extends BaseIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("close");
         }
-        int todoWhyRequired;
-        // store = null;
         int writeRowCount;
     }
 

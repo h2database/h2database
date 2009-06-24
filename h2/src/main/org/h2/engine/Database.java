@@ -2345,7 +2345,9 @@ public class Database implements DataHandler {
      */
     public void checkpoint() throws SQLException {
         if (SysProperties.PAGE_STORE) {
-            pageStore.checkpoint();
+            if (persistent) {
+                pageStore.checkpoint();
+            }
         }
         getLog().checkpoint();
         getTempFileDeleter().deleteUnused();

@@ -30,6 +30,7 @@ public class PageOutputStream extends OutputStream {
     private byte[] buffer = new byte[1];
     private boolean needFlush;
     private boolean writing;
+    private int pages;
 
     /**
      * Create a new page output stream.
@@ -97,11 +98,13 @@ public class PageOutputStream extends OutputStream {
             }
             trunkNext = reservedPages.get(len);
             trunk = new PageStreamTrunk(store, parent, trunkPageId, trunkNext, pageIds);
+            pages++;
             trunk.write(null);
             reservedPages.removeRange(0, len + 1);
             nextData = trunk.getNextDataPage();
         }
         data = new PageStreamData(store, nextData, trunk.getPos());
+        pages++;
         data.initWrite();
     }
 
@@ -172,6 +175,31 @@ public class PageOutputStream extends OutputStream {
         reserved -= data.getRemaining();
         data.write(null);
         initNextData();
+    }
+
+    /**
+     * Remove all pages until the given data page.
+     *
+     * @param firstTrunkPage the first trunk page
+     * @param firstDataPageToKeep the first data page to keep
+     * @return the trunk page of the data page to keep
+     */
+    int removeUntil(int firstTrunkPage, int firstDataPageToKeep) throws SQLException {
+        trace.debug("log.removeUntil " + firstDataPageToKeep);
+        while (true) {
+            // TODO keep trunk page in the cache
+            PageStreamTrunk t = new PageStreamTrunk(store, firstTrunkPage);
+            t.read();
+            if (t.contains(firstDataPageToKeep)) {
+                return t.getPos();
+            }
+            firstTrunkPage = t.getNextTrunk();
+            pages -= t.free();
+        }
+    }
+
+    long getSize() {
+        return pages * store.getPageSize();
     }
 
 }

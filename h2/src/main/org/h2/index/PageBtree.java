@@ -146,6 +146,13 @@ abstract class PageBtree extends Record {
     abstract void find(PageBtreeCursor cursor, SearchRow first, boolean bigger) throws SQLException;
 
     /**
+     * Find the last row.
+     *
+     * @param cursor the cursor
+     */
+    abstract void last(PageBtreeCursor cursor) throws SQLException;
+
+    /**
      * Get the row at this position.
      *
      * @param at the index
@@ -189,6 +196,13 @@ abstract class PageBtree extends Record {
      * @return the page
      */
     abstract PageBtreeLeaf getFirstLeaf() throws SQLException;
+
+    /**
+     * Get the first child leaf page of a page.
+     *
+     * @return the page
+     */
+    abstract PageBtreeLeaf getLastLeaf() throws SQLException;
 
     /**
      * Change the parent page id.

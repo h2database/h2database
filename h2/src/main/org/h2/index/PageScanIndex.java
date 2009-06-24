@@ -196,9 +196,6 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     public void remove(Session session, Row row) throws SQLException {
         if (trace.isDebugEnabled()) {
             trace.debug("remove " + row.getPos());
-            if (table.getId() == 0) {
-                System.out.println("table 0 remove");
-            }
         }
         if (tableData.getContainsLargeObject()) {
             for (int i = 0; i < row.getColumnCount(); i++) {

@@ -62,7 +62,6 @@ public class PageBtreeCursor implements Cursor {
         }
         if (i >= current.getEntryCount()) {
             current.nextPage(this);
-            i = 0;
             if (current == null) {
                 return false;
             }
@@ -77,9 +76,19 @@ public class PageBtreeCursor implements Cursor {
         return true;
     }
 
-    public boolean previous() {
+    public boolean previous() throws SQLException {
+        if (current == null) {
+            return false;
+        }
+        if (i <= 0) {
+            current.previousPage(this);
+            if (current == null) {
+                return false;
+            }
+        }
+        currentSearchRow = current.getRow(i);
+        currentRow = null;
         i--;
-        int todo;
         return true;
     }
 

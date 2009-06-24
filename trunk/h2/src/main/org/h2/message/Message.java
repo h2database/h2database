@@ -286,6 +286,10 @@ public class Message {
      */
     public static SQLException convertIOException(IOException e, String message) {
         if (message == null) {
+            Throwable t = e.getCause();
+            if (t != null && t instanceof SQLException) {
+                return (SQLException) t;
+            }
             return getSQLException(ErrorCode.IO_EXCEPTION_1, new String[] { e.toString() }, e);
         }
         return getSQLException(ErrorCode.IO_EXCEPTION_2, new String[] { e.toString(), message }, e);

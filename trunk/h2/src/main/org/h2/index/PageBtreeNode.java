@@ -61,7 +61,7 @@ class PageBtreeNode extends PageBtree {
     }
 
     private int addChildTry(SearchRow row) throws SQLException {
-        if (entryCount == 0) {
+        if (entryCount < 2) {
             return 0;
         }
         int rowLength = index.getRowSize(data, row, onlyPosition);
@@ -86,9 +86,7 @@ class PageBtreeNode extends PageBtree {
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (last - rowLength < start + CHILD_OFFSET_PAIR_LENGTH) {
-            if (entryCount > 0) {
-                throw Message.throwInternalError();
-            }
+            // TODO remap all children
             onlyPosition = true;
             rowLength = index.getRowSize(data, row, onlyPosition);
         }
@@ -132,7 +130,7 @@ class PageBtreeNode extends PageBtree {
             SearchRow pivot = page.getRow(splitPoint - 1);
             int splitPoint2 = addChildTry(pivot);
             if (splitPoint2 != 0) {
-                return splitPoint;
+                return splitPoint2;
             }
             PageBtree page2 = page.split(splitPoint);
             addChild(x, page2.getPageId(), pivot);
@@ -158,6 +156,10 @@ class PageBtreeNode extends PageBtree {
     PageBtree split(int splitPoint) throws SQLException {
         int newPageId = index.getPageStore().allocatePage();
         PageBtreeNode p2 = new PageBtreeNode(index, newPageId, parentPageId, index.getPageStore().createDataPage());
+        if (onlyPosition) {
+            // TODO optimize: maybe not required
+            p2.onlyPosition = true;
+        }
         int firstChild = childPageIds[splitPoint];
         for (int i = splitPoint; i < entryCount;) {
             p2.addChild(p2.entryCount, childPageIds[splitPoint + 1], rows[splitPoint]);
@@ -166,6 +168,9 @@ class PageBtreeNode extends PageBtree {
         int lastChild = childPageIds[splitPoint - 1];
         removeChild(splitPoint - 1);
         childPageIds[splitPoint - 1] = lastChild;
+        if (p2.childPageIds == null) {
+            p2.childPageIds = new int[1];
+        }
         p2.childPageIds[0] = firstChild;
         p2.remapChildren();
         return p2;
@@ -209,9 +214,19 @@ class PageBtreeNode extends PageBtree {
         page.find(cursor, first, bigger);
     }
 
+    void last(PageBtreeCursor cursor) throws SQLException {
+        int child = childPageIds[entryCount];
+        index.getPage(child).last(cursor);
+    }
+
     PageBtreeLeaf getFirstLeaf() throws SQLException {
         int child = childPageIds[0];
         return index.getPage(child).getFirstLeaf();
+    }
+
+    PageBtreeLeaf getLastLeaf() throws SQLException {
+        int child = childPageIds[entryCount - 1];
+        return index.getPage(child).getLastLeaf();
     }
 
     boolean remove(SearchRow row) throws SQLException {
@@ -352,6 +367,36 @@ class PageBtreeNode extends PageBtree {
         PageBtreeLeaf leaf = page.getFirstLeaf();
         cursor.setCurrent(leaf, 0);
     }
+
+    /**
+     * Set the cursor to the last row of the previous page.
+     *
+     * @param cursor the cursor
+     * @param row the current row
+     */
+    void previousPage(PageBtreeCursor cursor, int pageId) throws SQLException {
+        int i;
+        // TODO maybe keep the index in the child page (transiently)
+        for (i = childPageIds.length - 1; i >= 0; i--) {
+            if (childPageIds[i] == pageId) {
+                i--;
+                break;
+            }
+        }
+        if (i < 0) {
+            if (parentPageId == Page.ROOT) {
+                cursor.setCurrent(null, 0);
+                return;
+            }
+            PageBtreeNode previous = (PageBtreeNode) index.getPage(parentPageId);
+            previous.previousPage(cursor, getPos());
+            return;
+        }
+        PageBtree page = index.getPage(childPageIds[i]);
+        PageBtreeLeaf leaf = page.getLastLeaf();
+        cursor.setCurrent(leaf, leaf.entryCount - 1);
+    }
+
 
     public String toString() {
         return "page[" + getPos() + "] btree node table:" + index.getId() + " entries:" + entryCount;

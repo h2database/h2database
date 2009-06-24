@@ -6,13 +6,6 @@
  */
 package org.h2.test.unit;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,36 +13,14 @@ import java.sql.Statement;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
-import org.h2.constant.SysProperties;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Database;
-import org.h2.index.Cursor;
-import org.h2.index.Index;
-import org.h2.index.IndexType;
-import org.h2.index.PageScanIndex;
-import org.h2.result.Row;
-import org.h2.schema.Schema;
-import org.h2.store.PageInputStream;
-import org.h2.store.PageOutputStream;
-import org.h2.store.PageStore;
-import org.h2.table.Column;
-import org.h2.table.IndexColumn;
-import org.h2.table.TableData;
 import org.h2.test.TestBase;
-import org.h2.util.IntArray;
-import org.h2.util.ObjectArray;
-import org.h2.value.Value;
-import org.h2.value.ValueInt;
 
 /**
  * Test the page store.
  */
 public class TestPageStore extends TestBase {
-
-    private Database db;
-    private Schema schema;
-    private TableData table;
-    private Index index;
 
     /**
      * Run just this test.
@@ -63,11 +34,6 @@ public class TestPageStore extends TestBase {
 
     public void test() throws Exception {
         testFuzzOperations();
-        testScanIndex();
-        // testBtreeIndex();
-        // testAllocateFree();
-        // testStreamFuzz();
-        // testStreamPerformance(false, 1000);
     }
 
     private void testFuzzOperations() throws SQLException {
@@ -142,238 +108,6 @@ public class TestPageStore extends TestBase {
 
     private void log(String m) {
         trace("   " + m);
-    }
-
-    private void testBtreeIndex() throws SQLException {
-        if (!SysProperties.PAGE_STORE) {
-            return;
-        }
-        deleteDb("pageStore");
-        String fileName = getTestDir("/pageStore");
-        new File(fileName).delete();
-        File f = new File(fileName + ".dat");
-        f.delete();
-        db = getDatabase();
-        PageStore store = new PageStore(db, fileName, "rw", 8192);
-        store.setPageSize(1024);
-        store.open();
-        openBtreeIndex();
-        Row row;
-        for (int i = 10; i < 100; i += 10) {
-            row = table.getTemplateRow();
-            row.setValue(0, ValueInt.get(i));
-            row.setPos(i);
-            index.add(db.getSystemSession(), row);
-        }
-        row = table.getTemplateRow();
-        row.setValue(0, ValueInt.get(60));
-        row.setPos(60);
-        index.remove(db.getSystemSession(), row);
-        row = table.getTemplateRow();
-        row.setValue(0, ValueInt.get(60));
-        row.setPos(60);
-        index.add(db.getSystemSession(), row);
-        store.checkpoint();
-        store.close();
-        store = new PageStore(db, fileName, "rw", 8192);
-        store.open();
-        openBtreeIndex();
-        Cursor cursor = index.find(db.getSystemSession(), null, null);
-        for (int i = 10; i < 100; i += 10) {
-            assertTrue(cursor.next());
-            Row r = cursor.get();
-            assertEquals(i, r.getValue(0).getInt());
-        }
-        assertFalse(cursor.next());
-        store.close();
-        db.shutdownImmediately();
-    }
-
-    private void testScanIndex() throws SQLException {
-        if (!SysProperties.PAGE_STORE) {
-            return;
-        }
-        deleteDb("pageStore");
-        String fileName = getTestDir("/pageStore");
-        new File(fileName).delete();
-        File f = new File(fileName + ".dat");
-        f.delete();
-        db = getDatabase();
-        PageStore store = new PageStore(db, fileName, "rw", 8192);
-        store.setPageSize(1024);
-        store.open();
-        openScanIndex();
-        Row row;
-        for (int i = 10; i < 100; i += 10) {
-            row = table.getTemplateRow();
-            row.setValue(0, ValueInt.get(i));
-            row.setPos(i);
-            index.add(db.getSystemSession(), row);
-        }
-        row = table.getTemplateRow();
-        row.setValue(0, ValueInt.get(60));
-        row.setPos(60);
-        index.remove(db.getSystemSession(), row);
-        row = table.getTemplateRow();
-        row.setValue(0, ValueInt.get(60));
-        row.setPos(60);
-        index.add(db.getSystemSession(), row);
-        store.checkpoint();
-        store.close();
-        store = new PageStore(db, fileName, "rw", 8192);
-        store.open();
-        openScanIndex();
-        Cursor cursor = index.find(db.getSystemSession(), null, null);
-        for (int i = 10; i < 100; i += 10) {
-            assertTrue(cursor.next());
-            Row r = cursor.get();
-            assertEquals(i, r.getValue(0).getInt());
-        }
-        assertFalse(cursor.next());
-        store.close();
-        db.shutdownImmediately();
-    }
-
-    private Database getDatabase() throws SQLException {
-        String name = getTestDir("/pageStore");
-        ConnectionInfo ci = new ConnectionInfo(name);
-        return new Database(name, ci, null);
-    }
-
-    private void openScanIndex() throws SQLException {
-        ObjectArray cols = ObjectArray.newInstance();
-        cols.add(new Column("ID", Value.INT));
-        schema = new Schema(db, 0, "", null, true);
-        table = new TableData(schema, "PAGE_INDEX", 1, cols, true, true, false, 100, null);
-        index = (PageScanIndex) table.getScanIndex(
-                db.getSystemSession());
-    }
-
-    private void openBtreeIndex() throws SQLException {
-        ObjectArray cols = ObjectArray.newInstance();
-        cols.add(new Column("ID", Value.INT));
-        schema = new Schema(db, 0, "", null, true);
-        int id = db.allocateObjectId(true, true);
-        table = new TableData(schema, "BTREE_INDEX", id, cols, true, true, false, 100, null);
-        id = db.allocateObjectId(true, true);
-        table.addIndex(db.getSystemSession(), "BTREE", id,
-                IndexColumn.wrap(table.getColumns()),
-                IndexType.createNonUnique(true),
-                Index.EMPTY_HEAD, "");
-        index = (PageScanIndex) table.getScanIndex(
-                db.getSystemSession());
-    }
-
-    private void testAllocateFree() throws SQLException {
-        String fileName = getTestDir("/pageStore");
-        new File(fileName).delete();
-        File f = new File(fileName + ".dat");
-        f.delete();
-        Database db = getDatabase();
-        PageStore store = new PageStore(db, fileName, "rw", 8192);
-        store.setPageSize(1024);
-        store.open();
-        IntArray list = new IntArray();
-        int size = 270;
-        for (int i = 0; i < size; i++) {
-            int id = store.allocatePage();
-            list.add(id);
-        }
-        for (int i = 0; i < size; i++) {
-            int id = list.get(i);
-            store.freePage(id, false, null);
-        }
-        for (int i = 0; i < size; i++) {
-            int id = store.allocatePage();
-            int expected = list.get(list.size() - 1 - i);
-            assertEquals(expected, id);
-        }
-        store.close();
-        db.shutdownImmediately();
-        new File(fileName).delete();
-        f.delete();
-    }
-
-    private void testStreamPerformance(boolean file, int count) throws Exception {
-        String fileName = getTestDir("/pageStore");
-        new File(fileName).delete();
-        File f = new File(fileName + ".dat");
-        f.delete();
-        Database db = getDatabase();
-        PageStore store = new PageStore(db, fileName, "rw", 8192);
-        store.setPageSize(8 * 1024);
-        byte[] buff = new byte[100];
-        store.open();
-        int head = store.allocatePage();
-        OutputStream out;
-        InputStream in;
-        long start = System.currentTimeMillis();
-        if (file) {
-            out = new BufferedOutputStream(new FileOutputStream(f), 4 * 1024);
-        } else {
-            out = new PageOutputStream(store, 0);
-        }
-        for (int i = 0; i < count; i++) {
-            out.write(buff);
-        }
-        out.close();
-        if (file) {
-            in = new BufferedInputStream(new FileInputStream(f), 4 * 1024);
-        } else {
-            in = new PageInputStream(store, 0, 0);
-        }
-        while (true) {
-            int len = in.read(buff);
-            if (len < 0) {
-                break;
-            }
-        }
-        in.close();
-        println((file ? "file" : "pageStore") +
-                " " + (System.currentTimeMillis() - start));
-        store.close();
-        db.shutdownImmediately();
-        new File(fileName).delete();
-        f.delete();
-    }
-
-    private void testStreamFuzz() throws Exception {
-        String name = "mem:pageStoreStreams";
-        ConnectionInfo ci = new ConnectionInfo(name);
-        Database db = new Database(name, ci, null);
-        String fileName = getTestDir("/pageStoreStreams");
-        new File(fileName).delete();
-        PageStore store = new PageStore(db, fileName, "rw", 8192);
-        store.open();
-        Random random = new Random(1);
-        for (int i = 0; i < 10000; i += 1000) {
-            int len = i == 0 ? 0 : random.nextInt(i);
-            byte[] data = new byte[len];
-            random.nextBytes(data);
-            int head = store.allocatePage();
-            PageOutputStream out = new PageOutputStream(store, 0);
-            for (int p = 0; p < len;) {
-                int l = len == 0 ? 0 : Math.min(len - p, random.nextInt(len / 10));
-                out.write(data, p, l);
-                p += l;
-            }
-            out.close();
-            PageInputStream in = new PageInputStream(store, 0, 0);
-            byte[] data2 = new byte[len];
-            for (int off = 0;;) {
-                int l = random.nextInt(1 + len / 10) + 1;
-                l = in.read(data2, off, l);
-                if (l < 0) {
-                    break;
-                }
-                off += l;
-            }
-            in.close();
-            assertEquals(data, data2);
-        }
-        store.close();
-        db.shutdownImmediately();
-        new File(fileName).delete();
     }
 
 }

@@ -65,7 +65,7 @@ class PageBtreeLeaf extends PageBtree {
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (last - rowLength < start + OFFSET_LENGTH) {
-            if (entryCount > 0) {
+            if (entryCount > 1) {
                 int todoSplitAtLastInsertionPoint;
                 return (entryCount / 2) + 1;
             }
@@ -142,6 +142,10 @@ class PageBtreeLeaf extends PageBtree {
         return this;
     }
 
+    PageBtreeLeaf getLastLeaf() {
+        return this;
+    }
+
     boolean remove(SearchRow row) throws SQLException {
         int at = find(row, false, false);
         if (index.compareRows(row, getRow(at)) != 0) {
@@ -213,6 +217,10 @@ class PageBtreeLeaf extends PageBtree {
         cursor.setCurrent(this, i);
     }
 
+    void last(PageBtreeCursor cursor) {
+        cursor.setCurrent(this, entryCount - 1);
+    }
+
     void remapChildren() {
     }
 
@@ -228,6 +236,20 @@ class PageBtreeLeaf extends PageBtree {
         }
         PageBtreeNode next = (PageBtreeNode) index.getPage(parentPageId);
         next.nextPage(cursor, getPos());
+    }
+
+    /**
+     * Set the cursor to the last row of the previous page.
+     *
+     * @param cursor the cursor
+     */
+    void previousPage(PageBtreeCursor cursor) throws SQLException {
+        if (parentPageId == Page.ROOT) {
+            cursor.setCurrent(null, 0);
+            return;
+        }
+        PageBtreeNode next = (PageBtreeNode) index.getPage(parentPageId);
+        next.previousPage(cursor, getPos());
     }
 
     public String toString() {

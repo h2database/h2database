@@ -126,16 +126,21 @@ public class PageStreamTrunk extends Record {
 
     /**
      * Free this page and all data pages.
+     *
+     * @return the number of pages freed
      */
-    void free() throws SQLException {
+    int free() throws SQLException {
         DataPage empty = store.createDataPage();
         store.freePage(getPos(), false, null);
+        int freed = 1;
         for (int i = 0; i < pageCount; i++) {
             int page = pageIds[i];
             store.freePage(page, false, null);
+            freed++;
             store.writePage(page, empty);
         }
         store.writePage(getPos(), empty);
+        return freed;
     }
 
     /**

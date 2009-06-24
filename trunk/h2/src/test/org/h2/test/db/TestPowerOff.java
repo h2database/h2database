@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 
+import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -289,7 +290,7 @@ public class TestPowerOff extends TestBase {
             }
             conn.close();
         } catch (SQLException e) {
-            if (e.getSQLState().equals("90098")) {
+            if (e.getSQLState().equals("" + ErrorCode.SIMULATED_POWER_OFF)) {
                 // this is ok
             } else {
                 throw e;

@@ -389,18 +389,8 @@ public class PageLog {
             return;
         }
         int firstDataPageToKeep = logIdPageMap.get(firstUncommittedLog);
-        trace.debug("log.removeUntil " + firstDataPageToKeep);
-        while (true) {
-            // TODO keep trunk page in the cache
-            PageStreamTrunk t = new PageStreamTrunk(store, firstTrunkPage);
-            t.read();
-            if (t.contains(firstDataPageToKeep)) {
-                store.setLogFirstPage(t.getPos(), firstDataPageToKeep);
-                break;
-            }
-            firstTrunkPage = t.getNextTrunk();
-            t.free();
-        }
+        firstTrunkPage = pageOut.removeUntil(firstTrunkPage, firstDataPageToKeep);
+        store.setLogFirstPage(firstTrunkPage, firstDataPageToKeep);
         while (firstLogId < firstUncommittedLog) {
             if (firstLogId > 0) {
                 // there is no entry for log 0
@@ -471,6 +461,10 @@ public class PageLog {
             state.sessionId = sessionId;
         }
         return state;
+    }
+
+    public long getSize() {
+        return pageOut.getSize();
     }
 
 }

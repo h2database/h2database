@@ -87,15 +87,9 @@ public class LogSystem {
      */
     public void setMaxLogSize(long maxSize) {
         this.maxLogSize = maxSize;
-    }
-
-    /**
-     * Get the maximum log file size.
-     *
-     * @return the maximum size
-     */
-    public long getMaxLogSize() {
-        return maxLogSize;
+        if (pageStore != null) {
+            pageStore.setMaxLogSize(maxSize);
+        }
     }
 
     /**

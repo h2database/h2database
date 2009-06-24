@@ -290,9 +290,12 @@ java org.h2.test.TestAll timer
 // 2009-05-18: 18 tests fail with page store (first loop)
 // 2009-05-30: 15 tests fail with page store (first loop)
 // 2009-06-19: 10 tests fail with page store (first loop)
+// 2009-06-24: 3 tests fail with page store (first loop)
 // System.setProperty("h2.pageStore", "true");
 
 /*
+
+Console: Start Browser: if ip number changed, try localhost
 
 test case for running out of disk space (using a special file system)
 

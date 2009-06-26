@@ -72,7 +72,7 @@ public class PageStreamTrunk extends Record {
         pageIds[index++] = page;
     }
 
-    int getNextDataPage() {
+    int getNextPageData() {
         if (index >= pageIds.length) {
             return -1;
         }

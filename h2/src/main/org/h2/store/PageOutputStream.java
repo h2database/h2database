@@ -85,7 +85,7 @@ public class PageOutputStream extends OutputStream {
     }
 
     private void initNextData() throws SQLException {
-        int nextData = trunk == null ? -1 : trunk.getNextDataPage();
+        int nextData = trunk == null ? -1 : trunk.getNextPageData();
         if (nextData == -1) {
             int parent = trunkPageId;
             if (trunkNext != 0) {
@@ -101,7 +101,7 @@ public class PageOutputStream extends OutputStream {
             pages++;
             trunk.write(null);
             reservedPages.removeRange(0, len + 1);
-            nextData = trunk.getNextDataPage();
+            nextData = trunk.getNextPageData();
         }
         data = new PageStreamData(store, nextData, trunk.getPos());
         pages++;

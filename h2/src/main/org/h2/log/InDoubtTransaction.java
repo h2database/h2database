@@ -9,6 +9,7 @@ package org.h2.log;
 import java.sql.SQLException;
 
 import org.h2.message.Message;
+import org.h2.store.PageStore;
 
 /**
  * Represents an in-doubt transaction (a transaction in the prepare phase).
@@ -33,14 +34,26 @@ public class InDoubtTransaction {
 
     // TODO 2-phase-commit: document sql statements and metadata table
 
-    private LogFile log;
-    private int sessionId;
-    private int pos;
-    private String transaction;
-    private int blocks;
+    private final PageStore store;
+    private final LogFile log;
+    private final int sessionId;
+    private final int pos;
+    private final String transaction;
+    private final int blocks;
     private int state;
 
-    InDoubtTransaction(LogFile log, int sessionId, int pos, String transaction, int blocks) {
+    /**
+     * Create a new in-doubt transaction info object.
+     *
+     * @param store the page store
+     * @param log the log file
+     * @param sessionId the session id
+     * @param pos the position
+     * @param transaction the transaction name
+     * @param blocks the number of blocks the 'prepare commit' entry occupies
+     */
+    public InDoubtTransaction(PageStore store, LogFile log, int sessionId, int pos, String transaction, int blocks) {
+        this.store = store;
         this.log = log;
         this.sessionId = sessionId;
         this.pos = pos;
@@ -58,10 +71,18 @@ public class InDoubtTransaction {
     public void setState(int state) throws SQLException {
         switch(state) {
         case COMMIT:
-            log.updatePreparedCommit(true, pos, sessionId, blocks);
+            if (store != null) {
+                store.setInDoubtTransactionState(sessionId, pos, true);
+            } else {
+                log.updatePreparedCommit(true, pos, sessionId, blocks);
+            }
             break;
         case ROLLBACK:
-            log.updatePreparedCommit(false, pos, sessionId, blocks);
+            if (store != null) {
+                store.setInDoubtTransactionState(sessionId, pos, false);
+            } else {
+                log.updatePreparedCommit(false, pos, sessionId, blocks);
+            }
             break;
         default:
             Message.throwInternalError("state="+state);

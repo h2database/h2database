@@ -8,6 +8,7 @@ package org.h2.index;
 
 import java.sql.SQLException;
 
+import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.store.DataPage;
@@ -110,9 +111,9 @@ class PageDataNode extends PageData {
         }
     }
 
-    Cursor find() throws SQLException {
+    Cursor find(Session session) throws SQLException {
         int child = childPageIds[0];
-        return index.getPage(child).find();
+        return index.getPage(child).find(session);
     }
 
     PageData split(int splitPoint) throws SQLException {

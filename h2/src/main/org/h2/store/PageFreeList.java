@@ -83,6 +83,10 @@ public class PageFreeList extends Record {
      */
     void free(int pageId) throws SQLException {
         full = false;
+int test;
+if (pageId - getPos() <= 0) {
+    System.out.println("stop!");
+}
         used.clear(pageId - getPos());
         store.updateRecord(this, true, data);
     }

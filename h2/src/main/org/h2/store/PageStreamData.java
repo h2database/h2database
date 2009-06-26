@@ -26,7 +26,7 @@ public class PageStreamData extends Record {
     private static final int DATA_START = 9;
 
     private final PageStore store;
-    private final int trunk;
+    private int trunk;
     private DataPage data;
     private int remaining;
     private int length;
@@ -43,6 +43,7 @@ public class PageStreamData extends Record {
     void read() throws SQLException {
         data = store.createDataPage();
         store.readPage(getPos(), data);
+        trunk = data.readInt();
         data.setPos(4);
         int t = data.readByte();
         if (t != Page.TYPE_STREAM_DATA) {
@@ -65,6 +66,7 @@ public class PageStreamData extends Record {
         data.writeByte((byte) Page.TYPE_STREAM_DATA);
         data.writeInt(0);
         remaining = store.getPageSize() - data.length();
+        length = 0;
     }
 
     /**

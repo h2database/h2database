@@ -20,7 +20,9 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.PageBtreeIndex;
 import org.h2.index.PageScanIndex;
+import org.h2.log.InDoubtTransaction;
 import org.h2.log.LogSystem;
+import org.h2.log.SessionState;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
@@ -69,7 +71,7 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
-    // TODO TestSampleApps
+    // TODO TestTwoPhaseCommit
     // TODO TestIndex.wideIndex: btree nodes should be full
     // TODO check memory usage
     // TODO PageStore.openMetaIndex (desc and nulls first / last)
@@ -115,6 +117,7 @@ public class PageStore implements CacheWriter {
     // TODO when removing DiskFile:
     // remove CacheObject.blockCount
     // remove Record.getMemorySize
+    // simplify InDoubtTransaction
 
     /**
      * The smallest possible page size.
@@ -348,6 +351,7 @@ public class PageStore implements CacheWriter {
         }
         if (writeVersion != 0) {
             close();
+            database.setReadOnly(true);
             accessMode = "r";
             file = database.openFile(fileName, accessMode, true);
         }
@@ -520,7 +524,8 @@ public class PageStore implements CacheWriter {
     }
 
     private void freePage(int pageId) throws SQLException {
-        PageFreeList list = getFreeList(pageId / freeListPagesPerList);
+        int i = (pageId - PAGE_ID_FREE_LIST_ROOT) / freeListPagesPerList;
+        PageFreeList list = getFreeList(i);
         list.free(pageId);
     }
 
@@ -686,32 +691,22 @@ public class PageStore implements CacheWriter {
     }
 
     /**
-     * Run one recovery stage. There are three recovery stages: 0: only the undo
-     * steps are run (restoring the state before the last checkpoint). 1: the
-     * pages that are used by the transaction log are allocated. 2: the
-     * committed operations are re-applied.
+     * Run recovery.
      */
     private void recover() throws SQLException {
         trace.debug("log recover");
-        try {
-            recoveryRunning = true;
-            log.recover(PageLog.RECOVERY_STAGE_UNDO);
-            log.recover(PageLog.RECOVERY_STAGE_ALLOCATE);
-            openMetaIndex();
-            readMetaData();
-            log.recover(PageLog.RECOVERY_STAGE_REDO);
+        recoveryRunning = true;
+        log.recover(PageLog.RECOVERY_STAGE_UNDO);
+        log.recover(PageLog.RECOVERY_STAGE_ALLOCATE);
+        openMetaIndex();
+        readMetaData();
+        log.recover(PageLog.RECOVERY_STAGE_REDO);
+        if (log.getInDoubtTransactions().size() == 0) {
             switchLog();
-        } catch (SQLException e) {
-            int test;
-            e.printStackTrace();
-            throw e;
-        } catch (RuntimeException e) {
-            int test;
-            e.printStackTrace();
-            throw e;
-        } finally {
-            recoveryRunning = false;
+        } else {
+            database.setReadOnly(true);
         }
+        recoveryRunning = false;
         PageScanIndex index = (PageScanIndex) metaObjects.get(0);
         if (index == null) {
             systemTableHeadPos = Index.EMPTY_HEAD;
@@ -721,7 +716,6 @@ public class PageStore implements CacheWriter {
         for (Index openIndex : metaObjects.values()) {
             openIndex.close(database.getSystemSession());
         }
-        metaObjects = null;
         trace.debug("log recover done");
     }
 
@@ -748,10 +742,22 @@ public class PageStore implements CacheWriter {
      */
     public void commit(Session session) throws SQLException {
         synchronized (database) {
-            log.commit(session);
+            log.commit(session.getId());
             if (log.getSize() > maxLogSize) {
                 checkpoint();
             }
+        }
+    }
+
+    /**
+     * Prepare a transaction.
+     *
+     * @param session the session
+     * @param transaction the name of the transaction
+     */
+    public void prepareCommit(Session session, String transaction) throws SQLException {
+        synchronized (database) {
+            log.prepareCommit(session, transaction);
         }
     }
 
@@ -959,6 +965,33 @@ public class PageStore implements CacheWriter {
      */
     public void setMaxLogSize(long maxSize) {
         this.maxLogSize = maxSize;
+    }
+
+    /**
+     * Commit or rollback a prepared transaction after opening a database with in-doubt
+     * transactions.
+     *
+     * @param sessionId the session id
+     * @param pageId the page where the transaction was prepared
+     * @param commit if the transaction should be committed
+     */
+    public void setInDoubtTransactionState(int sessionId, int pageId, boolean commit) throws SQLException {
+        boolean old = database.isReadOnly();
+        try {
+            database.setReadOnly(false);
+            log.setInDoubtTransactionState(sessionId, pageId, commit);
+        } finally {
+            database.setReadOnly(old);
+        }
+    }
+
+    /**
+     * Get the list of in-doubt transaction.
+     *
+     * @return the list
+     */
+    public ObjectArray<InDoubtTransaction> getInDoubtTransactions() {
+        return log.getInDoubtTransactions();
     }
 
 }

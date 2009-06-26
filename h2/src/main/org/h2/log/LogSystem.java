@@ -410,7 +410,7 @@ public class LogSystem {
         // this is potentially a commit, so
         // don't roll back the action before it (currently)
         setLastCommitForSession(sessionId, log.getId(), pos);
-        state.inDoubtTransaction = new InDoubtTransaction(log, sessionId, pos, transaction, blocks);
+        state.inDoubtTransaction = new InDoubtTransaction(null, log, sessionId, pos, transaction, blocks);
     }
 
     /**
@@ -419,6 +419,9 @@ public class LogSystem {
      * @return the list
      */
     public ObjectArray<InDoubtTransaction> getInDoubtTransactions() {
+        if (pageStore != null) {
+            return pageStore.getInDoubtTransactions();
+        }
         return inDoubtTransactions;
     }
 
@@ -444,6 +447,9 @@ public class LogSystem {
             return;
         }
         synchronized (database) {
+            if (pageStore != null) {
+                pageStore.prepareCommit(session, transaction);
+            }
             if (closed) {
                 return;
             }

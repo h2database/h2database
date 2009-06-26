@@ -8,6 +8,7 @@ package org.h2.index;
 
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
+import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.store.DataPage;
@@ -193,8 +194,8 @@ class PageDataLeaf extends PageData {
         rows = newRows;
     }
 
-    Cursor find() {
-        return new PageScanCursor(this, 0);
+    Cursor find(Session session) {
+        return new PageScanCursor(session, this, 0, index.isMultiVersion);
     }
 
     /**

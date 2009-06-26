@@ -280,7 +280,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
         throw Message.getUnsupportedException("SCAN");
     }
 
-    public Iterator<Row> getDelta() {
+    Iterator<Row> getDelta() {
         if (delta == null) {
             List<Row> e = Collections.emptyList();
             return e.iterator();

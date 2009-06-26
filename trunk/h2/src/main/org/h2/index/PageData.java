@@ -8,6 +8,7 @@ package org.h2.index;
 
 import java.sql.SQLException;
 
+import org.h2.engine.Session;
 import org.h2.result.Row;
 import org.h2.store.DataPage;
 import org.h2.store.Record;
@@ -107,9 +108,10 @@ abstract class PageData extends Record {
     /**
      * Get a cursor.
      *
+     * @param session the session
      * @return the cursor
      */
-    abstract Cursor find() throws SQLException;
+    abstract Cursor find(Session session) throws SQLException;
 
     /**
      * Get the key at this position.

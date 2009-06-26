@@ -52,6 +52,7 @@ import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StatementBuilder;
+import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
 import org.h2.value.Value;
@@ -864,6 +865,16 @@ public class Recover extends Tool implements DataHandler {
             } else if (x == PageLog.COMMIT) {
                 int sessionId = in.readInt();
                 writer.println("-- commit " + sessionId);
+            } else if (x == PageLog.ROLLBACK) {
+                int sessionId = in.readInt();
+                writer.println("-- rollback " + sessionId);
+            } else if (x == PageLog.PREPARE_COMMIT) {
+                int sessionId = in.readInt();
+                int len = in.readInt();
+                byte[] t = new byte[len];
+                in.readFully(t);
+                String transaction = StringUtils.utf8Decode(t);
+                writer.println("-- prepare commit " + sessionId + " " + transaction);
             } else if (x == PageLog.NOOP) {
                 // nothing to do
             } else if (x == PageLog.CHECKPOINT) {

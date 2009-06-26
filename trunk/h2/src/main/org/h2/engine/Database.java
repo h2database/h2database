@@ -2366,4 +2366,13 @@ public class Database implements DataHandler {
         return true;
     }
 
+    /**
+     * Switch the database to read-only mode.
+     *
+     * @param readOnly the new value
+     */
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
+    }
+
 }

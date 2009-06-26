@@ -370,4 +370,8 @@ public class PageBtreeIndex extends BaseIndex {
         return rowsize;
     }
 
+    public boolean canFindNext() {
+        return true;
+    }
+
 }

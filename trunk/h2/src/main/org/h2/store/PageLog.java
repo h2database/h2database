@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import org.h2.engine.Session;
+import org.h2.log.InDoubtTransaction;
 import org.h2.log.LogSystem;
 import org.h2.log.SessionState;
 import org.h2.message.Message;
@@ -22,6 +23,8 @@ import org.h2.result.Row;
 import org.h2.util.BitField;
 import org.h2.util.IntIntHashMap;
 import org.h2.util.New;
+import org.h2.util.ObjectArray;
+import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
 /**
@@ -53,22 +56,34 @@ public class PageLog {
     public static final int COMMIT = 2;
 
     /**
+     * A prepare commit entry for a session.
+     * Format: session id, transaction name length, transaction name (UTF-8).
+     */
+    public static final int PREPARE_COMMIT = 3;
+
+    /**
+     * Roll back a prepared transaction.
+     * Format: session id.
+     */
+    public static final int ROLLBACK = 4;
+
+    /**
      * Add a record to a table.
      * Format: session id, table id, row.
      */
-    public static final int ADD = 3;
+    public static final int ADD = 5;
 
     /**
      * Remove a record from a table.
      * Format: session id, table id, row.
      */
-    public static final int REMOVE = 4;
+    public static final int REMOVE = 6;
 
     /**
      * Perform a checkpoint. The log id is incremented.
      * Format: -
      */
-    public static final int CHECKPOINT = 5;
+    public static final int CHECKPOINT = 7;
 
     /**
      * The recovery stage to undo changes (re-apply the backup).
@@ -91,6 +106,7 @@ public class PageLog {
 
     private DataOutputStream out;
     private ByteArrayOutputStream buffer;
+    private PageInputStream pageIn;
     private PageOutputStream pageOut;
     private DataInputStream in;
     private int firstTrunkPage;
@@ -164,7 +180,8 @@ public class PageLog {
             in.allocateAllPages();
             return;
         }
-        in = new DataInputStream(new PageInputStream(store, firstTrunkPage, firstDataPage));
+        pageIn = new PageInputStream(store, firstTrunkPage, firstDataPage);
+        in = new DataInputStream(pageIn);
         int logId = 0;
         DataPage data = store.createDataPage();
         try {
@@ -200,6 +217,25 @@ public class PageLog {
                             }
                         }
                     }
+                } else if (x == PREPARE_COMMIT) {
+                    int sessionId = in.readInt();
+                    int len = in.readInt();
+                    byte[] t = new byte[len];
+                    in.readFully(t);
+                    String transaction = StringUtils.utf8Decode(t);
+                    if (trace.isDebugEnabled()) {
+                        trace.debug("log prepare commit " + sessionId + " " + transaction + " pos:" + pos);
+                    }
+                    if (stage == RECOVERY_STAGE_UNDO) {
+                        int page = pageIn.getDataPage();
+                        setPrepareCommit(sessionId, page, transaction);
+                    }
+                } else if (x == ROLLBACK) {
+                    int sessionId = in.readInt();
+                    if (trace.isDebugEnabled()) {
+                        trace.debug("log rollback " + sessionId + " pos:" + pos);
+                    }
+                    // ignore - this entry is just informational
                 } else if (x == COMMIT) {
                     int sessionId = in.readInt();
                     if (trace.isDebugEnabled()) {
@@ -220,7 +256,6 @@ public class PageLog {
                 }
             }
             if (stage == RECOVERY_STAGE_REDO) {
-                // TODO probably still required for 2 phase commit
                 sessionStates = New.hashMap();
             }
         } catch (EOFException e) {
@@ -228,6 +263,25 @@ public class PageLog {
         } catch (IOException e) {
             throw Message.convertIOException(e, "recover");
         }
+    }
+
+    /**
+     * This method is called when a 'prepare commit' log entry is read when
+     * opening the database.
+     *
+     * @param sessionId the session id
+     * @param the data page with the prepare entry
+     * @param transaction the transaction name, or null to rollback
+     */
+    private void setPrepareCommit(int sessionId, int pageId, String transaction) {
+        SessionState state = getOrAddSessionState(sessionId);
+        InDoubtTransaction doubt;
+        if (transaction == null) {
+            doubt = null;
+        } else {
+            doubt = new InDoubtTransaction(store, null, sessionId, pageId, transaction, 0);
+        }
+        state.inDoubtTransaction = doubt;
     }
 
     /**
@@ -286,14 +340,14 @@ public class PageLog {
     }
 
     /**
-     * Mark a committed transaction.
+     * Mark a transaction as committed.
      *
      * @param session the session
      */
-    void commit(Session session) throws SQLException {
+    void commit(int sessionId) throws SQLException {
         try {
             if (trace.isDebugEnabled()) {
-                trace.debug("log commit s:" + session.getId());
+                trace.debug("log commit s:" + sessionId);
             }
             LogSystem log = store.getDatabase().getLog();
             if (log == null) {
@@ -301,7 +355,72 @@ public class PageLog {
                 return;
             }
             out.write(COMMIT);
+            out.writeInt(sessionId);
+            flushOut();
+            if (log.getFlushOnEachCommit()) {
+                flush();
+            }
+        } catch (IOException e) {
+            throw Message.convertIOException(e, null);
+        }
+    }
+
+    /**
+     * Prepare a transaction.
+     *
+     * @param session the session
+     * @param transaction the name of the transaction
+     */
+    void prepareCommit(Session session, String transaction) throws SQLException {
+        try {
+            if (trace.isDebugEnabled()) {
+                trace.debug("log prepare commit s:" + session.getId() + " " + transaction);
+            }
+            LogSystem log = store.getDatabase().getLog();
+            if (log == null) {
+                // database already closed
+                return;
+            }
+            // store it on a separate log page
+            int pageSize = store.getPageSize();
+            byte[] t = StringUtils.utf8Encode(transaction);
+            int len = t.length;
+            if (1 + DataPage.LENGTH_INT * 2 + len >= PageStreamData.getCapacity(pageSize)) {
+                throw Message.getInvalidValueException("transaction name too long", transaction);
+            }
+            pageOut.fillDataPage();
+            out.write(PREPARE_COMMIT);
             out.writeInt(session.getId());
+            out.writeInt(len);
+            out.write(t);
+            flushOut();
+            // store it on a separate log page
+            pageOut.fillDataPage();
+            if (log.getFlushOnEachCommit()) {
+                flush();
+            }
+        } catch (IOException e) {
+            throw Message.convertIOException(e, null);
+        }
+    }
+
+    /**
+     * Rollback a prepared transaction.
+     *
+     * @param session the session
+     */
+    void rollbackPrepared(int sessionId) throws SQLException {
+        try {
+            if (trace.isDebugEnabled()) {
+                trace.debug("log rollback prepared s:" + sessionId);
+            }
+            LogSystem log = store.getDatabase().getLog();
+            if (log == null) {
+                // database already closed
+                return;
+            }
+            out.write(ROLLBACK);
+            out.writeInt(sessionId);
             flushOut();
             if (log.getFlushOnEachCommit()) {
                 flush();
@@ -452,7 +571,7 @@ public class PageLog {
      * @param sessionId the session id
      * @return the session state object
      */
-    private SessionState getOrAddSessionState(int sessionId) {
+    SessionState getOrAddSessionState(int sessionId) {
         Integer key = sessionId;
         SessionState state = sessionStates.get(key);
         if (state == null) {
@@ -463,8 +582,45 @@ public class PageLog {
         return state;
     }
 
-    public long getSize() {
+    long getSize() {
         return pageOut.getSize();
+    }
+
+    ObjectArray<InDoubtTransaction> getInDoubtTransactions() {
+        ObjectArray<InDoubtTransaction> list = ObjectArray.newInstance();
+        for (SessionState state : sessionStates.values()) {
+            InDoubtTransaction in = state.inDoubtTransaction;
+            if (in != null) {
+                list.add(in);
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Set the state of an in-doubt transaction.
+     *
+     * @param sessionId the session
+     * @param pageId the page where the commit was prepared
+     * @param commit whether the transaction should be committed
+     */
+    void setInDoubtTransactionState(int sessionId, int pageId, boolean commit) throws SQLException {
+        PageStreamData d = new PageStreamData(store, pageId, 0);
+        d.read();
+        d.initWrite();
+        ByteArrayOutputStream buff = new ByteArrayOutputStream();
+        DataOutputStream o = new DataOutputStream(buff);
+        try {
+            o.write(commit ? COMMIT : ROLLBACK);
+            o.writeInt(sessionId);
+        } catch (IOException e) {
+            throw Message.convertIOException(e, "");
+        }
+        byte[] bytes = buff.toByteArray();
+        d.write(buff.toByteArray(), 0, bytes.length);
+        bytes = new byte[d.getRemaining()];
+        d.write(bytes, 0, bytes.length);
+        d.write(null);
     }
 
 }

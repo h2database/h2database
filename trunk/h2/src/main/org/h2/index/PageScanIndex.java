@@ -7,10 +7,16 @@
 package org.h2.index;
 
 import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
+import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
 import org.h2.result.Row;
@@ -21,6 +27,7 @@ import org.h2.store.Record;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
+import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
 
@@ -36,13 +43,17 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     private final int headPos;
     private int lastKey;
     private long rowCount;
+    private HashSet<Row> delta;
+    private int rowCountDiff;
+    private HashMap<Integer, Integer> sessionRowCount;
 
     public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos, Session session) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
         int test;
 // trace.setLevel(TraceSystem.DEBUG);
         if (database.isMultiVersion()) {
-            int todoMvcc;
+            sessionRowCount = New.hashMap();
+            isMultiVersion = true;
         }
         tableData = table;
         this.store = database.getPageStore();
@@ -130,6 +141,16 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             store.updateRecord(newRoot, true, null);
             root = newRoot;
         }
+        if (database.isMultiVersion()) {
+            if (delta == null) {
+                delta = New.hashSet();
+            }
+            boolean wasDeleted = delta.remove(row);
+            if (!wasDeleted) {
+                delta.add(row);
+            }
+            incrementRowCount(session.getId(), 1);
+        }
         rowCount++;
         store.logAddOrRemoveRow(session, tableData.getId(), row, true);
     }
@@ -143,10 +164,6 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     PageData getPage(int id) throws SQLException {
         Record rec = store.getRecord(id);
         if (rec != null) {
-            if (rec instanceof PageDataLeafOverflow) {
-                int test;
-                System.out.println("stop");
-            }
             return (PageData) rec;
         }
         DataPage data = store.readPage(id);
@@ -177,7 +194,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
         PageData root = getPage(headPos);
-        return root.find();
+        return root.find(session);
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) throws SQLException {
@@ -220,6 +237,18 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 //                lastKey--;
 //            }
         }
+        if (database.isMultiVersion()) {
+            // if storage is null, the delete flag is not yet set
+            row.setDeleted(true);
+            if (delta == null) {
+                delta = New.hashSet();
+            }
+            boolean wasAdded = delta.remove(row);
+            if (!wasAdded) {
+                delta.add(row);
+            }
+            incrementRowCount(session.getId(), -1);
+        }
         store.logAddOrRemoveRow(session, tableData.getId(), row, false);
     }
 
@@ -237,6 +266,9 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         removeAllRows();
         if (tableData.getContainsLargeObject() && tableData.isPersistData()) {
             ValueLob.removeAllForTable(database, table.getId());
+        }
+        if (database.isMultiVersion()) {
+            sessionRowCount.clear();
         }
         tableData.setRowCount(0);
     }
@@ -279,6 +311,13 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     public long getRowCount(Session session) {
+        if (database.isMultiVersion()) {
+            Integer i = sessionRowCount.get(session.getId());
+            long count = i == null ? 0 : i.intValue();
+            count += rowCount;
+            count -= rowCountDiff;
+            return count;
+        }
         return rowCount;
     }
 
@@ -299,6 +338,33 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         int todoWhyNotClose;
         // store = null;
         int writeRowCount;
+    }
+
+    Iterator<Row> getDelta() {
+        if (delta == null) {
+            List<Row> e = Collections.emptyList();
+            return e.iterator();
+        }
+        return delta.iterator();
+    }
+
+    private void incrementRowCount(int sessionId, int count) {
+        if (database.isMultiVersion()) {
+            Integer id = sessionId;
+            Integer c = sessionRowCount.get(id);
+            int current = c == null ? 0 : c.intValue();
+            sessionRowCount.put(id, current + count);
+            rowCountDiff += count;
+        }
+    }
+
+    public void commit(int operation, Row row) {
+        if (database.isMultiVersion()) {
+            if (delta != null) {
+                delta.remove(row);
+            }
+            incrementRowCount(row.getSessionId(), operation == UndoLogRecord.DELETE ? 1 : -1);
+        }
     }
 
 }

@@ -89,7 +89,7 @@ public class PageInputStream extends InputStream {
         }
         int next;
         while (true) {
-            next = trunk.getNextDataPage();
+            next = trunk.getNextPageData();
             if (dataPage == -1 || dataPage == next) {
                 if (next != 0) {
                     break;
@@ -117,7 +117,7 @@ public class PageInputStream extends InputStream {
             PageStreamTrunk t = new PageStreamTrunk(store, trunkPage);
             t.read();
             while (true) {
-                int n = t.getNextDataPage();
+                int n = t.getNextPageData();
                 if (n == -1) {
                     break;
                 }
@@ -128,6 +128,10 @@ public class PageInputStream extends InputStream {
                 break;
             }
         }
+    }
+
+    int getDataPage() {
+        return data.getPos();
     }
 
 }

@@ -290,7 +290,8 @@ java org.h2.test.TestAll timer
 // 2009-05-18: 18 tests fail with page store (first loop)
 // 2009-05-30: 15 tests fail with page store (first loop)
 // 2009-06-19: 10 tests fail with page store (first loop)
-// 2009-06-24: 3 tests fail with page store (first loop)
+// 2009-06-26: 0 tests fail with page store (first loop)
+// int pageStore;
 // System.setProperty("h2.pageStore", "true");
 
 /*

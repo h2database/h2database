@@ -13,6 +13,38 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(65,
+'New version available: 1.1.115 (2009-06-27)', '2009-06-27 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>The new storage mechanism is now alpha quality.
+    To try it out, enable the system property "h2.pageStore" to "true".
+    The database file size is smaller, and there is only one file.
+</li><li>java.util.UUID is now supported.
+</li><li>H2 Console: improved Polish translation.
+</li><li>The download page now included the SHA1 checksums.
+</li><li>Shell tool: the file encoding workaround is now documented.
+</li><li>Data types: LONG is now an alias for BIGINT.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>ALTER TABLE could throw an exception "object already exists".
+</li><li>Views: in some situations, an ArrayIndexOutOfBoundsException was thrown.
+</li><li>H2 Console: the language was reset to the browser language.
+</li><li>Server-less multi-connection mode: more bugs are fixed.
+</li><li>RunScript did not work with LZF.
+</li><li>Fulltext search: searching for NULL or an empty string threw an exception.
+</li><li>Lucene fulltext search: FTL_DROP_ALL did not drop triggers.
+</li><li>Backup: the backup could included a file entry for the LOB directory.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(64,
 'New version available: 1.1.114 (2009-06-01)', '2009-06-01 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -399,52 +431,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>In-memory databases don't write LOBs to files any longer.
 </li><li>Self referencing constraints didn't restrict deleting rows that reference
     itself if there is another row that references it.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(51,
-'New version available: 1.1.101 (beta; 2008-10-17)', '2008-10-17 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>OSGi meta data is included in the manifest file.
-</li><li>Queries with more than 10 tables are now faster.
-</li><li>Opening large database is now faster.
-</li><li>Opening a connection with AUTO_SERVER=TRUE is now fast.
-</li><li>There is now a default timeout of 2 seconds to connect to a server.
-</li><li>Improved Glassfish / Toplink support in H2Platform.
-</li><li>New functions ISO_YEAR, ISO_WEEK, ISO_DAY_OF_WEEK.
-</li><li>IF [NOT] EXISTS is supported for named constraints.
-</li><li>The methods getTableName() and getColumnName() now return the real names.
-</li><li>In SQL scripts created with SCRIPT TO, schemas are now only created if they don't exist yet.
-</li><li>Local temporary tables now support indexes.
-</li><li>RUNSCRIPT no longer uses a temporary file.
-</li><li>New system table INFORMATION_SCHEMA.SESSION_STATE.
-</li><li>After an automatic re-connect, part of the session state stays.
-</li><li>After re-connecting to a database, the database event listener (if set) is informed about it.
-</li><li>New system property h2.maxReconnect (default 3).
-</li><li>The error messages have been translated to Spanish by Dario V. Fassi.
-</li><li>The date functions DAYOF... are now called DAY_OF_... (the old names still work).
-</li><li>Linked tables: compatibility with MS SQL Server has been improved.
-</li><li>The default value for MAX_MEMORY_UNDO is now 50000.
-</li><li>Fulltext search: new method FT_DROP_INDEX.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Linked tables: the automatic connection sharing didn't work.
-</li><li>The wrong parameters were bound to subqueries with parameters.
-</li><li>Unset parameters were not detected when the query was re-compiled.
-</li><li>An out of memory error could result in a strange exception.
-</li><li>Renaming tables that have foreign keys didn't work.
-</li><li>Auto-reconnect didn't work when using auto-server.
-</li><li>The optimization to group using an index didn't work sometimes.
-</li><li>The build didn't work if the directory temp didn't exist before.
-</li><li>WHERE .. IN (SELECT ...) could throw a NullPointerException.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>ALTER TABLE could throw an exception "object already exists" in some cases.
+<ul><li>The new storage mechanism is now alpha quality. To try it out, set the system property
+    "h2.pageStore" to "true" (java -Dh2.pageStore=true). There are still bugs to be found and fixed,
+    for example inserting many rows references a lot of main memory. Performance is currently 
+    about the same as with the regular storage mechanism, but the database file size is smaller.
+    The file format is not stable yet.
+</li><li>ALTER TABLE could throw an exception "object already exists" in some cases.
 </li><li>Views: in some situations, an ArrayIndexOutOfBoundsException
     was thrown when using the same view concurrently.
 </li><li>java.util.UUID is now supported in PreparedStatement.setObject and user defined Java functions.

@@ -22,12 +22,10 @@ import org.h2.index.PageBtreeIndex;
 import org.h2.index.PageScanIndex;
 import org.h2.log.InDoubtTransaction;
 import org.h2.log.LogSystem;
-import org.h2.log.SessionState;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.result.Row;
-import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -968,8 +966,8 @@ public class PageStore implements CacheWriter {
     }
 
     /**
-     * Commit or rollback a prepared transaction after opening a database with in-doubt
-     * transactions.
+     * Commit or rollback a prepared transaction after opening a database with
+     * in-doubt transactions.
      *
      * @param sessionId the session id
      * @param pageId the page where the transaction was prepared

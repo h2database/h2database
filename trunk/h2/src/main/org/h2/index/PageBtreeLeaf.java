@@ -222,6 +222,7 @@ class PageBtreeLeaf extends PageBtree {
     }
 
     void remapChildren() {
+        // nothing to do
     }
 
     /**

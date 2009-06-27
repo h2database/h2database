@@ -807,13 +807,13 @@ public class Recover extends Tool implements DataHandler {
                 case Page.TYPE_BTREE_NODE:
                     writer.println("-- page " + page + ": btree node" + (last ? "(last)" : ""));
                     if (trace) {
-                        dumpPageBtreeNode(store, pageSize, writer, s, last, page);
+                        dumpPageBtreeNode(writer, s);
                     }
                     break;
                 case Page.TYPE_BTREE_LEAF:
                     writer.println("-- page " + page + ": btree leaf " + (last ? "(last)" : ""));
                     if (trace) {
-                        dumpPageBtreeLeaf(store, pageSize, writer, s, last, page);
+                        dumpPageBtreeLeaf(writer, s);
                     }
                     break;
                 case Page.TYPE_FREE_LIST:
@@ -1012,7 +1012,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpPageBtreeNode(FileStore store, int pageSize, PrintWriter writer, DataPage s, boolean last, long pageId) {
+    private void dumpPageBtreeNode(PrintWriter writer, DataPage s) {
         int entryCount = s.readShortInt();
         int rowCount = s.readInt();
         int[] children = new int[entryCount + 1];
@@ -1038,7 +1038,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("-- [" + entryCount + "] child: " + children[entryCount] + " rowCount: " + rowCount);
     }
 
-    private void dumpPageBtreeLeaf(FileStore store, int pageSize, PrintWriter writer, DataPage s, boolean last, long pageId) {
+    private void dumpPageBtreeLeaf(PrintWriter writer, DataPage s) {
         s.readInt();
         int entryCount = s.readShortInt();
         int[] offsets = new int[entryCount];

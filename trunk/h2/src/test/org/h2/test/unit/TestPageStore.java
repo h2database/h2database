@@ -13,8 +13,6 @@ import java.sql.Statement;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
-import org.h2.engine.ConnectionInfo;
-import org.h2.engine.Database;
 import org.h2.test.TestBase;
 
 /**

@@ -21,8 +21,8 @@ import org.h2.constant.SysProperties;
 public class ObjectArray<T> implements Iterable<T> {
     private static final int CAPACITY_INIT = 4, CAPACITY_SHRINK = 256;
 
+    int size;
     private T[] data;
-    private int size;
 
     private ObjectArray(int capacity) {
         data = createArray(capacity);
@@ -323,7 +323,7 @@ public class ObjectArray<T> implements Iterable<T> {
     /**
      * The iterator for this list.
      */
-    private class ObjectArrayIterator implements Iterator<T> {
+    class ObjectArrayIterator implements Iterator<T> {
         private int index;
 
         public boolean hasNext() {

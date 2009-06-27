@@ -22,7 +22,6 @@ import java.sql.Statement;
 import java.util.Map;
 import java.util.Properties;
 
-
 import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;

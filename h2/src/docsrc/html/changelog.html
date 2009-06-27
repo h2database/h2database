@@ -18,9 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.1.115 (2009-06-21)</h2>
 <ul><li>The new storage mechanism is now alpha quality. To try it out, set the system property
     "h2.pageStore" to "true" (java -Dh2.pageStore=true). There are still bugs to be found and fixed,
-    for example inserting many rows references a lot of main memory. Performance is currently 
+    for example inserting many rows references a lot of main memory. Performance is currently
     about the same as with the regular storage mechanism, but the database file size is smaller.
     The file format is not stable yet.
 </li><li>ALTER TABLE could throw an exception "object already exists" in some cases.
@@ -41,7 +45,6 @@ Change Log
     included a file entry for the LOB directory. This caused the
     restore to fail.
 </li><li>Data types: LONG is now an alias for BIGINT.
-</li><li>More bugs in the server-less multi-connection mode have been fixed.
 </li></ul>
 
 <h2>Version 1.1.114 (2009-06-01)</h2>
@@ -552,36 +555,6 @@ Change Log
 </li><li>The new method org.h2.tools.Server.startWebServer(conn) starts the H2 Console
     to inspect a database while debugging.
 </li><li>Stopping a WebServer didn't always work. Fixed.
-</li></ul>
-
-<h2>Version 1.0.74 (2008-06-21)</h2>
-<ul>
-<li>Work on row level locking has been started (but there is nothing usable yet).
-</li><li>JaQu (Java Query), a tool similar to LINQ (Language Integrated Query; from Microsoft)
-    is now included under src/tools/org/h2/jaqu. A small sample application is included under
-    src/test/org/h2/test/jaqu.
-</li><li>The source code is now switched to Java 1.6 by default. To switch back to Java 1.4, run 'build compile'.
-    The h2.jar file is still Java 1.4.
-</li><li>The ChangePassword tool is now called ChangeFileEncryption.
-</li><li>It is no longer allowed to create columns with the data type NULL.
-    Also, it is no longer allowed to convert a column to the data type NULL.
-    This was possible before but caused data loss.
-</li><li>When using computed columns or default values with a different data type than the column data type,
-    a class cast exception could occur. Fixed.
-</li><li>Opening databases larger than 1 GB was sometimes very slow if a lot of data was deleted previously. Fixed.
-</li><li>RUNSCRIPT could throw a NullPointerException if the script name was an expression.
-</li><li>Improved compatibility. New compatibility modes for Oracle and Derby.
-    New compatibility flag uniqueIndexNullDistinct to only allow one row with 'NULL' in a unique
-    index. This flag is enabled for Derby, Oracle, MSSQLServer, and HSQLDB.
-</li><li>Linked tables: To view the statements that are executed against the target table, set the trace level to 3.
-</li><li>RunScript tool: new options to show and check the results of queries.
-</li><li>Deadlocks are now detected. One transaction is rolled back automatically.
-</li><li>The Lucene fulltext index was always re-created when opening a
-    database with fulltext index enabled.
-</li><li>Support for overloaded Java methods. A user defined function can
-    now be bound to multiple Java methods, if the Java methods have the same
-    name but a different number of parameters. Thanks to Gary Tong for
-    providing a patch!
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

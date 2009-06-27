@@ -29,13 +29,15 @@ package org.h2.util;
  *</pre>
  */
 public class StatementBuilder {
-    private StringBuilder builder = new StringBuilder();
+
+    private final StringBuilder builder = new StringBuilder();
     private int index;
 
     /**
      * Create a new builder.
      */
     public StatementBuilder() {
+        // nothing to do
     }
 
     /**

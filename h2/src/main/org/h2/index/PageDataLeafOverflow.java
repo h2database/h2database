@@ -46,12 +46,12 @@ public class PageDataLeafOverflow extends Record {
     /**
      * The previous page (overflow or leaf).
      */
-    private final int previous;
+    private final int previousPage;
 
     /**
      * The next overflow page, or 0.
      */
-    private final int next;
+    private final int nextPage;
 
     /**
      * The number of content bytes.
@@ -70,8 +70,8 @@ public class PageDataLeafOverflow extends Record {
         this.leaf = leaf;
         setPos(pageId);
         this.type = type;
-        this.previous = previous;
-        this.next = next;
+        this.previousPage = previous;
+        this.nextPage = next;
         this.offset = offset;
         this.size = size;
     }
@@ -81,14 +81,14 @@ public class PageDataLeafOverflow extends Record {
         setPos(pageId);
         this.data = data;
         this.offset = offset;
-        previous = data.readInt();
+        previousPage = data.readInt();
         type = data.readByte();
         if (type == (Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST)) {
             size = data.readShortInt();
-            next = 0;
+            nextPage = 0;
         } else if (type == Page.TYPE_DATA_OVERFLOW) {
             size = leaf.getPageStore().getPageSize() - START_MORE;
-            next = data.readInt();
+            nextPage = data.readInt();
         } else {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "page:" + getPos() + " type:" + type);
         }
@@ -106,7 +106,7 @@ public class PageDataLeafOverflow extends Record {
             return 0;
         }
         target.write(data.getBytes(), START_MORE, size);
-        return next;
+        return nextPage;
     }
 
     public int getByteCount(DataPage dummy) {
@@ -117,10 +117,10 @@ public class PageDataLeafOverflow extends Record {
         PageStore store = leaf.getPageStore();
         DataPage overflow = store.createDataPage();
         DataPage data = leaf.getDataPage();
-        overflow.writeInt(previous);
+        overflow.writeInt(previousPage);
         overflow.writeByte((byte) type);
         if (type == Page.TYPE_DATA_OVERFLOW) {
-            overflow.writeInt(next);
+            overflow.writeInt(nextPage);
         } else {
             overflow.writeShortInt(size);
         }
@@ -129,7 +129,7 @@ public class PageDataLeafOverflow extends Record {
     }
 
     public String toString() {
-        return "page[" + getPos() + "] data leaf overflow prev:" + previous + " next:" + next;
+        return "page[" + getPos() + "] data leaf overflow prev:" + previousPage + " next:" + nextPage;
     }
 
     /**

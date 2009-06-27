@@ -858,6 +858,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     }
 
     /**
+     * INTERNAL.
      * Check if the statement is closed.
      *
      * @param write if the next operation is possibly writing
@@ -879,6 +880,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     }
 
     /**
+     * INTERNAL.
      * Close and old result set if there is still one open.
      */
     protected void closeOldResultSet() throws SQLException {
@@ -893,7 +895,13 @@ public class JdbcStatement extends TraceObject implements Statement {
             updateCount = -1;
         }
     }
-
+    
+    /**
+     * INTERNAL.
+     * Set the statement that is currently running.
+     * 
+     * @param c the command
+     */
     protected void setExecutingStatement(CommandInterface c) {
         conn.setExecutingStatement(c == null ? null : this);
         executingCommand = c;

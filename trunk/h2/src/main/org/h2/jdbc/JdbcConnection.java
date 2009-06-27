@@ -283,13 +283,6 @@ public class JdbcConnection extends TraceObject implements Connection {
      * rolled back.
      */
     public synchronized void close() throws SQLException {
-        closeConnection();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void closeConnection() throws SQLException {
         try {
             debugCodeCall("close");
             if (executingStatement != null) {
@@ -1269,6 +1262,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
+     * INTERNAL.
      * Check if this connection is closed.
      * The next operation is a read request.
      *
@@ -1289,7 +1283,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * INTERNAL
+     * INTERNAL.
      * Check if this connection is closed.
      *
      * @param write if the next operation is possibly writing

@@ -531,16 +531,20 @@ public class Database implements DataHandler {
 
     private synchronized void open(int traceLevelFile, int traceLevelSystemOut) throws SQLException {
         if (persistent) {
+            boolean exists;
             if (SysProperties.PAGE_STORE) {
                 String pageFileName = databaseName + Constants.SUFFIX_PAGE_FILE;
-                if (FileUtils.exists(pageFileName) && FileUtils.isReadOnly(pageFileName)) {
+                exists = FileUtils.exists(pageFileName);
+                if (exists && FileUtils.isReadOnly(pageFileName)) {
                     readOnly = true;
                 }
-            }
-            String dataFileName = databaseName + Constants.SUFFIX_DATA_FILE;
-            if (FileUtils.exists(dataFileName)) {
-                // if it is already read-only because ACCESS_MODE_DATA=r
-                readOnly = readOnly | FileUtils.isReadOnly(dataFileName);
+            } else {
+                String dataFileName = databaseName + Constants.SUFFIX_DATA_FILE;
+                exists = FileUtils.exists(dataFileName);
+                if (FileUtils.exists(dataFileName)) {
+                    // if it is already read-only because ACCESS_MODE_DATA=r
+                    readOnly = readOnly | FileUtils.isReadOnly(dataFileName);
+                }
             }
             if (readOnly) {
                 traceSystem = new TraceSystem(null, false);
@@ -573,7 +577,7 @@ public class Database implements DataHandler {
                 getPageStore();
                 starting = false;
             }
-            if (FileUtils.exists(dataFileName)) {
+            if (exists) {
                 lobFilesInDirectories &= !ValueLob.existsLobFile(getDatabasePath());
                 lobFilesInDirectories |= FileUtils.exists(databaseName + Constants.SUFFIX_LOBS_DIRECTORY);
             }

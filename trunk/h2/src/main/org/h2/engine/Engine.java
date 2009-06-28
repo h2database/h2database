@@ -114,7 +114,7 @@ public class Engine {
                 try {
                     backup = (ConnectionInfo) ci.clone();
                 } catch (CloneNotSupportedException e) {
-                    // ignore (can not occur)
+                    throw Message.getInternalError("clone failed", e);
                 }
             }
             Session session = openSession(ci);

@@ -320,12 +320,18 @@ public class ConnectionInfo implements Cloneable {
      */
     String getName() throws SQLException {
         if (persistent) {
-            String n = FileUtils.normalize(name + Constants.SUFFIX_DATA_FILE);
+            String suffix;
+            if (SysProperties.PAGE_STORE) {
+                suffix = Constants.SUFFIX_PAGE_FILE;
+            } else {
+                suffix = Constants.SUFFIX_DATA_FILE;
+            }
+            String n = FileUtils.normalize(name + suffix);
             String fileName = FileUtils.getFileName(n);
-            if (fileName.length() < Constants.SUFFIX_DATA_FILE.length() + 1) {
+            if (fileName.length() < suffix.length() + 1) {
                 throw Message.getSQLException(ErrorCode.INVALID_DATABASE_NAME_1, name);
             }
-            n = n.substring(0, n.length() - Constants.SUFFIX_DATA_FILE.length());
+            n = n.substring(0, n.length() - suffix.length());
             return FileUtils.normalize(n);
         }
         return name;

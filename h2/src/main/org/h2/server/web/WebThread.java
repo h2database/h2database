@@ -724,8 +724,6 @@ class WebThread extends Thread implements DatabaseEventListener {
 
     private int addIndexes(DatabaseMetaData meta, String table, String schema, StringBuilder buff, int treeIndex)
             throws SQLException {
-        // index reading is very slow for oracle (2 seconds per index), so don't
-        // do it
         ResultSet rs = meta.getIndexInfo(null, schema, table, false, true);
         HashMap<String, IndexInfo> indexMap = New.hashMap();
         while (rs.next()) {

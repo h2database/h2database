@@ -74,7 +74,7 @@ public class SoftHashMap<K, V> extends AbstractMap<K, V> {
     public V remove(Object key) {
         processQueue();
         SoftReference<V> ref = map.remove(key);
-        return ref.get();
+        return ref == null ? null : ref.get();
     }
 
     public void clear() {

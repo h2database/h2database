@@ -311,6 +311,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Use FilterIn / FilterOut putStream?
 </li><li>Access rights: add missing features (users should be 'owner' of objects; missing rights for sequences; dropping objects)
 </li><li>Support NOCACHE table option (Oracle)
+</li><li>Support table partitioning.
 </li><li>Index usage for UPDATE ... WHERE .. IN (SELECT...)
 </li><li>Add regular javadocs (using the default doclet, but another css) to the homepage.
 </li><li>The database should be kept open for a longer time when using the server mode.
@@ -391,7 +392,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support PostgreSQL lock modes: http://www.postgresql.org/docs/8.3/static/explicit-locking.html
 </li><li>PostgreSQL compatibility: test DbVisualizer and Squirrel SQL using a new PostgreSQL JDBC driver.
 </li><li>RunScript should be able to read from system in (or quite mode for Shell).
-</li><li>Support table partitioning.
 </li><li>Natural join: support select x from dual natural join dual.
 </li><li>Natural join: somehow support this: select a.x, b.x, x from dual a natural join dual b
 </li><li>MySQL compatibility: for auto_increment columns, convert 0 to next value (as when inserting NULL).
@@ -424,6 +424,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Sybase/DB2/Oracle compatibility: support out parameters in stored procedures - See http://code.google.com/p/h2database/issues/detail?id=83
 </li><li>Support INTERVAL data type (see Oracle and others).
 </li><li>Combine Server and Console tool (only keep Server).
+</li><li>Store the Lucene index in the database itself.
 </li></ul>
 
 <h2>Not Planned</h2>

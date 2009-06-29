@@ -801,7 +801,8 @@ public class Recover extends Tool implements DataHandler {
                     writer.println("-- page " + page + ": data node " + (last ? "(last)" : ""));
                     break;
                 case Page.TYPE_DATA_LEAF:
-                    writer.println("-- page " + page + ": data leaf " + (last ? "(last)" : ""));
+                    setStorage(s.readInt());
+                    writer.println("-- page " + page + ": data leaf " + (last ? "(last)" : "") + " table: " + storageId);
                     dumpPageDataLeaf(store, pageSize, writer, s, last, page);
                     break;
                 case Page.TYPE_BTREE_NODE:
@@ -811,7 +812,8 @@ public class Recover extends Tool implements DataHandler {
                     }
                     break;
                 case Page.TYPE_BTREE_LEAF:
-                    writer.println("-- page " + page + ": btree leaf " + (last ? "(last)" : ""));
+                    setStorage(s.readInt());
+                    writer.println("-- page " + page + ": btree leaf " + (last ? "(last)" : "") + " table: " + storageId);
                     if (trace) {
                         dumpPageBtreeLeaf(writer, s);
                     }
@@ -1039,7 +1041,6 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void dumpPageBtreeLeaf(PrintWriter writer, DataPage s) {
-        s.readInt();
         int entryCount = s.readShortInt();
         int[] offsets = new int[entryCount];
         for (int i = 0; i < entryCount; i++) {
@@ -1061,7 +1062,6 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void dumpPageDataLeaf(FileStore store, int pageSize, PrintWriter writer, DataPage s, boolean last, long pageId) throws SQLException {
-        setStorage(s.readInt());
         int entryCount = s.readShortInt();
         int[] keys = new int[entryCount];
         int[] offsets = new int[entryCount];
@@ -1223,12 +1223,18 @@ public class Recover extends Tool implements DataHandler {
             int blockSize = DiskFile.BLOCK_SIZE;
             int blocks = (int) (length / blockSize);
             blockCount = 1;
-            int[] pageOwners = new int[blocks / DiskFile.BLOCKS_PER_PAGE];
+            int pageCount = blocks / DiskFile.BLOCKS_PER_PAGE;
+            int[] pageOwners = new int[pageCount + 1];
             for (block = 0; block < blocks; block += blockCount) {
                 store.seek(offset + (long) block * blockSize);
                 byte[] buff = new byte[blockSize];
                 DataPage s = DataPage.create(this, buff);
-                store.readFully(buff, 0, blockSize);
+                try {
+                    store.readFully(buff, 0, blockSize);
+                } catch (SQLException e) {
+                    writer.println("-- ERROR: can not read: " + e);
+                    break;
+                }
                 blockCount = s.readInt();
                 setStorage(-1);
                 recordLength = -1;

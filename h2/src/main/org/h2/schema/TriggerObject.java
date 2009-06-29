@@ -64,6 +64,8 @@ public class TriggerObject extends SchemaObjectBase {
             triggerCallback = (Trigger) obj;
             triggerCallback.init(c2, getSchema().getName(), getName(), table.getName(), before, typeMask);
         } catch (Throwable e) {
+            // try again later
+            triggerCallback = null;
             throw Message.getSQLException(ErrorCode.ERROR_CREATING_TRIGGER_OBJECT_3, new String[] { getName(),
                     triggerClassName, e.toString() }, e);
         }

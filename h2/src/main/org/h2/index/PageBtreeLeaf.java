@@ -159,6 +159,10 @@ class PageBtreeLeaf extends PageBtree {
         return false;
     }
 
+    void freeChildren() {
+        // nothing to do
+    }
+
     int getRowCount() {
         return entryCount;
     }

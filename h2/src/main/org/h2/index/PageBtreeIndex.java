@@ -242,6 +242,8 @@ public class PageBtreeIndex extends BaseIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("remove");
         }
+        removeAllRows();
+        store.freePage(headPos, false, null);
         store.removeMeta(this, session);
     }
 
@@ -257,10 +259,10 @@ public class PageBtreeIndex extends BaseIndex {
     }
 
     private void removeAllRows() throws SQLException {
+        PageBtree root = getPage(headPos);
+        root.freeChildren();
+        root = new PageBtreeLeaf(this, headPos, Page.ROOT, store.createDataPage());
         store.removeRecord(headPos);
-        int todoLogOldData;
-        int freePages;
-        PageBtreeLeaf root = new PageBtreeLeaf(this, headPos, Page.ROOT, store.createDataPage());
         store.updateRecord(root, true, null);
         rowCount = 0;
     }

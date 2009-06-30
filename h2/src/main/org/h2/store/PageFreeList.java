@@ -129,7 +129,7 @@ public class PageFreeList extends Record {
      * @param pageSize the page size
      * @return the number of pages
      */
-    static int getPagesAddressed(int pageSize) {
+    public static int getPagesAddressed(int pageSize) {
         return (pageSize - DATA_START) * 8;
     }
 
@@ -140,6 +140,10 @@ public class PageFreeList extends Record {
      */
     public int getMemorySize() {
         return store.getPageSize() >> 2;
+    }
+
+    boolean isUsed(int pageId) {
+        return used.get(pageId - getPos());
     }
 
 }

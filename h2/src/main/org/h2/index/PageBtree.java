@@ -227,6 +227,11 @@ abstract class PageBtree extends Record {
     abstract boolean remove(SearchRow row) throws SQLException;
 
     /**
+     * Free up all child pages.
+     */
+    abstract void freeChildren() throws SQLException;
+
+    /**
      * Ensure all rows are read in memory.
      */
     protected void readAllRows() throws SQLException {

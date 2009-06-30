@@ -93,6 +93,10 @@ public class PageOutputStream extends OutputStream {
             }
             int len = PageStreamTrunk.getPagesAddressed(store.getPageSize());
             int[] pageIds = new int[len];
+            if (reservedPages.size() < len) {
+                int test;
+                System.out.println("stop");
+            }
             for (int i = 0; i < len; i++) {
                 pageIds[i] = reservedPages.get(i);
             }
@@ -172,6 +176,7 @@ public class PageOutputStream extends OutputStream {
         if (trace.isDebugEnabled()) {
             trace.debug("pageOut.storePage fill " + data.getPos());
         }
+        reserve(data.getRemaining() + 1);
         reserved -= data.getRemaining();
         data.write(null);
         initNextData();

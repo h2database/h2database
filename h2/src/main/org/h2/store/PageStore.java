@@ -309,6 +309,14 @@ public class PageStore implements CacheWriter {
             }
             log.checkpoint();
             switchLog();
+            byte[] empty = new byte[pageSize];
+            // TODO avoid to write empty pages
+            for (int i = PAGE_ID_FREE_LIST_ROOT; i < pageCount; i++) {
+                if (!isUsed(i)) {
+                    file.seek(i * pageSize);
+                    file.write(empty, 0, pageSize);
+                }
+            }
             // TODO shrink file if required here
             // int pageCount = getFreeList().getLastUsed() + 1;
             // trace.debug("pageCount:" + pageCount);
@@ -505,6 +513,10 @@ public class PageStore implements CacheWriter {
         }
     }
 
+    private PageFreeList getFreeListForPage(int pageId) throws SQLException {
+        return getFreeList((pageId - PAGE_ID_FREE_LIST_ROOT) / freeListPagesPerList);
+    }
+
     private PageFreeList getFreeList(int i) throws SQLException {
         int p = PAGE_ID_FREE_LIST_ROOT + i * freeListPagesPerList;
         while (p >= pageCount) {
@@ -522,8 +534,7 @@ public class PageStore implements CacheWriter {
     }
 
     private void freePage(int pageId) throws SQLException {
-        int i = (pageId - PAGE_ID_FREE_LIST_ROOT) / freeListPagesPerList;
-        PageFreeList list = getFreeList(i);
+        PageFreeList list = getFreeListForPage(pageId);
         list.free(pageId);
     }
 
@@ -533,8 +544,12 @@ public class PageStore implements CacheWriter {
      * @param pageId the page to allocate
      */
     void allocatePage(int pageId) throws SQLException {
-        PageFreeList list = getFreeList(pageId / freeListPagesPerList);
+        PageFreeList list = getFreeListForPage(pageId);
         list.allocate(pageId);
+    }
+
+    private boolean isUsed(int pageId) throws SQLException {
+        return getFreeListForPage(pageId).isUsed(pageId);
     }
 
     /**

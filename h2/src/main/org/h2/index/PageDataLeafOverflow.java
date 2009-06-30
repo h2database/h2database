@@ -109,6 +109,10 @@ public class PageDataLeafOverflow extends Record {
         return nextPage;
     }
 
+    int getNextOverflow() {
+        return nextPage;
+    }
+
     public int getByteCount(DataPage dummy) {
         return leaf.getByteCount(dummy);
     }

@@ -10,6 +10,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,8 +41,10 @@ import org.h2.store.DiskFile;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
+import org.h2.store.PageFreeList;
 import org.h2.store.PageLog;
 import org.h2.store.PageStore;
+import org.h2.util.BitField;
 import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
@@ -719,6 +722,7 @@ public class Recover extends Tool implements DataHandler {
         setDatabaseName(fileName.substring(0, fileName.length() - Constants.SUFFIX_PAGE_FILE.length()));
         FileStore store = null;
         PrintWriter writer = null;
+        int emptyPages = 0;
         try {
             writer = getWriter(fileName, ".sql");
             writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" + this.getClass().getName() + ".readClob\";");
@@ -778,6 +782,7 @@ public class Recover extends Tool implements DataHandler {
                     " firstDataPage: " + logFirstDataPage);
 
             s = DataPage.create(this, pageSize);
+            int free = 0;
             for (long page = 3; page < pageCount; page++) {
                 s = DataPage.create(this, pageSize);
                 store.seek(page * pageSize);
@@ -789,6 +794,7 @@ public class Recover extends Tool implements DataHandler {
                     if (parentPageId != 0) {
                         writer.println("-- ERROR empty page with parent: " + parentPageId);
                     }
+                    emptyPages++;
                     continue;
                 }
                 boolean last = (type & Page.FLAG_LAST) != 0;
@@ -820,6 +826,7 @@ public class Recover extends Tool implements DataHandler {
                     break;
                 case Page.TYPE_FREE_LIST:
                     writer.println("-- page " + page + ": free list " + (last ? "(last)" : ""));
+                    free += dumpPageFreeList(writer, s, pageSize, page);
                     break;
                 case Page.TYPE_STREAM_TRUNK:
                     writer.println("-- page " + page + ": log trunk");
@@ -832,8 +839,13 @@ public class Recover extends Tool implements DataHandler {
                     break;
                 }
             }
+            writer.println("-- page count: " + pageCount + " empty: " + emptyPages + " free: " + free);
             writeSchema(writer);
-            dumpPageLogStream(writer, store, logFirstTrunkPage, logFirstDataPage, pageSize);
+            try {
+                dumpPageLogStream(writer, store, logFirstTrunkPage, logFirstDataPage, pageSize);
+            } catch (EOFException e) {
+                // ignore
+            }
             writer.close();
         } catch (Throwable e) {
             writeError(writer, e);
@@ -1038,6 +1050,29 @@ public class Recover extends Tool implements DataHandler {
             writer.println("-- [" + i + "] child: " + children[i] + " pos: " + pos + " data: " + data);
         }
         writer.println("-- [" + entryCount + "] child: " + children[entryCount] + " rowCount: " + rowCount);
+    }
+
+    private int dumpPageFreeList(PrintWriter writer, DataPage s, int pageSize, long pageId) {
+        int pagesAddressed = PageFreeList.getPagesAddressed(pageSize);
+        BitField used = new BitField();
+        for (int i = 0; i < pagesAddressed; i += 8) {
+            used.setByte(i, s.readByte());
+        }
+        int free = 0;
+        for (int i = 0; i < pagesAddressed; i++) {
+            if (i % 80 == 0) {
+                if (i > 0) {
+                    writer.println();
+                }
+                writer.print("-- " + (i + pageId) + " ");
+            }
+            writer.print(used.get(i) ? '1' : '0');
+            if (!used.get(i)) {
+                free++;
+            }
+        }
+        writer.println();
+        return free;
     }
 
     private void dumpPageBtreeLeaf(PrintWriter writer, DataPage s) {

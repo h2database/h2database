@@ -183,6 +183,11 @@ abstract class PageData extends Record {
     abstract boolean remove(int key) throws SQLException;
 
     /**
+     * Free up all child pages.
+     */
+    abstract void freeChildren() throws SQLException;
+
+    /**
      * Get the row for the given key.
      *
      * @param key the key

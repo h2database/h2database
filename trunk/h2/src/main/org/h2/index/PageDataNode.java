@@ -205,6 +205,15 @@ class PageDataNode extends PageData {
         return false;
     }
 
+    void freeChildren() throws SQLException {
+        for (int i = 0; i <= entryCount; i++) {
+            int childPageId = childPageIds[i];
+            PageData child = index.getPage(childPageId);
+            index.getPageStore().freePage(childPageId, false, null);
+            child.freeChildren();
+        }
+    }
+
     Row getRow(int key) throws SQLException {
         int at = find(key);
         PageData page = index.getPage(childPageIds[at]);

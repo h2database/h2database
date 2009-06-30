@@ -256,6 +256,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("remove");
         }
+        removeAllRows();
+        store.freePage(headPos, false, null);
         store.removeMeta(this, session);
     }
 
@@ -274,10 +276,10 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     private void removeAllRows() throws SQLException {
+        PageData root = getPage(headPos);
+        root.freeChildren();
+        root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
         store.removeRecord(headPos);
-        int todoLogOldData;
-        int freePages;
-        PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
         store.updateRecord(root, true, null);
         rowCount = 0;
         lastKey = 0;

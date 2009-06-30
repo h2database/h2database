@@ -311,6 +311,15 @@ class PageBtreeNode extends PageBtree {
         written = true;
     }
 
+    void freeChildren() throws SQLException {
+        for (int i = 0; i <= entryCount; i++) {
+            int childPageId = childPageIds[i];
+            PageBtree child = index.getPage(childPageId);
+            index.getPageStore().freePage(childPageId, false, null);
+            child.freeChildren();
+        }
+    }
+
     private void removeChild(int i) throws SQLException {
         readAllRows();
         entryCount--;

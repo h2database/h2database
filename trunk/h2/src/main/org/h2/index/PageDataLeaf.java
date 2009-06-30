@@ -297,6 +297,28 @@ class PageDataLeaf extends PageData {
         return false;
     }
 
+    void freeChildren() throws SQLException {
+        if (firstOverflowPageId != 0) {
+            PageStore store = index.getPageStore();
+            int next = firstOverflowPageId;
+            do {
+                Record record = store.getRecord(next);
+                PageDataLeafOverflow page;
+                if (record == null) {
+                    DataPage data = store.readPage(next);
+                    page = new PageDataLeafOverflow(this, next, data, 0);
+                } else {
+                    if (!(record instanceof PageDataLeafOverflow)) {
+                        throw Message.getInternalError("page:"+ next + " " + record, null);
+                    }
+                    page = (PageDataLeafOverflow) record;
+                }
+                store.freePage(next, false, null);
+                next = page.getNextOverflow();
+            } while (next != 0);
+        }
+    }
+
     Row getRow(int key) throws SQLException {
         int index = find(key);
         return getRowAt(index);

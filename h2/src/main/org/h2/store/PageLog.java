@@ -144,11 +144,18 @@ public class PageLog {
      * Free up all pages allocated by the log.
      */
     void free() throws SQLException {
-        if (this.firstTrunkPage != 0) {
+        while (this.firstTrunkPage != 0) {
             // first remove all old log pages
             PageStreamTrunk t = new PageStreamTrunk(store, this.firstTrunkPage);
-            t.read();
+            try {
+                t.read();
+            } catch (SQLException e) {
+                store.freePage(firstTrunkPage, false, null);
+                // EOF
+                break;
+            }
             t.free();
+            firstTrunkPage = t.getNextTrunk();
         }
     }
 
@@ -525,8 +532,9 @@ public class PageLog {
     void close() throws SQLException {
         try {
             trace.debug("log close");
-            if (out != null) {
-                out.close();
+            if (pageOut != null) {
+                pageOut.close();
+                pageOut = null;
             }
             out = null;
         } catch (IOException e) {

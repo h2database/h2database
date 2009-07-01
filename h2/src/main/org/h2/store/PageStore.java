@@ -181,7 +181,8 @@ public class PageStore implements CacheWriter {
     private PageScanIndex metaIndex;
     private HashMap<Integer, Index> metaObjects;
     private int systemTableHeadPos;
-    private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE;
+    // TODO reduce DEFAULT_MAX_LOG_SIZE, and don't divide here
+    private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE / 10;
 
     /**
      * Create a new page store object.
@@ -309,6 +310,10 @@ public class PageStore implements CacheWriter {
             }
             log.checkpoint();
             switchLog();
+            // write back the free list
+            for (CacheObject rec : list) {
+                writeBack(rec);
+            }
             byte[] empty = new byte[pageSize];
             // TODO avoid to write empty pages
             for (int i = PAGE_ID_FREE_LIST_ROOT; i < pageCount; i++) {
@@ -452,6 +457,7 @@ public class PageStore implements CacheWriter {
     public void close() throws SQLException {
         try {
             trace.debug("close");
+            log.close();
             if (file != null) {
                 file.close();
             }

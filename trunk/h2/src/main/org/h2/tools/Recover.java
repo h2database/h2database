@@ -826,7 +826,7 @@ public class Recover extends Tool implements DataHandler {
                     break;
                 case Page.TYPE_FREE_LIST:
                     writer.println("-- page " + page + ": free list " + (last ? "(last)" : ""));
-                    free += dumpPageFreeList(writer, s, pageSize, page);
+                    free += dumpPageFreeList(writer, s, pageSize, page, pageCount);
                     break;
                 case Page.TYPE_STREAM_TRUNK:
                     writer.println("-- page " + page + ": log trunk");
@@ -1052,22 +1052,26 @@ public class Recover extends Tool implements DataHandler {
         writer.println("-- [" + entryCount + "] child: " + children[entryCount] + " rowCount: " + rowCount);
     }
 
-    private int dumpPageFreeList(PrintWriter writer, DataPage s, int pageSize, long pageId) {
+    private int dumpPageFreeList(PrintWriter writer, DataPage s, int pageSize, long pageId, long pageCount) {
         int pagesAddressed = PageFreeList.getPagesAddressed(pageSize);
         BitField used = new BitField();
         for (int i = 0; i < pagesAddressed; i += 8) {
-            used.setByte(i, s.readByte());
+            used.setByte(i, s.readByte() & 255);
         }
         int free = 0;
-        for (int i = 0; i < pagesAddressed; i++) {
-            if (i % 80 == 0) {
+        for (long i = 0, j = pageId; i < pagesAddressed && j < pageCount; i++, j++) {
+            if (i == 0 || j % 100 == 0) {
                 if (i > 0) {
                     writer.println();
                 }
-                writer.print("-- " + (i + pageId) + " ");
+                writer.print("-- " + j + " ");
+            } else if (j % 20 == 0) {
+                writer.print(" - ");
+            } else if (j % 10 == 0) {
+                writer.print(' ');
             }
-            writer.print(used.get(i) ? '1' : '0');
-            if (!used.get(i)) {
+            writer.print(used.get((int) i) ? '1' : '0');
+            if (!used.get((int) i)) {
                 free++;
             }
         }

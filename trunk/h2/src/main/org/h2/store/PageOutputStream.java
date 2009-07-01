@@ -93,10 +93,6 @@ public class PageOutputStream extends OutputStream {
             }
             int len = PageStreamTrunk.getPagesAddressed(store.getPageSize());
             int[] pageIds = new int[len];
-            if (reservedPages.size() < len) {
-                int test;
-                System.out.println("stop");
-            }
             for (int i = 0; i < len; i++) {
                 pageIds[i] = reservedPages.get(i);
             }
@@ -161,6 +157,11 @@ public class PageOutputStream extends OutputStream {
 
     public void close() throws IOException {
         flush();
+        try {
+            freeReserve();
+        } catch (SQLException e) {
+            throw Message.convertToIOException(e);
+        }
         store = null;
     }
 
@@ -205,6 +206,15 @@ public class PageOutputStream extends OutputStream {
 
     long getSize() {
         return pages * store.getPageSize();
+    }
+
+    private void freeReserve() throws SQLException {
+        for (int i = 0; i < reservedPages.size(); i++) {
+            int p = reservedPages.get(i);
+            store.freePage(p, false, null);
+        }
+        reservedPages = new IntArray();
+        remaining = 0;
     }
 
 }

@@ -103,9 +103,9 @@ public class PageFreeList extends Record {
                     + " expected type:" + Page.TYPE_FREE_LIST);
         }
         for (int i = 0; i < pageCount; i += 8) {
-            used.setByte(i, data.readByte());
+            used.setByte(i, data.readByte() & 255);
         }
-        full = used.nextClearBit(0) >= pageCount * 8;
+        full = false;
     }
 
     public int getByteCount(DataPage dummy) {

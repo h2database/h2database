@@ -56,6 +56,11 @@ public class PageStreamTrunk extends Record {
         store.readPage(getPos(), data);
         parent = data.readInt();
         int t = data.readByte();
+        if (t == Page.TYPE_EMPTY) {
+            // end of file
+            pageIds = new int[0];
+            return;
+        }
         if (t != Page.TYPE_STREAM_TRUNK) {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "pos:" + getPos() + " type:" + t + " parent:" + parent
                     + " expected type:" + Page.TYPE_STREAM_TRUNK);

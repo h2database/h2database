@@ -135,6 +135,12 @@ public class PageBtreeIndex extends BaseIndex {
     PageBtree getPage(int id) throws SQLException {
         Record rec = store.getRecord(id);
         if (rec != null) {
+            if (SysProperties.CHECK) {
+                PageBtree result = (PageBtree) rec;
+                if (result.index.headPos != this.headPos) {
+                    throw Message.throwInternalError("Wrong index: " + result.index + " " + this);
+                }
+            }
             return (PageBtree) rec;
         }
         DataPage data = store.readPage(id);

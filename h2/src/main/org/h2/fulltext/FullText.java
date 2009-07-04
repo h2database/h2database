@@ -689,7 +689,11 @@ public class FullText {
     static boolean hasChanged(Object[] oldRow, Object[] newRow, int[] indexColumns) {
         for (int c : indexColumns) {
             Object o = oldRow[c], n = newRow[c];
-            if (!o.equals(n)) {
+            if (o == null) {
+                if (n != null) {
+                    return true;
+                }
+            } else if (!o.equals(n)) {
                 return true;
             }
         }

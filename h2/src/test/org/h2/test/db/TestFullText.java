@@ -86,6 +86,8 @@ public class TestFullText extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello World')");
         stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
+        stat.execute("UPDATE TEST SET NAME=NULL WHERE ID=1");
+        stat.execute("UPDATE TEST SET NAME='Hello World' WHERE ID=1");
         conn.close();
 
         conn = getConnection("fullTextReopen");

@@ -62,7 +62,7 @@ abstract class PageBtree extends Record {
     protected boolean onlyPosition;
 
     /**
-     * If the page was already written to the buffer.
+     * Whether the data page is up-to-date.
      */
     protected boolean written;
 
@@ -181,6 +181,7 @@ abstract class PageBtree extends Record {
      * @param id the new page id
      */
     void setPageId(int id) throws SQLException {
+        written = false;
         index.getPageStore().removeRecord(getPos());
         setPos(id);
         remapChildren();
@@ -210,7 +211,8 @@ abstract class PageBtree extends Record {
      * @param id the new parent page id
      */
     void setParentPageId(int id) {
-        this.parentPageId = id;
+        written = false;
+        parentPageId = id;
     }
 
     /**

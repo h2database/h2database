@@ -101,7 +101,7 @@ public class Session extends SessionWithState {
     private int modificationIdState;
     private int objectId;
 
-    Session(Database database, User user, int id) {
+    public Session(Database database, User user, int id) {
         this.database = database;
         this.undoLog = new UndoLog(this);
         this.user = user;

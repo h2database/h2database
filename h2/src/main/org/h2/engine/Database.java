@@ -572,17 +572,17 @@ public class Database implements DataHandler {
             while (!beforeWriting()) {
                 // until we can write (file are not open - no need to re-connect)
             }
-            if (SysProperties.PAGE_STORE) {
-                starting = true;
-                getPageStore();
-                starting = false;
-            }
             if (exists) {
                 lobFilesInDirectories &= !ValueLob.existsLobFile(getDatabasePath());
                 lobFilesInDirectories |= FileUtils.exists(databaseName + Constants.SUFFIX_LOBS_DIRECTORY);
             }
             dummy = DataPage.create(this, 0);
             deleteOldTempFiles();
+            if (SysProperties.PAGE_STORE) {
+                starting = true;
+                getPageStore();
+                starting = false;
+            }
             log = new LogSystem(this, databaseName, readOnly, accessModeLog, pageStore);
             if (pageStore == null) {
                 openFileData();

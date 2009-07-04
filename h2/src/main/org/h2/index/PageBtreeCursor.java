@@ -80,7 +80,7 @@ public class PageBtreeCursor implements Cursor {
         if (current == null) {
             return false;
         }
-        if (i <= 0) {
+        if (i < 0) {
             current.previousPage(this);
             if (current == null) {
                 return false;

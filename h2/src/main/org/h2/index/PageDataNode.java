@@ -80,7 +80,7 @@ class PageDataNode extends PageData {
     int addRowTry(Row row) throws SQLException {
         while (true) {
             int x = find(row.getPos());
-            PageData page = index.getPage(childPageIds[x]);
+            PageData page = index.getPage(childPageIds[x], getPos());
             int splitPoint = page.addRowTry(row);
             if (splitPoint == 0) {
                 break;
@@ -113,7 +113,7 @@ class PageDataNode extends PageData {
 
     Cursor find(Session session) throws SQLException {
         int child = childPageIds[0];
-        return index.getPage(child).find(session);
+        return index.getPage(child, getPos()).find(session);
     }
 
     PageData split(int splitPoint) throws SQLException {
@@ -134,7 +134,7 @@ class PageDataNode extends PageData {
 
     protected void remapChildren() throws SQLException {
         for (int child : childPageIds) {
-            PageData p = index.getPage(child);
+            PageData p = index.getPage(child, -1);
             p.setParentPageId(getPos());
             index.getPageStore().updateRecord(p, true, p.data);
         }
@@ -156,7 +156,7 @@ class PageDataNode extends PageData {
 
     int getLastKey() throws SQLException {
         int todoRemove;
-        return index.getPage(childPageIds[entryCount]).getLastKey();
+        return index.getPage(childPageIds[entryCount], getPos()).getLastKey();
     }
 
     /**
@@ -171,23 +171,23 @@ class PageDataNode extends PageData {
             if (parentPageId == Page.ROOT) {
                 return null;
             }
-            PageDataNode next = (PageDataNode) index.getPage(parentPageId);
+            PageDataNode next = (PageDataNode) index.getPage(parentPageId, -1);
             return next.getNextPage(key);
         }
-        PageData page = index.getPage(childPageIds[i]);
+        PageData page = index.getPage(childPageIds[i], getPos());
         return page.getFirstLeaf();
     }
 
     PageDataLeaf getFirstLeaf() throws SQLException {
         int child = childPageIds[0];
-        return index.getPage(child).getFirstLeaf();
+        return index.getPage(child, getPos()).getFirstLeaf();
     }
 
     boolean remove(int key) throws SQLException {
         int at = find(key);
         // merge is not implemented to allow concurrent usage of btrees
         // TODO maybe implement merge
-        PageData page = index.getPage(childPageIds[at]);
+        PageData page = index.getPage(childPageIds[at], getPos());
         boolean empty = page.remove(key);
         updateRowCount(-1);
         if (!empty) {
@@ -208,7 +208,7 @@ class PageDataNode extends PageData {
     void freeChildren() throws SQLException {
         for (int i = 0; i <= entryCount; i++) {
             int childPageId = childPageIds[i];
-            PageData child = index.getPage(childPageId);
+            PageData child = index.getPage(childPageId, getPos());
             index.getPageStore().freePage(childPageId, false, null);
             child.freeChildren();
         }
@@ -216,7 +216,7 @@ class PageDataNode extends PageData {
 
     Row getRow(int key) throws SQLException {
         int at = find(key);
-        PageData page = index.getPage(childPageIds[at]);
+        PageData page = index.getPage(childPageIds[at], getPos());
         return page.getRow(key);
     }
 
@@ -224,7 +224,7 @@ class PageDataNode extends PageData {
         if (rowCount == UNKNOWN_ROWCOUNT) {
             int count = 0;
             for (int child : childPageIds) {
-                PageData page = index.getPage(child);
+                PageData page = index.getPage(child, getPos());
                 if (getPos() == page.getPos()) {
                     throw Message.throwInternalError("Page it its own child: " + getPageId());
                 }

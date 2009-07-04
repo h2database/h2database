@@ -245,6 +245,7 @@ public class TestCrashAPI extends TestBase {
                 seed + "); // Bug " + s.hashCode() + " id=" + id +
                 " callCount=" + callCount + " openCount=" + openCount +
                 " " + t.getMessage(), t);
+        throw new RuntimeException(t);
     }
 
     private Object callRandom(int seed, int id, int objectId, Object o, Method m) {

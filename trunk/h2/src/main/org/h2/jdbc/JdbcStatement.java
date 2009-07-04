@@ -895,11 +895,11 @@ public class JdbcStatement extends TraceObject implements Statement {
             updateCount = -1;
         }
     }
-    
+
     /**
      * INTERNAL.
      * Set the statement that is currently running.
-     * 
+     *
      * @param c the command
      */
     protected void setExecutingStatement(CommandInterface c) {

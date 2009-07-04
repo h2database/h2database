@@ -52,8 +52,6 @@ class PageDataLeaf extends PageData {
      */
     int start;
 
-    private boolean written;
-
     PageDataLeaf(PageScanIndex index, int pageId, int parentPageId, DataPage data) {
         super(index, pageId, parentPageId, data);
         start = KEY_OFFSET_PAIR_START;
@@ -263,7 +261,7 @@ class PageDataLeaf extends PageData {
         if (parentPageId == Page.ROOT) {
             return null;
         }
-        PageDataNode next = (PageDataNode) index.getPage(parentPageId);
+        PageDataNode next = (PageDataNode) index.getPage(parentPageId, -1);
         return next.getNextPage(keys[entryCount - 1]);
     }
 

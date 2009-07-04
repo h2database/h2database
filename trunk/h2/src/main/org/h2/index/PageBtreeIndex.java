@@ -31,7 +31,7 @@ public class PageBtreeIndex extends BaseIndex {
 
     private PageStore store;
     private TableData tableData;
-    private int headPos;
+    private final int headPos;
     private long rowCount;
     private boolean needRebuild;
 
@@ -46,6 +46,7 @@ public class PageBtreeIndex extends BaseIndex {
         tableData = table;
         if (!database.isPersistent() || id < 0) {
             int todo;
+            this.headPos = 0;
             return;
         }
         this.store = database.getPageStore();
@@ -53,13 +54,19 @@ public class PageBtreeIndex extends BaseIndex {
             // new index
             needRebuild = true;
             this.headPos = headPos = store.allocatePage();
+            // TODO currently the head position is stored in the log
+            // it should not for new tables, otherwise redo of other operations
+            // must ensure this page is not used for other things
+            store.addMeta(this, session, headPos);
             PageBtreeLeaf root = new PageBtreeLeaf(this, headPos, Page.ROOT, store.createDataPage());
             store.updateRecord(root, true, root.data);
-            store.addMeta(this, session);
         } else {
             this.headPos = headPos;
             PageBtree root = getPage(headPos);
             rowCount = root.getRowCount();
+            if (rowCount == 0 && store.isRecoveryRunning()) {
+                needRebuild = true;
+            }
             if (!database.isReadOnly()) {
                 // could have been created before, but never committed
                 // TODO test if really required

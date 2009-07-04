@@ -48,6 +48,11 @@ abstract class PageData extends Record {
      */
     protected int[] keys;
 
+    /**
+     * Whether the data page is up-to-date.
+     */
+    protected boolean written;
+
     PageData(PageScanIndex index, int pageId, int parentPageId, DataPage data) {
         this.index = index;
         this.parentPageId = parentPageId;
@@ -137,6 +142,7 @@ abstract class PageData extends Record {
      * @param id the new page id
      */
     void setPageId(int id) throws SQLException {
+        written = false;
         index.getPageStore().removeRecord(getPos());
         setPos(id);
         remapChildren();
@@ -166,7 +172,8 @@ abstract class PageData extends Record {
      * @param id the new parent page id
      */
     void setParentPageId(int id) {
-        this.parentPageId = id;
+        written = false;
+        parentPageId = id;
     }
 
     /**
@@ -202,6 +209,10 @@ abstract class PageData extends Record {
      */
     public int getMemorySize() {
         return index.getPageStore().getPageSize() >> 2;
+    }
+
+    int getParentPageId() {
+        return parentPageId;
     }
 
 }

@@ -65,7 +65,10 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (headPos == Index.EMPTY_HEAD) {
             // new table
             this.headPos = headPos = store.allocatePage();
-            store.addMeta(this, session);
+            // TODO currently the head position is stored in the log
+            // it should not for new tables, otherwise redo of other operations
+            // must ensure this page is not used for other things
+            store.addMeta(this, session, headPos);
             PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
             store.updateRecord(root, true, root.data);
 
@@ -76,7 +79,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 //            store.updateRecord(root, true, root.data);
         } else {
             this.headPos = headPos;
-            PageData root = getPage(headPos);
+            PageData root = getPage(headPos, 0);
             lastKey = root.getLastKey();
             rowCount = root.getRowCount();
             // could have been created before, but never committed
@@ -118,7 +121,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             }
         }
         while (true) {
-            PageData root = getPage(headPos);
+            PageData root = getPage(headPos, 0);
             int splitPoint = root.addRowTry(row);
             if (splitPoint == 0) {
                 break;
@@ -159,9 +162,10 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
      * Read the given page.
      *
      * @param id the page id
+     * @param parent the parent, or -1 if unknown
      * @return the page
      */
-    PageData getPage(int id) throws SQLException {
+    PageData getPage(int id, int parent) throws SQLException {
         Record rec = store.getRecord(id);
         if (rec != null) {
             return (PageData) rec;
@@ -185,6 +189,11 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "page=" + id + " type=" + type);
         }
         result.read();
+        if (parent != -1) {
+            if (result.getParentPageId() != parent) {
+                throw Message.throwInternalError(result.getParentPageId() + " " + parent + " " + result);
+            }
+        }
         return result;
     }
 
@@ -193,7 +202,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
-        PageData root = getPage(headPos);
+        PageData root = getPage(headPos, 0);
         return root.find(session);
     }
 
@@ -229,7 +238,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             removeAllRows();
         } else {
             int key = row.getPos();
-            PageData root = getPage(headPos);
+            PageData root = getPage(headPos, 0);
             root.remove(key);
             rowCount--;
             int todoReuseKeys;
@@ -276,7 +285,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     private void removeAllRows() throws SQLException {
-        PageData root = getPage(headPos);
+        PageData root = getPage(headPos, 0);
         root.freeChildren();
         root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
         store.removeRecord(headPos);
@@ -290,7 +299,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     }
 
     public Row getRow(Session session, int key) throws SQLException {
-        PageData root = getPage(headPos);
+        PageData root = getPage(headPos, 0);
         return root.getRow(key);
     }
 

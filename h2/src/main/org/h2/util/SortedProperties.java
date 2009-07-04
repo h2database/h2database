@@ -127,7 +127,7 @@ public class SortedProperties extends Properties {
                 break;
             }
             if (!line.startsWith("#")) {
-                writer.println(line);
+                writer.print(line + "\n");
             }
         }
         writer.close();

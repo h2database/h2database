@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The Recover tool did not work with .data.db files of the wrong size.
+<ul><li>Fulltext search: a NullPointerException was thrown when updating a value that
+    was NULL previously.
+</li><li>The Recover tool did not work with .data.db files of the wrong size.
 </li><li>Triggers: if there was an exception when initializing a trigger, this exception could be hidden,
     and in some cases (specially when using the Lucene fulltext index mechanism) a NullPointerException was
     thrown later on. Now the exception that occurred on init is thrown when changing data.

@@ -69,10 +69,8 @@ public abstract class TestBase {
      *
      * @return itself
      */
-    public TestBase init() {
-        baseDir = getTestDir("");
-        this.config = new TestAll();
-        return this;
+    public TestBase init() throws Exception {
+        return init(new TestAll());
     }
 
     /**

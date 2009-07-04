@@ -458,17 +458,26 @@ public class PageStore implements CacheWriter {
      * Close the file without writing anything.
      */
     public void close() throws SQLException {
+        Exception closeException = null;
         try {
             trace.debug("close");
             if (log != null) {
                 log.close();
             }
+        } catch (SQLException e) {
+            closeException = e;
+        }
+        try {
             if (file != null) {
                 file.close();
             }
-            file = null;
         } catch (IOException e) {
-            throw Message.convertIOException(e, "close");
+            closeException = e;
+        }
+        log = null;
+        file = null;
+        if (closeException != null) {
+            throw Message.convert(closeException);
         }
     }
 
@@ -509,6 +518,7 @@ public class PageStore implements CacheWriter {
                     trace.debug("updateRecord " + record.toString());
                 }
             }
+            checkOpen();
             database.checkWritingAllowed();
             record.setChanged(true);
             int pos = record.getPos();
@@ -518,7 +528,7 @@ public class PageStore implements CacheWriter {
                 if (old == null) {
                     old = readPage(pos);
                 }
-                log.addUndo(record.getPos(), old);
+                log.addUndo(pos, old);
             }
         }
     }
@@ -768,6 +778,7 @@ public class PageStore implements CacheWriter {
      */
     public void commit(Session session) throws SQLException {
         synchronized (database) {
+            checkOpen();
             log.commit(session.getId());
             if (log.getSize() > maxLogSize) {
                 checkpoint();
@@ -1032,5 +1043,12 @@ public class PageStore implements CacheWriter {
     public boolean isRecoveryRunning() {
         return this.recoveryRunning;
     }
+    
+    private void checkOpen() throws SQLException {
+        if (file == null) {
+            throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
+        }
+    }
+    
 
 }

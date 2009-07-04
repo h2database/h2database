@@ -124,9 +124,6 @@ public class PageInputStream extends InputStream {
                 store.allocatePage(n);
             }
             trunkPage = t.getNextTrunk();
-            if (trunkPage != 0) {
-                break;
-            }
         }
     }
 

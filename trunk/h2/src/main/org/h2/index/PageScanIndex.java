@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.log.UndoLogRecord;
@@ -71,12 +72,6 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             store.addMeta(this, session, headPos);
             PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
             store.updateRecord(root, true, root.data);
-
-//        } else if (store.isNew()) {
-//            // the system table for a new database
-//            PageDataLeaf root = new PageDataLeaf(this, headPos,
-//                    Page.ROOT, store.createDataPage());
-//            store.updateRecord(root, true, root.data);
         } else {
             this.headPos = headPos;
             PageData root = getPage(headPos, 0);
@@ -168,6 +163,12 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     PageData getPage(int id, int parent) throws SQLException {
         Record rec = store.getRecord(id);
         if (rec != null) {
+            if (SysProperties.CHECK) {
+                PageData result = (PageData) rec;
+                if (result.index.headPos != this.headPos) {
+                    throw Message.throwInternalError("Wrong index: " + result.index + " " + this);
+                }
+            }
             return (PageData) rec;
         }
         DataPage data = store.readPage(id);

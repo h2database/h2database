@@ -117,6 +117,7 @@ public class PageStore implements CacheWriter {
     // remove CacheObject.blockCount
     // remove Record.getMemorySize
     // simplify InDoubtTransaction
+    // remove parameter in Record.write(DataPage buff)
 
     /**
      * The smallest possible page size.
@@ -135,7 +136,6 @@ public class PageStore implements CacheWriter {
 
     private static final int PAGE_ID_FREE_LIST_ROOT = 3;
     private static final int PAGE_ID_META_ROOT = 4;
-    private static final int PAGE_ID_LOG_TRUNK = 5;
 
     private static final int MIN_PAGE_COUNT = 6;
 
@@ -200,7 +200,7 @@ public class PageStore implements CacheWriter {
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
         int test;
-//trace.setLevel(TraceSystem.DEBUG);
+// trace.setLevel(TraceSystem.DEBUG);
         this.cacheSize = cacheSizeDefault;
         String cacheType = database.getCacheType();
         this.cache = CacheLRU.getCache(this, cacheType, cacheSize);
@@ -490,7 +490,6 @@ public class PageStore implements CacheWriter {
             if (trace.isDebugEnabled()) {
                 trace.debug("writeBack " + record);
             }
-            int todoRemoveParameter;
             record.write(null);
             record.setChanged(false);
         }
@@ -581,6 +580,9 @@ public class PageStore implements CacheWriter {
             }
             if (pos >= pageCount) {
                 increaseFileSize(INCREMENT_PAGES);
+            }
+            if (trace.isDebugEnabled()) {
+                trace.debug("allocatePage " + pos);
             }
             return pos;
         }
@@ -853,10 +855,8 @@ public class PageStore implements CacheWriter {
         index.getTable().removeIndex(index);
         if (index instanceof PageBtreeIndex) {
             index.getSchema().remove(index);
-        } else if (index instanceof PageScanIndex) {
-            // TODO test why this doesn't work
-            // index.remove(null);
         }
+        index.remove(systemSession);
     }
 
     private void addMeta(Row row, Session session, boolean redo) throws SQLException {
@@ -873,11 +873,8 @@ public class PageStore implements CacheWriter {
             trace.debug("addMeta id=" + id + " type=" + type + " parent=" + parent + " columns=" + columnList);
         }
         if (redo) {
-            int test;
-            byte[] empty = new byte[pageSize];
-            file.seek(headPos * pageSize);
-            file.write(empty, 0, pageSize);
-            removeRecord(headPos);
+            writePage(headPos, createDataPage());
+            allocatePage(headPos);
         }
         if (type == META_TYPE_SCAN_INDEX) {
             ObjectArray<Column> columnArray = ObjectArray.newInstance();
@@ -941,18 +938,14 @@ public class PageStore implements CacheWriter {
         Table table = index.getTable();
         CompareMode mode = table.getCompareMode();
         String options = mode.getName()+ "," + mode.getStrength();
-        addMeta(index.getId(), type, table.getId(), headPos, options, columnList, session);
-    }
-
-    private void addMeta(int id, int type, int parent, int headPos, String options, String columnList, Session session) throws SQLException {
         Row row = metaTable.getTemplateRow();
-        row.setValue(0, ValueInt.get(id));
+        row.setValue(0, ValueInt.get(index.getId()));
         row.setValue(1, ValueInt.get(type));
-        row.setValue(2, ValueInt.get(parent));
+        row.setValue(2, ValueInt.get(table.getId()));
         row.setValue(3, ValueInt.get(headPos));
         row.setValue(4, ValueString.get(options));
         row.setValue(5, ValueString.get(columnList));
-        row.setPos(id + 1);
+        row.setPos(index.getId() + 1);
         metaIndex.add(session, row);
     }
 
@@ -963,8 +956,10 @@ public class PageStore implements CacheWriter {
      * @param session the session
      */
     public void removeMeta(Index index, Session session) throws SQLException {
-        Row row = metaIndex.getRow(session, index.getId() + 1);
-        metaIndex.remove(session, row);
+        if (!recoveryRunning) {
+            Row row = metaIndex.getRow(session, index.getId() + 1);
+            metaIndex.remove(session, row);
+        }
     }
 
     private void updateChecksum(byte[] d, int pos) {

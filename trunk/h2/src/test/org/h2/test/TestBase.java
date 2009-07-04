@@ -438,7 +438,7 @@ public abstract class TestBase {
      * @param name the database name
      */
     protected void deleteDb(String name) throws SQLException {
-        DeleteDbFiles.execute(baseDir, name, true);
+        deleteDb(baseDir, name);
     }
 
     /**
@@ -449,6 +449,11 @@ public abstract class TestBase {
      */
     protected void deleteDb(String dir, String name) throws SQLException {
         DeleteDbFiles.execute(dir, name, true);
+        // ArrayList<String> list;
+        // list = FileLister.getDatabaseFiles(baseDir, name, true);
+        // if (list.size() >  0) {
+        //    System.out.println("Not deleted: " + list);
+        // }
     }
 
     /**

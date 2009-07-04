@@ -146,6 +146,12 @@ public class PageLog {
     void free() throws SQLException {
         while (this.firstTrunkPage != 0) {
             // first remove all old log pages
+            if (store.getRecord(firstTrunkPage) != null) {
+                // if the page is in use, don't free it
+                // TODO cleanup - this is a hack
+                int todoCleanup;
+                break;
+            }
             PageStreamTrunk t = new PageStreamTrunk(store, this.firstTrunkPage);
             try {
                 t.read();
@@ -591,7 +597,7 @@ public class PageLog {
     }
 
     long getSize() {
-        return pageOut.getSize();
+        return pageOut == null ? 0 : pageOut.getSize();
     }
 
     ObjectArray<InDoubtTransaction> getInDoubtTransactions() {

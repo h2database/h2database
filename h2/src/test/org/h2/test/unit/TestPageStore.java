@@ -31,7 +31,26 @@ public class TestPageStore extends TestBase {
     }
 
     public void test() throws Exception {
+        testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testCreateIndexLater() throws SQLException {
+        deleteDb("pageStore");
+        Connection conn = getConnection("pageStore");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(NAME VARCHAR) AS SELECT 1");
+        stat.execute("CREATE INDEX IDX_N ON TEST(NAME)");
+        stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(20, 100)");
+        stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(1000, 1100)");
+        stat.execute("SHUTDOWN IMMEDIATELY");
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            // ignore
+        }
+        conn = getConnection("pageStore");
+        conn.close();
     }
 
     private void testFuzzOperations() throws SQLException {
@@ -46,8 +65,8 @@ public class TestPageStore extends TestBase {
     }
 
     private int testFuzzOperationsSeed(int seed, int len) throws SQLException {
-        deleteDb("test");
-        Connection conn = getConnection("test");
+        deleteDb("pageStore");
+        Connection conn = getConnection("pageStore");
         Statement stat = conn.createStatement();
         log("DROP TABLE IF EXISTS TEST;");
         stat.execute("DROP TABLE IF EXISTS TEST");
@@ -75,7 +94,7 @@ public class TestPageStore extends TestBase {
                 break;
             case 2:
                 conn.close();
-                conn = getConnection("test");
+                conn = getConnection("pageStore");
                 stat = conn.createStatement();
                 ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
                 log("--reconnect");

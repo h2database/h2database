@@ -110,7 +110,8 @@ public class PageStore implements CacheWriter {
     // TODO var int: see google protocol buffers
     // TODO SessionState.logId is no longer needed
     // TODO PageData and PageBtree addRowTry: try to simplify
-    // TODO performance: maybe don't save direct parent in btree nodes (only root)
+    // TODO performance: don't save direct parent in btree nodes (only root)
+    // TODO space re-use: run TestPerformance multiple times, size should stay
 
     // TODO when removing DiskFile:
     // remove CacheObject.blockCount
@@ -183,6 +184,7 @@ public class PageStore implements CacheWriter {
     private int systemTableHeadPos;
     // TODO reduce DEFAULT_MAX_LOG_SIZE, and don't divide here
     private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE / 10;
+    private Session systemSession;
 
     /**
      * Create a new page store object.
@@ -198,10 +200,11 @@ public class PageStore implements CacheWriter {
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
         int test;
-// trace.setLevel(TraceSystem.DEBUG);
+//trace.setLevel(TraceSystem.DEBUG);
         this.cacheSize = cacheSizeDefault;
         String cacheType = database.getCacheType();
         this.cache = CacheLRU.getCache(this, cacheType, cacheSize);
+        systemSession = new Session(database, null, 0);
     }
 
     /**
@@ -457,7 +460,9 @@ public class PageStore implements CacheWriter {
     public void close() throws SQLException {
         try {
             trace.debug("close");
-            log.close();
+            if (log != null) {
+                log.close();
+            }
             if (file != null) {
                 file.close();
             }
@@ -733,7 +738,7 @@ public class PageStore implements CacheWriter {
             systemTableHeadPos = index.getHeadPos();
         }
         for (Index openIndex : metaObjects.values()) {
-            openIndex.close(database.getSystemSession());
+            openIndex.close(systemSession);
         }
         trace.debug("log recover done");
     }
@@ -799,7 +804,7 @@ public class PageStore implements CacheWriter {
     void redo(int tableId, Row row, boolean add) throws SQLException {
         if (tableId == META_TABLE_ID) {
             if (add) {
-                addMeta(row, database.getSystemSession());
+                addMeta(row, systemSession, true);
             } else {
                 removeMeta(row);
             }
@@ -810,9 +815,9 @@ public class PageStore implements CacheWriter {
         }
         Table table = index.getTable();
         if (add) {
-            table.addRow(database.getSystemSession(), row);
+            table.addRow(systemSession, row);
         } else {
-            table.removeRow(database.getSystemSession(), row);
+            table.removeRow(systemSession, row);
         }
     }
 
@@ -827,18 +832,18 @@ public class PageStore implements CacheWriter {
         metaSchema = new Schema(database, 0, "", null, true);
         int headPos = PAGE_ID_META_ROOT;
         metaTable = new TableData(metaSchema, "PAGE_INDEX",
-                META_TABLE_ID, cols, true, true, false, headPos, database.getSystemSession());
+                META_TABLE_ID, cols, true, true, false, headPos, systemSession);
         metaIndex = (PageScanIndex) metaTable.getScanIndex(
-                database.getSystemSession());
+                systemSession);
         metaObjects = New.hashMap();
         metaObjects.put(-1, metaIndex);
     }
 
     private void readMetaData() throws SQLException {
-        Cursor cursor = metaIndex.find(database.getSystemSession(), null, null);
+        Cursor cursor = metaIndex.find(systemSession, null, null);
         while (cursor.next()) {
             Row row = cursor.get();
-            addMeta(row, database.getSystemSession());
+            addMeta(row, systemSession, false);
         }
     }
 
@@ -848,10 +853,13 @@ public class PageStore implements CacheWriter {
         index.getTable().removeIndex(index);
         if (index instanceof PageBtreeIndex) {
             index.getSchema().remove(index);
+        } else if (index instanceof PageScanIndex) {
+            // TODO test why this doesn't work
+            // index.remove(null);
         }
     }
 
-    private void addMeta(Row row, Session session) throws SQLException {
+    private void addMeta(Row row, Session session, boolean redo) throws SQLException {
         int id = row.getValue(0).getInt();
         int type = row.getValue(1).getInt();
         int parent = row.getValue(2).getInt();
@@ -863,6 +871,13 @@ public class PageStore implements CacheWriter {
         Index meta;
         if (trace.isDebugEnabled()) {
             trace.debug("addMeta id=" + id + " type=" + type + " parent=" + parent + " columns=" + columnList);
+        }
+        if (redo) {
+            int test;
+            byte[] empty = new byte[pageSize];
+            file.seek(headPos * pageSize);
+            file.write(empty, 0, pageSize);
+            removeRecord(headPos);
         }
         if (type == META_TYPE_SCAN_INDEX) {
             ObjectArray<Column> columnArray = ObjectArray.newInstance();
@@ -906,8 +921,9 @@ public class PageStore implements CacheWriter {
      *
      * @param index the index to add
      * @param session the session
+     * @param headPos the head position
      */
-    public void addMeta(Index index, Session session) throws SQLException {
+    public void addMeta(Index index, Session session, int headPos) throws SQLException {
         int type = index instanceof PageScanIndex ? META_TYPE_SCAN_INDEX : META_TYPE_BTREE_INDEX;
         IndexColumn[] columns = index.getIndexColumns();
         StatementBuilder buff = new StatementBuilder();
@@ -925,7 +941,7 @@ public class PageStore implements CacheWriter {
         Table table = index.getTable();
         CompareMode mode = table.getCompareMode();
         String options = mode.getName()+ "," + mode.getStrength();
-        addMeta(index.getId(), type, table.getId(), index.getHeadPos(), options, columnList, session);
+        addMeta(index.getId(), type, table.getId(), headPos, options, columnList, session);
     }
 
     private void addMeta(int id, int type, int parent, int headPos, String options, String columnList, Session session) throws SQLException {
@@ -1011,6 +1027,15 @@ public class PageStore implements CacheWriter {
      */
     public ObjectArray<InDoubtTransaction> getInDoubtTransactions() {
         return log.getInDoubtTransactions();
+    }
+
+    /**
+     * Check whether the recovery process is currently running.
+     *
+     * @return true if it is
+     */
+    public boolean isRecoveryRunning() {
+        return this.recoveryRunning;
     }
 
 }

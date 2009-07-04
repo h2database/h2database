@@ -207,7 +207,6 @@ public class TableData extends Table implements RecordReader {
                     database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, getName() + ":" + index.getName(), MathUtils
                             .convertLongToInt(i++), MathUtils.convertLongToInt(total));
                     Row row = cursor.get();
-                    // index.add(session, row);
                     buffer.add(row);
                     if (buffer.size() >= bufferSize) {
                         addRowsToIndex(session, buffer, index);

@@ -803,14 +803,19 @@ public class Recover extends Tool implements DataHandler {
                 case Page.TYPE_DATA_OVERFLOW:
                     writer.println("-- page " + page + ": data overflow " + (last ? "(last)" : ""));
                     break;
-                case Page.TYPE_DATA_NODE:
-                    writer.println("-- page " + page + ": data node " + (last ? "(last)" : ""));
+                case Page.TYPE_DATA_NODE: {
+                    int entries = s.readShortInt();
+                    int recordCount = s.readInt();
+                    writer.println("-- page " + page + ": data node " + (last ? "(last)" : "") + " entries: " + entries + " record: " + recordCount);
                     break;
-                case Page.TYPE_DATA_LEAF:
+                }
+                case Page.TYPE_DATA_LEAF: {
                     setStorage(s.readInt());
-                    writer.println("-- page " + page + ": data leaf " + (last ? "(last)" : "") + " table: " + storageId);
-                    dumpPageDataLeaf(store, pageSize, writer, s, last, page);
+                    int entries = s.readShortInt();
+                    writer.println("-- page " + page + ": data leaf " + (last ? "(last)" : "") + " table: " + storageId + " entries: " + entries);
+                    dumpPageDataLeaf(store, pageSize, writer, s, last, page, entries);
                     break;
+                }
                 case Page.TYPE_BTREE_NODE:
                     writer.println("-- page " + page + ": btree node" + (last ? "(last)" : ""));
                     if (trace) {
@@ -1100,8 +1105,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpPageDataLeaf(FileStore store, int pageSize, PrintWriter writer, DataPage s, boolean last, long pageId) throws SQLException {
-        int entryCount = s.readShortInt();
+    private void dumpPageDataLeaf(FileStore store, int pageSize, PrintWriter writer, DataPage s, boolean last, long pageId, int entryCount) throws SQLException {
         int[] keys = new int[entryCount];
         int[] offsets = new int[entryCount];
         long next = 0;

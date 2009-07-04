@@ -142,6 +142,12 @@ public class PageFreeList extends Record {
         return store.getPageSize() >> 2;
     }
 
+    /**
+     * Check if a page is already in use.
+     *
+     * @param pageId the page to check
+     * @return true if it is in use
+     */
     boolean isUsed(int pageId) {
         return used.get(pageId - getPos());
     }

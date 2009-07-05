@@ -92,7 +92,6 @@ class PageDataLeaf extends PageData {
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (entryCount > 0 && last - rowLength < start + KEY_OFFSET_PAIR_LENGTH) {
-            int todoSplitAtLastInsertionPoint;
             return (entryCount / 2) + 1;
         }
         int offset = last - rowLength;

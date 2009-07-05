@@ -59,6 +59,7 @@ import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
 import org.h2.value.Value;
+import org.h2.value.ValueInt;
 import org.h2.value.ValueLob;
 
 /**
@@ -296,11 +297,10 @@ public class Recover extends Tool implements DataHandler {
     }
 
     /**
-     * Dumps the database.
+     * Dumps the contents of a database to a SQL script file.
      *
      * @param dir the directory
      * @param db the database name (null for all databases)
-     * @throws SQLException
      */
     public static void execute(String dir, String db) throws SQLException {
         new Recover().process(dir, db);
@@ -805,8 +805,8 @@ public class Recover extends Tool implements DataHandler {
                     break;
                 case Page.TYPE_DATA_NODE: {
                     int entries = s.readShortInt();
-                    int recordCount = s.readInt();
-                    writer.println("-- page " + page + ": data node " + (last ? "(last)" : "") + " entries: " + entries + " record: " + recordCount);
+                    int rowCount = s.readInt();
+                    writer.println("-- page " + page + ": data node " + (last ? "(last)" : "") + " entries: " + entries + " rowCount: " + rowCount);
                     break;
                 }
                 case Page.TYPE_DATA_LEAF: {
@@ -819,16 +819,18 @@ public class Recover extends Tool implements DataHandler {
                 case Page.TYPE_BTREE_NODE:
                     writer.println("-- page " + page + ": btree node" + (last ? "(last)" : ""));
                     if (trace) {
-                        dumpPageBtreeNode(writer, s);
+                        dumpPageBtreeNode(writer, s, !last);
                     }
                     break;
-                case Page.TYPE_BTREE_LEAF:
+                case Page.TYPE_BTREE_LEAF: {
                     setStorage(s.readInt());
-                    writer.println("-- page " + page + ": btree leaf " + (last ? "(last)" : "") + " table: " + storageId);
+                    int entries = s.readShortInt();
+                    writer.println("-- page " + page + ": btree leaf " + (last ? "(last)" : "") + " table: " + storageId + " entries: " + entries);
                     if (trace) {
-                        dumpPageBtreeLeaf(writer, s);
+                        dumpPageBtreeLeaf(writer, s, entries, !last);
                     }
                     break;
+                }
                 case Page.TYPE_FREE_LIST:
                     writer.println("-- page " + page + ": free list " + (last ? "(last)" : ""));
                     free += dumpPageFreeList(writer, s, pageSize, page, pageCount);
@@ -1031,7 +1033,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpPageBtreeNode(PrintWriter writer, DataPage s) {
+    private void dumpPageBtreeNode(PrintWriter writer, DataPage s, boolean positionOnly) {
         int entryCount = s.readShortInt();
         int rowCount = s.readInt();
         int[] children = new int[entryCount + 1];
@@ -1046,11 +1048,15 @@ public class Recover extends Tool implements DataHandler {
             s.setPos(off);
             int pos = s.readInt();
             Value data;
-            try {
-                data = s.readValue();
-            } catch (Throwable e) {
-                writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
-                continue;
+            if (positionOnly) {
+                data = ValueInt.get(pos);
+            } else {
+                try {
+                    data = s.readValue();
+                } catch (Throwable e) {
+                    writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
+                    continue;
+                }
             }
             writer.println("-- [" + i + "] child: " + children[i] + " pos: " + pos + " data: " + data);
         }
@@ -1084,8 +1090,7 @@ public class Recover extends Tool implements DataHandler {
         return free;
     }
 
-    private void dumpPageBtreeLeaf(PrintWriter writer, DataPage s) {
-        int entryCount = s.readShortInt();
+    private void dumpPageBtreeLeaf(PrintWriter writer, DataPage s, int entryCount, boolean positionOnly) {
         int[] offsets = new int[entryCount];
         for (int i = 0; i < entryCount; i++) {
             offsets[i] = s.readShortInt();
@@ -1095,11 +1100,15 @@ public class Recover extends Tool implements DataHandler {
             s.setPos(off);
             int pos = s.readInt();
             Value data;
-            try {
-                data = s.readValue();
-            } catch (Throwable e) {
-                writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
-                continue;
+            if (positionOnly) {
+                data = ValueInt.get(pos);
+            } else {
+                try {
+                    data = s.readValue();
+                } catch (Throwable e) {
+                    writeDataError(writer, "exception " + e, s.getBytes(), blockCount);
+                    continue;
+                }
             }
             writer.println("-- [" + i + "] pos: " + pos + " data: " + data);
         }

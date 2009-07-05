@@ -112,6 +112,8 @@ public class PageStore implements CacheWriter {
     // TODO PageData and PageBtree addRowTry: try to simplify
     // TODO performance: don't save direct parent in btree nodes (only root)
     // TODO space re-use: run TestPerformance multiple times, size should stay
+    // TODO when inserting many rows, do not split at (entryCount / 2) + 1
+    // TODO maybe split at the last insertion point
 
     // TODO when removing DiskFile:
     // remove CacheObject.blockCount
@@ -1043,12 +1045,12 @@ public class PageStore implements CacheWriter {
     public boolean isRecoveryRunning() {
         return this.recoveryRunning;
     }
-    
+
     private void checkOpen() throws SQLException {
         if (file == null) {
             throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
         }
     }
-    
+
 
 }

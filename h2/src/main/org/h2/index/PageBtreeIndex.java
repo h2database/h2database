@@ -11,6 +11,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
+import org.h2.message.TraceSystem;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.DataPage;

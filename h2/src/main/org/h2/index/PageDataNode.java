@@ -87,7 +87,6 @@ class PageDataNode extends PageData {
             }
             int maxEntries = (index.getPageStore().getPageSize() - ENTRY_START) / ENTRY_LENGTH;
             if (entryCount >= maxEntries) {
-                int todoSplitAtLastInsertionPoint;
                 return entryCount / 2;
             }
             int pivot = page.getKey(splitPoint - 1);
@@ -155,7 +154,6 @@ class PageDataNode extends PageData {
     }
 
     int getLastKey() throws SQLException {
-        int todoRemove;
         return index.getPage(childPageIds[entryCount], getPos()).getLastKey();
     }
 

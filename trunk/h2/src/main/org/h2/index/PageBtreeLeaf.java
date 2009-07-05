@@ -8,6 +8,7 @@ package org.h2.index;
 
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.result.SearchRow;
 import org.h2.store.DataPage;
@@ -70,7 +71,17 @@ class PageBtreeLeaf extends PageBtree {
                 return (entryCount / 2) + 1;
             }
             onlyPosition = true;
+            // change the offsets (now storing only positions)
+            int o = pageSize;
+            for (int i = 0; i < entryCount; i++) {
+                o -= index.getRowSize(data, getRow(i), onlyPosition);
+                offsets[i] = o;
+            }
+            last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
             rowLength = index.getRowSize(data, row, onlyPosition);
+            if (SysProperties.CHECK && last - rowLength < start + OFFSET_LENGTH) {
+                throw Message.throwInternalError();
+            }
         }
         written = false;
         int offset = last - rowLength;

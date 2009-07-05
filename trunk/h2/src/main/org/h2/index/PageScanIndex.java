@@ -139,6 +139,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             store.updateRecord(newRoot, true, null);
             root = newRoot;
         }
+        row.setDeleted(false);
         if (database.isMultiVersion()) {
             if (delta == null) {
                 delta = New.hashSet();
@@ -346,6 +347,13 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     public void close(Session session) {
         if (trace.isDebugEnabled()) {
             trace.debug("close");
+        }
+        if (delta != null) {
+            delta.clear();
+        }
+        rowCountDiff = 0;
+        if (sessionRowCount != null) {
+            sessionRowCount.clear();
         }
         int todoWhyNotClose;
         // store = null;

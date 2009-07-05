@@ -7,13 +7,11 @@
 package org.h2.test.synth;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
-
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 
@@ -92,7 +90,7 @@ public class TestBtreeIndex extends TestBase {
         }
         String prefix = buff.toString();
         DeleteDbFiles.execute(baseDir, null, true);
-        Connection conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/index", "sa", "sa");
+        Connection conn = getConnection("index");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE a(text VARCHAR PRIMARY KEY)");
         PreparedStatement prepInsert = conn.prepareStatement("INSERT INTO a VALUES(?)");
@@ -119,8 +117,7 @@ public class TestBtreeIndex extends TestBase {
                         prepDeleteAllButOne.setString(1, prefix + y);
                         int deleted = prepDeleteAllButOne.executeUpdate();
                         if (deleted < count - 1) {
-                            System.out.println("ERROR deleted:" + deleted);
-                            System.out.println("new TestBtreeIndex().");
+                            printError(seed, "deleted:" + deleted);
                         }
                         count -= deleted;
                     } catch (SQLException e) {
@@ -132,8 +129,7 @@ public class TestBtreeIndex extends TestBase {
                         prepDelete.setString(1, prefix + y);
                         int deleted = prepDelete.executeUpdate();
                         if (deleted > 1) {
-                            System.out.println("ERROR deleted:" + deleted);
-                            System.out.println("seed: " + seed);
+                            printError(seed, "deleted:" + deleted);
                         }
                         count -= deleted;
                     } catch (SQLException e) {
@@ -143,21 +139,33 @@ public class TestBtreeIndex extends TestBase {
                 }
             }
         }
-        ResultSet rs = conn.createStatement().executeQuery("SELECT text FROM a ORDER BY text");
-        int testCount = 0;
-        while (rs.next()) {
+        int testCount;
+        testCount = 0;
+        ResultSet rs = stat.executeQuery("SELECT text FROM a ORDER BY text");
+        ResultSet rs2 = conn.createStatement().executeQuery("SELECT text FROM a ORDER BY 'x' || text");
+        testCount = 0;
+        while (rs.next() && rs2.next()) {
+            if (!rs.getString(1).equals(rs2.getString(1))) {
+                fail("" + testCount);
+            }
             testCount++;
         }
+        assertFalse(rs.next());
+        assertFalse(rs2.next());
         if (testCount != count) {
-            System.out.println("ERROR count:" + count + " testCount:" + testCount);
-            System.out.println("seed: " + seed);
+            printError(seed, "count:" + count + " testCount:" + testCount);
         }
-        rs = conn.createStatement().executeQuery("SELECT text, count(*) FROM a GROUP BY text HAVING COUNT(*)>1");
+        rs = stat.executeQuery("SELECT text, count(*) FROM a GROUP BY text HAVING COUNT(*)>1");
         if (rs.next()) {
-            System.out.println("ERROR");
-            System.out.println("seed: " + seed);
+            printError(seed, "testCount:" + testCount);
         }
         conn.close();
+    }
+
+    private void printError(int seed, String message) {
+        TestBase.logError("new TestBtreeIndex().init(test).testCase(" +
+                seed + "); // " + message, null);
+        fail(message);
     }
 
 }

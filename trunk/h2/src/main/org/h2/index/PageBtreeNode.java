@@ -7,6 +7,7 @@
 package org.h2.index;
 
 import java.sql.SQLException;
+import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.result.SearchRow;
 import org.h2.store.DataPage;
@@ -68,7 +69,6 @@ class PageBtreeNode extends PageBtree {
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (last - rowLength < start + CHILD_OFFSET_PAIR_LENGTH) {
-            int todoSplitAtLastInsertionPoint;
             return (entryCount / 2) + 1;
         }
         return 0;
@@ -86,9 +86,18 @@ class PageBtreeNode extends PageBtree {
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (last - rowLength < start + CHILD_OFFSET_PAIR_LENGTH) {
-            // TODO remap all children
             onlyPosition = true;
+            // change the offsets (now storing only positions)
+            int o = pageSize;
+            for (int i = 0; i < entryCount; i++) {
+                o -= index.getRowSize(data, getRow(i), onlyPosition);
+                offsets[i] = o;
+            }
+            last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
             rowLength = index.getRowSize(data, row, onlyPosition);
+            if (SysProperties.CHECK && last - rowLength < start + CHILD_OFFSET_PAIR_LENGTH) {
+                throw Message.throwInternalError();
+            }
         }
         int offset = last - rowLength;
         int[] newOffsets = new int[entryCount + 1];

@@ -461,7 +461,6 @@ public class PageLog {
             row.setLastLog(logId, logPos);
 
             data.reset();
-            int todoWriteIntoOutputDirectly;
             row.write(data);
             out.write(add ? ADD : REMOVE);
             out.writeInt(session.getId());

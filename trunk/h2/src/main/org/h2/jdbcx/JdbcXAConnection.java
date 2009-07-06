@@ -20,6 +20,7 @@ import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.util.ByteUtils;
 import org.h2.util.JdbcUtils;
@@ -28,6 +29,7 @@ import org.h2.util.StringUtils;
 //## Java 1.4 end ##
 
 import org.h2.message.Message;
+import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 
 /*## Java 1.6 begin ##
@@ -94,6 +96,7 @@ implements XAConnection, XAResource
     public void close() throws SQLException {
         debugCodeCall("close");
         if (handleConn != null) {
+            listeners.clear();
             handleConn.close();
         }
         if (physicalConn != null) {
@@ -479,6 +482,7 @@ implements XAConnection, XAResource
 
         public PooledJdbcConnection(JdbcConnection conn) {
             super(conn);
+            openStackTrace = new Exception("Stack Trace");
         }
 
         public synchronized void close() throws SQLException {
@@ -499,6 +503,21 @@ implements XAConnection, XAResource
                 throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
             }
             super.checkClosed(write);
+        }
+
+        protected void finalize() {
+            if (!SysProperties.runFinalize) {
+                return;
+            }
+            Trace trace = getTrace();
+            try {
+                if (!isClosed()) {
+                    trace.error("Pooled connection not closed", openStackTrace);
+                    JdbcXAConnection.this.close();
+                }
+            } catch (SQLException e) {
+                trace.debug("finalize", e);
+            }
         }
 
     }

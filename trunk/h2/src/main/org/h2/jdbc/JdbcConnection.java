@@ -59,6 +59,12 @@ import java.sql.SQLClientInfoException;
  * </p>
  */
 public class JdbcConnection extends TraceObject implements Connection {
+
+    /**
+     * The stack trace of when the connection was created.
+     */
+    protected Exception openStackTrace;
+
     private String url;
     private String user;
 
@@ -71,7 +77,6 @@ public class JdbcConnection extends TraceObject implements Connection {
     private CommandInterface getReadOnly, getGeneratedKeys;
     private CommandInterface setLockMode, getLockMode;
     private CommandInterface setQueryTimeout, getQueryTimeout;
-    private Exception openStackTrace;
 
     //## Java 1.4 begin ##
     private int savepointId;
@@ -285,6 +290,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     public synchronized void close() throws SQLException {
         try {
             debugCodeCall("close");
+            openStackTrace = null;
             if (executingStatement != null) {
                 executingStatement.cancel();
             }
@@ -1320,7 +1326,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         if (isInternal) {
             return;
         }
-        if (session != null) {
+        if (session != null && openStackTrace != null) {
             trace.error("Connection not closed", openStackTrace);
             try {
                 close();

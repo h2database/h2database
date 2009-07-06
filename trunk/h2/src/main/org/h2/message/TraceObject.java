@@ -131,12 +131,21 @@ public class TraceObject {
     }
 
     /**
-     * Update the trace.
+     * Update the trace object.
      *
      * @param trace the trace object
      */
     protected void setTrace(Trace trace) {
         this.trace = trace;
+    }
+
+    /**
+     * Get the trace object.
+     *
+     * @return the trace object
+     */
+    protected Trace getTrace() {
+        return trace;
     }
 
     /**

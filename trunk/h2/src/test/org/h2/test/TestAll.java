@@ -8,7 +8,6 @@ package org.h2.test;
 
 import java.sql.SQLException;
 import java.util.Properties;
-
 import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileSystemDisk;
@@ -286,13 +285,7 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
-// 2009-05-15: 25 tests fail with page store (first loop)
-// 2009-05-18: 18 tests fail with page store (first loop)
-// 2009-05-30: 15 tests fail with page store (first loop)
-// 2009-06-19: 10 tests fail with page store (first loop)
-// 2009-06-26: 0 tests fail with page store (first loop)
-// int pageStore;
-// System.setProperty("h2.pageStore", "true");
+//        System.setProperty("h2.pageStore", "true");
 
 /*
 

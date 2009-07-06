@@ -67,7 +67,6 @@ class PageBtreeLeaf extends PageBtree {
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (last - rowLength < start + OFFSET_LENGTH) {
             if (entryCount > 1) {
-                int todoSplitAtLastInsertionPoint;
                 return (entryCount / 2) + 1;
             }
             onlyPosition = true;

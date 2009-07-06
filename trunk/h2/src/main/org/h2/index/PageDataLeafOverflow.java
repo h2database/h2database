@@ -8,7 +8,6 @@ package org.h2.index;
 
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.Message;
 import org.h2.store.DataPage;
 import org.h2.store.PageStore;
@@ -41,22 +40,22 @@ public class PageDataLeafOverflow extends Record {
     /**
      * The page type.
      */
-    private final int type;
+    private int type;
 
     /**
-     * The previous page (overflow or leaf).
+     * The parent page (overflow or leaf).
      */
-    private final int previousPage;
+    private int parentPage;
 
     /**
      * The next overflow page, or 0.
      */
-    private final int nextPage;
+    private int nextPage;
 
     /**
      * The number of content bytes.
      */
-    private final int size;
+    private int size;
 
     /**
      * The first content byte starts at the given position
@@ -70,18 +69,32 @@ public class PageDataLeafOverflow extends Record {
         this.leaf = leaf;
         setPos(pageId);
         this.type = type;
-        this.previousPage = previous;
+        this.parentPage = previous;
         this.nextPage = next;
         this.offset = offset;
         this.size = size;
     }
 
-    public PageDataLeafOverflow(PageDataLeaf leaf, int pageId, DataPage data, int offset) throws JdbcSQLException {
+    /**
+     * Create an object from the given data page.
+     *
+     * @param leaf the leaf page
+     * @param pageId the page id
+     * @param data the data page
+     * @param offset the offset
+     */
+    public PageDataLeafOverflow(PageDataLeaf leaf, int pageId, DataPage data, int offset) {
         this.leaf = leaf;
         setPos(pageId);
         this.data = data;
         this.offset = offset;
-        previousPage = data.readInt();
+    }
+
+    /**
+     * Read the page.
+     */
+    void read() throws SQLException {
+        parentPage = data.readInt();
         type = data.readByte();
         if (type == (Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST)) {
             size = data.readShortInt();
@@ -121,7 +134,7 @@ public class PageDataLeafOverflow extends Record {
         PageStore store = leaf.getPageStore();
         DataPage overflow = store.createDataPage();
         DataPage data = leaf.getDataPage();
-        overflow.writeInt(previousPage);
+        overflow.writeInt(parentPage);
         overflow.writeByte((byte) type);
         if (type == Page.TYPE_DATA_OVERFLOW) {
             overflow.writeInt(nextPage);
@@ -133,7 +146,7 @@ public class PageDataLeafOverflow extends Record {
     }
 
     public String toString() {
-        return "page[" + getPos() + "] data leaf overflow prev:" + previousPage + " next:" + nextPage;
+        return "page[" + getPos() + "] data leaf overflow parent:" + parentPage + " next:" + nextPage;
     }
 
     /**
@@ -143,6 +156,14 @@ public class PageDataLeafOverflow extends Record {
      */
     public int getMemorySize() {
         return leaf.getMemorySize();
+    }
+
+    int getParent() {
+        return parentPage;
+    }
+
+    void setParent(int parent) {
+        this.parentPage = parent;
     }
 
 }

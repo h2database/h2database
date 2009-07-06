@@ -148,10 +148,6 @@ abstract class PageData extends Record {
         remapChildren();
     }
 
-    int getPageId() {
-        return getPos();
-    }
-
     /**
      * Get the last key of a page.
      *

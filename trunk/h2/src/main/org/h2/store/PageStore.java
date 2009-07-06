@@ -24,7 +24,6 @@ import org.h2.log.InDoubtTransaction;
 import org.h2.log.LogSystem;
 import org.h2.message.Message;
 import org.h2.message.Trace;
-import org.h2.message.TraceSystem;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
@@ -201,8 +200,7 @@ public class PageStore implements CacheWriter {
         this.accessMode = accessMode;
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
-        int test;
-// trace.setLevel(TraceSystem.DEBUG);
+        // trace.setLevel(TraceSystem.DEBUG);
         this.cacheSize = cacheSizeDefault;
         String cacheType = database.getCacheType();
         this.cache = CacheLRU.getCache(this, cacheType, cacheSize);
@@ -975,32 +973,6 @@ public class PageStore implements CacheWriter {
         }
     }
 
-    private void updateChecksum(byte[] d, int pos) {
-        int ps = pageSize;
-        int s1 = 255 + (d[0] & 255), s2 = 255 + s1;
-        s2 += s1 += d[1] & 255;
-        s2 += s1 += d[(ps >> 1) - 1] & 255;
-        s2 += s1 += d[ps >> 1] & 255;
-        s2 += s1 += d[ps - 2] & 255;
-        s2 += s1 += d[ps - 1] & 255;
-        d[5] = (byte) (((s1 & 255) + (s1 >> 8)) ^ pos);
-        d[6] = (byte) (((s2 & 255) + (s2 >> 8)) ^ (pos >> 8));
-    }
-
-    private void verifyChecksum(byte[] d, int pos) throws SQLException {
-        int ps = pageSize;
-        int s1 = 255 + (d[0] & 255), s2 = 255 + s1;
-        s2 += s1 += d[1] & 255;
-        s2 += s1 += d[(ps >> 1) - 1] & 255;
-        s2 += s1 += d[ps >> 1] & 255;
-        s2 += s1 += d[ps - 2] & 255;
-        s2 += s1 += d[ps - 1] & 255;
-        if (d[5] != (byte) (((s1 & 255) + (s1 >> 8)) ^ pos)
-                || d[6] != (byte) (((s2 & 255) + (s2 >> 8)) ^ (pos >> 8))) {
-            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
-        }
-    }
-
     /**
      * Set the maximum log file size in megabytes.
      *
@@ -1052,5 +1024,31 @@ public class PageStore implements CacheWriter {
         }
     }
 
+    // TODO implement checksum
+//    private void updateChecksum(byte[] d, int pos) {
+//        int ps = pageSize;
+//        int s1 = 255 + (d[0] & 255), s2 = 255 + s1;
+//        s2 += s1 += d[1] & 255;
+//        s2 += s1 += d[(ps >> 1) - 1] & 255;
+//        s2 += s1 += d[ps >> 1] & 255;
+//        s2 += s1 += d[ps - 2] & 255;
+//        s2 += s1 += d[ps - 1] & 255;
+//        d[5] = (byte) (((s1 & 255) + (s1 >> 8)) ^ pos);
+//        d[6] = (byte) (((s2 & 255) + (s2 >> 8)) ^ (pos >> 8));
+//    }
+//
+//    private void verifyChecksum(byte[] d, int pos) throws SQLException {
+//        int ps = pageSize;
+//        int s1 = 255 + (d[0] & 255), s2 = 255 + s1;
+//        s2 += s1 += d[1] & 255;
+//        s2 += s1 += d[(ps >> 1) - 1] & 255;
+//        s2 += s1 += d[ps >> 1] & 255;
+//        s2 += s1 += d[ps - 2] & 255;
+//        s2 += s1 += d[ps - 1] & 255;
+//        if (d[5] != (byte) (((s1 & 255) + (s1 >> 8)) ^ pos)
+//                || d[6] != (byte) (((s2 & 255) + (s2 >> 8)) ^ (pos >> 8))) {
+//            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
+//        }
+//    }
 
 }

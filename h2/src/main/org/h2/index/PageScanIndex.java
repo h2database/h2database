@@ -19,7 +19,6 @@ import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
-import org.h2.message.TraceSystem;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.DataPage;
@@ -50,8 +49,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
 
     public PageScanIndex(TableData table, int id, IndexColumn[] columns, IndexType indexType, int headPos, Session session) throws SQLException {
         initBaseIndex(table, id, table.getName() + "_TABLE_SCAN", columns, indexType);
-        int test;
-// trace.setLevel(TraceSystem.DEBUG);
+        // trace.setLevel(TraceSystem.DEBUG);
         if (database.isMultiVersion()) {
             sessionRowCount = New.hashMap();
             isMultiVersion = true;
@@ -59,9 +57,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         tableData = table;
         this.store = database.getPageStore();
         if (!database.isPersistent()) {
-            int todo;
             this.headPos = 0;
-            return;
+            throw Message.throwInternalError(table.getName());
         }
         if (headPos == Index.EMPTY_HEAD) {
             // new table
@@ -82,7 +79,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
                 // TODO check if really required
                 store.updateRecord(root, false, null);
             }
-            int reuseKeysIfManyDeleted;
+            // TODO re-use keys after many rows are deleted
         }
         if (trace.isDebugEnabled()) {
             trace.debug("opened " + getName() + " rows:" + rowCount);
@@ -127,7 +124,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             int pivot = root.getKey(splitPoint - 1);
             PageData page1 = root;
             PageData page2 = root.split(splitPoint);
-            int rootPageId = root.getPageId();
+            int rootPageId = root.getPos();
             int id = store.allocatePage();
             page1.setPageId(id);
             page1.setParentPageId(headPos);
@@ -152,6 +149,25 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         }
         rowCount++;
         store.logAddOrRemoveRow(session, tableData.getId(), row, true);
+    }
+
+    /**
+     * Read an overflow page page.
+     *
+     * @param id the page id
+     * @param leaf the leaf page
+     * @return the page
+     */
+    PageDataLeafOverflow getPageOverflow(int id, PageDataLeaf leaf, int offset) throws SQLException {
+        Record rec = store.getRecord(id);
+        if (rec != null) {
+            return (PageDataLeafOverflow) rec;
+        }
+        DataPage data = store.readPage(id);
+        data.reset();
+        PageDataLeafOverflow result = new PageDataLeafOverflow(leaf, id, data, offset);
+        result.read();
+        return result;
     }
 
     /**
@@ -233,20 +249,16 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
                 }
             }
         }
-        int invalidateRowCount;
+        // TODO invalidate the row count
         // setChanged(session);
         if (rowCount == 1) {
-            int todoMaybeImprove;
             removeAllRows();
         } else {
             int key = row.getPos();
             PageData root = getPage(headPos, 0);
             root.remove(key);
             rowCount--;
-            int todoReuseKeys;
-//            if (key == lastKey - 1) {
-//                lastKey--;
-//            }
+            // TODO re-use keys
         }
         if (database.isMultiVersion()) {
             // if storage is null, the delete flag is not yet set
@@ -355,9 +367,9 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (sessionRowCount != null) {
             sessionRowCount.clear();
         }
-        int todoWhyNotClose;
-        // store = null;
-        int writeRowCount;
+        // can not close the index because it might get used afterwards,
+        // for example after running recovery
+        // TODO write the row count
     }
 
     Iterator<Row> getDelta() {

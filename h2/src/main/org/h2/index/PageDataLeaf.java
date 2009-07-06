@@ -13,7 +13,6 @@ import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.store.DataPage;
 import org.h2.store.PageStore;
-import org.h2.store.Record;
 
 /**
  * A leaf page that contains data of one or multiple rows.
@@ -63,7 +62,7 @@ class PageDataLeaf extends PageData {
         int tableId = data.readInt();
         if (tableId != index.getId()) {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1,
-                    "page:" + getPageId() + " expected table:" + index.getId() +
+                    "page:" + getPos() + " expected table:" + index.getId() +
                     " got:" + tableId + " type:" + type);
         }
         entryCount = data.readShortInt();
@@ -212,17 +211,7 @@ class PageDataLeaf extends PageData {
                 int offset = pageSize;
                 data.setPos(pageSize);
                 do {
-                    Record record = store.getRecord(next);
-                    PageDataLeafOverflow page;
-                    if (record == null) {
-                        DataPage data = store.readPage(next);
-                        page = new PageDataLeafOverflow(this, next, data, offset);
-                    } else {
-                        if (!(record instanceof PageDataLeafOverflow)) {
-                            throw Message.getInternalError("page:"+ next + " " + record, null);
-                        }
-                        page = (PageDataLeafOverflow) record;
-                    }
+                    PageDataLeafOverflow page = index.getPageOverflow(next, this, offset);
                     next = page.readInto(data);
                 } while (next != 0);
             }
@@ -249,7 +238,7 @@ class PageDataLeaf extends PageData {
     }
 
     int getLastKey() throws SQLException {
-        int todoRemove;
+        // TODO re-use keys, but remove this mechanism
         if (entryCount == 0) {
             return 0;
         }
@@ -268,17 +257,13 @@ class PageDataLeaf extends PageData {
         return this;
     }
 
-    protected void remapChildren() {
+    protected void remapChildren() throws SQLException {
         if (firstOverflowPageId == 0) {
             return;
         }
-        int testIfReallyNotRequired;
-//        PageStore store = index.getPageStore();
-//        store.updateRecord(firstOverflowPageId);
-//        DataPage overflow = store.readPage(firstOverflowPageId);
-//        overflow.reset();
-//        overflow.writeInt(getPos());
-//        store.writePage(firstOverflowPageId, overflow);
+        PageDataLeafOverflow overflow = index.getPageOverflow(firstOverflowPageId, this, 0);
+        overflow.setParent(getPos());
+        index.getPageStore().updateRecord(overflow, true, null);
     }
 
     boolean remove(int key) throws SQLException {
@@ -299,17 +284,7 @@ class PageDataLeaf extends PageData {
             PageStore store = index.getPageStore();
             int next = firstOverflowPageId;
             do {
-                Record record = store.getRecord(next);
-                PageDataLeafOverflow page;
-                if (record == null) {
-                    DataPage data = store.readPage(next);
-                    page = new PageDataLeafOverflow(this, next, data, 0);
-                } else {
-                    if (!(record instanceof PageDataLeafOverflow)) {
-                        throw Message.getInternalError("page:"+ next + " " + record, null);
-                    }
-                    page = (PageDataLeafOverflow) record;
-                }
+                PageDataLeafOverflow page = index.getPageOverflow(next, this, 0);
                 store.freePage(next, false, null);
                 next = page.getNextOverflow();
             } while (next != 0);

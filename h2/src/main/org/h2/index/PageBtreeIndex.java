@@ -11,7 +11,6 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
-import org.h2.message.TraceSystem;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.DataPage;
@@ -39,16 +38,11 @@ public class PageBtreeIndex extends BaseIndex {
     public PageBtreeIndex(TableData table, int id, String indexName, IndexColumn[] columns,
             IndexType indexType, int headPos, Session session) throws SQLException {
         initBaseIndex(table, id, indexName, columns, indexType);
-        int test;
-// trace.setLevel(TraceSystem.DEBUG);
-        if (database.isMultiVersion()) {
-            int todoMvcc;
-        }
+        // trace.setLevel(TraceSystem.DEBUG);
         tableData = table;
         if (!database.isPersistent() || id < 0) {
-            int todo;
             this.headPos = 0;
-            return;
+            throw Message.throwInternalError("" + indexName);
         }
         this.store = database.getPageStore();
         if (headPos == Index.EMPTY_HEAD) {
@@ -73,7 +67,6 @@ public class PageBtreeIndex extends BaseIndex {
                 // TODO test if really required
                 store.updateRecord(root, false, null);
             }
-            int reuseKeysIfManyDeleted;
         }
         if (trace.isDebugEnabled()) {
             trace.debug("opened " + getName() +" rows:"+ rowCount);
@@ -239,16 +232,14 @@ public class PageBtreeIndex extends BaseIndex {
                 }
             }
         }
-        int invalidateRowCount;
+        // TODO invalidate row count
         // setChanged(session);
         if (rowCount == 1) {
-            int todoMaybeImprove;
             removeAllRows();
         } else {
             PageBtree root = getPage(headPos);
             root.remove(row);
             rowCount--;
-            int todoReuseKeys;
         }
     }
 
@@ -322,7 +313,7 @@ public class PageBtreeIndex extends BaseIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("close");
         }
-        int writeRowCount;
+        // TODO write the row count
     }
 
     /**

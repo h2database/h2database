@@ -93,7 +93,7 @@ class PageDataNode extends PageData {
             PageData page2 = page.split(splitPoint);
             index.getPageStore().updateRecord(page, true, page.data);
             index.getPageStore().updateRecord(page2, true, page2.data);
-            addChild(x, page2.getPageId(), pivot);
+            addChild(x, page2.getPos(), pivot);
             index.getPageStore().updateRecord(this, true, data);
         }
         updateRowCount(1);
@@ -148,7 +148,7 @@ class PageDataNode extends PageData {
      */
     void init(PageData page1, int pivot, PageData page2) {
         entryCount = 1;
-        childPageIds = new int[] { page1.getPageId(), page2.getPageId() };
+        childPageIds = new int[] { page1.getPos(), page2.getPos() };
         keys = new int[] { pivot };
         check();
     }
@@ -193,7 +193,7 @@ class PageDataNode extends PageData {
             return false;
         }
         // this child is now empty
-        index.getPageStore().freePage(page.getPageId(), true, page.data);
+        index.getPageStore().freePage(page.getPos(), true, page.data);
         if (entryCount < 1) {
             // no more children - this page is empty as well
             return true;
@@ -224,7 +224,7 @@ class PageDataNode extends PageData {
             for (int child : childPageIds) {
                 PageData page = index.getPage(child, getPos());
                 if (getPos() == page.getPos()) {
-                    throw Message.throwInternalError("Page it its own child: " + getPageId());
+                    throw Message.throwInternalError("Page it its own child: " + getPos());
                 }
                 count += page.getRowCount();
             }

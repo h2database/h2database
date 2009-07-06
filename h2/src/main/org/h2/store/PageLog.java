@@ -149,8 +149,8 @@ public class PageLog {
             if (store.getRecord(firstTrunkPage) != null) {
                 // if the page is in use, don't free it
                 // TODO cleanup - this is a hack
-                int todoCleanup;
-                break;
+                // break;
+                throw Message.throwInternalError("" + store.getRecord(firstTrunkPage));
             }
             PageStreamTrunk t = new PageStreamTrunk(store, this.firstTrunkPage);
             try {
@@ -315,7 +315,7 @@ public class PageLog {
         for (int i = 0; i < columnCount; i++) {
             values[i] = data.readValue();
         }
-        int todoTableDataReadRowWithMemory;
+        // TODO maybe calculate the memory usage
         Row row = new Row(values, 0);
         row.setPos(pos);
         return row;

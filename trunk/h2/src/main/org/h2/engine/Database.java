@@ -153,7 +153,6 @@ public class Database implements DataHandler {
     private boolean multiVersion;
     private DatabaseCloser closeOnExit;
     private Mode mode = Mode.getInstance(Mode.REGULAR);
-    // TODO change in version 1.2
     private boolean multiThreaded;
     private int maxOperationMemory = SysProperties.DEFAULT_MAX_OPERATION_MEMORY;
     private boolean lobFilesInDirectories = SysProperties.LOB_FILES_IN_DIRECTORIES;

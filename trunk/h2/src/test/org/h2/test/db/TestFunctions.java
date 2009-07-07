@@ -48,6 +48,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     public void test() throws Exception {
         deleteDb("functions");
+        testDynamicArgumentAndReturn();
         testUUID();
         testDeterministic();
         testTransactionId();
@@ -57,6 +58,20 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testFunctions();
         testFileRead();
         deleteDb("functions");
+    }
+
+    private void testDynamicArgumentAndReturn() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+        stat.execute("create alias dynamic deterministic for \"" + getClass().getName() + ".dynamic\"");
+        setCount(0);
+        rs = stat.executeQuery("call dynamic(('a', 1))[0]");
+        rs.next();
+        String a = rs.getString(1);
+        assertEquals("a1", a);
+        stat.execute("drop alias dynamic");
+        conn.close();
     }
 
     private void testUUID() throws SQLException {
@@ -654,6 +669,20 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     public static UUID xorUUID(UUID a, UUID b) {
         return new UUID(a.getMostSignificantBits() ^ b.getMostSignificantBits(),
                 a.getLeastSignificantBits() ^ b.getLeastSignificantBits());
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @param args the argument list
+     * @return an array of one element
+     */
+    public static Object[] dynamic(Object[] args) {
+        StringBuilder buff = new StringBuilder();
+        for (Object a : args) {
+            buff.append(a);
+        }
+        return new Object[] { buff.toString() };
     }
 
     public void add(Object value) {

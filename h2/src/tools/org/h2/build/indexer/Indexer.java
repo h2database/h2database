@@ -243,13 +243,8 @@ public class Indexer {
                     buff.append(ws);
                 }
                 buff.append(page.id);
-                // TODO compress weight
-                // buff.append(",");
-                // buff.append(weight.value);
             }
         }
-        // TODO optimization: could support "a name=" and go to _first_
-        // occurrence, or scan page and mark
         output.println("ref['" + convertUTF(first) + "']='" + buff.toString() + "';");
         output.println("// totalRelations: " + totalRelations);
     }

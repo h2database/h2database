@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>If a pooled connection was not closed but garbage collected, a NullPointerException could occur.
+<ul><li>Result sets are now read-only except if the statement or prepared statement was created
+    with the concurrency ResultSet.CONCUR_UPDATABLE. This change is required because the old behavior
+    (all result set are updatable) violated the JDBC spec. For backward compatibility, use the
+    system property h2.defaultResultSetConcurrency.
+</li><li>New system property h2.defaultResultSetConcurrency to change the default result set concurrency.
+</li><li>JDBC: using an invalid result set type or concurrency now throws an exception.
+</li><li>If a pooled connection was not closed but garbage collected, a NullPointerException could occur.
 </li><li>Fulltext search: a NullPointerException was thrown when updating a value that
     was NULL previously.
 </li><li>The Recover tool did not work with .data.db files of the wrong size.

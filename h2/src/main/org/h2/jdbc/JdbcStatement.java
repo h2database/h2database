@@ -33,17 +33,19 @@ public class JdbcStatement extends TraceObject implements Statement {
     protected int maxRows;
     protected int fetchSize = SysProperties.SERVER_RESULT_SET_FETCH_SIZE;
     protected int updateCount;
-    protected int resultSetType;
+    protected final int resultSetType;
+    protected final int resultSetConcurrency;
     protected boolean closedByResultSet;
     private CommandInterface executingCommand;
     private ObjectArray<String> batchCommands;
     private boolean escapeProcessing = true;
 
-    JdbcStatement(JdbcConnection conn, int resultSetType, int id, boolean closeWithResultSet) {
+    JdbcStatement(JdbcConnection conn, int id, int resultSetType, int resultSetConcurrency, boolean closeWithResultSet) {
         this.conn = conn;
         this.session = conn.getSession();
         setTrace(session.getTrace(), TraceObject.STATEMENT, id);
         this.resultSetType = resultSetType;
+        this.resultSetConcurrency = resultSetConcurrency;
         this.closedByResultSet = closeWithResultSet;
     }
 
@@ -68,6 +70,7 @@ public class JdbcStatement extends TraceObject implements Statement {
                 CommandInterface command = conn.prepareCommand(sql, fetchSize);
                 ResultInterface result;
                 boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
+                boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
                 setExecutingStatement(command);
                 try {
                     result = command.executeQuery(maxRows, scrollable);
@@ -75,7 +78,7 @@ public class JdbcStatement extends TraceObject implements Statement {
                     setExecutingStatement(null);
                 }
                 command.close();
-                resultSet = new JdbcResultSet(conn, this, result, id, closedByResultSet, scrollable);
+                resultSet = new JdbcResultSet(conn, this, result, id, closedByResultSet, scrollable, updatable);
             }
             return resultSet;
         } catch (Exception e) {
@@ -151,8 +154,9 @@ public class JdbcStatement extends TraceObject implements Statement {
                     if (command.isQuery()) {
                         returnsResultSet = true;
                         boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
+                        boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
                         ResultInterface result = command.executeQuery(maxRows, scrollable);
-                        resultSet = new JdbcResultSet(conn, this, result, id, closedByResultSet, scrollable);
+                        resultSet = new JdbcResultSet(conn, this, result, id, closedByResultSet, scrollable, updatable);
                     } else {
                         returnsResultSet = false;
                         updateCount = command.executeUpdate();
@@ -415,14 +419,13 @@ public class JdbcStatement extends TraceObject implements Statement {
     /**
      * Gets the result set concurrency created by this object.
      *
-     * @return ResultSet.CONCUR_UPDATABLE
-     * @throws SQLException if this object is closed
+     * @return the concurrency
      */
     public int getResultSetConcurrency() throws SQLException {
         try {
             debugCodeCall("getResultSetConcurrency");
             checkClosed();
-            return ResultSet.CONCUR_UPDATABLE;
+            return resultSetConcurrency;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -646,7 +649,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             }
             checkClosed();
             ResultInterface result = conn.getGeneratedKeys();
-            ResultSet rs = new JdbcResultSet(conn, this, result, id, false, true);
+            ResultSet rs = new JdbcResultSet(conn, this, result, id, false, true, false);
             return rs;
         } catch (Exception e) {
             throw logAndConvert(e);

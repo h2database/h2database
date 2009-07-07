@@ -66,9 +66,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     private CommandInterface command;
     private ObjectArray<Value[]> batchParameters;
 
-    JdbcPreparedStatement(JdbcConnection conn, String sql, int resultSetType, int id,
-                boolean closeWithResultSet) throws SQLException {
-        super(conn, resultSetType, id, closeWithResultSet);
+    JdbcPreparedStatement(JdbcConnection conn, String sql, int id, int resultSetType,
+                int resultSetConcurrency, boolean closeWithResultSet) throws SQLException {
+        super(conn, id, resultSetType, resultSetConcurrency, closeWithResultSet);
         setTrace(session.getTrace(), TraceObject.PREPARED_STATEMENT, id);
         this.sql = sql;
         command = conn.prepareCommand(sql, fetchSize);
@@ -92,6 +92,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             closeOldResultSet();
             ResultInterface result;
             boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
+            boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
             synchronized (session) {
                 try {
                     setExecutingStatement(command);
@@ -100,7 +101,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                     setExecutingStatement(null);
                 }
             }
-            resultSet = new JdbcResultSet(conn, this, result, id, closedByResultSet, scrollable);
+            resultSet = new JdbcResultSet(conn, this, result, id, closedByResultSet, scrollable, updatable);
             return resultSet;
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -168,8 +169,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                     if (command.isQuery()) {
                         returnsResultSet = true;
                         boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
+                        boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
                         ResultInterface result = command.executeQuery(maxRows, scrollable);
-                        resultSet = new JdbcResultSet(conn, this, result, id, closedByResultSet, scrollable);
+                        resultSet = new JdbcResultSet(conn, this, result, id, closedByResultSet, scrollable, updatable);
                     } else {
                         returnsResultSet = false;
                         updateCount = command.executeUpdate();

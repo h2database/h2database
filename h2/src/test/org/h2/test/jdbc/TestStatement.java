@@ -172,7 +172,7 @@ public class TestStatement extends TestBase {
         Statement stat2 = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT);
         assertEquals(ResultSet.TYPE_SCROLL_SENSITIVE, stat2.getResultSetType());
         assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, stat2.getResultSetHoldability());
-        assertEquals(ResultSet.CONCUR_UPDATABLE, stat2.getResultSetConcurrency());
+        assertEquals(ResultSet.CONCUR_READ_ONLY, stat2.getResultSetConcurrency());
         assertEquals(0, stat.getMaxFieldSize());
         assertTrue(!((JdbcStatement) stat2).isClosed());
         stat2.close();
@@ -195,7 +195,7 @@ public class TestStatement extends TestBase {
         if (config.jdk14) {
             assertEquals(stat.getResultSetHoldability(), ResultSet.HOLD_CURSORS_OVER_COMMIT);
         }
-        assertEquals(stat.getResultSetConcurrency(), ResultSet.CONCUR_UPDATABLE);
+        assertEquals(stat.getResultSetConcurrency(), ResultSet.CONCUR_READ_ONLY);
 
         stat.cancel();
         stat.setQueryTimeout(10);

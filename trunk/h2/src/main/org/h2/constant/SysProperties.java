@@ -6,6 +6,7 @@
  */
 package org.h2.constant;
 
+import java.sql.ResultSet;
 import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.util.MathUtils;
@@ -179,6 +180,14 @@ public class SysProperties {
      * The default for the setting MAX_OPERATION_MEMORY.
      */
     public static final int DEFAULT_MAX_OPERATION_MEMORY = getIntSetting("h2.defaultMaxOperationMemory", 100000);
+
+    /**
+     * System property <code>h2.defaultResultSetConcurrency</code> (default:
+     * ResultSet.CONCUR_READ_ONLY).<br />
+     * The default result set concurrency for statements created with
+     * Connection.createStatement() or prepareStatement(String sql).
+     */
+    public static final int DEFAULT_RESULT_SET_CONCURRENCY = getIntSetting("h2.defaultResultSetConcurrency", ResultSet.CONCUR_READ_ONLY);
 
     /**
      * System property <code>h2.dataSourceTraceLevel</code> (default: 1).<br />

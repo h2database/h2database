@@ -911,6 +911,7 @@ public class TestResultSet extends TestBase {
         trace("Test CLOB");
         ResultSet rs;
         String string;
+        Statement stat = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE CLOB)");
         stat.execute("INSERT INTO TEST VALUES(1,'Test')");
         stat.execute("INSERT INTO TEST VALUES(2,'Hello')");

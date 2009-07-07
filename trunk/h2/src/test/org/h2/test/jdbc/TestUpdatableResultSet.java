@@ -76,7 +76,7 @@ public class TestUpdatableResultSet extends TestBase {
     private void testUpdateResetRead() throws SQLException {
         deleteDb("updatableResultSet");
         Connection conn = getConnection("updatableResultSet");
-        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         stat.execute("INSERT INTO TEST VALUES(2, 'World')");
@@ -208,7 +208,7 @@ public class TestUpdatableResultSet extends TestBase {
     private void testUpdateDataType() throws SQLException {
         deleteDb("updatableResultSet");
         Connection conn = getConnection("updatableResultSet");
-        Statement stat = conn.createStatement();
+        Statement stat = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), "
                 + "DEC DECIMAL(10,2), BOO BIT, BYE TINYINT, BIN BINARY(100), "
                 + "D DATE, T TIME, TS TIMESTAMP, DB DOUBLE, R REAL, L BIGINT, "
@@ -347,7 +347,7 @@ public class TestUpdatableResultSet extends TestBase {
         deleteDb("updatableResultSet");
         Connection c1 = getConnection("updatableResultSet");
         Connection c2 = getConnection("updatableResultSet");
-        Statement stat = c1.createStatement();
+        Statement stat = c1.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         int max = 8;

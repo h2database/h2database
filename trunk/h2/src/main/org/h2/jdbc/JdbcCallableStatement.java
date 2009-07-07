@@ -35,9 +35,9 @@ import org.h2.message.TraceObject;
  */
 public class JdbcCallableStatement extends JdbcPreparedStatement implements CallableStatement {
 
-    JdbcCallableStatement(JdbcConnection conn, String sql, int resultSetType, int id)
+    JdbcCallableStatement(JdbcConnection conn, String sql, int id, int resultSetType, int resultSetConcurrency)
             throws SQLException {
-        super(conn, sql, resultSetType, id, false);
+        super(conn, sql, id, resultSetType, resultSetConcurrency, false);
         setTrace(session.getTrace(), TraceObject.CALLABLE_STATEMENT, id);
     }
 

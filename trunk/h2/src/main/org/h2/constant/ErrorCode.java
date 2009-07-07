@@ -1706,7 +1706,9 @@ public class ErrorCode {
     /**
      * The error with code <code>90127</code> is thrown when
      * trying to update or delete a row in a result set if the result set is
-     * not updatable.
+     * not updatable. Result sets are only updatable if the statement was
+     * created with updatable concurrency, and if the result set contains
+     * all columns of the primary key or of a unique index of a table.
      */
     public static final int RESULT_SET_NOT_UPDATABLE = 90127;
 
@@ -1854,6 +1856,15 @@ public class ErrorCode {
      * </pre>
      */
     public static final int PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1 = 90139;
+
+    /**
+     * The error with code <code>90140</code> is thrown when trying to update or
+     * delete a row in a result set if the statement was not created with
+     * updatable concurrency. Result sets are only updatable if the statement
+     * was created with updatable concurrency, and if the result set contains
+     * all columns of the primary key or of a unique index of a table.
+     */
+    public static final int RESULT_SET_READONLY = 90140;
 
     // next is 90140
 

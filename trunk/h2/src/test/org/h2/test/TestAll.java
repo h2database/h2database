@@ -285,30 +285,15 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
-//        System.setProperty("h2.pageStore", "true");
+        // System.setProperty("h2.pageStore", "true");
 
 /*
 
-Console: Start Browser: if ip number changed, try localhost
-
-test case for running out of disk space (using a special file system)
-
-auto-build: prepare release
+create a short documentation
 
 documentation: rolling review at roadmap.html: done
 
-create a short documentation
-
-test performance with log=2
-
 remove old TODO, move to roadmap
-
-TestMVCC:
-Concurrent update in table test: another transaction has updated or
-deleted the same row when exactly does it occur in other databases
-(PostgreSQL, Oracle)?
-
-CREATE FUNCTION? Function interface; HSQLDB compatibility
 
 kill a specific java process:
 kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`

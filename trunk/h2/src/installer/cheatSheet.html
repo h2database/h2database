@@ -86,14 +86,14 @@ li {
 <div style="float:left; margin:5px; width:320px;">
 
 <h2>Using H2</h2>
-<ul><li>Download the
+<ul><li>H2 is open source, free to use and distribute.
+</li><li>Download the
     <a href="http://repo1.maven.org/maven2/com/h2database/h2/1.1.111/h2-1.1.111.jar">jar file</a>,
     <a href="http://www.h2database.com/h2-setup-2009-04-10.exe">Windows installer</a>, or
     <a href="http://www.h2database.com/h2-2009-04-10.zip">zip file</a>.
 </li><li>To start the H2 Console tool, double click the jar file, or run <code>java -jar h2*.jar</code>, <code>h2.bat</code> or <code>h2.sh</code>.
 </li><li>A new database is automatically created if it does not yet exist.
 </li><li>Closing the last connection closes a database.
-</li><li>H2 is open source, free to use and distribute.
 </li></ul>
 
 <h2>Database URLs</h2>
@@ -105,7 +105,7 @@ li {
 </p><p>
 <b>In-Memory</b><br />
 <code>jdbc:h2:mem:test</code> multiple connections in one process<br />
-<code>jdbc:h2:mem:</code> unnamed private database; one connection<br />
+<code>jdbc:h2:mem:</code> unnamed private; one connection<br />
 </p><p>
 <b>Server Mode</b><br />
 <code>jdbc:h2:tcp://localhost/~/test</code> user home dir<br />
@@ -113,7 +113,7 @@ li {
 </p><p>
 <b>Settings</b><br />
 <code>jdbc:h2:..;MODE=MySQL</code> compatibility (or HSQLDB,...)<br />
-<code>jdbc:h2:..;TRACE_LEVEL_FILE=3</code> log to .trace.db<br />
+<code>jdbc:h2:..;TRACE_LEVEL_FILE=3</code> log to *.trace.db<br />
 </p>
 
 <h2>Documentation</h2>
@@ -157,15 +157,6 @@ conn.close(); cp.dispose();
 java -cp h2*.jar org.h2.tools.Server
 </pre>
 
-<h2>Hibernate</h2>
-In the file hibernate.cfg.xml, set:
-<pre>
-&lt;property name="dialect"&gt;
-    org.hibernate.dialect.H2Dialect
-&lt;/property&gt;
-</pre>
-As an alternative, use the HSQLDialect.
-
 <h2>Maven</h2>
 <pre>
 &lt;dependency&gt;
@@ -175,9 +166,17 @@ As an alternative, use the HSQLDialect.
 &lt;/dependency&gt;
 </pre>
 
+<h2>Hibernate</h2>
+hibernate.cfg.xml (or use the HSQLDialect):
+<pre>
+&lt;property name="dialect"&gt;
+    org.hibernate.dialect.H2Dialect
+&lt;/property&gt;
+</pre>
+
 <h2>TopLink and Glassfish</h2>
-Datasource Classname: org.h2.jdbcx.JdbcDataSource
-toplink.target-database: oracle.toplink.essentials.platform.database.H2Platform
+datasource classname: org.h2.jdbcx.JdbcDataSource<br />
+oracle.toplink.essentials.platform.database.H2Platform
 
 </div>
 

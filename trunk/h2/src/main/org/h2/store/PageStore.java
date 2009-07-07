@@ -113,6 +113,8 @@ public class PageStore implements CacheWriter {
     // TODO space re-use: run TestPerformance multiple times, size should stay
     // TODO when inserting many rows, do not split at (entryCount / 2) + 1
     // TODO maybe split at the last insertion point
+    // TODO test running out of disk space (using a special file system)
+    // TODO check for file size (exception if not exact size expected)
 
     // TODO when removing DiskFile:
     // remove CacheObject.blockCount
@@ -1047,7 +1049,8 @@ public class PageStore implements CacheWriter {
 //        s2 += s1 += d[ps - 1] & 255;
 //        if (d[5] != (byte) (((s1 & 255) + (s1 >> 8)) ^ pos)
 //                || d[6] != (byte) (((s2 & 255) + (s2 >> 8)) ^ (pos >> 8))) {
-//            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
+//            throw Message.getSQLException(
+//                ErrorCode.FILE_CORRUPTED_1, "wrong checksum");
 //        }
 //    }
 

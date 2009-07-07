@@ -1740,8 +1740,6 @@ public class Parser {
                 Expression condHigh = new Comparison(session, Comparison.BIGGER_EQUAL, high, r);
                 r = new ConditionAndOr(ConditionAndOr.AND, condLow, condHigh);
             } else {
-                // TODO parser: if we use a switch case, we don't need
-                // getCompareType any more
                 int compareType = getCompareType(currentTokenType);
                 if (compareType < 0) {
                     break;
@@ -1910,8 +1908,6 @@ public class Parser {
     private JavaFunction readJavaFunction(String name) throws SQLException {
         FunctionAlias functionAlias = database.findFunctionAlias(name);
         if (functionAlias == null) {
-            // TODO compatibility: support 'on the fly java functions' as HSQLDB
-            // ( CALL "java.lang.Math.sqrt"(2.0) )
             throw Message.getSQLException(ErrorCode.FUNCTION_NOT_FOUND_1, name);
         }
         Expression[] args;
@@ -2800,7 +2796,6 @@ public class Parser {
         command[len] = ' ';
         int startLoop = 0;
         int lastType = 0;
-        // TODO optimization in parser: could remember the length of each token
         for (int i = 0; i < len; i++) {
             char c = command[i];
             int type = 0;

@@ -4,7 +4,7 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.server;
+package org.h2.test.unit;
 
 import java.sql.Connection;
 import java.sql.Driver;

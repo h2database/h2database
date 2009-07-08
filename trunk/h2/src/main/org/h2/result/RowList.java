@@ -81,7 +81,7 @@ public class RowList {
     private void writeAllRows() throws SQLException {
         if (file == null) {
             Database db = session.getDatabase();
-            if (!SysProperties.PAGE_STORE) {
+            if (!db.isPageStoreEnabled()) {
                 cache = db.getDataFile().getCache();
             }
             String fileName = db.createTempFile();

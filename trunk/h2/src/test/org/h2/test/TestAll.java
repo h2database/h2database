@@ -9,6 +9,7 @@ package org.h2.test;
 import java.sql.SQLException;
 import java.util.Properties;
 import org.h2.Driver;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileSystemDisk;
 import org.h2.test.bench.TestPerformance;
@@ -80,10 +81,8 @@ import org.h2.test.mvcc.TestMvcc2;
 import org.h2.test.mvcc.TestMvcc3;
 import org.h2.test.mvcc.TestMvccMultiThreaded;
 import org.h2.test.rowlock.TestRowLocks;
-import org.h2.test.server.TestAutoReconnect;
 import org.h2.test.server.TestAutoServer;
 import org.h2.test.server.TestNestedLoop;
-import org.h2.test.server.TestPgServer;
 import org.h2.test.server.TestWeb;
 import org.h2.test.synth.TestBtreeIndex;
 import org.h2.test.synth.TestCrashAPI;
@@ -99,6 +98,7 @@ import org.h2.test.synth.TestTimer;
 import org.h2.test.synth.sql.TestSynth;
 import org.h2.test.synth.thread.TestMulti;
 import org.h2.test.unit.SelfDestructor;
+import org.h2.test.unit.TestAutoReconnect;
 import org.h2.test.unit.TestBitField;
 import org.h2.test.unit.TestCache;
 import org.h2.test.unit.TestClearReferences;
@@ -117,6 +117,7 @@ import org.h2.test.unit.TestMathUtils;
 import org.h2.test.unit.TestMultiThreadedKernel;
 import org.h2.test.unit.TestOverflow;
 import org.h2.test.unit.TestPattern;
+import org.h2.test.unit.TestPgServer;
 import org.h2.test.unit.TestReader;
 import org.h2.test.unit.TestRecovery;
 import org.h2.test.unit.TestSampleApps;
@@ -161,6 +162,11 @@ java -cp . org.h2.test.TestAll crash >testCrash.txt
 java org.h2.test.TestAll timer
 
 */
+
+    /**
+     * If the test should run with the page store flag.
+     */
+    public boolean pageStore;
 
     /**
      * If the test should run with many rows.
@@ -285,8 +291,6 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
-        // System.setProperty("h2.pageStore", "true");
-
 /*
 
 create a short documentation
@@ -328,7 +332,13 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
                 new TestTimer().runTest(test);
             }
         } else {
+            System.setProperty(SysProperties.H2_PAGE_STORE, "false");
+            test.pageStore = false;
             test.runTests();
+            System.setProperty(SysProperties.H2_PAGE_STORE, "true");
+            test.pageStore = true;
+            int todo;
+//            test.runTests();
             TestPerformance.main(new String[]{ "-init", "-db", "1"});
         }
         System.out.println(TestBase.formatTime(System.currentTimeMillis() - time) + " total");
@@ -508,11 +518,9 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
         new TestXASimple().runTest(this);
 
         // server
-        new TestAutoReconnect().runTest(this);
         new TestAutoServer().runTest(this);
         new TestNestedLoop().runTest(this);
         new TestWeb().runTest(this);
-        new TestPgServer().runTest(this);
 
         // mvcc & row level locking
         new TestMvcc1().runTest(this);
@@ -534,6 +542,7 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
     }
 
     private void testUnit() {
+        new TestAutoReconnect().runTest(this);
         new TestBitField().runTest(this);
         new TestCache().runTest(this);
         new TestClearReferences().runTest(this);
@@ -552,6 +561,7 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
         new TestMultiThreadedKernel().runTest(this);
         new TestOverflow().runTest(this);
         new TestPattern().runTest(this);
+        new TestPgServer().runTest(this);
         new TestReader().runTest(this);
         new TestRecovery().runTest(this);
         new TestSampleApps().runTest(this);
@@ -635,6 +645,7 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
 
     public String toString() {
         StringBuilder buff = new StringBuilder();
+        appendIf(buff, pageStore, "pageStore");
         appendIf(buff, big, "big");
         appendIf(buff, networked, "net");
         appendIf(buff, memory, "memory");
@@ -664,4 +675,5 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
             buff.append(' ');
         }
     }
+
 }

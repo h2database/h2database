@@ -162,6 +162,7 @@ public class Database implements DataHandler {
     private HashMap<TableLinkConnection, TableLinkConnection> linkConnections;
     private TempFileDeleter tempFileDeleter = TempFileDeleter.getInstance();
     private PageStore pageStore;
+    private boolean usePageStore;
 
     private Properties reconnectLastLock;
     private volatile long reconnectCheckNext;
@@ -178,6 +179,7 @@ public class Database implements DataHandler {
         this.accessModeLog = ci.getProperty("ACCESS_MODE_LOG", "rw").toLowerCase();
         this.accessModeData = ci.getProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
+        this.usePageStore = ci.getProperty("PAGE_STORE", SysProperties.getPageStore());
         if ("r".equals(accessModeData)) {
             readOnly = true;
             accessModeLog = "r";
@@ -453,10 +455,7 @@ public class Database implements DataHandler {
      * @return true if one exists
      */
     public static boolean exists(String name) {
-        if (SysProperties.PAGE_STORE) {
-            return FileUtils.exists(name + Constants.SUFFIX_PAGE_FILE);
-        }
-        return FileUtils.exists(name + Constants.SUFFIX_DATA_FILE);
+        return FileUtils.exists(name + Constants.SUFFIX_PAGE_FILE) | FileUtils.exists(name + Constants.SUFFIX_DATA_FILE);
     }
 
     /**
@@ -530,10 +529,12 @@ public class Database implements DataHandler {
 
     private synchronized void open(int traceLevelFile, int traceLevelSystemOut) throws SQLException {
         if (persistent) {
-            boolean exists;
-            if (SysProperties.PAGE_STORE) {
-                String pageFileName = databaseName + Constants.SUFFIX_PAGE_FILE;
-                exists = FileUtils.exists(pageFileName);
+            String pageFileName = databaseName + Constants.SUFFIX_PAGE_FILE;
+            boolean exists = FileUtils.exists(pageFileName);
+            if (exists) {
+                usePageStore = true;
+            }
+            if (usePageStore) {
                 if (exists && FileUtils.isReadOnly(pageFileName)) {
                     readOnly = true;
                 }
@@ -577,7 +578,7 @@ public class Database implements DataHandler {
             }
             dummy = DataPage.create(this, 0);
             deleteOldTempFiles();
-            if (SysProperties.PAGE_STORE) {
+            if (usePageStore) {
                 starting = true;
                 getPageStore();
                 starting = false;
@@ -2218,12 +2219,16 @@ public class Database implements DataHandler {
     }
 
     public PageStore getPageStore() throws SQLException {
-        if (pageStore == null && SysProperties.PAGE_STORE) {
+        if (pageStore == null && usePageStore) {
             pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData,
                     SysProperties.CACHE_SIZE_DEFAULT);
             pageStore.open();
         }
         return pageStore;
+    }
+
+    public boolean isPageStoreEnabled() {
+        return usePageStore;
     }
 
     /**
@@ -2347,12 +2352,12 @@ public class Database implements DataHandler {
      * Flush all changes and open a new log file.
      */
     public void checkpoint() throws SQLException {
-        if (SysProperties.PAGE_STORE) {
-            if (persistent) {
+        if (persistent) {
+            if (pageStore != null) {
                 pageStore.checkpoint();
             }
+            getLog().checkpoint();
         }
-        getLog().checkpoint();
         getTempFileDeleter().deleteUnused();
     }
 

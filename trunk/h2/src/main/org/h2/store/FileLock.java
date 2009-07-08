@@ -100,6 +100,7 @@ public class FileLock {
     private Properties properties;
     private boolean locked;
     private String uniqueId;
+    private Thread watchdog;
 
     /**
      * Create a new file locking object.
@@ -190,13 +191,6 @@ public class FileLock {
             unlock();
         }
     }
-
-//    void kill() {
-//        socket = null;
-//        file = null;
-//        locked = false;
-//        trace("killed", null);
-//    }
 
     /**
      * Save the lock file.
@@ -348,7 +342,7 @@ public class FileLock {
             fileName = null;
             throw getExceptionFatal("Concurrent update", null);
         }
-        Thread watchdog = new Thread(new Runnable() {
+        watchdog = new Thread(new Runnable() {
             public void run() {
                 try {
                     while (fileName != null) {
@@ -440,7 +434,7 @@ public class FileLock {
             return;
         }
         save();
-        Thread watchdog = new Thread(new Runnable() {
+        watchdog = new Thread(new Runnable() {
             public void run() {
                 while (socket != null) {
                     try {

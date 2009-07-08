@@ -72,7 +72,7 @@ public class TableData extends Table implements RecordReader {
         setColumns(cols);
         this.clustered = clustered;
         if (!clustered) {
-            if (SysProperties.PAGE_STORE && persistData && database.isPersistent()) {
+            if (database.isPageStoreEnabled() && persistData && database.isPersistent()) {
                 scanIndex = new PageScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistData), headPos, session);
             } else {
                 scanIndex = new ScanIndex(this, id, IndexColumn.wrap(cols), IndexType.createScan(persistData));
@@ -179,7 +179,7 @@ public class TableData extends Table implements RecordReader {
         }
         Index index;
         if (isPersistIndexes() && indexType.getPersistent()) {
-            if (SysProperties.PAGE_STORE) {
+            if (database.isPageStoreEnabled()) {
                 index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, headPos, session);
             } else {
                 index = new BtreeIndex(session, this, indexId, indexName, cols, indexType, headPos);
@@ -242,7 +242,7 @@ public class TableData extends Table implements RecordReader {
             }
             // must not do this when using the page store
             // because recovery is not done yet
-            if (!SysProperties.PAGE_STORE) {
+            if (!database.isPageStoreEnabled()) {
                 // need to update, because maybe the index is rebuilt at startup,
                 // and so the head pos may have changed, which needs to be stored now.
                 // addSchemaObject doesn't update the sys table at startup

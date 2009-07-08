@@ -13,11 +13,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -71,7 +69,7 @@ public class BackupCommand extends Prepared {
                 log.flush();
                 log.updateKeepFiles(1);
                 String fn;
-                if (SysProperties.PAGE_STORE) {
+                if (db.isPageStoreEnabled()) {
                     fn = db.getName() + Constants.SUFFIX_PAGE_FILE;
                     backupPageStore(out, fn, db.getPageStore());
                 } else {
@@ -84,7 +82,7 @@ public class BackupCommand extends Prepared {
                 // creation / deletion / backup
                 String base = FileUtils.getParent(fn);
                 synchronized (db.getLobSyncObject()) {
-                    if (!SysProperties.PAGE_STORE) {
+                    if (!db.isPageStoreEnabled()) {
                         ObjectArray<LogFile> list = log.getActiveLogFiles();
                         int max = list.size();
                         for (int i = 0; i < list.size(); i++) {

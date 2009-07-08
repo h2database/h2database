@@ -179,7 +179,7 @@ public class TestPowerOff extends TestBase {
         } catch (SQLException e) {
             assertKnownException(e);
         }
-        if (!SysProperties.PAGE_STORE) {
+        if (!config.pageStore) {
             boolean deleted = false;
             for (String fileName : FileLister.getDatabaseFiles(dir, dbName, false)) {
                 if (fileName.endsWith(Constants.SUFFIX_INDEX_FILE)) {

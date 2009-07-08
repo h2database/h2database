@@ -51,13 +51,13 @@ public class TestDataSource extends TestBase {
     public void test() throws Exception {
         testDataSource();
         testXAConnection();
-        deleteDb(baseDir, "dataSource");
+        deleteDb("dataSource");
     }
 
     private void testXAConnection() throws Exception {
-        deleteDb(baseDir, "dataSource");
+        deleteDb("dataSource");
         JdbcDataSource ds = new JdbcDataSource();
-        ds.setURL("jdbc:h2:" + baseDir + "/dataSource");
+        ds.setURL(getURL("dataSource", true));
         XAConnection xaConn = ds.getXAConnection();
         xaConn.addConnectionEventListener(new ConnectionEventListener() {
             public void connectionClosed(ConnectionEvent event) {
@@ -79,9 +79,9 @@ public class TestDataSource extends TestBase {
     }
 
     private void testDataSource() throws SQLException {
-        deleteDb(baseDir, "dataSource");
+        deleteDb("dataSource");
         JdbcDataSource ds = new JdbcDataSource();
-        ds.setURL("jdbc:h2:" + baseDir + "/dataSource");
+        ds.setURL(getURL("dataSource", true));
         ds.setUser("sa");
         Connection conn = ds.getConnection();
         Statement stat = conn.createStatement();

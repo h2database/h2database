@@ -25,8 +25,6 @@ public class TestXA extends TestBase {
 
     private static final String DB_NAME1 = "xadb1";
     private static final String DB_NAME2 = "xadb2";
-    private static final String DB_URL1 = "jdbc:h2:file:" + baseDir + "/" + DB_NAME1;
-    private static final String DB_URL2 = "jdbc:h2:file:" + baseDir + "/" + DB_NAME2;
 
     /**
      * Run just this test.
@@ -39,14 +37,14 @@ public class TestXA extends TestBase {
 
     public void test() throws Exception {
         testXAAutoCommit();
-        deleteDb(baseDir, "xa");
+        deleteDb("xa");
         testXA(true);
-        deleteDb(baseDir, DB_NAME1);
-        deleteDb(baseDir, DB_NAME2);
+        deleteDb(DB_NAME1);
+        deleteDb(DB_NAME2);
         testXA(false);
-        deleteDb(baseDir, "xa");
-        deleteDb(baseDir, DB_NAME1);
-        deleteDb(baseDir, DB_NAME2);
+        deleteDb("xa");
+        deleteDb(DB_NAME1);
+        deleteDb(DB_NAME2);
     }
 
     /**
@@ -81,6 +79,9 @@ public class TestXA extends TestBase {
     }
 
     private void testXA(boolean useOneDatabase) {
+        String url1 = getURL(DB_NAME1, true);
+        String url2 = getURL(DB_NAME2, true);
+
         XAConnection xaConn1 = null;
         XAConnection xaConn2 = null;
         Connection conn1 = null;
@@ -89,9 +90,9 @@ public class TestXA extends TestBase {
         Statement stat2 = null;
         try {
             trace("xads1 = createXADatasource1()");
-            XADataSource xaDs1 = createXADatasource(useOneDatabase, DB_URL1);
+            XADataSource xaDs1 = createXADatasource(useOneDatabase, url1);
             trace("xads2 = createXADatasource2()");
-            XADataSource xaDs2 = createXADatasource(useOneDatabase, DB_URL2);
+            XADataSource xaDs2 = createXADatasource(useOneDatabase, url2);
 
             trace("xacon1 = xads1.getXAConnection()");
             xaConn1 = xaDs1.getXAConnection();

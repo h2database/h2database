@@ -7,8 +7,6 @@
 package org.h2.result;
 
 import java.sql.SQLException;
-
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.index.BtreeIndex;
@@ -54,7 +52,7 @@ public class ResultTempTable implements ResultExternal {
         IndexType indexType;
         indexType = IndexType.createPrimaryKey(true, false);
         IndexColumn[] indexCols = new IndexColumn[]{indexColumn};
-        if (SysProperties.PAGE_STORE) {
+        if (session.getDatabase().isPageStoreEnabled()) {
             index = new PageBtreeIndex(table, indexId, tableName, indexCols, indexType, Index.EMPTY_HEAD, session);
         } else {
             index = new BtreeIndex(session, table, indexId, tableName, indexCols, indexType, Index.EMPTY_HEAD);

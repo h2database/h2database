@@ -40,12 +40,12 @@ public class TestXASimple extends TestBase {
         JdbcDataSource ds1 = new JdbcDataSource();
         ds1.setPassword("");
         ds1.setUser("sa");
-        ds1.setURL("jdbc:h2:" + baseDir + "/xaSimple1");
+        ds1.setURL(getURL("xaSimple1", true));
 
         JdbcDataSource ds2 = new JdbcDataSource();
         ds2.setPassword("");
         ds2.setUser("sa");
-        ds2.setURL("jdbc:h2:" + baseDir + "/xaSimple2");
+        ds2.setURL(getURL("xaSimple2", true));
 
         // UserTransaction ut = (UserTransaction)
         // context.lookup("UserTransaction");

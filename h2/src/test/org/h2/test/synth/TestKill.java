@@ -48,7 +48,7 @@ public class TestKill extends TestBase {
         String password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);
         String[] procDef = new String[] {
-                "java", selfDestruct,
+                "java", selfDestruct, getPageStoreProperty(),
                 "-cp", getClassPath(),
                 "org.h2.test.synth.TestKillProcess", url, user,
                 password, baseDir, "" + accounts };
@@ -57,7 +57,7 @@ public class TestKill extends TestBase {
             printTime("TestKill " + i);
             if (i % 10 == 0) {
                 trace("deleting db...");
-                deleteDb(baseDir, "kill");
+                deleteDb("kill");
             }
             conn = getConnection(url);
             createTables();

@@ -36,15 +36,14 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
 
     public void test() throws Exception {
         testCloseDelay();
-        testBackup(false);
-        testBackup(true);
+        testBackup();
         testCase();
         testReconnectFast();
         deleteDb("openClose");
     }
 
     private void testCloseDelay() throws Exception {
-        deleteDb(baseDir, "openClose");
+        deleteDb("openClose");
         String url = getURL("openClose;DB_CLOSE_DELAY=1", true);
         String user = getUser(), password = getPassword();
         Connection conn = DriverManager.getConnection(url, user, password);
@@ -60,14 +59,9 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         conn.close();
     }
 
-    private void testBackup(boolean encrypt) throws SQLException {
-        deleteDb(baseDir, "openClose");
-        String url;
-        if (encrypt) {
-            url = "jdbc:h2:" + baseDir + "/openClose;CIPHER=XTEA";
-        } else {
-            url = "jdbc:h2:" + baseDir + "/openClose";
-        }
+    private void testBackup() throws SQLException {
+        deleteDb("openClose");
+        String url = getURL("openClose", true);
         org.h2.Driver.load();
         Connection conn = DriverManager.getConnection(url, "sa", "abc def");
         Statement stat = conn.createStatement();
@@ -75,7 +69,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         stat.execute("INSERT INTO TEST VALUES(SPACE(10000))");
         stat.execute("BACKUP TO '" + baseDir + "/test.zip'");
         conn.close();
-        deleteDb(baseDir, "openClose");
+        deleteDb("openClose");
         Restore.execute(baseDir + "/test.zip", baseDir, null, true);
         conn = DriverManager.getConnection(url, "sa", "abc def");
         stat = conn.createStatement();
@@ -88,9 +82,9 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
     }
 
     private void testReconnectFast() throws SQLException {
-        deleteDb(baseDir, "openClose");
-        String url = "jdbc:h2:" + baseDir + "/openClose;DATABASE_EVENT_LISTENER='" + TestOpenClose.class.getName()
-                + "'";
+        deleteDb("openClose");
+        String url = getURL("openClose;DATABASE_EVENT_LISTENER='" + TestOpenClose.class.getName()
+                + "'", true);
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
         Statement stat = conn.createStatement();
         try {
@@ -122,8 +116,8 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
 
     private void testCase() throws Exception {
         org.h2.Driver.load();
-        deleteDb(baseDir, "openClose");
-        final String url = "jdbc:h2:" + baseDir + "/openClose;FILE_LOCK=NO";
+        deleteDb("openClose");
+        final String url = getURL("openClose;FILE_LOCK=NO", true);
         Connection conn = DriverManager.getConnection(url, "sa", "");
         conn.createStatement().execute("drop table employee if exists");
         conn.createStatement().execute("create table employee(id int primary key, name varchar, salary int)");

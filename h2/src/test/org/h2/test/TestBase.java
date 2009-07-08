@@ -250,6 +250,9 @@ public abstract class TestBase {
         if (config.cipher != null) {
             url += ";CIPHER=" + config.cipher;
         }
+        if (config.pageStore) {
+            url += ";PAGE_STORE=TRUE";
+        }
         return "jdbc:h2:" + url;
     }
 
@@ -1054,6 +1057,15 @@ public abstract class TestBase {
      */
     protected String getClassPath() {
         return "temp" + File.pathSeparator + "bin" + File.pathSeparator + ".";
+    }
+
+    /**
+     * Get the page store property to use when starting new processes.
+     *
+     * @return the property
+     */
+    public String getPageStoreProperty() {
+        return "-Dh2.pageStore=" + System.getProperty("h2.pageStore");
     }
 
 }

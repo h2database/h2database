@@ -41,7 +41,9 @@ public class TestCluster extends TestBase {
         // create the master database
         Connection conn;
         org.h2.Driver.load();
-        conn = DriverManager.getConnection("jdbc:h2:file:" + baseDir + "/node1/test", "sa", "");
+        String urlNode1 = getURL("node1/test", true);
+        String urlNode2 = getURL("node2/test", true);
+        conn = DriverManager.getConnection(urlNode1, "sa", "");
         Statement stat;
         stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
@@ -56,8 +58,8 @@ public class TestCluster extends TestBase {
         check(conn, len);
         conn.close();
 
-        CreateCluster.main(new String[] { "-urlSource", "jdbc:h2:file:" + baseDir + "/node1/test", "-urlTarget",
-                "jdbc:h2:file:" + baseDir + "/node2/test", "-user", "sa", "-serverList",
+        CreateCluster.main(new String[] { "-urlSource", urlNode1, "-urlTarget",
+                urlNode2, "-user", "sa", "-serverList",
                 "localhost:9191,localhost:9192" });
         Server n1 = org.h2.tools.Server.createTcpServer(
                 new String[] { "-tcpPort", "9191", "-baseDir", baseDir + "/node1" }).start();
@@ -97,8 +99,8 @@ public class TestCluster extends TestBase {
 
         // re-create the cluster
         DeleteDbFiles.main(new String[] { "-dir", baseDir + "/node2", "-quiet" });
-        CreateCluster.main(new String[] { "-urlSource", "jdbc:h2:file:" + baseDir + "/node1/test", "-urlTarget",
-                "jdbc:h2:file:" + baseDir + "/node2/test", "-user", "sa", "-serverList",
+        CreateCluster.main(new String[] { "-urlSource", urlNode1, "-urlTarget",
+                urlNode2, "-user", "sa", "-serverList",
                 "localhost:9191,localhost:9192" });
         n1 = org.h2.tools.Server.createTcpServer(
                 new String[] { "-tcpPort", "9191", "-baseDir", baseDir + "/node1" }).start();

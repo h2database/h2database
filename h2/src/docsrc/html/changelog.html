@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Result sets are now read-only except if the statement or prepared statement was created
+<ul><li>H2 Console: Oracle system tables are no longer listed, improving performance.
+</li><li>Result sets are now read-only except if the statement or prepared statement was created
     with the concurrency ResultSet.CONCUR_UPDATABLE. This change is required because the old behavior
     (all result set are updatable) violated the JDBC spec. For backward compatibility, use the
     system property h2.defaultResultSetConcurrency.
@@ -32,7 +33,9 @@ Change Log
     and in some cases (specially when using the Lucene fulltext index mechanism) a NullPointerException was
     thrown later on. Now the exception that occurred on init is thrown when changing data.
 </li><li>The soft-references cache (CACHE_TYPE=SOFT_LRU) could throw a NullPointerException.
-</li><li>Bugfixes in the new storage mechanism (page store).
+</li><li>To enable the new page store mechanism, append ;PAGE_STORE=TRUE to the database URL.
+    or set the system property h2.pageStore to true.
+    This mechanism is still experimental, and the file format will change.
 </li></ul>
 
 <h2>Version 1.1.115 (2009-06-21)</h2>

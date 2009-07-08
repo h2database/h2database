@@ -233,7 +233,7 @@ public abstract class TestHalt extends TestBase {
             // String classPath = "-cp
             // .;D:/data/java/hsqldb.jar;D:/data/java/derby.jar";
             String selfDestruct = SelfDestructor.getPropertyString(60);
-            String[] procDef = new String[] { "java", selfDestruct,
+            String[] procDef = new String[] { "java", selfDestruct, getPageStoreProperty(),
                     "-cp", getClassPath(),
                     getClass().getName(), "" + operations, "" + flags, "" + value};
             traceOperation("start: " + StringUtils.arrayCombine(procDef, ' '));

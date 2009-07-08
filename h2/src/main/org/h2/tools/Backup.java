@@ -14,9 +14,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import org.h2.command.dml.BackupCommand;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.store.FileLister;
@@ -108,14 +106,12 @@ public class Backup extends Tool {
             ZipOutputStream zipOut = new ZipOutputStream(fileOut);
             String base = "";
             for (String fileName : list) {
-                if (SysProperties.PAGE_STORE) {
-                    if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
-                        base = FileUtils.getParent(fileName);
-                    }
-                } else {
-                    if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
-                        base = FileUtils.getParent(fileName);
-                    }
+                if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
+                    base = FileUtils.getParent(fileName);
+                    break;
+                } else if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
+                    base = FileUtils.getParent(fileName);
+                    break;
                 }
             }
             for (String fileName : list) {

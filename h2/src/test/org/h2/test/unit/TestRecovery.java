@@ -9,7 +9,6 @@ package org.h2.test.unit;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
@@ -45,7 +44,7 @@ public class TestRecovery extends TestBase {
         conn = getConnection("recovery", "diff", "");
         stat = conn.createStatement();
         String name = "recovery.data.sql";
-        if (SysProperties.PAGE_STORE) {
+        if (config.pageStore) {
             name = "recovery.h2.sql";
         }
 

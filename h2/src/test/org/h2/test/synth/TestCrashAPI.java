@@ -229,7 +229,7 @@ public class TestCrashAPI extends TestBase {
         } catch (Throwable t) {
             printIfBad(seed, -101010, -1, t);
             try {
-                deleteDb(null, "test");
+                deleteDb();
             } catch (Throwable t2) {
                 printIfBad(seed, -101010, -1, t2);
             }

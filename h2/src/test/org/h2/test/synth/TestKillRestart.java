@@ -32,7 +32,7 @@ public class TestKillRestart extends TestBase {
         //        "killRestart;CACHE_SIZE=2048;WRITE_DELAY=0", true);
         String user = getUser(), password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);
-        String[] procDef = new String[] { "java", selfDestruct,
+        String[] procDef = new String[] { "java", selfDestruct, getPageStoreProperty(),
                 "-cp", getClassPath(),
                 getClass().getName(), "-url", url, "-user", user,
                 "-password", password };

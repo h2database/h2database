@@ -4053,6 +4053,10 @@ public class Parser {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
+        } else if (readIf("PAGE_STORE")) {
+            readIfEqualOrTo();
+            read();
+            return new NoOperation(session);
         } else if (readIf("CACHE_TYPE")) {
             readIfEqualOrTo();
             read();

@@ -19,8 +19,6 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Random;
-
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
@@ -273,7 +271,7 @@ public class TestTools extends TestBase {
     private void testRecover() throws SQLException {
         deleteDb("toolsRecover");
         org.h2.Driver.load();
-        String url = "jdbc:h2:" + baseDir + "/toolsRecover";
+        String url = getURL("toolsRecover", true);
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar, b blob, c clob)");
@@ -300,7 +298,7 @@ public class TestTools extends TestBase {
 
         conn = DriverManager.getConnection(url, "another", "another");
         stat = conn.createStatement();
-        String suffix = SysProperties.PAGE_STORE ? ".h2.sql" : ".data.sql";
+        String suffix = config.pageStore ? ".h2.sql" : ".data.sql";
         stat.execute("runscript from '" + baseDir + "/toolsRecover" + suffix + "'");
         rs = stat.executeQuery("select * from \"test 2\"");
         assertFalse(rs.next());

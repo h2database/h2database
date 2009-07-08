@@ -33,7 +33,7 @@ public class TestMulti extends TestBase {
 
     public void test() throws Exception {
         org.h2.Driver.load();
-        deleteDb(baseDir, "openClose");
+        deleteDb("openClose");
 
         // int len = getSize(5, 100);
         int len = 10;

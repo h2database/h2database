@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.zip.CRC32;
 import org.h2.command.Parser;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.MetaRecord;
@@ -133,11 +132,10 @@ public class Recover extends Tool implements DataHandler {
                 throwUnsupportedOption(arg);
             }
         }
-        if (!SysProperties.PAGE_STORE && remove) {
+        if (remove) {
             removePassword(dir, db);
-        } else {
-            process(dir, db);
         }
+        process(dir, db);
     }
 
     /**
@@ -156,9 +154,6 @@ public class Recover extends Tool implements DataHandler {
 
     private void removePassword(String dir, String db) throws SQLException {
         ArrayList<String> list = FileLister.getDatabaseFiles(dir, db, true);
-        if (list.size() == 0) {
-            printNoDatabaseFilesFound(dir, db);
-        }
         for (String fileName : list) {
             if (fileName.endsWith(Constants.SUFFIX_DATA_FILE)) {
                 removePassword(fileName);

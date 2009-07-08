@@ -41,6 +41,11 @@ public class SysProperties {
     public static final String H2_COLLATOR_CACHE_SIZE = "h2.collatorCacheSize";
 
     /**
+     * INTERNAL
+     */
+    public static final String H2_PAGE_STORE = "h2.pageStore";
+
+    /**
      * System property <code>file.encoding</code> (default: Cp1252).<br />
      * It is usually set by the system and is the default encoding used for the
      * RunScript and CSV tool.
@@ -468,12 +473,6 @@ public class SysProperties {
     public static final boolean OVERFLOW_EXCEPTIONS = getBooleanSetting("h2.overflowExceptions", true);
 
     /**
-     * System property <code>h2.pageStore</code> (default: false).<br />
-     * Use the page store file format (experimental).
-     */
-    public static final boolean PAGE_STORE = getBooleanSetting("h2.pageStore", false);
-
-    /**
      * System property <code>h2.recompileAlways</code> (default: false).<br />
      * Always recompile prepared statements.
      */
@@ -716,4 +715,12 @@ public class SysProperties {
     public static int getCollatorCacheSize() {
         return getIntSetting(H2_COLLATOR_CACHE_SIZE, 32000);
     }
+
+    /**
+     * INTERNAL
+     */
+    public static boolean getPageStore() {
+        return getBooleanSetting(H2_PAGE_STORE, false);
+    }
+
 }

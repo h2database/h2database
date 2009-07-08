@@ -126,8 +126,8 @@ public class DbContents {
                 defaultSchema = schema;
             }
             schemas[i] = schema;
-            String[] tableTypes = new String[] { "TABLE", "SYSTEM TABLE", "VIEW", "SYSTEM VIEW", "TABLE LINK",
-                    "SYNONYM" };
+            String[] tableTypes = new String[] { "TABLE", "SYSTEM TABLE", "VIEW", "SYSTEM VIEW",
+                    "TABLE LINK", "SYNONYM" };
             schema.readTables(meta, tableTypes);
         }
         if (defaultSchema == null) {
@@ -156,6 +156,18 @@ public class DbContents {
         ArrayList<String> schemas = New.arrayList();
         while (rs.next()) {
             String schema = rs.getString(findColumn(rs, "TABLE_SCHEM", 1));
+            if (isOracle) {
+                for (String ignore : new String[] {
+                        "CTXSYS", "DIP", "DBSNMP", "DMSYS", "EXFSYS", "MDDATA", "MDSYS",
+                        "MGMT_VIEW", "OLAPSYS", "ORDSYS", "ORDPLUGINS", "OUTLN", "SI_INFORMTN_SCHEMA", "SYS", "SYSMAN",
+                        "SYSTEM", "TSMSYS", "WMSYS", "XDB"
+                }) {
+                    if (ignore.equals(schema)) {
+                        schema = null;
+                        break;
+                    }
+                }
+            }
             if (schema == null) {
                 continue;
             }

@@ -61,7 +61,7 @@ public class PgServerThread implements Runnable {
     private String userName;
     private String databaseName;
     private int processId;
-    private String clientEncoding = "UTF-8";
+    private String clientEncoding = SysProperties.PG_DEFAULT_CLIENT_ENCODING;
     private String dateStyle = "ISO";
     private HashMap<String, Prepared> prepared = New.hashMap();
     private HashMap<String, Portal> portals = New.hashMap();

@@ -473,6 +473,13 @@ public class SysProperties {
     public static final boolean OVERFLOW_EXCEPTIONS = getBooleanSetting("h2.overflowExceptions", true);
 
     /**
+     * System property <code>h2.pgClientEncoding</code> (default: UTF-8).<br />
+     * Default client encoding for PG server. It is used if the client does not
+     * sends his encoding.
+     */
+    public static final String PG_DEFAULT_CLIENT_ENCODING = getStringSetting("h2.pgClientEncoding", "UTF-8");
+
+    /**
      * System property <code>h2.recompileAlways</code> (default: false).<br />
      * Always recompile prepared statements.
      */

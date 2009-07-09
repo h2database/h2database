@@ -58,6 +58,8 @@ public class TestDataSource extends TestBase {
         deleteDb("dataSource");
         JdbcDataSource ds = new JdbcDataSource();
         ds.setURL(getURL("dataSource", true));
+        ds.setUser(getUser());
+        ds.setPassword(getPassword());
         XAConnection xaConn = ds.getXAConnection();
         xaConn.addConnectionEventListener(new ConnectionEventListener() {
             public void connectionClosed(ConnectionEvent event) {
@@ -82,7 +84,8 @@ public class TestDataSource extends TestBase {
         deleteDb("dataSource");
         JdbcDataSource ds = new JdbcDataSource();
         ds.setURL(getURL("dataSource", true));
-        ds.setUser("sa");
+        ds.setUser(getUser());
+        ds.setPassword(getPassword());
         Connection conn = ds.getConnection();
         Statement stat = conn.createStatement();
         stat.execute("SELECT * FROM DUAL");

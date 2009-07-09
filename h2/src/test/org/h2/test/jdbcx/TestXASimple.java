@@ -38,12 +38,12 @@ public class TestXASimple extends TestBase {
         // context.rebind(USER_TRANSACTION_JNDI_NAME, j.getUserTransaction());
 
         JdbcDataSource ds1 = new JdbcDataSource();
-        ds1.setPassword("");
+        ds1.setPassword(getPassword());
         ds1.setUser("sa");
         ds1.setURL(getURL("xaSimple1", true));
 
         JdbcDataSource ds2 = new JdbcDataSource();
-        ds2.setPassword("");
+        ds2.setPassword(getPassword());
         ds2.setUser("sa");
         ds2.setURL(getURL("xaSimple2", true));
 

@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>H2 Console: Oracle system tables are no longer listed, improving performance.
+<ul><li>PG Server: new system property h2.pgClientEncoding to explicitly set the encoding
+    for clients that don't send the encoding (the default encoding is UTF-8).
+    Thanks a lot to Sergi Vladykin for the patch!
+</li><li>PG Server: improved compatibility by using the type ids of the PostgreSQL driver.
+    Thanks a lot to Sergi Vladykin for the patch!
+</li><li>H2 Console: Oracle system tables are no longer listed, improving performance.
 </li><li>Result sets are now read-only except if the statement or prepared statement was created
     with the concurrency ResultSet.CONCUR_UPDATABLE. This change is required because the old behavior
     (all result set are updatable) violated the JDBC spec. For backward compatibility, use the

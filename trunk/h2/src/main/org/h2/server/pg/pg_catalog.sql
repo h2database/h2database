@@ -8,6 +8,9 @@
 drop schema if exists pg_catalog;
 create schema pg_catalog;
 
+drop alias if exists pg_convertType;
+create alias pg_convertType deterministic for "org.h2.server.pg.PgServer.convertType";
+
 create table pg_catalog.pg_version as select 1 as version;
 
 create view pg_catalog.pg_roles -- (oid, rolname, rolcreaterole, rolcreatedb)
@@ -36,17 +39,18 @@ create table pg_catalog.pg_type(
 
 insert into pg_catalog.pg_type
 select
-    data_type oid,
+    pg_convertType(data_type) oid,
     cast(type_name as varchar_ignorecase) typname,
     (select oid from pg_catalog.pg_namespace where nspname = 'pg_catalog') typnamespace,
     -1 typlen,
     'c' typtype,
     0 typbasetype
 from information_schema.type_info
-where pos = 0;
+where pos = 0
+    and pg_convertType(data_type) <> 705; -- not unknown
 
 merge into pg_catalog.pg_type values(
-    1111,
+    19,
     'name',
     (select oid from pg_catalog.pg_namespace where nspname = 'pg_catalog'),
     -1,
@@ -122,7 +126,7 @@ select
     t.id*10000 + c.ordinal_position oid,
     t.id attrelid,
     c.column_name attname,
-    data_type atttypid,
+    pg_convertType(data_type) atttypid,
     -1 attlen,
     c.ordinal_position attnum,
     -1 atttypmod,
@@ -137,7 +141,7 @@ select
     1000000 + t.id*10000 + c.ordinal_position oid,
     i.id attrelid,
     c.column_name attname,
-    data_type atttypid,
+    pg_convertType(data_type) atttypid,
     -1 attlen,
     c.ordinal_position attnum,
     -1 atttypmod,

@@ -58,7 +58,7 @@ public class NetUtils {
      * @param address the address
      * @return the host address
      */
-    public static String getHostAddress(InetAddress address) {
+    private static String getHostAddress(InetAddress address) {
         String host = address.getHostAddress();
         if (address instanceof Inet6Address) {
             if (host.indexOf(':') >= 0 && !host.startsWith("[")) {

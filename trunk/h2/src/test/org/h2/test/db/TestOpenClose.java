@@ -60,6 +60,10 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
     }
 
     private void testBackup() throws SQLException {
+        if (config.memory || config.logMode == 0) {
+            return;
+        }
+
         deleteDb("openClose");
         String url = getURL("openClose", true);
         org.h2.Driver.load();
@@ -82,10 +86,15 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
     }
 
     private void testReconnectFast() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+
         deleteDb("openClose");
+        String user = getUser(), password = getPassword();
         String url = getURL("openClose;DATABASE_EVENT_LISTENER='" + TestOpenClose.class.getName()
                 + "'", true);
-        Connection conn = DriverManager.getConnection(url, "sa", "sa");
+        Connection conn = DriverManager.getConnection(url, user, password);
         Statement stat = conn.createStatement();
         try {
             stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
@@ -97,7 +106,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         }
         stat.close();
         conn.close();
-        conn = DriverManager.getConnection(url, "sa", "sa");
+        conn = DriverManager.getConnection(url, user, password);
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM DUAL");
         if (rs.next()) {
@@ -106,7 +115,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         rs.close();
         stat.close();
         conn.close();
-        conn = DriverManager.getConnection(url, "sa", "sa");
+        conn = DriverManager.getConnection(url, user, password);
         stat = conn.createStatement();
         // stat.execute("SET DB_CLOSE_DELAY 0");
         stat.executeUpdate("SHUTDOWN");
@@ -115,10 +124,15 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
     }
 
     private void testCase() throws Exception {
+        if (config.memory) {
+            return;
+        }
+
         org.h2.Driver.load();
         deleteDb("openClose");
         final String url = getURL("openClose;FILE_LOCK=NO", true);
-        Connection conn = DriverManager.getConnection(url, "sa", "");
+        final String user = getUser(), password = getPassword();
+        Connection conn = DriverManager.getConnection(url, user, password);
         conn.createStatement().execute("drop table employee if exists");
         conn.createStatement().execute("create table employee(id int primary key, name varchar, salary int)");
         conn.close();
@@ -128,7 +142,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
             threads[i] = new Thread() {
                 public void run() {
                     try {
-                        Connection conn = DriverManager.getConnection(url, "sa", "");
+                        Connection conn = DriverManager.getConnection(url, user, password);
                         PreparedStatement prep = conn.prepareStatement("insert into employee values(?, ?, 0)");
                         int id = getNextId();
                         prep.setInt(1, id);
@@ -148,7 +162,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         for (int i = 0; i < len; i++) {
             threads[i].join();
         }
-        conn = DriverManager.getConnection(url, "sa", "");
+        conn = DriverManager.getConnection(url, user, password);
         ResultSet rs = conn.createStatement().executeQuery("select count(*) from employee");
         rs.next();
         assertEquals(rs.getInt(1), len);

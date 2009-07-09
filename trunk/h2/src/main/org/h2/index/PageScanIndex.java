@@ -156,6 +156,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
      *
      * @param id the page id
      * @param leaf the leaf page
+     * @param offset the offset in bytes
      * @return the page
      */
     PageDataLeafOverflow getPageOverflow(int id, PageDataLeaf leaf, int offset) throws SQLException {

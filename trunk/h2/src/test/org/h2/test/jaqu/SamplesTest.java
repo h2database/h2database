@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import org.h2.jaqu.Db;
+import org.h2.jaqu.Filter;
 import static org.h2.jaqu.Function.*;
 //## Java 1.5 end ##
 import org.h2.test.TestBase;
@@ -60,6 +61,7 @@ public class SamplesTest extends TestBase {
         // TODO SELECT UNION
         // TODO DatabaseAdapter
         testComplexObject();
+        testComplexObject2();
         testOrAndNot();
         testDelete();
         testIsNull();
@@ -310,6 +312,26 @@ public class SamplesTest extends TestBase {
             and(co.value).is(new BigDecimal("1")).
             selectCount();
         assertEquals(1, count);
+    }
+
+    private void testComplexObject2() {
+        testComplexObject2(1, "hello");
+    }
+
+private void testComplexObject2(final int x, final String name) {
+    final ComplexObject co = new ComplexObject();
+    long count = db.from(co).
+        where(new Filter() { public boolean where() {
+            return co.id == x
+                && co.amount == 1L
+                && co.birthday.before(new java.util.Date())
+                && co.created.before(java.sql.Timestamp.valueOf("2005-05-05 05:05:05"))
+                && co.name.equals(name)
+                && co.time.before(java.sql.Time.valueOf("23:23:23"))
+                && co.value == new BigDecimal("1");
+        } }).selectCount();
+        // TODO should return only one object
+        assertEquals(2, count);
     }
 
 //## Java 1.5 end ##

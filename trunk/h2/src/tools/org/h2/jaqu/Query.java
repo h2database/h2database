@@ -163,6 +163,15 @@ public class Query<T> {
         return new QueryCondition<T, A>(this, x);
     }
 
+    public <A> QueryWhere<T> where(Filter filter) {
+        // TODO decompile the filter and add conditions accordingly
+        // for (Field f : filter.getClass().getDeclaredFields()) {
+        // f.setAccessible(true);
+        // try { System.out.println(f.getName() + "=" + f.get(filter));
+        // } catch (Exception e) { } }
+        return new QueryWhere<T>(this);
+    }
+
     public QueryWhere<T> whereTrue(Boolean condition) {
         Token token = new Function("", condition);
         addConditionToken(token);

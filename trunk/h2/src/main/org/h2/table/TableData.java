@@ -203,9 +203,11 @@ public class TableData extends Table implements RecordReader {
                 long i = 0;
                 int bufferSize = Constants.DEFAULT_MAX_MEMORY_ROWS;
                 ObjectArray<Row> buffer = ObjectArray.newInstance(bufferSize);
+                String n = getName() + ":" + index.getName();
+                int t = MathUtils.convertLongToInt(total);
                 while (cursor.next()) {
-                    database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, getName() + ":" + index.getName(), MathUtils
-                            .convertLongToInt(i++), MathUtils.convertLongToInt(total));
+                    database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, n,
+                            MathUtils.convertLongToInt(i++), t);
                     Row row = cursor.get();
                     buffer.add(row);
                     if (buffer.size() >= bufferSize) {

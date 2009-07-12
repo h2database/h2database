@@ -98,8 +98,8 @@ restore a database from a backup. The password must be in single quotes; it is
 case sensitive and can contain spaces.
 
 The compression algorithm must match the one used when creating the script. When
-using encryption, only DEFLATE and LZF are supported. Instead of a file, an URL
-may be used. Admin rights are required to execute this command.
+using encryption, only DEFLATE and LZF are supported (LZF is faster but uses more space).
+Instead of a file, an URL may be used. Admin rights are required to execute this command.
 ","
 RUNSCRIPT FROM 'backup'
 "
@@ -121,8 +121,10 @@ and sequences. If the block size is set, CLOB and BLOB values larger than this
 size are split into separate blocks. If a file name is specified, then the whole
 script (including insert statements) is written to this file, and a result set
 without the insert statements is returned. When using encryption, only DEFLATE
-and LZF are supported. This command locks objects while it is running. The
-password must be in single quotes; it is case sensitive and can contain spaces.
+and LZF are supported (LZF is faster but uses more space).
+
+This command locks objects while it is running. The password must be in
+single quotes; it is case sensitive and can contain spaces.
 ","
 SCRIPT NODATA
 "
@@ -461,15 +463,20 @@ TABLE [IF NOT EXISTS] name
 [SELECTIVITY selectivity] [PRIMARY KEY [HASH] | UNIQUE] | constraint} [,...] )
 [AS select] [NOT PERSISTENT] } | { AS select }
 ","
-Creates a new table. Cached tables (the default) are persistent, and the number
+Creates a new table.
+
+Cached tables (the default) are persistent, and the number
 of rows is not limited by the main memory. Memory tables are persistent, but the
 index data is kept in main memory, that means memory tables should not get too
 large. Tables with the NOT PERSISTENT modifier are kept fully in memory, and all
 rows are lost when the database is closed. Temporary tables are not persistent.
 Temporary tables can be global (accessible by all connections) or local (only
 accessible by the current connection). The default is for temporary tables is
-global. Identity and auto-increment columns are columns with a sequence as the
-default.
+global.
+
+Identity and auto-increment columns are columns with a sequence as the
+default. The column declared as the identity columns is implicitly the
+primary key column of this table (unlike auto-increment columns).
 ","
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))
 "
@@ -836,8 +843,8 @@ SET COLLATION ENGLISH
 SET COMPRESS_LOB {NO|LZF|DEFLATE}
 ","
 Sets the compression algorithm for BLOB and CLOB data. Compression is usually
-slower, but needs less memory. This setting is persistent. Admin rights are
-required to execute this command.
+slower, but needs less disk space. LZF is faster but uses more space.
+This setting is persistent. Admin rights are required to execute this command.
 ","
 SET COMPRESS_LOB LZF
 "
@@ -1619,7 +1626,9 @@ A digit.
 "Data Types","INT Type","
 INT | INTEGER | MEDIUMINT | INT4 | SIGNED
 ","
-Possible values: -2147483648 to 2147483647. See also java.lang.Integer.
+Possible values: -2147483648 to 2147483647.
+
+Mapped to java.lang.Integer.
 ","
 INT
 "
@@ -1627,7 +1636,9 @@ INT
 "Data Types","BOOLEAN Type","
 BOOLEAN | BIT | BOOL
 ","
-Possible values: TRUE and FALSE. See also java.lang.Boolean.
+Possible values: TRUE and FALSE.
+
+Mapped to java.lang.Boolean.
 ","
 BOOLEAN
 "
@@ -1635,7 +1646,9 @@ BOOLEAN
 "Data Types","TINYINT Type","
 TINYINT
 ","
-Possible values are: -128 to 127. See also java.lang.Byte.
+Possible values are: -128 to 127.
+
+Mapped to java.lang.Byte.
 ","
 TINYINT
 "
@@ -1643,7 +1656,9 @@ TINYINT
 "Data Types","SMALLINT Type","
 SMALLINT | INT2 | YEAR
 ","
-Possible values: -32768 to 32767. See also java.lang.Short.
+Possible values: -32768 to 32767.
+
+Mapped to java.lang.Short.
 ","
 SMALLINT
 "
@@ -1651,8 +1666,9 @@ SMALLINT
 "Data Types","BIGINT Type","
 BIGINT | INT8
 ","
-Possible values: -9223372036854775808 to 9223372036854775807. See also
-java.lang.Long.
+Possible values: -9223372036854775808 to 9223372036854775807.
+
+Mapped to java.lang.Long.
 ","
 BIGINT
 "
@@ -1662,7 +1678,9 @@ IDENTITY
 ","
 Auto-Increment value. Possible values: -9223372036854775808 to
 9223372036854775807. Used values are never re-used, even when the transaction is
-rolled back. See also java.lang.Long.
+rolled back.
+
+Mapped to java.lang.Long.
 ","
 IDENTITY
 "
@@ -1671,7 +1689,9 @@ IDENTITY
 {DECIMAL | NUMBER | DEC | NUMERIC} ( precisionInt [, scaleInt] )
 ","
 Data type with fixed precision and scale. This data type is recommended for
-storing currency values. See also java.math.BigDecimal.
+storing currency values.
+
+Mapped to java.math.BigDecimal.
 ","
 DECIMAL(20, 2)
 "
@@ -1680,7 +1700,9 @@ DECIMAL(20, 2)
 {DOUBLE [PRECISION] | FLOAT | FLOAT4 | FLOAT8}
 ","
 Floating point number. Should not be used to represent currency values, because
-of rounding problems. See also java.lang.Double.
+of rounding problems.
+
+Mapped to java.lang.Double.
 ","
 DOUBLE
 "
@@ -1689,7 +1711,9 @@ DOUBLE
 REAL
 ","
 Single precision floating point number. Should not be used to represent currency
-values, because of rounding problems. See also java.lang.Float.
+values, because of rounding problems.
+
+Mapped to java.lang.Float.
 ","
 REAL
 "
@@ -1697,7 +1721,9 @@ REAL
 "Data Types","TIME Type","
 TIME
 ","
-The format is hh:mm:ss. See also java.sql.Time.
+The format is hh:mm:ss.
+
+Mapped to java.sql.Time.
 ","
 TIME
 "
@@ -1705,7 +1731,9 @@ TIME
 "Data Types","DATE Type","
 DATE
 ","
-The format is yyyy-MM-dd. See also java.sql.Date.
+The format is yyyy-MM-dd.
+
+Mapped to java.sql.Date.
 ","
 DATE
 "
@@ -1713,7 +1741,9 @@ DATE
 "Data Types","TIMESTAMP Type","
 {TIMESTAMP | DATETIME | SMALLDATETIME}
 ","
-The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn]. See also java.sql.Timestamp.
+The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
+
+Mapped to java.sql.Timestamp (java.util.Date is also supported).
 ","
 TIMESTAMP
 "
@@ -1726,6 +1756,8 @@ Represents a byte array. For very long arrays, use BLOB. There is no maximum
 precision. The maximum size is the memory available. The precision is a size
 constraint; only the actual data is persisted. The whole object is kept in
 memory when using this data type. For large text data BLOB should be used.
+
+Mapped to byte[].
 ","
 BINARY(1000)
 "
@@ -1738,6 +1770,8 @@ used. Serialization and deserialization is done on the client side only.
 Deserialization is only done get getObject is called. Java operations cannot be
 executed inside the database engine for security reasons. Use
 PreparedStatement.setObject to store values.
+
+Mapped to java.lang.Object (or any subclass).
 ","
 OTHER
 "
@@ -1750,7 +1784,9 @@ VARCHAR2 | NVARCHAR | NVARCHAR2 | VARCHAR_CASESENSITIVE}
 Unicode String. Use two single quotes ('') to create a quote. There is no
 maximum precision. The maximum size is the memory available. The precision is a
 size constraint; only the actual data is persisted. For large text data CLOB
-should be used; see there for details. See also java.lang.String.
+should be used; see there for details.
+
+Mapped to java.lang.String.
 ","
 VARCHAR(255)
 "
@@ -1761,6 +1797,8 @@ VARCHAR_IGNORECASE [( precisionInt )]
 Same as VARCHAR, but not case sensitive when comparing. Stored in mixed case.
 There is no maximum precision. The maximum size is the memory available. For
 large text data CLOB should be used; see there for details.
+
+Mapped to java.lang.String.
 ","
 VARCHAR_IGNORECASE
 "
@@ -1774,6 +1812,8 @@ applications. The difference to VARCHAR is that trailing spaces are ignored and
 not persisted. Unicode String. Use two single quotes ('') to create a quote.
 There is no maximum precision. The maximum size is the memory available. For
 large text data CLOB should be used; see there for details.
+
+Mapped to java.lang.String.
 ","
 CHAR(10)
 "
@@ -1784,7 +1824,10 @@ CHAR(10)
 ","
 Like BINARY, but intended for very large values such as files or images. Unlike
 when using BINARY, large objects are not kept fully in-memory. Use
-PreparedStatement.setBinaryStream to store values.
+PreparedStatement.setBinaryStream to store values. See also CLOB and
+Advanced / Large Objects.
+
+Mapped to java.sql.Blob (java.io.InputStream is also supported).
 ","
 BLOB
 "
@@ -1794,14 +1837,16 @@ BLOB
 [( precisionInt )]
 ","
 CLOB is like VARCHAR, but intended for very large values. Unlike when using
-VARCHAR, large CLOB objects are not kept fully in-memory. CLOB should be used
-for documents and texts with arbitrary size such as XML or HTML documents, text
-files, or memo fields of unlimited size. Use
-PreparedStatement.setCharacterStream to store values.
+VARCHAR, large CLOB objects are not kept fully in-memory; instead, they are streamed.
+CLOB should be used for documents and texts with arbitrary size such as XML or
+HTML documents, text files, or memo fields of unlimited size. Use
+PreparedStatement.setCharacterStream to store values. See also Advanced / Large Objects.
 
 VARCHAR should be used for text with relatively short average size (for example
 shorter than 200 characters). Short CLOB values are stored inline, but there is
 an overhead compared to VARCHAR.
+
+Mapped to java.sql.Clob (java.io.Reader is also supported).
 ","
 CLOB
 "
@@ -1811,6 +1856,8 @@ UUID
 ","
 Universally unique identifier. This is a 128 bit value. Use
 PreparedStatement.setBytes or setString to store values.
+
+Mapped to java.util.UUID.
 ","
 UUID
 "
@@ -1820,6 +1867,8 @@ ARRAY
 ","
 An array of values. Use a value list (1, 2) or PreparedStatement.setObject(..,
 new Object[]{..}) to store values.
+
+Mapped to java.lang.Object[] (arrays of any non-primitive type are also supported).
 ","
 ARRAY
 "
@@ -2223,7 +2272,7 @@ TRUNCATE(VALUE, 2)
 COMPRESS(dataBytes [, algorithmString]): bytes
 ","
 Compresses the data using the specified compression algorithm. Supported
-algorithms are: LZF (fast but lower compression; default), and DEFLATE (higher
+algorithms are: LZF (faster but lower compression; default), and DEFLATE (higher
 compression). Compression does not always reduce size. Very small objects and
 objects with little redundancy may get larger.
 ","

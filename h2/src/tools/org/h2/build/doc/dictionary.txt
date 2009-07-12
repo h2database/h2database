@@ -593,4 +593,5 @@ longnvarchar collate localdb nan bootclasspath bcp retrotranslator iterable
 ops jopr googlegroups fletcher prefer djava expires fffe polish articles
 attachment transiently cleanup dbsnmp olapsys wmsys tsmsys outln ctxsys mddata
 ordsys ordplugins mgmt dmsys exfsys mdsys sysman informtn textarray tmzone cdo
-emf decompile
+emf decompile streamed setmaxlengthinplacelob setcompresslob compressing
+compressible subclass

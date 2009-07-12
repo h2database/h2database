@@ -100,6 +100,10 @@ public class Doclet {
         MethodDoc[] methods = clazz.methods();
         Arrays.sort(methods, new Comparator<MethodDoc>() {
             public int compare(MethodDoc a, MethodDoc b) {
+                // sort static method before non-static methods
+                if (a.isStatic() != b.isStatic()) {
+                    return a.isStatic() ? -1 : 1;
+                }
                 return a.name().compareTo(b.name());
             }
         });

@@ -110,10 +110,18 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
-     * Writes the result set to a file in the CSV format.
+     * Writes the result set to a file in the CSV format. The result set is read
+     * using the following loop:
+     *
+     * <pre>
+     * while (rs.next()) {
+     *     writeRow(row);
+     * }
+     * </pre>
      *
      * @param outputFileName the name of the csv file
-     * @param rs the result set
+     * @param rs the result set - the result set must be positioned before the
+     *            first row.
      * @param charset the charset or null to use UTF-8
      * @return the number of rows written
      * @throws SQLException

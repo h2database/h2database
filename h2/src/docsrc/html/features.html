@@ -1511,6 +1511,11 @@ Functions that accept non-nullable parameters such as 'int' will not be called i
 Instead, the result of the function is NULL. If the function should be called if a parameter is NULL, you need
 to use 'java.lang.Integer' instead of 'int'.
 </p>
+<p>
+SQL types are mapped to Java classes and vice-versa as in the JDBC API. For details, see <a href="datatypes.html">Data Types</a>.
+There are two special cases: java.lang.Object is mapped to OTHER (a serialized object). Therefore, java.lang.Object can not be used
+to match all SQL types (matching all SQL types is not supported). The second special case is Object[]: arrays of any class are mapped to ARRAY.
+</p>
 
 <h3>Functions that require a Connection</h3>
 <p>

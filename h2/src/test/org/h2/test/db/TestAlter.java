@@ -7,6 +7,7 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -35,8 +36,23 @@ public class TestAlter extends TestBase {
         conn = getConnection("alter");
         stat = conn.createStatement();
         testAlterTableAlterColumn();
+        testAlterTableDropIdentityColumn();
         conn.close();
         deleteDb("alter");
+    }
+
+    private void testAlterTableDropIdentityColumn() throws SQLException {
+        stat.execute("create table test(id int auto_increment, name varchar)");
+        stat.execute("alter table test drop column id");
+        ResultSet rs = stat.executeQuery("select * from INFORMATION_SCHEMA.SEQUENCES");
+        assertFalse(rs.next());
+        stat.execute("drop table test");
+
+        stat.execute("create table test(id int auto_increment, name varchar)");
+        stat.execute("alter table test drop column name");
+        rs = stat.executeQuery("select * from INFORMATION_SCHEMA.SEQUENCES");
+        assertTrue(rs.next());
+        stat.execute("drop table test");
     }
 
     private void testAlterTableAlterColumn() throws SQLException {

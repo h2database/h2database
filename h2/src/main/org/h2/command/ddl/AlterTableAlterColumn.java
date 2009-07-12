@@ -303,9 +303,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
         String tableName = table.getName();
         table.setModified();
-        for (Column col : columns) {
-            // if we don't do that, the sequence is dropped when the table is
-            // dropped
+        // remove the sequences from the columns (except dropped columns)
+        // otherwise the sequence is dropped if the table is dropped
+        for (Column col : newColumns) {
             Sequence seq = col.getSequence();
             if (seq != null) {
                 table.removeSequence(session, seq);

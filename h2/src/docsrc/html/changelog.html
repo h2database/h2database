@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Creating indexes is now a bit faster.
+<ul><li>ALTER TABLE: removing an auto-increment or identity column didn't remove the sequence.
+</li><li>Creating indexes is now a bit faster.
 </li><li>PG Server: new system property h2.pgClientEncoding to explicitly set the encoding
     for clients that don't send the encoding (the default encoding is UTF-8).
     Thanks a lot to Sergi Vladykin for the patch!

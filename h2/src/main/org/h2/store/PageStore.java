@@ -223,7 +223,7 @@ public class PageStore implements CacheWriter {
                 if (pageId >= pageCount) {
                     return -1;
                 }
-                file.seek(pageId * pageSize);
+                file.seek((long) pageId << pageSizeShift);
                 file.readFullyDirect(buffer, 0, pageSize);
                 out.write(buffer, 0, pageSize);
                 return pageId + 1;
@@ -323,14 +323,14 @@ public class PageStore implements CacheWriter {
             // TODO avoid to write empty pages
             for (int i = PAGE_ID_FREE_LIST_ROOT; i < pageCount; i++) {
                 if (!isUsed(i)) {
-                    file.seek(i * pageSize);
+                    file.seek((long) i << pageSizeShift);
                     file.write(empty, 0, pageSize);
                 }
             }
             // TODO shrink file if required here
             // int pageCount = getFreeList().getLastUsed() + 1;
             // trace.debug("pageCount:" + pageCount);
-            // file.setLength(pageSize * pageCount);
+            // file.setLength((long) pageCount << pageSizeShift);
         }
     }
 
@@ -602,7 +602,7 @@ public class PageStore implements CacheWriter {
 
     private void increaseFileSize(int increment) throws SQLException {
         pageCount += increment;
-        long newLength = pageCount * pageSize;
+        long newLength = (long) pageCount << pageSizeShift;
         file.setLength(newLength);
         fileLength = newLength;
     }
@@ -677,7 +677,7 @@ public class PageStore implements CacheWriter {
             if (pos >= pageCount) {
                 throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, pos + " of " + pageCount);
             }
-            file.seek(pos << pageSizeShift);
+            file.seek((long) pos << pageSizeShift);
             file.readFully(page.getBytes(), 0, pageSize);
         }
     }
@@ -708,7 +708,7 @@ public class PageStore implements CacheWriter {
      */
     public void writePage(int pageId, DataPage data) throws SQLException {
         synchronized (database) {
-            file.seek(((long) pageId) << pageSizeShift);
+            file.seek((long) pageId << pageSizeShift);
             file.write(data.getBytes(), 0, pageSize);
         }
     }

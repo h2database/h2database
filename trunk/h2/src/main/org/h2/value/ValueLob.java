@@ -27,6 +27,7 @@ import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.MemoryUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 
@@ -353,11 +354,11 @@ public class ValueLob extends Value {
                 buff = IOUtils.readBytesAndClose(in, -1);
                 len = buff.length;
             } else {
-                buff = ByteUtils.newBytes(len);
+                buff = MemoryUtils.newBytes(len);
                 len = IOUtils.readFully(in, buff, 0, len);
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = ByteUtils.newBytes(len);
+                byte[] small = MemoryUtils.newBytes(len);
                 System.arraycopy(buff, 0, small, 0, len);
                 return ValueLob.createSmallLob(Value.BLOB, small);
             }
@@ -723,7 +724,7 @@ public class ValueLob extends Value {
             int len = getBufferSize(handler, compress, Long.MAX_VALUE);
             int tabId = tableId;
             if (type == Value.BLOB) {
-                createFromStream(ByteUtils.newBytes(len), 0, getInputStream(), Long.MAX_VALUE, handler);
+                createFromStream(MemoryUtils.newBytes(len), 0, getInputStream(), Long.MAX_VALUE, handler);
             } else {
                 createFromReader(new char[len], 0, getReader(), Long.MAX_VALUE, handler);
             }

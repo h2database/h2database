@@ -33,6 +33,7 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
+import org.h2.util.MemoryUtils;
 import org.h2.util.ObjectUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -1403,7 +1404,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             int id = getNextId(TraceObject.CLOB);
             debugCodeAssign("Clob", TraceObject.CLOB, id, "createClob()");
             checkClosedForWrite();
-            ValueLob v = ValueLob.createSmallLob(Value.CLOB, new byte[0]);
+            ValueLob v = ValueLob.createSmallLob(Value.CLOB, MemoryUtils.EMPTY_BYTES);
             return new JdbcClob(this, v, id);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1420,7 +1421,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             int id = getNextId(TraceObject.BLOB);
             debugCodeAssign("Blob", TraceObject.BLOB, id, "createClob()");
             checkClosedForWrite();
-            ValueLob v = ValueLob.createSmallLob(Value.BLOB, new byte[0]);
+            ValueLob v = ValueLob.createSmallLob(Value.BLOB, MemoryUtils.EMPTY_BYTES);
             return new JdbcBlob(this, v, id);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1438,7 +1439,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             int id = getNextId(TraceObject.CLOB);
             debugCodeAssign("NClob", TraceObject.CLOB, id, "createNClob()");
             checkClosedForWrite();
-            ValueLob v = ValueLob.createSmallLob(Value.CLOB, new byte[0]);
+            ValueLob v = ValueLob.createSmallLob(Value.CLOB, ByteUtils.EMPTY);
             return new JdbcClob(this, v, id);
         } catch (Exception e) {
             throw logAndConvert(e);

@@ -33,9 +33,9 @@ import org.h2.engine.SessionInterface;
 import org.h2.message.Message;
 import org.h2.message.TraceSystem;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.ByteUtils;
 import org.h2.util.ExactUTF8InputStreamReader;
 import org.h2.util.IOUtils;
+import org.h2.util.MemoryUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.StringCache;
 
@@ -274,7 +274,7 @@ public class Transfer {
         if (len == -1) {
             return null;
         }
-        byte[] b = ByteUtils.newBytes(len);
+        byte[] b = MemoryUtils.newBytes(len);
         in.readFully(b);
         return b;
     }

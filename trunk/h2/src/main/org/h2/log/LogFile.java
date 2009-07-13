@@ -21,9 +21,9 @@ import org.h2.store.DiskFile;
 import org.h2.store.FileStore;
 import org.h2.store.Record;
 import org.h2.store.Storage;
-import org.h2.util.ByteUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.MemoryUtils;
 import org.h2.util.ObjectArray;
 
 /**
@@ -220,7 +220,7 @@ public class LogFile {
             // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE
             s.reset();
         } else {
-            byte[] b2 = ByteUtils.newBytes(blocks * BLOCK_SIZE);
+            byte[] b2 = MemoryUtils.newBytes(blocks * BLOCK_SIZE);
             System.arraycopy(buff, 0, b2, 0, BLOCK_SIZE);
             buff = b2;
             file.readFully(buff, BLOCK_SIZE, blocks * BLOCK_SIZE - BLOCK_SIZE);
@@ -308,7 +308,7 @@ public class LogFile {
                 break;
             }
             int sumLength = in.readInt();
-            byte[] summary = ByteUtils.newBytes(sumLength);
+            byte[] summary = MemoryUtils.newBytes(sumLength);
             if (sumLength > 0) {
                 in.read(summary, 0, sumLength);
             }

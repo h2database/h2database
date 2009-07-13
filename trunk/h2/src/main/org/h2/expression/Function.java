@@ -41,7 +41,6 @@ import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.util.AutoCloseInputStream;
-import org.h2.util.ByteUtils;
 import org.h2.util.DateTimeIso8601Utils;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.FileUtils;
@@ -1172,7 +1171,7 @@ public class Function extends Expression implements FunctionCall {
 
     private byte[] getPaddedArrayCopy(byte[] data, int blockSize) {
         int size = MathUtils.roundUp(data.length, blockSize);
-        byte[] newData = ByteUtils.newBytes(size);
+        byte[] newData = MemoryUtils.newBytes(size);
         System.arraycopy(data, 0, newData, 0, data.length);
         return newData;
     }

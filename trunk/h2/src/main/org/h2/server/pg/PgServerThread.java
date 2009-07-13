@@ -34,9 +34,9 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.ConnectionInfo;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.Message;
-import org.h2.util.ByteUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.MemoryUtils;
 import org.h2.util.New;
 import org.h2.util.Resources;
 import org.h2.util.ScriptReader;
@@ -133,7 +133,7 @@ public class PgServerThread implements Runnable {
         }
         int len = dataInRaw.readInt();
         len -= 4;
-        byte[] data = ByteUtils.newBytes(len);
+        byte[] data = MemoryUtils.newBytes(len);
         dataInRaw.readFully(data, 0, len);
         dataIn = new DataInputStream(new ByteArrayInputStream(data, 0, len));
         switch (x) {
@@ -245,7 +245,7 @@ public class PgServerThread implements Runnable {
             int paramCount = readShort();
             for (int i = 0; i < paramCount; i++) {
                 int paramLen = readInt();
-                byte[] d2 = ByteUtils.newBytes(paramLen);
+                byte[] d2 = MemoryUtils.newBytes(paramLen);
                 readFully(d2);
                 try {
                     setParameter(portal.prep, i, d2, formatCodes);

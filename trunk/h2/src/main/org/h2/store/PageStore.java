@@ -25,6 +25,7 @@ import org.h2.log.LogSystem;
 import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.Row;
+import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -68,31 +69,20 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
-    // TODO TestTwoPhaseCommit
-    // TODO TestIndex.wideIndex: btree nodes should be full
-    // TODO check memory usage
-    // TODO PageStore.openMetaIndex (desc and nulls first / last)
-    // TODO PageBtreeIndex.canGetFirstOrLast
     // TODO btree index with fixed size values doesn't need offset and so on
-    // TODO better checksums (for example, multiple fletcher)
+    // TODO somehow remember rowcount
+    // TODO implement checksum - 0 for empty
+    // TODO remove parent, use tableId if required
     // TODO replace CRC32
     // TODO PageBtreeNode: 4 bytes offset - others use only 2
-    // TODO PageBtreeLeaf: why table id
-    // TODO log block allocation
     // TODO block compression: maybe http://en.wikipedia.org/wiki/LZJB
     // with RLE, specially for 0s.
-    // TODO test that setPageId updates parent, overflow parent
-    // TODO order pages so that searching for a key
-    // doesn't seek backwards in the file
-    // TODO use an undo log and maybe redo log (for performance)
-    // TODO checksum: 0 for empty; position hash + every 128th byte,
-    // specially important for log; misdirected reads or writes
-    // TODO type, sequence (start with random); checksum (start with block id)
-    // TODO for lists: write sequence byte
+    // TODO don't save parent (only root); remove setPageId
+    // TODO order pages so that searching for a key only seeks forward
     // TODO completely re-use keys of deleted rows; maybe
     // remember last page with deleted keys (in the root page?),
     // and chain such pages
-    // TODO remove Database.objectIds
+
     // TODO detect circles in linked lists
     // (input stream, free list, extend pages...)
     // at runtime and recovery
@@ -102,17 +92,13 @@ public class PageStore implements CacheWriter {
     // TODO recover tool: don't re-do uncommitted operations
     // TODO no need to log old page if it was always empty
     // TODO don't store default values (store a special value)
-    // TODO btree: maybe split at the insertion point
+    // TODO maybe split at the last insertion point
     // TODO split files (1 GB max size)
     // TODO add a setting (that can be changed at runtime) to call fsync
     // and delay on each commit
     // TODO var int: see google protocol buffers
-    // TODO SessionState.logId is no longer needed
     // TODO PageData and PageBtree addRowTry: try to simplify
-    // TODO performance: don't save direct parent in btree nodes (only root)
     // TODO space re-use: run TestPerformance multiple times, size should stay
-    // TODO when inserting many rows, do not split at (entryCount / 2) + 1
-    // TODO maybe split at the last insertion point
     // TODO test running out of disk space (using a special file system)
     // TODO check for file size (exception if not exact size expected)
 
@@ -121,6 +107,9 @@ public class PageStore implements CacheWriter {
     // remove Record.getMemorySize
     // simplify InDoubtTransaction
     // remove parameter in Record.write(DataPage buff)
+    // remove Record.getByteCount
+    // remove Database.objectIds
+
 
     /**
      * The smallest possible page size.
@@ -150,6 +139,8 @@ public class PageStore implements CacheWriter {
     private static final int META_TYPE_SCAN_INDEX = 0;
     private static final int META_TYPE_BTREE_INDEX = 1;
     private static final int META_TABLE_ID = -1;
+
+    private static final SearchRow[] EMPTY_SEARCH_ROW = new SearchRow[0];
 
     private Database database;
     private final Trace trace;
@@ -297,6 +288,14 @@ public class PageStore implements CacheWriter {
         }
     }
 
+    private void writeBack() throws SQLException {
+        ObjectArray<CacheObject> list = cache.getAllChanged();
+        CacheObject.sort(list);
+        for (CacheObject rec : list) {
+            writeBack(rec);
+        }
+    }
+
     /**
      * Flush all pending changes to disk, and re-open the log file.
      */
@@ -308,17 +307,11 @@ public class PageStore implements CacheWriter {
         }
         synchronized (database) {
             database.checkPowerOff();
-            ObjectArray<CacheObject> list = cache.getAllChanged();
-            CacheObject.sort(list);
-            for (CacheObject rec : list) {
-                writeBack(rec);
-            }
+            writeBack();
             log.checkpoint();
             switchLog();
             // write back the free list
-            for (CacheObject rec : list) {
-                writeBack(rec);
-            }
+            writeBack();
             byte[] empty = new byte[pageSize];
             // TODO avoid to write empty pages
             for (int i = PAGE_ID_FREE_LIST_ROOT; i < pageCount; i++) {
@@ -357,7 +350,7 @@ public class PageStore implements CacheWriter {
         long length = file.length();
         database.notifyFileSize(length);
         file.seek(FileStore.HEADER_LENGTH);
-        DataPage page = DataPage.create(database, new byte[PAGE_SIZE_MIN - FileStore.HEADER_LENGTH]);
+        Data page = Data.create(database, new byte[PAGE_SIZE_MIN - FileStore.HEADER_LENGTH]);
         file.readFully(page.getBytes(), 0, PAGE_SIZE_MIN - FileStore.HEADER_LENGTH);
         setPageSize(page.readInt());
         int writeVersion = page.readByte();
@@ -374,7 +367,7 @@ public class PageStore implements CacheWriter {
     }
 
     private void readVariableHeader() throws SQLException {
-        DataPage page = DataPage.create(database, pageSize);
+        Data page = Data.create(database, pageSize);
         for (int i = 1;; i++) {
             if (i == 3) {
                 throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, fileName);
@@ -422,7 +415,7 @@ public class PageStore implements CacheWriter {
     }
 
     private void writeStaticHeader() throws SQLException {
-        DataPage page = DataPage.create(database, new byte[pageSize - FileStore.HEADER_LENGTH]);
+        Data page = Data.create(database, new byte[pageSize - FileStore.HEADER_LENGTH]);
         page.writeInt(pageSize);
         page.writeByte((byte) WRITE_VERSION);
         page.writeByte((byte) READ_VERSION);
@@ -443,7 +436,7 @@ public class PageStore implements CacheWriter {
     }
 
     private void writeVariableHeader() throws SQLException {
-        DataPage page = DataPage.create(database, pageSize);
+        Data page = Data.create(database, pageSize);
         page.writeLong(writeCounter);
         page.writeInt(logFirstTrunkPage);
         page.writeInt(logFirstDataPage);
@@ -513,7 +506,7 @@ public class PageStore implements CacheWriter {
      * @param logUndo if an undo entry need to be logged
      * @param old the old data (if known)
      */
-    public void updateRecord(Record record, boolean logUndo, DataPage old) throws SQLException {
+    public void updateRecord(Record record, boolean logUndo, Data old) throws SQLException {
         synchronized (database) {
             if (trace.isDebugEnabled()) {
                 if (!record.isChanged()) {
@@ -614,7 +607,7 @@ public class PageStore implements CacheWriter {
      * @param logUndo if an undo entry need to be logged
      * @param old the old data (if known)
      */
-    public void freePage(int pageId, boolean logUndo, DataPage old) throws SQLException {
+    public void freePage(int pageId, boolean logUndo, Data old) throws SQLException {
         if (trace.isDebugEnabled()) {
             trace.debug("freePage " + pageId);
         }
@@ -622,7 +615,7 @@ public class PageStore implements CacheWriter {
             cache.remove(pageId);
             freePage(pageId);
             if (recoveryRunning) {
-                writePage(pageId, createDataPage());
+                writePage(pageId, createData());
             } else if (logUndo) {
                 if (old == null) {
                     old = readPage(pageId);
@@ -633,12 +626,12 @@ public class PageStore implements CacheWriter {
     }
 
     /**
-     * Create a data page.
+     * Create a data object.
      *
      * @return the data page.
      */
-    public DataPage createDataPage() {
-        return DataPage.create(database, new byte[pageSize]);
+    public Data createData() {
+        return Data.create(database, new byte[pageSize]);
     }
 
     /**
@@ -660,8 +653,8 @@ public class PageStore implements CacheWriter {
      * @param pos the page id
      * @return the page
      */
-    public DataPage readPage(int pos) throws SQLException {
-        DataPage page = createDataPage();
+    public Data readPage(int pos) throws SQLException {
+        Data page = createData();
         readPage(pos, page);
         return page;
     }
@@ -672,7 +665,7 @@ public class PageStore implements CacheWriter {
      * @param pos the page id
      * @param page the page
      */
-    public void readPage(int pos, DataPage page) throws SQLException {
+    public void readPage(int pos, Data page) throws SQLException {
         synchronized (database) {
             if (pos >= pageCount) {
                 throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, pos + " of " + pageCount);
@@ -706,7 +699,7 @@ public class PageStore implements CacheWriter {
      * @param pageId the page id
      * @param data the data
      */
-    public void writePage(int pageId, DataPage data) throws SQLException {
+    public void writePage(int pageId, Data data) throws SQLException {
         synchronized (database) {
             file.seek((long) pageId << pageSizeShift);
             file.write(data.getBytes(), 0, pageSize);
@@ -740,6 +733,7 @@ public class PageStore implements CacheWriter {
         readMetaData();
         log.recover(PageLog.RECOVERY_STAGE_REDO);
         if (log.getInDoubtTransactions().size() == 0) {
+            log.truncate();
             switchLog();
         } else {
             database.setReadOnly(true);
@@ -886,7 +880,7 @@ public class PageStore implements CacheWriter {
             trace.debug("addMeta id=" + id + " type=" + type + " parent=" + parent + " columns=" + columnList);
         }
         if (redo) {
-            writePage(headPos, createDataPage());
+            writePage(headPos, createData());
             allocatePage(headPos);
         }
         if (type == META_TYPE_SCAN_INDEX) {
@@ -1024,6 +1018,19 @@ public class PageStore implements CacheWriter {
         if (file == null) {
             throw Message.getSQLException(ErrorCode.SIMULATED_POWER_OFF);
         }
+    }
+
+    /**
+     * Create an array of SearchRow with the given size.
+     *
+     * @param len the number of bytes requested
+     * @return the array
+     */
+    public static SearchRow[] newSearchRows(int entryCount) {
+        if (entryCount == 0) {
+            return EMPTY_SEARCH_ROW;
+        }
+        return new SearchRow[entryCount];
     }
 
     // TODO implement checksum

@@ -7,10 +7,9 @@
 package org.h2.index;
 
 import java.sql.SQLException;
-
 import org.h2.engine.Session;
 import org.h2.result.Row;
-import org.h2.store.DataPage;
+import org.h2.store.Data;
 import org.h2.store.Record;
 
 /**
@@ -36,7 +35,7 @@ abstract class PageData extends Record {
     /**
      * The data page.
      */
-    protected final DataPage data;
+    protected final Data data;
 
     /**
      * The number of entries.
@@ -53,7 +52,7 @@ abstract class PageData extends Record {
      */
     protected boolean written;
 
-    PageData(PageScanIndex index, int pageId, int parentPageId, DataPage data) {
+    PageData(PageScanIndex index, int pageId, int parentPageId, Data data) {
         this.index = index;
         this.parentPageId = parentPageId;
         this.data = data;
@@ -204,7 +203,8 @@ abstract class PageData extends Record {
      * @return number of double words (4 bytes)
      */
     public int getMemorySize() {
-        return index.getPageStore().getPageSize() >> 2;
+        // double the byte array size
+        return index.getPageStore().getPageSize() >> 1;
     }
 
     int getParentPageId() {

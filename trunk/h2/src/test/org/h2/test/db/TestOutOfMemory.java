@@ -11,8 +11,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.LinkedList;
-
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
@@ -21,8 +19,6 @@ import org.h2.test.TestBase;
  * transactions must stay atomic.
  */
 public class TestOutOfMemory extends TestBase {
-
-    private LinkedList<byte[]> list = new LinkedList<byte[]>();
 
     /**
      * Run just this test.
@@ -56,7 +52,7 @@ public class TestOutOfMemory extends TestBase {
             } catch (SQLException e) {
                 assertEquals(ErrorCode.OUT_OF_MEMORY, e.getErrorCode());
             }
-            list = null;
+            freeMemory();
             ResultSet rs = stat.executeQuery("select count(*) from stuff");
             rs.next();
             assertEquals(2000, rs.getInt(1));
@@ -64,40 +60,6 @@ public class TestOutOfMemory extends TestBase {
             conn.close();
         }
         deleteDb("outOfMemory");
-    }
-
-    private void eatMemory(int remainingKB) {
-        byte[] reserve = new byte[remainingKB * 1024];
-        int max = 128 * 1024 * 1024;
-        int div = 2;
-        while (true) {
-            long free = Runtime.getRuntime().freeMemory();
-            long freeTry = free / div;
-            int eat = (int) Math.min(max, freeTry);
-            try {
-                byte[] block = new byte[eat];
-                list.add(block);
-            } catch (OutOfMemoryError e) {
-                if (eat < 32) {
-                    break;
-                }
-                if (eat == max) {
-                    max /= 2;
-                    if (max < 128) {
-                        break;
-                    }
-                }
-                if (eat == freeTry) {
-                    div += 1;
-                } else {
-                    div = 2;
-                }
-            }
-        }
-        // silly code - makes sure there are no warnings
-        reserve[0] = reserve[1];
-        // actually it is anyway garbage collected
-        reserve = null;
     }
 
 }

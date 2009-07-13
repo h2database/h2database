@@ -332,13 +332,15 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
                 new TestTimer().runTest(test);
             }
         } else {
-            test.runTests();
-
             int todo;
-//            System.setProperty(SysProperties.H2_PAGE_STORE, "true");
-//            test.pageStore = true;
-//            test.runTests();
+            System.setProperty(SysProperties.H2_PAGE_STORE, "true");
+            test.pageStore = true;
+            test.runTests();
+            TestPerformance.main(new String[]{ "-init", "-db", "1"});
 
+            System.setProperty(SysProperties.H2_PAGE_STORE, "false");
+            test.pageStore = false;
+            test.runTests();
             TestPerformance.main(new String[]{ "-init", "-db", "1"});
         }
         System.out.println(TestBase.formatTime(System.currentTimeMillis() - time) + " total");

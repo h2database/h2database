@@ -86,19 +86,32 @@ public class TestMemoryUsage extends TestBase {
         stat.execute("SET MAX_LENGTH_INPLACE_LOB 32768");
         stat.execute("SET CACHE_SIZE 8000");
         stat.execute("CREATE TABLE TEST(ID IDENTITY, DATA CLOB)");
-        System.gc();
-        System.gc();
-        int start = MemoryUtils.getMemoryUsed();
-        for (int i = 0; i < 4; i++) {
-            stat.execute("INSERT INTO TEST(DATA) SELECT SPACE(32000) FROM SYSTEM_RANGE(1, 200)");
-            System.gc();
-            System.gc();
-            int used = MemoryUtils.getMemoryUsed();
-            if ((used - start) > 16000) {
-                fail("Used: " + (used - start));
+        freeSoftReferences();
+        try {
+            int start = MemoryUtils.getMemoryUsed();
+            for (int i = 0; i < 4; i++) {
+                stat.execute("INSERT INTO TEST(DATA) SELECT SPACE(32000) FROM SYSTEM_RANGE(1, 200)");
+                freeSoftReferences();
+                int used = MemoryUtils.getMemoryUsed();
+                if ((used - start) > 16000) {
+                    fail("Used: " + (used - start));
+                }
             }
+        } finally {
+            conn.close();
+            freeMemory();
         }
-        conn.close();
+    }
+
+    void freeSoftReferences() {
+        try {
+            eatMemory(1);
+        } catch (OutOfMemoryError e) {
+            // ignore
+        }
+        System.gc();
+        System.gc();
+        freeMemory();
     }
 
     private void testCreateIndex() throws SQLException {

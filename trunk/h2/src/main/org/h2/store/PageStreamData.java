@@ -27,7 +27,7 @@ public class PageStreamData extends Record {
 
     private final PageStore store;
     private int trunk;
-    private DataPage data;
+    private Data data;
     private int remaining;
     private int length;
 
@@ -41,7 +41,7 @@ public class PageStreamData extends Record {
      * Read the page from the disk.
      */
     void read() throws SQLException {
-        data = store.createDataPage();
+        data = store.createData();
         store.readPage(getPos(), data);
         trunk = data.readInt();
         data.setPos(4);
@@ -61,7 +61,7 @@ public class PageStreamData extends Record {
      * Write the header data.
      */
     void initWrite() {
-        data = store.createDataPage();
+        data = store.createData();
         data.writeInt(trunk);
         data.writeByte((byte) Page.TYPE_STREAM_DATA);
         data.writeInt(0);

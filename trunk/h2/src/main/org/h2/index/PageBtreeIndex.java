@@ -13,7 +13,7 @@ import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.store.DataPage;
+import org.h2.store.Data;
 import org.h2.store.PageStore;
 import org.h2.store.Record;
 import org.h2.table.Column;
@@ -53,7 +53,7 @@ public class PageBtreeIndex extends BaseIndex {
             // it should not for new tables, otherwise redo of other operations
             // must ensure this page is not used for other things
             store.addMeta(this, session, headPos);
-            PageBtreeLeaf root = new PageBtreeLeaf(this, headPos, Page.ROOT, store.createDataPage());
+            PageBtreeLeaf root = new PageBtreeLeaf(this, headPos, Page.ROOT, store.createData());
             store.updateRecord(root, true, root.data);
         } else {
             this.headPos = headPos;
@@ -93,9 +93,11 @@ public class PageBtreeIndex extends BaseIndex {
                 }
             }
         }
+        // safe memory
+        SearchRow newRow = getSearchRow(row);
         while (true) {
             PageBtree root = getPage(headPos);
-            int splitPoint = root.addRowTry(row);
+            int splitPoint = root.addRowTry(newRow);
             if (splitPoint == 0) {
                 break;
             }
@@ -110,7 +112,7 @@ public class PageBtreeIndex extends BaseIndex {
             page1.setPageId(id);
             page1.setParentPageId(headPos);
             page2.setParentPageId(headPos);
-            PageBtreeNode newRoot = new PageBtreeNode(this, rootPageId, Page.ROOT, store.createDataPage());
+            PageBtreeNode newRoot = new PageBtreeNode(this, rootPageId, Page.ROOT, store.createData());
             newRoot.init(page1, pivot, page2);
             store.updateRecord(page1, true, page1.data);
             store.updateRecord(page2, true, page2.data);
@@ -118,6 +120,22 @@ public class PageBtreeIndex extends BaseIndex {
             root = newRoot;
         }
         rowCount++;
+    }
+
+    /**
+     * Create a search row for this row.
+     *
+     * @param row the row
+     * @return the search row
+     */
+    private SearchRow getSearchRow(Row row) {
+        SearchRow r = table.getTemplateSimpleRow(columns.length == 1);
+        r.setPosAndVersion(row);
+        for (int j = 0; j < columns.length; j++) {
+            int idx = columns[j].getColumnId();
+            r.setValue(idx, row.getValue(idx));
+        }
+        return r;
     }
 
     /**
@@ -137,7 +155,7 @@ public class PageBtreeIndex extends BaseIndex {
             }
             return (PageBtree) rec;
         }
-        DataPage data = store.readPage(id);
+        Data data = store.readPage(id);
         data.reset();
         int parentPageId = data.readInt();
         int type = data.readByte() & 255;
@@ -266,7 +284,7 @@ public class PageBtreeIndex extends BaseIndex {
     private void removeAllRows() throws SQLException {
         PageBtree root = getPage(headPos);
         root.freeChildren();
-        root = new PageBtreeLeaf(this, headPos, Page.ROOT, store.createDataPage());
+        root = new PageBtreeLeaf(this, headPos, Page.ROOT, store.createData());
         store.removeRecord(headPos);
         store.updateRecord(root, true, null);
         rowCount = 0;
@@ -297,7 +315,7 @@ public class PageBtreeIndex extends BaseIndex {
      * @param data the data page
      * @return the row
      */
-    Row readRow(DataPage data) throws SQLException {
+    Row readRow(Data data) throws SQLException {
         return tableData.readRow(data);
     }
 
@@ -324,7 +342,7 @@ public class PageBtreeIndex extends BaseIndex {
      * @param onlyPosition whether only the position of the row is stored
      * @return the row
      */
-    SearchRow readRow(DataPage data, int offset, boolean onlyPosition) throws SQLException {
+    SearchRow readRow(Data data, int offset, boolean onlyPosition) throws SQLException {
         data.setPos(offset);
         int pos = data.readInt();
         if (onlyPosition) {
@@ -347,7 +365,7 @@ public class PageBtreeIndex extends BaseIndex {
      * @param onlyPosition whether only the position of the row is stored
      * @param row the row to write
      */
-    void writeRow(DataPage data, int offset, SearchRow row, boolean onlyPosition) throws SQLException {
+    void writeRow(Data data, int offset, SearchRow row, boolean onlyPosition) throws SQLException {
         data.setPos(offset);
         data.writeInt(row.getPos());
         if (!onlyPosition) {
@@ -366,8 +384,8 @@ public class PageBtreeIndex extends BaseIndex {
      * @param onlyPosition whether only the position of the row is stored
      * @return the number of bytes
      */
-    int getRowSize(DataPage dummy, SearchRow row, boolean onlyPosition) throws SQLException {
-        int rowsize = DataPage.LENGTH_INT;
+    int getRowSize(Data dummy, SearchRow row, boolean onlyPosition) throws SQLException {
+        int rowsize = Data.LENGTH_INT;
         if (!onlyPosition) {
             for (Column col : columns) {
                 Value v = row.getValue(col.getColumnId());

@@ -19,6 +19,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceSystem;
@@ -46,6 +47,8 @@ public abstract class TestBase {
      * The time when the test was started.
      */
     protected long start;
+
+    private LinkedList<byte[]> memory = new LinkedList<byte[]>();
 
     /**
      * Get the test directory for this test.
@@ -1066,6 +1069,45 @@ public abstract class TestBase {
      */
     public String getPageStoreProperty() {
         return "-Dh2.pageStore=" + System.getProperty("h2.pageStore");
+    }
+
+
+    protected void eatMemory(int remainingKB) {
+        byte[] reserve = new byte[remainingKB * 1024];
+        int max = 128 * 1024 * 1024;
+        int div = 2;
+        while (true) {
+            long free = Runtime.getRuntime().freeMemory();
+            long freeTry = free / div;
+            int eat = (int) Math.min(max, freeTry);
+            try {
+                byte[] block = new byte[eat];
+                memory.add(block);
+            } catch (OutOfMemoryError e) {
+                if (eat < 32) {
+                    break;
+                }
+                if (eat == max) {
+                    max /= 2;
+                    if (max < 128) {
+                        break;
+                    }
+                }
+                if (eat == freeTry) {
+                    div += 1;
+                } else {
+                    div = 2;
+                }
+            }
+        }
+        // silly code - makes sure there are no warnings
+        reserve[0] = reserve[1];
+        // actually it is anyway garbage collected
+        reserve = null;
+    }
+
+    protected void freeMemory() {
+        memory.clear();
     }
 
 }

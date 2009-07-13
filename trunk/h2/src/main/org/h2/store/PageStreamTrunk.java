@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.index.Page;
 import org.h2.message.Message;
+import org.h2.util.MemoryUtils;
 
 /**
  * A trunk page of a stream. It contains the page numbers of the stream, and
@@ -31,7 +32,7 @@ public class PageStreamTrunk extends Record {
     private int nextTrunk;
     private int[] pageIds;
     private int pageCount;
-    private DataPage data;
+    private Data data;
     private int index;
 
     PageStreamTrunk(PageStore store, int parent, int pageId, int next, int[] pageIds) {
@@ -52,13 +53,13 @@ public class PageStreamTrunk extends Record {
      * Read the page from the disk.
      */
     void read() throws SQLException {
-        data = store.createDataPage();
+        data = store.createData();
         store.readPage(getPos(), data);
         parent = data.readInt();
         int t = data.readByte();
         if (t == Page.TYPE_EMPTY) {
             // end of file
-            pageIds = new int[0];
+            pageIds = MemoryUtils.EMPTY_INTS;
             return;
         }
         if (t != Page.TYPE_STREAM_TRUNK) {
@@ -93,7 +94,7 @@ public class PageStreamTrunk extends Record {
     }
 
     public void write(DataPage buff) throws SQLException {
-        data = store.createDataPage();
+        data = store.createData();
         data.writeInt(parent);
         data.writeByte((byte) Page.TYPE_STREAM_TRUNK);
         data.writeInt(nextTrunk);
@@ -135,7 +136,7 @@ public class PageStreamTrunk extends Record {
      * @return the number of pages freed
      */
     int free() throws SQLException {
-        DataPage empty = store.createDataPage();
+        Data empty = store.createData();
         store.freePage(getPos(), false, null);
         int freed = 1;
         for (int i = 0; i < pageCount; i++) {

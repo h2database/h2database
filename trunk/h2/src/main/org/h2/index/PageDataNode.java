@@ -11,7 +11,9 @@ import java.sql.SQLException;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
+import org.h2.store.Data;
 import org.h2.store.DataPage;
+import org.h2.util.MemoryUtils;
 
 /**
  * A leaf page that contains data of one or multiple rows.
@@ -39,7 +41,7 @@ class PageDataNode extends PageData {
 
     private int rowCount = UNKNOWN_ROWCOUNT;
 
-    PageDataNode(PageScanIndex index, int pageId, int parentPageId, DataPage data) {
+    PageDataNode(PageScanIndex index, int pageId, int parentPageId, Data data) {
         super(index, pageId, parentPageId, data);
     }
 
@@ -49,7 +51,7 @@ class PageDataNode extends PageData {
         rowCount = rowCountStored = data.readInt();
         childPageIds = new int[entryCount + 1];
         childPageIds[entryCount] = data.readInt();
-        keys = new int[entryCount];
+        keys = MemoryUtils.newInts(entryCount);
         for (int i = 0; i < entryCount; i++) {
             childPageIds[i] = data.readInt();
             keys[i] = data.readInt();
@@ -117,7 +119,7 @@ class PageDataNode extends PageData {
 
     PageData split(int splitPoint) throws SQLException {
         int newPageId = index.getPageStore().allocatePage();
-        PageDataNode p2 = new PageDataNode(index, newPageId, parentPageId, index.getPageStore().createDataPage());
+        PageDataNode p2 = new PageDataNode(index, newPageId, parentPageId, index.getPageStore().createData());
         int firstChild = childPageIds[splitPoint];
         for (int i = splitPoint; i < entryCount;) {
             p2.addChild(p2.entryCount, childPageIds[splitPoint + 1], keys[splitPoint]);
@@ -273,7 +275,7 @@ class PageDataNode extends PageData {
         if (entryCount < 0) {
             Message.throwInternalError();
         }
-        int[] newKeys = new int[entryCount];
+        int[] newKeys = MemoryUtils.newInts(entryCount);
         int[] newChildPageIds = new int[entryCount + 1];
         System.arraycopy(keys, 0, newKeys, 0, Math.min(entryCount, i));
         System.arraycopy(childPageIds, 0, newChildPageIds, 0, i);

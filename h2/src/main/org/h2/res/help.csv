@@ -2889,11 +2889,13 @@ are specified (a list of column names separated with the fieldSeparator), those
 are used they are read from the file, otherwise (or if they are set to NULL) the
 first line of the file is interpreted as the column names. The default charset
 is the default value for this system, and the default field separator is a
-comma. Missing unquoted values as well as data that matches the null string is
-parsed as NULL. This function can be used like a table: SELECT * FROM
-CSVREAD(...). Instead of a file, an URL may be used, for example
-jar:file:///c:/temp/example.zip!/org/example/nested.zip. Admin rights are
-required to execute this command.
+comma. Missing unquoted values as well as data that matches nullString is
+parsed as NULL. All columns of type VARCHAR.
+
+This function can be used like a table: SELECT * FROM CSVREAD(...).
+Instead of a file, an URL may be used, for example
+jar:file:///c:/temp/example.zip!/org/example/nested.zip.
+Admin rights are required to execute this command.
 ","
 CALL CSVREAD('test.csv');
 -- Read a file containing the columns ID, NAME with
@@ -2910,10 +2912,15 @@ CSVWRITE(fileNameString, queryString [, charsetString [, fieldSeparatorString
 ","
 Writes a CSV (comma separated values). The file is overwritten if it exists. For
 each parameter, NULL means the default value should be used. The default charset
-is the default value for this system, and the default field separator is a
-comma. The null string is used when writing NULL (by default nothing is written
+is the default value for this system, and the default field separator is a comma.
+
+The values are converted to text using the default string representation;
+if another conversion is required you need to change the select statement accordingly.
+The parameter nullString is used when writing NULL (by default nothing is written
 when NULL appears). The default line separator is the default value for this
-system ('line.separator' system property). The returned value is the number or
+system ('line.separator' system property).
+
+The returned value is the number or
 rows written. Admin rights are required to execute this command.
 ","
 CALL CSVWRITE('test.csv', 'SELECT * FROM TEST');

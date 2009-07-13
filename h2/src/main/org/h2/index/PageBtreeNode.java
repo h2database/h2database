@@ -10,7 +10,10 @@ import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.result.SearchRow;
+import org.h2.store.Data;
 import org.h2.store.DataPage;
+import org.h2.store.PageStore;
+import org.h2.util.MemoryUtils;
 
 /**
  * A b-tree node page that contains index data.
@@ -38,7 +41,7 @@ class PageBtreeNode extends PageBtree {
 
     private int rowCount = UNKNOWN_ROWCOUNT;
 
-    PageBtreeNode(PageBtreeIndex index, int pageId, int parentPageId, DataPage data) {
+    PageBtreeNode(PageBtreeIndex index, int pageId, int parentPageId, Data data) {
         super(index, pageId, parentPageId, data);
         start = CHILD_OFFSET_PAIR_START;
     }
@@ -51,8 +54,8 @@ class PageBtreeNode extends PageBtree {
         rowCount = rowCountStored = data.readInt();
         childPageIds = new int[entryCount + 1];
         childPageIds[entryCount] = data.readInt();
-        rows = new SearchRow[entryCount];
-        offsets = new int[entryCount];
+        rows = PageStore.newSearchRows(entryCount);
+        offsets = MemoryUtils.newInts(entryCount);
         for (int i = 0; i < entryCount; i++) {
             childPageIds[i] = data.readInt();
             offsets[i] = data.readInt();
@@ -164,7 +167,7 @@ class PageBtreeNode extends PageBtree {
 
     PageBtree split(int splitPoint) throws SQLException {
         int newPageId = index.getPageStore().allocatePage();
-        PageBtreeNode p2 = new PageBtreeNode(index, newPageId, parentPageId, index.getPageStore().createDataPage());
+        PageBtreeNode p2 = new PageBtreeNode(index, newPageId, parentPageId, index.getPageStore().createData());
         if (onlyPosition) {
             // TODO optimize: maybe not required
             p2.onlyPosition = true;
@@ -204,7 +207,7 @@ class PageBtreeNode extends PageBtree {
         entryCount = 0;
         childPageIds = new int[] { page1.getPageId() };
         rows = new SearchRow[0];
-        offsets = new int[0];
+        offsets = MemoryUtils.EMPTY_INTS;
         addChild(0, page2.getPageId(), pivot);
         check();
     }
@@ -336,8 +339,8 @@ class PageBtreeNode extends PageBtree {
         if (entryCount < 0) {
             Message.throwInternalError();
         }
-        SearchRow[] newRows = new SearchRow[entryCount];
-        int[] newOffsets = new int[entryCount];
+        SearchRow[] newRows = PageStore.newSearchRows(entryCount);
+        int[] newOffsets = MemoryUtils.newInts(entryCount);
         int[] newChildPageIds = new int[entryCount + 1];
         System.arraycopy(offsets, 0, newOffsets, 0, Math.min(entryCount, i));
         System.arraycopy(rows, 0, newRows, 0, Math.min(entryCount, i));

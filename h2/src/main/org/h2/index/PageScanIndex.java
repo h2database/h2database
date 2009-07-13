@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -21,7 +20,7 @@ import org.h2.log.UndoLogRecord;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.store.DataPage;
+import org.h2.store.Data;
 import org.h2.store.PageStore;
 import org.h2.store.Record;
 import org.h2.table.Column;
@@ -67,7 +66,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             // it should not for new tables, otherwise redo of other operations
             // must ensure this page is not used for other things
             store.addMeta(this, session, headPos);
-            PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
+            PageDataLeaf root = new PageDataLeaf(this, headPos, Page.ROOT, store.createData());
             store.updateRecord(root, true, root.data);
         } else {
             this.headPos = headPos;
@@ -129,7 +128,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             page1.setPageId(id);
             page1.setParentPageId(headPos);
             page2.setParentPageId(headPos);
-            PageDataNode newRoot = new PageDataNode(this, rootPageId, Page.ROOT, store.createDataPage());
+            PageDataNode newRoot = new PageDataNode(this, rootPageId, Page.ROOT, store.createData());
             newRoot.init(page1, pivot, page2);
             store.updateRecord(page1, true, page1.data);
             store.updateRecord(page2, true, page2.data);
@@ -164,7 +163,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (rec != null) {
             return (PageDataLeafOverflow) rec;
         }
-        DataPage data = store.readPage(id);
+        Data data = store.readPage(id);
         data.reset();
         PageDataLeafOverflow result = new PageDataLeafOverflow(leaf, id, data, offset);
         result.read();
@@ -189,7 +188,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             }
             return (PageData) rec;
         }
-        DataPage data = store.readPage(id);
+        Data data = store.readPage(id);
         data.reset();
         int parentPageId = data.readInt();
         int type = data.readByte() & 255;
@@ -302,7 +301,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
     private void removeAllRows() throws SQLException {
         PageData root = getPage(headPos, 0);
         root.freeChildren();
-        root = new PageDataLeaf(this, headPos, Page.ROOT, store.createDataPage());
+        root = new PageDataLeaf(this, headPos, Page.ROOT, store.createData());
         store.removeRecord(headPos);
         store.updateRecord(root, true, null);
         rowCount = 0;
@@ -328,7 +327,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
      * @param data the data page
      * @return the row
      */
-    Row readRow(DataPage data) throws SQLException {
+    Row readRow(Data data) throws SQLException {
         return tableData.readRow(data);
     }
 

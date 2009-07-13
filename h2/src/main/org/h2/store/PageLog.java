@@ -111,7 +111,7 @@ public class PageLog {
     private DataInputStream in;
     private int firstTrunkPage;
     private int firstDataPage;
-    private DataPage data;
+    private Data data;
     private int logId, logPos;
     private int firstLogId;
     private BitField undo = new BitField();
@@ -120,7 +120,7 @@ public class PageLog {
 
     PageLog(PageStore store) {
         this.store = store;
-        data = store.createDataPage();
+        data = store.createData();
         trace = store.getTrace();
     }
 
@@ -196,7 +196,7 @@ public class PageLog {
         pageIn = new PageInputStream(store, firstTrunkPage, firstDataPage);
         in = new DataInputStream(pageIn);
         int logId = 0;
-        DataPage data = store.createDataPage();
+        Data data = store.createData();
         try {
             pos = 0;
             while (true) {
@@ -268,13 +268,13 @@ public class PageLog {
                     }
                 }
             }
-            if (stage == RECOVERY_STAGE_REDO) {
-                sessionStates = New.hashMap();
-            }
         } catch (EOFException e) {
             trace.debug("log recovery stopped: " + e.toString());
         } catch (IOException e) {
             throw Message.convertIOException(e, "recover");
+        }
+        if (stage == RECOVERY_STAGE_REDO) {
+            sessionStates = New.hashMap();
         }
     }
 
@@ -304,7 +304,7 @@ public class PageLog {
      * @param data a temporary buffer
      * @return the row
      */
-    public static Row readRow(DataInputStream in, DataPage data) throws IOException, SQLException {
+    public static Row readRow(DataInputStream in, Data data) throws IOException, SQLException {
         int pos = in.readInt();
         int len = in.readInt();
         data.reset();
@@ -328,7 +328,7 @@ public class PageLog {
      * @param pageId the page id
      * @param page the old page data
      */
-    void addUndo(int pageId, DataPage page) throws SQLException {
+    void addUndo(int pageId, Data page) throws SQLException {
         try {
             if (undo.get(pageId)) {
                 return;
@@ -398,17 +398,17 @@ public class PageLog {
             int pageSize = store.getPageSize();
             byte[] t = StringUtils.utf8Encode(transaction);
             int len = t.length;
-            if (1 + DataPage.LENGTH_INT * 2 + len >= PageStreamData.getCapacity(pageSize)) {
+            if (1 + Data.LENGTH_INT * 2 + len >= PageStreamData.getCapacity(pageSize)) {
                 throw Message.getInvalidValueException("transaction name too long", transaction);
             }
-            pageOut.fillDataPage();
+            pageOut.fillPage();
             out.write(PREPARE_COMMIT);
             out.writeInt(session.getId());
             out.writeInt(len);
             out.write(t);
             flushOut();
             // store it on a separate log page
-            pageOut.fillDataPage();
+            pageOut.fillPage();
             if (log.getFlushOnEachCommit()) {
                 flush();
             }
@@ -461,6 +461,7 @@ public class PageLog {
             row.setLastLog(logId, logPos);
 
             data.reset();
+            data.checkCapacity(row.getByteCount(data));
             row.write(data);
             out.write(add ? ADD : REMOVE);
             out.writeInt(session.getId());
@@ -497,7 +498,7 @@ public class PageLog {
         }
         undo = new BitField();
         logId++;
-        pageOut.fillDataPage();
+        pageOut.fillPage();
         int currentDataPage = pageOut.getCurrentDataPageId();
         logIdPageMap.put(logId, currentDataPage);
     }
@@ -634,6 +635,16 @@ public class PageLog {
         bytes = new byte[d.getRemaining()];
         d.write(bytes, 0, bytes.length);
         d.write(null);
+    }
+
+    void truncate() throws SQLException {
+        do {
+            // TODO keep trunk page in the cache
+            PageStreamTrunk t = new PageStreamTrunk(store, firstTrunkPage);
+            t.read();
+            firstTrunkPage = t.getNextTrunk();
+            t.free();
+        } while (firstTrunkPage != 0);
     }
 
 }

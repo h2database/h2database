@@ -11,6 +11,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.result.SearchRow;
+import org.h2.store.Data;
 import org.h2.store.DataPage;
 import org.h2.store.PageStore;
 
@@ -30,7 +31,7 @@ class PageBtreeLeaf extends PageBtree {
     private static final int OFFSET_LENGTH = 2;
     private static final int OFFSET_START = 11;
 
-    PageBtreeLeaf(PageBtreeIndex index, int pageId, int parentPageId, DataPage data) {
+    PageBtreeLeaf(PageBtreeIndex index, int pageId, int parentPageId, Data data) {
         super(index, pageId, parentPageId, data);
         start = OFFSET_START;
     }
@@ -140,7 +141,7 @@ class PageBtreeLeaf extends PageBtree {
 
     PageBtree split(int splitPoint) throws SQLException {
         int newPageId = index.getPageStore().allocatePage();
-        PageBtreeLeaf p2 = new PageBtreeLeaf(index, newPageId, parentPageId, index.getPageStore().createDataPage());
+        PageBtreeLeaf p2 = new PageBtreeLeaf(index, newPageId, parentPageId, index.getPageStore().createData());
         for (int i = splitPoint; i < entryCount;) {
             p2.addRowTry(getRow(splitPoint));
             removeRow(splitPoint);
@@ -213,7 +214,7 @@ class PageBtreeLeaf extends PageBtree {
         written = true;
     }
 
-    DataPage getDataPage() throws SQLException {
+    Data getData() throws SQLException {
         write();
         return data;
     }

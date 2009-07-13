@@ -34,6 +34,7 @@ import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.result.SimpleRow;
 import org.h2.security.SHA256;
+import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.DataPage;
 import org.h2.store.DiskFile;
@@ -49,6 +50,7 @@ import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.IntArray;
 import org.h2.util.MathUtils;
+import org.h2.util.MemoryUtils;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.RandomUtils;
@@ -496,7 +498,7 @@ public class Recover extends Tool implements DataHandler {
                 // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE
                 blocks = MathUtils.convertLongToInt(Math.abs(s.readInt()));
                 if (blocks > 1) {
-                    byte[] b2 = ByteUtils.newBytes(blocks * blockSize);
+                    byte[] b2 = MemoryUtils.newBytes(blocks * blockSize);
                     System.arraycopy(buff, 0, b2, 0, blockSize);
                     buff = b2;
                     try {
@@ -532,7 +534,7 @@ public class Recover extends Tool implements DataHandler {
                     case 'S': {
                         char fileType = (char) s.readByte();
                         int sumLength = s.readInt();
-                        byte[] summary = ByteUtils.newBytes(sumLength);
+                        byte[] summary = MemoryUtils.newBytes(sumLength);
                         if (sumLength > 0) {
                             s.read(summary, 0, sumLength);
                         }
@@ -858,7 +860,7 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void dumpPageLogStream(PrintWriter writer, FileStore store, int logFirstTrunkPage, int logFirstDataPage, int pageSize) throws IOException, SQLException {
-        DataPage s = DataPage.create(this, pageSize);
+        Data s = Data.create(this, pageSize);
         DataInputStream in = new DataInputStream(
                 new PageInputStream(writer, this, store, logFirstTrunkPage, logFirstDataPage, pageSize)
         );

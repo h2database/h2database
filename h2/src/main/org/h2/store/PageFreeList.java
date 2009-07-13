@@ -28,7 +28,7 @@ public class PageFreeList extends Record {
     private final BitField used = new BitField();
     private final int pageCount;
     private boolean full;
-    private DataPage data;
+    private Data data;
 
     PageFreeList(PageStore store, int pageId) {
         setPos(pageId);
@@ -91,7 +91,7 @@ public class PageFreeList extends Record {
      * Read the page from the disk.
      */
     void read() throws SQLException {
-        data = store.createDataPage();
+        data = store.createData();
         store.readPage(getPos(), data);
         int p = data.readInt();
         int t = data.readByte();
@@ -113,7 +113,7 @@ public class PageFreeList extends Record {
     }
 
     public void write(DataPage buff) throws SQLException {
-        data = store.createDataPage();
+        data = store.createData();
         data.writeInt(0);
         int type = Page.TYPE_FREE_LIST;
         data.writeByte((byte) type);

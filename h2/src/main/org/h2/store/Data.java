@@ -11,11 +11,8 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
-
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.message.Message;
-import org.h2.util.MathUtils;
 import org.h2.util.MemoryUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -40,10 +37,9 @@ import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueUuid;
 
 /**
- * A data page is a byte buffer that contains persistent data of a row or index
- * page.
+ * A data page is a byte buffer that contains persistent data of a page.
  */
-public class DataPage {
+public class Data extends DataPage {
 
     /**
      * The space required for the checksum and additional fillers.
@@ -60,56 +56,8 @@ public class DataPage {
      */
     public static final int LENGTH_LONG = 8;
 
-    /**
-     * Whether calculating (and checking) the checksum is enabled.
-     */
-    private static final boolean CHECKSUM = true;
-
-    /**
-     * The data handler responsible for lob objects.
-     */
-    protected DataHandler handler;
-
-    /**
-     * The data itself.
-     */
-    protected byte[] data;
-
-    /**
-     * The current write or read position.
-     */
-    protected int pos;
-
-    protected DataPage(DataHandler handler, byte[] data) {
-        this.handler = handler;
-        this.data = data;
-    }
-
-    /**
-     * Calculate the checksum and write.
-     *
-     */
-    public void updateChecksum() {
-        if (CHECKSUM) {
-            int x = handler.getChecksum(data, 0, pos - 2);
-            data[pos - 2] = (byte) x;
-        }
-    }
-
-    /**
-     * Test if the checksum is correct.
-     *
-     * @param len the number of bytes
-     * @throws SQLException if the checksum does not match
-     */
-    public void check(int len) throws SQLException {
-        if (CHECKSUM) {
-            int x = handler.getChecksum(data, 0, len - 2);
-            if (data[len - 2] == (byte) x) {
-                return;
-            }
-            handler.handleInvalidChecksum();
-        }
+    private Data(DataHandler handler, byte[] data) {
+        super(handler, data);
     }
 
     /**
@@ -197,7 +145,6 @@ public class DataPage {
      */
     public void writeString(String s) {
         int len = s.length();
-        checkCapacity(len * 3 + 4);
         int p = pos;
         byte[] buff = data;
         buff[p++] = (byte) (len >> 24);
@@ -230,7 +177,6 @@ public class DataPage {
         if (pos > len) {
             pos = len;
         }
-        checkCapacity(len - pos);
         pos = len;
     }
 
@@ -242,8 +188,8 @@ public class DataPage {
      * @param capacity the initial capacity of the buffer
      * @return the data page
      */
-    public static DataPage create(DataHandler handler, int capacity) {
-        return new DataPage(handler, new byte[capacity]);
+    public static Data create(DataHandler handler, int capacity) {
+        return new Data(handler, new byte[capacity]);
     }
 
     /**
@@ -254,24 +200,8 @@ public class DataPage {
      * @param buff the data
      * @return the data page
      */
-    public static DataPage create(DataHandler handler, byte[] buff) {
-        return new DataPage(handler, buff);
-    }
-
-    /**
-     * Check if there is still enough capacity in the buffer.
-     * This method extends the buffer if required.
-     *
-     * @param plus the number of additional bytes required
-     */
-    public void checkCapacity(int plus) {
-        if (pos + plus >= data.length) {
-            byte[] d = MemoryUtils.newBytes((data.length + plus) * 2);
-            // must copy everything, because pos could be 0 and data may be
-            // still required
-            System.arraycopy(data, 0, d, 0, data.length);
-            data = d;
-        }
+    public static Data create(DataHandler handler, byte[] buff) {
+        return new Data(handler, buff);
     }
 
     /**
@@ -306,26 +236,11 @@ public class DataPage {
      *
      * @param page the page that will be appended
      */
-    public void writeDataPageNoSize(DataPage page) {
-        checkCapacity(page.pos);
+    public void writeDataPageNoSize(Data page) {
         // don't write filler
         int len = page.pos - LENGTH_FILLER;
         System.arraycopy(page.data, 0, data, pos, len);
         pos += len;
-    }
-
-    /**
-     * Read a data page from this page. The data from the current position to
-     * the end of the page is copied.
-     *
-     * @return the new page
-     */
-    public DataPage readDataPageNoSize() {
-        int len = data.length - pos;
-        DataPage page = DataPage.create(handler, len);
-        System.arraycopy(data, pos, page.data, 0, len);
-        page.pos = len;
-        return page;
     }
 
     /**
@@ -336,7 +251,6 @@ public class DataPage {
      * @param len the length in bytes
      */
     public void write(byte[] buff, int off, int len) {
-        checkCapacity(len);
         System.arraycopy(buff, off, data, pos, len);
         pos += len;
     }
@@ -397,9 +311,6 @@ public class DataPage {
      * @param v the value
      */
     public void writeValue(Value v) throws SQLException {
-        if (SysProperties.CHECK) {
-            checkCapacity(8);
-        }
         // TODO text output: could be in the Value... classes
         if (v == ValueNull.INSTANCE) {
             data[pos++] = '-';
@@ -668,16 +579,6 @@ public class DataPage {
     }
 
     /**
-     * Fill up the buffer with empty space and an (initially empty) checksum
-     * until the size is a multiple of Constants.FILE_BLOCK_SIZE.
-     */
-    public void fillAligned() {
-        // TODO datapage: fillAligned should not use a fixed constant '2'
-        // 0..6 > 8, 7..14 > 16, 15..22 > 24, ...
-        fill(MathUtils.roundUp(pos + 2, Constants.FILE_BLOCK_SIZE));
-    }
-
-    /**
      * Set the current read / write position.
      *
      * @param pos the new position
@@ -720,6 +621,20 @@ public class DataPage {
             }
         }
         return len + plus;
+    }
+
+    /**
+     * Shrink the array to this size.
+     *
+     * @param size the new size
+     */
+    public void truncate(int size) {
+        if (pos > size) {
+            byte[] buff = new byte[size];
+            System.arraycopy(data, 0, buff, 0, size);
+            this.pos = size;
+            data = buff;
+        }
     }
 
 }

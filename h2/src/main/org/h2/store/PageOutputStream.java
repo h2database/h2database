@@ -173,7 +173,7 @@ public class PageOutputStream extends OutputStream {
      * Fill the data page with zeros and write it.
      * This is required for a checkpoint.
      */
-    void fillDataPage() throws SQLException {
+    void fillPage() throws SQLException {
         if (trace.isDebugEnabled()) {
             trace.debug("pageOut.storePage fill " + data.getPos());
         }

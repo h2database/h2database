@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 import org.h2.constant.SysProperties;
+import org.h2.util.MemoryUtils;
 import org.h2.util.ObjectUtils;
 
 /**
@@ -18,7 +19,7 @@ import org.h2.util.ObjectUtils;
  */
 public class ValueJavaObject extends ValueBytesBase {
 
-    private static final ValueJavaObject EMPTY = new ValueJavaObject(new byte[0]);
+    private static final ValueJavaObject EMPTY = new ValueJavaObject(MemoryUtils.EMPTY_BYTES);
 
     protected ValueJavaObject(byte[] v) {
         super(v);

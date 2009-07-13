@@ -76,7 +76,7 @@ public class Resources {
         } else {
             data = FILES.get(name);
         }
-        return data == null ? new byte[0] : data;
+        return data == null ? MemoryUtils.EMPTY_BYTES : data;
     }
 
 }

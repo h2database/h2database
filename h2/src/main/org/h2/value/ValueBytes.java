@@ -8,13 +8,14 @@ package org.h2.value;
 
 import org.h2.constant.SysProperties;
 import org.h2.util.ByteUtils;
+import org.h2.util.MemoryUtils;
 
 /**
  * Implementation of the BINARY data type.
  */
 public class ValueBytes extends ValueBytesBase {
 
-    private static final ValueBytes EMPTY = new ValueBytes(new byte[0]);
+    private static final ValueBytes EMPTY = new ValueBytes(MemoryUtils.EMPTY_BYTES);
 
     protected ValueBytes(byte[] v) {
         super(v);

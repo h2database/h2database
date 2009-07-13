@@ -18,6 +18,7 @@ import org.h2.store.DataPage;
 import org.h2.store.DiskFile;
 import org.h2.table.Column;
 import org.h2.util.IntArray;
+import org.h2.util.MemoryUtils;
 import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
@@ -37,7 +38,7 @@ public class BtreeNode extends BtreePage {
     BtreeNode(BtreeIndex index, DataPage s) throws SQLException {
         super(index);
         int len = s.readInt();
-        int[] array = new int[len];
+        int[] array = MemoryUtils.newInts(len);
         for (int i = 0; i < array.length; i++) {
             array[i] = s.readInt();
         }

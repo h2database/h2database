@@ -13,6 +13,16 @@ import org.h2.constant.SysProperties;
  */
 public class MemoryUtils {
 
+    /**
+     * An 0-size byte array.
+     */
+    public static final byte[] EMPTY_BYTES = new byte[0];
+
+    /**
+     * An 0-size int array.
+     */
+    public static final int[] EMPTY_INTS = new int[0];
+
     private static long lastGC;
     private static final int GC_DELAY = 50;
     private static final int MAX_GC = 8;
@@ -78,6 +88,41 @@ public class MemoryUtils {
      */
     public static void freeReserveMemory() {
         reserveMemory = null;
+    }
+
+    /**
+     * Create an array of bytes with the given size. If this is not possible
+     * because not enough memory is available, an OutOfMemoryError with the
+     * requested size in the message is thrown.
+     *
+     * @param len the number of bytes requested
+     * @return the byte array
+     * @throws OutOfMemoryError
+     */
+    public static byte[] newBytes(int len) {
+        try {
+            if (len == 0) {
+                return EMPTY_BYTES;
+            }
+            return new byte[len];
+        } catch (OutOfMemoryError e) {
+            Error e2 = new OutOfMemoryError("Requested memory: " + len);
+            e2.initCause(e);
+            throw e2;
+        }
+    }
+
+    /**
+     * Create an array of ints with the given size.
+     *
+     * @param len the number of bytes requested
+     * @return the int array
+     */
+    public static int[] newInts(int len) {
+        if (len == 0) {
+            return EMPTY_INTS;
+        }
+        return new int[len];
     }
 
 }

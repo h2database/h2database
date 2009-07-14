@@ -666,8 +666,8 @@ public class PageLog {
         d.write(null);
     }
 
-     /**
-     * Called after the recvovery has been completed.
+    /**
+     * Called after the recovery has been completed.
      */
     void recoverEnd() {
         sessionStates = New.hashMap();

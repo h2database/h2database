@@ -23,7 +23,7 @@ import org.h2.store.Record;
  * </li><li>data
  * </li></ul>
  */
-public class PageDataLeafOverflow extends Record {
+public class PageDataOverflow extends Record {
 
     /**
      * The start of the data in the last overflow page.
@@ -62,7 +62,7 @@ public class PageDataLeafOverflow extends Record {
 
     private Data data;
 
-    PageDataLeafOverflow(PageDataLeaf leaf, int pageId, int type, int previous, int next, Data allData, int offset, int size) {
+    PageDataOverflow(PageDataLeaf leaf, int pageId, int type, int previous, int next, Data allData, int offset, int size) {
         this.index = leaf.index;
         setPos(pageId);
         this.type = type;
@@ -85,10 +85,10 @@ public class PageDataLeafOverflow extends Record {
      *
      * @param leaf the leaf page
      * @param pageId the page id
-     * @param dataAll the data page with the complete value
+     * @param data the data page
      * @param offset the offset
      */
-    public PageDataLeafOverflow(PageDataLeaf leaf, int pageId, Data data, int offset) {
+    PageDataOverflow(PageDataLeaf leaf, int pageId, Data data, int offset) {
         this.index = leaf.index;
         setPos(pageId);
         this.data = data;

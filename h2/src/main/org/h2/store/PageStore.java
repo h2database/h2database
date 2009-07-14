@@ -1019,7 +1019,7 @@ public class PageStore implements CacheWriter {
     /**
      * Create an array of SearchRow with the given size.
      *
-     * @param len the number of bytes requested
+     * @param entryCount the number of elements
      * @return the array
      */
     public static SearchRow[] newSearchRows(int entryCount) {

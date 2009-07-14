@@ -20,7 +20,6 @@ import org.h2.test.TestBase;
  */
 public class TestFileLock extends TestBase implements Runnable {
 
-    private static final int KILL = 5;
     private static final String FILE = baseDir + "/test.lock";
     private static volatile int locks;
     private static volatile boolean stop;
@@ -89,8 +88,9 @@ public class TestFileLock extends TestBase implements Runnable {
     }
 
     public void run() {
+        FileLock lock = null;
         while (!stop) {
-            FileLock lock = new FileLock(new TraceSystem(null, false), FILE, 100);
+            lock = new FileLock(new TraceSystem(null, false), FILE, 100);
             try {
                 lock.lock(allowSockets ? FileLock.LOCK_SOCKET : FileLock.LOCK_FILE);
                 base.trace(lock + " locked");
@@ -101,14 +101,8 @@ public class TestFileLock extends TestBase implements Runnable {
                 }
                 Thread.sleep(wait + (int) (Math.random() * wait));
                 locks--;
-                if ((Math.random() * 50) < KILL) {
-                    base.trace(lock + " kill");
-                    lock = null;
-                    System.gc();
-                } else {
-                    base.trace(lock + " unlock");
-                    lock.unlock();
-                }
+                base.trace(lock + " unlock");
+                lock.unlock();
                 if (locks < 0) {
                     System.err.println("ERROR! LOCKS=" + locks);
                     stop = true;
@@ -121,6 +115,9 @@ public class TestFileLock extends TestBase implements Runnable {
             } catch (InterruptedException e1) {
                 // ignore
             }
+        }
+        if (lock != null) {
+            lock.unlock();
         }
     }
 

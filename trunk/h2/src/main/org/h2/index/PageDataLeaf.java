@@ -36,27 +36,27 @@ class PageDataLeaf extends PageData {
     /**
      * The row offsets.
      */
-    int[] offsets;
+    private int[] offsets;
 
     /**
      * The rows.
      */
-    Row[] rows;
+    private Row[] rows;
 
     /**
      * For pages with overflow: the soft reference to the row
      */
-    SoftReference<Row> rowRef;
+    private SoftReference<Row> rowRef;
 
     /**
      * The page id of the first overflow page (0 if no overflow).
      */
-    int firstOverflowPageId;
+    private int firstOverflowPageId;
 
     /**
      * The start of the data area.
      */
-    int start;
+    private int start;
 
     /**
      * The size of the row in bytes for large rows.
@@ -338,10 +338,6 @@ class PageDataLeaf extends PageData {
         write();
         index.getPageStore().writePage(getPos(), data);
         data.truncate(index.getPageStore().getPageSize());
-    }
-
-    PageStore getPageStore() {
-        return index.getPageStore();
     }
 
     private void readAllRows() throws SQLException {

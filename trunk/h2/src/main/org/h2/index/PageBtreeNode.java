@@ -145,7 +145,7 @@ class PageBtreeNode extends PageBtree {
                 return splitPoint2;
             }
             PageBtree page2 = page.split(splitPoint);
-            addChild(x, page2.getPageId(), pivot);
+            addChild(x, page2.getPos(), pivot);
             index.getPageStore().updateRecord(page, true, page.data);
             index.getPageStore().updateRecord(page2, true, page2.data);
             index.getPageStore().updateRecord(this, true, data);
@@ -205,10 +205,10 @@ class PageBtreeNode extends PageBtree {
      */
     void init(PageBtree page1, SearchRow pivot, PageBtree page2) throws SQLException {
         entryCount = 0;
-        childPageIds = new int[] { page1.getPageId() };
+        childPageIds = new int[] { page1.getPos() };
         rows = new SearchRow[0];
         offsets = MemoryUtils.EMPTY_INTS;
-        addChild(0, page2.getPageId(), pivot);
+        addChild(0, page2.getPos(), pivot);
         check();
     }
 
@@ -253,7 +253,7 @@ class PageBtreeNode extends PageBtree {
             return false;
         }
         // this child is now empty
-        index.getPageStore().freePage(page.getPageId(), true, page.data);
+        index.getPageStore().freePage(page.getPos(), true, page.data);
         if (entryCount < 1) {
             // no more children - this page is empty as well
             return true;

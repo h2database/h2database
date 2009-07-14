@@ -187,10 +187,6 @@ abstract class PageBtree extends Record {
         remapChildren();
     }
 
-    int getPageId() {
-        return getPos();
-    }
-
     /**
      * Get the first child leaf page of a page.
      *

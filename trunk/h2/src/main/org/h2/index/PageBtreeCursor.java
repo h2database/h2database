@@ -92,8 +92,4 @@ public class PageBtreeCursor implements Cursor {
         return true;
     }
 
-    Session getSession() {
-        return session;
-    }
-
 }

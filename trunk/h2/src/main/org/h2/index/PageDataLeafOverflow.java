@@ -153,10 +153,6 @@ public class PageDataLeafOverflow extends Record {
         return index.getPageStore().getPageSize() >> 1;
     }
 
-    int getParent() {
-        return parentPage;
-    }
-
     void setParent(int parent) {
         this.parentPage = parent;
     }

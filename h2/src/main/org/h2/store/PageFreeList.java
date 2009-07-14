@@ -57,10 +57,6 @@ public class PageFreeList extends Record {
         return free + getPos();
     }
 
-    int getLastUsed() {
-        return used.getLastSetBit() + getPos();
-    }
-
     /**
      * Mark a page as used.
      *

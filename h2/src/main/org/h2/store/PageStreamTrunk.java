@@ -44,7 +44,7 @@ public class PageStreamTrunk extends Record {
         this.pageIds = pageIds;
     }
 
-    public PageStreamTrunk(PageStore store, int pageId) {
+    PageStreamTrunk(PageStore store, int pageId) {
         setPos(pageId);
         this.store = store;
     }

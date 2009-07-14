@@ -103,6 +103,9 @@ public class TestMemoryUsage extends TestBase {
         }
     }
 
+    /**
+     * Eat memory so that all soft references are garbage collected.
+     */
     void freeSoftReferences() {
         try {
             eatMemory(1);

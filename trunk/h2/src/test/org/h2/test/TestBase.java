@@ -1071,7 +1071,11 @@ public abstract class TestBase {
         return "-Dh2.pageStore=" + System.getProperty("h2.pageStore");
     }
 
-
+    /**
+     * Use up almost all memory.
+     *
+     * @param remainingKB the number of kilobytes that are not referenced
+     */
     protected void eatMemory(int remainingKB) {
         byte[] reserve = new byte[remainingKB * 1024];
         int max = 128 * 1024 * 1024;
@@ -1106,6 +1110,9 @@ public abstract class TestBase {
         reserve = null;
     }
 
+    /**
+     * Remove the hard reference to the memory.
+     */
     protected void freeMemory() {
         memory.clear();
     }

@@ -159,16 +159,16 @@ class PageDataLeaf extends PageData {
             rows[0] = null;
             do {
                 int type, size, next;
-                if (remaining <= pageSize - PageDataLeafOverflow.START_LAST) {
+                if (remaining <= pageSize - PageDataOverflow.START_LAST) {
                     type = Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST;
                     size = remaining;
                     next = 0;
                 } else {
                     type = Page.TYPE_DATA_OVERFLOW;
-                    size = pageSize - PageDataLeafOverflow.START_MORE;
+                    size = pageSize - PageDataOverflow.START_MORE;
                     next = index.getPageStore().allocatePage();
                 }
-                PageDataLeafOverflow overflow = new PageDataLeafOverflow(this, page, type, previous, next, data, dataOffset, size);
+                PageDataOverflow overflow = new PageDataOverflow(this, page, type, previous, next, data, dataOffset, size);
                 index.getPageStore().updateRecord(overflow, true, null);
                 dataOffset += size;
                 remaining -= size;
@@ -232,7 +232,7 @@ class PageDataLeaf extends PageData {
                 int next = firstOverflowPageId;
                 int offset = pageSize;
                 do {
-                    PageDataLeafOverflow page = index.getPageOverflow(next, this, offset);
+                    PageDataOverflow page = index.getPageOverflow(next, this, offset);
                     next = page.readInto(data);
                 } while (next != 0);
                 overflowRowSize = data.length();
@@ -287,7 +287,7 @@ class PageDataLeaf extends PageData {
         if (firstOverflowPageId == 0) {
             return;
         }
-        PageDataLeafOverflow overflow = index.getPageOverflow(firstOverflowPageId, this, 0);
+        PageDataOverflow overflow = index.getPageOverflow(firstOverflowPageId, this, 0);
         overflow.setParent(getPos());
         index.getPageStore().updateRecord(overflow, true, null);
     }
@@ -310,7 +310,7 @@ class PageDataLeaf extends PageData {
             PageStore store = index.getPageStore();
             int next = firstOverflowPageId;
             do {
-                PageDataLeafOverflow page = index.getPageOverflow(next, this, 0);
+                PageDataOverflow page = index.getPageOverflow(next, this, 0);
                 store.freePage(next, false, null);
                 next = page.getNextOverflow();
             } while (next != 0);

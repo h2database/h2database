@@ -158,14 +158,14 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
      * @param offset the offset in bytes
      * @return the page
      */
-    PageDataLeafOverflow getPageOverflow(int id, PageDataLeaf leaf, int offset) throws SQLException {
+    PageDataOverflow getPageOverflow(int id, PageDataLeaf leaf, int offset) throws SQLException {
         Record rec = store.getRecord(id);
         if (rec != null) {
-            return (PageDataLeafOverflow) rec;
+            return (PageDataOverflow) rec;
         }
         Data data = store.readPage(id);
         data.reset();
-        PageDataLeafOverflow result = new PageDataLeafOverflow(leaf, id, data, offset);
+        PageDataOverflow result = new PageDataOverflow(leaf, id, data, offset);
         result.read();
         return result;
     }

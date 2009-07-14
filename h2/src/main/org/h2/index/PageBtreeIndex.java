@@ -107,7 +107,7 @@ public class PageBtreeIndex extends BaseIndex {
             SearchRow pivot = root.getRow(splitPoint - 1);
             PageBtree page1 = root;
             PageBtree page2 = root.split(splitPoint);
-            int rootPageId = root.getPageId();
+            int rootPageId = root.getPos();
             int id = store.allocatePage();
             page1.setPageId(id);
             page1.setParentPageId(headPos);
@@ -301,22 +301,12 @@ public class PageBtreeIndex extends BaseIndex {
      * @param key the row key
      * @return the row
      */
-    public Row getRow(Session session, int key) throws SQLException {
+    Row getRow(Session session, int key) throws SQLException {
         return tableData.getRow(session, key);
     }
 
     PageStore getPageStore() {
         return store;
-    }
-
-    /**
-     * Read a row from the data page at the given position.
-     *
-     * @param data the data page
-     * @return the row
-     */
-    Row readRow(Data data) throws SQLException {
-        return tableData.readRow(data);
     }
 
     public long getRowCountApproximation() {

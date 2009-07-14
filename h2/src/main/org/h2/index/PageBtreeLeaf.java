@@ -13,7 +13,6 @@ import org.h2.message.Message;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
 import org.h2.store.DataPage;
-import org.h2.store.PageStore;
 
 /**
  * A b-tree leaf page that contains index data.
@@ -43,7 +42,7 @@ class PageBtreeLeaf extends PageBtree {
         int tableId = data.readInt();
         if (tableId != index.getId()) {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1,
-                    "page:" + getPageId() + " expected table:" + index.getId() +
+                    "page:" + getPos() + " expected table:" + index.getId() +
                     "got:" + tableId);
         }
         entryCount = data.readShortInt();
@@ -191,10 +190,6 @@ class PageBtreeLeaf extends PageBtree {
         index.getPageStore().writePage(getPos(), data);
     }
 
-    PageStore getPageStore() {
-        return index.getPageStore();
-    }
-
     private void write() throws SQLException {
         if (written) {
             return;
@@ -212,11 +207,6 @@ class PageBtreeLeaf extends PageBtree {
             index.writeRow(data, offsets[i], rows[i], onlyPosition);
         }
         written = true;
-    }
-
-    Data getData() throws SQLException {
-        write();
-        return data;
     }
 
     void find(PageBtreeCursor cursor, SearchRow first, boolean bigger) throws SQLException {

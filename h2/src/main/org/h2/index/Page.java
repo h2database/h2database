@@ -47,24 +47,19 @@ public class Page {
     public static final int TYPE_BTREE_NODE = 5;
 
     /**
-     * A btree overflow page.
-     */
-    public static final int TYPE_BTREE_OVERFLOW = 6;
-
-    /**
      * A page containing a list of free pages (the last page: + FLAG_LAST).
      */
-    public static final int TYPE_FREE_LIST = 7;
+    public static final int TYPE_FREE_LIST = 6;
 
     /**
      * A stream trunk page.
      */
-    public static final int TYPE_STREAM_TRUNK = 8;
+    public static final int TYPE_STREAM_TRUNK = 7;
 
     /**
      * A stream data page.
      */
-    public static final int TYPE_STREAM_DATA = 9;
+    public static final int TYPE_STREAM_DATA = 8;
 
     /**
      * This is a root page.

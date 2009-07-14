@@ -678,7 +678,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         return "query.jsp";
     }
 
-    private int addColumns(DbTableOrView table, StringBuilder buff, int treeIndex, boolean showColumnTypes,
+    private int addColumns(boolean mainSchema, DbTableOrView table, StringBuilder buff, int treeIndex, boolean showColumnTypes,
             StringBuilder columnsBuffer) {
         DbColumn[] columns = table.columns;
         for (int i = 0; columns != null && i < columns.length; i++) {
@@ -688,10 +688,11 @@ class WebThread extends Thread implements DatabaseEventListener {
             }
             columnsBuffer.append(column.name);
             String col = StringUtils.urlEncode(PageParser.escapeJavaScript(column.name));
-            buff.append("setNode(" + treeIndex + ", 1, 1, 'column', '" + PageParser.escapeJavaScript(column.name)
+            String level = mainSchema ? ", 1, 1" : ", 2, 2";
+            buff.append("setNode(" + treeIndex + level + ", 'column', '" + PageParser.escapeJavaScript(column.name)
                     + "', 'javascript:ins(\\'" + col + "\\')');\n");
             treeIndex++;
-            if (showColumnTypes) {
+            if (mainSchema && showColumnTypes) {
                 buff.append("setNode(" + treeIndex + ", 2, 2, 'type', '" + PageParser.escapeJavaScript(column.dataType)
                         + "', null);\n");
                 treeIndex++;
@@ -778,8 +779,9 @@ class WebThread extends Thread implements DatabaseEventListener {
         Connection conn = session.getConnection();
         DatabaseMetaData meta = session.getMetaData();
         int level = mainSchema ? 0 : 1;
-        String indentation = ", " + level + ", " + (level + 1) + ", ";
-        String indentNode = ", " + (level + 1) + ", " + (level + 1) + ", ";
+        boolean showColumns = mainSchema || !schema.isSystem;
+        String indentation = ", " + level + ", " + (showColumns ? "1" : "2") + ", ";
+        String indentNode = ", " + (level + 1) + ", 2, ";
         DbTableOrView[] tables = schema.tables;
         if (tables == null) {
             return treeIndex;
@@ -799,10 +801,10 @@ class WebThread extends Thread implements DatabaseEventListener {
             buff.append("setNode(" + treeIndex + indentation + " 'table', '" + PageParser.escapeJavaScript(table.name)
                     + "', 'javascript:ins(\\'" + tab + "\\',true)');\n");
             treeIndex++;
-            if (mainSchema) {
+            if (mainSchema || showColumns) {
                 StringBuilder columnsBuffer = new StringBuilder();
-                treeIndex = addColumns(table, buff, treeIndex, notManyTables, columnsBuffer);
-                if (!isOracle && notManyTables) {
+                treeIndex = addColumns(mainSchema, table, buff, treeIndex, notManyTables, columnsBuffer);
+                if (mainSchema && !isOracle && notManyTables) {
                     treeIndex = addIndexes(meta, table.name, schema.name, buff, treeIndex);
                 }
                 buff.append("addTable('" + PageParser.escapeJavaScript(table.name) + "', '"
@@ -825,7 +827,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             treeIndex++;
             if (mainSchema) {
                 StringBuilder columnsBuffer = new StringBuilder();
-                treeIndex = addColumns(view, buff, treeIndex, notManyTables, columnsBuffer);
+                treeIndex = addColumns(mainSchema, view, buff, treeIndex, notManyTables, columnsBuffer);
                 if (schema.contents.isH2) {
                     PreparedStatement prep = null;
                     try {

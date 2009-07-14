@@ -31,33 +31,47 @@ public class DbSchema {
     /**
      * The database content container.
      */
-    DbContents contents;
+    final DbContents contents;
 
     /**
      * The schema name.
      */
-    String name;
+    final String name;
+
+    /**
+     * True if this is the default schema for this database.
+     */
+    final boolean isDefault;
+
+    /**
+     * True if this is a system schema (for example the INFORMATION_SCHEMA).
+     */
+    final boolean isSystem;
 
     /**
      * The quoted schema name.
      */
-    String quotedName;
+    final String quotedName;
 
     /**
      * The table list.
      */
     DbTableOrView[] tables;
 
-    /**
-     * True if this is the default schema for this database.
-     */
-    boolean isDefault;
-
     DbSchema(DbContents contents, String name, boolean isDefault) {
         this.contents = contents;
         this.name = name;
         this.quotedName =  contents.quoteIdentifier(name);
         this.isDefault = isDefault;
+        if (name.toUpperCase().startsWith("INFO")) {
+            isSystem = true;
+        } else if (contents.isPostgreSQL && name.toUpperCase().startsWith("PG_")) {
+            isSystem = true;
+        } else if (contents.isDerby && name.startsWith("SYS")) {
+            isSystem = true;
+        } else {
+            isSystem = false;
+        }
     }
 
     /**

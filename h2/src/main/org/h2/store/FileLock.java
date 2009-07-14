@@ -17,7 +17,6 @@ import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.Properties;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionRemote;
 import org.h2.jdbc.JdbcSQLException;
@@ -177,18 +176,6 @@ public class FileLock {
             properties.remove(key);
         } else {
             properties.put(key, value);
-        }
-    }
-
-    /**
-     * This finalizer unlocks the file if necessary.
-     */
-    protected void finalize() {
-        if (!SysProperties.runFinalize) {
-            return;
-        }
-        if (locked) {
-            unlock();
         }
     }
 

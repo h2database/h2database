@@ -21,6 +21,7 @@ import org.h2.message.Message;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.util.BitField;
+import org.h2.util.IntArray;
 import org.h2.util.IntIntHashMap;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
@@ -84,6 +85,12 @@ public class PageLog {
      * Format: -
      */
     public static final int CHECKPOINT = 7;
+
+    /**
+     * Free a log page.
+     * Format: count, page ids
+     */
+    public static final int FREE_LOG = 8;
 
     /**
      * The recovery stage to undo changes (re-apply the backup).
@@ -261,6 +268,14 @@ public class PageLog {
                     // nothing to do
                 } else if (x == CHECKPOINT) {
                     logId++;
+                } else if (x == FREE_LOG) {
+                    int count = in.readInt();
+                    for (int i = 0; i < count; i++) {
+                        int pageId = in.readInt();
+                        if (stage == RECOVERY_STAGE_REDO) {
+                            store.freePage(pageId, false, null);
+                        }
+                    }
                 } else {
                     if (trace.isDebugEnabled()) {
                         trace.debug("log end");
@@ -272,9 +287,6 @@ public class PageLog {
             trace.debug("log recovery stopped: " + e.toString());
         } catch (IOException e) {
             throw Message.convertIOException(e, "recover");
-        }
-        if (stage == RECOVERY_STAGE_REDO) {
-            sessionStates = New.hashMap();
         }
     }
 
@@ -340,6 +352,22 @@ public class PageLog {
             out.write(UNDO);
             out.writeInt(pageId);
             out.write(page.getBytes(), 0, store.getPageSize());
+            flushOut();
+        } catch (IOException e) {
+            throw Message.convertIOException(e, null);
+        }
+    }
+
+    private void freeLogPages(IntArray pages) throws SQLException {
+        try {
+            if (trace.isDebugEnabled()) {
+                trace.debug("log frees " + pages.get(0) + ".." + pages.get(pages.size() - 1));
+            }
+            out.write(FREE_LOG);
+            out.writeInt(pages.size());
+            for (int i = 0; i < pages.size(); i++) {
+                out.writeInt(pages.get(i));
+            }
             flushOut();
         } catch (IOException e) {
             throw Message.convertIOException(e, null);
@@ -418,32 +446,6 @@ public class PageLog {
     }
 
     /**
-     * Rollback a prepared transaction.
-     *
-     * @param session the session
-     */
-    void rollbackPrepared(int sessionId) throws SQLException {
-        try {
-            if (trace.isDebugEnabled()) {
-                trace.debug("log rollback prepared s:" + sessionId);
-            }
-            LogSystem log = store.getDatabase().getLog();
-            if (log == null) {
-                // database already closed
-                return;
-            }
-            out.write(ROLLBACK);
-            out.writeInt(sessionId);
-            flushOut();
-            if (log.getFlushOnEachCommit()) {
-                flush();
-            }
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
-        }
-    }
-
-    /**
      * A record is added to a table, or removed from a table.
      *
      * @param session the session
@@ -507,10 +509,6 @@ public class PageLog {
         return logId;
     }
 
-    int getLogPos() {
-        return logPos;
-    }
-
     /**
      * Remove all pages until the given log (excluding).
      *
@@ -521,7 +519,7 @@ public class PageLog {
             return;
         }
         int firstDataPageToKeep = logIdPageMap.get(firstUncommittedLog);
-        firstTrunkPage = pageOut.removeUntil(firstTrunkPage, firstDataPageToKeep);
+        firstTrunkPage = removeUntil(firstTrunkPage, firstDataPageToKeep);
         store.setLogFirstPage(firstTrunkPage, firstDataPageToKeep);
         while (firstLogId < firstUncommittedLog) {
             if (firstLogId > 0) {
@@ -529,6 +527,37 @@ public class PageLog {
                 logIdPageMap.remove(firstLogId);
             }
             firstLogId++;
+        }
+    }
+
+    /**
+     * Remove all pages until the given data page.
+     *
+     * @param firstTrunkPage the first trunk page
+     * @param firstDataPageToKeep the first data page to keep
+     * @return the trunk page of the data page to keep
+     */
+    private int removeUntil(int firstTrunkPage, int firstDataPageToKeep) throws SQLException {
+        trace.debug("log.removeUntil " + firstDataPageToKeep);
+        while (true) {
+            // TODO keep trunk page in the cache
+            PageStreamTrunk t = new PageStreamTrunk(store, firstTrunkPage);
+            t.read();
+            if (t.contains(firstDataPageToKeep)) {
+                return t.getPos();
+            }
+            firstTrunkPage = t.getNextTrunk();
+            IntArray list = new IntArray();
+            list.add(t.getPos());
+            while (true) {
+                int next = t.getNextPageData();
+                if (next == -1) {
+                    break;
+                }
+                list.add(next);
+            }
+            freeLogPages(list);
+            pageOut.free(t);
         }
     }
 
@@ -585,7 +614,7 @@ public class PageLog {
      * @param sessionId the session id
      * @return the session state object
      */
-    SessionState getOrAddSessionState(int sessionId) {
+    private SessionState getOrAddSessionState(int sessionId) {
         Integer key = sessionId;
         SessionState state = sessionStates.get(key);
         if (state == null) {
@@ -637,14 +666,11 @@ public class PageLog {
         d.write(null);
     }
 
-    void truncate() throws SQLException {
-        do {
-            // TODO keep trunk page in the cache
-            PageStreamTrunk t = new PageStreamTrunk(store, firstTrunkPage);
-            t.read();
-            firstTrunkPage = t.getNextTrunk();
-            t.free();
-        } while (firstTrunkPage != 0);
+     /**
+     * Called after the recvovery has been completed.
+     */
+    void recoverEnd() {
+        sessionStates = New.hashMap();
     }
 
 }

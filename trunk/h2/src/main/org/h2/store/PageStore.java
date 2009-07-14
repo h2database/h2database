@@ -87,7 +87,6 @@ public class PageStore implements CacheWriter {
     // (input stream, free list, extend pages...)
     // at runtime and recovery
     // synchronized correctly (on the index?)
-    // TODO two phase commit: append (not patch) commit & rollback
     // TODO remove trace or use isDebugEnabled
     // TODO recover tool: don't re-do uncommitted operations
     // TODO no need to log old page if it was always empty
@@ -98,7 +97,6 @@ public class PageStore implements CacheWriter {
     // and delay on each commit
     // TODO var int: see google protocol buffers
     // TODO PageData and PageBtree addRowTry: try to simplify
-    // TODO space re-use: run TestPerformance multiple times, size should stay
     // TODO test running out of disk space (using a special file system)
     // TODO check for file size (exception if not exact size expected)
 
@@ -109,7 +107,6 @@ public class PageStore implements CacheWriter {
     // remove parameter in Record.write(DataPage buff)
     // remove Record.getByteCount
     // remove Database.objectIds
-
 
     /**
      * The smallest possible page size.
@@ -329,9 +326,6 @@ public class PageStore implements CacheWriter {
 
     private void switchLog() throws SQLException {
         trace.debug("switchLog");
-        if (database.isReadOnly()) {
-            return;
-        }
         Session[] sessions = database.getSessions(true);
         int firstUncommittedLog = log.getLogId();
         for (int i = 0; i < sessions.length; i++) {
@@ -665,7 +659,7 @@ public class PageStore implements CacheWriter {
      * @param pos the page id
      * @param page the page
      */
-    public void readPage(int pos, Data page) throws SQLException {
+    void readPage(int pos, Data page) throws SQLException {
         synchronized (database) {
             if (pos >= pageCount) {
                 throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, pos + " of " + pageCount);
@@ -732,11 +726,13 @@ public class PageStore implements CacheWriter {
         openMetaIndex();
         readMetaData();
         log.recover(PageLog.RECOVERY_STAGE_REDO);
-        if (log.getInDoubtTransactions().size() == 0) {
-            log.truncate();
-            switchLog();
-        } else {
-            database.setReadOnly(true);
+        if (!database.isReadOnly()) {
+            if (log.getInDoubtTransactions().size() == 0) {
+                log.recoverEnd();
+                switchLog();
+            } else {
+                database.setReadOnly(true);
+            }
         }
         recoveryRunning = false;
         PageScanIndex index = (PageScanIndex) metaObjects.get(0);

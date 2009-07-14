@@ -27,7 +27,7 @@ public class PageInputStream extends InputStream {
     private int remaining;
     private byte[] buffer = new byte[1];
 
-    public PageInputStream(PageStore store, int trunkPage, int dataPage) {
+    PageInputStream(PageStore store, int trunkPage, int dataPage) {
         this.store = store;
         this.trace = store.getTrace();
         this.trunkNext = trunkPage;
@@ -110,7 +110,7 @@ public class PageInputStream extends InputStream {
     /**
      * Set all pages as 'allocated' in the page store.
      */
-    public void allocateAllPages() throws SQLException {
+    void allocateAllPages() throws SQLException {
         int trunkPage = trunkNext;
         while (trunkPage != 0) {
             store.allocatePage(trunkPage);

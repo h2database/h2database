@@ -183,27 +183,6 @@ public class PageOutputStream extends OutputStream {
         initNextData();
     }
 
-    /**
-     * Remove all pages until the given data page.
-     *
-     * @param firstTrunkPage the first trunk page
-     * @param firstDataPageToKeep the first data page to keep
-     * @return the trunk page of the data page to keep
-     */
-    int removeUntil(int firstTrunkPage, int firstDataPageToKeep) throws SQLException {
-        trace.debug("log.removeUntil " + firstDataPageToKeep);
-        while (true) {
-            // TODO keep trunk page in the cache
-            PageStreamTrunk t = new PageStreamTrunk(store, firstTrunkPage);
-            t.read();
-            if (t.contains(firstDataPageToKeep)) {
-                return t.getPos();
-            }
-            firstTrunkPage = t.getNextTrunk();
-            pages -= t.free();
-        }
-    }
-
     long getSize() {
         return pages * store.getPageSize();
     }
@@ -215,6 +194,15 @@ public class PageOutputStream extends OutputStream {
         }
         reservedPages = new IntArray();
         remaining = 0;
+    }
+
+    /**
+     * Remove a trunk page from the stream.
+     *
+     * @param t the trunk page
+     */
+    void free(PageStreamTrunk t) throws SQLException {
+        pages -= t.free();
     }
 
 }

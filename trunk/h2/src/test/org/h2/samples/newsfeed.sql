@@ -52,7 +52,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 <br />
 <b>Changes and new functionality:</b>
 <ul><li>Java 1.5 is now required to run H2.
-</li><li>Fulltext search: Data is no longer deleted and
+</li><li>Fulltext search: data is no longer deleted and
     re-inserted if there was no change.
 </li><li>Microsoft Windows: when using the the installer, Vista wrote
     "This program may not have installed correctly."
@@ -113,7 +113,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 <ul><li>MERGE now returns 0 as the generated on update.
 </li><li>A file system implementation can now be registered.
 </li><li>The database file system is no longer included.
-</li><li>EclipseLink: Added H2Platform.supportsIdentity().
+</li><li>EclipseLink: added H2Platform.supportsIdentity().
 </li><li>Connection pool: the login timeout is now 5 minutes.
 </li></ul>
 <b>Bugfixes:</b>
@@ -231,7 +231,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>The DbStarter now closes all connections to the configured database.
 </li><li>Improved exception message when connecting to a just started server fails.
 </li><li>Connection.isValid is a bit faster.
-</li><li>H2 Console: The autocomplete feature has been improved a bit.
+</li><li>H2 Console: the autocomplete feature has been improved a bit.
 </li><li>When restarting a web application in Tomcat, an exception was thrown sometimes.
     The root cause of the problem is now documented in the FAQ.
 </li></ul>
@@ -287,8 +287,8 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 <b>Changes and new functionality:</b>
 <ul><li>The license change a bit: so far the license was modified to say
     'Swiss law'. This is now changed back to the original 'US law'.
-</li><li>CREATE DOMAIN: Built-in data types can now only be changed if no tables exist.
-</li><li>DatabaseMetaData.getPrimaryKeys: The column PK_NAME now contains the
+</li><li>CREATE DOMAIN: built-in data types can now only be changed if no tables exist.
+</li><li>DatabaseMetaData.getPrimaryKeys: the column PK_NAME now contains the
     constraint name instead of the index name (compatibility for PostgreSQL and Derby).
 </li></ul>
 <b>Bugfixes:</b>
@@ -320,7 +320,7 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>Natural join: the joined columns are not repeated any more.
 </li><li>MySQL compatibility: support for := assignment.
 </li><li>INSERT INTO TEST(SELECT * FROM TEST) is now supported.
-</li><li>H2 Console: Columns are now listed for up to 500 tables.
+</li><li>H2 Console: columns are now listed for up to 500 tables.
 </li><li>H2 Console: support for the 'command' key.
 </li><li>JaQu: the maximum length of a column can now be defined.
 </li><li>The fulltext search documentation has been improved.

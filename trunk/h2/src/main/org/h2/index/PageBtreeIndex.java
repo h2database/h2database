@@ -32,8 +32,8 @@ public class PageBtreeIndex extends BaseIndex {
     private PageStore store;
     private TableData tableData;
     private final int headPos;
-    private long rowCount;
     private boolean needRebuild;
+    private long rowCount;
 
     public PageBtreeIndex(TableData table, int id, String indexName, IndexColumn[] columns,
             IndexType indexType, int headPos, Session session) throws SQLException {
@@ -310,11 +310,11 @@ public class PageBtreeIndex extends BaseIndex {
     }
 
     public long getRowCountApproximation() {
-        return rowCount;
+        return tableData.getRowCountApproximation();
     }
 
     public long getRowCount(Session session) {
-        return rowCount;
+        return tableData.getRowCount(session);
     }
 
     public void close(Session session) {

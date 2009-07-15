@@ -93,16 +93,20 @@ public class TestIndex extends TestBase {
             switch (random.nextInt(4)) {
             case 0:
                 if (reopen) {
+                    trace("reconnect");
                     reconnect();
                 }
                 break;
             case 1:
+                trace("insert");
                 stat.execute("insert into test(id) values(null)");
                 break;
             case 2:
+                trace("delete");
                 stat.execute("delete from test");
                 break;
             case 3:
+                trace("insert 1-100");
                 stat.execute("insert into test select null from system_range(1, 100)");
                 break;
             }

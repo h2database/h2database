@@ -69,15 +69,15 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
-    // TODO btree index with fixed size values doesn't need offset and so on
-    // TODO somehow remember rowcount
+    // TODO var int: see google protocol buffers
+    // TODO don't save parent (only root); remove setPageId
     // TODO implement checksum - 0 for empty
+    // TODO btree index with fixed size values doesn't need offset and so on
     // TODO remove parent, use tableId if required
     // TODO replace CRC32
     // TODO PageBtreeNode: 4 bytes offset - others use only 2
     // TODO block compression: maybe http://en.wikipedia.org/wiki/LZJB
     // with RLE, specially for 0s.
-    // TODO don't save parent (only root); remove setPageId
     // TODO order pages so that searching for a key only seeks forward
     // TODO completely re-use keys of deleted rows; maybe
     // remember last page with deleted keys (in the root page?),
@@ -95,10 +95,10 @@ public class PageStore implements CacheWriter {
     // TODO split files (1 GB max size)
     // TODO add a setting (that can be changed at runtime) to call fsync
     // and delay on each commit
-    // TODO var int: see google protocol buffers
     // TODO PageData and PageBtree addRowTry: try to simplify
     // TODO test running out of disk space (using a special file system)
     // TODO check for file size (exception if not exact size expected)
+    // TODO implement missing code for STORE_BTREE_ROWCOUNT (maybe enable, maybe not)
 
     // TODO when removing DiskFile:
     // remove CacheObject.blockCount
@@ -107,6 +107,7 @@ public class PageStore implements CacheWriter {
     // remove parameter in Record.write(DataPage buff)
     // remove Record.getByteCount
     // remove Database.objectIds
+    // remove TableData.checkRowCount
 
     /**
      * The smallest possible page size.
@@ -122,6 +123,11 @@ public class PageStore implements CacheWriter {
      * The default page size.
      */
     public static final int PAGE_SIZE_DEFAULT = 1024;
+
+    /**
+     * Store the rowcount in b-tree indexes.
+     */
+    public static final boolean STORE_BTREE_ROWCOUNT = false;
 
     private static final int PAGE_ID_FREE_LIST_ROOT = 3;
     private static final int PAGE_ID_META_ROOT = 4;
@@ -734,7 +740,6 @@ public class PageStore implements CacheWriter {
                 database.setReadOnly(true);
             }
         }
-        recoveryRunning = false;
         PageScanIndex index = (PageScanIndex) metaObjects.get(0);
         if (index == null) {
             systemTableHeadPos = Index.EMPTY_HEAD;
@@ -744,6 +749,7 @@ public class PageStore implements CacheWriter {
         for (Index openIndex : metaObjects.values()) {
             openIndex.close(systemSession);
         }
+        recoveryRunning = false;
         trace.debug("log recover done");
     }
 

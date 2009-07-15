@@ -26,6 +26,7 @@ import org.h2.store.Record;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
+import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
@@ -146,6 +147,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             }
             incrementRowCount(session.getId(), 1);
         }
+        invalidateRowCount();
         rowCount++;
         store.logAddOrRemoveRow(session, tableData.getId(), row, true);
     }
@@ -249,14 +251,13 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
                 }
             }
         }
-        // TODO invalidate the row count
-        // setChanged(session);
         if (rowCount == 1) {
             removeAllRows();
         } else {
             int key = row.getPos();
             PageData root = getPage(headPos, 0);
             root.remove(key);
+            invalidateRowCount();
             rowCount--;
             // TODO re-use keys
         }
@@ -273,6 +274,11 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
             incrementRowCount(session.getId(), -1);
         }
         store.logAddOrRemoveRow(session, tableData.getId(), row, false);
+    }
+
+    private void invalidateRowCount() throws SQLException {
+        PageData root = getPage(headPos, 0);
+        root.setRowCountStored(PageData.UNKNOWN_ROWCOUNT);
     }
 
     public void remove(Session session) throws SQLException {
@@ -356,7 +362,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         return -1;
     }
 
-    public void close(Session session) {
+    public void close(Session session) throws SQLException {
         if (trace.isDebugEnabled()) {
             trace.debug("close");
         }
@@ -369,7 +375,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         }
         // can not close the index because it might get used afterwards,
         // for example after running recovery
-        // TODO write the row count
+        PageData root = getPage(headPos, 0);
+        root.setRowCountStored(MathUtils.convertLongToInt(rowCount));
     }
 
     Iterator<Row> getDelta() {

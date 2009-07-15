@@ -109,6 +109,7 @@ import org.h2.test.unit.TestDateIso8601;
 import org.h2.test.unit.TestExit;
 import org.h2.test.unit.TestFile;
 import org.h2.test.unit.TestFileLock;
+import org.h2.test.unit.TestFileLockSerialized;
 import org.h2.test.unit.TestFileSystem;
 import org.h2.test.unit.TestFtp;
 import org.h2.test.unit.TestIntArray;
@@ -332,7 +333,6 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
                 new TestTimer().runTest(test);
             }
         } else {
-            int todo;
             System.setProperty(SysProperties.H2_PAGE_STORE, "true");
             test.pageStore = true;
             test.runTests();
@@ -555,6 +555,7 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
         new TestExit().runTest(this);
         new TestFile().runTest(this);
         new TestFileLock().runTest(this);
+        new TestFileLockSerialized().runTest(this);
         new TestFtp().runTest(this);
         new TestFileSystem().runTest(this);
         new TestIntArray().runTest(this);

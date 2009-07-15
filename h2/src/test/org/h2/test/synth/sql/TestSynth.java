@@ -315,7 +315,7 @@ public class TestSynth extends TestBase {
 
         // stopImmediately = true;
         // showLog = true;
-        // testRun(110600); // id=27 java.lang.Error: Results don't match:
+        // testRun(110600); // id=27 java.lang.Error: results don't match:
         // original (0):
         // System.exit(0);
 

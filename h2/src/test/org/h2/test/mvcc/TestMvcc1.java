@@ -69,7 +69,7 @@ public class TestMvcc1 extends TestBase {
         //     updated rows) on commit
         // TODO Prio 1: ScanIndex: never remove uncommitted data from cache
         //     (lost sessionId)
-        // TODO Prio 1: Test with Hibernate
+        // TODO Prio 1: test with Hibernate
         // TODO Prio 2: if MVCC is used, rows of transactions need to fit in
         //     memory
         // TODO Prio 2: write the log only when committed; remove restriction at

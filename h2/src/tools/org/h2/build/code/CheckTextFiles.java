@@ -231,7 +231,7 @@ public class CheckTextFiles {
                 f.write(changed);
                 f.setLength(changed.length);
                 f.close();
-                System.out.println("CHANGED: File " + file.getName());
+                System.out.println("CHANGED: " + file.getName());
             }
         }
         line = 1;

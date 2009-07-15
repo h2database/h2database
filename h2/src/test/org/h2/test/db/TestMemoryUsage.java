@@ -33,11 +33,9 @@ public class TestMemoryUsage extends TestBase {
     }
 
     public void test() throws SQLException {
-        deleteDb("memoryUsage");
         testCreateDropLoop();
         testCreateIndex();
         testClob();
-        deleteDb("memoryUsage");
         testReconnectOften();
         deleteDb("memoryUsage");
         reconnect();
@@ -49,6 +47,7 @@ public class TestMemoryUsage extends TestBase {
     }
 
     private void testCreateDropLoop() throws SQLException {
+        deleteDb("memoryUsage");
         conn = getConnection("memoryUsage");
         Statement stat = conn.createStatement();
         for (int i = 0; i < 100; i++) {
@@ -81,6 +80,7 @@ public class TestMemoryUsage extends TestBase {
         if (config.memory || !config.big) {
             return;
         }
+        deleteDb("memoryUsage");
         Connection conn = getConnection("memoryUsage");
         Statement stat = conn.createStatement();
         stat.execute("SET MAX_LENGTH_INPLACE_LOB 32768");
@@ -121,6 +121,7 @@ public class TestMemoryUsage extends TestBase {
         if (config.memory) {
             return;
         }
+        deleteDb("memoryUsage");
         Connection conn = getConnection("memoryUsage");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar(255))");
@@ -146,8 +147,9 @@ public class TestMemoryUsage extends TestBase {
     }
 
     private void testReconnectOften() throws SQLException {
-        int len = getSize(1, 2000);
+        deleteDb("memoryUsage");
         Connection conn1 = getConnection("memoryUsage");
+        int len = getSize(1, 2000);
         printTimeMemory("start", 0);
         long time = System.currentTimeMillis();
         for (int i = 0; i < len; i++) {

@@ -42,7 +42,7 @@ public class TestRights extends TestBase {
     }
 
 //    public void testLowerCaseUser() throws SQLException {
-    // Documentation: For compatibility,
+    // Documentation: for compatibility,
     // only unquoted or uppercase user names are allowed.
 //        deleteDb("rights");
 //        Connection conn = getConnection("rights");

@@ -37,7 +37,7 @@ class PageBtreeNode extends PageBtree {
      */
     private int[] childPageIds;
 
-    private int rowCountStored = UNKNOWN_ROWCOUNT;
+//    private int rowCountStored = UNKNOWN_ROWCOUNT;
 
     private int rowCount = UNKNOWN_ROWCOUNT;
 
@@ -51,7 +51,10 @@ class PageBtreeNode extends PageBtree {
         int type = data.readByte();
         onlyPosition = (type & Page.FLAG_LAST) == 0;
         entryCount = data.readShortInt();
-        rowCount = rowCountStored = data.readInt();
+        rowCount = data.readInt();
+        if (!PageStore.STORE_BTREE_ROWCOUNT) {
+            rowCount = UNKNOWN_ROWCOUNT;
+        }
         childPageIds = new int[entryCount + 1];
         childPageIds[entryCount] = data.readInt();
         rows = PageStore.newSearchRows(entryCount);
@@ -155,13 +158,9 @@ class PageBtreeNode extends PageBtree {
         return 0;
     }
 
-    private void updateRowCount(int offset) throws SQLException {
-        if (rowCount != UNKNOWN_ROWCOUNT) {
+    private void updateRowCount(int offset) {
+        if (PageStore.STORE_BTREE_ROWCOUNT) {
             rowCount += offset;
-        }
-        if (rowCountStored != UNKNOWN_ROWCOUNT) {
-            rowCountStored = UNKNOWN_ROWCOUNT;
-            index.getPageStore().updateRecord(this, true, data);
         }
     }
 
@@ -209,6 +208,7 @@ class PageBtreeNode extends PageBtree {
         rows = new SearchRow[0];
         offsets = MemoryUtils.EMPTY_INTS;
         addChild(0, page2.getPos(), pivot);
+        rowCount = page1.getRowCount() + page2.getRowCount();
         check();
     }
 
@@ -276,12 +276,8 @@ class PageBtreeNode extends PageBtree {
         return rowCount;
     }
 
-    void setRowCountStored(int rowCount) throws SQLException {
+    void setRowCountStored(int rowCount) {
         this.rowCount = rowCount;
-        if (rowCountStored != rowCount) {
-            rowCountStored = rowCount;
-            index.getPageStore().updateRecord(this, true, data);
-        }
     }
 
     private void check() {
@@ -311,7 +307,7 @@ class PageBtreeNode extends PageBtree {
         data.writeInt(parentPageId);
         data.writeByte((byte) (Page.TYPE_BTREE_NODE | (onlyPosition ? 0 : Page.FLAG_LAST)));
         data.writeShortInt(entryCount);
-        data.writeInt(rowCountStored);
+        data.writeInt(rowCount);
         data.writeInt(childPageIds[entryCount]);
         for (int i = 0; i < entryCount; i++) {
             data.writeInt(childPageIds[i]);

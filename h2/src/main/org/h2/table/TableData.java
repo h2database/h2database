@@ -36,6 +36,7 @@ import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.store.DataPage;
+import org.h2.store.PageStore;
 import org.h2.store.Record;
 import org.h2.store.RecordReader;
 import org.h2.util.MathUtils;
@@ -142,6 +143,9 @@ public class TableData extends Table implements RecordReader {
 
     private void checkRowCount(Session session, Index index, int offset) {
         if (SysProperties.CHECK && !database.isMultiVersion()) {
+            if (database.isPageStoreEnabled() && !PageStore.STORE_BTREE_ROWCOUNT) {
+                return;
+            }
             long rc = index.getRowCount(session);
             if (rc != rowCount + offset) {
                 Message.throwInternalError("rowCount expected " + (rowCount + offset) + " got " + rc + " " + getName() + "." + index.getName());

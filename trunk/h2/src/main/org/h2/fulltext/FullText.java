@@ -243,7 +243,7 @@ public class FullText {
     /**
      * Searches from the full text index for this database.
      * The returned result set has the following column:
-     * <ul><li>QUERY (varchar): The query to use to get the data.
+     * <ul><li>QUERY (varchar): the query to use to get the data.
      * The query does not include 'SELECT * FROM '. Example:
      * PUBLIC.TEST WHERE ID = 1
      * </li></ul>
@@ -263,11 +263,11 @@ public class FullText {
      * the primary key data as an array. The returned result set has the
      * following columns:
      * <ul>
-     * <li>SCHEMA (varchar): The schema name. Example: PUBLIC </li>
-     * <li>TABLE (varchar): The table name. Example: TEST </li>
-     * <li>COLUMNS (array of varchar): Comma separated list of quoted column
+     * <li>SCHEMA (varchar): the schema name. Example: PUBLIC </li>
+     * <li>TABLE (varchar): the table name. Example: TEST </li>
+     * <li>COLUMNS (array of varchar): comma separated list of quoted column
      * names. The column names are quoted if necessary. Example: (ID) </li>
-     * <li>KEYS (array of values): Comma separated list of values. Example: (1)
+     * <li>KEYS (array of values): comma separated list of values. Example: (1)
      * </li>
      * </ul>
      *

@@ -54,7 +54,7 @@ import java.sql.SQLClientInfoException;
  * Represents a connection (session) to a database.
  * </p>
  * <p>
- * Thread safety: The connection is thread-safe, because access
+ * Thread safety: the connection is thread-safe, because access
  * is synchronized. However, for compatibility with other databases, a
  * connection should only be used in one thread at any time.
  * </p>
@@ -591,11 +591,11 @@ public class JdbcConnection extends TraceObject implements Connection {
      * one, except if the level is not supported. Internally, this method calls
      * SET LOCK_MODE. The following isolation levels are supported:
      * <ul>
-     * <li> Connection.TRANSACTION_READ_UNCOMMITTED = SET LOCK_MODE 0: No
+     * <li> Connection.TRANSACTION_READ_UNCOMMITTED = SET LOCK_MODE 0: no
      * locking (should only be used for testing). </li>
-     * <li>Connection.TRANSACTION_SERIALIZABLE = SET LOCK_MODE 1: Table level
+     * <li>Connection.TRANSACTION_SERIALIZABLE = SET LOCK_MODE 1: table level
      * locking. </li>
-     * <li>Connection.TRANSACTION_READ_COMMITTED = SET LOCK_MODE 3: Table
+     * <li>Connection.TRANSACTION_READ_COMMITTED = SET LOCK_MODE 3: table
      * level locking, but read locks are released immediately (default). </li>
      * </ul>
      * This setting is not persistent. Please note that using

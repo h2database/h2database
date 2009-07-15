@@ -230,7 +230,7 @@ public class JdbcConnectionPool implements DataSource {
 
     /**
      * This method usually puts the connection back into the pool. There are
-     * some exception: If the pool is disposed, the connection is disposed as
+     * some exceptions: if the pool is disposed, the connection is disposed as
      * well. If the pool is full, the connection is closed.
      *
      * @param pc the pooled connection

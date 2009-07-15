@@ -916,7 +916,7 @@ SET DEFAULT_LOCK_TIMEOUT &lt;milliseconds&gt;. The default lock timeout is persi
 <p>
 There are a number of files created for persistent databases. Unlike some other databases,
 not every table and/or index is stored in its own file. Instead, usually only the following files are created:
-A data file, an index file, a log file, and a database lock file (exists only while the database is in use).
+a data file, an index file, a log file, and a database lock file (exists only while the database is in use).
 In addition to that, a file is created for each large object (CLOB/BLOB) larger than a certain size,
 and temporary files for large result sets.
 If the database trace option is enabled, trace files are created.
@@ -1177,7 +1177,7 @@ When the first connection is closed, the server stops. If other (remote) connect
 open, one of them will then start a server (auto-reconnect is enabled automatically).
 </p>
 <p>
-This mode has three disadvantages: All processes need to have access to the database files.
+This mode has three disadvantages: all processes need to have access to the database files.
 Then, if the first connection is closed (the connection that started the server), open transactions of
 other connections will be rolled back.
 Also, explicit client/server connections (using jdbc:h2:tcp:// or ssl://) are not supported.
@@ -1308,7 +1308,7 @@ To create a read-only database, close the database so that the log file gets sma
 Then, make the database files read-only using the operating system.
 When you open the database now, it is read-only.
 There are two ways an application can find out whether database is read-only:
-By calling Connection.isReadOnly() or by executing the SQL statement CALL READONLY().
+by calling Connection.isReadOnly() or by executing the SQL statement CALL READONLY().
 </p>
 
 <br /><a name="database_in_zip"></a>
@@ -1568,7 +1568,7 @@ CALL SIMPLE();
 <p>
 A function that returns a result set can be used like a table.
 However, in this case the function is called at least twice:
-First while parsing the statement to collect the column names
+first while parsing the statement to collect the column names
 (with parameters set to null where not known at compile time).
 And then, while executing the statement to get the data (maybe multiple times if this is a join).
 If the function is called just to get the column list, the URL of the connection passed to the function is

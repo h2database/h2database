@@ -98,10 +98,10 @@ build switchSource
 <p>
 The build system can generate smaller jar files as well. The following targets are currently supported:
 </p>
-<ul><li>jarClient: Create the h2client.jar. This only contains the JDBC client.
-</li><li>jarSmall: Create the file h2small.jar. This only contains the embedded database. Debug information is disabled.
-</li><li>jarJaqu: Create the file h2jaqu.jar. This only contains the JaQu (Java Query) implementation. All other jar files do not include JaQu.
-</li><li>javadocImpl: Create the Javadocs of the implementation.
+<ul><li>jarClient creates the h2client.jar. This only contains the JDBC client.
+</li><li>jarSmall creates the file h2small.jar. This only contains the embedded database. Debug information is disabled.
+</li><li>jarJaqu creates the file h2jaqu.jar. This only contains the JaQu (Java Query) implementation. All other jar files do not include JaQu.
+</li><li>javadocImpl creates the Javadocs of the implementation.
 </li></ul>
 <p>
 To create the h2client.jar file, go to the directory h2 and execute the following command:
@@ -179,7 +179,7 @@ If you like to provide patches, please consider the following guidelines to simp
     For SQL level tests, see <code>src/test/org/h2/test/test.in.txt</code> or <code>testSimple.in.txt</code>.
 </li><li>The test cases should cover at least 90% of the changed and new code; use a code coverage tool to verify that (see above).
     or use the build target 'coverage'.
-</li><li>Verify that you did not break other features: Run the test cases by executing <code>build test</code>.
+</li><li>Verify that you did not break other features: run the test cases by executing <code>build test</code>.
 </li><li>Provide end user documentation if required (<code>src/docsrc/html/*</code>).
 </li><li>Document grammar changes in <code>src/main/org/h2/res/help.csv</code>
 </li><li>Provide a change log entry (<code>src/docsrc/html/changelog.html</code>).

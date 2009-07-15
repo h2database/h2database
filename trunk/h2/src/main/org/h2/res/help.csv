@@ -543,7 +543,7 @@ DROP ALL OBJECTS [DELETE FILES]
 Drops all existing views, tables, sequences, schemas, function aliases, roles,
 user-defined aggregate functions, domains, and users (except the current user).
 If DELETE FILES is specified, the database files will be removed when the last
-user disconnects from the database. Warning: This command can not be rolled
+user disconnects from the database. Warning: this command can not be rolled
 back. Admin rights are required to execute this command.
 ","
 DROP ALL OBJECTS
@@ -975,7 +975,7 @@ data and index changes are enabled.
 
 Transaction logging can be disabled to improve the performance when durability
 is not important, for example while running tests or when loading the database.
-Warning: It may not be possible to recover the database if logging is disabled
+Warning: it may not be possible to recover the database if logging is disabled
 and the application terminates abnormally. If logging of index changes is
 enabled, opening a database that was crashed becomes faster because the indexes
 don't need to be rebuilt.
@@ -2846,7 +2846,8 @@ CASEWHEN(ID=1, 'A', 'B')
 "Functions (System)","CAST","
 CAST(value AS dataType): value
 ","
-Converts a value to another data type.
+Converts a value to another data type. When converting a text to a number, the default Java conversion
+rules are used (prefixes 0x or # for hexadecimal numbers, prefix 0 for octal numbers).
 ","
 CAST(NAME AS INT)
 "
@@ -2884,12 +2885,16 @@ CSVREAD(fileNameString [, columnNamesString [, charsetString
 [, nullString]]]]]]): resultSet
 ","
 Returns the result set of reading the CSV (comma separated values) file. For
-each parameter, NULL means the default value should be used. If the column names
-are specified (a list of column names separated with the fieldSeparator), those
-are used they are read from the file, otherwise (or if they are set to NULL) the
-first line of the file is interpreted as the column names. The default charset
-is the default value for this system, and the default field separator is a
-comma. Missing unquoted values as well as data that matches nullString is
+each parameter, NULL means the default value should be used.
+
+If the column names are specified (a list of column names separated with the
+fieldSeparator), those are used they are read from the file, otherwise
+(or if they are set to NULL) the first line of the file is interpreted as the column names.
+Column names are case sensitive, that means you need to use quoted identifiers
+unless the column names are capitalized (see below).
+
+The default charset is the default value for this system, and the default field separator
+is a comma. Missing unquoted values as well as data that matches nullString is
 parsed as NULL. All columns of type VARCHAR.
 
 This function can be used like a table: SELECT * FROM CSVREAD(...).
@@ -2903,6 +2908,7 @@ CALL CSVREAD('test.csv');
 CALL CSVREAD('test2.csv', 'ID|NAME', 'UTF-8', '|');
 -- Read a semicolon-separated file
 SELECT * FROM CSVREAD('data/test.csv', NULL, NULL, ';');
+SELECT ""Last Name"" FROM CSVREAD('address.csv');
 "
 
 "Functions (System)","CSVWRITE","

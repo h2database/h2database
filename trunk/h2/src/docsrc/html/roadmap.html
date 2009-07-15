@@ -43,7 +43,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimize .. OR .. to IN(..) or UNION if the cost is lower
 </li><li>Enable warning for 'Local variable declaration hides another field or variable'.
 </li><li>Test multi-threaded in-memory db access
-</li><li>MVCC: Select for update should only lock the selected rows.
+</li><li>MVCC: select for update should only lock the selected rows.
 </li><li>Option to shutdown all the running servers (on the same VM).
 </li><li>Optimize ID=? OR ID=?: convert to IN(...)
 </li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
@@ -102,26 +102,26 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>JSON parser and functions
 </li><li>Automatic collection of statistics (auto ANALYZE)
 </li><li>Server: client ping from time to time (to avoid timeout - is timeout a problem?)
-</li><li>Copy database: Tool with config GUI and batch mode, extensible (example: compare)
+</li><li>Copy database: tool with config GUI and batch mode, extensible (example: compare)
 </li><li>Document, implement tool for long running transactions using user-defined compensation statements.
 </li><li>Support SET TABLE DUAL READONLY
 </li><li>GCJ: what is the state now?
-</li><li>Events for: Database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
-</li><li>Optimization: Log compression
+</li><li>Events for: database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
+</li><li>Optimization: log compression
 </li><li>Support standard INFORMATION_SCHEMA tables, as defined in http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt; specially KEY_COLUMN_USAGE (http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif)
-</li><li>Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: Division by zero
+</li><li>Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: division by zero
 </li><li>Functional tables should accept parameters from other tables (see FunctionMultiReturn) SELECT * FROM TEST T, P2C(T.A, T.R)
 </li><li>Custom class loader to reload functions on demand
 </li><li>Test http://mysql-je.sourceforge.net/
 </li><li>Close all files when closing the database (including LOB files that are open on the client side)
 </li><li>EXE file: maybe use http://jsmooth.sourceforge.net
-</li><li>Performance: Automatically build in-memory indexes if the whole table is in memory
-</li><li>H2 Console: The webclient could support more features like phpMyAdmin.
+</li><li>Performance: automatically build in-memory indexes if the whole table is in memory
+</li><li>H2 Console: the webclient could support more features like phpMyAdmin.
 </li><li>Use Janino to convert Java to C++
 </li><li>The HELP information schema can be directly exposed in the Console
 </li><li>Maybe use the 0x1234 notation for binary fields, see MS SQL Server
 </li><li>Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html, http://philip.greenspun.com/sql/trees.html
-</li><li>SQL Server 2005, Oracle: Support COUNT(*) OVER(). See http://www.orafusion.com/art_anlytc.htm
+</li><li>SQL Server 2005, Oracle: support COUNT(*) OVER(). See http://www.orafusion.com/art_anlytc.htm
 </li><li>RANK() and DENSE_RANK(), Partition using OVER()
 </li><li>SQL 2003 (http://www.wiscorp.com/sql_2003_standard.zip)
 </li><li>Version column (number/sequence and timestamp based)
@@ -136,13 +136,13 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Default date format for input and output (local date constants)
 </li><li>Support custom Collators
 </li><li>Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery)
-</li><li>Clustering: Reads should be randomly distributed or to a designated database on RAM
-</li><li>Clustering: When a database is back alive, automatically synchronize with the master
+</li><li>Clustering: reads should be randomly distributed or to a designated database on RAM
+</li><li>Clustering: when a database is back alive, automatically synchronize with the master
 </li><li>Standalone tool to get relevant system properties and add it to the trace output.
 </li><li>Support 'call proc(1=value)' (PostgreSQL, Oracle)
 </li><li>JAMon (proxy jdbc driver)
-</li><li>Console: Improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?)
-</li><li>Console: Autocomplete Ctrl+Space inserts template
+</li><li>Console: improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?)
+</li><li>Console: autocomplete Ctrl+Space inserts template
 </li><li>Simplify translation ('Donate a translation')
 </li><li>Option to encrypt .trace.db file
 </li><li>Write Behind Cache on SATA leads to data corruption See also http://sr5tech.com/write_back_cache_experiments.htm and http://www.jasonbrome.com/blog/archives/2004/04/03/writecache_enabled.html
@@ -163,7 +163,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility)
 </li><li>Backup tool should work with other databases as well
 </li><li>Console: -ifExists doesn't work for the console. Add a flag to disable other dbs
-</li><li>Performance: Update in-place
+</li><li>Performance: update in-place
 </li><li>Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess)
 </li><li>Java static code analysis: http://pmd.sourceforge.net/
 </li><li>Java static code analysis: http://www.eclipse.org/tptp/
@@ -220,7 +220,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Compatibility with Derby: VALUES(1), (2); SELECT * FROM (VALUES (1), (2)) AS myTable(c1)
 </li><li>Compatibility: # is the start of a single line comment (MySQL) but date quote (Access). Mode specific
 </li><li>Run benchmarks with JDK 1.5, JDK 1.6, java -server
-</li><li>Optimizations: Faster hash function for strings, byte arrays
+</li><li>Optimizations: faster hash function for strings, byte arrays
 </li><li>DatabaseEventListener: callback for all operations (including expected time, RUNSCRIPT) and cancel functionality
 </li><li>H2 Console / large result sets: use 'streaming' instead of building the page in-memory
 </li><li>Benchmark: add a graph to show how databases scale (performance/database size)
@@ -238,7 +238,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Ability to resize the cache array when resizing the cache
 </li><li>Time based cache writing (one second after writing the log)
 </li><li>Check state of H2 driver for DDLUtils: https://issues.apache.org/jira/browse/DDLUTILS-185
-</li><li>Support JMX: Create an MBean for each database and server (support JConsole).
+</li><li>Support JMX: create an MBean for each database and server (support JConsole).
     See http://thedevcloud.blogspot.com/2008/10/displaying-hsql-database-manager-in.html
     http://java.sun.com/j2se/1.5.0/docs/api/java/lang/management/ManagementFactory.html#getPlatformMBeanServer()
     http://java.sun.com/j2se/1.5.0/docs/guide/management/agent.html
@@ -246,7 +246,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Compatibility: add a role DBA (like ADMIN).
 </li><li>Better support multiple processors for in-memory databases.
 </li><li>Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
-</li><li>Access rights: Finer grained access control (grant access for specific functions)
+</li><li>Access rights: finer grained access control (grant access for specific functions)
 </li><li>Support N'text'
 </li><li>Support SCOPE_IDENTITY() to avoid problems when inserting rows in a trigger
 </li><li>Set a connection read only (Connection.setReadOnly)
@@ -264,7 +264,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimize SELECT MIN(ID), MAX(ID), COUNT(*) FROM TEST WHERE ID BETWEEN 100 AND 200
 </li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER
 </li><li>Sequence: PostgreSQL compatibility (rename, create) (http://www.postgresql.org/docs/8.2/static/sql-altersequence.html)
-</li><li>DISTINCT: Support large result sets by sorting on all columns (additionally) and then removing duplicates.
+</li><li>DISTINCT: support large result sets by sorting on all columns (additionally) and then removing duplicates.
 </li><li>File system that writes to two file systems (replicating file system)
 </li><li>File system with a background writer thread; test if this is faster
 </li><li>FTP access to a database (.csv for a table, a directory for a schema, a file for a lob, a script.sql file).
@@ -273,7 +273,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimization: don't lock when the database is read-only
 </li><li>Integrate spatial functions from http://geosysin.iict.ch/irstv-trac/wiki/H2spatial/Download
 </li><li>Support COSH, SINH, and TANH functions
-</li><li>FTP Server: Implement SFTP / FTPS
+</li><li>FTP Server: implement SFTP / FTPS
 </li><li>Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
 </li><li>Improve documentation of access rights
 </li><li>Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others)
@@ -294,10 +294,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Web site design: http://www.igniterealtime.org/projects/openfire/index.jsp
 </li><li>HSQLDB compatibility: Openfire server uses: CREATE SCHEMA PUBLIC AUTHORIZATION DBA;
     CREATE USER SA PASSWORD ""; GRANT DBA TO SA; SET SCHEMA PUBLIC
-</li><li>Web site: Rename Performance to Comparison [/Compatibility],
-    move Comparison to Other Database Engines to Comparison,
-    move Products that Work with H2 to Comparison,
-    move Performance Tuning to Advanced Topics
 </li><li>Translation: use ${.} in help.csv
 </li><li>Translated .pdf
 </li><li>Cluster: hot deploy (adding a node at runtime)
@@ -341,7 +337,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Oracle: support DECODE method (convert to CASE WHEN).
 </li><li>Support large databases: split LOB (BLOB, CLOB) to multiple directories / disks (similar to tablespaces).
 </li><li>Support to assign a primary key index a user defined name.
-</li><li>Cluster: Add feature to make sure cluster nodes can not get out of sync (for example by stopping one process).
+</li><li>Cluster: add feature to make sure cluster nodes can not get out of sync (for example by stopping one process).
 </li><li>H2 Console: support configuration option for fixed width (monospace) font.
 </li><li>Native fulltext search: support analyzers (specially for Chinese, Japanese).
 </li><li>Automatically compact databases from time to time (as a background process).
@@ -353,8 +349,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>executeBatch: option to stop at the first failed statement.
 </li><li>Implement OLAP features as described here: http://www.devx.com/getHelpOn/10MinuteSolution/16573/0/page/5
 </li><li>Support Oracle ROWID (unique identifier for each row).
-</li><li>Server mode: Improve performance for batch updates.
-</li><li>Applets: Support read-only databases in a zip file (accessed as a resource).
+</li><li>Server mode: improve performance for batch updates.
+</li><li>Applets: support read-only databases in a zip file (accessed as a resource).
 </li><li>Long running queries / errors / trace system table.
 </li><li>H2 Console should support JaQu directly.
 </li><li>H2 Console: support single file upload and directory download (optional).
@@ -366,18 +362,18 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Use http://recaptcha.net somehow to secure the Google Group.
 </li><li>Support DELETE with TOP or LIMIT. See also: http://dev.mysql.com/doc/refman/5.1/de/delete.html
 </li><li>Change the default for NULL || 'x' to return NULL
-</li><li>ANALYZE: Use a bloom filter for each indexed column to estimate count of distinct values.
-</li><li>ANALYZE: For unique indexes that allow null, count the number of null.
+</li><li>ANALYZE: use a bloom filter for each indexed column to estimate count of distinct values.
+</li><li>ANALYZE: for unique indexes that allow null, count the number of null.
 </li><li>AUTO_SERVER: support changing IP addresses (disable a network while the database is open).
 </li><li>Avoid using java.util.Calendar internally because it's slow, complicated, and seems to be buggy.
 </li><li>Support TRUNCATE .. CASCADE like PostgreSQL.
 </li><li>Support opening a database that is in the classpath, maybe using a new file system.
 </li><li>Fulltext search: lazy result generation using SimpleRowSource.
 </li><li>Support transformation to join for user defined functions, as for IN(SELECT...).
-</li><li>Fulltext search: Support alternative syntax: WHERE FTL_CONTAINS(name, 'hello').
+</li><li>Fulltext search: support alternative syntax: WHERE FTL_CONTAINS(name, 'hello').
 </li><li>MySQL compatibility: support REPLACE, see http://dev.mysql.com/doc/refman/5.1/de/replace.html
 </li><li>MySQL compatibility: support INSERT INTO table SET column1 = value1, column2 = value2
-</li><li>Docs: Add a one line description for each functions and SQL statements at the top (in the link section).
+</li><li>Docs: add a one line description for each functions and SQL statements at the top (in the link section).
 </li><li>Javadoc search: weight for titles should be higher ('random' should list Functions as the best match).
 </li><li>Replace information_schema tables with regular tables that are automatically re-built when needed. Use indexes.
 </li><li>Support a special trigger on all tables.
@@ -431,6 +427,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>HSQLDB compatibility: CREATE FUNCTION (maybe using a Function interface).
 </li><li>HSQLDB compatibility: support CALL "java.lang.Math.sqrt"(2.0)
 </li><li>Support comma as the decimal separator in the CSV tool.
+</li><li>Compatibility: Java functions with SQLJ Part1 http://www.acm.org/sigmod/record/issues/9912/standards.pdf.gz
+</li><li>Compatibility: Java functions with SQL/PSM (Persistent Stored Modules) - need to find the documentation.
 </li></ul>
 
 <h2>Not Planned</h2>

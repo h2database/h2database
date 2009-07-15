@@ -76,7 +76,7 @@ Change Log
 <h2>Version 1.1.114 (2009-06-01)</h2>
 <ul><li>ResultSetMetaData.getColumnClassName returned the wrong
     class for CLOB and BLOB columns.
-</li><li>Fulltext search: Data is no longer deleted and
+</li><li>Fulltext search: data is no longer deleted and
     re-inserted if the indexed columns didn't change.
 </li><li>In some situations, an ArrayIndexOutOfBoundsException was thrown when adding rows.
     This was caused by a bug in the b-tree code.
@@ -105,7 +105,7 @@ Change Log
 </li><li>Identifiers with a digit and then a dollar sign didn't work. Example: A1$B.
 </li><li>MS SQL Server compatibility: support for linked tables with
     NVARCHAR, NCHAR, NCLOB, and LONGNVARCHAR.
-</li><li>Android: Workaround for a problem when using read-only databases in zip files
+</li><li>Android: workaround for a problem when using read-only databases in zip files
     (skip seems to be implemented incorrectly on the Android system).
 </li><li>Calling execute() or prepareStatement() with null as the SQL statement
     now throws an exception.
@@ -125,7 +125,7 @@ Change Log
 
 <h2>Version 1.1.112 (2009-05-01)</h2>
 <ul><li>JdbcPreparedStatement.toString() could throw a NullPointerException.
-</li><li>EclipseLink: Added H2Platform.supportsIdentity().
+</li><li>EclipseLink: added H2Platform.supportsIdentity().
 </li><li>Connection pool: the default login timeout is now 5 minutes.
 </li><li>After truncating tables, opening large databases could become slow
     because indexes were always re-built unnecessarily when opening.
@@ -247,7 +247,7 @@ Change Log
     should give slightly better query plans when using many joins.
 </li><li>Improved exception message when connecting to a just started server fails.
 </li><li>Connection.isValid is a bit faster.
-</li><li>H2 Console: The autocomplete feature has been improved a bit. It can now better
+</li><li>H2 Console: the autocomplete feature has been improved a bit. It can now better
     parse conditions.
 </li><li>When restarting a web application in Tomcat, an exception was thrown sometimes.
     In most cases this was a NullPointerException. A workaround in H2 has been implemented.
@@ -270,9 +270,9 @@ Change Log
 
 <h2>Version 1.1.106 (2009-01-04)</h2>
 <ul><li>Statement.setQueryTimeout did not work correctly for some statements.
-</li><li>CREATE DOMAIN: Built-in data types can now only be changed if no tables exist.
+</li><li>CREATE DOMAIN: built-in data types can now only be changed if no tables exist.
 </li><li>Linked tables: a workaround for Oracle DATE columns has been implemented.
-</li><li>DatabaseMetaData.getPrimaryKeys: The column PK_NAME now contains the
+</li><li>DatabaseMetaData.getPrimaryKeys: the column PK_NAME now contains the
     constraint name instead of the index name (compatibility for PostgreSQL and Derby).
 </li><li>Using IN(..) inside a IN(SELECT..) did not always work.
 </li><li>Views with IN(..) that used a view itself did not work.
@@ -283,7 +283,7 @@ Change Log
 </li><li>Constraints for local temporary tables now session scoped. So far they were global.
     Thanks a lot to Eric Faulhaber for finding and fixing this problem!
 </li><li>When using the auto-server mode, and if the lock file was modified in the future,
-    the wrong exception was thrown ('Connection is broken' instead of 'Error opening database: Lock file modified in the future').
+    the wrong exception was thrown ('Connection is broken' instead of 'Error opening database: lock file modified in the future').
 </li></ul>
 
 <h2>Version 1.1.105 (2008-12-19)</h2>
@@ -304,7 +304,7 @@ Change Log
 </li><li>New meta data column INFORMATION_SCHEMA.TABLES.LAST_MODIFICATION to get
     the table modification counter.
 </li><li>Shell: line comments didn't work correctly.
-</li><li>H2 Console: Columns are now listed for up to 500 tables instead of 100.
+</li><li>H2 Console: columns are now listed for up to 500 tables instead of 100.
 </li><li>H2 Console: Cmd+Enter executes the current statement, Alt+Space for autocomplete.
 </li><li>JaQu: the maximum length of a column can now be defined using maxLength.
     For an example, see Product.java (maxLength(category, 255)).
@@ -368,7 +368,7 @@ Change Log
 </li><li>The Japanese translation has been completed by Masahiro Ikemoto.
     Thanks a lot!
 </li><li>Improved PostgreSQL compatibility for NEXTVAL and CURRVAL.
-</li><li>Less heap memory is needed when multiple databases are open at the same time: The memory reserve
+</li><li>Less heap memory is needed when multiple databases are open at the same time: the memory reserve
     (used to rollback after out of memory) is now global and no longer allocated for each database separately.
 </li><li>New system property h2.browser to set the browser to use.
 </li><li>To start the browser, java.awt.Desktop.browse is now used if available.
@@ -553,7 +553,7 @@ Change Log
     http://opensource.atlassian.com/projects/hibernate/browse/HHH-3401
 </li><li>ORDER BY on tableName.columnName didn't work correctly if the column
     name was also used as an alias.
-</li><li>H2 Console: The progress display when opening a database has been improved.
+</li><li>H2 Console: the progress display when opening a database has been improved.
 </li><li>The error message when the server doesn't start has been improved.
 </li><li>Key values can now be changed in updatable result sets.
 </li><li>Changes in updatable result sets are now visible even when resetting the result set.

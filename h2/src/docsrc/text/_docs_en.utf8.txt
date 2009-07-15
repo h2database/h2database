@@ -125,7 +125,7 @@ You can then access the table in the usual way. Whenever the linked table is acc
 To view the statements that are executed against the target table, set the trace level to 3.
 
 @advanced_1042_p
-There is a restriction: When inserting into a linked table, and when updating a linked table, NULL and values that are not set are both inserted as NULL. This may not have the desired effect if the default value for this column in the target table is not NULL.
+There is a restriction: when inserting into a linked table, and when updating a linked table, NULL and values that are not set are both inserted as NULL. This may not have the desired effect if the default value for this column in the target table is not NULL.
 
 @advanced_1043_p
 If multiple linked tables point to the same database (using the same database URL), the connection is shared. To disable this, set the system property h2.shareLinkedConnections to false.
@@ -566,16 +566,16 @@ ACID
 In the database world, ACID stands for:
 
 @advanced_1189_li
-Atomicity: Transactions must be atomic, meaning either all tasks are performed or none.
+Atomicity: transactions must be atomic, meaning either all tasks are performed or none.
 
 @advanced_1190_li
-Consistency: All operations must comply with the defined constraints.
+Consistency: all operations must comply with the defined constraints.
 
 @advanced_1191_li
-Isolation: Transactions must be isolated from each other.
+Isolation: transactions must be isolated from each other.
 
 @advanced_1192_li
-Durability: Committed transaction will not be lost.
+Durability: committed transaction will not be lost.
 
 @advanced_1193_h3
 Atomicity
@@ -614,10 +614,10 @@ Ways to (Not) Achieve Durability
 Making sure that committed transactions are not lost is more complicated than it seems first. To guarantee complete durability, a database must ensure that the log record is on the hard drive before the commit call returns. To do that, databases use different methods. One is to use the 'synchronous write' file access mode. In Java, RandomAccessFile supports the modes "rws" and "rwd":
 
 @advanced_1205_li
-rwd: Every update to the file's content is written synchronously to the underlying storage device.
+rwd: every update to the file's content is written synchronously to the underlying storage device.
 
 @advanced_1206_li
-rws: In addition to rwd, every update to the metadata is written synchronously.
+rws: in addition to rwd, every update to the metadata is written synchronously.
 
 @advanced_1207_p
 A test (org.h2.test.poweroff.TestWrite) with one of those modes achieves around 50 thousand write operations per second. Even when the operating system write buffer is disabled, the write rate is around 50 thousand operations per second. This feature does not force changes to disk because it does not flush all buffers. The test updates the same byte in the file again and again. If the hard drive was able to write at this rate, then the disk would need to make at least 50 thousand revolutions per second, or 3 million RPM (revolutions per minute). There are no such hard drives. The hard drive used for the test is about 7200 RPM, or about 120 revolutions per second. There is an overhead, so the maximum write rate must be lower than that.
@@ -788,7 +788,7 @@ When a new database file is created, a new cryptographically secure random salt 
 The resulting hash value is used as the key for the block cipher algorithm (AES-128 or XTEA with 32 rounds). Then, an initialization vector (IV) key is calculated by hashing the key again using SHA-256. This is to make sure the IV is unknown to the attacker. The reason for using a secret IV is to protect against watermark attacks.
 
 @advanced_1263_p
-Before saving a block of data (each block is 8 bytes long), the following operations are executed: First, the IV is calculated by encrypting the block number with the IV key (using the same block cipher algorithm). This IV is combined with the plain text using XOR. The resulting data is encrypted using the AES-128 or XTEA algorithm.
+Before saving a block of data (each block is 8 bytes long), the following operations are executed: first, the IV is calculated by encrypting the block number with the IV key (using the same block cipher algorithm). This IV is combined with the plain text using XOR. The resulting data is encrypted using the AES-128 or XTEA algorithm.
 
 @advanced_1264_p
 When decrypting, the operation is done in reverse. First, the block is decrypted using the key, and then the IV is calculated combined with the decrypted text using XOR.
@@ -839,7 +839,7 @@ This database supports the UUIDs. Also supported is a function to create new UUI
 Some values are:
 
 @advanced_1280_p
-To help non-mathematicians understand what those numbers mean, here a comparison: One's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion, that means the probability is about 0.000'000'000'06.
+To help non-mathematicians understand what those numbers mean, here a comparison: one's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion, that means the probability is about 0.000'000'000'06.
 
 @advanced_1281_h2
 Settings Read from System Properties
@@ -866,7 +866,7 @@ Limitations
 This database has the following known limitations:
 
 @advanced_1289_li
-The maximum file size is currently 256 GB for the data, and 256 GB for the index. This number is excluding BLOB and CLOB data: Every CLOB or BLOB can be up to 256 GB as well.
+The maximum file size is currently 256 GB for the data, and 256 GB for the index. This number is excluding BLOB and CLOB data: every CLOB or BLOB can be up to 256 GB as well.
 
 @advanced_1290_li
 The maximum file size for FAT or FAT32 file systems is 4 GB. That means when using FAT or FAT32, the limit is 4 GB for the data. This is the limitation of the file system. The database does provide a workaround for this problem, it is to use the file name prefix 'split:'. In that case files are split into files of 1 GB by default. An example database URL is: <code>jdbc:h2:split:~/test</code> .
@@ -1064,16 +1064,16 @@ Build Targets
 The build system can generate smaller jar files as well. The following targets are currently supported:
 
 @build_1032_li
-jarClient: Create the h2client.jar. This only contains the JDBC client.
+jarClient creates the h2client.jar. This only contains the JDBC client.
 
 @build_1033_li
-jarSmall: Create the file h2small.jar. This only contains the embedded database. Debug information is disabled.
+jarSmall creates the file h2small.jar. This only contains the embedded database. Debug information is disabled.
 
 @build_1034_li
-jarJaqu: Create the file h2jaqu.jar. This only contains the JaQu (Java Query) implementation. All other jar files do not include JaQu.
+jarJaqu creates the file h2jaqu.jar. This only contains the JaQu (Java Query) implementation. All other jar files do not include JaQu.
 
 @build_1035_li
-javadocImpl: Create the Javadocs of the implementation.
+javadocImpl creates the Javadocs of the implementation.
 
 @build_1036_p
 To create the h2client.jar file, go to the directory h2 and execute the following command:
@@ -1136,7 +1136,7 @@ Please provide test cases and integrate them into the test suite.  For Java leve
 The test cases should cover at least 90% of the changed and new code; use a code coverage tool to verify that (see above).  or use the build target 'coverage'.
 
 @build_1056_li
-Verify that you did not break other features: Run the test cases by executing <code>build test</code> .
+Verify that you did not break other features: run the test cases by executing <code>build test</code> .
 
 @build_1057_li
 Provide end user documentation if required ( <code>src/docsrc/html/*</code> ).
@@ -1280,7 +1280,7 @@ Version 1.1.114 (2009-06-01)
 ResultSetMetaData.getColumnClassName returned the wrong  class for CLOB and BLOB columns.
 
 @changelog_1034_li
-Fulltext search: Data is no longer deleted and  re-inserted if the indexed columns didn't change.
+Fulltext search: data is no longer deleted and  re-inserted if the indexed columns didn't change.
 
 @changelog_1035_li
 In some situations, an ArrayIndexOutOfBoundsException was thrown when adding rows.  This was caused by a bug in the b-tree code.
@@ -1313,7 +1313,7 @@ Identifiers with a digit and then a dollar sign didn't work. Example: A1$B.
 MS SQL Server compatibility: support for linked tables with  NVARCHAR, NCHAR, NCLOB, and LONGNVARCHAR.
 
 @changelog_1045_li
-Android: Workaround for a problem when using read-only databases in zip files  (skip seems to be implemented incorrectly on the Android system).
+Android: workaround for a problem when using read-only databases in zip files  (skip seems to be implemented incorrectly on the Android system).
 
 @changelog_1046_li
 Calling execute() or prepareStatement() with null as the SQL statement  now throws an exception.
@@ -1334,7 +1334,7 @@ Version 1.1.112 (2009-05-01)
 JdbcPreparedStatement.toString() could throw a NullPointerException.
 
 @changelog_1052_li
-EclipseLink: Added H2Platform.supportsIdentity().
+EclipseLink: added H2Platform.supportsIdentity().
 
 @changelog_1053_li
 Connection pool: the default login timeout is now 5 minutes.
@@ -1550,7 +1550,7 @@ Improved exception message when connecting to a just started server fails.
 Connection.isValid is a bit faster.
 
 @changelog_1124_li
-H2 Console: The autocomplete feature has been improved a bit. It can now better  parse conditions.
+H2 Console: the autocomplete feature has been improved a bit. It can now better  parse conditions.
 
 @changelog_1125_li
 When restarting a web application in Tomcat, an exception was thrown sometimes.  In most cases this was a NullPointerException. A workaround in H2 has been implemented.  The root cause of the problem is now documented in the FAQ:  Tomcat sets all static fields (final or non-final) to null when unloading a web application.  A workaround is to put the h2.jar in the lib directory, or set the system property  org.apache.catalina.loader.WebappClassLoader.ENABLE_CLEAR_REFERENCES  to false.
@@ -1580,13 +1580,13 @@ Version 1.1.106 (2009-01-04)
 Statement.setQueryTimeout did not work correctly for some statements.
 
 @changelog_1134_li
-CREATE DOMAIN: Built-in data types can now only be changed if no tables exist.
+CREATE DOMAIN: built-in data types can now only be changed if no tables exist.
 
 @changelog_1135_li
 Linked tables: a workaround for Oracle DATE columns has been implemented.
 
 @changelog_1136_li
-DatabaseMetaData.getPrimaryKeys: The column PK_NAME now contains the  constraint name instead of the index name (compatibility for PostgreSQL and Derby).
+DatabaseMetaData.getPrimaryKeys: the column PK_NAME now contains the  constraint name instead of the index name (compatibility for PostgreSQL and Derby).
 
 @changelog_1137_li
 Using IN(..) inside a IN(SELECT..) did not always work.
@@ -1604,7 +1604,7 @@ The license change a bit: so far the license was modified to say  'Swiss law'. T
 Constraints for local temporary tables now session scoped. So far they were global.  Thanks a lot to Eric Faulhaber for finding and fixing this problem!
 
 @changelog_1142_li
-When using the auto-server mode, and if the lock file was modified in the future,  the wrong exception was thrown ('Connection is broken' instead of 'Error opening database: Lock file modified in the future').
+When using the auto-server mode, and if the lock file was modified in the future,  the wrong exception was thrown ('Connection is broken' instead of 'Error opening database: lock file modified in the future').
 
 @changelog_1143_h2
 Version 1.1.105 (2008-12-19)
@@ -1652,7 +1652,7 @@ New meta data column INFORMATION_SCHEMA.TABLES.LAST_MODIFICATION to get  the tab
 Shell: line comments didn't work correctly.
 
 @changelog_1158_li
-H2 Console: Columns are now listed for up to 500 tables instead of 100.
+H2 Console: columns are now listed for up to 500 tables instead of 100.
 
 @changelog_1159_li
 H2 Console: Cmd+Enter executes the current statement, Alt+Space for autocomplete.
@@ -1757,7 +1757,7 @@ The Japanese translation has been completed by Masahiro Ikemoto.  Thanks a lot!
 Improved PostgreSQL compatibility for NEXTVAL and CURRVAL.
 
 @changelog_1193_li
-Less heap memory is needed when multiple databases are open at the same time: The memory reserve  (used to rollback after out of memory) is now global and no longer allocated for each database separately.
+Less heap memory is needed when multiple databases are open at the same time: the memory reserve  (used to rollback after out of memory) is now global and no longer allocated for each database separately.
 
 @changelog_1194_li
 New system property h2.browser to set the browser to use.
@@ -2093,7 +2093,7 @@ There is a problem with Hibernate when using Boolean columns.  A patch for Hiber
 ORDER BY on tableName.columnName didn't work correctly if the column  name was also used as an alias.
 
 @changelog_1305_li
-H2 Console: The progress display when opening a database has been improved.
+H2 Console: the progress display when opening a database has been improved.
 
 @changelog_1306_li
 The error message when the server doesn't start has been improved.
@@ -3653,7 +3653,7 @@ The number of seconds until a lock timeout exception is thrown can be set separa
 Database File Layout
 
 @features_1423_p
-There are a number of files created for persistent databases. Unlike some other databases, not every table and/or index is stored in its own file. Instead, usually only the following files are created: A data file, an index file, a log file, and a database lock file (exists only while the database is in use). In addition to that, a file is created for each large object (CLOB/BLOB) larger than a certain size, and temporary files for large result sets. If the database trace option is enabled, trace files are created. The following files can be created by the database:
+There are a number of files created for persistent databases. Unlike some other databases, not every table and/or index is stored in its own file. Instead, usually only the following files are created: a data file, an index file, a log file, and a database lock file (exists only while the database is in use). In addition to that, a file is created for each large object (CLOB/BLOB) larger than a certain size, and temporary files for large result sets. If the database trace option is enabled, trace files are created. The following files can be created by the database:
 
 @features_1424_th
 File Name
@@ -3950,7 +3950,7 @@ When using this mode, the first connection to the database is made in embedded m
 The application that opens the first connection to the database uses the embedded mode, which is faster than the server mode. Therefore the main application should open the database first if possible. The first connection automatically starts a server on a random port. This server allows remote connections, however only to this database (to ensure that, the client reads .lock.db file and sends the the random key that is stored there to the server). When the first connection is closed, the server stops. If other (remote) connections are still open, one of them will then start a server (auto-reconnect is enabled automatically).
 
 @features_1522_p
-This mode has three disadvantages: All processes need to have access to the database files. Then, if the first connection is closed (the connection that started the server), open transactions of other connections will be rolled back. Also, explicit client/server connections (using jdbc:h2:tcp:// or ssl://) are not supported.
+This mode has three disadvantages: all processes need to have access to the database files. Then, if the first connection is closed (the connection that started the server), open transactions of other connections will be rolled back. Also, explicit client/server connections (using jdbc:h2:tcp:// or ssl://) are not supported.
 
 @features_1523_p
 Here is an example how to use this mode. Application 1 and 2 are not necessarily started on the same computer, but they need to have access to the database files. Application 1 and 2 are typically two different processes (however they could run within the same process).
@@ -4025,7 +4025,7 @@ Changing the log mechanism is not possible after the database is open, that mean
 Read Only Databases
 
 @features_1547_p
-If the database files are read-only, then the database is read-only as well. It is not possible to create new tables, add or modify data in this database. Only SELECT and CALL statements are allowed. To create a read-only database, close the database so that the log file gets smaller. Do not delete the log file. Then, make the database files read-only using the operating system. When you open the database now, it is read-only. There are two ways an application can find out whether database is read-only: By calling Connection.isReadOnly() or by executing the SQL statement CALL READONLY().
+If the database files are read-only, then the database is read-only as well. It is not possible to create new tables, add or modify data in this database. Only SELECT and CALL statements are allowed. To create a read-only database, close the database so that the log file gets smaller. Do not delete the log file. Then, make the database files read-only using the operating system. When you open the database now, it is read-only. There are two ways an application can find out whether database is read-only: by calling Connection.isReadOnly() or by executing the SQL statement CALL READONLY().
 
 @features_1548_h2
 Read Only Databases in Zip or Jar File
@@ -4154,7 +4154,7 @@ A function can create a result set using the SimpleResultSet tool:
 Using a Function as a Table
 
 @features_1590_p
-A function that returns a result set can be used like a table. However, in this case the function is called at least twice: First while parsing the statement to collect the column names (with parameters set to null where not known at compile time). And then, while executing the statement to get the data (maybe multiple times if this is a join). If the function is called just to get the column list, the URL of the connection passed to the function is <code>jdbc:columnlist:connection</code> . Otherwise, the URL of the connection is <code>jdbc:default:connection</code> .
+A function that returns a result set can be used like a table. However, in this case the function is called at least twice: first while parsing the statement to collect the column names (with parameters set to null where not known at compile time). And then, while executing the statement to get the data (maybe multiple times if this is a join). If the function is called just to get the column list, the URL of the connection passed to the function is <code>jdbc:columnlist:connection</code> . Otherwise, the URL of the connection is <code>jdbc:default:connection</code> .
 
 @features_1591_h2
 Triggers
@@ -4364,7 +4364,7 @@ Some people think that Java is still too slow for low level operations, but this
 A lot of features are already built in (for example Unicode, network libraries). It is very easy to write secure code because buffer overflows can not occur. Some features such as the reflection mechanism can be used for randomized testing.
 
 @history_1021_p
-Java is also future proof: A lot of companies support Java, and it is now open source.
+Java is also future proof: a lot of companies support Java, and it is now open source.
 
 @history_1022_p
 This software does not rely on many Java libraries or other software, to increase the portability and ease of use, and for performance reasons. For example, the encryption algorithms and many library functions are implemented in the database instead of using the existing libraries. Libraries that are not available in open source Java implementations (such as Swing) are not used or only used for specific features.
@@ -4562,7 +4562,7 @@ Primitive types (eg. boolean, int, long, double) are not supported. Use Boolean,
 Why in Java?
 
 @jaqu_1011_p
-Most people use Java in their application. Mixing Java and another language (for example Scala or Groovy) in the same application is complicated: You would need to split the application and database code.
+Most people use Java in their application. Mixing Java and another language (for example Scala or Groovy) in the same application is complicated: you would need to split the application and database code.
 
 @jaqu_1012_h2
 Current State
@@ -4676,10 +4676,10 @@ Modifications to the H2 source code must be published.
 You don't need to provide the source code of H2 if you did not modify anything.
 
 @license_1008_p
-However, nobody is allowed to rename H2, modify it a little, and sell it as a database engine without telling the customers it is in fact H2. This happened to HSQLDB: A company called 'bungisoft' copied HSQLDB, renamed it to 'RedBase', and tried to sell it, hiding the fact that it was in fact just HSQLDB. It seems 'bungisoft' does not exist any more, but you can use the Wayback Machine of http://www.archive.org and visit old web pages of http://www.bungisoft.com .
+However, nobody is allowed to rename H2, modify it a little, and sell it as a database engine without telling the customers it is in fact H2. This happened to HSQLDB: a company called 'bungisoft' copied HSQLDB, renamed it to 'RedBase', and tried to sell it, hiding the fact that it was in fact just HSQLDB. It seems 'bungisoft' does not exist any more, but you can use the Wayback Machine of http://www.archive.org and visit old web pages of http://www.bungisoft.com .
 
 @license_1009_p
-About porting the source code to another language (for example C# or C++): Converted source code (even if done manually) stays under the same copyright and license as the original code. The copyright of the ported source code does not (automatically) go to the person who ported the code.
+About porting the source code to another language (for example C# or C++): converted source code (even if done manually) stays under the same copyright and license as the original code. The copyright of the ported source code does not (automatically) go to the person who ported the code.
 
 @license_1010_h2
 H2 License, Version 1.0
@@ -6100,263 +6100,263 @@ Database Profiling
 @performance_1005_a
 Performance Tuning
 
-@performance_1006_h2
+@performance_1006_a
+Fast Database Import
+
+@performance_1007_h2
 Performance Comparison
 
-@performance_1007_p
+@performance_1008_p
 In many cases H2 is faster than other (open source and not open source) database engines. Please note this is mostly a single connection benchmark run on one computer.
 
-@performance_1008_h3
+@performance_1009_h3
 Embedded
 
-@performance_1009_th
+@performance_1010_th
 Test Case
 
-@performance_1010_th
+@performance_1011_th
 Unit
 
-@performance_1011_th
+@performance_1012_th
 H2
 
-@performance_1012_th
+@performance_1013_th
 HSQLDB
 
-@performance_1013_th
+@performance_1014_th
 Derby
 
-@performance_1014_td
+@performance_1015_td
 Simple: Init
 
-@performance_1015_td
-ms
-
 @performance_1016_td
-547
+ms
 
 @performance_1017_td
-532
+547
 
 @performance_1018_td
-2594
+532
 
 @performance_1019_td
-Simple: Query (random)
+2594
 
 @performance_1020_td
-ms
+Simple: Query (random)
 
 @performance_1021_td
-250
+ms
 
 @performance_1022_td
-391
-
-@performance_1023_td
-1515
-
-@performance_1024_td
-Simple: Query (sequential)
-
-@performance_1025_td
-ms
-
-@performance_1026_td
-188
-
-@performance_1027_td
-313
-
-@performance_1028_td
-1406
-
-@performance_1029_td
-Simple: Update (random)
-
-@performance_1030_td
-ms
-
-@performance_1031_td
-812
-
-@performance_1032_td
-1750
-
-@performance_1033_td
-17704
-
-@performance_1034_td
-Simple: Delete (sequential)
-
-@performance_1035_td
-ms
-
-@performance_1036_td
-203
-
-@performance_1037_td
 250
 
+@performance_1023_td
+391
+
+@performance_1024_td
+1515
+
+@performance_1025_td
+Simple: Query (sequential)
+
+@performance_1026_td
+ms
+
+@performance_1027_td
+188
+
+@performance_1028_td
+313
+
+@performance_1029_td
+1406
+
+@performance_1030_td
+Simple: Update (random)
+
+@performance_1031_td
+ms
+
+@performance_1032_td
+812
+
+@performance_1033_td
+1750
+
+@performance_1034_td
+17704
+
+@performance_1035_td
+Simple: Delete (sequential)
+
+@performance_1036_td
+ms
+
+@performance_1037_td
+203
+
 @performance_1038_td
-8843
+250
 
 @performance_1039_td
-Simple: Memory Usage
+8843
 
 @performance_1040_td
-MB
+Simple: Memory Usage
 
 @performance_1041_td
-7
+MB
 
 @performance_1042_td
-11
+7
 
 @performance_1043_td
 11
 
 @performance_1044_td
-BenchA: Init
+11
 
 @performance_1045_td
-ms
+BenchA: Init
 
 @performance_1046_td
-578
+ms
 
 @performance_1047_td
-719
+578
 
 @performance_1048_td
-3328
+719
 
 @performance_1049_td
-BenchA: Transactions
+3328
 
 @performance_1050_td
-ms
+BenchA: Transactions
 
 @performance_1051_td
-3047
+ms
 
 @performance_1052_td
-2406
+3047
 
 @performance_1053_td
-12907
-
-@performance_1054_td
-BenchA: Memory Usage
-
-@performance_1055_td
-MB
-
-@performance_1056_td
-10
-
-@performance_1057_td
-15
-
-@performance_1058_td
-10
-
-@performance_1059_td
-BenchB: Init
-
-@performance_1060_td
-ms
-
-@performance_1061_td
-2141
-
-@performance_1062_td
 2406
 
+@performance_1054_td
+12907
+
+@performance_1055_td
+BenchA: Memory Usage
+
+@performance_1056_td
+MB
+
+@performance_1057_td
+10
+
+@performance_1058_td
+15
+
+@performance_1059_td
+10
+
+@performance_1060_td
+BenchB: Init
+
+@performance_1061_td
+ms
+
+@performance_1062_td
+2141
+
 @performance_1063_td
-11562
+2406
 
 @performance_1064_td
-BenchB: Transactions
+11562
 
 @performance_1065_td
-ms
+BenchB: Transactions
 
 @performance_1066_td
-1125
+ms
 
 @performance_1067_td
-1375
+1125
 
 @performance_1068_td
-3625
+1375
 
 @performance_1069_td
-BenchB: Memory Usage
+3625
 
 @performance_1070_td
-MB
+BenchB: Memory Usage
 
 @performance_1071_td
-9
-
-@performance_1072_td
-11
-
-@performance_1073_td
-8
-
-@performance_1074_td
-BenchC: Init
-
-@performance_1075_td
-ms
-
-@performance_1076_td
-688
-
-@performance_1077_td
-594
-
-@performance_1078_td
-4500
-
-@performance_1079_td
-BenchC: Transactions
-
-@performance_1080_td
-ms
-
-@performance_1081_td
-1906
-
-@performance_1082_td
-64062
-
-@performance_1083_td
-6047
-
-@performance_1084_td
-BenchC: Memory Usage
-
-@performance_1085_td
 MB
 
-@performance_1086_td
+@performance_1072_td
+9
+
+@performance_1073_td
 11
+
+@performance_1074_td
+8
+
+@performance_1075_td
+BenchC: Init
+
+@performance_1076_td
+ms
+
+@performance_1077_td
+688
+
+@performance_1078_td
+594
+
+@performance_1079_td
+4500
+
+@performance_1080_td
+BenchC: Transactions
+
+@performance_1081_td
+ms
+
+@performance_1082_td
+1906
+
+@performance_1083_td
+64062
+
+@performance_1084_td
+6047
+
+@performance_1085_td
+BenchC: Memory Usage
+
+@performance_1086_td
+MB
 
 @performance_1087_td
-17
-
-@performance_1088_td
 11
 
+@performance_1088_td
+17
+
 @performance_1089_td
-Executed statements
+11
 
 @performance_1090_td
-#
+Executed statements
 
 @performance_1091_td
-322929
+#
 
 @performance_1092_td
 322929
@@ -6365,382 +6365,382 @@ Executed statements
 322929
 
 @performance_1094_td
-Total time
+322929
 
 @performance_1095_td
-ms
+Total time
 
 @performance_1096_td
-11485
+ms
 
 @performance_1097_td
-74798
+11485
 
 @performance_1098_td
-74031
+74798
 
 @performance_1099_td
-Statements per second
+74031
 
 @performance_1100_td
-#
+Statements per second
 
 @performance_1101_td
-28117
+#
 
 @performance_1102_td
-4317
+28117
 
 @performance_1103_td
+4317
+
+@performance_1104_td
 4362
 
-@performance_1104_h3
+@performance_1105_h3
 Client-Server
 
-@performance_1105_th
+@performance_1106_th
 Test Case
 
-@performance_1106_th
+@performance_1107_th
 Unit
 
-@performance_1107_th
+@performance_1108_th
 H2
 
-@performance_1108_th
+@performance_1109_th
 HSQLDB
 
-@performance_1109_th
+@performance_1110_th
 Derby
 
-@performance_1110_th
+@performance_1111_th
 PostgreSQL
 
-@performance_1111_th
+@performance_1112_th
 MySQL
 
-@performance_1112_td
+@performance_1113_td
 Simple: Init
 
-@performance_1113_td
-ms
-
 @performance_1114_td
-2782
+ms
 
 @performance_1115_td
-2656
+2782
 
 @performance_1116_td
-5625
+2656
 
 @performance_1117_td
-4563
+5625
 
 @performance_1118_td
-3484
+4563
 
 @performance_1119_td
-Simple: Query (random)
+3484
 
 @performance_1120_td
-ms
+Simple: Query (random)
 
 @performance_1121_td
-3093
+ms
 
 @performance_1122_td
-2703
+3093
 
 @performance_1123_td
-6688
+2703
 
 @performance_1124_td
-4812
+6688
 
 @performance_1125_td
-3860
+4812
 
 @performance_1126_td
-Simple: Query (sequential)
+3860
 
 @performance_1127_td
-ms
+Simple: Query (sequential)
 
 @performance_1128_td
-2969
+ms
 
 @performance_1129_td
-2594
-
-@performance_1130_td
-6437
-
-@performance_1131_td
-4719
-
-@performance_1132_td
-3625
-
-@performance_1133_td
-Simple: Update (random)
-
-@performance_1134_td
-ms
-
-@performance_1135_td
 2969
 
-@performance_1136_td
-3531
+@performance_1130_td
+2594
 
-@performance_1137_td
-18250
+@performance_1131_td
+6437
 
-@performance_1138_td
-5953
+@performance_1132_td
+4719
 
-@performance_1139_td
-5125
+@performance_1133_td
+3625
 
-@performance_1140_td
-Simple: Delete (sequential)
+@performance_1134_td
+Simple: Update (random)
 
-@performance_1141_td
+@performance_1135_td
 ms
 
+@performance_1136_td
+2969
+
+@performance_1137_td
+3531
+
+@performance_1138_td
+18250
+
+@performance_1139_td
+5953
+
+@performance_1140_td
+5125
+
+@performance_1141_td
+Simple: Delete (sequential)
+
 @performance_1142_td
-1047
+ms
 
 @performance_1143_td
-1250
+1047
 
 @performance_1144_td
-6875
+1250
 
 @performance_1145_td
-2485
+6875
 
 @performance_1146_td
-2390
+2485
 
 @performance_1147_td
-Simple: Memory Usage
+2390
 
 @performance_1148_td
-MB
+Simple: Memory Usage
 
 @performance_1149_td
-7
+MB
 
 @performance_1150_td
-11
+7
 
 @performance_1151_td
-14
+11
 
 @performance_1152_td
-0
+14
 
 @performance_1153_td
 0
 
 @performance_1154_td
-BenchA: Init
-
-@performance_1155_td
-ms
-
-@performance_1156_td
-2250
-
-@performance_1157_td
-2453
-
-@performance_1158_td
-6031
-
-@performance_1159_td
-4328
-
-@performance_1160_td
-3625
-
-@performance_1161_td
-BenchA: Transactions
-
-@performance_1162_td
-ms
-
-@performance_1163_td
-10250
-
-@performance_1164_td
-9016
-
-@performance_1165_td
-21484
-
-@performance_1166_td
-15609
-
-@performance_1167_td
-11172
-
-@performance_1168_td
-BenchA: Memory Usage
-
-@performance_1169_td
-MB
-
-@performance_1170_td
-10
-
-@performance_1171_td
-15
-
-@performance_1172_td
-10
-
-@performance_1173_td
 0
 
-@performance_1174_td
-1
+@performance_1155_td
+BenchA: Init
 
-@performance_1175_td
-BenchB: Init
-
-@performance_1176_td
+@performance_1156_td
 ms
 
-@performance_1177_td
-9500
+@performance_1157_td
+2250
 
-@performance_1178_td
-10672
+@performance_1158_td
+2453
 
-@performance_1179_td
-22609
+@performance_1159_td
+6031
 
-@performance_1180_td
-19609
+@performance_1160_td
+4328
 
-@performance_1181_td
-13406
+@performance_1161_td
+3625
 
-@performance_1182_td
-BenchB: Transactions
+@performance_1162_td
+BenchA: Transactions
 
-@performance_1183_td
+@performance_1163_td
 ms
 
-@performance_1184_td
-2734
+@performance_1164_td
+10250
 
-@performance_1185_td
-2656
+@performance_1165_td
+9016
 
-@performance_1186_td
-3875
+@performance_1166_td
+21484
 
-@performance_1187_td
-4688
+@performance_1167_td
+15609
 
-@performance_1188_td
-2531
+@performance_1168_td
+11172
 
-@performance_1189_td
-BenchB: Memory Usage
+@performance_1169_td
+BenchA: Memory Usage
 
-@performance_1190_td
+@performance_1170_td
 MB
 
-@performance_1191_td
+@performance_1171_td
 10
 
+@performance_1172_td
+15
+
+@performance_1173_td
+10
+
+@performance_1174_td
+0
+
+@performance_1175_td
+1
+
+@performance_1176_td
+BenchB: Init
+
+@performance_1177_td
+ms
+
+@performance_1178_td
+9500
+
+@performance_1179_td
+10672
+
+@performance_1180_td
+22609
+
+@performance_1181_td
+19609
+
+@performance_1182_td
+13406
+
+@performance_1183_td
+BenchB: Transactions
+
+@performance_1184_td
+ms
+
+@performance_1185_td
+2734
+
+@performance_1186_td
+2656
+
+@performance_1187_td
+3875
+
+@performance_1188_td
+4688
+
+@performance_1189_td
+2531
+
+@performance_1190_td
+BenchB: Memory Usage
+
+@performance_1191_td
+MB
+
 @performance_1192_td
-11
+10
 
 @performance_1193_td
 11
 
 @performance_1194_td
-1
+11
 
 @performance_1195_td
 1
 
 @performance_1196_td
-BenchC: Init
-
-@performance_1197_td
-ms
-
-@performance_1198_td
-1860
-
-@performance_1199_td
-1484
-
-@performance_1200_td
-6890
-
-@performance_1201_td
-2219
-
-@performance_1202_td
-3438
-
-@performance_1203_td
-BenchC: Transactions
-
-@performance_1204_td
-ms
-
-@performance_1205_td
-9046
-
-@performance_1206_td
-63266
-
-@performance_1207_td
-18641
-
-@performance_1208_td
-11703
-
-@performance_1209_td
-7421
-
-@performance_1210_td
-BenchC: Memory Usage
-
-@performance_1211_td
-MB
-
-@performance_1212_td
-12
-
-@performance_1213_td
-17
-
-@performance_1214_td
-13
-
-@performance_1215_td
-0
-
-@performance_1216_td
 1
 
+@performance_1197_td
+BenchC: Init
+
+@performance_1198_td
+ms
+
+@performance_1199_td
+1860
+
+@performance_1200_td
+1484
+
+@performance_1201_td
+6890
+
+@performance_1202_td
+2219
+
+@performance_1203_td
+3438
+
+@performance_1204_td
+BenchC: Transactions
+
+@performance_1205_td
+ms
+
+@performance_1206_td
+9046
+
+@performance_1207_td
+63266
+
+@performance_1208_td
+18641
+
+@performance_1209_td
+11703
+
+@performance_1210_td
+7421
+
+@performance_1211_td
+BenchC: Memory Usage
+
+@performance_1212_td
+MB
+
+@performance_1213_td
+12
+
+@performance_1214_td
+17
+
+@performance_1215_td
+13
+
+@performance_1216_td
+0
+
 @performance_1217_td
-Executed statements
+1
 
 @performance_1218_td
-#
+Executed statements
 
 @performance_1219_td
-322929
+#
 
 @performance_1220_td
 322929
@@ -6755,595 +6755,619 @@ Executed statements
 322929
 
 @performance_1224_td
-Total time
+322929
 
 @performance_1225_td
-ms
+Total time
 
 @performance_1226_td
-48500
+ms
 
 @performance_1227_td
-102281
+48500
 
 @performance_1228_td
-123405
+102281
 
 @performance_1229_td
-80688
+123405
 
 @performance_1230_td
-60077
+80688
 
 @performance_1231_td
-Statements per second
+60077
 
 @performance_1232_td
-#
+Statements per second
 
 @performance_1233_td
-6658
+#
 
 @performance_1234_td
-3157
+6658
 
 @performance_1235_td
-2616
+3157
 
 @performance_1236_td
-4002
+2616
 
 @performance_1237_td
+4002
+
+@performance_1238_td
 5375
 
-@performance_1238_h3
+@performance_1239_h3
 Benchmark Results and Comments
 
-@performance_1239_h4
+@performance_1240_h4
 H2
 
-@performance_1240_p
-Version 1.1.114 (2009-06-01) was used for the test. For simpler operations, the performance of H2 is about the same as for HSQLDB. For more complex queries, the query optimizer is very important. However H2 is not very fast in every case, certain kind of queries may still be slow. One situation where is H2 is slow is large result sets, because they are buffered to disk if more than a certain number of records are returned. The advantage of buffering is, there is no limit on the result set size. The open/close time is almost fixed, because of the file locking protocol: The engine waits some time after opening a database to ensure the database files are not opened by another process.
+@performance_1241_p
+Version 1.1.114 (2009-06-01) was used for the test. For simpler operations, the performance of H2 is about the same as for HSQLDB. For more complex queries, the query optimizer is very important. However H2 is not very fast in every case, certain kind of queries may still be slow. One situation where is H2 is slow is large result sets, because they are buffered to disk if more than a certain number of records are returned. The advantage of buffering is, there is no limit on the result set size. The open/close time is almost fixed, because of the file locking protocol: the engine waits some time after opening a database to ensure the database files are not opened by another process.
 
-@performance_1241_h4
+@performance_1242_h4
 HSQLDB
-
-@performance_1242_p
-Version 1.8.0.10 was used for the test. Cached tables are used in this test (hsqldb.default_table_type=cached), and the write delay is 1 second (SET WRITE_DELAY 1). HSQLDB is fast when using simple operations. HSQLDB is very slow in the last test (BenchC: Transactions), probably because is has a bad query optimizer. One query where HSQLDB is slow is a two-table join:
 
 @performance_1243_p
+Version 1.8.0.10 was used for the test. Cached tables are used in this test (hsqldb.default_table_type=cached), and the write delay is 1 second (SET WRITE_DELAY 1). HSQLDB is fast when using simple operations. HSQLDB is very slow in the last test (BenchC: Transactions), probably because is has a bad query optimizer. One query where HSQLDB is slow is a two-table join:
+
+@performance_1244_p
 The PolePosition benchmark also shows that the query optimizer does not do a very good job for some queries. Another disadvantage of HSQLDB is the slow startup / shutdown time (currently not listed) when using bigger databases. The reason is, a backup of the whole data is made whenever the database is opened or closed.
 
-@performance_1244_h4
+@performance_1245_h4
 Derby
 
-@performance_1245_p
-Version 10.4.2.0 was used for the test. Derby is clearly the slowest embedded database in this test. This seems to be a structural problem, because all operations are really slow. It will be hard for the developers of Derby to improve the performance to a reasonable level. A few problems have been identified: Leaving autocommit on is a problem for Derby. If it is switched off during the whole test, the results are about 20% better for Derby. Derby supports a testing mode (system property derby.system.durability=test) where durability is disabled. According to the documentation, this setting should be used for testing only, as the database may not recover after a crash. Enabling this setting improves performance by a factor of 2.6 (embedded mode) or 1.4 (server mode). Even if enabled, Derby is still less than half as fast as H2 in default mode.
+@performance_1246_p
+Version 10.4.2.0 was used for the test. Derby is clearly the slowest embedded database in this test. This seems to be a structural problem, because all operations are really slow. It will be hard for the developers of Derby to improve the performance to a reasonable level. A few problems have been identified: leaving autocommit on is a problem for Derby. If it is switched off during the whole test, the results are about 20% better for Derby. Derby supports a testing mode (system property derby.system.durability=test) where durability is disabled. According to the documentation, this setting should be used for testing only, as the database may not recover after a crash. Enabling this setting improves performance by a factor of 2.6 (embedded mode) or 1.4 (server mode). Even if enabled, Derby is still less than half as fast as H2 in default mode.
 
-@performance_1246_h4
+@performance_1247_h4
 PostgreSQL
 
-@performance_1247_p
+@performance_1248_p
 Version 8.3.7 was used for the test. The following options where changed in postgresql.conf: fsync = off, commit_delay = 1000. PostgreSQL is run in server mode. It looks like the base performance is slower than MySQL, the reason could be the network layer. The memory usage number is incorrect, because only the memory usage of the JDBC driver is measured.
 
-@performance_1248_h4
+@performance_1249_h4
 MySQL
 
-@performance_1249_p
+@performance_1250_p
 Version 5.1.34-community was used for the test. MySQL was run with the InnoDB backend. The setting innodb_flush_log_at_trx_commit (found in the my.ini file) was set to 0. Otherwise (and by default), MySQL is really slow (around 140 statements per second in this test) because it tries to flush the data to disk for each commit. For small transactions (when autocommit is on) this is really slow. But many use cases use small or relatively small transactions. Too bad this setting is not listed in the configuration wizard, and it always overwritten when using the wizard. You need to change this setting manually in the file my.ini, and then restart the service. The memory usage number is incorrect, because only the memory usage of the JDBC driver is measured.
 
-@performance_1250_h4
+@performance_1251_h4
 Firebird
 
-@performance_1251_p
+@performance_1252_p
 Firebird 1.5 (default installation) was tested, but the results are not published currently. It is possible to run the performance test with the Firebird database, and any information on how to configure Firebird for higher performance are welcome.
 
-@performance_1252_h4
+@performance_1253_h4
 Why Oracle / MS SQL Server / DB2 are Not Listed
 
-@performance_1253_p
+@performance_1254_p
 The license of these databases does not allow to publish benchmark results. This doesn't mean that they are fast. They are in fact quite slow, and need a lot of memory. But you will need to test this yourself. SQLite was not tested because the JDBC driver doesn't support transactions.
 
-@performance_1254_h3
+@performance_1255_h3
 About this Benchmark
 
-@performance_1255_h4
+@performance_1256_h4
 How to Run
 
-@performance_1256_p
+@performance_1257_p
 This test was executed as follows:
 
-@performance_1257_h4
+@performance_1258_h4
 Separate Process per Database
 
-@performance_1258_p
+@performance_1259_p
 For each database, a new process is started, to ensure the previous test does not impact the current test.
 
-@performance_1259_h4
+@performance_1260_h4
 Number of Connections
 
-@performance_1260_p
+@performance_1261_p
 This is mostly a single-connection benchmark. BenchB uses multiple connections; the other tests use one connection.
 
-@performance_1261_h4
+@performance_1262_h4
 Real-World Tests
 
-@performance_1262_p
-Good benchmarks emulate real-world use cases. This benchmark includes 3 test cases: A simple test case with one table and many small updates / deletes. BenchA is similar to the TPC-A test, but single connection / single threaded (see also: www.tpc.org). BenchB is similar to the TPC-B test, using multiple connections (one thread per connection). BenchC is similar to the TPC-C test, but single connection / single threaded.
+@performance_1263_p
+Good benchmarks emulate real-world use cases. This benchmark includes 4 test cases: BenchSimple uses one table and many small updates / deletes. BenchA is similar to the TPC-A test, but single connection / single threaded (see also: www.tpc.org). BenchB is similar to the TPC-B test, using multiple connections (one thread per connection). BenchC is similar to the TPC-C test, but single connection / single threaded.
 
-@performance_1263_h4
+@performance_1264_h4
 Comparing Embedded with Server Databases
 
-@performance_1264_p
+@performance_1265_p
 This is mainly a benchmark for embedded databases (where the application runs in the same virtual machine as the database engine). However MySQL and PostgreSQL are not Java databases and cannot be embedded into a Java application. For the Java databases, both embedded and server modes are tested.
 
-@performance_1265_h4
+@performance_1266_h4
 Test Platform
 
-@performance_1266_p
+@performance_1267_p
 This test is run on Windows XP with the virus scanner switched off. The VM used is Sun JDK 1.5.
 
-@performance_1267_h4
+@performance_1268_h4
 Multiple Runs
 
-@performance_1268_p
+@performance_1269_p
 When a Java benchmark is run first, the code is not fully compiled and therefore runs slower than when running multiple times. A benchmark should always run the same test multiple times and ignore the first run(s). This benchmark runs three times, but only the last run is measured.
 
-@performance_1269_h4
+@performance_1270_h4
 Memory Usage
 
-@performance_1270_p
+@performance_1271_p
 It is not enough to measure the time taken, the memory usage is important as well. Performance can be improved by using a bigger cache, but the amount of memory is limited. HSQLDB tables are kept fully in memory by default; this benchmark uses 'disk based' tables for all databases. Unfortunately, it is not so easy to calculate the memory usage of PostgreSQL and MySQL, because they run in a different process than the test. This benchmark currently does not print memory usage of those databases.
 
-@performance_1271_h4
+@performance_1272_h4
 Delayed Operations
 
-@performance_1272_p
+@performance_1273_p
 Some databases delay some operations (for example flushing the buffers) until after the benchmark is run. This benchmark waits between each database tested, and each database runs in a different process (sequentially).
 
-@performance_1273_h4
+@performance_1274_h4
 Transaction Commit / Durability
 
-@performance_1274_p
+@performance_1275_p
 Durability means transaction committed to the database will not be lost. Some databases (for example MySQL) try to enforce this by default by calling fsync() to flush the buffers, but most hard drives don't actually flush all data. Calling fsync() slows down transaction commit a lot, but doesn't always make data durable. When comparing the results, it is important to think about the effect. Many database suggest to 'batch' operations when possible. This benchmark switches off autocommit when loading the data, and calls commit after each 1000 inserts. However many applications need 'short' transactions at runtime (a commit after each update). This benchmark commits after each update / delete in the simple benchmark, and after each business transaction in the other benchmarks. For databases that support delayed commits, a delay of one second is used.
 
-@performance_1275_h4
+@performance_1276_h4
 Using Prepared Statements
 
-@performance_1276_p
+@performance_1277_p
 Wherever possible, the test cases use prepared statements.
 
-@performance_1277_h4
+@performance_1278_h4
 Currently Not Tested: Startup Time
 
-@performance_1278_p
+@performance_1279_p
 The startup time of a database engine is important as well for embedded use. This time is not measured currently. Also, not tested is the time used to create a database and open an existing database. Here, one (wrapper) connection is opened at the start, and for each step a new connection is opened and then closed.
 
-@performance_1279_h2
+@performance_1280_h2
 PolePosition Benchmark
 
-@performance_1280_p
+@performance_1281_p
 The PolePosition is an open source benchmark. The algorithms are all quite simple. It was developed / sponsored by db4o.
 
-@performance_1281_th
+@performance_1282_th
 Test Case
 
-@performance_1282_th
+@performance_1283_th
 Unit
 
-@performance_1283_th
+@performance_1284_th
 H2
 
-@performance_1284_th
+@performance_1285_th
 HSQLDB
 
-@performance_1285_th
+@performance_1286_th
 MySQL
 
-@performance_1286_td
+@performance_1287_td
 Melbourne write
 
-@performance_1287_td
-ms
-
 @performance_1288_td
-369
+ms
 
 @performance_1289_td
-249
+369
 
 @performance_1290_td
-2022
+249
 
 @performance_1291_td
-Melbourne read
+2022
 
 @performance_1292_td
-ms
+Melbourne read
 
 @performance_1293_td
-47
+ms
 
 @performance_1294_td
-49
+47
 
 @performance_1295_td
-93
+49
 
 @performance_1296_td
-Melbourne read_hot
+93
 
 @performance_1297_td
-ms
+Melbourne read_hot
 
 @performance_1298_td
-24
+ms
 
 @performance_1299_td
-43
+24
 
 @performance_1300_td
-95
+43
 
 @performance_1301_td
-Melbourne delete
+95
 
 @performance_1302_td
-ms
+Melbourne delete
 
 @performance_1303_td
-147
+ms
 
 @performance_1304_td
-133
+147
 
 @performance_1305_td
-176
+133
 
 @performance_1306_td
-Sepang write
+176
 
 @performance_1307_td
-ms
+Sepang write
 
 @performance_1308_td
-965
+ms
 
 @performance_1309_td
-1201
+965
 
 @performance_1310_td
-3213
+1201
 
 @performance_1311_td
-Sepang read
+3213
 
 @performance_1312_td
-ms
+Sepang read
 
 @performance_1313_td
-765
+ms
 
 @performance_1314_td
-948
+765
 
 @performance_1315_td
-3455
+948
 
 @performance_1316_td
-Sepang read_hot
+3455
 
 @performance_1317_td
-ms
+Sepang read_hot
 
 @performance_1318_td
-789
+ms
 
 @performance_1319_td
-859
+789
 
 @performance_1320_td
-3563
+859
 
 @performance_1321_td
-Sepang delete
+3563
 
 @performance_1322_td
-ms
+Sepang delete
 
 @performance_1323_td
-1384
+ms
 
 @performance_1324_td
-1596
+1384
 
 @performance_1325_td
-6214
+1596
 
 @performance_1326_td
-Bahrain write
+6214
 
 @performance_1327_td
-ms
+Bahrain write
 
 @performance_1328_td
-1186
+ms
 
 @performance_1329_td
-1387
+1186
 
 @performance_1330_td
-6904
+1387
 
 @performance_1331_td
-Bahrain query_indexed_string
+6904
 
 @performance_1332_td
-ms
+Bahrain query_indexed_string
 
 @performance_1333_td
-336
+ms
 
 @performance_1334_td
-170
+336
 
 @performance_1335_td
-693
+170
 
 @performance_1336_td
-Bahrain query_string
+693
 
 @performance_1337_td
-ms
+Bahrain query_string
 
 @performance_1338_td
-18064
+ms
 
 @performance_1339_td
-39703
+18064
 
 @performance_1340_td
-41243
+39703
 
 @performance_1341_td
-Bahrain query_indexed_int
+41243
 
 @performance_1342_td
-ms
+Bahrain query_indexed_int
 
 @performance_1343_td
-104
+ms
 
 @performance_1344_td
-134
+104
 
 @performance_1345_td
-678
+134
 
 @performance_1346_td
-Bahrain update
+678
 
 @performance_1347_td
-ms
+Bahrain update
 
 @performance_1348_td
-191
+ms
 
 @performance_1349_td
-87
+191
 
 @performance_1350_td
-159
+87
 
 @performance_1351_td
-Bahrain delete
+159
 
 @performance_1352_td
-ms
+Bahrain delete
 
 @performance_1353_td
-1215
+ms
 
 @performance_1354_td
-729
+1215
 
 @performance_1355_td
-6812
+729
 
 @performance_1356_td
-Imola retrieve
+6812
 
 @performance_1357_td
-ms
+Imola retrieve
 
 @performance_1358_td
-198
+ms
 
 @performance_1359_td
-194
+198
 
 @performance_1360_td
-4036
+194
 
 @performance_1361_td
-Barcelona write
+4036
 
 @performance_1362_td
-ms
+Barcelona write
 
 @performance_1363_td
-413
+ms
 
 @performance_1364_td
-832
+413
 
 @performance_1365_td
-3191
+832
 
 @performance_1366_td
-Barcelona read
+3191
 
 @performance_1367_td
-ms
+Barcelona read
 
 @performance_1368_td
-119
+ms
 
 @performance_1369_td
-160
+119
 
 @performance_1370_td
-1177
+160
 
 @performance_1371_td
-Barcelona query
+1177
 
 @performance_1372_td
-ms
+Barcelona query
 
 @performance_1373_td
-20
+ms
 
 @performance_1374_td
-5169
+20
 
 @performance_1375_td
-101
+5169
 
 @performance_1376_td
-Barcelona delete
+101
 
 @performance_1377_td
-ms
+Barcelona delete
 
 @performance_1378_td
-388
-
-@performance_1379_td
-319
-
-@performance_1380_td
-3287
-
-@performance_1381_td
-Total
-
-@performance_1382_td
 ms
 
+@performance_1379_td
+388
+
+@performance_1380_td
+319
+
+@performance_1381_td
+3287
+
+@performance_1382_td
+Total
+
 @performance_1383_td
-26724
+ms
 
 @performance_1384_td
-53962
+26724
 
 @performance_1385_td
+53962
+
+@performance_1386_td
 87112
 
-@performance_1386_p
+@performance_1387_p
 There are a few problems with the PolePosition test:
 
-@performance_1387_li
+@performance_1388_li
 HSQLDB uses in-memory tables by default while H2 uses persistent tables. The HSQLDB version included in PolePosition does not support changing this, so you need to replace poleposition-0.20/lib/hsqldb.jar with a newer version (for example hsqldb-1.8.0.7.jar), and then use the setting hsqldb.connecturl=jdbc:hsqldb:file:data/hsqldb/dbbench2;hsqldb.default_table_type=cached;sql.enforce_size=true in Jdbc.properties.
 
-@performance_1388_li
+@performance_1389_li
 HSQLDB keeps the database open between tests, while H2 closes the database (losing all the cache). To change that, use the database URL jdbc:h2:file:data/h2/dbbench;DB_CLOSE_DELAY=-1
 
-@performance_1389_li
+@performance_1390_li
 The amount of cache memory is quite important, specially for the PolePosition test. Unfortunately, the PolePosition test does not take this into account.
 
-@performance_1390_h2
+@performance_1391_h2
 Application Profiling
 
-@performance_1391_h3
+@performance_1392_h3
 Analyze First
 
-@performance_1392_p
+@performance_1393_p
 Before trying to optimize performance, it is important to understand where the problem is (what part of the application is slow). Blind optimization or optimization based on guesses should be avoided, because usually it is not an efficient strategy. There are various ways to analyze an application. Sometimes two implementations can be compared using System.currentTimeMillis(). But this does not work for complex applications with many modules, and for memory problems.
 
-@performance_1393_p
+@performance_1394_p
 A good tool to measure both memory usage and performance is the <a href="http://www.yourkit.com">YourKit Java Profiler</a> .
 
-@performance_1394_p
+@performance_1395_p
 A simple way to profile an application is to use the built-in profiling tool of java. Example:
 
-@performance_1395_p
+@performance_1396_p
 Unfortunately, it is only possible to profile the application from start to end. Another solution is to create a number of full thread dumps. To do that, first run <code>jps -l</code> to get the process id, and then run <code>jstack &lt;pid&gt;</code> or <code>kill -QUIT &lt;pid&gt;</code> (Linux) or press Ctrl+C (Windows).
 
-@performance_1396_h2
+@performance_1397_h2
 Database Profiling
 
-@performance_1397_p
+@performance_1398_p
 The ConvertTraceFile tool generates SQL statement statistics at the end of the SQL script file. The format used is similar to the profiling data generated when using java -Xrunhprof. As an example, execute the the following script using the H2 Console:
 
-@performance_1398_p
+@performance_1399_p
 Now convert the .trace.db file using the ConvertTraceFile tool:
 
-@performance_1399_p
+@performance_1400_p
 The generated file <code>test.sql</code> will contain the SQL statements as well as the following profiling data (results vary):
 
-@performance_1400_h2
+@performance_1401_h2
 Database Performance Tuning
 
-@performance_1401_h3
+@performance_1402_h3
 Virus Scanners
 
-@performance_1402_p
+@performance_1403_p
 Some virus scanners scan files every time they are accessed. It is very important for performance that database files are not scanned for viruses. The database engine does never interprets the data stored in the files as programs, that means even if somebody would store a virus in a database file, this would be harmless (when the virus does not run, it cannot spread). Some virus scanners allow to exclude files by suffix. Make sure files ending with .db are not scanned.
 
-@performance_1403_h3
+@performance_1404_h3
 Using the Trace Options
 
-@performance_1404_p
+@performance_1405_p
 If the main performance hot spots are in the database engine, in many cases the performance can be optimized by creating additional indexes, or changing the schema. Sometimes the application does not directly generate the SQL statements, for example if an O/R mapping tool is used. To view the SQL statements and JDBC API calls, you can use the trace options. For more information, see <a href="features.html#trace_options">Using the Trace Options</a> .
 
-@performance_1405_h3
+@performance_1406_h3
 Index Usage
 
-@performance_1406_p
+@performance_1407_p
 This database uses indexes to improve the performance of SELECT, UPDATE and DELETE statements. If a column is used in the WHERE clause of a query, and if an index exists on this column, then the index can be used. Multi-column indexes are used if all or the first columns of the index are used. Both equality lookup and range scans are supported. Indexes are used to order result sets, but only if the condition uses the same index or no index at all. The results are sorted in memory if required. Indexes are created automatically for primary key and unique constraints. Indexes are also created for foreign key constraints, if required. For other columns, indexes need to be created manually using the CREATE INDEX statement.
 
-@performance_1407_h3
+@performance_1408_h3
 Optimizer
 
-@performance_1408_p
+@performance_1409_p
 This database uses a cost based optimizer. For simple and queries and queries with medium complexity (less than 7 tables in the join), the expected cost (running time) of all possible plans is calculated, and the plan with the lowest cost is used. For more complex queries, the algorithm first tries all possible combinations for the first few tables, and the remaining tables added using a greedy algorithm (this works well for most joins). Afterwards a genetic algorithm is used to test at most 2000 distinct plans. Only left-deep plans are evaluated.
 
-@performance_1409_h3
+@performance_1410_h3
 Expression Optimization
 
-@performance_1410_p
+@performance_1411_p
 After the statement is parsed, all expressions are simplified automatically if possible. Operations are evaluated only once if all parameters are constant. Functions are also optimized, but only if the function is constant (always returns the same result for the same parameter values). If the WHERE clause is always false, then the table is not accessed at all.
 
-@performance_1411_h3
+@performance_1412_h3
 COUNT(*) Optimization
 
-@performance_1412_p
+@performance_1413_p
 If the query only counts all rows of a table, then the data is not accessed. However, this is only possible if no WHERE clause is used, that means it only works for queries of the form SELECT COUNT(*) FROM table.
 
-@performance_1413_h3
+@performance_1414_h3
 Updating Optimizer Statistics / Column Selectivity
 
-@performance_1414_p
+@performance_1415_p
 When executing a query, at most one index per joined table can be used. If the same table is joined multiple times, for each join only one index is used. Example: for the query SELECT * FROM TEST T1, TEST T2 WHERE T1.NAME='A' AND T2.ID=T1.ID, two index can be used, in this case the index on NAME for T1 and the index on ID for T2.
 
-@performance_1415_p
+@performance_1416_p
 If a table has multiple indexes, sometimes more than one index could be used. Example: if there is a table TEST(ID, NAME, FIRSTNAME) and an index on each column, then two indexes could be used for the query SELECT * FROM TEST WHERE NAME='A' AND FIRSTNAME='B', the index on NAME or the index on FIRSTNAME. It is not possible to use both indexes at the same time. Which index is used depends on the selectivity of the column. The selectivity describes the 'uniqueness' of values in a column. A selectivity of 100 means each value appears only once, and a selectivity of 1 means the same value appears in many or most rows. For the query above, the index on NAME should be used if the table contains more distinct names than first names.
 
-@performance_1416_p
+@performance_1417_p
 The SQL statement ANALYZE can be used to automatically estimate the selectivity of the columns in the tables. This command should be run from time to time to improve the query plans generated by the optimizer.
 
-@performance_1417_h3
+@performance_1418_h3
 Optimization Examples
 
-@performance_1418_p
+@performance_1419_p
 See <code>src/test/org/h2/samples/optimizations.sql</code> for a few examples of queries that benefit from special optimizations built into the database.
 
-@performance_1419_h3
+@performance_1420_h3
 Cache Size and Type
 
-@performance_1420_p
+@performance_1421_p
 By default the cache size of H2 is quite small. Consider using a larger cache size, or enable the second level soft reference cache. See also <a href="features.html#cache_settings">Cache Settings</a> .
+
+@performance_1422_h2
+Fast Database Import
+
+@performance_1423_p
+To speed up large imports, consider using the following options temporarily:
+
+@performance_1424_li
+SET CACHE_SIZE (a large cache is faster)
+
+@performance_1425_li
+SET LOCK_MODE 0 (disable locking)
+
+@performance_1426_li
+SET LOG 0 (disable the transaction log)
+
+@performance_1427_li
+SET UNDO_LOG 0 (disable the session undo log)
+
+@performance_1428_p
+These options can be set in the database URL: <code>jdbc:h2:~/test;CACHE_SIZE=65536;LOCK_MODE=0;LOG=0;UNDO_LOG=0</code> . Most of those options are not recommended for regular use, that means you need to reset them after use.
 
 @quickstart_1000_h1
 Quickstart
@@ -7502,7 +7526,7 @@ Enable warning for 'Local variable declaration hides another field or variable'.
 Test multi-threaded in-memory db access
 
 @roadmap_1019_li
-MVCC: Select for update should only lock the selected rows.
+MVCC: select for update should only lock the selected rows.
 
 @roadmap_1020_li
 Option to shutdown all the running servers (on the same VM).
@@ -7679,7 +7703,7 @@ Automatic collection of statistics (auto ANALYZE)
 Server: client ping from time to time (to avoid timeout - is timeout a problem?)
 
 @roadmap_1078_li
-Copy database: Tool with config GUI and batch mode, extensible (example: compare)
+Copy database: tool with config GUI and batch mode, extensible (example: compare)
 
 @roadmap_1079_li
 Document, implement tool for long running transactions using user-defined compensation statements.
@@ -7691,16 +7715,16 @@ Support SET TABLE DUAL READONLY
 GCJ: what is the state now?
 
 @roadmap_1082_li
-Events for: Database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
+Events for: database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
 
 @roadmap_1083_li
-Optimization: Log compression
+Optimization: log compression
 
 @roadmap_1084_li
 Support standard INFORMATION_SCHEMA tables, as defined in http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt; specially KEY_COLUMN_USAGE (http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif)
 
 @roadmap_1085_li
-Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: Division by zero
+Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: division by zero
 
 @roadmap_1086_li
 Functional tables should accept parameters from other tables (see FunctionMultiReturn) SELECT * FROM TEST T, P2C(T.A, T.R)
@@ -7718,10 +7742,10 @@ Close all files when closing the database (including LOB files that are open on 
 EXE file: maybe use http://jsmooth.sourceforge.net
 
 @roadmap_1091_li
-Performance: Automatically build in-memory indexes if the whole table is in memory
+Performance: automatically build in-memory indexes if the whole table is in memory
 
 @roadmap_1092_li
-H2 Console: The webclient could support more features like phpMyAdmin.
+H2 Console: the webclient could support more features like phpMyAdmin.
 
 @roadmap_1093_li
 Use Janino to convert Java to C++
@@ -7736,7 +7760,7 @@ Maybe use the 0x1234 notation for binary fields, see MS SQL Server
 Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html, http://philip.greenspun.com/sql/trees.html
 
 @roadmap_1097_li
-SQL Server 2005, Oracle: Support COUNT(*) OVER(). See http://www.orafusion.com/art_anlytc.htm
+SQL Server 2005, Oracle: support COUNT(*) OVER(). See http://www.orafusion.com/art_anlytc.htm
 
 @roadmap_1098_li
 RANK() and DENSE_RANK(), Partition using OVER()
@@ -7781,10 +7805,10 @@ Support custom Collators
 Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery)
 
 @roadmap_1112_li
-Clustering: Reads should be randomly distributed or to a designated database on RAM
+Clustering: reads should be randomly distributed or to a designated database on RAM
 
 @roadmap_1113_li
-Clustering: When a database is back alive, automatically synchronize with the master
+Clustering: when a database is back alive, automatically synchronize with the master
 
 @roadmap_1114_li
 Standalone tool to get relevant system properties and add it to the trace output.
@@ -7796,10 +7820,10 @@ Support 'call proc(1=value)' (PostgreSQL, Oracle)
 JAMon (proxy jdbc driver)
 
 @roadmap_1117_li
-Console: Improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?)
+Console: improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?)
 
 @roadmap_1118_li
-Console: Autocomplete Ctrl+Space inserts template
+Console: autocomplete Ctrl+Space inserts template
 
 @roadmap_1119_li
 Simplify translation ('Donate a translation')
@@ -7862,7 +7886,7 @@ Backup tool should work with other databases as well
 Console: -ifExists doesn't work for the console. Add a flag to disable other dbs
 
 @roadmap_1139_li
-Performance: Update in-place
+Performance: update in-place
 
 @roadmap_1140_li
 Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess)
@@ -8030,7 +8054,7 @@ Compatibility: # is the start of a single line comment (MySQL) but date quote (A
 Run benchmarks with JDK 1.5, JDK 1.6, java -server
 
 @roadmap_1195_li
-Optimizations: Faster hash function for strings, byte arrays
+Optimizations: faster hash function for strings, byte arrays
 
 @roadmap_1196_li
 DatabaseEventListener: callback for all operations (including expected time, RUNSCRIPT) and cancel functionality
@@ -8084,7 +8108,7 @@ Time based cache writing (one second after writing the log)
 Check state of H2 driver for DDLUtils: https://issues.apache.org/jira/browse/DDLUTILS-185
 
 @roadmap_1213_li
-Support JMX: Create an MBean for each database and server (support JConsole).  See http://thedevcloud.blogspot.com/2008/10/displaying-hsql-database-manager-in.html  http://java.sun.com/j2se/1.5.0/docs/api/java/lang/management/ManagementFactory.html#getPlatformMBeanServer()  http://java.sun.com/j2se/1.5.0/docs/guide/management/agent.html
+Support JMX: create an MBean for each database and server (support JConsole).  See http://thedevcloud.blogspot.com/2008/10/displaying-hsql-database-manager-in.html  http://java.sun.com/j2se/1.5.0/docs/api/java/lang/management/ManagementFactory.html#getPlatformMBeanServer()  http://java.sun.com/j2se/1.5.0/docs/guide/management/agent.html
 
 @roadmap_1214_li
 Index usage for REGEXP LIKE.
@@ -8099,7 +8123,7 @@ Better support multiple processors for in-memory databases.
 Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
 
 @roadmap_1218_li
-Access rights: Finer grained access control (grant access for specific functions)
+Access rights: finer grained access control (grant access for specific functions)
 
 @roadmap_1219_li
 Support N'text'
@@ -8153,7 +8177,7 @@ Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER
 Sequence: PostgreSQL compatibility (rename, create) (http://www.postgresql.org/docs/8.2/static/sql-altersequence.html)
 
 @roadmap_1236_li
-DISTINCT: Support large result sets by sorting on all columns (additionally) and then removing duplicates.
+DISTINCT: support large result sets by sorting on all columns (additionally) and then removing duplicates.
 
 @roadmap_1237_li
 File system that writes to two file systems (replicating file system)
@@ -8180,7 +8204,7 @@ Integrate spatial functions from http://geosysin.iict.ch/irstv-trac/wiki/H2spati
 Support COSH, SINH, and TANH functions
 
 @roadmap_1245_li
-FTP Server: Implement SFTP / FTPS
+FTP Server: implement SFTP / FTPS
 
 @roadmap_1246_li
 Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping
@@ -8240,408 +8264,411 @@ Web site design: http://www.igniterealtime.org/projects/openfire/index.jsp
 HSQLDB compatibility: Openfire server uses: CREATE SCHEMA PUBLIC AUTHORIZATION DBA;  CREATE USER SA PASSWORD ""; GRANT DBA TO SA; SET SCHEMA PUBLIC
 
 @roadmap_1265_li
-Web site: Rename Performance to Comparison [/Compatibility],  move Comparison to Other Database Engines to Comparison,  move Products that Work with H2 to Comparison,  move Performance Tuning to Advanced Topics
-
-@roadmap_1266_li
 Translation: use ?? in help.csv
 
-@roadmap_1267_li
+@roadmap_1266_li
 Translated .pdf
 
-@roadmap_1268_li
+@roadmap_1267_li
 Cluster: hot deploy (adding a node at runtime)
 
-@roadmap_1269_li
+@roadmap_1268_li
 MySQL compatibility: update test1 t1, test2 t2 set t1.id = t2.id where t1.id = t2.id;
 
-@roadmap_1270_li
+@roadmap_1269_li
 Recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...), and things should go into the .trace.db file
 
-@roadmap_1271_li
+@roadmap_1270_li
 RECOVER=2 to backup the database, run recovery, open the database
 
-@roadmap_1272_li
+@roadmap_1271_li
 Recovery should work with encrypted databases
 
-@roadmap_1273_li
+@roadmap_1272_li
 Corruption: new error code, add help
 
-@roadmap_1274_li
+@roadmap_1273_li
 Space reuse: after init, scan all storages and free those that don't belong to a live database object
 
-@roadmap_1275_li
+@roadmap_1274_li
 SysProperties: change everything to H2_...
 
-@roadmap_1276_li
+@roadmap_1275_li
 Use FilterIn / FilterOut putStream?
 
-@roadmap_1277_li
+@roadmap_1276_li
 Access rights: add missing features (users should be 'owner' of objects; missing rights for sequences; dropping objects)
 
-@roadmap_1278_li
+@roadmap_1277_li
 Support NOCACHE table option (Oracle)
 
-@roadmap_1279_li
+@roadmap_1278_li
 Support table partitioning.
 
-@roadmap_1280_li
+@roadmap_1279_li
 Index usage for UPDATE ... WHERE .. IN (SELECT...)
 
-@roadmap_1281_li
+@roadmap_1280_li
 Add regular javadocs (using the default doclet, but another css) to the homepage.
 
-@roadmap_1282_li
+@roadmap_1281_li
 The database should be kept open for a longer time when using the server mode.
 
-@roadmap_1283_li
+@roadmap_1282_li
 Javadocs: for each tool, add a copy &amp; paste sample in the class level.
 
-@roadmap_1284_li
+@roadmap_1283_li
 Javadocs: add @author tags.
 
-@roadmap_1285_li
+@roadmap_1284_li
 Fluent API for tools: Server.createTcpServer().setPort(9081).setPassword(password).start();
 
-@roadmap_1286_li
+@roadmap_1285_li
 MySQL compatibility: real SQL statement for DESCRIBE TEST
 
-@roadmap_1287_li
+@roadmap_1286_li
 Use a default delay of 1 second before closing a database.
 
-@roadmap_1288_li
+@roadmap_1287_li
 Write (log) to system table before adding to internal data structures.
 
-@roadmap_1289_li
+@roadmap_1288_li
 Support very large deletes and updates.
 
-@roadmap_1290_li
+@roadmap_1289_li
 Doclet (javadocs): constructors are not listed.
 
-@roadmap_1291_li
+@roadmap_1290_li
 Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup).
 
-@roadmap_1292_li
+@roadmap_1291_li
 Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object);
 
-@roadmap_1293_li
+@roadmap_1292_li
 MVCC should not be memory bound (uncommitted data is kept in memory in the delta index; maybe using a regular btree index solves the problem).
 
-@roadmap_1294_li
+@roadmap_1293_li
 Oracle compatibility: support NLS_DATE_FORMAT.
 
-@roadmap_1295_li
+@roadmap_1294_li
 Support flashback queries as in Oracle.
 
-@roadmap_1296_li
+@roadmap_1295_li
 Import / Export of fixed with text files.
 
-@roadmap_1297_li
+@roadmap_1296_li
 Support OUT parameters in user-defined procedures.
 
-@roadmap_1298_li
+@roadmap_1297_li
 Support getGeneratedKeys to return multiple rows when used with batch updates.  This is supported by MySQL, but not Derby. Both PostgreSQL and HSQLDB don't support getGeneratedKeys.  Also support it when using INSERT ... SELECT.
 
-@roadmap_1299_li
+@roadmap_1298_li
 HSQLDB compatibility: automatic data type for SUM if value is the value is too big (by default use the same type as the data).
 
-@roadmap_1300_li
+@roadmap_1299_li
 Improve the optimizer to select the right index for special cases: where id between 2 and 4 and booleanColumn
 
-@roadmap_1301_li
+@roadmap_1300_li
 Linked tables: make hidden columns available (Oracle: rowid and ora_rowscn columns).
 
-@roadmap_1302_li
+@roadmap_1301_li
 Support merge join.
 
-@roadmap_1303_li
+@roadmap_1302_li
 H2 Console: in-place autocomplete.
 
-@roadmap_1304_li
+@roadmap_1303_li
 Oracle: support DECODE method (convert to CASE WHEN).
 
-@roadmap_1305_li
+@roadmap_1304_li
 Support large databases: split LOB (BLOB, CLOB) to multiple directories / disks (similar to tablespaces).
 
-@roadmap_1306_li
+@roadmap_1305_li
 Support to assign a primary key index a user defined name.
 
-@roadmap_1307_li
-Cluster: Add feature to make sure cluster nodes can not get out of sync (for example by stopping one process).
+@roadmap_1306_li
+Cluster: add feature to make sure cluster nodes can not get out of sync (for example by stopping one process).
 
-@roadmap_1308_li
+@roadmap_1307_li
 H2 Console: support configuration option for fixed width (monospace) font.
 
-@roadmap_1309_li
+@roadmap_1308_li
 Native fulltext search: support analyzers (specially for Chinese, Japanese).
 
-@roadmap_1310_li
+@roadmap_1309_li
 Automatically compact databases from time to time (as a background process).
 
-@roadmap_1311_li
+@roadmap_1310_li
 Support SCOPE_IDENTITY().
 
-@roadmap_1312_li
+@roadmap_1311_li
 Support GRANT SELECT, UPDATE ON *.
 
-@roadmap_1313_li
+@roadmap_1312_li
 Test Eclipse DTP.
 
-@roadmap_1314_li
+@roadmap_1313_li
 H2 Console: autocomplete: keep the previous setting
 
-@roadmap_1315_li
+@roadmap_1314_li
 MySQL, MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.
 
-@roadmap_1316_li
+@roadmap_1315_li
 executeBatch: option to stop at the first failed statement.
 
-@roadmap_1317_li
+@roadmap_1316_li
 Implement OLAP features as described here: http://www.devx.com/getHelpOn/10MinuteSolution/16573/0/page/5
 
-@roadmap_1318_li
+@roadmap_1317_li
 Support Oracle ROWID (unique identifier for each row).
 
+@roadmap_1318_li
+Server mode: improve performance for batch updates.
+
 @roadmap_1319_li
-Server mode: Improve performance for batch updates.
+Applets: support read-only databases in a zip file (accessed as a resource).
 
 @roadmap_1320_li
-Applets: Support read-only databases in a zip file (accessed as a resource).
-
-@roadmap_1321_li
 Long running queries / errors / trace system table.
 
-@roadmap_1322_li
+@roadmap_1321_li
 H2 Console should support JaQu directly.
 
-@roadmap_1323_li
+@roadmap_1322_li
 H2 Console: support single file upload and directory download (optional).
 
-@roadmap_1324_li
+@roadmap_1323_li
 Document FTL_SEARCH, FTL_SEARCH_DATA.
 
-@roadmap_1325_li
+@roadmap_1324_li
 Sequences: CURRVAL should be session specific. Compatibility with PostgreSQL.
 
-@roadmap_1326_li
+@roadmap_1325_li
 Support DatabaseMetaData.insertsAreDetected: updatable result sets should detect inserts.
 
-@roadmap_1327_li
+@roadmap_1326_li
 Auto-server: add option to define the IP address range or list.
 
-@roadmap_1328_li
+@roadmap_1327_li
 Index creation only using deterministic functions.
 
-@roadmap_1329_li
+@roadmap_1328_li
 Use http://recaptcha.net somehow to secure the Google Group.
 
-@roadmap_1330_li
+@roadmap_1329_li
 Support DELETE with TOP or LIMIT. See also: http://dev.mysql.com/doc/refman/5.1/de/delete.html
 
-@roadmap_1331_li
+@roadmap_1330_li
 Change the default for NULL || 'x' to return NULL
 
+@roadmap_1331_li
+ANALYZE: use a bloom filter for each indexed column to estimate count of distinct values.
+
 @roadmap_1332_li
-ANALYZE: Use a bloom filter for each indexed column to estimate count of distinct values.
+ANALYZE: for unique indexes that allow null, count the number of null.
 
 @roadmap_1333_li
-ANALYZE: For unique indexes that allow null, count the number of null.
-
-@roadmap_1334_li
 AUTO_SERVER: support changing IP addresses (disable a network while the database is open).
 
-@roadmap_1335_li
+@roadmap_1334_li
 Avoid using java.util.Calendar internally because it's slow, complicated, and seems to be buggy.
 
-@roadmap_1336_li
+@roadmap_1335_li
 Support TRUNCATE .. CASCADE like PostgreSQL.
 
-@roadmap_1337_li
+@roadmap_1336_li
 Support opening a database that is in the classpath, maybe using a new file system.
 
-@roadmap_1338_li
+@roadmap_1337_li
 Fulltext search: lazy result generation using SimpleRowSource.
 
-@roadmap_1339_li
+@roadmap_1338_li
 Support transformation to join for user defined functions, as for IN(SELECT...).
 
-@roadmap_1340_li
-Fulltext search: Support alternative syntax: WHERE FTL_CONTAINS(name, 'hello').
+@roadmap_1339_li
+Fulltext search: support alternative syntax: WHERE FTL_CONTAINS(name, 'hello').
 
-@roadmap_1341_li
+@roadmap_1340_li
 MySQL compatibility: support REPLACE, see http://dev.mysql.com/doc/refman/5.1/de/replace.html
 
-@roadmap_1342_li
+@roadmap_1341_li
 MySQL compatibility: support INSERT INTO table SET column1 = value1, column2 = value2
 
-@roadmap_1343_li
-Docs: Add a one line description for each functions and SQL statements at the top (in the link section).
+@roadmap_1342_li
+Docs: add a one line description for each functions and SQL statements at the top (in the link section).
 
-@roadmap_1344_li
+@roadmap_1343_li
 Javadoc search: weight for titles should be higher ('random' should list Functions as the best match).
 
-@roadmap_1345_li
+@roadmap_1344_li
 Replace information_schema tables with regular tables that are automatically re-built when needed. Use indexes.
 
-@roadmap_1346_li
+@roadmap_1345_li
 Support a special trigger on all tables.
 
-@roadmap_1347_li
+@roadmap_1346_li
 Delete temporary files or objects using finalize.
 
-@roadmap_1348_li
+@roadmap_1347_li
 Oracle compatibility: support calling 0-parameters functions without parenthesis. Make constants obsolete.
 
-@roadmap_1349_li
+@roadmap_1348_li
 MySQL, HSQLDB compatibility: support where 'a'=1 (not supported by Derby, PostgreSQL)
 
-@roadmap_1350_li
+@roadmap_1349_li
 Allow calling function with no parameters without parenthesis. See http://code.google.com/p/h2database/issues/detail?id=50
 
-@roadmap_1351_li
+@roadmap_1350_li
 CSV: currently # is a line comment and can start at any field. Make it optional.
 
-@roadmap_1352_li
+@roadmap_1351_li
 Add database creation date and time to the database.
 
-@roadmap_1353_li
+@roadmap_1352_li
 Support ASSERTIONS.
 
-@roadmap_1354_li
+@roadmap_1353_li
 MySQL compatibility: support comparing 1='a'
 
-@roadmap_1355_li
+@roadmap_1354_li
 Support PostgreSQL lock modes: http://www.postgresql.org/docs/8.3/static/explicit-locking.html
 
-@roadmap_1356_li
+@roadmap_1355_li
 PostgreSQL compatibility: test DbVisualizer and Squirrel SQL using a new PostgreSQL JDBC driver.
 
-@roadmap_1357_li
+@roadmap_1356_li
 RunScript should be able to read from system in (or quite mode for Shell).
 
-@roadmap_1358_li
+@roadmap_1357_li
 Natural join: support select x from dual natural join dual.
 
-@roadmap_1359_li
+@roadmap_1358_li
 Natural join: somehow support this: select a.x, b.x, x from dual a natural join dual b
 
-@roadmap_1360_li
+@roadmap_1359_li
 MySQL compatibility: for auto_increment columns, convert 0 to next value (as when inserting NULL).
 
-@roadmap_1361_li
+@roadmap_1360_li
 Functions: support hashcode(value); cryptographic and fast
 
-@roadmap_1362_li
+@roadmap_1361_li
 Serialized file lock: support long running queries.
 
-@roadmap_1363_li
+@roadmap_1362_li
 Network: use 127.0.0.1 if other addresses don't work.
 
-@roadmap_1364_li
+@roadmap_1363_li
 Select for update in mvcc mode: only lock the selected records.
 
-@roadmap_1365_li
+@roadmap_1364_li
 Support reading JCR data: one table per node type; query table; cache option
 
-@roadmap_1366_li
+@roadmap_1365_li
 OSGi: create a sample application, test, document.
 
-@roadmap_1367_li
+@roadmap_1366_li
 help.csv: use complete examples for functions; run as test case.
 
-@roadmap_1368_li
+@roadmap_1367_li
 Re-implement PooledConnection; use a lightweight connection object.
 
-@roadmap_1369_li
+@roadmap_1368_li
 Doclet: convert tests in javadocs to a java class.
 
-@roadmap_1370_li
+@roadmap_1369_li
 Doclet: format fields like methods, but support sorting by name and value.
 
-@roadmap_1371_li
+@roadmap_1370_li
 Doclet: shrink the html files.
 
-@roadmap_1372_li
+@roadmap_1371_li
 Finer granularity for SLF4J trace - See http://code.google.com/p/h2database/issues/detail?id=62
 
-@roadmap_1373_li
+@roadmap_1372_li
 MySQL compatibility: support REPLACE - See http://code.google.com/p/h2database/issues/detail?id=73
 
-@roadmap_1374_li
+@roadmap_1373_li
 MySQL compatibility: support SET NAMES 'latin1' - See also http://code.google.com/p/h2database/issues/detail?id=56
 
-@roadmap_1375_li
+@roadmap_1374_li
 MySQL compatibility: DELETE .. FROM .. USING - See http://dev.mysql.com/doc/refman/5.0/en/delete.html
 
-@roadmap_1376_li
+@roadmap_1375_li
 Allow to scan index backwards starting with a value (to better support ORDER BY DESC).
 
-@roadmap_1377_li
+@roadmap_1376_li
 Java Service Wrapper: try http://yajsw.sourceforge.net/
 
-@roadmap_1378_li
+@roadmap_1377_li
 Batch parameter for INSERT, UPDATE, and DELETE, and commit after each batch. See also MySQL DELETE.
 
-@roadmap_1379_li
+@roadmap_1378_li
 MySQL compatibility: support ALTER TABLE .. MODIFY COLUMN.
 
-@roadmap_1380_li
+@roadmap_1379_li
 Use a lazy and auto-close input stream (open resource when reading, close on eof).
 
-@roadmap_1381_li
+@roadmap_1380_li
 PostgreSQL compatibility: generate_series.
 
-@roadmap_1382_li
+@roadmap_1381_li
 Connection pool: 'reset session' command (delete temp tables, rollback, autocommit true).
 
-@roadmap_1383_li
+@roadmap_1382_li
 Improve SQL documentation, see http://www.w3schools.com/sql/
 
-@roadmap_1384_li
+@roadmap_1383_li
 MySQL compatibility: DatabaseMetaData.stores*() methods should return the same values. Test with SquirrelSQL.
 
-@roadmap_1385_li
+@roadmap_1384_li
 MS SQL Server compatibility: support DATEPART syntax.
 
-@roadmap_1386_li
+@roadmap_1385_li
 Oracle compatibility: support CREATE OR REPLACE VIEW syntax.
 
-@roadmap_1387_li
+@roadmap_1386_li
 Sybase/DB2/Oracle compatibility: support out parameters in stored procedures - See http://code.google.com/p/h2database/issues/detail?id=83
 
-@roadmap_1388_li
+@roadmap_1387_li
 Support INTERVAL data type (see Oracle and others).
 
-@roadmap_1389_li
+@roadmap_1388_li
 Combine Server and Console tool (only keep Server).
 
-@roadmap_1390_li
+@roadmap_1389_li
 Store the Lucene index in the database itself.
 
-@roadmap_1391_li
+@roadmap_1390_li
 Oracle compatibility: support DECODE(x, ...).
 
-@roadmap_1392_li
+@roadmap_1391_li
 Console: Start Browser: if ip number changed, try localhost instead.
 
-@roadmap_1393_li
+@roadmap_1392_li
 MVCC: compare concurrent update behavior with PostgreSQL and Oracle.
 
-@roadmap_1394_li
+@roadmap_1393_li
 HSQLDB compatibility: CREATE FUNCTION (maybe using a Function interface).
 
-@roadmap_1395_li
+@roadmap_1394_li
 HSQLDB compatibility: support CALL "java.lang.Math.sqrt"(2.0)
 
-@roadmap_1396_li
+@roadmap_1395_li
 Support comma as the decimal separator in the CSV tool.
 
-@roadmap_1397_h2
+@roadmap_1396_li
+Compatibility: Java functions with SQLJ Part1 http://www.acm.org/sigmod/record/issues/9912/standards.pdf.gz
+
+@roadmap_1397_li
+Compatibility: Java functions with SQL/PSM (Persistent Stored Modules) - need to find the documentation.
+
+@roadmap_1398_h2
 Not Planned
 
-@roadmap_1398_li
+@roadmap_1399_li
 HSQLDB (did) support this: select id i from test where i&lt;0 (other databases don't). Supporting it may break compatibility.
 
-@roadmap_1399_li
+@roadmap_1400_li
 String.intern (so that Strings can be compared with ==) will not be used because some VMs have problems when used extensively.
 
 @sourceError_1000_h1
@@ -8855,7 +8882,7 @@ Error messages in are shown in red. You can show/hide the stack trace of the exc
 Adding Database Drivers
 
 @tutorial_1057_p
-Additional database drivers can be registered by adding the Jar file location of the driver to the environment variables H2DRIVERS or CLASSPATH. Example (Windows): To add the database driver library C:\Programs\hsqldb\lib\hsqldb.jar, set the environment variable H2DRIVERS to C:\Programs\hsqldb\lib\hsqldb.jar.
+Additional database drivers can be registered by adding the Jar file location of the driver to the environment variables H2DRIVERS or CLASSPATH. Example (Windows): to add the database driver library C:\Programs\hsqldb\lib\hsqldb.jar, set the environment variable H2DRIVERS to C:\Programs\hsqldb\lib\hsqldb.jar.
 
 @tutorial_1058_p
 Multiple drivers can be set; each entry needs to be separated with a ';' (Windows) or ':' (other operating systems). Spaces in the path names are supported. The settings must not be quoted.

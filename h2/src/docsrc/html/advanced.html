@@ -143,7 +143,7 @@ target database, that means no joins. Prepared statements are used where possibl
 To view the statements that are executed against the target table, set the trace level to 3.
 </p>
 <p>
-There is a restriction: When inserting into a linked table, and when updating a linked table,
+There is a restriction: when inserting into a linked table, and when updating a linked table,
 NULL and values that are not set are both inserted as NULL.
 This may not have the desired effect if the default value for this column in the target table is not NULL.
 </p>
@@ -592,10 +592,10 @@ class Test
 In the database world, ACID stands for:
 </p>
 <ul>
-<li>Atomicity: Transactions must be atomic, meaning either all tasks are performed or none.
-</li><li>Consistency: All operations must comply with the defined constraints.
-</li><li>Isolation: Transactions must be isolated from each other.
-</li><li>Durability: Committed transaction will not be lost.
+<li>Atomicity: transactions must be atomic, meaning either all tasks are performed or none.
+</li><li>Consistency: all operations must comply with the defined constraints.
+</li><li>Isolation: transactions must be isolated from each other.
+</li><li>Durability: committed transaction will not be lost.
 </li></ul>
 
 <h3>Atomicity</h3>
@@ -645,8 +645,8 @@ is to use the 'synchronous write' file access mode. In Java, RandomAccessFile
 supports the modes "rws" and "rwd":
 </p>
 <ul>
-<li>rwd: Every update to the file's content is written synchronously to the underlying storage device.
-</li><li>rws: In addition to rwd, every update to the metadata is written synchronously.</li>
+<li>rwd: every update to the file's content is written synchronously to the underlying storage device.
+</li><li>rws: in addition to rwd, every update to the metadata is written synchronously.</li>
 </ul>
 <p>
 A test (org.h2.test.poweroff.TestWrite) with one of those modes achieves around 50 thousand write operations per second.
@@ -983,7 +983,7 @@ This is to make sure the IV is unknown to the attacker.
 The reason for using a secret IV is to protect against watermark attacks.
 </p><p>
 Before saving a block of data (each block is 8 bytes long), the following operations are executed:
-First, the IV is calculated by encrypting the block number with the IV key (using the same
+first, the IV is calculated by encrypting the block number with the IV key (using the same
 block cipher algorithm). This IV is combined with the plain text using XOR. The resulting data is
 encrypted using the AES-128 or XTEA algorithm.
 </p><p>
@@ -1084,7 +1084,7 @@ Some values are:
 </pre>
 <p>
 To help non-mathematicians understand what those numbers mean, here a comparison:
-One's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion,
+one's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion,
 that means the probability is about 0.000'000'000'06.
 </p>
 
@@ -1125,8 +1125,7 @@ This database has the following known limitations:
 </p>
 <ul>
 <li>The maximum file size is currently 256 GB for the data, and 256 GB for the index.
-This number is excluding BLOB and CLOB data:
-Every CLOB or BLOB can be up to 256 GB as well.
+This number is excluding BLOB and CLOB data: every CLOB or BLOB can be up to 256 GB as well.
 </li><li>The maximum file size for FAT or FAT32 file systems is 4 GB. That means when using FAT or FAT32,
 the limit is 4 GB for the data. This is the limitation of the file system. The database does provide a
 workaround for this problem, it is to use the file name prefix 'split:'. In that case files are split into

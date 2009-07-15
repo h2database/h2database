@@ -26,6 +26,8 @@ Performance
     Database Profiling</a><br />
 <a href="#database_performance_tuning">
     Performance Tuning</a><br />
+<a href="#fast_import">
+    Fast Database Import</a><br />
 
 <br /><a name="performance_comparison"></a>
 <h2>Performance Comparison</h2>
@@ -92,7 +94,7 @@ However H2 is not very fast in every case, certain kind of queries may still be 
 One situation where is H2 is slow is large result sets, because they are buffered to
 disk if more than a certain number of records are returned.
 The advantage of buffering is, there is no limit on the result set size.
-The open/close time is almost fixed, because of the file locking protocol: The engine waits
+The open/close time is almost fixed, because of the file locking protocol: the engine waits
 some time after opening a database to ensure the database files are not opened by another process.
 </p>
 
@@ -121,7 +123,7 @@ The reason is, a backup of the whole data is made whenever the database is opene
 Version 10.4.2.0 was used for the test. Derby is clearly the slowest embedded database in this test.
 This seems to be a structural problem, because all operations are really slow.
 It will be hard for the developers of Derby to improve the performance to a reasonable level.
-A few problems have been identified: Leaving autocommit on is a problem for Derby.
+A few problems have been identified: leaving autocommit on is a problem for Derby.
 If it is switched off during the whole test, the results are about 20% better for Derby.
 Derby supports a testing mode (system property derby.system.durability=test) where durability is
 disabled. According to the documentation, this setting should be used for testing only,
@@ -194,8 +196,8 @@ BenchB uses multiple connections; the other tests use one connection.
 
 <h4>Real-World Tests</h4>
 <p>
-Good benchmarks emulate real-world use cases. This benchmark includes 3 test cases:
-A simple test case with one table and many small updates / deletes.
+Good benchmarks emulate real-world use cases. This benchmark includes 4 test cases:
+BenchSimple uses one table and many small updates / deletes.
 BenchA is similar to the TPC-A test, but single connection / single threaded (see also: www.tpc.org).
 BenchB is similar to the TPC-B test, using multiple connections (one thread per connection).
 BenchC is similar to the TPC-C test, but single connection / single threaded.
@@ -469,6 +471,22 @@ that benefit from special optimizations built into the database.
 <p>
 By default the cache size of H2 is quite small. Consider using a larger cache size, or enable
 the second level soft reference cache. See also <a href="features.html#cache_settings">Cache Settings</a>.
+</p>
+
+<br /><a name="fast_import"></a>
+<h2>Fast Database Import</h2>
+<p>
+To speed up large imports, consider using the following options temporarily:
+</p>
+<ul><li>SET CACHE_SIZE (a large cache is faster)
+</li><li>SET LOCK_MODE 0 (disable locking)
+</li><li>SET LOG 0 (disable the transaction log)
+</li><li>SET UNDO_LOG 0 (disable the session undo log)
+</li></ul>
+<p>
+These options can be set in the database URL:
+<code>jdbc:h2:~/test;CACHE_SIZE=65536;LOCK_MODE=0;LOG=0;UNDO_LOG=0</code>.
+Most of those options are not recommended for regular use, that means you need to reset them after use.
 </p>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

@@ -99,7 +99,7 @@ Initial Developer: H2 Group
             In embedded mode, the database runs in the same process as the application.
             Only one process may access a database at any time.
             Databases are automatically created if they don't exist.
-            <b>Warning</b>: If no path is used (for example jdbc:h2:test),
+            <b>Warning</b>: if no path is used (for example jdbc:h2:test),
             then the database is stored in the current working directory
             (the directory where the application was started).
             URLs of the form jdbc:h2:data/test are relative to

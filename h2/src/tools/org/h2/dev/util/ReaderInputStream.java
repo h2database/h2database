@@ -14,8 +14,6 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.sql.SQLException;
-
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 
@@ -33,14 +31,14 @@ public class ReaderInputStream extends InputStream {
     private int remaining;
     private byte[] buffer;
 
-    public ReaderInputStream(Reader reader) throws SQLException {
+    public ReaderInputStream(Reader reader) {
         chars = new char[Constants.IO_BUFFER_SIZE];
         this.reader = reader;
         out = new ByteArrayOutputStream(Constants.IO_BUFFER_SIZE);
         try {
             writer = new BufferedWriter(new OutputStreamWriter(out, Constants.UTF8));
         } catch (UnsupportedEncodingException e) {
-            throw Message.convert(e);
+            throw Message.convertToInternal(e);
         }
     }
 

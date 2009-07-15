@@ -9,17 +9,14 @@ package org.h2.server.web;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Properties;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 
@@ -127,20 +124,12 @@ public class WebServlet extends HttpServlet {
         bytes = server.getFile(file);
         if (bytes == null) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            try {
-                bytes = StringUtils.utf8Encode("File not found: " + file);
-            } catch (SQLException e) {
-                server.traceError(e);
-            }
+            bytes = StringUtils.utf8Encode("File not found: " + file);
         } else {
             if (session != null && file.endsWith(".jsp")) {
                 String page = StringUtils.utf8Decode(bytes);
                 page = PageParser.parse(page, session.map);
-                try {
-                    bytes = StringUtils.utf8Encode(page);
-                } catch (SQLException e) {
-                    server.traceError(e);
-                }
+                bytes = StringUtils.utf8Encode(page);
             }
             resp.setContentType(mimeType);
             if (!cache) {

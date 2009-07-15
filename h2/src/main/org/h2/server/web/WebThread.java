@@ -196,8 +196,6 @@ class WebThread extends Thread implements DatabaseEventListener {
             }
         } catch (IOException e) {
             TraceSystem.traceThrowable(e);
-        } catch (SQLException e) {
-            TraceSystem.traceThrowable(e);
         }
         IOUtils.closeSilently(output);
         IOUtils.closeSilently(input);
@@ -210,7 +208,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         }
     }
 
-    private boolean process() throws IOException, SQLException {
+    private boolean process() throws IOException {
         boolean keepAlive = false;
         String head = readHeaderLine();
         if (head.startsWith("GET ") || head.startsWith("POST ")) {
@@ -254,11 +252,7 @@ class WebThread extends Thread implements DatabaseEventListener {
                     if (session != null && file.endsWith(".jsp")) {
                         String page = StringUtils.utf8Decode(bytes);
                         page = PageParser.parse(page, session.map);
-                        try {
-                            bytes = StringUtils.utf8Encode(page);
-                        } catch (SQLException e) {
-                            server.traceError(e);
-                        }
+                        bytes = StringUtils.utf8Encode(page);
                     }
                     message = "HTTP/1.1 200 OK\n";
                     message += "Content-Type: " + mimeType + "\n";

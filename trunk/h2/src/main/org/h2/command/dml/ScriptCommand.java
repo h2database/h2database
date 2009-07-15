@@ -507,7 +507,7 @@ public class ScriptCommand extends ScriptBase {
         return prep.executeQuery();
     }
 
-    private void reset() throws SQLException {
+    private void reset() {
         result = null;
         buffer = null;
         lineSeparator = StringUtils.utf8Encode(SysProperties.LINE_SEPARATOR);

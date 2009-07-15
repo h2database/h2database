@@ -276,11 +276,11 @@ public class StringUtils {
      * @param s the text
      * @return the UTF-8 representation
      */
-    public static byte[] utf8Encode(String s) throws SQLException {
+    public static byte[] utf8Encode(String s) {
         try {
             return s.getBytes(Constants.UTF8);
         } catch (UnsupportedEncodingException e) {
-            throw Message.convert(e);
+            throw Message.convertToInternal(e);
         }
     }
 
@@ -390,8 +390,7 @@ public class StringUtils {
         try {
             return URLEncoder.encode(s, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            return s;
+            throw Message.convertToInternal(e);
         }
 //## Java 1.4 end ##
 /*## Java 1.3 only begin ##

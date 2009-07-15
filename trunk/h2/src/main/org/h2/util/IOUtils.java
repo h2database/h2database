@@ -21,7 +21,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.sql.SQLException;
 
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -345,12 +344,12 @@ public class IOUtils {
      * @param in the input stream or null
      * @return the reader
      */
-    public static Reader getReader(InputStream in) throws SQLException {
+    public static Reader getReader(InputStream in) {
         try {
             // InputStreamReader may read some more bytes
             return in == null ? null : new BufferedReader(new InputStreamReader(in, Constants.UTF8));
         } catch (UnsupportedEncodingException e) {
-            throw Message.convert(e);
+            throw Message.convertToInternal(e);
         }
     }
 
@@ -361,11 +360,11 @@ public class IOUtils {
      * @param out the output stream or null
      * @return the writer
      */
-    public static Writer getWriter(OutputStream out) throws SQLException {
+    public static Writer getWriter(OutputStream out) {
         try {
             return out == null ? null : new BufferedWriter(new OutputStreamWriter(out, Constants.UTF8));
         } catch (UnsupportedEncodingException e) {
-            throw Message.convert(e);
+            throw Message.convertToInternal(e);
         }
     }
 
@@ -377,7 +376,7 @@ public class IOUtils {
      * @param s the string
      * @return the input stream
      */
-    public static InputStream getInputStream(String s) throws SQLException {
+    public static InputStream getInputStream(String s) {
         if (s == null) {
             return null;
         }
@@ -402,11 +401,11 @@ public class IOUtils {
      * @param in the input stream
      * @return the reader
      */
-    public static Reader getAsciiReader(InputStream in) throws SQLException {
+    public static Reader getAsciiReader(InputStream in) {
         try {
             return in == null ? null : new InputStreamReader(in, "US-ASCII");
         } catch (UnsupportedEncodingException e) {
-            throw Message.convert(e);
+            throw Message.convertToInternal(e);
         }
     }
 

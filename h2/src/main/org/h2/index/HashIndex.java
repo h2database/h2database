@@ -100,7 +100,7 @@ public class HashIndex extends BaseIndex {
     public Cursor find(Session session, SearchRow first, SearchRow last) throws SQLException {
         if (first == null || last == null) {
             // TODO hash index: should additionally check if values are the same
-            Message.throwInternalError();
+            throw Message.throwInternalError();
         }
         Row result;
         if (intMap != null) {

@@ -346,9 +346,11 @@ public class TableData extends Table implements RecordReader {
             Index index = indexes.get(i);
             index.truncate(session);
             if (SysProperties.CHECK) {
-                long rc = index.getRowCount(session);
-                if (rc != 0) {
-                    Message.throwInternalError("rowCount expected 0 got " + rc);
+                if (!database.isPageStoreEnabled()) {
+                    long rc = index.getRowCount(session);
+                    if (rc != 0) {
+                        Message.throwInternalError("rowCount expected 0 got " + rc);
+                    }
                 }
             }
         }

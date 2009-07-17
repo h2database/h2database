@@ -91,8 +91,8 @@ public class Bnf {
                 continue;
             }
             String topic = StringUtils.toLowerEnglish(rs.getString("TOPIC").trim());
-            topic = StringUtils.replaceAll(topic, " ", "");
-            topic = StringUtils.replaceAll(topic, "_", "");
+            topic = StringUtils.replaceAll(topic, " ", "_");
+            // topic = StringUtils.replaceAll(topic, "_", "");
             syntax = rs.getString("SYNTAX").trim();
             currentTopic = section;
             if (section.startsWith("Function")) {

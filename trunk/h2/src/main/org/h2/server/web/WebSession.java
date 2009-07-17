@@ -126,12 +126,12 @@ class WebSession {
             tableRule = new DbContextRule(contents, DbContextRule.TABLE);
             schemaRule = new DbContextRule(contents, DbContextRule.SCHEMA);
             columnAliasRule = new DbContextRule(contents, DbContextRule.COLUMN_ALIAS);
-            newBnf.updateTopic("columnName", columnRule);
-            newBnf.updateTopic("newTableAlias", newAliasRule);
-            newBnf.updateTopic("tableAlias", aliasRule);
-            newBnf.updateTopic("columnAlias", columnAliasRule);
-            newBnf.updateTopic("tableName", tableRule);
-            newBnf.updateTopic("schemaName", schemaRule);
+            newBnf.updateTopic("column_name", columnRule);
+            newBnf.updateTopic("new_table_alias", newAliasRule);
+            newBnf.updateTopic("table_alias", aliasRule);
+            newBnf.updateTopic("column_alias", columnAliasRule);
+            newBnf.updateTopic("table_name", tableRule);
+            newBnf.updateTopic("schema_name", schemaRule);
             newBnf.linkStatements();
             bnf = newBnf;
         } catch (Exception e) {

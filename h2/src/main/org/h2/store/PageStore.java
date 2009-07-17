@@ -98,7 +98,11 @@ public class PageStore implements CacheWriter {
     // TODO PageData and PageBtree addRowTry: try to simplify
     // TODO test running out of disk space (using a special file system)
     // TODO check for file size (exception if not exact size expected)
-    // TODO implement missing code for STORE_BTREE_ROWCOUNT (maybe enable, maybe not)
+    // TODO implement missing code for STORE_BTREE_ROWCOUNT (maybe enable)
+    // TODO delete: only log the key
+    // TODO update: only log the key and changed values
+    // TODO store dates differently in Data; test moving db to another timezone
+    // TODO online backup using bsdiff
 
     // TODO when removing DiskFile:
     // remove CacheObject.blockCount
@@ -152,7 +156,7 @@ public class PageStore implements CacheWriter {
     private String accessMode;
     private int pageSize;
     private int pageSizeShift;
-    private long writeCounter;
+    private long writeCount;
     private int logFirstTrunkPage, logFirstDataPage;
 
     private int cacheSize;
@@ -321,6 +325,7 @@ public class PageStore implements CacheWriter {
                 if (!isUsed(i)) {
                     file.seek((long) i << pageSizeShift);
                     file.write(empty, 0, pageSize);
+                    writeCount++;
                 }
             }
             // TODO shrink file if required here
@@ -374,7 +379,7 @@ public class PageStore implements CacheWriter {
             }
             page.reset();
             readPage(i, page);
-            writeCounter = page.readLong();
+            writeCount = page.readLong();
             logFirstTrunkPage = page.readInt();
             logFirstDataPage = page.readInt();
             CRC32 crc = new CRC32();
@@ -437,7 +442,7 @@ public class PageStore implements CacheWriter {
 
     private void writeVariableHeader() throws SQLException {
         Data page = Data.create(database, pageSize);
-        page.writeLong(writeCounter);
+        page.writeLong(writeCount);
         page.writeInt(logFirstTrunkPage);
         page.writeInt(logFirstDataPage);
         CRC32 crc = new CRC32();
@@ -447,32 +452,26 @@ public class PageStore implements CacheWriter {
         file.write(page.getBytes(), 0, pageSize);
         file.seek(pageSize + pageSize);
         file.write(page.getBytes(), 0, pageSize);
+        writeCount++;
     }
 
     /**
-     * Close the file without writing anything.
+     * Close the file without further writing.
      */
     public void close() throws SQLException {
-        Exception closeException = null;
-        try {
-            trace.debug("close");
-            if (log != null) {
-                log.close();
-            }
-        } catch (SQLException e) {
-            closeException = e;
+        trace.debug("close");
+        if (log != null) {
+            log.close();
+            log = null;
         }
-        try {
-            if (file != null) {
+        if (file != null) {
+            try {
                 file.close();
+            } catch (IOException e) {
+                throw Message.convert(e);
+            } finally {
+                file = null;
             }
-        } catch (IOException e) {
-            closeException = e;
-        }
-        log = null;
-        file = null;
-        if (closeException != null) {
-            throw Message.convert(closeException);
         }
     }
 
@@ -597,6 +596,7 @@ public class PageStore implements CacheWriter {
         pageCount += increment;
         long newLength = (long) pageCount << pageSizeShift;
         file.setLength(newLength);
+        writeCount++;
         fileLength = newLength;
     }
 
@@ -703,6 +703,7 @@ public class PageStore implements CacheWriter {
         synchronized (database) {
             file.seek((long) pageId << pageSizeShift);
             file.write(data.getBytes(), 0, pageSize);
+            writeCount++;
         }
     }
 
@@ -1033,6 +1034,15 @@ public class PageStore implements CacheWriter {
             return EMPTY_SEARCH_ROW;
         }
         return new SearchRow[entryCount];
+    }
+
+    /**
+     * Get the write count.
+     *
+     * @return the write count
+     */
+    public long getWriteCount() {
+        return writeCount;
     }
 
     // TODO implement checksum

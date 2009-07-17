@@ -713,6 +713,9 @@ public class LogSystem {
      * @return the write position
      */
     public String getWritePos() {
+        if (pageStore != null) {
+            return "" + pageStore.getWriteCount();
+        }
         return currentLog.getId() + "/" + currentLog.getPos();
     }
 

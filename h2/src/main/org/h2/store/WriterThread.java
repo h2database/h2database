@@ -112,26 +112,21 @@ public class WriterThread implements Runnable {
             if (database == null) {
                 break;
             }
-            if (Constants.FLUSH_INDEX_DELAY != 0) {
+            boolean flush = Constants.FLUSH_INDEX_DELAY != 0;
+            if (flush) {
                 flushIndexesIfRequired(database);
             }
 
-            // checkpoint if required
             try {
-                database.checkpointIfRequired();
-            } catch (SQLException e) {
-                TraceSystem traceSystem = database.getTraceSystem();
-                if (traceSystem != null) {
-                    traceSystem.getTrace(Trace.LOG).error("reconnectCheckpoint", e);
+                if (database.isFileLockSerialized()) {
+                    database.checkpointIfRequired();
+                } else {
+                    LogSystem log = database.getLog();
+                    if (log == null) {
+                        break;
+                    }
+                    log.flush();
                 }
-            }
-
-            LogSystem log = database.getLog();
-            if (log == null) {
-                break;
-            }
-            try {
-                log.flush();
             } catch (SQLException e) {
                 TraceSystem traceSystem = database.getTraceSystem();
                 if (traceSystem != null) {

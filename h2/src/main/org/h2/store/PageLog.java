@@ -562,19 +562,15 @@ public class PageLog {
     }
 
     /**
-     * Close the log.
+     * Close without further writing.
      */
-    void close() throws SQLException {
-        try {
-            trace.debug("log close");
-            if (pageOut != null) {
-                pageOut.close();
-                pageOut = null;
-            }
-            out = null;
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
+    void close() {
+        trace.debug("log close");
+        if (pageOut != null) {
+            pageOut.close();
+            pageOut = null;
         }
+        out = null;
     }
 
     /**

@@ -155,13 +155,7 @@ public class PageOutputStream extends OutputStream {
         }
     }
 
-    public void close() throws IOException {
-        flush();
-        try {
-            freeReserve();
-        } catch (SQLException e) {
-            throw Message.convertToIOException(e);
-        }
+    public void close() {
         store = null;
     }
 
@@ -185,15 +179,6 @@ public class PageOutputStream extends OutputStream {
 
     long getSize() {
         return pages * store.getPageSize();
-    }
-
-    private void freeReserve() throws SQLException {
-        for (int i = 0; i < reservedPages.size(); i++) {
-            int p = reservedPages.get(i);
-            store.freePage(p, false, null);
-        }
-        reservedPages = new IntArray();
-        remaining = 0;
     }
 
     /**

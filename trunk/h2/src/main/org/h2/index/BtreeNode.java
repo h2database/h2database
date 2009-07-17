@@ -7,9 +7,7 @@
 package org.h2.index;
 
 import java.sql.SQLException;
-
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
@@ -75,9 +73,6 @@ public class BtreeNode extends BtreePage {
 
     int add(Row newRow, Session session) throws SQLException {
         int l = 0, r = pageData.size();
-        if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root && pageChildren.size() == 0) {
-            Message.throwInternalError("Empty btree page");
-        }
         while (l < r) {
             int i = (l + r) >>> 1;
             SearchRow row = getData(i);
@@ -125,9 +120,6 @@ public class BtreeNode extends BtreePage {
 
     SearchRow remove(Session session, Row oldRow) throws SQLException {
         int l = 0, r = pageData.size();
-        if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root && pageChildren.size() == 0) {
-            Message.throwInternalError("Empty btree page");
-        }
         int comp = 0;
         while (l < r) {
             int i = (l + r) >>> 1;
@@ -221,9 +213,6 @@ public class BtreeNode extends BtreePage {
 
     boolean findFirst(BtreeCursor cursor, SearchRow compare, boolean bigger) throws SQLException {
         int l = 0, r = pageData.size();
-        if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root && pageChildren.size() == 0) {
-            Message.throwInternalError("Empty btree page");
-        }
         while (l < r) {
             int i = (l + r) >>> 1;
             SearchRow row = getData(i);
@@ -319,9 +308,6 @@ public class BtreeNode extends BtreePage {
 
     void first(BtreeCursor cursor) throws SQLException {
         if (pageChildren.size() == 0) {
-            if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
-                Message.throwInternalError("Empty btree page");
-            }
             nextUpper(cursor);
             return;
         }
@@ -333,9 +319,6 @@ public class BtreeNode extends BtreePage {
     void last(BtreeCursor cursor) throws SQLException {
         int last = pageChildren.size() - 1;
         if (last < 0) {
-            if (!Constants.ALLOW_EMPTY_BTREE_PAGES && !root) {
-                Message.throwInternalError("Empty btree page");
-            }
             previousUpper(cursor);
             return;
         }

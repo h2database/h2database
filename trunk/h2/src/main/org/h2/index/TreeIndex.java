@@ -139,7 +139,7 @@ public class TreeIndex extends BaseIndex {
     public void remove(Session session, Row row) throws SQLException {
         TreeNode x = findFirstNode(row, true);
         if (x == null) {
-            Message.throwInternalError("not found!");
+            throw Message.throwInternalError("not found!");
         }
         TreeNode n;
         if (x.left == null) {

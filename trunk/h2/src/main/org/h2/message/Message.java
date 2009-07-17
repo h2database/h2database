@@ -184,10 +184,7 @@ public class Message {
     public static RuntimeException throwInternalError(String s) {
         RuntimeException e = new RuntimeException(s);
         TraceSystem.traceThrowable(e);
-        if (true) {
-            throw e;
-        }
-        return e;
+        throw e;
     }
 
     /**

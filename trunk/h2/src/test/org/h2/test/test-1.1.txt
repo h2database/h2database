@@ -401,8 +401,8 @@ alter table information_schema.help rename to information_schema.help2;
 > exception
 
 help abc;
-> ID SECTION TOPIC SYNTAX TEXT EXAMPLE
-> -- ------- ----- ------ ---- -------
+> ID SECTION TOPIC SYNTAX TEXT
+> -- ------- ----- ------ ----
 > rows: 0
 
 CREATE TABLE test (id int(25) NOT NULL auto_increment, name varchar NOT NULL, PRIMARY KEY  (id,name));
@@ -7410,8 +7410,8 @@ DROP TABLE TEST;
 
 --- help ----------------------------------------------------------------------------------------------
 HELP ABCDE EF_GH;
-> ID SECTION TOPIC SYNTAX TEXT EXAMPLE
-> -- ------- ----- ------ ---- -------
+> ID SECTION TOPIC SYNTAX TEXT
+> -- ------- ----- ------ ----
 > rows: 0
 
 --- sequence ----------------------------------------------------------------------------------------------

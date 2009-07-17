@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>H2 Console: column of tables of non-default schemas are now also listed,
+<ul><li>Server-less multi-connection mode: more bugs are fixed.
+</li><li>The built-in help (INFORMATION_SCHEMA.HELP) is smaller, shrinking the jar file size a bit.
+</li><li>H2 Console: column of tables of non-default schemas are now also listed,
     except for schemas starting with 'INFO'.
 </li><li>ALTER TABLE: removing an auto-increment or identity column didn't remove the sequence.
 </li><li>Creating indexes is now a bit faster.
@@ -44,7 +46,7 @@ Change Log
 </li><li>The soft-references cache (CACHE_TYPE=SOFT_LRU) could throw a NullPointerException.
 </li><li>To enable the new page store mechanism, append ;PAGE_STORE=TRUE to the database URL.
     or set the system property h2.pageStore to true.
-    This mechanism is still experimental, and the file format will change.
+    This mechanism is still experimental, and the file format will change, but it is quite stable now.
 </li></ul>
 
 <h2>Version 1.1.115 (2009-06-21)</h2>

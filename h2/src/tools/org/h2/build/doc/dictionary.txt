@@ -595,3 +595,4 @@ attachment transiently cleanup dbsnmp olapsys wmsys tsmsys outln ctxsys mddata
 ordsys ordplugins mgmt dmsys exfsys mdsys sysman informtn textarray tmzone cdo
 emf decompile streamed setmaxlengthinplacelob setcompresslob compressing
 compressible subclass ints seeks kilobytes capitalized sqlj psm sigmod acm
+shrinking bsdiff

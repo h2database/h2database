@@ -183,7 +183,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      */
     public long position(byte[] pattern, long start) throws SQLException {
         debugCode("position(pattern, "+start+");");
-        if (false) {
+        if (Constants.BLOB_SEARCH) {
             try {
                 debugCode("position(pattern, " + start + ");");
                 if (pattern == null) {
@@ -236,7 +236,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      */
     public long position(Blob blobPattern, long start) throws SQLException {
         debugCode("position(blobPattern, "+start+");");
-        if (false) {
+        if (Constants.BLOB_SEARCH) {
             try {
                 debugCode("position(blobPattern, " + start + ");");
                 if (blobPattern == null) {

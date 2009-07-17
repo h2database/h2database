@@ -33,13 +33,19 @@ public class TestFileLockSerialized extends TestBase {
     }
 
     public void test() throws Exception {
-        Class.forName("org.h2.Driver");
+        println("testThreeMostlyReaders true");
         testThreeMostlyReaders(true);
+        println("testThreeMostlyReaders false");
         testThreeMostlyReaders(false);
+        println("testTwoReaders");
         testTwoReaders();
+        println("testTwoWriters");
         testTwoWriters();
+        println("testPendingWrite");
         testPendingWrite();
+        println("testKillWriter");
         testKillWriter();
+        println("testConcurrentReadWrite");
         testConcurrentReadWrite();
     }
 
@@ -62,13 +68,13 @@ public class TestFileLockSerialized extends TestBase {
                     try {
                         PreparedStatement p = c.prepareStatement("select * from test where id = ?");
                         while (!stop[0]) {
+                            Thread.sleep(100);
                             if (write) {
                                 if (Math.random() > 0.9) {
                                     c.createStatement().execute("update test set id = id");
                                 }
                             }
                             p.setInt(1, 1);
-                            Thread.sleep(10);
                             p.executeQuery();
                             p.clearParameters();
                         }
@@ -81,7 +87,7 @@ public class TestFileLockSerialized extends TestBase {
             t.start();
             threads[i] = t;
         }
-        Thread.sleep(1000);
+        Thread.sleep(400);
         stop[0] = true;
         for (int i = 0; i < len; i++) {
             threads[i].join();
@@ -118,17 +124,18 @@ public class TestFileLockSerialized extends TestBase {
             public void run() {
                 while (!stop[0]) {
                     try {
+                        Thread.sleep(10);
                         Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
                         conn.createStatement().execute("select * from test");
                         conn.close();
-                    } catch (SQLException e) {
+                    } catch (Exception e) {
                         // ignore
                     }
                 }
             }
         }.start();
-        Thread.sleep(100);
-        for (int i = 0; i < 3; i++) {
+        Thread.sleep(20);
+        for (int i = 0; i < 2; i++) {
             conn = DriverManager.getConnection(writeUrl, "sa", "sa");
             Statement stat = conn.createStatement();
             stat.execute("drop table test");
@@ -151,7 +158,7 @@ public class TestFileLockSerialized extends TestBase {
         Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");
-        Thread.sleep(500);
+        Thread.sleep(100);
         String propFile = baseDir + "/fileLockSerialized.lock.db";
         SortedProperties p = SortedProperties.loadProperties(propFile);
         p.setProperty("changePending", "true");
@@ -162,7 +169,7 @@ public class TestFileLockSerialized extends TestBase {
         } finally {
             out.close();
         }
-        Thread.sleep(500);
+        Thread.sleep(100);
         stat.execute("select * from test");
         conn.close();
     }
@@ -199,7 +206,7 @@ public class TestFileLockSerialized extends TestBase {
         // ;TRACE_LEVEL_SYSTEM_OUT=3
         // String readUrl = writeUrl + ";ACCESS_MODE_LOG=R;ACCESS_MODE_DATA=R";
 
-        trace("create database");
+        trace(" create database");
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
         Statement stat = conn.createStatement();
@@ -212,12 +219,12 @@ public class TestFileLockSerialized extends TestBase {
         Statement stat2 = conn2.createStatement();
         printResult(stat2, "select * from test");
 
-        stat2.execute("create local temporary table temp(name varchar)");
+        stat2.execute("create local temporary table temp(name varchar) not persistent");
         printResult(stat2, "select * from temp");
 
-        trace("insert row 1");
+        trace(" insert row 1");
         stat.execute("insert into test values(1)");
-        trace("insert row 2");
+        trace(" insert row 2");
         prep3.setInt(1, 2);
         prep3.execute();
         printResult(stat2, "select * from test");
@@ -229,13 +236,13 @@ public class TestFileLockSerialized extends TestBase {
     }
 
     private void printResult(Statement stat, String sql) throws SQLException {
-        trace("query: " + sql);
+        trace("  query: " + sql);
         ResultSet rs = stat.executeQuery(sql);
         int rowCount = 0;
         while (rs.next()) {
-            trace("  " + rs.getString(1));
+            trace("   " + rs.getString(1));
             rowCount++;
         }
-        trace("  " + rowCount + " row(s)");
+        trace("   " + rowCount + " row(s)");
     }
 }

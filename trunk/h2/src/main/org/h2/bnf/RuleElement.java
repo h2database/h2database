@@ -40,7 +40,7 @@ public class RuleElement implements Rule {
         if (link != null) {
             return link.random(config, level + 1);
         }
-        throw new Error(">>>" + name + "<<<");
+        throw new Error(name);
     }
 
     public String name() {
@@ -58,17 +58,25 @@ public class RuleElement implements Rule {
         if (keyword) {
             return;
         }
-        for (int i = 0; i < name.length() && link == null; i++) {
-            String test = StringUtils.toLowerEnglish(name.substring(i));
-            RuleHead r = ruleMap.get(test);
+        StringBuilder buff = new StringBuilder();
+        for (char c : name.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                buff.append('_');
+                buff.append(Character.toLowerCase(c));
+            } else {
+                buff.append(c);
+            }
+        }
+        String test = buff.toString();
+        for (int i = 0; i < name.length(); i++) {
+            String t = test.substring(i);
+            RuleHead r = ruleMap.get(t);
             if (r != null) {
                 link = r.getRule();
                 return;
             }
         }
-        if (link == null) {
-            throw new Error(">>>" + name + "<<<");
-        }
+        throw new Error("Unknown " + name + "/" + test);
     }
 
     public boolean matchRemove(Sentence sentence) {

@@ -235,8 +235,7 @@ public class MetaTable extends Table {
                     "SECTION",
                     "TOPIC",
                     "SYNTAX",
-                    "TEXT",
-                    "EXAMPLE"
+                    "TEXT"
             });
             break;
         case SEQUENCES:
@@ -935,8 +934,6 @@ public class MetaTable extends Table {
                         rs.getString(3).trim(),
                         // TEXT
                         rs.getString(4).trim(),
-                        // EXAMPLE
-                        rs.getString(5).trim(),
                     });
                 }
             } catch (IOException e) {

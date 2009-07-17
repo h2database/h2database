@@ -1764,8 +1764,7 @@ public class Parser {
                             ExpressionColumn leftCol = (ExpressionColumn) r;
                             ExpressionColumn rightCol = (ExpressionColumn) right;
                             ObjectArray<TableFilter> filters = currentSelect.getTopFilters();
-                            for (int i = 0; filters != null && i < filters.size(); i++) {
-                                TableFilter f = filters.get(i);
+                            for (TableFilter f : filters) {
                                 while (f != null) {
                                     leftCol.mapColumns(f, 0);
                                     rightCol.mapColumns(f, 0);
@@ -4694,7 +4693,11 @@ public class Parser {
                     command.setOnCommitTruncate();
                 }
             } else if (readIf("NOT")) {
-                read("LOGGED");
+                if (readIf("PERSISTENT")) {
+                    command.setPersistData(false);
+                } else {
+                    read("LOGGED");
+                }
             }
         } else if (!persistIndexes && readIf("NOT")) {
             read("PERSISTENT");

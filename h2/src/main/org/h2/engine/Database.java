@@ -334,6 +334,9 @@ public class Database implements DataHandler {
             }
             Properties old = lock.load();
             if (pending) {
+                if (old.getProperty("changePending") != null) {
+                    return false;
+                }
                 getTrace().debug("wait before writing");
                 Thread.sleep((int) (SysProperties.RECONNECT_CHECK_DELAY * 1.1));
                 Properties now = lock.load();
@@ -358,6 +361,8 @@ public class Database implements DataHandler {
                     // somebody else was faster
                     return false;
                 }
+            } else {
+                Thread.sleep(1);
             }
             reconnectLastLock = old;
             reconnectChangePending = pending;
@@ -567,9 +572,8 @@ public class Database implements DataHandler {
                     startServer(lock.getUniqueId());
                 }
             }
-            // wait until pending changes are written
-            isReconnectNeeded();
-            while (!beforeWriting()) {
+            while (isReconnectNeeded() && !beforeWriting()) {
+                // wait until others stopped writing and
                 // until we can write (file are not open - no need to re-connect)
             }
             if (exists) {
@@ -1213,18 +1217,23 @@ public class Database implements DataHandler {
         }
     }
 
-    private synchronized void closeOpenFilesAndUnlock(boolean checkpoint) throws SQLException {
+    /**
+     * Close all open files and unlock the database.
+     *
+     * @param flush whether writing is allowed
+     */
+    private synchronized void closeOpenFilesAndUnlock(boolean flush) throws SQLException {
         if (log != null) {
             stopWriter();
             try {
-                log.close(checkpoint);
+                log.close(flush);
             } catch (Throwable e) {
                 traceSystem.getTrace(Trace.DATABASE).error("close", e);
             }
             log = null;
         }
         if (pageStore != null) {
-            if (checkpoint) {
+            if (flush) {
                 try {
                     pageStore.checkpoint();
                 } catch (Throwable e) {
@@ -2249,7 +2258,7 @@ public class Database implements DataHandler {
      * Check if the contents of the database was changed and therefore it is
      * required to re-connect. This method waits until pending changes are
      * completed. If a pending change takes too long (more than 2 seconds), the
-     * pending change is broken.
+     * pending change is broken (removed from the properties file).
      *
      * @return true if reconnecting is required
      */
@@ -2319,6 +2328,10 @@ public class Database implements DataHandler {
         }
     }
 
+    public boolean isFileLockSerialized() {
+        return fileLockMethod == FileLock.LOCK_SERIALIZED;
+    }
+
     /**
      * Flush the indexes that were last changed prior to some time.
      *
@@ -2369,6 +2382,7 @@ public class Database implements DataHandler {
      */
     public boolean beforeWriting() {
         if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
+
             return reconnectModified(true);
         }
         return true;

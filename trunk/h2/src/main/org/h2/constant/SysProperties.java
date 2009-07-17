@@ -486,7 +486,7 @@ public class SysProperties {
     public static final boolean RECOMPILE_ALWAYS = getBooleanSetting("h2.recompileAlways", false);
 
     /**
-     * System property <code>h2.reconnectCheckDelay</code> (default: 100).<br />
+     * System property <code>h2.reconnectCheckDelay</code> (default: 200).<br />
      * Check the .lock.db file every this many milliseconds to detect that the
      * database was changed. The process writing to the database must first
      * notify a change in the .lock.db file, then wait twice this many

@@ -194,6 +194,7 @@ public class Build extends BuildBase {
         java("org.h2.build.code.CheckJavadoc", null);
         java("org.h2.build.code.CheckTextFiles", null);
         java("org.h2.build.doc.GenerateDoc", null);
+        java("org.h2.build.doc.GenerateHelp", null);
         java("org.h2.build.i18n.PrepareTranslation", null);
         java("org.h2.build.indexer.Indexer", null);
         java("org.h2.build.doc.MergeDocs", null);
@@ -467,6 +468,7 @@ public class Build extends BuildBase {
 
     private void resources(boolean clientOnly, boolean basicOnly) {
         if (!clientOnly) {
+            java("org.h2.build.doc.GenerateHelp", null);
             javadoc("-sourcepath", "src/main", "org.h2.tools",
                     "-doclet", "org.h2.build.doclet.ResourceDoclet");
         }

@@ -12,8 +12,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-
-import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 
 /**
@@ -70,11 +68,7 @@ public class TestCompatibility extends TestBase {
         Statement stat = conn.createStatement();
         String[] modes = new String[] { "PostgreSQL", "MySQL", "HSQLDB", "MSSQLServer", "Derby", "Oracle", "Regular" };
         String columnAlias;
-        if (Constants.VERSION_MINOR == 0) {
-            columnAlias = "MySQL";
-        } else {
-            columnAlias = "MySQL,Regular";
-        }
+        columnAlias = "MySQL,Regular";
         stat.execute("CREATE TABLE TEST(ID INT)");
         for (String mode : modes) {
             stat.execute("SET MODE " + mode);

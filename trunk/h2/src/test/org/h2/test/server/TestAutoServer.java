@@ -20,9 +20,9 @@ import org.h2.util.SortedProperties;
 public class TestAutoServer extends TestBase {
 
     /**
-     * If enabled, this flag allows to debug the test case.
+     * The number of iterations.
      */
-    static final boolean SLOW = false;
+    static final int ITERATIONS = 30;
 
     /**
      * Run just this test.
@@ -42,7 +42,7 @@ public class TestAutoServer extends TestBase {
         String user = getUser(), password = getPassword();
         Connection connServer = getConnection(url + ";OPEN_NEW=TRUE", user, password);
 
-        int i = SLOW ? Integer.MAX_VALUE : 30;
+        int i = ITERATIONS;
         for (; i > 0; i--) {
             Thread.sleep(100);
             SortedProperties prop = SortedProperties.loadProperties(baseDir + "/autoServer.lock.db");

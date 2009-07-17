@@ -91,7 +91,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * A simple array implementation,
      * backed by an object array
      */
-    private static class SimpleArray implements Array {
+    public static class SimpleArray implements Array {
 
         private Object[] value;
 

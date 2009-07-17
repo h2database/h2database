@@ -7,6 +7,7 @@
 package org.h2.jaqu;
 
 //## Java 1.5 begin ##
+import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -165,10 +166,14 @@ public class Query<T> {
 
     public <A> QueryWhere<T> where(Filter filter) {
         // TODO decompile the filter and add conditions accordingly
-        // for (Field f : filter.getClass().getDeclaredFields()) {
-        // f.setAccessible(true);
-        // try { System.out.println(f.getName() + "=" + f.get(filter));
-        // } catch (Exception e) { } }
+        for (Field f : filter.getClass().getDeclaredFields()) {
+            f.setAccessible(true);
+            // try {
+            //     System.out.println(f.getName() + "=" + f.get(filter));
+            // } catch (Exception e) {
+            //     // convert
+            // }
+        }
         return new QueryWhere<T>(this);
     }
 

@@ -22,6 +22,8 @@ import java.net.Socket;
  */
 public class PgTcpRedirect {
 
+    private static final boolean DEBUG = false;
+
     /**
      * This method is called when executing this application from the command
      * line.
@@ -92,7 +94,7 @@ public class PgTcpRedirect {
         }
 
         private void println(String s) {
-            if (false) {
+            if (DEBUG) {
                 System.out.println(s);
             }
         }
@@ -536,7 +538,7 @@ public class PgTcpRedirect {
      * @param len the length
      */
     synchronized void printData(byte[] buffer, int len) {
-        if (false) {
+        if (DEBUG) {
             System.out.print(" ");
             for (int i = 0; i < len; i++) {
                 int c = buffer[i] & 255;

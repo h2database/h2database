@@ -119,12 +119,6 @@ public class Constants {
     public static final String CONN_URL_INTERNAL = "jdbc:default:connection";
 
     /**
-     * If the rounding mode should be BigDecimal.ROUND_HALF_UP when rounding
-     * from a decimal value to a long value.
-     */
-    public static final boolean CONVERT_TO_LONG_ROUND = true;
-
-    /**
      * The cost is calculated on rowcount + this offset,
      * to avoid using the wrong or no index if the table
      * contains no rows _currently_ (when preparing the statement)
@@ -384,11 +378,6 @@ public class Constants {
     public static final int SELECTIVITY_DISTINCT_COUNT = 10000;
 
     /**
-     * Whether Java objects should be serialized / de-serialized in the JDBC API.
-     */
-    public static final boolean SERIALIZE_JAVA_OBJECTS = true;
-
-    /**
      * The name of the server properties file.
      */
     public static final String SERVER_PROPERTIES_FILE = ".h2.server.properties";
@@ -498,6 +487,11 @@ public class Constants {
      * used as tables).
      */
     public static final int VIEW_INDEX_CACHE_SIZE = 64;
+
+    /**
+     * Whether searching in Blob values should be supported.
+     */
+    public static final boolean BLOB_SEARCH = false;
 
     private Constants() {
         // utility class

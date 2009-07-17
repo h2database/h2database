@@ -133,13 +133,15 @@ public class Profile extends Thread {
             return;
         }
         long now = System.currentTimeMillis();
-        if (TRACE && trace != null) {
-            int duration = (int) (now - lastTime);
-            try {
-                trace.write(i + "\t" + duration + "\r\n");
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(1);
+        if (TRACE) {
+            if (trace != null) {
+                int duration = (int) (now - lastTime);
+                try {
+                    trace.write(i + "\t" + duration + "\r\n");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
             }
         }
         count[i]++;

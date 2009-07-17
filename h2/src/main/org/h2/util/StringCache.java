@@ -77,12 +77,13 @@ public class StringCache {
         int hash = s.hashCode();
         String[] cache = getCache();
         int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
-        if (cache != null) {
-            String cached = cache[index];
-            if (cached != null) {
-                if (s.equals(cached)) {
-                    return cached;
-                }
+        if (cache == null) {
+            return s;
+        }
+        String cached = cache[index];
+        if (cached != null) {
+            if (s.equals(cached)) {
+                return cached;
             }
         }
         // create a new object that is not shared

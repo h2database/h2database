@@ -86,7 +86,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
             case 2:
                 Value v1 = map.get(key);
                 Value v2 = hash.get(key);
-                assertTrue((v1 == null && v2 == null) || v1.compareEqual(v2));
+                assertTrue(v1 == null ? v2 == null : v1.compareEqual(v2));
                 break;
             case 3: {
                 ObjectArray<Value> a1 = map.keys();

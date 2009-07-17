@@ -103,7 +103,7 @@ public class Restore extends Tool {
                 }
             }
             zipIn.close();
-            if (multiple && !originalDbName.equals(db)) {
+            if (multiple && !db.equals(originalDbName)) {
                 throw new IOException("Multiple databases found, but not " + db);
             }
             return originalDbName;
@@ -141,6 +141,7 @@ public class Restore extends Tool {
                 throw new IOException("File not found: " + zipFileName);
             }
             String originalDbName = null;
+            int originalDbLen = 0;
             if (db != null) {
                 originalDbName = getOriginalDbName(zipFileName, db);
                 if (originalDbName == null) {
@@ -149,6 +150,7 @@ public class Restore extends Tool {
                 if (originalDbName.startsWith(File.separator)) {
                     originalDbName = originalDbName.substring(1);
                 }
+                originalDbLen = originalDbName.length();
             }
             in = FileUtils.openFileInputStream(zipFileName);
             ZipInputStream zipIn = new ZipInputStream(in);
@@ -168,7 +170,7 @@ public class Restore extends Tool {
                 if (db == null) {
                     copy = true;
                 } else if (fileName.startsWith(originalDbName + ".")) {
-                    fileName = db + fileName.substring(originalDbName.length());
+                    fileName = db + fileName.substring(originalDbLen);
                     copy = true;
                 }
                 if (copy) {

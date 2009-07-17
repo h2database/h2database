@@ -32,6 +32,7 @@ import org.h2.util.StringUtils;
 public class GenerateDoc {
 
     private String inDir = "src/docsrc/html";
+    private String inHelp = "src/docsrc/help/help.csv";
     private String outDir = "docs/html";
     private Connection conn;
     private HashMap<String, Object> session = new HashMap<String, Object>();
@@ -63,25 +64,23 @@ public class GenerateDoc {
         session.put("versionDate", Constants.BUILD_DATE);
         session.put("stableVersion", Constants.getVersionStable());
         session.put("stableVersionDate", Constants.BUILD_DATE_STABLE);
-        map("commands", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION LIKE 'Commands%' ORDER BY ID");
-        map("commandsDML", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION='Commands (DML)' ORDER BY ID");
-        map("commandsDDL", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION='Commands (DDL)' ORDER BY ID");
-        map("commandsOther", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION='Commands (Other)' ORDER BY ID");
-        map("otherGrammar", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION='Other Grammar' ORDER BY ID");
-        map("functionsAggregate",
-                "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION = 'Functions (Aggregate)' ORDER BY ID");
-        map("functionsNumeric",
-                "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION = 'Functions (Numeric)' ORDER BY ID");
-        map("functionsString", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION = 'Functions (String)' ORDER BY ID");
-        map("functionsTimeDate",
-                "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION = 'Functions (Time and Date)' ORDER BY ID");
-        map("functionsSystem", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION = 'Functions (System)' ORDER BY ID");
-        map("functionsAll",
-                "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION LIKE 'Functions%' ORDER BY SECTION, ID");
-        map("dataTypes", "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION LIKE 'Data Types%' ORDER BY SECTION, ID");
-        map("informationSchema", "SELECT TABLE_NAME TOPIC, GROUP_CONCAT(COLUMN_NAME " +
-                "ORDER BY ORDINAL_POSITION SEPARATOR ', ') SYNTAX FROM INFORMATION_SCHEMA.COLUMNS " +
-                "WHERE TABLE_SCHEMA='INFORMATION_SCHEMA' GROUP BY TABLE_NAME ORDER BY TABLE_NAME");
+        // String help = "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION";
+        String help = "SELECT ROWNUM ID, * FROM CSVREAD('" + inHelp + "') WHERE SECTION ";
+        map("commands", help + "LIKE 'Commands%' ORDER BY ID");
+        map("commandsDML", help + "= 'Commands (DML)' ORDER BY ID");
+        map("commandsDDL", help + "= 'Commands (DDL)' ORDER BY ID");
+        map("commandsOther", help + "= 'Commands (Other)' ORDER BY ID");
+        map("otherGrammar", help + "= 'Other Grammar' ORDER BY ID");
+        map("functionsAggregate", help + "= 'Functions (Aggregate)' ORDER BY ID");
+        map("functionsNumeric", help + "= 'Functions (Numeric)' ORDER BY ID");
+        map("functionsString", help + "= 'Functions (String)' ORDER BY ID");
+        map("functionsTimeDate", help + "= 'Functions (Time and Date)' ORDER BY ID");
+        map("functionsSystem", help + "= 'Functions (System)' ORDER BY ID");
+        map("functionsAll", help + "LIKE 'Functions%' ORDER BY SECTION, ID");
+        map("dataTypes", help + "LIKE 'Data Types%' ORDER BY SECTION, ID");
+        map("informationSchema", "SELECT TABLE_NAME TOPIC, GROUP_CONCAT(COLUMN_NAME "
+                + "ORDER BY ORDINAL_POSITION SEPARATOR ', ') SYNTAX FROM INFORMATION_SCHEMA.COLUMNS "
+                + "WHERE TABLE_SCHEMA='INFORMATION_SCHEMA' GROUP BY TABLE_NAME ORDER BY TABLE_NAME");
         processAll("");
         conn.close();
     }
@@ -150,9 +149,9 @@ public class GenerateDoc {
                 }
 
                 String link = topic.toLowerCase();
-                link = StringUtils.replaceAll(link, " ", "");
-                link = StringUtils.replaceAll(link, "_", "");
-                link = StringUtils.replaceAll(link, "@", "");
+                link = StringUtils.replaceAll(link, " ", "_");
+                // link = StringUtils.replaceAll(link, "_", "");
+                link = StringUtils.replaceAll(link, "@", "_");
                 map.put("link", StringUtils.urlEncode(link));
                 list.add(map);
             }

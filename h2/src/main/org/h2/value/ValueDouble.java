@@ -71,8 +71,7 @@ public class ValueDouble extends Value {
             return "POWER(0, -1)";
         } else if (value == Double.NEGATIVE_INFINITY) {
             return "(-POWER(0, -1))";
-        } else if (value != value) {
-            // NaN
+        } else if (Double.isNaN(value)) {
             return "SQRT(-1)";
         }
         return getString();

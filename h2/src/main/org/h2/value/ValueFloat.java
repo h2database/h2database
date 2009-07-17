@@ -70,7 +70,7 @@ public class ValueFloat extends Value {
             return "POWER(0, -1)";
         } else if (value == Float.NEGATIVE_INFINITY) {
             return "(-POWER(0, -1))";
-        } else if (value != value) {
+        } else if (Double.isNaN(value)) {
             // NaN
             return "SQRT(-1)";
         }

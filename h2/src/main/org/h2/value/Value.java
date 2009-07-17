@@ -20,7 +20,6 @@ import java.sql.Types;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.store.DataHandler;
 import org.h2.tools.SimpleResultSet;
@@ -901,20 +900,14 @@ public abstract class Value {
             // TODO document that +Infinity, -Infinity throw an exception and NaN returns 0
             throw Message.getSQLException(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
         }
-        if (Constants.CONVERT_TO_LONG_ROUND) {
-            return Math.round(x);
-        }
-        return (long) x;
+        return Math.round(x);
     }
 
     private long convertToLong(BigDecimal x) throws SQLException {
         if (x.compareTo(MAX_LONG_DECIMAL) > 0 || x.compareTo(Value.MIN_LONG_DECIMAL) < 0) {
             throw Message.getSQLException(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE);
         }
-        if (Constants.CONVERT_TO_LONG_ROUND) {
-            return x.setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
-        }
-        return x.longValue();
+        return x.setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
     }
 
     /**

@@ -25,7 +25,6 @@ import java.util.UUID;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.jdbc.JdbcBlob;
 import org.h2.jdbc.JdbcClob;
@@ -195,14 +194,6 @@ public class DataType {
         for (int i = 0; i < Value.TYPE_COUNT; i++) {
             TYPES_BY_VALUE_TYPE.add(null);
         }
-        //## Java 1.4 begin ##
-        if (TYPE_BOOLEAN != Types.BOOLEAN) {
-            new Exception("Types.BOOLEAN: " + Types.BOOLEAN).printStackTrace();
-        }
-        if (TYPE_DATALINK != Types.DATALINK) {
-            new Exception("Types.DATALINK: " + Types.DATALINK).printStackTrace();
-        }
-        //## Java 1.4 end ##
         add(Value.NULL, Types.NULL, "Null",
                 new DataType(),
                 new String[]{"NULL"},
@@ -829,10 +820,7 @@ public class DataType {
             return ValueNull.INSTANCE;
         }
         if (type == Value.JAVA_OBJECT) {
-            // serialize JAVA_OBJECT, even if the type is known
-            if (Constants.SERIALIZE_JAVA_OBJECTS) {
-                return ValueJavaObject.getNoCopy(ObjectUtils.serialize(x));
-            }
+            return ValueJavaObject.getNoCopy(ObjectUtils.serialize(x));
         }
         if (x instanceof String) {
             return ValueString.get((String) x);
@@ -888,10 +876,7 @@ public class DataType {
             }
             return ValueArray.get(v);
         } else {
-            if (Constants.SERIALIZE_JAVA_OBJECTS) {
-                return ValueJavaObject.getNoCopy(ObjectUtils.serialize(x));
-            }
-            throw Message.getSQLException(ErrorCode.UNKNOWN_DATA_TYPE_1, x.getClass().getName());
+            return ValueJavaObject.getNoCopy(ObjectUtils.serialize(x));
         }
     }
 

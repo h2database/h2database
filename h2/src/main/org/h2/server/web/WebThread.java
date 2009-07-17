@@ -592,7 +592,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             } else if ("CreateCluster".equals(toolName)) {
                 tool = new CreateCluster();
             } else {
-                Message.throwInternalError(toolName);
+                throw Message.throwInternalError(toolName);
             }
             ByteArrayOutputStream outBuff = new ByteArrayOutputStream();
             PrintStream out = new PrintStream(outBuff, false, "UTF-8");

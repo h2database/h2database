@@ -184,8 +184,8 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (rec != null) {
             if (SysProperties.CHECK) {
                 PageData result = (PageData) rec;
-                if (result.index.headPos != this.headPos) {
-                    throw Message.throwInternalError("Wrong index: " + result.index + " " + this);
+                if (result.index.headPos != headPos) {
+                    throw Message.throwInternalError("Wrong index: " + result.index.getName() + ":" + result.index.headPos + " " + getName() + ":" + headPos);
                 }
             }
             return (PageData) rec;

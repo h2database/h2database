@@ -14,6 +14,7 @@ import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
+import org.h2.store.DataPage;
 import org.h2.store.PageStore;
 import org.h2.store.Record;
 import org.h2.table.Column;
@@ -148,6 +149,9 @@ public class PageBtreeIndex extends BaseIndex {
         Record rec = store.getRecord(id);
         if (rec != null) {
             if (SysProperties.CHECK) {
+                if (!(rec instanceof PageBtree)) {
+                    throw Message.throwInternalError("Wrong page: " + rec + " " + this);
+                }
                 PageBtree result = (PageBtree) rec;
                 if (result.index.headPos != this.headPos) {
                     throw Message.throwInternalError("Wrong index: " + result.index + " " + this);
@@ -375,7 +379,7 @@ public class PageBtreeIndex extends BaseIndex {
      * @return the number of bytes
      */
     int getRowSize(Data dummy, SearchRow row, boolean onlyPosition) throws SQLException {
-        int rowsize = Data.LENGTH_INT;
+        int rowsize = DataPage.LENGTH_INT;
         if (!onlyPosition) {
             for (Column col : columns) {
                 Value v = row.getValue(col.getColumnId());

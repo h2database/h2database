@@ -14,22 +14,22 @@ public class Constants {
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 115;
+    public static final int BUILD_ID = 116;
 
     /**
      * The build id of the last stable release.
      */
-    public static final int BUILD_ID_STABLE = 114;
+    public static final int BUILD_ID_STABLE = 115;
 
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2009-06-27";
+    public static final String BUILD_DATE = "2009-07-18";
 
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE_STABLE = "2009-06-01";
+    public static final String BUILD_DATE_STABLE = "2009-06-27";
 
     /**
      * The TCP protocol version number 5. This protocol is used by the TCP

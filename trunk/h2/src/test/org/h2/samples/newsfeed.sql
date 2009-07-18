@@ -13,6 +13,38 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(66,
+'New version available: 1.1.116 (2009-07-18)', '2009-07-18 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>Result sets are now read-only by default.
+</li><li>New system property h2.defaultResultSetConcurrency.
+</li><li>Using an invalid result set type or concurrency now throws an exception.
+</li><li>H2 Console: column of non-default schemas are now also listed.
+</li><li>H2 Console: Oracle system tables are no longer listed.
+</li><li>PG Server: improved compatibility and new system property h2.pgClientEncoding.
+    Thanks a lot to Sergi Vladykin for the patch!
+</li><li>To enable the page store mechanism, append ;PAGE_STORE=TRUE to the URL.
+    This mechanism is now relatively stable.
+</li><li>The built-in help is smaller.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>Server-less multi-connection mode: more bugs are fixed.
+</li><li>If a pooled connection was not closed, an exception could occur.
+</li><li>Removing an auto-increment or identity column didn't remove the sequence.
+</li><li>Fulltext search: an exception was thrown when updating a value sometimes.
+</li><li>The Recover tool did not always work.
+</li><li>The soft-references cache (CACHE_TYPE=SOFT_LRU) could throw an exception.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(65,
 'New version available: 1.1.115 (2009-06-27)', '2009-06-27 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -403,34 +435,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
     most problems (except the problems of java.util.Date itself).
 </li><li>ALTER TABLE used a lot of memory when using multi-version concurrency.
 </li><li>Referential integrity for in-memory databases didn't work in some cases.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(52,
-'New version available: 1.1.102 (beta; 2008-10-24)', '2008-10-24 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>The French translation of the H2 Console has been improved by Olivier Parent.
-</li><li>Translating the H2 Console is now simpler.
-</li><li>Common exception (error code 23*) are no longer written to the .trace.db file by default.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>ResultSetMetaData.getColumnName now returns the alias name except for columns.
-</li><li>Temporary files are now deleted when the database is closed, even
-    if they were not garbage collected so far.
-</li><li>There was a memory leak when creating and dropping tables and
-    indexes in a loop (persistent database only).
-</li><li>SET LOG 2 was not effective if executed after opening the database.
-</li><li>In-memory databases don't write LOBs to files any longer.
-</li><li>Self referencing constraints didn't restrict deleting rows that reference
-    itself if there is another row that references it.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

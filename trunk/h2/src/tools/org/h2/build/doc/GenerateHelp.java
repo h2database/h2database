@@ -58,7 +58,9 @@ public class GenerateHelp {
                 "# Version 1.0, and under the Eclipse Public License, Version 1.0\n" +
                 "# (http://h2database.com/html/license.html).\n" +
                 "# Initial Developer: H2 Group)\n");
-        Csv.getInstance().write(writer, rs2);
+        Csv csv = Csv.getInstance();
+        csv.setLineSeparator("\n");
+        csv.write(writer, rs2);
     }
 
 }

@@ -426,7 +426,7 @@ public class PageLog {
             int pageSize = store.getPageSize();
             byte[] t = StringUtils.utf8Encode(transaction);
             int len = t.length;
-            if (1 + Data.LENGTH_INT * 2 + len >= PageStreamData.getCapacity(pageSize)) {
+            if (1 + DataPage.LENGTH_INT * 2 + len >= PageStreamData.getCapacity(pageSize)) {
                 throw Message.getInvalidValueException("transaction name too long", transaction);
             }
             pageOut.fillPage();

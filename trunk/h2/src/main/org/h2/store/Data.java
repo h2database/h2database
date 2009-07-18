@@ -41,21 +41,6 @@ import org.h2.value.ValueUuid;
  */
 public class Data extends DataPage {
 
-    /**
-     * The space required for the checksum and additional fillers.
-     */
-    public static final int LENGTH_FILLER = 2;
-
-    /**
-     * The length of an integer value.
-     */
-    public static final int LENGTH_INT = 4;
-
-    /**
-     * The length of a long value.
-     */
-    public static final int LENGTH_LONG = 8;
-
     private Data(DataHandler handler, byte[] data) {
         super(handler, data);
     }

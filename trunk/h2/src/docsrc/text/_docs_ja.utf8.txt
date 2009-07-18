@@ -143,9 +143,7 @@ Result Sets
 Read Committed (コミット済み読み取り)
 
 @advanced_1048_li
-これはデフォルトレベルです。
-read lockは早急に解除されます。 このレベルを使用する時、高い同時並行性が可能です。
-これは多数のデータベースシステムで使用される分離レベルです。
+これはデフォルトレベルです。 read lockは早急に解除されます。 このレベルを使用する時、高い同時並行性が可能です。 これは多数のデータベースシステムで使用される分離レベルです。
 
 @advanced_1049_li
 これを有効にするには、 SQLステートメント 'SET LOCK_MODE 3' を実行します。
@@ -6055,10 +6053,7 @@ ODBCドライバ
 Email ニュースレター:
 
 @mainWeb_1082_p
-<a href="http://groups.google.com/group/h2database-news/subscribe">
-H2 データベース ニュース</a> (Googleアカウントが必要です)
-に署名し、ニューリリースについての情報を入手して下さい。
-あなたのemailアドレスはこのコンテンツでのみ使用されます。
+<a href="http://groups.google.com/group/h2database-news/subscribe"> H2 データベース ニュース</a> (Googleアカウントが必要です) に署名し、ニューリリースについての情報を入手して下さい。 あなたのemailアドレスはこのコンテンツでのみ使用されます。
 
 @mainWeb_1083_td
 &nbsp;

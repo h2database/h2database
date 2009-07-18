@@ -60,9 +60,8 @@ public class PropertiesToUTF8 {
         for (Enumeration<Object> en = prop.keys(); en.hasMoreElements();) {
             String key = (String) en.nextElement();
             String value = prop.getProperty(key, null);
-            writer.println("@" + key);
-            writer.println(value);
-            writer.println();
+            writer.print("@" + key + "\n");
+            writer.print(value + "\n\n");
         }
         writer.close();
     }

@@ -360,7 +360,7 @@ class PageBtreeNode extends PageBtree {
      * Set the cursor to the first row of the next page.
      *
      * @param cursor the cursor
-     * @param row the current row
+     * @param ROW the current row
      */
     void nextPage(PageBtreeCursor cursor, int pageId) throws SQLException {
         int i;
@@ -389,7 +389,7 @@ class PageBtreeNode extends PageBtree {
      * Set the cursor to the last row of the previous page.
      *
      * @param cursor the cursor
-     * @param row the current row
+     * @param ROW the current row
      */
     void previousPage(PageBtreeCursor cursor, int pageId) throws SQLException {
         int i;
@@ -416,7 +416,7 @@ class PageBtreeNode extends PageBtree {
 
 
     public String toString() {
-        return "page[" + getPos() + "] btree node table:" + index.getId() + " entries:" + entryCount;
+        return "page[" + getPos() + "] b-tree node table:" + index.getId() + " entries:" + entryCount;
     }
 
 

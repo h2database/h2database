@@ -37,12 +37,12 @@ public class Page {
     public static final int TYPE_DATA_OVERFLOW = 3;
 
     /**
-     * A btree leaf page (without overflow: + FLAG_LAST).
+     * A b-tree leaf page (without overflow: + FLAG_LAST).
      */
     public static final int TYPE_BTREE_LEAF = 4;
 
     /**
-     * A btree node page (never has overflow pages).
+     * A b-tree node page (never has overflow pages).
      */
     public static final int TYPE_BTREE_NODE = 5;
 

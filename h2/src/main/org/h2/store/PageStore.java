@@ -72,7 +72,7 @@ public class PageStore implements CacheWriter {
     // TODO var int: see google protocol buffers
     // TODO don't save parent (only root); remove setPageId
     // TODO implement checksum - 0 for empty
-    // TODO btree index with fixed size values doesn't need offset and so on
+    // TODO b-tree index with fixed size values doesn't need offset and so on
     // TODO remove parent, use tableId if required
     // TODO replace CRC32
     // TODO PageBtreeNode: 4 bytes offset - others use only 2

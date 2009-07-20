@@ -185,7 +185,7 @@ class PageDataNode extends PageData {
 
     boolean remove(int key) throws SQLException {
         int at = find(key);
-        // merge is not implemented to allow concurrent usage of btrees
+        // merge is not implemented to allow concurrent usage
         // TODO maybe implement merge
         PageData page = index.getPage(childPageIds[at], getPos());
         boolean empty = page.remove(key);

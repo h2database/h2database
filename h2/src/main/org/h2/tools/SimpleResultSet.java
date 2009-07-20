@@ -218,7 +218,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the new object
      */
     public static SimpleResultSet newInstance(SimpleRowSource source) {
-        return new SimpleResultSet();
+        return new SimpleResultSet(source);
     }
 
     /**

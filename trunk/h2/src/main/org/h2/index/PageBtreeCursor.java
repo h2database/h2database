@@ -12,7 +12,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 
 /**
- * The cursor implementation for the page btree index.
+ * The cursor implementation for the page b-tree index.
  */
 public class PageBtreeCursor implements Cursor {
 

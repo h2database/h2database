@@ -135,7 +135,7 @@ public class BtreeNode extends BtreePage {
             }
         }
         int at = l;
-        // merge is not implemented to allow concurrent usage of btrees
+        // merge is not implemented to allow concurrent usage
         BtreePage page = index.getPage(session, pageChildren.get(at));
         SearchRow first = page.remove(session, oldRow);
         if (first == null) {

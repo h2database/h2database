@@ -259,7 +259,7 @@ class PageBtreeLeaf extends PageBtree {
     }
 
     public String toString() {
-        return "page[" + getPos() + "] btree leaf table:" + index.getId() + " entries:" + entryCount;
+        return "page[" + getPos() + "] b-tree leaf table:" + index.getId() + " entries:" + entryCount;
     }
 
 }

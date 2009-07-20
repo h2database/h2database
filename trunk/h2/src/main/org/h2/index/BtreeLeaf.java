@@ -20,7 +20,7 @@ import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 
 /**
- * An outer page of a btree index.
+ * An outer page of a b-tree index.
  *
  * Page format:
  * <pre>
@@ -92,7 +92,7 @@ public class BtreeLeaf extends BtreePage {
             int i = (l + r) >>> 1;
             SearchRow row = pageData.get(i);
             if (SysProperties.CHECK && row == null) {
-                Message.throwInternalError("btree corrupt");
+                Message.throwInternalError("b-tree corrupt");
             }
             int comp = index.compareRows(row, oldRow);
             if (comp == 0) {

@@ -33,7 +33,7 @@ public abstract class BtreePage extends Record {
      */
     protected BtreeIndex index;
 
-    // TODO memory: the btree page needs a lot of memory (in the cache) -
+    // TODO memory: the b-tree page needs a lot of memory (in the cache) -
     // probably better not use ObjectArray but array
 
     /**

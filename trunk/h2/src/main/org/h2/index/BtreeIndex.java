@@ -27,7 +27,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * This is the most common type of index, a btree index.
+ * This is the most common type of index, a b-tree index.
  * The index structure is:
  * <ul>
  * <li>There is one {@link BtreeHead} that points to the root page.
@@ -44,7 +44,7 @@ import org.h2.value.ValueNull;
  */
 public class BtreeIndex extends BaseIndex implements RecordReader {
 
-    // TODO index / btree: tune page size
+    // TODO index / b-tree: tune page size
     // final static int MAX_PAGE_SIZE = 256;
 
     private Storage storage;

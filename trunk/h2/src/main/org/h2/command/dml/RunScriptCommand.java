@@ -6,12 +6,10 @@
  */
 package org.h2.command.dml;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.sql.SQLException;
-
 import org.h2.command.Prepared;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
@@ -37,7 +35,7 @@ public class RunScriptCommand extends ScriptBase {
         try {
             openInput();
             Reader reader = new InputStreamReader(in, charset);
-            ScriptReader r = new ScriptReader(new BufferedReader(reader));
+            ScriptReader r = new ScriptReader(reader);
             while (true) {
                 String sql = r.readStatement();
                 if (sql == null) {

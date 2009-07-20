@@ -7,7 +7,6 @@
 package org.h2.tools;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +17,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.util.ClassUtils;
@@ -157,7 +155,6 @@ public class RunScript extends Tool {
     }
 
     private ResultSet process(Connection conn, Reader reader) throws SQLException {
-        reader = new BufferedReader(reader);
         Statement stat = conn.createStatement();
         ResultSet rs = null;
         ScriptReader r = new ScriptReader(reader);
@@ -192,7 +189,7 @@ public class RunScript extends Tool {
 
     private void process(Connection conn, boolean continueOnError, String path, Reader reader, String charsetName) throws SQLException, IOException {
         Statement stat = conn.createStatement();
-        ScriptReader r = new ScriptReader(new BufferedReader(reader));
+        ScriptReader r = new ScriptReader(reader);
         while (true) {
             String sql = r.readStatement();
             if (sql == null) {

@@ -55,9 +55,9 @@ public class TestScriptReader extends TestBase {
                 if (c.length() == 0 && j == l - 1) {
                     c = null;
                 }
-                assertEquals(e, c);
+                assertEquals(c, e);
             }
-            assertEquals(source.readStatement(), null);
+            assertEquals(null, source.readStatement());
         }
     }
 
@@ -161,22 +161,32 @@ public class TestScriptReader extends TestBase {
     }
 
     private void testCommon() throws SQLException {
-        String s = "a;';';\";\";--;\n;/*;\n*/;//;\na;";
-        StringReader reader = new StringReader(s);
-        ScriptReader source = new ScriptReader(reader);
-        assertEquals(source.readStatement(), "a");
-        assertEquals(source.readStatement(), "';'");
-        assertEquals(source.readStatement(), "\";\"");
-        assertEquals(source.readStatement(), "--;\n");
-        assertEquals(source.readStatement(), "/*;\n*/");
-        assertEquals(source.readStatement(), "//;\na");
-        assertEquals(source.readStatement(), null);
+        String s;
+        ScriptReader source;
+
+        s = "$$;$$;";
+        source = new ScriptReader(new StringReader(s));
+        assertEquals("$$;$$", source.readStatement());
+        assertEquals(null, source.readStatement());
         source.close();
+
+        s = "a;';';\";\";--;\n;/*;\n*/;//;\na;";
+        source = new ScriptReader(new StringReader(s));
+        assertEquals("a", source.readStatement());
+        assertEquals("';'", source.readStatement());
+        assertEquals("\";\"", source.readStatement());
+        assertEquals("--;\n", source.readStatement());
+        assertEquals("/*;\n*/", source.readStatement());
+        assertEquals("//;\na", source.readStatement());
+        assertEquals(null, source.readStatement());
+        source.close();
+
         s = "/\n$ \n\n $';$$a$$ $\n;'";
         source = new ScriptReader(new StringReader(s));
-        assertEquals(source.readStatement(), "/\n$ \n\n $';$$a$$ $\n;'");
-        assertEquals(source.readStatement(), null);
+        assertEquals("/\n$ \n\n $';$$a$$ $\n;'", source.readStatement());
+        assertEquals(null, source.readStatement());
         source.close();
+
     }
 
 }

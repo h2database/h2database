@@ -9,8 +9,10 @@ package org.h2.util;
 import java.io.IOException;
 import java.io.Reader;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.message.Message;
 
 /**
@@ -20,10 +22,15 @@ import org.h2.message.Message;
  */
 public class ScriptReader {
     private Reader reader;
-    private boolean end;
+    private char[] buffer;
+    private int bufferPos;
+    private int bufferStart = -1;
+    private int bufferEnd;
+    private boolean endOfFile;
     private boolean insideRemark;
     private boolean blockRemark;
     private boolean skipRemarks;
+    private int remarkStart;
 
     /**
      * Create a new SQL script reader from the given reader
@@ -32,6 +39,7 @@ public class ScriptReader {
      */
     public ScriptReader(Reader reader) {
         this.reader = reader;
+        buffer = new char[Constants.IO_BUFFER_SIZE * 2];
     }
 
     /**
@@ -45,14 +53,6 @@ public class ScriptReader {
         }
     }
 
-    private int read() throws SQLException {
-        try {
-            return reader.read();
-        } catch (IOException e) {
-            throw Message.convertIOException(e, null);
-        }
-    }
-
     /**
      * Read a statement from the reader. This method returns null if the end has
      * been reached.
@@ -60,179 +60,197 @@ public class ScriptReader {
      * @return the SQL statement or null
      */
     public String readStatement() throws SQLException {
-        if (end) {
+        if (endOfFile) {
             return null;
         }
-        StringBuilder buff = new StringBuilder(200);
-        int previous = 0;
+        try {
+            return readStatementLoop();
+        } catch (IOException e) {
+            throw Message.convertIOException(e, null);
+        }
+    }
+
+    private String readStatementLoop() throws IOException {
+        bufferStart = bufferPos;
         int c = read();
         while (true) {
             if (c < 0) {
-                end = true;
-                return buff.length() == 0 ? null : buff.toString();
+                endOfFile = true;
+                if (bufferPos - 1 == bufferStart) {
+                    return null;
+                }
+                break;
             } else if (c == ';') {
                 break;
             }
             switch (c) {
             case '$': {
-                buff.append((char) c);
                 c = read();
-                if (c == '$' && SysProperties.DOLLAR_QUOTING && previous <= ' ') {
+                if (c == '$' && SysProperties.DOLLAR_QUOTING && (bufferPos - bufferStart < 3 || buffer[bufferPos - 3] <= ' ')) {
                     // dollar quoted string
-                    buff.append((char) c);
                     while (true) {
                         c = read();
                         if (c < 0) {
                             break;
                         }
-                        buff.append((char) c);
                         if (c == '$') {
                             c = read();
                             if (c < 0) {
                                 break;
                             }
-                            buff.append((char) c);
                             if (c == '$') {
                                 break;
                             }
                         }
                     }
-                    previous = c;
                     c = read();
                 }
                 break;
             }
             case '\'':
-                buff.append((char) c);
                 while (true) {
                     c = read();
                     if (c < 0) {
                         break;
                     }
-                    buff.append((char) c);
                     if (c == '\'') {
                         break;
                     }
                 }
-                previous = c;
                 c = read();
                 break;
             case '"':
-                buff.append((char) c);
                 while (true) {
                     c = read();
                     if (c < 0) {
                         break;
                     }
-                    buff.append((char) c);
                     if (c == '\"') {
                         break;
                     }
                 }
-                previous = c;
                 c = read();
                 break;
             case '/': {
-                int last = c;
-                previous = c;
                 c = read();
                 if (c == '*') {
                     // block comment
-                    insideRemark = true;
-                    blockRemark = true;
-                    if (!skipRemarks) {
-                        buff.append((char) last).append((char) c);
-                    }
+                    startRemark(false);
                     while (true) {
                         c = read();
                         if (c < 0) {
                             break;
-                        }
-                        if (!skipRemarks) {
-                            buff.append((char) c);
                         }
                         if (c == '*') {
                             c = read();
                             if (c < 0) {
+                                clearRemark();
                                 break;
                             }
-                            if (!skipRemarks) {
-                                buff.append((char) c);
-                            }
                             if (c == '/') {
-                                insideRemark = false;
+                                endRemark();
                                 break;
                             }
                         }
                     }
-                    previous = c;
                     c = read();
                 } else if (c == '/') {
                     // single line comment
-                    insideRemark = true;
-                    blockRemark = false;
-                    if (!skipRemarks) {
-                        buff.append((char) last).append((char) c);
-                    }
+                    startRemark(false);
                     while (true) {
                         c = read();
                         if (c < 0) {
+                            clearRemark();
                             break;
                         }
-                        if (!skipRemarks) {
-                            buff.append((char) c);
-                        }
                         if (c == '\r' || c == '\n') {
-                            insideRemark = false;
+                            endRemark();
                             break;
                         }
                     }
-                    previous = c;
                     c = read();
-                } else {
-                    buff.append((char) last);
                 }
                 break;
             }
             case '-': {
-                previous = c;
-                int last = c;
                 c = read();
                 if (c == '-') {
                     // single line comment
-                    insideRemark = true;
-                    blockRemark = false;
-                    if (!skipRemarks) {
-                        buff.append((char) last).append((char) c);
-                    }
+                    startRemark(false);
                     while (true) {
                         c = read();
                         if (c < 0) {
+                            clearRemark();
                             break;
                         }
-                        if (!skipRemarks) {
-                            buff.append((char) c);
-                        }
                         if (c == '\r' || c == '\n') {
-                            insideRemark = false;
+                            endRemark();
                             break;
                         }
                     }
-                    previous = c;
                     c = read();
-                } else {
-                    buff.append((char) last);
                 }
                 break;
             }
             default: {
-                buff.append((char) c);
-                previous = c;
                 c = read();
             }
             }
         }
-        return buff.toString();
+        return new String(buffer, bufferStart, bufferPos - 1 - bufferStart);
+    }
+
+    private void startRemark(boolean block) {
+        blockRemark = block;
+        remarkStart = bufferPos - 2;
+        insideRemark = true;
+    }
+
+    private void endRemark() {
+        clearRemark();
+        insideRemark = false;
+    }
+
+    private void clearRemark() {
+        if (skipRemarks) {
+            Arrays.fill(buffer, remarkStart, bufferPos, ' ');
+        }
+    }
+
+    private int read() throws IOException {
+        if (bufferPos >= bufferEnd) {
+            return readBuffer();
+        }
+        return buffer[bufferPos++];
+    }
+
+    private int readBuffer() throws IOException {
+        if (endOfFile) {
+            return -1;
+        }
+        int keep = bufferPos - bufferStart;
+        if (keep > 0) {
+            char[] src = buffer;
+            if (keep + Constants.IO_BUFFER_SIZE > src.length) {
+                buffer = new char[src.length * 2];
+            }
+            System.arraycopy(src, bufferStart, buffer, 0, keep);
+        }
+        remarkStart -= bufferStart;
+        bufferStart = 0;
+        bufferPos = keep;
+        int len = reader.read(buffer, keep, Constants.IO_BUFFER_SIZE);
+        if (len == -1) {
+            // ensure bufferPos > bufferEnd
+            bufferEnd = -1024;
+            endOfFile = true;
+            // ensure the right number of characters are read
+            // in case the input buffer is still used
+            bufferPos++;
+            return -1;
+        }
+        bufferEnd = keep + len;
+        return buffer[bufferPos++];
     }
 
     /**

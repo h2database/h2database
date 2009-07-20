@@ -71,7 +71,7 @@ public class TestIndex extends TestBase {
         testHashIndex(true, false);
 
         testHashIndex(false, false);
-        // System.out.println("btree="+(System.currentTimeMillis()-time));
+        // System.out.println("b-tree="+(System.currentTimeMillis()-time));
         // time = System.currentTimeMillis();
         testHashIndex(true, true);
         testHashIndex(false, true);

@@ -294,6 +294,9 @@ java org.h2.test.TestAll timer
 
 /*
 
+check BufferedReader usage
+improve ScriptReader performance
+
 create a short documentation
 
 documentation: rolling review at roadmap.html: done

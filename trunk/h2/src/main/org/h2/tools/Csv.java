@@ -371,7 +371,6 @@ public class Csv implements SimpleRowSource {
         return inputBuffer[inputBufferPos++];
     }
 
-
     private String readValue() throws IOException {
         endOfLine = false;
         inputBufferStart = inputBufferPos;

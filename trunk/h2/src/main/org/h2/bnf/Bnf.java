@@ -6,7 +6,6 @@
  */
 package org.h2.bnf;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -81,7 +80,6 @@ public class Bnf {
     }
 
     private void parse(Reader csv) throws SQLException, IOException {
-        csv = new BufferedReader(csv);
         Rule functions = null;
         statements = New.arrayList();
         ResultSet rs = Csv.getInstance().read(csv, null);

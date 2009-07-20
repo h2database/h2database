@@ -6,7 +6,6 @@
  */
 package org.h2.server.pg;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -29,7 +28,6 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
-
 import org.h2.constant.SysProperties;
 import org.h2.engine.ConnectionInfo;
 import org.h2.jdbc.JdbcConnection;
@@ -608,7 +606,7 @@ public class PgServerThread implements Runnable {
             } catch (IOException e) {
                 throw Message.convertIOException(e, "Can not read pg_catalog resource");
             }
-            ScriptReader reader = new ScriptReader(new BufferedReader(r));
+            ScriptReader reader = new ScriptReader(r);
             while (true) {
                 String sql = reader.readStatement();
                 if (sql == null) {

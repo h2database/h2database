@@ -8,7 +8,6 @@ package org.h2.tools;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,12 +24,12 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
-import org.h2.util.StringCache;
 
 /**
  * A facility to read from and write to CSV (comma separated values) files.
@@ -40,7 +39,6 @@ import org.h2.util.StringCache;
 public class Csv implements SimpleRowSource {
 
     private String streamCharset = SysProperties.FILE_ENCODING;
-    private int bufferSize = 8 * 1024;
     private String[] columnNames;
     private char fieldSeparatorRead = ',';
     private char commentLineStart = '#';
@@ -52,8 +50,11 @@ public class Csv implements SimpleRowSource {
     private String nullString = "";
     private String fileName;
     private Reader input;
+    private char[] inputBuffer;
+    private int inputBufferPos;
+    private int inputBufferStart = -1;
+    private int inputBufferEnd;
     private Writer output;
-    private int back;
     private boolean endOfLine, endOfFile;
 
     private Csv() {
@@ -229,7 +230,7 @@ public class Csv implements SimpleRowSource {
         if (output == null) {
             try {
                 OutputStream out = FileUtils.openFileOutputStream(fileName, false);
-                out = new BufferedOutputStream(out, bufferSize);
+                out = new BufferedOutputStream(out, Constants.IO_BUFFER_SIZE);
                 output = new BufferedWriter(new OutputStreamWriter(out, streamCharset));
             } catch (SQLException e) {
                 close();
@@ -250,7 +251,6 @@ public class Csv implements SimpleRowSource {
                 if (escapeCharacter != 0) {
                     if (fieldDelimiter != 0) {
                         output.write(fieldDelimiter);
-
                     }
                     output.write(escape(s));
                     if (fieldDelimiter != 0) {
@@ -290,14 +290,14 @@ public class Csv implements SimpleRowSource {
         if (input == null) {
             try {
                 InputStream in = FileUtils.openFileInputStream(fileName);
-                in = new BufferedInputStream(in, bufferSize);
+                in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
                 input = new InputStreamReader(in, streamCharset);
-                input = new BufferedReader(input);
             } catch (IOException e) {
                 close();
                 throw e;
             }
         }
+        inputBuffer = new char[Constants.IO_BUFFER_SIZE * 2];
         if (columnNames == null) {
             readHeader();
         }
@@ -317,132 +317,149 @@ public class Csv implements SimpleRowSource {
                 }
             } else {
                 list.add(v);
+                if (endOfLine) {
+                    break;
+                }
             }
         }
         columnNames = new String[list.size()];
         list.toArray(columnNames);
     }
 
-    private void pushBack(int ch) {
-        back = ch;
+    private void pushBack() {
+        inputBufferPos--;
     }
 
     private int readChar() throws IOException {
-        int ch = back;
-        if (ch != -1) {
-            back = -1;
-            return ch;
-        } else if (endOfFile) {
+        if (inputBufferPos >= inputBufferEnd) {
+            return readBuffer();
+        }
+        return inputBuffer[inputBufferPos++];
+    }
+
+    private int readBuffer() throws IOException {
+        if (endOfFile) {
             return -1;
         }
-        ch = input.read();
-        if (ch < 0) {
-            endOfFile = true;
-            close();
+        int keep;
+        if (inputBufferStart >= 0) {
+            keep = inputBufferPos - inputBufferStart;
+            if (keep > 0) {
+                char[] src = inputBuffer;
+                if (keep + Constants.IO_BUFFER_SIZE > src.length) {
+                    inputBuffer = new char[src.length * 2];
+                }
+                System.arraycopy(src, inputBufferStart, inputBuffer, 0, keep);
+            }
+            inputBufferStart = 0;
+        } else {
+            keep = 0;
         }
-        return ch;
+        inputBufferPos = keep;
+        int len = input.read(inputBuffer, keep, Constants.IO_BUFFER_SIZE);
+        if (len == -1) {
+            // ensure bufferPos > bufferEnd
+            // even after pushBack
+            inputBufferEnd = -1024;
+            endOfFile = true;
+            // ensure the right number of characters are read
+            // in case the input buffer is still used
+            inputBufferPos++;
+            return -1;
+        }
+        inputBufferEnd = keep + len;
+        return inputBuffer[inputBufferPos++];
     }
+
 
     private String readValue() throws IOException {
         endOfLine = false;
-        String value = null;
-        outer:
+        inputBufferStart = inputBufferPos;
         while (true) {
             int ch = readChar();
-            if (ch < 0 || ch == '\r' || ch == '\n') {
-                endOfLine = true;
-                break;
-            } else if (ch == fieldSeparatorRead) {
-                // null
-                break;
-            } else if (ch <= ' ') {
-                // ignore spaces
-                continue;
-            } else if (ch == fieldDelimiter) {
+            if (ch == fieldDelimiter) {
                 // delimited value
-                StringBuilder buff = new StringBuilder();
                 boolean containsEscape = false;
+                inputBufferStart = inputBufferPos;
+                int sep;
                 while (true) {
                     ch = readChar();
-                    if (ch < 0) {
-                        value = buff.toString();
-                        break outer;
-                    } else if (ch == fieldDelimiter) {
+                    if (ch == fieldDelimiter) {
                         ch = readChar();
-                        if (ch == fieldDelimiter) {
-                            buff.append((char) ch);
-                        } else {
-                            pushBack(ch);
-                            break;
-                        }
-                    } else if (ch == escapeCharacter) {
-                        buff.append((char) ch);
-                        ch = readChar();
-                        if (ch < 0) {
+                        if (ch != fieldDelimiter) {
+                            sep = 2;
                             break;
                         }
                         containsEscape = true;
-                        buff.append((char) ch);
-                    } else {
-                        buff.append((char) ch);
+                    } else if (ch == escapeCharacter) {
+                        ch = readChar();
+                        if (ch < 0) {
+                            sep = 1;
+                            break;
+                        }
+                        containsEscape = true;
+                    } else if (ch < 0) {
+                        sep = 1;
+                        break;
                     }
                 }
-                value = buff.toString();
+                String s = new String(inputBuffer, inputBufferStart, inputBufferPos - inputBufferStart - sep);
                 if (containsEscape) {
-                    value = unEscape(value);
+                    s = unEscape(s);
                 }
+                inputBufferStart = -1;
                 while (true) {
-                    ch = readChar();
-                    if (ch < 0) {
+                    if (ch == fieldSeparatorRead) {
                         break;
-                    } else if (ch == fieldSeparatorRead) {
+                    } else if (ch == '\n' || ch < 0 || ch == '\r') {
+                        endOfLine = true;
                         break;
                     } else if (ch == ' ' || ch == '\t') {
                         // ignore
-                    } else if (ch == '\r' || ch == '\n') {
-                        pushBack(ch);
-                        endOfLine = true;
-                        break;
                     } else {
-                        pushBack(ch);
+                        pushBack();
                         break;
                     }
+                    ch = readChar();
                 }
-                break;
+                return s;
+            } else if (ch == '\n' || ch < 0 || ch == '\r') {
+                endOfLine = true;
+                return null;
+            } else if (ch == fieldSeparatorRead) {
+                // null
+                return null;
+            } else if (ch <= ' ') {
+                // ignore spaces
+                continue;
             } else if (ch == commentLineStart) {
                 // comment until end of line
+                inputBufferStart = -1;
                 while (true) {
                     ch = readChar();
-                    if (ch < 0 || ch == '\r' || ch == '\n') {
+                    if (ch == '\n' || ch < 0 || ch == '\r') {
                         break;
                     }
                 }
                 endOfLine = true;
-                break;
+                return null;
             } else {
                 // un-delimited value
-                StringBuilder buff = new StringBuilder();
-                buff.append((char) ch);
                 while (true) {
                     ch = readChar();
                     if (ch == fieldSeparatorRead) {
                         break;
-                    } else if (ch == '\r' || ch == '\n') {
-                        pushBack(ch);
+                    } else if (ch == '\n' || ch < 0 || ch == '\r') {
                         endOfLine = true;
                         break;
-                    } else if (ch < 0) {
-                        break;
                     }
-                    buff.append((char) ch);
                 }
+                String s = new String(inputBuffer, inputBufferStart, inputBufferPos - inputBufferStart - 1);
+                inputBufferStart = -1;
                 // check un-delimited value for nullString
-                value = readNull(buff.toString().trim());
-                break;
+                return readNull(s.trim());
             }
         }
-        // save memory
-        return StringCache.get(value);
     }
 
     private String readNull(String s) {
@@ -456,7 +473,10 @@ public class Csv implements SimpleRowSource {
         while (true) {
             int idx = s.indexOf(escapeCharacter, start);
             if (idx < 0) {
-                break;
+                idx = s.indexOf(fieldDelimiter, start);
+                if (idx < 0) {
+                    break;
+                }
             }
             if (chars == null) {
                 chars = s.toCharArray();
@@ -486,11 +506,11 @@ public class Csv implements SimpleRowSource {
             while (true) {
                 String v = readValue();
                 if (v == null) {
-                    if (endOfFile && i == 0) {
-                        return null;
-                    }
                     if (endOfLine) {
                         if (i == 0) {
+                            if (endOfFile) {
+                                return null;
+                            }
                             // empty line
                             continue;
                         }
@@ -499,6 +519,9 @@ public class Csv implements SimpleRowSource {
                 }
                 if (i < row.length) {
                     row[i++] = v;
+                }
+                if (endOfLine) {
+                    break;
                 }
             }
         } catch (IOException e) {

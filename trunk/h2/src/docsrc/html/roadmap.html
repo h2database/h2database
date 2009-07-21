@@ -82,6 +82,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>CHECK: find out what makes CHECK=TRUE slow, move to CHECK2
 </li><li>Improve recovery: improve code for log recovery problems (less try/catch)
 </li><li>Index usage for (ID, NAME)=(1, 'Hi'); document
+</li><li>Make DDL (Data Definition) operations transactional
 </li><li>Suggestion: include Jetty as Servlet Container (like LAMP)
 </li><li>Trace shipping to server
 </li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP)
@@ -226,7 +227,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Benchmark: add a graph to show how databases scale (performance/database size)
 </li><li>Implement a SQLData interface to map your data over to a custom object
 </li><li>In the MySQL and PostgreSQL mode, use lower case identifiers by default (DatabaseMetaData.storesLowerCaseIdentifiers = true)
-</li><li>Make DDL (Data Definition) operations transactional
 </li><li>Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString')
 </li><li>Support multiple directories (on different hard drives) for the same database
 </li><li>Server protocol: use challenge response authentication, but client sends hash(user+password) encrypted with response

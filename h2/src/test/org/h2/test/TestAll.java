@@ -294,6 +294,8 @@ java org.h2.test.TestAll timer
 
 /*
 
+better document that ddl statements commit
+
 create a short documentation
 
 documentation: rolling review at roadmap.html: done

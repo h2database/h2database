@@ -2303,7 +2303,7 @@ Returns the ASCII value of the first character in the string.
 ASCII('Hi')
 "
 "Functions (String)","BIT_LENGTH","
-BIT_LENGTH(string): int
+BIT_LENGTH(string): long
 ","
 Returns the number of bits in a string. For BLOB, CLOB, BYTES and JAVA_OBJECT,
 the precision is used. Each character needs 16 bits.
@@ -2312,7 +2312,7 @@ BIT_LENGTH(NAME)
 "
 
 "Functions (String)","LENGTH","
-{LENGTH | CHAR_LENGTH | CHARACTER_LENGTH}(string): int
+{LENGTH | CHAR_LENGTH | CHARACTER_LENGTH}(string): long
 ","
 Returns the number of characters in a string. For BLOB, CLOB, BYTES and
 JAVA_OBJECT, the precision is used.
@@ -2321,7 +2321,7 @@ LENGTH(NAME)
 "
 
 "Functions (String)","OCTET_LENGTH","
-OCTET_LENGTH(string): int
+OCTET_LENGTH(string): long
 ","
 Returns the number of bytes in a string. For BLOB, CLOB, BYTES and JAVA_OBJECT,
 the precision is used. Each character needs 2 bytes.

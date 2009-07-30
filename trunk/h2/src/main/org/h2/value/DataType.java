@@ -100,7 +100,7 @@ public class DataType {
     public int sqlType;
 
     /**
-     * The SQL type name.
+     * The Java class name.
      */
     public String jdbc;
 
@@ -113,7 +113,7 @@ public class DataType {
     /**
      * The maximum supported precision.
      */
-    public int maxPrecision;
+    public long maxPrecision;
 
     /**
      * The lowest possible scale.
@@ -314,13 +314,13 @@ public class DataType {
                 new String[]{"OTHER", "OBJECT", "JAVA_OBJECT"},
                 8
         );
-        add(Value.BLOB, Types.BLOB, "Bytes",
-                createString(false),
+        add(Value.BLOB, Types.BLOB, "Blob",
+                createLob(),
                 new String[]{"BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "IMAGE", "OID"},
                 10
         );
-        add(Value.CLOB, Types.CLOB, "String",
-                createString(true),
+        add(Value.CLOB, Types.CLOB, "Clob",
+                createLob(),
                 new String[]{"CLOB", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT", "NTEXT", "NCLOB"},
                 10
         );
@@ -423,6 +423,13 @@ public class DataType {
         dataType.defaultPrecision = Integer.MAX_VALUE;
         dataType.defaultDisplaySize = Integer.MAX_VALUE;
         return dataType;
+    }
+
+    private static DataType createLob() {
+        DataType t = createString(true);
+        t.maxPrecision = Long.MAX_VALUE;
+        t.defaultPrecision = Long.MAX_VALUE;
+        return t;
     }
 
     /**

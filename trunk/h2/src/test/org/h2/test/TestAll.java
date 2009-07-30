@@ -38,6 +38,7 @@ import org.h2.test.db.TestMemoryUsage;
 import org.h2.test.db.TestMultiConn;
 import org.h2.test.db.TestMultiDimension;
 import org.h2.test.db.TestMultiThread;
+import org.h2.test.db.TestMultiThreadedKernel;
 import org.h2.test.db.TestOpenClose;
 import org.h2.test.db.TestOptimizations;
 import org.h2.test.db.TestOutOfMemory;
@@ -115,7 +116,6 @@ import org.h2.test.unit.TestFtp;
 import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestMathUtils;
-import org.h2.test.unit.TestMultiThreadedKernel;
 import org.h2.test.unit.TestOverflow;
 import org.h2.test.unit.TestPattern;
 import org.h2.test.unit.TestPgServer;
@@ -295,6 +295,12 @@ java org.h2.test.TestAll timer
 /*
 
 better document that ddl statements commit
+"This command commits an open transaction."
+PostgreSQL compatibility: 2001-02-03 08:20:31+01 (:minutes optional)
+Support Java 6 DatabaseMetaData.getColumns, getProcedures, getProcedureColumns, getTables.
+MySQL compatibility for "show columns from test"
+
+-------------
 
 create a short documentation
 
@@ -478,6 +484,7 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
         new TestMultiConn().runTest(this);
         new TestMultiDimension().runTest(this);
         new TestMultiThread().runTest(this);
+        new TestMultiThreadedKernel().runTest(this);
         new TestOpenClose().runTest(this);
         new TestOptimizations().runTest(this);
         new TestOutOfMemory().runTest(this);

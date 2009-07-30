@@ -224,7 +224,9 @@ public class Session extends SessionWithState {
     public void removeLocalTempTable(Table table) throws SQLException {
         modificationId++;
         localTempTables.remove(table.getName());
-        table.removeChildrenAndResources(this);
+        synchronized (database) {
+            table.removeChildrenAndResources(this);
+        }
     }
 
     /**
@@ -272,7 +274,9 @@ public class Session extends SessionWithState {
     public void removeLocalTempTableIndex(Index index) throws SQLException {
         if (localTempTableIndexes != null) {
             localTempTableIndexes.remove(index.getName());
-            index.removeChildrenAndResources(this);
+            synchronized (database) {
+                index.removeChildrenAndResources(this);
+            }
         }
     }
 
@@ -328,7 +332,9 @@ public class Session extends SessionWithState {
     public void removeLocalTempTableConstraint(Constraint constraint) throws SQLException {
         if (localTempTableConstraints != null) {
             localTempTableConstraints.remove(constraint.getName());
-            constraint.removeChildrenAndResources(this);
+            synchronized (database) {
+                constraint.removeChildrenAndResources(this);
+            }
         }
     }
 
@@ -647,14 +653,16 @@ public class Session extends SessionWithState {
 
     private void cleanTempTables(boolean closeSession) throws SQLException {
         if (localTempTables != null && localTempTables.size() > 0) {
-            for (Table table : ObjectArray.newInstance(localTempTables.values())) {
-                if (closeSession || table.getOnCommitDrop()) {
-                    modificationId++;
-                    table.setModified();
-                    localTempTables.remove(table.getName());
-                    table.removeChildrenAndResources(this);
-                } else if (table.getOnCommitTruncate()) {
-                    table.truncate(this);
+            synchronized (database) {
+                for (Table table : ObjectArray.newInstance(localTempTables.values())) {
+                    if (closeSession || table.getOnCommitDrop()) {
+                        modificationId++;
+                        table.setModified();
+                        localTempTables.remove(table.getName());
+                        table.removeChildrenAndResources(this);
+                    } else if (table.getOnCommitTruncate()) {
+                        table.truncate(this);
+                    }
                 }
             }
         }

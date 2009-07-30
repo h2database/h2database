@@ -495,7 +495,9 @@ public class Schema extends DbObjectBase {
      */
     public TableData createTable(String tableName, int id, ObjectArray<Column> columns, boolean persistIndexes, boolean persistData, boolean clustered, int headPos, Session session)
             throws SQLException {
-        return new TableData(this, tableName, id, columns, persistIndexes, persistData, clustered, headPos, session);
+        synchronized (database) {
+            return new TableData(this, tableName, id, columns, persistIndexes, persistData, clustered, headPos, session);
+        }
     }
 
     /**
@@ -515,7 +517,9 @@ public class Schema extends DbObjectBase {
      */
     public TableLink createTableLink(int id, String tableName, String driver, String url, String user, String password,
             String originalSchema, String originalTable, boolean emitUpdates, boolean force) throws SQLException {
-        return new TableLink(this, id, tableName, driver, url, user, password, originalSchema, originalTable, emitUpdates, force);
+        synchronized (database) {
+            return new TableLink(this, id, tableName, driver, url, user, password, originalSchema, originalTable, emitUpdates, force);
+        }
     }
 
 }

@@ -682,24 +682,26 @@ public class DiskFile implements CacheWriter {
 
     private void reuseSpace() throws SQLException {
         if (SysProperties.REUSE_SPACE_QUICKLY) {
-            if (potentiallyFreePages.size() >= SysProperties.REUSE_SPACE_AFTER) {
-                Session[] sessions = database.getSessions(true);
-                int oldest = 0;
-                for (int i = 0; i < sessions.length; i++) {
-                    int deleteId = sessions[i].getLastUncommittedDelete();
-                    if (oldest == 0 || (deleteId != 0 && deleteId < oldest)) {
-                        oldest = deleteId;
-                    }
-                }
-                for (Iterator<Integer> it = potentiallyFreePages.iterator(); it.hasNext();) {
-                    int p = it.next();
-                    if (oldest == 0) {
-                        if (isPageFree(p)) {
-                            // the page may not be free: the storage
-                            // could have re-used it using the storage local free list
-                            setPageOwner(p, FREE_PAGE);
+            synchronized (potentiallyFreePages) {
+                if (potentiallyFreePages.size() >= SysProperties.REUSE_SPACE_AFTER) {
+                    Session[] sessions = database.getSessions(true);
+                    int oldest = 0;
+                    for (int i = 0; i < sessions.length; i++) {
+                        int deleteId = sessions[i].getLastUncommittedDelete();
+                        if (oldest == 0 || (deleteId != 0 && deleteId < oldest)) {
+                            oldest = deleteId;
                         }
-                        it.remove();
+                    }
+                    for (Iterator<Integer> it = potentiallyFreePages.iterator(); it.hasNext();) {
+                        int p = it.next();
+                        if (oldest == 0) {
+                            if (isPageFree(p)) {
+                                // the page may not be free: the storage
+                                // could have re-used it using the storage local free list
+                                setPageOwner(p, FREE_PAGE);
+                            }
+                            it.remove();
+                        }
                     }
                 }
             }
@@ -733,7 +735,9 @@ public class DiskFile implements CacheWriter {
             setPageOwner(page, FREE_PAGE);
         } else {
             if (SysProperties.REUSE_SPACE_QUICKLY) {
-                potentiallyFreePages.add(page);
+                synchronized (potentiallyFreePages) {
+                    potentiallyFreePages.add(page);
+                }
             }
         }
     }
@@ -794,7 +798,9 @@ public class DiskFile implements CacheWriter {
         if (storageId >= 0) {
             database.getStorage(storageId, this).addPage(page);
             if (SysProperties.REUSE_SPACE_QUICKLY) {
-                potentiallyFreePages.remove(page);
+                synchronized (potentiallyFreePages) {
+                    potentiallyFreePages.remove(page);
+                }
             }
         } else {
             firstFreePage = Math.min(firstFreePage, page);

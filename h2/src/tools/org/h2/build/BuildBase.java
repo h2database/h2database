@@ -735,7 +735,7 @@ public class BuildBase {
             result = (Integer) invoke(compile, instance, new Object[] { array });
         } catch (Exception e) {
             e.printStackTrace();
-            result = exec("javac", args);
+            result = exec("javac", new StringList(array));
         } finally {
             System.setErr(old);
         }

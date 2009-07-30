@@ -50,6 +50,7 @@ import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.store.DiskFile;
 import org.h2.tools.Csv;
+import org.h2.util.MathUtils;
 import org.h2.util.ObjectArray;
 import org.h2.util.Resources;
 import org.h2.util.StatementBuilder;
@@ -888,7 +889,7 @@ public class MetaTable extends Table {
                         // DATA_TYPE
                         String.valueOf(t.sqlType),
                         // PRECISION
-                        String.valueOf(t.maxPrecision),
+                        String.valueOf(MathUtils.convertLongToInt(t.maxPrecision)),
                         // PREFIX
                         t.prefix,
                         // SUFFIX

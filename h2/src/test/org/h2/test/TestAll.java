@@ -30,6 +30,7 @@ import org.h2.test.db.TestFullText;
 import org.h2.test.db.TestFunctionOverload;
 import org.h2.test.db.TestFunctions;
 import org.h2.test.db.TestIndex;
+import org.h2.test.db.TestLargeBlob;
 import org.h2.test.db.TestLinkedTable;
 import org.h2.test.db.TestListener;
 import org.h2.test.db.TestLob;
@@ -431,6 +432,7 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
         test();
 
         smallLog = false;
+        networked = false;
         ssl = false;
         logMode = 0;
         traceLevelFile = 0;
@@ -476,6 +478,7 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
         new TestFunctions().runTest(this);
         new TestFunctionOverload().runTest(this);
         new TestIndex().runTest(this);
+        new TestLargeBlob().runTest(this);
         new TestLinkedTable().runTest(this);
         new TestListener().runTest(this);
         new TestLob().runTest(this);

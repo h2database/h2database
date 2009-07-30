@@ -25,6 +25,7 @@ import org.h2.compress.Compressor;
 import org.h2.compress.LZFInputStream;
 import org.h2.compress.LZFOutputStream;
 import org.h2.constant.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.message.Message;
 import org.h2.util.MemoryUtils;
 import org.h2.util.StringUtils;
@@ -35,7 +36,7 @@ import org.h2.util.StringUtils;
 public class CompressTool {
 
     private static final CompressTool INSTANCE = new CompressTool();
-    private static final int MAX_BUFFER_SIZE = 64 * 1024;
+    private static final int MAX_BUFFER_SIZE = 3 * Constants.IO_BUFFER_SIZE_COMPRESS;
     private byte[] cachedBuffer;
 
     private CompressTool() {

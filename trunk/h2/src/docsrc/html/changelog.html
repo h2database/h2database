@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Parsing SQL script files is now faster.
+<ul><li>Multi-threaded kernel: creating and dropping temporary database objects
+    and the potentially free pages list was not correctly synchronized. Thanks a lot
+    to Eric Faulhaber for the test case and patch!
+</li><li>Parsing SQL script files is now faster.
 </li><li>CSV reading is now faster.
 </li><li>SimpleResultSet.newInstance(SimpleRowSource rs) did not work.
 </li></ul>

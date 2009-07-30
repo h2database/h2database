@@ -201,7 +201,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("SYS_GUID", RANDOM_UUID, 0, Value.UUID);
         // string
         addFunction("ASCII", ASCII, 1, Value.INT);
-        addFunction("BIT_LENGTH", BIT_LENGTH, 1, Value.INT);
+        addFunction("BIT_LENGTH", BIT_LENGTH, 1, Value.LONG);
         addFunction("CHAR", CHAR, 1, Value.STRING);
         addFunction("CHR", CHAR, 1, Value.STRING);
         addFunction("CHAR_LENGTH", CHAR_LENGTH, 1, Value.INT);
@@ -213,14 +213,14 @@ public class Function extends Expression implements FunctionCall {
         addFunctionWithNull("INSERT", INSERT, 4, Value.STRING);
         addFunction("LCASE", LCASE, 1, Value.STRING);
         addFunction("LEFT", LEFT, 2, Value.STRING);
-        addFunction("LENGTH", LENGTH, 1, Value.INT);
+        addFunction("LENGTH", LENGTH, 1, Value.LONG);
         // 2 or 3 arguments
         addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INT);
         // same as LOCATE with 2 arguments
         addFunction("POSITION", LOCATE, 2, Value.INT);
         addFunction("INSTR", INSTR, VAR_ARGS, Value.INT);
         addFunction("LTRIM", LTRIM, VAR_ARGS, Value.STRING);
-        addFunction("OCTET_LENGTH", OCTET_LENGTH, 1, Value.INT);
+        addFunction("OCTET_LENGTH", OCTET_LENGTH, 1, Value.LONG);
         addFunction("RAWTOHEX", RAWTOHEX, 1, Value.STRING);
         addFunction("REPEAT", REPEAT, 2, Value.STRING);
         addFunctionWithNull("REPLACE", REPLACE, VAR_ARGS, Value.STRING);
@@ -524,17 +524,17 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case BIT_LENGTH:
-            result = ValueInt.get(16 * length(v0));
+            result = ValueLong.get(16 * length(v0));
             break;
         case CHAR:
             result = ValueString.get(String.valueOf((char) v0.getInt()));
             break;
         case CHAR_LENGTH:
         case LENGTH:
-            result = ValueInt.get(length(v0));
+            result = ValueLong.get(length(v0));
             break;
         case OCTET_LENGTH:
-            result = ValueInt.get(2 * length(v0));
+            result = ValueLong.get(2 * length(v0));
             break;
         case CONCAT: {
             result = ValueNull.INSTANCE;
@@ -1157,13 +1157,13 @@ public class Function extends Expression implements FunctionCall {
         return database.getSchema(schemaName).getSequence(sequenceName);
     }
 
-    private int length(Value v) {
+    private long length(Value v) {
         switch (v.getType()) {
         case Value.BLOB:
         case Value.CLOB:
         case Value.BYTES:
         case Value.JAVA_OBJECT:
-            return (int) v.getPrecision();
+            return v.getPrecision();
         default:
             return v.getString().length();
         }

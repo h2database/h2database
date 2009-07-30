@@ -398,7 +398,7 @@ public abstract class TestBase {
      *
      * @param s the message
      */
-    protected void println(String s) {
+    public void println(String s) {
         long time = System.currentTimeMillis() - start;
         printlnWithTime(time, getClass().getName() + " " + s);
     }

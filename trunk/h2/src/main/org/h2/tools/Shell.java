@@ -50,7 +50,7 @@ public class Shell extends Tool {
      * <table>
      * <tr><td>[-help] or [-?]</td>
      * <td>Print the list of options</td></tr>
-     * <tr><td>[-url &lt;url&gt;]</td>
+     * <tr><td>[-url "&lt;url&gt;"]</td>
      * <td>The database URL (jdbc:h2:...)</td></tr>
      * <tr><td>[-user &lt;user&gt;]</td>
      * <td>The user name</td></tr>

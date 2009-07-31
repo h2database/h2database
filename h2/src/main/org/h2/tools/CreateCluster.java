@@ -28,9 +28,9 @@ public class CreateCluster extends Tool {
      * <table>
      * <tr><td>[-help] or [-?]</td>
      * <td>Print the list of options</td></tr>
-     * <tr><td>[-urlSource &lt;url&gt;]</td>
+     * <tr><td>[-urlSource "&lt;url&gt;"]</td>
      * <td>The database URL of the source database (jdbc:h2:...)</td></tr>
-     * <tr><td>[-urlTarget &lt;url&gt;]</td>
+     * <tr><td>[-urlTarget "&lt;url&gt;"]</td>
      * <td>The database URL of the target database (jdbc:h2:...)</td></tr>
      * <tr><td>[-user &lt;user&gt;]</td>
      * <td>The user name (default: sa)</td></tr>

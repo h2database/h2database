@@ -3076,8 +3076,10 @@ ROWNUM(): int
 Returns the number of the current row. This function is supported for SELECT
 statements, as well as for DELETE and UPDATE. The first row has the row number
 1, and is calculated before ordering and grouping the result set.
+To get the row number after ordering and grouping, use a subquery.
 ","
-SELECT ROWNUM(), * FROM TEST
+SELECT ROWNUM(), * FROM TEST;
+SELECT ROWNUM(), * FROM (SELECT * FROM TEST ORDER BY NAME);
 "
 
 "Functions (System)","SCHEMA","

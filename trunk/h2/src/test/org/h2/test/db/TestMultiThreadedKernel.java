@@ -16,7 +16,15 @@ import org.h2.util.JdbcUtils;
  * A multi-threaded test case.
  */
 public class TestMultiThreadedKernel extends TestBase {
+
+    /**
+     * Stop the current thread.
+     */
     volatile boolean stop;
+
+    /**
+     * The exception that occurred in the thread.
+     */
     Exception exception;
 
     /**

@@ -298,8 +298,10 @@ java org.h2.test.TestAll timer
 better document that ddl statements commit
 "This command commits an open transaction."
 PostgreSQL compatibility: 2001-02-03 08:20:31+01 (:minutes optional)
-Support Java 6 DatabaseMetaData.getColumns, getProcedures, getProcedureColumns, getTables.
+Support Java 6 DatabaseMetaData.getColumns, getProcedures,
+getProcedureColumns, getTables.
 MySQL compatibility for "show columns from test"
+RollbackTest
 
 -------------
 

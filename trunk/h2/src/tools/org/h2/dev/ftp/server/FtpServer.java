@@ -115,7 +115,7 @@ public class FtpServer extends Tool implements Service {
      * <td>Use encrypted (SSL) connections</td></tr>
      * <tr><td>[-tcpPassword &lt;pwd&gt;]</td>
      * <td>The password for shutting down a TCP server</td></tr>
-     * <tr><td>[-tcpShutdown &lt;url&gt;]</td>
+     * <tr><td>[-tcpShutdown "&lt;url&gt;"]</td>
      * <td>Stop the TCP server; example: tcp://localhost:9094</td></tr>
      * <tr><td>[-tcpShutdownForce]</td>
      * <td>Do not wait until all connections are closed</td></tr>

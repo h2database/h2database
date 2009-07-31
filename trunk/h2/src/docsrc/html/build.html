@@ -185,9 +185,21 @@ If you like to provide patches, please consider the following guidelines to simp
 </li><li>Provide a change log entry (<code>src/docsrc/html/changelog.html</code>).
 </li><li>Verify the spelling using <code>build spellcheck</code>. If required
     add the new words to <code>src/tools/org/h2/build/doc/dictionary.txt</code>.
+</li><li>Run the src/installer/buildRelease to find and fix formatting errors.
 </li><li>Verify the formatting using <code>build docs</code> and <code>build javadoc</code>.
 </li><li>Submit patches as .patch files (compressed if big). To create a patch using Eclipse, use Team / Create Patch.
 </li></ul>
+<p>
+For legal reasons, patches need to be public in the form of an email to the
+<a href="http://groups.google.com/group/h2-database">group</a>, or in the form
+of an <a href="http://code.google.com/p/h2database/issues/list">issue report or attachment</a>.
+Significant contributions need to include the following statement:
+</p>
+<pre>
+"I wrote the code, it's mine, and I'm contributing it to H2 for distribution
+multiple-licensed under the H2 License, version 1.0, and under the
+Eclipse Public License, version 1.0 (http://h2database.com/html/license.html)."
+</pre>
 
 <br /><a name="automated"></a>
 <h2>Automated Build</h2>

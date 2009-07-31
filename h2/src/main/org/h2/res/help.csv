@@ -980,15 +980,15 @@ ASCII(string): int
 ","
 Returns the ASCII value of the first character in the string."
 "Functions (String)","BIT_LENGTH","
-BIT_LENGTH(string): int
+BIT_LENGTH(string): long
 ","
 Returns the number of bits in a string."
 "Functions (String)","LENGTH","
-{LENGTH | CHAR_LENGTH | CHARACTER_LENGTH}(string): int
+{LENGTH | CHAR_LENGTH | CHARACTER_LENGTH}(string): long
 ","
 Returns the number of characters in a string."
 "Functions (String)","OCTET_LENGTH","
-OCTET_LENGTH(string): int
+OCTET_LENGTH(string): long
 ","
 Returns the number of bytes in a string."
 "Functions (String)","CHAR","

@@ -60,7 +60,7 @@ class PageScanCursor implements Cursor {
                     continue;
                 }
                 row = delta.next();
-                if (!row.getDeleted() || row.getSessionId() == session.getId()) {
+                if (!row.isDeleted() || row.getSessionId() == session.getId()) {
                     continue;
                 }
             } else {

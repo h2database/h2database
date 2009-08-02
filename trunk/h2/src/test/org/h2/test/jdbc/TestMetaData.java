@@ -41,6 +41,9 @@ public class TestMetaData extends TestBase {
 
     public void test() throws SQLException {
         deleteDb("metaData");
+
+        testTempTable();
+
         conn = getConnection("metaData");
 
         testColumnLobMeta();
@@ -206,7 +209,7 @@ public class TestMetaData extends TestBase {
         // meta.getUDTs()
 
         conn.close();
-        testTempTable();
+
         deleteDb("metaData");
 
     }

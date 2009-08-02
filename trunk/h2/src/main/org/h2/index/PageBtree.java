@@ -107,7 +107,7 @@ abstract class PageBtree extends Record {
             SearchRow row = getRow(i);
             comp = index.compareRows(row, compare);
             if (comp == 0 && add) {
-                if (index.indexType.getUnique()) {
+                if (index.indexType.isUnique()) {
                     if (!index.containsNullAndAllowMultipleNull(compare)) {
                         throw index.getDuplicateKeyException();
                     }

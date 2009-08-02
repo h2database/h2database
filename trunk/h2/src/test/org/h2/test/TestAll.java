@@ -349,10 +349,10 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
             test.runTests();
             TestPerformance.main(new String[]{ "-init", "-db", "1"});
 
-            System.setProperty(SysProperties.H2_PAGE_STORE, "false");
-            test.pageStore = false;
-            test.runTests();
-            TestPerformance.main(new String[]{ "-init", "-db", "1"});
+//            System.setProperty(SysProperties.H2_PAGE_STORE, "false");
+//            test.pageStore = false;
+//            test.runTests();
+//            TestPerformance.main(new String[]{ "-init", "-db", "1"});
         }
         System.out.println(TestBase.formatTime(System.currentTimeMillis() - time) + " total");
     }
@@ -436,16 +436,18 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
         smallLog = false;
         networked = false;
         ssl = false;
-        logMode = 0;
+        logMode = 1;
         traceLevelFile = 0;
-        cipher = "AES";
         test();
 
         big = false;
-        networked = false;
-        logMode = 1;
-        cipher = null;
+        logMode = 0;
+        cipher = "AES";
+        test();
+
         mvcc = true;
+        cipher = null;
+        logMode = 1;
         test();
 
         memory = true;

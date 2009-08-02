@@ -44,7 +44,8 @@ public class ResultTempTable implements ResultExternal {
         columns.add(column);
         int tableId = session.getDatabase().allocateObjectId(true, true);
         String tableName = "TEMP_RESULT_SET_" + tableId;
-        table = schema.createTable(tableName, tableId, columns, false, true, false, Index.EMPTY_HEAD, session);
+        table = schema.createTable(tableName, tableId, columns, true, false, true, false, Index.EMPTY_HEAD, session);
+        session.addLocalTempTable(table);
         int indexId = session.getDatabase().allocateObjectId(true, false);
         IndexColumn indexColumn = new IndexColumn();
         indexColumn.column = column;
@@ -57,6 +58,8 @@ public class ResultTempTable implements ResultExternal {
         } else {
             index = new BtreeIndex(session, table, indexId, tableName, indexCols, indexType, Index.EMPTY_HEAD);
         }
+        index.setTemporary(true);
+        session.addLocalTempTableIndex(index);
         table.getIndexes().add(index);
     }
 
@@ -95,10 +98,7 @@ public class ResultTempTable implements ResultExternal {
     public void close() {
         try {
             if (table != null) {
-                index.remove(session);
-                ObjectArray<Index> indexes = table.getIndexes();
-                indexes.remove(indexes.indexOf(index));
-                table.removeChildrenAndResources(session);
+                session.removeLocalTempTable(table);
             }
         } catch (SQLException e) {
             throw Message.convertToInternal(e);

@@ -66,11 +66,12 @@ public class TableData extends Table implements RecordReader {
     private boolean containsLargeObject;
 
     public TableData(Schema schema, String tableName, int id, ObjectArray<Column> columns,
-            boolean persistIndexes, boolean persistData, boolean clustered, int headPos, Session session) throws SQLException {
+            boolean temporary, boolean persistIndexes, boolean persistData, boolean clustered, int headPos, Session session) throws SQLException {
         super(schema, id, tableName, persistIndexes, persistData);
         Column[] cols = new Column[columns.size()];
         columns.toArray(cols);
         setColumns(cols);
+        setTemporary(temporary);
         this.clustered = clustered;
         if (!clustered) {
             if (database.isPageStoreEnabled() && persistData && database.isPersistent()) {
@@ -159,7 +160,7 @@ public class TableData extends Table implements RecordReader {
 
     public Index getUniqueIndex() {
         for (Index idx : indexes) {
-            if (idx.getIndexType().getUnique()) {
+            if (idx.getIndexType().isUnique()) {
                 return idx;
             }
         }
@@ -172,24 +173,24 @@ public class TableData extends Table implements RecordReader {
 
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             int headPos, String indexComment) throws SQLException {
-        if (indexType.getPrimaryKey()) {
+        if (indexType.isPrimaryKey()) {
             for (IndexColumn c : cols) {
                 Column column = c.column;
-                if (column.getNullable()) {
+                if (column.isNullable()) {
                     throw Message.getSQLException(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
                 }
                 column.setPrimaryKey(true);
             }
         }
         Index index;
-        if (isPersistIndexes() && indexType.getPersistent()) {
+        if (isPersistIndexes() && indexType.isPersistent()) {
             if (database.isPageStoreEnabled()) {
                 index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, headPos, session);
             } else {
                 index = new BtreeIndex(session, this, indexId, indexName, cols, indexType, headPos);
             }
         } else {
-            if (indexType.getHash()) {
+            if (indexType.isHash()) {
                 index = new HashIndex(this, indexId, indexName, cols, indexType);
             } else {
                 index = new TreeIndex(this, indexId, indexName, cols, indexType);
@@ -237,11 +238,11 @@ public class TableData extends Table implements RecordReader {
                 throw e;
             }
         }
-        boolean temporary = getTemporary();
+        boolean temporary = isTemporary();
         index.setTemporary(temporary);
         if (index.getCreateSQL() != null) {
             index.setComment(indexComment);
-            if (temporary && !getGlobalTemporary()) {
+            if (temporary && !isGlobalTemporary()) {
                 session.addLocalTempTableIndex(index);
             } else {
                 database.addSchemaObject(session, index);
@@ -252,7 +253,7 @@ public class TableData extends Table implements RecordReader {
                 // need to update, because maybe the index is rebuilt at startup,
                 // and so the head pos may have changed, which needs to be stored now.
                 // addSchemaObject doesn't update the sys table at startup
-                if (index.getIndexType().getPersistent() && !database.isReadOnly()
+                if (index.getIndexType().isPersistent() && !database.isReadOnly()
                         && !database.getLog().containsInDoubtTransactions()) {
                     // can not save anything in the log file if it contains in-doubt transactions
                     database.update(session, index);
@@ -302,7 +303,7 @@ public class TableData extends Table implements RecordReader {
 
     public void removeRow(Session session, Row row) throws SQLException {
         if (database.isMultiVersion()) {
-            if (row.getDeleted()) {
+            if (row.isDeleted()) {
                 throw Message.getSQLException(ErrorCode.CONCURRENT_UPDATE_1, getName());
             }
             int old = row.getSessionId();
@@ -547,7 +548,7 @@ public class TableData extends Table implements RecordReader {
 
     public String getCreateSQL() {
         StatementBuilder buff = new StatementBuilder("CREATE ");
-        if (getTemporary()) {
+        if (isTemporary()) {
             if (globalTemporary) {
                 buff.append("GLOBAL ");
             } else {
@@ -569,7 +570,7 @@ public class TableData extends Table implements RecordReader {
             buff.append(column.getCreateSQL());
         }
         buff.append("\n)");
-        if (!getTemporary() && !isPersistIndexes() && !isPersistData()) {
+        if (!isTemporary() && !isPersistIndexes() && !isPersistData()) {
             buff.append("\nNOT PERSISTENT");
         }
         return buff.toString();
@@ -687,7 +688,7 @@ public class TableData extends Table implements RecordReader {
         this.globalTemporary = globalTemporary;
     }
 
-    public boolean getGlobalTemporary() {
+    public boolean isGlobalTemporary() {
         return globalTemporary;
     }
 

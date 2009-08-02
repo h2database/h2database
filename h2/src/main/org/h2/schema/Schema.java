@@ -339,7 +339,7 @@ public class Schema extends DbObjectBase {
      */
     public String getUniqueConstraintName(Session session, Table table) {
         HashMap<String, Constraint> tableConstraints;
-        if (table.getTemporary() && !table.getGlobalTemporary()) {
+        if (table.isTemporary() && !table.isGlobalTemporary()) {
             tableConstraints = session.getLocalTempTableConstraints();
         } else {
             tableConstraints = constraints;
@@ -357,7 +357,7 @@ public class Schema extends DbObjectBase {
      */
     public String getUniqueIndexName(Session session, Table table, String prefix) {
         HashMap<String, Index> tableIndexes;
-        if (table.getTemporary() && !table.getGlobalTemporary()) {
+        if (table.isTemporary() && !table.isGlobalTemporary()) {
             tableIndexes = session.getLocalTempTableIndexes();
         } else {
             tableIndexes = indexes;
@@ -486,17 +486,18 @@ public class Schema extends DbObjectBase {
      * @param tableName the table name
      * @param id the object id
      * @param columns the column list
-     * @param persistIndexes if indexes of the table should be persistent
-     * @param persistData if data of the table should be persistent
-     * @param clustered if a clustered table should be created
+     * @param temporary whether this is a temporary table
+     * @param persistIndexes whether indexes of the table should be persistent
+     * @param persistData whether data of the table should be persistent
+     * @param clustered whether a clustered table should be created
      * @param headPos the position (page number) of the head
      * @param session the session
      * @return the created {@link TableData} object
      */
-    public TableData createTable(String tableName, int id, ObjectArray<Column> columns, boolean persistIndexes, boolean persistData, boolean clustered, int headPos, Session session)
+    public TableData createTable(String tableName, int id, ObjectArray<Column> columns, boolean temporary, boolean persistIndexes, boolean persistData, boolean clustered, int headPos, Session session)
             throws SQLException {
         synchronized (database) {
-            return new TableData(this, tableName, id, columns, persistIndexes, persistData, clustered, headPos, session);
+            return new TableData(this, tableName, id, columns, temporary, persistIndexes, persistData, clustered, headPos, session);
         }
     }
 

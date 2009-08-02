@@ -91,7 +91,7 @@ public class Row extends Record implements SearchRow {
         if (version != 0) {
             buff.append(" v:" + version);
         }
-        if (getDeleted()) {
+        if (isDeleted()) {
             buff.append(" deleted");
         }
         buff.append(" */ ");

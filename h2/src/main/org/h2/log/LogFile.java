@@ -535,7 +535,7 @@ public class LogFile {
         DataPage buff = rowBuff;
         buff.reset();
         buff.writeInt(0);
-        if (record.getDeleted()) {
+        if (record.isDeleted()) {
             buff.writeByte((byte) 'D');
         } else {
             buff.writeByte((byte) 'I');

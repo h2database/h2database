@@ -1008,7 +1008,7 @@ public class Session extends SessionWithState {
         this.undoLogEnabled = b;
     }
 
-    public boolean getUndoLogEnabled() {
+    public boolean isUndoLogEnabled() {
         return undoLogEnabled;
     }
 
@@ -1053,7 +1053,7 @@ public class Session extends SessionWithState {
     /**
      * Remember the result set and close it as soon as the transaction is
      * committed (if it needs to be closed). This is done to delete temporary
-     * files as soon as possible.
+     * files as soon as possible, and free object ids of temporary tables.
      *
      * @param result the temporary result set
      */

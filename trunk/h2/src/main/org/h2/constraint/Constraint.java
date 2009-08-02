@@ -52,7 +52,7 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable<
     public Constraint(Schema schema, int id, String name, Table table) {
         initSchemaObjectBase(schema, id, name, Trace.CONSTRAINT);
         this.table = table;
-        this.setTemporary(table.getTemporary());
+        this.setTemporary(table.isTemporary());
     }
 
     /**

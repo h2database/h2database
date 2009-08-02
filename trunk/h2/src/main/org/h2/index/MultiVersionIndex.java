@@ -289,8 +289,8 @@ public class MultiVersionIndex implements Index {
         return base.getName();
     }
 
-    public boolean getTemporary() {
-        return base.getTemporary();
+    public boolean isTemporary() {
+        return base.isTemporary();
     }
 
     public void rename(String newName) throws SQLException {

@@ -127,7 +127,7 @@ public class Optimizer {
                 double costPart = -1.0;
                 int bestPart = -1;
                 for (int j = 0; j < filters.length; j++) {
-                    if (!filters[j].getUsed()) {
+                    if (!filters[j].isUsed()) {
                         if (i == filters.length - 1) {
                             bestPart = j;
                             break;

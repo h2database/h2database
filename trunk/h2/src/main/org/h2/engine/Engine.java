@@ -83,7 +83,7 @@ public class Engine {
                         }
                     }
                 }
-                if (opened && (user == null || !user.getAdmin())) {
+                if (opened && (user == null || !user.isAdmin())) {
                     // reset - because the user is not an admin, and has no
                     // right to listen to exceptions
                     database.setEventListener(null);

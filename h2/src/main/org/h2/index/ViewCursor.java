@@ -45,7 +45,7 @@ public class ViewCursor implements Cursor {
     public boolean next() throws SQLException {
         boolean res = result.next();
         if (!res) {
-            result.reset();
+            result.close();
             current = null;
             return false;
         }

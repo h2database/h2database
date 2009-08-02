@@ -73,13 +73,12 @@ public class TestScript extends TestBase {
             return;
         }
         alwaysReconnect = false;
-        testScript();
         if (!config.memory) {
             if (config.big) {
                 alwaysReconnect = true;
-                testScript();
             }
         }
+        testScript();
         deleteDb("script");
     }
 
@@ -192,9 +191,9 @@ public class TestScript extends TestBase {
                     }
                     count += processPrepared(sql, prep, param);
                 }
-                writeResult("update count: " + count, null);
+                writeResult(sql, "update count: " + count, null);
             } catch (SQLException e) {
-                writeException(e);
+                writeException(sql, e);
             }
         }
         write("");
@@ -237,7 +236,7 @@ public class TestScript extends TestBase {
             }
             return prep.getUpdateCount();
         } catch (SQLException e) {
-            writeException(e);
+            writeException(sql, e);
             return 0;
         }
     }
@@ -248,10 +247,10 @@ public class TestScript extends TestBase {
                 writeResultSet(sql, stat.getResultSet());
             } else {
                 int count = stat.getUpdateCount();
-                writeResult(count < 1 ? "ok" : "update count: " + count, null);
+                writeResult(sql, count < 1 ? "ok" : "update count: " + count, null);
             }
         } catch (SQLException e) {
-            writeException(e);
+            writeException(sql, e);
         }
         return 0;
     }
@@ -287,8 +286,8 @@ public class TestScript extends TestBase {
             result.add(row);
         }
         rs.close();
-        writeResult(format(head, max), null);
-        writeResult(format(null, max), null);
+        writeResult(sql, format(head, max), null);
+        writeResult(sql, format(null, max), null);
         String[] array = new String[result.size()];
         for (int i = 0; i < result.size(); i++) {
             array[i] = format(result.get(i), max);
@@ -298,9 +297,9 @@ public class TestScript extends TestBase {
         }
         int i = 0;
         for (; i < array.length; i++) {
-            writeResult(array[i], null);
+            writeResult(sql, array[i], null);
         }
-        writeResult((ordered ? "rows (ordered): " : "rows: ") + i, null);
+        writeResult(sql, (ordered ? "rows (ordered): " : "rows: ") + i, null);
     }
 
     private String format(String[] row, int[] max) {
@@ -327,16 +326,19 @@ public class TestScript extends TestBase {
         return buff.toString();
     }
 
-    private void writeException(SQLException e) throws Exception {
-        writeResult("exception", e);
+    private void writeException(String sql, SQLException e) throws Exception {
+        writeResult(sql, "exception", e);
     }
 
-    private void writeResult(String s, SQLException e) throws Exception {
+    private void writeResult(String sql, String s, SQLException e) throws Exception {
         assertKnownException(e);
         s = ("> " + s).trim();
         String compare = readLine();
         if (compare != null && compare.startsWith(">")) {
             if (!compare.equals(s)) {
+                if (alwaysReconnect && sql.toUpperCase().startsWith("EXPLAIN")) {
+                    return;
+                }
                 errors.append("line: ");
                 errors.append(line);
                 errors.append("\n" + "exp: ");

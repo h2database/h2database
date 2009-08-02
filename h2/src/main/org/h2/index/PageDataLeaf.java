@@ -9,6 +9,7 @@ package org.h2.index;
 import java.lang.ref.SoftReference;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.Row;
@@ -115,6 +116,9 @@ class PageDataLeaf extends PageData {
         } else {
             readAllRows();
             x = find(row.getPos());
+            if (SysProperties.CHECK && x < keys.length && keys[x] == row.getPos()) {
+                throw Message.throwInternalError("" + row.getPos());
+            }
             System.arraycopy(offsets, 0, newOffsets, 0, x);
             System.arraycopy(keys, 0, newKeys, 0, x);
             System.arraycopy(rows, 0, newRows, 0, x);

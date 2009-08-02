@@ -733,24 +733,35 @@ public class PageStore implements CacheWriter {
         openMetaIndex();
         readMetaData();
         log.recover(PageLog.RECOVERY_STAGE_REDO);
+        boolean setReadOnly = false;
         if (!database.isReadOnly()) {
             if (log.getInDoubtTransactions().size() == 0) {
                 log.recoverEnd();
                 switchLog();
             } else {
-                database.setReadOnly(true);
+                setReadOnly = true;
             }
         }
-        PageScanIndex index = (PageScanIndex) metaObjects.get(0);
-        if (index == null) {
+        PageScanIndex systemTable = (PageScanIndex) metaObjects.get(0);
+        if (systemTable == null) {
             systemTableHeadPos = Index.EMPTY_HEAD;
         } else {
-            systemTableHeadPos = index.getHeadPos();
+            systemTableHeadPos = systemTable.getHeadPos();
         }
         for (Index openIndex : metaObjects.values()) {
+            if (openIndex.getTable().isTemporary()) {
+                openIndex.remove(systemSession);
+                this.removeMetaIndex(openIndex, systemSession);
+            }
             openIndex.close(systemSession);
         }
         recoveryRunning = false;
+        writeBack();
+        // clear the cache because it contains pages with closed indexes
+        cache.clear();
+        if (setReadOnly) {
+            database.setReadOnly(true);
+        }
         trace.debug("log recover done");
     }
 
@@ -844,7 +855,7 @@ public class PageStore implements CacheWriter {
         metaSchema = new Schema(database, 0, "", null, true);
         int headPos = PAGE_ID_META_ROOT;
         metaTable = new TableData(metaSchema, "PAGE_INDEX",
-                META_TABLE_ID, cols, true, true, false, headPos, systemSession);
+                META_TABLE_ID, cols, false, true, true, false, headPos, systemSession);
         metaIndex = (PageScanIndex) metaTable.getScanIndex(
                 systemSession);
         metaObjects = New.hashMap();
@@ -892,8 +903,9 @@ public class PageStore implements CacheWriter {
                 Column col = new Column("C" + i, Value.INT);
                 columnArray.add(col);
             }
-            TableData table = new TableData(metaSchema, "T" + id, id, columnArray, true, true, false, headPos, session);
             String[] ops = StringUtils.arraySplit(options, ',', true);
+            boolean temp = ops.length == 3 && ops[2].equals("temp");
+            TableData table = new TableData(metaSchema, "T" + id, id, columnArray, temp, true, true, false, headPos, session);
             CompareMode mode = CompareMode.getInstance(ops[0], Integer.parseInt(ops[1]));
             table.setCompareMode(mode);
             meta = table.getScanIndex(session);
@@ -948,6 +960,9 @@ public class PageStore implements CacheWriter {
         Table table = index.getTable();
         CompareMode mode = table.getCompareMode();
         String options = mode.getName()+ "," + mode.getStrength();
+        if (table.isTemporary()) {
+            options += ",temp";
+        }
         Row row = metaTable.getTemplateRow();
         row.setValue(0, ValueInt.get(index.getId()));
         row.setValue(1, ValueInt.get(type));
@@ -967,9 +982,13 @@ public class PageStore implements CacheWriter {
      */
     public void removeMeta(Index index, Session session) throws SQLException {
         if (!recoveryRunning) {
-            Row row = metaIndex.getRow(session, index.getId() + 1);
-            metaIndex.remove(session, row);
+            removeMetaIndex(index, session);
         }
+    }
+
+    private void removeMetaIndex(Index index, Session session) throws SQLException {
+        Row row = metaIndex.getRow(session, index.getId() + 1);
+        metaIndex.remove(session, row);
     }
 
     /**

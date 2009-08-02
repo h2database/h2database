@@ -31,8 +31,29 @@ public class TestPageStore extends TestBase {
     }
 
     public void test() throws Exception {
+        testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testUniqueIndex() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("pageStore");
+        Connection conn = getConnection("pageStore");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT UNIQUE)");
+        stat.execute("INSERT INTO TEST VALUES(1)");
+        conn.close();
+        conn = getConnection("pageStore");
+        try {
+            conn.createStatement().execute("INSERT INTO TEST VALUES(1)");
+            fail();
+        } catch (SQLException e) {
+            assertKnownException(e);
+        }
+        conn.close();
     }
 
     private void testCreateIndexLater() throws SQLException {

@@ -196,7 +196,7 @@ public interface DbObject {
      *
      * @return true if is temporary
      */
-    boolean getTemporary();
+    boolean isTemporary();
 
     /**
      * Tell this object that it is temporary or not.

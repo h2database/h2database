@@ -50,7 +50,7 @@ public class ScanIndex extends BaseIndex implements RowIndex {
             sessionRowCount = New.hashMap();
         }
         tableData = table;
-        if (!database.isPersistent() || id < 0 || !indexType.getPersistent()) {
+        if (!database.isPersistent() || id < 0 || !indexType.isPersistent()) {
             return;
         }
         this.storage = database.getStorage(table, id, true);

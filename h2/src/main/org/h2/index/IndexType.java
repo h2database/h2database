@@ -93,7 +93,7 @@ public class IndexType {
      *
      * @return true if it is a hash index
      */
-    public boolean getHash() {
+    public boolean isHash() {
         return hash;
     }
 
@@ -102,7 +102,7 @@ public class IndexType {
      *
      * @return true if it is persistent
      */
-    public boolean getPersistent() {
+    public boolean isPersistent() {
         return persistent;
     }
 
@@ -111,7 +111,7 @@ public class IndexType {
      *
      * @return true if it references a primary key constraint
      */
-    public boolean getPrimaryKey() {
+    public boolean isPrimaryKey() {
         return primaryKey;
     }
 
@@ -120,7 +120,7 @@ public class IndexType {
      *
      * @return true if it is
      */
-    public boolean getUnique() {
+    public boolean isUnique() {
         return unique;
     }
 
@@ -153,7 +153,7 @@ public class IndexType {
      *
      * @return true if it is
      */
-    public boolean getScan() {
+    public boolean isScan() {
         return scan;
     }
 

@@ -78,7 +78,7 @@ public class BtreeNode extends BtreePage {
             SearchRow row = getData(i);
             int comp = index.compareRows(row, newRow);
             if (comp == 0) {
-                if (index.indexType.getUnique()) {
+                if (index.indexType.isUnique()) {
                     if (!index.containsNullAndAllowMultipleNull(newRow)) {
                         throw index.getDuplicateKeyException();
                     }
@@ -187,7 +187,7 @@ public class BtreeNode extends BtreePage {
         IntArray children = new IntArray();
         splitPoint++;
         int max = pageData.size();
-        if (SysProperties.CHECK && index.getDatabase().getLogIndexChanges() && !getDeleted()) {
+        if (SysProperties.CHECK && index.getDatabase().getLogIndexChanges() && !isDeleted()) {
             // page must have been deleted already before calling
             // getSplitPoint()
             Message.throwInternalError();

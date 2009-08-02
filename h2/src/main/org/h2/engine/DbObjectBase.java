@@ -155,7 +155,7 @@ public abstract class DbObjectBase implements DbObject {
         setModified();
     }
 
-    public boolean getTemporary() {
+    public boolean isTemporary() {
         return temporary;
     }
 

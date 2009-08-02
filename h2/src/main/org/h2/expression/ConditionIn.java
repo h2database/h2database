@@ -114,7 +114,7 @@ public class ConditionIn extends Condition {
             if (areAllValues(independent)) {
                 if (left instanceof ExpressionColumn) {
                     Column column = ((ExpressionColumn) left).getColumn();
-                    boolean nullable = column.getNullable();
+                    boolean nullable = column.isNullable();
                     CompareMode mode = session.getDatabase().getCompareMode();
                     for (int i = 0; i < values.size(); i++) {
                         Expression e = values.get(i);

@@ -60,7 +60,7 @@ public class BtreeLeaf extends BtreePage {
             SearchRow row = pageData.get(i);
             int comp = index.compareRows(row, newRow);
             if (comp == 0) {
-                if (index.indexType.getUnique()) {
+                if (index.indexType.isUnique()) {
                     if (!index.containsNullAndAllowMultipleNull(newRow)) {
                         throw index.getDuplicateKeyException();
                     }

@@ -41,7 +41,7 @@ public class User extends RightOwner {
         this.admin = admin;
     }
 
-    public boolean getAdmin() {
+    public boolean isAdmin() {
         return admin;
     }
 
@@ -117,7 +117,7 @@ public class User extends RightOwner {
             return;
         }
         if (!isRightGrantedRecursive(table, rightMask)) {
-            if (table.getTemporary() && !table.getGlobalTemporary()) {
+            if (table.isTemporary() && !table.isGlobalTemporary()) {
                 // the owner has all rights on local temporary tables
                 return;
             }

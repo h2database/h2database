@@ -207,7 +207,7 @@ public class ConstraintReferential extends Constraint {
 
     public void setRefTable(Table refTable) {
         this.refTable = refTable;
-        if (refTable.getTemporary()) {
+        if (refTable.isTemporary()) {
             setTemporary(true);
         }
     }

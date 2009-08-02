@@ -637,7 +637,7 @@ public class Database implements DataHandler {
         if (pageStore != null) {
             headPos = pageStore.getSystemTableHeadPos();
         }
-        meta = mainSchema.createTable("SYS", 0, cols, persistent, persistent, false, headPos, systemSession);
+        meta = mainSchema.createTable("SYS", 0, cols, false, persistent, persistent, false, headPos, systemSession);
         IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
         metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(
                 false, false), Index.EMPTY_HEAD, null);
@@ -709,13 +709,13 @@ public class Database implements DataHandler {
             for (Table obj : getAllTablesAndViews()) {
                 if (obj instanceof TableView) {
                     TableView view = (TableView) obj;
-                    if (view.getInvalid()) {
+                    if (view.isInvalid()) {
                         try {
                             view.recompile(session);
                         } catch (SQLException e) {
                             // ignore
                         }
-                        if (!view.getInvalid()) {
+                        if (!view.isInvalid()) {
                             recompileSuccessful = true;
                         }
                     }
@@ -728,7 +728,7 @@ public class Database implements DataHandler {
         for (Table obj : getAllTablesAndViews()) {
             if (obj instanceof TableView) {
                 TableView view = (TableView) obj;
-                if (!view.getInvalid()) {
+                if (!view.isInvalid()) {
                     try {
                         view.recompile(systemSession);
                     } catch (SQLException e) {
@@ -810,7 +810,7 @@ public class Database implements DataHandler {
 
     private synchronized void addMeta(Session session, DbObject obj) throws SQLException {
         int id = obj.getId();
-        if (id > 0 && !starting && !obj.getTemporary()) {
+        if (id > 0 && !starting && !obj.isTemporary()) {
             Row r = meta.getTemplateRow();
             MetaRecord rec = new MetaRecord(obj);
             rec.setRecord(r);
@@ -918,7 +918,7 @@ public class Database implements DataHandler {
         HashMap<String, DbObject> map = getMap(obj.getType());
         if (obj.getType() == DbObject.USER) {
             User user = (User) obj;
-            if (user.getAdmin() && systemUser.getName().equals(Constants.DBA_NAME)) {
+            if (user.isAdmin() && systemUser.getName().equals(Constants.DBA_NAME)) {
                 systemUser.rename(user.getName());
             }
         }
@@ -1304,7 +1304,6 @@ public class Database implements DataHandler {
             if ((i & 1) != (dataFile ? 1 : 0)) {
                 i++;
             }
-
             while (storageMap.get(i) != null || objectIds.get(i)) {
                 i++;
                 if ((i & 1) != (dataFile ? 1 : 0)) {
@@ -1677,21 +1676,21 @@ public class Database implements DataHandler {
         int type = obj.getType();
         if (type == DbObject.TABLE_OR_VIEW) {
             Table table = (Table) obj;
-            if (table.getTemporary() && !table.getGlobalTemporary()) {
+            if (table.isTemporary() && !table.isGlobalTemporary()) {
                 session.removeLocalTempTable(table);
                 return;
             }
         } else if (type == DbObject.INDEX) {
             Index index = (Index) obj;
             Table table = index.getTable();
-            if (table.getTemporary() && !table.getGlobalTemporary()) {
+            if (table.isTemporary() && !table.isGlobalTemporary()) {
                 session.removeLocalTempTableIndex(index);
                 return;
             }
         } else if (type == DbObject.CONSTRAINT) {
             Constraint constraint = (Constraint) obj;
             Table table = constraint.getTable();
-            if (table.getTemporary() && !table.getGlobalTemporary()) {
+            if (table.isTemporary() && !table.isGlobalTemporary()) {
                 session.removeLocalTempTableConstraint(constraint);
                 return;
             }

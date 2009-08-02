@@ -204,7 +204,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
             int index = column.getColumnId();
             int mask = masks[index];
             if ((mask & IndexCondition.EQUALITY) == IndexCondition.EQUALITY) {
-                if (i == columns.length - 1 && getIndexType().getUnique()) {
+                if (i == columns.length - 1 && getIndexType().isUnique()) {
                     cost = getLookupCost(rowCount) + 1;
                     break;
                 }
@@ -319,7 +319,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     public String getCreateSQLForCopy(Table table, String quotedName) {
         StringBuilder buff = new StringBuilder("CREATE ");
         buff.append(indexType.getSQL());
-        if (!indexType.getPrimaryKey()) {
+        if (!indexType.isPrimaryKey()) {
             buff.append(' ').append(quotedName);
         }
         buff.append(" ON ").append(table.getSQL());

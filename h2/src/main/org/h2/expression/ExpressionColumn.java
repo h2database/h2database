@@ -229,7 +229,7 @@ public class ExpressionColumn extends Expression {
     }
 
     public int getNullable() {
-        return column.getNullable() ? Column.NULLABLE : Column.NOT_NULLABLE;
+        return column.isNullable() ? Column.NULLABLE : Column.NOT_NULLABLE;
     }
 
     public boolean isEverything(ExpressionVisitor visitor) {

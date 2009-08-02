@@ -113,7 +113,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         Sequence sequence = oldColumn == null ? null : oldColumn.getSequence();
         switch (type) {
         case NOT_NULL: {
-            if (!oldColumn.getNullable()) {
+            if (!oldColumn.isNullable()) {
                 // no change
                 break;
             }
@@ -123,7 +123,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             break;
         }
         case NULL: {
-            if (oldColumn.getNullable()) {
+            if (oldColumn.isNullable()) {
                 // no change
                 break;
             }
@@ -147,9 +147,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
             oldColumn.setSequence(null);
             oldColumn.setDefaultExpression(session, null);
             oldColumn.setConvertNullToDefault(false);
-            if (oldColumn.getNullable() && !newColumn.getNullable()) {
+            if (oldColumn.isNullable() && !newColumn.isNullable()) {
                 checkNoNullValues();
-            } else if (!oldColumn.getNullable() && newColumn.getNullable()) {
+            } else if (!oldColumn.isNullable() && newColumn.isNullable()) {
                 checkNullable();
             }
             convertToIdentityIfRequired(newColumn);
@@ -185,7 +185,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     }
 
     private void convertToIdentityIfRequired(Column c) {
-        if (c.getAutoIncrement()) {
+        if (c.isAutoIncrement()) {
             c.setOriginalSQL("IDENTITY");
         }
     }
@@ -232,13 +232,14 @@ public class AlterTableAlterColumn extends SchemaCommand {
             newColumns.remove(position);
             newColumns.add(position, newColumn);
         }
+
         // create a table object in order to get the SQL statement
         // can't just use this table, because most column objects are 'shared'
         // with the old table
         // still need a new id because using 0 would mean: the new table tries
         // to use the rows of the table 0 (the meta table)
         int id = db.allocateObjectId(true, true);
-        TableData newTable = getSchema().createTable(tempName, id, newColumns, table.isPersistIndexes(), table.isPersistData(), false, Index.EMPTY_HEAD, session);
+        TableData newTable = getSchema().createTable(tempName, id, newColumns, table.isTemporary(), table.isPersistIndexes(), table.isPersistData(), false, Index.EMPTY_HEAD, session);
         newTable.setComment(table.getComment());
         StringBuilder buff = new StringBuilder();
         buff.append(newTable.getCreateSQL());
@@ -263,8 +264,12 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
         buff.append(" FROM ").append(table.getSQL());
         String newTableSQL = buff.toString();
+        String newTableName = newTable.getName();
+        Schema newTableSchema = newTable.getSchema();
+        newTable.removeChildrenAndResources(session);
+
         execute(newTableSQL, true);
-        newTable = (TableData) newTable.getSchema().getTableOrView(session, newTable.getName());
+        newTable = (TableData) newTableSchema.getTableOrView(session, newTableName);
         ObjectArray<String> triggers = ObjectArray.newInstance();
         for (DbObject child : table.getChildren()) {
             if (child instanceof Sequence) {
@@ -384,7 +389,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 continue;
             }
             IndexType indexType = index.getIndexType();
-            if (indexType.getPrimaryKey() || indexType.getHash()) {
+            if (indexType.isPrimaryKey() || indexType.isHash()) {
                 throw Message.getSQLException(ErrorCode.COLUMN_IS_PART_OF_INDEX_1, index.getSQL());
             }
         }

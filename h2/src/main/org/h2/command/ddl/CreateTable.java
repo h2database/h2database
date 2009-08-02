@@ -131,7 +131,7 @@ public class CreateTable extends SchemaCommand {
         }
         ObjectArray<Sequence> sequences = ObjectArray.newInstance();
         for (Column c : columns) {
-            if (c.getAutoIncrement()) {
+            if (c.isAutoIncrement()) {
                 int objId = getObjectId(true, true);
                 c.convertAutoIncrementToSequence(session, getSchema(), objId, temporary);
             }
@@ -141,9 +141,8 @@ public class CreateTable extends SchemaCommand {
             }
         }
         int id = getObjectId(true, true);
-        TableData table = getSchema().createTable(tableName, id, columns, persistIndexes, persistData, clustered, headPos, session);
+        TableData table = getSchema().createTable(tableName, id, columns, temporary, persistIndexes, persistData, clustered, headPos, session);
         table.setComment(comment);
-        table.setTemporary(temporary);
         table.setGlobalTemporary(globalTemporary);
         if (temporary && !globalTemporary) {
             if (onCommitDrop) {
@@ -167,7 +166,7 @@ public class CreateTable extends SchemaCommand {
                 command.update();
             }
             if (asQuery != null) {
-                boolean old = session.getUndoLogEnabled();
+                boolean old = session.isUndoLogEnabled();
                 try {
                     session.setUndoLogEnabled(false);
                     Insert insert = null;

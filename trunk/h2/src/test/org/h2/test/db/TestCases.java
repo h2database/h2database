@@ -17,7 +17,6 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Random;
-
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
@@ -36,6 +35,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testLargeRollback();
         testConstraintAlterTable();
         testJoinWithView();
         testLobDecrypt();
@@ -70,6 +70,18 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testLargeRollback() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        conn.createStatement().execute("set MAX_MEMORY_UNDO 8");
+        conn.createStatement().execute("create table test(id number primary key)");
+        conn.setAutoCommit(false);
+        conn.createStatement().execute("insert into test select x from system_range(1, 10)");
+        conn.createStatement().execute("delete from test");
+        conn.rollback();
+        conn.close();
     }
 
     private void testConstraintAlterTable() throws SQLException {

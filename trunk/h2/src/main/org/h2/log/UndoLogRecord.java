@@ -100,6 +100,7 @@ public class UndoLogRecord {
                 }
             }
             try {
+                row.setDeleted(false);
                 table.removeRow(session, row);
             } catch (SQLException e) {
                 if (session.getDatabase().getLockMode() == Constants.LOCK_MODE_OFF
@@ -117,6 +118,7 @@ public class UndoLogRecord {
                 table.addRow(session, row);
                 // reset session id, otherwise other session think
                 // that this row was inserted by this session
+                commit();
                 row.commit();
             } catch (SQLException e) {
                 if (session.getDatabase().getLockMode() == Constants.LOCK_MODE_OFF
@@ -134,6 +136,15 @@ public class UndoLogRecord {
     }
 
     /**
+     * Go to the right position in the file.
+     *
+     * @param file the file
+     */
+    void seek(FileStore file) throws SQLException {
+        file.seek(filePos * Constants.FILE_BLOCK_SIZE);
+    }
+
+    /**
      * Save the row in the file using the data page as a buffer.
      *
      * @param buff the data page that is used as a buffer
@@ -143,6 +154,8 @@ public class UndoLogRecord {
         buff.reset();
         buff.writeInt(0);
         buff.writeInt(operation);
+        buff.writeByte(row.isDeleted() ? (byte) 1 : (byte) 0);
+        buff.writeInt(row.getSessionId());
         buff.writeInt(row.getColumnCount());
         for (int i = 0; i < row.getColumnCount(); i++) {
             buff.writeValue(row.getValue(i));
@@ -154,15 +167,6 @@ public class UndoLogRecord {
         file.write(buff.getBytes(), 0, buff.length());
         row = null;
         state = STORED;
-    }
-
-    /**
-     * Go to the right position in the file.
-     *
-     * @param file the file
-     */
-    void seek(FileStore file) throws SQLException {
-        file.seek(filePos * Constants.FILE_BLOCK_SIZE);
     }
 
     /**
@@ -188,12 +192,16 @@ public class UndoLogRecord {
                 Message.throwInternalError("operation=" + operation + " op=" + op);
             }
         }
+        boolean deleted = buff.readByte() == 1;
+        int sessionId = buff.readInt();
         int columnCount = buff.readInt();
         Value[] values = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {
             values[i] = buff.readValue();
         }
         row = new Row(values, 0);
+        row.setDeleted(deleted);
+        row.setSessionId(sessionId);
         state = IN_MEMORY_READ_POS;
     }
 
@@ -223,5 +231,16 @@ public class UndoLogRecord {
      */
     public Row getRow() {
         return row;
+    }
+
+    /**
+     * Change the state from IN_MEMORY to IN_MEMORY_READ_POS. This method is
+     * called if a later record was read from the temporary file, and therefore
+     * the position could have changed.
+     */
+    void invalidatePos() {
+        if (this.state == IN_MEMORY) {
+            state = IN_MEMORY_READ_POS;
+        }
     }
 }

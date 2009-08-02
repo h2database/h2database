@@ -85,6 +85,10 @@ public class UndoLog {
                     }
                 }
             }
+            for (int k = 0; k < i; k++) {
+                UndoLogRecord e = records.get(k);
+                e.invalidatePos();
+            }
             first.seek(file);
         }
         return entry;

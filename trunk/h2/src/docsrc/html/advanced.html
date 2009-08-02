@@ -62,8 +62,8 @@ Advanced Topics
     Settings Read from System Properties</a><br />
 <a href="#server_bind_address">
     Setting the Server Bind Address</a><br />
-<a href="#limitations">
-    Limitations</a><br />
+<a href="#limits_limitations">
+    Limits and Limitations</a><br />
 <a href="#glossary_links">
     Glossary and Links</a><br />
 
@@ -1118,20 +1118,26 @@ This setting is used for both regular server sockets and for SSL server sockets.
 IPv4 and IPv6 address formats are supported.
 </p>
 
-<br /><a name="limitations"></a>
-<h2>Limitations</h2>
+<br /><a name="limits_limitations"></a>
+<h2>Limits and Limitations</h2>
 <p>
 This database has the following known limitations:
 </p>
 <ul>
-<li>The maximum file size is currently 256 GB for the data, and 256 GB for the index.
-This number is excluding BLOB and CLOB data: every CLOB or BLOB can be up to 256 GB as well.
+<li>Database file size limits (excluding BLOB and CLOB data): 
+    With the default storage mechanism, the maximum file size is currently 256 GB for the data, and 256 GB for the index.
+    With the page store (experimental): 4 TB or higher.
+</li><li>BLOB and CLOB size limit: every CLOB or BLOB can be up to 256 GB.
 </li><li>The maximum file size for FAT or FAT32 file systems is 4 GB. That means when using FAT or FAT32,
 the limit is 4 GB for the data. This is the limitation of the file system. The database does provide a
 workaround for this problem, it is to use the file name prefix 'split:'. In that case files are split into
 files of 1 GB by default. An example database URL is:
 <code>jdbc:h2:split:~/test</code>.
-</li><li>There is a limit on the complexity of SQL statements.
+</li><li>The maximum number of rows per table is 2'147'483'648.
+</li><li>Main memory requirements: The larger the database, the more main memory is required. 
+    With the default storage mechanism, the minimum main memory required for a 12 GB database is around 240 MB.
+    With the page store (experimental), the minimum main memory required is much lower, around 1 MB for each 8 GB database file size.
+</li><li>Limit on the complexity of SQL statements.
 Statements of the following form will result in a stack overflow exception:
 <pre>
 SELECT * FROM DUAL WHERE X = 1
@@ -1139,9 +1145,14 @@ OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
 -- repeat previous line 500 times --
 </pre>
 </li><li>There is no limit for the following entities, except the memory and storage capacity:
-    maximum identifier length, maximum number of tables, maximum number of columns,
-    maximum number of indexes, maximum number of parameters,
-    maximum number of triggers, and maximum number of other database objects.
+    maximum identifier length (table name, column name, and so on);
+    maximum number of tables, columns, indexes, triggers, and other database objects;
+    maximum statement length, number of parameters per statement, tables per statement, expressions
+    in order by, group by, having, and so on;
+    maximum rows per query;
+    maximum columns per table, columns per index, indexes per table, lob columns per table, and so on;
+    maxium row length, index row length, select row length; 
+    maximum length of a varchar column, decimal column, literal in a statement.
 </li><li>For limitations on data types, see the documentation of the respective Java data type
     or the data type documentation of this database.
 </li></ul>

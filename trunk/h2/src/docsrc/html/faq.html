@@ -117,20 +117,7 @@ Example: jdbc:h2:file:C:/data/test
 <br /><a name="size_limit"></a>
 <h3>What is the Size Limit (Maximum Size) of a Database?</h3>
 <p>
-The theoretical limit is currently 256 GB for the data. This number is excluding BLOB and CLOB data:
-every CLOB or BLOB can be up to 256 GB as well. The size limit of the index data is 256 GB as well.
-</p>
-<p>
-The maximum number of rows per table is 2'147'483'648.
-</p>
-<p>
-The maximum file size for FAT or FAT32 file systems is usually 4 GB.
-The database does provide a workaround for this problem, it is to use the file
-name prefix 'split:'. See also Advanced / Limitations.
-</p>
-<p>
-The larger the database, the more main memory is required. Currently the minimum main memory required for a 12 GB database
-is around 240 MB.
+See <a href="advanced.html#limits_limitations">Limits and Limitations</a>.
 </p>
 
 <br /><a name="reliable"></a>

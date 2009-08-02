@@ -249,7 +249,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         }
         // parent relationship is already set with addConstraint
         constraint.setComment(comment);
-        if (table.getTemporary() && !table.getGlobalTemporary()) {
+        if (table.isTemporary() && !table.isGlobalTemporary()) {
             session.addLocalTempTableConstraint(constraint);
         } else {
             db.addSchemaObject(session, constraint);
@@ -305,7 +305,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     }
 
     private boolean canUseUniqueIndex(Index idx, Table table, IndexColumn[] cols) {
-        if (idx.getTable() != table || !idx.getIndexType().getUnique()) {
+        if (idx.getTable() != table || !idx.getIndexType().isUnique()) {
             return false;
         }
         Column[] indexCols = idx.getColumns();

@@ -3393,7 +3393,7 @@ public class Parser {
         int type = dataType.type;
         Column column = new Column(columnName, type, precision, scale, displaySize);
         if (templateColumn != null) {
-            column.setNullable(templateColumn.getNullable());
+            column.setNullable(templateColumn.isNullable());
             column.setDefaultExpression(session, templateColumn.getDefaultExpression());
             int selectivity = templateColumn.getSelectivity();
             if (selectivity != Constants.SELECTIVITY_DEFAULT) {
@@ -3774,8 +3774,7 @@ public class Parser {
             columns.add(new Column(c, Value.STRING));
         }
         int id = database.allocateObjectId(true, true);
-        recursiveTable = schema.createTable(tempViewName, id, columns, false, true, false, Index.EMPTY_HEAD, session);
-        recursiveTable.setTemporary(true);
+        recursiveTable = schema.createTable(tempViewName, id, columns, true, false, true, false, Index.EMPTY_HEAD, session);
         session.addLocalTempTable(recursiveTable);
         String querySQL = StringCache.getNew(sqlCommand.substring(parseIndex));
         read("AS");
@@ -4616,7 +4615,7 @@ public class Parser {
                     } else {
                         String columnName = readColumnIdentifier();
                         Column column = parseColumnForTable(columnName);
-                        if (column.getAutoIncrement() && column.getPrimaryKey()) {
+                        if (column.isAutoIncrement() && column.isPrimaryKey()) {
                             column.setPrimaryKey(false);
                             IndexColumn[] cols = new IndexColumn[]{new IndexColumn()};
                             cols[0].columnName = column.getName();

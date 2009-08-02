@@ -79,7 +79,7 @@ public abstract class Record extends CacheObject {
         this.sessionId = 0;
     }
 
-    public boolean getDeleted() {
+    public boolean isDeleted() {
         return deleted;
     }
 

@@ -94,7 +94,7 @@ public class UndoLogRecord {
                 state = IN_MEMORY;
             }
             if (session.getDatabase().getLockMode() == Constants.LOCK_MODE_OFF) {
-                if (row.getDeleted()) {
+                if (row.isDeleted()) {
                     // it might have been deleted by another thread
                     return;
                 }

@@ -47,7 +47,7 @@ public class TriggerObject extends SchemaObjectBase {
     public TriggerObject(Schema schema, int id, String name, Table table) {
         initSchemaObjectBase(schema, id, name, Trace.TRIGGER);
         this.table = table;
-        setTemporary(table.getTemporary());
+        setTemporary(table.isTemporary());
     }
 
     public void setBefore(boolean before) {
@@ -222,7 +222,7 @@ public class TriggerObject extends SchemaObjectBase {
         this.noWait = noWait;
     }
 
-    public boolean getNoWait() {
+    public boolean isNoWait() {
         return noWait;
     }
 
@@ -311,7 +311,7 @@ public class TriggerObject extends SchemaObjectBase {
      *
      * @return true if it is
      */
-    public boolean getBefore() {
+    public boolean isBefore() {
         return before;
     }
 

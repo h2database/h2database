@@ -57,7 +57,7 @@ public class RowList {
         buff.writeInt(r.getColumnCount());
         buff.writeInt(r.getPos());
         buff.writeInt(r.getVersion());
-        buff.writeInt(r.getDeleted() ? 1 : 0);
+        buff.writeInt(r.isDeleted() ? 1 : 0);
         buff.writeInt(r.getSessionId());
         buff.writeInt(r.getStorageId());
         for (int i = 0; i < r.getColumnCount(); i++) {

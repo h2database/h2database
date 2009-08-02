@@ -199,7 +199,7 @@ public class Storage {
     public void removeRecord(Session session, int pos) throws SQLException {
         checkOnePage();
         Record record = getRecord(session, pos);
-        if (SysProperties.CHECK && record.getDeleted()) {
+        if (SysProperties.CHECK && record.isDeleted()) {
             Message.throwInternalError("duplicate delete " + pos);
         }
         record.setDeleted(true);

@@ -417,7 +417,7 @@ public abstract class Table extends SchemaObjectBase {
         while (sequences != null && sequences.size() > 0) {
             Sequence sequence = sequences.get(0);
             sequences.remove(0);
-            if (!getTemporary()) {
+            if (!isTemporary()) {
                 // only remove if no other table depends on this sequence
                 // this is possible when calling ALTER TABLE ALTER COLUMN
                 if (database.getDependentTable(sequence, this) == null) {
@@ -550,7 +550,7 @@ public abstract class Table extends SchemaObjectBase {
         ObjectArray<Index> indexes = getIndexes();
         for (int i = 0; indexes != null && i < indexes.size(); i++) {
             Index idx = indexes.get(i);
-            if (idx.getIndexType().getPrimaryKey()) {
+            if (idx.getIndexType().isPrimaryKey()) {
                 return idx;
             }
         }
@@ -608,7 +608,7 @@ public abstract class Table extends SchemaObjectBase {
         ObjectArray<Index> indexes = getIndexes();
         if (indexes != null) {
             remove(indexes, index);
-            if (index.getIndexType().getPrimaryKey()) {
+            if (index.getIndexType().isPrimaryKey()) {
                 for (Column col : index.getColumns()) {
                     col.setPrimaryKey(false);
                 }
@@ -784,7 +784,7 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    public boolean getGlobalTemporary() {
+    public boolean isGlobalTemporary() {
         return false;
     }
 

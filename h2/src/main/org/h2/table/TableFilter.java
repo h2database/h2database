@@ -583,7 +583,7 @@ public class TableFilter implements ColumnResolver {
         this.used = used;
     }
 
-    public boolean getUsed() {
+    public boolean isUsed() {
         return used;
     }
 

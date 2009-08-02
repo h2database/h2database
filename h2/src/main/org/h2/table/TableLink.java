@@ -297,7 +297,7 @@ public class TableLink extends Table {
 
     public String getCreateSQL() {
         StringBuilder buff = new StringBuilder("CREATE FORCE ");
-        if (getTemporary()) {
+        if (isTemporary()) {
             if (globalTemporary) {
                 buff.append("GLOBAL ");
             }
@@ -480,7 +480,7 @@ public class TableLink extends Table {
 
     public Index getUniqueIndex() {
         for (Index idx : indexes) {
-            if (idx.getIndexType().getUnique()) {
+            if (idx.getIndexType().isUnique()) {
                 return idx;
             }
         }

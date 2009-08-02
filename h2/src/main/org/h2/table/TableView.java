@@ -133,7 +133,7 @@ public class TableView extends Table {
      *
      * @return true if it is
      */
-    public boolean getInvalid() {
+    public boolean isInvalid() {
         return createException != null;
     }
 
@@ -246,7 +246,7 @@ public class TableView extends Table {
     }
 
     public String getSQL() {
-        if (getTemporary()) {
+        if (isTemporary()) {
             return "(" + querySQL + ")";
         }
         return super.getSQL();

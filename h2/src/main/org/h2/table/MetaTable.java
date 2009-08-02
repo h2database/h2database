@@ -623,8 +623,8 @@ public class MetaTable extends Table {
                     continue;
                 }
                 String storageType;
-                if (table.getTemporary()) {
-                    if (table.getGlobalTemporary()) {
+                if (table.isTemporary()) {
+                    if (table.isGlobalTemporary()) {
                         storageType = "GLOBAL TEMPORARY";
                     } else {
                         storageType = "LOCAL TEMPORARY";
@@ -680,7 +680,7 @@ public class MetaTable extends Table {
                             // COLUMN_DEFAULT
                             c.getDefaultSQL(),
                             // IS_NULLABLE
-                            c.getNullable() ? "YES" : "NO",
+                            c.isNullable() ? "YES" : "NO",
                             // DATA_TYPE
                             "" + DataType.convertTypeToSQLType(c.getType()),
                             // CHARACTER_MAXIMUM_LENGTH
@@ -700,7 +700,7 @@ public class MetaTable extends Table {
                             // TYPE_NAME
                             identifier(DataType.getDataType(c.getType()).name),
                             // NULLABLE
-                            "" + (c.getNullable() ? DatabaseMetaData.columnNullable : DatabaseMetaData.columnNoNulls) ,
+                            "" + (c.isNullable() ? DatabaseMetaData.columnNullable : DatabaseMetaData.columnNoNulls) ,
                             // IS_COMPUTED
                             "" + (c.getComputed() ? "TRUE" : "FALSE"),
                             // SELECTIVITY
@@ -748,7 +748,7 @@ public class MetaTable extends Table {
                                 // TABLE_NAME
                                 tableName,
                                 // NON_UNIQUE
-                                index.getIndexType().getUnique() ? "FALSE" : "TRUE",
+                                index.getIndexType().isUnique() ? "FALSE" : "TRUE",
                                         // INDEX_NAME
                                 identifier(index.getName()),
                                 // ORDINAL_POSITION
@@ -758,7 +758,7 @@ public class MetaTable extends Table {
                                 // CARDINALITY
                                 "0",
                                 // PRIMARY_KEY
-                                index.getIndexType().getPrimaryKey() ? "TRUE" : "FALSE",
+                                index.getIndexType().isPrimaryKey() ? "TRUE" : "FALSE",
                                 // INDEX_TYPE_NAME
                                 index.getIndexType().getSQL(),
                                 // IS_GENERATED
@@ -813,7 +813,7 @@ public class MetaTable extends Table {
             add(rows, new String[]{"info.VERSION_MAJOR", "" + Constants.VERSION_MAJOR});
             add(rows, new String[]{"info.VERSION_MINOR", "" + Constants.VERSION_MINOR});
             add(rows, new String[]{"info.VERSION", "" + Constants.getFullVersion()});
-            if (session.getUser().getAdmin()) {
+            if (session.getUser().isAdmin()) {
                 String[] settings = new String[]{
                         "java.runtime.version",
                         "java.vm.name", "java.vendor",
@@ -864,7 +864,7 @@ public class MetaTable extends Table {
             DiskFile dataFile = database.getDataFile();
             if (dataFile != null) {
                 add(rows, new String[] { "CACHE_TYPE", dataFile.getCache().getTypeName() });
-                if (session.getUser().getAdmin()) {
+                if (session.getUser().isAdmin()) {
                     DiskFile indexFile = database.getIndexFile();
                     add(rows, new String[]{"info.FILE_DISK_WRITE", "" + dataFile.getWriteCount()});
                     add(rows, new String[]{"info.FILE_DISK_READ", "" + dataFile.getReadCount()});
@@ -973,7 +973,7 @@ public class MetaTable extends Table {
                         // NAME
                         identifier(u.getName()),
                         // ADMIN
-                        String.valueOf(u.getAdmin()),
+                        String.valueOf(u.isAdmin()),
                         // REMARKS
                         replaceNullWithEmpty(u.getComment()),
                         // ID
@@ -1239,7 +1239,7 @@ public class MetaTable extends Table {
                         // IS_UPDATABLE
                         "NO",
                         // STATUS
-                        view.getInvalid() ? "INVALID" : "VALID",
+                        view.isInvalid() ? "INVALID" : "VALID",
                         // REMARKS
                         replaceNullWithEmpty(view.getComment()),
                         // ID
@@ -1412,7 +1412,7 @@ public class MetaTable extends Table {
                         // COLUMN_DEFAULT
                         col.getDefaultSQL(),
                         // IS_NULLABLE
-                        col.getNullable() ? "YES" : "NO",
+                        col.isNullable() ? "YES" : "NO",
                         // DATA_TYPE
                         "" + col.getDataType().sqlType,
                         // PRECISION INT
@@ -1455,13 +1455,13 @@ public class MetaTable extends Table {
                         // TABLE_NAME
                         identifier(table.getName()),
                         // BEFORE BIT
-                        "" + trigger.getBefore(),
+                        "" + trigger.isBefore(),
                         // JAVA_CLASS
                         trigger.getTriggerClassName(),
                         // QUEUE_SIZE INT
                         "" + trigger.getQueueSize(),
                         // NO_WAIT BIT
-                        "" + trigger.getNoWait(),
+                        "" + trigger.isNoWait(),
                         // REMARKS
                         replaceNullWithEmpty(trigger.getComment()),
                         // SQL
@@ -1473,7 +1473,7 @@ public class MetaTable extends Table {
             break;
         }
         case SESSIONS: {
-            boolean admin = session.getUser().getAdmin();
+            boolean admin = session.getUser().isAdmin();
             for (Session s : database.getSessions(false)) {
                 if (admin || s == session) {
                     Command command = s.getCurrentCommand();
@@ -1494,7 +1494,7 @@ public class MetaTable extends Table {
             break;
         }
         case LOCKS: {
-            boolean admin = session.getUser().getAdmin();
+            boolean admin = session.getUser().isAdmin();
             for (Session s : database.getSessions(false)) {
                 if (admin || s == session) {
                     for (Table table : s.getLocks()) {
@@ -1618,7 +1618,7 @@ public class MetaTable extends Table {
         String isGrantable = "NO";
         if (grantee.getType() == DbObject.USER) {
             User user = (User) grantee;
-            if (user.getAdmin()) {
+            if (user.isAdmin()) {
                 // the right is grantable if the grantee is an admin
                 isGrantable = "YES";
             }

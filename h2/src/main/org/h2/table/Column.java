@@ -433,7 +433,7 @@ public class Column {
         return buff.toString();
     }
 
-    public boolean getNullable() {
+    public boolean isNullable() {
         return nullable;
     }
 
@@ -449,7 +449,7 @@ public class Column {
         return defaultExpression;
     }
 
-    public boolean getAutoIncrement() {
+    public boolean isAutoIncrement() {
         return autoIncrement;
     }
 
@@ -625,7 +625,7 @@ public class Column {
         return true;
     }
 
-    public boolean getPrimaryKey() {
+    public boolean isPrimaryKey() {
         return primaryKey;
     }
 

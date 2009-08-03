@@ -109,6 +109,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>GCJ: what is the state now?
 </li><li>Events for: database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server (see http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html)
 </li><li>Optimization: log compression
+</li><li>ROW_NUMBER() OVER([ORDER BY columnName])
 </li><li>Support standard INFORMATION_SCHEMA tables, as defined in http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt; specially KEY_COLUMN_USAGE (http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif)
 </li><li>Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: division by zero
 </li><li>Functional tables should accept parameters from other tables (see FunctionMultiReturn) SELECT * FROM TEST T, P2C(T.A, T.R)
@@ -152,7 +153,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Try using a factory for Row, Value[] (faster?), http://javolution.org/, alternative ObjectArray / IntArray
 </li><li>Auto-Update feature for database, .jar file
 </li><li>ResultSet SimpleResultSet.readFromURL(String url): id varchar, state varchar, released timestamp
-</li><li>ROW_NUMBER (not the same as ROWNUM)
 </li><li>Partial indexing (see PostgreSQL)
 </li><li>The build should fail if the test fails
 </li><li>Add GUI to build a custom version (embedded, fulltext,...) using build flags

@@ -295,13 +295,11 @@ java org.h2.test.TestAll timer
 
 /*
 
+PostgreSQL compatibility: 2001-02-03 08:20:31+01 (:minutes optional)
+MySQL compatibility for "show columns from test"
+
 better document that ddl statements commit
 "This command commits an open transaction."
-PostgreSQL compatibility: 2001-02-03 08:20:31+01 (:minutes optional)
-Support Java 6 DatabaseMetaData.getColumns, getProcedures,
-getProcedureColumns, getTables.
-MySQL compatibility for "show columns from test"
-RollbackTest
 
 -------------
 
@@ -479,8 +477,8 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
         new TestEncryptedDb().runTest(this);
         new TestExclusive().runTest(this);
         new TestFullText().runTest(this);
-        new TestFunctions().runTest(this);
         new TestFunctionOverload().runTest(this);
+        new TestFunctions().runTest(this);
         new TestIndex().runTest(this);
         new TestLargeBlob().runTest(this);
         new TestLinkedTable().runTest(this);

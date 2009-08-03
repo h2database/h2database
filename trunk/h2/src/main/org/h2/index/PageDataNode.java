@@ -60,6 +60,7 @@ class PageDataNode extends PageData {
     }
 
     private void addChild(int x, int childPageId, int key) {
+        written = false;
         int[] newKeys = new int[entryCount + 1];
         int[] newChildPageIds = new int[entryCount + 2];
         if (childPageIds != null) {
@@ -256,6 +257,14 @@ class PageDataNode extends PageData {
     }
 
     public void write(DataPage buff) throws SQLException {
+        write();
+        index.getPageStore().writePage(getPos(), data);
+    }
+
+    private void write() {
+        if (written) {
+            return;
+        }
         check();
         data.reset();
         data.writeInt(parentPageId);
@@ -267,10 +276,11 @@ class PageDataNode extends PageData {
             data.writeInt(childPageIds[i]);
             data.writeInt(keys[i]);
         }
-        index.getPageStore().writePage(getPos(), data);
+        written = true;
     }
 
     private void removeChild(int i) {
+        written = false;
         entryCount--;
         if (entryCount < 0) {
             Message.throwInternalError();

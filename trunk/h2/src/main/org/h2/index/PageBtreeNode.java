@@ -172,6 +172,7 @@ class PageBtreeNode extends PageBtree {
             p2.onlyPosition = true;
         }
         int firstChild = childPageIds[splitPoint];
+        readAllRows();
         for (int i = splitPoint; i < entryCount;) {
             p2.addChild(p2.entryCount, childPageIds[splitPoint + 1], rows[splitPoint]);
             removeChild(splitPoint);
@@ -258,7 +259,6 @@ class PageBtreeNode extends PageBtree {
             // no more children - this page is empty as well
             return true;
         }
-        written = false;
         removeChild(at);
         index.getPageStore().updateRecord(this, true, data);
         return false;

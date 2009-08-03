@@ -86,16 +86,18 @@ public class PageInputStream extends InputStream {
         if (trunk == null) {
             trunk = new PageStreamTrunk(store, trunkNext);
             trunk.read();
+            trunkNext = trunk.getNextTrunk();
         }
         int next;
         while (true) {
             next = trunk.getNextPageData();
             if (dataPage == -1 || dataPage == next) {
-                if (next != 0) {
+                if (next != -1) {
                     break;
                 }
                 trunk = new PageStreamTrunk(store, trunkNext);
                 trunk.read();
+                trunkNext = trunk.getNextTrunk();
             }
         }
         if (trace.isDebugEnabled()) {

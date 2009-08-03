@@ -106,7 +106,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>3 TABLE_NAME (String) table name </li>
      * <li>4 TABLE_TYPE (String) table type </li>
      * <li>5 REMARKS (String) comment </li>
-     * <li>6 SQL (String) the create table statement or NULL for systems tables
+     * <li>6 TYPE_CAT (String) always null </li>
+     * <li>7 TYPE_SCHEM (String) always null </li>
+     * <li>8 TYPE_NAME (String) always null </li>
+     * <li>9 SELF_REFERENCING_COL_NAME (String) always null </li>
+     * <li>10 REF_GENERATION (String) always null </li>
+     * <li>11 SQL (String) the create table statement or NULL for systems tables
      * </li>
      * </ul>
      *
@@ -143,6 +148,11 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "TABLE_NAME, "
                     + "TABLE_TYPE, "
                     + "REMARKS, "
+                    + "TYPE_NAME TYPE_CAT, "
+                    + "TYPE_NAME TYPE_SCHEM, "
+                    + "TYPE_NAME, "
+                    + "TYPE_NAME SELF_REFERENCING_COL_NAME, "
+                    + "TYPE_NAME REF_GENERATION, "
                     + "SQL "
                     + "FROM INFORMATION_SCHEMA.TABLES "
                     + "WHERE TABLE_CATALOG LIKE ? "
@@ -177,8 +187,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>8 BUFFER_LENGTH (int) unused </li>
      * <li>9 DECIMAL_DIGITS (int) scale (0 for INTEGER and VARCHAR) </li>
      * <li>10 NUM_PREC_RADIX (int) radix (always 10) </li>
-     * <li>11 NULLABLE (int) nullable or not. columnNoNulls or columnNullable
-     * </li>
+     * <li>11 NULLABLE (int) columnNoNulls or columnNullable</li>
      * <li>12 REMARKS (String) comment (always empty) </li>
      * <li>13 COLUMN_DEF (String) default value </li>
      * <li>14 SQL_DATA_TYPE (int) unused </li>
@@ -186,6 +195,11 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>16 CHAR_OCTET_LENGTH (int) unused </li>
      * <li>17 ORDINAL_POSITION (int) the column index (1,2,...) </li>
      * <li>18 IS_NULLABLE (String) "NO" or "YES" </li>
+     * <li>19 SCOPE_CATLOG (String) always null </li>
+     * <li>20 SCOPE_SCHEMA (String) always null </li>
+     * <li>21 SCOPE_TABLE (String) always null </li>
+     * <li>22 SOURCE_DATA_TYPE (short) null </li>
+     * <li>23 IS_AUTOINCREMENT (String) "NO" or "YES" </li>
      * </ul>
      *
      * @param catalogPattern null (to get all objects) or the catalog name
@@ -227,7 +241,12 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "ZERO() SQL_DATETIME_SUB, "
                     + "CHARACTER_OCTET_LENGTH CHAR_OCTET_LENGTH, "
                     + "ORDINAL_POSITION, "
-                    + "IS_NULLABLE IS_NULLABLE "
+                    + "IS_NULLABLE IS_NULLABLE, "
+                    + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATLOG, "
+                    + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_SCHEMA, "
+                    + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_TABLE, "
+                    + "SOURCE_DATA_TYPE, "
+                    + "CASE WHEN SEQUENCE_NAME IS NULL THEN 'NO' ELSE 'YES' END IS_AUTOINCREMENT "
                     + "FROM INFORMATION_SCHEMA.COLUMNS "
                     + "WHERE TABLE_CATALOG LIKE ? "
                     + "AND TABLE_SCHEMA LIKE ? "
@@ -505,6 +524,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>7 REMARKS (String) description </li>
      * <li>8 PROCEDURE_TYPE (short) if this procedure returns a result
      * (procedureNoResult or procedureReturnsResult) </li>
+     * <li>9 SPECIFIC_NAME (String) name </li>
      * </ul>
      *
      * @param catalogPattern null or the catalog name
@@ -531,7 +551,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "ZERO() NUM_OUTPUT_PARAMS, "
                     + "ZERO() NUM_RESULT_SETS, "
                     + "REMARKS, "
-                    + "RETURNS_RESULT PROCEDURE_TYPE "
+                    + "RETURNS_RESULT PROCEDURE_TYPE, "
+                    + "ALIAS_NAME SPECIFIC_NAME "
                     + "FROM INFORMATION_SCHEMA.FUNCTION_ALIASES "
                     + "WHERE ALIAS_CATALOG LIKE ? "
                     + "AND ALIAS_SCHEMA LIKE ? "
@@ -566,8 +587,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * <li>11 RADIX (int) always 10 </li>
      * <li>12 NULLABLE (short) nullable </li>
      * <li>13 REMARKS (String) description </li>
-     * <li>14 NUM_INPUT_PARAMS (int) the parameter count </li>
-     * <li>15 POS (int) the parameter index </li>
+     * <li>14 COLUMN_DEF (String) always null </li>
+     * <li>15 SQL_DATA_TYPE (int) for future use, always 0 </li>
+     * <li>16 SQL_DATETIME_SUB (int) for future use, always 0 </li>
+     * <li>17 CHAR_OCTET_LENGTH (int) always null </li>
+     * <li>18 ORDINAL_POSITION (int) the parameter index
+     * starting from 1 (0 is the return value) </li>
+     * <li>19 IS_NULLABLE (String) always "YES" </li>
+     * <li>20 SPECIFIC_NAME (String) name </li>
      * </ul>
      *
      * @param catalogPattern null or the catalog name
@@ -603,14 +630,19 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "RADIX, "
                     + "NULLABLE, "
                     + "REMARKS, "
-                    + "COLUMN_COUNT NUM_INPUT_PARAMS, "
-                    + "POS "
+                    + "COLUMN_DEFAULT COLUMN_DEF, "
+                    + "0 SQL_DATA_TYPE, "
+                    + "0 SQL_DATETIME_SUB, "
+                    + "0 CHAR_OCTET_LENGTH, "
+                    + "POS ORDINAL_POSITION, "
+                    + "'YES' IS_NULLABLE, "
+                    + "ALIAS_NAME SPECIFIC_NAME "
                     + "FROM INFORMATION_SCHEMA.FUNCTION_COLUMNS "
                     + "WHERE ALIAS_CATALOG LIKE ? "
                     + "AND ALIAS_SCHEMA LIKE ? "
                     + "AND ALIAS_NAME LIKE ? "
                     + "AND COLUMN_NAME LIKE ? "
-                    + "ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME, NUM_INPUT_PARAMS, POS");
+                    + "ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME, ORDINAL_POSITION");
             prep.setString(1, getCatalogPattern(catalogPattern));
             prep.setString(2, getSchemaPattern(schemaPattern));
             prep.setString(3, getPattern(procedureNamePattern));

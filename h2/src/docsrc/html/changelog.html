@@ -18,8 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 101: Rollback of a large transaction could fail.
-</li><li>Various improvements in the page store mechanism (still experimental).
+<ul><li>Support for Java 6 DatabaseMetaData.getTables, getColumns, getProcedures, and getProcedureColumns.
+</li><li>Issue 101: Rollback of a large transaction could fail.
+</li><li>Various bugfixes and improvements in the page store mechanism (still experimental).
 </li><li>The functions LENGTH, OCTET_LENGTH, and BIT_LENGTH now return BIGINT.
 </li><li>Data types CLOB and BLOB: the maximum precision was Integer.MAX_VALUE, it is now Long.MAX_VALUE.
 </li><li>Multi-threaded kernel: creating and dropping temporary database objects

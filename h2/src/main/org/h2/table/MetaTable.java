@@ -71,10 +71,6 @@ public class MetaTable extends Table {
      */
     public static final long ROW_COUNT_APPROXIMATION = 1000;
 
-    // TODO INFORMATION_SCHEMA.tables: select table_name
-    // from INFORMATION_SCHEMA.tables where TABLE_TYPE = 'BASE TABLE'
-    // (currently 'TABLE'; like HSQLDB)
-
     private static final int TABLES = 0;
     private static final int COLUMNS = 1;
     private static final int INDEXES = 2;
@@ -135,7 +131,8 @@ public class MetaTable extends Table {
                     "SQL",
                     "REMARKS",
                     "LAST_MODIFICATION BIGINT",
-                    "ID INT"
+                    "ID INT",
+                    "TYPE_NAME"
             });
             indexColumnName = "TABLE_NAME";
             break;
@@ -164,7 +161,8 @@ public class MetaTable extends Table {
                     "SELECTIVITY INT",
                     "CHECK_CONSTRAINT",
                     "SEQUENCE_NAME",
-                    "REMARKS"
+                    "REMARKS",
+                    "SOURCE_DATA_TYPE SMALLINT"
             });
             indexColumnName = "TABLE_NAME";
             break;
@@ -315,7 +313,8 @@ public class MetaTable extends Table {
                     "RADIX SMALLINT",
                     "NULLABLE SMALLINT",
                     "COLUMN_TYPE SMALLINT",
-                    "REMARKS"
+                    "REMARKS",
+                    "COLUMN_DEFAULT"
             });
             break;
         case SCHEMATA:
@@ -650,7 +649,9 @@ public class MetaTable extends Table {
                         // LAST_MODIFICATION
                         "" + table.getMaxDataModificationId(),
                         // ID
-                        "" + table.getId()
+                        "" + table.getId(),
+                        // TYPE_NAME
+                        null
                 });
             }
             break;
@@ -710,7 +711,9 @@ public class MetaTable extends Table {
                             // SEQUENCE_NAME
                             sequence == null ? null : sequence.getName(),
                             // REMARKS
-                            replaceNullWithEmpty(c.getComment())
+                            replaceNullWithEmpty(c.getComment()),
+                            // SOURCE_DATA_TYPE
+                            null
                     });
                 }
             }
@@ -1141,7 +1144,9 @@ public class MetaTable extends Table {
                                 // COLUMN_TYPE
                                 "" + DatabaseMetaData.procedureColumnIn,
                                 // REMARKS
-                                ""
+                                "",
+                                // COLUMN_DEFAULT
+                                null
                         });
                     }
                 }

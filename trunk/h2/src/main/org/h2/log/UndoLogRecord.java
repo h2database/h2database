@@ -36,7 +36,7 @@ public class UndoLogRecord {
      */
     public static final short DELETE = 1;
 
-    private static final int IN_MEMORY = 0, STORED = 1, IN_MEMORY_READ_POS = 2;
+    private static final int IN_MEMORY = 0, STORED = 1, IN_MEMORY_INVALID = 2;
     private Table table;
     private Row row;
     private short operation;
@@ -85,12 +85,13 @@ public class UndoLogRecord {
     public void undo(Session session) throws SQLException {
         switch (operation) {
         case INSERT:
-            if (state == IN_MEMORY_READ_POS) {
+            if (state == IN_MEMORY_INVALID) {
                 Index index = table.getUniqueIndex();
                 Cursor cursor = index.find(session, row, row);
                 cursor.next();
-                int pos = cursor.getPos();
-                row.setPos(pos);
+                // can not just set the position, because the row
+                // may already be in the cache
+                row = cursor.get();
                 state = IN_MEMORY;
             }
             if (session.getDatabase().getLockMode() == Constants.LOCK_MODE_OFF) {
@@ -202,7 +203,7 @@ public class UndoLogRecord {
         row = new Row(values, 0);
         row.setDeleted(deleted);
         row.setSessionId(sessionId);
-        state = IN_MEMORY_READ_POS;
+        state = IN_MEMORY_INVALID;
     }
 
     /**
@@ -234,13 +235,13 @@ public class UndoLogRecord {
     }
 
     /**
-     * Change the state from IN_MEMORY to IN_MEMORY_READ_POS. This method is
+     * Change the state from IN_MEMORY to IN_MEMORY_INVALID. This method is
      * called if a later record was read from the temporary file, and therefore
      * the position could have changed.
      */
     void invalidatePos() {
         if (this.state == IN_MEMORY) {
-            state = IN_MEMORY_READ_POS;
+            state = IN_MEMORY_INVALID;
         }
     }
 }

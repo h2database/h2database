@@ -211,7 +211,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         result.read();
         if (parent != -1) {
             if (result.getParentPageId() != parent) {
-                throw Message.throwInternalError(result.getParentPageId() + " " + parent + " " + result);
+                throw Message.throwInternalError(result + " parent " + result.getParentPageId() + " expected " + parent);
             }
         }
         return result;

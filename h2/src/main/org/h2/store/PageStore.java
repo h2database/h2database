@@ -669,6 +669,8 @@ public class PageStore implements CacheWriter {
         synchronized (database) {
             if (pos >= pageCount) {
                 throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, pos + " of " + pageCount);
+            } else if (pos < 0) {
+                throw Message.throwInternalError("negative offset: " + pos);
             }
             file.seek((long) pos << pageSizeShift);
             file.readFully(page.getBytes(), 0, pageSize);

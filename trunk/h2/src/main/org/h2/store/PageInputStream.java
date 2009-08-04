@@ -83,21 +83,20 @@ public class PageInputStream extends InputStream {
             endOfFile = true;
             return;
         }
-        if (trunk == null) {
-            trunk = new PageStreamTrunk(store, trunkNext);
-            trunk.read();
-            trunkNext = trunk.getNextTrunk();
-        }
         int next;
         while (true) {
-            next = trunk.getNextPageData();
-            if (dataPage == -1 || dataPage == next) {
-                if (next != -1) {
-                    break;
-                }
+            if (trunk == null) {
                 trunk = new PageStreamTrunk(store, trunkNext);
                 trunk.read();
                 trunkNext = trunk.getNextTrunk();
+            }
+            if (trunk != null) {
+                next = trunk.getNextPageData();
+                if (next == -1) {
+                    trunk = null;
+                } else if (dataPage == -1 || dataPage == next) {
+                    break;
+                }
             }
         }
         if (trace.isDebugEnabled()) {

@@ -148,6 +148,7 @@ class PageBtreeNode extends PageBtree {
                 return splitPoint2;
             }
             PageBtree page2 = page.split(splitPoint);
+            readAllRows();
             addChild(x, page2.getPos(), pivot);
             index.getPageStore().updateRecord(page, true, page.data);
             index.getPageStore().updateRecord(page2, true, page2.data);

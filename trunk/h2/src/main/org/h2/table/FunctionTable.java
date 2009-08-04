@@ -192,4 +192,8 @@ public class FunctionTable extends Table {
         return rowCount;
     }
 
+    public boolean isDeterministic() {
+        return function.isDeterministic();
+    }
+
 }

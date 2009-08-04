@@ -712,4 +712,8 @@ public class TableData extends Table implements RecordReader {
         this.compareMode = compareMode;
     }
 
+    public boolean isDeterministic() {
+        return true;
+    }
+
 }

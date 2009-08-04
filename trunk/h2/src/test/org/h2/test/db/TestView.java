@@ -11,13 +11,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.test.TestBase;
 
 /**
  * Test for views.
  */
 public class TestView extends TestBase {
+
+    private static int x;
 
     /**
      * Run just this test.
@@ -29,10 +30,59 @@ public class TestView extends TestBase {
     }
 
     public void test() throws SQLException {
+        testCache();
+        testCacheFunction(true);
+        testCacheFunction(false);
         testInSelect();
         testUnionReconnect();
         testManyViews();
         deleteDb("view");
+    }
+
+    private void testCacheFunction(boolean deterministic) throws SQLException {
+        deleteDb("view");
+        Connection conn = getConnection("view");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE ALIAS GET_X " +
+                (deterministic ? "DETERMINISTIC" : "") +
+                " FOR \"" + getClass().getName() + ".getX\"");
+        stat.execute("CREATE VIEW V AS SELECT * FROM (SELECT GET_X())");
+        ResultSet rs;
+        x = 8;
+        rs = stat.executeQuery("SELECT * FROM V");
+        rs.next();
+        assertEquals(8, rs.getInt(1));
+        x = 5;
+        rs = stat.executeQuery("SELECT * FROM V");
+        rs.next();
+        assertEquals(deterministic ? 8 : 5, rs.getInt(1));
+        conn.close();
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @return the static value x
+     */
+    public static int getX() {
+        return x;
+    }
+
+    private void testCache() throws SQLException {
+        deleteDb("view");
+        Connection conn = getConnection("view");
+        Statement stat = conn.createStatement();
+        stat.execute("SET @X 8");
+        stat.execute("CREATE VIEW V AS SELECT * FROM (SELECT @X)");
+        ResultSet rs;
+        rs = stat.executeQuery("SELECT * FROM V");
+        rs.next();
+        assertEquals(8, rs.getInt(1));
+        stat.execute("SET @X 5");
+        rs = stat.executeQuery("SELECT * FROM V");
+        rs.next();
+        assertEquals(5, rs.getInt(1));
+        conn.close();
     }
 
     private void testInSelect() throws SQLException {

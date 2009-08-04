@@ -278,7 +278,7 @@ public class DateTimeUtils {
                     if (timeZoneStart >= 0) {
                         String tzName = "GMT" + s.substring(timeZoneStart);
                         tz = TimeZone.getTimeZone(tzName);
-                        if (!tz.getID().equals(tzName)) {
+                        if (!tz.getID().startsWith(tzName)) {
                             throw Message.getSQLException(errorCode, new String[] { s, tz.getID() + " <>" + tzName });
                         }
                         s = s.substring(0, timeZoneStart).trim();

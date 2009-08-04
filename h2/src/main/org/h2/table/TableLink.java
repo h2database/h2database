@@ -14,7 +14,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.HashMap;
-
 import org.h2.command.Prepared;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
@@ -533,6 +532,10 @@ public class TableLink extends Table {
      */
     public void reusePreparedStatement(PreparedStatement prep, String sql) {
         prepared.put(sql, prep);
+    }
+
+    public boolean isDeterministic() {
+        return false;
     }
 
 }

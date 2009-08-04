@@ -1047,6 +1047,14 @@ public class Select extends Query {
 
     public boolean isEverything(ExpressionVisitor visitor) {
         switch(visitor.getType()) {
+        case ExpressionVisitor.DETERMINISTIC: {
+            for (TableFilter f : filters) {
+                if (!f.getTable().isDeterministic()) {
+                    return false;
+                }
+            }
+            break;
+        }
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID: {
             for (TableFilter f : filters) {
                 long m = f.getTable().getMaxDataModificationId();

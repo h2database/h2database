@@ -168,4 +168,8 @@ public class RangeTable extends Table {
         return 100;
     }
 
+    public boolean isDeterministic() {
+        return true;
+    }
+
 }

@@ -1746,4 +1746,8 @@ public class MetaTable extends Table {
         return ROW_COUNT_APPROXIMATION;
     }
 
+    public boolean isDeterministic() {
+        return true;
+    }
+
 }

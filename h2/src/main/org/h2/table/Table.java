@@ -232,6 +232,13 @@ public abstract class Table extends SchemaObjectBase {
     public abstract long getMaxDataModificationId();
 
     /**
+     * Check if the table is deterministic.
+     *
+     * @return true if it is
+     */
+    public abstract boolean isDeterministic();
+
+    /**
      * Check if the row count can be retrieved quickly.
      *
      * @return true if it can

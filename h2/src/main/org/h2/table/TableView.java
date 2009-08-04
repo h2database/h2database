@@ -14,6 +14,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -357,6 +358,10 @@ public class TableView extends Table {
 
     public int getParameterOffset() {
         return topQuery == null ? 0 : topQuery.getParameters().size();
+    }
+
+    public boolean isDeterministic() {
+        return viewQuery.isEverything(ExpressionVisitor.DETERMINISTIC);
     }
 
 }

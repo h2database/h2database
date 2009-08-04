@@ -131,14 +131,9 @@ public class BenchCThread {
         int oId = rs.getInt(1) - 1;
         BigDecimal tax = rs.getBigDecimal(2);
         rs.close();
-        // TODO optimizer: such cases can be optimized! A=1 AND B=A means
-        // also B=1!
-        //        prep = prepare("SELECT C_DISCOUNT, C_LAST, C_CREDIT, W_TAX "
-        //                + "FROM CUSTOMER, WAREHOUSE "
-        //                + "WHERE C_ID=? AND W_ID=? AND C_W_ID=W_ID AND C_D_ID=?");
         prep = prepare("SELECT C_DISCOUNT, C_LAST, C_CREDIT, W_TAX "
                 + "FROM CUSTOMER, WAREHOUSE "
-                + "WHERE C_ID=? AND C_W_ID=? AND C_W_ID=W_ID AND C_D_ID=?");
+                + "WHERE C_ID=? AND W_ID=? AND C_W_ID=W_ID AND C_D_ID=?");
         prep.setInt(1, cId);
         prep.setInt(2, warehouseId);
         prep.setInt(3, dId);
@@ -695,27 +690,21 @@ public class BenchCThread {
         rs.next();
         int oId = rs.getInt(1);
         rs.close();
-//        prep = prepare("SELECT COUNT(DISTINCT S_I_ID) "
-//                + "FROM ORDER_LINE, STOCK WHERE OL_W_ID=? AND "
-//                + "OL_D_ID=? AND OL_O_ID<? AND "
-//                + "OL_O_ID>=?-20 AND S_W_ID=? AND "
-//                + "S_I_ID=OL_I_ID AND S_QUANTITY<?");
-//        prep.setInt(1, warehouseId);
-//        prep.setInt(2, d_id);
-//        prep.setInt(3, o_id);
-//        prep.setInt(4, o_id);
         prep = prepare("SELECT COUNT(DISTINCT S_I_ID) "
-                + "FROM ORDER_LINE, STOCK WHERE OL_W_ID=? AND "
-                + "OL_D_ID=? AND OL_O_ID<? AND "
-                + "OL_O_ID>=? AND S_W_ID=? AND "
-                + "S_I_ID=OL_I_ID AND S_QUANTITY<?");
+                + "FROM ORDER_LINE, STOCK WHERE "
+                + "OL_W_ID=? AND "
+                + "OL_D_ID=? AND "
+                + "OL_O_ID<? AND "
+                + "OL_O_ID>=?-20 AND "
+                + "S_W_ID=? AND "
+                + "S_I_ID=OL_I_ID AND "
+                + "S_QUANTITY<?");
         prep.setInt(1, warehouseId);
         prep.setInt(2, dId);
         prep.setInt(3, oId);
-        prep.setInt(4, oId - 20);
+        prep.setInt(4, oId);
         prep.setInt(5, warehouseId);
         prep.setInt(6, threshold);
-        // TODO this is where HSQLDB is very slow
         rs = db.query(prep);
         rs.next();
         // stockCount

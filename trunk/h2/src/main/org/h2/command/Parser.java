@@ -814,7 +814,17 @@ public class Parser {
             if (readIf("FROM")) {
                 schema = readUniqueIdentifier();
             }
-            buff.append("COLUMN_NAME, TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=? AND TABLE_SCHEMA=? ORDER BY ORDINAL_POSITION");
+            buff.append("C.COLUMN_NAME FIELD, " +
+                    "C.TYPE_NAME || '(' || C.NUMERIC_PRECISION || ')' TYPE, " +
+                    "C.IS_NULLABLE \"NULL\", " +
+                    "CASE I.INDEX_TYPE_NAME WHEN 'PRIMARY KEY' THEN 'PRI' WHEN 'UNIQUE INDEX' THEN 'UNI' ELSE '' END KEY, " +
+                    "IFNULL(COLUMN_DEFAULT, 'NULL') DEFAULT " +
+                    "FROM INFORMATION_SCHEMA.COLUMNS C LEFT OUTER JOIN INFORMATION_SCHEMA.INDEXES I " +
+                    "WHERE C.TABLE_NAME=? AND C.TABLE_SCHEMA=? " +
+                    "AND I.TABLE_SCHEMA=C.TABLE_SCHEMA " +
+                    "AND I.TABLE_NAME=C.TABLE_NAME " +
+                    "AND I.COLUMN_NAME=C.COLUMN_NAME " +
+                    "ORDER BY C.ORDINAL_POSITION");
             paramValues.add(ValueString.get(schema));
         } else if (readIf("DATABASES") || readIf("SCHEMAS")) {
             // for MySQL compatibility

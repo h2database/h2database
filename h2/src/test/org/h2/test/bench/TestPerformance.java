@@ -19,6 +19,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -53,15 +54,12 @@ public class TestPerformance {
         return DriverManager.getConnection("jdbc:h2:data/results");
     }
 
-    private void openResults(boolean init) throws SQLException {
+    private void openResults() throws SQLException {
         Connection conn = null;
         Statement stat = null;
         try {
             conn = getResultConnection();
             stat = conn.createStatement();
-            if (init) {
-                stat.execute("DROP TABLE IF EXISTS RESULTS");
-            }
             stat.execute("CREATE TABLE IF NOT EXISTS RESULTS(TESTID INT, TEST VARCHAR, "
                     + "UNIT VARCHAR, DBID INT, DB VARCHAR, RESULT VARCHAR)");
         } finally {
@@ -71,7 +69,6 @@ public class TestPerformance {
     }
 
     private void test(String[] args) throws Exception {
-        boolean init = false;
         int dbId = -1;
         boolean exit = false;
         String out = "benchmark.html";
@@ -80,7 +77,7 @@ public class TestPerformance {
             if ("-db".equals(arg)) {
                 dbId = Integer.parseInt(args[++i]);
             } else if ("-init".equals(arg)) {
-                init = true;
+                FileSystem.getInstance("data").deleteRecursive("data");
             } else if ("-out".equals(arg)) {
                 out = args[++i];
             } else if ("-trace".equals(arg)) {
@@ -127,7 +124,7 @@ public class TestPerformance {
         Statement stat = null;
         PrintWriter writer = null;
         try {
-            openResults(init);
+            openResults();
             conn = getResultConnection();
             stat = conn.createStatement();
             prep = conn

@@ -7,6 +7,7 @@
 package org.h2.test.unit;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -31,9 +32,25 @@ public class TestPageStore extends TestBase {
     }
 
     public void test() throws Exception {
+        testLargeIndex();
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
+    }
+
+    private void testLargeIndex() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("pageStore");
+        Connection conn = getConnection("pageStore");
+        conn.createStatement().execute("create table test(id varchar primary key, d varchar)");
+        PreparedStatement prep = conn.prepareStatement("insert into test values(?, space(500))");
+        for (int i = 0; i < 20000; i++) {
+            prep.setString(1, "" + i);
+            prep.executeUpdate();
+        }
+        conn.close();
     }
 
     private void testUniqueIndex() throws SQLException {

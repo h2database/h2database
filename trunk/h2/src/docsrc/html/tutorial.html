@@ -619,6 +619,11 @@ BACKUP TO 'backup.zip'
 The Backup tool (org.h2.tools.Backup) can not be used to create a online backup;
 the database must not be in use while running this program.
 </p>
+<p>
+Creating a backup while the database is running is not supported, except
+if the file systems support creating snapshots. The problem is that it can't
+be guaranteed that the data is copied in the right order.
+</p>
 
 <br /><a name="command_line_tools"></a>
 <h2>Command Line Tools</h2>

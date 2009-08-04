@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Support for Java 6 DatabaseMetaData.getTables, getColumns, getProcedures, and getProcedureColumns.
+<ul><li>Views using functions were not re-evaluated when necessary.
+</li><li>Improved MySQL compatibility for SHOW COLUMNS.
+</li><li>Improved PostgreSQL compatibility for timestamp literals with timezone.
+</li><li>Sergi Vladykin translated the error messages to Russian. Thanks a lot!
+</li><li>Support for Java 6 DatabaseMetaData.getTables, getColumns, getProcedures, and getProcedureColumns.
 </li><li>Issue 101: Rollback of a large transaction could fail.
 </li><li>Various bugfixes and improvements in the page store mechanism (still experimental).
 </li><li>The functions LENGTH, OCTET_LENGTH, and BIT_LENGTH now return BIGINT.

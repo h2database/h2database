@@ -295,8 +295,16 @@ java org.h2.test.TestAll timer
 
 /*
 
-PostgreSQL compatibility: 2001-02-03 08:20:31+01 (:minutes optional)
-MySQL compatibility for "show columns from test"
+LIKE: Use no default escape character, except for PostgreSQL and MySQL compatibility
+See DatabaseMetaData.getSearchStringEscape
+PostgreSQL: select no escape character by writing ESCAPE ''
+drop table test;
+create table test(id int);
+insert into test values(1);
+select * from test where '\' like '\' escape '';
+select * from test where '\' like '\';
+
+page store: TestBtreeIndex
 
 better document that ddl statements commit
 "This command commits an open transaction."
@@ -347,10 +355,10 @@ kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
             test.runTests();
             TestPerformance.main(new String[]{ "-init", "-db", "1"});
 
-            System.setProperty(SysProperties.H2_PAGE_STORE, "false");
-            test.pageStore = false;
-            test.runTests();
-            TestPerformance.main(new String[]{ "-init", "-db", "1"});
+//            System.setProperty(SysProperties.H2_PAGE_STORE, "false");
+//            test.pageStore = false;
+//            test.runTests();
+//            TestPerformance.main(new String[]{ "-init", "-db", "1"});
         }
         System.out.println(TestBase.formatTime(System.currentTimeMillis() - time) + " total");
     }

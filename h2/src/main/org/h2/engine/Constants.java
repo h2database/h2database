@@ -148,11 +148,6 @@ public class Constants {
     public static final int DEFAULT_DATA_PAGE_SIZE = 512;
 
     /**
-     * The default escape character for LIKE comparisons.
-     */
-    public static final char DEFAULT_ESCAPE_CHAR = '\\';
-
-    /**
      * If the HTTP server should allow connections from other computers by
      * default.
      */

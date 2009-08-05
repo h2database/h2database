@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.h2.constant.ErrorCode;
-import org.h2.engine.Constants;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
 import org.h2.message.Message;
@@ -112,14 +112,16 @@ public class CompareLike extends Condition {
         return this;
     }
 
-    private char getEscapeChar(Value e) {
+    private Character getEscapeChar(Value e) {
         if (e == null) {
-            return Constants.DEFAULT_ESCAPE_CHAR;
+            return SysProperties.DEFAULT_ESCAPE_CHAR;
         }
         String es = e.getString();
-        char esc;
-        if (es == null || es.length() == 0) {
-            esc = Constants.DEFAULT_ESCAPE_CHAR;
+        Character esc;
+        if (es == null) {
+            esc = SysProperties.DEFAULT_ESCAPE_CHAR;
+        } else if (es.length() == 0) {
+            esc = null;
         } else {
             esc = es.charAt(0);
         }
@@ -274,7 +276,7 @@ public class CompareLike extends Condition {
         return compareAt(value, 0, 0, value.length());
     }
 
-    private void initPattern(String p, char escapeChar) throws SQLException {
+    private void initPattern(String p, Character escape) throws SQLException {
         if (regexp) {
             patternString = p;
             try {
@@ -301,12 +303,12 @@ public class CompareLike extends Condition {
         for (int i = 0; i < len; i++) {
             char c = p.charAt(i);
             int type;
-            if (escapeChar == c) {
+            if (escape != null && escape == c) {
                 if (i >= len - 1) {
                     throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, StringUtils.addAsterisk(p, i));
                 }
                 c = p.charAt(++i);
-                if (c != '_' && c != '%' && c != escapeChar) {
+                if (c != '_' && c != '%' && c != escape) {
                     throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, StringUtils.addAsterisk(p, i));
                 }
                 type = MATCH;

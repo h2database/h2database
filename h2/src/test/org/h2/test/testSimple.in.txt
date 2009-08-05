@@ -1,3 +1,5 @@
+select 1 from dual where '\' like '\' escape '';
+> 1;
 select left(timestamp '2001-02-03 08:20:31+04', 4);
 > 2001;
 

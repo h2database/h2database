@@ -180,6 +180,13 @@ public class SysProperties {
     public static final String CLIENT_TRACE_DIRECTORY = getStringSetting("h2.clientTraceDirectory", "trace.db/");
 
     /**
+     * System property <code>h2.defaultEscape</code> (default: \).<br />
+     * The default escape character for LIKE comparisons. To select no escape
+     * character, use an empty string.
+     */
+    public static final Character DEFAULT_ESCAPE_CHAR = getEscapeChar(getStringSetting("h2.defaultEscape", "\\"));
+
+    /**
      * System property <code>h2.defaultMaxOperationMemory</code> (default:
      * 100000).<br />
      * The default for the setting MAX_OPERATION_MEMORY.
@@ -728,6 +735,10 @@ public class SysProperties {
      */
     public static boolean getPageStore() {
         return getBooleanSetting(H2_PAGE_STORE, false);
+    }
+
+    private static Character getEscapeChar(String s) {
+        return s == null || s.length() == 0 ? null : s.charAt(0);
     }
 
 }

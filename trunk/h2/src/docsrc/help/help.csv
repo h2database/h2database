@@ -1344,11 +1344,16 @@ compare { {{ALL|ANY|SOME}(select)} | operand }
 | [NOT] LIKE operand [ESCAPE string]
 | [NOT] REGEXP operand
 ","
-The right hand side of a condition. When comparing with LIKE, the wildcards
-characters are _ (any one character) and % (any characters). The database uses
-an index when comparing with LIKE except if the operand starts with a wildcard.
-When comparing with REGEXP, regular expression matching is used. See Java
-Matcher.find for details.
+The right hand side of a condition. 
+
+When comparing with LIKE, the wildcards characters are _ (any one character) 
+and % (any characters). The database uses an index when comparing with LIKE 
+except if the operand starts with a wildcard. To search for the characters % and
+_, the characters need to be escaped. The default escape character is \ (backslash). 
+To select no escape character, use ESCAPE '' (empty string).
+
+When comparing with REGEXP, regular expression matching is used. 
+See Java Matcher.find for details.
 ","
 LIKE 'Jo%'
 "

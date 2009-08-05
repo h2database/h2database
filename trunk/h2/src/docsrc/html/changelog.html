@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Views using functions were not re-evaluated when necessary.
+<ul><li>LIKE: the escape mechanism can now be disable using ESCAPE ''.
+    The default escape character can be changed using the system property h2.defaultEscape.
+    The default is still '\' (as in MySQL and PostgreSQL).
+</li><li>Views using functions were not re-evaluated when necessary.
 </li><li>Improved MySQL compatibility for SHOW COLUMNS.
 </li><li>Improved PostgreSQL compatibility for timestamp literals with timezone.
 </li><li>Sergi Vladykin translated the error messages to Russian. Thanks a lot!

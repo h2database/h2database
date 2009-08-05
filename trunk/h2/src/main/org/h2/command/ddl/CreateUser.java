@@ -48,7 +48,7 @@ public class CreateUser extends DefineCommand {
     }
 
     private char[] getCharArray(Expression e) throws SQLException {
-        return e.getValue(session).getString().toCharArray();
+        return e.optimize(session).getValue(session).getString().toCharArray();
     }
 
     private byte[] getByteArray(Expression e) throws SQLException {
@@ -74,11 +74,13 @@ public class CreateUser extends DefineCommand {
         user.setComment(comment);
         if (hash != null && salt != null) {
             user.setSaltAndHash(getByteArray(salt), getByteArray(hash));
-        } else {
+        } else if (password != null) {
             SHA256 sha = new SHA256();
             char[] passwordChars = getCharArray(password);
             byte[] userPasswordHash = sha.getKeyPasswordHash(userName, passwordChars);
             user.setUserPasswordHash(userPasswordHash);
+        } else {
+            throw Message.throwInternalError();
         }
         db.addDatabaseObject(session, user);
         return 0;

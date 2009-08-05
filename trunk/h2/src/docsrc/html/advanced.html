@@ -161,6 +161,12 @@ See the grammar for details.
 <br /><a name="transaction_isolation"></a>
 <h2>Transaction Isolation</h2>
 <p>
+Transaction isolation is provided for all data manipulation language (DML) statements.
+Most data definition language (DDL) statements commit the current transaction.
+trigger a commit. See the <a href="grammar.html">grammar</a> for details.
+</p>
+
+<p>
 This database supports the following transaction isolation levels:
 </p>
 <ul>

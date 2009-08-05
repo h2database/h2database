@@ -141,7 +141,7 @@ SHOW TABLES
 "Commands (DDL)","ALTER INDEX RENAME","
 ALTER INDEX indexName RENAME TO newIndexName
 ","
-Renames an index.
+Renames an index. This command commits an open transaction.
 ","
 ALTER INDEX IDXNAME RENAME TO IDX_TEST_NAME
 "
@@ -160,7 +160,7 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 ALTER TABLE tableName ADD name dataType [DEFAULT expression]
 [[NOT] NULL] [AUTO_INCREMENT | IDENTITY] [BEFORE columnName]
 ","
-Adds a new column to a table.
+Adds a new column to a table. This command commits an open transaction.
 ","
 ALTER TABLE TEST ADD CREATEDATE TIMESTAMP
 "
@@ -171,6 +171,7 @@ ALTER TABLE tableName ADD constraint [CHECK|NOCHECK]
 Adds a constraint to a table. If NOCHECK is specified, existing rows are not
 checked for consistency (the default is to check consistency for existing rows).
 It is not possible to disable checking for unique constraints.
+This command commits an open transaction.
 ","
 ALTER TABLE TEST ADD CONSTRAINT NAME_UNIQUE UNIQUE(NAME)
 "
@@ -181,6 +182,7 @@ ALTER TABLE tableName ALTER COLUMN columnName dataType
 ","
 Changes the data type of a column. The operation fails if the data can not be
 converted.
+This command commits an open transaction.
 ","
 ALTER TABLE TEST ALTER COLUMN NAME CLOB
 "
@@ -188,7 +190,7 @@ ALTER TABLE TEST ALTER COLUMN NAME CLOB
 "Commands (DDL)","ALTER TABLE ALTER COLUMN RENAME","
 ALTER TABLE tableName ALTER COLUMN columnName RENAME TO name
 ","
-Renames a column.
+Renames a column. This command commits an open transaction.
 ","
 ALTER TABLE TEST ALTER COLUMN NAME RENAME TO TEXT
 "
@@ -210,6 +212,7 @@ Sets the selectivity (1-100) for a column. Setting the selectivity to 0 means
 the default value. Selectivity is used by the cost based optimizer to calculate
 the estimated cost of an index. Selectivity 100 means values are unique, 10
 means every distinct value appears 10 times on average.
+This command commits an open transaction.
 ","
 ALTER TABLE TEST ALTER COLUMN NAME SELECTIVITY 100
 "
@@ -218,6 +221,7 @@ ALTER TABLE TEST ALTER COLUMN NAME SELECTIVITY 100
 ALTER TABLE tableName ALTER COLUMN columnName SET DEFAULT expression
 ","
 Changes the default value of a column.
+This command commits an open transaction.
 ","
 ALTER TABLE TEST ALTER COLUMN NAME SET DEFAULT ''
 "
@@ -226,6 +230,7 @@ ALTER TABLE TEST ALTER COLUMN NAME SET DEFAULT ''
 ALTER TABLE tableName ALTER COLUMN columnName SET NOT NULL
 ","
 Sets a column to not allow NULL. Rows may not contains NULL in this column.
+This command commits an open transaction.
 ","
 ALTER TABLE TEST ALTER COLUMN NAME SET NOT NULL
 "
@@ -235,6 +240,7 @@ ALTER TABLE tableName ALTER COLUMN columnName SET NULL
 ","
 Sets a column to allow NULL. The row may not be part of a primary key or
 multi-column hash index. Single column indexes on this column are dropped.
+This command commits an open transaction.
 ","
 ALTER TABLE TEST ALTER COLUMN NAME SET NULL
 "
@@ -243,6 +249,7 @@ ALTER TABLE TEST ALTER COLUMN NAME SET NULL
 ALTER TABLE tableName DROP COLUMN columnName
 ","
 Removes a column from a table.
+This command commits an open transaction.
 ","
 ALTER TABLE TEST DROP COLUMN NAME
 "
@@ -252,6 +259,7 @@ ALTER TABLE tableName DROP
 {CONSTRAINT [IF EXISTS] constraintName | PRIMARY KEY}
 ","
 Removes a constraint or a primary key from a table.
+This command commits an open transaction.
 ","
 ALTER TABLE TEST DROP CONSTRAINT UNIQUE_NAME
 "
@@ -265,6 +273,8 @@ be used inside a transaction. Enabling referential integrity does not check
 existing data, except if CHECK is specified. Use SET REFERENTIAL_INTEGRITY to
 disable it for all tables; the global flag and the flag for each table are
 independent.
+
+This command commits an open transaction.
 ","
 ALTER TABLE TEST SET REFERENTIAL_INTEGRITY FALSE
 "
@@ -272,7 +282,7 @@ ALTER TABLE TEST SET REFERENTIAL_INTEGRITY FALSE
 "Commands (DDL)","ALTER TABLE RENAME","
 ALTER TABLE tableName RENAME TO newName
 ","
-Renames a table.
+Renames a table. This command commits an open transaction.
 ","
 ALTER TABLE TEST RENAME TO MY_DATA
 "
@@ -282,6 +292,7 @@ ALTER USER userName ADMIN {TRUE | FALSE}
 ","
 Switches the admin flag of a user on or off. Only unquoted or uppercase user
 names are allowed. Admin rights are required to execute this command.
+This command commits an open transaction.
 ","
 ALTER USER TOM ADMIN TRUE
 "
@@ -292,6 +303,7 @@ ALTER USER userName RENAME TO newUserName
 Renames a user. Only unquoted or uppercase user names are allowed. After
 renaming a user, the password becomes invalid and needs to be changed as well.
 Admin rights are required to execute this command.
+This command commits an open transaction.
 ","
 ALTER USER TOM RENAME TO THOMAS
 "
@@ -303,6 +315,7 @@ Changes the password of a user. Only unquoted or uppercase user names are
 allowed. The password must be enclosed in single quotes. It is case sensitive
 and can contain spaces. The salt and hash values are hex strings. Admin rights
 are required to execute this command.
+This command commits an open transaction.
 ","
 ALTER USER SA SET PASSWORD 'rioyxlgt'
 "
@@ -311,6 +324,7 @@ ALTER USER SA SET PASSWORD 'rioyxlgt'
 ALTER VIEW viewName RECOMPILE
 ","
 Recompiles a view after the underlying tables have been changed or created.
+This command commits an open transaction.
 ","
 ALTER VIEW ADDRESS_VIEW RECOMPILE
 "
@@ -324,6 +338,8 @@ size is set, up to 10000 rows per table are read. The value 0 means all rows are
 read. The selectivity can be set manually using ALTER TABLE ALTER COLUMN
 SELECTIVITY. Manual values are overwritten by this statement. The selectivity is
 available in the INFORMATION_SCHEMA.COLUMNS table.
+
+This command commits an open transaction.
 ","
 ANALYZE SAMPLE_SIZE 1000
 "
@@ -335,6 +351,7 @@ COMMENT ON { { TABLE | VIEW | CONSTANT | CONSTRAINT | ALIAS | INDEX | ROLE
 ","
 Sets the comment of a database object. Use NULL to remove the comment. Admin
 rights are required to execute this command.
+This command commits an open transaction.
 ","
 COMMENT ON TABLE TEST IS 'Table used for testing'
 "
@@ -345,6 +362,7 @@ CREATE AGGREGATE [IF NOT EXISTS] newAggregateName FOR className
 Creates a new user-defined aggregate function. The method name must be the full
 qualified class name. The class must implement the interface
 org.h2.api.AggregateFunction. Admin rights are required to execute this command.
+This command commits an open transaction.
 ","
 CREATE AGGREGATE MEDIAN FOR ""com.acme.db.Median""
 "
@@ -364,6 +382,8 @@ Java function is a java.sql.Connection, then a connection to the database is
 provided. This connection must not be closed. If the class contains multiple
 methods with the given name but different parameter count, all methods are
 mapped.
+
+This command commits an open transaction.
 ","
 CREATE ALIAS MY_SQRT FOR ""java.lang.Math.sqrt"";
 CREATE ALIAS GET_SYSTEM_PROPERTY FOR ""java.lang.System.getProperty"";
@@ -374,7 +394,7 @@ CALL GET_SYSTEM_PROPERTY('com.acme.test', 'true');
 "Commands (DDL)","CREATE CONSTANT","
 CREATE CONSTANT [IF NOT EXISTS] newConstantName VALUE expression
 ","
-Creates a new constant.
+Creates a new constant. This command commits an open transaction.
 ","
 CREATE CONSTANT ONE VALUE 1
 "
@@ -386,6 +406,8 @@ CREATE DOMAIN [IF NOT EXISTS] newDomainName AS dataType [DEFAULT expression]
 Creates a new data type (domain). The check condition must evaluate to true or
 to NULL (to prevent NULL, use NOT NULL). In the condition, the term VALUE refers
 to the value being tested.
+
+This command commits an open transaction.
 ","
 CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 "
@@ -394,7 +416,7 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 CREATE {[UNIQUE [HASH]] INDEX [IF NOT EXISTS] newIndexName
 | PRIMARY KEY [HASH]} ON tableName(indexColumn [,...])
 ","
-Creates a new index.
+Creates a new index. This command commits an open transaction.
 ","
 CREATE INDEX IDXNAME ON TEST(NAME)
 "
@@ -418,6 +440,8 @@ To use JNDI to get the connection, the driver class must be a
 javax.naming.Context (for example javax.naming.InitialContext), and the URL must
 be the resource name (for example java:comp/env/jdbc/Test). Admin rights are
 required to execute this command.
+
+This command commits an open transaction.
 ","
 CREATE LINKED TABLE LINK('org.h2.Driver', 'jdbc:h2:test2', 'sa', 'sa', 'TEST');
 CREATE LINKED TABLE LINK('', 'jdbc:h2:test2', 'sa', 'sa',
@@ -429,7 +453,7 @@ CREATE LINKED TABLE LINK('javax.naming.InitialContext',
 "Commands (DDL)","CREATE ROLE","
 CREATE ROLE [IF NOT EXISTS] newRoleName
 ","
-Creates a new role.
+Creates a new role. This command commits an open transaction.
 ","
 CREATE ROLE READONLY
 "
@@ -439,6 +463,8 @@ CREATE SCHEMA [IF NOT EXISTS] name [AUTHORIZATION ownerUserName]
 ","
 Creates a new schema. If no owner is specified, the current user is used. The
 user that executes the command must have admin rights, as well as the owner.
+
+This command commits an open transaction.
 ","
 CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 "
@@ -477,6 +503,8 @@ global.
 Identity and auto-increment columns are columns with a sequence as the
 default. The column declared as the identity columns is implicitly the
 primary key column of this table (unlike auto-increment columns).
+
+This command commits an open transaction.
 ","
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))
 "
@@ -492,6 +520,8 @@ Creates a new trigger. The trigger class must be public. Nested and inner
 classes are not supported. Before triggers are called after data conversion is
 made, default values are set, null and length constraint checks have been made;
 but before other constraints have been checked.
+
+This command commits an open transaction.
 ","
 CREATE TRIGGER TRIG_INS BEFORE INSERT ON TEST FOR EACH ROW CALL ""MyTrigger""
 "
@@ -504,6 +534,8 @@ Creates a new user. Admin rights are required to execute this command. For
 compatibility, only unquoted or uppercase user names are allowed. The password
 must be in single quotes. It is case sensitive and can contain spaces. The salt
 and hash values are hex strings.
+
+This command commits an open transaction.
 ","
 CREATE USER GUEST PASSWORD 'abc'
 "
@@ -515,6 +547,8 @@ AS select
 Creates a new view. If the force option is used, then the view is created even
 if the underlying table(s) don't exist. Admin rights are required to execute
 this command.
+
+This command commits an open transaction.
 ","
 CREATE VIEW TEST_VIEW AS SELECT * FROM TEST WHERE ID < 100
 "
@@ -524,6 +558,7 @@ DROP AGGREGATE [IF EXISTS] aggregateName
 ","
 Drops an existing user-defined aggregate function. Admin rights are required to
 execute this command.
+This command commits an open transaction.
 ","
 CREATE AGGREGATE MEDIAN
 "
@@ -533,6 +568,7 @@ DROP ALIAS [IF EXISTS] functionAliasName
 ","
 Drops an existing function alias. Admin rights are required to execute this
 command.
+This command commits an open transaction.
 ","
 CREATE ALIAS MY_SQRT
 "
@@ -552,7 +588,7 @@ DROP ALL OBJECTS
 "Commands (DDL)","DROP CONSTANT","
 DROP CONSTANT [IF EXISTS] constantName
 ","
-Drops a constant.
+Drops a constant. This command commits an open transaction.
 ","
 DROP CONSTANT ONE
 "
@@ -560,7 +596,7 @@ DROP CONSTANT ONE
 "Commands (DDL)","DROP DOMAIN","
 DROP DOMAIN [IF EXISTS] domainName
 ","
-Drops a data type (domain).
+Drops a data type (domain). This command commits an open transaction.
 ","
 DROP DOMAIN EMAIL
 "
@@ -568,7 +604,7 @@ DROP DOMAIN EMAIL
 "Commands (DDL)","DROP INDEX","
 DROP INDEX [IF EXISTS] indexName
 ","
-Drops an index.
+Drops an index. This command commits an open transaction.
 ","
 DROP INDEX IF EXISTS IDXNAME
 "
@@ -576,7 +612,7 @@ DROP INDEX IF EXISTS IDXNAME
 "Commands (DDL)","DROP ROLE","
 DROP ROLE [IF EXISTS] roleName
 ","
-Drops a role.
+Drops a role. This command commits an open transaction.
 ","
 DROP ROLE READONLY
 "
@@ -584,7 +620,7 @@ DROP ROLE READONLY
 "Commands (DDL)","DROP SCHEMA","
 DROP SCHEMA [IF EXISTS] schemaName
 ","
-Drops a schema.
+Drops a schema. Commits current transaction.
 ","
 DROP SCHEMA TEST_SCHEMA
 "
@@ -592,7 +628,7 @@ DROP SCHEMA TEST_SCHEMA
 "Commands (DDL)","DROP SEQUENCE","
 DROP SEQUENCE [IF EXISTS] sequenceName
 ","
-Drops a sequence.
+Drops a sequence. This command commits an open transaction.
 ","
 DROP SEQUENCE SEQ_ID
 "
@@ -601,6 +637,7 @@ DROP SEQUENCE SEQ_ID
 DROP TABLE [IF EXISTS] tableName [,...]
 ","
 Drops an existing table, or a list of existing tables.
+This command commits an open transaction.
 ","
 DROP TABLE TEST
 "
@@ -608,7 +645,7 @@ DROP TABLE TEST
 "Commands (DDL)","DROP TRIGGER","
 DROP TRIGGER [IF EXISTS] triggerName
 ","
-Drops an existing trigger.
+Drops an existing trigger. This command commits an open transaction.
 ","
 DROP TRIGGER TRIG_INS
 "
@@ -619,6 +656,8 @@ DROP USER [IF EXISTS] userName
 Drops a user. The current user cannot be dropped. For compatibility, only
 unquoted or uppercase user names are allowed. Admin rights are required to
 execute this command.
+
+This command commits an open transaction.
 ","
 DROP USER TOM
 "
@@ -626,7 +665,7 @@ DROP USER TOM
 "Commands (DDL)","DROP VIEW","
 DROP VIEW [IF EXISTS] viewName
 ","
-Drops a view.
+Drops a view. This command commits an open transaction.
 ","
 DROP VIEW TEST_VIEW
 "
@@ -748,7 +787,7 @@ ROLLBACK TRANSACTION transactionName
 ","
 Sets the resolution of an in-doubt transaction to 'rollback'. Admin rights are
 required to execute this command. This command is part of the 2-phase-commit
-protocol.
+protocol. DDL statements can not roll back.
 ","
 ROLLBACK TRANSACTION XID_TEST
 "
@@ -1738,7 +1777,7 @@ DATE
 ","
 The format is yyyy-MM-dd.
 
-Mapped to java.sql.Date.
+Mapped to java.sql.Date
 ","
 DATE
 "
@@ -1757,10 +1796,11 @@ TIMESTAMP
 {BINARY | VARBINARY | LONGVARBINARY | RAW | BYTEA}
 [( precisionInt )]
 ","
-Represents a byte array. For very long arrays, use BLOB. There is no maximum
-precision. The maximum size is the memory available. The precision is a size
-constraint; only the actual data is persisted. The whole object is kept in
-memory when using this data type. For large text data BLOB should be used.
+Represents a byte array. For very long arrays, use BLOB.
+The maximum size is 2 GB, but the whole object is kept in
+memory when using this data type. The precision is a size constraint;
+only the actual data is persisted. For large text data BLOB or CLOB
+should be used.
 
 Mapped to byte[].
 ","
@@ -1786,9 +1826,9 @@ OTHER
 VARCHAR2 | NVARCHAR | NVARCHAR2 | VARCHAR_CASESENSITIVE}
 [( precisionInt )]
 ","
-Unicode String. Use two single quotes ('') to create a quote. There is no
-maximum precision. The maximum size is the memory available. The precision is a
-size constraint; only the actual data is persisted. For large text data CLOB
+Unicode String. Use two single quotes ('') to create a quote. The maximum precison
+is Integer.MAX_VALUE. The precision is a size constraint; only the actual data is
+persisted. The whole text is kept in memory when using this data type. For large text data CLOB
 should be used; see there for details.
 
 Mapped to java.lang.String.
@@ -1800,8 +1840,9 @@ VARCHAR(255)
 VARCHAR_IGNORECASE [( precisionInt )]
 ","
 Same as VARCHAR, but not case sensitive when comparing. Stored in mixed case.
-There is no maximum precision. The maximum size is the memory available. For
-large text data CLOB should be used; see there for details.
+The maximum precision is Integer.MAX_VALUE characters, but the whole text is kept in
+memory when using this data type. For large text data CLOB should be used;
+see there for details.
 
 Mapped to java.lang.String.
 ","
@@ -1815,8 +1856,9 @@ VARCHAR_IGNORECASE
 This type is supported for compatibility with other databases and older
 applications. The difference to VARCHAR is that trailing spaces are ignored and
 not persisted. Unicode String. Use two single quotes ('') to create a quote.
-There is no maximum precision. The maximum size is the memory available. For
-large text data CLOB should be used; see there for details.
+The maximum precison is Integer.MAX_VALUE. The precision is a size constraint;
+only the actual data is persisted. The whole text is kept in memory when using
+this data type. For large text data CLOB should be used; see there for details.
 
 Mapped to java.lang.String.
 ","

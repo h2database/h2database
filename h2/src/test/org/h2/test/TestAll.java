@@ -297,9 +297,6 @@ java org.h2.test.TestAll timer
 
 page store: TestBtreeIndex
 
-better document that ddl statements commit
-"This command commits an open transaction."
-
 -------------
 
 create a short documentation
@@ -308,8 +305,8 @@ documentation: rolling review at roadmap.html: done
 
 remove old TODO, move to roadmap
 
-kill a specific java process:
-kill -9 `jps -l | grep "org.h2.test.TestAll" | cut -d " " -f 1`
+kill a test:
+kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
 */
         if (args.length > 0) {

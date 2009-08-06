@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>LIKE: the escape mechanism can now be disable using ESCAPE ''.
+<ul><li>Issue 103: MVCC: the setting MAX_MEMORY_UNDO can currently not be supported when using
+    multi-version concurrency, that means the complete undo log must fit in memory.
+</li><li>LIKE: the escape mechanism can now be disable using ESCAPE ''.
     The default escape character can be changed using the system property h2.defaultEscape.
     The default is still '\' (as in MySQL and PostgreSQL).
 </li><li>Views using functions were not re-evaluated when necessary.

@@ -204,31 +204,4 @@ For more information, see
 <a href="build.html#translating">Build/Translating</a>.
 </p>
 
-<br /><a name="memory_problems"></a>
-<h3>How to fix a frequent OutOfMemoryError?</h3>
-<p>
-In most cases this can be solved by increasing the amount of heap memory allocated to the H2 database.
-The default settings are quite conservative with memory, but there are a few cases that can cause problems:   
-<p>
-
-<h4>Large Rows</h4>
-<p>
-The database will store a limited number of rows in memory to improve query and modification performance.
-This will lead to an OutOfMemoryError when many rows contain a large amount of in-line data. 
-In most cases, this is caused by using a VARCHAR where a CLOB would be more appropriate.
-
-To solve this problem, use LOBs where possible and limit the number of rows in memory. 
-See "SET MAX_MEMORY_ROWS" and "SET MAX_MEMORY_UNDO" in the <a href="grammar.html">grammar</a>.   
-</p>
-
-<h4>Applying functions to large LOBs</h4>
-<p>
-If a function is applied to a LOB, the output will not be a LOB and must fit in memory.
-Functions may also read the LOB fully into memory in order to process it.
-Processing of large LOBs should be done outside of the database or with user-defined functions 
-to prevent OutOfMemoryErrors. A user-defined function for this purpose should accept a java.sql.Blob
-or java.sql.Clob and not a byte[] or String object. It should also use the stream methods to read the
-LOB.    
-</p>
-
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

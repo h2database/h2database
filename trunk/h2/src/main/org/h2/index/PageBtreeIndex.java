@@ -82,18 +82,6 @@ public class PageBtreeIndex extends BaseIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("add " + row.getPos());
         }
-        if (tableData.getContainsLargeObject()) {
-            for (int i = 0; i < row.getColumnCount(); i++) {
-                Value v = row.getValue(i);
-                Value v2 = v.link(database, getId());
-                if (v2.isLinked()) {
-                    session.unlinkAtCommitStop(v2);
-                }
-                if (v != v2) {
-                    row.setValue(i, v2);
-                }
-            }
-        }
         // safe memory
         SearchRow newRow = getSearchRow(row);
         while (true) {

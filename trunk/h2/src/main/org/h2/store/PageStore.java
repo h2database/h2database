@@ -320,7 +320,7 @@ public class PageStore implements CacheWriter {
             // write back the free list
             writeBack();
             byte[] empty = new byte[pageSize];
-            // TODO avoid to write empty pages
+            // TODO avoid to write empty pages more than once
             for (int i = PAGE_ID_FREE_LIST_ROOT; i < pageCount; i++) {
                 if (!isUsed(i)) {
                     file.seek((long) i << pageSizeShift);

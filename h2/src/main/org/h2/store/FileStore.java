@@ -276,11 +276,8 @@ public class FileStore {
      * @param len the number of bytes to read
      */
     public void readFully(byte[] b, int off, int len) throws SQLException {
-        if (SysProperties.CHECK && len < 0) {
-            Message.throwInternalError("read len " + len);
-        }
-        if (SysProperties.CHECK && len % Constants.FILE_BLOCK_SIZE != 0) {
-            Message.throwInternalError("unaligned read " + name + " len " + len);
+        if (SysProperties.CHECK && (len < 0 || len % Constants.FILE_BLOCK_SIZE != 0)) {
+            Message.throwInternalError("unaligned write " + name + " len " + len);
         }
         checkPowerOff();
         try {
@@ -329,10 +326,7 @@ public class FileStore {
      * @param len the number of bytes to write
      */
     public void write(byte[] b, int off, int len) throws SQLException {
-        if (SysProperties.CHECK && len < 0) {
-            Message.throwInternalError("read len " + len);
-        }
-        if (SysProperties.CHECK && len % Constants.FILE_BLOCK_SIZE != 0) {
+        if (SysProperties.CHECK && (len < 0 || len % Constants.FILE_BLOCK_SIZE != 0)) {
             Message.throwInternalError("unaligned write " + name + " len " + len);
         }
         checkWritingAllowed();

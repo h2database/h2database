@@ -126,7 +126,7 @@ See <a href="advanced.html#limits_limitations">Limits and Limitations</a>.
 That is not easy to say. It is still a quite new product. A lot of tests have been written,
 and the code coverage of these tests is very high. Randomized stress tests
 are run regularly. But there are probably still
-bug that have not yet been found (as with most software). Some features are known
+bugs that have not yet been found (as with most software). Some features are known
 to be dangerous, they are only supported for situations where performance is more important
 than reliability. Those dangerous features are:
 </p>
@@ -152,6 +152,8 @@ Areas that are not fully tested:
 </li><li>24/7 operation
 </li><li>Some operations on databases larger than 500 MB may be slower than expected
 </li><li>The optimizer may not always select the best plan
+</li><li>Fulltext search
+</li><li>Operations on LOBs over 2 GB
 </li></ul>
 
 <p>
@@ -159,6 +161,8 @@ Areas considered Experimental:
 </p>
 <ul>
 <li>The PostgreSQL server
+</li><li>The new page store
+</li><li>Multi-threading within the engine using SET MULTI_THREADED=1
 </li><li>Compatibility modes for other databases (only some features are implemented)
 </li></ul>
 
@@ -198,6 +202,33 @@ However, the startup of the GCJ version is faster than when using a VM.
 <p>
 For more information, see
 <a href="build.html#translating">Build/Translating</a>.
+</p>
+
+<br /><a name="memory_problems"></a>
+<h3>How to fix a frequent OutOfMemoryError?</h3>
+<p>
+In most cases this can be solved by increasing the amount of heap memory allocated to the H2 database.
+The default settings are quite conservative with memory, but there are a few cases that can cause problems:   
+<p>
+
+<h4>Large Rows</h4>
+<p>
+The database will store a limited number of rows in memory to improve query and modification performance.
+This will lead to an OutOfMemoryError when many rows contain a large amount of in-line data. 
+In most cases, this is caused by using a VARCHAR where a CLOB would be more appropriate.
+
+To solve this problem, use LOBs where possible and limit the number of rows in memory. 
+See "SET MAX_MEMORY_ROWS" and "SET MAX_MEMORY_UNDO" in the <a href="grammar.html">grammar</a>.   
+</p>
+
+<h4>Applying functions to large LOBs</h4>
+<p>
+If a function is applied to a LOB, the output will not be a LOB and must fit in memory.
+Functions may also read the LOB fully into memory in order to process it.
+Processing of large LOBs should be done outside of the database or with user-defined functions 
+to prevent OutOfMemoryErrors. A user-defined function for this purpose should accept a java.sql.Blob
+or java.sql.Clob and not a byte[] or String object. It should also use the stream methods to read the
+LOB.    
 </p>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

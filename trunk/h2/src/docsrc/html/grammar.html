@@ -87,5 +87,17 @@ The table is used as follows:
 SELECT X FROM SYSTEM_RANGE(1, 10);
 </pre>
 
+<br />
+<a name="@LOOP"></a><h3>@LOOP</h3>
+<p>
+Runs the following SQL statement in a loop, with all instances of ?
+replaced by a counter from 0 to the end value.
+The @LOOP element can only be used from the H2 Console. 
+The @LOOP element is used as follows: 
+</p>
+<pre>
+@LOOP 1000 INSERT INTO TABLE(id,name) VALUES (?,'Bob');
+</pre>
+
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>
 

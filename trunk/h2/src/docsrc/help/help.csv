@@ -51,8 +51,8 @@ DELETE FROM TEST WHERE ID=2
 "Commands (DML)","BACKUP","
 BACKUP TO fileNameString
 ","
-Backs up the database files to a .zip file. Objects are not locked. Admin
-rights are required to execute this command.
+Backs up the database files to a .zip file. Objects are not locked.
+Admin rights are required to execute this command.
 ","
 BACKUP TO 'backup.zip'
 "
@@ -99,7 +99,9 @@ case sensitive and can contain spaces.
 
 The compression algorithm must match the one used when creating the script. When
 using encryption, only DEFLATE and LZF are supported (LZF is faster but uses more space).
-Instead of a file, an URL may be used. Admin rights are required to execute this command.
+Instead of a file, an URL may be used.
+
+Admin rights are required to execute this command.
 ","
 RUNSCRIPT FROM 'backup'
 "
@@ -141,7 +143,8 @@ SHOW TABLES
 "Commands (DDL)","ALTER INDEX RENAME","
 ALTER INDEX indexName RENAME TO newIndexName
 ","
-Renames an index. This command commits an open transaction.
+Renames an index.
+This command commits an open transaction.
 ","
 ALTER INDEX IDXNAME RENAME TO IDX_TEST_NAME
 "
@@ -149,8 +152,8 @@ ALTER INDEX IDXNAME RENAME TO IDX_TEST_NAME
 "Commands (DDL)","ALTER SEQUENCE","
 ALTER SEQUENCE sequenceName [RESTART WITH long] [INCREMENT BY long]
 ","
-Changes the next value and the increment of a sequence. This command does not
-commit the current transaction; however the new value is used by other
+Changes the next value and the increment of a sequence.
+This command does not commit the current transaction; however the new value is used by other
 transactions immediately, and rolling back this command has no effect.
 ","
 ALTER SEQUENCE SEQ_ID RESTART WITH 1000
@@ -160,7 +163,8 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 ALTER TABLE tableName ADD name dataType [DEFAULT expression]
 [[NOT] NULL] [AUTO_INCREMENT | IDENTITY] [BEFORE columnName]
 ","
-Adds a new column to a table. This command commits an open transaction.
+Adds a new column to a table.
+This command commits an open transaction.
 ","
 ALTER TABLE TEST ADD CREATEDATE TIMESTAMP
 "
@@ -180,8 +184,8 @@ ALTER TABLE TEST ADD CONSTRAINT NAME_UNIQUE UNIQUE(NAME)
 ALTER TABLE tableName ALTER COLUMN columnName dataType
 [DEFAULT expression] [NOT [NULL]] [AUTO_INCREMENT | IDENTITY]
 ","
-Changes the data type of a column. The operation fails if the data can not be
-converted.
+Changes the data type of a column.
+The operation fails if the data can not be converted.
 This command commits an open transaction.
 ","
 ALTER TABLE TEST ALTER COLUMN NAME CLOB
@@ -190,7 +194,8 @@ ALTER TABLE TEST ALTER COLUMN NAME CLOB
 "Commands (DDL)","ALTER TABLE ALTER COLUMN RENAME","
 ALTER TABLE tableName ALTER COLUMN columnName RENAME TO name
 ","
-Renames a column. This command commits an open transaction.
+Renames a column.
+This command commits an open transaction.
 ","
 ALTER TABLE TEST ALTER COLUMN NAME RENAME TO TEXT
 "
@@ -282,7 +287,8 @@ ALTER TABLE TEST SET REFERENTIAL_INTEGRITY FALSE
 "Commands (DDL)","ALTER TABLE RENAME","
 ALTER TABLE tableName RENAME TO newName
 ","
-Renames a table. This command commits an open transaction.
+Renames a table.
+This command commits an open transaction.
 ","
 ALTER TABLE TEST RENAME TO MY_DATA
 "
@@ -290,8 +296,10 @@ ALTER TABLE TEST RENAME TO MY_DATA
 "Commands (DDL)","ALTER USER ADMIN","
 ALTER USER userName ADMIN {TRUE | FALSE}
 ","
-Switches the admin flag of a user on or off. Only unquoted or uppercase user
-names are allowed. Admin rights are required to execute this command.
+Switches the admin flag of a user on or off.
+
+Only unquoted or uppercase user names are allowed.
+Admin rights are required to execute this command.
 This command commits an open transaction.
 ","
 ALTER USER TOM ADMIN TRUE
@@ -300,8 +308,10 @@ ALTER USER TOM ADMIN TRUE
 "Commands (DDL)","ALTER USER RENAME","
 ALTER USER userName RENAME TO newUserName
 ","
-Renames a user. Only unquoted or uppercase user names are allowed. After
-renaming a user, the password becomes invalid and needs to be changed as well.
+Renames a user.
+After renaming a user, the password becomes invalid and needs to be changed as well.
+
+Only unquoted or uppercase user names are allowed.
 Admin rights are required to execute this command.
 This command commits an open transaction.
 ","
@@ -311,10 +321,12 @@ ALTER USER TOM RENAME TO THOMAS
 "Commands (DDL)","ALTER USER SET PASSWORD","
 ALTER USER userName SET {PASSWORD string | SALT bytes HASH bytes}
 ","
-Changes the password of a user. Only unquoted or uppercase user names are
-allowed. The password must be enclosed in single quotes. It is case sensitive
-and can contain spaces. The salt and hash values are hex strings. Admin rights
-are required to execute this command.
+Changes the password of a user.
+Only unquoted or uppercase user names are allowed.
+The password must be enclosed in single quotes. It is case sensitive
+and can contain spaces. The salt and hash values are hex strings.
+
+Admin rights are required to execute this command.
 This command commits an open transaction.
 ","
 ALTER USER SA SET PASSWORD 'rioyxlgt'
@@ -349,8 +361,9 @@ COMMENT ON { { TABLE | VIEW | CONSTANT | CONSTRAINT | ALIAS | INDEX | ROLE
 | SCHEMA | SEQUENCE | TRIGGER | USER | DOMAIN } [schemaName.]objectName }
 | { COLUMN [schemaName.]tableName.columnName } IS expression
 ","
-Sets the comment of a database object. Use NULL to remove the comment. Admin
-rights are required to execute this command.
+Sets the comment of a database object. Use NULL to remove the comment.
+
+Admin rights are required to execute this command.
 This command commits an open transaction.
 ","
 COMMENT ON TABLE TEST IS 'Table used for testing'
@@ -361,7 +374,9 @@ CREATE AGGREGATE [IF NOT EXISTS] newAggregateName FOR className
 ","
 Creates a new user-defined aggregate function. The method name must be the full
 qualified class name. The class must implement the interface
-org.h2.api.AggregateFunction. Admin rights are required to execute this command.
+org.h2.api.AggregateFunction.
+
+Admin rights are required to execute this command.
 This command commits an open transaction.
 ","
 CREATE AGGREGATE MEDIAN FOR ""com.acme.db.Median""
@@ -377,12 +392,12 @@ and method name, and may optionally include the parameter classes as in
 must both be public, and the method must be static.
 
 Deterministic functions always return the same value for the same parameters.
-Admin rights are required to execute this command. If the first parameter of the
-Java function is a java.sql.Connection, then a connection to the database is
-provided. This connection must not be closed. If the class contains multiple
-methods with the given name but different parameter count, all methods are
-mapped.
+If the first parameter of the Java function is a java.sql.Connection, then a
+connection to the database is provided. This connection must not be closed.
+If the class contains multiple methods with the given name but different
+parameter count, all methods are mapped.
 
+Admin rights are required to execute this command.
 This command commits an open transaction.
 ","
 CREATE ALIAS MY_SQRT FOR ""java.lang.Math.sqrt"";
@@ -394,7 +409,8 @@ CALL GET_SYSTEM_PROPERTY('com.acme.test', 'true');
 "Commands (DDL)","CREATE CONSTANT","
 CREATE CONSTANT [IF NOT EXISTS] newConstantName VALUE expression
 ","
-Creates a new constant. This command commits an open transaction.
+Creates a new constant.
+This command commits an open transaction.
 ","
 CREATE CONSTANT ONE VALUE 1
 "
@@ -416,7 +432,8 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 CREATE {[UNIQUE [HASH]] INDEX [IF NOT EXISTS] newIndexName
 | PRIMARY KEY [HASH]} ON tableName(indexColumn [,...])
 ","
-Creates a new index. This command commits an open transaction.
+Creates a new index.
+This command commits an open transaction.
 ","
 CREATE INDEX IDXNAME ON TEST(NAME)
 "
@@ -438,9 +455,9 @@ used instead of the original table name, the table is read only.
 
 To use JNDI to get the connection, the driver class must be a
 javax.naming.Context (for example javax.naming.InitialContext), and the URL must
-be the resource name (for example java:comp/env/jdbc/Test). Admin rights are
-required to execute this command.
+be the resource name (for example java:comp/env/jdbc/Test).
 
+Admin rights are required to execute this command.
 This command commits an open transaction.
 ","
 CREATE LINKED TABLE LINK('org.h2.Driver', 'jdbc:h2:test2', 'sa', 'sa', 'TEST');
@@ -453,7 +470,8 @@ CREATE LINKED TABLE LINK('javax.naming.InitialContext',
 "Commands (DDL)","CREATE ROLE","
 CREATE ROLE [IF NOT EXISTS] newRoleName
 ","
-Creates a new role. This command commits an open transaction.
+Creates a new role.
+This command commits an open transaction.
 ","
 CREATE ROLE READONLY
 "
@@ -477,6 +495,8 @@ Creates a new sequence. The data type of a sequence is BIGINT. Used values are
 never re-used, even when the transaction is rolled back. The cache is the number
 of pre-allocated numbers. If the system crashes without closing the database, at
 most this many numbers are lost. The default cache size is 32.
+
+This command commits an open transaction.
 ","
 CREATE SEQUENCE SEQ_ID
 "
@@ -530,11 +550,11 @@ CREATE USER [IF NOT EXISTS] newUserName
 {PASSWORD string | SALT bytes HASH bytes}
 [ADMIN]
 ","
-Creates a new user. Admin rights are required to execute this command. For
-compatibility, only unquoted or uppercase user names are allowed. The password
-must be in single quotes. It is case sensitive and can contain spaces. The salt
-and hash values are hex strings.
+Creates a new user. For compatibility, only unquoted or uppercase user names are allowed.
+The password must be in single quotes. It is case sensitive and can contain spaces.
+The salt and hash values are hex strings.
 
+Admin rights are required to execute this command.
 This command commits an open transaction.
 ","
 CREATE USER GUEST PASSWORD 'abc'
@@ -545,9 +565,9 @@ CREATE [FORCE] VIEW [IF NOT EXISTS] newViewName [(columnName [,..])]
 AS select
 ","
 Creates a new view. If the force option is used, then the view is created even
-if the underlying table(s) don't exist. Admin rights are required to execute
-this command.
+if the underlying table(s) don't exist.
 
+Admin rights are required to execute this command.
 This command commits an open transaction.
 ","
 CREATE VIEW TEST_VIEW AS SELECT * FROM TEST WHERE ID < 100
@@ -556,8 +576,9 @@ CREATE VIEW TEST_VIEW AS SELECT * FROM TEST WHERE ID < 100
 "Commands (DDL)","DROP AGGREGATE","
 DROP AGGREGATE [IF EXISTS] aggregateName
 ","
-Drops an existing user-defined aggregate function. Admin rights are required to
-execute this command.
+Drops an existing user-defined aggregate function.
+
+Admin rights are required to execute this command.
 This command commits an open transaction.
 ","
 CREATE AGGREGATE MEDIAN
@@ -566,8 +587,9 @@ CREATE AGGREGATE MEDIAN
 "Commands (DDL)","DROP ALIAS","
 DROP ALIAS [IF EXISTS] functionAliasName
 ","
-Drops an existing function alias. Admin rights are required to execute this
-command.
+Drops an existing function alias.
+
+Admin rights are required to execute this command.
 This command commits an open transaction.
 ","
 CREATE ALIAS MY_SQRT
@@ -580,7 +602,9 @@ Drops all existing views, tables, sequences, schemas, function aliases, roles,
 user-defined aggregate functions, domains, and users (except the current user).
 If DELETE FILES is specified, the database files will be removed when the last
 user disconnects from the database. Warning: this command can not be rolled
-back. Admin rights are required to execute this command.
+back.
+
+Admin rights are required to execute this command.
 ","
 DROP ALL OBJECTS
 "
@@ -588,7 +612,8 @@ DROP ALL OBJECTS
 "Commands (DDL)","DROP CONSTANT","
 DROP CONSTANT [IF EXISTS] constantName
 ","
-Drops a constant. This command commits an open transaction.
+Drops a constant.
+This command commits an open transaction.
 ","
 DROP CONSTANT ONE
 "
@@ -596,7 +621,8 @@ DROP CONSTANT ONE
 "Commands (DDL)","DROP DOMAIN","
 DROP DOMAIN [IF EXISTS] domainName
 ","
-Drops a data type (domain). This command commits an open transaction.
+Drops a data type (domain).
+This command commits an open transaction.
 ","
 DROP DOMAIN EMAIL
 "
@@ -604,7 +630,8 @@ DROP DOMAIN EMAIL
 "Commands (DDL)","DROP INDEX","
 DROP INDEX [IF EXISTS] indexName
 ","
-Drops an index. This command commits an open transaction.
+Drops an index.
+This command commits an open transaction.
 ","
 DROP INDEX IF EXISTS IDXNAME
 "
@@ -612,7 +639,8 @@ DROP INDEX IF EXISTS IDXNAME
 "Commands (DDL)","DROP ROLE","
 DROP ROLE [IF EXISTS] roleName
 ","
-Drops a role. This command commits an open transaction.
+Drops a role.
+This command commits an open transaction.
 ","
 DROP ROLE READONLY
 "
@@ -620,7 +648,8 @@ DROP ROLE READONLY
 "Commands (DDL)","DROP SCHEMA","
 DROP SCHEMA [IF EXISTS] schemaName
 ","
-Drops a schema. Commits current transaction.
+Drops a schema.
+This command commits an open transaction.
 ","
 DROP SCHEMA TEST_SCHEMA
 "
@@ -628,7 +657,8 @@ DROP SCHEMA TEST_SCHEMA
 "Commands (DDL)","DROP SEQUENCE","
 DROP SEQUENCE [IF EXISTS] sequenceName
 ","
-Drops a sequence. This command commits an open transaction.
+Drops a sequence.
+This command commits an open transaction.
 ","
 DROP SEQUENCE SEQ_ID
 "
@@ -645,7 +675,8 @@ DROP TABLE TEST
 "Commands (DDL)","DROP TRIGGER","
 DROP TRIGGER [IF EXISTS] triggerName
 ","
-Drops an existing trigger. This command commits an open transaction.
+Drops an existing trigger.
+This command commits an open transaction.
 ","
 DROP TRIGGER TRIG_INS
 "
@@ -653,10 +684,10 @@ DROP TRIGGER TRIG_INS
 "Commands (DDL)","DROP USER","
 DROP USER [IF EXISTS] userName
 ","
-Drops a user. The current user cannot be dropped. For compatibility, only
-unquoted or uppercase user names are allowed. Admin rights are required to
-execute this command.
+Drops a user. The current user cannot be dropped.
+For compatibility, only unquoted or uppercase user names are allowed.
 
+Admin rights are required to execute this command.
 This command commits an open transaction.
 ","
 DROP USER TOM
@@ -665,7 +696,8 @@ DROP USER TOM
 "Commands (DDL)","DROP VIEW","
 DROP VIEW [IF EXISTS] viewName
 ","
-Drops a view. This command commits an open transaction.
+Drops a view.
+This command commits an open transaction.
 ","
 DROP VIEW TEST_VIEW
 "
@@ -676,7 +708,9 @@ TRUNCATE TABLE tableName
 Removes all rows from a table. Other than DELETE FROM without where clause, this
 command can not be rolled back. This command is faster than DELETE without where
 clause. Only regular data tables without foreign key constraints can be
-truncated. This command commits an open transaction.
+truncated.
+
+This command commits an open transaction.
 ","
 TRUNCATE TABLE TEST
 "
@@ -684,8 +718,9 @@ TRUNCATE TABLE TEST
 "Commands (Other)","CHECKPOINT","
 CHECKPOINT
 ","
-Flushes the log and data files and switches to a new log file if possible. Admin
-rights are required to execute this command.
+Flushes the log and data files and switches to a new log file if possible.
+
+Admin rights are required to execute this command.
 ","
 CHECKPOINT
 "
@@ -694,7 +729,9 @@ CHECKPOINT
 CHECKPOINT SYNC
 ","
 Flushes the log, data and index files and forces all system buffers be written
-to the underlying device. Admin rights are required to execute this command.
+to the underlying device.
+
+Admin rights are required to execute this command.
 ","
 CHECKPOINT SYNC
 "
@@ -710,9 +747,10 @@ COMMIT
 "Commands (Other)","COMMIT TRANSACTION","
 COMMIT TRANSACTION transactionName
 ","
-Sets the resolution of an in-doubt transaction to 'commit'. Admin rights are
-required to execute this command. This command is part of the 2-phase-commit
-protocol.
+Sets the resolution of an in-doubt transaction to 'commit'.
+
+Admin rights are required to execute this command.
+This command is part of the 2-phase-commit protocol.
 ","
 COMMIT TRANSACTION XID_TEST
 "
@@ -721,8 +759,10 @@ COMMIT TRANSACTION XID_TEST
 GRANT {SELECT | INSERT | UPDATE | DELETE | ALL} [,...]
 ON tableName [,...] TO {PUBLIC | userName | roleName}
 ","
-Grants rights for a table to a user or role. Admin rights are required to
-execute this command.
+Grants rights for a table to a user or role.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
 ","
 GRANT SELECT ON TEST TO READONLY
 "
@@ -730,8 +770,10 @@ GRANT SELECT ON TEST TO READONLY
 "Commands (Other)","GRANT ROLE","
 GRANT roleName TO {PUBLIC | userName | roleName}
 ","
-Grants a role to a user or role. Admin rights are required to execute this
-command.
+Grants a role to a user or role.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
 ","
 GRANT READONLY TO PUBLIC
 "
@@ -747,8 +789,8 @@ HELP SELECT
 "Commands (Other)","PREPARE COMMIT","
 PREPARE COMMIT newTransactionName
 ","
-Prepares committing a transaction. This command is part of the 2-phase-commit
-protocol.
+Prepares committing a transaction.
+This command is part of the 2-phase-commit protocol.
 ","
 PREPARE COMMIT XID_TEST
 "
@@ -757,8 +799,10 @@ PREPARE COMMIT XID_TEST
 REVOKE {SELECT | INSERT | UPDATE | DELETE | ALL} [,...]
 ON tableName [,...] FROM {PUBLIC | userName | roleName}
 ","
-Removes rights for a table from a user or role. Admin rights are required to
-execute this command.
+Removes rights for a table from a user or role.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
 ","
 REVOKE SELECT ON TEST FROM READONLY
 "
@@ -767,8 +811,10 @@ REVOKE SELECT ON TEST FROM READONLY
 REVOKE roleName
 FROM {PUBLIC | userName | roleName}
 ","
-Removes a role from a user or role. Admin rights are required to execute this
-command.
+Removes a role from a user or role.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
 ","
 REVOKE READONLY FROM TOM
 "
@@ -785,9 +831,10 @@ ROLLBACK
 "Commands (Other)","ROLLBACK TRANSACTION","
 ROLLBACK TRANSACTION transactionName
 ","
-Sets the resolution of an in-doubt transaction to 'rollback'. Admin rights are
-required to execute this command. This command is part of the 2-phase-commit
-protocol. DDL statements can not roll back.
+Sets the resolution of an in-doubt transaction to 'rollback'.
+
+Admin rights are required to execute this command.
+This command is part of the 2-phase-commit protocol.
 ","
 ROLLBACK TRANSACTION XID_TEST
 "
@@ -795,8 +842,8 @@ ROLLBACK TRANSACTION XID_TEST
 "Commands (Other)","SAVEPOINT","
 SAVEPOINT savepointName
 ","
-Create a new savepoint. See also ROLLBACK. Savepoints are only valid until the
-transaction is committed or rolled back.
+Create a new savepoint. See also ROLLBACK.
+Savepoints are only valid until the transaction is committed or rolled back.
 ","
 SAVEPOINT HALF_DONE
 "
@@ -804,8 +851,8 @@ SAVEPOINT HALF_DONE
 "Commands (Other)","SET @","
 SET @variableName [=] expression
 ","
-Updates a user-defined variable. This command does not commit a transaction, and
-rollback does not affect it.
+Updates a user-defined variable.
+This command does not commit a transaction, and rollback does not affect it.
 ","
 SET @TOTAL=0
 "
@@ -822,9 +869,12 @@ NONE means literals of any kind are not allowed, only parameters and constants
 are allowed. NUMBERS mean only numerical and boolean literals are allowed. ALL
 means all literals are allowed (default).
 
-This setting is persistent. Admin rights are required to execute this command.
-See also CREATE CONSTANT. This setting can be appended to the database URL:
-jdbc:h2:test;ALLOW_LITERALS=NONE
+See also CREATE CONSTANT.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
+This setting can be appended to the database URL: jdbc:h2:test;ALLOW_LITERALS=NONE
 ","
 SET ALLOW_LITERALS NONE
 "
@@ -845,9 +895,11 @@ Sets the size of the cache in KB (each KB being 1024 bytes). The default value
 is 16384 (16 MB). The value is rounded to the next higher power of two.
 Depending on the virtual machine, the actual memory required may be higher.
 
-This setting is persistent and affects all connections as there is only one
-cache per database. Admin rights are required to execute this command. This
-setting can be appended to the database URL: jdbc:h2:test;CACHE_SIZE=8192
+This setting is persistent and affects all connections as there is only one cache per database.
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
+This setting can be appended to the database URL: jdbc:h2:test;CACHE_SIZE=8192
 ","
 SET CACHE_SIZE 8192
 "
@@ -860,7 +912,10 @@ executed automatically by the system. The behavior may change in future
 releases. Sets the cluster server list. An empty string switches off the cluster
 mode. Switching on the cluster mode requires admin rights, but any user can
 switch it off (this is automatically done when the client detects the other
-server is not responding). Admin rights are required to execute this command.
+server is not responding).
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
 ","
 SET CLUSTER ''
 "
@@ -872,8 +927,11 @@ SET [DATABASE] COLLATION
 ","
 Sets the collation used for comparing strings. This command can only be executed
 if there are no tables defined. See java.text.Collator for details about
-STRENGTH. This setting is persistent. Admin rights are required to execute this
-command.
+STRENGTH.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
 ","
 SET COLLATION ENGLISH
 "
@@ -883,7 +941,10 @@ SET COMPRESS_LOB {NO|LZF|DEFLATE}
 ","
 Sets the compression algorithm for BLOB and CLOB data. Compression is usually
 slower, but needs less disk space. LZF is faster but uses more space.
-This setting is persistent. Admin rights are required to execute this command.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
 ","
 SET COMPRESS_LOB LZF
 "
@@ -892,10 +953,11 @@ SET COMPRESS_LOB LZF
 SET DATABASE_EVENT_LISTENER classNameString
 ","
 Sets the event listener class. An empty string ('') means no listener should be
-used. This setting is not persistent. Admin rights are required to execute this
-command, except if it is set when opening the database (in this case it is reset
-just after opening the database). This setting can be appended to the database
-URL: jdbc:h2:test;DATABASE_EVENT_LISTENER='sample.MyListener'
+used. This setting is not persistent.
+
+Admin rights are required to execute this command, except if it is set when
+opening the database (in this case it is reset just after opening the database).
+This setting can be appended to the database URL: jdbc:h2:test;DATABASE_EVENT_LISTENER='sample.MyListener'
 ","
 SET DATABASE_EVENT_LISTENER 'sample.MyListener'
 "
@@ -910,9 +972,12 @@ is closed if the last connection to it is closed). Values 1 and larger mean the
 number of seconds the database is left open after closing the last connection.
 
 If the application exits normally or System.exit is called, the database is
-closed immediately, even if a delay is set. This setting is persistent. Admin
-rights are required to execute this command. This setting can be appended to the
-database URL: jdbc:h2:test;DB_CLOSE_DELAY=-1
+closed immediately, even if a delay is set.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
+This setting can be appended to the database URL: jdbc:h2:test;DB_CLOSE_DELAY=-1
 ","
 SET DB_CLOSE_DELAY -1
 "
@@ -921,8 +986,11 @@ SET DB_CLOSE_DELAY -1
 SET DEFAULT LOCK_TIMEOUT int
 ","
 Sets the default lock timeout (in milliseconds) in this database that is used
-for the new sessions. This setting is persistent. The default value for this
-setting is 1000 (one second). Admin rights are required to execute this command.
+for the new sessions. The default value for this setting is 1000 (one second).
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
 ","
 SET DEFAULT_LOCK_TIMEOUT 5000
 "
@@ -933,10 +1001,11 @@ SET DEFAULT_TABLE_TYPE {MEMORY | CACHED}
 Sets the default table storage type that is used when creating new tables.
 Memory tables are kept fully in the main memory (including indexes), however
 changes to the data are stored in the log file. The size of memory tables is
-limited by the memory.
+limited by the memory. The default is CACHED.
 
-The default is CACHED. This setting is persistent. Admin rights are required to
-execute this command.
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
 ","
 SET DEFAULT_TABLE_TYPE MEMORY
 "
@@ -948,8 +1017,10 @@ Switched the database to exclusive mode and back. In exclusive mode, new
 connections are rejected, and operations by other connections are paused until
 the exclusive mode is disabled. Only the connection that set the exclusive mode
 can disable it. When the connection is closed, it is automatically disabled.
-This setting is not persistent. Admin rights are required to execute this
-command.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
 ","
 SET EXCLUSIVE TRUE
 "
@@ -962,7 +1033,9 @@ case-insensitive. Already existing tables are not affected. The effect of
 case-insensitive columns is similar to using a collation with strength PRIMARY.
 Case-insensitive columns are compared faster than when using a collation.
 
-This setting is persistent. Admin rights are required to execute this command.
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
 ","
 SET IGNORECASE TRUE
 "
@@ -985,7 +1058,9 @@ application does not close all connections).
 The value 3 means table level locking, but read locks are released immediately
 (default; also known as READ_COMMITTED).
 
-This setting is persistent. Admin rights are required to execute this command.
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
 This setting can be appended to the database URL: jdbc:h2:test;LOCK_MODE=3
 ","
 SET LOCK_MODE 1
@@ -995,9 +1070,10 @@ SET LOCK_MODE 1
 SET LOCK_TIMEOUT int
 ","
 Sets the lock timeout (in milliseconds) for the current session. The default
-value for this setting is 1000 (one second). This command does not commit a
-transaction, and rollback does not affect it. This setting can be appended to
-the database URL: jdbc:h2:test;LOCK_TIMEOUT=10000
+value for this setting is 1000 (one second).
+
+This command does not commit a transaction, and rollback does not affect it.
+This setting can be appended to the database URL: jdbc:h2:test;LOCK_TIMEOUT=10000
 ","
 SET LOCK_TIMEOUT 1000
 "
@@ -1019,8 +1095,9 @@ and the application terminates abnormally. If logging of index changes is
 enabled, opening a database that was crashed becomes faster because the indexes
 don't need to be rebuilt.
 
-Admin rights are required to execute this command. This setting can be appended
-to the database URL: jdbc:h2:test;LOG=2
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting can be appended to the database URL: jdbc:h2:test;LOG=2
 ","
 SET LOG 0
 "
@@ -1030,8 +1107,11 @@ SET MAX_LENGTH_INPLACE_LOB int
 ","
 Sets the maximum size of an in-place LOB object. LOB objects larger that this
 size are stored in a separate file, otherwise stored directly in the database
-(in-place). The default max size is 1024. This setting is persistent. Admin
-rights are required to execute this command.
+(in-place). The default max size is 1024.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
 ","
 SET MAX_LENGTH_INPLACE_LOB 128
 "
@@ -1042,8 +1122,11 @@ SET MAX_LOG_SIZE int
 Sets the maximum file size of a log file, in megabytes. If the file exceeds the
 limit, a new file is created. Old files (that are not used for recovery) are
 deleted automatically, but multiple log files may exist for some time. The
-default max size is 32 MB. This setting is persistent. Admin rights are required
-to execute this command.
+default max size is 32 MB.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
 ","
 SET MAX_LOG_SIZE 2
 "
@@ -1052,8 +1135,11 @@ SET MAX_LOG_SIZE 2
 SET MAX_MEMORY_ROWS int
 ","
 The maximum number of rows in a result set that are kept in-memory. If more rows
-are read, then the rows are buffered to disk. The default value is 10000. This
-setting is persistent. Admin rights are required to execute this command.
+are read, then the rows are buffered to disk. The default value is 10000.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
 ","
 SET MAX_MEMORY_ROWS 1000
 "
@@ -1063,8 +1149,12 @@ SET MAX_MEMORY_UNDO int
 ","
 The maximum number of undo records per a session that are kept in-memory. If a
 transaction is larger, the records are buffered to disk. The default value is
-50000. Changes to tables without a primary key can not be buffered to disk. This
-setting is persistent. Admin rights are required to execute this command.
+50000. Changes to tables without a primary key can not be buffered to disk.
+This setting is not supported when using multi-version concurrency.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
 ","
 SET MAX_MEMORY_UNDO 1000
 "
@@ -1074,9 +1164,11 @@ SET MAX_OPERATION_MEMORY int
 ","
 Sets the maximum memory used for large operations (delete and insert), in bytes.
 Operations that use more memory are buffered to disk, slowing down the
-operation. The default max size is 100000. 0 means no limit. This setting is not
-persistent. Admin rights are required to execute this command. This setting can
-be appended to the database URL: jdbc:h2:test;MAX_OPERATION_MEMORY=10000
+operation. The default max size is 100000. 0 means no limit.
+
+This setting is not persistent.
+Admin rights are required to execute this command.
+This setting can be appended to the database URL: jdbc:h2:test;MAX_OPERATION_MEMORY=10000
 ","
 SET MAX_OPERATION_MEMORY 0
 "
@@ -1086,9 +1178,12 @@ SET MODE {REGULAR | DB2 | DERBY | HSQLDB |
 MSSQLSERVER | MYSQL | ORACLE | POSTGRESQL}
 ","
 Changes to another database compatibility mode. For details, see Compatibility
-Modes in the feature section. This setting is not persistent. Admin rights are
-required to execute this command. This setting can be appended to the database
-URL: jdbc:h2:test;MODE=MYSQL
+Modes in the feature section.
+
+This setting is not persistent.
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting can be appended to the database URL: jdbc:h2:test;MODE=MYSQL
 ","
 SET MODE HSQLDB
 "
@@ -1098,12 +1193,14 @@ SET MULTI_THREADED {0|1}
 ","
 Enabled (1) or disabled (0) multi-threading inside the database engine. By
 default, this setting is disabled. Currently, enabling this is experimental
-only. Admin rights are required to execute this command. This is a global
-setting, which means it is not possible to open multiple databases with
-different modes at the same time in the same virtual machine. This setting is
-not persistent, however the value is kept until the virtual machine exits or it
-is changed. This setting can be appended to the database URL:
-jdbc:h2:test;MULTI_THREADED=1
+only.
+
+This is a global setting, which means it is not possible to open multiple databases with different modes at the same time in the same virtual machine.
+This setting is not persistent, however the value is kept until the virtual machine exits or it is changed.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting can be appended to the database URL: jdbc:h2:test;MULTI_THREADED=1
 ","
 SET MULTI_THREADED 1
 "
@@ -1113,9 +1210,11 @@ SET OPTIMIZE_REUSE_RESULTS {0|1}
 ","
 Enabled (1) or disabled (0) the result reuse optimization. If enabled,
 subqueries and views used as subqueries are only re-run if the data in one of
-the tables was changed. This option is enabled by default. Admin rights are
-required to execute this command. This setting can be appended to the database
-URL: jdbc:h2:test;OPTIMIZE_REUSE_RESULTS=0
+the tables was changed. This option is enabled by default.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting can be appended to the database URL: jdbc:h2:test;OPTIMIZE_REUSE_RESULTS=0
 ","
 SET OPTIMIZE_REUSE_RESULTS 0
 "
@@ -1125,6 +1224,8 @@ SET PASSWORD string
 ","
 Changes the password of the current user. The password must be in single quotes.
 It is case sensitive and can contain spaces.
+
+This command commits an open transaction.
 ","
 SET PASSWORD 'abcstzri!.5'
 "
@@ -1134,8 +1235,9 @@ SET QUERY_TIMEOUT int
 ","
 Set the query timeout of the current session to the given value. The timeout is
 in milliseconds. All kinds of statements will throw an exception if they take
-longer than the given value. The default timeout is 0, meaning no timeout. This
-command does not commit a transaction, and rollback does not affect it.
+longer than the given value. The default timeout is 0, meaning no timeout.
+
+This command does not commit a transaction, and rollback does not affect it.
 ","
 SET QUERY_TIMEOUT 10000
 "
@@ -1145,8 +1247,11 @@ SET REFERENTIAL_INTEGRITY [TRUE|FALSE]
 ","
 Disabled or enables referential integrity checking for the whole database.
 Enabling it does not check existing data. Use ALTER TABLE SET to disable it only
-for one table. This setting is not persistent. Admin rights are required to
-execute this command.
+for one table.
+
+This setting is not persistent.
+This command commits an open transaction.
+Admin rights are required to execute this command.
 ","
 SET REFERENTIAL_INTEGRITY FALSE
 "
@@ -1156,6 +1261,8 @@ SET SALT bytes HASH bytes
 ","
 Sets the password salt and hash for the current user. The password must be in
 single quotes. It is case sensitive and can contain spaces.
+
+This command commits an open transaction.
 ","
 SET SALT '00' HASH '1122'
 "
@@ -1165,9 +1272,10 @@ SET SCHEMA schemaName
 ","
 Changes the default schema of the current connection. The default schema is used
 in statements where no schema is set explicitly. The default schema for new
-connections is PUBLIC. This command does not commit a transaction, and rollback
-does not affect it. This setting can be appended to the database URL:
-jdbc:h2:test;SCHEMA=ABC
+connections is PUBLIC.
+
+This command does not commit a transaction, and rollback does not affect it.
+This setting can be appended to the database URL: jdbc:h2:test;SCHEMA=ABC
 ","
 SET SCHEMA INFORMATION_SCHEMA
 "
@@ -1177,9 +1285,10 @@ SET SCHEMA_SEARCH_PATH schemaName [,...]
 ","
 Changes the schema search path of the current connection. The default schema is
 used in statements where no schema is set explicitly. The default schema for new
-connections is PUBLIC. This command does not commit a transaction, and rollback
-does not affect it. This setting can be appended to the database URL:
-jdbc:h2:test;SCHEMA_SEARCH_PATH=ABC,DEF
+connections is PUBLIC.
+
+This command does not commit a transaction, and rollback does not affect it.
+This setting can be appended to the database URL: jdbc:h2:test;SCHEMA_SEARCH_PATH=ABC,DEF
 ","
 SET SCHEMA_SEARCH_PATH INFORMATION_SCHEMA, PUBLIC
 "
@@ -1189,9 +1298,10 @@ SET THROTTLE int
 ","
 Sets the throttle for the current connection. The value is the number of
 milliseconds delay after each 50 ms. The default value is 0 (throttling
-disabled). This command does not commit a transaction, and rollback does not
-affect it. This setting can be appended to the database URL:
-jdbc:h2:test;THROTTLE=50
+disabled).
+
+This command does not commit a transaction, and rollback does not affect it.
+This setting can be appended to the database URL: jdbc:h2:test;THROTTLE=50
 ","
 SET THROTTLE 200
 "
@@ -1201,12 +1311,12 @@ SET {TRACE_LEVEL_FILE | TRACE_LEVEL_SYSTEM_OUT} int
 ","
 Sets the trace level for file the file or system out stream. Levels are: 0=off,
 1=error, 2=info, 3=debug. The default level is 1 for file and 0 for system out.
+To use SLF4J, append ;TRACE_LEVEL_FILE=4 to the database URL when opening the database.
 
-This setting is not persistent. Admin rights are required to execute this
-command. This command does not commit a transaction, and rollback does not
-affect it. This setting can be appended to the database URL:
-jdbc:h2:test;TRACE_LEVEL_SYSTEM_OUT=3 To use SLF4J, append ;TRACE_LEVEL_FILE=4
-to the database URL when opening the database.
+This setting is not persistent.
+Admin rights are required to execute this command.
+This command does not commit a transaction, and rollback does not affect it.
+This setting can be appended to the database URL: jdbc:h2:test;TRACE_LEVEL_SYSTEM_OUT=3
 ","
 SET TRACE_LEVEL_SYSTEM_OUT 3
 "
@@ -1218,9 +1328,10 @@ Sets the maximum trace file size. If the file exceeds the limit, the file is
 renamed to .old and a new file is created. If another .old file exists, it is
 deleted. The default max size is 16 MB.
 
-This setting is persistent. Admin rights are required to execute this command.
-This setting can be appended to the database URL:
-jdbc:h2:test;TRACE_MAX_FILE_SIZE=3
+This setting is persistent.
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting can be appended to the database URL: jdbc:h2:test;TRACE_MAX_FILE_SIZE=3
 ","
 SET TRACE_MAX_FILE_SIZE 10
 "
@@ -1231,6 +1342,8 @@ SET UNDO_LOG int
 Enables (1) or disables (0) the per session undo log. The undo log is enabled by
 default. When disabled, transactions can not be rolled back. This setting should
 only be used for bulk operations that don't need to be atomic.
+
+This command commits an open transaction.
 ","
 SET UNDO_LOG 0
 "
@@ -1239,9 +1352,11 @@ SET UNDO_LOG 0
 SET WRITE_DELAY int
 ","
 Set the maximum delay between a commit and flushing the log, in milliseconds.
-This setting is persistent. The default is 500 ms. Admin rights are required to
-execute this command. This setting can be appended to the database URL:
-jdbc:h2:test;WRITE_DELAY=0
+This setting is persistent. The default is 500 ms.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting can be appended to the database URL: jdbc:h2:test;WRITE_DELAY=0
 ","
 SET WRITE_DELAY 2000
 "
@@ -1251,14 +1366,15 @@ SHUTDOWN [IMMEDIATELY|COMPACT|SCRIPT]
 ","
 This statement is closes all open connections to the database and closes the
 database. This command usually does not need to be used, as the database is
-closed automatically when the last connection to it is closed. Admin rights are
-required to execute this command.
+closed automatically when the last connection to it is closed.
 
 If no option is used, then all connections are closed. If the IMMEDIATELY option
 is used, the database files are closed as if the hard drive stops working,
 without rollback of the open transactions; otherwise any open transaction are
 rolled back before closing the connection. COMPACT and SCRIPT are only supported
 for compatibility and have no effect.
+
+Admin rights are required to execute this command.
 ","
 SHUTDOWN
 "
@@ -1383,15 +1499,15 @@ compare { {{ALL|ANY|SOME}(select)} | operand }
 | [NOT] LIKE operand [ESCAPE string]
 | [NOT] REGEXP operand
 ","
-The right hand side of a condition. 
+The right hand side of a condition.
 
-When comparing with LIKE, the wildcards characters are _ (any one character) 
-and % (any characters). The database uses an index when comparing with LIKE 
+When comparing with LIKE, the wildcards characters are _ (any one character)
+and % (any characters). The database uses an index when comparing with LIKE
 except if the operand starts with a wildcard. To search for the characters % and
-_, the characters need to be escaped. The default escape character is \ (backslash). 
+_, the characters need to be escaped. The default escape character is \ (backslash).
 To select no escape character, use ESCAPE '' (empty string).
 
-When comparing with REGEXP, regular expression matching is used. 
+When comparing with REGEXP, regular expression matching is used.
 See Java Matcher.find for details.
 ","
 LIKE 'Jo%'
@@ -1826,7 +1942,7 @@ OTHER
 VARCHAR2 | NVARCHAR | NVARCHAR2 | VARCHAR_CASESENSITIVE}
 [( precisionInt )]
 ","
-Unicode String. Use two single quotes ('') to create a quote. The maximum precison
+Unicode String. Use two single quotes ('') to create a quote. The maximum precision
 is Integer.MAX_VALUE. The precision is a size constraint; only the actual data is
 persisted. The whole text is kept in memory when using this data type. For large text data CLOB
 should be used; see there for details.
@@ -1856,7 +1972,7 @@ VARCHAR_IGNORECASE
 This type is supported for compatibility with other databases and older
 applications. The difference to VARCHAR is that trailing spaces are ignored and
 not persisted. Unicode String. Use two single quotes ('') to create a quote.
-The maximum precison is Integer.MAX_VALUE. The precision is a size constraint;
+The maximum precision is Integer.MAX_VALUE. The precision is a size constraint;
 only the actual data is persisted. The whole text is kept in memory when using
 this data type. For large text data CLOB should be used; see there for details.
 
@@ -2876,8 +2992,9 @@ CANCEL_SESSION(sessionInt): boolean
 Cancels the currently executing statement of another session. The method only
 works if the multithreaded kernel is enabled (see SET MULTI_THREADED). Returns
 true if the statement was canceled, false if the session is closed or no
-statement is currently executing. Admin rights are required to execute this
-command.
+statement is currently executing.
+
+Admin rights are required to execute this command.
 ","
 CANCEL_SESSION(3)
 "
@@ -2973,8 +3090,8 @@ The parameter nullString is used when writing NULL (by default nothing is writte
 when NULL appears). The default line separator is the default value for this
 system ('line.separator' system property).
 
-The returned value is the number or
-rows written. Admin rights are required to execute this command.
+The returned value is the number or rows written.
+Admin rights are required to execute this command.
 ","
 CALL CSVWRITE('test.csv', 'SELECT * FROM TEST');
 -- Write a file with UTF-8 encoding and the pipe (|) as field separator
@@ -3004,8 +3121,8 @@ FILE_READ(fileNameString [,encodingString]): value
 Returns the contents of a file. If only one parameter is supplied, the data are
 returned as a BLOB. If two parameters are used, the data is returned as a CLOB
 (text). The second parameter is the character set to use, NULL meaning the
-default character set for this system. File names and URLs are supported. Admin
-rights are required to execute this command.
+default character set for this system. File names and URLs are supported.
+Admin rights are required to execute this command.
 ","
 SELECT LENGTH(FILE_READ('~/.h2.server.properties')) LEN;
 SELECT FILE_READ('http://localhost:8182/stylesheet.css', NULL) CSS;
@@ -3066,8 +3183,8 @@ userString, passwordString, sourceSchemaString): resultSet
 Creates table links for all tables in a schema. If tables with the same name
 already exist, they are dropped first. The target schema is created
 automatically if it does not yet exist. The driver name may be empty if the
-driver is already loaded. The list of tables linked is returned. Admin rights
-are required to execute this command.
+driver is already loaded. The list of tables linked is returned.
+Admin rights are required to execute this command.
 ","
 CALL LINK_SCHEMA('TEST2', '', 'jdbc:h2:test2', 'sa', 'sa', 'PUBLIC');
 "
@@ -3075,8 +3192,9 @@ CALL LINK_SCHEMA('TEST2', '', 'jdbc:h2:test2', 'sa', 'sa', 'PUBLIC');
 "Functions (System)","MEMORY_FREE","
 MEMORY_FREE(): int
 ","
-Returns the free memory in KB (where 1024 bytes is a KB). The garbage is run
-before returning the value. Admin rights are required to execute this command.
+Returns the free memory in KB (where 1024 bytes is a KB).
+The garbage is run before returning the value.
+Admin rights are required to execute this command.
 ","
 MEMORY_FREE()
 "
@@ -3084,8 +3202,9 @@ MEMORY_FREE()
 "Functions (System)","MEMORY_USED","
 MEMORY_USED(): int
 ","
-Returns the used memory in KB (where 1024 bytes is a KB). The garbage is run
-before returning the value. Admin rights are required to execute this command.
+Returns the used memory in KB (where 1024 bytes is a KB).
+The garbage is run before returning the value.
+Admin rights are required to execute this command.
 ","
 MEMORY_USED()
 "

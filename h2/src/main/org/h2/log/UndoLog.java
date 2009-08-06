@@ -120,7 +120,7 @@ public class UndoLog {
         if (!entry.isStored()) {
             memoryUndo++;
         }
-        if (memoryUndo > database.getMaxMemoryUndo() && database.isPersistent()) {
+        if (memoryUndo > database.getMaxMemoryUndo() && database.isPersistent() && !database.isMultiVersion()) {
             if (file == null) {
                 String fileName = database.createTempFile();
                 file = database.openFile(fileName, "rw", false);

@@ -163,9 +163,8 @@ See the grammar for details.
 <p>
 Transaction isolation is provided for all data manipulation language (DML) statements.
 Most data definition language (DDL) statements commit the current transaction.
-trigger a commit. See the <a href="grammar.html">grammar</a> for details.
+See the <a href="grammar.html">grammar</a> for details.
 </p>
-
 <p>
 This database supports the following transaction isolation levels:
 </p>
@@ -251,8 +250,10 @@ To use the MVCC feature, append MVCC=TRUE to the database URL:
 jdbc:h2:~/test;MVCC=TRUE
 </pre>
 <p>
-MVCC can not be used at the same time as MULTI_THREADED.
 The MVCC feature is not fully tested yet.
+The limitations of the MVCC mode are: it can not be used at the same time as MULTI_THREADED;
+the complete undo log must fit in memory when using multi-version concurrency
+(the setting MAX_MEMORY_UNDO has no effect).
 </p>
 
 <br /><a name="clustering"></a>

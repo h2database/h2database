@@ -32,6 +32,7 @@ public class TestBitField extends TestBase {
         testByteOperations();
         testRandom();
         testGetSet();
+        testRandomSetRange();
     }
 
     private void testNextSetBit() {
@@ -147,6 +148,26 @@ public class TestBitField extends TestBase {
             if (k != 10000) {
                 fail("" + k);
             }
+        }
+    }
+    
+    private void testRandomSetRange(){
+    	BitField bits = new BitField();
+    	BitSet set = new BitSet();
+    	Random random = new Random(1);	
+    	int maxoff = 500;
+    	int maxlen = 500;
+    	int total = maxoff+maxlen;
+    	int count = 10000;
+    	for (int i = 0; i < count; i++) {
+    		int offset = random.nextInt(maxoff);
+    		int len = random.nextInt(maxlen);
+    		boolean val = random.nextBoolean();
+    		set.set(offset,offset+len,val);
+    		bits.setRange(offset,len,val);
+    		for(int j=0; j<total; j++){
+    			assertEquals(bits.get(j), set.get(j));
+    		}
         }
     }
 }

@@ -63,6 +63,10 @@ public class Query<T> {
         return select(false);
     }
 
+    public T selectFirst() {
+        return select(false).get(0);
+    }
+
     public List<T> selectDistinct() {
         return select(true);
     }
@@ -81,8 +85,8 @@ public class Query<T> {
 
     private List<T> select(boolean distinct) {
         List<T> result = Utils.newArrayList();
-        SQLStatement selectList = new SQLStatement(db);
-        selectList.setSQL("*");
+        TableDefinition<T> def = from.getAliasDefinition();
+        SQLStatement selectList = def.getSelectList(db);
         ResultSet rs = prepare(selectList, distinct).executeQuery();
         try {
             while (rs.next()) {
@@ -123,10 +127,10 @@ public class Query<T> {
     }
 
     private <X> List<X> select(Class<X> clazz, X x, boolean distinct) {
+        List<X> result = Utils.newArrayList();
         TableDefinition<X> def = db.define(clazz);
         SQLStatement selectList = def.getSelectList(this, x);
         ResultSet rs = prepare(selectList, distinct).executeQuery();
-        List<X> result = Utils.newArrayList();
         try {
             while (rs.next()) {
                 X row = Utils.newObject(clazz);

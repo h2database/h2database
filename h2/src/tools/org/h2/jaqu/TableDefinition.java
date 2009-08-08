@@ -168,7 +168,13 @@ class TableDefinition<T> {
     void insert(Db db, Object obj) {
         SQLStatement stat = new SQLStatement(db);
         StatementBuilder buff = new StatementBuilder("INSERT INTO ");
-        buff.append(tableName).append(" VALUES(");
+        buff.append(tableName).append('(');
+        for (FieldDefinition field : fields) {
+            buff.appendExceptFirst(", ");
+            buff.append(field.columnName);
+        }
+        buff.append(") VALUES(");
+        buff.resetCount();
         for (FieldDefinition field : fields) {
             buff.appendExceptFirst(", ");
             buff.append('?');
@@ -234,6 +240,18 @@ class TableDefinition<T> {
             Object o = def.read(rs, i + 1);
             def.setValue(item, o);
         }
+    }
+
+    SQLStatement getSelectList(Db db) {
+        SQLStatement selectList = new SQLStatement(db);
+        for (int i = 0; i < fields.size(); i++) {
+            if (i > 0) {
+                selectList.appendSQL(", ");
+            }
+            FieldDefinition def = fields.get(i);
+            selectList.appendSQL(def.columnName);
+        }
+        return selectList;
     }
 
     <Y, X> SQLStatement getSelectList(Query<Y> query, X x) {

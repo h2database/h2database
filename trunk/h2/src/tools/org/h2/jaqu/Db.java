@@ -140,7 +140,13 @@ public class Db {
         return (TableDefinition<T>) classMap.get(clazz);
     }
 
-    ResultSet executeQuery(String sql) {
+    /**
+     * Run a SQL query directly against the database.
+     *
+     * @param sql the SQL statement
+     * @return the result set
+     */
+    public ResultSet executeQuery(String sql) {
         try {
             return conn.createStatement().executeQuery(sql);
         } catch (SQLException e) {
@@ -148,7 +154,13 @@ public class Db {
         }
     }
 
-    int executeUpdate(String sql) {
+    /**
+     * Run a SQL statement directly against the database.
+     *
+     * @param sql the SQL statement
+     * @return the update count
+     */
+    public int executeUpdate(String sql) {
         try {
             return conn.createStatement().executeUpdate(sql);
         } catch (SQLException e) {

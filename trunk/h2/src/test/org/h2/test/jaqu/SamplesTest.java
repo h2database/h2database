@@ -6,14 +6,14 @@
  */
 package org.h2.test.jaqu;
 
+import static org.h2.jaqu.Function.count;
+import static org.h2.jaqu.Function.isNull;
+import static org.h2.jaqu.Function.length;
+import static org.h2.jaqu.Function.*;
 import java.math.BigDecimal;
-//## Java 1.5 begin ##
 import java.util.List;
-
 import org.h2.jaqu.Db;
 import org.h2.jaqu.Filter;
-import static org.h2.jaqu.Function.*;
-//## Java 1.5 end ##
 import org.h2.test.TestBase;
 
 /**
@@ -52,8 +52,8 @@ public class SamplesTest extends TestBase {
         db.insertAll(Order.getList());
         db.insertAll(ComplexObject.getList());
         // TODO support JavaBeans specification
-        // TODO support all relevant data types (byte[],...)
-        // TODO nested AND/OR, >, <,...
+        // TODO support all relevant data types (byte[], ...)
+        // TODO nested AND/OR, >, <, ...
         // TODO NOT
         // TODO +, -, *, /, ||, nested operations
         // TODO LIKE ESCAPE...
@@ -77,9 +77,33 @@ public class SamplesTest extends TestBase {
         testAnonymousTypes3();
         testWhereSimple2();
         testWhereSimple3();
+        testReverseColumns();
         db.close();
 //## Java 1.5 end ##
     }
+
+    /**
+     * A simple test table. The columns are in a different order than in the
+     * database.
+     */
+    public static class TestReverse {
+        public String name;
+        public Integer id;
+    }
+
+//## Java 1.5 begin ##
+    private void testReverseColumns() {
+        db.executeUpdate("create table TestReverse(id int, name varchar)");
+        TestReverse t = new TestReverse();
+        t.id = 10;
+        t.name = "Hello";
+        db.insert(t);
+        TestReverse check = db.from(new TestReverse()).selectFirst();
+        assertEquals(t.name, check.name);
+        assertEquals(t.id, check.id);
+    }
+//## Java 1.5 end ##
+
 
 //## Java 1.5 begin ##
     private void testWhereSimple2() {

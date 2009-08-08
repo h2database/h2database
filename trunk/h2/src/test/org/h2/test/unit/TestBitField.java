@@ -1,14 +1,12 @@
 /*
- * Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License,
- * Version 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html).
- * Initial Developer: H2 Group
+ * Copyright 2004-2009 H2 Group. Multiple-Licensed under the H2 License, Version
+ * 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html). Initial Developer: H2 Group
  */
 package org.h2.test.unit;
 
 import java.util.BitSet;
 import java.util.Random;
-
 import org.h2.test.TestBase;
 import org.h2.util.BitField;
 
@@ -85,19 +83,19 @@ public class TestBitField extends TestBase {
                 assertEquals(mask, used.getByte(x));
                 x += 8;
                 // for (int j = 0; j < 8; j++, x++) {
-                //    if (used.get(x) != ((mask & (1 << j)) != 0)) {
-                //        throw Message.getInternalError(
-                //          "Redo failure, block: " + x +
-                //          " expected in-use bit: " + used.get(x));
-                //    }
+                // if (used.get(x) != ((mask & (1 << j)) != 0)) {
+                // throw Message.getInternalError(
+                // "Redo failure, block: " + x +
+                // " expected in-use bit: " + used.get(x));
+                // }
                 // }
             } else {
                 used.setByte(x, mask);
                 x += 8;
                 // for (int j = 0; j < 8; j++, x++) {
-                //    if ((mask & (1 << j)) != 0) {
-                //        used.set(x);
-                //    }
+                // if ((mask & (1 << j)) != 0) {
+                // used.set(x);
+                // }
                 // }
             }
         }
@@ -150,24 +148,24 @@ public class TestBitField extends TestBase {
             }
         }
     }
-    
-    private void testRandomSetRange(){
-    	BitField bits = new BitField();
-    	BitSet set = new BitSet();
-    	Random random = new Random(1);	
-    	int maxoff = 500;
-    	int maxlen = 500;
-    	int total = maxoff+maxlen;
-    	int count = 10000;
-    	for (int i = 0; i < count; i++) {
-    		int offset = random.nextInt(maxoff);
-    		int len = random.nextInt(maxlen);
-    		boolean val = random.nextBoolean();
-    		set.set(offset,offset+len,val);
-    		bits.setRange(offset,len,val);
-    		for(int j=0; j<total; j++){
-    			assertEquals(bits.get(j), set.get(j));
-    		}
+
+    private void testRandomSetRange() {
+        BitField bits = new BitField();
+        BitSet set = new BitSet();
+        Random random = new Random(1);
+        int maxoff = 500;
+        int maxlen = 500;
+        int total = maxoff + maxlen;
+        int count = 10000;
+        for (int i = 0; i < count; i++) {
+            int offset = random.nextInt(maxoff);
+            int len = random.nextInt(maxlen);
+            boolean val = random.nextBoolean();
+            set.set(offset, offset + len, val);
+            bits.setRange(offset, len, val);
+            for (int j = 0; j < total; j++) {
+                assertEquals(bits.get(j), set.get(j));
+            }
         }
     }
 }

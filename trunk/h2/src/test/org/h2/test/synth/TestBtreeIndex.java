@@ -70,6 +70,7 @@ public class TestBtreeIndex extends TestBase {
 
     private void testOne(int seed) throws SQLException {
         org.h2.Driver.load();
+        deleteDb("index");
         printTime("testIndex " + seed);
         Random random = new Random(seed);
         int distinct, prefixLength;

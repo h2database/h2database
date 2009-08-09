@@ -86,10 +86,10 @@ public class CompressLZF implements Compressor {
                 hashTab[off] = inPos;
                 off = inPos - ref - 1;
                 if (off < MAX_OFF && ref > 0 && in[ref + 2] == in[inPos + 2] && in[ref + 1] == in[inPos + 1] && in[ref] == in[inPos]) {
-                    int maxlen = inLen - inPos - 2;
-                    maxlen = maxlen > MAX_REF ? MAX_REF : maxlen;
+                    int maxLen = inLen - inPos - 2;
+                    maxLen = maxLen > MAX_REF ? MAX_REF : maxLen;
                     int len = 3;
-                    while (len < maxlen && in[ref + len] == in[inPos + len]) {
+                    while (len < maxLen && in[ref + len] == in[inPos + len]) {
                         len++;
                     }
                     len -= 2;

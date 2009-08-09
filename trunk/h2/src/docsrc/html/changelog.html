@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.1.117 (2009-08-09)</h2>
 <ul><li>New committer: Sam Van Oort has been contributing to H2 since quite some time
     in many ways (on the mailing list, documentation, and in the form of patches).
     He is now a committer.
@@ -32,7 +36,7 @@ Change Log
 </li><li>Improved PostgreSQL compatibility for timestamp literals with timezone.
 </li><li>Sergi Vladykin translated the error messages to Russian. Thanks a lot!
 </li><li>Support for Java 6 DatabaseMetaData.getTables, getColumns, getProcedures, and getProcedureColumns.
-</li><li>Issue 101: Rollback of a large transaction could fail.
+</li><li>Issue 101: Rollback of a large transaction (more than 100000 rows) could fail.
 </li><li>Various bugfixes and improvements in the page store mechanism (still experimental).
 </li><li>The functions LENGTH, OCTET_LENGTH, and BIT_LENGTH now return BIGINT.
 </li><li>Data types CLOB and BLOB: the maximum precision was Integer.MAX_VALUE, it is now Long.MAX_VALUE.

@@ -153,13 +153,13 @@ public class TestBitField extends TestBase {
         BitField bits = new BitField();
         BitSet set = new BitSet();
         Random random = new Random(1);
-        int maxoff = 500;
-        int maxlen = 500;
-        int total = maxoff + maxlen;
+        int maxOffset = 500;
+        int maxLen = 500;
+        int total = maxOffset + maxLen;
         int count = 10000;
         for (int i = 0; i < count; i++) {
-            int offset = random.nextInt(maxoff);
-            int len = random.nextInt(maxlen);
+            int offset = random.nextInt(maxOffset);
+            int len = random.nextInt(maxLen);
             boolean val = random.nextBoolean();
             set.set(offset, offset + len, val);
             bits.setRange(offset, len, val);
@@ -168,4 +168,5 @@ public class TestBitField extends TestBase {
             }
         }
     }
+
 }

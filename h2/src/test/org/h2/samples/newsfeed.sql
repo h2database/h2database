@@ -13,6 +13,38 @@ INSERT INTO CHANNEL VALUES('H2 Database Engine' ,
 
 CREATE TABLE ITEM(ID INT PRIMARY KEY, TITLE VARCHAR, ISSUED TIMESTAMP, DESC VARCHAR);
 
+INSERT INTO ITEM VALUES(67,
+'New version available: 1.1.117 (2009-08-09)', '2009-08-09 12:00:00',
+$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
+(You may have to click 'Refresh').
+<br />
+<b>Changes and new functionality:</b>
+<ul><li>CSV reading and parsing SQL scripts is now faster.
+</li><li>Support for Java 6 DatabaseMetaData.getTables, getColumns.
+</li><li>JaQu: the order of the fields no longer needs to match.
+</li><li>Improved MySQL compatibility for SHOW COLUMNS.
+</li><li>Improved PostgreSQL compatibility for timestamp literals.
+</li><li>Sam Van Oort is now a committer.
+</li><li>LIKE: the escape mechanism can now be disable using ESCAPE ''.
+</li><li>Sergi Vladykin translated the error messages to Russian. Thanks a lot!
+</li><li>The function LENGTH now return BIGINT.
+</li><li>CLOB and BLOB: the maximum precision is now Long.MAX_VALUE.
+</li><li>MVCC: the complete undo log must fit in memory.
+</li></ul>
+<b>Bugfixes:</b>
+<ul><li>SimpleResultSet.newInstance(SimpleRowSource rs) did not work.
+</li><li>Views using functions were not re-evaluated when necessary.
+</li><li>Rollback of a large transaction could fail.
+</li><li>Various bugfixes and improvements in the page store mechanism.
+</li><li>Multi-threaded kernel synchronization bugs fixed.
+</li></ul>
+For details, see the 'Change Log' at
+http://www.h2database.com/html/changelog.html
+<br />
+For future plans, see the 'Roadmap' page at
+http://www.h2database.com/html/roadmap.html
+$$);
+
 INSERT INTO ITEM VALUES(66,
 'New version available: 1.1.116 (2009-07-18)', '2009-07-18 12:00:00',
 $$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
@@ -404,37 +436,6 @@ $$A new version of H2 is available for <a href="http://www.h2database.com">downl
 </li><li>ALTER TABLE ALTER COLUMN could throw the wrong exception.
 </li><li>Updatable result sets: the key columns can now be updated.
 </li><li>The Windows service to start H2 didn't work in version 1.1.
-</li></ul>
-For details, see the 'Change Log' at
-http://www.h2database.com/html/changelog.html
-<br />
-For future plans, see the 'Roadmap' page at
-http://www.h2database.com/html/roadmap.html
-$$);
-
-INSERT INTO ITEM VALUES(53,
-'New version available: 1.1.103 (beta; 2008-11-07)', '2008-11-07 12:00:00',
-$$A new version of H2 is available for <a href="http://www.h2database.com">download</a>.
-(You may have to click 'Refresh').
-<br />
-<b>Changes and new functionality:</b>
-<ul><li>New column INFORMATION_SCHEMA.COLUMNS.SEQUENCE_NAME.
-</li><li>Aliases for built-in data types can now be re-mapped.
-</li><li>Improved PostgreSQL compatibility for NEXTVAL and CURRVAL.
-</li><li>The Japanese translation has been completed by Masahiro Ikemoto.
-</li><li>New system property h2.browser to set the browser to use.
-</li><li>To start the browser, java.awt.Desktop.browse is now used if available.
-</li><li>Less heap memory is needed when multiple databases are open.
-</li></ul>
-<b>Bugfixes:</b>
-<ul><li>Could not order by a formula when the formula was in the group by list
-    but not in the select list.
-</li><li>Date values that match the daylight saving time end were not allowed in
-    times zones were the daylight saving time ends at midnight, for years larger than 2037.
-    This is a problem of Java, however a workaround is implemented in H2 that solves
-    most problems (except the problems of java.util.Date itself).
-</li><li>ALTER TABLE used a lot of memory when using multi-version concurrency.
-</li><li>Referential integrity for in-memory databases didn't work in some cases.
 </li></ul>
 For details, see the 'Change Log' at
 http://www.h2database.com/html/changelog.html

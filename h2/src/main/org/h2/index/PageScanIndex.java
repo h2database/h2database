@@ -179,7 +179,6 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
      * @param parent the parent, or -1 if unknown
      * @return the page
      */
-    
     PageData getPage(int id, int parent) throws SQLException {
         Record rec = store.getRecord(id);
         if (rec != null) {

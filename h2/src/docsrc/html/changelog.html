@@ -591,26 +591,5 @@ Change Log
 </li><li>The database file was growing after deleting many rows, and after large update operations.
 </li></ul>
 
-<h2>Version 1.0.75 (2008-07-14)</h2>
-<ul><li>Multi version concurrency (MVCC): when a row was updated or deleted, but this change was rolled back,
-    the row was not visible by other sessions if no index was used to access it. Fixed.
-</li><li>Views with multiple joined tables (where one was an outer join) couldn't be used in some cases. Fixed.
-</li><li>The CSVREAD method did not process NULL correctly when using a whitespace field separator.
-</li><li>Fixed the Oracle mode: Oracle allows multiple rows with NULL in a unique index.
-</li><li>Running out of memory could result in incomplete transactions or corrupted databases. Fixed.
-</li><li>When using order by in a query that uses the same table multiple times, the order could
-    be incorrect. Fixed.
-</li><li>Referential constraint checking improvement: now the constraint is only checked
-    if the key column values change.
-</li><li>Some database metadata calls returned the wrong data type for DATA_TYPE columns.
-</li><li>The Lucene fulltext index was empty when opening a database with fulltext
-    index enabled, and re-indexing it didn't work. Fixed.
-</li><li>The character '$' could not be used in identifier names (table name,
-    column names and so on). Fixed.
-</li><li>The new method org.h2.tools.Server.startWebServer(conn) starts the H2 Console
-    to inspect a database while debugging.
-</li><li>Stopping a WebServer didn't always work. Fixed.
-</li></ul>
-
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>
 

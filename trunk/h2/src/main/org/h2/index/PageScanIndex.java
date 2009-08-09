@@ -115,13 +115,13 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         while (true) {
             PageData root = getPage(headPos, 0);
             int splitPoint = root.addRowTry(row);
-            if (splitPoint == 0) {
+            if (splitPoint == -1) {
                 break;
             }
             if (trace.isDebugEnabled()) {
                 trace.debug("split " + splitPoint);
             }
-            int pivot = root.getKey(splitPoint - 1);
+            int pivot = splitPoint == 0 ? row.getPos() : root.getKey(splitPoint - 1);
             PageData page1 = root;
             PageData page2 = root.split(splitPoint);
             int rootPageId = root.getPos();

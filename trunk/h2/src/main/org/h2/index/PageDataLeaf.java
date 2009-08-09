@@ -92,19 +92,20 @@ class PageDataLeaf extends PageData {
         start = data.length();
     }
 
-    /**
-     * Add a row if possible. If it is possible this method returns 0, otherwise
-     * the split point. It is always possible to add one row.
-     *
-     * @param row the now to add
-     * @return the split point of this page, or 0 if no split is required
-     */
     int addRowTry(Row row) throws SQLException {
         int rowLength = row.getByteCount(data);
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (entryCount > 0 && last - rowLength < start + KEY_OFFSET_PAIR_LENGTH) {
-            return (entryCount / 2) + 1;
+            if (entryCount > 1) {
+                return entryCount / 2;
+            }
+
+            int todoIncorrect;
+            if (find(row.getPos()) != 1) {
+                System.out.println("todo " + find(row.getPos()));
+            }
+            return 1; // find(row.getPos()) + 1;
         }
         int offset = last - rowLength;
         int[] newOffsets = new int[entryCount + 1];
@@ -181,7 +182,7 @@ class PageDataLeaf extends PageData {
             } while (remaining > 0);
             data.truncate(index.getPageStore().getPageSize());
         }
-        return 0;
+        return -1;
     }
 
     private void removeRow(int i) throws SQLException {

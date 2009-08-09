@@ -54,20 +54,13 @@ class PageBtreeLeaf extends PageBtree {
         start = data.length();
     }
 
-    /**
-     * Add a row if possible. If it is possible this method returns 0, otherwise
-     * the split point. It is always possible to add one row.
-     *
-     * @param row the now to add
-     * @return the split point of this page, or 0 if no split is required
-     */
     int addRowTry(SearchRow row) throws SQLException {
         int rowLength = index.getRowSize(data, row, onlyPosition);
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (last - rowLength < start + OFFSET_LENGTH) {
             if (entryCount > 1) {
-                return (entryCount / 2) + 1;
+                return entryCount / 2;
             }
             onlyPosition = true;
             // change the offsets (now storing only positions)
@@ -91,7 +84,7 @@ class PageBtreeLeaf extends PageBtree {
             x = 0;
         } else {
             readAllRows();
-            x = find(row, false, true);
+            x = find(row, false, true, true);
             System.arraycopy(offsets, 0, newOffsets, 0, x);
             System.arraycopy(rows, 0, newRows, 0, x);
             if (x < entryCount) {
@@ -109,7 +102,7 @@ class PageBtreeLeaf extends PageBtree {
         offsets = newOffsets;
         rows = newRows;
         index.getPageStore().updateRecord(this, true, data);
-        return 0;
+        return -1;
     }
 
     private void removeRow(int i) throws SQLException {
@@ -156,17 +149,24 @@ class PageBtreeLeaf extends PageBtree {
         return this;
     }
 
-    boolean remove(SearchRow row) throws SQLException {
-        int at = find(row, false, false);
-        if (index.compareRows(row, getRow(at)) != 0) {
+    SearchRow remove(SearchRow row) throws SQLException {
+        int at = find(row, false, false, true);
+        SearchRow delete = getRow(at);
+        if (index.compareRows(row, delete) != 0 || delete.getPos() != row.getPos()) {
             throw Message.getSQLException(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL() + ": " + row);
         }
         if (entryCount == 1) {
-            return true;
+            // the page is now empty
+            return row;
         }
         removeRow(at);
         index.getPageStore().updateRecord(this, true, data);
-        return false;
+        if (at == entryCount) {
+            // the last row changed
+            return getRow(at - 1);
+        }
+        // the last row didn't change
+        return null;
     }
 
     void freeChildren() {
@@ -210,7 +210,7 @@ class PageBtreeLeaf extends PageBtree {
     }
 
     void find(PageBtreeCursor cursor, SearchRow first, boolean bigger) throws SQLException {
-        int i = find(first, bigger, false);
+        int i = find(first, bigger, false, false);
         if (i > entryCount) {
             if (parentPageId == Page.ROOT) {
                 return;

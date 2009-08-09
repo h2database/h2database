@@ -295,8 +295,6 @@ java org.h2.test.TestAll timer
 
 /*
 
-page store: TestBtreeIndex
-
 -------------
 
 create a short documentation

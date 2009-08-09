@@ -25,6 +25,8 @@ import org.h2.util.MemoryUtils;
  * </li><li>11-14: rightmost child page id
  * </li><li>15- entries: 4 bytes leaf page id, 4 bytes key
  * </li></ul>
+ * The key is the largest key of the respective child, meaning
+ * key[0] is the largest key of child[0].
  */
 class PageDataNode extends PageData {
 
@@ -85,14 +87,14 @@ class PageDataNode extends PageData {
             int x = find(row.getPos());
             PageData page = index.getPage(childPageIds[x], getPos());
             int splitPoint = page.addRowTry(row);
-            if (splitPoint == 0) {
+            if (splitPoint == -1) {
                 break;
             }
             int maxEntries = (index.getPageStore().getPageSize() - ENTRY_START) / ENTRY_LENGTH;
             if (entryCount >= maxEntries) {
                 return entryCount / 2;
             }
-            int pivot = page.getKey(splitPoint - 1);
+            int pivot = splitPoint == 0 ? row.getPos() : page.getKey(splitPoint - 1);
             PageData page2 = page.split(splitPoint);
             index.getPageStore().updateRecord(page, true, page.data);
             index.getPageStore().updateRecord(page2, true, page2.data);
@@ -100,7 +102,7 @@ class PageDataNode extends PageData {
             index.getPageStore().updateRecord(this, true, data);
         }
         updateRowCount(1);
-        return 0;
+        return -1;
     }
 
     private void updateRowCount(int offset) throws SQLException {

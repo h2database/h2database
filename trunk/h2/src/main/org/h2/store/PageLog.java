@@ -216,10 +216,13 @@ public class PageLog {
                     int pageId = in.readInt();
                     in.readFully(data.getBytes(), 0, store.getPageSize());
                     if (stage == RECOVERY_STAGE_UNDO) {
-                        if (trace.isDebugEnabled()) {
-                            trace.debug("log undo " + pageId);
+                        if (!undo.get(pageId)) {
+                            if (trace.isDebugEnabled()) {
+                                trace.debug("log undo " + pageId);
+                            }
+                            store.writePage(pageId, data);
+                            undo.set(pageId);
                         }
-                        store.writePage(pageId, data);
                     }
                 } else if (x == ADD || x == REMOVE) {
                     int sessionId = in.readInt();
@@ -288,6 +291,7 @@ public class PageLog {
         } catch (IOException e) {
             throw Message.convertIOException(e, "recover");
         }
+        undo = new BitField();
     }
 
     /**

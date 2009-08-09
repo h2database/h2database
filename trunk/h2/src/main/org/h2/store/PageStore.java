@@ -103,6 +103,7 @@ public class PageStore implements CacheWriter {
     // TODO update: only log the key and changed values
     // TODO store dates differently in Data; test moving db to another timezone
     // TODO online backup using bsdiff
+    // TODO trying to insert duplicate key can split a page: not in recovery
 
     // TODO when removing DiskFile:
     // remove CacheObject.blockCount

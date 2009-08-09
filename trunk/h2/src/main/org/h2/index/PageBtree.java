@@ -94,9 +94,10 @@ abstract class PageBtree extends Record {
      * @param compare the row
      * @param bigger if looking for a larger row
      * @param add if the row should be added (check for duplicate keys)
+     * @param compareKeys compare the row keys as well
      * @return the index of the found row
      */
-    int find(SearchRow compare, boolean bigger, boolean add) throws SQLException {
+    int find(SearchRow compare, boolean bigger, boolean add, boolean compareKeys) throws SQLException {
         if (compare == null) {
             return 0;
         }
@@ -106,13 +107,18 @@ abstract class PageBtree extends Record {
             int i = (l + r) >>> 1;
             SearchRow row = getRow(i);
             comp = index.compareRows(row, compare);
-            if (comp == 0 && add) {
-                if (index.indexType.isUnique()) {
+            if (comp == 0) {
+                if (add && index.indexType.isUnique()) {
                     if (!index.containsNullAndAllowMultipleNull(compare)) {
                         throw index.getDuplicateKeyException();
                     }
                 }
-                comp = index.compareKeys(row, compare);
+                if (compareKeys) {
+                    comp = index.compareKeys(row, compare);
+                    if (comp == 0) {
+                        return i;
+                    }
+                }
             }
             if (comp > 0 || (!bigger && comp == 0)) {
                 r = i;
@@ -129,12 +135,13 @@ abstract class PageBtree extends Record {
     abstract void read() throws SQLException;
 
     /**
-     * Try to add a row.
+     * Add a row if possible. If it is possible this method returns -1, otherwise
+     * the split point. It is always possible to add one row.
      *
-     * @param row the row
-     * @return 0 if successful, or the split position if the page needs to be
-     *         split
+     * @param row the row to add
+     * @return the split point of this page, or -1 if no split is required
      */
+
     abstract int addRowTry(SearchRow row) throws SQLException;
 
     /**
@@ -221,9 +228,11 @@ abstract class PageBtree extends Record {
      * Remove a row.
      *
      * @param row the row to remove
-     * @return true if this page is now empty
+     * @return null if the last row didn't change,
+     *          the deleted row if the page is now empty,
+     *          otherwise the new last row of this page
      */
-    abstract boolean remove(SearchRow row) throws SQLException;
+    abstract SearchRow remove(SearchRow row) throws SQLException;
 
     /**
      * Free up all child pages.

@@ -16,16 +16,18 @@ import org.h2.store.PageStore;
 import org.h2.util.MemoryUtils;
 
 /**
- * A b-tree node page that contains index data.
- * Data is organized as follows: [leaf 0] (largest value of leaf 0) [leaf 1]
- * Format:
- * <ul><li>0-3: parent page id
- * </li><li>4-4: page type
- * </li><li>5-6: entry count
- * </li><li>7-10: row count of all children (-1 if not known)
- * </li><li>11-14: rightmost child page id
- * </li><li>15- entries: 4 bytes leaf page id, 4 bytes offset to data
- * </li></ul>
+ * A b-tree node page that contains index data. Data is organized as follows:
+ * [leaf 0] (largest value of leaf 0) [leaf 1] Format:
+ * <ul>
+ * <li>0-3: parent page id</li>
+ * <li>4-4: page type</li>
+ * <li>5-6: entry count</li>
+ * <li>7-10: row count of all children (-1 if not known)</li>
+ * <li>11-14: rightmost child page id</li>
+ * <li>15- entries: 4 bytes leaf page id, 4 bytes offset to data</li>
+ * </ul>
+ * The row is the largest row of the respective child, meaning
+ * row[0] is the largest row of child[0].
  */
 class PageBtreeNode extends PageBtree {
 
@@ -37,7 +39,7 @@ class PageBtreeNode extends PageBtree {
      */
     private int[] childPageIds;
 
-//    private int rowCountStored = UNKNOWN_ROWCOUNT;
+    // private int rowCountStored = UNKNOWN_ROWCOUNT;
 
     private int rowCount = UNKNOWN_ROWCOUNT;
 
@@ -67,25 +69,32 @@ class PageBtreeNode extends PageBtree {
         start = data.length();
     }
 
+    /**
+     * Add a row. If it is possible this method returns -1, otherwise
+     * the split point. It is always possible to two rows.
+     *
+     * @param row the now to add
+     * @return the split point of this page, or -1 if no split is required
+     */
     private int addChildTry(SearchRow row) throws SQLException {
         if (entryCount < 2) {
-            return 0;
+            return -1;
         }
         int rowLength = index.getRowSize(data, row, onlyPosition);
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (last - rowLength < start + CHILD_OFFSET_PAIR_LENGTH) {
-            return (entryCount / 2) + 1;
+            return entryCount / 2;
         }
-        return 0;
+        return -1;
     }
 
     /**
-     * Add a row. If it is possible this method returns 0, otherwise
-     * the split point. It is always possible to add one row.
+     * Add a child at the given position.
      *
-     * @param row the now to add
-     * @return the split point of this page, or 0 if no split is required
+     * @param x the position
+     * @param childPageId the child
+     * @param row the row smaller than the first row of the child and its children
      */
     private void addChild(int x, int childPageId, SearchRow row) throws SQLException {
         int rowLength = index.getRowSize(data, row, onlyPosition);
@@ -136,15 +145,15 @@ class PageBtreeNode extends PageBtree {
 
     int addRowTry(SearchRow row) throws SQLException {
         while (true) {
-            int x = find(row, false, false);
+            int x = find(row, false, true, true);
             PageBtree page = index.getPage(childPageIds[x]);
             int splitPoint = page.addRowTry(row);
-            if (splitPoint == 0) {
+            if (splitPoint == -1) {
                 break;
             }
             SearchRow pivot = page.getRow(splitPoint - 1);
             int splitPoint2 = addChildTry(pivot);
-            if (splitPoint2 != 0) {
+            if (splitPoint2 != -1) {
                 return splitPoint2;
             }
             PageBtree page2 = page.split(splitPoint);
@@ -156,7 +165,7 @@ class PageBtreeNode extends PageBtree {
         }
         updateRowCount(1);
         written = false;
-        return 0;
+        return -1;
     }
 
     private void updateRowCount(int offset) {
@@ -215,7 +224,7 @@ class PageBtreeNode extends PageBtree {
     }
 
     void find(PageBtreeCursor cursor, SearchRow first, boolean bigger) throws SQLException {
-        int i = find(first, bigger, false);
+        int i = find(first, bigger, false, false);
         if (i > entryCount) {
             if (parentPageId == Page.ROOT) {
                 return;
@@ -243,26 +252,48 @@ class PageBtreeNode extends PageBtree {
         return index.getPage(child).getLastLeaf();
     }
 
-    boolean remove(SearchRow row) throws SQLException {
-        int at = find(row, false, false);
+    SearchRow remove(SearchRow row) throws SQLException {
+        int at = find(row, false, false, true);
         // merge is not implemented to allow concurrent usage
         // TODO maybe implement merge
         PageBtree page = index.getPage(childPageIds[at]);
-        boolean empty = page.remove(row);
+        SearchRow last = page.remove(row);
         updateRowCount(-1);
-        if (!empty) {
-            // the first row didn't change - nothing to do
-            return false;
+        if (last == null) {
+            // the last row didn't change - nothing to do
+            return null;
+        } else if (last == row) {
+            // this child is now empty
+            index.getPageStore().freePage(page.getPos(), true, page.data);
+            if (entryCount < 1) {
+                // no more children - this page is empty as well
+                return row;
+            }
+            if (at == entryCount) {
+                // removing the last child
+                last = getRow(at - 1);
+            } else {
+                last = null;
+            }
+            removeChild(at);
+            index.getPageStore().updateRecord(this, true, data);
+            return last;
         }
-        // this child is now empty
-        index.getPageStore().freePage(page.getPos(), true, page.data);
-        if (entryCount < 1) {
-            // no more children - this page is empty as well
-            return true;
+        // the last row is in the last child
+        if (at == entryCount) {
+            return last;
         }
+        int child = childPageIds[at];
         removeChild(at);
+        // TODO this can mean only the position is now stored
+        // should split at the next possible moment
+        addChild(at, child, last);
+        // remove and add swapped two children, fix that
+        int temp = childPageIds[at];
+        childPageIds[at] = childPageIds[at + 1];
+        childPageIds[at + 1] = temp;
         index.getPageStore().updateRecord(this, true, data);
-        return false;
+        return null;
     }
 
     int getRowCount() throws SQLException {
@@ -419,6 +450,5 @@ class PageBtreeNode extends PageBtree {
     public String toString() {
         return "page[" + getPos() + "] b-tree node table:" + index.getId() + " entries:" + entryCount;
     }
-
 
 }

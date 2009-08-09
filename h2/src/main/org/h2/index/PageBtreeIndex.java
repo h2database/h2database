@@ -87,7 +87,7 @@ public class PageBtreeIndex extends BaseIndex {
         while (true) {
             PageBtree root = getPage(headPos);
             int splitPoint = root.addRowTry(newRow);
-            if (splitPoint == 0) {
+            if (splitPoint == -1) {
                 break;
             }
             if (trace.isDebugEnabled()) {

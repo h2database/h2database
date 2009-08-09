@@ -84,10 +84,10 @@ abstract class PageData extends Record {
         while (l < r) {
             int i = (l + r) >>> 1;
             int k = keys[i];
-            if (k > key) {
-                r = i;
-            } else if (k == key) {
+            if (k == key) {
                 return i;
+            } else if (k > key) {
+                r = i;
             } else {
                 l = i + 1;
             }
@@ -101,11 +101,11 @@ abstract class PageData extends Record {
     abstract void read() throws SQLException;
 
     /**
-     * Try to add a row.
+     * Add a row if possible. If it is possible this method returns -1, otherwise
+     * the split point. It is always possible to add one row.
      *
-     * @param row the row
-     * @return 0 if successful, or the split position if the page needs to be
-     *         split
+     * @param row the now to add
+     * @return the split point of this page, or -1 if no split is required
      */
     abstract int addRowTry(Row row) throws SQLException;
 

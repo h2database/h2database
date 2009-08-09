@@ -41,24 +41,27 @@ public class TestBtreeIndex extends TestBase {
     private void testAddDelete() throws SQLException {
         deleteDb("index");
         Connection conn = getConnection("index");
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(ID bigint primary key)");
-        int count = 1000;
-        stat.execute("insert into test select x from system_range(1, " + count + ")");
-        if (!config.memory) {
-            conn.close();
-            conn = getConnection("index");
-            stat = conn.createStatement();
-        }
-        for (int i = 1; i < count; i++) {
-            ResultSet rs = stat.executeQuery("select * from test order by id");
-            for (int j = i; rs.next(); j++) {
-                assertEquals(j, rs.getInt(1));
+        try {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE TABLE TEST(ID bigint primary key)");
+            int count = 1000;
+            stat.execute("insert into test select x from system_range(1, " + count + ")");
+            if (!config.memory) {
+                conn.close();
+                conn = getConnection("index");
+                stat = conn.createStatement();
             }
-            stat.execute("delete from test where id =" + i);
+            for (int i = 1; i < count; i++) {
+                ResultSet rs = stat.executeQuery("select * from test order by id");
+                for (int j = i; rs.next(); j++) {
+                    assertEquals(j, rs.getInt(1));
+                }
+                stat.execute("delete from test where id =" + i);
+            }
+            stat.execute("drop all objects delete files");
+        } finally {
+            conn.close();
         }
-        stat.execute("drop all objects delete files");
-        conn.close();
     }
 
     public void testCase(int seed) throws SQLException {
@@ -92,75 +95,78 @@ public class TestBtreeIndex extends TestBase {
         String prefix = buff.toString();
         DeleteDbFiles.execute(baseDir, null, true);
         Connection conn = getConnection("index");
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE a(text VARCHAR PRIMARY KEY)");
-        PreparedStatement prepInsert = conn.prepareStatement("INSERT INTO a VALUES(?)");
-        PreparedStatement prepDelete = conn.prepareStatement("DELETE FROM a WHERE text=?");
-        PreparedStatement prepDeleteAllButOne = conn.prepareStatement("DELETE FROM a WHERE text <> ?");
-        int count = 0;
-        for (int i = 0; i < 1000; i++) {
-            int y = random.nextInt(distinct);
-            try {
-                prepInsert.setString(1, prefix + y);
-                prepInsert.executeUpdate();
-                count++;
-            } catch (SQLException e) {
-                if (e.getSQLState().equals("23001")) {
-                    // ignore
-                } else {
-                    TestBase.logError("error", e);
-                    break;
-                }
-            }
-            if (delete && random.nextInt(10) == 1) {
-                if (random.nextInt(4) == 1) {
-                    try {
-                        prepDeleteAllButOne.setString(1, prefix + y);
-                        int deleted = prepDeleteAllButOne.executeUpdate();
-                        if (deleted < count - 1) {
-                            printError(seed, "deleted:" + deleted);
-                        }
-                        count -= deleted;
-                    } catch (SQLException e) {
-                        TestBase.logError("error", e);
-                        break;
-                    }
-                } else {
-                    try {
-                        prepDelete.setString(1, prefix + y);
-                        int deleted = prepDelete.executeUpdate();
-                        if (deleted > 1) {
-                            printError(seed, "deleted:" + deleted);
-                        }
-                        count -= deleted;
-                    } catch (SQLException e) {
+        try {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE TABLE a(text VARCHAR PRIMARY KEY)");
+            PreparedStatement prepInsert = conn.prepareStatement("INSERT INTO a VALUES(?)");
+            PreparedStatement prepDelete = conn.prepareStatement("DELETE FROM a WHERE text=?");
+            PreparedStatement prepDeleteAllButOne = conn.prepareStatement("DELETE FROM a WHERE text <> ?");
+            int count = 0;
+            for (int i = 0; i < 1000; i++) {
+                int y = random.nextInt(distinct);
+                try {
+                    prepInsert.setString(1, prefix + y);
+                    prepInsert.executeUpdate();
+                    count++;
+                } catch (SQLException e) {
+                    if (e.getSQLState().equals("23001")) {
+                        // ignore
+                    } else {
                         TestBase.logError("error", e);
                         break;
                     }
                 }
+                if (delete && random.nextInt(10) == 1) {
+                    if (random.nextInt(4) == 1) {
+                        try {
+                            prepDeleteAllButOne.setString(1, prefix + y);
+                            int deleted = prepDeleteAllButOne.executeUpdate();
+                            if (deleted < count - 1) {
+                                printError(seed, "deleted:" + deleted + " i:" + i);
+                            }
+                            count -= deleted;
+                        } catch (SQLException e) {
+                            TestBase.logError("error", e);
+                            break;
+                        }
+                    } else {
+                        try {
+                            prepDelete.setString(1, prefix + y);
+                            int deleted = prepDelete.executeUpdate();
+                            if (deleted > 1) {
+                                printError(seed, "deleted:" + deleted + " i:" + i);
+                            }
+                            count -= deleted;
+                        } catch (SQLException e) {
+                            TestBase.logError("error", e);
+                            break;
+                        }
+                    }
+                }
             }
-        }
-        int testCount;
-        testCount = 0;
-        ResultSet rs = stat.executeQuery("SELECT text FROM a ORDER BY text");
-        ResultSet rs2 = conn.createStatement().executeQuery("SELECT text FROM a ORDER BY 'x' || text");
-        testCount = 0;
-        while (rs.next() && rs2.next()) {
-            if (!rs.getString(1).equals(rs2.getString(1))) {
-                fail("" + testCount);
+            int testCount;
+            testCount = 0;
+            ResultSet rs = stat.executeQuery("SELECT text FROM a ORDER BY text");
+            ResultSet rs2 = conn.createStatement().executeQuery("SELECT text FROM a ORDER BY 'x' || text");
+            testCount = 0;
+            while (rs.next() && rs2.next()) {
+                if (!rs.getString(1).equals(rs2.getString(1))) {
+                    fail("" + testCount);
+                }
+                testCount++;
             }
-            testCount++;
+            assertFalse(rs.next());
+            assertFalse(rs2.next());
+            if (testCount != count) {
+                printError(seed, "count:" + count + " testCount:" + testCount);
+            }
+            rs = stat.executeQuery("SELECT text, count(*) FROM a GROUP BY text HAVING COUNT(*)>1");
+            if (rs.next()) {
+                printError(seed, "testCount:" + testCount + " " + rs.getString(1));
+            }
+        } finally {
+            conn.close();
         }
-        assertFalse(rs.next());
-        assertFalse(rs2.next());
-        if (testCount != count) {
-            printError(seed, "count:" + count + " testCount:" + testCount);
-        }
-        rs = stat.executeQuery("SELECT text, count(*) FROM a GROUP BY text HAVING COUNT(*)>1");
-        if (rs.next()) {
-            printError(seed, "testCount:" + testCount);
-        }
-        conn.close();
     }
 
     private void printError(int seed, String message) {

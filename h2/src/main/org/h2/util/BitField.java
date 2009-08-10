@@ -5,7 +5,6 @@
  * Initial Developer: H2 Group
  */
 package org.h2.util;
-import java.util.Arrays;
 
 /**
  * A list of bits.
@@ -160,13 +159,11 @@ public class BitField {
         data[addr] &= ~getBitMask(i);
     }
 
-    // this is static to encourage compiler to inline it
-    private static int getAddress(int i) {
+    private int getAddress(int i) {
         return i >> ADDRESS_BITS;
     }
 
-    // this is static to encourage compiler to inline it
-    private static long getBitMask(int i) {
+    private long getBitMask(int i) {
         return 1L << (i & ADDRESS_MASK);
     }
 
@@ -188,50 +185,24 @@ public class BitField {
     /**
      * Enable or disable a number of bits.
      *
-     * @author Samuel Van Oort
      * @param start the index of the first bit to enable or disable
      * @param len the number of bits to enable or disable
      * @param value the new value
      */
     public void setRange(int start, int len, boolean value) {
-        int startIdx = getAddress(start);
-        int endIdx = getAddress(start + len - 1);
-        int end = start+len;
-
-        // expand BitField if writing past end, unless clearing
-        // this prevents OutOfMemoryError mid-modify
-        int datalen = data.length;
-        if (endIdx >= datalen) {
-            if (!value && startIdx >= datalen) {
-                // trying to clear past end of set bits - nothing to do
-                return;
-            }
-            expandCapacity(endIdx);
-        }
-
-        long startMask = (~0L) << start;
-        long endMask = (~0L) >>> -end;
-        // if operating on one long, mask is combined
-        if (startIdx == endIdx) {
-            startMask &= endMask;
-        }
-        // set first long element in range
-        if (value) {
-            data[startIdx] |= startMask;
-        } else {
-            data[startIdx] &= ~startMask;
-        }
-
-        // work on additional elements only if needed
-        if (startIdx != endIdx) {
-            // set the last long element in range
-            if (value) {
-                data[endIdx] |= endMask;
-            } else {
-                data[endIdx] &= ~endMask;
-            }
-            // set longs fully in the range very quickly to all 1 or all 0
-            Arrays.fill(data, startIdx + 1, endIdx, value ? -1L : 0L);
+        // go backwards so that OutOfMemory happens
+        // before some bytes are modified
+        for (int i = start + len - 1; i >= start; i--) {
+            set(i, value);
         }
     }
+
+    private void set(int i, boolean value) {
+        if (value) {
+            set(i);
+        } else {
+            clear(i);
+        }
+    }
+
 }

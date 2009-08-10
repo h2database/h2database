@@ -209,13 +209,16 @@ public class DiskFile implements CacheWriter {
                 DataOutputStream out = new DataOutputStream(buff);
                 int blocks = (int) ((file.length() - OFFSET) / BLOCK_SIZE);
                 out.writeInt(blocks);
-                final int end = blocks/8;
-                byte[] tempBuff = new byte[end];
-                for (int i = 0; i < end; i++) {
-                    tempBuff[i] = (byte) (used.getByte(i << 3) & 255);
+                for (int i = 0, x = 0; i < blocks / 8; i++) {
+                    int mask = 0;
+                    for (int j = 0; j < 8; j++) {
+                        if (used.get(x)) {
+                            mask |= 1 << j;
+                        }
+                        x++;
+                    }
+                    out.write(mask);
                 }
-                out.write(tempBuff, 0, tempBuff.length);
-                tempBuff = null;
                 out.writeInt(pageOwners.size());
                 ObjectArray<Storage> storages = ObjectArray.newInstance();
                 for (int i = 0; i < pageOwners.size(); i++) {
@@ -297,18 +300,16 @@ public class DiskFile implements CacheWriter {
                     return;
                 }
                 stage++;
-                byte[] temp = new byte[b2];
-                in.readFully(temp);
                 if (init) {
                     for (int x = 0; x < b2; x += 8) {
-                        int mask = temp[x];
+                        int mask = in.read();
                         if (mask != used.getByte(x)) {
                             Message.throwInternalError("Redo failure, block: " + x + " expected: " + used.getByte(x) + " got: " + mask);
                         }
                     }
                 } else {
                     for (int x = 0; x < b2; x += 8) {
-                        int mask = temp[x];
+                        int mask = in.read();
                         used.setByte(x, mask);
                     }
                 }
@@ -706,6 +707,7 @@ public class DiskFile implements CacheWriter {
             }
         }
     }
+
     /**
      * Called after a session deleted a row. This sets the last uncommitted
      * delete id in the session. This is used to make sure empty space is not

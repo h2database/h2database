@@ -29,7 +29,7 @@ public class SpellChecker {
             "bz2", "rc", "layout", "res", "dll", "jar", "svg" };
     private static final String DELIMITERS = " \n.();-\"=,*/{}_<>+\r:'@[]&\\!#|?$^%~`\t";
     private static final String PREFIX_IGNORE = "abc";
-    private static final String IGNORE_FILE = "mainWeb.html";
+    private static final String[] IGNORE_FILES = {"mainWeb.html", "pg_catalog.sql"};
 
     private HashSet<String> dictionary = new HashSet<String>();
     private HashSet<String> used = new HashSet<String>();
@@ -89,12 +89,13 @@ public class SpellChecker {
         }
     }
 
+    /** Searches for spelling errors in the source and documentation */
     private void process(File file) throws IOException {
         String name = file.getCanonicalPath();
         if (name.endsWith(".svn")) {
             return;
         }
-        if (name.indexOf("_") > 0 && name.indexOf("_en") < 0) {
+        if (file.getCanonicalFile().getName().startsWith("_") && name.indexOf("_en") < 0) {
             return;
         }
         if (file.isDirectory()) {
@@ -117,8 +118,11 @@ public class SpellChecker {
                     break;
                 }
             }
-            if (fileName.endsWith(IGNORE_FILE)) {
-                ignore = true;
+            for (int i = 0; i < IGNORE_FILES.length; i++) {
+                if (fileName.endsWith(IGNORE_FILES[i])) {
+                    ignore = true;
+                    break;
+                }
             }
             if (ignore) {
                 return;

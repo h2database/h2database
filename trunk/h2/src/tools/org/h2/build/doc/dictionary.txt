@@ -320,7 +320,7 @@ possibility possible possibly post postal postgre postgres postgresql postmaster
 potential potentially pound pow power poweroff practice prd pre prec precision
 preferdoslikelineends preferences preferred prefix prefixes premature prep
 prepare prepared prepares preparing prepended prepends pres present preserve
-press pressed pretty prev prevent previous previously pri price prices primary
+press pressed pretty prev prevent prevents previous previously pri price prices primary
 prime primitive primitives principal print printed println prints prio prior
 priority private privilege privileges probability probable probably problem
 problems proc procedural procedure procedures process processed processes

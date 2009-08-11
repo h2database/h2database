@@ -89,13 +89,12 @@ public class SpellChecker {
         }
     }
 
-    /** Searches for spelling errors in the source and documentation */
     private void process(File file) throws IOException {
-        String name = file.getCanonicalPath();
-        if (name.endsWith(".svn")) {
+        String name = file.getName();
+        if (name.endsWith(".svn") || name.endsWith(".DS_Store")) {
             return;
         }
-        if (file.getCanonicalFile().getName().startsWith("_") && name.indexOf("_en") < 0) {
+        if (name.startsWith("_") && name.indexOf("_en") < 0) {
             return;
         }
         if (file.isDirectory()) {
@@ -111,21 +110,15 @@ public class SpellChecker {
             } else {
                 suffix = fileName.substring(idx + 1);
             }
-            boolean ignore = false;
             for (String s : IGNORE) {
                 if (s.equals(suffix)) {
-                    ignore = true;
-                    break;
+                    return;
                 }
             }
-            for (int i = 0; i < IGNORE_FILES.length; i++) {
-                if (fileName.endsWith(IGNORE_FILES[i])) {
-                    ignore = true;
-                    break;
+            for (String ignoreFile : IGNORE_FILES) {
+                if (fileName.endsWith(ignoreFile)) {
+                    return;
                 }
-            }
-            if (ignore) {
-                return;
             }
             boolean ok = false;
             for (String s : SUFFIX) {

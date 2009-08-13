@@ -58,6 +58,7 @@ public abstract class Prepared {
     private Command command;
     private int objectId;
     private int currentRowNumber;
+    private int rowScanCount;
 
     /**
      * Create a new object.
@@ -343,7 +344,10 @@ public abstract class Prepared {
      *
      * @param rowNumber the row number
      */
-    protected void setCurrentRowNumber(int rowNumber) {
+    protected void setCurrentRowNumber(int rowNumber) throws SQLException {
+        if ((rowScanCount++ & 127) == 0) {
+            checkCanceled();
+        }
         this.currentRowNumber = rowNumber;
     }
 

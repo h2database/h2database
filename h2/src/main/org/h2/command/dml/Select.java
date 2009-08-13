@@ -155,7 +155,6 @@ public class Select extends Query {
         setCurrentRowNumber(0);
         Value[] previousKeyValues = null;
         while (topTableFilter.next()) {
-            checkCanceled();
             setCurrentRowNumber(rowNumber + 1);
             if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
                 rowNumber++;
@@ -306,7 +305,6 @@ public class Select extends Query {
         setCurrentRowNumber(0);
         ValueArray defaultGroup = ValueArray.get(new Value[0]);
         while (topTableFilter.next()) {
-            checkCanceled();
             setCurrentRowNumber(rowNumber + 1);
             if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
                 Value key;
@@ -457,7 +455,6 @@ public class Select extends Query {
         SearchRow first = null;
         int columnIndex = index.getColumns()[0].getColumnId();
         while (true) {
-            checkCanceled();
             setCurrentRowNumber(rowNumber + 1);
             Cursor cursor = index.findNext(session, first, null);
             if (!cursor.next()) {
@@ -491,7 +488,6 @@ public class Select extends Query {
         int rowNumber = 0;
         setCurrentRowNumber(0);
         while (topTableFilter.next()) {
-            checkCanceled();
             setCurrentRowNumber(rowNumber + 1);
             if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
                 Value[] row = new Value[columnCount];

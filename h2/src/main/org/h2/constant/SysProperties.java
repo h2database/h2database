@@ -438,6 +438,14 @@ public class SysProperties {
     public static final boolean OPTIMIZE_IN = getBooleanSetting("h2.optimizeIn", true);
 
     /**
+     * System property <code>h2.optimizeInList</code> (default: false).<br />
+     * Optimize IN(...) and IN(SELECT ...) comparisons. This includes
+     * optimization for SELECT, DELETE, and UPDATE. Overrides h2.optimizeIn and
+     * h2.optimizeInJoin if enabled.
+     */
+    public static final boolean OPTIMIZE_IN_LIST = getBooleanSetting("h2.optimizeInList", false);
+
+    /**
      * System property <code>h2.optimizeInJoin</code> (default: false).<br />
      * Optimize IN(...) comparisons by converting them to inner joins.
      * <p>

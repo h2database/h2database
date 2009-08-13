@@ -80,7 +80,7 @@ public class ValueExpression extends Expression {
         if (value.getType() == Value.BOOLEAN) {
             boolean v = ((ValueBoolean) value).getBoolean().booleanValue();
             if (!v) {
-                filter.addIndexCondition(new IndexCondition(Comparison.FALSE, null, this));
+                filter.addIndexCondition(IndexCondition.get(Comparison.FALSE, null, this));
             }
         }
     }

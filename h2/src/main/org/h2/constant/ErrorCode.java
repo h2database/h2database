@@ -1875,6 +1875,29 @@ public class ErrorCode {
     /**
      * INTERNAL
      */
+    public static boolean isCommon(int errorCode) {
+        switch (errorCode) {
+        case DATA_CONVERSION_ERROR_1:
+        case DUPLICATE_KEY_1:
+        case LOCK_TIMEOUT_1:
+        case NULL_NOT_ALLOWED:
+        case NO_DATA_AVAILABLE:
+        case REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1:
+        case REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1:
+        case SYNTAX_ERROR_1:
+        case SYNTAX_ERROR_2:
+        case TABLE_OR_VIEW_ALREADY_EXISTS_1:
+        case TABLE_OR_VIEW_NOT_FOUND_1:
+        case VALUE_TOO_LARGE_FOR_PRECISION_1:
+        case VALUE_TOO_LONG_2:
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * INTERNAL
+     */
     public static String getState(int errorCode) {
         // To convert SQLState to error code, replace
         // 21S: 210, 42S: 421, HY: 50, C: 1, T: 2

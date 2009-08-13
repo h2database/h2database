@@ -35,6 +35,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testInsertDeleteRollback();
         testLargeRollback();
         testConstraintAlterTable();
         testJoinWithView();
@@ -70,6 +71,22 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testInsertDeleteRollback() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("set cache_size 1");
+        stat.execute("SET MAX_MEMORY_ROWS " + Integer.MAX_VALUE);
+        stat.execute("SET MAX_MEMORY_UNDO " + Integer.MAX_VALUE);
+        stat.execute("SET MAX_OPERATION_MEMORY " + Integer.MAX_VALUE);
+        stat.execute("create table test(id identity)");
+        conn.setAutoCommit(false);
+        stat.execute("insert into test select x from system_range(1, 11)");
+        stat.execute("delete from test");
+        conn.rollback();
+        conn.close();
     }
 
     private void testLargeRollback() throws SQLException {

@@ -28,7 +28,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Page store: new storage mechanism
 </li><li>[Requires page store] Support large updates (use the transaction log to undo).
 </li><li>[Requires page store] Shutdown compact
-</li><li>Optimize IN(...) for SELECT, DELETE, and UPDATE.
 </li><li>More tests with MULTI_THREADED=1
 </li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
 </li><li>Optimization: result set caching (like MySQL)
@@ -40,20 +39,18 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 <li>Improve test code coverage
 </li><li>Procedural language / script language (Java, Javascript)
 </li><li>Fulltext search: support streaming CLOB data.
-</li><li>Optimize .. OR .. to IN(..) or UNION if the cost is lower
+</li><li>Optimize ID=? OR ID=? to ID IN(?, ?) or UNION if the cost is lower
 </li><li>Enable warning for 'Local variable declaration hides another field or variable'.
 </li><li>Test multi-threaded in-memory db access
 </li><li>MVCC: select for update should only lock the selected rows.
 </li><li>Option to shutdown all the running servers (on the same VM).
-</li><li>Optimize ID=? OR ID=?: convert to IN(...)
 </li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
 </li><li>[Requires page store] Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
-</li><li>Implement INSTEAD OF trigger (for views, tables, metadata tables).
-</li><li>Triggers for metadata tables; use for PostgreSQL catalog
-</li><li>Support triggers for INFORMATION_SCHEMA tables (to better support PostgreSQL catalog: rebuild after creating new tables)
 </li><li>Full outer joins
+</li><li>Implement INSTEAD OF trigger (for views, tables, metadata tables).
+</li><li>Support triggers for INFORMATION_SCHEMA tables (to better support PostgreSQL catalog: rebuild after creating new tables)
+</li><li>Use triggers for metadata tables; use for PostgreSQL catalog
 </li><li>Maven: deploy / upload h2..-sources.jar and javadocs as well.
-</li><li>Support trigger on the tables information_schema.tables and ...columns
 </li><li>Test very large databases and LOBs (up to 256 GB)
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
@@ -70,7 +67,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Don't use deleteOnExit (bug 4513817: File.deleteOnExit consumes memory)
 </li><li>Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA)
 </li><li>Support nested outer joins (see todo.txt).
-</li><li>Don't write stack traces for common exceptions like duplicate key to the log by default (exclude list)
 </li><li>Test performance again with SQL Server, Oracle, DB2
 </li><li>Test with dbmonster (http://dbmonster.kernelpanic.pl/)
 </li><li>Test with dbcopy (http://dbcopyplugin.sourceforge.net)
@@ -439,7 +435,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support =ANY(array) as in PostgreSQL.
 </li><li>IBM DB2 compatibility: support PREVIOUS VALUE FOR sequence.
 </li><li>MySQL compatibility: alter table add index i(c), add constraint c foreign key(c) references t(c);
-</li><li>Compatibility: use different LIKE ESCAPE characters depending on the mode (disable for Derby, HSQLDB, DB2, Oracle).
+</li><li>Compatibility: use different LIKE ESCAPE characters depending on the mode (disable for Derby, HSQLDB, DB2, Oracle, MSSQLServer).
 </li></ul>
 
 <h2>Not Planned</h2>

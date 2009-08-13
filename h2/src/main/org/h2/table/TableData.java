@@ -114,9 +114,11 @@ public class TableData extends Table implements RecordReader {
     public void addRow(Session session, Row row) throws SQLException {
         int i = 0;
         lastModificationId = database.getNextModificationDataId();
-        if (database.isMultiVersion()) {
-            row.setSessionId(session.getId());
-        }
+        // even when not using MVCC
+        // set the session, to ensure the row is kept in the cache
+        // until the transaction is committed or rolled back
+        // otherwise the row is not found when doing insert-delete-rollback
+        row.setSessionId(session.getId());
         try {
             for (; i < indexes.size(); i++) {
                 Index index = indexes.get(i);

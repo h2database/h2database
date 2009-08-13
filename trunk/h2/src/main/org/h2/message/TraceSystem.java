@@ -17,6 +17,7 @@ import java.util.Date;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.util.ClassUtils;
 import org.h2.util.FileUtils;
 import org.h2.util.IOUtils;
@@ -257,7 +258,17 @@ public class TraceSystem implements TraceWriter {
             }
             printWriter.println(s);
             if (t != null) {
-                t.printStackTrace(printWriter);
+                if (levelFile == ERROR && t instanceof JdbcSQLException) {
+                    JdbcSQLException se = (JdbcSQLException) t;
+                    int code = se.getErrorCode();
+                    if (ErrorCode.isCommon(code)) {
+                        printWriter.println(t.toString());
+                    } else {
+                        t.printStackTrace(printWriter);
+                    }
+                } else {
+                    t.printStackTrace(printWriter);
+                }
             }
             printWriter.flush();
             if (closed) {

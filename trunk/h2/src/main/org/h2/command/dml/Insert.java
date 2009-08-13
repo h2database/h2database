@@ -93,7 +93,6 @@ public class Insert extends Prepared {
                         }
                     }
                 }
-                checkCanceled();
                 table.fireBefore(session);
                 table.validateConvertUpdateSequence(session, newRow);
                 table.fireBeforeRow(session, null, newRow);
@@ -110,7 +109,6 @@ public class Insert extends Prepared {
             table.fireBefore(session);
             table.lock(session, true, false);
             while (rows.next()) {
-                checkCanceled();
                 count++;
                 Value[] r = rows.currentRow();
                 Row newRow = table.getTemplateRow();

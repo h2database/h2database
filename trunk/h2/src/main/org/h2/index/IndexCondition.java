@@ -7,14 +7,21 @@
 package org.h2.index;
 
 import java.sql.SQLException;
-
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
+import org.h2.command.dml.Query;
 import org.h2.engine.Session;
 import org.h2.expression.Comparison;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.Message;
+import org.h2.result.LocalResult;
 import org.h2.table.Column;
+import org.h2.util.ObjectArray;
+import org.h2.util.StatementBuilder;
+import org.h2.value.CompareMode;
 import org.h2.value.Value;
 
 /**
@@ -50,8 +57,17 @@ public class IndexCondition {
     public static final int ALWAYS_FALSE = 8;
 
     private Column column;
-    private Expression expression;
     private int compareType;
+
+    private Expression expression;
+    private ObjectArray<Expression> expressionList;
+    private Query expressionQuery;
+
+    private IndexCondition(int compareType, ExpressionColumn column, Expression expression) {
+        this.compareType = compareType;
+        this.column = column == null ? null : column.getColumn();
+        this.expression = expression;
+    }
 
     /**
      * Create an index condition with the given parameters.
@@ -59,11 +75,38 @@ public class IndexCondition {
      * @param compareType the comparison type
      * @param column the column
      * @param expression the expression
+     * @return the index condition
      */
-    public IndexCondition(int compareType, ExpressionColumn column, Expression expression) {
-        this.compareType = compareType;
-        this.column = column == null ? null : column.getColumn();
-        this.expression = expression;
+    public static IndexCondition get(int compareType, ExpressionColumn column, Expression expression) {
+        return new IndexCondition(compareType, column, expression);
+    }
+
+    /**
+     * Create an index condition with the compare type IN_LIST and with the
+     * given parameters.
+     *
+     * @param column the column
+     * @param list the expression list
+     * @return the index condition
+     */
+    public static IndexCondition getInList(ExpressionColumn column, ObjectArray<Expression> list) {
+        IndexCondition cond = new IndexCondition(Comparison.IN_LIST, column, null);
+        cond.expressionList = list;
+        return cond;
+    }
+
+    /**
+     * Create an index condition with the compare type IN_QUERY and with the
+     * given parameters.
+     *
+     * @param column the column
+     * @param query the select statement
+     * @return the index condition
+     */
+    public static IndexCondition getInQuery(ExpressionColumn column, Query query) {
+        IndexCondition cond = new IndexCondition(Comparison.IN_QUERY, column, null);
+        cond.expressionQuery = query;
+        return cond;
     }
 
     /**
@@ -77,6 +120,47 @@ public class IndexCondition {
     }
 
     /**
+     * Get the current value list of the expression. The value list is of the
+     * same type as the column, distinct, and sorted.
+     *
+     * @param session the session
+     * @return the value list
+     */
+    public Value[] getCurrentValueList(Session session) throws SQLException {
+        HashSet<Value> valueSet = new HashSet<Value>();
+        int dataType = column.getType();
+        for (Expression e : expressionList) {
+            Value v = e.getValue(session);
+            v = v.convertTo(dataType);
+            valueSet.add(v);
+        }
+        Value[] array = new Value[valueSet.size()];
+        valueSet.toArray(array);
+        final CompareMode mode = session.getDatabase().getCompareMode();
+        Arrays.sort(array, new Comparator<Value>() {
+            public int compare(Value o1, Value o2) {
+                try {
+                    return o1.compareTo(o2, mode);
+                } catch (SQLException e) {
+                    throw Message.convertToInternal(e);
+                }
+            }
+        });
+        return array;
+    }
+
+    /**
+     * Get the current result of the expression. The rows may not be of the same
+     * type, therefore the rows may not be unique.
+     *
+     * @param session the session
+     * @return the result
+     */
+    public LocalResult getCurrentResult(Session session) throws SQLException {
+        return expressionQuery.query(0);
+    }
+
+    /**
      * Get the SQL snippet of this comparison.
      *
      * @return the SQL snippet
@@ -85,7 +169,7 @@ public class IndexCondition {
         if (compareType == Comparison.FALSE) {
             return "FALSE";
         }
-        StringBuilder buff = new StringBuilder();
+        StatementBuilder buff = new StatementBuilder();
         buff.append(column.getSQL());
         switch(compareType) {
         case Comparison.EQUAL:
@@ -103,10 +187,25 @@ public class IndexCondition {
         case Comparison.SMALLER:
             buff.append(" < ");
             break;
+        case Comparison.IN_LIST:
+            buff.append(" IN(");
+            for (Expression e : expressionList) {
+                buff.appendExceptFirst(", ");
+                buff.append(e.getSQL());
+            }
+            buff.append(')');
+            break;
+        case Comparison.IN_QUERY:
+            buff.append(" IN(");
+            buff.append(expressionQuery.getPlanSQL());
+            buff.append(')');
+            break;
         default:
             Message.throwInternalError("type="+compareType);
         }
-        buff.append(expression.getSQL());
+        if (expression != null) {
+            buff.append(expression.getSQL());
+        }
         return buff.toString();
     }
 
@@ -120,6 +219,8 @@ public class IndexCondition {
         case Comparison.FALSE:
             return ALWAYS_FALSE;
         case Comparison.EQUAL:
+        case Comparison.IN_LIST:
+        case Comparison.IN_QUERY:
             return EQUALITY;
         case Comparison.BIGGER_EQUAL:
         case Comparison.BIGGER:
@@ -175,6 +276,10 @@ public class IndexCondition {
         }
     }
 
+    public int getCompareType() {
+        return compareType;
+    }
+
     /**
      * Get the referenced column.
      *
@@ -190,7 +295,18 @@ public class IndexCondition {
      * @return true if it can be evaluated
      */
     public boolean isEvaluatable() {
-        return expression.isEverything(ExpressionVisitor.EVALUATABLE);
+        if (expression != null) {
+            return expression.isEverything(ExpressionVisitor.EVALUATABLE);
+        }
+        if (expressionList != null) {
+            for (Expression e : expressionList) {
+                if (!e.isEverything(ExpressionVisitor.EVALUATABLE)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return expressionQuery.isEverything(ExpressionVisitor.EVALUATABLE);
     }
 
 }

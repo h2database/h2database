@@ -1715,7 +1715,7 @@ public class Parser {
                 read("NULL");
                 r = new Comparison(session, type, r, null);
             } else if (readIf("IN")) {
-                if (SysProperties.OPTIMIZE_IN) {
+                if (SysProperties.OPTIMIZE_IN && !SysProperties.OPTIMIZE_IN_LIST) {
                     recompileAlways = true;
                 }
                 read("(");

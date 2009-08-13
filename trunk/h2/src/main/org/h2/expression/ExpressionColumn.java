@@ -266,7 +266,7 @@ public class ExpressionColumn extends Expression {
     public void createIndexConditions(Session session, TableFilter filter) {
         TableFilter tf = getTableFilter();
         if (filter == tf && column.getType() == Value.BOOLEAN) {
-            IndexCondition cond = new IndexCondition(Comparison.EQUAL, this, ValueExpression
+            IndexCondition cond = IndexCondition.get(Comparison.EQUAL, this, ValueExpression
                     .get(ValueBoolean.get(true)));
             filter.addIndexCondition(cond);
         }

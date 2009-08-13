@@ -11,9 +11,11 @@ import java.sql.SQLException;
 import org.h2.command.dml.Query;
 import org.h2.command.dml.Select;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.Index;
+import org.h2.index.IndexCondition;
 import org.h2.message.Message;
 import org.h2.result.LocalResult;
 import org.h2.table.ColumnResolver;
@@ -94,8 +96,7 @@ public class ConditionInSelect extends Condition {
         if (query.getColumnCount() != 1) {
             throw Message.getSQLException(ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN);
         }
-        // Can not optimize IN(SELECT...): the data may change
-        // However, could transform to an inner join
+        // Can not optimize: the data may change
         return this;
     }
 
@@ -125,6 +126,9 @@ public class ConditionInSelect extends Condition {
 
     public Expression optimizeInJoin(Session session, Select select) throws SQLException {
         query.setDistinct(true);
+        if (SysProperties.OPTIMIZE_IN_LIST) {
+            return this;
+        }
         if (all || compareType != Comparison.EQUAL) {
             return this;
         }
@@ -155,6 +159,25 @@ public class ConditionInSelect extends Condition {
         on.mapColumns(filter, 0);
         on = on.optimize(session);
         return on;
+    }
+
+    public void createIndexConditions(Session session, TableFilter filter) {
+        if (!SysProperties.OPTIMIZE_IN_LIST) {
+            return;
+        }
+        if (!(left instanceof ExpressionColumn)) {
+            return;
+        }
+        ExpressionColumn l = (ExpressionColumn) left;
+        if (filter != l.getTableFilter()) {
+            return;
+        }
+        ExpressionVisitor visitor = ExpressionVisitor.get(ExpressionVisitor.NOT_FROM_RESOLVER);
+        visitor.setResolver(filter);
+        if (!query.isEverything(visitor)) {
+            return;
+        }
+        filter.addIndexCondition(IndexCondition.getInQuery(l, query));
     }
 
 }

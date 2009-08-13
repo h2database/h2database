@@ -7,7 +7,6 @@
 package org.h2.expression;
 
 import java.sql.SQLException;
-
 import org.h2.command.dml.Select;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -34,19 +33,19 @@ public class ConditionIn extends Condition {
 
     private final Database database;
     private Expression left;
-    private final ObjectArray<Expression> values;
+    private final ObjectArray<Expression> valueList;
     private Value min, max;
     private int queryLevel;
 
     public ConditionIn(Database database, Expression left, ObjectArray<Expression> values) {
         this.database = database;
         this.left = left;
-        this.values = values;
+        this.valueList = values;
     }
 
     public Value getValue(Session session) throws SQLException {
         Value l = left.getValue(session);
-        if (values.size() == 0) {
+        if (valueList.size() == 0) {
             return ValueBoolean.get(false);
         }
         if (l == ValueNull.INSTANCE) {
@@ -54,11 +53,12 @@ public class ConditionIn extends Condition {
         }
         boolean result = false;
         boolean hasNull = false;
-        for (Expression e : values) {
+        for (Expression e : valueList) {
             Value r = e.getValue(session);
             if (r == ValueNull.INSTANCE) {
                 hasNull = true;
             } else {
+                r = r.convertTo(l.getType());
                 result = Comparison.compareNotNull(database, l, r, Comparison.EQUAL);
                 if (result) {
                     break;
@@ -73,14 +73,14 @@ public class ConditionIn extends Condition {
 
     public void mapColumns(ColumnResolver resolver, int queryLevel) throws SQLException {
         left.mapColumns(resolver, queryLevel);
-        for (Expression e : values) {
+        for (Expression e : valueList) {
             e.mapColumns(resolver, queryLevel);
         }
         this.queryLevel = Math.max(queryLevel, this.queryLevel);
     }
 
     public Expression optimize(Session session) throws SQLException {
-        if (values.size() == 0) {
+        if (valueList.size() == 0) {
             return ValueExpression.get(ValueBoolean.get(false));
         }
         left = left.optimize(session);
@@ -89,25 +89,24 @@ public class ConditionIn extends Condition {
             return left;
         }
         boolean allValuesConstant = true;
-        for (int i = 0; i < values.size(); i++) {
-            Expression e = values.get(i);
+        for (int i = 0; i < valueList.size(); i++) {
+            Expression e = valueList.get(i);
             e = e.optimize(session);
             if (allValuesConstant && !e.isConstant()) {
                 allValuesConstant = false;
             }
-            values.set(i, e);
+            valueList.set(i, e);
         }
         if (constant && allValuesConstant) {
             return ValueExpression.get(getValue(session));
         }
-        // TODO optimization: could use index in some cases (sort, use min and max)
-        if (values.size() == 1) {
-            Expression right = values.get(0);
+        if (valueList.size() == 1) {
+            Expression right = valueList.get(0);
             Expression expr = new Comparison(session, Comparison.EQUAL, left, right);
             expr = expr.optimize(session);
             return expr;
         }
-        if (SysProperties.OPTIMIZE_IN) {
+        if (SysProperties.OPTIMIZE_IN && !SysProperties.OPTIMIZE_IN_LIST) {
             int dataType = left.getType();
             ExpressionVisitor independent = ExpressionVisitor.get(ExpressionVisitor.INDEPENDENT);
             independent.setQueryLevel(queryLevel);
@@ -116,11 +115,11 @@ public class ConditionIn extends Condition {
                     Column column = ((ExpressionColumn) left).getColumn();
                     boolean nullable = column.isNullable();
                     CompareMode mode = session.getDatabase().getCompareMode();
-                    for (int i = 0; i < values.size(); i++) {
-                        Expression e = values.get(i);
+                    for (int i = 0; i < valueList.size(); i++) {
+                        Expression e = valueList.get(i);
                         Value v = e.getValue(session);
                         v = v.convertTo(dataType);
-                        values.set(i, ValueExpression.get(v));
+                        valueList.set(i, ValueExpression.get(v));
                         if (min == null || min.compareTo(v, mode) > 0) {
                             if (v != ValueNull.INSTANCE || nullable) {
                                 min = v;
@@ -137,12 +136,6 @@ public class ConditionIn extends Condition {
     }
 
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (!SysProperties.OPTIMIZE_IN) {
-            return;
-        }
-        if (min == null && max == null) {
-            return;
-        }
         if (!(left instanceof ExpressionColumn)) {
             return;
         }
@@ -150,13 +143,29 @@ public class ConditionIn extends Condition {
         if (filter != l.getTableFilter()) {
             return;
         }
-        filter.addIndexCondition(new IndexCondition(Comparison.BIGGER_EQUAL, l, ValueExpression.get(min)));
-        filter.addIndexCondition(new IndexCondition(Comparison.SMALLER_EQUAL, l, ValueExpression.get(max)));
+        if (SysProperties.OPTIMIZE_IN_LIST) {
+            ExpressionVisitor visitor = ExpressionVisitor.get(ExpressionVisitor.NOT_FROM_RESOLVER);
+            visitor.setResolver(filter);
+            for (Expression e : valueList) {
+                if (!e.isEverything(visitor)) {
+                    return;
+                }
+            }
+            filter.addIndexCondition(IndexCondition.getInList(l, valueList));
+        }
+        if (!SysProperties.OPTIMIZE_IN) {
+            return;
+        }
+        if (min == null && max == null) {
+            return;
+        }
+        filter.addIndexCondition(IndexCondition.get(Comparison.BIGGER_EQUAL, l, ValueExpression.get(min)));
+        filter.addIndexCondition(IndexCondition.get(Comparison.SMALLER_EQUAL, l, ValueExpression.get(max)));
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         left.setEvaluatable(tableFilter, b);
-        for (Expression e : values) {
+        for (Expression e : valueList) {
             e.setEvaluatable(tableFilter, b);
         }
     }
@@ -164,7 +173,7 @@ public class ConditionIn extends Condition {
     public String getSQL() {
         StatementBuilder buff = new StatementBuilder("(");
         buff.append(left.getSQL()).append(" IN(");
-        for (Expression e : values) {
+        for (Expression e : valueList) {
             buff.appendExceptFirst(", ");
             buff.append(e.getSQL());
         }
@@ -173,7 +182,7 @@ public class ConditionIn extends Condition {
 
     public void updateAggregate(Session session) throws SQLException {
         left.updateAggregate(session);
-        for (Expression e : values) {
+        for (Expression e : valueList) {
             e.updateAggregate(session);
         }
     }
@@ -186,7 +195,7 @@ public class ConditionIn extends Condition {
     }
 
     private boolean areAllValues(ExpressionVisitor visitor) {
-        for (Expression e : values) {
+        for (Expression e : valueList) {
             if (!e.isEverything(visitor)) {
                 return false;
             }
@@ -196,13 +205,16 @@ public class ConditionIn extends Condition {
 
     public int getCost() {
         int cost = left.getCost();
-        for (Expression e : values) {
+        for (Expression e : valueList) {
             cost += e.getCost();
         }
         return cost;
     }
 
     public Expression optimizeInJoin(Session session, Select select) throws SQLException {
+        if (SysProperties.OPTIMIZE_IN_LIST) {
+            return this;
+        }
         if (!areAllValues(ExpressionVisitor.get(ExpressionVisitor.EVALUATABLE))) {
             return this;
         }
@@ -219,11 +231,11 @@ public class ConditionIn extends Condition {
         }
         Database db = session.getDatabase();
         Schema mainSchema = db.getSchema(Constants.SCHEMA_MAIN);
-        int rowCount = values.size();
+        int rowCount = valueList.size();
         TableFunction function = new TableFunction(database, Function.getFunctionInfo("TABLE_DISTINCT"), rowCount);
         Expression[] array = new Expression[rowCount];
         for (int i = 0; i < rowCount; i++) {
-            Expression e = values.get(i);
+            Expression e = valueList.get(i);
             array[i] = e;
         }
         ExpressionList list = new ExpressionList(array);

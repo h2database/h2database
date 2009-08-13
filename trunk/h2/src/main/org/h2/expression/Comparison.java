@@ -71,6 +71,18 @@ public class Comparison extends Condition {
      */
     public static final int FALSE = 8;
 
+    /**
+     * This is a pseudo comparison type that is only used for index conditions.
+     * It means equals any value of a list. Example: IN(1, 2, 3).
+     */
+    public static final int IN_LIST = 9;
+
+    /**
+     * This is a pseudo comparison type that is only used for index conditions.
+     * It means equals any value of a list. Example: IN(SELECT ...).
+     */
+    public static final int IN_QUERY = 10;
+
     private final Database database;
     private final int compareType;
     private Expression left;
@@ -366,10 +378,10 @@ public class Comparison extends Condition {
         }
         if (addIndex) {
             if (l != null) {
-                filter.addIndexCondition(new IndexCondition(compareType, l, right));
+                filter.addIndexCondition(IndexCondition.get(compareType, l, right));
             } else if (r != null) {
                 int compareRev = getReversedCompareType(compareType);
-                filter.addIndexCondition(new IndexCondition(compareRev, r, left));
+                filter.addIndexCondition(IndexCondition.get(compareRev, r, left));
             }
         }
         return;

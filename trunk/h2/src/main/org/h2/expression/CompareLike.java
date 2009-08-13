@@ -174,14 +174,14 @@ public class CompareLike extends Condition {
         }
         String begin = buff.toString();
         if (maxMatch == patternLength) {
-            filter.addIndexCondition(new IndexCondition(Comparison.EQUAL, l, ValueExpression
+            filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL, l, ValueExpression
                     .get(ValueString.get(begin))));
         } else {
             // TODO check if this is correct according to Unicode rules (code
             // points)
             String end;
             if (begin.length() > 0) {
-                filter.addIndexCondition(new IndexCondition(Comparison.BIGGER_EQUAL, l, ValueExpression.get(ValueString
+                filter.addIndexCondition(IndexCondition.get(Comparison.BIGGER_EQUAL, l, ValueExpression.get(ValueString
                         .get(begin))));
                 char next = begin.charAt(begin.length() - 1);
                 // search the 'next' unicode character (or at least a character
@@ -189,7 +189,7 @@ public class CompareLike extends Condition {
                 for (int i = 1; i < 2000; i++) {
                     end = begin.substring(0, begin.length() - 1) + (char) (next + i);
                     if (compareMode.compareString(begin, end, ignoreCase) == -1) {
-                        filter.addIndexCondition(new IndexCondition(Comparison.SMALLER, l, ValueExpression
+                        filter.addIndexCondition(IndexCondition.get(Comparison.SMALLER, l, ValueExpression
                                 .get(ValueString.get(end))));
                         break;
                     }

@@ -16,13 +16,12 @@ import org.h2.engine.Session;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
-import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexCondition;
+import org.h2.index.IndexCursor;
 import org.h2.message.Message;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.result.SortOrder;
 import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -40,8 +39,6 @@ public class TableFilter implements ColumnResolver {
     private String alias;
     private Session session;
     private Index index;
-    private IndexColumn[] indexColumns;
-    private Cursor cursor;
     private int scanCount;
 
     /**
@@ -49,21 +46,31 @@ public class TableFilter implements ColumnResolver {
      */
     private boolean used;
 
-    // conditions that can be used for direct index lookup (start or end)
+    /**
+     * The filter used to walk through the index.
+     */
+    private final IndexCursor cursor;
+
+    /**
+     * The index conditions used for direct index lookup (start or end).
+     */
     private final ObjectArray<IndexCondition> indexConditions = ObjectArray.newInstance();
 
-    // conditions that can't be used for index lookup,
-    // but for row filter for this table (ID=ID, NAME LIKE '%X%')
+    /**
+     * Additional conditions that can't be used for index lookup,
+     * but for row filter for this table (ID=ID, NAME LIKE '%X%')
+     */
     private Expression filterCondition;
 
-    // the complete join condition
+    /**
+     * The complete join condition.
+     */
     private Expression joinCondition;
+
     private SearchRow currentSearchRow;
     private Row current;
     private int state;
-
     private TableFilter join;
-
     private boolean outerJoin;
     private ObjectArray<Column> naturalJoinColumns;
     private boolean foundOne;
@@ -85,6 +92,7 @@ public class TableFilter implements ColumnResolver {
         this.table = table;
         this.alias = alias;
         this.select = select;
+        this.cursor = new IndexCursor(session);
         if (!rightsChecked) {
             session.getUser().checkRight(table, Right.SELECT);
         }
@@ -229,71 +237,17 @@ public class TableFilter implements ColumnResolver {
         foundOne = false;
     }
 
-    private Value getMax(Value a, Value b, boolean bigger) throws SQLException {
-        if (a == null) {
-            return b;
-        } else if (b == null) {
-            return a;
-        }
-        int comp = a.compareTo(b, session.getDatabase().getCompareMode());
-        if (!bigger) {
-            comp = -comp;
-        }
-        return comp > 0 ? a : b;
-    }
-
     /**
      * Check if there are more rows to read.
      *
      * @return true if there are
      */
     public boolean next() throws SQLException {
-        boolean alwaysFalse = false;
         if (state == AFTER_LAST) {
             return false;
         } else if (state == BEFORE_FIRST) {
-            SearchRow start = null, end = null;
-            for (IndexCondition condition : indexConditions) {
-                if (condition.isAlwaysFalse()) {
-                    alwaysFalse = true;
-                    break;
-                }
-                Column column = condition.getColumn();
-                int type = column.getType();
-                int id = column.getColumnId();
-                Value v = condition.getCurrentValue(session).convertTo(type);
-                boolean isStart = condition.isStart(), isEnd = condition.isEnd();
-                IndexColumn idxCol = indexColumns[id];
-                if (idxCol != null && (idxCol.sortType & SortOrder.DESCENDING) != 0) {
-                    // if the index column is sorted the other way, we swap end and start
-                    // NULLS_FIRST / NULLS_LAST is not a problem, as nulls never match anyway
-                    boolean temp = isStart;
-                    isStart = isEnd;
-                    isEnd = temp;
-                }
-                if (isStart) {
-                    Value newStart;
-                    if (start == null) {
-                        start = table.getTemplateRow();
-                        newStart = v;
-                    } else {
-                        newStart = getMax(start.getValue(id), v, true);
-                    }
-                    start.setValue(id, newStart);
-                }
-                if (isEnd) {
-                    Value newEnd;
-                    if (end == null) {
-                        end = table.getTemplateRow();
-                        newEnd = v;
-                    } else {
-                        newEnd = getMax(end.getValue(id), v, false);
-                    }
-                    end.setValue(id, newEnd);
-                }
-            }
-            if (!alwaysFalse) {
-                cursor = index.find(session, start, end);
+            cursor.find(indexConditions);
+            if (!cursor.isAlwaysFalse()) {
                 if (join != null) {
                     join.reset();
                 }
@@ -310,7 +264,7 @@ public class TableFilter implements ColumnResolver {
             if (state == NULL_ROW) {
                 break;
             }
-            if (alwaysFalse) {
+            if (cursor.isAlwaysFalse()) {
                 state = AFTER_LAST;
             } else {
                 if ((++scanCount & 4095) == 0) {
@@ -319,7 +273,6 @@ public class TableFilter implements ColumnResolver {
                 if (cursor.next()) {
                     currentSearchRow = cursor.getSearchRow();
                     current = null;
-                    // cursor.get();
                     state = FOUND;
                 } else {
                     state = AFTER_LAST;
@@ -566,17 +519,7 @@ public class TableFilter implements ColumnResolver {
 
     public void setIndex(Index index) {
         this.index = index;
-        Column[] columns = table.getColumns();
-        indexColumns = new IndexColumn[columns.length];
-        IndexColumn[] idxCols = index.getIndexColumns();
-        if (idxCols != null) {
-            for (int i = 0; i < columns.length; i++) {
-                int idx = index.getColumnIndex(columns[i]);
-                if (idx >= 0) {
-                    indexColumns[i] = idxCols[idx];
-                }
-            }
-        }
+        cursor.setIndex(index);
     }
 
     public void setUsed(boolean used) {

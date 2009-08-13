@@ -75,6 +75,7 @@ public class PageStore implements CacheWriter {
     // TODO b-tree index with fixed size values doesn't need offset and so on
     // TODO remove parent, use tableId if required
     // TODO replace CRC32
+    // TODO optimization: try to avoid allocating a byte array per page
     // TODO PageBtreeNode: 4 bytes offset - others use only 2
     // TODO block compression: maybe http://en.wikipedia.org/wiki/LZJB
     // with RLE, specially for 0s.

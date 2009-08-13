@@ -380,8 +380,11 @@ public abstract class Table extends SchemaObjectBase {
     public void updateRows(Prepared prepared, Session session, RowList rows)
             throws SQLException {
         // remove the old rows
+        int rowScanCount = 0;
         for (rows.reset(); rows.hasNext();) {
-            prepared.checkCanceled();
+            if ((rowScanCount++ & 127) == 0) {
+                prepared.checkCanceled();
+            }
             Row o = rows.next();
             rows.next();
             removeRow(session, o);
@@ -389,7 +392,9 @@ public abstract class Table extends SchemaObjectBase {
         }
         // add the new rows
         for (rows.reset(); rows.hasNext();) {
-            prepared.checkCanceled();
+            if ((rowScanCount++ & 127) == 0) {
+                prepared.checkCanceled();
+            }
             rows.next();
             Row n = rows.next();
             addRow(session, n);

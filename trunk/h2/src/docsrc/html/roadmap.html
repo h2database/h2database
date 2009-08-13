@@ -26,7 +26,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 <ul>
 <li>Bugfixes
 </li><li>Page store: new storage mechanism
-</li><li>[Requires page store] Support large updates (use the transaction log to undo).
+</li><li>[Requires page store] Support large updates (use the transaction log for rollback).
 </li><li>[Requires page store] Shutdown compact
 </li><li>More tests with MULTI_THREADED=1
 </li><li>RECOVER=1 should automatically recover, =2 should run the recovery tool if required
@@ -86,6 +86,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant
 </li><li>Comparison: pluggable sort order: natural sort
 </li><li>Count index range query (count(*) where id between 10 and 20)
+</li><li>Support alter table add column if table has views defined
 </li><li>Eclipse plugin
 </li><li>Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait]
 </li><li>Fulltext search Lucene: analyzer configuration.
@@ -168,7 +169,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Implement Clob / Blob truncate and the remaining functionality
 </li><li>Maybe close LOBs after closing connection
 </li><li>Tree join functionality
-</li><li>Support alter table add column if table has views defined
 </li><li>Add multiple columns at the same time with ALTER TABLE .. ADD .. ADD ..
 </li><li>Add H2 to Gem (Ruby install system)
 </li><li>API for functions / user tables
@@ -244,6 +244,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Access rights: remember the owner of an object. COMMENT: allow owner of object to change it.
 </li><li>Access rights: finer grained access control (grant access for specific functions)
 </li><li>Support N'text'
+</li><li>Pure SQL triggers (example: update parent table if the child table is changed).
 </li><li>Support SCOPE_IDENTITY() to avoid problems when inserting rows in a trigger
 </li><li>Set a connection read only (Connection.setReadOnly)
 </li><li>In MySQL mode, for AUTO_INCREMENT columns, don't set the primary key
@@ -340,7 +341,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support SCOPE_IDENTITY().
 </li><li>Support GRANT SELECT, UPDATE ON *.
 </li><li>Test Eclipse DTP.
-</li><li>Pure SQL triggers (example: update parent table if the child table is changed).
 </li><li>H2 Console: autocomplete: keep the previous setting
 </li><li>MySQL, MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.
 </li><li>executeBatch: option to stop at the first failed statement.
@@ -381,6 +381,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>CSV: currently # is a line comment and can start at any field. Make it optional.
 </li><li>Add database creation date and time to the database.
 </li><li>Support ASSERTIONS.
+</li><li>Support multi-threaded kernel with multi-version concurrency.
 </li><li>MySQL compatibility: support comparing 1='a'
 </li><li>Support PostgreSQL lock modes: http://www.postgresql.org/docs/8.3/static/explicit-locking.html
 </li><li>PostgreSQL compatibility: test DbVisualizer and Squirrel SQL using a new PostgreSQL JDBC driver.

@@ -92,7 +92,7 @@ public class TableFilter implements ColumnResolver {
         this.table = table;
         this.alias = alias;
         this.select = select;
-        this.cursor = new IndexCursor(session);
+        this.cursor = new IndexCursor();
         if (!rightsChecked) {
             session.getUser().checkRight(table, Right.SELECT);
         }
@@ -246,7 +246,7 @@ public class TableFilter implements ColumnResolver {
         if (state == AFTER_LAST) {
             return false;
         } else if (state == BEFORE_FIRST) {
-            cursor.find(indexConditions);
+            cursor.find(session, indexConditions);
             if (!cursor.isAlwaysFalse()) {
                 if (join != null) {
                     join.reset();

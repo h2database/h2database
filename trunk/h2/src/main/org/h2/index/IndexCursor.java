@@ -40,10 +40,6 @@ public class IndexCursor implements Cursor {
     private LocalResult inResult;
     private HashSet<Value> inResultTested;
 
-    public IndexCursor(Session session) {
-        this.session = session;
-    }
-
     public void setIndex(Index index) {
         this.index = index;
         this.table = index.getTable();
@@ -65,7 +61,8 @@ public class IndexCursor implements Cursor {
      *
      * @param indexConditions the index conditions
      */
-    public void find(ObjectArray<IndexCondition> indexConditions) throws SQLException {
+    public void find(Session session, ObjectArray<IndexCondition> indexConditions) throws SQLException {
+        this.session = session;
         alwaysFalse = false;
         start = end = null;
         inList = null;

@@ -412,7 +412,7 @@ public class TestCases extends TestBase {
         conn = getConnection("cases");
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         rs.next();
-        assertEquals(rs.getString(1), "1");
+        assertEquals("1", rs.getString(1));
         assertFalse(rs.next());
         stat = conn.createStatement();
         stat.execute("drop table test");
@@ -424,7 +424,7 @@ public class TestCases extends TestBase {
         stat = conn.createStatement();
         rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         rs.next();
-        assertEquals(rs.getString(1), "1");
+        assertEquals("1", rs.getString(1));
         assertFalse(rs.next());
         stat.execute("drop table test");
         stat.execute("create table test(id identity)");
@@ -439,7 +439,7 @@ public class TestCases extends TestBase {
         conn = getConnection("cases");
         rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         rs.next();
-        assertEquals(rs.getString(1), "1");
+        assertEquals("1", rs.getString(1));
         assertFalse(rs.next());
         conn.close();
     }
@@ -455,18 +455,18 @@ public class TestCases extends TestBase {
         ResultSet rs;
         rs = stat.executeQuery("select name from test order by name");
         rs.next();
-        assertEquals(rs.getString(1), "Hello");
+        assertEquals("Hello", rs.getString(1));
         rs.next();
-        assertEquals(rs.getString(1), "HELLO");
+        assertEquals("HELLO", rs.getString(1));
         rs.next();
-        assertEquals(rs.getString(1), "World");
+        assertEquals("World", rs.getString(1));
         rs.next();
-        assertEquals(rs.getString(1), "WORLD");
+        assertEquals("WORLD", rs.getString(1));
         rs = stat.executeQuery("select name from test where name like 'He%'");
         rs.next();
-        assertEquals(rs.getString(1), "Hello");
+        assertEquals("Hello", rs.getString(1));
         rs.next();
-        assertEquals(rs.getString(1), "HELLO");
+        assertEquals("HELLO", rs.getString(1));
         conn.close();
     }
 
@@ -555,7 +555,7 @@ public class TestCases extends TestBase {
         stat.execute("insert into test(name) values('test')");
         ResultSet rs = stat.executeQuery("select * from test");
         rs.next();
-        assertEquals(rs.getInt(1), 2);
+        assertEquals(2, rs.getInt(1));
         assertFalse(rs.next());
         conn.close();
     }
@@ -596,17 +596,17 @@ public class TestCases extends TestBase {
         prep.execute();
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
-        assertEquals(rs.getInt(1), 1);
-        assertEquals(rs.getString(2), big);
-        assertEquals(readString(rs.getCharacterStream(2)), big);
-        assertEquals(rs.getString(3), big);
-        assertEquals(readString(rs.getCharacterStream(3)), big);
+        assertEquals(1, rs.getInt(1));
+        assertEquals(big, rs.getString(2));
+        assertEquals(big, readString(rs.getCharacterStream(2)));
+        assertEquals(big, rs.getString(3));
+        assertEquals(big, readString(rs.getCharacterStream(3)));
         rs.next();
-        assertEquals(rs.getInt(1), 2);
-        assertEquals(rs.getString(2), big);
-        assertEquals(readString(rs.getCharacterStream(2)), big);
-        assertEquals(rs.getString(3), big);
-        assertEquals(readString(rs.getCharacterStream(3)), big);
+        assertEquals(2, rs.getInt(1));
+        assertEquals(big, rs.getString(2));
+        assertEquals(big, readString(rs.getCharacterStream(2)));
+        assertEquals(big, rs.getString(3));
+        assertEquals(big, readString(rs.getCharacterStream(3)));
         rs.next();
         assertFalse(rs.next());
         conn.close();
@@ -779,9 +779,9 @@ public class TestCases extends TestBase {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
-        stat.execute("create table employee(id int, " + "firstName VARCHAR(50), " + "salary decimal(10, 2), "
-                + "superior_id int, " + "CONSTRAINT PK_employee PRIMARY KEY (id), "
-                + "CONSTRAINT FK_superior FOREIGN KEY (superior_id) " + "REFERENCES employee(ID))");
+        stat.execute("create table employee(id int, firstName VARCHAR(50), salary decimal(10, 2), "
+                + "superior_id int, CONSTRAINT PK_employee PRIMARY KEY (id), "
+                + "CONSTRAINT FK_superior FOREIGN KEY (superior_id) REFERENCES employee(ID))");
         stat.execute("DROP TABLE employee");
         conn.close();
         conn = getConnection("cases");
@@ -794,17 +794,17 @@ public class TestCases extends TestBase {
 
         Connection c0 = getConnection("cases");
         c0.createStatement().executeUpdate("SET AUTOCOMMIT FALSE");
-        c0
-                .createStatement()
-                .executeUpdate(
-                        "create table australia (ID  INTEGER NOT NULL, Name VARCHAR(100), firstName VARCHAR(100), Points INTEGER, LicenseID INTEGER, PRIMARY KEY(ID))");
+        c0.createStatement().executeUpdate(
+                "create table australia (ID  INTEGER NOT NULL, " +
+                "Name VARCHAR(100), firstName VARCHAR(100), " +
+                "Points INTEGER, LicenseID INTEGER, PRIMARY KEY(ID))");
         c0.createStatement().executeUpdate("COMMIT");
         c0.close();
 
         c0 = getConnection("cases");
         c0.createStatement().executeUpdate("SET AUTOCOMMIT FALSE");
-        PreparedStatement p15 = c0
-                .prepareStatement("insert into australia (id,Name,firstName,Points,LicenseID) values (?,?,?,?,?)");
+        PreparedStatement p15 = c0.prepareStatement("insert into australia"
+                + "(id, Name, firstName, Points, LicenseID) values (?, ?, ?, ?, ?)");
         int len = getSize(1, 1000);
         for (int i = 0; i < len; i++) {
             p15.setInt(1, i);
@@ -833,17 +833,16 @@ public class TestCases extends TestBase {
         c0 = getConnection("cases");
         c0.createStatement().executeUpdate("SET AUTOCOMMIT FALSE");
         c0.createStatement().executeUpdate("drop table australia");
-        c0
-                .createStatement()
-                .executeUpdate(
-                        "create table australia (ID  INTEGER NOT NULL, Name VARCHAR(100), firstName VARCHAR(100), Points INTEGER, LicenseID INTEGER, PRIMARY KEY(ID))");
+        c0.createStatement().executeUpdate(
+                "create table australia (ID  INTEGER NOT NULL, Name VARCHAR(100), "
+                        + "firstName VARCHAR(100), Points INTEGER, LicenseID INTEGER, PRIMARY KEY(ID))");
         c0.createStatement().executeUpdate("COMMIT");
         c0.close();
 
         c0 = getConnection("cases");
         c0.createStatement().executeUpdate("SET AUTOCOMMIT FALSE");
-        PreparedStatement p65 = c0
-                .prepareStatement("insert into australia (id,Name,FirstName,Points,LicenseID) values (?,?,?,?,?)");
+        PreparedStatement p65 = c0.prepareStatement("insert into australia"
+                + "(id, Name, FirstName, Points, LicenseID) values (?, ?, ?, ?, ?)");
         len = getSize(1, 1000);
         for (int i = 0; i < len; i++) {
             p65.setInt(1, i);

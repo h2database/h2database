@@ -66,7 +66,7 @@ public class TestExclusive extends TestBase {
                 break;
             }
         }
-        assertEquals(state[0], 2);
+        assertEquals(2, state[0]);
         stat.execute("set exclusive true");
         conn.close();
 

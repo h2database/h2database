@@ -125,7 +125,7 @@ public class TestKill extends TestBase {
             ResultSet rs2 = prep.executeQuery();
             rs2.next();
             int sumLog = rs2.getInt(1);
-            assertEquals(sumLog, sum);
+            assertEquals(sum, sumLog);
             trace("account=" + account + " sum=" + sum);
         }
         PreparedStatement p1 = conn.prepareStatement("SELECT * FROM TEST_A WHERE ID=?");

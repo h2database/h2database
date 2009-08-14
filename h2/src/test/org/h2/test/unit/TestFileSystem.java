@@ -146,11 +146,11 @@ public class TestFileSystem extends TestBase {
         long lastMod = fs.getLastModified(fsBase + "/test");
         if (lastMod < time - 1999) {
             // at most 2 seconds difference
-            assertEquals(lastMod, time);
+            assertEquals(time, lastMod);
         }
-        assertEquals(fs.length(fsBase + "/test"), 10000);
+        assertEquals(10000, fs.length(fsBase + "/test"));
         String[] list = fs.listFiles(fsBase);
-        assertEquals(list.length, 1);
+        assertEquals(1, list.length);
         assertTrue(list[0].endsWith("test"));
 
         fs.copy(fsBase + "/test", fsBase + "/test3");
@@ -279,10 +279,10 @@ public class TestFileSystem extends TestBase {
         out.close();
         InputStream in = fs.openFileInputStream(s);
         for (int i = 0; i < 10000; i++) {
-            assertEquals(in.read(), 0);
+            assertEquals(0, in.read());
         }
-        assertEquals(in.read(), 1);
-        assertEquals(in.read(), -1);
+        assertEquals(1, in.read());
+        assertEquals(-1, in.read());
         in.close();
         out.close();
     }

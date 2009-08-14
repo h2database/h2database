@@ -219,35 +219,35 @@ public class TestResultSet extends TestBase {
         ResultSet rs;
         stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR)");
         rs = stat.executeQuery("SELECT * FROM TEST");
-        assertEquals(rs.findColumn("ID"), 1);
-        assertEquals(rs.findColumn("NAME"), 2);
-        assertEquals(rs.findColumn("id"), 1);
-        assertEquals(rs.findColumn("name"), 2);
-        assertEquals(rs.findColumn("Id"), 1);
-        assertEquals(rs.findColumn("Name"), 2);
-        assertEquals(rs.findColumn("TEST.ID"), 1);
-        assertEquals(rs.findColumn("TEST.NAME"), 2);
-        assertEquals(rs.findColumn("Test.Id"), 1);
-        assertEquals(rs.findColumn("Test.Name"), 2);
+        assertEquals(1, rs.findColumn("ID"));
+        assertEquals(2, rs.findColumn("NAME"));
+        assertEquals(1, rs.findColumn("id"));
+        assertEquals(2, rs.findColumn("name"));
+        assertEquals(1, rs.findColumn("Id"));
+        assertEquals(2, rs.findColumn("Name"));
+        assertEquals(1, rs.findColumn("TEST.ID"));
+        assertEquals(2, rs.findColumn("TEST.NAME"));
+        assertEquals(1, rs.findColumn("Test.Id"));
+        assertEquals(2, rs.findColumn("Test.Name"));
         stat.execute("DROP TABLE TEST");
 
         stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR, DATA VARCHAR)");
         rs = stat.executeQuery("SELECT * FROM TEST");
-        assertEquals(rs.findColumn("ID"), 1);
-        assertEquals(rs.findColumn("NAME"), 2);
-        assertEquals(rs.findColumn("DATA"), 3);
-        assertEquals(rs.findColumn("id"), 1);
-        assertEquals(rs.findColumn("name"), 2);
-        assertEquals(rs.findColumn("data"), 3);
-        assertEquals(rs.findColumn("Id"), 1);
-        assertEquals(rs.findColumn("Name"), 2);
-        assertEquals(rs.findColumn("Data"), 3);
-        assertEquals(rs.findColumn("TEST.ID"), 1);
-        assertEquals(rs.findColumn("TEST.NAME"), 2);
-        assertEquals(rs.findColumn("TEST.DATA"), 3);
-        assertEquals(rs.findColumn("Test.Id"), 1);
-        assertEquals(rs.findColumn("Test.Name"), 2);
-        assertEquals(rs.findColumn("Test.Data"), 3);
+        assertEquals(1, rs.findColumn("ID"));
+        assertEquals(2, rs.findColumn("NAME"));
+        assertEquals(3, rs.findColumn("DATA"));
+        assertEquals(1, rs.findColumn("id"));
+        assertEquals(2, rs.findColumn("name"));
+        assertEquals(3, rs.findColumn("data"));
+        assertEquals(1, rs.findColumn("Id"));
+        assertEquals(2, rs.findColumn("Name"));
+        assertEquals(3, rs.findColumn("Data"));
+        assertEquals(1, rs.findColumn("TEST.ID"));
+        assertEquals(2, rs.findColumn("TEST.NAME"));
+        assertEquals(3, rs.findColumn("TEST.DATA"));
+        assertEquals(1, rs.findColumn("Test.Id"));
+        assertEquals(2, rs.findColumn("Test.Name"));
+        assertEquals(3, rs.findColumn("Test.Data"));
         stat.execute("DROP TABLE TEST");
 
     }
@@ -318,21 +318,21 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST(NAME) VALUES('Hello')");
         rs = stat.getGeneratedKeys();
         assertTrue(rs.next());
-        assertEquals(rs.getInt(1), 1);
+        assertEquals(1, rs.getInt(1));
 
         stat.execute("INSERT INTO TEST(NAME) VALUES('World')");
         rs = stat.getGeneratedKeys();
         assertTrue(rs.next());
-        assertEquals(rs.getInt(1), 2);
+        assertEquals(2, rs.getInt(1));
 
         rs = stat.executeQuery("SELECT ID AS I, NAME AS N, ID+1 AS IP1 FROM TEST");
         ResultSetMetaData meta = rs.getMetaData();
         assertTrue(meta.isAutoIncrement(1));
         assertFalse(meta.isAutoIncrement(2));
         assertFalse(meta.isAutoIncrement(3));
-        assertEquals(meta.isNullable(1), ResultSetMetaData.columnNoNulls);
-        assertEquals(meta.isNullable(2), ResultSetMetaData.columnNullable);
-        assertEquals(meta.isNullable(3), ResultSetMetaData.columnNullableUnknown);
+        assertEquals(ResultSetMetaData.columnNoNulls, meta.isNullable(1));
+        assertEquals(ResultSetMetaData.columnNullable, meta.isNullable(2));
+        assertEquals(ResultSetMetaData.columnNullableUnknown, meta.isNullable(3));
         assertTrue(rs.next());
         assertTrue(rs.next());
         assertFalse(rs.next());
@@ -362,12 +362,12 @@ public class TestResultSet extends TestBase {
         rs = stat.executeQuery("SELECT *, NULL AS N FROM TEST ORDER BY ID");
 
         // MySQL compatibility
-        assertEquals(rs.findColumn("TEST.ID"), 1);
-        assertEquals(rs.findColumn("TEST.VALUE"), 2);
+        assertEquals(1, rs.findColumn("TEST.ID"));
+        assertEquals(2, rs.findColumn("TEST.VALUE"));
 
         ResultSetMetaData meta = rs.getMetaData();
-        assertEquals(meta.getColumnCount(), 3);
-        assertEquals(meta.getCatalogName(1), "resultSet".toUpperCase());
+        assertEquals(3, meta.getColumnCount());
+        assertEquals("resultSet".toUpperCase(), meta.getCatalogName(1));
         assertTrue("PUBLIC".equals(meta.getSchemaName(2)));
         assertTrue("TEST".equals(meta.getTableName(1)));
         assertTrue("ID".equals(meta.getColumnName(1)));
@@ -379,20 +379,20 @@ public class TestResultSet extends TestBase {
         assertTrue(meta.getColumnDisplaySize(1) > 0);
         assertTrue(meta.isSigned(1));
         assertTrue(meta.isSearchable(2));
-        assertEquals(meta.isNullable(1), ResultSetMetaData.columnNoNulls);
+        assertEquals(ResultSetMetaData.columnNoNulls, meta.isNullable(1));
         assertFalse(meta.isReadOnly(1));
         assertTrue(meta.isWritable(1));
         assertFalse(meta.isDefinitelyWritable(1));
         assertTrue(meta.getColumnDisplaySize(1) > 0);
         assertTrue(meta.getColumnDisplaySize(2) > 0);
-        assertEquals(meta.getColumnClassName(3), null);
+        assertEquals(null, meta.getColumnClassName(3));
 
         assertTrue(rs.getRow() == 0);
         assertResultSetMeta(rs, 3, new String[] { "ID", "VALUE", "N" }, new int[] { Types.INTEGER, Types.INTEGER,
                 Types.NULL }, new int[] { 10, 10, 1 }, new int[] { 0, 0, 0 });
         rs.next();
-        assertEquals(rs.getConcurrency(), ResultSet.CONCUR_READ_ONLY);
-        assertEquals(rs.getFetchDirection(), ResultSet.FETCH_FORWARD);
+        assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
+        assertEquals(ResultSet.FETCH_FORWARD, rs.getFetchDirection());
         trace("default fetch size=" + rs.getFetchSize());
         // 0 should be an allowed value (but it's not defined what is actually
         // means)
@@ -418,14 +418,14 @@ public class TestResultSet extends TestBase {
         rs.setFetchSize(6);
 
         assertTrue(rs.getRow() == 1);
-        assertEquals(rs.findColumn("VALUE"), 2);
-        assertEquals(rs.findColumn("value"), 2);
-        assertEquals(rs.findColumn("Value"), 2);
-        assertEquals(rs.findColumn("Value"), 2);
-        assertEquals(rs.findColumn("ID"), 1);
-        assertEquals(rs.findColumn("id"), 1);
-        assertEquals(rs.findColumn("Id"), 1);
-        assertEquals(rs.findColumn("iD"), 1);
+        assertEquals(2, rs.findColumn("VALUE"));
+        assertEquals(2, rs.findColumn("value"));
+        assertEquals(2, rs.findColumn("Value"));
+        assertEquals(2, rs.findColumn("Value"));
+        assertEquals(1, rs.findColumn("ID"));
+        assertEquals(1, rs.findColumn("id"));
+        assertEquals(1, rs.findColumn("Id"));
+        assertEquals(1, rs.findColumn("iD"));
         assertTrue(rs.getInt(2) == -1 && !rs.wasNull());
         assertTrue(rs.getInt("VALUE") == -1 && !rs.wasNull());
         assertTrue(rs.getInt("value") == -1 && !rs.wasNull());
@@ -488,7 +488,7 @@ public class TestResultSet extends TestBase {
         assertTrue(o == null);
         assertTrue(rs.wasNull());
         assertFalse(rs.next());
-        assertEquals(rs.getRow(), 0);
+        assertEquals(0, rs.getRow());
         // there is one more row, but because of setMaxRows we don't get it
 
         stat.execute("DROP TABLE TEST");
@@ -678,17 +678,17 @@ public class TestResultSet extends TestBase {
         assertTrue(bd.compareTo(new BigDecimal("0.00")) == 0);
         assertTrue(!rs.wasNull());
         rs.next();
-        assertEquals(rs.getDouble(2), 1.0);
-        assertEquals(rs.getFloat(3), 1.0f);
+        assertEquals(1.0, rs.getDouble(2));
+        assertEquals(1.0f, rs.getFloat(3));
         rs.next();
-        assertEquals(rs.getDouble(2), 12345678.89);
-        assertEquals(rs.getFloat(3), 12345678.89f);
+        assertEquals(12345678.89, rs.getDouble(2));
+        assertEquals(12345678.89f, rs.getFloat(3));
         rs.next();
-        assertEquals(rs.getDouble(2), 99999999.99);
-        assertEquals(rs.getFloat(3), 99999999.99f);
+        assertEquals(99999999.99, rs.getDouble(2));
+        assertEquals(99999999.99f, rs.getFloat(3));
         rs.next();
-        assertEquals(rs.getDouble(2), -99999999.99);
-        assertEquals(rs.getFloat(3), -99999999.99f);
+        assertEquals(-99999999.99, rs.getDouble(2));
+        assertEquals(-99999999.99f, rs.getFloat(3));
         rs.next();
         checkColumnBigDecimal(rs, 2, 0, null);
         checkColumnBigDecimal(rs, 3, 0, null);
@@ -726,9 +726,9 @@ public class TestResultSet extends TestBase {
         trace("Date: " + date.toString() + " Time:" + time.toString() + " Timestamp:" + ts.toString());
         trace("Date ms: " + date.getTime() + " Time ms:" + time.getTime() + " Timestamp ms:" + ts.getTime());
         trace("1970 ms: " + java.sql.Timestamp.valueOf("1970-01-01 00:00:00.0").getTime());
-        assertEquals(date.getTime(), java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0").getTime());
-        assertEquals(time.getTime(), java.sql.Timestamp.valueOf("1970-01-01 00:00:00.0").getTime());
-        assertEquals(ts.getTime(), java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0").getTime());
+        assertEquals(java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0").getTime(), date.getTime());
+        assertEquals(java.sql.Timestamp.valueOf("1970-01-01 00:00:00.0").getTime(), time.getTime());
+        assertEquals(java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0").getTime(), ts.getTime());
         assertTrue(date.equals(java.sql.Date.valueOf("2011-11-11")));
         assertTrue(time.equals(java.sql.Time.valueOf("00:00:00")));
         assertTrue(ts.equals(java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0")));
@@ -747,17 +747,17 @@ public class TestResultSet extends TestBase {
         ts = rs.getTimestamp("VALUE");
         assertTrue(!rs.wasNull());
         trace("Date: " + date.toString() + " Time:" + time.toString() + " Timestamp:" + ts.toString());
-        assertEquals(date.toString(), "2002-02-02");
-        assertEquals(time.toString(), "02:02:02");
-        assertEquals(ts.toString(), "2002-02-02 02:02:02.0");
+        assertEquals("2002-02-02", date.toString());
+        assertEquals("02:02:02", time.toString());
+        assertEquals("2002-02-02 02:02:02.0", ts.toString());
         rs.next();
-        assertEquals(rs.getDate("value").toString(), "1800-01-01");
-        assertEquals(rs.getTime("value").toString(), "00:00:00");
-        assertEquals(rs.getTimestamp("value").toString(), "1800-01-01 00:00:00.0");
+        assertEquals("1800-01-01", rs.getDate("value").toString());
+        assertEquals("00:00:00", rs.getTime("value").toString());
+        assertEquals("1800-01-01 00:00:00.0", rs.getTimestamp("value").toString());
         rs.next();
-        assertEquals(rs.getDate("Value").toString(), "9999-12-31");
-        assertEquals(rs.getTime("Value").toString(), "23:59:59");
-        assertEquals(rs.getTimestamp("Value").toString(), "9999-12-31 23:59:59.0");
+        assertEquals("9999-12-31", rs.getDate("Value").toString());
+        assertEquals("23:59:59", rs.getTime("Value").toString());
+        assertEquals("9999-12-31 23:59:59.0", rs.getTimestamp("Value").toString());
         rs.next();
         assertTrue(rs.getDate("Value") == null && rs.wasNull());
         assertTrue(rs.getTime("vALUe") == null && rs.wasNull());
@@ -770,9 +770,9 @@ public class TestResultSet extends TestBase {
         date = (Date) rs.getObject(1);
         time = (Time) rs.getObject(2);
         ts = (Timestamp) rs.getObject(3);
-        assertEquals(date.toString(), "2001-02-03");
-        assertEquals(time.toString(), "14:15:16");
-        assertEquals(ts.toString(), "2007-08-09 10:11:12.141516171");
+        assertEquals("2001-02-03", date.toString());
+        assertEquals("14:15:16", time.toString());
+        assertEquals("2007-08-09 10:11:12.141516171", ts.toString());
 
         stat.execute("DROP TABLE TEST");
     }
@@ -831,39 +831,39 @@ public class TestResultSet extends TestBase {
                 Types.TIME, Types.TIMESTAMP }, new int[] { 10, 8, 6, 23 }, new int[] { 0, 0, 0, 10 });
 
         rs.next();
-        assertEquals(rs.getInt(1), 0);
+        assertEquals(0, rs.getInt(1));
         assertTrue(rs.getDate(2, regular) == null && rs.wasNull());
         assertTrue(rs.getTime(3, regular) == null && rs.wasNull());
         assertTrue(rs.getTimestamp(3, regular) == null && rs.wasNull());
 
         rs.next();
-        assertEquals(rs.getInt(1), 1);
+        assertEquals(1, rs.getInt(1));
         assertTrue(rs.getDate(2, other) == null && rs.wasNull());
         assertTrue(rs.getTime(3, other) == null && rs.wasNull());
         assertTrue(rs.getTimestamp(3, other) == null && rs.wasNull());
 
         rs.next();
-        assertEquals(rs.getInt(1), 2);
-        assertEquals(rs.getDate(2, regular).toString(), "2001-02-03");
-        assertEquals(rs.getTime(3, regular).toString(), "04:05:06");
+        assertEquals(2, rs.getInt(1));
+        assertEquals("2001-02-03", rs.getDate(2, regular).toString());
+        assertEquals("04:05:06", rs.getTime(3, regular).toString());
         assertFalse(rs.getTime(3, other).toString().equals("04:05:06"));
-        assertEquals(rs.getTimestamp(4, regular).toString(), "2007-08-09 10:11:12.131415");
+        assertEquals("2007-08-09 10:11:12.131415", rs.getTimestamp(4, regular).toString());
         assertFalse(rs.getTimestamp(4, other).toString().equals("2007-08-09 10:11:12.131415"));
 
         rs.next();
-        assertEquals(rs.getInt("ID"), 3);
+        assertEquals(3, rs.getInt("ID"));
         assertFalse(rs.getTimestamp("TS", regular).toString().equals("2107-08-09 10:11:12.131415"));
-        assertEquals(rs.getTimestamp("TS", other).toString(), "2107-08-09 10:11:12.131415");
+        assertEquals("2107-08-09 10:11:12.131415", rs.getTimestamp("TS", other).toString());
         assertFalse(rs.getTime("T", regular).toString().equals("14:05:06"));
-        assertEquals(rs.getTime("T", other).toString(), "14:05:06");
+        assertEquals("14:05:06", rs.getTime("T", other).toString());
         // checkFalse(rs.getDate(2, regular).toString(), "2101-02-03");
         // check(rs.getDate("D", other).toString(), "2101-02-03");
 
         rs.next();
-        assertEquals(rs.getInt("ID"), 4);
-        assertEquals(rs.getTimestamp("TS").toString(), "2107-08-09 10:11:12.131415");
-        assertEquals(rs.getTime("T").toString(), "14:05:06");
-        assertEquals(rs.getDate("D").toString(), "2101-02-03");
+        assertEquals(4, rs.getInt("ID"));
+        assertEquals("2107-08-09 10:11:12.131415", rs.getTimestamp("TS").toString());
+        assertEquals("14:05:06", rs.getTime("T").toString());
+        assertEquals("2101-02-03", rs.getDate("D").toString());
 
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
@@ -884,24 +884,24 @@ public class TestResultSet extends TestBase {
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.BLOB }, new int[] {
                 10, Integer.MAX_VALUE }, new int[] { 0, 0 });
         rs.next();
-        checkBytes(rs.getBytes(2), new byte[] { (byte) 0x01, (byte) 0x01, (byte) 0x01, (byte) 0x01 });
+        assertEqualsWithNull(new byte[] { (byte) 0x01, (byte) 0x01, (byte) 0x01, (byte) 0x01 }, rs.getBytes(2));
         assertTrue(!rs.wasNull());
         rs.next();
-        checkBytes(rs.getBytes("value"), new byte[] { (byte) 0x02, (byte) 0x02, (byte) 0x02, (byte) 0x02 });
+        assertEqualsWithNull(new byte[] { (byte) 0x02, (byte) 0x02, (byte) 0x02, (byte) 0x02 }, rs.getBytes("value"));
         assertTrue(!rs.wasNull());
         rs.next();
-        checkBytes(readAllBytes(rs.getBinaryStream(2)), new byte[] { (byte) 0x00 });
+        assertEqualsWithNull(new byte[] { (byte) 0x00 }, readAllBytes(rs.getBinaryStream(2)));
         assertTrue(!rs.wasNull());
         rs.next();
-        checkBytes(readAllBytes(rs.getBinaryStream("VaLuE")), new byte[] { (byte) 0xff, (byte) 0xff, (byte) 0xff });
+        assertEqualsWithNull(new byte[] { (byte) 0xff, (byte) 0xff, (byte) 0xff }, readAllBytes(rs.getBinaryStream("VaLuE")));
         assertTrue(!rs.wasNull());
         rs.next();
         InputStream in = rs.getBinaryStream("value");
         byte[] b = readAllBytes(in);
-        checkBytes(b, new byte[] { (byte) 0x0b, (byte) 0xce, (byte) 0xc1 });
+        assertEqualsWithNull(new byte[] { (byte) 0x0b, (byte) 0xce, (byte) 0xc1 }, b);
         assertTrue(!rs.wasNull());
         rs.next();
-        checkBytes(readAllBytes(rs.getBinaryStream("VaLuE")), null);
+        assertEqualsWithNull(null, readAllBytes(rs.getBinaryStream("VaLuE")));
         assertTrue(rs.wasNull());
         assertTrue(!rs.next());
         stat.execute("DROP TABLE TEST");
@@ -975,8 +975,8 @@ public class TestResultSet extends TestBase {
         assertTrue(rs.getWarnings() == null);
         rs.clearWarnings();
         assertTrue(rs.getWarnings() == null);
-        assertEquals(rs.getFetchDirection(), ResultSet.FETCH_FORWARD);
-        assertEquals(rs.getConcurrency(), ResultSet.CONCUR_UPDATABLE);
+        assertEquals(ResultSet.FETCH_FORWARD, rs.getFetchDirection());
+        assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
         rs.next();
         stat.execute("DROP TABLE TEST");
     }
@@ -994,27 +994,27 @@ public class TestResultSet extends TestBase {
         prep.execute();
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
-        assertEquals(rs.getInt(1), 1);
+        assertEquals(1, rs.getInt(1));
         Object[] list = (Object[]) rs.getObject(2);
-        assertEquals(((Integer) list[0]).intValue(), 1);
-        assertEquals(((Integer) list[1]).intValue(), 2);
+        assertEquals(1, ((Integer) list[0]).intValue());
+        assertEquals(2, ((Integer) list[1]).intValue());
         Array array = rs.getArray(2);
         Object[] list2 = (Object[]) array.getArray();
-        assertEquals(((Integer) list2[0]).intValue(), 1);
-        assertEquals(((Integer) list2[1]).intValue(), 2);
+        assertEquals(1, ((Integer) list2[0]).intValue());
+        assertEquals(2, ((Integer) list2[1]).intValue());
         list2 = (Object[]) array.getArray(2, 1);
-        assertEquals(((Integer) list2[0]).intValue(), 2);
+        assertEquals(2, ((Integer) list2[0]).intValue());
         rs.next();
-        assertEquals(rs.getInt(1), 2);
+        assertEquals(2, rs.getInt(1));
         list = (Object[]) rs.getObject(2);
-        assertEquals(((Integer) list[0]).intValue(), 11);
-        assertEquals(((Integer) list[1]).intValue(), 12);
+        assertEquals(11, ((Integer) list[0]).intValue());
+        assertEquals(12, ((Integer) list[1]).intValue());
         array = rs.getArray(2);
         list2 = (Object[]) array.getArray();
-        assertEquals(((Integer) list2[0]).intValue(), 11);
-        assertEquals(((Integer) list2[1]).intValue(), 12);
+        assertEquals(11, ((Integer) list2[0]).intValue());
+        assertEquals(12, ((Integer) list2[1]).intValue());
         list2 = (Object[]) array.getArray(2, 1);
-        assertEquals(((Integer) list2[0]).intValue(), 12);
+        assertEquals(12, ((Integer) list2[0]).intValue());
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
     }
@@ -1039,11 +1039,11 @@ public class TestResultSet extends TestBase {
         }
     }
 
-    private void checkBytes(byte[] test, byte[] good) {
-        if (test == null || good == null) {
-            assertTrue(test == good);
+    private void assertEqualsWithNull(byte[] expected, byte[] got) {
+        if (got == null || expected == null) {
+            assertTrue(got == expected);
         } else {
-            assertEquals(test, good);
+            assertEquals(got, expected);
         }
     }
 

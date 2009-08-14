@@ -33,12 +33,12 @@ public class TestAutoRecompile extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
         PreparedStatement prep = conn.prepareStatement("SELECT * FROM TEST");
-        assertEquals(prep.executeQuery().getMetaData().getColumnCount(), 1);
+        assertEquals(1, prep.executeQuery().getMetaData().getColumnCount());
         stat.execute("ALTER TABLE TEST ADD COLUMN NAME VARCHAR(255)");
-        assertEquals(prep.executeQuery().getMetaData().getColumnCount(), 2);
+        assertEquals(2, prep.executeQuery().getMetaData().getColumnCount());
         stat.execute("DROP TABLE TEST");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, X INT, Y INT)");
-        assertEquals(prep.executeQuery().getMetaData().getColumnCount(), 3);
+        assertEquals(3, prep.executeQuery().getMetaData().getColumnCount());
         // TODO test auto-recompile with insert..select, views and so on
 
         prep = conn.prepareStatement("INSERT INTO TEST VALUES(1, 2, 3)");

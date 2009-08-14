@@ -353,15 +353,15 @@ public class TestOptimizations extends TestBase {
         PreparedStatement prep = conn.prepareStatement("select * from test where id = (select id from test2)");
         ResultSet rs1 = prep.executeQuery();
         rs1.next();
-        assertEquals(rs1.getInt(1), 1);
+        assertEquals(1, rs1.getInt(1));
         rs1.next();
-        assertEquals(rs1.getInt(1), 1);
+        assertEquals(1, rs1.getInt(1));
         assertFalse(rs1.next());
 
         stat.execute("update test2 set id = 2");
         ResultSet rs2 = prep.executeQuery();
         rs2.next();
-        assertEquals(rs2.getInt(1), 2);
+        assertEquals(2, rs2.getInt(1));
 
         conn.close();
     }
@@ -455,8 +455,8 @@ public class TestOptimizations extends TestBase {
         prep.setInt(1, 1);
         rs = prep.executeQuery();
         rs.next();
-        assertEquals(rs.getInt(1), 1);
-        assertEquals(rs.getString(2), "Hello");
+        assertEquals(1, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
 
         prep = conn.prepareStatement("select * from test t1 where t1.id in(?, ?) order by id");
@@ -464,29 +464,30 @@ public class TestOptimizations extends TestBase {
         prep.setInt(2, 2);
         rs = prep.executeQuery();
         rs.next();
-        assertEquals(rs.getInt(1), 1);
-        assertEquals(rs.getString(2), "Hello");
+        assertEquals(1, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
         rs.next();
-        assertEquals(rs.getInt(1), 2);
-        assertEquals(rs.getString(2), "World");
+        assertEquals(2, rs.getInt(1));
+        assertEquals("World", rs.getString(2));
         assertFalse(rs.next());
 
-        prep = conn.prepareStatement("select * from test t1 where t1.id in(select t2.id from test t2 where t2.id=?)");
+        prep = conn.prepareStatement("select * from test t1 where t1.id "
+                + "in(select t2.id from test t2 where t2.id=?)");
         prep.setInt(1, 2);
         rs = prep.executeQuery();
         rs.next();
-        assertEquals(rs.getInt(1), 2);
-        assertEquals(rs.getString(2), "World");
+        assertEquals(2, rs.getInt(1));
+        assertEquals("World", rs.getString(2));
         assertFalse(rs.next());
 
-        prep = conn
-                .prepareStatement("select * from test t1 where t1.id in(select t2.id from test t2 where t2.id=? and t1.id<>t2.id)");
+        prep = conn.prepareStatement("select * from test t1 where t1.id "
+                + "in(select t2.id from test t2 where t2.id=? and t1.id<>t2.id)");
         prep.setInt(1, 2);
         rs = prep.executeQuery();
         assertFalse(rs.next());
 
-        prep = conn
-                .prepareStatement("select * from test t1 where t1.id in(select t2.id from test t2 where t2.id in(cast(?+10 as varchar)))");
+        prep = conn.prepareStatement("select * from test t1 where t1.id "
+                + "in(select t2.id from test t2 where t2.id in(cast(?+10 as varchar)))");
         prep.setInt(1, 2);
         rs = prep.executeQuery();
         assertFalse(rs.next());

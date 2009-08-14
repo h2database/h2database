@@ -146,7 +146,7 @@ public class TestCluster extends TestBase {
             prep.setInt(1, i);
             ResultSet rs = prep.executeQuery();
             rs.next();
-            assertEquals(rs.getString(2), "Data" + i);
+            assertEquals("Data" + i, rs.getString(2));
             assertFalse(rs.next());
         }
     }

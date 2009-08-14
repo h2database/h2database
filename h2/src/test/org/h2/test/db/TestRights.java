@@ -271,7 +271,7 @@ public class TestRights extends TestBase {
         ResultSet rs = conn.createStatement().executeQuery(
                 "SELECT STORAGE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='TEST'");
         rs.next();
-        assertEquals(rs.getString(1), type);
+        assertEquals(type, rs.getString(1));
         executeSuccess("DROP TABLE TEST");
     }
 

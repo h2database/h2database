@@ -193,9 +193,9 @@ public class TestStatement extends TestBase {
         // calls are ignored
 
         if (config.jdk14) {
-            assertEquals(stat.getResultSetHoldability(), ResultSet.HOLD_CURSORS_OVER_COMMIT);
+            assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, stat.getResultSetHoldability());
         }
-        assertEquals(stat.getResultSetConcurrency(), ResultSet.CONCUR_READ_ONLY);
+        assertEquals(ResultSet.CONCUR_READ_ONLY, stat.getResultSetConcurrency());
 
         stat.cancel();
         stat.setQueryTimeout(10);
@@ -212,22 +212,22 @@ public class TestStatement extends TestBase {
         assertTrue(stat.getQueryTimeout() == 0);
         trace("executeUpdate");
         count = stat.executeUpdate("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
-        assertEquals(count, 0);
+        assertEquals(0, count);
         count = stat.executeUpdate("INSERT INTO TEST VALUES(1,'Hello')");
-        assertEquals(count, 1);
+        assertEquals(1, count);
         count = stat.executeUpdate("INSERT INTO TEST(VALUE,ID) VALUES('JDBC',2)");
-        assertEquals(count, 1);
+        assertEquals(1, count);
         count = stat.executeUpdate("UPDATE TEST SET VALUE='LDBC' WHERE ID=2 OR ID=1");
-        assertEquals(count, 2);
+        assertEquals(2, count);
         count = stat.executeUpdate("UPDATE TEST SET VALUE='\\LDBC\\' WHERE VALUE LIKE 'LDBC' ");
-        assertEquals(count, 2);
+        assertEquals(2, count);
         count = stat.executeUpdate("UPDATE TEST SET VALUE='LDBC' WHERE VALUE LIKE '\\\\LDBC\\\\'");
         trace("count:" + count);
-        assertEquals(count, 2);
+        assertEquals(2, count);
         count = stat.executeUpdate("DELETE FROM TEST WHERE ID=-1");
-        assertEquals(count, 0);
+        assertEquals(0, count);
         count = stat.executeUpdate("DELETE FROM TEST WHERE ID=2");
-        assertEquals(count, 1);
+        assertEquals(1, count);
         try {
             stat.executeUpdate("SELECT * FROM TEST");
             fail("executeUpdate allowed SELECT");
@@ -349,37 +349,37 @@ public class TestStatement extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)");
         ResultSet rs = stat.getGeneratedKeys();
         rs.next();
-        assertEquals(rs.getInt(1), 1);
+        assertEquals(1, rs.getInt(1));
         assertFalse(rs.next());
         stat.execute("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", Statement.RETURN_GENERATED_KEYS);
         rs = stat.getGeneratedKeys();
         rs.next();
-        assertEquals(rs.getInt(1), 2);
+        assertEquals(2, rs.getInt(1));
         assertFalse(rs.next());
         stat.execute("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", new int[] { 1 });
         rs = stat.getGeneratedKeys();
         rs.next();
-        assertEquals(rs.getInt(1), 3);
+        assertEquals(3, rs.getInt(1));
         assertFalse(rs.next());
         stat.execute("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", new String[] { "ID" });
         rs = stat.getGeneratedKeys();
         rs.next();
-        assertEquals(rs.getInt(1), 4);
+        assertEquals(4, rs.getInt(1));
         assertFalse(rs.next());
         stat.executeUpdate("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", Statement.RETURN_GENERATED_KEYS);
         rs = stat.getGeneratedKeys();
         rs.next();
-        assertEquals(rs.getInt(1), 5);
+        assertEquals(5, rs.getInt(1));
         assertFalse(rs.next());
         stat.executeUpdate("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", new int[] { 1 });
         rs = stat.getGeneratedKeys();
         rs.next();
-        assertEquals(rs.getInt(1), 6);
+        assertEquals(6, rs.getInt(1));
         assertFalse(rs.next());
         stat.executeUpdate("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", new String[] { "ID" });
         rs = stat.getGeneratedKeys();
         rs.next();
-        assertEquals(rs.getInt(1), 7);
+        assertEquals(7, rs.getInt(1));
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
     }

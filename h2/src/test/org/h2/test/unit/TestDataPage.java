@@ -51,7 +51,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         String s = new String(data);
         page.writeString(s);
         int len = page.length();
-        assertEquals(page.getStringLen(s), len);
+        assertEquals(len, page.getStringLen(s));
         page.reset();
         assertEquals(s, page.readString());
         page.reset();

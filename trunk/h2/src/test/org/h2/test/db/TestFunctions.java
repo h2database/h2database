@@ -291,45 +291,45 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        test(stat, "abs(null)", null);
-        test(stat, "abs(1)", "1");
-        test(stat, "abs(1)", "1");
+        assertCallResult(null, stat, "abs(null)");
+        assertCallResult("1", stat, "abs(1)");
+        assertCallResult("1", stat, "abs(1)");
 
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("CREATE ALIAS ADD_ROW FOR \"" + getClass().getName() + ".addRow\"");
         ResultSet rs;
         rs = stat.executeQuery("CALL ADD_ROW(1, 'Hello')");
         rs.next();
-        assertEquals(rs.getInt(1), 1);
+        assertEquals(1, rs.getInt(1));
         rs = stat.executeQuery("SELECT * FROM TEST");
         rs.next();
-        assertEquals(rs.getInt(1), 1);
-        assertEquals(rs.getString(2), "Hello");
+        assertEquals(1, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
 
         rs = stat.executeQuery("CALL ADD_ROW(2, 'World')");
 
         stat.execute("CREATE ALIAS SELECT_F FOR \"" + getClass().getName() + ".select\"");
         rs = stat.executeQuery("CALL SELECT_F('SELECT * FROM TEST ORDER BY ID')");
-        assertEquals(rs.getMetaData().getColumnCount(), 2);
+        assertEquals(2, rs.getMetaData().getColumnCount());
         rs.next();
-        assertEquals(rs.getInt(1), 1);
-        assertEquals(rs.getString(2), "Hello");
+        assertEquals(1, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
         rs.next();
-        assertEquals(rs.getInt(1), 2);
-        assertEquals(rs.getString(2), "World");
+        assertEquals(2, rs.getInt(1));
+        assertEquals("World", rs.getString(2));
         assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT NAME FROM SELECT_F('SELECT * FROM TEST ORDER BY NAME') ORDER BY NAME DESC");
-        assertEquals(rs.getMetaData().getColumnCount(), 1);
+        assertEquals(1, rs.getMetaData().getColumnCount());
         rs.next();
-        assertEquals(rs.getString(1), "World");
+        assertEquals("World", rs.getString(1));
         rs.next();
-        assertEquals(rs.getString(1), "Hello");
+        assertEquals("Hello", rs.getString(1));
         assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT SELECT_F('SELECT * FROM TEST WHERE ID=' || ID) FROM TEST ORDER BY ID");
-        assertEquals(rs.getMetaData().getColumnCount(), 1);
+        assertEquals(1, rs.getMetaData().getColumnCount());
         rs.next();
         assertEquals("((1, Hello))", rs.getString(1));
         rs.next();
@@ -337,7 +337,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT SELECT_F('SELECT * FROM TEST ORDER BY ID') FROM DUAL");
-        assertEquals(rs.getMetaData().getColumnCount(), 1);
+        assertEquals(1, rs.getMetaData().getColumnCount());
         rs.next();
         assertEquals("((1, Hello), (2, World))", rs.getString(1));
         assertFalse(rs.next());
@@ -351,50 +351,50 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         stat.execute("CREATE ALIAS SIMPLE FOR \"" + getClass().getName() + ".simpleResultSet\"");
         rs = stat.executeQuery("CALL SIMPLE(2, 1,1,1,1,1,1,1)");
-        assertEquals(rs.getMetaData().getColumnCount(), 2);
+        assertEquals(2, rs.getMetaData().getColumnCount());
         rs.next();
-        assertEquals(rs.getInt(1), 0);
-        assertEquals(rs.getString(2), "Hello");
+        assertEquals(0, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
         rs.next();
-        assertEquals(rs.getInt(1), 1);
-        assertEquals(rs.getString(2), "World");
+        assertEquals(1, rs.getInt(1));
+        assertEquals("World", rs.getString(2));
         assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT * FROM SIMPLE(1, 1,1,1,1,1,1,1)");
-        assertEquals(rs.getMetaData().getColumnCount(), 2);
+        assertEquals(2, rs.getMetaData().getColumnCount());
         rs.next();
-        assertEquals(rs.getInt(1), 0);
-        assertEquals(rs.getString(2), "Hello");
+        assertEquals(0, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
 
         stat.execute("CREATE ALIAS ARRAY FOR \"" + getClass().getName() + ".getArray\"");
         rs = stat.executeQuery("CALL ARRAY()");
-        assertEquals(rs.getMetaData().getColumnCount(), 2);
+        assertEquals(2, rs.getMetaData().getColumnCount());
         rs.next();
-        assertEquals(rs.getInt(1), 0);
-        assertEquals(rs.getString(2), "Hello");
+        assertEquals(0, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
 
         stat.execute("CREATE ALIAS ROOT FOR \"" + getClass().getName() + ".root\"");
         rs = stat.executeQuery("CALL ROOT(9)");
         rs.next();
-        assertEquals(rs.getInt(1), 3);
+        assertEquals(3, rs.getInt(1));
         assertFalse(rs.next());
 
         stat.execute("CREATE ALIAS MAX_ID FOR \"" + getClass().getName() + ".selectMaxId\"");
         rs = stat.executeQuery("CALL MAX_ID()");
         rs.next();
-        assertEquals(rs.getInt(1), 2);
+        assertEquals(2, rs.getInt(1));
         assertFalse(rs.next());
 
         rs = stat.executeQuery("SELECT * FROM MAX_ID()");
         rs.next();
-        assertEquals(rs.getInt(1), 2);
+        assertEquals(2, rs.getInt(1));
         assertFalse(rs.next());
 
         rs = stat.executeQuery("CALL CASE WHEN -9 < 0 THEN 0 ELSE ROOT(-9) END");
         rs.next();
-        assertEquals(rs.getInt(1), 0);
+        assertEquals(0, rs.getInt(1));
         assertFalse(rs.next());
 
         stat.execute("CREATE ALIAS blob2stream FOR \"" + getClass().getName() + ".blob2stream\"");
@@ -414,19 +414,19 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         stat.execute("CREATE ALIAS NULL_RESULT FOR \"" + getClass().getName() + ".nullResultSet\"");
         rs = stat.executeQuery("CALL NULL_RESULT()");
-        assertEquals(rs.getMetaData().getColumnCount(), 1);
+        assertEquals(1, rs.getMetaData().getColumnCount());
         rs.next();
-        assertEquals(rs.getString(1), null);
+        assertEquals(null, rs.getString(1));
         assertFalse(rs.next());
 
         conn.close();
     }
 
-    private void test(Statement stat, String sql, String value) throws SQLException {
+    private void assertCallResult(String expected, Statement stat, String sql) throws SQLException {
         ResultSet rs = stat.executeQuery("CALL " + sql);
         rs.next();
         String s = rs.getString(1);
-        assertEquals(value, s);
+        assertEquals(expected, s);
     }
 
     /**

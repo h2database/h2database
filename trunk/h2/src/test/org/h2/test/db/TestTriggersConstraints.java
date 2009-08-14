@@ -123,12 +123,12 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
 
         rs = stat.executeQuery("SELECT * FROM TEST");
         rs.next();
-        assertEquals(rs.getString(2), "Hello-updated");
+        assertEquals("Hello-updated", rs.getString(2));
         assertFalse(rs.next());
         stat.execute("UPDATE TEST SET NAME=NAME||'-upd'");
         rs = stat.executeQuery("SELECT * FROM TEST");
         rs.next();
-        assertEquals(rs.getString(2), "Hello-updated-upd-updated2");
+        assertEquals("Hello-updated-upd-updated2", rs.getString(2));
         assertFalse(rs.next());
 
         mustNotCallTrigger = true;

@@ -9,7 +9,6 @@ package org.h2.test.db;
 import java.io.ByteArrayInputStream;
 import java.io.CharArrayReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
@@ -324,7 +323,7 @@ public class TestLob extends TestBase {
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         assertTrue(rs.next());
         rs.getInt(1);
-        assertEquals(rs.getString(2).length(), 10000);
+        assertEquals(10000, rs.getString(2).length());
         conn.close();
     }
 
@@ -449,7 +448,7 @@ public class TestLob extends TestBase {
         ResultSet rs;
         rs = stat.executeQuery("select value from information_schema.settings where NAME='COMPRESS_LOB'");
         rs.next();
-        assertEquals(rs.getString(1), compress ? "LZF" : "NO");
+        assertEquals(compress ? "LZF" : "NO", rs.getString(1));
         assertFalse(rs.next());
         stat.execute("create table test(text clob)");
         stat.execute("create table test2(text clob)");
@@ -462,15 +461,15 @@ public class TestLob extends TestBase {
         stat.execute("insert into test2 select * from test");
         rs = stat.executeQuery("select * from test2");
         rs.next();
-        assertEquals(rs.getString(1), spaces);
+        assertEquals(spaces, rs.getString(1));
         stat.execute("drop table test");
         rs = stat.executeQuery("select * from test2");
         rs.next();
-        assertEquals(rs.getString(1), spaces);
+        assertEquals(spaces, rs.getString(1));
         stat.execute("alter table test2 add column id int before text");
         rs = stat.executeQuery("select * from test2");
         rs.next();
-        assertEquals(rs.getString("text"), spaces);
+        assertEquals(spaces, rs.getString("text"));
         conn.close();
     }
 
@@ -545,10 +544,10 @@ public class TestLob extends TestBase {
             Blob b = rs.getBlob("B");
             Clob c = rs.getClob("C");
             int l = i;
-            assertEquals(b.length(), l);
-            assertEquals(c.length(), l);
-            checkStream(b.getBinaryStream(), getRandomStream(l, i), -1);
-            checkReader(c.getCharacterStream(), getRandomReader(l, i), -1);
+            assertEquals(l, b.length());
+            assertEquals(l, c.length());
+            assertEqualStreams(getRandomStream(l, i), b.getBinaryStream(), -1);
+            assertEqualReaders(getRandomReader(l, i), c.getCharacterStream(), -1);
         }
 
         prep = conn.prepareStatement("UPDATE TEST SET B=?, C=? WHERE ID=?");
@@ -567,10 +566,10 @@ public class TestLob extends TestBase {
             Blob b = rs.getBlob("B");
             Clob c = rs.getClob("C");
             int l = i;
-            assertEquals(b.length(), l);
-            assertEquals(c.length(), l);
-            checkStream(b.getBinaryStream(), getRandomStream(l, -i), -1);
-            checkReader(c.getCharacterStream(), getRandomReader(l, -i), -1);
+            assertEquals(l, b.length());
+            assertEquals(l, c.length());
+            assertEqualStreams(getRandomStream(l, -i), b.getBinaryStream(), -1);
+            assertEqualReaders(getRandomReader(l, -i), c.getCharacterStream(), -1);
         }
 
         conn.close();
@@ -594,21 +593,21 @@ public class TestLob extends TestBase {
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
         assertEquals("Bohlen", rs.getString("C"));
-        checkReader(new CharArrayReader("Bohlen".toCharArray()), rs.getCharacterStream("C"), -1);
+        assertEqualReaders(new CharArrayReader("Bohlen".toCharArray()), rs.getCharacterStream("C"), -1);
         rs.next();
-        checkReader(new CharArrayReader("B\u00f6hlen".toCharArray()), rs.getCharacterStream("C"), -1);
+        assertEqualReaders(new CharArrayReader("B\u00f6hlen".toCharArray()), rs.getCharacterStream("C"), -1);
         rs.next();
-        checkReader(getRandomReader(501, 1), rs.getCharacterStream("C"), -1);
+        assertEqualReaders(getRandomReader(501, 1), rs.getCharacterStream("C"), -1);
         Clob clob = rs.getClob("C");
-        checkReader(getRandomReader(501, 1), clob.getCharacterStream(), -1);
-        assertEquals(clob.length(), 501);
+        assertEqualReaders(getRandomReader(501, 1), clob.getCharacterStream(), -1);
+        assertEquals(501, clob.length());
         rs.next();
-        checkReader(getRandomReader(401, 2), rs.getCharacterStream("C"), -1);
-        checkReader(getRandomReader(1500, 2), rs.getCharacterStream("C"), 401);
+        assertEqualReaders(getRandomReader(401, 2), rs.getCharacterStream("C"), -1);
+        assertEqualReaders(getRandomReader(1500, 2), rs.getCharacterStream("C"), 401);
         clob = rs.getClob("C");
-        checkReader(getRandomReader(1501, 2), clob.getCharacterStream(), 401);
-        checkReader(getRandomReader(401, 2), clob.getCharacterStream(), 401);
-        assertEquals(clob.length(), 401);
+        assertEqualReaders(getRandomReader(1501, 2), clob.getCharacterStream(), 401);
+        assertEqualReaders(getRandomReader(401, 2), clob.getCharacterStream(), 401);
+        assertEquals(401, clob.length());
         assertFalse(rs.next());
         conn.close();
     }
@@ -687,7 +686,7 @@ public class TestLob extends TestBase {
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST WHERE ID=1");
         rs.next();
-        checkStream(new ByteArrayInputStream(data), rs.getBinaryStream("TEXT"), -1);
+        assertEqualStreams(rs.getBinaryStream("TEXT"), new ByteArrayInputStream(data), -1);
 
         prep = conn.prepareStatement("UPDATE TEST SET TEXT = ?");
         prep.setBinaryStream(1, new ByteArrayInputStream(data), 0);
@@ -697,7 +696,7 @@ public class TestLob extends TestBase {
         stat = conn.createStatement();
         rs = stat.executeQuery("SELECT * FROM TEST WHERE ID=1");
         rs.next();
-        checkStream(new ByteArrayInputStream(data), rs.getBinaryStream("TEXT"), -1);
+        assertEqualStreams(rs.getBinaryStream("TEXT"), new ByteArrayInputStream(data), -1);
 
         stat.execute("DROP TABLE IF EXISTS TEST");
         conn.close();
@@ -743,20 +742,20 @@ public class TestLob extends TestBase {
             int size = id * id;
             if (clob) {
                 Reader rt = rs.getCharacterStream(2);
-                checkReader(rt, getRandomReader(size, id), -1);
+                assertEqualReaders(getRandomReader(size, id), rt, -1);
                 Object obj = rs.getObject(2);
                 if (obj instanceof Clob) {
                     obj = ((Clob) obj).getCharacterStream();
                 }
-                checkReader((Reader) obj, getRandomReader(size, id), -1);
+                assertEqualReaders(getRandomReader(size, id), (Reader) obj, -1);
             } else {
                 InputStream in = rs.getBinaryStream(2);
-                checkStream(in, getRandomStream(size, id), -1);
+                assertEqualStreams(getRandomStream(size, id), in, -1);
                 Object obj = rs.getObject(2);
                 if (obj instanceof Blob) {
                     obj = ((Blob) obj).getBinaryStream();
                 }
-                checkStream((InputStream) obj, getRandomStream(size, id), -1);
+                assertEqualStreams(getRandomStream(size, id), (InputStream) obj, -1);
             }
         }
         trace("select=" + (System.currentTimeMillis() - time));
@@ -808,47 +807,10 @@ public class TestLob extends TestBase {
         TestLobObject a = (TestLobObject) oa;
         Object ob = rs.getObject("DATA");
         TestLobObject b = (TestLobObject) ob;
-        assertEquals(a.data, "abc");
-        assertEquals(b.data, "abc");
+        assertEquals("abc", a.data);
+        assertEquals("abc", b.data);
         assertFalse(rs.next());
         conn.close();
-    }
-
-    private void checkStream(InputStream a, InputStream b, int len) throws IOException {
-        // this doesn't actually read anything - just tests reading 0 bytes
-        a.read(new byte[0]);
-        b.read(new byte[0]);
-        a.read(new byte[10], 3, 0);
-        b.read(new byte[10], 0, 0);
-
-        for (int i = 0; len < 0 || i < len; i++) {
-            int ca = a.read();
-            a.read(new byte[0]);
-            int cb = b.read();
-            assertEquals(ca, cb);
-            if (ca == -1) {
-                break;
-            }
-        }
-        a.read(new byte[10], 3, 0);
-        b.read(new byte[10], 0, 0);
-        a.read(new byte[0]);
-        b.read(new byte[0]);
-        a.close();
-        b.close();
-    }
-
-    private void checkReader(Reader a, Reader b, int len) throws IOException {
-        for (int i = 0; len < 0 || i < len; i++) {
-            int ca = a.read();
-            int cb = b.read();
-            assertEquals(ca, cb);
-            if (ca == -1) {
-                break;
-            }
-        }
-        a.close();
-        b.close();
     }
 
     private Reader getRandomReader(int len, int seed) {

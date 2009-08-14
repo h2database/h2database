@@ -118,9 +118,9 @@ public class TestBitField extends TestBase {
                     set.clear(idx);
                 }
             } else {
-                assertEquals(bits.get(idx), set.get(idx));
-                assertEquals(bits.nextClearBit(idx), set.nextClearBit(idx));
-                assertEquals(bits.nextSetBit(idx), set.nextSetBit(idx));
+                assertEquals(set.get(idx), bits.get(idx));
+                assertEquals(set.nextClearBit(idx), bits.nextClearBit(idx));
+                assertEquals(set.nextSetBit(idx), bits.nextSetBit(idx));
             }
         }
     }
@@ -164,7 +164,7 @@ public class TestBitField extends TestBase {
             set.set(offset, offset + len, val);
             bits.setRange(offset, len, val);
             for (int j = 0; j < total; j++) {
-                assertEquals(bits.get(j), set.get(j));
+                assertEquals(set.get(j), bits.get(j));
             }
         }
     }

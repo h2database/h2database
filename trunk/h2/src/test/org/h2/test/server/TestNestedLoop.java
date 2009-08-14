@@ -60,13 +60,13 @@ public class TestNestedLoop extends TestBase {
             int id = rs.getInt(1);
             ResultSet rs2 = stat2.executeQuery("select * from test where id=" + id);
             while (rs2.next()) {
-                assertEquals(rs2.getInt(1), id);
-                assertEquals(rs2.getString(2), "Hello World");
+                assertEquals(id, rs2.getInt(1));
+                assertEquals("Hello World", rs2.getString(2));
             }
             rs2 = stat2.executeQuery("select * from test where id=" + id);
             while (rs2.next()) {
-                assertEquals(rs2.getInt(1), id);
-                assertEquals(rs2.getString(2), "Hello World");
+                assertEquals(id, rs2.getInt(1));
+                assertEquals("Hello World", rs2.getString(2));
             }
         }
         conn.close();

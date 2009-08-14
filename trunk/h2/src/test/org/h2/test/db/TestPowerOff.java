@@ -90,14 +90,14 @@ public class TestPowerOff extends TestBase {
             ResultSet rs = stat.executeQuery("SELECT * FROM TEST" + i + " ORDER BY ID");
             for (int j = 0; j < 10; j++) {
                 rs.next();
-                assertEquals(rs.getInt(1), j);
-                assertEquals(rs.getString(2), "Hello");
+                assertEquals(j, rs.getInt(1));
+                assertEquals("Hello", rs.getString(2));
             }
             if (i == 1) {
                 for (int j = 0; j < 10; j++) {
                     rs.next();
-                    assertEquals(rs.getInt(1), j + 10);
-                    assertEquals(rs.getString(2), "World");
+                    assertEquals(j + 10, rs.getInt(1));
+                    assertEquals("World", rs.getString(2));
                 }
             }
             assertFalse(rs.next());
@@ -219,7 +219,7 @@ public class TestPowerOff extends TestBase {
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT COUNT(*) FROM TEST");
         rs.next();
-        assertEquals(rs.getInt(1), 1);
+        assertEquals(1, rs.getInt(1));
         conn.close();
     }
 
@@ -317,18 +317,18 @@ public class TestPowerOff extends TestBase {
             if (!rs.next()) {
                 state = 1;
             } else {
-                assertEquals(rs.getInt(1), 1);
+                assertEquals(1, rs.getInt(1));
                 String name1 = rs.getString(2);
                 assertTrue(rs.next());
-                assertEquals(rs.getInt(1), 2);
+                assertEquals(2, rs.getInt(1));
                 String name2 = rs.getString(2);
                 assertFalse(rs.next());
                 if ("Hello".equals(name1)) {
-                    assertEquals(name2, "World");
+                    assertEquals("World", name2);
                     state = 2;
                 } else {
-                    assertEquals(name1, "Hallo");
-                    assertEquals(name2, "Welt");
+                    assertEquals("Hallo", name1);
+                    assertEquals("Welt", name2);
                     state = 3;
                 }
             }

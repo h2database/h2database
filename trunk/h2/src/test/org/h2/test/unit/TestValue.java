@@ -68,9 +68,9 @@ public class TestValue extends TestBase {
             minLow &= uuid.getLow();
         }
         ValueUuid max = ValueUuid.get(maxHigh, maxLow);
-        assertEquals(max.getString(), "ffffffff-ffff-4fff-bfff-ffffffffffff");
+        assertEquals("ffffffff-ffff-4fff-bfff-ffffffffffff", max.getString());
         ValueUuid min = ValueUuid.get(minHigh, minLow);
-        assertEquals(min.getString(), "00000000-0000-4000-8000-000000000000");
+        assertEquals("00000000-0000-4000-8000-000000000000", min.getString());
     }
 
 }

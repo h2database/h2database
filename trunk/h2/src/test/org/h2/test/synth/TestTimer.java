@@ -80,7 +80,7 @@ public class TestTimer extends TestBase {
                 rs = stat.executeQuery("SELECT COUNT(*) FROM TEST");
                 rs.next();
                 int c = rs.getInt(1);
-                assertEquals(c, count);
+                assertEquals(count, c);
                 long time = System.currentTimeMillis();
                 if (time > start + 5000) {
                     println("rows: " + count);

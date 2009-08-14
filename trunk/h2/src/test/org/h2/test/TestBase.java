@@ -8,6 +8,8 @@ package org.h2.test;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.sql.Connection;
@@ -504,12 +506,63 @@ public abstract class TestBase {
      * @throws AssertionError if the values are not equal
      */
     protected void assertEquals(byte[] expected, byte[] actual) {
-        assertEquals("length", expected.length, actual.length);
+        assertEquals(expected.length, actual.length);
         for (int i = 0; i < expected.length; i++) {
             if (expected[i] != actual[i]) {
                 fail("[" + i + "]: expected: " + (int) expected[i] + " actual: " + (int) actual[i]);
             }
         }
+    }
+
+    /**
+     * Check if two readers are equal, and if not throw an exception.
+     *
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws AssertionError if the values are not equal
+     */
+    protected void assertEqualReaders(Reader expected, Reader actual, int len) throws IOException {
+        for (int i = 0; len < 0 || i < len; i++) {
+            int ce = expected.read();
+            int ca = actual.read();
+            assertEquals(ce, ca);
+            if (ce == -1) {
+                break;
+            }
+        }
+        expected.close();
+        actual.close();
+    }
+
+    /**
+     * Check if two streams are equal, and if not throw an exception.
+     *
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws AssertionError if the values are not equal
+     */
+    protected void assertEqualStreams(InputStream expected, InputStream actual, int len) throws IOException {
+        // this doesn't actually read anything - just tests reading 0 bytes
+        actual.read(new byte[0]);
+        expected.read(new byte[0]);
+        actual.read(new byte[10], 3, 0);
+        expected.read(new byte[10], 0, 0);
+
+        for (int i = 0; len < 0 || i < len; i++) {
+            int ca = actual.read();
+            actual.read(new byte[0]);
+            int ce = expected.read();
+            assertEquals(ce, ca);
+            if (ca == -1) {
+                break;
+            }
+        }
+        actual.read(new byte[10], 3, 0);
+        expected.read(new byte[10], 0, 0);
+        actual.read(new byte[0]);
+        expected.read(new byte[0]);
+        actual.close();
+        expected.close();
     }
 
     /**
@@ -703,7 +756,7 @@ public abstract class TestBase {
         while (rs.next()) {
             i++;
         }
-        assertEquals(i, expected);
+        assertEquals(expected, i);
     }
 
     /**
@@ -724,12 +777,12 @@ public abstract class TestBase {
     /**
      * Check that the result set of a query is exactly this value.
      *
+     * @param expected the expected result value
      * @param stat the statement
      * @param sql the SQL statement to execute
-     * @param expected the expected result value
      * @throws AssertionError if a different result value was returned
      */
-    protected void assertResult(Statement stat, String sql, String expected) throws SQLException {
+    protected void assertResult(String expected, Statement stat, String sql) throws SQLException {
         ResultSet rs = stat.executeQuery(sql);
         if (rs.next()) {
             String actual = rs.getString(1);
@@ -773,24 +826,24 @@ public abstract class TestBase {
                 String className = meta.getColumnClassName(i + 1);
                 switch (t) {
                 case Types.INTEGER:
-                    assertEquals(typeName, "INTEGER");
-                    assertEquals(className, "java.lang.Integer");
+                    assertEquals("INTEGER", typeName);
+                    assertEquals("java.lang.Integer", className);
                     break;
                 case Types.VARCHAR:
-                    assertEquals(typeName, "VARCHAR");
-                    assertEquals(className, "java.lang.String");
+                    assertEquals("VARCHAR", typeName);
+                    assertEquals("java.lang.String", className);
                     break;
                 case Types.SMALLINT:
-                    assertEquals(typeName, "SMALLINT");
-                    assertEquals(className, "java.lang.Short");
+                    assertEquals("SMALLINT", typeName);
+                    assertEquals("java.lang.Short", className);
                     break;
                 case Types.TIMESTAMP:
-                    assertEquals(typeName, "TIMESTAMP");
-                    assertEquals(className, "java.sql.Timestamp");
+                    assertEquals("TIMESTAMP", typeName);
+                    assertEquals("java.sql.Timestamp", className);
                     break;
                 case Types.DECIMAL:
-                    assertEquals(typeName, "DECIMAL");
-                    assertEquals(className, "java.math.BigDecimal");
+                    assertEquals("DECIMAL", typeName);
+                    assertEquals("java.math.BigDecimal", className);
                     break;
                 default:
                 }
@@ -1034,7 +1087,7 @@ public abstract class TestBase {
                 fail("only found in first: " + s);
             }
         }
-        assertEquals(list2.size(), 0);
+        assertEquals(0, list2.size());
         assertFalse(rs2.next());
     }
 

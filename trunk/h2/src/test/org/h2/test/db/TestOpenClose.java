@@ -79,7 +79,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
         rs.next();
-        assertEquals(rs.getString(1).length(), 10000);
+        assertEquals(10000, rs.getString(1).length());
         assertFalse(rs.next());
         conn.close();
         FileUtils.delete(baseDir + "/test.zip");
@@ -165,7 +165,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         conn = DriverManager.getConnection(url, user, password);
         ResultSet rs = conn.createStatement().executeQuery("select count(*) from employee");
         rs.next();
-        assertEquals(rs.getInt(1), len);
+        assertEquals(len, rs.getInt(1));
         conn.close();
     }
 

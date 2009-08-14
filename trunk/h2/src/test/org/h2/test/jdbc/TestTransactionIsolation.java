@@ -38,17 +38,17 @@ public class TestTransactionIsolation extends TestBase {
     private void testTableLevelLocking() throws SQLException {
         deleteDb("transactionIsolation");
         conn1 = getConnection("transactionIsolation");
-        assertEquals(conn1.getTransactionIsolation(), Connection.TRANSACTION_READ_COMMITTED);
+        assertEquals(Connection.TRANSACTION_READ_COMMITTED, conn1.getTransactionIsolation());
         conn1.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-        assertEquals(conn1.getTransactionIsolation(), Connection.TRANSACTION_SERIALIZABLE);
+        assertEquals(Connection.TRANSACTION_SERIALIZABLE, conn1.getTransactionIsolation());
         conn1.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
-        assertEquals(conn1.getTransactionIsolation(), Connection.TRANSACTION_READ_UNCOMMITTED);
+        assertEquals(Connection.TRANSACTION_READ_UNCOMMITTED, conn1.getTransactionIsolation());
         assertSingleValue(conn1.createStatement(), "CALL LOCK_MODE()", 0);
         conn1.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         assertSingleValue(conn1.createStatement(), "CALL LOCK_MODE()", 3);
-        assertEquals(conn1.getTransactionIsolation(), Connection.TRANSACTION_READ_COMMITTED);
+        assertEquals(Connection.TRANSACTION_READ_COMMITTED, conn1.getTransactionIsolation());
         conn1.createStatement().execute("SET LOCK_MODE 1");
-        assertEquals(conn1.getTransactionIsolation(), Connection.TRANSACTION_SERIALIZABLE);
+        assertEquals(Connection.TRANSACTION_SERIALIZABLE, conn1.getTransactionIsolation());
         conn1.createStatement().execute("CREATE TABLE TEST(ID INT)");
         conn1.createStatement().execute("INSERT INTO TEST VALUES(1)");
         conn1.setAutoCommit(false);

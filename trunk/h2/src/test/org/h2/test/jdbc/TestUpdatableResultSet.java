@@ -108,13 +108,13 @@ public class TestUpdatableResultSet extends TestBase {
 
         assertTrue(rs.isBeforeFirst());
         assertFalse(rs.isAfterLast());
-        assertEquals(rs.getRow(), 0);
+        assertEquals(0, rs.getRow());
 
         rs.next();
         assertFalse(rs.isBeforeFirst());
         assertFalse(rs.isAfterLast());
-        assertEquals(rs.getInt(1), 1);
-        assertEquals(rs.getRow(), 1);
+        assertEquals(1, rs.getInt(1));
+        assertEquals(1, rs.getRow());
 
         rs.next();
 
@@ -127,54 +127,54 @@ public class TestUpdatableResultSet extends TestBase {
 
         assertFalse(rs.isBeforeFirst());
         assertFalse(rs.isAfterLast());
-        assertEquals(rs.getInt(1), 2);
-        assertEquals(rs.getRow(), 2);
+        assertEquals(2, rs.getInt(1));
+        assertEquals(2, rs.getRow());
 
         rs.next();
         assertFalse(rs.isBeforeFirst());
         assertFalse(rs.isAfterLast());
-        assertEquals(rs.getInt(1), 3);
-        assertEquals(rs.getRow(), 3);
+        assertEquals(3, rs.getInt(1));
+        assertEquals(3, rs.getRow());
 
         assertFalse(rs.next());
         assertFalse(rs.isBeforeFirst());
         assertTrue(rs.isAfterLast());
-        assertEquals(rs.getRow(), 0);
+        assertEquals(0, rs.getRow());
 
         assertTrue(rs.first());
-        assertEquals(rs.getInt(1), 1);
-        assertEquals(rs.getRow(), 1);
+        assertEquals(1, rs.getInt(1));
+        assertEquals(1, rs.getRow());
 
         assertTrue(rs.last());
-        assertEquals(rs.getInt(1), 3);
-        assertEquals(rs.getRow(), 3);
+        assertEquals(3, rs.getInt(1));
+        assertEquals(3, rs.getRow());
 
         assertTrue(rs.relative(0));
-        assertEquals(rs.getRow(), 3);
+        assertEquals(3, rs.getRow());
 
         assertTrue(rs.relative(-1));
-        assertEquals(rs.getRow(), 2);
+        assertEquals(2, rs.getRow());
 
         assertTrue(rs.relative(1));
-        assertEquals(rs.getRow(), 3);
+        assertEquals(3, rs.getRow());
 
         assertFalse(rs.relative(100));
         assertTrue(rs.isAfterLast());
 
         assertFalse(rs.absolute(0));
-        assertEquals(rs.getRow(), 0);
+        assertEquals(0, rs.getRow());
 
         assertTrue(rs.absolute(1));
-        assertEquals(rs.getRow(), 1);
+        assertEquals(1, rs.getRow());
 
         assertTrue(rs.absolute(2));
-        assertEquals(rs.getRow(), 2);
+        assertEquals(2, rs.getRow());
 
         assertTrue(rs.absolute(3));
-        assertEquals(rs.getRow(), 3);
+        assertEquals(3, rs.getRow());
 
         assertFalse(rs.absolute(4));
-        assertEquals(rs.getRow(), 0);
+        assertEquals(0, rs.getRow());
 
         try {
             assertFalse(rs.absolute(0));
@@ -185,10 +185,10 @@ public class TestUpdatableResultSet extends TestBase {
         }
 
         assertTrue(rs.absolute(3));
-        assertEquals(rs.getRow(), 3);
+        assertEquals(3, rs.getRow());
 
         assertTrue(rs.absolute(-1));
-        assertEquals(rs.getRow(), 3);
+        assertEquals(3, rs.getRow());
 
         assertFalse(rs.absolute(4));
         assertTrue(rs.isAfterLast());
@@ -197,10 +197,10 @@ public class TestUpdatableResultSet extends TestBase {
         assertTrue(rs.isAfterLast());
 
         assertTrue(rs.previous());
-        assertEquals(rs.getRow(), 3);
+        assertEquals(3, rs.getRow());
 
         assertTrue(rs.previous());
-        assertEquals(rs.getRow(), 2);
+        assertEquals(2, rs.getRow());
 
         conn.close();
     }
@@ -215,26 +215,26 @@ public class TestUpdatableResultSet extends TestBase {
                 + "O_I INT, SH SMALLINT, CL CLOB, BL BLOB)");
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
         ResultSetMetaData meta = rs.getMetaData();
-        assertEquals(meta.getColumnClassName(1), "java.lang.Integer");
-        assertEquals(meta.getColumnClassName(2), "java.lang.String");
-        assertEquals(meta.getColumnClassName(3), "java.math.BigDecimal");
-        assertEquals(meta.getColumnClassName(4), "java.lang.Boolean");
-        assertEquals(meta.getColumnClassName(5), "java.lang.Byte");
-        assertEquals(meta.getColumnClassName(6), "[B");
-        assertEquals(meta.getColumnClassName(7), "java.sql.Date");
-        assertEquals(meta.getColumnClassName(8), "java.sql.Time");
-        assertEquals(meta.getColumnClassName(9), "java.sql.Timestamp");
-        assertEquals(meta.getColumnClassName(10), "java.lang.Double");
-        assertEquals(meta.getColumnClassName(11), "java.lang.Float");
-        assertEquals(meta.getColumnClassName(12), "java.lang.Long");
-        assertEquals(meta.getColumnClassName(13), "java.lang.Integer");
-        assertEquals(meta.getColumnClassName(14), "java.lang.Short");
+        assertEquals("java.lang.Integer", meta.getColumnClassName(1));
+        assertEquals("java.lang.String", meta.getColumnClassName(2));
+        assertEquals("java.math.BigDecimal", meta.getColumnClassName(3));
+        assertEquals("java.lang.Boolean", meta.getColumnClassName(4));
+        assertEquals("java.lang.Byte", meta.getColumnClassName(5));
+        assertEquals("[B", meta.getColumnClassName(6));
+        assertEquals("java.sql.Date", meta.getColumnClassName(7));
+        assertEquals("java.sql.Time", meta.getColumnClassName(8));
+        assertEquals("java.sql.Timestamp", meta.getColumnClassName(9));
+        assertEquals("java.lang.Double", meta.getColumnClassName(10));
+        assertEquals("java.lang.Float", meta.getColumnClassName(11));
+        assertEquals("java.lang.Long", meta.getColumnClassName(12));
+        assertEquals("java.lang.Integer", meta.getColumnClassName(13));
+        assertEquals("java.lang.Short", meta.getColumnClassName(14));
         if (SysProperties.RETURN_LOB_OBJECTS) {
-            assertEquals(meta.getColumnClassName(15), "java.sql.Clob");
-            assertEquals(meta.getColumnClassName(16), "java.sql.Blob");
+            assertEquals("java.sql.Clob", meta.getColumnClassName(15));
+            assertEquals("java.sql.Blob", meta.getColumnClassName(16));
         } else {
-            assertEquals(meta.getColumnClassName(15), "java.io.Reader");
-            assertEquals(meta.getColumnClassName(16), "java.io.InputStream");
+            assertEquals("java.io.Reader", meta.getColumnClassName(15));
+            assertEquals("java.io.InputStream", meta.getColumnClassName(16));
         }
         rs.moveToInsertRow();
         rs.updateInt(1, 0);
@@ -316,27 +316,27 @@ public class TestUpdatableResultSet extends TestBase {
         assertTrue(rs.getLong(12) == 0 && !rs.wasNull());
         assertTrue(rs.getObject(13) == null && rs.wasNull());
         assertTrue(rs.getShort(14) == 0 && !rs.wasNull());
-        assertEquals(rs.getString(15), "test");
-        assertEquals(rs.getBytes(16), new byte[] { (byte) 0xff, 0x00 });
+        assertEquals("test", rs.getString(15));
+        assertEquals(new byte[] { (byte) 0xff, 0x00 }, rs.getBytes(16));
 
         rs.next();
         assertTrue(rs.getInt(1) == 2);
-        assertEquals(rs.getString(2), "+");
-        assertEquals(rs.getBigDecimal(3).toString(), "1.20");
+        assertEquals("+", rs.getString(2));
+        assertEquals("1.20", rs.getBigDecimal(3).toString());
         assertTrue(rs.getBoolean(4));
         assertTrue((rs.getByte(5) & 0xff) == 0xff);
-        assertEquals(rs.getBytes(6), new byte[] { 0x00, (byte) 0xff });
-        assertEquals(rs.getDate(7).toString(), "2005-09-21");
-        assertEquals(rs.getTime(8).toString(), "21:46:28");
-        assertEquals(rs.getTimestamp(9).toString(), "2005-09-21 21:47:09.567890123");
+        assertEquals(new byte[] { 0x00, (byte) 0xff }, rs.getBytes(6));
+        assertEquals("2005-09-21", rs.getDate(7).toString());
+        assertEquals("21:46:28", rs.getTime(8).toString());
+        assertEquals("2005-09-21 21:47:09.567890123", rs.getTimestamp(9).toString());
         assertTrue(rs.getDouble(10) == 1.725);
         assertTrue(rs.getFloat(11) == (float) 2.5);
         assertTrue(rs.getLong(12) == Long.MAX_VALUE);
-        assertEquals(((Integer) rs.getObject(13)).intValue(), 10);
+        assertEquals(10, ((Integer) rs.getObject(13)).intValue());
         assertTrue(rs.getShort(14) == Short.MIN_VALUE);
         // auml ouml uuml
-        assertEquals(rs.getString(15), "\u00ef\u00f6\u00fc");
-        assertEquals(rs.getBytes(16), new byte[] { (byte) 0xab, 0x12 });
+        assertEquals("\u00ef\u00f6\u00fc", rs.getString(15));
+        assertEquals(new byte[] { (byte) 0xab, 0x12 }, rs.getBytes(16));
 
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
@@ -379,14 +379,14 @@ public class TestUpdatableResultSet extends TestBase {
         while (rs.next()) {
             int id = rs.getInt(1);
             String name = rs.getString(2);
-            assertEquals(id % 2, 0);
+            assertEquals(0, id % 2);
             if (id >= max) {
                 assertEquals("Inserted " + id, rs.getString(2));
             } else {
                 if (id % 4 == 0) {
-                    assertEquals(rs.getString(2), "Updated Hello" + id + "+");
+                    assertEquals("Updated Hello" + id + "+", rs.getString(2));
                 } else {
-                    assertEquals(rs.getString(2), "Updated Hello" + id);
+                    assertEquals("Updated Hello" + id, rs.getString(2));
                 }
             }
             trace("id=" + id + " name=" + name);
@@ -424,16 +424,16 @@ public class TestUpdatableResultSet extends TestBase {
             error = true;
         }
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
-        assertEquals(rs.getType(), type);
+        assertEquals(type, rs.getType());
 
-        checkState(rs, true, false, false, rows == 0);
+        assertState(rs, true, false, false, rows == 0);
         for (int i = 0; i < rows; i++) {
             rs.next();
-            checkState(rs, rows == 0, i == 0, i == rows - 1, rows == 0 || i == rows);
+            assertState(rs, rows == 0, i == 0, i == rows - 1, rows == 0 || i == rows);
         }
         try {
             rs.beforeFirst();
-            checkState(rs, true, false, false, rows == 0);
+            assertState(rs, true, false, false, rows == 0);
         } catch (SQLException e) {
             if (!error) {
                 throw e;
@@ -441,7 +441,7 @@ public class TestUpdatableResultSet extends TestBase {
         }
         try {
             rs.afterLast();
-            checkState(rs, false, false, false, true);
+            assertState(rs, false, false, false, true);
         } catch (SQLException e) {
             if (!error) {
                 throw e;
@@ -449,9 +449,9 @@ public class TestUpdatableResultSet extends TestBase {
         }
         try {
             boolean valid = rs.first();
-            assertEquals(valid, rows > 0);
+            assertEquals(rows > 0, valid);
             if (valid) {
-                checkState(rs, false, true, rows == 1, rows == 0);
+                assertState(rs, false, true, rows == 1, rows == 0);
             }
         } catch (SQLException e) {
             if (!error) {
@@ -460,9 +460,9 @@ public class TestUpdatableResultSet extends TestBase {
         }
         try {
             boolean valid = rs.last();
-            assertEquals(valid, rows > 0);
+            assertEquals(rows > 0, valid);
             if (valid) {
-                checkState(rs, false, rows == 1, true, rows == 0);
+                assertState(rs, false, rows == 1, true, rows == 0);
             }
         } catch (SQLException e) {
             if (!error) {
@@ -471,11 +471,11 @@ public class TestUpdatableResultSet extends TestBase {
         }
     }
 
-    private void checkState(ResultSet rs, boolean beforeFirst, boolean first, boolean last, boolean afterLast) throws SQLException {
-        assertEquals(rs.isBeforeFirst(), beforeFirst);
-        assertEquals(rs.isFirst(), first);
-        assertEquals(rs.isLast(), last);
-        assertEquals(rs.isAfterLast(), afterLast);
+    private void assertState(ResultSet rs, boolean beforeFirst, boolean first, boolean last, boolean afterLast) throws SQLException {
+        assertEquals(beforeFirst, rs.isBeforeFirst());
+        assertEquals(first, rs.isFirst());
+        assertEquals(last, rs.isLast());
+        assertEquals(afterLast, rs.isAfterLast());
     }
 
 }

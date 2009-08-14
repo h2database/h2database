@@ -42,7 +42,7 @@ public class TestSecurity extends TestBase {
     private String getHashString(SHA256 sha, byte[] data) {
         byte[] result = sha.getHash(data, true);
         if (data.length > 0) {
-            assertEquals(data[0], 0);
+            assertEquals(0, data[0]);
         }
         return ByteUtils.convertBytesToString(result);
     }

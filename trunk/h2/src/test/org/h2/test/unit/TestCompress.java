@@ -80,7 +80,7 @@ public class TestCompress extends TestBase {
             for (String a : new String[] { "LZF", "Deflate", "No" }) {
                 byte[] out = utils.compress(buff, a);
                 byte[] test = utils.expand(out);
-                assertEquals(test.length, buff.length);
+                assertEquals(buff.length, test.length);
                 assertEquals(buff, test);
             }
         }

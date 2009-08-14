@@ -65,31 +65,31 @@ public class TestMetaData extends TestBase {
 
         rs = meta.getCatalogs();
         rs.next();
-        assertEquals(rs.getString(1), catalog);
+        assertEquals(catalog, rs.getString(1));
         assertFalse(rs.next());
 
         rs = meta.getSchemas();
         rs.next();
-        assertEquals(rs.getString("TABLE_SCHEM"), "INFORMATION_SCHEMA");
+        assertEquals("INFORMATION_SCHEMA", rs.getString("TABLE_SCHEM"));
         rs.next();
-        assertEquals(rs.getString("TABLE_SCHEM"), "PUBLIC");
+        assertEquals("PUBLIC", rs.getString("TABLE_SCHEM"));
         assertFalse(rs.next());
 
         rs = meta.getTableTypes();
         rs.next();
-        assertEquals(rs.getString("TABLE_TYPE"), "SYSTEM TABLE");
+        assertEquals("SYSTEM TABLE", rs.getString("TABLE_TYPE"));
         rs.next();
-        assertEquals(rs.getString("TABLE_TYPE"), "TABLE");
+        assertEquals("TABLE", rs.getString("TABLE_TYPE"));
         rs.next();
-        assertEquals(rs.getString("TABLE_TYPE"), "TABLE LINK");
+        assertEquals("TABLE LINK", rs.getString("TABLE_TYPE"));
         rs.next();
-        assertEquals(rs.getString("TABLE_TYPE"), "VIEW");
+        assertEquals("VIEW", rs.getString("TABLE_TYPE"));
         assertFalse(rs.next());
 
         rs = meta.getTables(null, Constants.SCHEMA_MAIN, null, new String[] { "TABLE" });
         assertTrue(rs.getStatement() == null);
         rs.next();
-        assertEquals(rs.getString("TABLE_NAME"), "TEST");
+        assertEquals("TEST", rs.getString("TABLE_NAME"));
         assertFalse(rs.next());
 
         rs = meta.getTables(null, "INFORMATION_SCHEMA", null, new String[] { "TABLE", "SYSTEM TABLE" });
@@ -153,36 +153,36 @@ public class TestMetaData extends TestBase {
 
         rs = meta.getColumns(null, null, "TEST", null);
         rs.next();
-        assertEquals(rs.getString("COLUMN_NAME"), "ID");
+        assertEquals("ID", rs.getString("COLUMN_NAME"));
         rs.next();
-        assertEquals(rs.getString("COLUMN_NAME"), "NAME");
+        assertEquals("NAME", rs.getString("COLUMN_NAME"));
         assertFalse(rs.next());
 
         rs = meta.getPrimaryKeys(null, null, "TEST");
         rs.next();
-        assertEquals(rs.getString("COLUMN_NAME"), "ID");
+        assertEquals("ID", rs.getString("COLUMN_NAME"));
         assertFalse(rs.next());
 
         rs = meta.getBestRowIdentifier(null, null, "TEST", DatabaseMetaData.bestRowSession, false);
         rs.next();
-        assertEquals(rs.getString("COLUMN_NAME"), "ID");
+        assertEquals("ID", rs.getString("COLUMN_NAME"));
         assertFalse(rs.next());
 
         rs = meta.getIndexInfo(null, null, "TEST", false, false);
         rs.next();
         String index = rs.getString("INDEX_NAME");
         assertTrue(index.startsWith("PRIMARY_KEY"));
-        assertEquals(rs.getString("COLUMN_NAME"), "ID");
+        assertEquals("ID", rs.getString("COLUMN_NAME"));
         rs.next();
-        assertEquals(rs.getString("INDEX_NAME"), "IDXNAME");
-        assertEquals(rs.getString("COLUMN_NAME"), "NAME");
+        assertEquals("IDXNAME", rs.getString("INDEX_NAME"));
+        assertEquals("NAME", rs.getString("COLUMN_NAME"));
         assertFalse(rs.next());
 
         rs = meta.getIndexInfo(null, null, "TEST", true, false);
         rs.next();
         index = rs.getString("INDEX_NAME");
         assertTrue(index.startsWith("PRIMARY_KEY"));
-        assertEquals(rs.getString("COLUMN_NAME"), "ID");
+        assertEquals("ID", rs.getString("COLUMN_NAME"));
         assertFalse(rs.next());
 
         rs = meta.getVersionColumns(null, null, "TEST");
@@ -377,7 +377,7 @@ public class TestMetaData extends TestBase {
         ResultSet rs = stat.executeQuery("SELECT STORAGE_TYPE FROM "
                 + "INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='TEST_TEMP'");
         rs.next();
-        assertEquals(rs.getString("STORAGE_TYPE"), "GLOBAL TEMPORARY");
+        assertEquals("GLOBAL TEMPORARY", rs.getString("STORAGE_TYPE"));
         stat.execute("DROP TABLE IF EXISTS TEST_TEMP");
         conn.close();
     }
@@ -389,7 +389,7 @@ public class TestMetaData extends TestBase {
         assertEquals(dr.getMinorVersion(), meta.getDriverMinorVersion());
         assertTrue(dr.jdbcCompliant());
 
-        assertEquals(dr.getPropertyInfo(null, null).length, 0);
+        assertEquals(0, dr.getPropertyInfo(null, null).length);
         assertTrue(dr.connect("jdbc:test:false", null) == null);
 
         assertTrue(meta.getNumericFunctions().length() > 0);
@@ -405,54 +405,54 @@ public class TestMetaData extends TestBase {
         assertFalse(meta.deletesAreDetected(ResultSet.TYPE_SCROLL_INSENSITIVE));
         assertFalse(meta.deletesAreDetected(ResultSet.TYPE_SCROLL_SENSITIVE));
         assertFalse(meta.doesMaxRowSizeIncludeBlobs());
-        assertEquals(meta.getCatalogSeparator(), ".");
-        assertEquals(meta.getCatalogTerm(), "catalog");
+        assertEquals(".", meta.getCatalogSeparator());
+        assertEquals("catalog", meta.getCatalogTerm());
         assertTrue(meta.getConnection() == conn);
         if (config.jdk14) {
             String versionStart = meta.getDatabaseMajorVersion() + "." + meta.getDatabaseMinorVersion();
             assertTrue(meta.getDatabaseProductVersion().startsWith(versionStart));
-            assertEquals(meta.getDriverMajorVersion(), meta.getDatabaseMajorVersion());
-            assertEquals(meta.getDriverMinorVersion(), meta.getDatabaseMinorVersion());
-            assertEquals(meta.getJDBCMajorVersion(), 3);
-            assertEquals(meta.getJDBCMinorVersion(), 0);
+            assertEquals(meta.getDatabaseMajorVersion(), meta.getDriverMajorVersion());
+            assertEquals(meta.getDatabaseMinorVersion(), meta.getDriverMinorVersion());
+            assertEquals(3, meta.getJDBCMajorVersion());
+            assertEquals(0, meta.getJDBCMinorVersion());
         }
-        assertEquals(meta.getDatabaseProductName(), "H2");
-        assertEquals(meta.getDefaultTransactionIsolation(), Connection.TRANSACTION_READ_COMMITTED);
-        assertEquals(meta.getDriverName(), "H2 JDBC Driver");
+        assertEquals("H2", meta.getDatabaseProductName());
+        assertEquals(Connection.TRANSACTION_READ_COMMITTED, meta.getDefaultTransactionIsolation());
+        assertEquals("H2 JDBC Driver", meta.getDriverName());
 
         String versionStart = meta.getDriverMajorVersion() + "." + meta.getDriverMinorVersion();
         assertTrue(meta.getDriverVersion().startsWith(versionStart));
-        assertEquals(meta.getExtraNameCharacters(), "");
-        assertEquals(meta.getIdentifierQuoteString(), "\"");
-        assertEquals(meta.getMaxBinaryLiteralLength(), 0);
-        assertEquals(meta.getMaxCatalogNameLength(), 0);
-        assertEquals(meta.getMaxCharLiteralLength(), 0);
-        assertEquals(meta.getMaxColumnNameLength(), 0);
-        assertEquals(meta.getMaxColumnsInGroupBy(), 0);
-        assertEquals(meta.getMaxColumnsInIndex(), 0);
-        assertEquals(meta.getMaxColumnsInOrderBy(), 0);
-        assertEquals(meta.getMaxColumnsInSelect(), 0);
-        assertEquals(meta.getMaxColumnsInTable(), 0);
-        assertEquals(meta.getMaxConnections(), 0);
-        assertEquals(meta.getMaxCursorNameLength(), 0);
-        assertEquals(meta.getMaxIndexLength(), 0);
-        assertEquals(meta.getMaxProcedureNameLength(), 0);
-        assertEquals(meta.getMaxRowSize(), 0);
-        assertEquals(meta.getMaxSchemaNameLength(), 0);
-        assertEquals(meta.getMaxStatementLength(), 0);
-        assertEquals(meta.getMaxStatements(), 0);
-        assertEquals(meta.getMaxTableNameLength(), 0);
-        assertEquals(meta.getMaxTablesInSelect(), 0);
-        assertEquals(meta.getMaxUserNameLength(), 0);
-        assertEquals(meta.getProcedureTerm(), "procedure");
+        assertEquals("", meta.getExtraNameCharacters());
+        assertEquals("\"", meta.getIdentifierQuoteString());
+        assertEquals(0, meta.getMaxBinaryLiteralLength());
+        assertEquals(0, meta.getMaxCatalogNameLength());
+        assertEquals(0, meta.getMaxCharLiteralLength());
+        assertEquals(0, meta.getMaxColumnNameLength());
+        assertEquals(0, meta.getMaxColumnsInGroupBy());
+        assertEquals(0, meta.getMaxColumnsInIndex());
+        assertEquals(0, meta.getMaxColumnsInOrderBy());
+        assertEquals(0, meta.getMaxColumnsInSelect());
+        assertEquals(0, meta.getMaxColumnsInTable());
+        assertEquals(0, meta.getMaxConnections());
+        assertEquals(0, meta.getMaxCursorNameLength());
+        assertEquals(0, meta.getMaxIndexLength());
+        assertEquals(0, meta.getMaxProcedureNameLength());
+        assertEquals(0, meta.getMaxRowSize());
+        assertEquals(0, meta.getMaxSchemaNameLength());
+        assertEquals(0, meta.getMaxStatementLength());
+        assertEquals(0, meta.getMaxStatements());
+        assertEquals(0, meta.getMaxTableNameLength());
+        assertEquals(0, meta.getMaxTablesInSelect());
+        assertEquals(0, meta.getMaxUserNameLength());
+        assertEquals("procedure", meta.getProcedureTerm());
         if (config.jdk14) {
-            assertEquals(meta.getResultSetHoldability(), ResultSet.CLOSE_CURSORS_AT_COMMIT);
-            assertEquals(meta.getSQLStateType(), DatabaseMetaData.sqlStateSQL99);
+            assertEquals(ResultSet.CLOSE_CURSORS_AT_COMMIT, meta.getResultSetHoldability());
+            assertEquals(DatabaseMetaData.sqlStateSQL99, meta.getSQLStateType());
             assertFalse(meta.locatorsUpdateCopy());
         }
-        assertEquals(meta.getSchemaTerm(), "schema");
-        assertEquals(meta.getSearchStringEscape(), "\\");
-        assertEquals(meta.getSQLKeywords(), "LIMIT,MINUS,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY");
+        assertEquals("schema", meta.getSchemaTerm());
+        assertEquals("\\", meta.getSearchStringEscape());
+        assertEquals("LIMIT,MINUS,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY", meta.getSQLKeywords());
 
         assertTrue(meta.getURL().startsWith("jdbc:h2:"));
         assertTrue(meta.getUserName().length() > 1);
@@ -834,9 +834,9 @@ public class TestMetaData extends TestBase {
         assertResultSetMeta(rs, 3, new String[] { "TABLE_SCHEM", "TABLE_CATALOG", "IS_DEFAULT" }, new int[] {
                 Types.VARCHAR, Types.VARCHAR, DataType.TYPE_BOOLEAN }, null, null);
         assertTrue(rs.next());
-        assertEquals(rs.getString(1), "INFORMATION_SCHEMA");
+        assertEquals("INFORMATION_SCHEMA", rs.getString(1));
         assertTrue(rs.next());
-        assertEquals(rs.getString(1), "PUBLIC");
+        assertEquals("PUBLIC", rs.getString(1));
         assertFalse(rs.next());
 
         rs = meta.getCatalogs();

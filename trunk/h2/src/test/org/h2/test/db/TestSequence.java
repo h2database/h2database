@@ -76,11 +76,11 @@ public class TestSequence extends TestBase {
         stat.execute("call next value for test_Sequence3");
         ResultSet rs = stat.executeQuery("select * from information_schema.sequences order by sequence_name");
         rs.next();
-        assertEquals(rs.getString("SEQUENCE_NAME"), "TEST_SEQUENCE");
-        assertEquals(rs.getString("CACHE"), "32");
+        assertEquals("TEST_SEQUENCE", rs.getString("SEQUENCE_NAME"));
+        assertEquals("32", rs.getString("CACHE"));
         rs.next();
-        assertEquals(rs.getString("SEQUENCE_NAME"), "TEST_SEQUENCE3");
-        assertEquals(rs.getString("CACHE"), "3");
+        assertEquals("TEST_SEQUENCE3", rs.getString("SEQUENCE_NAME"));
+        assertEquals("3", rs.getString("CACHE"));
         assertFalse(rs.next());
         conn.close();
     }

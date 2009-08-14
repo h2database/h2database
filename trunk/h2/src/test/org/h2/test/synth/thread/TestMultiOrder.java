@@ -136,17 +136,17 @@ public class TestMultiOrder extends TestMultiThread {
         conn = base.getConnection();
         ResultSet rs = conn.createStatement().executeQuery("select count(*) from customer");
         rs.next();
-        base.assertEquals(rs.getInt(1), customerCount);
+        base.assertEquals(customerCount, rs.getInt(1));
         // System.out.println("customers: " + rs.getInt(1));
 
         rs = conn.createStatement().executeQuery("select count(*) from orders");
         rs.next();
-        base.assertEquals(rs.getInt(1), orderCount);
+        base.assertEquals(orderCount, rs.getInt(1));
         // System.out.println("orders: " + rs.getInt(1));
 
         rs = conn.createStatement().executeQuery("select count(*) from orderLine");
         rs.next();
-        base.assertEquals(rs.getInt(1), orderLineCount);
+        base.assertEquals(orderLineCount, rs.getInt(1));
         // System.out.println("orderLines: " + rs.getInt(1));
 
         conn.close();

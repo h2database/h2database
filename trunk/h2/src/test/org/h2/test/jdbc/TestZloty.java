@@ -67,13 +67,13 @@ public class TestZloty extends TestBase {
         prep.execute();
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
-        assertEquals(rs.getInt(1), 0);
-        assertEquals(rs.getBytes(2)[0], 0);
+        assertEquals(0, rs.getInt(1));
+        assertEquals(0, rs.getBytes(2)[0]);
         rs.next();
-        assertEquals(rs.getInt(1), 1);
-        assertEquals(rs.getBytes(2)[0], 1);
+        assertEquals(1, rs.getInt(1));
+        assertEquals(1, rs.getBytes(2)[0]);
         rs.getBytes(2)[0] = 2;
-        assertEquals(rs.getBytes(2)[0], 1);
+        assertEquals(1, rs.getBytes(2)[0]);
         assertFalse(rs.next());
         conn.close();
     }

@@ -2102,16 +2102,16 @@ public class Parser {
             schema = session.getCurrentSchemaName();
         }
         if (readIf("NEXTVAL")) {
-            Sequence sequence = database.getSchema(schema).findSequence(objectName);
+            Sequence sequence = findSequence(schema, objectName);
             if (sequence != null) {
                 return new SequenceValue(sequence);
             }
         } else if (readIf("CURRVAL")) {
-            Sequence sequence = database.getSchema(schema).findSequence(objectName);
+            Sequence sequence = findSequence(schema, objectName);
             if (sequence != null) {
                 Function function = Function.getFunction(database, "CURRVAL");
-                function.setParameter(0, ValueExpression.get(ValueString.get(schema)));
-                function.setParameter(1, ValueExpression.get(ValueString.get(objectName)));
+                function.setParameter(0, ValueExpression.get(ValueString.get(sequence.getSchema().getName())));
+                function.setParameter(1, ValueExpression.get(ValueString.get(sequence.getName())));
                 function.doneWithParameters();
                 return function;
             }
@@ -4265,13 +4265,8 @@ public class Parser {
         throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
     }
 
-    private Sequence readSequence() throws SQLException {
-        // same algorithm than readTableOrView
-        String sequenceName = readIdentifierWithSchema(null);
-        if (schemaName != null) {
-            return getSchema().getSequence(sequenceName);
-        }
-        Sequence sequence = database.getSchema(session.getCurrentSchemaName()).findSequence(sequenceName);
+    private Sequence findSequence(String schemaName, String sequenceName) throws SQLException {
+        Sequence sequence = database.getSchema(schemaName).findSequence(sequenceName);
         if (sequence != null) {
             return sequence;
         }
@@ -4282,6 +4277,19 @@ public class Parser {
             if (sequence != null) {
                 return sequence;
             }
+        }
+        return null;
+    }
+
+    private Sequence readSequence() throws SQLException {
+        // same algorithm than readTableOrView
+        String sequenceName = readIdentifierWithSchema(null);
+        if (schemaName != null) {
+            return getSchema().getSequence(sequenceName);
+        }
+        Sequence sequence = findSequence(session.getCurrentSchemaName(), sequenceName);
+        if (sequence != null) {
+            return sequence;
         }
         throw Message.getSQLException(ErrorCode.SEQUENCE_NOT_FOUND_1, sequenceName);
     }

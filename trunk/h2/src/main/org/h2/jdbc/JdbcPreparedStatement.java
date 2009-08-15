@@ -58,7 +58,6 @@ import java.sql.SQLXML;
 
 /**
  * Represents a prepared statement.
- *
  */
 public class JdbcPreparedStatement extends JdbcStatement implements PreparedStatement {
 
@@ -719,6 +718,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as a Blob.
+     * This method does not close the stream.
+     * The stream may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -764,6 +765,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as a Clob.
+     * This method does not close the reader.
+     * The reader may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -822,6 +825,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as an input stream.
+     * This method does not close the stream.
+     * The stream may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -843,6 +848,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as an input stream.
+     * This method does not close the stream.
+     * The stream may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -855,6 +862,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as an input stream.
+     * This method does not close the stream.
+     * The stream may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -866,6 +875,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as an ASCII stream.
+     * This method does not close the stream.
+     * The stream may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -878,6 +889,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as an ASCII stream.
+     * This method does not close the stream.
+     * The stream may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -899,6 +912,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as an ASCII stream.
+     * This method does not close the stream.
+     * The stream may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -910,6 +925,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as a character stream.
+     * This method does not close the reader.
+     * The reader may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -922,6 +939,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as a character stream.
+     * This method does not close the reader.
+     * The reader may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -933,6 +952,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as a character stream.
+     * This method does not close the reader.
+     * The reader may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -1261,6 +1282,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as a character stream.
+     * This method does not close the reader.
+     * The reader may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -1282,6 +1305,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as a character stream.
+     * This method does not close the reader.
+     * The reader may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -1320,6 +1345,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as a Clob.
+     * This method does not close the reader.
+     * The reader may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -1340,6 +1367,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as a Clob.
+     * This method does not close the reader.
+     * The reader may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -1360,6 +1389,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as a Blob.
+     * This method does not close the stream.
+     * The stream may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value
@@ -1380,6 +1411,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
 
     /**
      * Sets the value of a parameter as a Clob.
+     * This method does not close the reader.
+     * The reader may be closed after executing the statement.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param x the value

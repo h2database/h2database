@@ -61,6 +61,21 @@ public class TestOptimizations extends TestBase {
     private void testNestedInSelectAndLike() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+
+        stat.execute("create table test(id int primary key)");
+        stat.execute("insert into test values(2)");
+        ResultSet rs = stat.executeQuery("select * from test where id in(1, 2)");
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertFalse(rs.next());
+        stat.execute("create table test2(id int primary key hash)");
+        stat.execute("insert into test2 values(2)");
+        rs = stat.executeQuery("select * from test where id in(1, 2)");
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertFalse(rs.next());
+
         PreparedStatement prep;
         prep = conn.prepareStatement("SELECT * FROM DUAL A WHERE A.X IN (SELECT B.X FROM DUAL B WHERE B.X LIKE ?)");
         prep.setString(1, "1");

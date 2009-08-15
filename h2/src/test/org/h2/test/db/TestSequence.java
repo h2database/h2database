@@ -28,11 +28,24 @@ public class TestSequence extends TestBase {
     }
 
     public void test() throws SQLException {
+        testSchemaSearchPath();
         testAlterSequenceColumn();
         testAlterSequence();
         testCache();
         testTwo();
         deleteDb("sequence");
+    }
+
+    private void testSchemaSearchPath() throws SQLException {
+        deleteDb("sequence");
+        Connection conn = getConnection("sequence");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE SCHEMA TEST");
+        stat.execute("CREATE SEQUENCE TEST.TESTSEQ");
+        stat.execute("SET SCHEMA_SEARCH_PATH PUBLIC, TEST");
+        stat.execute("CALL TESTSEQ.NEXTVAL");
+        stat.execute("CALL TESTSEQ.CURRVAL");
+        conn.close();
     }
 
     private void testAlterSequenceColumn() throws SQLException {

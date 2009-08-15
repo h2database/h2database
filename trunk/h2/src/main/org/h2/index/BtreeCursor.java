@@ -94,11 +94,11 @@ public class BtreeCursor implements Cursor {
             first = false;
         } else {
             top.page.next(this, top.position);
-            if (currentSearchRow != null && last != null) {
-                if (index.compareRows(currentSearchRow, last) > 0) {
-                    currentSearchRow = null;
-                    currentRow = null;
-                }
+        }
+        if (currentSearchRow != null && last != null) {
+            if (index.compareRows(currentSearchRow, last) > 0) {
+                currentSearchRow = null;
+                currentRow = null;
             }
         }
         return currentSearchRow != null;

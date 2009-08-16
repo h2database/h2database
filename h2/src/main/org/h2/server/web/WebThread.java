@@ -716,7 +716,7 @@ class WebThread extends Thread implements DatabaseEventListener {
         String columns;
     }
 
-    private int addIndexes(DatabaseMetaData meta, String table, String schema, StringBuilder buff, int treeIndex)
+    private int addIndexes(boolean mainSchema, DatabaseMetaData meta, String table, String schema, StringBuilder buff, int treeIndex)
             throws SQLException {
         ResultSet rs = meta.getIndexInfo(null, schema, table, false, true);
         HashMap<String, IndexInfo> indexMap = New.hashMap();
@@ -749,15 +749,18 @@ class WebThread extends Thread implements DatabaseEventListener {
         }
         rs.close();
         if (indexMap.size() > 0) {
-            buff.append("setNode(" + treeIndex + ", 1, 1, 'index_az', '${text.tree.indexes}', null);\n");
+            String level = mainSchema ? ", 1, 1" : ", 2, 1";
+            String levelIndex = mainSchema ? ", 2, 1" : ", 3, 1";
+            String levelColumnType = mainSchema ? ", 3, 2" : ", 4, 2";
+            buff.append("setNode(" + treeIndex + level + ", 'index_az', '${text.tree.indexes}', null);\n");
             treeIndex++;
             for (IndexInfo info : indexMap.values()) {
-                buff.append("setNode(" + treeIndex + ", 2, 1, 'index', '" + PageParser.escapeJavaScript(info.name)
+                buff.append("setNode(" + treeIndex + levelIndex + ", 'index', '" + PageParser.escapeJavaScript(info.name)
                         + "', null);\n");
                 treeIndex++;
-                buff.append("setNode(" + treeIndex + ", 3, 2, 'type', '" + info.type + "', null);\n");
+                buff.append("setNode(" + treeIndex + levelColumnType + ", 'type', '" + info.type + "', null);\n");
                 treeIndex++;
-                buff.append("setNode(" + treeIndex + ", 3, 2, 'type', '" + PageParser.escapeJavaScript(info.columns)
+                buff.append("setNode(" + treeIndex + levelColumnType + ", 'type', '" + PageParser.escapeJavaScript(info.columns)
                         + "', null);\n");
                 treeIndex++;
             }
@@ -798,8 +801,8 @@ class WebThread extends Thread implements DatabaseEventListener {
             if (mainSchema || showColumns) {
                 StringBuilder columnsBuffer = new StringBuilder();
                 treeIndex = addColumns(mainSchema, table, buff, treeIndex, notManyTables, columnsBuffer);
-                if (mainSchema && !isOracle && notManyTables) {
-                    treeIndex = addIndexes(meta, table.name, schema.name, buff, treeIndex);
+                if (!isOracle && notManyTables) {
+                    treeIndex = addIndexes(mainSchema, meta, table.name, schema.name, buff, treeIndex);
                 }
                 buff.append("addTable('" + PageParser.escapeJavaScript(table.name) + "', '"
                         + PageParser.escapeJavaScript(columnsBuffer.toString()) + "', " + tableId + ");\n");

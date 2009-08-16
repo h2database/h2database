@@ -9,8 +9,8 @@ package org.h2.test.mvcc;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.sql.Statement;
-
 import org.h2.test.TestBase;
 
 /**
@@ -28,11 +28,55 @@ public class TestMvcc3 extends TestBase {
     }
 
     public void test() throws SQLException {
+        testInsertUpdateRollback();
         testCreateTableAsSelect();
         testSequence();
         testDisableAutoCommit();
         testRollback();
         deleteDb("mvcc3");
+    }
+
+    private void testInsertUpdateRollback() throws SQLException {
+        if (!config.mvcc) {
+            return;
+        }
+
+        deleteDb("mvcc3");
+        Connection c1 = getConnection("mvcc3");
+        Statement s1 = c1.createStatement();
+        Connection c2 = getConnection("mvcc3");
+        Statement s2 = c2.createStatement();
+
+        s1.execute("create table test(id int primary key, name varchar) as select 0, 'Hello'");
+        c1.setAutoCommit(false);
+        s1.executeUpdate("update test set name = 'World'");
+        printRows("after update", s1, s2);
+        Savepoint sp1 = c1.setSavepoint();
+        s1.executeUpdate("delete from test");
+        printRows("after delete", s1, s2);
+        c1.rollback(sp1);
+        printRows("after rollback delete", s1, s2);
+        c1.rollback();
+        printRows("after rollback all", s1, s2);
+
+        ResultSet rs = s2.executeQuery("select * from test");
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        c1.close();
+        c2.close();
+    }
+
+    private void printRows(String s, Statement s1, Statement s2) throws SQLException {
+        trace(s);
+        ResultSet rs;
+        rs = s1.executeQuery("select * from test");
+        while (rs.next()) {
+            trace("s1: " + rs.getString(2));
+        }
+        rs = s2.executeQuery("select * from test");
+        while (rs.next()) {
+            trace("s2: " + rs.getString(2));
+        }
     }
 
     private void testCreateTableAsSelect() throws SQLException {

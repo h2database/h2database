@@ -41,10 +41,10 @@ public class TestSequence extends TestBase {
         Connection conn = getConnection("sequence");
         Statement stat = conn.createStatement();
         stat.execute("CREATE SCHEMA TEST");
-        stat.execute("CREATE SEQUENCE TEST.TESTSEQ");
+        stat.execute("CREATE SEQUENCE TEST.TEST_SEQ");
         stat.execute("SET SCHEMA_SEARCH_PATH PUBLIC, TEST");
-        stat.execute("CALL TESTSEQ.NEXTVAL");
-        stat.execute("CALL TESTSEQ.CURRVAL");
+        stat.execute("CALL TEST_SEQ.NEXTVAL");
+        stat.execute("CALL TEST_SEQ.CURRVAL");
         conn.close();
     }
 

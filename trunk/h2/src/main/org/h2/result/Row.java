@@ -95,9 +95,11 @@ public class Row extends Record implements SearchRow {
             buff.append(" deleted");
         }
         buff.append(" */ ");
-        for (Value v : data) {
-            buff.appendExceptFirst(", ");
-            buff.append(v == null ? "null" : v.getTraceSQL());
+        if (data != null) {
+            for (Value v : data) {
+                buff.appendExceptFirst(", ");
+                buff.append(v == null ? "null" : v.getTraceSQL());
+            }
         }
         return buff.append(')').toString();
     }

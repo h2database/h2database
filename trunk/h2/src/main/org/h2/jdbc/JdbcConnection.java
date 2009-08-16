@@ -115,7 +115,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             if (isInfoEnabled()) {
                 trace.infoCode("Connection " + getTraceObjectName()
                         + " = DriverManager.getConnection(" + quote(ci.getOriginalURL())
-                        + ", " + quote(user) + ", \"\")");
+                        + ", " + quote(user) + ", \"\");");
             }
             this.url = ci.getURL();
             openStackTrace = new Exception("Stack Trace");

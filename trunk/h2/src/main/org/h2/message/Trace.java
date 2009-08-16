@@ -192,17 +192,6 @@ public class Trace {
     }
 
     /**
-     * Write Java source code with trace level INFO to the trace system.
-     *
-     * @param java the source code
-     */
-    public void infoCode(String java) {
-        if (isEnabled(TraceSystem.INFO)) {
-            traceWriter.write(TraceSystem.INFO, module, lineSeparator + "/**/" + java, null);
-        }
-    }
-
-    /**
      * Write a SQL statement with trace level INFO to the trace system.
      *
      * @param sql the SQL statement
@@ -266,6 +255,17 @@ public class Trace {
     public void debug(String s, Throwable t) {
         if (isEnabled(TraceSystem.DEBUG)) {
             traceWriter.write(TraceSystem.DEBUG, module, s, t);
+        }
+    }
+
+    /**
+     * Write Java source code with trace level INFO to the trace system.
+     *
+     * @param java the source code
+     */
+    public void infoCode(String java) {
+        if (isEnabled(TraceSystem.INFO)) {
+            traceWriter.write(TraceSystem.INFO, module, lineSeparator + "/**/" + java, null);
         }
     }
 

@@ -293,8 +293,16 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
+int test2;
+//System.setProperty("h2.optimizeInList", "true");
 /*
 
+OPTIMIZE_IN_LIST
+
+use ... parameters (main, Message.getSQLException, trace?)
+
+H2 Console: if number of items is low (calculate that first), display data types, otherwise not.
+Always display indexes and views in all schemas.
 -------------
 
 create a short documentation

@@ -46,6 +46,7 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
                 connServer.createStatement().execute("SHUTDOWN");
                 connServer.close();
             }
+            org.h2.Driver.load();
             connServer = DriverManager.getConnection(url);
         } else {
             server.stop();

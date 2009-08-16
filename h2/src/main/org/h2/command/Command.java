@@ -213,7 +213,7 @@ public abstract class Command implements CommandInterface {
                         if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1) {
                             long now = System.currentTimeMillis();
                             if (now - start > session.getLockTimeout()) {
-                                throw e;
+                                throw Message.getSQLException(ErrorCode.LOCK_TIMEOUT_1, new String[]{""}, e);
                             }
                             try {
                                 if (sync == database) {

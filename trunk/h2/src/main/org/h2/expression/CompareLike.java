@@ -44,6 +44,7 @@ public class CompareLike extends Condition {
     private int[] types;
     private int patternLength;
     private boolean ignoreCase;
+    private boolean fastCompare;
 
     public CompareLike(CompareMode compareMode, Expression left, Expression right, Expression escape, boolean regexp) {
         this.compareMode = compareMode;
@@ -221,22 +222,20 @@ public class CompareLike extends Condition {
             // result = patternRegexp.matcher(value).matches();
             result = patternRegexp.matcher(value).find();
         } else {
-            result = compareAt(value, 0, 0, value.length());
+            result = compareAt(value, 0, 0, value.length(), pattern, types);
         }
         return ValueBoolean.get(result);
     }
 
-    private boolean compare(String s, int pi, int si) {
-        // TODO check if this is correct according to Unicode rules (code points)
-        return compareMode.equalsChars(patternString, pi, s, si, ignoreCase);
+    private boolean compare(char[] pattern, String s, int pi, int si) {
+        return pattern[pi] == s.charAt(si) || (!fastCompare && compareMode.equalsChars(patternString, pi, s, si, ignoreCase));
     }
 
-    private boolean compareAt(String s, int pi, int si, int sLen) {
+    private boolean compareAt(String s, int pi, int si, int sLen, char[] pattern, int[] types) {
         for (; pi < patternLength; pi++) {
-            int type = types[pi];
-            switch (type) {
+            switch (types[pi]) {
             case MATCH:
-                if ((si >= sLen) || !compare(s, pi, si++)) {
+                if ((si >= sLen) || !compare(pattern, s, pi, si++)) {
                     return false;
                 }
                 break;
@@ -250,14 +249,14 @@ public class CompareLike extends Condition {
                     return true;
                 }
                 while (si < sLen) {
-                    if (compare(s, pi, si) && compareAt(s, pi, si, sLen)) {
+                    if (compare(pattern, s, pi, si) && compareAt(s, pi, si, sLen, pattern, types)) {
                         return true;
                     }
                     si++;
                 }
                 return false;
             default:
-                Message.throwInternalError("type=" + type);
+                Message.throwInternalError();
             }
         }
         return si == sLen;
@@ -273,10 +272,13 @@ public class CompareLike extends Condition {
      */
     public boolean test(String testPattern, String value, char escapeChar) throws SQLException {
         initPattern(testPattern, escapeChar);
-        return compareAt(value, 0, 0, value.length());
+        return compareAt(value, 0, 0, value.length(), pattern, types);
     }
 
     private void initPattern(String p, Character escape) throws SQLException {
+        if (compareMode.getName().equals(CompareMode.OFF) && !ignoreCase) {
+            fastCompare = true;
+        }
         if (regexp) {
             patternString = p;
             try {
@@ -286,7 +288,7 @@ public class CompareLike extends Condition {
                     patternRegexp = Pattern.compile(p);
                 }
             } catch (PatternSyntaxException e) {
-                throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, new String[]{p}, e);
+                throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, e, p);
             }
             return;
         }

@@ -27,6 +27,9 @@ Change Log
     start a transaction, insert many rows, delete many rows, rollback. The number of rows depends
     on the cache size.
 </li><li>The stack trace of very common exceptions is no longer written to the .trace.db file by default.
+</li><li>An optimization for OR is implemented, but disabled by default.
+    Expressions of the type X=1 OR X=2 are converted to X IN(1, 2).
+    To enable, set the system property h2.optimizeInList to true before loading the H2 JDBC driver.
 </li><li>An optimization for IN(..) and IN(SELECT...) is implemented, but disabled by default.
     To enable, set the system property h2.optimizeInList to true before loading the H2 JDBC driver.
     If enabled, this overrides h2.optimizeIn and h2.optimizeInJoin. Unlike now, this optimization

@@ -16,6 +16,7 @@ import org.h2.index.IndexCondition;
 import org.h2.message.Message;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.ObjectArray;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
@@ -428,14 +429,35 @@ public class Comparison extends Condition {
     }
 
     /**
+     * Get the other expression if this is an equals comparison and the other
+     * expression matches.
+     *
+     * @param match the expression that should match
+     * @return null if no match, the other expression if there is a match
+     */
+    Expression getIfEquals(Expression match) {
+        if (compareType == EQUAL) {
+            String sql = match.getSQL();
+            if (left.getSQL().equals(sql)) {
+                return right;
+            } else if (right.getSQL().equals(sql)) {
+                return left;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Get an additional condition if possible. Example: given two conditions
-     * A=B and B=C, the new condition A=C is returned.
+     * A=B AND B=C, the new condition A=C is returned. Given the two conditions
+     * A=1 OR A=2, the new condition A IN(1, 2) is returned.
      *
      * @param session the session
      * @param other the second condition
+     * @param add true for AND, false for OR
      * @return null or the third condition
      */
-    Comparison getAdditional(Session session, Comparison other) {
+    Expression getAdditional(Session session, Comparison other, boolean and) {
         if (compareType == other.compareType && compareType == EQUAL) {
             boolean lc = left.isConstant(), rc = right.isConstant();
             boolean l2c = other.left.isConstant(), r2c = other.right.isConstant();
@@ -443,15 +465,30 @@ public class Comparison extends Condition {
             String l2 = other.left.getSQL();
             String r = right.getSQL();
             String r2 = other.right.getSQL();
-            // must not compare constants. example: NOT(B=2 AND B=3)
-            if (!(rc && r2c) && l.equals(l2)) {
-                return new Comparison(session, EQUAL, right, other.right);
-            } else if (!(rc && l2c) && l.equals(r2)) {
-                return new Comparison(session, EQUAL, right, other.left);
-            } else if (!(lc && r2c) && r.equals(l2)) {
-                return new Comparison(session, EQUAL, left, other.right);
-            } else if (!(lc && l2c) && r.equals(r2)) {
-                return new Comparison(session, EQUAL, left, other.left);
+            if (and) {
+                // a=b AND a=c
+                // must not compare constants. example: NOT(B=2 AND B=3)
+                if (!(rc && r2c) && l.equals(l2)) {
+                    return new Comparison(session, EQUAL, right, other.right);
+                } else if (!(rc && l2c) && l.equals(r2)) {
+                    return new Comparison(session, EQUAL, right, other.left);
+                } else if (!(lc && r2c) && r.equals(l2)) {
+                    return new Comparison(session, EQUAL, left, other.right);
+                } else if (!(lc && l2c) && r.equals(r2)) {
+                    return new Comparison(session, EQUAL, left, other.left);
+                }
+            } else {
+                // a=b OR a=c
+                Database db = session.getDatabase();
+                if (rc && r2c && l.equals(l2)) {
+                    return new ConditionIn(db, left, ObjectArray.newInstance(right, other.right));
+                } else if (rc && l2c && l.equals(r2)) {
+                    return new ConditionIn(db, left, ObjectArray.newInstance(right, other.left));
+                } else if (lc && r2c && r.equals(l2)) {
+                    return new ConditionIn(db, right, ObjectArray.newInstance(left, other.right));
+                } else if (lc && l2c && r.equals(r2)) {
+                    return new ConditionIn(db, right, ObjectArray.newInstance(left, other.left));
+                }
             }
         }
         return null;

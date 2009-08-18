@@ -126,7 +126,7 @@ public class ConditionAndOr extends Condition {
     public Expression optimize(Session session) throws SQLException {
         // TODO NULL: see wikipedia,
         // http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
-        // TODO test if all optimizations are switched off against all on
+        // TODO test all optimizations switched off against all on
         // (including performance)
         left = left.optimize(session);
         right = right.optimize(session);
@@ -142,12 +142,12 @@ public class ConditionAndOr extends Condition {
         // INSERT INTO TEST VALUES(1, NULL);
         // SELECT * FROM TEST WHERE NOT (B=A AND B=0); // no rows
         // SELECT * FROM TEST WHERE NOT (B=A AND B=0 AND A=0); // 1, NULL
-        if (SysProperties.OPTIMIZE_NOT && SysProperties.OPTIMIZE_TWO_EQUALS && andOrType == AND) {
+        if (SysProperties.OPTIMIZE_TWO_EQUALS && SysProperties.OPTIMIZE_NOT && andOrType == AND) {
             // try to add conditions (A=B AND B=1: add A=1)
             if (left instanceof Comparison && right instanceof Comparison) {
                 Comparison compLeft = (Comparison) left;
                 Comparison compRight = (Comparison) right;
-                Expression added = compLeft.getAdditional(session, compRight);
+                Expression added = compLeft.getAdditional(session, compRight, true);
                 if (added != null) {
                     added = added.optimize(session);
                     ConditionAndOr a = new ConditionAndOr(AND, this, added);
@@ -157,6 +157,27 @@ public class ConditionAndOr extends Condition {
         }
         // TODO optimization: convert ((A=1 AND B=2) OR (A=1 AND B=3)) to
         // (A=1 AND (B=2 OR B=3))
+        if (SysProperties.OPTIMIZE_OR && andOrType == OR) {
+            // try to add conditions (A=B AND B=1: add A=1)
+            if (left instanceof Comparison && right instanceof Comparison) {
+                Comparison compLeft = (Comparison) left;
+                Comparison compRight = (Comparison) right;
+                Expression added = compLeft.getAdditional(session, compRight, false);
+                if (added != null) {
+                    return added.optimize(session);
+                }
+            } else if (left instanceof ConditionIn && right instanceof Comparison) {
+                Expression added = ((ConditionIn) left).getAdditional(session, (Comparison) right);
+                if (added != null) {
+                    return added.optimize(session);
+                }
+            } else if (right instanceof ConditionIn && left instanceof Comparison) {
+                Expression added = ((ConditionIn) right).getAdditional(session, (Comparison) left);
+                if (added != null) {
+                    return added.optimize(session);
+                }
+            }
+        }
         // TODO optimization: convert .. OR .. to UNION if the cost is lower
         Value l = left.isConstant() ? left.getValue(session) : null;
         Value r = right.isConstant() ? right.getValue(session) : null;

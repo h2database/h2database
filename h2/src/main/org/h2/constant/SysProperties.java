@@ -463,16 +463,22 @@ public class SysProperties {
     public static final boolean OPTIMIZE_MIN_MAX = getBooleanSetting("h2.optimizeMinMax", true);
 
     /**
-     * System property <code>h2.optimizeSubqueryCache</code> (default: true).<br />
-     * Cache subquery results.
-     */
-    public static final boolean OPTIMIZE_SUBQUERY_CACHE = getBooleanSetting("h2.optimizeSubqueryCache", true);
-
-    /**
      * System property <code>h2.optimizeNot</code> (default: true).<br />
      * Optimize NOT conditions by removing the NOT and inverting the condition.
      */
     public static final boolean OPTIMIZE_NOT = getBooleanSetting("h2.optimizeNot", true);
+
+    /**
+     * System property <code>h2.optimizeOr</code> (default: false).<br />
+     * Convert (C=? OR C=?) to (C IN(?, ?)).
+     */
+    public static final boolean OPTIMIZE_OR = getBooleanSetting("h2.optimizeOr", false);
+
+    /**
+     * System property <code>h2.optimizeSubqueryCache</code> (default: true).<br />
+     * Cache subquery results.
+     */
+    public static final boolean OPTIMIZE_SUBQUERY_CACHE = getBooleanSetting("h2.optimizeSubqueryCache", true);
 
     /**
      * System property <code>h2.optimizeTwoEquals</code> (default: true).<br />

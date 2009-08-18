@@ -295,9 +295,14 @@ java org.h2.test.TestAll timer
 
 /*
 
-improve LIKE performance
-
 System.setProperty("h2.optimizeInList", "true");
+System.setProperty("h2.optimizeOr", "true");
+
+optimization for X IN(..) and OR:
+add more test cases, code coverage 100%
+document in optimizations.sql
+
+out of memory in tests: analyze heap dump
 
 -------------
 

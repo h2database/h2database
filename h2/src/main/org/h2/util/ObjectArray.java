@@ -9,7 +9,6 @@ package org.h2.util;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
-
 import org.h2.constant.SysProperties;
 
 /**
@@ -45,6 +44,20 @@ public class ObjectArray<T> implements Iterable<T> {
      */
     public static <T> ObjectArray<T> newInstance(int capacity) {
         return new ObjectArray<T>(CAPACITY_INIT);
+    }
+
+    /**
+     * Create a new object with the given values.
+     *
+     * @param list the initial elements
+     * @return the object
+     */
+    public static <T> ObjectArray<T> newInstance(T... list) {
+        ObjectArray<T> t = new ObjectArray<T>(CAPACITY_INIT);
+        for (T x : list) {
+            t.add(x);
+        }
+        return t;
     }
 
     /**

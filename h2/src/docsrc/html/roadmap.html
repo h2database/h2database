@@ -43,7 +43,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 <li>Improve test code coverage
 </li><li>Procedural language / script language (Java, Javascript)
 </li><li>Fulltext search: support streaming CLOB data.
-</li><li>Optimize ID=? OR ID=? to ID IN(?, ?) or UNION if the cost is lower
 </li><li>Enable warning for 'Local variable declaration hides another field or variable'.
 </li><li>Test multi-threaded in-memory db access
 </li><li>MVCC: select for update should only lock the selected rows.
@@ -442,6 +441,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MySQL compatibility: alter table add index i(c), add constraint c foreign key(c) references t(c);
 </li><li>Compatibility: use different LIKE ESCAPE characters depending on the mode (disable for Derby, HSQLDB, DB2, Oracle, MSSQLServer).
 </li><li>Oracle compatibility: support CREATE SYNONYM table FOR schema.table.
+</li><li>Optimize A=? OR B=? to UNION if the cost is lower.
 </li></ul>
 
 <h2>Not Planned</h2>

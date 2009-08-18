@@ -28,13 +28,13 @@ public class TestPgServer extends TestBase {
      *
      * @param a ignored
      */
-    public static void main(String[] a) throws Exception {
+    public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
 
     public void test() throws SQLException {
         deleteDb("test");
-        Server server = Server.createPgServer(new String[]{"-baseDir", baseDir, "-pgPort", "5535"});
+        Server server = Server.createPgServer("-baseDir", baseDir, "-pgPort", "5535");
         server.start();
         try {
             Class.forName("org.postgresql.Driver");

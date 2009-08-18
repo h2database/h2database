@@ -71,7 +71,7 @@ public class AlterSequence extends SchemaCommand {
         if (increment != null) {
             long incrementValue = increment.optimize(session).getValue(session).getLong();
             if (incrementValue == 0) {
-                throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[] { "0", "INCREMENT" });
+                throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, "0", "INCREMENT");
             }
             sequence.setIncrement(incrementValue);
         }

@@ -33,7 +33,7 @@ public class TestOptimizations extends TestBase {
      *
      * @param a ignored
      */
-    public static void main(String[] a) throws Exception {
+    public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
 
@@ -153,7 +153,7 @@ public class TestOptimizations extends TestBase {
     public static ResultSet optimizeInJoinSelect() throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("X", Types.INTEGER, 0, 0);
-        rs.addRow(new Object[]{new Integer(1)});
+        rs.addRow(1);
         return rs;
     }
 

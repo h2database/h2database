@@ -148,11 +148,11 @@ public class FtpServer extends Tool implements Service {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws SQLException {
+    public static void main(String... args) throws SQLException {
         new FtpServer().run(args);
     }
 
-    public void run(String[] args) throws SQLException {
+    public void run(String... args) throws SQLException {
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg == null) {
@@ -325,7 +325,7 @@ public class FtpServer extends Tool implements Service {
         return userName.equals(this.readUserName);
     }
 
-    public void init(String[] args) throws SQLException {
+    public void init(String... args) throws SQLException {
         for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
             if ("-ftpPort".equals(a)) {
@@ -554,7 +554,7 @@ public class FtpServer extends Tool implements Service {
      * @param args the argument list
      * @return the server
      */
-    public static Server createFtpServer(String[] args) throws SQLException {
+    public static Server createFtpServer(String... args) throws SQLException {
         return new Server(new FtpServer(), args);
     }
 

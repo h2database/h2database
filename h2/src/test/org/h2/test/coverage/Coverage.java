@@ -57,11 +57,11 @@ public class Coverage {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) {
+    public static void main(String... args) {
         new Coverage().run(args);
     }
 
-    private void run(String[] args) {
+    private void run(String... args) {
         if (args.length == 0 || args[0].equals("-?")) {
             printUsage();
             return;

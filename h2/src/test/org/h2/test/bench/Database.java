@@ -90,11 +90,11 @@ class Database {
      */
     void startServer() throws Exception {
         if (url.startsWith("jdbc:h2:tcp:")) {
-            serverH2 = Server.createTcpServer(new String[0]).start();
+            serverH2 = Server.createTcpServer().start();
             Thread.sleep(100);
         } else if (url.startsWith("jdbc:derby://")) {
             serverDerby = Class.forName("org.apache.derby.drda.NetworkServerControl").newInstance();
-            Method m = serverDerby.getClass().getMethod("start", new Class[] { PrintWriter.class });
+            Method m = serverDerby.getClass().getMethod("start", PrintWriter.class);
             m.invoke(serverDerby, new Object[] { null });
             // serverDerby = new NetworkServerControl();
             // serverDerby.start(null);
@@ -102,7 +102,7 @@ class Database {
         } else if (url.startsWith("jdbc:hsqldb:hsql:")) {
             if (!serverHSQLDB) {
                 Class< ? > c = Class.forName("org.hsqldb.Server");
-                Method m = c.getMethod("main", new Class[] { String[].class });
+                Method m = c.getMethod("main", String[].class);
                 m.invoke(null, new Object[] { new String[] { "-database.0",
                         "data/mydb;hsqldb.default_table_type=cached", "-dbname.0", "xdb" } });
                 // org.hsqldb.Server.main(new String[]{"-database.0", "mydb",
@@ -122,7 +122,7 @@ class Database {
             serverH2 = null;
         }
         if (serverDerby != null) {
-            Method m = serverDerby.getClass().getMethod("shutdown", new Class[] {});
+            Method m = serverDerby.getClass().getMethod("shutdown");
             // cast for JDK 1.5
             m.invoke(serverDerby, (Object[]) null);
             // serverDerby.shutdown();

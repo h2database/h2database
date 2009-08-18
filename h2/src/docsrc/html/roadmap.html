@@ -22,6 +22,10 @@ Of course, patches are always welcome, but are not always applied as is.
 See also <a href="build.html#providing_patches">Providing Patches</a>.
 </p>
 
+<h2>Version 1.2</h2>
+<ul><li>Enable system property h2.optimizeInList by default
+</li></ul>
+
 <h2>Priority 1</h2>
 <ul>
 <li>Bugfixes
@@ -44,7 +48,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Test multi-threaded in-memory db access
 </li><li>MVCC: select for update should only lock the selected rows.
 </li><li>Option to shutdown all the running servers (on the same VM).
-</li><li>Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX (store in data file) (probably file format changes are required for rowId)
+</li><li>[Requires page store] Index organized tables CREATE TABLE...(...) ORGANIZATION INDEX
 </li><li>[Requires page store] Better space re-use in the files after deleting data: shrink the data file without closing the database (if the end of the file is empty)
 </li><li>Full outer joins
 </li><li>Implement INSTEAD OF trigger (for views, tables, metadata tables).
@@ -55,7 +59,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Change LOB mechanism (less files, keep index of lob files, point to files and row, delete unused files earlier, maybe bundle files into a tar file)
 </li><li>Clustering: recovery needs to becomes fully automatic. Global write lock feature.
-</li><li>Support mixed clustering mode (one embedded, the other server mode)
+</li><li>Support mixed clustering mode (one embedded, others in server mode)
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE
 </li><li>Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED)
 </li><li>Groovy Stored Procedures (http://groovy.codehaus.org/Groovy+SQL)

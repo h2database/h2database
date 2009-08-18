@@ -24,7 +24,7 @@ import org.h2.test.TestBase;
  */
 public class TestDataSource extends TestBase {
 
-//     public static void main(String[] args) throws SQLException {
+//     public static void main(String... args) throws SQLException {
 //
 //     // first, need to start on the command line:
 //     // rmiregistry 1099

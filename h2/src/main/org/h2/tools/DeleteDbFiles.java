@@ -39,11 +39,11 @@ public class DeleteDbFiles extends Tool {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws SQLException {
+    public static void main(String... args) throws SQLException {
         new DeleteDbFiles().run(args);
     }
 
-    public void run(String[] args) throws SQLException {
+    public void run(String... args) throws SQLException {
         String dir = ".";
         String db = null;
         boolean quiet = false;

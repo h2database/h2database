@@ -169,8 +169,8 @@ public class TableLink extends Table {
             }
             rs.close();
         } catch (SQLException e) {
-            throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, new String[] { originalTable + "("
-                    + e.toString() + ")" }, e);
+            throw Message.getSQLException(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, e,
+                    originalTable + "(" + e.toString() + ")");
         } finally {
             JdbcUtils.closeSilently(stat);
         }
@@ -391,7 +391,7 @@ public class TableLink extends Table {
      * @return the wrapped SQL exception
      */
     public SQLException wrapException(String sql, SQLException e) {
-        return Message.getSQLException(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_2, new String[] { sql, e.toString() }, e);
+        return Message.getSQLException(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_2, e, sql, e.toString());
     }
 
     public String getQualifiedTable() {

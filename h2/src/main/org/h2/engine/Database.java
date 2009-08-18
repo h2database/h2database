@@ -681,10 +681,10 @@ public class Database implements DataHandler {
     }
 
     private void startServer(String key) throws SQLException {
-        server = Server.createTcpServer(new String[]{
+        server = Server.createTcpServer(
                 "-tcpPort", "0",
                 "-tcpAllowOthers", "true",
-                "-key", key, databaseName});
+                "-key", key, databaseName);
         server.start();
         String address = NetUtils.getLocalAddress() + ":" + server.getPort();
         lock.setProperty("server", address);
@@ -1711,7 +1711,7 @@ public class Database implements DataHandler {
             }
             if (invalid != null) {
                 obj.getSchema().add(obj);
-                throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, new String[] { obj.getSQL(), invalid });
+                throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, obj.getSQL(), invalid);
             }
             obj.removeChildrenAndResources(session);
         }
@@ -1848,8 +1848,7 @@ public class Database implements DataHandler {
                 }
                 eventListener.init(url);
             } catch (Throwable e) {
-                throw Message.getSQLException(ErrorCode.ERROR_SETTING_DATABASE_EVENT_LISTENER_2, new String[] {
-                        className, e.toString() }, e);
+                throw Message.getSQLException(ErrorCode.ERROR_SETTING_DATABASE_EVENT_LISTENER_2, e, className, e.toString());
             }
         }
     }

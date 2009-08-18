@@ -38,7 +38,7 @@ public class PropertiesToUTF8 {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         convert("bin/org/h2/res");
         convert("bin/org/h2/server/web/res");
     }

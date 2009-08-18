@@ -44,7 +44,7 @@ public class TaskProcess {
      *
      * @param args the arguments, or null
      */
-    public void start(String[] args) {
+    public void start(String... args) {
         try {
             String selfDestruct = SelfDestructor.getPropertyString(60);
             ArrayList<String> list = new ArrayList<String>();

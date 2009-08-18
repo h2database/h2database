@@ -39,7 +39,7 @@ public class WebSite {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         new WebSite().run();
     }
 
@@ -48,7 +48,7 @@ public class WebSite {
         deleteRecursive(new File(webDir));
         loadFragments();
         copy(new File(sourceDir), new File(webDir), true, true);
-        Newsfeed.main(new String[] {webDir + "/html"});
+        Newsfeed.main(webDir + "/html");
 
         // create the internal documentation
         copy(new File(sourceDir), new File(sourceDir), true, false);

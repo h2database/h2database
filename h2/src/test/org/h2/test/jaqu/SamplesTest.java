@@ -40,7 +40,7 @@ public class SamplesTest extends TestBase {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) {
+    public static void main(String... args) {
         new SamplesTest().test();
     }
 

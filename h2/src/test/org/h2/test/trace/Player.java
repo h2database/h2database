@@ -63,7 +63,7 @@ public class Player {
      *
      * @param args the arguments of the application
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String... args) throws IOException {
         new Player().run(args);
     }
 
@@ -79,7 +79,7 @@ public class Player {
         new Player().runFile(fileName, log);
     }
 
-    private void run(String[] args) throws IOException {
+    private void run(String... args) throws IOException {
         String fileName = "test.log.db";
         try {
             fileName = args[args.length - 1];

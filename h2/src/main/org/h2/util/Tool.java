@@ -40,7 +40,7 @@ public abstract class Tool {
      *
      * @param args the argument list
      */
-    public abstract void run(String[] args) throws SQLException;
+    public abstract void run(String... args) throws SQLException;
 
     /**
      * Throw a SQLException saying this command line option is not supported.

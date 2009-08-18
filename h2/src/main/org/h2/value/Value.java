@@ -772,7 +772,7 @@ public abstract class Value {
             case RESULT_SET: {
                 SimpleResultSet rs = new SimpleResultSet();
                 rs.addColumn("X", Types.VARCHAR, s.length(), 0);
-                rs.addRow(new String[]{s});
+                rs.addRow(s);
                 return ValueResultSet.get(rs);
             }
             case UUID:
@@ -781,7 +781,7 @@ public abstract class Value {
                 throw Message.throwInternalError("type=" + type);
             }
         } catch (NumberFormatException e) {
-            throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, new String[] { s }, e);
+            throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, e, s);
         }
     }
 

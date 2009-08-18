@@ -32,7 +32,7 @@ public class TestFileSystem extends TestBase {
      *
      * @param a ignored
      */
-    public static void main(String[] a) throws Exception {
+    public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
 
@@ -60,7 +60,7 @@ public class TestFileSystem extends TestBase {
         conn.createStatement().execute("CREATE TABLE TEST AS SELECT * FROM DUAL");
         conn.createStatement().execute("BACKUP TO '" + baseDir + "/fsMem.zip'");
         conn.close();
-        org.h2.tools.Restore.main(new String[]{"-file", baseDir + "/fsMem.zip", "-dir", "memFS:"});
+        org.h2.tools.Restore.main("-file", baseDir + "/fsMem.zip", "-dir", "memFS:");
         conn = DriverManager.getConnection("jdbc:h2:memFS:fsMem", "sa", "sa");
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         rs.close();

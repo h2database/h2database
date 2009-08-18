@@ -402,8 +402,8 @@ public class Function extends Expression implements FunctionCall {
             varArgs.add(param);
         } else {
             if (index >= args.length) {
-                throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[] { info.name,
-                        "" + args.length });
+                throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name,
+                        "" + args.length);
             }
             args[index] = param;
         }
@@ -988,7 +988,7 @@ public class Function extends Expression implements FunctionCall {
             try {
                 result = ValueString.get(v0.getString().replaceAll(regexp, v2.getString()));
             } catch (PatternSyntaxException e) {
-                throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, new String[]{regexp}, e);
+                throw Message.getSQLException(ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
             }
             break;
         }
@@ -1216,7 +1216,7 @@ public class Function extends Expression implements FunctionCall {
     private static int getDatePart(String part) throws SQLException {
         Integer p = DATE_PART.get(StringUtils.toUpperEnglish(part));
         if (p == null) {
-            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[] { "date part", part });
+            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, "date part", part);
         }
         return p.intValue();
     }
@@ -1553,8 +1553,7 @@ public class Function extends Expression implements FunctionCall {
         }
         boolean ok = (len >= min) && (len <= max);
         if (!ok) {
-            throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[] { info.name,
-                    min + ".." + max });
+            throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, min + ".." + max);
         }
     }
 
@@ -1575,7 +1574,7 @@ public class Function extends Expression implements FunctionCall {
             int len = args.length;
             if (len > 0 && args[len - 1] == null) {
                 throw Message
-                        .getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[] { info.name, "" + len });
+                        .getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "" + len);
             }
         }
     }

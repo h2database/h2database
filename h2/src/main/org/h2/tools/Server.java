@@ -41,7 +41,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * @param service the service
      * @param args the command line arguments
      */
-    public Server(Service service, String[] args) throws SQLException {
+    public Server(Service service, String... args) throws SQLException {
         this.service = service;
         try {
             service.init(args);
@@ -98,11 +98,11 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws SQLException {
+    public static void main(String... args) throws SQLException {
         new Server().run(args);
     }
 
-    public void run(String[] args) throws SQLException {
+    public void run(String... args) throws SQLException {
         boolean tcpStart = false, pgStart = false, webStart = false;
         boolean browserStart = false;
         boolean tcpShutdown = false, tcpShutdownForce = false;
@@ -298,7 +298,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * @param args the argument list
      * @return the server
      */
-    public static Server createWebServer(String[] args) throws SQLException {
+    public static Server createWebServer(String... args) throws SQLException {
         WebServer service = new WebServer();
         Server server = new Server(service, args);
         service.setShutdownHandler(server);
@@ -316,7 +316,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * @param args the argument list
      * @return the server
      */
-    public static Server createTcpServer(String[] args) throws SQLException {
+    public static Server createTcpServer(String... args) throws SQLException {
         return new Server(new TcpServer(), args);
     }
 
@@ -325,14 +325,13 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * Example:
      * <pre>
      * Server server =
-     *     Server.createPgServer(new String[]{
-     *         "-pgAllowOthers"}).start();
+     *     Server.createPgServer("-pgAllowOthers").start();
      * </pre>
      *
      * @param args the argument list
      * @return the server
      */
-    public static Server createPgServer(String[] args) throws SQLException {
+    public static Server createPgServer(String... args) throws SQLException {
         return new Server(new PgServer(), args);
     }
 
@@ -356,7 +355,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         if (isRunning(true)) {
             return this;
         }
-        throw Message.getSQLException(ErrorCode.EXCEPTION_OPENING_PORT_2, new String[] { name, "timeout" });
+        throw Message.getSQLException(ErrorCode.EXCEPTION_OPENING_PORT_2, name, "timeout");
     }
 
     private static void wait(int i) {

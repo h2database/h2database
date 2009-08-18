@@ -40,7 +40,7 @@ public class SecureKeyStoreBuilder {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         String password = SecureSocketFactory.KEYSTORE_PASSWORD;
         KeyStore store = SecureSocketFactory.getKeyStore(password);
         printKeystore(store, password);

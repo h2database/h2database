@@ -72,7 +72,7 @@ public class TestExit extends TestBase implements DatabaseEventListener {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws SQLException {
+    public static void main(String... args) throws SQLException {
         SelfDestructor.startCountdown(60);
         if (args.length == 0) {
             System.exit(1);

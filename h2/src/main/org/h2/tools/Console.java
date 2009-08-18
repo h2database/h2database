@@ -87,7 +87,7 @@ ShutdownHandler {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws SQLException {
+    public static void main(String... args) throws SQLException {
         new Console().run(args);
     }
 
@@ -98,7 +98,7 @@ ShutdownHandler {
      *
      * @param args the command line arguments
      */
-    public void run(String[] args) throws SQLException {
+    public void run(String... args) throws SQLException {
         isWindows = SysProperties.getStringSetting("os.name", "").startsWith("Windows");
         boolean tcpStart = false, pgStart = false, webStart = false, toolStart = false;
         boolean browserStart = false;
@@ -256,8 +256,8 @@ ShutdownHandler {
         try {
             // SystemTray.isSupported();
             Boolean supported = (Boolean) Class.forName("java.awt.SystemTray").
-                getMethod("isSupported", new Class[0]).
-                invoke(null, new Object[0]);
+                getMethod("isSupported").
+                invoke(null);
 
             if (!supported.booleanValue()) {
                 return false;
@@ -282,30 +282,30 @@ ShutdownHandler {
 
             // SystemTray tray = SystemTray.getSystemTray();
             Object tray = Class.forName("java.awt.SystemTray").
-                getMethod("getSystemTray", new Class[0]).
-                invoke(null, new Object[0]);
+                getMethod("getSystemTray").
+                invoke(null);
 
             // Dimension d = tray.getTrayIconSize();
             Dimension d = (Dimension) Class.forName("java.awt.SystemTray").
-                getMethod("getTrayIconSize", new Class[0]).
-                invoke(tray, new Object[0]);
+                getMethod("getTrayIconSize").
+                invoke(tray);
 
             Image icon = (d.width >= 24 && d.height >= 24) ? icon24 : icon16;
 
             // TrayIcon icon = new TrayIcon(image, "H2 Database Engine", menuConsole);
             Object trayIcon = Class.forName("java.awt.TrayIcon").
-                getConstructor(new Class[] { Image.class, String.class, PopupMenu.class }).
-                newInstance(new Object[] { icon, "H2 Database Engine", menuConsole });
+                getConstructor(Image.class, String.class, PopupMenu.class).
+                newInstance(icon, "H2 Database Engine", menuConsole);
 
             // trayIcon.addMouseListener(this);
             trayIcon.getClass().
-                getMethod("addMouseListener", new Class[]{MouseListener.class}).
-                invoke(trayIcon, new Object[]{this});
+                getMethod("addMouseListener", MouseListener.class).
+                invoke(trayIcon, this);
 
             // tray.add(icon);
             tray.getClass().
-                getMethod("add", new Class[] { Class.forName("java.awt.TrayIcon") }).
-                invoke(tray, new Object[] { trayIcon });
+                getMethod("add", Class.forName("java.awt.TrayIcon")).
+                invoke(tray, trayIcon);
 
             return true;
         } catch (Exception e) {

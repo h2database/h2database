@@ -117,7 +117,7 @@ public class CompressTool {
             compress.expand(in, start, in.length - start, buff, 0, len);
             return buff;
         } catch (Exception e) {
-            throw Message.getSQLException(ErrorCode.COMPRESSION_ERROR, null, e);
+            throw Message.getSQLException(ErrorCode.COMPRESSION_ERROR, e);
         }
     }
 
@@ -132,7 +132,7 @@ public class CompressTool {
             int start = 1 + getLength(len);
             compress.expand(in, start, in.length - start, out, outPos, len);
         } catch (Exception e) {
-            throw Message.getSQLException(ErrorCode.COMPRESSION_ERROR, null, e);
+            throw Message.getSQLException(ErrorCode.COMPRESSION_ERROR, e);
         }
     }
 

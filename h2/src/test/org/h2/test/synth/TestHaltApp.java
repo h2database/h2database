@@ -26,7 +26,7 @@ public class TestHaltApp extends TestHalt {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         SelfDestructor.startCountdown(60);
         baseDir = TestHalt.DIR;
         TestHaltApp app = new TestHaltApp();

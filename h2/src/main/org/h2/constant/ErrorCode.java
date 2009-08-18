@@ -1596,8 +1596,7 @@ public class ErrorCode {
      * </pre>
      * Or, when starting the server from an application, use:
      * <pre>
-     * Server server = Server.createTcpServer(new String[] {
-     *          "-tcpAllowOthers" });
+     * Server server = Server.createTcpServer("-tcpAllowOthers");
      * server.start();
      * </pre>
      */

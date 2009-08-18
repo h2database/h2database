@@ -44,8 +44,7 @@ public class TableFunction extends Function {
 
     protected void checkParameterCount(int len) throws SQLException {
         if (len < 1) {
-            throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, new String[] { getName(),
-                    ">0" });
+            throw Message.getSQLException(ErrorCode.INVALID_PARAMETER_COUNT_2, getName(), ">0");
         }
     }
 

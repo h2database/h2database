@@ -19,12 +19,12 @@ public class TestWeb extends TestBase {
      *
      * @param a ignored
      */
-    public static void main(String[] a) throws Exception {
+    public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
 
     public void test() throws Exception {
-        Server server = Server.createWebServer(new String[]{"-webPort", "8182"});
+        Server server = Server.createWebServer("-webPort", "8182");
         server.start();
         String url = server.getURL();
         WebClient client = new WebClient();

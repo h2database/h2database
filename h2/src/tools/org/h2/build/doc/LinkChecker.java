@@ -36,11 +36,11 @@ public class LinkChecker {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         new LinkChecker().run(args);
     }
 
-    private void run(String[] args) throws Exception {
+    private void run(String... args) throws Exception {
         String dir = "docs";
         for (int i = 0; i < args.length; i++) {
             if ("-dir".equals(args[i])) {

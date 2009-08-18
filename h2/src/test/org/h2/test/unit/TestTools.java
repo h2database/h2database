@@ -46,7 +46,7 @@ public class TestTools extends TestBase {
      *
      * @param a ignored
      */
-    public static void main(String[] a) throws Exception {
+    public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
 
@@ -91,24 +91,24 @@ public class TestTools extends TestBase {
         String result;
         Connection conn;
 
-        result = runServer(new String[]{"-?"}, 0);
+        result = runServer(0, new String[]{"-?"});
         assertTrue(result.indexOf("Starts the H2 Console") >= 0);
         assertTrue(result.indexOf("Unknown option") < 0);
 
-        result = runServer(new String[]{"-xy"}, 1);
+        result = runServer(1, new String[]{"-xy"});
         assertTrue(result.indexOf("Starts the H2 Console") >= 0);
         assertTrue(result.indexOf("Unsupported option") >= 0);
-        result = runServer(new String[]{"-tcp", "-tcpPort", "9001", "-tcpPassword", "abc"}, 0);
+        result = runServer(0, new String[]{"-tcp", "-tcpPort", "9001", "-tcpPassword", "abc"});
         assertTrue(result.indexOf("tcp://") >= 0);
         assertTrue(result.indexOf(":9001") >= 0);
         assertTrue(result.indexOf("only local") >= 0);
         assertTrue(result.indexOf("Starts the H2 Console") < 0);
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9001/mem:", "sa", "sa");
         conn.close();
-        result = runServer(new String[]{"-tcpShutdown", "tcp://localhost:9001", "-tcpPassword", "abc", "-tcpShutdownForce"}, 0);
+        result = runServer(0, new String[]{"-tcpShutdown", "tcp://localhost:9001", "-tcpPassword", "abc", "-tcpShutdownForce"});
         assertTrue(result.indexOf("Shutting down") >= 0);
 
-        result = runServer(new String[]{"-tcp", "-tcpAllowOthers", "-tcpPort", "9001", "-tcpPassword", "abcdef", "-tcpSSL"}, 0);
+        result = runServer(0, new String[]{"-tcp", "-tcpAllowOthers", "-tcpPort", "9001", "-tcpPassword", "abcdef", "-tcpSSL"});
         assertTrue(result.indexOf("ssl://") >= 0);
         assertTrue(result.indexOf(":9001") >= 0);
         assertTrue(result.indexOf("others can") >= 0);
@@ -116,7 +116,7 @@ public class TestTools extends TestBase {
         conn = DriverManager.getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
         conn.close();
 
-        result = runServer(new String[]{"-tcpShutdown", "ssl://localhost:9001", "-tcpPassword", "abcdef"}, 0);
+        result = runServer(0, new String[]{"-tcpShutdown", "ssl://localhost:9001", "-tcpPassword", "abcdef"});
         assertTrue(result.indexOf("Shutting down") >= 0);
         try {
             DriverManager.getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
@@ -125,10 +125,10 @@ public class TestTools extends TestBase {
             assertKnownException(e);
         }
 
-        result = runServer(new String[]{
-                "-web", "-webPort", "9002", "-webAllowOthers", "-webSSL",
-                "-pg", "-pgAllowOthers", "-pgPort", "9003",
-                "-tcp", "-tcpAllowOthers", "-tcpPort", "9006", "-tcpPassword", "abc"}, 0);
+        result = runServer(0, new String[]{
+                        "-web", "-webPort", "9002", "-webAllowOthers", "-webSSL",
+                        "-pg", "-pgAllowOthers", "-pgPort", "9003",
+                        "-tcp", "-tcpAllowOthers", "-tcpPort", "9006", "-tcpPassword", "abc"});
         Server stop = server;
         assertTrue(result.indexOf("https://") >= 0);
         assertTrue(result.indexOf(":9002") >= 0);
@@ -142,7 +142,7 @@ public class TestTools extends TestBase {
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
         conn.close();
 
-        result = runServer(new String[]{"-tcpShutdown", "tcp://localhost:9006", "-tcpPassword", "abc", "-tcpShutdownForce"}, 0);
+        result = runServer(0, new String[]{"-tcpShutdown", "tcp://localhost:9006", "-tcpPassword", "abc", "-tcpShutdownForce"});
         assertTrue(result.indexOf("Shutting down") >= 0);
         stop.shutdown();
         try {
@@ -153,7 +153,7 @@ public class TestTools extends TestBase {
         }
     }
 
-    private String runServer(String[] args, int exitCode) {
+    private String runServer(int exitCode, String... args) {
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(buff);
         server = new Server();
@@ -198,7 +198,7 @@ public class TestTools extends TestBase {
         prep.execute();
         conn.close();
 
-        ConvertTraceFile.main(new String[]{"-traceFile", baseDir + "/toolsConvertTraceFile.trace.db", "-javaClass", baseDir + "/Test", "-script", baseDir + "/test.sql"});
+        ConvertTraceFile.main("-traceFile", baseDir + "/toolsConvertTraceFile.trace.db", "-javaClass", baseDir + "/Test", "-script", baseDir + "/test.sql");
         new File(baseDir + "/Test.java").delete();
 
         File trace = new File(baseDir + "/toolsConvertTraceFile.trace.db");
@@ -207,17 +207,17 @@ public class TestTools extends TestBase {
         newTrace.delete();
         assertTrue(trace.renameTo(newTrace));
         deleteDb("toolsConvertTraceFile");
-        Player.main(new String[]{baseDir + "/test.trace.db"});
+        Player.main(baseDir + "/test.trace.db");
         testTraceFile(url);
 
         deleteDb("toolsConvertTraceFile");
-        RunScript.main(new String[]{"-url", url, "-user", "sa", "-script", baseDir + "/test.sql"});
+        RunScript.main("-url", url, "-user", "sa", "-script", baseDir + "/test.sql");
         testTraceFile(url);
     }
 
     private void testTraceFile(String url) throws SQLException {
         Connection conn;
-        Recover.main(new String[]{"-removePassword", "-dir", baseDir, "-db", "toolsConvertTraceFile"});
+        Recover.main("-removePassword", "-dir", baseDir, "-db", "toolsConvertTraceFile");
         conn = DriverManager.getConnection(url, "sa", "");
         Statement stat = conn.createStatement();
         ResultSet rs;
@@ -257,7 +257,7 @@ public class TestTools extends TestBase {
                 FileUtils.delete(fileName);
             }
         }
-        Recover.main(new String[]{"-dir", baseDir, "-db", "toolsRemove", "-removePassword"});
+        Recover.main("-dir", baseDir, "-db", "toolsRemove", "-removePassword");
         conn = DriverManager.getConnection(url, "sa", "");
         stat = conn.createStatement();
         ResultSet rs;
@@ -285,7 +285,7 @@ public class TestTools extends TestBase {
         String s1 = rs.getString(4);
 
         conn.close();
-        Recover.main(new String[]{"-dir", baseDir, "-db", "toolsRecover"});
+        Recover.main("-dir", baseDir, "-db", "toolsRecover");
 
         // deleteDb would delete the .lob.db directory as well
         // deleteDb("toolsRecover");
@@ -319,9 +319,9 @@ public class TestTools extends TestBase {
     private void testManagementDb() throws SQLException {
         int count = getSize(2, 10);
         for (int i = 0; i < count; i++) {
-            Server server = Server.createTcpServer(new String[] {"-tcpPort", "9192"}).start();
+            Server server = Server.createTcpServer("-tcpPort", "9192").start();
             server.stop();
-            server = Server.createTcpServer(new String[] { "-tcpPassword", "abc", "-tcpPort", "9192" }).start();
+            server = Server.createTcpServer("-tcpPassword", "abc", "-tcpPort", "9192").start();
             server.stop();
         }
     }
@@ -371,9 +371,9 @@ public class TestTools extends TestBase {
             assertFalse(rs.next());
 
             conn.close();
-            Script.main(new String[] { "-url", url, "-user", user, "-password", password, "-script", fileName});
-            DeleteDbFiles.main(new String[] { "-dir", baseDir, "-db", "utils", "-quiet" });
-            RunScript.main(new String[] { "-url", url, "-user", user, "-password", password, "-script", fileName});
+            Script.main("-url", url, "-user", user, "-password", password, "-script", fileName);
+            DeleteDbFiles.main("-dir", baseDir, "-db", "utils", "-quiet");
+            RunScript.main("-url", url, "-user", user, "-password", password, "-script", fileName);
             conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/utils", "sa", "abc");
         }
         conn.close();
@@ -389,11 +389,11 @@ public class TestTools extends TestBase {
         conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         conn.createStatement().execute("INSERT INTO TEST VALUES(1, 'Hello')");
         conn.close();
-        Script.main(new String[] { "-url", url, "-user", user, "-password", password, "-script", fileName, "-options",
-                "nodata", "compression", "lzf", "cipher", "xtea", "password", "'123'" });
-        DeleteDbFiles.main(new String[] { "-dir", baseDir, "-db", "utils", "-quiet" });
-        RunScript.main(new String[] { "-url", url, "-user", user, "-password", password, "-script", fileName,
-                "-options", "compression", "lzf", "cipher", "xtea", "password", "'123'" });
+        Script.main("-url", url, "-user", user, "-password", password, "-script", fileName, "-options",
+                "nodata", "compression", "lzf", "cipher", "xtea", "password", "'123'");
+        DeleteDbFiles.main("-dir", baseDir, "-db", "utils", "-quiet");
+        RunScript.main("-url", url, "-user", user, "-password", password, "-script", fileName,
+                "-options", "compression", "lzf", "cipher", "xtea", "password", "'123'");
         conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/utils", "sa", "abc");
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         assertFalse(rs.next());
@@ -405,20 +405,20 @@ public class TestTools extends TestBase {
         String url = "jdbc:h2:" + baseDir + "/utils";
         String user = "sa", password = "abc";
         String fileName = baseDir + "/b2.zip";
-        DeleteDbFiles.main(new String[] { "-dir", baseDir, "-db", "utils", "-quiet" });
+        DeleteDbFiles.main("-dir", baseDir, "-db", "utils", "-quiet");
         Connection conn = DriverManager.getConnection(url, user, password);
         conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         conn.createStatement().execute("INSERT INTO TEST VALUES(1, 'Hello')");
         conn.close();
-        Backup.main(new String[] { "-file", fileName, "-dir", baseDir, "-db", "utils", "-quiet" });
-        DeleteDbFiles.main(new String[] { "-dir", baseDir, "-db", "utils", "-quiet" });
-        Restore.main(new String[] { "-file", fileName, "-dir", baseDir, "-db", "utils", "-quiet" });
+        Backup.main("-file", fileName, "-dir", baseDir, "-db", "utils", "-quiet");
+        DeleteDbFiles.main("-dir", baseDir, "-db", "utils", "-quiet");
+        Restore.main("-file", fileName, "-dir", baseDir, "-db", "utils", "-quiet");
         conn = DriverManager.getConnection("jdbc:h2:" + baseDir + "/utils", "sa", "abc");
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         assertTrue(rs.next());
         assertFalse(rs.next());
         conn.close();
-        DeleteDbFiles.main(new String[] { "-dir", baseDir, "-db", "utils", "-quiet" });
+        DeleteDbFiles.main("-dir", baseDir, "-db", "utils", "-quiet");
     }
 
     private void testChangeFileEncryption() throws SQLException {
@@ -444,19 +444,17 @@ public class TestTools extends TestBase {
         Connection conn;
         deleteDb("test");
         Server server = Server.createTcpServer(
-                new String[] {
                         "-baseDir", baseDir,
                         "-tcpPort", "9192",
-                        "-tcpAllowOthers" }).start();
+                        "-tcpAllowOthers").start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         conn.close();
         server.stop();
         Server.createTcpServer(
-                new String[] {
                         "-ifExists",
                         "-tcpPassword", "abc",
                         "-baseDir", baseDir,
-                        "-tcpPort", "9192" }).start();
+                        "-tcpPort", "9192").start();
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
             fail("should not be able to create new db");

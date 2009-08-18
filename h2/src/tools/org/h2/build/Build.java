@@ -27,7 +27,7 @@ public class Build extends BuildBase {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String... args) {
         new Build().run(args);
     }
 
@@ -119,9 +119,9 @@ public class Build extends BuildBase {
         try {
             String version = System.getProperty("version");
             if (version == null) {
-                SwitchSource.main(new String[] { "-dir", "src", "-auto" });
+                SwitchSource.main("-dir", "src", "-auto");
             } else {
-                SwitchSource.main(new String[] { "-dir", "src", "-version", version });
+                SwitchSource.main("-dir", "src", "-version", version);
             }
         } catch (IOException e) {
             throw new Error(e);
@@ -373,9 +373,9 @@ public class Build extends BuildBase {
         mkdir("docs/javadoc");
         javadoc("-sourcepath", "src/main", "org.h2.jdbc", "org.h2.jdbcx",
                 "org.h2.tools", "org.h2.api", "org.h2.constant", "org.h2.fulltext",
-                "-doclet", "org.h2.build.doclet.Doclet",
-                "-classpath",
-                "ext/lucene-core-2.2.0.jar");
+                "-classpath", "ext/lucene-core-2.2.0.jar",
+                "-docletpath", "bin" + File.pathSeparator + "temp",
+                "-doclet", "org.h2.build.doclet.Doclet");
         copy("docs/javadoc", files("src/docsrc/javadoc"), "src/docsrc/javadoc");
     }
 
@@ -397,7 +397,6 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.core-1.2.0.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu");
-
         System.setProperty("h2.interfacesOnly", "false");
         System.setProperty("h2.destDir", "docs/javadocImpl");
         javadoc("-sourcepath", "src/main" + File.pathSeparator + "src/test" + File.pathSeparator + "src/tools",
@@ -409,6 +408,7 @@ public class Build extends BuildBase {
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu",
                 "-package",
+                "-docletpath", "bin" + File.pathSeparator + "temp",
                 "-doclet", "org.h2.build.doclet.Doclet");
         copy("docs/javadocImpl", files("src/docsrc/javadoc"), "src/docsrc/javadoc");
     }
@@ -470,6 +470,7 @@ public class Build extends BuildBase {
         if (!clientOnly) {
             java("org.h2.build.doc.GenerateHelp", null);
             javadoc("-sourcepath", "src/main", "org.h2.tools",
+                    "-docletpath", "bin" + File.pathSeparator + "temp",
                     "-doclet", "org.h2.build.doclet.ResourceDoclet");
         }
         FileList files = files("src/main").

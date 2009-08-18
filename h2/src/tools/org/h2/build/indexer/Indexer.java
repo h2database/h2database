@@ -56,11 +56,11 @@ public class Indexer {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         new Indexer().run(args);
     }
 
-    private void run(String[] args) throws Exception {
+    private void run(String... args) throws Exception {
         String dir = "docs";
         String destDir = "docs/html";
         for (int i = 0; i < args.length; i++) {
@@ -71,11 +71,11 @@ public class Indexer {
             }
         }
         File file = new File(dir);
-        setNoIndex(new String[] { "index.html", "html/header.html", "html/search.html", "html/frame.html",
+        setNoIndex("index.html", "html/header.html", "html/search.html", "html/frame.html",
                 "html/sourceError.html", "html/source.html", "html/mainWeb.html",
                 "javadoc/index.html", "javadoc/classes.html", "javadoc/allclasses-frame.html",
                 "javadoc/allclasses-noframe.html", "javadoc/constant-values.html", "javadoc/overview-frame.html",
-                "javadoc/overview-summary.html", "javadoc/serialized-form.html" });
+                "javadoc/overview-summary.html", "javadoc/serialized-form.html");
         output = new PrintWriter(new FileWriter(destDir + "/index.js"));
         readPages("", file, 0);
         output.println("var pages=new Array();");
@@ -91,7 +91,7 @@ public class Indexer {
         output.close();
     }
 
-    private void setNoIndex(String[] strings) {
+    private void setNoIndex(String... strings) {
         for (String s : strings) {
             noIndex.add(s);
         }

@@ -37,7 +37,7 @@ public class ShowProgress implements DatabaseEventListener {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         new ShowProgress().test();
     }
 

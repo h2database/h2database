@@ -74,8 +74,9 @@ public class TcpServerThread implements Runnable {
                     // version 6 and newer: read max version (currently not used)
                     transfer.readInt();
                 } else if (clientVersion != Constants.TCP_PROTOCOL_VERSION_5) {
-                    throw Message.getSQLException(ErrorCode.DRIVER_VERSION_ERROR_2, new String[] { "" + clientVersion,
-                            "" + Constants.TCP_PROTOCOL_VERSION_5 });
+                    throw Message.getSQLException(ErrorCode.DRIVER_VERSION_ERROR_2,
+                            "" + clientVersion,
+                            "" + Constants.TCP_PROTOCOL_VERSION_5);
                 }
                 String db = transfer.readString();
                 String originalURL = transfer.readString();

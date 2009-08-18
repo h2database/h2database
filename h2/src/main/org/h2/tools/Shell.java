@@ -65,7 +65,7 @@ public class Shell extends Tool {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws SQLException {
+    public static void main(String... args) throws SQLException {
         new Shell().run(args);
     }
 
@@ -101,7 +101,7 @@ public class Shell extends Tool {
      *
      * @param args the command line settings
      */
-    public void run(String[] args) throws SQLException {
+    public void run(String... args) throws SQLException {
         String url = null;
         String user = "";
         String password = "";
@@ -348,11 +348,11 @@ public class Shell extends Tool {
 
     private String readPassword() throws IOException {
         try {
-            Method getConsole = System.class.getMethod("console", new Class[0]);
-            Object console = getConsole.invoke(null, (Object[]) null);
-            Method readPassword = console.getClass().getMethod("readPassword", new Class[0]);
+            Method getConsole = System.class.getMethod("console");
+            Object console = getConsole.invoke(null);
+            Method readPassword = console.getClass().getMethod("readPassword");
             print("Password  ");
-            char[] password = (char[]) readPassword.invoke(console, (Object[]) null);
+            char[] password = (char[]) readPassword.invoke(console);
             return password == null ? null : new String(password);
         } catch (Exception e) {
             // ignore, use the default solution

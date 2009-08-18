@@ -194,7 +194,7 @@ public class TraceSystem implements TraceWriter {
             try {
                 writer = (TraceWriter) ClassUtils.loadSystemClass(adapterClass).newInstance();
             } catch (Throwable e) {
-                e = Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { adapterClass }, e);
+                e = Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, e, adapterClass);
                 write(ERROR, Trace.DATABASE, adapterClass, e);
                 return;
             }
@@ -284,8 +284,7 @@ public class TraceSystem implements TraceWriter {
             return;
         }
         writingErrorLogged = true;
-        SQLException se = Message.getSQLException(ErrorCode.TRACE_FILE_ERROR_2, new String[] { fileName, e.toString() },
-                e);
+        SQLException se = Message.getSQLException(ErrorCode.TRACE_FILE_ERROR_2, e, fileName, e.toString());
         // print this error only once
         fileName = null;
         System.out.println(se);

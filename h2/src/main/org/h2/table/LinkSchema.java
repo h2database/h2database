@@ -74,7 +74,7 @@ public class LinkSchema {
                     append(StringUtils.quoteStringSQL(table)).
                     append(')');
                 stat.execute(buff.toString());
-                result.addRow(new String[] { table });
+                result.addRow(table);
             }
         } finally {
             JdbcUtils.closeSilently(rs);

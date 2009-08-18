@@ -86,11 +86,11 @@ public class Test {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         new Test().test(args);
     }
 
-    private void test(String[] args) throws Exception {
+    private void test(String... args) throws Exception {
         int port = 9099;
         String connect = "192.168.0.3";
         boolean file = false;

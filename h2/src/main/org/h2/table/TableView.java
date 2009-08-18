@@ -256,7 +256,7 @@ public class TableView extends Table {
     public Index getScanIndex(Session session) throws SQLException {
         if (createException != null) {
             String msg = createException.getMessage();
-            throw Message.getSQLException(ErrorCode.VIEW_IS_INVALID_2, new String[] { getSQL(), msg }, createException);
+            throw Message.getSQLException(ErrorCode.VIEW_IS_INVALID_2, createException, getSQL(), msg);
         }
         PlanItem item = getBestPlanItem(session, null);
         return item.getIndex();

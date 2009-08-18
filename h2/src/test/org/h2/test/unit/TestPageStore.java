@@ -26,7 +26,7 @@ public class TestPageStore extends TestBase {
      *
      * @param a ignored
      */
-    public static void main(String[] a) throws Exception {
+    public static void main(String... a) throws Exception {
         System.setProperty("h2.pageStore", "true");
         TestBase.createCaller().init().test();
     }

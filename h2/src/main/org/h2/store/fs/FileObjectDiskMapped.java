@@ -50,11 +50,11 @@ public class FileObjectDiskMapped implements FileObject {
             if (SysProperties.NIO_CLEANER_HACK) {
                 try {
                     useSystemGc = false;
-                    Method cleanerMethod = mapped.getClass().getMethod("cleaner", new Class[0]);
+                    Method cleanerMethod = mapped.getClass().getMethod("cleaner");
                     cleanerMethod.setAccessible(true);
-                    Object cleaner = cleanerMethod.invoke(mapped, new Object[0]);
-                    Method clearMethod = cleaner.getClass().getMethod("clear", new Class[0]);
-                    clearMethod.invoke(cleaner, new Object[0]);
+                    Object cleaner = cleanerMethod.invoke(mapped);
+                    Method clearMethod = cleaner.getClass().getMethod("clear");
+                    clearMethod.invoke(cleaner);
                 } catch (Throwable e) {
                     useSystemGc = true;
                 }

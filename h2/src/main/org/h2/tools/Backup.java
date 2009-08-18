@@ -46,11 +46,11 @@ public class Backup extends Tool {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws SQLException {
+    public static void main(String... args) throws SQLException {
         new Backup().run(args);
     }
 
-    public void run(String[] args) throws SQLException {
+    public void run(String... args) throws SQLException {
         String zipFileName = "backup.zip";
         String dir = ".";
         String db = null;

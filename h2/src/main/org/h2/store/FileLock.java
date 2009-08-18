@@ -449,7 +449,7 @@ public class FileLock {
     }
 
     private SQLException getExceptionFatal(String reason, Throwable t) {
-        return Message.getSQLException(ErrorCode.ERROR_OPENING_DATABASE_1, new String[]{reason}, t);
+        return Message.getSQLException(ErrorCode.ERROR_OPENING_DATABASE_1, t, reason);
     }
 
     private SQLException getExceptionAlreadyInUse(String reason) {

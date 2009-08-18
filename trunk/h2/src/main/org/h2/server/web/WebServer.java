@@ -216,7 +216,7 @@ public class WebServer implements Service {
         return startDateTime;
     }
 
-    public void init(String[] args) {
+    public void init(String... args) {
         // TODO web: support using a different properties file
         Properties prop = loadProperties();
         port = SortedProperties.getIntProperty(prop, "webPort", Constants.DEFAULT_HTTP_PORT);

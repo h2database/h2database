@@ -63,13 +63,13 @@ public class SelfDestructor extends Thread {
                         } catch (Exception e) {
                             // ignore
                         }
-                        Method stop = Thread.class.getMethod("stop", new Class[]{Throwable.class});
+                        Method stop = Thread.class.getMethod("stop", Throwable.class);
                         for (int i = 0; i < len; i++) {
                             Thread t = threads[i];
                             String threadName = "Thread #" + i + ": " + t.getName();
                             Error e = new Error(threadName);
                             if (t != Thread.currentThread()) {
-                                stop.invoke(t, new Object[]{e});
+                                stop.invoke(t, e);
                                 t.interrupt();
                             }
                         }

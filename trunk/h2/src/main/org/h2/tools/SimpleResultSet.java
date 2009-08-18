@@ -47,8 +47,8 @@ import java.sql.SQLXML;
  * SimpleResultSet rs = new SimpleResultSet();
  * rs.addColumn(&quot;ID&quot;, Types.INTEGER, 10, 0);
  * rs.addColumn(&quot;NAME&quot;, Types.VARCHAR, 255, 0);
- * rs.addRow(new Object[] { new Integer(0), &quot;Hello&quot; });
- * rs.addRow(new Object[] { new Integer(1), &quot;World&quot; });
+ * rs.addRow(0, &quot;Hello&quot; });
+ * rs.addRow(1, &quot;World&quot; });
  * </pre>
  *
  */
@@ -249,7 +249,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      *
      * @param row the row as an array of objects
      */
-    public void addRow(Object[] row) throws SQLException {
+    public void addRow(Object... row) throws SQLException {
         if (rows == null) {
             throw new SQLException("Cannot add a row when using RowSource", "21S02");
         }

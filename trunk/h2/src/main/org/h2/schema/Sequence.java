@@ -52,7 +52,7 @@ public class Sequence extends SchemaObjectBase {
 
     public void setIncrement(long inc) throws SQLException {
         if (inc == 0) {
-            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, new String[] { "0", "INCREMENT" }, null);
+            throw Message.getSQLException(ErrorCode.INVALID_VALUE_2, "0", "INCREMENT");
         }
         this.increment = inc;
     }

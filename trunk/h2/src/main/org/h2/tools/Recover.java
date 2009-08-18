@@ -100,7 +100,7 @@ public class Recover extends Tool implements DataHandler {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws SQLException {
+    public static void main(String... args) throws SQLException {
         new Recover().run(args);
     }
 
@@ -115,7 +115,7 @@ public class Recover extends Tool implements DataHandler {
      *
      * @param args the command line arguments
      */
-    public void run(String[] args) throws SQLException {
+    public void run(String... args) throws SQLException {
         String dir = ".";
         String db = null;
         for (int i = 0; args != null && i < args.length; i++) {

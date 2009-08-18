@@ -59,6 +59,7 @@ public class IndexCursor implements Cursor {
     /**
      * Re-evaluate the start and end values of the index search for rows.
      *
+     * @param session the session
      * @param indexConditions the index conditions
      */
     public void find(Session session, ObjectArray<IndexCondition> indexConditions) throws SQLException {

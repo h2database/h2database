@@ -299,7 +299,7 @@ public class Column {
                     s = s.substring(0, 128) + "...";
                 }
                 throw Message.getSQLException(ErrorCode.VALUE_TOO_LONG_2,
-                        new String[] { getCreateSQL(), s + " (" + value.getPrecision() + ")" });
+                        getCreateSQL(), s + " (" + value.getPrecision() + ")");
             }
         }
         updateSequenceIfRequired(session, value);

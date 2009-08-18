@@ -28,7 +28,7 @@ public class Function {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
         Statement stat = conn.createStatement();
@@ -103,7 +103,7 @@ public class Function {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("ID", Types.INTEGER, 10, 0);
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);
-        rs.addRow(new Object[] { new Integer(0), "Hello" });
+        rs.addRow(0, "Hello");
         return rs;
     }
 
@@ -125,8 +125,7 @@ public class Function {
         }
         for (int s = size.intValue(), x = 0; x < s; x++) {
             for (int y = 0; y < s; y++) {
-                rs.addRow(new Object[] {
-                        new Integer(x), new Integer(y) });
+                rs.addRow(x, y);
             }
         }
         return rs;

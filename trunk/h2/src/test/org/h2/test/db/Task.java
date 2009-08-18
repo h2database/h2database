@@ -22,7 +22,7 @@ public abstract class Task {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String... args) {
         SelfDestructor.startCountdown(60);
         Task task;
         try {
@@ -49,7 +49,7 @@ public abstract class Task {
      *
      * @param args the command line arguments
      */
-    abstract void run(String[] args) throws Exception;
+    abstract void run(String... args) throws Exception;
 
     /**
      * Receive a message from the process over the standard output.

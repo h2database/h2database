@@ -31,7 +31,7 @@ public class TestWrite {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         testFile("rw", false);
         testFile("rwd", false);
         testFile("rws", false);

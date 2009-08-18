@@ -30,7 +30,7 @@ public class FunctionMultiReturn {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
         Statement stat = conn.createStatement();
@@ -97,7 +97,7 @@ public class FunctionMultiReturn {
         if (r != null && alpha != null) {
             double x = r.doubleValue() * Math.cos(alpha.doubleValue());
             double y = r.doubleValue() * Math.sin(alpha.doubleValue());
-            rs.addRow(new Object[] { new Double(x), new Double(y) });
+            rs.addRow(x, y);
         }
         return rs;
     }
@@ -139,7 +139,7 @@ public class FunctionMultiReturn {
                 double alpha = rs.getDouble("A");
                 double x = r * Math.cos(alpha);
                 double y = r * Math.sin(alpha);
-                result.addRow(new Object[] { new Double(r), new Double(alpha), new Double(x), new Double(y) });
+                result.addRow(r, alpha, x, y);
             }
         }
         return result;

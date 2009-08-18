@@ -18,7 +18,7 @@ public class ThreadDumpFilter {
      * Usage: java ThreadDumpFilter <log.txt >threadDump.txt
      * @param a ignored
      */
-    public static void main(String[] a) throws Exception {
+    public static void main(String... a) throws Exception {
         LineNumberReader in = new LineNumberReader(new InputStreamReader(System.in));
         for (String s; (s = in.readLine()) != null;) {
             if (s.startsWith("Full thread")) {

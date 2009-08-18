@@ -106,9 +106,9 @@ public class RandomUtils {
 
             // nanoseconds if available
             try {
-                Method m = System.class.getMethod("nanoTime", new Class[0]);
+                Method m = System.class.getMethod("nanoTime");
                 if (m != null) {
-                    Object o = m.invoke(null, (java.lang.Object[]) null);
+                    Object o = m.invoke(null);
                     out.writeUTF(o.toString());
                 }
             } catch (Exception e) {
@@ -133,17 +133,13 @@ public class RandomUtils {
             try {
                 // workaround for the Google App Engine: don't use InetAddress
                 Class< ? > inetAddressClass = Class.forName("java.net.InetAddress");
-                Object localHost = inetAddressClass.getMethod(
-                        "getLocalHost", new Class[0]).invoke(null, new Object[0]);
-                String hostName = inetAddressClass.getMethod(
-                        "getHostName", new Class[0]).invoke(localHost, new Object[0]).toString();
+                Object localHost = inetAddressClass.getMethod("getLocalHost").invoke(null);
+                String hostName = inetAddressClass.getMethod("getHostName").invoke(localHost).toString();
                 out.writeUTF(hostName);
-                Object[] list = (Object[]) inetAddressClass.getMethod(
-                        "getAllByName", new Class[] { String.class })
-                        .invoke(null, new Object[] { hostName });
-                Method getAddress = inetAddressClass.getMethod("getAddress", new Class[0]);
+                Object[] list = (Object[]) inetAddressClass.getMethod("getAllByName", String.class).invoke(null, hostName);
+                Method getAddress = inetAddressClass.getMethod("getAddress");
                 for (Object o : list) {
-                    out.write((byte[]) getAddress.invoke(o, new Object[0]));
+                    out.write((byte[]) getAddress.invoke(o));
                 }
             } catch (Throwable e) {
                 // on some system, InetAddress is not supported

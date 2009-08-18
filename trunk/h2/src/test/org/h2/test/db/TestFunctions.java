@@ -42,7 +42,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      *
      * @param a ignored
      */
-    public static void main(String[] a) throws Exception {
+    public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
 
@@ -544,10 +544,10 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 throw new Error("params not 1/true");
             }
             if (count.intValue() >= 1) {
-                rs.addRow(new Object[] { new Integer(0), "Hello" });
+                rs.addRow(0, "Hello");
             }
             if (count.intValue() >= 2) {
-                rs.addRow(new Object[] { new Integer(1), "World" });
+                rs.addRow(1, "World");
             }
         }
         return rs;

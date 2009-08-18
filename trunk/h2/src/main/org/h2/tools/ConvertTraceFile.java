@@ -72,11 +72,11 @@ public class ConvertTraceFile extends Tool {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws SQLException {
+    public static void main(String... args) throws SQLException {
         new ConvertTraceFile().run(args);
     }
 
-    public void run(String[] args) throws SQLException {
+    public void run(String... args) throws SQLException {
         String traceFile = "test.trace.db";
         String javaClass = "Test";
         String script = "test.sql";
@@ -123,7 +123,7 @@ public class ConvertTraceFile extends Tool {
             cn = cn.substring(idx + 1);
         }
         javaWriter.println("public class " + cn + " {");
-        javaWriter.println("    public static void main(String[] args) throws Exception {");
+        javaWriter.println("    public static void main(String... args) throws Exception {");
         javaWriter.println("        Class.forName(\"org.h2.Driver\");");
         while (true) {
             String line = reader.readLine();

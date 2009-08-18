@@ -49,16 +49,16 @@ public class StartBrowser {
                 Class< ? > desktopClass = Class.forName("java.awt.Desktop");
                 // Desktop.isDesktopSupported()
                 Boolean supported = (Boolean) desktopClass.
-                    getMethod("isDesktopSupported", new Class[0]).
+                    getMethod("isDesktopSupported").
                     invoke(null, new Object[0]);
                 URI uri = new URI(url);
                 if (supported.booleanValue()) {
                     // Desktop.getDesktop();
-                    Object desktop = desktopClass.getMethod("getDesktop", new Class[0]).
+                    Object desktop = desktopClass.getMethod("getDesktop").
                         invoke(null, new Object[0]);
                     // desktop.browse(uri);
-                    desktopClass.getMethod("browse", new Class[] { URI.class }).
-                        invoke(desktop, new Object[] { uri });
+                    desktopClass.getMethod("browse", URI.class).
+                        invoke(desktop, uri);
                     return;
                 }
             } catch (Exception e) {

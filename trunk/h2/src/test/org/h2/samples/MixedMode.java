@@ -25,10 +25,10 @@ public class MixedMode {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
 
         // start the server, allows to access the database remotely
-        Server server = Server.createTcpServer(new String[] { "-tcpPort", "9081" });
+        Server server = Server.createTcpServer("-tcpPort", "9081");
         server.start();
         System.out.println("You can access the database remotely now, using the URL:");
         System.out.println("jdbc:h2:tcp://localhost:9081/~/test (user: sa, password: sa)");

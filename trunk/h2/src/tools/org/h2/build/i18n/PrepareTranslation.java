@@ -50,7 +50,7 @@ public class PrepareTranslation {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         new PrepareTranslation().run();
     }
 

@@ -30,11 +30,11 @@ public class PgTcpRedirect {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         new PgTcpRedirect().loop(args);
     }
 
-    private void loop(String[] args) throws Exception {
+    private void loop(String... args) throws Exception {
         // MySQL protocol:
         // http://www.redferni.uklinux.net/mysql/MySQL-Protocol.html
         // PostgreSQL protocol:

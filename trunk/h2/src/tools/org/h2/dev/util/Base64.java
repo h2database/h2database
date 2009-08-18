@@ -49,7 +49,7 @@ public class Base64 {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) {
+    public static void main(String... args) {
         check(new String(encode(new byte[] {})), "");
         check(new String(encode("A".getBytes())), "QQ==");
         check(new String(encode("AB".getBytes())), "QUI=");

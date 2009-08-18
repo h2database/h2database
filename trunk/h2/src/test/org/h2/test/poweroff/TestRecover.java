@@ -63,7 +63,7 @@ public class TestRecover {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         new TestRecover().runTest();
     }
 

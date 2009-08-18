@@ -46,7 +46,7 @@ public class SpellChecker {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String... args) throws IOException {
         String dir = "src";
         new SpellChecker().run("tools/org/h2/build/doc/dictionary.txt", dir);
     }

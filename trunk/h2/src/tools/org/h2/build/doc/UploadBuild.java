@@ -42,7 +42,7 @@ public class UploadBuild {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         byte[] data = IOUtils.readBytesAndClose(new FileInputStream("coverage/index.html"), -1);
         String index = new String(data, "ISO-8859-1");
         while (true) {

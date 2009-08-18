@@ -1544,8 +1544,8 @@ public static ResultSet simpleResultSet() throws SQLException {
     SimpleResultSet rs = new SimpleResultSet();
     rs.addColumn("ID", Types.INTEGER, 10, 0);
     rs.addColumn("NAME", Types.VARCHAR, 255, 0);
-    rs.addRow(new Object[] { new Integer(0), "Hello" });
-    rs.addRow(new Object[] { new Integer(1), "World" });
+    rs.addRow(0, "Hello");
+    rs.addRow(1, "World");
     return rs;
 }
 
@@ -1576,8 +1576,7 @@ public static ResultSet getMatrix(Connection conn, Integer size)
     }
     for (int s = size.intValue(), x = 0; x &lt; s; x++) {
         for (int y = 0; y &lt; s; y++) {
-            rs.addRow(new Object[] {
-                    new Integer(x), new Integer(y) });
+            rs.addRow(x, y);
         }
     }
     return rs;

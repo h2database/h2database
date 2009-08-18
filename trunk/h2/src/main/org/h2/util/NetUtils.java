@@ -159,7 +159,7 @@ public class NetUtils {
             return new ServerSocket(port, 0, bindAddress);
         } catch (BindException be) {
             throw Message.getSQLException(ErrorCode.EXCEPTION_OPENING_PORT_2,
-                    new String[] { "" + port, be.toString() }, be);
+                    be, "" + port, be.toString());
         } catch (IOException e) {
             throw Message.convertIOException(e, "port: " + port + " ssl: " + ssl);
         }

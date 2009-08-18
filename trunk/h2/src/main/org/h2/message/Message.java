@@ -75,7 +75,7 @@ public class Message {
         return getSQLException(errorCode, new String[] { p1 });
     }
 
-    private static String translate(String key, String[] param) {
+    private static String translate(String key, String... param) {
         String message = null;
         if (MESSAGES != null) {
             // Tomcat sets final static fields to null sometimes
@@ -95,11 +95,11 @@ public class Message {
      * Gets the SQL exception object for a specific error code.
      *
      * @param errorCode the error code
-     * @param params the list of parameters of the message
      * @param cause the cause of the exception
+     * @param params the list of parameters of the message
      * @return the SQLException object
      */
-    public static JdbcSQLException getSQLException(int errorCode, String[] params, Throwable cause) {
+    public static JdbcSQLException getSQLException(int errorCode, Throwable cause, String... params) {
         String sqlstate = ErrorCode.getState(errorCode);
         String message = translate(sqlstate, params);
         return new JdbcSQLException(message, null, sqlstate, errorCode, cause, null);
@@ -112,8 +112,8 @@ public class Message {
      * @param params the list of parameters of the message
      * @return the SQLException object
      */
-    public static JdbcSQLException getSQLException(int errorCode, String[] params) {
-        return getSQLException(errorCode, params, null);
+    public static JdbcSQLException getSQLException(int errorCode, String... params) {
+        return getSQLException(errorCode, null, params);
     }
 
     /**
@@ -138,7 +138,7 @@ public class Message {
      */
     public static SQLException getSyntaxError(String sql, int index, String expected) {
         sql = StringUtils.addAsterisk(sql, index);
-        return getSQLException(ErrorCode.SYNTAX_ERROR_2, new String[] { sql, expected });
+        return getSQLException(ErrorCode.SYNTAX_ERROR_2, sql, expected);
     }
 
     /**
@@ -169,7 +169,7 @@ public class Message {
      * @return the SQLException object
      */
     public static JdbcSQLException getInvalidValueException(String value, String param) {
-        return getSQLException(ErrorCode.INVALID_VALUE_2, new String[] { value, param });
+        return getSQLException(ErrorCode.INVALID_VALUE_2, value, param);
     }
 
     /**
@@ -260,18 +260,18 @@ public class Message {
         if (e instanceof SQLException) {
             return (SQLException) e;
         } else if (e instanceof OutOfMemoryError) {
-            return getSQLException(ErrorCode.OUT_OF_MEMORY, null, e);
+            return getSQLException(ErrorCode.OUT_OF_MEMORY, e);
         } else if (e instanceof InvocationTargetException) {
             InvocationTargetException te = (InvocationTargetException) e;
             Throwable t = te.getTargetException();
             if (t instanceof SQLException) {
                 return (SQLException) t;
             }
-            return getSQLException(ErrorCode.EXCEPTION_IN_FUNCTION, null, e);
+            return getSQLException(ErrorCode.EXCEPTION_IN_FUNCTION, e);
         } else if (e instanceof IOException) {
-            return getSQLException(ErrorCode.IO_EXCEPTION_1, new String[] { e.toString() }, e);
+            return getSQLException(ErrorCode.IO_EXCEPTION_1, e, e.toString());
         }
-        return getSQLException(ErrorCode.GENERAL_ERROR_1, new String[] { e.toString() }, e);
+        return getSQLException(ErrorCode.GENERAL_ERROR_1, e, e.toString());
     }
 
     /**
@@ -287,9 +287,9 @@ public class Message {
             if (t != null && t instanceof SQLException) {
                 return (SQLException) t;
             }
-            return getSQLException(ErrorCode.IO_EXCEPTION_1, new String[] { e.toString() }, e);
+            return getSQLException(ErrorCode.IO_EXCEPTION_1, e, e.toString());
         }
-        return getSQLException(ErrorCode.IO_EXCEPTION_2, new String[] { e.toString(), message }, e);
+        return getSQLException(ErrorCode.IO_EXCEPTION_2, e, e.toString(), message);
     }
 
     /**

@@ -25,7 +25,7 @@ public class SecurePassword {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
 
         Class.forName("org.h2.Driver");
         String url = "jdbc:h2:data/simple";

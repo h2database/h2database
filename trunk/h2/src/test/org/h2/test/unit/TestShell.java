@@ -42,7 +42,7 @@ public class TestShell extends TestBase {
      *
      * @param a ignored
      */
-    public static void main(String[] a) throws Exception {
+    public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
 
@@ -60,7 +60,7 @@ public class TestShell extends TestBase {
                     shell.setIn(toolIn);
                     shell.setOut(toolOut);
                     shell.setErr(toolOut);
-                    shell.run(new String[0]);
+                    shell.run();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 } finally {

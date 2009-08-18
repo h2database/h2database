@@ -43,11 +43,11 @@ public class CreateCluster extends Tool {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws SQLException {
+    public static void main(String... args) throws SQLException {
         new CreateCluster().run(args);
     }
 
-    public void run(String[] args) throws SQLException {
+    public void run(String... args) throws SQLException {
         String urlSource = null;
         String urlTarget = null;
         String user = "sa";

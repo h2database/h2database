@@ -226,7 +226,7 @@ public class User extends RightOwner {
     public void checkOwnsNoSchemas() throws SQLException {
         for (Schema s : database.getAllSchemas()) {
             if (this == s.getOwner()) {
-                throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, new String[]{ getName(), s.getName() });
+                throw Message.getSQLException(ErrorCode.CANNOT_DROP_2, getName(), s.getName());
             }
         }
     }

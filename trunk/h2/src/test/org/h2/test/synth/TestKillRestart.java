@@ -70,7 +70,7 @@ public class TestKillRestart extends TestBase {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) {
+    public static void main(String... args) {
         SelfDestructor.startCountdown(60);
         String driver = "org.h2.Driver";
         String url = "jdbc:h2:test", user = "sa", password = "sa";

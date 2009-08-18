@@ -75,11 +75,9 @@ public class FunctionAlias extends DbObjectBase {
                 JavaMethod javaMethod = new JavaMethod(m, i);
                 for (JavaMethod old : list) {
                     if (old.getParameterCount() == javaMethod.getParameterCount()) {
-                        throw Message.getSQLException(ErrorCode.METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2,
-                                new String[] {
-                                    old.toString(),
-                                    javaMethod.toString()
-                                }
+                        throw Message.getSQLException(
+                                ErrorCode.METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2,
+                                old.toString(), javaMethod.toString()
                         );
                     }
                 }

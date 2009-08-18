@@ -27,7 +27,7 @@ public class InitDatabaseFromJar {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         new InitDatabaseFromJar().createScript();
         new InitDatabaseFromJar().initDb();
     }

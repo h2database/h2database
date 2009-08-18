@@ -357,15 +357,13 @@ public class FullTextLucene extends FullText {
                     String tableName = expr.getColumnName();
                     q = q.substring(idx + " WHERE ".length());
                     Object[][] columnData = parseKey(conn, q);
-                    Object[] row = new Object[] {
-                        schemaName,
-                        tableName,
-                        columnData[0],
-                        columnData[1]
-                    };
-                    result.addRow(row);
+                    result.addRow(
+                            schemaName,
+                            tableName,
+                            columnData[0],
+                            columnData[1]);
                 } else {
-                    result.addRow(new Object[] { q });
+                    result.addRow(q);
                 }
             }
             // TODO keep it open if possible

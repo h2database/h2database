@@ -2779,7 +2779,7 @@ public class Parser {
         try {
             bd = new BigDecimal(sub);
         } catch (NumberFormatException e) {
-            throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, new String[] { sub }, e);
+            throw Message.getSQLException(ErrorCode.DATA_CONVERSION_ERROR_1, e, sub);
         }
         checkLiterals(false);
         currentValue = ValueDecimal.get(bd);

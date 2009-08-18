@@ -28,7 +28,7 @@ public class Compact {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         DeleteDbFiles.execute("data", "test", true);
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:data/test", "sa", "");

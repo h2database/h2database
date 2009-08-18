@@ -28,7 +28,7 @@ public class TestCluster extends TestBase {
      *
      * @param a ignored
      */
-    public static void main(String[] a) throws Exception {
+    public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
 
@@ -59,13 +59,11 @@ public class TestCluster extends TestBase {
         check(conn, len);
         conn.close();
 
-        CreateCluster.main(new String[] { "-urlSource", urlNode1, "-urlTarget",
+        CreateCluster.main("-urlSource", urlNode1, "-urlTarget",
                 urlNode2, "-user", user, "-password", password, "-serverList",
-                "localhost:9191,localhost:9192" });
-        Server n1 = org.h2.tools.Server.createTcpServer(
-                new String[] { "-tcpPort", "9191", "-baseDir", baseDir + "/node1" }).start();
-        Server n2 = org.h2.tools.Server.createTcpServer(
-                new String[] { "-tcpPort", "9192", "-baseDir", baseDir + "/node2" }).start();
+                "localhost:9191,localhost:9192");
+        Server n1 = org.h2.tools.Server.createTcpServer("-tcpPort", "9191", "-baseDir", baseDir + "/node1").start();
+        Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "9192", "-baseDir", baseDir + "/node2").start();
 
         try {
             conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9191/test", user, password);
@@ -99,14 +97,12 @@ public class TestCluster extends TestBase {
         n1.stop();
 
         // re-create the cluster
-        DeleteDbFiles.main(new String[] { "-dir", baseDir + "/node2", "-quiet" });
-        CreateCluster.main(new String[] { "-urlSource", urlNode1, "-urlTarget",
+        DeleteDbFiles.main("-dir", baseDir + "/node2", "-quiet");
+        CreateCluster.main("-urlSource", urlNode1, "-urlTarget",
                 urlNode2, "-user", user, "-password", password, "-serverList",
-                "localhost:9191,localhost:9192" });
-        n1 = org.h2.tools.Server.createTcpServer(
-                new String[] { "-tcpPort", "9191", "-baseDir", baseDir + "/node1" }).start();
-        n2 = org.h2.tools.Server.createTcpServer(
-                new String[] { "-tcpPort", "9192", "-baseDir", baseDir + "/node2" }).start();
+                "localhost:9191,localhost:9192");
+        n1 = org.h2.tools.Server.createTcpServer("-tcpPort", "9191", "-baseDir", baseDir + "/node1").start();
+        n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "9192", "-baseDir", baseDir + "/node2").start();
 
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9191,localhost:9192/test", user, password);
         stat = conn.createStatement();
@@ -118,15 +114,13 @@ public class TestCluster extends TestBase {
         conn.close();
         n2.stop();
 
-        n1 = org.h2.tools.Server.createTcpServer(new String[] { "-tcpPort", "9191", "-baseDir", baseDir + "/node1" })
-                .start();
+        n1 = org.h2.tools.Server.createTcpServer("-tcpPort", "9191", "-baseDir", baseDir + "/node1").start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9191/test;CLUSTER=''", user, password);
         check(conn, len);
         conn.close();
         n1.stop();
 
-        n2 = org.h2.tools.Server.createTcpServer(new String[] { "-tcpPort", "9192", "-baseDir", baseDir + "/node2" })
-                .start();
+        n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "9192", "-baseDir", baseDir + "/node2").start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test;CLUSTER=''", user, password);
         check(conn, len);
         conn.createStatement().execute("SELECT * FROM A");
@@ -136,8 +130,8 @@ public class TestCluster extends TestBase {
     }
 
     private void deleteFiles() throws SQLException {
-        DeleteDbFiles.main(new String[] { "-dir", baseDir + "/node1", "-quiet" });
-        DeleteDbFiles.main(new String[] { "-dir", baseDir + "/node2", "-quiet" });
+        DeleteDbFiles.main("-dir", baseDir + "/node1", "-quiet");
+        DeleteDbFiles.main("-dir", baseDir + "/node2", "-quiet");
     }
 
     private void check(Connection conn, int len) throws SQLException {

@@ -482,7 +482,7 @@ java -cp h2*.jar org.h2.tools.Server -baseDir ~
 The PG server can be started and stopped from within a Java application as follows:
 </p>
 <pre>
-Server server = Server.createPgServer(new String[]{"-baseDir", "~"});
+Server server = Server.createPgServer("-baseDir", "~");
 server.start();
 ...
 server.stop();

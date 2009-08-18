@@ -525,7 +525,7 @@ public class ConnectionInfo implements Cloneable {
      */
     SQLException getFormatException() {
         String format = Constants.URL_FORMAT;
-        return Message.getSQLException(ErrorCode.URL_FORMAT_ERROR_2, new String[] { format, url });
+        return Message.getSQLException(ErrorCode.URL_FORMAT_ERROR_2, format, url);
     }
 
     /**

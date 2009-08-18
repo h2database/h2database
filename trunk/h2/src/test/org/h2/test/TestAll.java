@@ -278,14 +278,14 @@ java org.h2.test.TestAll timer
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         OutputCatcher catcher = OutputCatcher.start();
         run(args);
         catcher.stop();
         catcher.writeTo("Test Output", "docs/html/testOutput.html");
     }
 
-    private static void run(String[] args) throws Exception {
+    private static void run(String... args) throws Exception {
         SelfDestructor.startCountdown(6 * 60);
         long time = System.currentTimeMillis();
         TestAll test = new TestAll();
@@ -293,16 +293,12 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
 
-int test2;
-//System.setProperty("h2.optimizeInList", "true");
 /*
 
-OPTIMIZE_IN_LIST
+improve LIKE performance
 
-use ... parameters (main, Message.getSQLException, trace?)
+System.setProperty("h2.optimizeInList", "true");
 
-H2 Console: if number of items is low (calculate that first), display data types, otherwise not.
-Always display indexes and views in all schemas.
 -------------
 
 create a short documentation
@@ -347,12 +343,12 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             System.setProperty(SysProperties.H2_PAGE_STORE, "true");
             test.pageStore = true;
             test.runTests();
-            TestPerformance.main(new String[]{ "-init", "-db", "1"});
+            TestPerformance.main("-init", "-db", "1");
 
             System.setProperty(SysProperties.H2_PAGE_STORE, "false");
             test.pageStore = false;
             test.runTests();
-            TestPerformance.main(new String[]{ "-init", "-db", "1"});
+            TestPerformance.main("-init", "-db", "1");
         }
         System.out.println(TestBase.formatTime(System.currentTimeMillis() - time) + " total");
     }

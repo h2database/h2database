@@ -161,7 +161,7 @@ public class BuildBase {
      *
      * @param args the command line parameters
      */
-    protected void run(String[] args) {
+    protected void run(String... args) {
         long time = System.currentTimeMillis();
         if (args.length == 0) {
             all();
@@ -183,7 +183,7 @@ public class BuildBase {
                 } else {
                     Method m = null;
                     try {
-                        m = getClass().getMethod(a, new Class[0]);
+                        m = getClass().getMethod(a);
                     } catch (Exception e) {
                         out.println("Unknown target: " + a);
                         projectHelp();
@@ -428,7 +428,7 @@ public class BuildBase {
                 }));
             }
             Class< ? > clazz = Class.forName("com.sun.tools.javadoc.Main");
-            Method execute = clazz.getMethod("execute", new Class< ? >[] { String[].class });
+            Method execute = clazz.getMethod("execute", String[].class);
             result = (Integer) invoke(execute, null, new Object[] { args });
         } catch (Exception e) {
             result = exec("javadoc", args(args));
@@ -754,7 +754,7 @@ public class BuildBase {
         println("Running " + className);
         String[] array = args == null ? new String[0] : args.array();
         try {
-            Method main = Class.forName(className).getMethod("main", new Class[] { String[].class });
+            Method main = Class.forName(className).getMethod("main", String[].class);
             invoke(main, null, new Object[] { array });
         } catch (Exception e) {
             throw new Error(e);

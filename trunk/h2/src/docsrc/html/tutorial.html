@@ -527,8 +527,8 @@ public class TestCsv {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);
         rs.addColumn("EMAIL", Types.VARCHAR, 255, 0);
-        rs.addRow(new String[] { "Bob Meier", "bob.meier@abcde.abc" });
-        rs.addRow(new String[] { "John Jones", "john.jones@abcde.abc" });
+        rs.addRow("Bob Meier", "bob.meier@abcde.abc");
+        rs.addRow("John Jones", "john.jones@abcde.abc");
         Csv.getInstance().write("data/test.csv", rs, null);
     }
 }

@@ -18,7 +18,7 @@ public class ShutdownServer {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         org.h2.tools.Server.shutdownTcpServer("tcp://localhost:9094", "", false);
     }
 }

@@ -21,7 +21,7 @@ public interface Service {
      *
      * @param args the command line options
      */
-    void init(String[] args) throws Exception;
+    void init(String... args) throws Exception;
 
     /**
      * Get the URL of this service in a human readable form

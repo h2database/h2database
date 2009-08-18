@@ -51,11 +51,11 @@ public class ChangeFileEncryption extends Tool {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws SQLException {
+    public static void main(String... args) throws SQLException {
         new ChangeFileEncryption().run(args);
     }
 
-    public void run(String[] args) throws SQLException {
+    public void run(String... args) throws SQLException {
         String dir = ".";
         String cipher = null;
         char[] decryptPassword = null;

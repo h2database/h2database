@@ -28,7 +28,7 @@ public class TestSampleApps extends TestBase {
      *
      * @param a ignored
      */
-    public static void main(String[] a) throws Exception {
+    public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
 
@@ -38,34 +38,35 @@ public class TestSampleApps extends TestBase {
         FileOutputStream out = new FileOutputStream(baseDir + "/optimizations.sql");
         IOUtils.copyAndClose(in, out);
         String url = "jdbc:h2:" + baseDir + "/optimizations";
-        testApp(org.h2.tools.RunScript.class, new String[] { "-url", url, "-user", "sa", "-password", "sa", "-script",
-            baseDir + "/optimizations.sql", "-checkResults" }, "");
+        testApp("", org.h2.tools.RunScript.class, "-url", url, "-user", "sa", "-password", "sa", "-script",
+                baseDir + "/optimizations.sql", "-checkResults");
         deleteDb("optimizations");
-        testApp(org.h2.samples.Compact.class, null, "Compacting...\nDone.");
-        testApp(org.h2.samples.CsvSample.class, null, "NAME: Bob Meier\n" + "EMAIL: bob.meier@abcde.abc\n"
+        testApp("Compacting...\nDone.", org.h2.samples.Compact.class);
+        testApp("NAME: Bob Meier\n" + "EMAIL: bob.meier@abcde.abc\n"
                 + "PHONE: +41123456789\n\n" + "NAME: John Jones\n" + "EMAIL: john.jones@abcde.abc\n"
-                + "PHONE: +41976543210\n");
-        testApp(org.h2.samples.Function.class, null,
-                "2 is prime\n3 is prime\n5 is prime\n7 is prime\n11 is prime\n13 is prime\n17 is prime\n19 is prime\n30\n20\n0/0\n0/1\n1/0\n1/1");
+                + "PHONE: +41976543210\n",
+                org.h2.samples.CsvSample.class);
+        testApp("2 is prime\n3 is prime\n5 is prime\n7 is prime\n11 is prime\n13 is prime\n17 is prime\n19 is prime\n30\n20\n0/0\n0/1\n1/0\n1/1",
+                org.h2.samples.Function.class);
         // Not compatible with PostgreSQL JDBC driver (throws a NullPointerException)
         //testApp(org.h2.samples.SecurePassword.class, null, "Joe");
         // TODO test ShowProgress (percent numbers are hardware specific)
         // TODO test ShutdownServer (server needs to be started in a separate
         // process)
-        testApp(org.h2.samples.TriggerSample.class, null, "The sum is 20.00");
+        testApp("The sum is 20.00", org.h2.samples.TriggerSample.class);
 
         // tools
-        testApp(org.h2.tools.ChangeFileEncryption.class, new String[] { "-help" },
-                "Allows changing the database file encryption password or algorithm*");
-        testApp(org.h2.tools.ChangeFileEncryption.class, null,
-                "Allows changing the database file encryption password or algorithm*");
-        testApp(org.h2.tools.DeleteDbFiles.class, new String[] { "-help" },
-                "Deletes all files belonging to a database.*");
+        testApp("Allows changing the database file encryption password or algorithm*",
+                org.h2.tools.ChangeFileEncryption.class, "-help");
+        testApp("Allows changing the database file encryption password or algorithm*",
+                org.h2.tools.ChangeFileEncryption.class);
+        testApp("Deletes all files belonging to a database.*",
+                org.h2.tools.DeleteDbFiles.class, "-help");
     }
 
-    private void testApp(Class< ? > clazz, String[] args, String expected) throws Exception {
+    private void testApp(String expected, Class< ? > clazz, String... args) throws Exception {
         DeleteDbFiles.execute("data", "test", true);
-        Method m = clazz.getMethod("main", new Class[] { String[].class });
+        Method m = clazz.getMethod("main", String[].class);
         PrintStream oldOut = System.out, oldErr = System.err;
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         PrintStream out = new PrintStream(buff, false, "UTF-8");

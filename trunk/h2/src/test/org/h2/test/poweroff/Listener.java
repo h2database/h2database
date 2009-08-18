@@ -25,11 +25,11 @@ public class Listener implements Runnable {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String... args) throws IOException {
         new Listener().test(args);
     }
 
-    private void test(String[] args) throws IOException {
+    private void test(String... args) throws IOException {
         int port = 9099;
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-port")) {

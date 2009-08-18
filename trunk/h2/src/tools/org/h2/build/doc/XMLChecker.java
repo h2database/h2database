@@ -24,11 +24,11 @@ public class XMLChecker {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         new XMLChecker().run(args);
     }
 
-    private void run(String[] args) throws Exception {
+    private void run(String... args) throws Exception {
         String dir = ".";
         for (int i = 0; i < args.length; i++) {
             if ("-dir".equals(args[i])) {

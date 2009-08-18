@@ -80,9 +80,9 @@ public class ClassUtils {
         try {
             return Class.forName(className);
         } catch (ClassNotFoundException e) {
-            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className }, e);
+            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, e, className);
         } catch (NoClassDefFoundError e) {
-            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, new String[] { className }, e);
+            throw Message.getSQLException(ErrorCode.CLASS_NOT_FOUND_1, e, className);
         }
     }
 
@@ -101,8 +101,8 @@ public class ClassUtils {
             return false;
         }
         try {
-            Method isVarArgs = m.getClass().getMethod("isVarArgs", new Class[0]);
-            Boolean result = (Boolean) isVarArgs.invoke(m, new Object[0]);
+            Method isVarArgs = m.getClass().getMethod("isVarArgs");
+            Boolean result = (Boolean) isVarArgs.invoke(m);
             return result.booleanValue();
         } catch (Exception e) {
             return false;

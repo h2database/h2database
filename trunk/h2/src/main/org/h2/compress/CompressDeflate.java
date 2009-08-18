@@ -72,7 +72,7 @@ public class CompressDeflate implements Compressor {
         try {
             decompresser.inflate(out, outPos, outLen);
         } catch (DataFormatException e) {
-            throw Message.getSQLException(ErrorCode.COMPRESSION_ERROR, null, e);
+            throw Message.getSQLException(ErrorCode.COMPRESSION_ERROR, e);
         }
         decompresser.end();
     }

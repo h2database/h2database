@@ -202,8 +202,8 @@ public class AlterTableAlterColumn extends SchemaCommand {
     private void checkNoViews() throws SQLException {
         for (DbObject child : table.getChildren()) {
             if (child.getType() == DbObject.TABLE_OR_VIEW) {
-                throw Message.getSQLException(ErrorCode.OPERATION_NOT_SUPPORTED_WITH_VIEWS_2, new String[] {
-                        table.getName(), child.getName() });
+                throw Message.getSQLException(ErrorCode.OPERATION_NOT_SUPPORTED_WITH_VIEWS_2,
+                        table.getName(), child.getName());
             }
         }
     }

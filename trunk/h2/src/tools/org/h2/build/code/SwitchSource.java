@@ -27,11 +27,11 @@ public class SwitchSource {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String... args) throws IOException {
         new SwitchSource().run(args);
     }
 
-    private void run(String[] args) throws IOException {
+    private void run(String... args) throws IOException {
         String dir = null;
         String version = null;
         for (int i = 0; i < args.length; i++) {

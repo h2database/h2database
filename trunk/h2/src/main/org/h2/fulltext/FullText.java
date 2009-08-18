@@ -551,18 +551,16 @@ public class FullText {
                 IndexInfo index = setting.getIndexInfo(indexId);
                 if (data) {
                     Object[][] columnData = parseKey(conn, key);
-                    Object[] row = new Object[] {
-                        index.schema,
-                        index.table,
-                        columnData[0],
-                        columnData[1]
-                    };
-                    result.addRow(row);
+                    result.addRow(
+                            index.schema,
+                            index.table,
+                            columnData[0],
+                            columnData[1]);
                 } else {
                     String query = StringUtils.quoteIdentifier(index.schema) +
                         "." + StringUtils.quoteIdentifier(index.table) +
                         " WHERE " + key;
-                    result.addRow(new String[] { query });
+                    result.addRow(query);
                 }
                 rowCount++;
                 if (limit > 0 && rowCount >= limit) {

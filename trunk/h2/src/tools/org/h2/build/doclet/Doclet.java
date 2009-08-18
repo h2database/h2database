@@ -19,6 +19,7 @@ import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.FieldDoc;
+import com.sun.javadoc.LanguageVersion;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.ParamTag;
 import com.sun.javadoc.Parameter;
@@ -120,7 +121,7 @@ public class Doclet {
                 writer.println("<table class=\"block\"><tr onclick=\"return allDetails()\"><th colspan=\"2\">Methods</th></tr>");
                 hasMethods = true;
             }
-            String type = getTypeName(method.isStatic(), method.returnType());
+            String type = getTypeName(method.isStatic(), false, method.returnType());
             writer.println("<tr id=\"tm"+id+"\" onclick=\"return on('m"+ id +"')\"><td class=\"return\">" + type + "</td><td class=\"method\">");
             Parameter[] params = method.parameters();
             StringBuilder buff = new StringBuilder();
@@ -132,11 +133,13 @@ public class Doclet {
                     buff.append(", ");
                     buffSignature.append(',');
                 }
-                String typeName = getTypeName(false, params[j].type());
+                Parameter param = params[j];
+                boolean isVarArgs = method.isVarArgs() && j == params.length - 1;
+                String typeName = getTypeName(false, isVarArgs, param.type());
                 buff.append(typeName);
                 buffSignature.append(typeName);
                 buff.append(' ');
-                buff.append(params[j].name());
+                buff.append(param.name());
             }
             buff.append(')');
             buffSignature.append(')');
@@ -191,7 +194,7 @@ public class Doclet {
             if (fieldId == 0) {
                 writer.println("<br /><table><tr><th colspan=\"2\">Fields</th></tr>");
             }
-            String type = getTypeName(true, field.type());
+            String type = getTypeName(true, false, field.type());
             writer.println("<tr><td class=\"return\">" + type + "</td><td class=\"method\">");
             String constant = field.constantValueExpression();
 
@@ -261,9 +264,11 @@ public class Doclet {
         Parameter[] params = method.parameters();
         StatementBuilder buff = new StatementBuilder();
         buff.append('(');
+        int i = 0;
         for (Parameter p : params) {
+            boolean isVarArgs = method.isVarArgs() && i++ == params.length - 1;
             buff.appendExceptFirst(", ");
-            buff.append(getTypeName(false, p.type()));
+            buff.append(getTypeName(false, isVarArgs, p.type()));
             buff.append(' ');
             buff.append(p.name());
         }
@@ -441,8 +446,12 @@ public class Doclet {
         return firstSentence;
     }
 
-    private static String getTypeName(boolean isStatic, Type type) {
+    private static String getTypeName(boolean isStatic, boolean isVarArgs, Type type) {
         String s = type.typeName() + type.dimension();
+        if (isVarArgs) {
+            // remove the last "[]" and add "..." instead
+            s = s.substring(0, s.length() - 2) + "...";
+        }
         if (isStatic) {
             s = "static " + s;
         }
@@ -457,4 +466,16 @@ public class Doclet {
         }
         return false;
     }
+
+    /**
+     * Get the language version this doclet supports.
+     *
+     * @return the language version
+     */
+    public static LanguageVersion languageVersion() {
+        // otherwise, isVarArgs always returns false
+        // (which sounds like a bug but is a feature :-)
+        return LanguageVersion.JAVA_1_5;
+    }
+
 }

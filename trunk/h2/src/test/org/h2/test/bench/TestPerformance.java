@@ -45,7 +45,7 @@ public class TestPerformance {
      *
      * @param args the command line parameters
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         new TestPerformance().test(args);
     }
 
@@ -68,7 +68,7 @@ public class TestPerformance {
         }
     }
 
-    private void test(String[] args) throws Exception {
+    private void test(String... args) throws Exception {
         int dbId = -1;
         boolean exit = false;
         String out = "benchmark.html";

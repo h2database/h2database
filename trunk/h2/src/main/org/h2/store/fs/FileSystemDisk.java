@@ -71,8 +71,9 @@ public class FileSystemDisk extends FileSystem {
             Message.throwInternalError("rename file old=new");
         }
         if (!oldFile.exists()) {
-            throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2, new String[] { oldName + " (not found)",
-                    newName });
+            throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2,
+                    oldName + " (not found)",
+                    newName);
         }
         if (newFile.exists()) {
             throw Message.getSQLException(ErrorCode.FILE_RENAME_FAILED_2,

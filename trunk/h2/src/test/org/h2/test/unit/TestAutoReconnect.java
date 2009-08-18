@@ -36,7 +36,7 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
      *
      * @param a ignored
      */
-    public static void main(String[] a) throws Exception {
+    public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
 
@@ -69,7 +69,7 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
                 "AUTO_SERVER=TRUE;OPEN_NEW=TRUE";
             restart();
         } else {
-            server = Server.createTcpServer(new String[]{"-tcpPort", "8181"}).start();
+            server = Server.createTcpServer("-tcpPort", "8181").start();
             url = "jdbc:h2:tcp://localhost:8181/" + baseDir + "/autoReconnect;" +
                 "FILE_LOCK=SOCKET;AUTO_RECONNECT=TRUE";
         }

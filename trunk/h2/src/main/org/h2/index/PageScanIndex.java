@@ -294,6 +294,7 @@ public class PageScanIndex extends BaseIndex implements RowIndex {
         if (trace.isDebugEnabled()) {
             trace.debug("truncate");
         }
+        store.logTruncate(session, tableData.getId());
         removeAllRows();
         if (tableData.getContainsLargeObject() && tableData.isPersistData()) {
             ValueLob.removeAllForTable(database, table.getId());

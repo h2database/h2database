@@ -32,11 +32,33 @@ public class TestPageStore extends TestBase {
     }
 
     public void test() throws Exception {
+        testTruncate();
         testLargeIndex();
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
     }
+    
+    private void testTruncate() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("pageStore");
+        Connection conn = getConnection("pageStore");
+        Statement stat = conn.createStatement();
+        stat.execute("set write_delay 0");
+        stat.execute("create table test(id int) as select 1");
+        stat.execute("truncate table test");
+        stat.execute("insert into test values(1)");
+        stat.execute("shutdown immediately");
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            // ignore
+        }
+        conn = getConnection("pageStore");
+        conn.close();
+    }        
 
     private void testLargeIndex() throws SQLException {
         if (config.memory) {

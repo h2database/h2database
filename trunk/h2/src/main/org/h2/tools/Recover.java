@@ -881,6 +881,12 @@ public class Recover extends Tool implements DataHandler {
                 writer.println("-- session " + sessionId +
                         " table " + storageId +
                         " " + (x == PageLog.ADD ? "add" : "remove") + " " + row.toString());
+            } else if (x == PageLog.TRUNCATE) {
+                int sessionId = in.readInt();
+                setStorage(in.readInt());
+                writer.println("-- session " + sessionId +
+                        " table " + storageId +
+                        " truncate");
             } else if (x == PageLog.COMMIT) {
                 int sessionId = in.readInt();
                 writer.println("-- commit " + sessionId);

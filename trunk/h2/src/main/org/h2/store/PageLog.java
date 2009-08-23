@@ -81,16 +81,22 @@ public class PageLog {
     public static final int REMOVE = 6;
 
     /**
+     * Truncate a table.
+     * Format: session id, table id.
+     */
+    public static final int TRUNCATE = 7;
+
+    /**
      * Perform a checkpoint. The log id is incremented.
      * Format: -
      */
-    public static final int CHECKPOINT = 7;
+    public static final int CHECKPOINT = 8;
 
     /**
      * Free a log page.
      * Format: count, page ids
      */
-    public static final int FREE_LOG = 8;
+    public static final int FREE_LOG = 9;
 
     /**
      * The recovery stage to undo changes (re-apply the backup).
@@ -152,11 +158,7 @@ public class PageLog {
      */
     void free() throws SQLException {
         while (this.firstTrunkPage != 0) {
-            // first remove all old log pages
             if (store.getRecord(firstTrunkPage) != null) {
-                // if the page is in use, don't free it
-                // TODO cleanup - this is a hack
-                // break;
                 throw Message.throwInternalError("" + store.getRecord(firstTrunkPage));
             }
             PageStreamTrunk t = new PageStreamTrunk(store, this.firstTrunkPage);
@@ -239,6 +241,21 @@ public class PageLog {
                         } else {
                             if (trace.isDebugEnabled()) {
                                 trace.debug("log ignore s:" + sessionId + " " + (x == ADD ? "+" : "-") + " table:" + tableId + " " + row);
+                            }
+                        }
+                    }
+                } else if (x == TRUNCATE) {
+                    int sessionId = in.readInt();
+                    int tableId = in.readInt();
+                    if (stage == RECOVERY_STAGE_REDO) {
+                        if (isSessionCommitted(sessionId, logId, pos)) {
+                            if (trace.isDebugEnabled()) {
+                                trace.debug("log redo truncate table:" + tableId);
+                            }
+                            store.redoTruncate(tableId);
+                        } else {
+                            if (trace.isDebugEnabled()) {
+                                trace.debug("log ignore s:" + sessionId + " truncate table:" + tableId);
                             }
                         }
                     }
@@ -482,6 +499,29 @@ public class PageLog {
             throw Message.convertIOException(e, null);
         }
     }
+    
+    /**
+     * A table is truncated.
+     *
+     * @param session the session
+     * @param tableId the table id
+     */
+    void logTruncate(Session session, int tableId) throws SQLException {
+        try {
+            if (trace.isDebugEnabled()) {
+                trace.debug("log truncate s:" + session.getId() + " table:" + tableId);
+            }
+            session.addLogPos(logId, logPos);
+            data.reset();
+            out.write(TRUNCATE);
+            out.writeInt(session.getId());
+            out.writeInt(tableId);
+            flushOut();
+        } catch (IOException e) {
+            throw Message.convertIOException(e, null);
+        }
+    }
+
 
     /**
      * Flush the transaction log.

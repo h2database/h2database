@@ -256,7 +256,26 @@ This is not possible using annotations.
 Unlike XML mapping configuration, the configuration is integrated in the class itself.
 </p>
 
-<h2>Ideas</h2>
+<h2>Natural Syntax</h2>
+<p>The plan is to support more natural (pure Java) syntax in conditions.
+To do that, the condition class is de-compiled to a SQL condition.
+A proof of concept decompiler is included (but it doesn't work yet).
+The planned syntax is:
+</p>
+<pre>
+long count = db.from(co).
+    where(new Filter() { public boolean where() {
+        return co.id == x
+            &amp;&amp; co.name.equals(name)
+            &amp;&amp; co.value == new BigDecimal("1")
+            &amp;&amp; co.amount == 1L
+            &amp;&amp; co.birthday.before(new java.util.Date())
+            &amp;&amp; co.created.before(java.sql.Timestamp.valueOf("2005-05-05 05:05:05"))
+            &amp;&amp; co.time.before(java.sql.Time.valueOf("23:23:23"));
+        } }).selectCount();
+</pre>
+
+<h2>Other Ideas</h2>
 <p>
 This project has just been started, and nothing is fixed yet.
 Some ideas for what to implement are:

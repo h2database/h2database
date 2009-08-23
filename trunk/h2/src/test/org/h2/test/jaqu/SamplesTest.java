@@ -346,13 +346,13 @@ private void testComplexObject2(final int x, final String name) {
     final ComplexObject co = new ComplexObject();
     long count = db.from(co).
         where(new Filter() { public boolean where() {
-            return co.id == x
+                return co.id == x
+                && co.name.equals(name)
+                && co.value == new BigDecimal("1")
                 && co.amount == 1L
                 && co.birthday.before(new java.util.Date())
                 && co.created.before(java.sql.Timestamp.valueOf("2005-05-05 05:05:05"))
-                && co.name.equals(name)
-                && co.time.before(java.sql.Time.valueOf("23:23:23"))
-                && co.value == new BigDecimal("1");
+                && co.time.before(java.sql.Time.valueOf("23:23:23"));
         } }).selectCount();
         // TODO should return only one object
         assertEquals(2, count);

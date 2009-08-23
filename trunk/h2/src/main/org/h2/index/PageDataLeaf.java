@@ -100,7 +100,6 @@ class PageDataLeaf extends PageData {
             if (entryCount > 1) {
                 return entryCount / 2;
             }
-
             int todoIncorrect;
             if (find(row.getPos()) != 1) {
                 System.out.println("todo " + find(row.getPos()));

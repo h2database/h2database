@@ -228,12 +228,14 @@ public class PageLog {
                     int sessionId = in.readInt();
                     int tableId = in.readInt();
                     Row row = readRow(in, data);
-                    if (stage == RECOVERY_STAGE_REDO) {
+                    if (stage == RECOVERY_STAGE_UNDO && x == ADD) {
+                        store.allocateIfHead(pos, tableId, row);
+                    } else if (stage == RECOVERY_STAGE_REDO) {
                         if (isSessionCommitted(sessionId, logId, pos)) {
                             if (trace.isDebugEnabled()) {
                                 trace.debug("log redo " + (x == ADD ? "+" : "-") + " table:" + tableId + " " + row);
                             }
-                            store.redo(tableId, row, x == ADD);
+                            store.redo(pos, tableId, row, x == ADD);
                         } else {
                             if (trace.isDebugEnabled()) {
                                 trace.debug("log ignore s:" + sessionId + " " + (x == ADD ? "+" : "-") + " table:" + tableId + " " + row);

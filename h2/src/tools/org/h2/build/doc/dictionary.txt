@@ -597,4 +597,15 @@ emf decompile streamed setmaxlengthinplacelob setcompresslob compressing
 compressible subclass ints seeks kilobytes capitalized sqlj psm sigmod acm
 shrinking bsdiff toward markets hispanic rad dinamica treat contributing
 fraction splits uni stackable snapshots fyodor kupolov denmark greece christos
-oort committer vasilakis docletpath
+oort committer vasilakis docletpath aastore dneg drem bipush lxor lshl fsub
+ldiv astore fconst newarray icmple lsub irem iastore lookupswitch athrow
+bastore icmpeq dconst dmul lload dup ddiv invokespecial fdiv fstore checkcast
+sipush fcmpl icmpge freturn imul putfield dsub ixor nop sastore ldc
+invokeinterface lcmp castore lastore iflt ifnonnull invokestatic ljava
+arraylength ifge baload ineg caload putstatic invokevirtual ior ifne icmpgt
+lneg lconst dadd iinc areturn ishr iload aconst iadd laload dcmpl fmul iconst
+dload getfield acmpeq dastore fload icmplt fastore frem idiv ireturn fcmpg
+iaload getstatic ifle iand decompiling isub ifgt dreturn iushr aaload aload
+lrem lstore monitorexit lmul monitorenter fadd interpreting ishl istore dcmpg
+daload dstore saload anewarray tableswitch lushr ladd lshr lreturn acmpne
+locals multianewarray icmpne fneg faload ifeq decompiler

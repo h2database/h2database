@@ -67,9 +67,8 @@ public class Operation extends Expression {
         String sql;
         switch (opType) {
         case NEGATE:
-            // don't remove the space, otherwise it might end up some thing line
-            // --1 which is a remark
-            // TODO need to () everything correctly, but avoiding double (())
+            // don't remove the space, otherwise it might end up some thing like
+            // --1 which is a line remark
             sql = "- " + left.getSQL();
             break;
         case CONCAT:

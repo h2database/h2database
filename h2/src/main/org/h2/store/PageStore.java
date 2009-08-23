@@ -69,6 +69,11 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
+    // TODO what if the log contains undo page for a later log page
+    // TODO what if the log contains a head page for a later log page
+    // TODO allocate log: must not use page if undo is in an active log
+    // TODO or don't redo if page is now a log page
+    
     // TODO var int: see google protocol buffers
     // TODO don't save parent (only root); remove setPageId
     // TODO implement checksum - 0 for empty
@@ -77,6 +82,7 @@ public class PageStore implements CacheWriter {
     // TODO replace CRC32
     // TODO optimization: try to avoid allocating a byte array per page
     // TODO PageBtreeNode: 4 bytes offset - others use only 2
+    // TODO block compression: don't store the middle zeroes
     // TODO block compression: maybe http://en.wikipedia.org/wiki/LZJB
     // with RLE, specially for 0s.
     // TODO order pages so that searching for a key only seeks forward
@@ -879,6 +885,17 @@ public class PageStore implements CacheWriter {
             table.removeRow(systemSession, row);
         }
     }
+    
+    /**
+     * Redo a truncate.
+     *
+     * @param tableId the object id of the table
+     */
+    void redoTruncate(int tableId) throws SQLException {
+        PageScanIndex index = (PageScanIndex) metaObjects.get(tableId);
+        Table table = index.getTable();
+        table.truncate(systemSession);
+    }
 
     private void openMetaIndex() throws SQLException {
         ObjectArray<Column> cols = ObjectArray.newInstance();
@@ -1106,6 +1123,20 @@ public class PageStore implements CacheWriter {
      */
     public long getWriteCount() {
         return writeCount;
+    }
+
+    /**
+     * A table is truncated.
+     *
+     * @param session the session
+     * @param tableId the table id
+     */
+    public void logTruncate(Session session, int tableId) throws SQLException {
+        synchronized (database) {
+            if (!recoveryRunning) {
+                log.logTruncate(session, tableId);
+            }
+        }
     }
 
     // TODO implement checksum

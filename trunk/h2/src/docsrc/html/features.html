@@ -1166,10 +1166,10 @@ When the first connection is closed, the server stops. If other (remote) connect
 open, one of them will then start a server (auto-reconnect is enabled automatically).
 </p>
 <p>
-This mode has three disadvantages: all processes need to have access to the database files.
-Then, if the first connection is closed (the connection that started the server), open transactions of
-other connections will be rolled back.
-Also, explicit client/server connections (using jdbc:h2:tcp:// or ssl://) are not supported.
+All processes need to have access to the database files.
+If the first connection is closed (the connection that started the server), open transactions of other connections will be rolled back.
+Explicit client/server connections (using jdbc:h2:tcp:// or ssl://) are not supported.
+This mode is not supported for in-memory databases.
 </p>
 <p>
 Here is an example how to use this mode. Application 1 and 2 are not necessarily started

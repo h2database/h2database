@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.h2.jaqu.util.ClassReader;
 import org.h2.jaqu.util.Utils;
 //## Java 1.5 end ##
 
@@ -178,6 +179,9 @@ public class Query<T> {
             //     // convert
             // }
         }
+        // String filterQuery =
+        new ClassReader().decompile(filter, "where");
+        // System.out.println(filterQuery);
         return new QueryWhere<T>(this);
     }
 

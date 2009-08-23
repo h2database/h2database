@@ -60,16 +60,16 @@ public class PageFreeList extends Record {
     /**
      * Mark a page as used.
      *
-     * @param pos the page id
+     * @param pageId the page id
      * @return the page id, or -1
      */
-    int allocate(int pos) throws SQLException {
-        int idx = pos - getPos();
+    int allocate(int pageId) throws SQLException {
+        int idx = pageId - getPos();
         if (idx >= 0 && !used.get(idx)) {
             used.set(idx);
             store.updateRecord(this, true, data);
         }
-        return pos;
+        return pageId;
     }
 
     /**

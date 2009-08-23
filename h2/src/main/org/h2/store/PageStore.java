@@ -184,6 +184,13 @@ public class PageStore implements CacheWriter {
     private TableData metaTable;
     private PageScanIndex metaIndex;
     private HashMap<Integer, Index> metaObjects;
+
+    /**
+     * The map of reserved pages, to ensure index head pages
+     * are not used for regular data during recovery. The key is the page id,
+     * and the value the latest transaction position where this page is used.
+     */
+    private HashMap<Integer, Integer> reservedPages;
     private int systemTableHeadPos;
     // TODO reduce DEFAULT_MAX_LOG_SIZE, and don't divide here
     private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE / 10;
@@ -202,6 +209,7 @@ public class PageStore implements CacheWriter {
         this.accessMode = accessMode;
         this.database = database;
         trace = database.getTrace(Trace.PAGE_STORE);
+        // int test;
         // trace.setLevel(TraceSystem.DEBUG);
         this.cacheSize = cacheSizeDefault;
         String cacheType = database.getCacheType();
@@ -733,6 +741,11 @@ public class PageStore implements CacheWriter {
         trace.debug("log recover");
         recoveryRunning = true;
         log.recover(PageLog.RECOVERY_STAGE_UNDO);
+        if (reservedPages != null) {
+            for (int r : reservedPages.keySet()) {
+                allocatePage(r);
+            }
+        }
         log.recover(PageLog.RECOVERY_STAGE_ALLOCATE);
         openMetaIndex();
         readMetaData();
@@ -760,6 +773,7 @@ public class PageStore implements CacheWriter {
             openIndex.close(systemSession);
         }
         recoveryRunning = false;
+        reservedPages = null;
         writeBack();
         // clear the cache because it contains pages with closed indexes
         cache.clear();
@@ -822,18 +836,36 @@ public class PageStore implements CacheWriter {
     }
 
     /**
+     * Reserve the page if this is a index head entry.
+     *
+     * @param logPos the redo log position
+     * @param tableId the table id
+     * @param row the row
+     */
+    void allocateIfHead(int logPos, int tableId, Row row) throws SQLException {
+        if (tableId == META_TABLE_ID) {
+            int headPos = row.getValue(3).getInt();
+            if (reservedPages == null) {
+                reservedPages = New.hashMap();
+            }
+            reservedPages.put(headPos, logPos);
+        }
+    }
+
+    /**
      * Redo a change in a table.
      *
+     * @param logPos the redo log position
      * @param tableId the object id of the table
      * @param row the row
      * @param add true if the record is added, false if deleted
      */
-    void redo(int tableId, Row row, boolean add) throws SQLException {
+    void redo(int logPos, int tableId, Row row, boolean add) throws SQLException {
         if (tableId == META_TABLE_ID) {
             if (add) {
                 addMeta(row, systemSession, true);
             } else {
-                removeMeta(row);
+                removeMeta(logPos, row);
             }
         }
         PageScanIndex index = (PageScanIndex) metaObjects.get(tableId);
@@ -874,14 +906,22 @@ public class PageStore implements CacheWriter {
         }
     }
 
-    private void removeMeta(Row row) throws SQLException {
+    private void removeMeta(int logPos, Row row) throws SQLException {
         int id = row.getValue(0).getInt();
         Index index = metaObjects.remove(id);
+        int headPos = index.getHeadPos();
         index.getTable().removeIndex(index);
         if (index instanceof PageBtreeIndex) {
             index.getSchema().remove(index);
         }
         index.remove(systemSession);
+        if (reservedPages != null && reservedPages.containsKey(headPos)) {
+            // re-allocate the page if it is used later on again
+            int latestPos = reservedPages.get(headPos);
+            if (latestPos > logPos) {
+                allocatePage(headPos);
+            }
+        }
     }
 
     private void addMeta(Row row, Session session, boolean redo) throws SQLException {

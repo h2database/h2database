@@ -882,6 +882,8 @@ public class DataType {
                 v[i] = convertToValue(session, o[i], type);
             }
             return ValueArray.get(v);
+        } else if (x instanceof Character) {
+            return ValueStringFixed.get(((Character) x).toString());
         } else {
             return ValueJavaObject.getNoCopy(ObjectUtils.serialize(x));
         }

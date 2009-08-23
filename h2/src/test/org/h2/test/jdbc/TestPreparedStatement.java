@@ -332,8 +332,13 @@ public class TestPreparedStatement extends TestBase {
 
     private void testSetObject(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(C CHAR(1))");
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?)");
+        prep.setObject(1, 'x');
+        prep.execute();
+        stat.execute("DROP TABLE TEST");
         stat.execute("CREATE TABLE TEST(ID INT, DATA BINARY, JAVA OTHER)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?, ?)");
+        prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?, ?)");
         prep.setInt(1, 1);
         prep.setObject(2, new Integer(11));
         prep.setObject(3, null);
@@ -720,7 +725,7 @@ public class TestPreparedStatement extends TestBase {
         prep.setObject(12, java.sql.Timestamp.valueOf("2001-02-03 04:05:06.123456789"));
         prep.setObject(13, new java.util.Date(java.sql.Date.valueOf("2001-02-03").getTime()));
         prep.setObject(14, new byte[] { 10, 20, 30 });
-        prep.setObject(15, new Character('a'));
+        prep.setObject(15, new Character('a'), Types.OTHER);
         prep.setObject(16, "2001-01-02", Types.DATE);
         // converting to null seems strange...
         prep.setObject(17, "2001-01-02", Types.NULL);

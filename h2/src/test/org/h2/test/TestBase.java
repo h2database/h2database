@@ -1112,7 +1112,7 @@ public abstract class TestBase {
      * @return the classpath list
      */
     protected String getClassPath() {
-        return "temp" + File.pathSeparator + "bin" + File.pathSeparator + ".";
+        return "bin" + File.pathSeparator + "temp" + File.pathSeparator + ".";
     }
 
     /**

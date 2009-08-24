@@ -54,14 +54,20 @@ public class TestFileLockSerialized extends TestBase {
         String url = "jdbc:h2:" + baseDir + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
         int len = 3;
         final Exception[] ex = new Exception[1];
-        final Connection[] conn = new Connection[len];
+        final Connection[] connList = new Connection[len];
         final boolean[] stop = new boolean[1];
         Thread[] threads = new Thread[len];
         for (int i = 0; i < len; i++) {
-            final Connection c = DriverManager.getConnection(url);
-            conn[i] = c;
+            Connection conn;
+            try {
+                conn = DriverManager.getConnection(url);
+            } catch (SQLException e) {
+                throw new Exception("Can not connect " + len, e);
+            }
+            final Connection c = conn;
+            connList[i] = c;
             if (i == 0) {
-                conn[i].createStatement().execute("create table test(id int) as select 1");
+                connList[i].createStatement().execute("create table test(id int) as select 1");
             }
             Thread t = new Thread(new Runnable() {
                 public void run() {

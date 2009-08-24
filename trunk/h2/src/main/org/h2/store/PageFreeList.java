@@ -40,21 +40,33 @@ public class PageFreeList extends Record {
     /**
      * Allocate a page from the free list.
      *
+     * @param exclude the exclude list or null
+     * @param first the first page to look for
      * @return the page, or -1 if all pages are used
      */
-    int allocate() throws SQLException {
+    int allocate(BitField exclude, int first) throws SQLException {
         if (full) {
             return -1;
         }
         // TODO cache last result
-        int free = used.nextClearBit(0);
-        if (free >= pageCount) {
-            full = true;
-            return -1;
+        int start = Math.max(0, first - getPos());
+        while (true) {
+            int free = used.nextClearBit(start);
+            if (free >= pageCount) {
+                full = true;
+                return -1;
+            }
+            if (exclude != null && exclude.get(free + getPos())) {
+                start = exclude.nextClearBit(free + getPos()) - getPos();
+                if (start >= pageCount) {
+                    return -1;
+                }
+            } else {
+                used.set(free);
+                store.updateRecord(this, true, data);
+                return free + getPos();
+            }
         }
-        used.set(free);
-        store.updateRecord(this, true, data);
-        return free + getPos();
     }
 
     /**

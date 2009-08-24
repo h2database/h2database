@@ -36,6 +36,8 @@ import org.h2.value.Value;
  * <li>1-4: page id</li>
  * <li>5-: data</li>
  * </ul>
+ * The log file is split into sections, each section starts with a new log id.
+ * A checkpoint starts a new section.
  */
 public class PageLog {
 
@@ -125,11 +127,37 @@ public class PageLog {
     private int firstTrunkPage;
     private int firstDataPage;
     private Data data;
-    private int logId, logPos;
+    private int logSectionId, logPos;
     private int firstLogId;
+
+    /**
+     * If the bit is set, the given page was written to the current log section.
+     * The undo entry of these pages doesn't need to be written again.
+     */
     private BitField undo = new BitField();
-    private IntIntHashMap logIdPageMap = new IntIntHashMap();
+
+    /**
+     * The undo entry of those pages was written in any log section.
+     * These pages may not be used in the transaction log.
+     */
+    private BitField undoAll = new BitField();
+
+    /**
+     * The map of section ids (key) and data page where the section starts (value).
+     */
+    private IntIntHashMap logSectionPageMap = new IntIntHashMap();
+
+    /**
+     * The session state map.
+     * Only used during recovery.
+     */
     private HashMap<Integer, SessionState> sessionStates = New.hashMap();
+
+    /**
+     * The map of pages used by the transaction log.
+     * Only used during recovery.
+     */
+    private BitField usedLogPages;
 
     PageLog(PageStore store) {
         this.store = store;
@@ -146,7 +174,7 @@ public class PageLog {
     void openForWriting(int firstTrunkPage) throws SQLException {
         trace.debug("log openForWriting firstPage:" + firstTrunkPage);
         this.firstTrunkPage = firstTrunkPage;
-        pageOut = new PageOutputStream(store, firstTrunkPage);
+        pageOut = new PageOutputStream(store, firstTrunkPage, undoAll);
         pageOut.reserve(1);
         store.setLogFirstPage(firstTrunkPage, pageOut.getCurrentDataPageId());
         buffer = new ByteArrayOutputStream();
@@ -199,7 +227,7 @@ public class PageLog {
         }
         if (stage == RECOVERY_STAGE_ALLOCATE) {
             PageInputStream in = new PageInputStream(store, firstTrunkPage, firstDataPage);
-            in.allocateAllPages();
+            usedLogPages = in.allocateAllPages();
             return;
         }
         pageIn = new PageInputStream(store, firstTrunkPage, firstDataPage);
@@ -224,6 +252,7 @@ public class PageLog {
                             }
                             store.writePage(pageId, data);
                             undo.set(pageId);
+                            undoAll.set(pageId);
                         }
                     }
                 } else if (x == ADD || x == REMOVE) {
@@ -295,7 +324,9 @@ public class PageLog {
                     for (int i = 0; i < count; i++) {
                         int pageId = in.readInt();
                         if (stage == RECOVERY_STAGE_REDO) {
-                            store.freePage(pageId, false, null);
+                            if (!usedLogPages.get(pageId)) {
+                                store.freePage(pageId, false, null);
+                            }
                         }
                     }
                 } else {
@@ -311,6 +342,9 @@ public class PageLog {
             throw Message.convertIOException(e, "recover");
         }
         undo = new BitField();
+        if (stage == RECOVERY_STAGE_REDO) {
+            usedLogPages = null;
+        }
     }
 
     /**
@@ -372,6 +406,7 @@ public class PageLog {
                 trace.debug("log undo " + pageId);
             }
             undo.set(pageId);
+            undoAll.set(pageId);
             out.write(UNDO);
             out.writeInt(pageId);
             out.write(page.getBytes(), 0, store.getPageSize());
@@ -482,8 +517,8 @@ public class PageLog {
                 trace.debug("log " + (add?"+":"-") + " s:" + session.getId() + " table:" + tableId +
                         " row:" + row);
             }
-            session.addLogPos(logId, logPos);
-            row.setLastLog(logId, logPos);
+            session.addLogPos(logSectionId, logPos);
+            row.setLastLog(logSectionId, logPos);
 
             data.reset();
             data.checkCapacity(row.getByteCount(data));
@@ -499,7 +534,7 @@ public class PageLog {
             throw Message.convertIOException(e, null);
         }
     }
-    
+
     /**
      * A table is truncated.
      *
@@ -511,7 +546,7 @@ public class PageLog {
             if (trace.isDebugEnabled()) {
                 trace.debug("log truncate s:" + session.getId() + " table:" + tableId);
             }
-            session.addLogPos(logId, logPos);
+            session.addLogPos(logSectionId, logPos);
             data.reset();
             out.write(TRUNCATE);
             out.writeInt(session.getId());
@@ -545,14 +580,14 @@ public class PageLog {
             throw Message.convertIOException(e, null);
         }
         undo = new BitField();
-        logId++;
+        logSectionId++;
         pageOut.fillPage();
         int currentDataPage = pageOut.getCurrentDataPageId();
-        logIdPageMap.put(logId, currentDataPage);
+        logSectionPageMap.put(logSectionId, currentDataPage);
     }
 
-    int getLogId() {
-        return logId;
+    int getLogSectionId() {
+        return logSectionId;
     }
 
     /**
@@ -564,13 +599,13 @@ public class PageLog {
         if (firstUncommittedLog == 0) {
             return;
         }
-        int firstDataPageToKeep = logIdPageMap.get(firstUncommittedLog);
+        int firstDataPageToKeep = logSectionPageMap.get(firstUncommittedLog);
         firstTrunkPage = removeUntil(firstTrunkPage, firstDataPageToKeep);
         store.setLogFirstPage(firstTrunkPage, firstDataPageToKeep);
         while (firstLogId < firstUncommittedLog) {
             if (firstLogId > 0) {
                 // there is no entry for log 0
-                logIdPageMap.remove(firstLogId);
+                logSectionPageMap.remove(firstLogId);
             }
             firstLogId++;
         }

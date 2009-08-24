@@ -100,11 +100,7 @@ class PageDataLeaf extends PageData {
             if (entryCount > 1) {
                 return entryCount / 2;
             }
-            int todoIncorrect;
-            if (find(row.getPos()) != 1) {
-                System.out.println("todo " + find(row.getPos()));
-            }
-            return 1; // find(row.getPos()) + 1;
+            return find(row.getPos());
         }
         int offset = last - rowLength;
         int[] newOffsets = new int[entryCount + 1];
@@ -188,7 +184,7 @@ class PageDataLeaf extends PageData {
         written = false;
         readAllRows();
         entryCount--;
-        if (entryCount <= 0) {
+        if (entryCount < 0) {
             Message.throwInternalError();
         }
         int[] newOffsets = new int[entryCount];

@@ -904,6 +904,13 @@ public class Recover extends Tool implements DataHandler {
                 // nothing to do
             } else if (x == PageLog.CHECKPOINT) {
                 writer.println("-- checkpoint");
+            } else if (x == PageLog.FREE_LOG) {
+                int size = in.readInt();
+                StringBuilder buff = new StringBuilder("-- free");
+                for (int i = 0; i < size; i++) {
+                    buff.append(' ').append(in.readInt());
+                }
+                writer.println(buff);
             } else {
                 writer.println("-- end " + x);
                 break;

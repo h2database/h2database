@@ -38,7 +38,7 @@ public class TestPageStore extends TestBase {
         testCreateIndexLater();
         testFuzzOperations();
     }
-    
+
     private void testTruncate() throws SQLException {
         if (config.memory) {
             return;
@@ -58,7 +58,7 @@ public class TestPageStore extends TestBase {
         }
         conn = getConnection("pageStore");
         conn.close();
-    }        
+    }
 
     private void testLargeIndex() throws SQLException {
         if (config.memory) {

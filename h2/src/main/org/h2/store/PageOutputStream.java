@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.sql.SQLException;
 import org.h2.message.Message;
 import org.h2.message.Trace;
+import org.h2.util.BitField;
 import org.h2.util.IntArray;
 
 /**
@@ -21,6 +22,8 @@ public class PageOutputStream extends OutputStream {
     private PageStore store;
     private final Trace trace;
     private int trunkPageId;
+    private final BitField exclude;
+
     private int trunkNext;
     private IntArray reservedPages = new IntArray();
     private PageStreamTrunk trunk;
@@ -38,10 +41,11 @@ public class PageOutputStream extends OutputStream {
      * @param store the page store
      * @param trunkPage the first trunk page (already allocated)
      */
-    public PageOutputStream(PageStore store, int trunkPage) {
+    public PageOutputStream(PageStore store, int trunkPage, BitField exclude) {
         this.trace = store.getTrace();
         this.store = store;
         this.trunkPageId = trunkPage;
+        this.exclude = exclude;
     }
 
     /**
@@ -64,10 +68,7 @@ public class PageOutputStream extends OutputStream {
             }
             // allocate the next trunk page as well
             pagesToAllocate++;
-            for (int i = 0; i < pagesToAllocate; i++) {
-                int page = store.allocatePage();
-                reservedPages.add(page);
-            }
+            store.allocatePages(reservedPages, pagesToAllocate, exclude);
             reserved += totalCapacity;
             if (data == null) {
                 initNextData();

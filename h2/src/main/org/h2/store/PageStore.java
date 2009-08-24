@@ -31,11 +31,13 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableData;
+import org.h2.util.BitField;
 import org.h2.util.Cache;
 import org.h2.util.CacheLRU;
 import org.h2.util.CacheObject;
 import org.h2.util.CacheWriter;
 import org.h2.util.FileUtils;
+import org.h2.util.IntArray;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
@@ -69,11 +71,6 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
-    // TODO what if the log contains undo page for a later log page
-    // TODO what if the log contains a head page for a later log page
-    // TODO allocate log: must not use page if undo is in an active log
-    // TODO or don't redo if page is now a log page
-    
     // TODO var int: see google protocol buffers
     // TODO don't save parent (only root); remove setPageId
     // TODO implement checksum - 0 for empty
@@ -354,7 +351,7 @@ public class PageStore implements CacheWriter {
     private void switchLog() throws SQLException {
         trace.debug("switchLog");
         Session[] sessions = database.getSessions(true);
-        int firstUncommittedLog = log.getLogId();
+        int firstUncommittedLog = log.getLogSectionId();
         for (int i = 0; i < sessions.length; i++) {
             Session session = sessions[i];
             int log = session.getFirstUncommittedLog();
@@ -583,17 +580,37 @@ public class PageStore implements CacheWriter {
     }
 
     /**
+     * Allocate a number of pages.
+     *
+     * @param list the list where to add the allocated pages
+     * @param pagesToAllocate the number of pages to allocate
+     * @param exclude the exclude list
+     */
+    void allocatePages(IntArray list, int pagesToAllocate, BitField exclude) throws SQLException {
+        int first = 0;
+        for (int i = 0; i < pagesToAllocate; i++) {
+            int page = allocatePage(exclude, first);
+            first = page;
+            list.add(page);
+        }
+    }
+
+    /**
      * Allocate a page.
      *
      * @return the page id
      */
     public int allocatePage() throws SQLException {
+        return allocatePage(null, 0);
+    }
+
+    private int allocatePage(BitField exclude, int first) throws SQLException {
         int pos;
         synchronized (database) {
             // TODO could remember the first possible free list page
             for (int i = 0;; i++) {
                 PageFreeList list = getFreeList(i);
-                pos = list.allocate();
+                pos = list.allocate(exclude, first);
                 if (pos >= 0) {
                     break;
                 }
@@ -885,7 +902,7 @@ public class PageStore implements CacheWriter {
             table.removeRow(systemSession, row);
         }
     }
-    
+
     /**
      * Redo a truncate.
      *
@@ -929,7 +946,11 @@ public class PageStore implements CacheWriter {
         int headPos = index.getHeadPos();
         index.getTable().removeIndex(index);
         if (index instanceof PageBtreeIndex) {
-            index.getSchema().remove(index);
+            if (index.isTemporary()) {
+                systemSession.removeLocalTempTableIndex(index);
+            } else {
+                index.getSchema().remove(index);
+            }
         }
         index.remove(systemSession);
         if (reservedPages != null && reservedPages.containsKey(headPos)) {

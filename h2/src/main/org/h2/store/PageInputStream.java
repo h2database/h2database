@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import org.h2.message.Trace;
+import org.h2.util.BitField;
 
 /**
  * An input stream that reads from a page store.
@@ -110,10 +111,14 @@ public class PageInputStream extends InputStream {
 
     /**
      * Set all pages as 'allocated' in the page store.
+     *
+     * @return the bit set
      */
-    void allocateAllPages() throws SQLException {
+    BitField allocateAllPages() throws SQLException {
+        BitField pages = new BitField();
         int trunkPage = trunkNext;
         while (trunkPage != 0) {
+            pages.set(trunkPage);
             store.allocatePage(trunkPage);
             PageStreamTrunk t = new PageStreamTrunk(store, trunkPage);
             t.read();
@@ -122,10 +127,12 @@ public class PageInputStream extends InputStream {
                 if (n == -1) {
                     break;
                 }
+                pages.set(n);
                 store.allocatePage(n);
             }
             trunkPage = t.getNextTrunk();
         }
+        return pages;
     }
 
     int getDataPage() {

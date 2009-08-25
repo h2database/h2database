@@ -301,7 +301,11 @@ public class SysProperties {
 
     /**
      * System property <code>h2.maxFileRetry</code> (default: 16).<br />
-     * Number of times to retry file delete and rename.
+     * Number of times to retry file delete and rename. in Windows, files can't
+     * be deleted if they are open. Waiting a bit can help (sometimes the
+     * Windows Explorer opens the files for a short time) may help. Sometimes,
+     * running garbage collection may close files if the user forgot to call
+     * Connection.close() or InputStream.close().
      */
     public static final int MAX_FILE_RETRY = Math.max(1, getIntSetting("h2.maxFileRetry", 16));
 

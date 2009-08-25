@@ -58,6 +58,14 @@ public class CompressDeflate implements Compressor {
         deflater.setInput(in, 0, inLen);
         deflater.finish();
         int compressed = deflater.deflate(out, outPos, out.length - outPos);
+        while (compressed == 0) {
+            // the compressed data is 0, meaning compression didn't work
+            // (sounds like a JDK bug)
+            // try again, using the default strategy and compression level
+            strategy = Deflater.DEFAULT_STRATEGY;
+            level = Deflater.DEFAULT_COMPRESSION;
+            return compress(in, inLen, out, outPos);
+        }
         return compressed;
     }
 

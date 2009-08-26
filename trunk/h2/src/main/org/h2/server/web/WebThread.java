@@ -314,7 +314,7 @@ class WebThread extends Thread implements DatabaseEventListener {
             int i = input.read();
             if (i == -1) {
                 throw new IOException("Unexpected EOF");
-            } else if (i == '\r' && input.read() == '\n') {
+            } else if (i == '\r' && input.read() == '\n' || i == '\n') {
                 return buff.length() > 0 ? buff.toString() : null;
             } else {
                 buff.append((char) i);

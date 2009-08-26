@@ -62,19 +62,25 @@ public class WriterThread implements Runnable {
     }
 
     /**
-     * Create and start a new writer thread for the given database.
+     * Create and start a new writer thread for the given database. If the
+     * thread can't be created, this method returns null.
      *
      * @param database the database
      * @param writeDelay the delay
-     * @return the writer thread object
+     * @return the writer thread object or null
      */
     public static WriterThread create(Database database, int writeDelay) {
         WriterThread writer = new WriterThread(database, writeDelay);
-        Thread thread = new Thread(writer);
-        thread.setName("H2 Log Writer " + database.getShortName());
-        thread.setDaemon(true);
-        thread.start();
-        return writer;
+        try {
+            Thread thread = new Thread(writer);
+            thread.setName("H2 Log Writer " + database.getShortName());
+            thread.setDaemon(true);
+            thread.start();
+            return writer;
+        } catch (Exception e) {
+            // support Google App Engine
+            return null;
+        }
     }
 
     private LogSystem getLog() {

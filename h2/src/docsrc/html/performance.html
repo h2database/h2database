@@ -384,14 +384,11 @@ following profiling data (results vary):
 <br /><a name="database_performance_tuning"></a>
 <h2>Database Performance Tuning</h2>
 
-<h3>Use the Most Modern JVM</h3>
+<h3>Use a Modern JVM</h3>
 <p>
-Older JVMs are not as good at optimizing Java bytecode for quick execution.  Upgrading to the latest version
-of your JVM can provide a "free" boost to performance, particularly if your JVM is more than one major version 
-out of date. This is especially a problem on Apple systems, many of which still use the 1.5 JVM.  When available, 
-the database engine also takes advantage of features in the latest Sun JREs to improve performance. 
-On the Windows platform, switching from the default Client JVM to the Server JVM 
-using the -server command-line option improves performance  at the cost of a slight increase in start-up time. 
+Newer JVMs are faster. Upgrading to the latest version of your JVM can provide a "free" boost to performance. 
+On the Windows platform, switching from the default Client JVM to the Server JVM
+using the <code>-server</code> command-line option improves performance at the cost of a slight increase in start-up time.
 </p>
 
 <h3>Virus Scanners</h3>

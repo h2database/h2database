@@ -8854,13 +8854,19 @@ Oracle compatibility: support CREATE SYNONYM table FOR schema.table.
 @roadmap_1409_li
 Optimize A=? OR B=? to UNION if the cost is lower.
 
-@roadmap_1410_h2
-Not Planned
+@roadmap_1410_li
+More secure default configuration if remote access is enabled.
 
 @roadmap_1411_li
+Optimization for EXISTS: convert to inner join if possible.
+
+@roadmap_1412_h2
+Not Planned
+
+@roadmap_1413_li
 HSQLDB (did) support this: select id i from test where i&lt;0 (other databases don't). Supporting it may break compatibility.
 
-@roadmap_1412_li
+@roadmap_1414_li
 String.intern (so that Strings can be compared with ==) will not be used because some VMs have problems when used extensively.
 
 @sourceError_1000_h1

@@ -131,7 +131,7 @@ public class PageStore implements CacheWriter {
     /**
      * The default page size.
      */
-    public static final int PAGE_SIZE_DEFAULT = 1024;
+    public static final int PAGE_SIZE_DEFAULT = 2 * 1024;
 
     /**
      * Store the rowcount in b-tree indexes.

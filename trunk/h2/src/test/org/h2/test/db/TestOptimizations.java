@@ -460,11 +460,20 @@ public class TestOptimizations extends TestBase {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
+        PreparedStatement prep;
+        ResultSet rs;
+
+        assertFalse(stat.executeQuery("select * from dual where x in()").next());
+        assertFalse(stat.executeQuery("select * from dual where null in(1)").next());
+        assertFalse(stat.executeQuery("select * from dual where null in(null)").next());
+        assertFalse(stat.executeQuery("select * from dual where null in(null, 1)").next());
+
+        assertFalse(stat.executeQuery("select * from dual where 1+x in(3, 4)").next());
+        assertFalse(stat.executeQuery("select * from dual d1, dual d2 where d1.x in(3, 4)").next());
+
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test values(1, 'Hello')");
         stat.execute("insert into test values(2, 'World')");
-        PreparedStatement prep;
-        ResultSet rs;
 
         prep = conn.prepareStatement("select * from test t1 where t1.id in(?)");
         prep.setInt(1, 1);

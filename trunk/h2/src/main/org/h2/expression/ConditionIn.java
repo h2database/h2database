@@ -37,6 +37,13 @@ public class ConditionIn extends Condition {
     private Value min, max;
     private int queryLevel;
 
+    /**
+     * Create a new IN(..) condition.
+     *
+     * @param database the database
+     * @param left the expression before IN
+     * @param values the value list (at least one element)
+     */
     public ConditionIn(Database database, Expression left, ObjectArray<Expression> values) {
         this.database = database;
         this.left = left;
@@ -45,9 +52,6 @@ public class ConditionIn extends Condition {
 
     public Value getValue(Session session) throws SQLException {
         Value l = left.getValue(session);
-        if (valueList.size() == 0) {
-            return ValueBoolean.get(false);
-        }
         if (l == ValueNull.INSTANCE) {
             return l;
         }
@@ -80,9 +84,6 @@ public class ConditionIn extends Condition {
     }
 
     public Expression optimize(Session session) throws SQLException {
-        if (valueList.size() == 0) {
-            return ValueExpression.get(ValueBoolean.get(false));
-        }
         left = left.optimize(session);
         boolean constant = left.isConstant();
         if (constant && left == ValueExpression.getNull()) {
@@ -152,6 +153,7 @@ public class ConditionIn extends Condition {
                 }
             }
             filter.addIndexCondition(IndexCondition.getInList(l, valueList));
+            return;
         }
         if (!SysProperties.OPTIMIZE_IN) {
             return;

@@ -386,7 +386,7 @@ following profiling data (results vary):
 
 <h3>Use a Modern JVM</h3>
 <p>
-Newer JVMs are faster. Upgrading to the latest version of your JVM can provide a "free" boost to performance. 
+Newer JVMs are faster. Upgrading to the latest version of your JVM can provide a "free" boost to performance.
 On the Windows platform, switching from the default Client JVM to the Server JVM
 using the <code>-server</code> command-line option improves performance at the cost of a slight increase in start-up time.
 </p>
@@ -502,14 +502,13 @@ the second level soft reference cache. See also <a href="features.html#cache_set
 <h3>Data Types</h3>
 <p>
 Each data type has different storage and performance characteristics:
-<ul><li>The DECIMAL/NUMERIC type is slower and requires more storage than the REAL and DOUBLE types. 
+</p>
+<ul><li>The DECIMAL/NUMERIC type is slower and requires more storage than the REAL and DOUBLE types.
 </li><li>Text types are slower to read, write, and compare than numeric types and generally require more storage.
 </li><li>See <a href="advanced.html#large_objects">Large Objects</a> for information on BINARY vs. BLOB and VARCHAR vs. CLOB performance.
-</li><li>Parsing and formatting takes longer for the TIME, DATE, and TIMESTAMP types than
- the numeric types.
-</li><li>SMALLINT/TINYINT/BOOLEAN are not significantly smaller or faster to work with than INTEGER in most modes. 
- </li></ul>
-</p>
+</li><li>Parsing and formatting takes longer for the TIME, DATE, and TIMESTAMP types than the numeric types.
+</li><li>SMALLINT/TINYINT/BOOLEAN are not significantly smaller or faster to work with than INTEGER in most modes.
+</li></ul>
 
 <br /><a name="fast_import"></a>
 <h2>Fast Database Import</h2>

@@ -21,6 +21,16 @@ import org.h2.util.MathUtils;
 public class ValueDecimal extends Value {
 
     /**
+     * The value 'zero'.
+     */
+    public static final Object ZERO = new ValueDecimal(BigDecimal.ZERO);
+
+    /**
+     * The value 'one'.
+     */
+    public static final Object ONE = new ValueDecimal(BigDecimal.ONE);
+
+    /**
      * The default precision for a decimal value.
      */
     static final int DEFAULT_PRECISION = 65535;
@@ -36,10 +46,6 @@ public class ValueDecimal extends Value {
     static final int DEFAULT_DISPLAY_SIZE = 65535;
 
     private static final int DIVIDE_SCALE_ADD = 25;
-    private static final BigDecimal DEC_ZERO = new BigDecimal("0");
-    private static final BigDecimal DEC_ONE = new BigDecimal("1");
-    private static final Object ZERO = new ValueDecimal(DEC_ZERO);
-    private static final Object ONE = new ValueDecimal(DEC_ONE);
 
     private final BigDecimal value;
     private String valueString;
@@ -82,7 +88,7 @@ public class ValueDecimal extends Value {
         }
         BigDecimal bd = value.divide(dec.value, value.scale() + DIVIDE_SCALE_ADD, BigDecimal.ROUND_HALF_DOWN);
         if (bd.signum() == 0) {
-            bd = DEC_ZERO;
+            bd = BigDecimal.ZERO;
         } else if (bd.scale() > 0) {
             if (!bd.unscaledValue().testBit(0)) {
                 String s = bd.toString();
@@ -185,9 +191,9 @@ public class ValueDecimal extends Value {
      * @return the value
      */
     public static ValueDecimal get(BigDecimal dec) {
-        if (DEC_ZERO.equals(dec)) {
+        if (BigDecimal.ZERO.equals(dec)) {
             return (ValueDecimal) ZERO;
-        } else if (DEC_ONE.equals(dec)) {
+        } else if (BigDecimal.ONE.equals(dec)) {
             return (ValueDecimal) ONE;
         }
         return (ValueDecimal) Value.cache(new ValueDecimal(dec));

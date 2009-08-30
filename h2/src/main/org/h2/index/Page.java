@@ -7,7 +7,11 @@
 package org.h2.index;
 
 /**
- * A page.
+ * A page. Format:
+ * <ul><li>0-3: parent page id (0 for root)
+ * </li><li>4-4: page type
+ * </li><li>page-type specific data
+ * </li></ul>
  */
 public class Page {
 

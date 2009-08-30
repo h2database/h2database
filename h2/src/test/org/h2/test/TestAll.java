@@ -349,6 +349,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             test.pageStore = true;
             test.runTests();
             TestPerformance.main("-init", "-db", "1");
+            // Recover.execute("data", null);
 
             System.setProperty(SysProperties.H2_PAGE_STORE, "false");
             test.pageStore = false;

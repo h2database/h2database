@@ -69,6 +69,22 @@ public class PageFreeList extends Record {
         }
     }
 
+    int getFirstFree() {
+        if (full) {
+            return -1;
+        }
+        int free = used.nextClearBit(0);
+        if (free >= pageCount) {
+            return -1;
+        }
+        return free;
+    }
+
+    int getLastUsed() {
+        int last = used.getLastSetBit();
+        return last == -1 ? -1 : last + getPos();
+    }
+
     /**
      * Mark a page as used.
      *

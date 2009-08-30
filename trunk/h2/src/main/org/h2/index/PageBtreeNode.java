@@ -105,11 +105,11 @@ class PageBtreeNode extends PageBtree {
             // change the offsets (now storing only positions)
             int o = pageSize;
             for (int i = 0; i < entryCount; i++) {
-                o -= index.getRowSize(data, getRow(i), onlyPosition);
+                o -= index.getRowSize(data, getRow(i), true);
                 offsets[i] = o;
             }
             last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
-            rowLength = index.getRowSize(data, row, onlyPosition);
+            rowLength = index.getRowSize(data, row, true);
             if (SysProperties.CHECK && last - rowLength < start + CHILD_OFFSET_PAIR_LENGTH) {
                 throw Message.throwInternalError();
             }

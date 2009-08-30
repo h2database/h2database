@@ -720,6 +720,7 @@ public class Recover extends Tool implements DataHandler {
         setDatabaseName(fileName.substring(0, fileName.length() - Constants.SUFFIX_PAGE_FILE.length()));
         FileStore store = null;
         PrintWriter writer = null;
+        int[] pageTypeCount = new int[Page.TYPE_STREAM_DATA + 2];
         int emptyPages = 0;
         try {
             writer = getWriter(fileName, ".sql");
@@ -789,6 +790,7 @@ public class Recover extends Tool implements DataHandler {
                 int type = s.readByte();
                 switch (type) {
                 case Page.TYPE_EMPTY:
+                    pageTypeCount[type]++;
                     if (parentPageId != 0) {
                         writer.println("-- ERROR empty page with parent: " + parentPageId);
                     }
@@ -798,29 +800,31 @@ public class Recover extends Tool implements DataHandler {
                 boolean last = (type & Page.FLAG_LAST) != 0;
                 type &= ~Page.FLAG_LAST;
                 switch (type) {
-                case Page.TYPE_DATA_OVERFLOW:
-                    writer.println("-- page " + page + ": data overflow " + (last ? "(last)" : ""));
-                    break;
-                case Page.TYPE_DATA_NODE: {
-                    int entries = s.readShortInt();
-                    int rowCount = s.readInt();
-                    writer.println("-- page " + page + ": data node " + (last ? "(last)" : "") + " entries: " + entries + " rowCount: " + rowCount);
-                    break;
-                }
+                // type 1
                 case Page.TYPE_DATA_LEAF: {
+                    pageTypeCount[type]++;
                     setStorage(s.readInt());
                     int entries = s.readShortInt();
                     writer.println("-- page " + page + ": data leaf " + (last ? "(last)" : "") + " table: " + storageId + " entries: " + entries);
                     dumpPageDataLeaf(store, pageSize, writer, s, last, page, entries);
                     break;
                 }
-                case Page.TYPE_BTREE_NODE:
-                    writer.println("-- page " + page + ": b-tree node" + (last ? "(last)" : ""));
-                    if (trace) {
-                        dumpPageBtreeNode(writer, s, !last);
-                    }
+                // type 2
+                case Page.TYPE_DATA_NODE: {
+                    pageTypeCount[type]++;
+                    int entries = s.readShortInt();
+                    int rowCount = s.readInt();
+                    writer.println("-- page " + page + ": data node " + (last ? "(last)" : "") + " entries: " + entries + " rowCount: " + rowCount);
                     break;
+                }
+                // type 3
+                case Page.TYPE_DATA_OVERFLOW:
+                    pageTypeCount[type]++;
+                    writer.println("-- page " + page + ": data overflow " + (last ? "(last)" : ""));
+                    break;
+                // type 4
                 case Page.TYPE_BTREE_LEAF: {
+                    pageTypeCount[type]++;
                     setStorage(s.readInt());
                     int entries = s.readShortInt();
                     writer.println("-- page " + page + ": b-tree leaf " + (last ? "(last)" : "") + " table: " + storageId + " entries: " + entries);
@@ -829,14 +833,28 @@ public class Recover extends Tool implements DataHandler {
                     }
                     break;
                 }
+                // type 5
+                case Page.TYPE_BTREE_NODE:
+                    pageTypeCount[type]++;
+                    writer.println("-- page " + page + ": b-tree node" + (last ? "(last)" : ""));
+                    if (trace) {
+                        dumpPageBtreeNode(writer, s, !last);
+                    }
+                    break;
+                // type 6
                 case Page.TYPE_FREE_LIST:
+                    pageTypeCount[type]++;
                     writer.println("-- page " + page + ": free list " + (last ? "(last)" : ""));
                     free += dumpPageFreeList(writer, s, pageSize, page, pageCount);
                     break;
+                // type 7
                 case Page.TYPE_STREAM_TRUNK:
+                    pageTypeCount[type]++;
                     writer.println("-- page " + page + ": log trunk");
                     break;
+                // type 8
                 case Page.TYPE_STREAM_DATA:
+                    pageTypeCount[type]++;
                     writer.println("-- page " + page + ": log data");
                     break;
                 default:
@@ -844,12 +862,18 @@ public class Recover extends Tool implements DataHandler {
                     break;
                 }
             }
-            writer.println("-- page count: " + pageCount + " empty: " + emptyPages + " free: " + free);
             writeSchema(writer);
             try {
                 dumpPageLogStream(writer, store, logFirstTrunkPage, logFirstDataPage, pageSize);
             } catch (EOFException e) {
                 // ignore
+            }
+            writer.println("-- page count: " + pageCount + " empty: " + emptyPages + " free: " + free);
+            for (int i = 0; i < pageTypeCount.length; i++) {
+                int count = pageTypeCount[i];
+                if (count > 0) {
+                    writer.println("-- page count type: " + i + " " + (100 * count / pageCount) + "% count: " + count);
+                }
             }
             writer.close();
         } catch (Throwable e) {

@@ -97,9 +97,11 @@ class PageDataLeaf extends PageData {
         int pageSize = index.getPageStore().getPageSize();
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (entryCount > 0 && last - rowLength < start + KEY_OFFSET_PAIR_LENGTH) {
-            if (entryCount > 1) {
-                return entryCount / 2;
-            }
+            // split at the insertion point to better fill pages
+            // split in half would be:
+            // if (entryCount > 1) {
+            //     return entryCount / 2;
+            // }
             return find(row.getPos());
         }
         int offset = last - rowLength;

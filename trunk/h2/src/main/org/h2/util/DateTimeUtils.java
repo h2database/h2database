@@ -398,4 +398,34 @@ public class DateTimeUtils {
         return value;
     }
 
+    /**
+     * Get the number of milliseconds since 1970-01-01 in the local timezone.
+     *
+     * @param d the date
+     * @return the milliseconds
+     */
+    public static long getTimeLocal(java.util.Date d) {
+        Calendar c = getCalendar();
+        synchronized (c) {
+            c.setTime(d);
+            return c.getTime().getTime() + c.get(Calendar.ZONE_OFFSET);
+        }
+    }
+
+    /**
+     * Convert the number of milliseconds since 1970-01-01 in the local timezone
+     * to GMT.
+     *
+     * @param millis the number of milliseconds in the local timezone
+     * @return the number of milliseconds in GMT
+     */
+    public static long getTimeGMT(long millis) {
+        Date d = new Date(millis);
+        Calendar c = getCalendar();
+        synchronized (c) {
+            c.setTime(d);
+            return c.getTime().getTime() - c.get(Calendar.ZONE_OFFSET);
+        }
+    }
+
 }

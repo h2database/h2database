@@ -18,6 +18,7 @@ import org.h2.engine.Session;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
+import org.h2.index.Page;
 import org.h2.index.PageBtreeIndex;
 import org.h2.index.PageScanIndex;
 import org.h2.log.InDoubtTransaction;
@@ -71,17 +72,22 @@ import org.h2.value.ValueString;
  */
 public class PageStore implements CacheWriter {
 
-    // TODO var int: see google protocol buffers
-    // TODO don't save parent (only root); remove setPageId
-    // TODO implement checksum - 0 for empty
-    // TODO b-tree index with fixed size values doesn't need offset and so on
+    // TODO shrinking: a way to load pages centrally
+    // TODO shrinking: Page.moveTo(int pageId).
+
+    // TODO utf-x: test if it's faster
+    // TODO value serialization: test (100% coverage)
+
+    // TODO scan index: support long keys, and use var long
+    // TODO don't save the direct parent (only root); remove setPageId
+    // TODO implement checksum; 0 for empty pages
     // TODO remove parent, use tableId if required
     // TODO replace CRC32
     // TODO optimization: try to avoid allocating a byte array per page
+    // TODO optimization: check if calling Data.getValueLen slows things down
     // TODO PageBtreeNode: 4 bytes offset - others use only 2
-    // TODO block compression: don't store the middle zeroes
-    // TODO block compression: maybe http://en.wikipedia.org/wiki/LZJB
-    // with RLE, specially for 0s.
+    // TODO undo pages: don't store the middle zeroes
+    // TODO undo pages compression: try http://en.wikipedia.org/wiki/LZJB
     // TODO order pages so that searching for a key only seeks forward
     // TODO completely re-use keys of deleted rows; maybe
     // remember last page with deleted keys (in the root page?),
@@ -341,11 +347,60 @@ public class PageStore implements CacheWriter {
                     writeCount++;
                 }
             }
-            // TODO shrink file if required here
-            // int pageCount = getFreeList().getLastUsed() + 1;
-            // trace.debug("pageCount:" + pageCount);
-            // file.setLength((long) pageCount << pageSizeShift);
         }
+    }
+
+    private void compact() throws SQLException {
+        trim();
+        int full = pageCount - 1;
+        int free = -1;
+        for (int i = 0; i < pageCount && free != -1; i++) {
+            free = getFreeList(i).getFirstFree();
+        }
+        if (free == -1 || free < 10) {
+            return;
+        }
+        Record rec = getRecord(full);
+        if (rec == null) {
+
+        } else {
+            Data page = Data.create(database, pageSize);
+            readPage(full, page);
+            int parent = page.readInt();
+            int type = page.readByte();
+            boolean last = (type & Page.FLAG_LAST) != 0;
+            type = type & ~Page.FLAG_LAST;
+            System.out.println("last page is " + type + " parent: " + parent);
+            switch (type) {
+            case Page.TYPE_EMPTY:
+                break;
+            case Page.TYPE_FREE_LIST:
+                break;
+            case Page.TYPE_DATA_LEAF:
+                break;
+            case Page.TYPE_DATA_NODE:
+            case Page.TYPE_DATA_OVERFLOW:
+            case Page.TYPE_BTREE_LEAF:
+            case Page.TYPE_BTREE_NODE:
+            case Page.TYPE_STREAM_TRUNK:
+            case Page.TYPE_STREAM_DATA:
+            }
+        }
+    }
+
+    /**
+     * Shrink the file so there are no empty pages at the end.
+     */
+    public void trim() throws SQLException {
+        for (int i = getFreeListId(pageCount); i >= 0; i--) {
+            int last = getFreeList(i).getLastUsed();
+            if (last != -1) {
+                pageCount = last + 1;
+                break;
+            }
+        }
+        trace.debug("pageCount:" + pageCount);
+        file.setLength((long) pageCount << pageSizeShift);
     }
 
     private void switchLog() throws SQLException {
@@ -540,8 +595,12 @@ public class PageStore implements CacheWriter {
         }
     }
 
+    private int getFreeListId(int pageId) {
+        return (pageId - PAGE_ID_FREE_LIST_ROOT) / freeListPagesPerList;
+    }
+
     private PageFreeList getFreeListForPage(int pageId) throws SQLException {
-        return getFreeList((pageId - PAGE_ID_FREE_LIST_ROOT) / freeListPagesPerList);
+        return getFreeList(getFreeListId(pageId));
     }
 
     private PageFreeList getFreeList(int i) throws SQLException {

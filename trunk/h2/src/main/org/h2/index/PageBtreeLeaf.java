@@ -60,17 +60,21 @@ class PageBtreeLeaf extends PageBtree {
         int last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
         if (last - rowLength < start + OFFSET_LENGTH) {
             if (entryCount > 1) {
-                return entryCount / 2;
+                // split at the insertion point to better fill pages
+                // split in half would be:
+                // return entryCount / 2;
+                int x = find(row, false, true, true);
+                return x < 2 ? 2 : x >= entryCount - 3 ? entryCount - 3 : x;
             }
             onlyPosition = true;
             // change the offsets (now storing only positions)
             int o = pageSize;
             for (int i = 0; i < entryCount; i++) {
-                o -= index.getRowSize(data, getRow(i), onlyPosition);
+                o -= index.getRowSize(data, getRow(i), true);
                 offsets[i] = o;
             }
             last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
-            rowLength = index.getRowSize(data, row, onlyPosition);
+            rowLength = index.getRowSize(data, row, true);
             if (SysProperties.CHECK && last - rowLength < start + OFFSET_LENGTH) {
                 throw Message.throwInternalError();
             }

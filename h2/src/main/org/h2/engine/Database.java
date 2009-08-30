@@ -683,7 +683,7 @@ public class Database implements DataHandler {
     private void startServer(String key) throws SQLException {
         server = Server.createTcpServer(
                 "-tcpPort", "0",
-                "-tcpAllowOthers", "true",
+                "-tcpAllowOthers",
                 "-key", key, databaseName);
         server.start();
         String address = NetUtils.getLocalAddress() + ":" + server.getPort();
@@ -1236,6 +1236,7 @@ public class Database implements DataHandler {
             if (flush) {
                 try {
                     pageStore.checkpoint();
+                    pageStore.trim();
                 } catch (Throwable e) {
                     traceSystem.getTrace(Trace.DATABASE).error("close", e);
                 }

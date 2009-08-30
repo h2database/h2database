@@ -50,6 +50,8 @@ Advanced Topics
     File Locking Protocols</a><br />
 <a href="#sql_injection">
     Protection against SQL Injection</a><br />
+<a href="#remote_access">
+    Protection against Remote Access</a><br />
 <a href="#restricting_classes">
     Restricting Class Loading and Usage</a><br />
 <a href="#security_protocols">
@@ -899,6 +901,17 @@ It is not required to create a constant for the number 0 as there is already a b
 <pre>
 SELECT * FROM USERS WHERE LENGTH(PASSWORD)=ZERO();
 </pre>
+
+<br /><a name="remote_access"></a>
+<h2>Protection against Remote Access</h2>
+<p>
+By default this database does not allow others to connect when starting the H2 Console,
+the TCP server, or the PG server. Remote access can be enabled using the command line
+options -webAllowOthers, -tcpAllowOthers, and -pgAllowOthers. If you enable remote
+access, please also consider using the options -baseDir and -ifExists, so that remote
+users can not create new databases or access existing databases with weak passwords. Also,
+ensure the existing accessible databases are protected using a strong password.
+</p>
 
 <br /><a name="restricting_classes"></a>
 <h2>Restricting Class Loading and Usage</h2>

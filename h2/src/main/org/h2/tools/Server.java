@@ -60,7 +60,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <tr><td>[-web]</td>
      * <td>Start the web server with the H2 Console</td></tr>
      * <tr><td>[-webAllowOthers]</td>
-     * <td>Allow other computers to connect</td></tr>
+     * <td>Allow other computers to connect - see below</td></tr>
      * <tr><td>[-webPort &lt;port&gt;]</td>
      * <td>The port (default: 8082)</td></tr>
      * <tr><td>[-webSSL]</td>
@@ -70,7 +70,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <tr><td>[-tcp]</td>
      * <td>Start the TCP server</td></tr>
      * <tr><td>[-tcpAllowOthers]</td>
-     * <td>Allow other computers to connect</td></tr>
+     * <td>Allow other computers to connect - see below</td></tr>
      * <tr><td>[-tcpPort &lt;port&gt;]</td>
      * <td>The port (default: 9092)</td></tr>
      * <tr><td>[-tcpSSL]</td>
@@ -84,7 +84,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <tr><td>[-pg]</td>
      * <td>Start the PG server</td></tr>
      * <tr><td>[-pgAllowOthers]</td>
-     * <td>Allow other computers to connect</td></tr>
+     * <td>Allow other computers to connect - see below</td></tr>
      * <tr><td>[-pgPort &lt;port&gt;]</td>
      * <td>The port (default: 5435)</td></tr>
      * <tr><td>[-baseDir &lt;dir&gt;]</td>
@@ -94,6 +94,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <tr><td>[-trace]</td>
      * <td>Print additional trace information; for all servers</td></tr>
      * </table>
+     * The options -xAllowOthers are potentially risky.
+     * <br />
+     * For details, see Advanced Topics / Protection against Remote Access.
      * @h2.resource
      *
      * @param args the command line arguments

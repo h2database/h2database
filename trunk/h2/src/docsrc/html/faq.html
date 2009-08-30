@@ -123,7 +123,7 @@ See <a href="advanced.html#limits_limitations">Limits and Limitations</a>.
 <br /><a name="reliable"></a>
 <h3>Is it Reliable?</h3>
 <p>
-Some users have reported that after a power failure, the database can sometimes not be 
+Some users have reported that after a power failure, the database can sometimes not be
 opened because the index file is corrupt. In that case, the index file can be deleted
 (it is automatically re-created). To avoid this, append ;LOG=2 to the database URL.
 See also: <a href="grammar.html#set_log">SET LOG</a>. This problem will be solved

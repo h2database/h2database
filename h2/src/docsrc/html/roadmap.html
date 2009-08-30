@@ -82,6 +82,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Improve recovery: improve code for log recovery problems (less try/catch)
 </li><li>Index usage for (ID, NAME)=(1, 'Hi'); document
 </li><li>Make DDL (Data Definition) operations transactional
+</li><li>RANK() and DENSE_RANK(), Partition using OVER()
 </li><li>Suggestion: include Jetty as Servlet Container (like LAMP)
 </li><li>Trace shipping to server
 </li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP)
@@ -124,7 +125,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Maybe use the 0x1234 notation for binary fields, see MS SQL Server
 </li><li>Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html, http://philip.greenspun.com/sql/trees.html
 </li><li>SQL Server 2005, Oracle: support COUNT(*) OVER(). See http://www.orafusion.com/art_anlytc.htm
-</li><li>RANK() and DENSE_RANK(), Partition using OVER()
 </li><li>SQL 2003 (http://www.wiscorp.com/sql_2003_standard.zip)
 </li><li>Version column (number/sequence and timestamp based)
 </li><li>Optimize getGeneratedKey: send last identity after each execute (server).
@@ -180,7 +180,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Make sure H2 is supported by Execute Query: http://executequery.org/
 </li><li>Read InputStream when executing, as late as possible (maybe only embedded mode). Problem with re-execute.
 </li><li>Native fulltext search: min word length; store word positions
-</li><li>Store dates in local time zone (portability of database files)
+</li><li>[Requires page store] Store dates in local time zone (portability of database files)
 </li><li>Recursive Queries (see details)
 </li><li>Add an option to the SCRIPT command to generate only portable / standard SQL
 </li><li>Test Dezign for Databases (http://www.datanamic.com)
@@ -445,6 +445,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimize A=? OR B=? to UNION if the cost is lower.
 </li><li>More secure default configuration if remote access is enabled.
 </li><li>Optimization for EXISTS: convert to inner join if possible.
+</li><li>Improve database file locking (maybe use native file locking). The current approach seems to be problematic
+    if the file system is on a remote share (see Google Group 'Lock file modification time is in the future').
+</li><li>Document internal features such as BELONGS_TO_TABLE, NULL_TO_DEFAULT, SEQUENCE.
 </li></ul>
 
 <h2>Not Planned</h2>

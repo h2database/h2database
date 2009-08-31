@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Better support GaeVFS (Google App Engine Virtual File System).
+<ul><li>Native fulltext search: before searching, FT_INIT() had to be called.
+    This is no longer required.
+</li><li>Better support GaeVFS (Google App Engine Virtual File System).
 </li><li>JaQu: the plan is to support natural (pure Java) conditions such as
     (id == 1 && name.equals("Test")). A proof of concept decompiler is now included (it doesn't work yet).
 </li><li>Various bugfixes and improvements in the page store mechanism (still experimental).

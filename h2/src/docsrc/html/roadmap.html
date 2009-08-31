@@ -140,6 +140,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery)
 </li><li>Clustering: reads should be randomly distributed or to a designated database on RAM
 </li><li>Clustering: when a database is back alive, automatically synchronize with the master
+</li><li>Optimizer: use an index for IS NULL and IS NOT NULL (including linked tables).
+    ID IS NOT NULL could be converted to ID &gt;= Integer.MIN_VALUE.
 </li><li>Standalone tool to get relevant system properties and add it to the trace output.
 </li><li>Support 'call proc(1=value)' (PostgreSQL, Oracle)
 </li><li>JAMon (proxy jdbc driver)
@@ -198,8 +200,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Feature matrix like in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>.
 </li><li>Updatable result set on table without primary key or unique index
 </li><li>Use LinkedList instead of ArrayList where applicable
-</li><li>Optimizer: use an index for IS NULL and IS NOT NULL (including linked tables).
-    ID IS NOT NULL could be converted to ID &gt;= Integer.MIN_VALUE.
 </li><li>Support % operator (modulo)
 </li><li>Support 1+'2'=3, '1'+'2'='12' (MS SQL Server compatibility)
 </li><li>Support nested transactions

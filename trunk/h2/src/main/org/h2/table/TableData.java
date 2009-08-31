@@ -469,7 +469,7 @@ public class TableData extends Table implements RecordReader {
     }
 
     private String getDeadlockDetails(ObjectArray<Session> sessions) {
-        StatementBuilder buff = new StatementBuilder();
+        StringBuilder buff = new StringBuilder();
         for (Session s : sessions) {
             Table lock = s.getWaitForLock();
             buff.append("\nSession ").
@@ -477,8 +477,11 @@ public class TableData extends Table implements RecordReader {
                 append(" is waiting to lock ").
                 append(lock.toString()).
                 append(" while locking ");
+            int i = 0;
             for (Table t : s.getLocks()) {
-                buff.appendExceptFirst(", ");
+                if (i++ > 0) {
+                    buff.append(", ");
+                }
                 buff.append(t.toString());
                 if (t instanceof TableData) {
                     if (((TableData) t).lockExclusive == s) {

@@ -7,9 +7,6 @@
 package org.h2.store;
 
 import java.sql.SQLException;
-import org.h2.constant.ErrorCode;
-import org.h2.index.Page;
-import org.h2.message.Message;
 
 /**
  * A data page of a stream. The format is:
@@ -20,7 +17,7 @@ import org.h2.message.Message;
  * <li>9-remainder: data</li>
  * </ul>
  */
-public class PageStreamData extends Record {
+public class PageStreamData extends Page {
 
     private static final int LENGTH_START = 5;
     private static final int DATA_START = 9;
@@ -31,25 +28,47 @@ public class PageStreamData extends Record {
     private int remaining;
     private int length;
 
-    PageStreamData(PageStore store, int pageId, int trunk) {
+    private PageStreamData(PageStore store, int pageId, int trunk) {
         setPos(pageId);
         this.store = store;
         this.trunk = trunk;
     }
 
     /**
+     * Read a stream data page.
+     *
+     * @param store the page store
+     * @param data the data
+     * @param pageId the page id
+     * @return the page
+     */
+    static PageStreamData read(PageStore store, Data data, int pageId) {
+        PageStreamData p = new PageStreamData(store, pageId, 0);
+        p.data = data;
+        p.read();
+        return p;
+    }
+
+    /**
+     * Create a new stream trunk page.
+     *
+     * @param store the page store
+     * @param pageId the page id
+     * @param trunk the trunk page
+     * @return the page
+     */
+    static PageStreamData create(PageStore store, int pageId, int trunk) {
+        return new PageStreamData(store, pageId, trunk);
+    }
+
+    /**
      * Read the page from the disk.
      */
-    void read() throws SQLException {
-        data = store.createData();
-        store.readPage(getPos(), data);
+    private void read() {
+        data.reset();
         trunk = data.readInt();
         data.setPos(4);
-        int t = data.readByte();
-        if (t != Page.TYPE_STREAM_DATA) {
-            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "pos:" + getPos() + " type:" + t +
-                    " expected type:" + Page.TYPE_STREAM_DATA);
-        }
+        data.readByte();
         length = data.readInt();
     }
 
@@ -131,6 +150,14 @@ public class PageStreamData extends Record {
      */
     public int getMemorySize() {
         return store.getPageSize() >> 2;
+    }
+
+    /**
+     * Reset the index.
+     */
+    void initRead() {
+        data.setPos(DATA_START);
+        remaining = length;
     }
 
 }

@@ -7,10 +7,6 @@
 package org.h2.store;
 
 import java.sql.SQLException;
-import org.h2.constant.ErrorCode;
-import org.h2.index.Page;
-import org.h2.message.Message;
-import org.h2.util.MemoryUtils;
 
 /**
  * A trunk page of a stream. It contains the page numbers of the stream, and
@@ -23,7 +19,7 @@ import org.h2.util.MemoryUtils;
  * <li>13-remainder: page ids</li>
  * </ul>
  */
-public class PageStreamTrunk extends Record {
+public class PageStreamTrunk extends Page {
 
     private static final int DATA_START = 13;
 
@@ -35,7 +31,7 @@ public class PageStreamTrunk extends Record {
     private Data data;
     private int index;
 
-    PageStreamTrunk(PageStore store, int parent, int pageId, int next, int[] pageIds) {
+    private PageStreamTrunk(PageStore store, int parent, int pageId, int next, int[] pageIds) {
         setPos(pageId);
         this.parent = parent;
         this.store = store;
@@ -44,34 +40,60 @@ public class PageStreamTrunk extends Record {
         this.pageIds = pageIds;
     }
 
-    PageStreamTrunk(PageStore store, int pageId) {
+    private PageStreamTrunk(PageStore store, Data data, int pageId) {
         setPos(pageId);
+        this.data = data;
         this.store = store;
+    }
+
+    /**
+     * Read a stream trunk page.
+     *
+     * @param store the page store
+     * @param data the data
+     * @param pageId the page id
+     * @return the page
+     */
+    static PageStreamTrunk read(PageStore store, Data data, int pageId) {
+        PageStreamTrunk p = new PageStreamTrunk(store, data, pageId);
+        p.read();
+        return p;
+    }
+
+    /**
+     * Create a new stream trunk page.
+     *
+     * @param store the page store
+     * @param parent the parent page
+     * @param pageId the page id
+     * @param next the next trunk page
+     * @param pageIds the stream data page ids
+     * @return the page
+     */
+    static PageStreamTrunk create(PageStore store, int parent, int pageId, int next, int[] pageIds) {
+        return new PageStreamTrunk(store, parent, pageId, next, pageIds);
     }
 
     /**
      * Read the page from the disk.
      */
-    void read() throws SQLException {
-        data = store.createData();
-        store.readPage(getPos(), data);
+    private void read() {
+        data.reset();
         parent = data.readInt();
-        int t = data.readByte();
-        if (t == Page.TYPE_EMPTY) {
-            // end of file
-            pageIds = MemoryUtils.EMPTY_INTS;
-            return;
-        }
-        if (t != Page.TYPE_STREAM_TRUNK) {
-            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "pos:" + getPos() + " type:" + t + " parent:" + parent
-                    + " expected type:" + Page.TYPE_STREAM_TRUNK);
-        }
+        data.readByte();
         nextTrunk = data.readInt();
         pageCount = data.readInt();
         pageIds = new int[pageCount];
         for (int i = 0; i < pageCount; i++) {
             pageIds[i] = data.readInt();
         }
+    }
+
+    /**
+     * Reset the read/write index.
+     */
+    void resetIndex() {
+        index = 0;
     }
 
     void setNextDataPage(int page) {

@@ -11,29 +11,30 @@ import org.h2.constant.ErrorCode;
 import org.h2.message.Message;
 import org.h2.store.Data;
 import org.h2.store.DataPage;
-import org.h2.store.Record;
+import org.h2.store.Page;
 
 /**
  * Overflow data for a leaf page.
  * Format:
  * <ul><li>0-3: parent page id (0 for root)
  * </li><li>4-4: page type
- * </li><li>if there is more data: 5-8: next overflow page id
- * </li><li>otherwise: 5-6: remaining size
+ * </li><li>5-8: index id
+ * </li><li>if there is more data: 9-12: next overflow page id
+ * </li><li>otherwise: 9-10: remaining size
  * </li><li>data
  * </li></ul>
  */
-public class PageDataOverflow extends Record {
+public class PageDataOverflow extends Page {
 
     /**
      * The start of the data in the last overflow page.
      */
-    static final int START_LAST = 7;
+    static final int START_LAST = 11;
 
     /**
      * The start of the data in a overflow page that is not the last one.
      */
-    static final int START_MORE = 9;
+    static final int START_MORE = 13;
 
     /**
      * The index.
@@ -62,8 +63,8 @@ public class PageDataOverflow extends Record {
 
     private Data data;
 
-    PageDataOverflow(PageDataLeaf leaf, int pageId, int type, int previous, int next, Data allData, int offset, int size) {
-        this.index = leaf.index;
+    PageDataOverflow(PageScanIndex index, int pageId, int type, int previous, int next, Data allData, int offset, int size) {
+        this.index = index;
         setPos(pageId);
         this.type = type;
         this.parentPage = previous;
@@ -72,6 +73,7 @@ public class PageDataOverflow extends Record {
         data = index.getPageStore().createData();
         data.writeInt(parentPage);
         data.writeByte((byte) type);
+        data.writeInt(index.getId());
         if (type == Page.TYPE_DATA_OVERFLOW) {
             data.writeInt(nextPage);
         } else {
@@ -88,18 +90,39 @@ public class PageDataOverflow extends Record {
      * @param data the data page
      * @param offset the offset
      */
-    PageDataOverflow(PageDataLeaf leaf, int pageId, Data data, int offset) {
-        this.index = leaf.index;
+    PageDataOverflow(PageScanIndex index, int pageId, Data data) {
+        this.index = index;
         setPos(pageId);
         this.data = data;
     }
 
     /**
+     * Read an overflow page.
+     *
+     * @param index the index
+     * @param data the data
+     * @param pageId the page id
+     * @return the page
+     */
+    public static Page read(PageScanIndex index, Data data, int pageId) throws SQLException {
+        PageDataOverflow p = new PageDataOverflow(index, pageId, data);
+        p.read();
+        return p;
+    }
+
+    /**
      * Read the page.
      */
-    void read() throws SQLException {
+    private void read() throws SQLException {
+        data.reset();
         parentPage = data.readInt();
         type = data.readByte();
+        int indexId = data.readInt();
+        if (indexId != index.getId()) {
+            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1,
+                    "page:" + getPos() + " expected index:" + index.getId() +
+                    " got:" + indexId + " type:" + type);
+        }
         if (type == (Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST)) {
             size = data.readShortInt();
             nextPage = 0;

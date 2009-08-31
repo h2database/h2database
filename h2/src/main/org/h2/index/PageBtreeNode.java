@@ -7,11 +7,13 @@
 package org.h2.index;
 
 import java.sql.SQLException;
+import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.Message;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
 import org.h2.store.DataPage;
+import org.h2.store.Page;
 import org.h2.store.PageStore;
 import org.h2.util.MemoryUtils;
 
@@ -21,18 +23,19 @@ import org.h2.util.MemoryUtils;
  * <ul>
  * <li>0-3: parent page id</li>
  * <li>4-4: page type</li>
- * <li>5-6: entry count</li>
- * <li>7-10: row count of all children (-1 if not known)</li>
- * <li>11-14: rightmost child page id</li>
- * <li>15- entries: 4 bytes leaf page id, 4 bytes offset to data</li>
+ * <li>5-8: index id</li>
+ * <li>9-10: entry count</li>
+ * <li>11-14: row count of all children (-1 if not known)</li>
+ * <li>15-18: rightmost child page id</li>
+ * <li>19- entries: 4 bytes leaf page id, 4 bytes offset to data</li>
  * </ul>
  * The row is the largest row of the respective child, meaning
  * row[0] is the largest row of child[0].
  */
-class PageBtreeNode extends PageBtree {
+public class PageBtreeNode extends PageBtree {
 
     private static final int CHILD_OFFSET_PAIR_LENGTH = 8;
-    private static final int CHILD_OFFSET_PAIR_START = 15;
+    private static final int CHILD_OFFSET_PAIR_START = 19;
 
     /**
      * The page ids of the children.
@@ -43,15 +46,36 @@ class PageBtreeNode extends PageBtree {
 
     private int rowCount = UNKNOWN_ROWCOUNT;
 
-    PageBtreeNode(PageBtreeIndex index, int pageId, int parentPageId, Data data) {
-        super(index, pageId, parentPageId, data);
+    PageBtreeNode(PageBtreeIndex index, int pageId, Data data) {
+        super(index, pageId, data);
         start = CHILD_OFFSET_PAIR_START;
     }
 
-    void read() {
-        data.setPos(4);
+    /**
+     * Read a b-tree node page.
+     *
+     * @param index the index
+     * @param data the data
+     * @param pageId the page id
+     * @return the page
+     */
+    public static Page read(PageBtreeIndex index, Data data, int pageId) throws SQLException {
+        PageBtreeNode p = new PageBtreeNode(index, pageId, data);
+        p.read();
+        return p;
+    }
+
+    private void read() throws SQLException {
+        data.reset();
+        this.parentPageId = data.readInt();
         int type = data.readByte();
         onlyPosition = (type & Page.FLAG_LAST) == 0;
+        int indexId = data.readInt();
+        if (indexId != index.getId()) {
+            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1,
+                    "page:" + getPos() + " expected index:" + index.getId() +
+                    "got:" + indexId);
+        }
         entryCount = data.readShortInt();
         rowCount = data.readInt();
         if (!PageStore.STORE_BTREE_ROWCOUNT) {
@@ -176,7 +200,8 @@ class PageBtreeNode extends PageBtree {
 
     PageBtree split(int splitPoint) throws SQLException {
         int newPageId = index.getPageStore().allocatePage();
-        PageBtreeNode p2 = new PageBtreeNode(index, newPageId, parentPageId, index.getPageStore().createData());
+        PageBtreeNode p2 = new PageBtreeNode(index, newPageId, index.getPageStore().createData());
+        p2.parentPageId = parentPageId;
         if (onlyPosition) {
             // TODO optimize: maybe not required
             p2.onlyPosition = true;
@@ -226,7 +251,7 @@ class PageBtreeNode extends PageBtree {
     void find(PageBtreeCursor cursor, SearchRow first, boolean bigger) throws SQLException {
         int i = find(first, bigger, false, false);
         if (i > entryCount) {
-            if (parentPageId == Page.ROOT) {
+            if (parentPageId == PageBtree.ROOT) {
                 return;
             }
             PageBtreeNode next = (PageBtreeNode) index.getPage(parentPageId);
@@ -338,6 +363,7 @@ class PageBtreeNode extends PageBtree {
         data.reset();
         data.writeInt(parentPageId);
         data.writeByte((byte) (Page.TYPE_BTREE_NODE | (onlyPosition ? 0 : Page.FLAG_LAST)));
+        data.writeInt(index.getId());
         data.writeShortInt(entryCount);
         data.writeInt(rowCount);
         data.writeInt(childPageIds[entryCount]);
@@ -404,7 +430,7 @@ class PageBtreeNode extends PageBtree {
             }
         }
         if (i > entryCount) {
-            if (parentPageId == Page.ROOT) {
+            if (parentPageId == PageBtree.ROOT) {
                 cursor.setCurrent(null, 0);
                 return;
             }
@@ -433,7 +459,7 @@ class PageBtreeNode extends PageBtree {
             }
         }
         if (i < 0) {
-            if (parentPageId == Page.ROOT) {
+            if (parentPageId == PageBtree.ROOT) {
                 cursor.setCurrent(null, 0);
                 return;
             }

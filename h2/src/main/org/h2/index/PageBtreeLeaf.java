@@ -13,37 +13,53 @@ import org.h2.message.Message;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
 import org.h2.store.DataPage;
+import org.h2.store.Page;
 
 /**
  * A b-tree leaf page that contains index data.
  * Format:
  * <ul><li>0-3: parent page id (0 for root)
  * </li><li>4-4: page type
- * </li><li>5-8: table id
+ * </li><li>5-8: index id
  * </li><li>9-10: entry count
  * </li><li>11-: list of key / offset pairs (4 bytes key, 2 bytes offset)
  * </li><li>data
  * </li></ul>
  */
-class PageBtreeLeaf extends PageBtree {
+public class PageBtreeLeaf extends PageBtree {
 
     private static final int OFFSET_LENGTH = 2;
     private static final int OFFSET_START = 11;
 
-    PageBtreeLeaf(PageBtreeIndex index, int pageId, int parentPageId, Data data) {
-        super(index, pageId, parentPageId, data);
+    PageBtreeLeaf(PageBtreeIndex index, int pageId, Data data) {
+        super(index, pageId, data);
         start = OFFSET_START;
     }
 
-    void read() throws SQLException {
-        data.setPos(4);
+    /**
+     * Read a b-tree leaf page.
+     *
+     * @param index the index
+     * @param data the data
+     * @param pageId the page id
+     * @return the page
+     */
+    public static Page read(PageBtreeIndex index, Data data, int pageId) throws SQLException {
+        PageBtreeLeaf p = new PageBtreeLeaf(index, pageId, data);
+        p.read();
+        return p;
+    }
+
+    private void read() throws SQLException {
+        data.reset();
+        this.parentPageId = data.readInt();
         int type = data.readByte();
         onlyPosition = (type & Page.FLAG_LAST) == 0;
-        int tableId = data.readInt();
-        if (tableId != index.getId()) {
+        int indexId = data.readInt();
+        if (indexId != index.getId()) {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1,
-                    "page:" + getPos() + " expected table:" + index.getId() +
-                    "got:" + tableId);
+                    "page:" + getPos() + " expected index:" + index.getId() +
+                    "got:" + indexId);
         }
         entryCount = data.readShortInt();
         offsets = new int[entryCount];
@@ -137,7 +153,8 @@ class PageBtreeLeaf extends PageBtree {
 
     PageBtree split(int splitPoint) throws SQLException {
         int newPageId = index.getPageStore().allocatePage();
-        PageBtreeLeaf p2 = new PageBtreeLeaf(index, newPageId, parentPageId, index.getPageStore().createData());
+        PageBtreeLeaf p2 = new PageBtreeLeaf(index, newPageId, index.getPageStore().createData());
+        p2.parentPageId = parentPageId;
         for (int i = splitPoint; i < entryCount;) {
             p2.addRowTry(getRow(splitPoint));
             removeRow(splitPoint);
@@ -216,7 +233,7 @@ class PageBtreeLeaf extends PageBtree {
     void find(PageBtreeCursor cursor, SearchRow first, boolean bigger) throws SQLException {
         int i = find(first, bigger, false, false);
         if (i > entryCount) {
-            if (parentPageId == Page.ROOT) {
+            if (parentPageId == PageBtree.ROOT) {
                 return;
             }
             PageBtreeNode next = (PageBtreeNode) index.getPage(parentPageId);
@@ -240,7 +257,7 @@ class PageBtreeLeaf extends PageBtree {
      * @param cursor the cursor
      */
     void nextPage(PageBtreeCursor cursor) throws SQLException {
-        if (parentPageId == Page.ROOT) {
+        if (parentPageId == PageBtree.ROOT) {
             cursor.setCurrent(null, 0);
             return;
         }
@@ -254,7 +271,7 @@ class PageBtreeLeaf extends PageBtree {
      * @param cursor the cursor
      */
     void previousPage(PageBtreeCursor cursor) throws SQLException {
-        if (parentPageId == Page.ROOT) {
+        if (parentPageId == PageBtree.ROOT) {
             cursor.setCurrent(null, 0);
             return;
         }

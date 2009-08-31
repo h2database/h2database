@@ -7,7 +7,6 @@ package org.h2.store;
 
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
-import org.h2.index.Page;
 import org.h2.message.Message;
 import org.h2.util.BitField;
 
@@ -20,7 +19,7 @@ import org.h2.util.BitField;
  * <li>5-remainder: data</li>
  * </ul>
  */
-public class PageFreeList extends Record {
+public class PageFreeList extends Page {
 
     private static final int DATA_START = 5;
 
@@ -30,11 +29,37 @@ public class PageFreeList extends Record {
     private boolean full;
     private Data data;
 
-    PageFreeList(PageStore store, int pageId) {
+    private PageFreeList(PageStore store, int pageId) {
         setPos(pageId);
         this.store = store;
         pageCount = (store.getPageSize() - DATA_START) * 8;
         used.set(0);
+    }
+
+    /**
+     * Read a free-list page.
+     *
+     * @param store the page store
+     * @param data the data
+     * @param pageId the page id
+     * @return the page
+     */
+    static PageFreeList read(PageStore store, Data data, int pageId) throws SQLException {
+        PageFreeList p = new PageFreeList(store, pageId);
+        p.data = data;
+        p.read();
+        return p;
+    }
+
+    /**
+     * Create a new free-list page.
+     *
+     * @param store the page store
+     * @param pageId the page id
+     * @return the page
+     */
+    static PageFreeList create(PageStore store, int pageId) {
+        return new PageFreeList(store, pageId);
     }
 
     /**
@@ -114,15 +139,11 @@ public class PageFreeList extends Record {
     /**
      * Read the page from the disk.
      */
-    void read() throws SQLException {
-        data = store.createData();
-        store.readPage(getPos(), data);
+    private void read() throws SQLException {
+        data.reset();
         int p = data.readInt();
         int t = data.readByte();
-        if (t == Page.TYPE_EMPTY) {
-            return;
-        }
-        if (t != Page.TYPE_FREE_LIST || p != 0) {
+        if (p != 0) {
             throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "pos:" + getPos() + " type:" + t + " parent:" + p
                     + " expected type:" + Page.TYPE_FREE_LIST);
         }

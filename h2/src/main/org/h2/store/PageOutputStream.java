@@ -98,13 +98,13 @@ public class PageOutputStream extends OutputStream {
                 pageIds[i] = reservedPages.get(i);
             }
             trunkNext = reservedPages.get(len);
-            trunk = new PageStreamTrunk(store, parent, trunkPageId, trunkNext, pageIds);
+            trunk = PageStreamTrunk.create(store, parent, trunkPageId, trunkNext, pageIds);
             pages++;
             trunk.write(null);
             reservedPages.removeRange(0, len + 1);
             nextData = trunk.getNextPageData();
         }
-        data = new PageStreamData(store, nextData, trunk.getPos());
+        data = PageStreamData.create(store, nextData, trunk.getPos());
         pages++;
         data.initWrite();
     }

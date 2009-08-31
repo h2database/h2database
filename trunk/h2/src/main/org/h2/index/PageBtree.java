@@ -9,12 +9,17 @@ package org.h2.index;
 import java.sql.SQLException;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
-import org.h2.store.Record;
+import org.h2.store.Page;
 
 /**
  * A page that contains index data.
  */
-abstract class PageBtree extends Record {
+public abstract class PageBtree extends Page {
+
+    /**
+     * This is a root page.
+     */
+    static final int ROOT = 0;
 
     /**
      * Indicator that the row count is not known.
@@ -66,9 +71,8 @@ abstract class PageBtree extends Record {
      */
     protected boolean written;
 
-    PageBtree(PageBtreeIndex index, int pageId, int parentPageId, Data data) {
+    PageBtree(PageBtreeIndex index, int pageId, Data data) {
         this.index = index;
-        this.parentPageId = parentPageId;
         this.data = data;
         setPos(pageId);
     }
@@ -128,11 +132,6 @@ abstract class PageBtree extends Record {
         }
         return l;
     }
-
-    /**
-     * Read the data.
-     */
-    abstract void read() throws SQLException;
 
     /**
      * Add a row if possible. If it is possible this method returns -1, otherwise

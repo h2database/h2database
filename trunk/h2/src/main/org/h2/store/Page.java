@@ -4,7 +4,8 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.index;
+package org.h2.store;
+
 
 /**
  * A page. Format:
@@ -13,7 +14,7 @@ package org.h2.index;
  * </li><li>page-type specific data
  * </li></ul>
  */
-public class Page {
+public abstract class Page extends Record {
 
     /**
      * This is the last page of a chain.
@@ -64,10 +65,5 @@ public class Page {
      * A stream data page.
      */
     public static final int TYPE_STREAM_DATA = 8;
-
-    /**
-     * This is a root page.
-     */
-    static final int ROOT = 0;
 
 }

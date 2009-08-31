@@ -189,10 +189,8 @@ public class PageLog {
             if (store.getRecord(firstTrunkPage) != null) {
                 throw Message.throwInternalError("" + store.getRecord(firstTrunkPage));
             }
-            PageStreamTrunk t = new PageStreamTrunk(store, this.firstTrunkPage);
-            try {
-                t.read();
-            } catch (SQLException e) {
+            PageStreamTrunk t = (PageStreamTrunk) store.getPage(this.firstTrunkPage);
+            if (t == null) {
                 store.freePage(firstTrunkPage, false, null);
                 // EOF
                 break;
@@ -621,9 +619,8 @@ public class PageLog {
     private int removeUntil(int firstTrunkPage, int firstDataPageToKeep) throws SQLException {
         trace.debug("log.removeUntil " + firstDataPageToKeep);
         while (true) {
-            // TODO keep trunk page in the cache
-            PageStreamTrunk t = new PageStreamTrunk(store, firstTrunkPage);
-            t.read();
+            PageStreamTrunk t = (PageStreamTrunk) store.getPage(firstTrunkPage);
+            t.resetIndex();
             if (t.contains(firstDataPageToKeep)) {
                 return t.getPos();
             }
@@ -725,8 +722,7 @@ public class PageLog {
      * @param commit whether the transaction should be committed
      */
     void setInDoubtTransactionState(int sessionId, int pageId, boolean commit) throws SQLException {
-        PageStreamData d = new PageStreamData(store, pageId, 0);
-        d.read();
+        PageStreamData d = (PageStreamData) store.getPage(pageId);
         d.initWrite();
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         DataOutputStream o = new DataOutputStream(buff);

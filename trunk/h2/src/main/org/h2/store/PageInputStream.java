@@ -76,7 +76,7 @@ public class PageInputStream extends InputStream {
         }
     }
 
-    private void fillBuffer() throws SQLException {
+    private void fillBuffer() throws SQLException, EOFException {
         if (remaining > 0 || endOfFile) {
             return;
         }
@@ -87,8 +87,11 @@ public class PageInputStream extends InputStream {
         int next;
         while (true) {
             if (trunk == null) {
-                trunk = new PageStreamTrunk(store, trunkNext);
-                trunk.read();
+                trunk = (PageStreamTrunk) store.getPage(trunkNext);
+                if (trunk == null) {
+                    throw new EOFException();
+                }
+                trunk.resetIndex();
                 trunkNext = trunk.getNextTrunk();
             }
             if (trunk != null) {
@@ -104,8 +107,11 @@ public class PageInputStream extends InputStream {
             trace.debug("pageIn.readPage " + next);
         }
         dataPage = -1;
-        data = new PageStreamData(store, next, 0);
-        data.read();
+        data = (PageStreamData) store.getPage(next);
+        if (data == null) {
+            throw new EOFException();
+        }
+        data.initRead();
         remaining = data.getLength();
     }
 
@@ -120,8 +126,11 @@ public class PageInputStream extends InputStream {
         while (trunkPage != 0) {
             pages.set(trunkPage);
             store.allocatePage(trunkPage);
-            PageStreamTrunk t = new PageStreamTrunk(store, trunkPage);
-            t.read();
+            PageStreamTrunk t = (PageStreamTrunk) store.getPage(trunkPage);
+            if (t == null) {
+                break;
+            }
+            t.resetIndex();
             while (true) {
                 int n = t.getNextPageData();
                 if (n == -1) {

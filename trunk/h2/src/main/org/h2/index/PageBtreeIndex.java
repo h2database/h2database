@@ -16,7 +16,6 @@ import org.h2.result.SearchRow;
 import org.h2.store.Data;
 import org.h2.store.DataPage;
 import org.h2.store.PageStore;
-import org.h2.store.Record;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableData;
@@ -46,6 +45,7 @@ public class PageBtreeIndex extends BaseIndex {
             throw Message.throwInternalError("" + indexName);
         }
         this.store = database.getPageStore();
+        store.addIndex(this);
         if (headPos == Index.EMPTY_HEAD) {
             // new index
             needRebuild = true;
@@ -54,7 +54,8 @@ public class PageBtreeIndex extends BaseIndex {
             // it should not for new tables, otherwise redo of other operations
             // must ensure this page is not used for other things
             store.addMeta(this, session, headPos);
-            PageBtreeLeaf root = new PageBtreeLeaf(this, headPos, Page.ROOT, store.createData());
+            PageBtreeLeaf root = new PageBtreeLeaf(this, headPos, store.createData());
+            root.parentPageId = PageBtree.ROOT;
             store.updateRecord(root, true, root.data);
         } else {
             this.headPos = headPos;
@@ -101,7 +102,8 @@ public class PageBtreeIndex extends BaseIndex {
             page1.setPageId(id);
             page1.setParentPageId(headPos);
             page2.setParentPageId(headPos);
-            PageBtreeNode newRoot = new PageBtreeNode(this, rootPageId, Page.ROOT, store.createData());
+            PageBtreeNode newRoot = new PageBtreeNode(this, rootPageId, store.createData());
+            newRoot.parentPageId = PageBtree.ROOT;
             newRoot.init(page1, pivot, page2);
             store.updateRecord(page1, true, page1.data);
             store.updateRecord(page2, true, page2.data);
@@ -134,39 +136,13 @@ public class PageBtreeIndex extends BaseIndex {
      * @return the page
      */
     PageBtree getPage(int id) throws SQLException {
-        Record rec = store.getRecord(id);
-        if (rec != null) {
-            if (SysProperties.CHECK) {
-                if (!(rec instanceof PageBtree)) {
-                    throw Message.throwInternalError("Wrong page: " + rec + " " + this);
-                }
-                PageBtree result = (PageBtree) rec;
-                if (result.index.headPos != this.headPos) {
-                    throw Message.throwInternalError("Wrong index: " + result.index + " " + this);
-                }
-            }
-            return (PageBtree) rec;
-        }
-        Data data = store.readPage(id);
-        data.reset();
-        int parentPageId = data.readInt();
-        int type = data.readByte() & 255;
-        PageBtree result;
-        switch (type & ~Page.FLAG_LAST) {
-        case Page.TYPE_BTREE_LEAF:
-            result = new PageBtreeLeaf(this, id, parentPageId, data);
-            break;
-        case Page.TYPE_BTREE_NODE:
-            result = new PageBtreeNode(this, id, parentPageId, data);
-            break;
-        case Page.TYPE_EMPTY:
-            PageBtreeLeaf empty = new PageBtreeLeaf(this, id, parentPageId, data);
+        PageBtree p = (PageBtree) store.getPage(id);
+        if (p == null) {
+            Data data = store.createData();
+            PageBtreeLeaf empty = new PageBtreeLeaf(this, id, data);
             return empty;
-        default:
-            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "page=" + id + " type=" + type);
         }
-        result.read();
-        return result;
+        return p;
     }
 
     public boolean canGetFirstOrLast() {
@@ -276,7 +252,8 @@ public class PageBtreeIndex extends BaseIndex {
     private void removeAllRows() throws SQLException {
         PageBtree root = getPage(headPos);
         root.freeChildren();
-        root = new PageBtreeLeaf(this, headPos, Page.ROOT, store.createData());
+        root = new PageBtreeLeaf(this, headPos, store.createData());
+        root.parentPageId = PageBtree.ROOT;
         store.removeRecord(headPos);
         store.updateRecord(root, true, null);
         rowCount = 0;

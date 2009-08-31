@@ -10,12 +10,17 @@ import java.sql.SQLException;
 import org.h2.engine.Session;
 import org.h2.result.Row;
 import org.h2.store.Data;
-import org.h2.store.Record;
+import org.h2.store.Page;
 
 /**
  * A page that contains data rows.
  */
-abstract class PageData extends Record {
+abstract class PageData extends Page {
+
+    /**
+     * This is a root page.
+     */
+    static final int ROOT = 0;
 
     /**
      * Indicator that the row count is not known.
@@ -52,9 +57,8 @@ abstract class PageData extends Record {
      */
     protected boolean written;
 
-    PageData(PageScanIndex index, int pageId, int parentPageId, Data data) {
+    PageData(PageScanIndex index, int pageId, Data data) {
         this.index = index;
-        this.parentPageId = parentPageId;
         this.data = data;
         setPos(pageId);
     }
@@ -94,11 +98,6 @@ abstract class PageData extends Record {
         }
         return l;
     }
-
-    /**
-     * Read the data.
-     */
-    abstract void read() throws SQLException;
 
     /**
      * Add a row if possible. If it is possible this method returns -1, otherwise

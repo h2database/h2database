@@ -18,8 +18,12 @@ import org.h2.engine.Session;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.index.Page;
 import org.h2.index.PageBtreeIndex;
+import org.h2.index.PageBtreeLeaf;
+import org.h2.index.PageBtreeNode;
+import org.h2.index.PageDataLeaf;
+import org.h2.index.PageDataNode;
+import org.h2.index.PageDataOverflow;
 import org.h2.index.PageScanIndex;
 import org.h2.log.InDoubtTransaction;
 import org.h2.log.LogSystem;
@@ -192,7 +196,7 @@ public class PageStore implements CacheWriter {
     private Schema metaSchema;
     private TableData metaTable;
     private PageScanIndex metaIndex;
-    private HashMap<Integer, Index> metaObjects;
+    private HashMap<Integer, Index> metaObjects = New.hashMap();
 
     /**
      * The map of reserved pages, to ensure index head pages
@@ -360,32 +364,87 @@ public class PageStore implements CacheWriter {
         if (free == -1 || free < 10) {
             return;
         }
-        Record rec = getRecord(full);
-        if (rec == null) {
+        Page p = getPage(full);
+    }
 
-        } else {
-            Data page = Data.create(database, pageSize);
-            readPage(full, page);
-            int parent = page.readInt();
-            int type = page.readByte();
-            boolean last = (type & Page.FLAG_LAST) != 0;
-            type = type & ~Page.FLAG_LAST;
-            System.out.println("last page is " + type + " parent: " + parent);
-            switch (type) {
-            case Page.TYPE_EMPTY:
-                break;
-            case Page.TYPE_FREE_LIST:
-                break;
-            case Page.TYPE_DATA_LEAF:
-                break;
-            case Page.TYPE_DATA_NODE:
-            case Page.TYPE_DATA_OVERFLOW:
-            case Page.TYPE_BTREE_LEAF:
-            case Page.TYPE_BTREE_NODE:
-            case Page.TYPE_STREAM_TRUNK:
-            case Page.TYPE_STREAM_DATA:
-            }
+    /**
+     * Read a page from the store.
+     *
+     * @param pageId the page id
+     * @return the page
+     */
+    public Page getPage(int pageId) throws SQLException {
+        Record rec = getRecord(pageId);
+        if (rec != null) {
+            return (Page) rec;
         }
+        Data data = Data.create(database, pageSize);
+        readPage(pageId, data);
+        data.readInt();
+        int type = data.readByte();
+        Page p;
+        switch (type & ~Page.FLAG_LAST) {
+        case Page.TYPE_EMPTY:
+            return null;
+        case Page.TYPE_FREE_LIST:
+            p = PageFreeList.read(this, data, pageId);
+            break;
+        case Page.TYPE_DATA_LEAF: {
+            int indexId = data.readInt();
+            PageScanIndex index = (PageScanIndex) metaObjects.get(indexId);
+            if (index == null) {
+                Message.throwInternalError("index not found " + indexId);
+            }
+            p = PageDataLeaf.read(index, data, pageId);
+            break;
+        }
+        case Page.TYPE_DATA_NODE: {
+            int indexId = data.readInt();
+            PageScanIndex index = (PageScanIndex) metaObjects.get(indexId);
+            if (index == null) {
+                Message.throwInternalError("index not found " + indexId);
+            }
+            p = PageDataNode.read(index, data, pageId);
+            break;
+        }
+        case Page.TYPE_DATA_OVERFLOW: {
+            int indexId = data.readInt();
+            PageScanIndex index = (PageScanIndex) metaObjects.get(indexId);
+            if (index == null) {
+                Message.throwInternalError("index not found " + indexId);
+            }
+            p = PageDataOverflow.read(index, data, pageId);
+            break;
+        }
+        case Page.TYPE_BTREE_LEAF: {
+            int indexId = data.readInt();
+            PageBtreeIndex index = (PageBtreeIndex) metaObjects.get(indexId);
+            if (index == null) {
+                Message.throwInternalError("index not found " + indexId);
+            }
+            p = PageBtreeLeaf.read(index, data, pageId);
+            break;
+        }
+        case Page.TYPE_BTREE_NODE: {
+            int indexId = data.readInt();
+            PageBtreeIndex index = (PageBtreeIndex) metaObjects.get(indexId);
+            if (index == null) {
+                Message.throwInternalError("index not found " + indexId);
+            }
+            p = PageBtreeNode.read(index, data, pageId);
+            break;
+        }
+        case Page.TYPE_STREAM_TRUNK:
+            p = PageStreamTrunk.read(this, data, pageId);
+            break;
+        case Page.TYPE_STREAM_DATA:
+            p = PageStreamData.read(this, data, pageId);
+            break;
+        default:
+            throw Message.getSQLException(ErrorCode.FILE_CORRUPTED_1, "page=" + pageId + " type=" + type);
+        }
+        cache.put(p);
+        return p;
     }
 
     /**
@@ -608,12 +667,12 @@ public class PageStore implements CacheWriter {
         while (p >= pageCount) {
             increaseFileSize(INCREMENT_PAGES);
         }
-        PageFreeList list = (PageFreeList) getRecord(p);
+        PageFreeList list = null;
+        if (p < pageCount) {
+            list = (PageFreeList) getPage(p);
+        }
         if (list == null) {
-            list = new PageFreeList(this, p);
-            if (p < pageCount) {
-                list.read();
-            }
+            list = PageFreeList.create(this, p);
             cache.put(list);
         }
         return list;
@@ -987,7 +1046,7 @@ public class PageStore implements CacheWriter {
                 META_TABLE_ID, cols, false, true, true, false, headPos, systemSession);
         metaIndex = (PageScanIndex) metaTable.getScanIndex(
                 systemSession);
-        metaObjects = New.hashMap();
+        metaObjects.clear();
         metaObjects.put(-1, metaIndex);
     }
 
@@ -1077,6 +1136,15 @@ public class PageStore implements CacheWriter {
     }
 
     /**
+     * Add an index to the in-memory index map.
+     *
+     * @param index the index
+     */
+    public void addIndex(Index index) {
+        metaObjects.put(index.getId(), index);
+    }
+
+    /**
      * Add the meta data of an index.
      *
      * @param index the index to add
@@ -1124,6 +1192,7 @@ public class PageStore implements CacheWriter {
     public void removeMeta(Index index, Session session) throws SQLException {
         if (!recoveryRunning) {
             removeMetaIndex(index, session);
+            metaObjects.remove(index.getId());
         }
     }
 

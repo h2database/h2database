@@ -7,6 +7,7 @@
 package org.h2.store;
 
 import java.lang.ref.WeakReference;
+import java.security.AccessControlException;
 import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -70,15 +71,15 @@ public class WriterThread implements Runnable {
      * @return the writer thread object or null
      */
     public static WriterThread create(Database database, int writeDelay) {
-        WriterThread writer = new WriterThread(database, writeDelay);
         try {
+            WriterThread writer = new WriterThread(database, writeDelay);
             Thread thread = new Thread(writer);
             thread.setName("H2 Log Writer " + database.getShortName());
             thread.setDaemon(true);
             thread.start();
             return writer;
-        } catch (Exception e) {
-            // support Google App Engine
+        } catch (AccessControlException e) {
+            // // Google App Engine does not allow threads
             return null;
         }
     }

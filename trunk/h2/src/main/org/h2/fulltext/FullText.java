@@ -108,10 +108,8 @@ public class FullText {
                 + ".WORDS(ID INT AUTO_INCREMENT PRIMARY KEY, NAME VARCHAR, UNIQUE(NAME))");
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
                 + ".ROWS(ID IDENTITY, HASH INT, INDEXID INT, KEY VARCHAR, UNIQUE(HASH, INDEXID, KEY))");
-
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
                         + ".MAP(ROWID INT, WORDID INT, PRIMARY KEY(WORDID, ROWID))");
-
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA + ".IGNORELIST(LIST VARCHAR)");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_CREATE_INDEX FOR \"" + FullText.class.getName() + ".createIndex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_INDEX FOR \"" + FullText.class.getName() + ".dropIndex\"");
@@ -135,6 +133,7 @@ public class FullText {
                 map.put(word, id);
             }
         }
+        setting.setInitialized(true);
     }
 
     /**
@@ -510,6 +509,9 @@ public class FullText {
             return result;
         }
         FullTextSettings setting = FullTextSettings.getInstance(conn);
+        if (!setting.isInitialized()) {
+            init(conn);
+        }
         HashSet<String> words = New.hashSet();
         addWords(setting, words, text);
         HashSet<Integer> rIds = null, lastRowIds = null;

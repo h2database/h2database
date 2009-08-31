@@ -22,6 +22,7 @@ class FullTextSettings {
 
     private static final HashMap<String, FullTextSettings> SETTINGS = New.hashMap();
 
+    private boolean initialized;
     private HashSet<String> ignoreList = New.hashSet();
     private HashMap<String, Integer> words = New.hashMap();
     private HashMap<Integer, IndexInfo> indexes = New.hashMap();
@@ -133,6 +134,14 @@ class FullTextSettings {
      */
     void removeIndexInfo(IndexInfo index) {
         indexes.remove(index.id);
+    }
+
+    void setInitialized(boolean b) {
+        this.initialized = b;
+    }
+
+    boolean isInitialized() {
+        return initialized;
     }
 
 }

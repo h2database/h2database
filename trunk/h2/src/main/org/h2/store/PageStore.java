@@ -24,11 +24,13 @@ import org.h2.index.PageBtreeNode;
 import org.h2.index.PageDataLeaf;
 import org.h2.index.PageDataNode;
 import org.h2.index.PageDataOverflow;
+import org.h2.index.PageIndex;
 import org.h2.index.PageScanIndex;
 import org.h2.log.InDoubtTransaction;
 import org.h2.log.LogSystem;
 import org.h2.message.Message;
 import org.h2.message.Trace;
+import org.h2.message.TraceSystem;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
@@ -43,6 +45,7 @@ import org.h2.util.CacheObject;
 import org.h2.util.CacheWriter;
 import org.h2.util.FileUtils;
 import org.h2.util.IntArray;
+import org.h2.util.IntIntHashMap;
 import org.h2.util.New;
 import org.h2.util.ObjectArray;
 import org.h2.util.StatementBuilder;
@@ -66,16 +69,17 @@ import org.h2.value.ValueString;
  * The format of page 1 and 2 is:
  * <ul>
  * <li>0-7: write counter (incremented each time the header changes)</li>
- * <li>8-11: log trunk page (initially 4)</li>
- * <li>12-15: log data page (initially 5)</li>
+ * <li>8-11: log trunk page (0 for none)</li>
+ * <li>12-15: log data page (0 for none)</li>
  * <li>16-23: checksum of bytes 0-15 (CRC32)</li>
  * </ul>
  * Page 3 contains the first free list page.
  * Page 4 contains the meta table root page.
- * For a new database, page 5 contains the first log trunk page.
  */
 public class PageStore implements CacheWriter {
 
+    // TODO database head pos = id? head pos > root pos?
+    // TODO a correctly closed database should not contain log pages
     // TODO shrinking: a way to load pages centrally
     // TODO shrinking: Page.moveTo(int pageId).
 
@@ -196,7 +200,8 @@ public class PageStore implements CacheWriter {
     private Schema metaSchema;
     private TableData metaTable;
     private PageScanIndex metaIndex;
-    private HashMap<Integer, Index> metaObjects = New.hashMap();
+    private IntIntHashMap metaRootPageId = new IntIntHashMap();
+    private HashMap<Integer, PageIndex> metaObjects = New.hashMap();
 
     /**
      * The map of reserved pages, to ensure index head pages
@@ -259,6 +264,7 @@ public class PageStore implements CacheWriter {
      */
     public void open() throws SQLException {
         try {
+            metaRootPageId.put(META_TABLE_ID, PAGE_ID_META_ROOT);
             if (FileUtils.exists(fileName)) {
                 if (FileUtils.length(fileName) < MIN_PAGE_COUNT * PAGE_SIZE_MIN) {
                     // the database was not fully created
@@ -354,17 +360,50 @@ public class PageStore implements CacheWriter {
         }
     }
 
-    private void compact() throws SQLException {
-        trim();
-        int full = pageCount - 1;
-        int free = -1;
-        for (int i = 0; i < pageCount && free != -1; i++) {
-            free = getFreeList(i).getFirstFree();
+    /**
+     * Shrink the file so there are no empty pages at the end.
+     */
+    public void trim() throws SQLException {
+        int test;
+        int maxMove = 100000;
+        for (int x = pageCount - 1, j = 0; x > MIN_PAGE_COUNT && j < maxMove; x--, j++) {
+            compact(x);
         }
-        if (free == -1 || free < 10) {
+        for (int i = getFreeListId(pageCount); i >= 0; i--) {
+            int last = getFreeList(i).getLastUsed();
+            if (last != -1) {
+                pageCount = last + 1;
+                break;
+            }
+        }
+        trace.debug("pageCount:" + pageCount);
+        file.setLength((long) pageCount << pageSizeShift);
+    }
+
+    private void compact(int full) throws SQLException {
+        int free = -1;
+        for (int i = 0; i < pageCount; i++) {
+            free = getFreeList(i).getFirstFree();
+            if (free != -1) {
+                break;
+            }
+        }
+        if (free == -1 || free >= full) {
             return;
         }
+        Page f = (Page) cache.get(free);
+        if (f != null) {
+            Message.throwInternalError("not free: " + f);
+        }
         Page p = getPage(full);
+        if (p != null) {
+            trace.debug("move " + p.getPos() + " to " + free);
+            long logSection = log.getLogSectionId(), logPos = log.getLogPos();
+            p.moveTo(systemSession, free);
+            if (log.getLogSectionId() == logSection || log.getLogPos() != logPos) {
+                commit(systemSession);
+            }
+        }
     }
 
     /**
@@ -445,21 +484,6 @@ public class PageStore implements CacheWriter {
         }
         cache.put(p);
         return p;
-    }
-
-    /**
-     * Shrink the file so there are no empty pages at the end.
-     */
-    public void trim() throws SQLException {
-        for (int i = getFreeListId(pageCount); i >= 0; i--) {
-            int last = getFreeList(i).getLastUsed();
-            if (last != -1) {
-                pageCount = last + 1;
-                break;
-            }
-        }
-        trace.debug("pageCount:" + pageCount);
-        file.setLength((long) pageCount << pageSizeShift);
     }
 
     private void switchLog() throws SQLException {
@@ -977,19 +1001,19 @@ public class PageStore implements CacheWriter {
     }
 
     /**
-     * Reserve the page if this is a index head entry.
+     * Reserve the page if this is a index root page entry.
      *
      * @param logPos the redo log position
      * @param tableId the table id
      * @param row the row
      */
-    void allocateIfHead(int logPos, int tableId, Row row) throws SQLException {
+    void allocateIfIndexRoot(int logPos, int tableId, Row row) throws SQLException {
         if (tableId == META_TABLE_ID) {
-            int headPos = row.getValue(3).getInt();
+            int rootPageId = row.getValue(3).getInt();
             if (reservedPages == null) {
                 reservedPages = New.hashMap();
             }
-            reservedPages.put(headPos, logPos);
+            reservedPages.put(rootPageId, logPos);
         }
     }
 
@@ -1041,9 +1065,8 @@ public class PageStore implements CacheWriter {
         cols.add(new Column("OPTIONS", Value.STRING));
         cols.add(new Column("COLUMNS", Value.STRING));
         metaSchema = new Schema(database, 0, "", null, true);
-        int headPos = PAGE_ID_META_ROOT;
         metaTable = new TableData(metaSchema, "PAGE_INDEX",
-                META_TABLE_ID, cols, false, true, true, false, headPos, systemSession);
+                META_TABLE_ID, cols, false, true, true, false, 0, systemSession);
         metaIndex = (PageScanIndex) metaTable.getScanIndex(
                 systemSession);
         metaObjects.clear();
@@ -1084,7 +1107,7 @@ public class PageStore implements CacheWriter {
         int id = row.getValue(0).getInt();
         int type = row.getValue(1).getInt();
         int parent = row.getValue(2).getInt();
-        int headPos = row.getValue(3).getInt();
+        int rootPageId = row.getValue(3).getInt();
         String options = row.getValue(4).getString();
         String columnList = row.getValue(5).getString();
         String[] columns = StringUtils.arraySplit(columnList, ',', false);
@@ -1094,9 +1117,10 @@ public class PageStore implements CacheWriter {
             trace.debug("addMeta id=" + id + " type=" + type + " parent=" + parent + " columns=" + columnList);
         }
         if (redo) {
-            writePage(headPos, createData());
-            allocatePage(headPos);
+            writePage(rootPageId, createData());
+            allocatePage(rootPageId);
         }
+        metaRootPageId.put(id, rootPageId);
         if (type == META_TYPE_SCAN_INDEX) {
             ObjectArray<Column> columnArray = ObjectArray.newInstance();
             for (int i = 0; i < columns.length; i++) {
@@ -1105,7 +1129,7 @@ public class PageStore implements CacheWriter {
             }
             String[] ops = StringUtils.arraySplit(options, ',', true);
             boolean temp = ops.length == 3 && ops[2].equals("temp");
-            TableData table = new TableData(metaSchema, "T" + id, id, columnArray, temp, true, true, false, headPos, session);
+            TableData table = new TableData(metaSchema, "T" + id, id, columnArray, temp, true, true, false, 0, session);
             CompareMode mode = CompareMode.getInstance(ops[0], Integer.parseInt(ops[1]));
             table.setCompareMode(mode);
             meta = table.getScanIndex(session);
@@ -1130,9 +1154,9 @@ public class PageStore implements CacheWriter {
                 ic.column = column;
                 cols[i] = ic;
             }
-            meta = table.addIndex(session, "I" + id, id, cols, indexType, headPos, null);
+            meta = table.addIndex(session, "I" + id, id, cols, indexType, id, null);
         }
-        metaObjects.put(id, meta);
+        metaObjects.put(id, (PageIndex) meta);
     }
 
     /**
@@ -1140,7 +1164,7 @@ public class PageStore implements CacheWriter {
      *
      * @param index the index
      */
-    public void addIndex(Index index) {
+    public void addIndex(PageIndex index) {
         metaObjects.put(index.getId(), index);
     }
 
@@ -1149,9 +1173,8 @@ public class PageStore implements CacheWriter {
      *
      * @param index the index to add
      * @param session the session
-     * @param headPos the head position
      */
-    public void addMeta(Index index, Session session, int headPos) throws SQLException {
+    public void addMeta(PageIndex index, Session session) throws SQLException {
         int type = index instanceof PageScanIndex ? META_TYPE_SCAN_INDEX : META_TYPE_BTREE_INDEX;
         IndexColumn[] columns = index.getIndexColumns();
         StatementBuilder buff = new StatementBuilder();
@@ -1176,7 +1199,7 @@ public class PageStore implements CacheWriter {
         row.setValue(0, ValueInt.get(index.getId()));
         row.setValue(1, ValueInt.get(type));
         row.setValue(2, ValueInt.get(table.getId()));
-        row.setValue(3, ValueInt.get(headPos));
+        row.setValue(3, ValueInt.get(index.getRootPageId()));
         row.setValue(4, ValueString.get(options));
         row.setValue(5, ValueString.get(columnList));
         row.setPos(index.getId() + 1);
@@ -1286,6 +1309,18 @@ public class PageStore implements CacheWriter {
                 log.logTruncate(session, tableId);
             }
         }
+    }
+
+    int getLogFirstTrunkPage() {
+        return this.logFirstTrunkPage;
+    }
+
+    int getLogFirstDataPage() {
+        return this.logFirstDataPage;
+    }
+
+    public int getRootPageId(PageIndex index) {
+        return metaRootPageId.get(index.getId());
     }
 
     // TODO implement checksum

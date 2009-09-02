@@ -27,11 +27,10 @@ import org.h2.value.ValueNull;
  * This is the most common type of index, a b tree index.
  * Only the data of the indexed columns are stored in the index.
  */
-public class PageBtreeIndex extends BaseIndex {
+public class PageBtreeIndex extends PageIndex {
 
     private PageStore store;
     private TableData tableData;
-    private final int headPos;
     private boolean needRebuild;
     private long rowCount;
 
@@ -41,25 +40,24 @@ public class PageBtreeIndex extends BaseIndex {
         // trace.setLevel(TraceSystem.DEBUG);
         tableData = table;
         if (!database.isPersistent() || id < 0) {
-            this.headPos = 0;
             throw Message.throwInternalError("" + indexName);
         }
         this.store = database.getPageStore();
         store.addIndex(this);
         if (headPos == Index.EMPTY_HEAD) {
             // new index
+            rootPageId = store.allocatePage();
             needRebuild = true;
-            this.headPos = headPos = store.allocatePage();
             // TODO currently the head position is stored in the log
             // it should not for new tables, otherwise redo of other operations
             // must ensure this page is not used for other things
-            store.addMeta(this, session, headPos);
-            PageBtreeLeaf root = new PageBtreeLeaf(this, headPos, store.createData());
+            store.addMeta(this, session);
+            PageBtreeLeaf root = new PageBtreeLeaf(this, rootPageId, store.createData());
             root.parentPageId = PageBtree.ROOT;
             store.updateRecord(root, true, root.data);
         } else {
-            this.headPos = headPos;
-            PageBtree root = getPage(headPos);
+            rootPageId = store.getRootPageId(this);
+            PageBtree root = getPage(rootPageId);
             rowCount = root.getRowCount();
             if (rowCount == 0 && store.isRecoveryRunning()) {
                 needRebuild = true;
@@ -75,10 +73,6 @@ public class PageBtreeIndex extends BaseIndex {
         }
     }
 
-    public int getHeadPos() {
-        return headPos;
-    }
-
     public void add(Session session, Row row) throws SQLException {
         if (trace.isDebugEnabled()) {
             trace.debug("add " + row.getPos());
@@ -86,7 +80,7 @@ public class PageBtreeIndex extends BaseIndex {
         // safe memory
         SearchRow newRow = getSearchRow(row);
         while (true) {
-            PageBtree root = getPage(headPos);
+            PageBtree root = getPage(rootPageId);
             int splitPoint = root.addRowTry(newRow);
             if (splitPoint == -1) {
                 break;
@@ -100,8 +94,8 @@ public class PageBtreeIndex extends BaseIndex {
             int rootPageId = root.getPos();
             int id = store.allocatePage();
             page1.setPageId(id);
-            page1.setParentPageId(headPos);
-            page2.setParentPageId(headPos);
+            page1.setParentPageId(rootPageId);
+            page2.setParentPageId(rootPageId);
             PageBtreeNode newRoot = new PageBtreeNode(this, rootPageId, store.createData());
             newRoot.parentPageId = PageBtree.ROOT;
             newRoot.init(page1, pivot, page2);
@@ -161,7 +155,7 @@ public class PageBtreeIndex extends BaseIndex {
         if (SysProperties.CHECK && store == null) {
             throw Message.getSQLException(ErrorCode.OBJECT_CLOSED);
         }
-        PageBtree root = getPage(headPos);
+        PageBtree root = getPage(rootPageId);
         PageBtreeCursor cursor = new PageBtreeCursor(session, this, last);
         root.find(cursor, first, bigger);
         return cursor;
@@ -180,7 +174,7 @@ public class PageBtreeIndex extends BaseIndex {
             }
             return cursor;
         }
-        PageBtree root = getPage(headPos);
+        PageBtree root = getPage(rootPageId);
         PageBtreeCursor cursor = new PageBtreeCursor(session, this, null);
         root.last(cursor);
         cursor.previous();
@@ -223,7 +217,7 @@ public class PageBtreeIndex extends BaseIndex {
         if (rowCount == 1) {
             removeAllRows();
         } else {
-            PageBtree root = getPage(headPos);
+            PageBtree root = getPage(rootPageId);
             root.remove(row);
             rowCount--;
         }
@@ -234,7 +228,7 @@ public class PageBtreeIndex extends BaseIndex {
             trace.debug("remove");
         }
         removeAllRows();
-        store.freePage(headPos, false, null);
+        store.freePage(rootPageId, false, null);
         store.removeMeta(this, session);
     }
 
@@ -250,11 +244,11 @@ public class PageBtreeIndex extends BaseIndex {
     }
 
     private void removeAllRows() throws SQLException {
-        PageBtree root = getPage(headPos);
+        PageBtree root = getPage(rootPageId);
         root.freeChildren();
-        root = new PageBtreeLeaf(this, headPos, store.createData());
+        root = new PageBtreeLeaf(this, rootPageId, store.createData());
         root.parentPageId = PageBtree.ROOT;
-        store.removeRecord(headPos);
+        store.removeRecord(rootPageId);
         store.updateRecord(root, true, null);
         rowCount = 0;
     }
@@ -356,6 +350,13 @@ public class PageBtreeIndex extends BaseIndex {
 
     public boolean canFindNext() {
         return true;
+    }
+
+    public void setRootPageId(Session session, int newPos) throws SQLException {
+        store.removeMeta(this, session);
+        this.rootPageId = newPos;
+        store.addMeta(this, session);
+        store.addIndex(this);
     }
 
 }

@@ -9,11 +9,13 @@ package org.h2.index;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
 import org.h2.store.DataPage;
 import org.h2.store.Page;
+import org.h2.store.PageStore;
 
 /**
  * A b-tree leaf page that contains index data.
@@ -281,6 +283,26 @@ public class PageBtreeLeaf extends PageBtree {
 
     public String toString() {
         return "page[" + getPos() + "] b-tree leaf table:" + index.getId() + " entries:" + entryCount;
+    }
+
+    public void moveTo(Session session, int newPos) throws SQLException {
+        PageStore store = index.getPageStore();
+        PageBtreeLeaf p2 = new PageBtreeLeaf(index, newPos, store.createData());
+        readAllRows();
+        p2.rows = rows;
+        p2.entryCount = entryCount;
+        p2.offsets = offsets;
+        p2.onlyPosition = onlyPosition;
+        p2.parentPageId = parentPageId;
+        p2.start = start;
+        store.updateRecord(p2, false, null);
+        if (parentPageId == ROOT) {
+            index.setRootPageId(session, newPos);
+        } else {
+            PageBtreeNode p = (PageBtreeNode) store.getPage(parentPageId);
+            p.moveChild(getPos(), newPos);
+        }
+        store.freePage(getPos(), true, data);
     }
 
 }

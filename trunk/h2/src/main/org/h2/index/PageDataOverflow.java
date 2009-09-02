@@ -8,6 +8,7 @@ package org.h2.index;
 
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
+import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.store.Data;
 import org.h2.store.DataPage;
@@ -178,6 +179,11 @@ public class PageDataOverflow extends Page {
 
     void setParent(int parent) {
         this.parentPage = parent;
+    }
+
+    public void moveTo(Session session, int newPos) throws SQLException {
+        // TODO Auto-generated method stub
+
     }
 
 }

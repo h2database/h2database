@@ -7,6 +7,7 @@
 package org.h2.store;
 
 import java.sql.SQLException;
+import org.h2.engine.Session;
 
 /**
  * A data page of a stream. The format is:
@@ -158,6 +159,25 @@ public class PageStreamData extends Page {
     void initRead() {
         data.setPos(DATA_START);
         remaining = length;
+    }
+
+    public void moveTo(Session session, int newPos) throws SQLException {
+//        PageStreamData d2 = new PageStreamData(store, newPos, trunk);
+//        d2.initWrite();
+//        initRead();
+//        byte[] buff = new byte[remaining];
+//        read(buff, 0, remaining);
+//        d2.write(buff, 0, remaining);
+//        store.updateRecord(d2, false, null);
+//        PageStreamTrunk t = (PageStreamTrunk) store.getPage(trunk);
+//        t.moveChild(getPos(), newPos);
+//        store.freePage(getPos(), true, data);
+    }
+
+    void setTrunkPage(int newTrunk) throws SQLException {
+        this.trunk = newTrunk;
+        data.setInt(0, trunk);
+        store.updateRecord(this, true, data);
     }
 
 }

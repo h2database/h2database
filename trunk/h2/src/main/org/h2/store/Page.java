@@ -6,6 +6,9 @@
  */
 package org.h2.store;
 
+import java.sql.SQLException;
+import org.h2.engine.Session;
+
 
 /**
  * A page. Format:
@@ -65,5 +68,14 @@ public abstract class Page extends Record {
      * A stream data page.
      */
     public static final int TYPE_STREAM_DATA = 8;
+
+    /**
+     * Copy the data to a new location, change the parent to point to the new
+     * location, and free up the current page.
+     *
+     * @param session the session
+     * @param newPos the new position
+     */
+    public abstract void moveTo(Session session, int newPos) throws SQLException;
 
 }

@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Native fulltext search: before searching, FT_INIT() had to be called.
+<ul><li>DatabaseMetaData.getPrimaryKeys: the wrong constraint name was reported
+    if there was another constraint on the same table and columns.
+</li><li>AUTO_INCREMENT now works in the same way in ALTER TABLE ALTER COLUMN 
+    as in CREATE TABLE (it does not create a primary key).
+</li><li>Native fulltext search: before searching, FT_INIT() had to be called.
     This is no longer required.
 </li><li>Better support GaeVFS (Google App Engine Virtual File System).
 </li><li>JaQu: the plan is to support natural (pure Java) conditions such as

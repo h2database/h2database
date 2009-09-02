@@ -1,4 +1,34 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id int, constraint pk primary key(id), constraint x unique(id));
+> ok
+
+select constraint_name from information_schema.indexes where table_name = 'TEST';
+> CONSTRAINT_NAME
+> ---------------
+> PK
+> rows: 1
+
+drop table test;
+> ok
+
+create table test(id int, name varchar);
+> ok
+
+alter table test alter column id identity;
+> ok
+
+drop table test;
+> ok
+
+create table test(id int primary key, name varchar);
+> ok
+
+alter table test alter column id int auto_increment;
+> ok
+
+drop table test;
+> ok
+
 create table test(id identity) as select x from system_range(1, 4);
 > ok
 

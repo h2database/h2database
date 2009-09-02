@@ -7,6 +7,7 @@
 package org.h2.store;
 
 import java.sql.SQLException;
+import org.h2.engine.Session;
 
 /**
  * A trunk page of a stream. It contains the page numbers of the stream, and
@@ -178,6 +179,39 @@ public class PageStreamTrunk extends Page {
      */
     public int getMemorySize() {
         return store.getPageSize() >> 2;
+    }
+
+    /**
+     * One of the children has moved to another place.
+     *
+     * @param oldPos the old position
+     * @param newPos the new position
+     */
+    void moveChild(int oldPos, int newPos) throws SQLException {
+        for (int i = 0; i < pageIds.length; i++) {
+            if (pageIds[i] == oldPos) {
+                pageIds[i] = newPos;
+                break;
+            }
+        }
+        store.updateRecord(this, true, data);
+    }
+
+    public void moveTo(Session session, int newPos) throws SQLException {
+//        PageStreamTrunk p2 = new PageStreamTrunk(store, parent, newPos, nextTrunk, pageIds);
+//        store.updateRecord(p2, false, null);
+//        for (int i = 0; i < pageCount; i++) {
+//            int p = pageIds[i];
+//            PageStreamData d = (PageStreamData) store.getPage(p);
+//            if (d != null) {
+//                d.setTrunkPage(newPos);
+//            }
+//        }
+//        if (store.getLogFirstTrunkPage() == getPos()) {
+//            int dataPageId = store.getLogFirstDataPage();
+//            store.setLogFirstPage(newPos, dataPageId);
+//        }
+//        store.freePage(getPos(), true, data);
     }
 
 }

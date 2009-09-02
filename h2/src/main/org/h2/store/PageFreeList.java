@@ -7,6 +7,7 @@ package org.h2.store;
 
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
+import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.util.BitField;
 
@@ -102,7 +103,7 @@ public class PageFreeList extends Page {
         if (free >= pageCount) {
             return -1;
         }
-        return free;
+        return free + getPos();
     }
 
     int getLastUsed() {
@@ -195,6 +196,12 @@ public class PageFreeList extends Page {
      */
     boolean isUsed(int pageId) {
         return used.get(pageId - getPos());
+    }
+
+    public void moveTo(Session session, int newPos) throws SQLException {
+        // the old data does not need to be copied, as free-list pages
+        // at the end of the file are not required
+        store.freePage(getPos(), true, data);
     }
 
 }

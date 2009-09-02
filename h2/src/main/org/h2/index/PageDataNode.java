@@ -329,4 +329,9 @@ public class PageDataNode extends PageData {
         return "page[" + getPos() + "] data node table:" + index.getId() + " entries:" + entryCount;
     }
 
+    public void moveTo(Session session, int newPos) throws SQLException {
+        // TODO Auto-generated method stub
+
+    }
+
 }

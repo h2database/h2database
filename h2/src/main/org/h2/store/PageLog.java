@@ -258,7 +258,7 @@ public class PageLog {
                     int tableId = in.readInt();
                     Row row = readRow(in, data);
                     if (stage == RECOVERY_STAGE_UNDO && x == ADD) {
-                        store.allocateIfHead(pos, tableId, row);
+                        store.allocateIfIndexRoot(pos, tableId, row);
                     } else if (stage == RECOVERY_STAGE_REDO) {
                         if (isSessionCommitted(sessionId, logId, pos)) {
                             if (trace.isDebugEnabled()) {
@@ -517,6 +517,7 @@ public class PageLog {
             }
             session.addLogPos(logSectionId, logPos);
             row.setLastLog(logSectionId, logPos);
+            logPos++;
 
             data.reset();
             data.checkCapacity(row.getByteCount(data));
@@ -545,6 +546,8 @@ public class PageLog {
                 trace.debug("log truncate s:" + session.getId() + " table:" + tableId);
             }
             session.addLogPos(logSectionId, logPos);
+            logPos++;
+
             data.reset();
             out.write(TRUNCATE);
             out.writeInt(session.getId());
@@ -579,6 +582,7 @@ public class PageLog {
         }
         undo = new BitField();
         logSectionId++;
+        logPos = 0;
         pageOut.fillPage();
         int currentDataPage = pageOut.getCurrentDataPageId();
         logSectionPageMap.put(logSectionId, currentDataPage);
@@ -586,6 +590,10 @@ public class PageLog {
 
     int getLogSectionId() {
         return logSectionId;
+    }
+
+    long getLogPos() {
+        return logPos;
     }
 
     /**

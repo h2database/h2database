@@ -9,6 +9,7 @@ package org.h2.index;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Session;
 import org.h2.message.Message;
 import org.h2.result.SearchRow;
 import org.h2.store.Data;
@@ -475,6 +476,44 @@ public class PageBtreeNode extends PageBtree {
 
     public String toString() {
         return "page[" + getPos() + "] b-tree node table:" + index.getId() + " entries:" + entryCount;
+    }
+
+    public void moveTo(Session session, int newPos) throws SQLException {
+        PageStore store = index.getPageStore();
+        PageBtreeNode p2 = new PageBtreeNode(index, newPos, store.createData());
+        readAllRows();
+        p2.childPageIds = childPageIds;
+        p2.rows = rows;
+        p2.entryCount = entryCount;
+        p2.offsets = offsets;
+        p2.onlyPosition = onlyPosition;
+        p2.parentPageId = parentPageId;
+        p2.start = start;
+        store.updateRecord(p2, false, null);
+        if (parentPageId == ROOT) {
+            index.setRootPageId(session, newPos);
+        } else {
+            PageBtreeNode p = (PageBtreeNode) store.getPage(parentPageId);
+            p.moveChild(getPos(), newPos);
+        }
+        for (int i = 0; i < childPageIds.length; i++) {
+            PageBtree p = (PageBtree) store.getPage(childPageIds[i]);
+            p.setParentPageId(newPos);
+            store.updateRecord(p, true, p.data);
+        }
+        store.freePage(getPos(), true, data);
+    }
+
+    public void moveChild(int oldPos, int newPos) throws SQLException {
+        for (int i = 0; i < childPageIds.length; i++) {
+            if (childPageIds[i] == oldPos) {
+                written = false;
+                childPageIds[i] = newPos;
+                index.getPageStore().updateRecord(this, true, data);
+                return;
+            }
+        }
+        throw Message.throwInternalError();
     }
 
 }

@@ -399,4 +399,24 @@ public class PageDataLeaf extends PageData {
         return "page[" + getPos() + "] data leaf table:" + index.getId() + " entries:" + entryCount;
     }
 
+    public void moveTo(Session session, int newPos) throws SQLException {
+//        PageStore store = index.getPageStore();
+//        PageBtreeLeaf p2 = new PageBtreeLeaf(index, newPos, store.createData());
+//        readAllRows();
+//        p2.rows = rows;
+//        p2.entryCount = entryCount;
+//        p2.offsets = offsets;
+//        p2.onlyPosition = onlyPosition;
+//        p2.parentPageId = parentPageId;
+//        p2.start = start;
+//        store.updateRecord(p2, false, null);
+//        if (firstOverflowPageId != 0) {
+//        }
+//        if (parentPageId == ROOT) {
+//        } else {
+//            PageBtreeNode p = (PageBtreeNode) store.getPage(parentPageId);
+//            p.moveChild(getPos(), newPos);
+//        }
+    }
+
 }

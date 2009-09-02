@@ -1238,6 +1238,8 @@ public class Database implements DataHandler {
                     pageStore.checkpoint();
                     pageStore.trim();
                 } catch (Throwable e) {
+                    int test;
+                    // e.printStackTrace(System.out);
                     traceSystem.getTrace(Trace.DATABASE).error("close", e);
                 }
             }

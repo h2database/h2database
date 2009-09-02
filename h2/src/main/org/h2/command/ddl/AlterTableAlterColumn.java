@@ -152,13 +152,13 @@ public class AlterTableAlterColumn extends SchemaCommand {
             } else if (!oldColumn.isNullable() && newColumn.isNullable()) {
                 checkNullable();
             }
-            convertToIdentityIfRequired(newColumn);
+            convertAutoIncrementColumn(newColumn);
             copyData();
             break;
         }
         case ADD: {
             checkNoViews();
-            convertToIdentityIfRequired(newColumn);
+            convertAutoIncrementColumn(newColumn);
             copyData();
             break;
         }
@@ -184,9 +184,14 @@ public class AlterTableAlterColumn extends SchemaCommand {
         return 0;
     }
 
-    private void convertToIdentityIfRequired(Column c) {
+    private void convertAutoIncrementColumn(Column c) throws SQLException {
         if (c.isAutoIncrement()) {
-            c.setOriginalSQL("IDENTITY");
+            if (c.isPrimaryKey()) {
+                c.setOriginalSQL("IDENTITY");
+            } else {
+                int objId = getObjectId(true, true);
+                c.convertAutoIncrementToSequence(session, getSchema(), objId, table.isTemporary());
+            }
         }
     }
 

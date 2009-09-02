@@ -1413,6 +1413,7 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void writeSchema(PrintWriter writer) {
+        writer.println("----------- schema -----------");
         MetaRecord.sort(schema);
         for (MetaRecord m : schema) {
             String sql = m.getSQL();

@@ -215,4 +215,8 @@ public abstract class DbObjectBase implements DbObject {
         }
     }
 
+    public String toString() {
+        return objectName + ":" + id + ":" + super.toString();
+    }
+
 }
